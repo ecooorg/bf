@@ -115,8 +115,7 @@ try {
 
     // Current UI calls the toggle "Expert mode" / "Simple mode". Verify the
     // real mode switch instead of the obsolete "Method" / "Normal mode" labels.
-    const mode = page.locator('.header-actions > button.ghost').filter({ has: page.locator('svg') }).filter({ hasText: /Expert mode|Simple mode/ });
-    const modeButton = page.locator('.header-actions > button.ghost[title="Expert mode"], .header-actions > button.ghost[title="Simple mode"]').first();
+    const modeButton = page.locator('.header-actions button.ghost').filter({ hasText: /Expert mode|Simple mode/ }).first();
     if (await modeButton.count()) {
       const before = await modeButton.getAttribute('title');
       await modeButton.click();
@@ -132,7 +131,10 @@ try {
           ? good(w, 'mode restored')
           : bad(w, 'could not restore previous mode');
       } else bad(w, `no "${expected}" button after mode switch`);
-    } else bad(w, 'no Expert/Simple mode button');
+    } else {
+      const headerButtons = await page.locator('.header-actions button').evaluateAll(els => els.map(e => ({ text: e.textContent?.trim(), title: e.getAttribute('title'), html: e.outerHTML.slice(0, 180) })));
+      bad(w, `no Expert/Simple mode button; header buttons: ${JSON.stringify(headerButtons).slice(0, 500)}`);
+    }
     } catch (e) { bad(w, `test error: ${String(e.message).slice(0, 150)}`); } finally { await ctx?.close().catch(() => {}); }
   }
 } finally { await browser?.close(); server.kill(); }

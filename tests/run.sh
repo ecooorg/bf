@@ -2,6 +2,7 @@
 # Virtual tests: the real server.ts against a fake Gemini. No API key, no internet.
 set -e
 cd "$(dirname "$0")/.."
+tsx tests/bx06-runtime.test.mjs
 tsx tests/server.test.mjs
 tsx tests/infra.test.mjs
 tsx tests/v17.test.mjs

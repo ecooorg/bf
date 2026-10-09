@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   idSchema, projectSchema, stateSchema, projectEventSchema,
-  normalizedRequestSchema, normalizedResponseSchema,
+  normalizedRequestSchema, normalizedResponseSchema, createProjectRequestSchema, updateProjectStateRequestSchema,
   BiForgeError, ValidationError, NotFoundError, ConflictError,
   UnauthorizedError, ForbiddenError, RateLimitedError, UnavailableError,
 } from '../server/contracts.ts';
@@ -38,4 +38,18 @@ test('Error classes expose stable machine-readable codes and retryability', () =
   assert.ok(errors.every((e) => e instanceof BiForgeError && typeof e.code === 'string'));
   assert.equal(errors[5].retryable, true);
   assert.equal(errors[6].retryable, true);
+});
+
+test('BX-05 event and normalized contracts are strict and stable', () => {
+  const event = { id: 'e2', projectId: 'p1', type: 'state.updated', actor: 'human', payload: {} };
+  assert.equal(projectEventSchema.safeParse({ ...event, unexpected: true }).success, false);
+  assert.equal(normalizedRequestSchema.safeParse({ requestId: 'r2', operation: 'generate', input: {}, metadata: {}, unexpected: true }).success, false);
+  assert.equal(normalizedResponseSchema.safeParse({ requestId: 'r2', status: 'error', error: { code: 'UPSTREAM', message: 'failed', retryable: true }, metadata: {} }).success, true);
+});
+
+test('BX-05 project API request contracts reject unknown fields and invalid versions', () => {
+  assert.equal(createProjectRequestSchema.safeParse({ name: 'Project', state: {} }).success, true);
+  assert.equal(createProjectRequestSchema.safeParse({ name: 'Project', isAdmin: true }).success, false);
+  assert.equal(updateProjectStateRequestSchema.safeParse({ expected_version: 1, state: {} }).success, true);
+  assert.equal(updateProjectStateRequestSchema.safeParse({ expected_version: '1', state: {} }).success, false);
 });
