@@ -16,7 +16,7 @@ Make each implementation step small, reviewable, reproducible, and verifiable. T
 If the same model family both implements and reviews, their errors correlate. For steps marked ★ the human review is mandatory and is not replaced by a model review.
 
 ## Standard lifecycle (TZv3.0, section 16.3)
-1. **SPEC** — the owner prepares `.biforge/steps/BX-XX/SPEC.md`: goal, boundaries (what may and may not change), files, PASS criteria, expectation tests. `baseCommit` is fixed. Steps without ★ may use a short form: the SPEC in the PR description or issue.
+1. **SPEC** — the owner prepares `docs/BX-BX-XX/SPEC.md`: goal, boundaries (what may and may not change), files, PASS criteria, expectation tests. `baseCommit` is fixed. Steps without ★ may use a short form: the SPEC in the PR description or issue.
 2. **EXPECTATION TESTS** — if the step needs them, they are committed before implementation and protected by the Test Integrity rule (`tests/acceptance/**`). For ★ steps the owner reads and approves them before implementation starts.
 3. **ASSIGNMENT** — a short instruction to the agent with a link to the SPEC (template: TZv3.0, Appendix A).
 4. **BASELINE** — the agent records branch, base commit, working-tree state, and relevant existing behavior.
@@ -24,7 +24,7 @@ If the same model family both implements and reviews, their errors correlate. Fo
 6. **PR** — one step, one PR (sub-steps `.a`, `.b` are allowed). All required checks must be green.
 7. **REVIEW** — the owner reviews against the checklist (TZv3.0, section 16.6). Guide: 30–90 minutes; for ★ steps up to 2–3 hours plus a second pass by another model.
 8. **MERGE** — performed by the owner only.
-9. **REPORT** — ★ and gate steps: `.biforge/steps/BX-XX/REPORT.md` and an update of `.biforge/current-state.json`. Other steps: the PR description following `STEP_REPORT_TEMPLATE.md`.
+9. **REPORT** — ★ and gate steps: `docs/BX-BX-XX/REPORT.md` and an update of `BIFORGE-STATE.json`. Other steps: the PR description following `STEP_REPORT_TEMPLATE.md`.
 10. **HANDOFF** — the agent proceeds to the next step only on the owner's explicit command.
 
 ## Scope boundaries
