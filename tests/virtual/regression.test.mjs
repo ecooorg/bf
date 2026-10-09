@@ -8,12 +8,13 @@ import { spawn } from 'node:child_process';
 const CASES = JSON.parse(readFileSync(new URL('../fixtures/regression.json', import.meta.url), 'utf8'));
 const PASS = 'test-pass-123', sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const freePort = () => new Promise((res) => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); });
-let answer = {}, hits = 0;
+let answer = {}, retryAnswer = null, hits = 0;
 const fake = http.createServer((req, res) => { req.on('data', () => {}); req.on('end', () => { hits++; res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify(answer) }] }, finishReason: 'STOP' }] })); }); });
+  const responseAnswer = hits > 1 && retryAnswer ? retryAnswer : answer;
+  res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify(responseAnswer) }] }, finishReason: 'STOP' }] })); }); });
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort(); const base = `http://127.0.0.1:${port}`;
-const child = spawn('tsx', ['server.ts'], { stdio: 'inherit', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
+const child = spawn('tsx', ['server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
   SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' } });
 const MARKUP = /\*\*|__|^#{1,6}\s|`|^\s*[*•]\s/m, LABELS = /USER[ _]FACT|GENERAL[ _]KNOWLEDGE|HYPOTHESIS|problemClear|driftDetected|notUnderstoodSignal|\(Source:|USER_DATA|GENERAL_PATTERN/;
 try {
@@ -21,7 +22,7 @@ try {
   const login = await fetch(base + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: PASS }) });
   const cookie = (login.headers.get('set-cookie') || '').split(';')[0];
   for (const c of CASES) {
-    answer = c.model; hits = 0;
+    answer = c.model; retryAnswer = c.retryModel || null; hits = 0;
     let history = [{ role: 'user', content: c.first }];
     if (c.second) history = [...history, { role: 'assistant', content: c.previousAssistant || 'ok' }, { role: 'user', content: c.second }];
     const r = await (await fetch(base + '/api/conversation', { method: 'POST', headers: { 'Content-Type': 'application/json', cookie },
