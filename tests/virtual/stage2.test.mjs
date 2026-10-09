@@ -111,9 +111,9 @@ await withSrv({}, async function B(s) {
   c = await probe({ brief: { decision: 'x' }, history: [{ role: 'user', content: 'x' }], intent: 'HACK' }); T('F3b bad intent dropped', c?.intent === undefined, JSON.stringify(c));
   const p0 = recs[0]?.prompt + recs[0]?.system; for (const k of ['HIGH', 'LIGHT', 'NOTE', 'returningAfterDays', 'CRISIS', 'distressMarkerDetected']) T('F4 prompt mentions ' + k, p0.includes(k));
   T('F5 prompt size sane', p0.length > 5000 && p0.length < 60000, p0.length);
-  // history is capped to 12 messages and 8000 chars each
+  // model input keeps the latest 8 messages; each message is capped at 6000 chars
   recs = []; await s.post('/api/conversation', { brief: { decision: 'x' }, history: Array.from({ length: 30 }, (_, i) => ({ role: 'user', content: 'M' + i + 'y'.repeat(3000) })) });
-  const pr = recs[0]?.prompt || ''; T('F6 history capped 12', !pr.includes('"M17y') && pr.includes('"M18y') && pr.includes('"M29y'), 'len ' + pr.length);
+  const pr = recs[0]?.prompt || ''; T('F6 history capped 8', !pr.includes('"M21y') && pr.includes('"M22y') && pr.includes('"M29y'), 'len ' + pr.length);
 });
 
 // ===== G. crisis ru/es + every marker =====

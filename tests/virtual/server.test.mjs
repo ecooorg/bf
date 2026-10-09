@@ -1,5 +1,8 @@
 // Real server.ts (production mode) + fake Gemini on localhost. Run: npm run test:virtual
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import http from 'node:http';
 import net from 'node:net';
 import { spawn } from 'node:child_process';
@@ -60,9 +63,11 @@ try {
   });
   await t('GET /health: 200, JSON with exactly status and version, no sign-in needed', async () => {
     const r = await fetch(srv.base + '/health');
-    assert.equal(r.status, 200);
+    const distExists = fs.existsSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../dist/index.html'));
+    assert.equal(r.status, distExists ? 200 : 503);
     const j = await r.json();
-    assert.deepEqual(Object.keys(j).sort(), ['status', 'version']);
+    assert.deepEqual(Object.keys(j).sort(), distExists ? ['status', 'version'] : ['code', 'status', 'version']);
+    if (!distExists) assert.equal(j.code, 'DIST_MISSING');
     assert.equal(j.status, 'ok');
     const legacy = await (await fetch(srv.base + '/api/health')).json();
     assert.equal(j.version, legacy.version);
@@ -83,6 +88,14 @@ try {
     const j = await (await fetch(srv.base + '/api/health', { headers: { cookie } })).json();
     assert.ok('lightModels' in j && 'hasKey' in j);
     assert.equal((await (await fetch(srv.base + '/api/session', { headers: { cookie } })).json()).authenticated, true);
+  });
+
+  await t('unknown API route returns JSON 404 after authentication', async () => {
+    const unauth = await fetch(srv.base + '/api/not-a-route');
+    assert.equal(unauth.status, 401);
+    const r = await fetch(srv.base + '/api/not-a-route', { headers: { cookie } });
+    assert.equal(r.status, 404);
+    assert.deepEqual(await r.json(), { success: false, error: 'API route not found', code: 'NOT_FOUND' });
   });
 
   // 1b. File attachments: raw body + X-File-Name (same contract as the browser client).
