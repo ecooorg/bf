@@ -9,37 +9,37 @@ import {
   Decision, emptyDecision, STAGES, LOOPS, Step, Option, ExperimentCard,
   Hypothesis, NeutralItem, Unknown, uid, computeReviewDates, SCHEMA_VERSION,
   Level, Door, HumanDecision, JournalEntry,
-} from './types/decision';
+} from './decision.ts';
 import {
   getStoredDecisions, saveDecisions, getActiveDecisionId, setActiveDecisionId,
   getPrivacyAccepted, setPrivacyAccepted, getMigrationReport, getArchived,
-} from './utils/storage';
-import { exportDecisionJson, exportAllJson, downloadBlob, parseImportedJson, parseImportedBackup } from './utils/exportZip';
-import { DISTRESS_MARKERS, SUPPORT_CONTACTS, hasDistressMarker, findDistressInTexts } from './config/support';
-import { FEATURES, APP_VERSION } from './config';
-import { exportFileName } from './utils/exportName';
-import { useDrive } from './hooks/useDrive';
-import { HistoryPanel } from './components/HistoryPanel';
-import { AutoInput, AutoTextarea } from './components/AutoGrow';
-import { decisionToDocument } from './utils/decisionDocument';
-import { FilesPanel, CopyButton, MessageExtras, ProgramFilesManager } from './components/ConversationFiles';
+} from './storage.ts';
+import { exportDecisionJson, exportAllJson, downloadBlob, parseImportedJson, parseImportedBackup } from './exportZip.ts';
+import { DISTRESS_MARKERS, SUPPORT_CONTACTS, hasDistressMarker, findDistressInTexts } from './support.ts';
+import { FEATURES, APP_VERSION } from './config.ts';
+import { exportFileName } from './exportName.ts';
+import { useDrive } from './useDrive.ts';
+import { HistoryPanel } from './HistoryPanel.tsx';
+import { AutoInput, AutoTextarea } from './AutoGrow.tsx';
+import { decisionToDocument } from './decisionDocument.ts';
+import { FilesPanel, CopyButton, MessageExtras, ProgramFilesManager } from './ConversationFiles.tsx';
 import {
   Attachment, DocumentSpec, applyAttachmentNotes, attachmentOnlyText, collectAttachments, collectDecisionAttachments,
   conversationToDocument, fitRequest, historyForRequest,
-} from './utils/attachments';
-import { migrateAttachmentsFromDecisions, exportProgramFilesPayload, importProgramFilesPayload, archiveAgentDocument, archiveAttachment } from './utils/programFiles';
-import { en } from './i18n/en';
-import { triage, TRIAGE_OUTCOME_TEXT, TRIAGE_OUTCOME_LABEL } from './core/triage';
-import { evpi, evpiRange, evpiVerdict, validateEvpiInput } from './core/evpi';
-import { brierScore } from './core/brier';
-import { cardChecksum } from './core/sha256Export';
-import { buildIcs } from './core/icsBuilder';
-import { detectUiLanguage, installUiLanguage, getStoredUiLanguage } from './i18n/ui';
-import { errorFromResponse, localizedException } from './i18n/errors';
-import { documentToMarkdown, libraryToDocument, planImport, importReport } from './utils/libraryExport';
-import { saveDocumentToGoogleDocs } from './utils/driveExport';
-import { isDriveConfigured } from './utils/driveClient';
-import { downloadDocument, uploadAttachment } from './utils/attachments';
+} from './attachments.ts';
+import { migrateAttachmentsFromDecisions, exportProgramFilesPayload, importProgramFilesPayload, archiveAgentDocument, archiveAttachment } from './programFiles.ts';
+import { en } from './en.ts';
+import { triage, TRIAGE_OUTCOME_TEXT, TRIAGE_OUTCOME_LABEL } from './triage.ts';
+import { evpi, evpiRange, evpiVerdict, validateEvpiInput } from './evpi.ts';
+import { brierScore } from './brier.ts';
+import { cardChecksum } from './sha256Export.ts';
+import { buildIcs } from './icsBuilder.ts';
+import { detectUiLanguage, installUiLanguage, getStoredUiLanguage } from './ui.ts';
+import { errorFromResponse, localizedException } from './errors.ts';
+import { documentToMarkdown, libraryToDocument, planImport, importReport } from './libraryExport.ts';
+import { saveDocumentToGoogleDocs } from './driveExport.ts';
+import { isDriveConfigured } from './driveClient.ts';
+import { downloadDocument, uploadAttachment } from './attachments.ts';
 
 // --- API helper ---
 async function api(path: string, body: unknown) {
