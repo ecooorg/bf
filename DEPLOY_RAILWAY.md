@@ -1,5 +1,9 @@
 # Railway deployment — v1.6.0
 
+> **Document:** DEPLOY_RAILWAY · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, sections 4.4, 13.3–13.6, 14.4, 15, and Appendix E, 9 October 2026)
+
+This file describes how the current application (Simple Mode) is deployed. Project Mode, PostgreSQL, and the other BiForge layers are not part of this version; planned deployment changes are listed in the section "Planned changes (TZv3.0)" below.
+
 The decision method and the answer layer are described in `CHANGELOG_AGENT_BEHAVIOR.md`. Infrastructure changes are kept separate from the decision methodology.
 
 ## Required environment
@@ -22,6 +26,13 @@ If `APP_PASSWORD` is empty in production the site is open to everyone; the serve
 - `MAX_UPLOAD_BYTES` (default 10485760) — largest file the person can attach. `MAX_ATTACH_TEXT_CHARS` (default 30000) — how much text of one file is passed to the model.
 - `LLM_CALL_TIMEOUT_MS` (default 25000), `LLM_TOTAL_DEADLINE_MS` (default 70000), `LLM_ROUND_PAUSE_MS`, `MAX_BODY_BYTES`, `GEMINI_BASE_URL`.
 
+## Health check
+
+- `GET /health` — public liveness probe: JSON with exactly `status` and `version`; no sign-in, no model call, no outbound requests.
+- `GET /api/health` — the same for visitors who are not signed in; signed-in users also get `hasKey`, `authRequired`, and the model lists.
+- Not yet in the Railway configuration: `Healthcheck Path = /health` is not set in `railway.toml`. Until it is, the platform does not detect an unhealthy process by this route (BX-02, TZv3.0, section 15.1).
+- A readiness probe `/ready` (database and migrations) does not exist yet; it appears with PostgreSQL (BX-04).
+
 ## Build / start
 
 Railway uses:
@@ -30,6 +41,21 @@ Railway uses:
 - start: `npm start`
 
 The production server serves the generated `dist/` directory from `server.ts`.
+
+## Planned changes (TZv3.0)
+
+These items are not done in this version. They are the operational fixes of BX-02 (section 15.1) and the later steps; this file will be updated together with each of them.
+
+1. Set `Healthcheck Path = /health` in Railway and describe it in `railway.toml`.
+2. Unknown `/api/*` routes return a JSON 404. Today the catch-all route in production serves `index.html` for them.
+3. Bring `railway.toml`, `nixpacks.toml`, and the Railway panel settings to one description (builder, restart count, start command). The file in the repository is the source of truth. Today the build uses `npm install`; reproducible installs use `npm ci`.
+4. Start production from the compiled `dist` and pin the Node version (today `npm start` runs `tsx server.ts`; `nixpacks.toml` uses Node 22; `package.json` requires Node 20 or newer).
+5. CI on `ecooorg/bf`: lint, typecheck, unit and virtual tests, build, secret scanning; required checks on `main`; "Wait for CI" and auto-deploy from `main` in Railway (section 15.2).
+6. With PostgreSQL (BX-04): migrations under the expand → contract rule so that version N works with schema N−1, daily backup and a restore test (BX-25), structured JSON logs, a protected `/ops` page.
+
+## Paid billing for real data
+
+Files and messages are sent to Gemini (see below). On the free tier of the Gemini API the provider may use data to improve its products; on the paid tier it does not (A-02, confirmed 9 October 2026). Therefore use a **paid billing project with a spending limit or alert** for real data, and keep a free key for synthetic tests only. Set `DAILY_CALL_CAP` as the application's daily ceiling (section 14.4). Connection names and checks for every service are described in Appendix E of the specification (`docs/CONNECTIONS.md` and `connectors.yaml` are created in BX-01.b and filled in BX-10.b).
 
 ## Files in the conversation
 

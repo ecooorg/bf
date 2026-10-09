@@ -1,4 +1,9 @@
 # Manual Drive check (real Google, two devices A and B)
+
+> **Document:** QA_DRIVE_CHECKLIST · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, sections 12.2 and 12.5, 9 October 2026)
+>
+> These checks need real Google accounts and real devices, so they cannot be proven on fake providers. Until the owner has run an item, its status is `REAL_ONLY`, not `PASS`. Record each result as `PASS`, `FAIL`, `BLOCKED` (with the reason), or `REAL_ONLY` (not yet run), with the date, the build version, and the device. Do not mark an item `PASS` from memory or from a mock. This checklist belongs to Simple Mode and stays valid as long as its behavior is unchanged (`check` green).
+
 1. A: connect, save one dialog. B: connect. Both show the dialog; nothing lost on either side.
 2. A and B both edit different dialogs, then save within a few seconds. After one more sync on each, both hold both edits.
 3. A and B edit the same dialog; the later edit wins, the other is in the local backup.
