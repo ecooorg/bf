@@ -67,10 +67,10 @@ async function api(path: string, body: unknown) {
 const stageIndex = (s: Step) => STAGES.findIndex((x) => x.id === s);
 
 // --- Minimal deployment auth + Google Drive storage (infrastructure only) ---
-async function sessionStatus(): Promise<{authenticated:boolean; required:boolean; projectModeEnabled?:boolean}> {
+async function sessionStatus(): Promise<{authenticated:boolean; required:boolean}> {
   const r = await fetch('/api/session', { credentials: 'same-origin' });
   const j = await r.json();
-  return { authenticated: Boolean(j.authenticated), required: Boolean(j.required), projectModeEnabled: Boolean(j.projectModeEnabled) };
+  return { authenticated: Boolean(j.authenticated), required: Boolean(j.required) };
 }
 
 async function loginWithPassword(password: string) {
@@ -126,14 +126,12 @@ export default function App() {
   const [showBrief, setShowBrief] = useState(false);
   const [showProgramFiles, setShowProgramFiles] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
-  const [projectMode, setProjectMode] = useState(false);
   const [migrationReport] = useState(() => getMigrationReport());
   const [authChecked, setAuthChecked] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
-  const [projectModeEnabled, setProjectModeEnabled] = useState(false);
   const [showGoogleAI, setShowGoogleAI] = useState(false);
   const [geminiKey, setGeminiKey] = useState(() => { try { return localStorage.getItem('bifurcation_gemini_key_v15') || ''; } catch { return ''; } });
   const [geminiModel, setGeminiModel] = useState(() => { try { return localStorage.getItem('bifurcation_gemini_model_v15') || 'gemini-3.6-flash'; } catch { return 'gemini-3.6-flash'; } });
@@ -141,7 +139,7 @@ export default function App() {
   const [uiLanguage, setUiLanguage] = useState<'en' | 'ru'>('en');
 
   useEffect(() => {
-    sessionStatus().then(s => { setAuthenticated(s.authenticated); setAuthRequired(s.required); setProjectModeEnabled(Boolean(s.projectModeEnabled)); setAuthChecked(true); }).catch(() => { setAuthChecked(true); setAuthRequired(false); setAuthenticated(true); });
+    sessionStatus().then(s => { setAuthenticated(s.authenticated); setAuthRequired(s.required); setAuthChecked(true); }).catch(() => { setAuthChecked(true); setAuthRequired(false); setAuthenticated(true); });
   }, []);
 
   useEffect(() => {
@@ -485,10 +483,6 @@ export default function App() {
     );
   }
 
-  if (projectMode) {
-    return <ProjectWorkspace onBack={() => setProjectMode(false)} />;
-  }
-
   const d = active;
   const si = stageIndex(d.step);
   const stageMeta = STAGES[si] || STAGES[0];
@@ -517,7 +511,6 @@ export default function App() {
         onDelete={() => removeDecision(d.id)}
         expertMode={expertMode}
         onToggleExpert={() => setExpertMode((v) => !v)}
-        onProjectMode={projectModeEnabled ? () => setProjectMode(true) : undefined}
       />
       <div className={`layout ${expertMode ? '' : 'friendly-layout'}`}>
         {expertMode && <aside className="sidebar method-sidebar">
@@ -689,61 +682,6 @@ function MethodGuide({ step, stageMeta, busy }: { step: Step; stageMeta: typeof 
   );
 }
 
-
-function ProjectWorkspace({ onBack }: { onBack: () => void }) {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [name, setName] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const load = useCallback(async () => {
-    setBusy(true); setError('');
-    try {
-      const response = await fetch('/api/projects', { credentials: 'same-origin' });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) throw new Error(data.error || `Request failed (${response.status})`);
-      setProjects(Array.isArray(data.projects) ? data.projects : []);
-    } catch (e: any) { setError(e.message || 'Could not load projects.'); }
-    finally { setBusy(false); }
-  }, []);
-  useEffect(() => { void load(); }, [load]);
-  const create = async () => {
-    setBusy(true); setError(''); setMessage('');
-    try {
-      const response = await fetch('/api/projects', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) throw new Error(data.error || `Request failed (${response.status})`);
-      setName(''); setMessage('Project created.'); await load();
-    } catch (e: any) { setError(e.message || 'Could not create project.'); }
-    finally { setBusy(false); }
-  };
-  return <div className="shell">
-    <header className="header" style={{ justifyContent: 'space-between' }}>
-      <button className="ghost" onClick={onBack}><ArrowLeft size={14} /> <span className="lbl">Simple Mode</span></button>
-      <strong>Project Mode</strong>
-      <button className="ghost" onClick={() => void load()} disabled={busy}>Refresh</button>
-    </header>
-    <main className="layout" style={{ display: 'block', maxWidth: 900, margin: '24px auto', padding: '0 16px' }}>
-      <div className="panel">
-        <h2>Projects</h2>
-        <p>Projects are stored on the server in PostgreSQL. Simple Mode data remains separate.</p>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input className="input" aria-label="Project name" value={name} maxLength={200} placeholder="New project name" onChange={e => setName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && name.trim()) void create(); }} />
-          <button className="primary" disabled={busy || !name.trim()} onClick={() => void create()}><Plus size={14} /> Create project</button>
-        </div>
-        {error && <p className="alert error" role="alert">{error}</p>}
-        {message && <p role="status">{message}</p>}
-        {busy && <p>Loading…</p>}
-        {!busy && projects.length === 0 && <p>No projects yet.</p>}
-        {projects.map(project => <div key={project.id} className="panel" style={{ marginTop: 12 }}>
-          <strong>{project.name}</strong><p>Status: {project.status} · State version: {project.state_version ?? '—'}</p>
-          <small>Created: {project.created_at ? new Date(project.created_at).toLocaleString() : '—'}</small>
-        </div>)}
-      </div>
-    </main>
-  </div>;
-}
-
 // --- Header ---
 function Header(props: {
   onNew: () => void;
@@ -756,7 +694,6 @@ function Header(props: {
   onDelete?: () => void;
   expertMode?: boolean;
   onToggleExpert?: () => void;
-  onProjectMode?: () => void;
   onDrive?: () => void;
   driveConnected?: boolean;
   driveBusy?: boolean;
@@ -785,13 +722,8 @@ function Header(props: {
     <header className="header" style={{ justifyContent: 'flex-end' }}>
       <div className="header-actions">
         {props.onToggleExpert && (
-          <button className="ghost" onClick={props.onToggleExpert} title={props.expertMode ? 'Hide method details' : 'Show method details'}>
-            <SlidersHorizontal size={14} /> <span className="lbl">{props.expertMode ? 'Hide method' : 'Method details'}</span>
-          </button>
-        )}
-        {props.onProjectMode && (
-          <button className="ghost" onClick={props.onProjectMode} title="Open server-backed Project Mode">
-            <BrainCircuit size={14} /> <span className="lbl">Project Mode</span>
+          <button className="ghost" onClick={props.onToggleExpert} title={props.expertMode ? 'Simple mode' : 'Expert mode'}>
+            <SlidersHorizontal size={14} /> <span className="lbl">{props.expertMode ? 'Simple mode' : 'Expert mode'}</span>
           </button>
         )}
         <button className="ghost" onClick={props.onNew} title="New"><Plus size={14} /> <span className="lbl">New</span></button>
