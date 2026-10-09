@@ -68,7 +68,7 @@ try {
     const j = await r.json();
     assert.deepEqual(Object.keys(j).sort(), distExists ? ['status', 'version'] : ['code', 'status', 'version']);
     if (!distExists) assert.equal(j.code, 'DIST_MISSING');
-    assert.equal(j.status, 'ok');
+    assert.equal(j.status, distExists ? 'ok' : 'error');
     const legacy = await (await fetch(srv.base + '/api/health')).json();
     assert.equal(j.version, legacy.version);
   });
