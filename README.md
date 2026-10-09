@@ -2,7 +2,7 @@
 
 > **Document:** README · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, 9 October 2026)
 
-Decision cockpit implementing the **Before You Choose** method BE (Bifurcation Engine).
+Decision cockpit implementing the **Before You Choose** method (Bifurcation Engine).
 
 International edition: English interface, USD examples, no regional localization. People can write to the agent in any language: it answers in the language it is written to, and the interface can be translated with the browser.
 

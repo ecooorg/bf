@@ -19,7 +19,7 @@
     "test:sync": "tsx tests/driveSync.test.mjs",
     "test:files": "tsx tests/files.test.mjs",
     "test:drivedocs": "tsx tests/driveDocs.test.mjs",
-    "check": "node scripts/check-version.mjs && npm run check:docs && npm run test:version && npm run lint:copy && npm run typecheck && npm run test:merge && npm run test:security && npm run test:core && npm run test:reasoning && npm run test:export && npm run test:sync && npm run test:files && npm run test:drivedocs && npm run test:database && npm run test:contracts && npm run test:library && npm run test:package-c && npm run test:virtual && npm run test:bx06",
+    "check": "node scripts/check-version.mjs && npm run check:docs && npm run test:version && npm run lint:copy && npm run typecheck && npm run test:merge && npm run test:security && npm run test:core && npm run test:reasoning && npm run test:export && npm run test:sync && npm run test:files && npm run test:drivedocs && npm run test:database && npm run test:contracts && npm run test:library && npm run test:package-c && npm run test:virtual",
     "test:virtual": "bash tests/run.sh",
     "test:ui": "node --import tsx tests/ui-check.mjs",
     "test:version": "node tests/version-check.test.mjs",
@@ -28,8 +28,7 @@
     "check:docs": "node scripts/check-docs.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "test:database": "node tests/database-contract.test.mjs",
-    "test:contracts": "node --import tsx --test tests/contracts.test.mjs",
-    "test:bx06": "node --test tests/bx06-contract.test.mjs"
+    "test:contracts": "node --import tsx --test tests/contracts.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "BiForge",
-  "currentStep": "BX-06",
+  "currentStep": "BX-05",
   "completed": [
     "BX-01.b"
   ],
@@ -9,8 +9,7 @@
     "BX-01.a",
     "BX-02",
     "BX-03.a",
-    "BX-05",
-    "BX-06"
+    "BX-05"
   ],
   "blocked": [
     {
@@ -27,13 +26,9 @@
     },
     {
       "step": "BX-05",
-      "reason": "Implementation added; npm run check and integration acceptance remain unverified because dependencies could not be installed. package-lock.json root declares pg but node_modules/pg entry is missing."
-    },
-    {
-      "step": "BX-06",
-      "reason": "Implementation is preliminary. npm ci timed out; package-lock is unsynchronized (pg package entry missing), so typecheck/build/full check and PostgreSQL integration acceptance are not verified. Do not enable Project Mode in production until resolved."
+      "reason": "Implementation added; acceptance tests and npm run check not run because dependencies are unavailable in this environment. package-lock synchronization from BX-04 remains unverified."
     }
   ],
-  "nextStep": "BX-06 acceptance / lockfile repair",
+  "nextStep": "BX-05",
   "updatedAt": "2026-10-09"
 }
