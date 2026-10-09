@@ -22,7 +22,7 @@ The agent may be any model or tool chosen by the owner (D-16). The contract is t
 
 ## 3. Establish the baseline
 Before editing:
-1. Read the SPEC: `.biforge/steps/BX-XX/SPEC.md`, or the SPEC in the PR description or issue for steps without ★ (TZv3.0, section 16.3).
+1. Read the SPEC: `docs/BX-BX-XX/SPEC.md`, or the SPEC in the PR description or issue for steps without ★ (TZv3.0, section 16.3).
 2. Identify the current branch and the exact base commit; it must match `baseCommit` in the SPEC.
 3. Check the working tree and existing changes.
 4. Read relevant files and tests, including expectation tests committed before implementation.
@@ -70,7 +70,7 @@ Never overwrite or discard user changes to make the task easier.
 
 ## 8. Required delivery
 Every step ends with a report that follows `docs/STEP_REPORT_TEMPLATE.md`:
-- **Steps marked ★ and gate steps:** `.biforge/steps/BX-XX/REPORT.md` and an update of `.biforge/current-state.json` (what was done, tests, deviations, limitations, next step).
+- **Steps marked ★ and gate steps:** `docs/BX-BX-XX/REPORT.md` and an update of `BIFORGE-STATE.json` (what was done, tests, deviations, limitations, next step).
 - **Other steps:** the PR description is the report; a separate file is not required.
 
 Every report contains:
