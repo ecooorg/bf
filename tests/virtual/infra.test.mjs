@@ -41,12 +41,21 @@ async function startServer(env = {}) {
   const cookie = (login.headers.get('set-cookie') || '').split(';')[0];
   const neutralize = (headers = {}) => fetch(base + '/api/neutralize', { method: 'POST', headers: { 'Content-Type': 'application/json', cookie, ...headers },
     body: JSON.stringify({ brief: { decision: 'Should I move to another city?' } }) });
-  return { neutralize, stop: () => new Promise((r) => { child.once('exit', r); child.kill(); }) };
+  return { base, neutralize, stop: () => new Promise((r) => { child.once('exit', r); child.kill(); }) };
 }
 let n = 0; const t = async (name, fn) => { calls.length = 0; await fn(); n++; console.log('ok -', name); };
 
 try {
   let s = await startServer({ DAILY_CALL_CAP: '1000' });
+
+  await t('public liveness and explicit not-ready status', async () => {
+    const health = await fetch(s.base + '/health');
+    assert.equal(health.status, 200);
+    assert.equal((await health.json()).status, 'ok');
+    const ready = await fetch(s.base + '/ready');
+    assert.equal(ready.status, 503);
+    assert.equal((await ready.json()).reason, 'database_not_configured');
+  });
 
   await t('format failure: one retry on another model, not the whole chain', async () => {
     behave = () => ({ status: 200, text: 'this is not json' });
