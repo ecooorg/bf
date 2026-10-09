@@ -55,7 +55,7 @@ A command that was not executed is `NOT_RUN`, not `PASS`. A command that could n
 ## Virtual testing
 Mocks, stubs, simulations, fake providers, and virtual harnesses can provide useful evidence but must be identified as such. Tests on fake providers prove the handling of scenarios and errors; they do not prove availability and compatibility of a real provider. Do not present virtual results as proof of behavior against a real provider, production service, or deployed environment. The real smoke test is mandatory and is `REAL_ONLY` until executed. Development agents have no secrets; real smoke tests are run by the owner, or by CI with protected secrets (TZv3.0, section 16.3).
 
-The detailed methodology is in `docs/workflow/universal_testing_protocol.md`.
+The detailed methodology is in `docs/universal_testing_protocol.md`.
 
 ## Acceptance
 A step is not accepted solely because a build passed. Compare the actual diff and test evidence with the step's acceptance criteria (TZv3.0, section 16.4) and, at the gates, with sections 17 and 18 (18.0 for G1a, 18.1 for G2, 18.2 for the pilot, 18.3 general criteria).
