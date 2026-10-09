@@ -15,13 +15,13 @@ if (!(read('CHANGELOG_AGENT_BEHAVIOR.md') || '').includes(`## v${V}`)) errors.pu
 const server = read('server.ts') || '';
 if (/const\s+APP_VERSION\s*=/.test(server)) errors.push('server.ts defines its own APP_VERSION');
 if (!/import\s*\{[^}]*APP_VERSION[^}]*\}\s*from\s*'\.\/src\/config/.test(server)) errors.push('server.ts does not import APP_VERSION from src/config');
-for (const f of ['src/i18n/en.ts', 'src/core/icsBuilder.ts'])
+for (const f of ['src/en.ts', 'src/icsBuilder.ts'])
   if (!(read(f) || '').includes('APP_VERSION')) errors.push(f + ' does not use APP_VERSION');
 
 // No stale numbers/labels as the current version. Storage keys and file names such as
 // bifurcation-v13-library.json or *_v15 are not matched (preceded by - or _).
-const files = ['README.md','DEPLOY_RAILWAY.md','server.ts','src/App.tsx','src/config.ts','src/i18n/en.ts',
-  'src/core/icsBuilder.ts','index.html','railway.toml','.env.example'];
+const files = ['README.md','DEPLOY_RAILWAY.md','server.ts','src/App.tsx','src/config.ts','src/en.ts',
+  'src/icsBuilder.ts','index.html','railway.toml','.env.example'];
 const stale = /(?<![\w-])v(?:1\d)(?![\w])|\b1\d\.\d+\.\d+(?:-\w+)?\b|recovery/i;
 // Older labels are allowed only in the changelog, and in code comments that name the version that introduced a rule.
 for (const f of files) (read(f) || '').split('\n').forEach((line, i) => {
