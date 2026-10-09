@@ -2,3 +2,6 @@ node_modules
 dist
 tests/ui/_local*
 ui-welcome-*.png
+
+# Compiled production server output
+dist-server/

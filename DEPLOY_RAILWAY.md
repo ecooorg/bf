@@ -79,3 +79,10 @@ The app requests only `https://www.googleapis.com/auth/drive.appdata` and stores
 ## Important constraint
 
 Do not change the decision prompts or state logic while validating a build. Infrastructure changes are deliberately kept separate from the decision methodology.
+
+
+## Project Mode (BX-06, opt-in)
+
+Project Mode is deliberately disabled by default so existing Simple Mode deployments keep their behavior. To enable it, configure all of the following in Railway: `ENABLE_PROJECT_MODE=true`, `ENABLE_APP_AUTH=true`, a non-empty strong `APP_PASSWORD`, a random `SESSION_SECRET` of at least 16 characters, and `DATABASE_URL` pointing at PostgreSQL. The build creates the browser bundle in `dist/` and compiles the server to `dist-server/`; production starts with Node from the compiled output. The startup command runs `npm run db:migrate` before launching the server whenever `DATABASE_URL` is configured; if Project Mode is enabled, required security settings are validated before migration. Do not enable Project Mode until the PostgreSQL service and backup policy are configured.
+
+The Project Mode UI is available at `/project`; its API is under `/api/projects`. Requests require a signed session, same-origin protection for browser writes, and a PostgreSQL-backed per-IP request limiter. `/ready` returns 503 until the required BX-04 migration is present. Simple Mode remains at `/`.

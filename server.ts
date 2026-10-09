@@ -9,7 +9,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
 import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.ts';
 
@@ -20,19 +19,27 @@ import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, 
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { checkDatabase } from './server/database.ts';
+import { consumeRateLimit, createProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
+import { createProjectRequestSchema, updateProjectStateRequestSchema } from './server/contracts.ts';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// Source execution uses ./dist; compiled production server lives in ./dist-server.
+const DIST_DIR = path.basename(__dirname) === 'dist-server' ? path.resolve(__dirname, '../dist') : path.resolve(__dirname, 'dist');
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_BODY = Number(process.env.MAX_BODY_BYTES) || 256 * 1024;
 const APP_PASSWORD = process.env.APP_PASSWORD || '';
+// Project Mode is opt-in so existing Simple Mode deployments remain unchanged.
+const PROJECT_MODE_ENABLED = process.env.ENABLE_PROJECT_MODE === 'true';
 const APP_AUTH_ENABLED = Boolean(APP_PASSWORD) && process.env.ENABLE_APP_AUTH !== 'false';
 const SESSION_SECRET = process.env.SESSION_SECRET || '';
 const signer = createSessionSigner(SESSION_SECRET || 'auth-disabled');
-const loginLimiter = new LoginLimiter(Number(process.env.LOGIN_MAX_FAILS) || 10, (Number(process.env.LOGIN_WINDOW_MIN) || 15) * 60 * 1000);
+const LOGIN_MAX_FAILS = Number(process.env.LOGIN_MAX_FAILS) || 10;
+const LOGIN_WINDOW_MS = (Number(process.env.LOGIN_WINDOW_MIN) || 15) * 60 * 1000;
+const loginLimiter = new LoginLimiter(LOGIN_MAX_FAILS, LOGIN_WINDOW_MS);
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function cookieValue(req: express.Request, name: string): string | null {
@@ -172,24 +179,55 @@ function checkRate(req: express.Request, res: express.Response): boolean {
 
 // Minimal password session endpoints. The decision engine itself is unchanged.
 app.get('/api/session', (req, res) => {
-  res.json({ success: true, authenticated: authenticated(req), required: APP_AUTH_ENABLED });
+  // Expose only the non-sensitive feature flag so the legacy UI can offer a
+  // Project Mode entry point only when the server has it enabled.
+  res.json({ success: true, authenticated: authenticated(req), required: APP_AUTH_ENABLED, projectModeEnabled: PROJECT_MODE_ENABLED });
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   if (!APP_AUTH_ENABLED) return res.json({ success: true, authenticated: true, required: false });
   const password = String(req.body?.password || '');
   const a = Buffer.from(password);
   const b = Buffer.from(APP_PASSWORD);
   const ip = clientIp(req);
-  const wait = loginLimiter.retryAfterSec(ip);
-  if (wait > 0) {
-    res.setHeader('Retry-After', String(wait));
-    return res.status(429).json({ success: false, code: 'TOO_MANY_ATTEMPTS', retryAfter: wait,
-      error: `Too many failed sign-in attempts. Please try again in ${Math.ceil(wait / 60)} minute(s).` });
+
+  // BX-06 / TZ §13.4: when Project Mode is enabled, login throttling must be
+  // shared across restarts and replicas. Fail closed if PostgreSQL cannot enforce it.
+  if (PROJECT_MODE_ENABLED) {
+    try {
+      const limit = await consumeRateLimit({ key: `login:${ip}`, limit: LOGIN_MAX_FAILS, windowMs: LOGIN_WINDOW_MS });
+      if (!limit.allowed) {
+        const wait = Math.max(1, Math.ceil((limit.resetsAt.getTime() - Date.now()) / 1000));
+        res.setHeader('Retry-After', String(wait));
+        return res.status(429).json({ success: false, code: 'TOO_MANY_ATTEMPTS', retryAfter: wait,
+          error: `Too many sign-in attempts. Please try again in ${Math.ceil(wait / 60)} minute(s).` });
+      }
+    } catch (error) {
+      console.error(JSON.stringify({ type: 'login_rate_limit_unavailable', message: String((error as Error)?.message || error).slice(0, 160) }));
+      return res.status(503).json({ success: false, code: 'RATE_LIMIT_UNAVAILABLE', error: 'Sign-in protection is temporarily unavailable.' });
+    }
+  } else {
+    // Preserve the legacy Simple Mode behaviour when no Project Mode database is configured.
+    const wait = loginLimiter.retryAfterSec(ip);
+    if (wait > 0) {
+      res.setHeader('Retry-After', String(wait));
+      return res.status(429).json({ success: false, code: 'TOO_MANY_ATTEMPTS', retryAfter: wait,
+        error: `Too many failed sign-in attempts. Please try again in ${Math.ceil(wait / 60)} minute(s).` });
+    }
   }
+
   const ok = a.length === b.length && a.length > 0 && crypto.timingSafeEqual(a, b);
-  if (!ok) loginLimiter.recordFailure(ip);
-  if (!ok) return res.status(401).json({ success: false, error: 'Invalid password', code: 'INVALID_PASSWORD' });
+  if (!ok) {
+    if (!PROJECT_MODE_ENABLED) loginLimiter.recordFailure(ip);
+    return res.status(401).json({ success: false, error: 'Invalid password', code: 'INVALID_PASSWORD' });
+  }
+  if (PROJECT_MODE_ENABLED) {
+    try { await recordAuditEvent({ eventType: 'auth.login.succeeded', actor: 'human', details: { auth_mode: 'password' } }); }
+    catch (error) {
+      console.error(JSON.stringify({ type: 'login_audit_unavailable', message: String((error as Error)?.message || error).slice(0, 160) }));
+      return res.status(503).json({ success: false, code: 'AUDIT_UNAVAILABLE', error: 'Sign-in audit is temporarily unavailable.' });
+    }
+  }
   setSession(res);
   res.json({ success: true, authenticated: true, required: true });
 });
@@ -208,6 +246,81 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// BX-06: Project Mode has an independent, mandatory security boundary. It is
+// deliberately opt-in to avoid changing legacy Simple Mode deployments.
+app.use('/api/projects', async (req, res, next) => {
+  if (!PROJECT_MODE_ENABLED) return res.status(404).json({ success: false, error: 'Project Mode is disabled', code: 'PROJECT_MODE_DISABLED' });
+  if (!APP_AUTH_ENABLED || !authenticated(req)) return res.status(401).json({ success: false, error: 'Project Mode authentication required', code: 'UNAUTHORIZED' });
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    const origin = req.get('origin');
+    if (!origin || !isSameOrigin(origin, req.get('host'), req.protocol)) {
+      return res.status(403).json({ success: false, error: 'Project Mode writes require a same-origin request', code: 'CSRF_ORIGIN' });
+    }
+  }
+  if (!process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Project Mode database is not configured', code: 'DATABASE_UNAVAILABLE' });
+  try {
+    const key = `project-api:${clientIp(req)}`;
+    const result = await consumeRateLimit({ key, limit: Number(process.env.PROJECT_RATE_LIMIT_PER_MINUTE) || 60, windowMs: 60_000 });
+    if (!result.allowed) {
+      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((result.resetsAt.getTime() - Date.now()) / 1000))));
+      return res.status(429).json({ success: false, error: 'Project Mode request limit exceeded', code: 'RATE_LIMITED' });
+    }
+    next();
+  } catch (error) {
+    console.error(JSON.stringify({ type: 'project_rate_limit_unavailable', message: String((error as Error)?.message || error).slice(0, 160) }));
+    return res.status(503).json({ success: false, error: 'Project Mode rate limiter is unavailable', code: 'RATE_LIMIT_UNAVAILABLE' });
+  }
+});
+
+app.get('/api/projects', async (req, res) => {
+  try {
+    const limit = req.query.limit === undefined ? 100 : Number(req.query.limit);
+    res.json({ success: true, data: await listProjects(limit) });
+  } catch (error) { projectError(res, error); }
+});
+
+app.post('/api/projects', async (req, res) => {
+  try {
+    const input = createProjectRequestSchema.parse(req.body);
+    const project = await createProject({ name: input.name, state: input.state ?? {} });
+    res.status(201).json({ success: true, data: project });
+  } catch (error) { projectError(res, error); }
+});
+
+app.get('/api/projects/:projectId', async (req, res) => {
+  try {
+    const project = await getProject(req.params.projectId);
+    if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+    res.json({ success: true, data: project });
+  } catch (error) { projectError(res, error); }
+});
+
+app.get('/api/projects/:projectId/versions', async (req, res) => {
+  try {
+    const limit = req.query.limit === undefined ? 50 : Number(req.query.limit);
+    res.json({ success: true, data: await listStateVersions(req.params.projectId, limit) });
+  } catch (error) { projectError(res, error); }
+});
+
+app.put('/api/projects/:projectId/state', async (req, res) => {
+  try {
+    const input = updateProjectStateRequestSchema.parse(req.body);
+    const result = await updateProjectState({ projectId: req.params.projectId, expectedVersion: input.expected_version, state: input.state, actor: 'human', sourceRef: 'api:state-update' });
+    res.json({ success: true, data: result });
+  } catch (error) { projectError(res, error); }
+});
+
+function projectError(res: express.Response, error: unknown) {
+  const e = error as { code?: string; message?: string; expectedVersion?: number; actualVersion?: number; name?: string };
+  if (error instanceof StateVersionConflict || e?.code === 'CONFLICT') {
+    return res.status(409).json({ success: false, error: 'State version conflict', code: 'CONFLICT', expected_version: e.expectedVersion, actual_version: e.actualVersion });
+  }
+  if (e?.code === 'NOT_FOUND') return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+  if (e?.name === 'ZodError' || e?.name === 'ValidationError') return res.status(400).json({ success: false, error: 'Invalid project data', code: 'VALIDATION' });
+  console.error(JSON.stringify({ type: 'project_api_error', message: String(e?.message || error).slice(0, 180) }));
+  return res.status(500).json({ success: false, error: 'Project operation failed', code: 'INTERNAL' });
+}
 
 const BASE_SYSTEM = `You are an analytical engine for a complex decision (Bifurcation Engine). The human keeps the right to decide: do not choose for them and do not substitute their values.
 Do not imitate a person with life experience or feelings. Use what you are strong at: structuring, exposing hidden assumptions and contradictions, generating the space of possible actions, critique from the opposite side, scenarios, judging which unknown matters most, designing cheap tests, calculation on the user's own numbers.
@@ -661,6 +774,10 @@ async function generate(
           console.warn(JSON.stringify({ type: 'llm_format', model, stage, reason: problem.slice(0, 120) }));
           if (formatFailures > 1) throw new GeminiFormatError();
           repairHint = '\n\nPREVIOUS RESPONSE was not valid JSON. Reply with one valid JSON object only.';
+          // Prefer a different model on the retry. If the configured pool has
+          // only one available model, retry that model once with the repair hint
+          // rather than failing without giving it a chance to correct its output.
+          if (localIndex === chain.length - 1 && chain.length === 1 && attempts < MAX_MODEL_CALLS) localIndex--;
           continue;
         }
         noteModelSuccess(model, latencyMs);
@@ -735,7 +852,7 @@ function fail(res: express.Response, status: number, error: string, code?: strin
 registerHealthRoutes(app, {
   appVersion: APP_VERSION, nodeEnv: NODE_ENV, appAuthEnabled: APP_AUTH_ENABLED,
   hasApiKey: Boolean(apiKey), lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS,
-  isAuthenticated: authenticated, distDirectory: path.join(__dirname, 'dist'),
+  isAuthenticated: authenticated, distDirectory: DIST_DIR,
   skipDistHealthcheck: process.env.SKIP_DIST_HEALTHCHECK === 'true',
   isDatabaseReady: process.env.DATABASE_URL ? () => checkDatabase() : undefined,
 });
@@ -1932,6 +2049,15 @@ app.use('/api', (req, res) => {
 });
 
 async function start() {
+  if (PROJECT_MODE_ENABLED && (!APP_PASSWORD || process.env.ENABLE_APP_AUTH === 'false')) {
+    throw new Error('ENABLE_PROJECT_MODE=true requires APP_PASSWORD and ENABLE_APP_AUTH=true; Project Mode must never start without authentication.');
+  }
+  if (PROJECT_MODE_ENABLED && !SESSION_SECRET) {
+    throw new Error('ENABLE_PROJECT_MODE=true requires SESSION_SECRET.');
+  }
+  if (PROJECT_MODE_ENABLED && !process.env.DATABASE_URL) {
+    throw new Error('ENABLE_PROJECT_MODE=true requires DATABASE_URL.');
+  }
   if (APP_AUTH_ENABLED && SESSION_SECRET.length < 16) {
     throw new Error('SESSION_SECRET is required (at least 16 characters) when password sign-in is enabled.');
   }
@@ -1939,15 +2065,16 @@ async function start() {
     console.error('!!! WARNING: password sign-in is DISABLED in production (APP_PASSWORD empty or ENABLE_APP_AUTH=false). The site and its AI endpoints are open to everyone. !!!');
   }
   if (NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(__dirname, 'dist')));
+    app.use(express.static(DIST_DIR));
     app.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+      res.sendFile(path.join(DIST_DIR, 'index.html'));
     });
   }
   app.listen(PORT, () => {

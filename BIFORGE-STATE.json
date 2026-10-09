@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "project": "BiForge",
-  "currentStep": "BX-05",
+  "currentStep": "BX-06",
   "completed": [
     "BX-01.b"
   ],
@@ -9,26 +9,41 @@
     "BX-01.a",
     "BX-02",
     "BX-03.a",
-    "BX-05"
+    "BX-03.b",
+    "BX-04",
+    "BX-05",
+    "BX-06"
   ],
   "blocked": [
     {
       "step": "BX-01.a",
-      "reason": "virtual-stage2 reports J3 bad-JSON retry failures; owner chose to continue because they do not affect observed Simple Mode usage. Preserve failure evidence; do not mark baseline fully green."
+      "reason": "J3 bad-JSON retry behavior fixed for a one-model pool in source; full virtual suite not run because npm dependencies cannot be downloaded in this environment."
     },
     {
       "step": "BX-02",
-      "reason": "Railway dashboard healthcheck setting and live deployment cannot be verified from repository files."
+      "reason": "Repository health/readiness and CI improved; Railway dashboard healthcheck, live deployment, and manual A-09 pilot require owner access."
     },
     {
       "step": "BX-03.a",
-      "reason": "Health route extraction is implemented but characterization tests/check have not been run in this environment because node_modules is absent."
+      "reason": "Health route and server production compilation work started; full characterization suite/typecheck/build cannot be run without installed dependencies."
+    },
+    {
+      "step": "BX-03.b",
+      "reason": "UI mode toggle is now present on both empty and active Simple Mode headers; Project Mode navigation is exposed only when ENABLE_PROJECT_MODE is true. ProjectMode refresh handling and logout were hardened. Playwright/browser checks and the owner manual checklist remain unverified because npm dependencies/browser installation could not be completed in this environment."
+    },
+    {
+      "step": "BX-04",
+      "reason": "Migration runner now uses advisory lock and CI defines PostgreSQL integration tests; no live PostgreSQL service available in this execution environment."
     },
     {
       "step": "BX-05",
-      "reason": "Implementation added; acceptance tests and npm run check not run because dependencies are unavailable in this environment. package-lock synchronization from BX-04 remains unverified."
+      "reason": "Contracts and tests extended; full npm ci and test suite remain unverified because npm registry is inaccessible."
+    },
+    {
+      "step": "BX-06",
+      "reason": "Project Mode API/UI, fail-closed startup auth, same-origin write checks, PostgreSQL-backed request limits, conditional navigation, and logout are implemented in source. Static BX-06 tests pass; dynamic API/PostgreSQL tests and live deployment checks remain unverified because dependencies and a live PostgreSQL service were unavailable."
     }
   ],
-  "nextStep": "BX-05",
+  "nextStep": "BX-06",
   "updatedAt": "2026-10-09"
 }
