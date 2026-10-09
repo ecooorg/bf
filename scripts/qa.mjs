@@ -36,6 +36,8 @@ const tasks = [
   ['virtual-stage2', npm, ['exec', '--', 'tsx', 'tests/virtual/stage2.test.mjs']],
 ];
 const results = [];
+const hasTsx = fs.existsSync(path.join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx'));
+const hasViteClient = fs.existsSync(path.join(root, 'node_modules', 'vite', 'client.d.ts'));
 const startedAt = new Date().toISOString();
 console.log(`BiForge QA — ${startedAt}\nRunning ${tasks.length} independent checks.`);
 for (const [id, command, args] of tasks) {
@@ -44,11 +46,16 @@ for (const [id, command, args] of tasks) {
   let stdout = '', stderr = '', exitCode = null, signal = null, status = 'FAIL';
   try {
     const needsDeps = command === npm;
-    if (needsDeps && !fs.existsSync(path.join(root, 'node_modules'))) {
+    const requiresTsx = args.includes('tsx') || args.some(arg => /^test:(merge|security|core|reasoning|export|sync|files|drivedocs|library)$/.test(arg));
+    const missing = [];
+    if (needsDeps && !fs.existsSync(path.join(root, 'node_modules'))) missing.push('node_modules is missing');
+    if (requiresTsx && !hasTsx) missing.push('local tsx executable is missing');
+    if (id === 'typecheck' && !hasViteClient) missing.push('vite/client type definitions are missing');
+    if (missing.length) {
       status = 'BLOCKED';
-      stderr = 'Dependencies are not installed (node_modules is missing). Run npm ci before this check.';
+      stderr = `${missing.join('; ')}. Install the locked dependencies with npm ci and rerun QA.`;
     } else {
-      const r = spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: 600000, maxBuffer: 20 * 1024 * 1024, env: { ...process.env, CI: process.env.CI || '1' } });
+      const r = spawnSync(command, args, { cwd: root, encoding: 'utf8', timeout: 90000, maxBuffer: 20 * 1024 * 1024, env: { ...process.env, CI: process.env.CI || '1' } });
       stdout = r.stdout || ''; stderr = r.stderr || ''; exitCode = r.status; signal = r.signal || null;
       if (r.error) stderr += `\nRunner error: ${r.error.stack || r.error.message}\n`;
       status = r.error?.code === 'ETIMEDOUT' ? 'BLOCKED' : exitCode === 0 ? 'PASS' : 'FAIL';
