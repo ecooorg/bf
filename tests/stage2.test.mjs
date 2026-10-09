@@ -3,7 +3,7 @@
 import http from 'node:http'; import net from 'node:net'; import fs from 'node:fs'; import { spawn } from 'node:child_process';
 import { SUPPORT_CONTACTS, DISTRESS_MARKERS, hasDistressMarker } from '../src/support.ts';
 import { fileURLToPath } from 'node:url';
-const BE = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, ''), PASS = 'pw-123456';
+const BE = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, ''), PASS = 'pw-123456';
 const CASES = JSON.parse(fs.readFileSync(BE + '/tests/regression.json', 'utf8'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const freePort = () => new Promise((res) => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); });

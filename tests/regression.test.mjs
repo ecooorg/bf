@@ -5,7 +5,7 @@ import http from 'node:http';
 import net from 'node:net';
 import { readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
-const CASES = JSON.parse(readFileSync(new URL('../fixtures/regression.json', import.meta.url), 'utf8'));
+const CASES = JSON.parse(readFileSync(new URL('./regression.json', import.meta.url), 'utf8'));
 const PASS = 'test-pass-123', sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const freePort = () => new Promise((res) => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); });
 let answer = {}, retryAnswer = null, hits = 0;

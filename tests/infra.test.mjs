@@ -46,7 +46,7 @@ async function startServer(env = {}) {
 let n = 0; const t = async (name, fn) => { calls.length = 0; await fn(); n++; console.log('ok -', name); };
 
 try {
-  let s = await startServer({ DAILY_CALL_CAP: '1000' });
+  let s = await startServer({ DAILY_CALL_CAP: '1000', SKIP_DIST_HEALTHCHECK: 'true' });
 
   await t('public liveness and explicit not-ready status', async () => {
     const health = await fetch(s.base + '/health');

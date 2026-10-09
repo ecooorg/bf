@@ -63,7 +63,7 @@ try {
   });
   await t('GET /health: 200, JSON with exactly status and version, no sign-in needed', async () => {
     const r = await fetch(srv.base + '/health');
-    const distExists = fs.existsSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../dist/index.html'));
+    const distExists = fs.existsSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist/index.html'));
     assert.equal(r.status, distExists ? 200 : 503);
     const j = await r.json();
     assert.deepEqual(Object.keys(j).sort(), distExists ? ['status', 'version'] : ['code', 'status', 'version']);
