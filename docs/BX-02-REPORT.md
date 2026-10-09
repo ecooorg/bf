@@ -12,7 +12,7 @@
 | File | Change | Reason |
 |---|---|---|
 | `server.ts` | Added public `/health` (200 JSON) and `/ready` (503 until DB exists) | BX-02 liveness/readiness |
-| `tests/virtual/infra.test.mjs` | Added assertions for health/readiness responses | Regression protection |
+| `tests/infra.test.mjs` | Added assertions for health/readiness responses | Regression protection |
 | `.nvmrc` | Pin Node 22.12.0 | Match package engine `>=22.12 <23` |
 | `.github/workflows/ci.yml` | Read Node version from `.nvmrc` | Single version source |
 | `.github/workflows/ui-check.yml` | Read Node version from `.nvmrc` | Single version source |
@@ -37,8 +37,8 @@
 - `node scripts/check-version.mjs` — PASS.
 - `node tests/version-check.test.mjs` — PASS.
 - `node scripts/lint-copy.mjs` — PASS.
-- `node --check tests/virtual/infra.test.mjs` — PASS.
-- `bash -n tests/virtual/run.sh` — PASS.
+- `node --check tests/infra.test.mjs` — PASS.
+- `bash -n tests/run.sh` — PASS.
 - Full virtual suite and production build — NOT RUN here; dependencies were not installed in this environment.
 - Known CI failure from supplied log: `virtual-stage2`, J3 bad-JSON retry scenarios (20 PASS, 3 FAIL, 0 BLOCKED). This is recorded and not suppressed.
 
