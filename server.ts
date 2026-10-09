@@ -20,7 +20,6 @@ import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, 
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { checkDatabase } from './server/database.ts';
-import { createProject, getProject, listProjects, updateProjectState, listStateVersions, consumeRateLimit } from './server/projectRepository.ts';
 
 dotenv.config();
 
@@ -29,9 +28,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_BODY = Number(process.env.MAX_BODY_BYTES) || 256 * 1024;
-const ENABLE_PROJECT_MODE = process.env.ENABLE_PROJECT_MODE === 'true';
 const APP_PASSWORD = process.env.APP_PASSWORD || '';
-const APP_AUTH_ENABLED = ENABLE_PROJECT_MODE || (Boolean(APP_PASSWORD) && process.env.ENABLE_APP_AUTH !== 'false');
+const APP_AUTH_ENABLED = Boolean(APP_PASSWORD) && process.env.ENABLE_APP_AUTH !== 'false';
 const SESSION_SECRET = process.env.SESSION_SECRET || '';
 const signer = createSessionSigner(SESSION_SECRET || 'auth-disabled');
 const loginLimiter = new LoginLimiter(Number(process.env.LOGIN_MAX_FAILS) || 10, (Number(process.env.LOGIN_WINDOW_MIN) || 15) * 60 * 1000);
@@ -174,7 +172,7 @@ function checkRate(req: express.Request, res: express.Response): boolean {
 
 // Minimal password session endpoints. The decision engine itself is unchanged.
 app.get('/api/session', (req, res) => {
-  res.json({ success: true, authenticated: authenticated(req), required: APP_AUTH_ENABLED, projectModeEnabled: ENABLE_PROJECT_MODE });
+  res.json({ success: true, authenticated: authenticated(req), required: APP_AUTH_ENABLED });
 });
 
 app.post('/api/login', (req, res) => {
@@ -656,9 +654,6 @@ async function generate(
         }
         if (bad.length) {
           console.warn(JSON.stringify({ type: 'llm_number_warning', model, stage, reason: `numbers outside user input: ${bad.join(', ')}`.slice(0, 240) }));
-          // Treat unsupported factual numbers like a format failure: give the model
-          // one repair opportunity rather than returning an answer that failed validation.
-          if (!problem) problem = 'unsupported numbers';
         }
         if (problem) {
           formatFailures++;
@@ -742,7 +737,7 @@ registerHealthRoutes(app, {
   hasApiKey: Boolean(apiKey), lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS,
   isAuthenticated: authenticated, distDirectory: path.join(__dirname, 'dist'),
   skipDistHealthcheck: process.env.SKIP_DIST_HEALTHCHECK === 'true',
-  isDatabaseReady: () => checkDatabase(),
+  isDatabaseReady: process.env.DATABASE_URL ? () => checkDatabase() : undefined,
 });
 
 // Helper: require rate limit for AI endpoints
@@ -1930,62 +1925,6 @@ app.post('/api/export-document', async (req, res) => {
   }
 });
 
-// Project Mode API. It is deliberately feature-gated so the legacy Simple Mode path stays unchanged.
-const projectRateLimit = Number(process.env.PROJECT_RATE_LIMIT_PER_MINUTE) || 60;
-app.use('/api/projects', async (req, res, next) => {
-  if (!ENABLE_PROJECT_MODE) return res.status(404).json({ success: false, code: 'PROJECT_MODE_DISABLED', error: 'Project Mode is disabled' });
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-    const origin = req.get('origin');
-    if (!origin || !isSameOrigin(origin, req.get('host'), req.protocol)) {
-      return res.status(403).json({ success: false, code: 'CSRF_ORIGIN', error: 'Same-origin request required' });
-    }
-  }
-  try {
-    const key = `project:${clientIp(req)}:${req.method}`;
-    const limit = await consumeRateLimit({ key, limit: projectRateLimit, windowMs: 60_000 });
-    if (!limit.allowed) {
-      res.setHeader('Retry-After', String(Math.max(1, Math.ceil((limit.resetsAt.getTime() - Date.now()) / 1000))));
-      return res.status(429).json({ success: false, code: 'RATE_LIMITED', error: 'Project Mode request limit exceeded' });
-    }
-    next();
-  } catch (error) {
-    console.error('Project Mode rate limiter unavailable:', String((error as any)?.message || error));
-    return res.status(503).json({ success: false, code: 'RATE_LIMIT_UNAVAILABLE', error: 'Project Mode is temporarily unavailable' });
-  }
-});
-
-app.get('/api/projects', async (_req, res) => {
-  try { res.json({ success: true, projects: await listProjects() }); }
-  catch (error) { res.status(503).json({ success: false, code: 'PROJECT_STORE_UNAVAILABLE', error: 'Project storage is unavailable' }); }
-});
-app.post('/api/projects', async (req, res) => {
-  try {
-    const project = await createProject({ name: req.body?.name, state: {} });
-    res.status(201).json({ success: true, project });
-  } catch (error: any) {
-    const validation = error?.name === 'ZodError';
-    res.status(validation ? 400 : 503).json({ success: false, code: validation ? 'VALIDATION' : 'PROJECT_STORE_UNAVAILABLE', error: validation ? 'A project name is required (1–200 characters)' : 'Project storage is unavailable' });
-  }
-});
-app.get('/api/projects/:id', async (req, res) => {
-  try { const project = await getProject(req.params.id); if (!project) return res.status(404).json({ success: false, code: 'NOT_FOUND', error: 'Project not found' }); res.json({ success: true, project }); }
-  catch (error: any) { res.status(error?.name === 'ZodError' ? 400 : 503).json({ success: false, code: error?.name === 'ZodError' ? 'VALIDATION' : 'PROJECT_STORE_UNAVAILABLE', error: 'Could not load project' }); }
-});
-app.put('/api/projects/:id/state', async (req, res) => {
-  try {
-    const result = await updateProjectState({ projectId: req.params.id, expectedVersion: req.body?.expectedVersion, state: req.body?.state, actor: 'human', sourceRef: 'project-ui' });
-    res.json({ success: true, ...result });
-  } catch (error: any) {
-    if (error?.code === 'CONFLICT') return res.status(409).json({ success: false, code: 'CONFLICT', error: 'Project state version conflict', expectedVersion: error.expectedVersion, actualVersion: error.actualVersion });
-    if (error?.code === 'NOT_FOUND') return res.status(404).json({ success: false, code: 'NOT_FOUND', error: 'Project not found' });
-    res.status(error?.name === 'ZodError' ? 400 : 503).json({ success: false, code: error?.name === 'ZodError' ? 'VALIDATION' : 'PROJECT_STORE_UNAVAILABLE', error: 'Could not update project state' });
-  }
-});
-app.get('/api/projects/:id/versions', async (req, res) => {
-  try { res.json({ success: true, versions: await listStateVersions(req.params.id) }); }
-  catch (error: any) { res.status(error?.name === 'ZodError' ? 400 : 503).json({ success: false, code: error?.name === 'ZodError' ? 'VALIDATION' : 'PROJECT_STORE_UNAVAILABLE', error: 'Could not load project history' }); }
-});
-
 // Keep unknown API requests as JSON errors rather than falling through to the SPA HTML.
 // Authentication middleware intentionally runs first: unauthenticated callers still get 401.
 app.use('/api', (req, res) => {
@@ -1993,12 +1932,6 @@ app.use('/api', (req, res) => {
 });
 
 async function start() {
-  if (ENABLE_PROJECT_MODE && !APP_PASSWORD) {
-    throw new Error('APP_PASSWORD is required when ENABLE_PROJECT_MODE=true.');
-  }
-  if (ENABLE_PROJECT_MODE && !process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is required when ENABLE_PROJECT_MODE=true.');
-  }
   if (APP_AUTH_ENABLED && SESSION_SECRET.length < 16) {
     throw new Error('SESSION_SECRET is required (at least 16 characters) when password sign-in is enabled.');
   }

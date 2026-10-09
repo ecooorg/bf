@@ -1,0 +1,17 @@
+Пакет исправлений для проекта BiForge (пути относительно корня репозитория).
+Загружайте файлы с теми же путями, коммит — в новую ветку, не в main.
+
+1. package-lock.json     - синхронизирован с package.json (в нём не было pg): npm ci снова работает (CI и Railway).
+2. tests/run.sh          - cd "$(dirname "$0")/.." вместо ../.. (после выравнивания каталогов набор не стартовал).
+3. tests/server.test.mjs - путь к dist: '../dist/index.html' вместо '../../dist/index.html'.
+4. tests/infra.test.mjs  - для проверки /health передаётся SKIP_DIST_HEALTHCHECK=true (тест не должен зависеть от того, собран ли dist).
+5. tests/regression.test.mjs - путь './regression.json' вместо '../fixtures/regression.json'.
+6. tests/stage2.test.mjs - BE = new URL('..') вместо new URL('../..').
+7. tests/regression.json - возвращена исходная фикстура (поле retryModel у climate-move добавлено не было нужно, см. п. 8).
+8. server.ts             - (а) удалена строка "if (!problem) problem = 'unsupported numbers'" в generate():
+                               она считает словесные числительные ("три недели") и числа из вложений
+                               "выдуманными", вызывает лишний запрос и ошибку пользователю (ломает regression и virtual-files);
+                           (б) /ready без DATABASE_URL снова возвращает database_not_configured.
+9. docs/BiForge_TZ_v3_ru.md - актуальная версия ТЗ (добавлены stop-правила п.16.3, R-20, запись о Jules в F.0).
+
+Нужно удалить вручную: server/1 (пустой файл-мусор).
