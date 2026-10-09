@@ -187,9 +187,23 @@ await withSrv({ MODEL_CASCADE_STRONG: 'm1', MODEL_CASCADE_LIGHT: 'm1' }, async f
   T('J0 12 endpoints listed', Object.keys(EP).length === 12);
   for (const [ep, body] of Object.entries(EP)) { script = () => ({ json: ANS[ep] || { items: [], note: 'ok' } }); const r = await s.post('/api/' + ep, body);
     T('J1 200 ' + ep, r.s === 200 && r.j?.success === true && !!r.j?.meta, `${r.s} ${r.j?.error || ''} ${r.j?.code || ''}`); }
-  for (const [ep, body] of Object.entries(EP)) { script = () => ({ status: 429, message: 'RESOURCE_EXHAUSTED' }); const r = await s.post('/api/' + ep, body); T('J2 429 mapped on ' + ep, r.s === 429, `got ${r.s} ${r.j?.code || ''}`); }
-  for (const ep of Object.keys(EP)) { script = (q) => q.n % 2 ? { raw: 'bad json' } : { json: ANS[ep] || { note: 'ok' } }; recs = []; const r = await s.post('/api/' + ep, EP[ep]); if (r.s === 200) T('J3 bad JSON retried ' + ep, true); else T('J3 bad JSON retried ' + ep, false, `${r.s} hits=${recs.length}`); }
 });
+// Isolate each failure scenario in a fresh server process so the adaptive model
+// cooldown from one synthetic 429 cannot contaminate the next endpoint's test.
+for (const [ep, body] of Object.entries(EP)) {
+  await withSrv({ MODEL_CASCADE_STRONG: 'm1', MODEL_CASCADE_LIGHT: 'm1' }, async function J2(s) {
+    script = () => ({ status: 429, message: 'RESOURCE_EXHAUSTED' });
+    const r = await s.post('/api/' + ep, body);
+    T('J2 429 mapped on ' + ep, r.s === 429, `got ${r.s} ${r.j?.code || ''}`);
+  });
+}
+for (const ep of Object.keys(EP)) {
+  await withSrv({ MODEL_CASCADE_STRONG: 'm1', MODEL_CASCADE_LIGHT: 'm1' }, async function J3(s) {
+    script = (q) => q.n % 2 ? { raw: 'bad json' } : { json: ANS[ep] || { note: 'ok' } };
+    const r = await s.post('/api/' + ep, EP[ep]);
+    T('J3 bad JSON retried ' + ep, r.s === 200, `${r.s} hits=${recs.length}`);
+  });
+}
 await withSrv({ MODEL_CASCADE_STRONG: 'm1,m2', MODEL_CASCADE_LIGHT: 'm1,m2' }, async function J4(s) { // invented numbers on non-chat endpoints
   for (const ep of ['radar', 'redteam', 'synthesis']) { const P5 = { paragraphs: Array.from({ length: 5 }, () => 'слово '.repeat(60).trim()), derived_numbers: [] }; script = (q) => q.n === 1 ? { json: { ...P5, note: 'шанс 91%' } } : { json: { ...P5, note: 'ok' } }; recs = []; const r = await s.post('/api/' + ep, EP[ep]); T('J4 invented % retried ' + ep, r.s === 200 && recs.length === 2, `${r.s} hits=${recs.length}`); }
 });
