@@ -1,14 +1,16 @@
 {
   "schemaVersion": 1,
   "project": "BiForge",
-  "currentStep": "BX-03.a",
+  "currentStep": "BX-06",
   "completed": [
     "BX-01.b"
   ],
   "inProgress": [
     "BX-01.a",
     "BX-02",
-    "BX-03.a"
+    "BX-03.a",
+    "BX-05",
+    "BX-06"
   ],
   "blocked": [
     {
@@ -22,8 +24,16 @@
     {
       "step": "BX-03.a",
       "reason": "Health route extraction is implemented but characterization tests/check have not been run in this environment because node_modules is absent."
+    },
+    {
+      "step": "BX-05",
+      "reason": "Implementation added; npm run check and integration acceptance remain unverified because dependencies could not be installed. package-lock.json root declares pg but node_modules/pg entry is missing."
+    },
+    {
+      "step": "BX-06",
+      "reason": "Implementation is preliminary. npm ci timed out; package-lock is unsynchronized (pg package entry missing), so typecheck/build/full check and PostgreSQL integration acceptance are not verified. Do not enable Project Mode in production until resolved."
     }
   ],
-  "nextStep": "BX-03.a",
+  "nextStep": "BX-06 acceptance / lockfile repair",
   "updatedAt": "2026-10-09"
 }
