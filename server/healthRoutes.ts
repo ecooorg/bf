@@ -12,6 +12,7 @@ export interface HealthRouteOptions {
   isAuthenticated: (req: Request) => boolean;
   distDirectory: string;
   skipDistHealthcheck?: boolean;
+  isDatabaseReady?: () => Promise<boolean>;
 }
 
 /** Register the stable public liveness/readiness and authenticated diagnostic contracts. */
@@ -24,9 +25,11 @@ export function registerHealthRoutes(app: Express, options: HealthRouteOptions):
     return res.json({ status: 'ok', version: options.appVersion });
   });
 
-  app.get('/ready', (_req, res) => {
-    // PostgreSQL is introduced in BX-04. Until then, process liveness is not readiness.
-    return res.status(503).json({ status: 'not_ready', reason: 'database_not_configured' });
+  app.get('/ready', async (_req, res) => {
+    if (!options.isDatabaseReady) return res.status(503).json({ status: 'not_ready', reason: 'database_not_configured' });
+    const ready = await options.isDatabaseReady().catch(() => false);
+    if (!ready) return res.status(503).json({ status: 'not_ready', reason: 'database_unavailable' });
+    return res.json({ status: 'ready', version: options.appVersion });
   });
 
   app.get('/api/health', (req, res) => {
