@@ -19,13 +19,15 @@
     "test:sync": "tsx tests/driveSync.test.mjs",
     "test:files": "tsx tests/files.test.mjs",
     "test:drivedocs": "tsx tests/driveDocs.test.mjs",
-    "check": "node scripts/check-version.mjs && npm run check:docs && npm run test:version && npm run lint:copy && npm run typecheck && npm run test:merge && npm run test:security && npm run test:core && npm run test:reasoning && npm run test:export && npm run test:sync && npm run test:files && npm run test:drivedocs && npm run test:library && npm run test:package-c && npm run test:virtual",
+    "check": "node scripts/check-version.mjs && npm run check:docs && npm run test:version && npm run lint:copy && npm run typecheck && npm run test:merge && npm run test:security && npm run test:core && npm run test:reasoning && npm run test:export && npm run test:sync && npm run test:files && npm run test:drivedocs && npm run test:database && npm run test:library && npm run test:package-c && npm run test:virtual",
     "test:virtual": "bash tests/run.sh",
     "test:ui": "node --import tsx tests/ui-check.mjs",
     "test:version": "node tests/version-check.test.mjs",
     "test:library": "tsx tests/libraryExport.test.mjs",
     "test:package-c": "node tests/package-c.test.mjs",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "db:migrate": "node scripts/migrate.mjs",
+    "test:database": "node tests/database-contract.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -43,7 +45,8 @@
     "tsx": "^4.21.0",
     "unpdf": "^1.8.1",
     "vite": "^8.3.0",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

@@ -19,6 +19,7 @@ import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSam
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 import { registerHealthRoutes } from './server/healthRoutes.ts';
+import { checkDatabase } from './server/database.ts';
 
 dotenv.config();
 
@@ -739,6 +740,7 @@ registerHealthRoutes(app, {
   hasApiKey: Boolean(apiKey), lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS,
   isAuthenticated: authenticated, distDirectory: path.join(__dirname, 'dist'),
   skipDistHealthcheck: process.env.SKIP_DIST_HEALTHCHECK === 'true',
+  isDatabaseReady: () => checkDatabase(),
 });
 
 // Helper: require rate limit for AI endpoints
