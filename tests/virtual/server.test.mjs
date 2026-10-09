@@ -58,6 +58,15 @@ try {
     const j = await (await fetch(srv.base + '/api/health')).json();
     assert.deepEqual(Object.keys(j).sort(), ['status', 'version']);
   });
+  await t('GET /health: 200, JSON with exactly status and version, no sign-in needed', async () => {
+    const r = await fetch(srv.base + '/health');
+    assert.equal(r.status, 200);
+    const j = await r.json();
+    assert.deepEqual(Object.keys(j).sort(), ['status', 'version']);
+    assert.equal(j.status, 'ok');
+    const legacy = await (await fetch(srv.base + '/api/health')).json();
+    assert.equal(j.version, legacy.version);
+  });
   await t('AI endpoint without sign-in: 401', async () => {
     const r = await post(srv, '/api/conversation', { brief: { decision: 'x' } });
     assert.equal(r.status, 401);

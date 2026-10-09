@@ -9,7 +9,7 @@ let withUsage = true; let calls = 0; let requestBodies = [];
 const answer = { reply: 'Plain text reply.', question: 'Which city?', contextSufficiency: 'MEDIUM', triage: 'PROCEED', problemClear: true,
   gain: ['HIDDEN_ASSUMPTION'], newOptions: [], state: { coreProblem: 'Move or stay' } };
 const fake = http.createServer((req, res) => { let b = ''; req.on('data', (d) => (b += d)); req.on('end', () => {
-  calls++; requestBodies.push(b); res.setHeader('Content-Type', 'application/json');
+  calls++; requestBodies.push(JSON.parse(b)); res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify(answer) }] }, finishReason: 'STOP' }],
     ...(withUsage ? { usageMetadata: { promptTokenCount: 4321, candidatesTokenCount: 210, cachedContentTokenCount: 123, totalTokenCount: 4531 } } : {}) })); }); });
 await new Promise((r) => fake.listen(0, r));
