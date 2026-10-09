@@ -2,6 +2,3 @@ node_modules
 dist
 tests/ui/_local*
 ui-welcome-*.png
-
-# Generated QA reports and per-check logs
-artifacts/qa/

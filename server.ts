@@ -6,19 +6,19 @@ import express from 'express';
 import crypto from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import path from 'node:path';
-import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
-import { SUPPORT_CONTACTS, hasDistressMarker } from './src/config/support.ts';
-import { collectAllowedFromInput, validateNumbers } from './src/core/numberValidator.ts';
+import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
+import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.ts';
 
 import { APP_VERSION } from './src/config.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
+import { registerHealthRoutes } from './server/healthRoutes.ts';
 
 dotenv.config();
 
@@ -58,18 +58,6 @@ function authenticated(req: express.Request): boolean {
 const RATE_LIMIT_PER_HOUR = Number(process.env.RATE_LIMIT_PER_HOUR) || 60;
 const DAILY_CALL_CAP = Number(process.env.DAILY_CALL_CAP) || 200;
 const NODE_ENV = process.env.NODE_ENV || 'development';
-
-// Railway liveness probe: this reports only that the HTTP process is alive.
-// Keep it independent of authentication, external providers, and database readiness.
-app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'ok', service: 'bifurcation-engine' });
-});
-
-// Readiness is intentionally separate from liveness. PostgreSQL/migrations are not
-// implemented until BX-04; do not report READY until that dependency is wired in.
-app.get('/ready', (_req, res) => {
-  res.status(503).json({ status: 'not_ready', reason: 'database_not_configured' });
-});
 
 // Behind Railway's proxy: trust exactly the configured number of hops, so X-Forwarded-For cannot be spoofed.
 app.set('trust proxy', process.env.TRUST_PROXY_HOPS !== undefined ? Number(process.env.TRUST_PROXY_HOPS) : (NODE_ENV === 'production' ? 1 : false));
@@ -745,22 +733,12 @@ function fail(res: express.Response, status: number, error: string, code?: strin
   res.status(status).json({ success: false, error, code, ...(details ? { details } : {}) });
 }
 
-// --- Health (NF-03) ---
-app.get('/api/health', (req, res) => {
-  // Without sign-in: only status and version. Models and key presence only for signed-in users.
-  if (!authenticated(req)) return res.json({ status: 'ok', version: APP_VERSION });
-  res.json({ status: 'ok', version: APP_VERSION, hasKey: Boolean(apiKey), authRequired: APP_AUTH_ENABLED, lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS });
-});
-
-// Root-level liveness probe for infrastructure health checks. Public, no model call, only status and version.
-app.get('/health', (_req, res) => {
-  // Railway uses this as a deployment health check: a live process without the
-  // client bundle is not a healthy production deployment.
-  if (NODE_ENV === 'production' && process.env.SKIP_DIST_HEALTHCHECK !== 'true' &&
-      !fs.existsSync(path.join(__dirname, 'dist', 'index.html'))) {
-    return res.status(503).json({ status: 'error', version: APP_VERSION, code: 'DIST_MISSING' });
-  }
-  return res.json({ status: 'ok', version: APP_VERSION });
+// Health route contracts are isolated so they can be characterized independently.
+registerHealthRoutes(app, {
+  appVersion: APP_VERSION, nodeEnv: NODE_ENV, appAuthEnabled: APP_AUTH_ENABLED,
+  hasApiKey: Boolean(apiKey), lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS,
+  isAuthenticated: authenticated, distDirectory: path.join(__dirname, 'dist'),
+  skipDistHealthcheck: process.env.SKIP_DIST_HEALTHCHECK === 'true',
 });
 
 // Helper: require rate limit for AI endpoints

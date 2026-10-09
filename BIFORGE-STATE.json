@@ -1,12 +1,28 @@
 {
   "schemaVersion": 1,
   "project": "BiForge",
-  "currentStep": "BX-02",
-  "completed": ["BX-01.b"],
-  "inProgress": ["BX-01.a", "BX-02"],
+  "currentStep": "BX-03.a",
+  "completed": [
+    "BX-01.b"
+  ],
+  "inProgress": [
+    "BX-01.a",
+    "BX-02",
+    "BX-03.a"
+  ],
   "blocked": [
-    {"step": "BX-01.a", "reason": "virtual-stage2 reports J3 bad-JSON retry failures; owner chose to continue because they do not affect observed Simple Mode usage. Preserve the failure evidence; do not mark the baseline fully green."},
-    {"step": "BX-02", "reason": "Railway dashboard healthcheck setting and live deployment cannot be verified from repository files."}
+    {
+      "step": "BX-01.a",
+      "reason": "virtual-stage2 reports J3 bad-JSON retry failures; owner chose to continue because they do not affect observed Simple Mode usage. Preserve failure evidence; do not mark baseline fully green."
+    },
+    {
+      "step": "BX-02",
+      "reason": "Railway dashboard healthcheck setting and live deployment cannot be verified from repository files."
+    },
+    {
+      "step": "BX-03.a",
+      "reason": "Health route extraction is implemented but characterization tests/check have not been run in this environment because node_modules is absent."
+    }
   ],
   "nextStep": "BX-03.a",
   "updatedAt": "2026-10-09"

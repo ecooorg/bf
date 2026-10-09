@@ -59,9 +59,9 @@ In the conversation the person can attach PDF, Word, Excel, PowerPoint, text fil
 
 ## Crisis support
 
-Default contacts are international (IASP, 988 where applicable). Replace in `src/config/support.ts` for a specific region.
+Default contacts are international (IASP, 988 where applicable). Replace in `src/support.ts` for a specific region.
 
-Distress detection works in two layers: a multilingual marker list (`src/config/support.ts`, checked on every message in the conversation and on the server) and the model's own crisis triage in any language. When either fires, the server appends the contacts to the reply and the client shows them.
+Distress detection works in two layers: a multilingual marker list (`src/support.ts`, checked on every message in the conversation and on the server) and the model's own crisis triage in any language. When either fires, the server appends the contacts to the reply and the client shows them.
 
 ## Documentation
 
