@@ -1,0 +1,18 @@
+# Canonical inventory of external connections. Never put secret values here.
+version: 1
+connections:
+  - id: gemini
+    service: Google Gemini API
+    purpose: model inference for the existing Simple Mode
+    env:
+      - GEMINI_API_KEY
+      - GEMINI_BASE_URL
+    verification: "Configured by environment; real connectivity is not tested in secret-free CI."
+    status: environment-dependent
+  - id: railway-postgresql
+    service: PostgreSQL
+    purpose: Project Mode persistence (planned in BX-04)
+    env:
+      - DATABASE_URL
+    verification: "Not implemented yet; expected in BX-04."
+    status: planned

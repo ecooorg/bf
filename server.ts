@@ -59,6 +59,17 @@ const RATE_LIMIT_PER_HOUR = Number(process.env.RATE_LIMIT_PER_HOUR) || 60;
 const DAILY_CALL_CAP = Number(process.env.DAILY_CALL_CAP) || 200;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Railway liveness probe: this reports only that the HTTP process is alive.
+// Keep it independent of authentication, external providers, and database readiness.
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', service: 'bifurcation-engine' });
+});
+
+// Readiness is intentionally separate from liveness. PostgreSQL/migrations are not
+// implemented until BX-04; do not report READY until that dependency is wired in.
+app.get('/ready', (_req, res) => {
+  res.status(503).json({ status: 'not_ready', reason: 'database_not_configured' });
+});
 
 // Behind Railway's proxy: trust exactly the configured number of hops, so X-Forwarded-For cannot be spoofed.
 app.set('trust proxy', process.env.TRUST_PROXY_HOPS !== undefined ? Number(process.env.TRUST_PROXY_HOPS) : (NODE_ENV === 'production' ? 1 : false));

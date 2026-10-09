@@ -1,0 +1,11 @@
+BiForge BX-01/BX-02 patch — Android/GitHub browser
+
+This ZIP contains files at their repository-relative paths. It is intended for manual upload from GitHub's web UI, not as a git diff.
+
+1. Unzip the archive on the tablet.
+2. In GitHub, open the repository and use Add file -> Upload files.
+3. Upload the files while preserving their folder paths. GitHub's upload UI may not preserve nested folders when multiple folders are selected; if it flattens them, upload each file from its matching folder using Add file -> Create new file or edit the existing file.
+4. Do not upload this instruction file into the repository unless desired.
+5. Commit to a new branch, not directly to main, so the workflow result can be inspected before merge.
+
+Important: the patch deliberately does not hide the known virtual-stage2 J3 failures. It is not certified green; Railway dashboard configuration and the manual pilot cannot be verified from this archive.
