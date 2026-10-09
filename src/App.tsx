@@ -67,10 +67,10 @@ async function api(path: string, body: unknown) {
 const stageIndex = (s: Step) => STAGES.findIndex((x) => x.id === s);
 
 // --- Minimal deployment auth + Google Drive storage (infrastructure only) ---
-async function sessionStatus(): Promise<{authenticated:boolean; required:boolean}> {
+async function sessionStatus(): Promise<{authenticated:boolean; required:boolean; projectModeEnabled:boolean}> {
   const r = await fetch('/api/session', { credentials: 'same-origin' });
   const j = await r.json();
-  return { authenticated: Boolean(j.authenticated), required: Boolean(j.required) };
+  return { authenticated: Boolean(j.authenticated), required: Boolean(j.required), projectModeEnabled: Boolean(j.projectModeEnabled) };
 }
 
 async function loginWithPassword(password: string) {
@@ -132,6 +132,7 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authRequired, setAuthRequired] = useState(false);
+  const [projectModeEnabled, setProjectModeEnabled] = useState(false);
   const [showGoogleAI, setShowGoogleAI] = useState(false);
   const [geminiKey, setGeminiKey] = useState(() => { try { return localStorage.getItem('bifurcation_gemini_key_v15') || ''; } catch { return ''; } });
   const [geminiModel, setGeminiModel] = useState(() => { try { return localStorage.getItem('bifurcation_gemini_model_v15') || 'gemini-3.6-flash'; } catch { return 'gemini-3.6-flash'; } });
@@ -139,7 +140,7 @@ export default function App() {
   const [uiLanguage, setUiLanguage] = useState<'en' | 'ru'>('en');
 
   useEffect(() => {
-    sessionStatus().then(s => { setAuthenticated(s.authenticated); setAuthRequired(s.required); setAuthChecked(true); }).catch(() => { setAuthChecked(true); setAuthRequired(false); setAuthenticated(true); });
+    sessionStatus().then(s => { setAuthenticated(s.authenticated); setAuthRequired(s.required); setProjectModeEnabled(s.projectModeEnabled); setAuthChecked(true); }).catch(() => { setAuthChecked(true); setAuthRequired(false); setProjectModeEnabled(false); setAuthenticated(true); });
   }, []);
 
   useEffect(() => {
@@ -446,7 +447,10 @@ export default function App() {
           driveMessage={drive.message}
         onHistory={() => setShowHistory(true)}
         historyAvailable={historyAvailable}
-          onImport={importBackup}
+        projectModeEnabled={projectModeEnabled}
+        expertMode={expertMode}
+        onToggleExpert={() => setExpertMode((v) => !v)}
+        onImport={importBackup}
         onImportAsDialog={importAsDialog}
         onImportDrive={drive.onButton}
         />
@@ -504,6 +508,7 @@ export default function App() {
         driveMessage={drive.message}
         onHistory={() => setShowHistory(true)}
         historyAvailable={historyAvailable}
+        projectModeEnabled={projectModeEnabled}
         onImport={importBackup}
         onImportAsDialog={importAsDialog}
         onImportDrive={drive.onButton}
@@ -702,6 +707,7 @@ function Header(props: {
   onProgramFiles?: () => void;
   onHistory?: () => void;
   historyAvailable?: boolean;
+  projectModeEnabled?: boolean;
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [sub, setSub] = useState<'' | 'export' | 'import'>('');
@@ -778,6 +784,11 @@ function Header(props: {
                   </label>
                 )}
               </div>
+            )}
+            {props.projectModeEnabled && (
+              <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)}>
+                Project Mode
+              </a>
             )}
             {props.onProgramFiles && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProgramFiles?.(); }}>
