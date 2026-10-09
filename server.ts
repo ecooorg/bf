@@ -723,6 +723,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: APP_VERSION, hasKey: Boolean(apiKey), authRequired: APP_AUTH_ENABLED, lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS });
 });
 
+// Root-level liveness probe for infrastructure health checks. Public, no model call, only status and version.
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', version: APP_VERSION });
+});
+
 // Helper: require rate limit for AI endpoints
 function aiGate(req: express.Request, res: express.Response): boolean {
   return checkRate(req, res);
