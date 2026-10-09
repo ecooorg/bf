@@ -654,6 +654,9 @@ async function generate(
         }
         if (bad.length) {
           console.warn(JSON.stringify({ type: 'llm_number_warning', model, stage, reason: `numbers outside user input: ${bad.join(', ')}`.slice(0, 240) }));
+          // Treat unsupported factual numbers like a format failure: give the model
+          // one repair opportunity rather than returning an answer that failed validation.
+          if (!problem) problem = 'unsupported numbers';
         }
         if (problem) {
           formatFailures++;
