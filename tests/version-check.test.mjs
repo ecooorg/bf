@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const FILES = ['package.json', 'README.md', 'DEPLOY_RAILWAY.md', 'CHANGELOG_AGENT_BEHAVIOR.md', 'server.ts', 'index.html', 'railway.toml', '.env.example',
-  'src/config.ts', 'src/App.tsx', 'src/i18n/en.ts', 'src/core/icsBuilder.ts'];
+  'src/config.ts', 'src/App.tsx', 'src/en.ts', 'src/icsBuilder.ts'];
 const here = process.cwd();
 function run(mutate) {
   const dir = mkdtempSync(join(tmpdir(), 'vcheck-'));

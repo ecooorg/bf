@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (f) => readFileSync(f, 'utf8');
-const app = read('src/components/ConversationFiles.tsx');
+const app = read('src/ConversationFiles.tsx');
 const shell = read('src/App.tsx');
-const errors = read('src/i18n/errors.ts');
-const ui = read('src/i18n/ui.ts');
+const errors = read('src/errors.ts');
+const ui = read('src/ui.ts');
 const server = read('server.ts');
 const cfg = read('src/config.ts');
 const pkg = JSON.parse(read('package.json'));

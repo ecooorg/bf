@@ -1,8 +1,8 @@
 // B2-B4: whole-library export and import merge. No server, no network. Run: npm run test:library
 import assert from 'node:assert/strict';
-import { emptyDecision } from '../src/types/decision.ts';
-import { documentToMarkdown, libraryToDocument, planImport, importReport } from '../src/utils/libraryExport.ts';
-import { exportAllJson, parseImportedBackup } from '../src/utils/exportZip.ts';
+import { emptyDecision } from '../src/decision.ts';
+import { documentToMarkdown, libraryToDocument, planImport, importReport } from '../src/libraryExport.ts';
+import { exportAllJson, parseImportedBackup } from '../src/exportZip.ts';
 import { sanitizeDocument } from '../server/documents.ts';
 
 let n = 0;

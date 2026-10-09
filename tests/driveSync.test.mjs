@@ -1,8 +1,8 @@
 // TEST-01 / DRV-01: sync core against a fake Drive. No network.
 import assert from 'node:assert/strict';
-import { syncOnce } from '../src/utils/driveSync.ts';
-import { autosaveDelay, hasUnsavedLocal, shouldNotify } from '../src/utils/autosave.ts';
-import { DriveAuthError, DriveNotFoundError } from '../src/utils/driveClient.ts';
+import { syncOnce } from '../src/driveSync.ts';
+import { autosaveDelay, hasUnsavedLocal, shouldNotify } from '../src/autosave.ts';
+import { DriveAuthError, DriveNotFoundError } from '../src/driveClient.ts';
 
 const d = (id, updatedAt, t = '') => ({ id, updatedAt, t });
 let n = 0; const t = async (name, fn) => { await fn(); n++; console.log('ok -', name); };

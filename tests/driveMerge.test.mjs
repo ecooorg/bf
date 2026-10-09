@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { mergeLibraries, isSafeToWrite, remoteIsNewer, parseLibrary, buildLibraryPayload,
-  createBackup, listBackups, DRIVE_FILE_NAME } from '../src/utils/driveMerge.ts';
+  createBackup, listBackups, DRIVE_FILE_NAME } from '../src/driveMerge.ts';
 
 const d = (id, updatedAt, t = '') => ({ id, updatedAt, t });
 const mem = () => { const m = new Map(); return { m,

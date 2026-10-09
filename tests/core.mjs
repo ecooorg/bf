@@ -1,11 +1,11 @@
 // Core logic tests: real modules, no network. Run: npm run test:core
 import assert from 'node:assert/strict';
-import { validateNumbers } from '../src/core/numberValidator.ts';
-import { triage } from '../src/core/triage.ts';
-import { evpi } from '../src/core/evpi.ts';
-import { brierScore } from '../src/core/brier.ts';
-import { buildIcs } from '../src/core/icsBuilder.ts';
-import { canonicalJson, sha256Hex } from '../src/core/sha256Export.ts';
+import { validateNumbers } from '../src/numberValidator.ts';
+import { triage } from '../src/triage.ts';
+import { evpi } from '../src/evpi.ts';
+import { brierScore } from '../src/brier.ts';
+import { buildIcs } from '../src/icsBuilder.ts';
+import { canonicalJson, sha256Hex } from '../src/sha256Export.ts';
 import { APP_VERSION } from '../src/config.ts';
 let n = 0; const tests = [];
 const add = (name, fn) => tests.push([name, fn]);

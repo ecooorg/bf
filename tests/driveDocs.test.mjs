@@ -1,7 +1,7 @@
 // Save to Google Docs: what is sent to Drive, token handling, errors. No network. Run: npm run test:drivedocs
 import assert from 'node:assert/strict';
-import { DriveAuthError, driveUploadAsGoogleDoc, isDriveConfigured } from '../src/utils/driveClient.ts';
-import { saveDocumentToGoogleDocs } from '../src/utils/driveExport.ts';
+import { DriveAuthError, driveUploadAsGoogleDoc, isDriveConfigured } from '../src/driveClient.ts';
+import { saveDocumentToGoogleDocs } from '../src/driveExport.ts';
 
 let n = 0;
 const t = async (name, fn) => { await fn(); n++; console.log('ok -', name); };
