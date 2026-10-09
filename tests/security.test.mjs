@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createSessionSigner, sessionCookie, clearedCookie, LoginLimiter, stripMarkdown } from '../server/security.ts';
+import { createSessionSigner, sessionCookie, clearedCookie, LoginLimiter, stripMarkdown, isSameOrigin } from '../server/security.ts';
 let n = 0; const t = (name, fn) => { fn(); n++; console.log('ok -', name); };
 
 t('session: valid, expired, tampered, wrong secret, garbage', () => {
@@ -14,6 +14,16 @@ t('session: valid, expired, tampered, wrong secret, garbage', () => {
 t('session survives "restart": a new signer with the same secret accepts the token', () => {
   const tok = createSessionSigner('same-secret-value-1').sign(Date.now() + 5000);
   assert.ok(createSessionSigner('same-secret-value-1').verify(tok));
+});
+t('CSRF origin check: same origin accepted, cross origin and malformed origins rejected', () => {
+  assert.equal(isSameOrigin('https://example.test', 'example.test', 'https'), true);
+  assert.equal(isSameOrigin('http://example.test', 'example.test', 'http'), true);
+  assert.equal(isSameOrigin('https://evil.test', 'example.test', 'https'), false);
+  assert.equal(isSameOrigin('null', 'example.test', 'https'), false);
+  assert.equal(isSameOrigin('not a url', 'example.test', 'https'), false);
+  assert.equal(isSameOrigin('https://example.test:444', 'example.test', 'https'), false);
+  assert.equal(isSameOrigin(undefined, 'example.test', 'https'), true);
+  assert.equal(isSameOrigin('https://example.test', undefined, 'https'), false);
 });
 t('cookie flags', () => {
   const c = sessionCookie('x', 60, true);
