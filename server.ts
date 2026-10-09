@@ -6,6 +6,7 @@ import express from 'express';
 import crypto from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
@@ -37,7 +38,10 @@ function cookieValue(req: express.Request, name: string): string | null {
   const raw = req.headers.cookie || '';
   for (const part of raw.split(';')) {
     const [k, ...rest] = part.trim().split('=');
-    if (k === name) return decodeURIComponent(rest.join('='));
+    if (k === name) {
+      try { return decodeURIComponent(rest.join('=')); }
+      catch { return null; } // Malformed attacker-controlled cookie must not crash auth middleware.
+    }
   }
   return null;
 }
@@ -736,7 +740,13 @@ app.get('/api/health', (req, res) => {
 
 // Root-level liveness probe for infrastructure health checks. Public, no model call, only status and version.
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', version: APP_VERSION });
+  // Railway uses this as a deployment health check: a live process without the
+  // client bundle is not a healthy production deployment.
+  if (NODE_ENV === 'production' && process.env.SKIP_DIST_HEALTHCHECK !== 'true' &&
+      !fs.existsSync(path.join(__dirname, 'dist', 'index.html'))) {
+    return res.status(503).json({ status: 'error', version: APP_VERSION, code: 'DIST_MISSING' });
+  }
+  return res.json({ status: 'ok', version: APP_VERSION });
 });
 
 // Helper: require rate limit for AI endpoints
@@ -1922,6 +1932,12 @@ app.post('/api/export-document', async (req, res) => {
     console.warn(JSON.stringify({ type: 'export_error', message: String(e?.message || e).slice(0, 200) }));
     fail(res, 500, 'The file could not be created.', 'EXPORT_FAILED');
   }
+});
+
+// Keep unknown API requests as JSON errors rather than falling through to the SPA HTML.
+// Authentication middleware intentionally runs first: unauthenticated callers still get 401.
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, error: 'API route not found', code: 'NOT_FOUND' });
 });
 
 async function start() {
