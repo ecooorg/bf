@@ -69,7 +69,7 @@ Never overwrite or discard user changes to make the task easier.
 - Do not fabricate test results or external-service behavior.
 
 ## 8. Required delivery
-Every step ends with a report that follows `docs/workflow/STEP_REPORT_TEMPLATE.md`:
+Every step ends with a report that follows `docs/STEP_REPORT_TEMPLATE.md`:
 - **Steps marked ★ and gate steps:** `.biforge/steps/BX-XX/REPORT.md` and an update of `.biforge/current-state.json` (what was done, tests, deviations, limitations, next step).
 - **Other steps:** the PR description is the report; a separate file is not required.
 

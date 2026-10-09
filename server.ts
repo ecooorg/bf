@@ -15,7 +15,7 @@ import { collectAllowedFromInput, validateNumbers } from './src/core/numberValid
 
 import { APP_VERSION } from './src/config.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
-import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, sessionCookie, stripMarkdown } from './server/security.ts';
+import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 
@@ -60,6 +60,17 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 app.set('trust proxy', process.env.TRUST_PROXY_HOPS !== undefined ? Number(process.env.TRUST_PROXY_HOPS) : (NODE_ENV === 'production' ? 1 : false));
 app.use('/api/export-document', express.json({ limit: '8mb' }));   // B2: whole-library documents
 app.use(express.json({ limit: MAX_BODY }));
+
+// CSRF defense in depth: reject cross-origin state-changing API requests. Origin
+// is optional for non-browser clients, but when present it must match this host.
+app.use('/api', (req, res, next) => {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+  const origin = req.get('origin');
+  if (!isSameOrigin(origin, req.get('host'), req.protocol)) {
+    return res.status(403).json({ success: false, error: 'Cross-origin request denied', code: 'CSRF_ORIGIN' });
+  }
+  next();
+});
 
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
