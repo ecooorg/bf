@@ -1,4 +1,4 @@
-# Bifurcation Engine v1.6.0
+# BiForge v1.6.0
 
 > **Document:** README · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, 9 October 2026)
 
