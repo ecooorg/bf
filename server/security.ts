@@ -23,6 +23,24 @@ export function createSessionSigner(secret: string) {
 
 export const SESSION_COOKIE = 'be_session';
 
+/**
+ * Exact same-origin check for browser state-changing requests. Missing Origin is
+ * treated as a non-browser/server-to-server request for CLI and health harness
+ * compatibility; browsers send Origin on cross-origin fetches and form POSTs.
+ */
+export function isSameOrigin(origin: string | undefined, host: string | undefined, protocol: string): boolean {
+  if (origin === undefined || origin === '') return true;
+  if (!host || origin === 'null') return false;
+  try {
+    const supplied = new URL(origin);
+    const expected = new URL(`${protocol}://${host}`);
+    return (supplied.protocol === 'http:' || supplied.protocol === 'https:') &&
+      supplied.origin === expected.origin;
+  } catch {
+    return false;
+  }
+}
+
 export function sessionCookie(token: string, maxAgeSec: number, secure: boolean): string {
   return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSec}${secure ? '; Secure' : ''}`;
 }
