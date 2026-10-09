@@ -1,6 +1,5 @@
 name: ci
 on: [push, pull_request]
-
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
@@ -10,29 +9,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Install dependencies
-        id: deps
-        run: npm ci
-      - name: Run independent QA checks
-        id: qa
-        continue-on-error: true
-        run: npm run check
-      - name: Production build
-        if: always() && steps.deps.outcome == 'success'
-        id: build
-        continue-on-error: true
-        run: npm run build
-      - name: Upload QA reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: biforge-qa-report
-          path: artifacts/qa/
-          if-no-files-found: ignore
-          retention-days: 14
-      - name: Fail job if QA or build failed
-        if: always()
-        run: |
-          if [ "${{ steps.deps.outcome }}" != "success" ]; then exit 1; fi
-          if [ "${{ steps.qa.outcome }}" != "success" ]; then exit 1; fi
-          if [ "${{ steps.build.outcome }}" != "success" ]; then exit 1; fi
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
