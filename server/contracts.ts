@@ -24,6 +24,18 @@ export type Project = z.infer<typeof projectSchema>;
 export const stateSchema = z.record(z.string(), z.unknown());
 export type ProjectState = z.infer<typeof stateSchema>;
 
+export const createProjectRequestSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  state: stateSchema.optional(),
+}).strict();
+export type CreateProjectRequest = z.infer<typeof createProjectRequestSchema>;
+
+export const updateProjectStateRequestSchema = z.object({
+  expected_version: z.number().int().positive(),
+  state: stateSchema,
+}).strict();
+export type UpdateProjectStateRequest = z.infer<typeof updateProjectStateRequestSchema>;
+
 export const projectEventSchema = z.object({
   id: idSchema,
   projectId: idSchema,

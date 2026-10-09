@@ -46,6 +46,15 @@ export async function createProject(input: { id?: string; name: string; state?: 
   } finally { client.release(); }
 }
 
+export async function listProjects(limit = 100) {
+  const safeLimit = z.number().int().min(1).max(200).parse(limit);
+  const pool = await getPool();
+  const result = await pool.query(`SELECT p.id,p.name,p.status,p.created_at,p.updated_at,s.state_version
+    FROM projects p JOIN project_states s ON s.project_id=p.id
+    ORDER BY p.updated_at DESC,p.id LIMIT $1`, [safeLimit]);
+  return result.rows;
+}
+
 export async function getProject(idInput: string) {
   const id = idSchema.parse(idInput);
   const pool = await getPool();

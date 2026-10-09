@@ -23,6 +23,13 @@ export async function checkDatabase(): Promise<boolean> {
   try {
     const pool = await getPool();
     await pool.query('SELECT 1');
+    // A configured database is not ready until the BX-04 schema migration has
+    // been applied. This also prevents a partially configured deployment from
+    // appearing healthy merely because PostgreSQL accepts SELECT 1.
+    const migrationTable = await pool.query("SELECT to_regclass('public.schema_migrations') AS table_name");
+    if (!migrationTable.rows[0]?.table_name) return false;
+    const migration = await pool.query("SELECT 1 FROM schema_migrations WHERE version = '001_project_state'");
+    if (!migration.rowCount) return false;
     return true;
   } catch {
     return false;
