@@ -26,6 +26,22 @@
       "noMarkup": true,
       "noLabels": true,
       "factsAbsent": []
+    },
+    "retryModel": {
+      "reply": "Зимняя тяжесть — важный фактор, но переезд не единственный вариант. Можно сначала пожить в более тёплом месте и оценить, как меняется самочувствие.",
+      "question": "В какие месяцы тяжелее всего?",
+      "contextSufficiency": "MEDIUM",
+      "triage": "PROCEED",
+      "problemClear": true,
+      "driftDetected": false,
+      "notUnderstoodSignal": false,
+      "gain": [],
+      "newOptions": [],
+      "state": {
+        "coreProblem": "Решение",
+        "facts": [],
+        "hypotheses": []
+      }
     }
   },
   {
