@@ -70,7 +70,8 @@ export default function ProjectMode() {
   async function saveState() {
     if (!selected) return; setBusy(true); setError(''); setNotice('');
     try {
-      const state = JSON.parse(stateText);
+      let state: unknown;
+      try { state = JSON.parse(stateText); } catch { throw new Error('Некорректный JSON. Ключи пишутся в двойных кавычках, например {"key": 777}.'); }
       if (!state || Array.isArray(state) || typeof state !== 'object') throw new Error('State должен быть JSON-объектом.');
       await api(`/api/projects/${encodeURIComponent(selected.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: selected.state_version, state }) });
       const fresh = await api<Project>(`/api/projects/${encodeURIComponent(selected.id)}`);
@@ -91,28 +92,28 @@ export default function ProjectMode() {
   }
 
   const styles: Record<string, React.CSSProperties> = {
-    page: { minHeight: '100vh', background: '#f5f6f8', color: '#20242b', fontFamily: 'system-ui, sans-serif', padding: '24px', boxSizing: 'border-box' },
-    panel: { maxWidth: 1000, margin: '0 auto', background: '#fff', border: '1px solid #dfe3e8', borderRadius: 12, padding: 24 },
-    button: { minHeight: 44, padding: '10px 16px', border: '1px solid #b8c0ca', borderRadius: 8, background: '#fff', cursor: 'pointer' },
-    input: { width: '100%', boxSizing: 'border-box', minHeight: 44, padding: 10, border: '1px solid #b8c0ca', borderRadius: 8, fontSize: 16 },
-    link: { color: '#245bb5' },
+    page: { minHeight: '100vh', background: '#0a0f1a', color: '#e6edf7', fontFamily: 'system-ui, sans-serif', padding: '24px', boxSizing: 'border-box' },
+    panel: { maxWidth: 1000, margin: '0 auto', background: '#0d1b2e', border: '1px solid #1f4f86', borderRadius: 12, padding: 24 },
+    button: { minHeight: 44, padding: '10px 16px', border: '1px solid #3d7fc4', borderRadius: 8, background: '#0b2545', color: '#9fd8ff', cursor: 'pointer' },
+    input: { width: '100%', boxSizing: 'border-box', minHeight: 44, padding: 10, border: '1px solid #3d7fc4', borderRadius: 8, background: '#07111f', color: '#e6edf7', fontSize: 16 },
+    link: { color: '#78baff' },
   };
 
   return <main style={styles.page}><section style={styles.panel}>
     <header style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#687385' }}>BiForge · BX-06</div><h1 style={{ margin: '6px 0' }}>Project Mode</h1><p style={{ marginTop: 0, color: '#687385' }}>Отдельное хранилище проектов и версионируемого состояния.</p></div>
+      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge · BX-06</div><h1 style={{ margin: '6px 0' }}>Project Mode</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Отдельное хранилище проектов и версионируемого состояния.</p></div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
         <a href="/" style={styles.link}>← Вернуться в Simple Mode</a>
         {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Выйти</button>}
       </div>
     </header>
-    {error && <p role="alert" style={{ color: '#a32020', background: '#fff0f0', padding: 12, borderRadius: 8 }}>{error}</p>}
-    {notice && <p role="status" style={{ color: '#17633a' }}>{notice}</p>}
+    {error && <p role="alert" style={{ color: '#ffb4b4', background: '#3a1216', padding: 12, borderRadius: 8 }}>{error}</p>}
+    {notice && <p role="status" style={{ color: '#7fe0a8' }}>{notice}</p>}
     {enabled === null || authenticated === null ? <p>Проверка сессии…</p> : !enabled ? <p role="status">Project Mode отключён в конфигурации сервера. <a href="/" style={styles.link}>Вернуться в Simple Mode</a>.</p> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Вход</h2><label htmlFor="project-password">Пароль приложения</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Войти</button></form> : <>
       <form onSubmit={create} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0 24px' }}><input aria-label="Название проекта" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="Название нового проекта" required maxLength={200} /><button style={styles.button} disabled={busy || !name.trim()}>Создать проект</button></form>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
-        <section><h2>Проекты</h2>{projects.length === 0 ? <p>Проектов пока нет.</p> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0' }}><button style={{ ...styles.button, width: '100%', textAlign: 'left', borderColor: selected?.id === p.id ? '#245bb5' : '#b8c0ca' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · версия {p.state_version}</small></button></li>)}</ul>}</section>
-        <section><h2>Project State</h2>{selected ? <><p><strong>{selected.name}</strong><br /><small>ID: {selected.id} · версия {selected.state_version}</small></p><label htmlFor="project-state">JSON-состояние</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button style={styles.button} disabled={busy} onClick={saveState}>Сохранить новую версию</button><p style={{ color: '#687385', fontSize: 13 }}>Сохранение использует expected_version. При конфликте данные не перезаписываются.</p></> : <p>Выберите проект, чтобы просмотреть или изменить его State.</p>}</section>
+        <section><h2>Проекты</h2>{projects.length === 0 ? <p>Проектов пока нет.</p> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0' }}><button style={{ ...styles.button, width: '100%', textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · версия {p.state_version}</small></button></li>)}</ul>}</section>
+        <section><h2>Project State</h2>{selected ? <><p><strong>{selected.name}</strong><br /><small>ID: {selected.id} · версия {selected.state_version}</small></p><label htmlFor="project-state">JSON-состояние</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button style={styles.button} disabled={busy} onClick={saveState}>Сохранить новую версию</button><p style={{ color: '#8fa6c2', fontSize: 13 }}>Сохранение использует expected_version. При конфликте данные не перезаписываются.</p></> : <p>Выберите проект, чтобы просмотреть или изменить его State.</p>}</section>
       </div>
     </>}
   </section></main>;
