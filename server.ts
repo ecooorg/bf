@@ -1,5 +1,5 @@
 /**
- * Bifurcation Engine server
+ * BiForge server
  * API endpoints per step
  */
 import express from 'express';
@@ -8,6 +8,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
+import { z } from 'zod';
 import { GoogleGenAI } from '@google/genai';
 import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
 import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.ts';
@@ -20,6 +21,9 @@ import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './serve
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { checkDatabase } from './server/database.ts';
 import { consumeRateLimit, createProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
+import { createGeminiAdapter } from './server/geminiAdapter.ts';
+import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
+import { readArtifact } from './server/artifactRepository.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
 
 dotenv.config();
@@ -311,18 +315,59 @@ app.put('/api/projects/:projectId/state', async (req, res) => {
   } catch (error) { projectError(res, error); }
 });
 
+app.post('/api/projects/:projectId/analyze', async (req, res) => {
+  try {
+    if (!ai) return res.status(503).json({ success: false, error: 'No Gemini API key is configured on the server (GEMINI_API_KEY)', code: 'MODEL_NOT_CONFIGURED' });
+    const input = z.object({ expected_version: z.number().int().min(1), task: z.string().trim().min(1).max(4000), artifact_ids: z.array(z.string().max(128)).max(5).optional() }).parse(req.body);
+    const data = await runAnalysis({ projectId: req.params.projectId, expectedVersion: input.expected_version, task: input.task, artifactIds: input.artifact_ids }, { adapters: { gemini: createGeminiAdapter(ai as any) } });
+    res.json({ success: true, data });
+  } catch (error) { projectError(res, error); }
+});
+
+app.post('/api/projects/:projectId/items/review', async (req, res) => {
+  try {
+    const input = z.object({ expected_version: z.number().int().min(1), section: z.string().max(20), id: z.string().max(20), action: z.enum(['confirm', 'reject']), reason: z.string().max(500).optional() }).parse(req.body);
+    res.json({ success: true, data: await reviewItem({ projectId: req.params.projectId, expectedVersion: input.expected_version, section: input.section, id: input.id, action: input.action, reason: input.reason }) });
+  } catch (error) { projectError(res, error); }
+});
+
+app.post('/api/projects/:projectId/decisions', async (req, res) => {
+  try {
+    const input = z.object({ expected_version: z.number().int().min(1), text: z.string().trim().min(1).max(2000), rationale: z.string().trim().max(2000).default('') }).parse(req.body);
+    res.status(201).json({ success: true, data: await addDecision({ projectId: req.params.projectId, expectedVersion: input.expected_version, text: input.text, rationale: input.rationale }) });
+  } catch (error) { projectError(res, error); }
+});
+
+app.get('/api/projects/:projectId/artifacts', async (req, res) => {
+  try { res.json({ success: true, data: await listProjectArtifacts(req.params.projectId) }); } catch (error) { projectError(res, error); }
+});
+
+app.get('/api/projects/:projectId/artifacts/:artifactId', async (req, res) => {
+  try {
+    const a = await readArtifact(req.params.artifactId);
+    if (!a || a.project_id !== req.params.projectId) return res.status(404).json({ success: false, error: 'Artifact not found', code: 'NOT_FOUND' });
+    res.json({ success: true, data: { artifact_id: a.artifact_id, version: a.version, filename: a.filename, hash: a.hash, text: a.text } });
+  } catch (error) { projectError(res, error); }
+});
+
+app.get('/api/projects/:projectId/ledger', async (req, res) => {
+  try { res.json({ success: true, data: await listProjectLedger(req.params.projectId) }); } catch (error) { projectError(res, error); }
+});
+
 function projectError(res: express.Response, error: unknown) {
   const e = error as { code?: string; message?: string; expectedVersion?: number; actualVersion?: number; name?: string };
   if (error instanceof StateVersionConflict || e?.code === 'CONFLICT') {
     return res.status(409).json({ success: false, error: 'State version conflict', code: 'CONFLICT', expected_version: e.expectedVersion, actual_version: e.actualVersion });
   }
+  if (error instanceof AnalysisError) return res.status(error.status).json({ success: false, error: error.message, code: error.code });
+  if (e?.code === 'VALIDATION') return res.status(422).json({ success: false, error: 'The proposed change was refused by the State policy', code: 'VALIDATION', details: ((error as any).errors ?? []).map((x: any) => x.code) });
   if (e?.code === 'NOT_FOUND') return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
   if (e?.name === 'ZodError' || e?.name === 'ValidationError') return res.status(400).json({ success: false, error: 'Invalid project data', code: 'VALIDATION' });
   console.error(JSON.stringify({ type: 'project_api_error', message: String(e?.message || error).slice(0, 180) }));
   return res.status(500).json({ success: false, error: 'Project operation failed', code: 'INTERNAL' });
 }
 
-const BASE_SYSTEM = `You are an analytical engine for a complex decision (Bifurcation Engine). The human keeps the right to decide: do not choose for them and do not substitute their values.
+const BASE_SYSTEM = `You are an analytical engine for a complex decision (BiForge). The human keeps the right to decide: do not choose for them and do not substitute their values.
 Do not imitate a person with life experience or feelings. Use what you are strong at: structuring, exposing hidden assumptions and contradictions, generating the space of possible actions, critique from the opposite side, scenarios, judging which unknown matters most, designing cheap tests, calculation on the user's own numbers.
 Do not invent facts, amounts, deadlines, prices, probabilities, percentages, or organization names about the user's situation. Any percentage or probability must come from the user input. Derived numbers are allowed only when you put them in derived_numbers with numeric operands from the input and a machine-checkable arithmetic formula. Never put an ungrounded new number in prose.
 "Insufficient data" is better than a confident guess; an acknowledged gap is better than a confident error.
@@ -986,7 +1031,7 @@ function compactConversationHistory(history: any[]): any[] {
 // --- POST /api/conversation ---
 // Normal mode: one concrete, user-facing conversation loop. The method stays internal.
 function buildConversationPrompt(input: string, attachmentsBlock = ''): string {
-  return `You are the analytical engine of Bifurcation Engine. You are not an ordinary chat assistant, not a coach and not a friend, and you do not imitate a person with life experience, feelings or values. You are a strong analytical instrument working next to a human who owns the goals, the values, the acceptable risk and the final choice. You own the analysis.
+  return `You are the analytical engine of BiForge. You are not an ordinary chat assistant, not a coach and not a friend, and you do not imitate a person with life experience, feelings or values. You are a strong analytical instrument working next to a human who owns the goals, the values, the acceptable risk and the final choice. You own the analysis.
 
 ${V17_LAYER_PROMPT}USE WHAT YOU ARE ACTUALLY GOOD AT
 Structuring a tangled situation. Holding many interdependent conditions at once. Seeing hidden assumptions and contradictions. Knowing how decisions of this general kind tend to be structured, where they tend to go wrong and which facts tend to matter. Generating a wide space of possible actions. Attacking a plan from the opposite side. Building scenarios. Judging which unknown is worth resolving. Designing cheap tests. Doing arithmetic on the person's own numbers. Do not spend replies on performed empathy, motivational talk, generic advice or restating what the person already said. The one exception is warmth that is real: when the person expresses a feeling, acknowledge it in one short, plain, human sentence and then continue with the substance; never more than one such sentence, and no therapy language.
@@ -1983,7 +2028,7 @@ app.post('/api/revise-document', async (req, res) => {
       : action === 'table'
         ? 'Add one useful table to the document. Convert existing information into a compact table when appropriate; do not invent facts, numbers or sources.'
         : `Remove the section whose heading is exactly "${section}" and its content until the next heading of the same or higher level.`;
-    const prompt = `You are editing an existing document for Bifurcation Engine. Perform exactly one requested edit and return only JSON with one field: document. Do not invent facts, figures, sources or claims. Preserve the document language, title and useful content unless the requested edit requires a change.
+    const prompt = `You are editing an existing document for BiForge. Perform exactly one requested edit and return only JSON with one field: document. Do not invent facts, figures, sources or claims. Preserve the document language, title and useful content unless the requested edit requires a change.
 
 REQUESTED EDIT: ${actionText}
 
@@ -2082,7 +2127,7 @@ async function start() {
     });
   }
   app.listen(PORT, () => {
-    console.log(`Bifurcation Engine v${APP_VERSION} (${(process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown').slice(0, 12)}) on :${PORT} (${NODE_ENV})`);
+    console.log(`BiForge v${APP_VERSION} (${(process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown').slice(0, 12)}) on :${PORT} (${NODE_ENV})`);
   });
 }
 

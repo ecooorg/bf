@@ -32,9 +32,9 @@
     "test:database": "node tests/database-contract.test.mjs",
     "test:model-layer": "node --import tsx --test tests/model-layer.test.mjs",
     "test:conformance": "node --import tsx --test tests/conformance.test.mjs",
-    "test:state": "node --import tsx --test tests/state-pipeline.test.mjs",
+    "test:state": "node --import tsx --test tests/state-pipeline.test.mjs tests/context-builder.test.mjs",
     "test:contracts": "node --import tsx --test tests/contracts.test.mjs",
-    "test:database:live": "node --import tsx --test tests/database-live.test.mjs tests/artifacts-live.test.mjs tests/state-pipeline-live.test.mjs",
+    "test:database:live": "node --import tsx --test tests/database-live.test.mjs tests/artifacts-live.test.mjs tests/state-pipeline-live.test.mjs tests/analysis-live.test.mjs",
     "test:bx06": "node --test tests/bx06.test.mjs",
     "test:bx06:api": "node --import tsx --test tests/bx06-api.test.mjs",
     "build:server": "tsc -p tsconfig.server.json"

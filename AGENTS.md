@@ -3,7 +3,7 @@
 > **Start with `docs/START_HERE.md`.** · **Document:** AGENTS.md · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026), Part B (section 16) and Appendix B · **Status:** policy document; changes follow section 10
 
 ## 1. Purpose and authority
-This repository contains BiForge, a multi-model project agent (TZv3.0, section 0.2) that currently ships as the Simple Mode application, Bifurcation Engine (BE) v1.6.0. The canonical product specification is `docs/BiForge_TZ_v3.md` (TZv3.0). It is written in Russian, and the Russian text is the only canonical version (D-17). Earlier editions (TZv1.4, TZv2.0) are obsolete; their deferred material is kept in TZv3.0 section 19 and Appendix F. If editions disagree, TZv3.0 wins.
+This repository contains BiForge, a multi-model project agent (TZv3.0, section 0.2) that currently ships as the Simple Mode application, BiForge (BE) v1.6.0. The canonical product specification is `docs/BiForge_TZ_v3.md` (TZv3.0). It is written in Russian, and the Russian text is the only canonical version (D-17). Earlier editions (TZv1.4, TZv2.0) are obsolete; their deferred material is kept in TZv3.0 section 19 and Appendix F. If editions disagree, TZv3.0 wins.
 
 These instructions define the default working rules for coding agents. The specification defines intended product behavior, architecture, and the development plan. If an instruction appears to conflict with the specification, stop and report the conflict instead of silently choosing one.
 

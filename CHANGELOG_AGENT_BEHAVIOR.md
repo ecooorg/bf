@@ -1,4 +1,4 @@
-# Changelog — Bifurcation Engine: agent behavior and model routing
+# Changelog — BiForge: agent behavior and model routing
 
 > **Document:** CHANGELOG_AGENT_BEHAVIOR · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 >

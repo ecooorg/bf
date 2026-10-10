@@ -2,7 +2,7 @@
 
 > **Document:** README · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 
-Decision cockpit implementing the **Before You Choose** method (Bifurcation Engine).
+Decision cockpit implementing the **Before You Choose** method (BiForge).
 
 International edition: English interface, USD examples, no regional localization. People can write to the agent in any language: it answers in the language it is written to, and the interface can be translated with the browser.
 
@@ -10,7 +10,7 @@ The default screen is a conversation. The method (radar, expansion, critique, sm
 
 ## Place in BiForge
 
-This application is **Simple Mode** of BiForge: the Bifurcation Engine (BE) v1.6.0, whose behavior is kept unchanged (TZv3.0, section 1.1). BiForge adds a server-side Project Mode, a multi-model layer, a task executor, and Code Delivery in steps `BX-01`…`BX-26`; none of that is implemented in this version. The canonical specification is `docs/BiForge_TZ_v3.md` (TZv3.0, in Russian; the Russian text is the only canonical version). Start with `docs/START_HERE.md`. Do not read this README as a description of Project Mode.
+This application is **Simple Mode** of BiForge: the BiForge (BE) v1.6.0, whose behavior is kept unchanged (TZv3.0, section 1.1). BiForge adds a server-side Project Mode, a multi-model layer, a task executor, and Code Delivery in steps `BX-01`…`BX-26`; none of that is implemented in this version. The canonical specification is `docs/BiForge_TZ_v3.md` (TZv3.0, in Russian; the Russian text is the only canonical version). Start with `docs/START_HERE.md`. Do not read this README as a description of Project Mode.
 
 ## Method loops
 
