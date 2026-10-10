@@ -1,18 +1,24 @@
-# Canonical inventory of external connections. Never put secret values here.
-version: 1
-connections:
-  - id: gemini
-    service: Google Gemini API
-    purpose: model inference for the existing Simple Mode
-    env:
-      - GEMINI_API_KEY
-      - GEMINI_BASE_URL
-    verification: "Configured by environment; real connectivity is not tested in secret-free CI."
-    status: environment-dependent
-  - id: railway-postgresql
-    service: PostgreSQL
-    purpose: Project Mode persistence (planned in BX-04)
-    env:
-      - DATABASE_URL
-    verification: "Not implemented yet; expected in BX-04."
-    status: planned
+# Canonical inventory of external connections (TZ Appendix E.6). Never put secret values here.
+# The body is JSON, which is valid YAML; full-line comments start with '#'. scripts/verify-connections.mjs reads this file.
+{
+  "version": 1,
+  "connectors": {
+    "gemini": {
+      "required_from": "BX-10.b",
+      "service": "Google Gemini API",
+      "env": { "required": ["GEMINI_API_KEY"], "optional": ["GEMINI_API_KEY_FREE", "GEMINI_BASE_URL"] },
+      "checks": [
+        { "id": "list_models", "method": "GET", "url": "https://generativelanguage.googleapis.com/v1beta/models?pageSize=100", "auth": { "header": "x-goog-api-key", "env": "GEMINI_API_KEY" }, "expect": { "status": 200, "json_has": ["models"] } },
+        { "id": "tiny_call", "method": "POST", "url": "https://generativelanguage.googleapis.com/v1beta/models/{MODEL_ID}:generateContent", "auth": { "header": "x-goog-api-key", "env": "GEMINI_API_KEY" }, "expect": { "status": 200, "json_has": ["candidates", "usageMetadata"] } }
+      ]
+    },
+    "postgres": {
+      "required_from": "BX-04",
+      "service": "PostgreSQL on Railway",
+      "env": { "required": ["DATABASE_URL"] },
+      "checks": [
+        { "id": "select_1", "kind": "sql", "query": "SELECT 1", "expect": { "rows": 1 } }
+      ]
+    }
+  }
+}
