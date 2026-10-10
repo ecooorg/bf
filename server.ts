@@ -22,6 +22,8 @@ import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { checkDatabase } from './server/database.ts';
 import { consumeRateLimit, createProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
+import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
+import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { readArtifact } from './server/artifactRepository.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
@@ -319,7 +321,7 @@ app.post('/api/projects/:projectId/analyze', async (req, res) => {
   try {
     if (!ai) return res.status(503).json({ success: false, error: 'No Gemini API key is configured on the server (GEMINI_API_KEY)', code: 'MODEL_NOT_CONFIGURED' });
     const input = z.object({ expected_version: z.number().int().min(1), task: z.string().trim().min(1).max(4000), artifact_ids: z.array(z.string().max(128)).max(5).optional() }).parse(req.body);
-    const data = await runAnalysis({ projectId: req.params.projectId, expectedVersion: input.expected_version, task: input.task, artifactIds: input.artifact_ids }, { adapters: { gemini: createGeminiAdapter(ai as any) } });
+    const data = await runAnalysis({ projectId: req.params.projectId, expectedVersion: input.expected_version, task: input.task, artifactIds: input.artifact_ids }, { registry: REGISTRY_ALL, adapters: { gemini: createGeminiAdapter(ai as any), ...(process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}) } });
     res.json({ success: true, data });
   } catch (error) { projectError(res, error); }
 });
