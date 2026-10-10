@@ -1,4 +1,4 @@
-/** Bifurcation Engine v11 — domain model */
+/** BiForge v11 — domain model */
 
 export type Step =
   | 'TRIAGE'

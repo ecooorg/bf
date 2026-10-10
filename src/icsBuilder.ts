@@ -32,7 +32,7 @@ export interface IcsEvent {
   summary: string;
 }
 
-export function buildIcs(events: IcsEvent[], prodId = `-//Bifurcation Engine//v${APP_VERSION}//EN`): string {
+export function buildIcs(events: IcsEvent[], prodId = `-//BiForge//v${APP_VERSION}//EN`): string {
   const now = new Date()
     .toISOString()
     .replace(/[-:]/g, '')

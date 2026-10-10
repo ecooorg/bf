@@ -24,6 +24,12 @@ export default function ProjectMode() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [task, setTask] = useState('');
+  const [decisionText, setDecisionText] = useState('');
+  const [artifacts, setArtifacts] = useState<{ artifact_id: string; version: number; filename: string; hash: string }[]>([]);
+  const [artifactText, setArtifactText] = useState('');
+  const [ledger, setLedger] = useState<{ model_id: string; input_tokens: number; output_tokens: number; status: string }[]>([]);
+  const [lastRun, setLastRun] = useState<{ model: string; tokens: { estimated: { total: number }; actual: { input: number; output: number } } } | null>(null);
 
   const loadProjects = useCallback(async (selectProjectId?: string) => {
     const list = await api<Project[]>('/api/projects');
@@ -49,6 +55,26 @@ export default function ProjectMode() {
     if (!authenticated) return;
     loadProjects().catch(e => setError(String(e.message || e)));
   }, [authenticated]);
+
+  const loadExtras = useCallback(async (id: string) => {
+    try { setArtifacts(await api(`/api/projects/${encodeURIComponent(id)}/artifacts`)); setLedger(await api(`/api/projects/${encodeURIComponent(id)}/ledger`)); } catch { /* shown on next action */ }
+  }, []);
+  useEffect(() => { if (selected?.id) void loadExtras(selected.id); }, [selected?.id, selected?.state_version, loadExtras]);
+
+  async function act(fn: () => Promise<string>) {
+    if (!selected) return; setBusy(true); setError(''); setNotice('');
+    try { const msg = await fn(); await loadProjects(selected.id); setNotice(msg); }
+    catch (e) { setError(String((e as Error).message || e)); try { await loadProjects(selected.id); } catch { /* ignore */ } }
+    finally { setBusy(false); }
+  }
+  const post = <T,>(path: string, body: unknown) => api<T>(`/api/projects/${encodeURIComponent(selected!.id)}/${path}`, { method: 'POST', body: JSON.stringify({ expected_version: selected!.state_version, ...(body as object) }) });
+  const runAnalysis = () => act(async () => {
+    const r = await post<NonNullable<typeof lastRun> & { changes: unknown[] }>('analyze', { task });
+    setLastRun(r); setTask(''); return `Analysis done: ${r.changes.length} proposed change(s). Review them below.`;
+  });
+  const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
+  const addDecision = () => act(async () => { await post('decisions', { text: decisionText }); setDecisionText(''); return 'Decision recorded.'; });
+  async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
 
   useEffect(() => { setPassport((selected?.state?.passport as Passport | undefined) ?? null); }, [selected]);
 
@@ -134,6 +160,18 @@ export default function ProjectMode() {
           <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>Code executor<select value={passport.executor} onChange={e => setPassport({ ...passport, executor: e.target.value as Passport['executor'] })} style={styles.input}><option value="manual">manual</option><option value="model_patch">model_patch</option></select></label>
           <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>Human involvement<select value={passport.humanLevel} onChange={e => setPassport({ ...passport, humanLevel: e.target.value as Passport['humanLevel'] })} style={styles.input}><option value="supervised">Supervised</option><option value="manual">Manual</option></select></label>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" style={styles.button} disabled={busy} onClick={() => void savePassport(false)}>Save passport</button>{passport.status !== 'confirmed' && <button type="button" style={styles.button} disabled={busy} onClick={() => void savePassport(true)}>Confirm passport</button>}</div></div></section>}
+
+          {passport?.status === 'confirmed' ? <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Analysis</h3>
+            <textarea aria-label="Analysis task" value={task} onChange={e => setTask(e.target.value)} rows={3} maxLength={4000} placeholder="What should the model analyse?" style={{ ...styles.input, minHeight: 0, fontSize: 14 }} />
+            <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !task.trim()} onClick={() => void runAnalysis()}>Run analysis</button>
+            {lastRun && <p style={{ fontSize: 13, color: '#8fa6c2' }}>Model {lastRun.model}. Context ~{lastRun.tokens.estimated.total} tokens (estimate); provider reported {lastRun.tokens.actual.input} in / {lastRun.tokens.actual.output} out.</p>}
+            {(['facts', 'unknowns', 'hypotheses', 'risks', 'requirements', 'decisions'] as const).map(sec => { const list = ((selected.state.items as Record<string, any[]> | undefined)?.[sec] ?? []); return list.length ? <div key={sec}><h4 style={{ marginBottom: 4 }}>{sec}</h4><ul style={{ paddingLeft: 18, margin: 0 }}>{list.map(it => { const st = it.status === 'open' || it.status === 'resolved' || it.status === 'mitigated' ? it.review : it.status; return <li key={it.id} style={{ margin: '6px 0', fontSize: 13 }}><strong>{it.id}</strong> <em style={{ color: st === 'proposed' ? '#e6c07a' : st === 'rejected' ? '#ffb4b4' : '#7fe0a8' }}>{sec === 'decisions' ? 'human decision' : st}</em>{it.unverified ? ' (unverified)' : ''} {it.text}{st === 'proposed' && <span> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'confirm')}>Confirm</button> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'reject')}>Reject</button></span>}</li>; })}</ul></div> : null; })}
+            <h4 style={{ marginBottom: 4 }}>Record a decision (human only)</h4>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><input aria-label="Decision" value={decisionText} onChange={e => setDecisionText(e.target.value)} maxLength={2000} style={{ ...styles.input, flex: '1 1 200px' }} /><button type="button" style={styles.button} disabled={busy || !decisionText.trim()} onClick={() => void addDecision()}>Add decision</button></div>
+            <h4 style={{ marginBottom: 4 }}>Artifacts</h4>{artifacts.length === 0 ? <small>None yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button> <small>{a.hash.slice(0, 12)}</small></li>)}</ul>}
+            {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}
+            <h4 style={{ marginBottom: 4 }}>Model calls</h4>{ledger.length === 0 ? <small>None yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
+          </section> : passport && <p style={{ fontSize: 13, color: '#8fa6c2' }}>Confirm the passport to enable analysis.</p>}
           <label htmlFor="project-state">JSON state</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button style={styles.button} disabled={busy} onClick={saveState}>Save new version</button><p style={{ color: '#8fa6c2', fontSize: 13 }}>Saving uses expected_version. On a conflict, data is not overwritten.</p></> : <p>Select a project to view or edit its State.</p>}</section>
       </div>
     </>}
