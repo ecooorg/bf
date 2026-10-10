@@ -13,7 +13,7 @@
 | `scripts/` | Utility scripts (see below) |
 | `tests/` | Tests (see below) |
 | `public/` | Icons for the browser and PWA manifest |
-| `docs/` | Specification, policies, step specs and reports |
+| `docs/` | Specification, policies, step specs, reports; plus informational agent-instruction materials (not binding; see table below) |
 | `.github/workflows/ci.yml` | CI on every push: migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |
 | `.github/workflows/ui-check.yml` | Browser layout check (`npm run test:ui`) |
 | `package.json`, `package-lock.json` | Dependencies and npm scripts. Do not add dependencies without a reason in the SPEC |
@@ -29,6 +29,20 @@
 | `CHANGELOG.md` | Project changelog (from BX-07). Update with every behaviour change |
 | `CHANGELOG_AGENT_BEHAVIOR.md` | History of the Simple Mode agent behaviour (1.x). A section for the current version is required by the version check |
 | `QA_DRIVE_CHECKLIST.md` | Manual Google Drive check (real Google) |
+
+
+## `docs/` — informational agent-instruction pack (not binding)
+
+These four Markdown files may be present under `docs/`. They are **reference / proposal only**. Coding agents must not treat them as SPEC, must not change product behaviour from them without an explicit patch, and tests must not depend on them.
+
+| Path | What it is |
+| --- | --- |
+| `docs/BiForge_Agent_Instructions_v1_Extracted.md` | Extracted current (v1.6.0) agent instructions from code |
+| `docs/BiForge_Agent_Instructions_v2_Target.md` | Proposed target instruction set (uncertainty contract, modes) |
+| `docs/TZ_BiForge_Instructions_Uncertainty.md` | TZ-INSTRUCTIONS-01: how to adopt v2 behaviour incrementally |
+| `docs/BiForge_analytical_note_recommendations.md` | Analytical note on dialogue failure and architecture options |
+
+Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `server/reasoningState.ts`, and history in `CHANGELOG_AGENT_BEHAVIOR.md`. Canonical product plan remains `docs/BiForge_TZ_v3.md`.
 
 ## `server/`
 
