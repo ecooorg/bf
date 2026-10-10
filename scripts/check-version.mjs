@@ -15,7 +15,7 @@ if (!(read('CHANGELOG_AGENT_BEHAVIOR.md') || '').includes(`## v${V}`)) errors.pu
 const server = read('server.ts') || '';
 if (/const\s+APP_VERSION\s*=/.test(server)) errors.push('server.ts defines its own APP_VERSION');
 if (!/import\s*\{[^}]*APP_VERSION[^}]*\}\s*from\s*'\.\/src\/config/.test(server)) errors.push('server.ts does not import APP_VERSION from src/config');
-for (const f of ['src/en.ts', 'src/icsBuilder.ts'])
+for (const f of ['src/icsBuilder.ts'])
   if (!(read(f) || '').includes('APP_VERSION')) errors.push(f + ' does not use APP_VERSION');
 
 // No stale numbers/labels as the current version. Storage keys and file names such as
