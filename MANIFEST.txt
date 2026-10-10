@@ -1,4 +1,1 @@
-Patch A: положить server.ts в корень репозитория, server/healthRoutes.ts в server/.
-Проверка после деплоя: открыть /health, там должно быть поле commit.
-Также: tests/infra.test.mjs в tests/.
-Также: tests/server.test.mjs и tests/virtual/server.test.mjs на те же места.
+Patch B: docs/BiForge_TZ_v3.md -> docs/, CHANGELOG.md -> корень.
