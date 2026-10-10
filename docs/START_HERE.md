@@ -98,7 +98,7 @@ These files are kept as history. Reading them is not needed for any patch. Older
 
 ## Informational materials (agent instructions) — do not read for patches
 
-These files document Simple Mode agent behaviour and a proposed improvement track. They are **not** binding requirements, **not** part of any PNN SPEC, and **must not** be used as acceptance criteria or test fixtures until a future patch explicitly adopts them.
+These files document Simple Mode agent behaviour, a proposed improvement track, and a post-launch shelf proposal on hallucinations. They are **not** binding requirements, **not** part of any PNN SPEC, and **must not** be used as acceptance criteria or test fixtures until a future patch explicitly adopts them.
 
 | File | What it is |
 | --- | --- |
@@ -106,12 +106,13 @@ These files document Simple Mode agent behaviour and a proposed improvement trac
 | `docs/BiForge_Agent_Instructions_v2_Target.md` | **Proposed** target instruction set (uncertainty contract, intent flags, modes on a single base). Not implemented in code. |
 | `docs/TZ_BiForge_Instructions_Uncertainty.md` | Standalone technical specification (TZ-INSTRUCTIONS-01) for incremental adoption of the v2 behaviour (P1–P3 style patches). Independent of TZv3.0 BX plan. |
 | `docs/BiForge_analytical_note_recommendations.md` | Analytical note and recommendations on the dialogue failure mode (uncertainty vs strict honesty) and architecture options. Background only. |
+| `docs/TP_BiForge_Hallucination_CrossCheck.md` | Post-launch proposal (TP-HALLUC-01): multi-model cross-check and anti-hallucination contour. **Not for implementation now**; shelf plan if hallucinations become a problem after launch. |
 
 Rules for coding agents:
 
-- Do **not** open these files unless the owner explicitly assigns work on agent instructions / TZ-INSTRUCTIONS-01.
+- Do **not** open these files unless the owner explicitly assigns work on agent instructions / TZ-INSTRUCTIONS-01 / TP-HALLUC-01.
 - Do **not** change Simple Mode prompts or post-processing because of these documents without an explicit patch SPEC.
-- `npm run check`, acceptance tests, and regression suites **do not** and **must not** depend on these four files.
+- `npm run check`, acceptance tests, and regression suites **do not** and **must not** depend on these informational files.
 - `scripts/check-docs.mjs` only verifies that local Markdown links and backticked paths resolve; presence of these files is enough. They introduce no new required behaviour.
 
 ## Other documents
@@ -121,4 +122,4 @@ Rules for coding agents:
 - `docs/BiForge_Avanproekt_v3.md` — the concept paper (in Russian; its header says it is the conceptual document and the TZ takes priority on technical details). Not a source of requirements: use the TZ.
 - Process documents (reference, may repeat each other; binding rules are here and in `AGENTS.md`): `docs/DEVELOPMENT.md`, `docs/DEVELOPMENT_PROTOCOL.md`, `docs/TESTING_POLICY.md`, `docs/universal_testing_protocol.md` (29 KB, general methodology, read only when designing tests), `docs/GIT_POLICY.md`, `docs/RESOURCE_ECONOMY.md`, `docs/SECURITY_POLICY.md`. Read `docs/SECURITY_POLICY.md` before touching authentication, secrets or uploads.
 - `QA_DRIVE_CHECKLIST.md` — manual check of Google Drive sync (needs real Google).
-- Agent-instruction reference pack (informational only; see section above): `docs/BiForge_Agent_Instructions_v1_Extracted.md`, `docs/BiForge_Agent_Instructions_v2_Target.md`, `docs/TZ_BiForge_Instructions_Uncertainty.md`, `docs/BiForge_analytical_note_recommendations.md`.
+- Agent-instruction and post-launch reference pack (informational only; see section above): `docs/BiForge_Agent_Instructions_v1_Extracted.md`, `docs/BiForge_Agent_Instructions_v2_Target.md`, `docs/TZ_BiForge_Instructions_Uncertainty.md`, `docs/BiForge_analytical_note_recommendations.md`, `docs/TP_BiForge_Hallucination_CrossCheck.md`.

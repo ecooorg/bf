@@ -33,7 +33,7 @@
 
 ## `docs/` — informational agent-instruction pack (not binding)
 
-These four Markdown files may be present under `docs/`. They are **reference / proposal only**. Coding agents must not treat them as SPEC, must not change product behaviour from them without an explicit patch, and tests must not depend on them.
+These Markdown files may be present under `docs/`. They are **reference / proposal only** (including post-launch shelf plans). Coding agents must not treat them as SPEC, must not change product behaviour from them without an explicit patch, and tests must not depend on them.
 
 | Path | What it is |
 | --- | --- |
@@ -41,6 +41,7 @@ These four Markdown files may be present under `docs/`. They are **reference / p
 | `docs/BiForge_Agent_Instructions_v2_Target.md` | Proposed target instruction set (uncertainty contract, modes) |
 | `docs/TZ_BiForge_Instructions_Uncertainty.md` | TZ-INSTRUCTIONS-01: how to adopt v2 behaviour incrementally |
 | `docs/BiForge_analytical_note_recommendations.md` | Analytical note on dialogue failure and architecture options |
+| `docs/TP_BiForge_Hallucination_CrossCheck.md` | TP-HALLUC-01: post-launch anti-hallucination / multi-model cross-check (shelf; not current work) |
 
 Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `server/reasoningState.ts`, and history in `CHANGELOG_AGENT_BEHAVIOR.md`. Canonical product plan remains `docs/BiForge_TZ_v3.md`.
 
