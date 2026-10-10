@@ -47,10 +47,10 @@ export async function uploadAttachment(file: File, language: ErrorLanguage = 'en
       body: file,
     });
   } catch {
-    const e = new Error(localizedException({ code: 'ATTACH_FAILED' }, language, language === 'ru' ? 'Не удалось загрузить файл.' : 'The upload failed.')); (e as any).code = 'ATTACH_FAILED'; throw e;
+    const e = new Error(localizedException({ code: 'ATTACH_FAILED' }, language, 'The upload failed.')); (e as any).code = 'ATTACH_FAILED'; throw e;
   }
   const j = await r.json().catch(() => ({}));
-  if (!r.ok || !j.success) throw errorFromResponse(j, language, language === 'ru' ? 'Не удалось загрузить файл.' : `The upload failed (${r.status}).`);
+  if (!r.ok || !j.success) throw errorFromResponse(j, language, `The upload failed (${r.status}).`);
   const d = j.data;
   return {
     name: String(d.name || file.name), kind: d.kind, size: Number(d.size) || file.size,
@@ -191,11 +191,11 @@ export async function buildDocumentFile(doc: DocumentSpec, format: 'docx' | 'pdf
       body: JSON.stringify(bulk ? { format, document: doc, bulk: true } : { format, document: doc }),
     });
   } catch {
-    const e = new Error(localizedException({ code: 'EXPORT_FAILED' }, language, language === 'ru' ? 'Не удалось сохранить файл.' : 'The download failed.')); (e as any).code = 'EXPORT_FAILED'; throw e;
+    const e = new Error(localizedException({ code: 'EXPORT_FAILED' }, language, 'The download failed.')); (e as any).code = 'EXPORT_FAILED'; throw e;
   }
   if (!r.ok) {
     const j = await r.json().catch(() => ({}));
-    throw errorFromResponse(j, language, language === 'ru' ? 'Не удалось сохранить файл.' : `The download failed (${r.status}).`);
+    throw errorFromResponse(j, language, `The download failed (${r.status}).`);
   }
   const blob = await r.blob();
   const cd = r.headers.get('content-disposition') || '';

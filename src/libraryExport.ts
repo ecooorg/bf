@@ -76,6 +76,6 @@ export function planImport(local: Decision[], incoming: Decision[]): ImportPlan 
   return { merged: ordered, added, updated, skipped, conflicts };
 }
 
-export function importReport(p: Pick<ImportPlan, 'added' | 'updated' | 'skipped'>, ru: boolean): string {
-  return ru ? `Добавлено ${p.added}, обновлено ${p.updated}, пропущено ${p.skipped}.` : `Added ${p.added}, updated ${p.updated}, skipped ${p.skipped}.`;
+export function importReport(p: Pick<ImportPlan, 'added' | 'updated' | 'skipped'>): string {
+  return `Added ${p.added}, updated ${p.updated}, skipped ${p.skipped}.`;
 }

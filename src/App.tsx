@@ -56,7 +56,7 @@ async function api(path: string, body: unknown) {
     // Preserve the real provider/server reason. AI failures are handled by runApi
     // as a neutral status message, never by the red global error banner.
     const detail = j?.details?.upstreamMessage ? ` — ${j.details.upstreamMessage}` : '';
-    const err = errorFromResponse({ ...j, error: `${j.error || `API error ${r.status}`}${detail}` }, getStoredUiLanguage(), getStoredUiLanguage() === 'ru' ? 'Операция не выполнена.' : `API error ${r.status}`);
+    const err = errorFromResponse({ ...j, error: `${j.error || `API error ${r.status}`}${detail}` }, getStoredUiLanguage(), `API error ${r.status}`);
     (err as any).code = j.code;
     (err as any).status = r.status;
     throw err;
@@ -217,7 +217,7 @@ export default function App() {
       if (!previous) return d;
       const revision = {
         role: 'assistant',
-        content: uiLanguage === 'ru' ? 'Обновил документ по вашему запросу.' : 'I updated the document as requested.',
+        content: 'I updated the document as requested.',
         document: next,
         at: Date.now(),
       };
@@ -260,8 +260,7 @@ export default function App() {
 
   // B3/B4: import a backup; merge by id (newer wins, nothing removed), show a report.
   const importBackup = (file: File) => {
-    const ru = getStoredUiLanguage() === 'ru';
-    const reader = new FileReader();
+        const reader = new FileReader();
     reader.onload = () => {
       void (async () => {
         try {
@@ -269,14 +268,12 @@ export default function App() {
           const plan = planImport(decisions, backup.decisions);
           if (plan.conflicts.length) {
             const list = plan.conflicts.slice(0, 5).join(', ') + (plan.conflicts.length > 5 ? '…' : '');
-            const ask = ru
-              ? `У ${plan.conflicts.length} диалогов локальная версия новее файла (${list}). Они останутся без изменений. Продолжить импорт?`
-              : `${plan.conflicts.length} dialogue(s) have a newer local version than the file (${list}). They will be kept as they are. Continue the import?`;
+            const ask = `${plan.conflicts.length} dialogue(s) have a newer local version than the file (${list}). They will be kept as they are. Continue the import?`;
             if (!confirm(ask)) return;
           }
           await importProgramFilesPayload(backup.programFiles);
           setDecisions((prev) => planImport(prev, backup.decisions).merged);
-          setMessage(importReport(plan, ru));
+          setMessage(importReport(plan));
         } catch (e: any) {
           setError(e.message);
         }
@@ -299,7 +296,7 @@ export default function App() {
         setActiveId(d.id);
         setMessage('');
       })
-      .catch((e: any) => { setMessage(''); setError(localizedException(e, getStoredUiLanguage(), getStoredUiLanguage() === 'ru' ? 'Не удалось загрузить файл.' : 'The upload failed.')); });
+      .catch((e: any) => { setMessage(''); setError(localizedException(e, getStoredUiLanguage(), 'The upload failed.')); });
   };
 
   const removeDecision = (id: string) => {

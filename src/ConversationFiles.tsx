@@ -155,9 +155,9 @@ export function DocumentCard({ doc, onEdit }: { doc: DocumentSpec; onEdit?: (nex
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.success) throw new Error(localizedException({ code: j.code, message: j.error }, getStoredUiLanguage(), j.error || 'Document edit failed.'));
       if (j.data?.document && onEdit) onEdit(j.data.document);
-      setStatus(getStoredUiLanguage() === 'ru' ? 'Новая версия документа готова.' : 'New document version is ready.');
+      setStatus('New document version is ready.');
     } catch (e: any) {
-      setStatus(localizedException(e, getStoredUiLanguage(), getStoredUiLanguage() === 'ru' ? 'Не удалось изменить документ.' : 'The document could not be edited.'));
+      setStatus(localizedException(e, getStoredUiLanguage(), 'The document could not be edited.'));
     } finally { setEditBusy(false); }
   };
 
@@ -301,7 +301,7 @@ export function FilesPanel({
   title: string;
   history: any[];
   canCalendar?: boolean;
-  /** Ask the agent for «Итог от агента» (document intent). */
+  /** Ask the agent for "Agent summary" (document intent). */
   onAgentSummary?: () => void;
   /** Download .ics when review dates exist. */
   onCalendar?: () => void;

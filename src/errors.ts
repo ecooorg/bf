@@ -1,25 +1,25 @@
 export type ErrorLanguage = 'en' | 'ru';
 
-const MESSAGES: Record<string, { en: string; ru: string }> = {
-  TOO_LARGE: { en: 'The file is too large (limit: {mb} MB).', ru: 'Файл слишком большой (лимит: {mb} МБ).' },
-  UNSUPPORTED_TYPE: { en: 'This file type is not supported.', ru: 'Этот тип файла не поддерживается.' },
-  UNREADABLE: { en: 'The file could not be read. It may be damaged or protected.', ru: 'Не удалось прочитать файл. Возможно, он повреждён или защищён.' },
-  EMPTY: { en: 'The file is empty.', ru: 'Файл пустой.' },
-  EMPTY_TEXT: { en: 'The file contains no readable text.', ru: 'В файле нет читаемого текста.' },
-  RATE_LIMIT: { en: 'Too many requests. Please try again later.', ru: 'Слишком много запросов. Повторите позже.' },
-  ATTACH_FAILED: { en: 'The file could not be processed.', ru: 'Не удалось обработать файл.' },
-  EXPORT_FAILED: { en: 'The file could not be created.', ru: 'Не удалось создать файл.' },
-  BAD_FORMAT: { en: 'This export format is not supported.', ru: 'Этот формат экспорта не поддерживается.' },
-  EMPTY_DOCUMENT: { en: 'There is nothing to export.', ru: 'В документе нечего сохранять.' },
-  BAD_UPLOAD: { en: 'The upload could not be read.', ru: 'Не удалось прочитать загружаемый файл.' },
-  TOO_LONG: { en: 'The text is too long.', ru: 'Текст слишком длинный.' },
-  PRECONDITION: { en: 'Please complete the required information first.', ru: 'Сначала заполните необходимые данные.' },
+const MESSAGES: Record<string, { en: string }> = {
+  TOO_LARGE: { en: 'The file is too large (limit: {mb} MB).' },
+  UNSUPPORTED_TYPE: { en: 'This file type is not supported.' },
+  UNREADABLE: { en: 'The file could not be read. It may be damaged or protected.' },
+  EMPTY: { en: 'The file is empty.' },
+  EMPTY_TEXT: { en: 'The file contains no readable text.' },
+  RATE_LIMIT: { en: 'Too many requests. Please try again later.' },
+  ATTACH_FAILED: { en: 'The file could not be processed.' },
+  EXPORT_FAILED: { en: 'The file could not be created.' },
+  BAD_FORMAT: { en: 'This export format is not supported.' },
+  EMPTY_DOCUMENT: { en: 'There is nothing to export.' },
+  BAD_UPLOAD: { en: 'The upload could not be read.' },
+  TOO_LONG: { en: 'The text is too long.' },
+  PRECONDITION: { en: 'Please complete the required information first.' },
 };
 
 export function localizedError(code: unknown, language: ErrorLanguage, fallback = 'The operation failed.', params: Record<string, string | number> = {}): string {
   const key = String(code || '');
   const row = MESSAGES[key];
-  let text = row?.[language] || fallback;
+  let text = row?.en || fallback;
   for (const [name, value] of Object.entries(params)) text = text.replaceAll(`{${name}}`, String(value));
   return text;
 }
