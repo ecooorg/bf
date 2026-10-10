@@ -12,6 +12,15 @@
         { "id": "tiny_call", "method": "POST", "url": "https://generativelanguage.googleapis.com/v1beta/models/{MODEL_ID}:generateContent", "auth": { "header": "x-goog-api-key", "env": "GEMINI_API_KEY" }, "expect": { "status": 200, "json_has": ["candidates", "usageMetadata"] } }
       ]
     },
+    "groq": {
+      "required_from": "BX-12.a",
+      "service": "Groq (OpenAI-compatible API)",
+      "env": { "required": ["GROQ_API_KEY", "GROQ_PLAN"] },
+      "checks": [
+        { "id": "list_models", "method": "GET", "url": "https://api.groq.com/openai/v1/models", "auth": { "header": "Authorization", "scheme": "Bearer", "env": "GROQ_API_KEY" }, "expect": { "status": 200, "json_has": ["data"] } },
+        { "id": "tiny_json_call", "method": "POST", "url": "https://api.groq.com/openai/v1/chat/completions", "auth": { "header": "Authorization", "scheme": "Bearer", "env": "GROQ_API_KEY" }, "expect": { "status": 200, "json_has": ["choices", "usage"], "content_is_json": true } }
+      ]
+    },
     "postgres": {
       "required_from": "BX-04",
       "service": "PostgreSQL on Railway",
