@@ -1,2 +1,3 @@
-BX-07.a: server/projectRepository.ts -> server/, tests/database-live.test.mjs -> tests/, CHANGELOG.md -> корень.
-Проверка: CI зелёный; на Railway сохранить state в любом проекте (версия растёт).
+BX-07.b: tests/database-live.test.mjs -> tests/, CHANGELOG.md -> корень.
+ВАЖНО: файл database-live.test.mjs содержит и правки из patch07a; загружайте ПОСЛЕ patch07a.
+Проверка: CI зелёный.
