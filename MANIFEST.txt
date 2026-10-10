@@ -1,3 +1,1 @@
-BX-07.c часть 2: все файлы класть по тем же путям (src/*, tests/*, server.ts и CHANGELOG.md в корень).
-Загружайте после patch07c1 (src/ProjectMode.tsx и tests/bx06.test.mjs там).
-Проверка: CI зелёный; Simple Mode и /project полностью на английском.
+TZ 16.4: docs/BiForge_TZ_v3.md -> docs/, CHANGELOG.md -> корень.
