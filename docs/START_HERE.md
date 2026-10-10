@@ -88,16 +88,11 @@ Always useful: 0.1 (decisions D-01…D-17), 2 (principles), 16.3 (rules of a ste
 
 ## History: do not read
 
-These files are kept as history. Reading them is not needed for any patch.
+These files are kept as history. Reading them is not needed for any patch. Older step specs, reports and audits (BX-01…BX-05, BF-01) were deleted in P00; their results are in `docs/CURRENT_STATE.md`.
 
 | File | What it is |
 | --- | --- |
-| `docs/BX-01-SPEC.md`, `docs/BX-02-SPEC.md`, `docs/BX-03-SPEC.md` | Specs of finished steps BX-01…BX-03 |
-| `docs/BX-02-REPORT.md`, `docs/BX-03-REPORT.md`, `docs/BX-03-04-REPORT.md`, `docs/BX-05-REPORT.md`, `docs/BX-06-REPORT.md`, `docs/BX-07-REPORT.md` | Reports of finished steps (BX-07 is the latest; `docs/CURRENT_STATE.md` summarizes them) |
-| `docs/BX-03B-MANUAL-CHECKLIST.md` | Manual checklist of step BX-03 |
-| `docs/BF-01-baseline-audit.md` | Baseline audit of the old code (identifier BF-01 is frozen) |
-| `docs/QA_DIAGNOSTIC_2026-10-09.md` | QA diagnostic of 9 October 2026 |
-| `AUDIT_REPORT_RU.md` | Early audit in Russian (it lies in the repository root) |
+| `docs/BX-06-REPORT.md`, `docs/BX-07-REPORT.md` | Reports of the latest finished steps (`docs/CURRENT_STATE.md` summarizes everything done). |
 | `docs/ADR-01-postgresql.md` | Accepted decision; read only if you change database access |
 
 ## Other documents

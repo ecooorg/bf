@@ -29,7 +29,6 @@
 | `CHANGELOG.md` | Project changelog (from BX-07). Update with every behaviour change |
 | `CHANGELOG_AGENT_BEHAVIOR.md` | History of the Simple Mode agent behaviour (1.x). A section for the current version is required by the version check |
 | `QA_DRIVE_CHECKLIST.md` | Manual Google Drive check (real Google) |
-| `AUDIT_REPORT_RU.md` | Historical audit (Russian). Do not read |
 
 ## `server/`
 
