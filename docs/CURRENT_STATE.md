@@ -7,7 +7,8 @@
 - BX-01…BX-05: baseline, documents, CI and operations fixes, characterization tests, PostgreSQL with migrations, base contracts.
 - BX-06: Project Mode separated (`/project`, opt-in), mandatory authentication, CSRF/origin protection, rate limits in the database. Checked by the owner on Railway (`docs/BX-06-REPORT.md`).
 - BX-07: provenance, restart test, manual 409 check, English-only interface, `/health` shows `commit` (`docs/BX-07-REPORT.md`). **Closing condition:** green CI on the last commit and a short Simple Mode check on Railway.
-- P04 (this patch): BX-17.a and BX-10.b — artifact registry (migration 002), ledger-min, `connectors.yaml`, `verify:connections`, `docs/CONNECTIONS.md`. Owner still has to run `verify:connections` with the real key and do the A-01/A-02 console checks.
+- P05 (this patch): BX-09.a part 1 — State patch pipeline, validator, compaction, state service (not wired to routes; no model call yet).
+- P04: BX-17.a and BX-10.b — artifact registry (migration 002), ledger-min, `connectors.yaml`, `verify:connections`, `docs/CONNECTIONS.md`. Owner still has to run `verify:connections` with the real key and do the A-01/A-02 console checks.
 - P03: BX-10.a part 2 and BX-11 — Gemini adapter, fake provider, Router-min, conformance tests, ADR-02. Not wired to Simple Mode (`generate()` unchanged).
 - P02: BX-10.a part 1 — adapter contract, normalized response, error classes, model registry schema and Gemini seed in code; not connected to `generate()`; registry not in the database yet.
 - P01: BX-08 — project passport (State `passport`, zod schema, `proposed`→`confirmed`; confirming moves a `draft` project to `active`); passport form in `/project`; versions, `v…` and `BX-06` removed from screens (`APP_VERSION` stays in `/health`, logs, files).
@@ -31,4 +32,4 @@
 
 ## Next patch
 
-**P05** (BX-09.a part 1): patch State pipeline, validator, compaction. Plan: TZ 16.4.2.
+**P06** (BX-09.a part 2 and BX-09.b, gate G1a): Context Builder, token measurement; slice S1 (TZ 18.0), one real analysis. Plan: TZ 16.4.2.

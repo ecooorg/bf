@@ -36,6 +36,8 @@
 | --- | --- |
 | `server/contracts.ts` | Shared identifier contract (URL/DB-safe ids) |
 | `server/adapter.ts` | Provider adapter contract, normalized response, provider error classes, fallback matrix (not wired yet) |
+| `server/statePipeline.ts` | State items schema, patch pipeline (schema, policy, apply), compaction; pure functions |
+| `server/stateService.ts` | Applies a patch or compaction to a project as a new State version (the only path for model output) |
 | `server/artifactRepository.ts` | Minimal Artifact Registry: text artifacts, versions, SHA-256 (PostgreSQL) |
 | `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
@@ -85,7 +87,7 @@
 
 | Command | What it does |
 | --- | --- |
-| `npm run check` | Chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:conformance`, `test:connections`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
+| `npm run check` | Chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:conformance`, `test:connections`, `test:state`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
 | `npm run build` | Client (`vite build`) then server (`build:server` into `dist-server/`) |
 | `npm run dev` / `npm start` | Development server / production start (runs migrations if `DATABASE_URL` is set; Project Mode needs its variables) |
 | `npm run lint`, `npm run typecheck` | `tsc --noEmit` |
@@ -115,6 +117,8 @@
 | `tests/export-name.test.mjs`, `tests/libraryExport.test.mjs` | Export file names; library export and import | no |
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/package-c.test.mjs` | Static checks of repository files (read the file for details) | no |
+| `tests/state-pipeline.test.mjs` | Patch policy, atomicity, provenance, unverified facts, compaction invariants | no |
+| `tests/state-pipeline-live.test.mjs` | Patch and compaction as State versions, 409, direct model write refused (live PostgreSQL) | yes |
 | `tests/connections.test.mjs` | `verify:connections` against a fake Gemini, manifest and CONNECTIONS.md agreement, artifact input, ledger hook | no |
 | `tests/artifacts-live.test.mjs` | Artifact versions, hash, integrity, ledger row on live PostgreSQL | yes |
 | `tests/conformance.test.mjs` | Adapter conformance (fake and Gemini) and Router-min scenarios | no |
