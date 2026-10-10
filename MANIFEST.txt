@@ -1,3 +1,2 @@
-BX-07.b: tests/database-live.test.mjs -> tests/, CHANGELOG.md -> корень.
-ВАЖНО: файл database-live.test.mjs содержит и правки из patch07a; загружайте ПОСЛЕ patch07a.
-Проверка: CI зелёный.
+BX-07.c часть 1: src/ProjectMode.tsx -> src/, tests/bx06.test.mjs -> tests/, CHANGELOG.md -> корень.
+Проверка: CI зелёный; открыть /project: весь текст английский.
