@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { providerResponseSchema } from '../server/adapter.ts';
 import { createFakeAdapter, FAKE_SCENARIOS } from '../server/fakeProvider.ts';
 import { createGeminiAdapter, classifyGeminiError } from '../server/geminiAdapter.ts';
+import { createOpenAICompatibleAdapter } from '../server/openaiCompatAdapter.ts';
 import { REGISTRY_SEED } from '../server/modelRegistry.ts';
 import { routeCall, selectCandidates, newRouterState } from '../server/router.ts';
 
@@ -23,7 +24,26 @@ const geminiStub = {
   policy: async () => ({ text: '', promptFeedback: { blockReason: 'SAFETY' } }),
   invalid_request: async () => { throw Object.assign(new Error('Bad argument'), { status: 400 }); },
 };
+const httpStub = {
+  success: () => [200, { choices: [{ message: { content: '{"a":1}' }, finish_reason: 'stop' }], usage: { prompt_tokens: 3, completion_tokens: 4, prompt_tokens_details: { cached_tokens: 1 } } }],
+  rate_limit: () => [429, { error: { message: 'Rate limit reached on tokens per minute (TPM)' } }],
+  server_error: () => [503, { error: { message: 'unavailable' } }],
+  timeout: 'hang',
+  bad_json: () => [200, { choices: [{ message: { content: 'nope' }, finish_reason: 'stop' }] }],
+  truncated: () => [200, { choices: [{ message: { content: '{"a":' }, finish_reason: 'length' }] }],
+  auth: () => [401, { error: { message: 'Invalid API Key' } }],
+  empty: () => [200, { choices: [{ message: { content: '' }, finish_reason: 'stop' }] }],
+  quota: () => [429, { error: { message: 'Rate limit reached on tokens per day (TPD)' } }],
+  policy: () => [200, { choices: [{ message: { content: '' }, finish_reason: 'content_filter' }] }],
+  invalid_request: () => [400, { error: { message: 'bad' } }],
+};
+const compat = (s) => createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: 'http://x/v1', apiKey: 'k', fetchImpl: async (_u, init) => {
+  if (httpStub[s] === 'hang') return new Promise((_, rej) => init.signal.addEventListener('abort', () => rej(new Error('This operation was aborted'))));
+  const [status, body] = httpStub[s]();
+  return new Response(JSON.stringify(body), { status });
+} });
 const adapters = {
+  compat,
   fake: (s) => createFakeAdapter('fake', [s]),
   gemini: (s) => createGeminiAdapter({ models: { generateContent: geminiStub[s] } }),
 };
@@ -35,7 +55,7 @@ for (const [name, make] of Object.entries(adapters)) {
       providerResponseSchema.parse(r);
       if (expected === null) {
         assert.equal(r.status, 'ok');
-        assert.deepEqual(r.output, name === 'gemini' ? { a: 1 } : { ok: true });
+        assert.deepEqual(r.output, name === 'gemini' || name === 'compat' ? { a: 1 } : { ok: true });
       } else {
         assert.equal(r.status, 'error');
         assert.equal(r.errorClass, expected);
