@@ -7,7 +7,8 @@
 - BX-01…BX-05: baseline, documents, CI and operations fixes, characterization tests, PostgreSQL with migrations, base contracts.
 - BX-06: Project Mode separated (`/project`, opt-in), mandatory authentication, CSRF/origin protection, rate limits in the database. Checked by the owner on Railway (`docs/BX-06-REPORT.md`).
 - BX-07: provenance, restart test, manual 409 check, English-only interface, `/health` shows `commit` (`docs/BX-07-REPORT.md`). **Closing condition:** green CI on the last commit and a short Simple Mode check on Railway.
-- P00 (this patch): documentation for working with different models; no program code changed.
+- P01 (this patch): BX-08 — project passport (State `passport`, zod schema, `proposed`→`confirmed`; confirming moves a `draft` project to `active`); passport form in `/project`; versions, `v…` and `BX-06` removed from screens (`APP_VERSION` stays in `/health`, logs, files).
+- P00: documentation for working with different models; no program code changed.
 
 ## Checked by the owner on Railway
 
@@ -20,7 +21,6 @@
 
 ## Known leftovers
 
-- Label `v1.6.0` at the bottom of Simple Mode and "BIFORGE · BX-06" in the `/project` header are still shown to the user. Removed in P01.
 - `DEPLOY_RAILWAY.md`, section "Planned changes", is partly outdated (some items were done in BX-02…BX-06); the rest of the file is accurate. Clean up when touching deployment.
 - `docs/DEVELOPMENT.md` says `npm run check` uses `scripts/qa.mjs`; in fact `package.json` runs a chain of commands (see `docs/REPO_MAP.md`).
 - Policy documents `docs/GIT_POLICY.md` and `docs/DEVELOPMENT_PROTOCOL.md` describe branches and Pull Requests; the real process is in `docs/START_HERE.md`.
@@ -28,4 +28,4 @@
 
 ## Next patch
 
-**P01** (BX-08): project initialization and passport; remove versions and step numbers from screens; the owner checks: create a project, see the passport, screens show only "BiForge". Sections to read: `docs/START_HERE.md`, table row P01. Plan: TZ 16.4.2.
+**P02** (BX-10.a, part 1): model registry, adapter contract, normalized response, error classes (no switching). Plan: TZ 16.4.2.
