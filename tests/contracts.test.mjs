@@ -53,3 +53,12 @@ test('BX-05 project API request contracts reject unknown fields and invalid vers
   assert.equal(updateProjectStateRequestSchema.safeParse({ expected_version: 1, state: {} }).success, true);
   assert.equal(updateProjectStateRequestSchema.safeParse({ expected_version: '1', state: {} }).success, false);
 });
+
+test('P01 passport: default is valid, state with invalid passport is rejected', async () => {
+  const { defaultPassport, passportSchema, stateSchemaWithPassport } = await import('../server/contracts.ts');
+  assert.equal(passportSchema.parse(defaultPassport('Goal')).status, 'proposed');
+  assert.ok(stateSchemaWithPassport.safeParse({ passport: defaultPassport() }).success);
+  assert.ok(stateSchemaWithPassport.safeParse({ any: 1 }).success);
+  assert.equal(stateSchemaWithPassport.safeParse({ passport: { ...defaultPassport(), executor: 'vendor' } }).success, false);
+  assert.equal(stateSchemaWithPassport.safeParse({ passport: { ...defaultPassport(), extra: 1 } }).success, false);
+});
