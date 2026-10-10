@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stateItemsSchema } from './statePipeline.ts';
 
 /** Shared identifier contract: URL/DB-safe and stable across services. */
 export const idSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/, 'ID may contain only letters, digits, _ and -');
@@ -55,6 +56,7 @@ export function defaultPassport(goal = ''): Passport {
 
 /** If State has a passport it must be valid; State without one stays allowed (older projects). */
 export const stateSchemaWithPassport = stateSchema.superRefine((state, ctx) => {
+  if (state.items !== undefined && !stateItemsSchema.safeParse(state.items).success) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid items' });
   if (state.passport === undefined) return;
   const r = passportSchema.safeParse(state.passport);
   if (!r.success) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid passport: ' + r.error.issues[0]?.path.join('.') });

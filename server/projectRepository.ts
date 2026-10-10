@@ -67,7 +67,9 @@ export async function getProject(idInput: string) {
 export async function updateProjectState(input: {
   projectId: string; expectedVersion: number; state: Record<string, unknown>;
   actor: 'human'|'agent'|'tool'|'system'; sourceRef: string; // provenance is mandatory (BX-07)
+  viaPipeline?: boolean; // set only by server/stateService.ts: model output reaches State only through the patch pipeline (TZ 5.4)
 }) {
+  if (input.actor === 'agent' && !input.viaPipeline) throw Object.assign(new Error('Model output must go through the State patch pipeline'), { code: 'FORBIDDEN' });
   const projectId = idSchema.parse(input.projectId);
   const expectedVersion = z.number().int().min(1).parse(input.expectedVersion);
   const state = stateSchemaWithPassport.parse(input.state);
