@@ -34,11 +34,11 @@ export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => reg
   lastVerifiedAt: '2026-10-10', secretEnvRef: 'GEMINI_API_KEY',
 }));
 
-/** Groq (P07, BX-12.a): openai-compatible, Free plan. Disabled until `verify:connections --only groq` is OK; the owner then activates the primary model. */
+/** Groq (P07, BX-12.a): openai-compatible, Free plan. verify:connections --only groq was OK on 2026-10-10, so the primary model is active (json_output confirmed); the others stay disabled. */
 export const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';
 export const GROQ_SEED: RegistryEntry[] = (['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b'] as const).map((modelId, i) => registryEntrySchema.parse({
-  providerId: 'groq', modelId, status: 'disabled', adapter: 'openai-compatible',
-  capabilities: [], roleHint: 'verifier', contextLimit: modelId.startsWith('openai/') ? 131072 : undefined,
+  providerId: 'groq', modelId, status: modelId === 'openai/gpt-oss-120b' ? 'active' : 'disabled', adapter: 'openai-compatible',
+  capabilities: modelId === 'openai/gpt-oss-120b' ? ['json_output'] : [], roleHint: 'verifier', contextLimit: modelId.startsWith('openai/') ? 131072 : undefined,
   qualityClass: 'B', qualityProvisional: true, dataPolicy: 'free', trainingOptOutConfirmed: false,
   inputBudgetTokens: 3500, maxOutputTokens: 1500,
   lastVerifiedAt: '2026-10-10', secretEnvRef: 'GROQ_API_KEY',
