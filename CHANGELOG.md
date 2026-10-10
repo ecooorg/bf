@@ -3,6 +3,7 @@
 Format: newest first. Behavior changes must update tests and this file in the same step (TZ 16.3).
 
 ## Unreleased
+- P02: BX-10.a part 1 (no switching). Added `server/adapter.ts` (provider error classes, fallback matrix as data, `ProviderAdapter` contract, normalized response schema) and `server/modelRegistry.ts` (registry schema, Gemini seed, capability and 90-day checks); `tests/model-layer.test.mjs`. `generate()` and Simple Mode untouched; the registry is not stored in the database yet.
 - P00: documentation only. Added `docs/START_HERE.md`, `docs/REPO_MAP.md`, `docs/CURRENT_STATE.md`, `docs/PATCH_TEMPLATE.md`, `docs/BX-07-REPORT.md`; one specification name `docs/BiForge_TZ_v3.md`; TZ status approved, section "How to read" and 16.3.1 (actual process); `AGENTS.md` aligned with the real process; `scripts/check-docs.mjs` also checks backticked paths; environment variables documented; removed root clutter files and `BIFORGE-STATE.json`.
 - P00b: deleted historical step specs, reports and audits (BX-01…BX-05, BF-01, QA diagnostic of 9 October 2026, `AUDIT_REPORT_RU.md`); references updated.
 - Patch A: `/health`, `/ready`, `/api/health` return `commit` (RAILWAY_GIT_COMMIT_SHA).
