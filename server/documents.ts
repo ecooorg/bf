@@ -169,7 +169,7 @@ export async function buildDocx(spec: DocumentSpec): Promise<Buffer> {
   });
 
   const doc = new Document({
-    creator: 'Bifurcation Engine',
+    creator: 'BiForge',
     title: spec.title,
     styles: {
       default: { document: { run: { font: FONT, size: 22 } } },
@@ -213,7 +213,7 @@ export function buildPdf(spec: DocumentSpec): Promise<Buffer> {
     try {
       const doc = new PDFDocument({
         size: 'A4', margin: 56, bufferPages: true,
-        info: { Title: spec.title, Creator: 'Bifurcation Engine', Producer: 'Bifurcation Engine' },
+        info: { Title: spec.title, Creator: 'BiForge', Producer: 'BiForge' },
       });
       const chunks: Buffer[] = [];
       doc.on('data', (c: Buffer) => chunks.push(c));
