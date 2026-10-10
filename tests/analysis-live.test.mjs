@@ -18,7 +18,7 @@ test('P06 live: slice S1 - passport gate, model patch is proposed, human review,
   try {
     await assert.rejects(() => runAnalysis({ projectId: p.id, expectedVersion: 1, task: 'x' }, deps), (e) => e instanceof AnalysisError && e.code === 'PASSPORT_NOT_CONFIRMED');
     const cur = await getProject(p.id);
-    await updateProjectState({ projectId: p.id, expectedVersion: 1, actor: 'human', sourceRef: 'ci', state: { ...cur.state, passport: { ...cur.state.passport, status: 'confirmed' } } });
+    await updateProjectState({ projectId: p.id, expectedVersion: 1, actor: 'human', sourceRef: 'ci', state: { ...cur.state, passport: { ...cur.state.passport, projectType: 'software', goal: 'CI goal', users: 'owner', inputsOutputs: 'text', constraints: 'none', securityData: 'synthetic', successCriteria: 'works', budget: { calls: 10, tokens: 100000, executorRuns: 1 }, executor: 'manual', humanLevel: 'supervised', status: 'confirmed' } } });
     const r = await runAnalysis({ projectId: p.id, expectedVersion: 2, task: 'Analyse the schedule' }, deps);
     assert.equal(r.state_version, 3); assert.equal(r.changes.length, 2);
     const after = await getProject(p.id);
