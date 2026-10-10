@@ -16,7 +16,7 @@ import {
 } from './storage.ts';
 import { exportDecisionJson, exportAllJson, downloadBlob, parseImportedJson, parseImportedBackup } from './exportZip.ts';
 import { DISTRESS_MARKERS, SUPPORT_CONTACTS, hasDistressMarker, findDistressInTexts } from './support.ts';
-import { FEATURES, APP_VERSION } from './config.ts';
+import { FEATURES } from './config.ts';
 import { exportFileName } from './exportName.ts';
 import { useDrive } from './useDrive.ts';
 import { HistoryPanel } from './HistoryPanel.tsx';
@@ -115,7 +115,6 @@ export default function App() {
   const [activeId, setActiveId] = useState(() => getActiveDecisionId());
   const drive = useDrive<Decision>(decisions, setDecisions);
   const [showHistory, setShowHistory] = useState(false);
-  const [serverVersion, setServerVersion] = useState('');
   const historyAvailable = useMemo(() => {
     try { localStorage.setItem('be_probe', '1'); localStorage.removeItem('be_probe'); return true; } catch { return false; }
   }, []);
@@ -141,10 +140,6 @@ export default function App() {
 
   useEffect(() => {
     sessionStatus().then(s => { setAuthenticated(s.authenticated); setAuthRequired(s.required); setProjectModeEnabled(s.projectModeEnabled); setAuthChecked(true); }).catch(() => { setAuthChecked(true); setAuthRequired(false); setProjectModeEnabled(false); setAuthenticated(true); });
-  }, []);
-
-  useEffect(() => {
-    fetch('/api/health').then((r) => r.json()).then((j) => setServerVersion(String(j?.version || ''))).catch(() => {});
   }, []);
 
   async function refreshAiHealth() {
@@ -423,11 +418,6 @@ export default function App() {
     <HistoryPanel items={decisions} activeId={active?.id || ''} isOnDrive={drive.isOnDrive}
       onSelect={(id) => { setActiveId(id); setShowHistory(false); }} onClose={() => setShowHistory(false)} />
   ) : null;
-  const versionLine = (
-    <div style={{ textAlign: 'center', fontSize: 12, color: '#6b7f94', padding: '8px 0 14px' }}>
-      v{APP_VERSION}{serverVersion && serverVersion !== APP_VERSION ? ` · server v${serverVersion}` : ''}
-    </div>
-  );
 
   if (!active) {
     return (
@@ -479,7 +469,6 @@ export default function App() {
             </div>
           )}
         </div>
-        {versionLine}
       </div>
     );
   }
@@ -644,7 +633,6 @@ export default function App() {
       {showBrief && (
         <BriefPanel d={d} onClose={() => setShowBrief(false)} update={update} />
       )}
-      {versionLine}
     </div>
   );
 }
