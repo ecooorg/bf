@@ -24,15 +24,52 @@ export type Project = z.infer<typeof projectSchema>;
 export const stateSchema = z.record(z.string(), z.unknown());
 export type ProjectState = z.infer<typeof stateSchema>;
 
+/** Project Passport (TZ 6.3). Lives in State under `passport`, versioned with it. */
+const passportText = z.string().trim().max(2000);
+export const passportSchema = z.object({
+  status: z.enum(['proposed', 'confirmed']),
+  projectType: z.string().trim().min(1).max(80),
+  goal: passportText,
+  users: passportText,
+  inputsOutputs: passportText,
+  constraints: passportText,
+  securityData: passportText,
+  successCriteria: passportText,
+  budget: z.object({
+    calls: z.number().int().min(0).max(1_000_000),
+    tokens: z.number().int().min(0).max(1_000_000_000),
+    executorRuns: z.number().int().min(0).max(100_000),
+  }).strict(),
+  executor: z.enum(['manual', 'model_patch']),
+  humanLevel: z.enum(['supervised', 'manual']),
+}).strict();
+export type Passport = z.infer<typeof passportSchema>;
+
+export function defaultPassport(goal = ''): Passport {
+  return {
+    status: 'proposed', projectType: 'unspecified', goal: goal.trim().slice(0, 2000), users: '', inputsOutputs: '',
+    constraints: '', securityData: '', successCriteria: '',
+    budget: { calls: 100, tokens: 500_000, executorRuns: 0 }, executor: 'manual', humanLevel: 'supervised',
+  };
+}
+
+/** If State has a passport it must be valid; State without one stays allowed (older projects). */
+export const stateSchemaWithPassport = stateSchema.superRefine((state, ctx) => {
+  if (state.passport === undefined) return;
+  const r = passportSchema.safeParse(state.passport);
+  if (!r.success) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid passport: ' + r.error.issues[0]?.path.join('.') });
+});
+
 export const createProjectRequestSchema = z.object({
   name: z.string().trim().min(1).max(200),
+  goal: passportText.optional(),
   state: stateSchema.optional(),
 }).strict();
 export type CreateProjectRequest = z.infer<typeof createProjectRequestSchema>;
 
 export const updateProjectStateRequestSchema = z.object({
   expected_version: z.number().int().positive(),
-  state: stateSchema,
+  state: stateSchemaWithPassport,
 }).strict();
 export type UpdateProjectStateRequest = z.infer<typeof updateProjectStateRequestSchema>;
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { getPool } from './database.ts';
+import { stateSchemaWithPassport } from './contracts.ts';
 
 const idSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
 const nameSchema = z.string().trim().min(1).max(200);
@@ -27,7 +28,7 @@ export class StateVersionConflict extends Error {
 export async function createProject(input: { id?: string; name: string; state?: Record<string, unknown> }) {
   const name = nameSchema.parse(input.name);
   const id = idSchema.parse(input.id ?? sortableId());
-  const state = stateSchema.parse(input.state ?? {});
+  const state = stateSchemaWithPassport.parse(input.state ?? {});
   const pool = await getPool();
   const client = await pool.connect();
   try {
@@ -69,7 +70,7 @@ export async function updateProjectState(input: {
 }) {
   const projectId = idSchema.parse(input.projectId);
   const expectedVersion = z.number().int().min(1).parse(input.expectedVersion);
-  const state = stateSchema.parse(input.state);
+  const state = stateSchemaWithPassport.parse(input.state);
   const actor = actorSchema.parse(input.actor);
   const sourceRef = z.string().trim().min(1).max(500).parse(input.sourceRef);
   const pool = await getPool();
@@ -82,7 +83,8 @@ export async function updateProjectState(input: {
     if (actual !== expectedVersion) throw new StateVersionConflict(expectedVersion, actual);
     const next = actual + 1;
     await client.query('UPDATE project_states SET state_version=$2,state=$3::jsonb,updated_at=now() WHERE project_id=$1', [projectId, next, JSON.stringify(state)]);
-    await client.query('UPDATE projects SET updated_at=now() WHERE id=$1', [projectId]);
+    const confirmed = (state.passport as { status?: string } | undefined)?.status === 'confirmed';
+    await client.query(confirmed ? `UPDATE projects SET updated_at=now(), status=CASE WHEN status='draft' THEN 'active' ELSE status END WHERE id=$1` : 'UPDATE projects SET updated_at=now() WHERE id=$1', [projectId]);
     await client.query('INSERT INTO project_state_versions(id,project_id,state_version,state,actor,source_ref) VALUES($1,$2,$3,$4::jsonb,$5,$6)', [sortableId(), projectId, next, JSON.stringify(state), actor, sourceRef]);
     await client.query('INSERT INTO project_events(id,project_id,event_type,payload,actor) VALUES($1,$2,$3,$4::jsonb,$5)', [sortableId(), projectId, 'state.updated', JSON.stringify({ state_version: next, source_ref: sourceRef }), actor]);
     await client.query('INSERT INTO audit_events(id,project_id,event_type,actor,details) VALUES($1,$2,$3,$4,$5::jsonb)', [sortableId(), projectId, 'state.updated', actor, JSON.stringify({ state_version: next, source_ref: sourceRef })]);
