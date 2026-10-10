@@ -1,6 +1,6 @@
 # BiForge v1.6.0
 
-> **Document:** README · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, 9 October 2026)
+> **Document:** README · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 
 Decision cockpit implementing the **Before You Choose** method (Bifurcation Engine).
 
@@ -10,7 +10,7 @@ The default screen is a conversation. The method (radar, expansion, critique, sm
 
 ## Place in BiForge
 
-This application is **Simple Mode** of BiForge: the Bifurcation Engine (BE) v1.6.0, whose behavior is kept unchanged (TZv3.0, section 1.1). BiForge adds a server-side Project Mode, a multi-model layer, a task executor, and Code Delivery in steps `BX-01`…`BX-26`; none of that is implemented in this version. The canonical specification is `docs/BiForge_TZ_v3_ru.md` (TZv3.0, in Russian; the Russian text is the only canonical version). Do not read this README as a description of Project Mode.
+This application is **Simple Mode** of BiForge: the Bifurcation Engine (BE) v1.6.0, whose behavior is kept unchanged (TZv3.0, section 1.1). BiForge adds a server-side Project Mode, a multi-model layer, a task executor, and Code Delivery in steps `BX-01`…`BX-26`; none of that is implemented in this version. The canonical specification is `docs/BiForge_TZ_v3.md` (TZv3.0, in Russian; the Russian text is the only canonical version). Start with `docs/START_HERE.md`. Do not read this README as a description of Project Mode.
 
 ## Method loops
 
@@ -67,7 +67,9 @@ Distress detection works in two layers: a multilingual marker list (`src/support
 
 | Document | Purpose |
 | --- | --- |
-| `docs/BiForge_TZ_v3_ru.md` | Canonical specification TZv3.0 (Russian) |
+| `docs/START_HERE.md` | Where to start; rules, process, which TZ sections to read |
+| `docs/REPO_MAP.md`, `docs/CURRENT_STATE.md` | Repository map; current state and next patch |
+| `docs/BiForge_TZ_v3.md` | Canonical specification TZv3.0 (Russian) |
 | `AGENTS.md` | Rules for development agents (TZv3.0, Appendix B) |
 | `docs/DEVELOPMENT_PROTOCOL.md` | Step cycle and gates (TZv3.0, sections 16–17) |
 | `docs/GIT_POLICY.md`, `docs/SECURITY_POLICY.md`, `docs/TESTING_POLICY.md`, `docs/RESOURCE_ECONOMY.md` | Git, security, testing, and resource policies |
@@ -78,7 +80,7 @@ Distress detection works in two layers: a multilingual marker list (`src/support
 
 ## Version
 
-One product version everywhere, defined in `src/config.ts` (`APP_VERSION`); it is independent of the specification number (TZv3.0); `npm run check` fails if `package.json`, README, DEPLOY_RAILWAY.md or the changelog disagree. The local-storage data schema keeps its own number, `SCHEMA_VERSION`.
+One service version everywhere (it is not shown to the user in the interface; the screens show only "BiForge"), defined in `src/config.ts` (`APP_VERSION`); it is independent of the specification number (TZv3.0); `npm run check` fails if `package.json`, README, DEPLOY_RAILWAY.md or the changelog disagree. The local-storage data schema keeps its own number, `SCHEMA_VERSION`.
 Highlights: conversation-first agent with invisible method discipline, memory of the next step between visits, multilingual crisis safety, soft quality checks instead of hard errors, safe Google Drive sync, password sign-in with signed cookies. See `CHANGELOG_AGENT_BEHAVIOR.md`.
 
 ## Deployment notes

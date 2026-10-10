@@ -1,6 +1,6 @@
 # Manual Drive check (real Google, two devices A and B)
 
-> **Document:** QA_DRIVE_CHECKLIST · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, sections 12.2 and 12.5, 9 October 2026)
+> **Document:** QA_DRIVE_CHECKLIST · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, sections 12.2 and 12.5, 9 October 2026)
 >
 > These checks need real Google accounts and real devices, so they cannot be proven on fake providers. Until the owner has run an item, its status is `REAL_ONLY`, not `PASS`. Record each result as `PASS`, `FAIL`, `BLOCKED` (with the reason), or `REAL_ONLY` (not yet run), with the date, the build version, and the device. Do not mark an item `PASS` from memory or from a mock. This checklist belongs to Simple Mode and stays valid as long as its behavior is unchanged (`check` green).
 

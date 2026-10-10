@@ -1,8 +1,8 @@
 # Railway deployment — v1.6.0
 
-> **Document:** DEPLOY_RAILWAY · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, sections 4.4, 13.3–13.6, 14.4, 15, and Appendix E, 9 October 2026)
+> **Document:** DEPLOY_RAILWAY · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, sections 4.4, 13.3–13.6, 14.4, 15, and Appendix E, 9 October 2026)
 
-This file describes how the current application (Simple Mode) is deployed. Project Mode, PostgreSQL, and the other BiForge layers are not part of this version; planned deployment changes are listed in the section "Planned changes (TZv3.0)" below.
+This file describes how the current application (Simple Mode) is deployed. Project Mode and PostgreSQL are opt-in (section "Project Mode (BX-06, opt-in)" below); the other BiForge layers are not deployed yet. Remaining deployment changes are listed in "Planned changes (TZv3.0)"; some of them are already done (see `docs/CURRENT_STATE.md`).
 
 The decision method and the answer layer are described in `CHANGELOG_AGENT_BEHAVIOR.md`. Infrastructure changes are kept separate from the decision methodology.
 
@@ -22,6 +22,11 @@ If `APP_PASSWORD` is empty in production the site is open to everyone; the serve
 - `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` — comma-separated model lists, tried in order (defaults in `server.ts`).
 - `RATE_LIMIT_PER_HOUR` (default 60), `DAILY_CALL_CAP` (default 200). Requests made with the user's own key (`x-byok-key`) do not use the daily cap.
 - `MAX_MODEL_CALLS` — model responses allowed for one HTTP request, retries included (default 4).
+- `EXPERT_ATTACH_TOTAL_CHARS` (default 20000) — attached file text allowed in expert requests.
+- `GIT_COMMIT` — commit shown by `/health` when `RAILWAY_GIT_COMMIT_SHA` (set by Railway) is absent; the first 12 characters are shown as `commit`.
+- `SKIP_DIST_HEALTHCHECK=true` — only for tests: skips the check that `dist/` exists in production health.
+- `NODE_ENV` — set by the platform; `production` enables secure cookies and the default of one proxy hop.
+- `PORT` — set by the platform (default 3000); `PG_POOL_MAX` and `PGSSLMODE` — PostgreSQL pool size and SSL mode; `PROJECT_RATE_LIMIT_PER_MINUTE` (default 60) — Project Mode per-IP limit; `DISABLE_HMR=true` — development only.
 - `LOGIN_MAX_FAILS` (default 10) and `LOGIN_WINDOW_MIN` (default 15) — failed sign-ins allowed per address per window.
 - `MAX_UPLOAD_BYTES` (default 10485760) — largest file the person can attach. `MAX_ATTACH_TEXT_CHARS` (default 30000) — how much text of one file is passed to the model.
 - `LLM_CALL_TIMEOUT_MS` (default 25000), `LLM_TOTAL_DEADLINE_MS` (default 70000), `LLM_ROUND_PAUSE_MS`, `MAX_BODY_BYTES`, `GEMINI_BASE_URL`.
@@ -55,7 +60,7 @@ These items are not done in this version. They are the operational fixes of BX-0
 
 ## Paid billing for real data
 
-Files and messages are sent to Gemini (see below). On the free tier of the Gemini API the provider may use data to improve its products; on the paid tier it does not (A-02, confirmed 9 October 2026). Therefore use a **paid billing project with a spending limit or alert** for real data, and keep a free key for synthetic tests only. Set `DAILY_CALL_CAP` as the application's daily ceiling (section 14.4). Connection names and checks for every service are described in Appendix E of the specification (`docs/CONNECTIONS.md` and `connectors.yaml` are created in BX-01.b and filled in BX-10.b).
+Files and messages are sent to Gemini (see below). On the free tier of the Gemini API the provider may use data to improve its products; on the paid tier it does not (A-02, confirmed 9 October 2026). Therefore use a **paid billing project with a spending limit or alert** for real data, and keep a free key for synthetic tests only. Set `DAILY_CALL_CAP` as the application's daily ceiling (section 14.4). Connection names and checks for every service are described in Appendix E of the specification (`docs/CONNECTIONS.md` and `connectors.yaml` exist and are filled in BX-10.b).
 
 ## Files in the conversation
 

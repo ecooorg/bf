@@ -3,6 +3,7 @@
 Format: newest first. Behavior changes must update tests and this file in the same step (TZ 16.3).
 
 ## Unreleased
+- P00: documentation only. Added `docs/START_HERE.md`, `docs/REPO_MAP.md`, `docs/CURRENT_STATE.md`, `docs/PATCH_TEMPLATE.md`, `docs/BX-07-REPORT.md`; one specification name `docs/BiForge_TZ_v3.md`; TZ status approved, section "How to read" and 16.3.1 (actual process); `AGENTS.md` aligned with the real process; `scripts/check-docs.mjs` also checks backticked paths; environment variables documented; removed root clutter files and `BIFORGE-STATE.json`.
 - Patch A: `/health`, `/ready`, `/api/health` return `commit` (RAILWAY_GIT_COMMIT_SHA).
 - Patch B: TZ updated (language rule 6.1.1, step rules in 16.3, BX-07 narrowed); CHANGELOG.md added.
 - BX-07.a: `updateProjectState` requires a non-empty `sourceRef`; `project.created` event records `source_ref`; live test checks provenance on versions and events.

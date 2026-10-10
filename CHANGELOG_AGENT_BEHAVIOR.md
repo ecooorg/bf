@@ -1,12 +1,12 @@
 # Changelog — Bifurcation Engine: agent behavior and model routing
 
-> **Document:** CHANGELOG_AGENT_BEHAVIOR · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, 9 October 2026)
+> **Document:** CHANGELOG_AGENT_BEHAVIOR · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 >
 > This file records the changes of the application itself. The version here is the product version (`APP_VERSION`) and is independent of the specification number. Plan steps of BiForge are named `BX-XX` (TZv3.0, section 16.4); the older identifiers `BF-01`…`BF-44` are frozen and appear only in historical entries. Entries from `v20.0.1` down to `v13` use the numbering scheme that preceded `v1.0` and are kept unchanged.
 
 ## v1.6.0
 
-- Documentation only, no code or behavior change: workflow documents, `AGENTS.md`, README, DEPLOY_RAILWAY.md, and the testing documents are aligned with TZv3.0 (BX-01.b, documents part): canonical specification path `docs/BiForge_TZ_v3_ru.md`, plan identifiers `BX-XX`, statuses `PASS`/`FAIL`/`BLOCKED`/`NOT_RUN`/`REAL_ONLY`/`WAIVED`. Still open in BX-01.b: the path and link check script in CI, the placeholders `docs/BX-`, `connectors.yaml`, `docs/CONNECTIONS.md`, and marking the older specification editions obsolete.
+- Documentation only, no code or behavior change: workflow documents, `AGENTS.md`, README, DEPLOY_RAILWAY.md, and the testing documents are aligned with TZv3.0 (BX-01.b, documents part): canonical specification path `docs/BiForge_TZ_v3.md`, plan identifiers `BX-XX`, statuses `PASS`/`FAIL`/`BLOCKED`/`NOT_RUN`/`REAL_ONLY`/`WAIVED`. Still open in BX-01.b: the path and link check script in CI, the placeholders `docs/BX-`, `connectors.yaml`, `docs/CONNECTIONS.md`, and marking the older specification editions obsolete.
 - Token Economy: conversation requests keep the durable decision state and the latest turns, instead of re-sending the full recent transcript to Gemini on every turn. The client history is unchanged; only model input is compacted.
 - The conversation model context is capped at the latest 8 messages, with each message capped at 6000 characters. The original decision remains in `brief`, while older durable facts continue through `conversationState`.
 - Gemini usage logs now record `cachedTokens` from `usageMetadata.cachedContentTokenCount` when the provider returns it. This is measurement only; no explicit Context Cache or Interactions API dependency was added.
