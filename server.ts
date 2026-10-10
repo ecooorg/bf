@@ -742,7 +742,8 @@ async function generate(
           },
         });
         const latencyMs = Date.now() - callStarted;
-        const sentChars = BASE_SYSTEM.length + contents.length + (opts?.extraChars || 0);
+        const sysText = /[\u0400-\u04FF]/.test(inputForNumbers) ? BASE_SYSTEM.length + 163 : BASE_SYSTEM.length;
+        const sentChars = sysText + contents.length + (opts?.extraChars || 0);
         const um: any = (r as any).usageMetadata;
         const inTok = Number.isFinite(um?.promptTokenCount) ? Number(um.promptTokenCount) : undefined;
         const outTok = Number.isFinite(um?.candidatesTokenCount) ? Number(um.candidatesTokenCount) : undefined;
@@ -768,6 +769,9 @@ async function generate(
         if (bad.length) {
           console.warn(JSON.stringify({ type: 'llm_number_warning', model, stage, reason: `numbers outside user input: ${bad.join(', ')}`.slice(0, 240) }));
         }
+        // INFRA-01: an invented percentage is a format failure (one retry); other stray numbers stay warnings.
+        const badPct = bad.filter((n) => n.endsWith('%'));
+        if (!problem && badPct.length) problem = `invented percentage: ${badPct.join(', ')}`.slice(0, 200);
         if (problem) {
           formatFailures++;
           lastErr = new Error(`Unusable AI response (${problem})`);
