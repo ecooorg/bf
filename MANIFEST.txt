@@ -1,2 +1,3 @@
-BX-07.c часть 1: src/ProjectMode.tsx -> src/, tests/bx06.test.mjs -> tests/, CHANGELOG.md -> корень.
-Проверка: CI зелёный; открыть /project: весь текст английский.
+BX-07.c часть 2: все файлы класть по тем же путям (src/*, tests/*, server.ts и CHANGELOG.md в корень).
+Загружайте после patch07c1 (src/ProjectMode.tsx и tests/bx06.test.mjs там).
+Проверка: CI зелёный; Simple Mode и /project полностью на английском.

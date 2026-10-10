@@ -1268,7 +1268,7 @@ The reply must contain at least one of: a reframed question, a hidden assumption
     const crisisBlock = fallbackDistressMarkerDetected
       ? `\n\n---\nIf you are in immediate danger, contact local emergency services or a person near you right now.\n${SUPPORT_CONTACTS.map((c) => `${c.label}: ${c.value}`).join('\n')}`
       : '';
-    const fallbackReply = `Я сохранил вашу ситуацию. Сейчас AI-модель временно недоступна, поэтому я не буду придумывать факты или расчёты. Ваш текст не потерян — можно повторить запрос через некоторое время.${crisisBlock}`;
+    const fallbackReply = `I saved your situation. The AI model is temporarily unavailable, so I will not invent facts or calculations. Your text is not lost — you can repeat the request in a little while.${crisisBlock}`;
     return ok(res, {
       reply: fallbackReply, question: '', contextSufficiency: 'LOW',
       triage: fallbackDistressMarkerDetected ? 'CRISIS' : 'PROCEED',
