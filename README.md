@@ -75,7 +75,6 @@ Distress detection works in two layers: a multilingual marker list (`src/support
 | `docs/GIT_POLICY.md`, `docs/SECURITY_POLICY.md`, `docs/TESTING_POLICY.md`, `docs/RESOURCE_ECONOMY.md` | Git, security, testing, and resource policies |
 | `docs/STEP_REPORT_TEMPLATE.md` | Step report template |
 | `docs/universal_testing_protocol.md` | General testing methodology |
-| `docs/BF-01-baseline-audit.md` | Historical baseline audit (identifier `BF-01` is frozen; the plan now uses `BX-XX`) |
 | `DEPLOY_RAILWAY.md`, `QA_DRIVE_CHECKLIST.md`, `CHANGELOG_AGENT_BEHAVIOR.md` | Deployment, manual Drive checks, changelog of this application |
 
 ## Version
