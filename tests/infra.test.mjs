@@ -53,7 +53,7 @@ try {
     assert.equal(health.status, 200);
     const healthJson = await health.json();
     assert.equal(healthJson.status, 'ok');
-    assert.deepEqual(Object.keys(healthJson).sort(), ['status', 'version']);
+    assert.deepEqual(Object.keys(healthJson).sort(), ['commit', 'status', 'version']);
     const ready = await fetch(s.base + '/ready');
     assert.equal(ready.status, 503);
     assert.equal((await ready.json()).reason, 'database_not_configured');
