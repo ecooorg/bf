@@ -38,7 +38,7 @@ export default function ProjectMode() {
     let active = true;
     fetch('/api/session', { credentials: 'same-origin' }).then(r => r.json()).then(s => {
       if (active) { setAuthenticated(Boolean(s.authenticated)); setEnabled(Boolean(s.projectModeEnabled)); }
-    }).catch(() => { if (active) { setAuthenticated(false); setEnabled(false); setError('Не удалось проверить сессию.'); } });
+    }).catch(() => { if (active) { setAuthenticated(false); setEnabled(false); setError('Could not verify the session.'); } });
     return () => { active = false; };
   }, []);
 
@@ -51,7 +51,7 @@ export default function ProjectMode() {
     e.preventDefault(); setBusy(true); setError('');
     try {
       const r = await fetch('/api/login', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
-      const j = await r.json(); if (!r.ok || !j.authenticated) throw new Error(j.error || 'Вход не выполнен');
+      const j = await r.json(); if (!r.ok || !j.authenticated) throw new Error(j.error || 'Sign-in failed');
       setAuthenticated(true); setPassword('');
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
@@ -62,7 +62,7 @@ export default function ProjectMode() {
     try {
       const project = await api<Project>('/api/projects', { method: 'POST', body: JSON.stringify({ name: name.trim(), state: {} }) });
       setName(''); setSelected(project); setStateText(JSON.stringify(project.state ?? {}, null, 2));
-      await loadProjects(project.id); setNotice('Проект создан.');
+      await loadProjects(project.id); setNotice('Project created.');
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
   }
@@ -71,12 +71,12 @@ export default function ProjectMode() {
     if (!selected) return; setBusy(true); setError(''); setNotice('');
     try {
       let state: unknown;
-      try { state = JSON.parse(stateText); } catch { throw new Error('Некорректный JSON. Ключи пишутся в двойных кавычках, например {"key": 777}.'); }
-      if (!state || Array.isArray(state) || typeof state !== 'object') throw new Error('State должен быть JSON-объектом.');
+      try { state = JSON.parse(stateText); } catch { throw new Error('Invalid JSON. Keys must be in double quotes, for example {"key": 777}.'); }
+      if (!state || Array.isArray(state) || typeof state !== 'object') throw new Error('State must be a JSON object.');
       await api(`/api/projects/${encodeURIComponent(selected.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: selected.state_version, state }) });
       const fresh = await api<Project>(`/api/projects/${encodeURIComponent(selected.id)}`);
       setSelected(fresh); setStateText(JSON.stringify(fresh.state ?? {}, null, 2));
-      await loadProjects(fresh.id); setNotice(`State сохранён, версия ${fresh.state_version}.`);
+      await loadProjects(fresh.id); setNotice(`State saved, version ${fresh.state_version}.`);
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
   }
@@ -85,7 +85,7 @@ export default function ProjectMode() {
     setBusy(true); setError('');
     try {
       const response = await fetch('/api/logout', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-      if (!response.ok) throw new Error('Не удалось завершить сессию.');
+      if (!response.ok) throw new Error('Could not end the session.');
       setAuthenticated(false); setProjects([]); setSelected(null); setStateText('{}');
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
@@ -101,19 +101,19 @@ export default function ProjectMode() {
 
   return <main style={styles.page}><section style={styles.panel}>
     <header style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge · BX-06</div><h1 style={{ margin: '6px 0' }}>Project Mode</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Отдельное хранилище проектов и версионируемого состояния.</p></div>
+      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge · BX-06</div><h1 style={{ margin: '6px 0' }}>Project Mode</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate storage for projects and versioned state.</p></div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-        <a href="/" style={styles.link}>← Вернуться в Simple Mode</a>
-        {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Выйти</button>}
+        <a href="/" style={styles.link}>← Back to Simple Mode</a>
+        {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Sign out</button>}
       </div>
     </header>
     {error && <p role="alert" style={{ color: '#ffb4b4', background: '#3a1216', padding: 12, borderRadius: 8 }}>{error}</p>}
     {notice && <p role="status" style={{ color: '#7fe0a8' }}>{notice}</p>}
-    {enabled === null || authenticated === null ? <p>Проверка сессии…</p> : !enabled ? <p role="status">Project Mode отключён в конфигурации сервера. <a href="/" style={styles.link}>Вернуться в Simple Mode</a>.</p> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Вход</h2><label htmlFor="project-password">Пароль приложения</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Войти</button></form> : <>
-      <form onSubmit={create} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0 24px' }}><input aria-label="Название проекта" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="Название нового проекта" required maxLength={200} /><button style={styles.button} disabled={busy || !name.trim()}>Создать проект</button></form>
+    {enabled === null || authenticated === null ? <p>Checking session…</p> : !enabled ? <p role="status">Project Mode is disabled in the server configuration. <a href="/" style={styles.link}>Back to Simple Mode</a>.</p> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Sign in</h2><label htmlFor="project-password">App password</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Sign in</button></form> : <>
+      <form onSubmit={create} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0 24px' }}><input aria-label="Project name" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="New project name" required maxLength={200} /><button style={styles.button} disabled={busy || !name.trim()}>Create project</button></form>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
-        <section><h2>Проекты</h2>{projects.length === 0 ? <p>Проектов пока нет.</p> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0' }}><button style={{ ...styles.button, width: '100%', textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · версия {p.state_version}</small></button></li>)}</ul>}</section>
-        <section><h2>Project State</h2>{selected ? <><p><strong>{selected.name}</strong><br /><small>ID: {selected.id} · версия {selected.state_version}</small></p><label htmlFor="project-state">JSON-состояние</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button style={styles.button} disabled={busy} onClick={saveState}>Сохранить новую версию</button><p style={{ color: '#8fa6c2', fontSize: 13 }}>Сохранение использует expected_version. При конфликте данные не перезаписываются.</p></> : <p>Выберите проект, чтобы просмотреть или изменить его State.</p>}</section>
+        <section><h2>Projects</h2>{projects.length === 0 ? <p>No projects yet.</p> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0' }}><button style={{ ...styles.button, width: '100%', textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · version {p.state_version}</small></button></li>)}</ul>}</section>
+        <section><h2>Project State</h2>{selected ? <><p><strong>{selected.name}</strong><br /><small>ID: {selected.id} · version {selected.state_version}</small></p><label htmlFor="project-state">JSON state</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button style={styles.button} disabled={busy} onClick={saveState}>Save new version</button><p style={{ color: '#8fa6c2', fontSize: 13 }}>Saving uses expected_version. On a conflict, data is not overwritten.</p></> : <p>Select a project to view or edit its State.</p>}</section>
       </div>
     </>}
   </section></main>;
