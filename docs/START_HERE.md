@@ -6,7 +6,7 @@
 ## What this is (5 lines)
 
 1. BiForge is a decision and project agent on Node/Express + React + the Gemini API, deployed on Railway.
-2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (Bifurcation Engine, internal version 1.6.0).
+2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (BiForge, internal version 1.6.0).
 3. **Project Mode** (`/project`, opt-in, PostgreSQL) is being built step by step from the specification `docs/BiForge_TZ_v3.md` (Russian, canonical).
 4. The plan is a list of patches P01…P25 (TZ 16.4.2). Current state: `docs/CURRENT_STATE.md`.
 5. Map of the repository, scripts, tests and environment variables: `docs/REPO_MAP.md`.

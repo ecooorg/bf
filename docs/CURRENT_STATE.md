@@ -7,7 +7,8 @@
 - BX-01…BX-05: baseline, documents, CI and operations fixes, characterization tests, PostgreSQL with migrations, base contracts.
 - BX-06: Project Mode separated (`/project`, opt-in), mandatory authentication, CSRF/origin protection, rate limits in the database. Checked by the owner on Railway (`docs/BX-06-REPORT.md`).
 - BX-07: provenance, restart test, manual 409 check, English-only interface, `/health` shows `commit` (`docs/BX-07-REPORT.md`). **Closing condition:** green CI on the last commit and a short Simple Mode check on Railway.
-- P05 (this patch): BX-09.a part 1 — State patch pipeline, validator, compaction, state service (not wired to routes; no model call yet).
+- P06 (this patch): BX-09.a part 2 and BX-09.b — Context Builder with token measurement, analysis in Project Mode (model -> patch -> human review -> artifact -> ledger). Gate G1a waits for the owner's real analysis.
+- P05: BX-09.a part 1 — State patch pipeline, validator, compaction, state service (not wired to routes; no model call yet).
 - P04: BX-17.a and BX-10.b — artifact registry (migration 002), ledger-min, `connectors.yaml`, `verify:connections`, `docs/CONNECTIONS.md`. Owner still has to run `verify:connections` with the real key and do the A-01/A-02 console checks.
 - P03: BX-10.a part 2 and BX-11 — Gemini adapter, fake provider, Router-min, conformance tests, ADR-02. Not wired to Simple Mode (`generate()` unchanged).
 - P02: BX-10.a part 1 — adapter contract, normalized response, error classes, model registry schema and Gemini seed in code; not connected to `generate()`; registry not in the database yet.
@@ -30,6 +31,18 @@
 - Policy documents `docs/GIT_POLICY.md` and `docs/DEVELOPMENT_PROTOCOL.md` describe branches and Pull Requests; the real process is in `docs/START_HERE.md`.
 - Test Integrity path `tests/acceptance/**` does not exist yet; it is created when the TZ requires expectation tests.
 
+## G1a: owner check on Railway (TZ 18.0, items 1-9)
+
+Needs `ENABLE_PROJECT_MODE=true`, `GEMINI_API_KEY`, `DATABASE_URL`. After upload, `/health` `commit` must match GitHub.
+
+1. Open `/project`, create a project, confirm the passport. The "Analysis" block appears only after that.
+2. Type a real task, press "Run analysis". Expect: proposed items (yellow), an artifact `analysis.md`, one line under "Model calls" with tokens.
+3. Confirm one item and reject one; add a decision. Restart the service on Railway and reopen the project: items, decision and artifact are still there.
+4. Open the project in two tabs; change in one, then press any button in the other: expected "State version conflict".
+5. Write your remarks on the analysis (what was useful, what was wrong) in `docs/CURRENT_STATE.md` or tell the next session.
+
+Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, including `tests/analysis-live.test.mjs`) and the real Gemini call; their result is CI and your check.
+
 ## Next patch
 
-**P06** (BX-09.a part 2 and BX-09.b, gate G1a): Context Builder, token measurement; slice S1 (TZ 18.0), one real analysis. Plan: TZ 16.4.2.
+**P07** (BX-12.a): `openai-compatible` adapter and the first additional provider. Plan: TZ 16.4.2. Starts after G1a is passed.

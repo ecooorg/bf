@@ -39,6 +39,8 @@
 | `server/statePipeline.ts` | State items schema, patch pipeline (schema, policy, apply), compaction; pure functions |
 | `server/stateService.ts` | Applies a patch or compaction to a project as a new State version (the only path for model output) |
 | `server/artifactRepository.ts` | Minimal Artifact Registry: text artifacts, versions, SHA-256 (PostgreSQL) |
+| `server/contextBuilder.ts` | Context Builder: State slice within a token limit, token measurement; pure function |
+| `server/analysisService.ts` | Slice S1: analysis run (Router-min -> patch pipeline -> artifact -> ledger), human review, decisions |
 | `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
