@@ -7,7 +7,8 @@
 - BX-01…BX-05: baseline, documents, CI and operations fixes, characterization tests, PostgreSQL with migrations, base contracts.
 - BX-06: Project Mode separated (`/project`, opt-in), mandatory authentication, CSRF/origin protection, rate limits in the database. Checked by the owner on Railway (`docs/BX-06-REPORT.md`).
 - BX-07: provenance, restart test, manual 409 check, English-only interface, `/health` shows `commit` (`docs/BX-07-REPORT.md`). **Closing condition:** green CI on the last commit and a short Simple Mode check on Railway.
-- P01 (this patch): BX-08 — project passport (State `passport`, zod schema, `proposed`→`confirmed`; confirming moves a `draft` project to `active`); passport form in `/project`; versions, `v…` and `BX-06` removed from screens (`APP_VERSION` stays in `/health`, logs, files).
+- P02 (this patch): BX-10.a part 1 — adapter contract, normalized response, error classes, model registry schema and Gemini seed in code; not connected to `generate()`; registry not in the database yet.
+- P01: BX-08 — project passport (State `passport`, zod schema, `proposed`→`confirmed`; confirming moves a `draft` project to `active`); passport form in `/project`; versions, `v…` and `BX-06` removed from screens (`APP_VERSION` stays in `/health`, logs, files).
 - P00: documentation for working with different models; no program code changed.
 
 ## Checked by the owner on Railway
@@ -28,4 +29,4 @@
 
 ## Next patch
 
-**P02** (BX-10.a, part 1): model registry, adapter contract, normalized response, error classes (no switching). Plan: TZ 16.4.2.
+**P03** (BX-10.a part 2 and BX-11): Gemini adapter from `generate()`, Router-min, ADR-02; fake provider and conformance. Plan: TZ 16.4.2.
