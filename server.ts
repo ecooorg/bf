@@ -854,7 +854,7 @@ function fail(res: express.Response, status: number, error: string, code?: strin
 
 // Health route contracts are isolated so they can be characterized independently.
 registerHealthRoutes(app, {
-  appVersion: APP_VERSION, nodeEnv: NODE_ENV, appAuthEnabled: APP_AUTH_ENABLED,
+  appVersion: APP_VERSION, commit: (process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || 'unknown').slice(0, 12), nodeEnv: NODE_ENV, appAuthEnabled: APP_AUTH_ENABLED,
   hasApiKey: Boolean(apiKey), lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS,
   isAuthenticated: authenticated, distDirectory: DIST_DIR,
   skipDistHealthcheck: process.env.SKIP_DIST_HEALTHCHECK === 'true',
@@ -2082,7 +2082,7 @@ async function start() {
     });
   }
   app.listen(PORT, () => {
-    console.log(`Bifurcation Engine v${APP_VERSION} on :${PORT} (${NODE_ENV})`);
+    console.log(`Bifurcation Engine v${APP_VERSION} (${(process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown').slice(0, 12)}) on :${PORT} (${NODE_ENV})`);
   });
 }
 
