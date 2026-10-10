@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { REGISTRY_SEED } from '../server/modelRegistry.ts';
+import { REGISTRY_ALL } from '../server/modelRegistry.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -24,7 +24,7 @@ async function httpCheck(id, c, url, body) {
   try {
     res = await fetch(target, {
       method: c.method,
-      headers: { [c.auth.header]: process.env[c.auth.env], ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: { [c.auth.header]: (c.auth.scheme ? `${c.auth.scheme} ` : '') + process.env[c.auth.env], ...(body ? { 'Content-Type': 'application/json' } : {}) },
       body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
@@ -36,6 +36,9 @@ async function httpCheck(id, c, url, body) {
   try { json = await res.json(); } catch { /* not JSON */ }
   if (res.status === 404) return { status: 'DRIFT', reason: 'http_404', http: 404, latency_ms };
   if (res.status !== c.expect.status) return { status: 'FAIL', reason: `http_${res.status}`, http: res.status, latency_ms };
+  if (c.expect.content_is_json) {
+    try { JSON.parse(json?.choices?.[0]?.message?.content); } catch { return { status: 'DRIFT', reason: 'content_not_json', http: res.status, latency_ms }; }
+  }
   const missing = (c.expect.json_has || []).filter((k) => !json || json[k] === undefined);
   if (missing.length) return { status: 'DRIFT', reason: `missing_field:${missing.join(',')}`, http: res.status, latency_ms };
   return { status: 'OK', http: res.status, latency_ms, json };
@@ -65,10 +68,16 @@ for (const [id, conn] of Object.entries(manifest.connectors)) {
   for (const c of conn.checks) {
     let r;
     if (c.kind === 'sql') r = await sqlCheck(c);
-    else if (c.id === 'tiny_call') {
+    else if (c.id === 'tiny_json_call') {
+      if (!listed) { add(id, c.id, 'NOT_RUN', { reason: 'depends_on:list_models' }); continue; }
+      const names = new Set((listed.data || []).map((m) => String(m.id || '')));
+      const model = REGISTRY_ALL.find((e) => e.providerId === id && names.has(e.modelId));
+      if (!model) { add(id, c.id, 'DRIFT', { reason: 'no_registry_model_in_list' }); continue; }
+      r = await httpCheck(id, c, c.url, { model: model.modelId, messages: [{ role: 'user', content: 'Reply with a JSON object: {"ok":true}' }], response_format: { type: 'json_object' }, max_tokens: 300 });
+    } else if (c.id === 'tiny_call') {
       if (!listed) { add(id, c.id, 'NOT_RUN', { reason: 'depends_on:list_models' }); continue; }
       const names = new Set((listed.models || []).map((m) => String(m.name || '').replace(/^models\//, '')));
-      const model = REGISTRY_SEED.find((e) => e.providerId === id && names.has(e.modelId));
+      const model = REGISTRY_ALL.find((e) => e.providerId === id && names.has(e.modelId));
       if (!model) { add(id, c.id, 'DRIFT', { reason: 'no_registry_model_in_list' }); continue; }
       r = await httpCheck(id, c, c.url.replace('{MODEL_ID}', model.modelId), { contents: [{ parts: [{ text: 'Reply with one word: ok' }] }], generationConfig: { maxOutputTokens: 10 } });
     } else r = await httpCheck(id, c, c.url);
