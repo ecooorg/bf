@@ -1,6 +1,6 @@
 # BiForge Security and Permission Policy
 
-> **Document:** SECURITY_POLICY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`), sections 11.7–11.8, 13, Appendix E (rules R1–R7) · **Date:** 9 October 2026
+> **Document:** SECURITY_POLICY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`), sections 11.7–11.8, 13, Appendix E (rules R1–R7) · **Date:** 9 October 2026
 
 ## Secrets
 - Never commit or expose API keys, access tokens, passwords, private keys, session cookies, or other credentials.

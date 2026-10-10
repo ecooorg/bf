@@ -1,8 +1,8 @@
 # BX-XX — Step Report
 
-> **Document:** STEP_REPORT_TEMPLATE · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`), sections 16.3 and 16.4 · **Date:** 9 October 2026
+> **Document:** STEP_REPORT_TEMPLATE · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`), sections 16.3 and 16.4 · **Date:** 9 October 2026
 >
-> **How to use.** For steps marked ★ and for gate steps, save the filled report as `docs/BX-BX-XX/REPORT.md` and update `BIFORGE-STATE.json`. For all other steps the PR description is the report; use the same headings and omit the file. Replace `BX-XX` with the step ID (for example `BX-03.a`).
+> **How to use.** For steps marked ★ and for gate steps, save the filled report as `docs/PNN-REPORT.md` and update `docs/CURRENT_STATE.md`. For all other steps the PR description is the report; use the same headings and omit the file. Replace `BX-XX` with the step ID (for example `BX-03.a`).
 
 ## Status
 `PASS` / `FAIL` / `BLOCKED`

@@ -1,6 +1,6 @@
 # BiForge — BF-01: Read-Only Baseline Audit
 
-> **Document:** BF-01 baseline audit · **Status:** historical record (read-only audit, commit `f1db1ad`) · **Current specification:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`, 9 October 2026)
+> **Document:** BF-01 baseline audit · **Status:** historical record (read-only audit, commit `f1db1ad`) · **Current specification:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 >
 > **Identifier mapping.** `BF-01` belongs to the plan of TZv1.x. Identifiers `BF-01`…`BF-44` are frozen and are not reused (D-12); the current plan is `BX-01`…`BX-26` (TZv3.0, section 16.4). The findings of this audit continue in **BX-01.a** (baseline: test scripts and environment), **BX-02** (health checks, section 15.1), and **BX-01.b** (documents). The audit text (sections 1–9) is unchanged and was written against TZv1.2–TZv1.3; section 10 was added to map it to TZv3.0.
 
@@ -158,9 +158,9 @@ The audit proposed the following work but explicitly did not implement it:
 
 | Audit item | Where it continues | Note |
 |---|---|---|
-| Missing root `GET /health` (section 6, blocker 1) | BX-02, TZv3.0 section 15.1 (and section 4.4) | The route is added by `BF-01.diff` (in the repository root), together with a test. TZv3.0 requires `/health` as liveness without outside calls and a separate `/ready` (database and migrations) once PostgreSQL exists (BX-04); `Healthcheck Path = /health` is set in Railway and unknown `/api/*` routes must return a JSON 404. Confirming this is part of BX-02 |
+| Missing root `GET /health` (section 6, blocker 1) | BX-02, TZv3.0 section 15.1 (and section 4.4) | The route is added by `BF-01.diff` (removed in P00) (in the repository root), together with a test. TZv3.0 requires `/health` as liveness without outside calls and a separate `/ready` (database and migrations) once PostgreSQL exists (BX-04); `Healthcheck Path = /health` is set in Railway and unknown `/api/*` routes must return a JSON 404. Confirming this is part of BX-02 |
 | `tsx` and test environment (section 5, blocker 2; proposal 3) | BX-01.a | Target: `npm ci && npm run check` green as a whole, locally and in CI; each exception is `REAL_ONLY` with a reason and the owner's confirmation |
-| Documents and paths | BX-01.b | One canonical path for the specification: `docs/BiForge_TZ_v3_ru.md` |
+| Documents and paths | BX-01.b | One canonical path for the specification: `docs/BiForge_TZ_v3.md` |
 
 Re-verify the current state of the archive before relying on this table: the owner checks the actual state first, because part of the fixes may already be applied (BX-01.a).
 

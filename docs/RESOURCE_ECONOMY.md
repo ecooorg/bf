@@ -1,6 +1,6 @@
 # BiForge Resource Economy Principles
 
-> **Document:** RESOURCE_ECONOMY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`), principles in section 2, decision D-09, section 14 · **Date:** 9 October 2026
+> **Document:** RESOURCE_ECONOMY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`), principles in section 2, decision D-09, section 14 · **Date:** 9 October 2026
 
 ## Objective
 Achieve the maximum useful result with the minimum necessary consumption of tokens, time, compute, network, storage, and external API calls, without compromising correctness, safety, or required quality.

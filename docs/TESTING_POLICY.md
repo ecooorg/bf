@@ -1,6 +1,8 @@
 # BiForge Testing and Evidence Policy
 
-> **Document:** TESTING_POLICY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`), sections 12, 16.3, 18 and Appendix E (E.6) · **Date:** 9 October 2026
+> **Document:** TESTING_POLICY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`), sections 12, 16.3, 18 and Appendix E (E.6) · **Date:** 9 October 2026
+>
+> Reference document; binding rules are in `docs/START_HERE.md` and `AGENTS.md`.
 
 ## General rule
 Test evidence must be reproducible and must describe what actually ran. Never invent, infer, or overstate results.

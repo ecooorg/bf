@@ -1,6 +1,8 @@
 # BiForge Git and Pull Request Policy
 
-> **Document:** GIT_POLICY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`), sections 11.2, 11.5, 16.2–16.3 · **Date:** 9 October 2026
+> **Document:** GIT_POLICY · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`), sections 11.2, 11.5, 16.2–16.3 · **Date:** 9 October 2026
+
+> Reference document; binding rules are in `docs/START_HERE.md` and `AGENTS.md`. **This policy describes the future flow with branches and Pull Requests. It does not apply while the owner uploads patches to `main` by hand** (see `docs/START_HERE.md`); it takes effect when direct Git access appears.
 
 ## Branching
 - Keep `main` as the protected integration branch of `ecooorg/bf`: required checks enabled, no direct pushes.

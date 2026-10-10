@@ -17,7 +17,7 @@
 | `.github/workflows/ci.yml` | Read Node version from `.nvmrc` | Single version source |
 | `.github/workflows/ui-check.yml` | Read Node version from `.nvmrc` | Single version source |
 | `AGENTS.md`, `docs/DEVELOPMENT_PROTOCOL.md` | Fix canonical spec paths | BX-01.b |
-| `BIFORGE-STATE.json` and step SPECs | Track work and known baseline issue | Traceability |
+| `BIFORGE-STATE.json` (removed in P00; see `docs/CURRENT_STATE.md`) and step SPECs | Track work and known baseline issue | Traceability |
 | `connectors.yaml`, `docs/CONNECTIONS.md` | Add connection manifest and guide | BX-01.b |
 
 ## Acceptance criteria

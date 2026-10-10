@@ -3,11 +3,11 @@
 ## Scope
 - Keep existing Simple Mode behavior unchanged.
 - Record known baseline test failures without hiding or weakening tests.
-- Align development docs with `docs/BiForge_TZ_v3_ru.md`.
-- Keep step records flat in `docs/`, alongside `BIFORGE-STATE.json`, `connectors.yaml`, and `docs/CONNECTIONS.md`.
+- Align development docs with `docs/BiForge_TZ_v3.md`.
+- Keep step records flat in `docs/`, alongside `BIFORGE-STATE.json` (removed in P00; see `docs/CURRENT_STATE.md`), `connectors.yaml`, and `docs/CONNECTIONS.md`.
 
 ## Acceptance
-- Canonical spec links point to `docs/BiForge_TZ_v3_ru.md`.
+- Canonical spec links point to `docs/BiForge_TZ_v3.md`.
 - Connection manifest and human-readable connection guide exist and explicitly distinguish configured from unverified services.
 - Known `virtual-stage2` failures remain visible in the state record.
 

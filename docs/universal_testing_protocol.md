@@ -3,7 +3,9 @@
 
 *Internal instruction for establishing deep testing methodologies for new software systems.*
 
-> **Document:** universal_testing_protocol · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3_ru.md`), sections 12, 16 and 18 · **Date:** 9 October 2026
+> **Document:** universal_testing_protocol · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`), sections 12, 16 and 18 · **Date:** 9 October 2026
+>
+> Reference document; binding rules are in `docs/START_HERE.md` and `AGENTS.md`.
 >
 > This is the general methodology. The binding rules for BiForge are `TESTING_POLICY.md`, `AGENTS.md`, and the specification; if they differ from this protocol, they win.
 
