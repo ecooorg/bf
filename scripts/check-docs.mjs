@@ -34,9 +34,31 @@ for (const file of [...new Set(files)]) {
     }
   }
 }
+// P00: every path in backticks in the main documents must exist.
+// Skipped: URLs, placeholders (XX, NN, 0X, <...>, *), generated output, and lines marked "will be created".
+const pathDocs = ['AGENTS.md', 'README.md', 'DEPLOY_RAILWAY.md', 'docs/START_HERE.md', 'docs/REPO_MAP.md'];
+const EXT = /\.(md|ts|tsx|mjs|json|toml|yaml|yml|txt|sql|sh|html|css|png|svg|example)$/i;
+const GENERATED = /^(dist|dist-server|node_modules|artifacts)(\/|$)|^perf-report\.json$/;
+let pathChecks = 0;
+for (const rel of pathDocs) {
+  const file = path.join(root, rel);
+  if (!fs.existsSync(file)) { errors.push(`${rel}: file listed for path checks is missing`); continue; }
+  const text = fs.readFileSync(file, 'utf8').replace(/```[\s\S]*?```/g, '');
+  for (const line of text.split('\n')) {
+    if (/will be created|to be created/i.test(line)) continue;
+    for (const m of line.matchAll(/`([^`\n]+)`/g)) {
+      let tok = m[1].trim();
+      if (/\s/.test(tok) || /[*<>{}$=:|(),;@]/.test(tok) || /XX|NN|0X/.test(tok) || /^(https?|mailto):/i.test(tok)) continue;
+      tok = tok.replace(/^\.\//, '').replace(/\/$/, '');
+      if (!tok || tok.startsWith('/') || !(EXT.test(tok) || m[1].trim().endsWith('/')) || GENERATED.test(tok)) continue;
+      pathChecks++;
+      if (!fs.existsSync(path.resolve(root, tok))) errors.push(`${rel}: missing path in backticks: ${m[1]}`);
+    }
+  }
+}
 if (errors.length) {
-  console.error(`check:docs failed (${errors.length} broken local link(s))`);
+  console.error(`check:docs failed (${errors.length} problem(s))`);
   for (const e of errors) console.error(`- ${e}`);
   process.exit(1);
 }
-console.log(`check:docs OK (${files.length} Markdown files checked)`);
+console.log(`check:docs OK (${files.length} Markdown files, ${pathChecks} backticked paths checked)`);
