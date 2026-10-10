@@ -32,3 +32,28 @@ test('BX-04 live PostgreSQL: create, version, optimistic concurrency, history, a
     await closeDatabase();
   }
 });
+
+test('BX-07 live PostgreSQL: State and history survive a service restart', async () => {
+  const project = await createProject({ name: `CI restart ${Date.now()}`, state: { step: 0 } });
+  try {
+    await updateProjectState({ projectId: project.id, expectedVersion: 1, state: { step: 1, note: 'a' }, actor: 'human', sourceRef: 'ci:restart-test' });
+    await updateProjectState({ projectId: project.id, expectedVersion: 2, state: { step: 2, note: 'b' }, actor: 'system', sourceRef: 'ci:restart-test' });
+    const before = await getProject(project.id);
+    const historyBefore = await listStateVersions(project.id, 10);
+    // Simulated restart: drop the pool; the next call opens a brand-new connection pool.
+    await closeDatabase();
+    const after = await getProject(project.id);
+    const historyAfter = await listStateVersions(project.id, 10);
+    assert.equal(Number(after.state_version), 3);
+    assert.deepEqual(after.state, { step: 2, note: 'b' });
+    assert.deepEqual(after.state, before.state);
+    assert.deepEqual(historyAfter.map(v => [Number(v.state_version), v.actor, v.source_ref]), historyBefore.map(v => [Number(v.state_version), v.actor, v.source_ref]));
+    // Version counter continues correctly after the restart.
+    const next = await updateProjectState({ projectId: project.id, expectedVersion: 3, state: { step: 3 }, actor: 'human', sourceRef: 'ci:restart-test' });
+    assert.equal(next.state_version, 4);
+  } finally {
+    const pool = await getPool();
+    await pool.query('DELETE FROM projects WHERE id=$1', [project.id]);
+    await closeDatabase();
+  }
+});
