@@ -34,7 +34,7 @@ test('BX-06 Simple Mode and Project Mode have separate UI entry points', () => {
   assert.match(projectUI, /\/api\/projects/);
   assert.match(projectUI, /expected_version/);
   assert.match(projectUI, /projectModeEnabled/);
-  assert.match(projectUI, /Project Mode отключён/);
+  assert.match(projectUI, /Project Mode is disabled/);
   assert.match(projectUI, /async function logout/);
   assert.match(projectUI, /href="\/"/);
   assert.match(server, /projectModeEnabled: PROJECT_MODE_ENABLED/);
