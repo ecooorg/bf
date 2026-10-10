@@ -55,12 +55,12 @@ test('capability must be confirmed; stale entries flagged', () => {
   assert.equal(staleEntries([e], new Date('2027-02-01')).length, 1);
 });
 
-test('groq seed: disabled, openai-compatible, free, budgets in registry, no duplicates', async () => {
+test('groq seed: primary active, others disabled, openai-compatible, free, budgets in registry, no duplicates', async () => {
   const { GROQ_SEED, REGISTRY_ALL } = await import('../server/modelRegistry.ts');
   validateRegistry(REGISTRY_ALL);
   assert.deepEqual(GROQ_SEED.map((e) => e.modelId), ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b']);
   for (const e of GROQ_SEED) {
-    assert.equal(e.status, 'disabled'); assert.equal(e.adapter, 'openai-compatible'); assert.equal(e.qualityClass, 'B');
+    assert.equal(e.status, e.modelId === 'openai/gpt-oss-120b' ? 'active' : 'disabled'); assert.equal(e.adapter, 'openai-compatible'); assert.equal(e.qualityClass, 'B');
     assert.equal(e.qualityProvisional, true); assert.equal(e.dataPolicy, 'free'); assert.equal(e.inputBudgetTokens, 3500); assert.equal(e.secretEnvRef, 'GROQ_API_KEY');
   }
 });
