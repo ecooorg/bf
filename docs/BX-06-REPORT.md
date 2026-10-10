@@ -42,3 +42,17 @@
 ## Status
 
 **Implementation advanced; BX-06 not yet accepted.** Human-only Railway checks and the manual A-09 / UI checklist remain outside this environment.
+
+## Verification on Railway (2026-10-10)
+
+- Railway build fixed: duplicate `npm ci` removed from `railway.toml` (EBUSY on `node_modules/.cache`); install and build are defined only in `nixpacks.toml`.
+- `/api/session` returns `projectModeEnabled: true`; migration `001_project_state` applied on startup.
+- Simple Mode shows the "Project Mode" item in the More menu; `/project` signs in, creates projects, saves State with `expected_version` (versions 1 → 2 confirmed in the UI).
+- Invalid JSON in the State editor now shows a readable message instead of the raw parser error; `/project` uses the dark theme of the main app.
+- CI: stage2 virtual tests 202/202; live PostgreSQL and API tests green. Secret scan: false positives are listed in `.gitleaks.toml` (storage key names, UI strings, CI test database password).
+
+## Still open
+
+- Confirm Railway Start Command is empty so `npm start` is used (the service currently ran `tsx server.ts`).
+- Re-enable "Wait for CI" on Railway after the CI run is green.
+- Stale-version (HTTP 409) conflict was covered by CI tests, not yet checked by hand in the UI.
