@@ -44,7 +44,7 @@ await t('re-import creates no duplicates and reports skipped', () => {
   const p = planImport([a, b], [a, b]);
   assert.deepEqual([p.added, p.updated, p.skipped], [0, 0, 2]);
   assert.equal(p.merged.length, 2);
-  assert.equal(importReport(p, true), 'Добавлено 0, обновлено 0, пропущено 2.');
+  assert.equal(importReport(p), 'Added 0, updated 0, skipped 2.');
 });
 await t('newer incoming updates; newer local is kept and flagged as a conflict', () => {
   const aNew = { ...a, updatedAt: 500, title: 'Alpha v2' };

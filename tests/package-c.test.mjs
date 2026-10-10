@@ -22,7 +22,6 @@ assert.match(shell, /From backup/);
 assert.match(shell, /Export all/);
 assert.match(shell, /360/);
 for (const code of ['TOO_LARGE','UNSUPPORTED_TYPE','UNREADABLE','EMPTY','EMPTY_TEXT','RATE_LIMIT','ATTACH_FAILED','EXPORT_FAILED','BAD_FORMAT','EMPTY_DOCUMENT','BAD_UPLOAD','TOO_LONG','PRECONDITION']) assert.match(errors, new RegExp(code));
-assert.match(ui, /'Shorter': 'Короче'/);
-assert.match(ui, /'Add table': 'Добавить таблицу'/);
+assert.doesNotMatch(ui, /const RU/, 'UI is English only; no Russian dictionary');
 assert.match(server, /app\.post\('\/api\/revise-document'/);
 console.log('package C static checks passed');
