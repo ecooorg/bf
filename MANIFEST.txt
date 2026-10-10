@@ -1,1 +1,2 @@
-Patch B: docs/BiForge_TZ_v3.md -> docs/, CHANGELOG.md -> корень.
+BX-07.a: server/projectRepository.ts -> server/, tests/database-live.test.mjs -> tests/, CHANGELOG.md -> корень.
+Проверка: CI зелёный; на Railway сохранить state в любом проекте (версия растёт).
