@@ -20,7 +20,7 @@ import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './serve
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { checkDatabase } from './server/database.ts';
 import { consumeRateLimit, createProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
-import { createProjectRequestSchema, updateProjectStateRequestSchema } from './server/contracts.ts';
+import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
 
 dotenv.config();
 
@@ -283,7 +283,7 @@ app.get('/api/projects', async (req, res) => {
 app.post('/api/projects', async (req, res) => {
   try {
     const input = createProjectRequestSchema.parse(req.body);
-    const project = await createProject({ name: input.name, state: input.state ?? {} });
+    const project = await createProject({ name: input.name, state: input.state ?? { passport: defaultPassport(input.goal) } });
     res.status(201).json({ success: true, data: project });
   } catch (error) { projectError(res, error); }
 });
