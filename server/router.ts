@@ -34,6 +34,7 @@ export function selectCandidates(registry: RegistryEntry[], state: RouterState, 
 export interface RouteContext {
   registry: RegistryEntry[]; adapters: Record<string, ProviderAdapter>; state: RouterState;
   required?: Capability[]; minQuality?: 'A' | 'B' | 'C'; maxCalls?: number; timeoutMs?: number;
+  onCall?: (resp: ProviderResponse, info: { retries: number }) => void | Promise<void>;
   now?: () => number; sleep?: (ms: number) => Promise<void>; backoffMs?: () => number;
 }
 export interface RouteDecision { candidates: string[]; rejected: Rejected[]; attempts: { model: string; status: string; errorClass?: string }[]; reason?: string }
@@ -58,6 +59,7 @@ export async function routeCall(req: Omit<ProviderRequest, 'modelId'>, ctx: Rout
       calls++;
       const resp = await ctx.adapters[entry.providerId].call({ ...req, modelId: entry.modelId, prompt: req.prompt + hint }, { timeoutMs: ctx.timeoutMs });
       last = resp;
+      await ctx.onCall?.(resp, { retries: decision.attempts.length });   // ledger hook: every call is reported
       decision.attempts.push({ model: key(entry), status: resp.status, ...(resp.errorClass ? { errorClass: resp.errorClass } : {}) });
       if (resp.status === 'ok') return { status: 'ok', response: resp, decision };
       switch (resp.errorClass) {
