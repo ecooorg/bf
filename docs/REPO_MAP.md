@@ -36,6 +36,9 @@
 | --- | --- |
 | `server/contracts.ts` | Shared identifier contract (URL/DB-safe ids) |
 | `server/adapter.ts` | Provider adapter contract, normalized response, provider error classes, fallback matrix (not wired yet) |
+| `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
+| `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
+| `server/router.ts` | Router-min: candidate selection and fallback by the matrix (not wired) |
 | `server/modelRegistry.ts` | Model registry schema and seed (model names live only here); not wired yet |
 | `server/database.ts` | Lazy PostgreSQL pool; importing the server never opens a connection |
 | `server/projectRepository.ts` | Project Mode storage: projects, State versions, events (zod contracts) |
@@ -80,7 +83,7 @@
 
 | Command | What it does |
 | --- | --- |
-| `npm run check` | Chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
+| `npm run check` | Chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:conformance`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
 | `npm run build` | Client (`vite build`) then server (`build:server` into `dist-server/`) |
 | `npm run dev` / `npm start` | Development server / production start (runs migrations if `DATABASE_URL` is set; Project Mode needs its variables) |
 | `npm run lint`, `npm run typecheck` | `tsc --noEmit` |
@@ -109,6 +112,7 @@
 | `tests/export-name.test.mjs`, `tests/libraryExport.test.mjs` | Export file names; library export and import | no |
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/package-c.test.mjs` | Static checks of repository files (read the file for details) | no |
+| `tests/conformance.test.mjs` | Adapter conformance (fake and Gemini) and Router-min scenarios | no |
 | `tests/model-layer.test.mjs` | Adapter contract, error classes, registry seed | no |
 | `tests/contracts.test.mjs`, `tests/database-contract.test.mjs` | Identifier contract; database contract without a live database | no |
 | `tests/server.test.mjs`, `tests/infra.test.mjs`, `tests/v17.test.mjs`, `tests/regression.test.mjs`, `tests/perf.test.mjs`, `tests/virtual-files.test.mjs`, `tests/expert-files.test.mjs`, `tests/stage2.test.mjs` | Real `server.ts` against a fake Gemini (run by `tests/run.sh`) | no |
