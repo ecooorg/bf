@@ -36,6 +36,8 @@
 | --- | --- |
 | `server/contracts.ts` | Shared identifier contract (URL/DB-safe ids) |
 | `server/adapter.ts` | Provider adapter contract, normalized response, provider error classes, fallback matrix (not wired yet) |
+| `server/artifactRepository.ts` | Minimal Artifact Registry: text artifacts, versions, SHA-256 (PostgreSQL) |
+| `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
 | `server/router.ts` | Router-min: candidate selection and fallback by the matrix (not wired) |
@@ -83,11 +85,12 @@
 
 | Command | What it does |
 | --- | --- |
-| `npm run check` | Chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:conformance`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
+| `npm run check` | Chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:conformance`, `test:connections`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
 | `npm run build` | Client (`vite build`) then server (`build:server` into `dist-server/`) |
 | `npm run dev` / `npm start` | Development server / production start (runs migrations if `DATABASE_URL` is set; Project Mode needs its variables) |
 | `npm run lint`, `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint:copy` | Forbidden wording scan |
+| `npm run verify:connections` | Checks Gemini and PostgreSQL connections (`--only`, `--json`, `--dry-run`); exit 0 / 2 / 3 | 
 | `npm run check:docs` | Document check |
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:virtual` | `tests/run.sh`: real `server.ts` against a fake Gemini |
@@ -112,6 +115,8 @@
 | `tests/export-name.test.mjs`, `tests/libraryExport.test.mjs` | Export file names; library export and import | no |
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/package-c.test.mjs` | Static checks of repository files (read the file for details) | no |
+| `tests/connections.test.mjs` | `verify:connections` against a fake Gemini, manifest and CONNECTIONS.md agreement, artifact input, ledger hook | no |
+| `tests/artifacts-live.test.mjs` | Artifact versions, hash, integrity, ledger row on live PostgreSQL | yes |
 | `tests/conformance.test.mjs` | Adapter conformance (fake and Gemini) and Router-min scenarios | no |
 | `tests/model-layer.test.mjs` | Adapter contract, error classes, registry seed | no |
 | `tests/contracts.test.mjs`, `tests/database-contract.test.mjs` | Identifier contract; database contract without a live database | no |
