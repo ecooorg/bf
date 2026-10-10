@@ -36,7 +36,7 @@ export async function createProject(input: { id?: string; name: string; state?: 
       `INSERT INTO projects(id,name) VALUES($1,$2) RETURNING id,name,status,created_at,updated_at`, [id, name]);
     await client.query('INSERT INTO project_states(project_id,state_version,state) VALUES($1,1,$2::jsonb)', [id, JSON.stringify(state)]);
     await client.query('INSERT INTO project_state_versions(id,project_id,state_version,state,actor,source_ref) VALUES($1,$2,1,$3::jsonb,$4,$5)', [sortableId(), id, JSON.stringify(state), 'human', 'project:create']);
-    await client.query('INSERT INTO project_events(id,project_id,event_type,payload,actor) VALUES($1,$2,$3,$4::jsonb,$5)', [sortableId(), id, 'project.created', JSON.stringify({ name }), 'human']);
+    await client.query('INSERT INTO project_events(id,project_id,event_type,payload,actor) VALUES($1,$2,$3,$4::jsonb,$5)', [sortableId(), id, 'project.created', JSON.stringify({ name, source_ref: 'project:create' }), 'human']);
     await client.query('INSERT INTO audit_events(id,project_id,event_type,actor,details) VALUES($1,$2,$3,$4,$5::jsonb)', [sortableId(), id, 'project.created', 'human', JSON.stringify({ name })]);
     await client.query('COMMIT');
     return { ...project.rows[0], state, state_version: 1 };
@@ -65,13 +65,13 @@ export async function getProject(idInput: string) {
 
 export async function updateProjectState(input: {
   projectId: string; expectedVersion: number; state: Record<string, unknown>;
-  actor: 'human'|'agent'|'tool'|'system'; sourceRef?: string;
+  actor: 'human'|'agent'|'tool'|'system'; sourceRef: string; // provenance is mandatory (BX-07)
 }) {
   const projectId = idSchema.parse(input.projectId);
   const expectedVersion = z.number().int().min(1).parse(input.expectedVersion);
   const state = stateSchema.parse(input.state);
   const actor = actorSchema.parse(input.actor);
-  const sourceRef = input.sourceRef == null ? null : z.string().max(500).parse(input.sourceRef);
+  const sourceRef = z.string().trim().min(1).max(500).parse(input.sourceRef);
   const pool = await getPool();
   const client = await pool.connect();
   try {
