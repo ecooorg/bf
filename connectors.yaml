@@ -21,7 +21,15 @@
         { "id": "tiny_json_call", "method": "POST", "url": "https://api.groq.com/openai/v1/chat/completions", "auth": { "header": "Authorization", "scheme": "Bearer", "env": "GROQ_API_KEY" }, "expect": { "status": 200, "json_has": ["choices", "usage"], "content_is_json": true } }
       ]
     },
-    "github": {\n      "required_from": "BX-19",\n      "service": "GitHub App API",\n      "env": { "required": ["GITHUB_APP_ID", "GITHUB_APP_INSTALLATION_ID", "GITHUB_APP_PRIVATE_KEY", "GITHUB_WEBHOOK_SECRET"], "optional": ["GITHUB_REPOSITORY_OWNER", "GITHUB_REPOSITORY_NAME", "GITHUB_API_BASE_URL"] },\n      "max_permissions": { "metadata": "read", "contents": "read", "checks": "read", "pull_requests": "read" },\n      "max_permissions_model_patch": { "contents": "write", "pull_requests": "write" },\n      "checks": [ { "id": "installation_token_and_repo", "kind": "github_app_flow", "expect": { "status": "2xx", "permissions_within_max": true } } ]\n    },\n    "postgres": {
+    "github": {
+      "required_from": "BX-19",
+      "service": "GitHub App API",
+      "env": { "required": ["GITHUB_APP_ID", "GITHUB_APP_INSTALLATION_ID", "GITHUB_APP_PRIVATE_KEY", "GITHUB_WEBHOOK_SECRET"], "optional": ["GITHUB_REPOSITORY_OWNER", "GITHUB_REPOSITORY_NAME", "GITHUB_API_BASE_URL"] },
+      "max_permissions": { "metadata": "read", "contents": "read", "checks": "read", "pull_requests": "read" },
+      "max_permissions_model_patch": { "contents": "write", "pull_requests": "write" },
+      "checks": [ { "id": "installation_token_and_repo", "kind": "github_app_flow", "expect": { "status": "2xx", "permissions_within_max": true } } ]
+    },
+    "postgres": {
       "required_from": "BX-04",
       "service": "PostgreSQL on Railway",
       "env": { "required": ["DATABASE_URL"] },
