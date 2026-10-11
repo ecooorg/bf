@@ -350,7 +350,7 @@ app.get('/api/projects/:projectId/plans', async (req, res) => {
 app.post('/api/projects/:projectId/plans', async (req, res) => {
   try {
     const input = z.object({ source: z.enum(['template', 'model', 'human']).default('human'), template: z.string().max(100).optional(), goal: z.string().max(2000).optional(), nodes: z.unknown().optional() }).parse(req.body);
-    const result = await createPlan({ projectId: req.params.projectId, ...input, actor: 'human' });
+    const result = await createPlan({ projectId: req.params.projectId, source: input.source ?? 'human', template: input.template, goal: input.goal, nodes: input.nodes, actor: 'human' });
     res.status(201).json({ success: true, data: result });
   } catch (error) { projectError(res, error); }
 });
