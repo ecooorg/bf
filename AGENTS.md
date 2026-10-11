@@ -40,6 +40,7 @@ Never overwrite or discard user changes to make the task easier.
 - Do not weaken, delete, or bypass a test merely to obtain a green result without explicit approval.
 - A model's statement that tests passed is not evidence. `PASS` for code comes from CI and registered evidence (D-08).
 - Do not put vendor or model names into domain schemas, table names, field names, or logic. They belong only in the registry seed, configuration, and environment variables (D-13).
+- **Flat repository structure.** Do not create nested folders. Files go into the existing top-level folders (`server/`, `src/`, `tests/`, `scripts/`, `docs/`, `migrations/`, `public/`) or the repository root, never into a sub-folder of them. The only exception is `.github/` (with `.github/workflows/`). Avoid new top-level folders as well; a new top-level folder needs the owner's approval in the SPEC, and even then it stays flat. Data files for a tool live next to the tool (for example `scripts/golden-tasks.json`). Delivery archives follow the same rule.
 - A change to a connection (environment variable, endpoint, permission) is made together with `connectors.yaml` and `docs/CONNECTIONS.md` in the same patch (both exist in the repository).
 
 ## 5. Delivery of work (actual process)
