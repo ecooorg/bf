@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { getPool } from './database.ts';
+import { jobStatusForRun } from './queueMachine.ts';
 import {
   DEFAULT_MAX_ATTEMPTS, RUN_STATES, TaskError, assertTaskTransition, canRunTransition, runEffectOnTask, taskFingerprint, taskInputSchema,
   type RunStatus, type TaskInput, type TaskState,
@@ -20,7 +21,7 @@ function newId(): string {
   return `${Date.now().toString(36).padStart(9, '0')}_${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
-type Db = { query(text: string, values?: unknown[]): Promise<{ rows: any[]; rowCount: number | null }> };
+export type Db = { query(text: string, values?: unknown[]): Promise<{ rows: any[]; rowCount: number | null }> };
 
 const mapTask = (r: any) => ({
   id: r.id as string, projectId: r.project_id as string, title: r.title as string, input: r.input as TaskInput,
@@ -44,7 +45,7 @@ const mapEvent = (r: any) => ({
 export type Task = ReturnType<typeof mapTask>;
 export type Run = ReturnType<typeof mapRun>;
 
-async function inTx<T>(fn: (db: Db) => Promise<T>): Promise<T> {
+export async function inTx<T>(fn: (db: Db) => Promise<T>): Promise<T> {
   const pool = await getPool();
   const client = await pool.connect();
   try {
@@ -64,7 +65,7 @@ async function event(db: Db, t: { id: string; projectId: string }, e: { runId?: 
     [newId(), t.id, t.projectId, e.runId ?? null, e.type, e.from ?? null, e.to ?? null, e.actor, JSON.stringify(e.details ?? {})]);
 }
 
-async function lockTask(db: Db, taskId: string): Promise<Task> {
+export async function lockTask(db: Db, taskId: string): Promise<Task> {
   const r = await db.query('SELECT * FROM tasks WHERE id=$1 FOR UPDATE', [taskId]);
   if (!r.rows[0]) throw new TaskError('NOT_FOUND', 'Task not found');
   return mapTask(r.rows[0]);
@@ -186,13 +187,14 @@ export async function enqueueTask(input: { taskId: string; expectedVersion: numb
       `INSERT INTO runs(id,task_id,project_id,attempt,idempotency_key,input_fingerprint,input_refs,profile,profile_version)
        VALUES($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9) RETURNING *`,
       [newId(), t.id, t.projectId, used + 1, key, t.inputFingerprint, JSON.stringify(t.input.artifactRefs), t.input.profile, t.input.profileVersion])).rows[0]);
+    await db.query('INSERT INTO jobs(id,run_id,task_id,project_id) VALUES($1,$2,$3,$4) ON CONFLICT (run_id) DO NOTHING', [newId(), run.id, t.id, t.projectId]);
     await event(db, t, { runId: run.id, type: 'run.queued', actor, details: { attempt: run.attempt } });
     const task = await moveTask(db, t, 'QUEUED', actor, { runId: run.id });
     return { task, run, created: true };
   });
 }
 
-async function lockRun(db: Db, runId: string): Promise<{ task: Task; run: Run }> {
+export async function lockRun(db: Db, runId: string): Promise<{ task: Task; run: Run }> {
   const found = await db.query('SELECT task_id FROM runs WHERE id=$1', [runId]);
   if (!found.rows[0]) throw new TaskError('NOT_FOUND', 'Run not found');
   const task = await lockTask(db, found.rows[0].task_id);   // lock order: task, then run
@@ -200,38 +202,47 @@ async function lockRun(db: Db, runId: string): Promise<{ task: Task; run: Run }>
   return { task, run };
 }
 
+/** Starts a QUEUED Run inside an open transaction (also used by claimJob). */
+export async function startRunInTx(db: Db, runId: string, actor: string): Promise<{ task: Task; run: Run }> {
+  const { task: t, run } = await lockRun(db, runId);
+  if (!canRunTransition(run.status, 'RUNNING')) throw new TaskError('INVALID_TRANSITION', `Run cannot move from ${run.status} to RUNNING`);
+  assertTaskTransition(t.state, 'RUNNING', { via: 'run' });
+  const r = await db.query("UPDATE runs SET status='RUNNING', started_at=now() WHERE id=$1 RETURNING *", [run.id]);
+  await event(db, t, { runId: run.id, type: 'run.started', actor, details: { attempt: run.attempt } });
+  return { task: await moveTask(db, t, 'RUNNING', actor, { runId: run.id }), run: mapRun(r.rows[0]) };
+}
+
 export async function startRun(input: { runId: string; actor: string }): Promise<{ task: Task; run: Run }> {
   const runId = idSchema.parse(input.runId);
   const actor = actorSchema.parse(input.actor);
-  return inTx(async (db) => {
-    const { task: t, run } = await lockRun(db, runId);
-    if (!canRunTransition(run.status, 'RUNNING')) throw new TaskError('INVALID_TRANSITION', `Run cannot move from ${run.status} to RUNNING`);
-    assertTaskTransition(t.state, 'RUNNING', { via: 'run' });
-    const r = await db.query("UPDATE runs SET status='RUNNING', started_at=now() WHERE id=$1 RETURNING *", [run.id]);
-    await event(db, t, { runId: run.id, type: 'run.started', actor, details: { attempt: run.attempt } });
-    return { task: await moveTask(db, t, 'RUNNING', actor, { runId: run.id }), run: mapRun(r.rows[0]) };
-  });
+  return inTx((db) => startRunInTx(db, runId, actor));
 }
 
-export async function finishRun(input: {
+export type FinishRunInput = {
   runId: string; status: RunStatus; actor: string; providerId?: string; modelId?: string; policyVersion?: string; budget?: unknown; evidence?: string[];
-}): Promise<{ task: Task; run: Run }> {
+};
+
+/** Finishes a Run inside an open transaction: Run, Task, the Run's job and events (also used by completeJob and recovery). */
+export async function finishRunInTx(db: Db, input: FinishRunInput): Promise<{ task: Task; run: Run }> {
   const runId = idSchema.parse(input.runId);
   const actor = actorSchema.parse(input.actor);
   const evidence = evidenceSchema.parse(input.evidence ?? []);
   const status = input.status;
-  return inTx(async (db) => {
-    const { task: t, run } = await lockRun(db, runId);
-    if (!(RUN_STATES as readonly string[]).includes(status) || !canRunTransition(run.status, status)) {
-      throw new TaskError('INVALID_TRANSITION', `Run cannot move from ${run.status} to ${status}`);
-    }
-    const effect = runEffectOnTask(status);
-    assertTaskTransition(t.state, effect.state, { via: 'run' });
-    const r = await db.query(
-      `UPDATE runs SET status=$2, finished_at=now(), provider_id=$3, model_id=$4, policy_version=$5, budget=$6::jsonb, evidence=$7::jsonb WHERE id=$1 RETURNING *`,
-      [run.id, status, input.providerId ?? null, input.modelId ?? null, input.policyVersion ?? null, input.budget === undefined ? null : JSON.stringify(input.budget), JSON.stringify(evidence)]);
-    await event(db, t, { runId: run.id, type: 'run.finished', actor, details: { attempt: run.attempt, status } });
-    const task = await moveTask(db, t, effect.state, actor, { runId: run.id, blockedReason: effect.blockedReason, details: { runStatus: status } });
-    return { task, run: mapRun(r.rows[0]) };
-  });
+  const { task: t, run } = await lockRun(db, runId);
+  if (!(RUN_STATES as readonly string[]).includes(status) || !canRunTransition(run.status, status)) {
+    throw new TaskError('INVALID_TRANSITION', `Run cannot move from ${run.status} to ${status}`);
+  }
+  const effect = runEffectOnTask(status);
+  assertTaskTransition(t.state, effect.state, { via: 'run' });
+  const r = await db.query(
+    `UPDATE runs SET status=$2, finished_at=now(), provider_id=$3, model_id=$4, policy_version=$5, budget=$6::jsonb, evidence=$7::jsonb WHERE id=$1 RETURNING *`,
+    [run.id, status, input.providerId ?? null, input.modelId ?? null, input.policyVersion ?? null, input.budget === undefined ? null : JSON.stringify(input.budget), JSON.stringify(evidence)]);
+  await db.query('UPDATE jobs SET status=$2, finished_at=now() WHERE run_id=$1', [run.id, jobStatusForRun(status)]);
+  await event(db, t, { runId: run.id, type: 'run.finished', actor, details: { attempt: run.attempt, status } });
+  const task = await moveTask(db, t, effect.state, actor, { runId: run.id, blockedReason: effect.blockedReason, details: { runStatus: status } });
+  return { task, run: mapRun(r.rows[0]) };
+}
+
+export async function finishRun(input: FinishRunInput): Promise<{ task: Task; run: Run }> {
+  return inTx((db) => finishRunInTx(db, input));
 }
