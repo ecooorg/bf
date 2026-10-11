@@ -58,6 +58,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/analysisService.ts` | Slice S1: analysis run (Router-min -> patch pipeline -> artifact -> ledger), human review, decisions |
 | `server/goldenEval.ts` | Golden-eval (P10): task schema, deterministic scoring, fake adapters, report |
 | `scripts/golden-tasks.json` | Golden task set (18 RU/EN tasks); report: `docs/GOLDEN-EVAL-REPORT.md` |
+| `server/taskMachine.ts` | Task/Run state machine (P11): states, transitions, errors, input fingerprint; pure functions |
+| `server/taskService.ts` | Task/Run domain service (P11): tasks, runs, events in PostgreSQL; idempotent create/enqueue (not wired to routes) |
 | `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
