@@ -91,3 +91,14 @@ A `PASS` does not authorize deployment. Wait for the owner's explicit command be
 
 ## 10. Change control
 Do not change this file, the canonical specification, security policy, Git policy, testing policy, or workflow policy as a side effect of an implementation task. Propose policy changes separately with rationale, impact, and review evidence. A change to this file is a separate change of policy with review by the owner (TZv3.0, BX-01.b).
+
+## 11. Token economy of the development agent
+Goal: the least tokens, time and tool calls that still give a correct, tested, safe result (RESOURCE_ECONOMY, D-09). Economy never replaces a required test, check, review, or a correct answer; if saving would lower quality, do not save.
+- **Read narrowly.** Read first only what the task names (SPEC, its tests, `docs/CURRENT_STATE.md`, `docs/REPO_MAP.md`) plus the files you will change. Read TZ sections by number, not the whole TZ. Use search and line ranges instead of opening large files; read a file once and do not reread it unless it changed.
+- **Ask once.** Ask only questions that block the start, in one message, before building. Otherwise state an assumption in one line and continue.
+- **Act, do not narrate.** No plans, recaps or restating the task. No exploratory commands whose result will not change a decision. One tool call for several related edits.
+- **Test in order.** Run the narrowest relevant test first, then the full `npm run check` once. After a failure fix the cause, then rerun only what failed, then the full check once more. Do not rerun green tests without a change.
+- **Do not repeat output.** Do not paste file contents, diffs or logs back into the chat; name files and give the result in one or two lines. Quote only the failing lines of an error.
+- **Stay in scope.** Change only the files the SPEC allows. No refactoring, formatting sweeps, extra files, extra documents or unrelated fixes (see section 4).
+- **Deliver small.** The archive holds only changed and new files (section 5). Update `docs/CURRENT_STATE.md`, `docs/REPO_MAP.md` and `CHANGELOG.md` once, at the end, with one short entry each.
+- **Honest limits.** If a command could not run (no network, no database, missing dependency), say so in one line; never claim a result that was not obtained.
