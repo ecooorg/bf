@@ -14,5 +14,5 @@
 - **Tests.** Extended set 16.4.4, group A (items 1–5) in full; group B where it applies.
 - **Owner check.** Confirm a task plan on Railway; an over-budget run is visible and waits for a decision.
 
-## P14 — BX-17.b, full artifact registry
-- **Read.** TZ 14 (sections named in `docs/START_HERE.md`). **Tests.** 16.4.4 items 7, 9, 12.
+## P14 — done (BX-17.b, `docs/P14-SPEC.md`)
+- Next after P13a and P13b: **P15** (BX-18, end-to-end scenario, gate G2). TZ 11.9, 17, 18.1, 20.2 (ADR-10).

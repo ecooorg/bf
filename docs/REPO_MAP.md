@@ -54,7 +54,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/adapter.ts` | Provider adapter contract, normalized response, provider error classes, fallback matrix (not wired yet) |
 | `server/statePipeline.ts` | State items schema, patch pipeline (schema, policy, apply), compaction; pure functions |
 | `server/stateService.ts` | Applies a patch or compaction to a project as a new State version (the only path for model output) |
-| `server/artifactRepository.ts` | Minimal Artifact Registry: text artifacts, versions, SHA-256 (PostgreSQL) |
+| `server/artifactRepository.ts` | Artifact Registry (P04, P14): text and binary artifacts, versions, SHA-256, manifest (migration 008), tamper and missing-object detection, inspect, diff, project manifest export (PostgreSQL) |
 | `server/contextBuilder.ts` | Context Builder: State slice within a token limit, token measurement; pure function |
 | `server/analysisService.ts` | Slice S1: analysis run (Router-min -> patch pipeline -> artifact -> ledger), human review, decisions |
 | `server/goldenEval.ts` | Golden-eval (P10): task schema, deterministic scoring, fake adapters, report |
@@ -66,6 +66,11 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/worker.ts` | Worker (P12): `createWorker()` with `tick/start/stop`; a library, not started from `server.ts` |
 | `server/planMachine.ts` | Budgets, Task Graph v1 validator and template, approval kinds/modes, `PlanError` (P13); pure functions |
 | `server/planService.ts` | Budgets, plans, approvals, budget guard, concurrency settings (P13, PostgreSQL); not wired to routes |
+| `server/artifactFormat.ts` | Artifact rules without a database (P14): limits, file name check, type by content, preview, line diff, ZIP name listing, manifest checksum; pure functions |
+| `server/budget.ts` | Budget units formula `units-v1` and defaults (P08) |
+| `server/routeDecisions.ts` | Stores Router decisions in `route_decisions` (P08) |
+| `server/modelHealth.ts` | `model_health`: provider disable with expiry, quota restore (P09) |
+| `server/openaiCompatAdapter.ts` | `openai-compatible` adapter (P07) |
 | `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
@@ -126,6 +131,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:ui` | Browser layout check (Playwright; not in `check`) |
 | `npm run db:migrate` | Apply migrations |
 | `npm run test:database:live` | Live PostgreSQL contract tests (CI only without a local database) |
+| `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p14` | Acceptance tests of one patch each, no database (part of `check`) |
 | `npm run test:bx06:api` | Project Mode API tests on PostgreSQL |
 | `npm run test:merge`, `test:security`, `test:core`, `test:reasoning`, `test:export`, `test:sync`, `test:files`, `test:drivedocs`, `test:library`, `test:package-c`, `test:database`, `test:contracts`, `test:bx06` | Single test groups included in `check` |
 | `npm run clean` | Removes `dist/` |
@@ -158,6 +164,12 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/bx06-api.test.mjs` | Project Mode API security and 409 conflicts | yes |
 | `tests/p13-acceptance.test.mjs` | Budget checks, plan validator, template, approval rules (P13) | no |
 | `tests/p13-live-acceptance.test.mjs` | Plans, approvals, budget block, dependencies, concurrency 2, Manual mode (P13, live PostgreSQL) | yes |
+| `tests/p14-acceptance.test.mjs` | Artifact rules, boundaries, type by content, ZIP listing, manifest checksum, migration 008 text (P14) | no |
+| `tests/p14-live-acceptance.test.mjs` | Binary artifacts, manifest, tamper and missing-object detection, limits, upgrade of older versions, project delete (P14, live PostgreSQL) | yes |
+| `tests/analysis-live.test.mjs` | Analysis run, review and artifact on live PostgreSQL (P06) | yes |
+| `tests/context-builder.test.mjs` | Context Builder slice and token limit (P06) | no |
+| `tests/p08-acceptance.test.mjs`, `tests/p09-acceptance.test.mjs`, `tests/p10-acceptance.test.mjs`, `tests/p11-acceptance.test.mjs`, `tests/p12-acceptance.test.mjs` | Acceptance tests of patches P08-P12 (budget units and Router, fallback matrix, golden-eval, task machine, queue) | no |
+| `tests/p09-live-acceptance.test.mjs`, `tests/p11-live-acceptance.test.mjs`, `tests/p12-live-acceptance.test.mjs` | Live PostgreSQL tests of P09, P11, P12 | yes |
 | `tests/database-live.test.mjs` | Live PostgreSQL contract, restart recovery, provenance | yes |
 | `tests/ui-check.mjs` | Browser layout at 360–1024 px | no (needs Playwright) |
 | `tests/run.sh` | Runs the virtual test list | see above |
