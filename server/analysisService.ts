@@ -5,7 +5,8 @@ import { getProject, recordAuditEvent, StateVersionConflict } from './projectRep
 import { readArtifact, saveArtifact } from './artifactRepository.ts';
 import { ledgerEntryFromResponse, writeLedgerEntry } from './ledger.ts';
 import { newRouteDecisionId, writeRouteDecision } from './routeDecisions.ts';
-import { DEFAULT_TASK_UNITS, DEFAULT_DAILY_UNITS, createQuotaTracker, shadowCostUsd, budgetLevel, runBudget } from './budget.ts';
+import { DEFAULT_TASK_UNITS, DEFAULT_DAILY_UNITS, createQuotaTracker, shadowCostUsd, budgetLevel, runBudget, unitsFor } from './budget.ts';
+import { guardModelCall } from './planService.ts';
 import { loadRouterState, loadQuotaRows, rehydrateQuota, saveHealthEvent, type HealthEvent } from './modelHealth.ts';
 import { newRouterState, routeCall, type RouterState } from './router.ts';
 import { REGISTRY_SEED, type RegistryEntry } from './modelRegistry.ts';
@@ -27,11 +28,11 @@ let quotaHydrated = false;
 
 async function usedUnitsToday(projectId: string): Promise<number> {
   const pool = await getPool();
-  const r = await pool.query(`SELECT COALESCE(SUM(units),0) AS u FROM usage_ledger WHERE starts_with(run_id, $1) AND created_at >= now() - interval '24 hours'`, [`${projectId}:`]);
+  const r = await pool.query(`SELECT COALESCE(SUM(l.units),0) AS u FROM usage_ledger l WHERE l.created_at >= now() - interval '24 hours' AND (starts_with(l.run_id, $1) OR l.run_id IN (SELECT r.id FROM runs r WHERE r.project_id=$2))`, [`${projectId}:`, projectId]);
   return Number(r.rows[0].u);
 }
 
-export async function runAnalysis(input: { projectId: string; expectedVersion: number; task: string; artifactIds?: string[] }, deps: AnalysisDeps) {
+export async function runAnalysis(input: { projectId: string; expectedVersion: number; task: string; artifactIds?: string[]; taskId?: string; runId?: string; artifactFilename?: string; artifactId?: string; signal?: AbortSignal }, deps: AnalysisDeps) {
   const task = z.string().trim().min(1).max(4000).parse(input.task);
   const project = await getProject(input.projectId);
   if (!project) throw Object.assign(new Error('Project not found'), { code: 'NOT_FOUND' });
@@ -49,17 +50,24 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
   const quota = deps.quota ?? quotaTracker;
   if (deps.quota || !quotaHydrated) { if (!deps.quota) quotaHydrated = true; rehydrateQuota(quota, await loadQuotaRows(Date.now() - 86_400_000), Date.now()); }
   const ctx = buildContext({ state: project.state, task, artifacts, maxTokens: deps.maxTokens });
-  const runId = `${input.projectId}:${crypto.randomBytes(6).toString('hex')}`;
+  const runId = input.runId ?? `${input.projectId}:${crypto.randomBytes(6).toString('hex')}`;
+  const guardedAdapters: Record<string, ProviderAdapter> = Object.fromEntries(Object.entries(deps.adapters).map(([providerId, adapter]) => [providerId, {
+    id: adapter.id, capabilities: () => adapter.capabilities(), call: async (req, opts) => {
+      if (input.signal?.aborted) throw Object.assign(new Error('Run cancelled'), { name: 'AbortError' });
+      if (input.taskId) await guardModelCall({ taskId: input.taskId, runId, request: { tokens: ctx.tokens.total + (req.maxOutputTokens ?? 1024), units: unitsFor(ctx.tokens.total, req.maxOutputTokens ?? 1024) }, actor: 'worker' });
+      return adapter.call(req, { ...opts, ...(input.signal ? { signal: input.signal } : {}) });
+    },
+  } as ProviderAdapter]));
   const routeDecisionId = newRouteDecisionId();
   const sensitivity = 'normal' as const;   // the project-level sensitivity field arrives with the passport extension; open-publication work is `normal` (ADR-07)
   const route = await routeCall({ requestId: runId, system: ctx.system, prompt: ctx.prompt, json: true, metadata: {} }, {
-    registry: deps.registry ?? REGISTRY_SEED, adapters: deps.adapters, state: routerSt, required: ['json_output'], timeoutMs: 90_000,
+    registry: deps.registry ?? REGISTRY_SEED, adapters: guardedAdapters, state: routerSt, required: ['json_output'], timeoutMs: 90_000,
     sensitivity, paidApproved: [], budget: { remainingUnits: runBudget(usedToday, { dayCap: DEFAULT_DAILY_UNITS, taskUnits: DEFAULT_TASK_UNITS }) }, quota, deadlineAt: Date.now() + 90_000,
     onHealth: async (e: HealthEvent) => {
       await saveHealthEvent(e);
       if (e.type === 'provider_disabled') await recordAuditEvent({ eventType: 'provider.disabled', actor: 'system', details: { provider_id: e.providerId, reason: e.reason } });
     }, estimatedInputTokens: ctx.tokens.total,
-    onCall: async (resp, info) => { try { await writeLedgerEntry(ledgerEntryFromResponse(resp, { runId, retries: info.retries, routeDecisionId, units: info.units, costEstimate: shadowCostUsd({ input: resp.usage.input ?? 0, output: resp.usage.output ?? 0 }, info.entry.pricing) })); } catch { /* the ledger must not break the run */ } },
+    onCall: async (resp, info) => { await writeLedgerEntry(ledgerEntryFromResponse(resp, { runId, retries: info.retries, routeDecisionId, units: info.units, costEstimate: shadowCostUsd({ input: resp.usage.input ?? 0, output: resp.usage.output ?? 0 }, info.entry.pricing) })); },
   });
   try { await writeRouteDecision(routeDecisionId, route.decision, { runId, sensitivity, status: route.status }); } catch { /* the decision log must not break the run */ }
   if (route.status !== 'ok' || !route.response) throw new AnalysisError('MODEL_UNAVAILABLE', `The model call failed (${route.decision.reason ?? route.response?.errorClass ?? 'unknown'})`, 502);
@@ -68,7 +76,7 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
   const sourceRef = `run:${runId}`;
   const saved = await applyPatchToProject({ projectId: input.projectId, expectedVersion: input.expectedVersion, patch: parsed.data.patch, actor: 'agent', sourceRef });
   const art = await saveArtifact({
-    projectId: input.projectId, filename: 'analysis.md', mime: 'text/markdown', createdBy: sourceRef, derivedFrom: [`state:v${input.expectedVersion}`, ...artifacts.map((a) => `artifact:${a.id}@${a.version}`)],
+    projectId: input.projectId, ...(input.artifactId ? { artifactId: input.artifactId } : {}), filename: input.artifactFilename ?? 'analysis.md', mime: 'text/markdown', createdBy: sourceRef, derivedFrom: [`state:v${input.expectedVersion}`, ...artifacts.map((a) => `artifact:${a.id}@${a.version}`)],
     text: `# Analysis\n\n**Task:** ${task}\n\n${parsed.data.summary}\n\n## Proposed changes\n\n\`\`\`json\n${JSON.stringify(saved.changes, null, 2)}\n\`\`\`\n\nModel: ${route.response.providerId}/${route.response.modelId}. Run: ${runId}.\n`,
   });
   await recordAuditEvent({ eventType: 'analysis.completed', actor: 'agent', projectId: input.projectId, details: { run_id: runId, artifact_id: art.artifactId, version: art.version, estimated_input_tokens: ctx.tokens.total } });
@@ -99,7 +107,7 @@ export async function listProjectArtifacts(projectId: string) {
 
 export async function listProjectLedger(projectId: string, limit = 50) {
   const pool = await getPool();
-  const r = await pool.query(`SELECT run_id, provider_id, model_id, input_tokens, cached_tokens, output_tokens, latency_ms, retries, status, error_class, created_at FROM usage_ledger WHERE starts_with(run_id, $1) ORDER BY created_at DESC LIMIT $2`, [`${projectId}:`, limit]);
+  const r = await pool.query(`SELECT l.run_id, l.provider_id, l.model_id, l.input_tokens, l.cached_tokens, l.output_tokens, l.latency_ms, l.retries, l.status, l.error_class, l.created_at FROM usage_ledger l WHERE starts_with(l.run_id, $1) OR l.run_id IN (SELECT r.id FROM runs r WHERE r.project_id=$2) ORDER BY l.created_at DESC LIMIT $3`, [`${projectId}:`, projectId, limit]);
   return r.rows;
 }
 export { PatchRejectedError };

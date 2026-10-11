@@ -198,7 +198,10 @@ export async function decideApproval(input: {
       const task = await lockTask(db, a.subjectId);
       if (decision === 'APPROVED') {
         const b = input.budgetLimits!;
-        await setBudgetInTx(db, { projectId: a.projectId, scope: b.scope, scopeId: b.scopeId, limits: b.limits, actor: by, actorKind: 'human' });
+        const existing = (await db.query('SELECT limits FROM budgets WHERE project_id=$1 AND scope=$2 AND scope_id=$3 FOR UPDATE', [a.projectId, b.scope, b.scopeId])).rows[0]?.limits ?? {};
+        // Approval updates only the explicitly chosen budget keys; unrelated limits must not silently disappear.
+        const mergedLimits = budgetLimitsSchema.parse({ ...existing, ...b.limits });
+        await setBudgetInTx(db, { projectId: a.projectId, scope: b.scope, scopeId: b.scopeId, limits: mergedLimits, actor: by, actorKind: 'human' });
         if (task.state === 'BLOCKED' && task.blockedReason === 'budget') await transitionTaskInTx(db, { taskId: task.id, expectedVersion: task.version, to: 'READY', actor: by });
       } else if (task.state === 'BLOCKED' && task.blockedReason === 'budget') {
         await transitionTaskInTx(db, { taskId: task.id, expectedVersion: task.version, to: 'FAIL', actor: by, reason: 'budget_rejected' });
@@ -210,6 +213,12 @@ export async function decideApproval(input: {
 }
 
 // ---------- Task Graph v1 ----------
+export async function listPlans(projectId: string): Promise<Plan[]> {
+  const pool = await getPool();
+  const r = await pool.query('SELECT * FROM plans WHERE project_id=$1 ORDER BY version DESC', [idSchema.parse(projectId)]);
+  return r.rows.map(mapPlan);
+}
+
 export async function getPlan(id: string): Promise<Plan | null> {
   const pool = await getPool();
   const r = await pool.query('SELECT * FROM plans WHERE id=$1', [idSchema.parse(id)]);
