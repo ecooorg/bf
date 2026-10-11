@@ -24,3 +24,14 @@
 **Changelog.** Add P16 GitHub App verification and signed webhook ingress.
 
 **Not done / postponed.** No GitHub connection was tested against a real App; no branch creation, Task Package commit, PR creation, CI evidence ingestion, migration, or executor activation. ADR-06 remains pending owner decision on repository visibility/organization/Actions limits.
+
+## Addendum (cumulative P16 completion, BX-19)
+
+**Added.** `readPullRequest`, `listCheckRuns`, `listPullRequestFiles`, `commitTaskPackage` in `server/githubIntegration.ts`. Tests: `tests/github-delivery.test.mjs`.
+
+**Defaults chosen (addendum).**
+- Writes are refused unless the caller passes `writeEnabled: true` (model_patch or diff upload, TZ 11.7); the token is then checked against the write manifest. Without it only read permissions are accepted.
+- Task Package paths are limited to `AGENTS.md`, `.biforge/tasks/<task_id>/{SPEC,ACCEPTANCE,EXECUTOR_PROMPT}.md` and `tests/acceptance/**` (TZ 11.3); at most 50 files of 1 MB. The branch is always `biforge/<task_id>`; `main`, workflows and any other path are refused. The module has no merge operation.
+- The commit helper is a library function only: no route or UI calls it yet (`CODE_EXECUTOR` stays unchanged); the Task Package is built in a later patch (P20).
+- `permissions_too_broad_or_missing` is the reason string kept from the first P16 patch.
+- Webhook events are now processed by P17 (`docs/P17-SPEC.md`); the response is still 202.

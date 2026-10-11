@@ -27,3 +27,8 @@ No P16 SPEC or acceptance tests were supplied. Repository identity is configured
 1. Add the GitHub App variables listed in `docs/CONNECTIONS.md`; keep private key and webhook secret only in Railway Variables.
 2. Run `npm run verify:connections -- --only github`; expect `github/installation_token_and_repo: OK` only if the installation and permissions match the configured maximum.
 3. Send a valid signed `pull_request` or `check_run` webhook to `/api/webhooks/github`; expect HTTP 202. An invalid signature must return HTTP 401.
+
+## Update — completion together with P17 (base: `bf-main-p16.zip` with the CI fix)
+- Added read of PRs, PR files and check runs and the Task Package commit helper (`biforge/<task_id>` only, writes off by default, no merge). Tests: `tests/github-delivery.test.mjs` (`npm run test:github`, 8/8 with `github-integration.test.mjs`).
+- The earlier BLOCKED entries for `npm ci`, `npm run check`, `npm run build` and live PostgreSQL were re-run in the P17 session and passed; see `docs/P17-REPORT.md` for commands and results.
+- Still REAL_ONLY / NOT_RUN: real GitHub App connection (`verify:connections -- --only github`), a real Task Package commit. ADR-06 stays proposed. Status stays PARTIAL until the owner confirms the real connection.

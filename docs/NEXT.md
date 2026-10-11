@@ -24,7 +24,13 @@
 - Next in the plan: P15a (monitoring of connections and quotas), then P16 (GitHub integration). Not started: the owner gives the command.
 
 
-## P16 — GitHub integration foundation (BX-19), implementation patch
+## P16 — GitHub integration (BX-19), completed together with P17
 - Added GitHub App connection verification and signed webhook ingress; no repo creation, PR writes, event-to-evidence processing, or executor activation.
 - `docs/ADR-06-github-repositories.md` remains proposed until the owner decides visibility/organization and Actions limits.
 - Required checks: `npm ci`, `npm run test:github`, `npm run check`, `npm run build`, and live PostgreSQL integration. Real GitHub verification is `REAL_ONLY` until configured credentials are available.
+
+
+## P17 — Gate Engine and CI evidence (BX-20, `docs/P17-SPEC.md`), implementation patch
+- Evidence from signed GitHub webhooks, Test Integrity, invalidation on a new commit, human waiver, Release Candidate manifest; migration 009; two Project Mode routes. No UI.
+- Owner checks (REAL_ONLY): create and install the GitHub App (TZ E.5), `npm run verify:connections -- --only github`, send a signed `check_run` for a `biforge/<task_id>` branch and read `GET /api/projects/:projectId/tasks/:taskId/gates`.
+- Next patches: P15a, then P18 (Task Package and `manual` executor; will use `commitTaskPackage`). Wiring Task PASS to gate results and an approvals route for `requirements` / `spec` / `review` evidence are open items.
