@@ -4,8 +4,6 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 
 ## Unreleased
 
-- Process (documents only): TZ section 16 aligned with P13b: stop rules 16.3 items 6–8 (two repair attempts then `KNOWN_FAIL`, `TIMEOUT` after 10 minutes, honest `PARTIAL`), 16.3.2 (archive before long checks, independent timed stages with logs, CI limits), P13b split note under 16.4.2, BX-28 row, status vocabulary and test timeouts in 16.4.4. No program code changed.
-
 - P13b (процесс сборки): ZIP создаётся и проверяется до длительных тестов; независимые этапы с таймаутами, принудительной остановкой группы процессов и потоковыми логами; `PARTIAL` при ошибках, таймаутах, блокировках и незапущенных проверках. Критический preflight по-прежнему блокирует выдачу. Уточнены stop-правила агента, отчёт и CI; добавлены ограничения времени тестов и PostgreSQL.
 
 - Process (documents only): TZ 16.3.2 and 16.4.4, patches P13a and P13b in the plan, Navigator / AI Assistant terms and AGENTS.md section 3.1, `docs/NEXT.md`. No program code changed.
