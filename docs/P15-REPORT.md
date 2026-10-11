@@ -23,10 +23,10 @@ This patch wires the existing Task Graph / approval domain into the Project Mode
 | Worker starts and polls queue | IMPLEMENTED; queue, lease and recovery PASS | `tests/p12-live-acceptance.test.mjs`; worker started on Railway (`Project Mode worker started` in deployment logs, 2026-10-11) |
 | Pre-call budget guard and Run-linked ledger | IMPLEMENTED; guard PASS with a stub handler | Live test "budget before every model call" in `tests/p13-live-acceptance.test.mjs`; not run with a real provider |
 | Artifact Registry output | IMPLEMENTED; manifest/hash PASS | `tests/p14-live-acceptance.test.mjs` |
-| Full E2E scenario, TZ 18.1 / G2 | OWNER-CONFIRMED (no evidence in repo) | The owner states on 2026-10-11 that the scenario was done by hand. Not run by the agent. Add the commit SHA and output below, then G2 can be marked passed |
+| Full E2E scenario, TZ 18.1 / G2 | NOT_RUN | OWNER-CONFIRMED, no evidence in the repository: the owner states on 2026-10-11 that the scenario was done by hand. Not run by the agent. Add the commit SHA and output below, then G2 can be marked passed |
 | Provider failures 429/5xx and fallback | PASS on fake providers; real provider NOT_RUN | `tests/p09-acceptance.test.mjs` (matrix 7.4), `tests/infra.test.mjs` |
 | Budget-overrun human approval in a live worker run | PASS with a stub handler; owner-confirmed on Railway | `tests/p13-live-acceptance.test.mjs`; owner statement 2026-10-11 |
-| E-01, TZ 11.9 | OWNER-CONFIRMED (no evidence in repo) | Owner states it was done. The table of three pairs (SHA, CI link, repairs, time, cost) is not in the repository yet |
+| E-01, TZ 11.9 | NOT_RUN | OWNER-CONFIRMED, no evidence in the repository: the owner states it was done. The table of three pairs (SHA, CI link, repairs, time, cost) is not in the repository yet |
 | ADR-10 decision on `model_patch` | PENDING (owner decision) | Write the decision in `docs/ADR-10-code-executor.md` from the E-01 table. Until then `model_patch` stays disabled |
 
 ## Important behavior and boundaries
@@ -82,7 +82,7 @@ Defects found and fixed in this pass: a type error in `server.ts` (`createPlan` 
 ## Still open
 
 Owner (see also `docs/NEXT.md`):
-1. Attach the evidence for G2 and E-01 to this report: checked commit SHA, command outputs or screenshots, the E-01 table. Then change the status of these two rows to PASS.
+1. Attach the evidence for G2 and E-01 to this report: checked commit SHA, command outputs or screenshots, the E-01 table. Then change the status of these two rows from NOT_RUN to PASS (and update `tests/p15-acceptance.test.mjs` in the same patch, because it guards this row).
 2. Decide ADR-10 (`model_patch`) and ADR-04 (`cross_model`); apply or reject the `provisional` `quality_class` values.
 3. After the next redeploy, open the deployment logs once: `npm error signal SIGTERM` and `SSL error: unexpected eof` must be gone.
 
