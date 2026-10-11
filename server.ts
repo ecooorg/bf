@@ -19,7 +19,7 @@ import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSam
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 import { registerHealthRoutes } from './server/healthRoutes.ts';
-import { checkDatabase, getPool } from './server/database.ts';
+import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
 import { consumeRateLimit, createProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
@@ -350,7 +350,7 @@ app.get('/api/projects/:projectId/plans', async (req, res) => {
 app.post('/api/projects/:projectId/plans', async (req, res) => {
   try {
     const input = z.object({ source: z.enum(['template', 'model', 'human']).default('human'), template: z.string().max(100).optional(), goal: z.string().max(2000).optional(), nodes: z.unknown().optional() }).parse(req.body);
-    const result = await createPlan({ projectId: req.params.projectId, source: input.source ?? 'human', template: input.template, goal: input.goal, nodes: input.nodes, actor: 'human' });
+    const result = await createPlan({ projectId: req.params.projectId, ...input, source: input.source ?? 'human', actor: 'human' });
     res.status(201).json({ success: true, data: result });
   } catch (error) { projectError(res, error); }
 });
@@ -2235,9 +2235,21 @@ async function start() {
     await projectWorker.start();
     console.log('Project Mode worker started');
   }
-  const shutdownWorker = () => { if (projectWorker) void projectWorker.stop(); };
-  process.once('SIGTERM', shutdownWorker);
-  process.once('SIGINT', shutdownWorker);
+  let httpServer: import('node:http').Server | undefined;
+  let shuttingDown = false;
+  // Registering a SIGTERM handler removes Node's default exit, so the handler must finish the shutdown itself.
+  const shutdown = async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    const force = setTimeout(() => process.exit(0), 10_000);
+    force.unref();
+    try { if (projectWorker) await projectWorker.stop(); } catch (e) { console.error('Worker stop failed', e); }
+    try { await closeDatabase(); } catch { /* best effort */ }
+    await new Promise<void>((resolve) => { if (httpServer) { httpServer.close(() => resolve()); (httpServer as any).closeAllConnections?.(); } else resolve(); });
+    process.exit(0);
+  };
+  process.once('SIGTERM', () => { void shutdown(); });
+  process.once('SIGINT', () => { void shutdown(); });
   if (NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
@@ -2251,7 +2263,7 @@ async function start() {
       res.sendFile(path.join(DIST_DIR, 'index.html'));
     });
   }
-  app.listen(PORT, () => {
+  httpServer = app.listen(PORT, () => {
     console.log(`BiForge v${APP_VERSION} (${(process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown').slice(0, 12)}) on :${PORT} (${NODE_ENV})`);
   });
 }

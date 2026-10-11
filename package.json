@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && npm run build:server",
-    "start": "if [ \"$ENABLE_PROJECT_MODE\" = \"true\" ]; then test -n \"$APP_PASSWORD\" && test \"$ENABLE_APP_AUTH\" != \"false\" && test -n \"$SESSION_SECRET\" && test -n \"$DATABASE_URL\" || { echo \"Project Mode requires APP_PASSWORD, ENABLE_APP_AUTH, SESSION_SECRET and DATABASE_URL\" >&2; exit 1; }; fi; if [ -n \"$DATABASE_URL\" ]; then npm run db:migrate || exit $?; fi; node dist-server/server.js",
+    "start": "if [ \"$ENABLE_PROJECT_MODE\" = \"true\" ]; then test -n \"$APP_PASSWORD\" && test \"$ENABLE_APP_AUTH\" != \"false\" && test -n \"$SESSION_SECRET\" && test -n \"$DATABASE_URL\" || { echo \"Project Mode requires APP_PASSWORD, ENABLE_APP_AUTH, SESSION_SECRET and DATABASE_URL\" >&2; exit 1; }; fi; if [ -n \"$DATABASE_URL\" ]; then npm run db:migrate || exit $?; fi; exec node dist-server/server.js",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "lint:copy": "node scripts/lint-copy.mjs",
