@@ -4,9 +4,9 @@ import type { Run, Task } from './taskService.ts';
 
 // Worker (TZ 8.3): library only; not started from server.ts in P12. One job at a time.
 export type WorkerStatus = 'SUCCEEDED' | 'FAILED' | 'TIMED_OUT';
-export type WorkerResult = { status: WorkerStatus; providerId?: string; modelId?: string; policyVersion?: string; budget?: unknown; evidence?: string[] };
+export type WorkerResult = { status: WorkerStatus; providerId?: string; modelId?: string; policyVersion?: string; budget?: unknown; evidence?: string[]; blockReason?: 'budget' };
 export type WorkerHandler = (ctx: { job: Job; run: Run; task: Task; signal: AbortSignal }) => Promise<WorkerResult>;
-export type WorkerOptions = { workerId: string; handler: WorkerHandler; projectId?: string; leaseMs?: number; heartbeatMs?: number; pollMs?: number };
+export type WorkerOptions = { workerId: string; handler: WorkerHandler; projectId?: string; leaseMs?: number; heartbeatMs?: number; pollMs?: number; maxConcurrent?: number };
 
 export function createWorker(opts: WorkerOptions) {
   if (typeof opts.workerId !== 'string' || !opts.workerId.trim()) throw new TypeError('workerId is required');
@@ -17,11 +17,12 @@ export function createWorker(opts: WorkerOptions) {
   const pollMs = opts.pollMs ?? DEFAULT_POLL_MS;
   validateTiming({ leaseMs, heartbeatMs });
   const scope = opts.projectId === undefined ? {} : { projectId: opts.projectId };
+  const claimScope = opts.maxConcurrent === undefined ? scope : { ...scope, maxConcurrent: opts.maxConcurrent };
   const isLost = (e: unknown) => e instanceof QueueError && e.code === 'LEASE_LOST';
 
   async function tick(): Promise<'idle' | 'done' | 'lease_lost'> {
     await recoverExpired(scope);
-    const claimed = await claimJob({ workerId, leaseMs, ...scope });
+    const claimed = await claimJob({ workerId, leaseMs, ...claimScope });
     if (!claimed) return 'idle';
     const { job, run, task } = claimed;
     const ac = new AbortController();
@@ -36,9 +37,11 @@ export function createWorker(opts: WorkerOptions) {
     let result: WorkerResult;
     try {
       result = await opts.handler({ job, run, task, signal: ac.signal });
-      if (!result || !['SUCCEEDED', 'FAILED', 'TIMED_OUT'].includes(result.status)) result = { status: 'FAILED', evidence: ['worker:invalid_result'] };
-    } catch {
-      result = { status: 'FAILED', evidence: ['worker:handler_error'] };   // the error message is never stored
+      if (!result || !['SUCCEEDED', 'FAILED', 'TIMED_OUT'].includes(result.status) || (result.blockReason !== undefined && result.blockReason !== 'budget')) result = { status: 'FAILED', evidence: ['worker:invalid_result'] };
+    } catch (e: any) {
+      result = e?.name === 'PlanError' && e?.code === 'BUDGET_EXCEEDED'   // the budget guard stopped the call: the Task waits for a human
+        ? { status: 'FAILED', evidence: ['worker:budget_exceeded'], blockReason: 'budget' }
+        : { status: 'FAILED', evidence: ['worker:handler_error'] };   // the error message is never stored
     } finally {
       clearInterval(timer);
       if (inflight) await inflight;

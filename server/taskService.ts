@@ -85,7 +85,19 @@ async function moveTask(db: Db, t: Task, to: TaskState, actor: string, o: { bloc
   return mapTask(r.rows[0]);
 }
 
-export async function createTask(input: { projectId: string; idempotencyKey: string; title: string; input: TaskInput; maxAttempts?: number; actor: string }): Promise<{ task: Task; created: boolean }> {
+type CreateTaskInput = { projectId: string; idempotencyKey: string; title: string; input: TaskInput; maxAttempts?: number; actor: string };
+
+export async function createTask(input: CreateTaskInput): Promise<{ task: Task; created: boolean }> {
+  try {
+    return await inTx((db) => createTaskInTx(db, input));
+  } catch (error: any) {
+    if (error?.code === '23503') throw new TaskError('NOT_FOUND', 'Project not found');
+    throw error;
+  }
+}
+
+/** createTask inside an open transaction (also used when an approved plan creates its tasks). */
+export async function createTaskInTx(db: Db, input: CreateTaskInput): Promise<{ task: Task; created: boolean }> {
   const projectId = idSchema.parse(input.projectId);
   const key = keySchema.parse(input.idempotencyKey);
   const title = titleSchema.parse(input.title);
@@ -93,25 +105,18 @@ export async function createTask(input: { projectId: string; idempotencyKey: str
   const body = taskInputSchema.parse(input.input);
   const maxAttempts = z.number().int().min(1).max(10).parse(input.maxAttempts ?? DEFAULT_MAX_ATTEMPTS);
   const fingerprint = taskFingerprint(body);
-  try {
-    return await inTx(async (db) => {
-      const ins = await db.query(
-        `INSERT INTO tasks(id,project_id,title,input,input_fingerprint,idempotency_key,max_attempts) VALUES($1,$2,$3,$4::jsonb,$5,$6,$7)
-         ON CONFLICT (project_id, idempotency_key) DO NOTHING RETURNING *`,
-        [newId(), projectId, title, JSON.stringify(body), fingerprint, key, maxAttempts]);
-      if (ins.rows[0]) {
-        const task = mapTask(ins.rows[0]);
-        await event(db, task, { type: 'task.created', to: 'DRAFT', actor, details: { inputFingerprint: fingerprint } });
-        return { task, created: true };
-      }
-      const existing = mapTask((await db.query('SELECT * FROM tasks WHERE project_id=$1 AND idempotency_key=$2', [projectId, key])).rows[0]);
-      if (existing.inputFingerprint !== fingerprint) throw new TaskError('IDEMPOTENCY_CONFLICT', 'Idempotency key was used with a different input');
-      return { task: existing, created: false };
-    });
-  } catch (error: any) {
-    if (error?.code === '23503') throw new TaskError('NOT_FOUND', 'Project not found');
-    throw error;
+  const ins = await db.query(
+    `INSERT INTO tasks(id,project_id,title,input,input_fingerprint,idempotency_key,max_attempts) VALUES($1,$2,$3,$4::jsonb,$5,$6,$7)
+     ON CONFLICT (project_id, idempotency_key) DO NOTHING RETURNING *`,
+    [newId(), projectId, title, JSON.stringify(body), fingerprint, key, maxAttempts]);
+  if (ins.rows[0]) {
+    const task = mapTask(ins.rows[0]);
+    await event(db, task, { type: 'task.created', to: 'DRAFT', actor, details: { inputFingerprint: fingerprint } });
+    return { task, created: true };
   }
+  const existing = mapTask((await db.query('SELECT * FROM tasks WHERE project_id=$1 AND idempotency_key=$2', [projectId, key])).rows[0]);
+  if (existing.inputFingerprint !== fingerprint) throw new TaskError('IDEMPOTENCY_CONFLICT', 'Idempotency key was used with a different input');
+  return { task: existing, created: false };
 }
 
 export async function getTask(idInput: string): Promise<Task | null> {
@@ -129,19 +134,24 @@ export async function listTaskEvents(taskId: string) {
   return (await pool.query('SELECT * FROM task_events WHERE task_id=$1 ORDER BY seq', [idSchema.parse(taskId)])).rows.map(mapEvent);
 }
 
-export async function transitionTask(input: { taskId: string; expectedVersion: number; to: TaskState; actor: string; reason?: string; validation?: { passed: boolean; evidence: string[] } }): Promise<Task> {
+type TransitionInput = { taskId: string; expectedVersion: number; to: TaskState; actor: string; reason?: string; validation?: { passed: boolean; evidence: string[] } };
+
+export async function transitionTask(input: TransitionInput): Promise<Task> {
+  return inTx((db) => transitionTaskInTx(db, input));
+}
+
+/** transitionTask inside an open transaction (also used by the budget guard and approvals). */
+export async function transitionTaskInTx(db: Db, input: TransitionInput): Promise<Task> {
   const taskId = idSchema.parse(input.taskId);
   const expected = versionSchema.parse(input.expectedVersion);
   const actor = actorSchema.parse(input.actor);
-  return inTx(async (db) => {
-    const t = await lockTask(db, taskId);
-    checkVersion(t, expected);
-    assertTaskTransition(t.state, input.to, { reason: input.reason, validation: input.validation, attemptsUsed: await countRuns(db, t.id), maxAttempts: t.maxAttempts });
-    return moveTask(db, t, input.to, actor, {
-      blockedReason: input.reason ?? null,
-      validatedFingerprint: input.to === 'PASS' ? t.inputFingerprint : undefined,
-      details: input.to === 'PASS' ? { validation: input.validation } : input.reason ? { reason: input.reason } : undefined,
-    });
+  const t = await lockTask(db, taskId);
+  checkVersion(t, expected);
+  assertTaskTransition(t.state, input.to, { reason: input.reason, validation: input.validation, attemptsUsed: await countRuns(db, t.id), maxAttempts: t.maxAttempts });
+  return moveTask(db, t, input.to, actor, {
+    blockedReason: input.reason ?? null,
+    validatedFingerprint: input.to === 'PASS' ? t.inputFingerprint : undefined,
+    details: input.to === 'PASS' ? { validation: input.validation } : input.reason ? { reason: input.reason } : undefined,
   });
 }
 
@@ -167,11 +177,16 @@ export async function changeTaskInput(input: { taskId: string; expectedVersion: 
 }
 
 export async function enqueueTask(input: { taskId: string; expectedVersion: number; idempotencyKey: string; actor: string }): Promise<{ task: Task; run: Run; created: boolean }> {
+  return inTx((db) => enqueueTaskInTx(db, input));
+}
+
+/** enqueueTask inside an open transaction (also used by the plan service, which checks the plan and the budget first). */
+export async function enqueueTaskInTx(db: Db, input: { taskId: string; expectedVersion: number; idempotencyKey: string; actor: string }): Promise<{ task: Task; run: Run; created: boolean }> {
   const taskId = idSchema.parse(input.taskId);
   const expected = versionSchema.parse(input.expectedVersion);
   const key = keySchema.parse(input.idempotencyKey);
   const actor = actorSchema.parse(input.actor);
-  return inTx(async (db) => {
+  {
     const t = await lockTask(db, taskId);
     const prior = await db.query('SELECT * FROM runs WHERE task_id=$1 AND idempotency_key=$2', [t.id, key]);
     if (prior.rows[0]) {   // a replay returns the existing Run before any version check
@@ -191,7 +206,7 @@ export async function enqueueTask(input: { taskId: string; expectedVersion: numb
     await event(db, t, { runId: run.id, type: 'run.queued', actor, details: { attempt: run.attempt } });
     const task = await moveTask(db, t, 'QUEUED', actor, { runId: run.id });
     return { task, run, created: true };
-  });
+  }
 }
 
 export async function lockRun(db: Db, runId: string): Promise<{ task: Task; run: Run }> {
@@ -220,6 +235,7 @@ export async function startRun(input: { runId: string; actor: string }): Promise
 
 export type FinishRunInput = {
   runId: string; status: RunStatus; actor: string; providerId?: string; modelId?: string; policyVersion?: string; budget?: unknown; evidence?: string[];
+  blockReason?: 'budget';   // FAILED/TIMED_OUT Run that was stopped by the budget guard: the Task becomes BLOCKED(budget)
 };
 
 /** Finishes a Run inside an open transaction: Run, Task, the Run's job and events (also used by completeJob and recovery). */
@@ -232,7 +248,7 @@ export async function finishRunInTx(db: Db, input: FinishRunInput): Promise<{ ta
   if (!(RUN_STATES as readonly string[]).includes(status) || !canRunTransition(run.status, status)) {
     throw new TaskError('INVALID_TRANSITION', `Run cannot move from ${run.status} to ${status}`);
   }
-  const effect = runEffectOnTask(status);
+  const effect = runEffectOnTask(status, input.blockReason);
   assertTaskTransition(t.state, effect.state, { via: 'run' });
   const r = await db.query(
     `UPDATE runs SET status=$2, finished_at=now(), provider_id=$3, model_id=$4, policy_version=$5, budget=$6::jsonb, evidence=$7::jsonb WHERE id=$1 RETURNING *`,

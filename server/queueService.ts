@@ -28,20 +28,31 @@ export async function getJobByRun(runIdInput: string): Promise<Job | null> {
   return r.rows[0] ? mapJob(r.rows[0]) : null;
 }
 
-export async function claimJob(input: { workerId: string; projectId?: string; now?: Date; leaseMs?: number }): Promise<{ job: Job; run: Run; task: Task } | null> {
+/** maxConcurrent: leased jobs allowed per project; when omitted the project's `project_settings` row decides, and no row means no limit (TZ 8.5). */
+export async function claimJob(input: { workerId: string; projectId?: string; now?: Date; leaseMs?: number; maxConcurrent?: number }): Promise<{ job: Job; run: Run; task: Task } | null> {
   const workerId = workerSchema.parse(input.workerId);
   const projectId = input.projectId === undefined ? null : idSchema.parse(input.projectId);
   const now = input.now ?? new Date();
   const leaseMs = leaseSchema.parse(input.leaseMs ?? DEFAULT_LEASE_MS);
+  const maxConcurrent = input.maxConcurrent === undefined ? null : z.number().int().min(1).max(10).parse(input.maxConcurrent);
   return inTx(async (db) => {
     const cand = await db.query(
-      `SELECT j.id, j.run_id FROM jobs j
+      `SELECT j.id, j.run_id, j.project_id FROM jobs j
          JOIN runs r ON r.id = j.run_id AND r.status = 'QUEUED'
          JOIN tasks t ON t.id = j.task_id
+         LEFT JOIN project_settings ps ON ps.project_id = j.project_id
         WHERE j.status = 'QUEUED' AND j.available_at <= $1 AND ($2::text IS NULL OR j.project_id = $2)
+          AND (COALESCE($3::int, ps.max_concurrent_runs) IS NULL
+               OR (SELECT count(*) FROM jobs l WHERE l.project_id = j.project_id AND l.status = 'LEASED') < COALESCE($3::int, ps.max_concurrent_runs))
         ORDER BY j.seq LIMIT 1
-        FOR UPDATE OF j, t SKIP LOCKED`, [now, projectId]);
+        FOR UPDATE OF j, t SKIP LOCKED`, [now, projectId, maxConcurrent]);
     if (!cand.rows[0]) return null;
+    const lim = await db.query('SELECT COALESCE($2::int, (SELECT max_concurrent_runs FROM project_settings WHERE project_id=$1)) AS n', [cand.rows[0].project_id, maxConcurrent]);
+    if (lim.rows[0].n !== null) {   // serialize claimers of one project, then count again: two workers never exceed the limit together
+      await db.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`claim:${cand.rows[0].project_id}`]);
+      const n = Number((await db.query("SELECT count(*)::int AS n FROM jobs WHERE project_id=$1 AND status='LEASED'", [cand.rows[0].project_id])).rows[0].n);
+      if (n >= lim.rows[0].n) return null;
+    }
     const upd = await db.query(
       `UPDATE jobs SET status='LEASED', lease_owner=$2, lease_until=$3, heartbeat_at=$4, claims=claims+1 WHERE id=$1 RETURNING *`,
       [cand.rows[0].id, workerId, leaseUntil(now, leaseMs), now]);
@@ -76,7 +87,7 @@ export async function heartbeatJob(input: { jobId: string; workerId: string; now
 
 export async function completeJob(input: {
   jobId: string; workerId: string; status: 'SUCCEEDED' | 'FAILED' | 'TIMED_OUT'; actor?: string; providerId?: string; modelId?: string;
-  policyVersion?: string; budget?: unknown; evidence?: string[]; now?: Date;
+  policyVersion?: string; budget?: unknown; evidence?: string[]; blockReason?: 'budget'; now?: Date;
 }): Promise<{ task: Task; run: Run; job: Job }> {
   const jobId = idSchema.parse(input.jobId);
   const workerId = workerSchema.parse(input.workerId);
@@ -86,7 +97,7 @@ export async function completeJob(input: {
     const job = await leasedJob(db, jobId, workerId, now);
     const { task, run } = await finishRunInTx(db, {
       runId: job.runId, status: input.status, actor: input.actor ?? workerId, providerId: input.providerId, modelId: input.modelId,
-      policyVersion: input.policyVersion, budget: input.budget, evidence: input.evidence,
+      policyVersion: input.policyVersion, budget: input.budget, evidence: input.evidence, blockReason: input.blockReason,
     });
     return { task, run, job: mapJob((await db.query('SELECT * FROM jobs WHERE id=$1', [jobId])).rows[0]) };
   });

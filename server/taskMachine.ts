@@ -87,7 +87,11 @@ const RUN_TRANSITIONS: Record<RunStatus, readonly RunStatus[]> = {
 export const canRunTransition = (from: RunStatus, to: RunStatus): boolean => (RUN_TRANSITIONS[from] ?? []).includes(to);
 
 /** The effect of a final Run status on its Task. No status leads to PASS. */
-export function runEffectOnTask(status: RunStatus): { state: TaskState; blockedReason?: string } {
+export function runEffectOnTask(status: RunStatus, blockReason?: 'budget'): { state: TaskState; blockedReason?: string } {
+  if (blockReason === 'budget') {   // a Run stopped by the budget guard: the Run is FAILED or TIMED_OUT, the Task waits for a human (TZ 8.4)
+    if (status !== 'FAILED' && status !== 'TIMED_OUT') throw new TaskError('INVALID_TRANSITION', 'Only a FAILED or TIMED_OUT Run can block its Task for budget');
+    return { state: 'BLOCKED', blockedReason: 'budget' };
+  }
   switch (status) {
     case 'SUCCEEDED': return { state: 'VALIDATING' };
     case 'FAILED': case 'TIMED_OUT': return { state: 'FAIL' };
