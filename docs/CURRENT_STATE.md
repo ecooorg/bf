@@ -52,4 +52,4 @@ Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, inclu
 
 ## Next patch
 
-**P13.b** (rest of BX-16): routes and the `/project` screen to confirm a plan and decide approvals, worker started from `server.ts` with a real handler, `guardModelCall` in `runAnalysis`. Then **P14** (BX-17.b). Plan: TZ 16.4.2.
+**P13a** (BX-28, process automation, TZ 16.3.2), then **P13.b** (rest of BX-16, extended tests 16.4.4 group A): routes and the `/project` screen to confirm a plan and decide approvals, worker started from `server.ts` with a real handler, `guardModelCall` in `runAnalysis`. Then **P14** (BX-17.b). Plan: TZ 16.4.2.
