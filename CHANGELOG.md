@@ -40,5 +40,11 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - Added P15 static acceptance checks and truthful report/ADR-10 pending record.
 - Live G2/E-01 remain unverified; no `model_patch` execution or deployment approval is implied.
 
+## P17 — Gate Engine and CI evidence (BX-20)
+- Gate Engine (`server/gateEngine.ts`, `server/gateService.ts`, migration 009: `gate_evidence`, `gate_waivers`, `task_heads`). PASS only from registered evidence bound to the head commit; model statements rejected; evidence of another commit or invalidated evidence is ignored; a new head SHA invalidates earlier evidence; changes under `tests/acceptance/**` are FAIL, an unreadable diff is BLOCKED; WAIVED only by a human with a reason, audited; Release Candidate is derived and has a manifest.
+- `/api/webhooks/github` now registers evidence for `check_run` and `pull_request` events of `biforge/<task_id>` branches (typed fields only, idempotent); invalid signatures still 401. Routes `GET /api/projects/:projectId/tasks/:taskId/gates` and `POST .../gates/:gate/waive`.
+- P16 completion: read of PRs, PR files and check runs; Task Package commit helper limited to `biforge/<task_id>` and Task Package paths, off unless writes are enabled, no merge operation.
+- Fix: `connectors.yaml` github block (literal `\n`) and `github` row in `docs/CONNECTIONS.md`; `docs/CURRENT_STATE.md` rebuilt (the archive copy held a script); `docs/REPO_MAP.md` rows separated.
+
 ## P16 — GitHub integration foundation
 - Added least-privilege GitHub App connection verification and signed webhook ingress for `pull_request` / `check_run` events. Event processing and Code Delivery remain disabled pending owner decisions.

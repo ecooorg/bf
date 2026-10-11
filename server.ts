@@ -31,6 +31,8 @@ import { createWorker } from './server/worker.ts';
 import { readArtifact } from './server/artifactRepository.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
 import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
+import { getTaskGates, ingestGitHubEvent, recordWaiver } from './server/gateService.ts';
+import { isGateName } from './server/gateEngine.ts';
 
 dotenv.config();
 
@@ -80,7 +82,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // Behind Railway's proxy: trust exactly the configured number of hops, so X-Forwarded-For cannot be spoofed.
 app.set('trust proxy', process.env.TRUST_PROXY_HOPS !== undefined ? Number(process.env.TRUST_PROXY_HOPS) : (NODE_ENV === 'production' ? 1 : false));
 // GitHub sends a signed raw body; register before express.json so HMAC covers exact bytes.
-app.post('/api/webhooks/github', express.raw({ type: 'application/json', limit: '1mb' }), (req, res) => {
+app.post('/api/webhooks/github', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
   const secret = process.env.GITHUB_WEBHOOK_SECRET || '';
   const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
   if (!secret || !verifyGitHubWebhookSignature(rawBody, req.get('x-hub-signature-256'), secret)) {
@@ -99,9 +101,14 @@ app.post('/api/webhooks/github', express.raw({ type: 'application/json', limit: 
   let payload: any;
   try { payload = JSON.parse(rawBody.toString('utf8')); }
   catch { return res.status(400).json({ success: false, error: 'Invalid webhook payload' }); }
-  // Payload content is untrusted data. P16 verifies and acknowledges events; event processing is a later patch.
+  // Payload content is untrusted data: P17 reads only typed fields and registers evidence (server/gateService.ts).
   console.info('github.webhook.accepted', JSON.stringify({ event, action: String(payload.action || '').slice(0, 80) }));
-  return res.status(202).json({ success: true, accepted: true });
+  let ingested: Awaited<ReturnType<typeof ingestGitHubEvent>> = { ok: false, reason: 'not_attempted' };
+  if (process.env.DATABASE_URL) {
+    try { ingested = await ingestGitHubEvent(event, payload); }
+    catch (error) { console.error(JSON.stringify({ type: 'github_ingest_error', message: String((error as Error)?.message || error).slice(0, 180) })); ingested = { ok: false, reason: 'ingest_error' }; }
+  }
+  return res.status(202).json({ success: true, accepted: true, ...(ingested.ok ? { recorded: ingested.recorded } : {}) });
 });
 app.use('/api/export-document', express.json({ limit: '8mb' }));   // B2: whole-library documents
 app.use(express.json({ limit: MAX_BODY }));
@@ -451,6 +458,25 @@ app.post('/api/projects/:projectId/tasks/:taskId/validate', async (req, res) => 
     if (!task || task.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' });
     const data = await transitionTask({ taskId: task.id, expectedVersion: input.expected_version, to: input.passed ? 'PASS' : 'FAIL', actor: 'human', ...(input.passed ? { validation: { passed: true, evidence: input.evidence } } : { reason: 'validation_failed' }) });
     res.json({ success: true, data });
+  } catch (error) { projectError(res, error); }
+});
+
+app.get('/api/projects/:projectId/tasks/:taskId/gates', async (req, res) => {
+  try {
+    const task = await getTask(req.params.taskId);
+    if (!task || task.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' });
+    res.json({ success: true, data: await getTaskGates(await getPool(), task.id) });
+  } catch (error) { projectError(res, error); }
+});
+// WAIVED is a human decision with a mandatory reason, bound to one commit (TZ 12.2); it is audited.
+app.post('/api/projects/:projectId/tasks/:taskId/gates/:gate/waive', async (req, res) => {
+  try {
+    const input = z.object({ commit_sha: z.string().regex(/^[0-9a-f]{40}$/i), reason: z.string().trim().min(1).max(1000) }).strict().parse(req.body);
+    if (!isGateName(req.params.gate)) return res.status(400).json({ success: false, error: 'Unknown gate', code: 'VALIDATION' });
+    const task = await getTask(req.params.taskId);
+    if (!task || task.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' });
+    await recordWaiver(await getPool(), { projectId: task.projectId, taskId: task.id, gate: req.params.gate, commitSha: input.commit_sha, reason: input.reason, actor: 'human' });
+    res.json({ success: true, data: await getTaskGates(await getPool(), task.id, input.commit_sha) });
   } catch (error) { projectError(res, error); }
 });
 
