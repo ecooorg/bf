@@ -50,6 +50,7 @@ export async function inTx<T>(fn: (db: Db) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    await client.query("SET LOCAL idle_in_transaction_session_timeout = '30s'");
     const out = await fn(client);
     await client.query('COMMIT');
     return out;
