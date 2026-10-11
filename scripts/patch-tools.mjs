@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import JSZip from 'jszip';
 
 export const ALLOWED_TOP = ['server', 'src', 'tests', 'scripts', 'docs', 'migrations', 'public'];
-const IGNORED = [/^node_modules\//, /^dist\//, /^dist-server\//, /^\.git\//, /^artifacts\//, /^perf-report\.json$/, /^[^/]+\.zip$/, /^patch-report\.md$/, /^ci-[a-z]+\.log$/, /\.tsbuildinfo$/];
+const IGNORED = [/^node_modules\//, /^dist\//, /^dist-server\//, /^\.git\//, /^artifacts\//, /^perf-report\.json$/, /^[^/]+\.zip$/, /^patch-report\.md$/, /^patch-logs\//, /^ci-[a-z]+\.log$/, /\.tsbuildinfo$/];
 export const isIgnored = (rel) => IGNORED.some((re) => re.test(rel));
 const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
 const posix = (p) => p.split(path.sep).join('/');
@@ -93,16 +93,31 @@ export function ciSummary(status, logs) {
   return { ok: false, text: `CI: red. First failed: ${found ?? 'no test log (see the failed step)'}` };
 }
 
+/** FAIL = the archive must not be handed over (preflight). PARTIAL = archive built, some checks red or stopped by a timeout (TZ 16.3.2 hardening). */
 export function overallStatus(preflightViolations, commands) {
-  if (preflightViolations.length || commands.some((c) => c.status === 'FAIL')) return 'FAIL';
+  if (preflightViolations.length) return 'FAIL';
+  if (commands.some((c) => c.status === 'FAIL' || c.status === 'TIMEOUT')) return 'PARTIAL';
   if (commands.some((c) => c.status === 'BLOCKED')) return 'BLOCKED';
   return 'PASS';
 }
 
+const STATUS_NOTE = {
+  PASS: ' по локальным проверкам; окончательный PASS даёт CI на опубликованном коммите (D-08)',
+  PARTIAL: ' — архив собран, но часть проверок красная или остановлена по таймауту (список ниже). Архив можно загружать: итог всё равно даёт CI (D-08); красное разбирается отдельным шагом',
+  BLOCKED: ' — часть проверок нельзя было выполнить (см. BLOCKED ниже)',
+  IN_PROGRESS: ' — проверки ещё идут. Если отчёт остался в этом статусе, процесс был остановлен снаружи: архив уже собран, результат последней записанной проверки смотрите в таблице',
+  INTERRUPTED: ' — процесс прерван сигналом; архив собран до проверок, таблица показывает то, что успело выполниться',
+};
+
 export function renderReport({ patch, agent, base, diff, violations, commands, notes, ownerSteps, status }) {
-  const rows = commands.map((c) => `| \`${c.cmd}\` | ${c.status} | ${c.note.replace(/\|/g, '/').replace(/\n/g, ' ')} |`).join('\n');
+  const cell = (t) => String(t ?? '').replace(/\|/g, '/').replace(/\n/g, ' ');
+  const rows = commands.map((c) => `| \`${c.cmd}\` | ${c.status} | ${cell(c.note)}${c.log ? ` (log: \`${c.log}\`)` : ''} |`).join('\n');
+  const red = commands.filter((c) => c.status === 'FAIL' || c.status === 'TIMEOUT');
+  const redSection = red.length
+    ? `\n## Красные проверки (разобрать позже)\n| Команда | Результат | Первое падение или последний вывод | Лог |\n|---|---|---|---|\n${red.map((c) => `| \`${c.cmd}\` | ${c.status} | ${cell(c.failure ?? c.note)} | ${c.log ? `\`${c.log}\`` : ''} |`).join('\n')}\n`
+    : '';
   const list = (t, l) => (l.length ? l.map((f) => `| \`${f}\` | ${t} |`).join('\n') : '');
   const files = [list('replace', diff.replace), list('add', diff.add), list('delete (by hand)', diff.del)].filter(Boolean).join('\n') || '| (no changes) | |';
   const steps = ownerSteps.map((s, i) => `${i + 1}. ${s}`).join('\n');
-  return `# ${patch} — отчёт\n\n## Статус\n\`${status}\`${status === 'PASS' ? ' по локальным проверкам; окончательный PASS даёт CI на опубликованном коммите (D-08)' : ''}\n\n## Сводка\n- **Патч:** ${patch}\n- **Инструмент и модель:** ${agent}\n- **Базовый архив:** ${base}\n- **Состав:** ${summaryLine(diff).split('\n')[0]}\n\n## Файлы\n| Файл | Изменение |\n|---|---|\n${files}\n\n## Preflight\n${violations.length ? violations.map((x) => `- FAIL: ${x}`).join('\n') : '- PASS: нет манифеста, вложенных папок, секретов и правок tests/acceptance/**'}\n\n## Команды (только выполненные скриптом)\n| Команда | Результат | Примечание |\n|---|---|---|\n${rows}\n\nСтатусы: PASS, FAIL, BLOCKED (нельзя проверить), NOT_RUN (не запускалось, причина указана).\n\n## Не сделано и известные проблемы\n${notes || 'Не указано исполнителем.'}\n\n## Действия владельца на Railway\n${steps}\n`;
+  return `# ${patch} — отчёт\n\n## Статус\n\`${status}\`${STATUS_NOTE[status] ?? ''}\n\n## Сводка\n- **Патч:** ${patch}\n- **Инструмент и модель:** ${agent}\n- **Базовый архив:** ${base}\n- **Состав:** ${summaryLine(diff).split('\n')[0]}\n\n## Файлы\n| Файл | Изменение |\n|---|---|\n${files}\n\n## Preflight\n${violations.length ? violations.map((x) => `- FAIL: ${x}`).join('\n') : '- PASS: нет манифеста, вложенных папок, секретов и правок tests/acceptance/**'}\n\n## Команды (только выполненные скриптом)\n| Команда | Результат | Примечание |\n|---|---|---|\n${rows}\n\nСтатусы: PASS, FAIL, TIMEOUT (остановлена по лимиту времени), BLOCKED (нельзя проверить), NOT_RUN (не запускалось, причина указана).\n${redSection}\n## Не сделано и известные проблемы\n${notes || 'Не указано исполнителем.'}\n\n## Действия владельца на Railway\n${steps}\n`;
 }
