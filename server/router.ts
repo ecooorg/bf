@@ -1,4 +1,5 @@
 import type { Capability, ProviderAdapter, ProviderRequest, ProviderResponse } from './adapter.js';
+import type { HealthEvent } from './modelHealth.js';
 import type { RegistryEntry } from './modelRegistry.js';
 import { BUDGET_POLICY_VERSION, DEFAULT_OUTPUT_ESTIMATE, unitsFor, type QuotaTracker } from './budget.js';
 
@@ -12,6 +13,7 @@ const QUALITY_RANK = { A: 0, B: 1, C: 2 } as const;
 const COST_RANK = { self_hosted: 0, free: 1, paid: 2 } as const;
 const COOLDOWN_TRANSIENT_MS = 60_000;   // same values as server.ts
 const COOLDOWN_QUOTA_MS = 180_000;
+const COOLDOWN_QUOTA_MAX_MS = 86_400_000;
 const REPAIR_HINT = '\n\nPREVIOUS RESPONSE was not valid JSON. Reply with one valid JSON object only.';
 const key = (e: RegistryEntry) => `${e.providerId}/${e.modelId}`;
 
@@ -51,7 +53,7 @@ export function selectCandidates(registry: RegistryEntry[], state: RouterState, 
       else ok.push({ e, idx });
     }
   });
-  // quality class, then cost tier (self_hosted < free < paid), then registry order (stands in for latency until model_health, P09)
+  // quality class, then cost tier (self_hosted < free < paid), then registry order (model_health latency is recorded but not used for ordering until the P10 evidence)
   ok.sort((a, b) => QUALITY_RANK[a.e.qualityClass] - QUALITY_RANK[b.e.qualityClass] || COST_RANK[a.e.costTier] - COST_RANK[b.e.costTier] || a.idx - b.idx);
   return { candidates: ok.map((x) => x.e), rejected };
 }
@@ -62,9 +64,11 @@ export interface RouteContext {
   /** Router v1 inputs (all optional; ADR-07). `budget` is decreased by the units actually spent. */
   sensitivity?: 'normal' | 'high'; paidApproved?: string[]; budget?: { remainingUnits: number }; quota?: QuotaTracker; estimatedInputTokens?: number;
   onCall?: (resp: ProviderResponse, info: { retries: number; entry: RegistryEntry; units: number }) => void | Promise<void>;
+  /** P09: deadline (ms) that bounds retry waits; health hook (TZ 7.5). */
+  deadlineAt?: number; onHealth?: (e: HealthEvent) => void | Promise<void>;
   now?: () => number; sleep?: (ms: number) => Promise<void>; backoffMs?: () => number;
 }
-export interface RouteDecision { candidates: string[]; rejected: Rejected[]; attempts: { model: string; status: string; errorClass?: string }[]; reason?: string; policy: string; unitsSpent: number }
+export interface RouteDecision { candidates: string[]; rejected: Rejected[]; attempts: { model: string; status: string; errorClass?: string }[]; reason?: string; policy: string; unitsSpent: number; category?: 'system'; escalate?: 'human' }
 export interface RouteResult { status: 'ok' | 'error' | 'blocked'; response?: ProviderResponse; decision: RouteDecision }
 
 export async function routeCall(req: Omit<ProviderRequest, 'modelId'>, ctx: RouteContext): Promise<RouteResult> {
@@ -77,6 +81,8 @@ export async function routeCall(req: Omit<ProviderRequest, 'modelId'>, ctx: Rout
     { sensitivity: ctx.sensitivity, paidApproved: ctx.paidApproved, estimatedInputTokens: estIn, maxOutputTokens: req.maxOutputTokens, quota: ctx.quota });
   const decision: RouteDecision = { candidates: candidates.map(key), rejected, attempts: [], policy: ROUTER_POLICY_VERSION, unitsSpent: 0 };
   let budgetBlocked = false;
+  const health = async (e: HealthEvent) => { try { await ctx.onHealth?.(e); } catch { /* health must not break the run */ } };
+  const cooldown = async (m: string, ms: number) => { const until = now() + ms; ctx.state.cooldownUntil.set(m, until); await health({ type: 'cooldown', model: m, until }); };
   if (!candidates.length) return { status: 'blocked', decision: { ...decision, reason: 'no_suitable_model' } };
 
   let calls = 0;
@@ -101,24 +107,31 @@ export async function routeCall(req: Omit<ProviderRequest, 'modelId'>, ctx: Rout
       if (ctx.budget) ctx.budget.remainingUnits -= units;
       ctx.quota?.record(key(entry), tokens, now());   // every attempted call counts as a request
       await ctx.onCall?.(resp, { retries: decision.attempts.length, entry, units });   // ledger hook: every call is reported
+      await health({ type: 'call', model: key(entry), ok: resp.status === 'ok', latencyMs: resp.latencyMs, ...(resp.errorClass ? { errorClass: resp.errorClass } : {}) });
       decision.attempts.push({ model: key(entry), status: resp.status, ...(resp.errorClass ? { errorClass: resp.errorClass } : {}) });
       if (resp.status === 'ok') return { status: 'ok', response: resp, decision };
       switch (resp.errorClass) {
         case 'PROVIDER_TRANSIENT':
-          if (!retriedTransient && calls < maxCalls) { retriedTransient = true; await sleep(backoff()); continue; }
-          ctx.state.cooldownUntil.set(key(entry), now() + COOLDOWN_TRANSIENT_MS);
+          if (!retriedTransient && calls < maxCalls) {
+            const wait = backoff();
+            if (ctx.deadlineAt === undefined || now() + wait < ctx.deadlineAt) { retriedTransient = true; await sleep(wait); continue; }
+          }
+          await cooldown(key(entry), COOLDOWN_TRANSIENT_MS);
           continue outer;
         case 'PROVIDER_QUOTA':
-          ctx.state.cooldownUntil.set(key(entry), now() + COOLDOWN_QUOTA_MS);
+          await cooldown(key(entry), Math.min(COOLDOWN_QUOTA_MAX_MS, Math.max(COOLDOWN_QUOTA_MS, resp.retryAfterMs ?? 0)));
           continue outer;
         case 'PROVIDER_AUTH':
           ctx.state.disabledProviders.add(entry.providerId);
+          await health({ type: 'provider_disabled', providerId: entry.providerId, reason: 'PROVIDER_AUTH' });
           continue outer;
         case 'INVALID_OUTPUT':
           if (!retriedOutput) { retriedOutput = true; hint = REPAIR_HINT; continue; }
           continue outer;
-        default:   // INVALID_REQUEST, POLICY_REJECTED: no retries
-          return { status: 'error', response: resp, decision: { ...decision, reason: resp.errorClass } };
+        case 'INVALID_REQUEST':
+          return { status: 'error', response: resp, decision: { ...decision, reason: resp.errorClass, category: 'system' } };
+        default:   // POLICY_REJECTED: no retries, a human decides
+          return { status: 'error', response: resp, decision: { ...decision, reason: resp.errorClass, escalate: 'human' } };
       }
     }
   }

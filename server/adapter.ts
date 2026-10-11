@@ -66,6 +66,7 @@ export const providerResponseSchema = z.object({
   retryable: z.boolean(),
   errorClass: z.enum(PROVIDER_ERROR_CLASSES).optional(),
   rawRef: z.string().optional(),
+  retryAfterMs: z.number().int().min(0).optional(),
 }).strict().superRefine((v, ctx) => {
   if (v.status === 'ok' && v.errorClass) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'ok response must not carry errorClass' });
   if (v.status === 'ok' && v.output === undefined) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'ok response requires output' });
@@ -80,9 +81,10 @@ export interface ProviderAdapter {
 }
 
 /** Builds an error response from a ProviderError. */
-export function errorResponse(e: ProviderError, ctx: { providerId: string; modelId: string; latencyMs: number }): ProviderResponse {
+export function errorResponse(e: ProviderError, ctx: { providerId: string; modelId: string; latencyMs: number; retryAfterMs?: number }): ProviderResponse {
   return providerResponseSchema.parse({
     status: 'error', usage: { input: 0, cached: 0, output: 0 }, latencyMs: ctx.latencyMs,
     providerId: ctx.providerId, modelId: ctx.modelId, retryable: e.retryable, errorClass: e.errorClass,
+    ...(ctx.retryAfterMs !== undefined ? { retryAfterMs: ctx.retryAfterMs } : {}),
   });
 }

@@ -5,7 +5,8 @@ import { getProject, recordAuditEvent, StateVersionConflict } from './projectRep
 import { readArtifact, saveArtifact } from './artifactRepository.ts';
 import { ledgerEntryFromResponse, writeLedgerEntry } from './ledger.ts';
 import { newRouteDecisionId, writeRouteDecision } from './routeDecisions.ts';
-import { DEFAULT_TASK_UNITS, createQuotaTracker, shadowCostUsd } from './budget.ts';
+import { DEFAULT_TASK_UNITS, DEFAULT_DAILY_UNITS, createQuotaTracker, shadowCostUsd, budgetLevel, runBudget } from './budget.ts';
+import { loadRouterState, loadQuotaRows, rehydrateQuota, saveHealthEvent, type HealthEvent } from './modelHealth.ts';
 import { newRouterState, routeCall, type RouterState } from './router.ts';
 import { REGISTRY_SEED, type RegistryEntry } from './modelRegistry.ts';
 import { statePatchSchema, SECTIONS, type Section } from './statePipeline.ts';
@@ -20,8 +21,15 @@ const routerState: RouterState = newRouterState();
 
 export interface AnalysisDeps { adapters: Record<string, ProviderAdapter>; registry?: RegistryEntry[]; router?: RouterState; maxTokens?: number; quota?: ReturnType<typeof createQuotaTracker> }
 
-/** Quota windows live for the lifetime of the process (persisted with the full ledger in P09). */
+/** Process-wide quota tracker; restored from the ledger (last 24 h) on the first analysis. */
 const quotaTracker = createQuotaTracker();
+let quotaHydrated = false;
+
+async function usedUnitsToday(projectId: string): Promise<number> {
+  const pool = await getPool();
+  const r = await pool.query(`SELECT COALESCE(SUM(units),0) AS u FROM usage_ledger WHERE starts_with(run_id, $1) AND created_at >= now() - interval '24 hours'`, [`${projectId}:`]);
+  return Number(r.rows[0].u);
+}
 
 export async function runAnalysis(input: { projectId: string; expectedVersion: number; task: string; artifactIds?: string[] }, deps: AnalysisDeps) {
   const task = z.string().trim().min(1).max(4000).parse(input.task);
@@ -35,13 +43,22 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
     if (!a || a.project_id !== input.projectId) throw new AnalysisError('ARTIFACT_NOT_FOUND', 'Artifact not found in this project', 404);
     artifacts.push({ id, version: Number(a.version), filename: a.filename, text: a.text });
   }
+  const usedToday = await usedUnitsToday(input.projectId);
+  if (budgetLevel(usedToday, DEFAULT_DAILY_UNITS).level === 'stop') throw new AnalysisError('DAILY_BUDGET_EXCEEDED', 'The daily budget of this project is used up', 429);
+  const routerSt = await loadRouterState(deps.router ?? routerState);
+  const quota = deps.quota ?? quotaTracker;
+  if (deps.quota || !quotaHydrated) { if (!deps.quota) quotaHydrated = true; rehydrateQuota(quota, await loadQuotaRows(Date.now() - 86_400_000), Date.now()); }
   const ctx = buildContext({ state: project.state, task, artifacts, maxTokens: deps.maxTokens });
   const runId = `${input.projectId}:${crypto.randomBytes(6).toString('hex')}`;
   const routeDecisionId = newRouteDecisionId();
   const sensitivity = 'normal' as const;   // the project-level sensitivity field arrives with the passport extension; open-publication work is `normal` (ADR-07)
   const route = await routeCall({ requestId: runId, system: ctx.system, prompt: ctx.prompt, json: true, metadata: {} }, {
-    registry: deps.registry ?? REGISTRY_SEED, adapters: deps.adapters, state: deps.router ?? routerState, required: ['json_output'], timeoutMs: 90_000,
-    sensitivity, paidApproved: [], budget: { remainingUnits: DEFAULT_TASK_UNITS }, quota: deps.quota ?? quotaTracker, estimatedInputTokens: ctx.tokens.total,
+    registry: deps.registry ?? REGISTRY_SEED, adapters: deps.adapters, state: routerSt, required: ['json_output'], timeoutMs: 90_000,
+    sensitivity, paidApproved: [], budget: { remainingUnits: runBudget(usedToday, { dayCap: DEFAULT_DAILY_UNITS, taskUnits: DEFAULT_TASK_UNITS }) }, quota, deadlineAt: Date.now() + 90_000,
+    onHealth: async (e: HealthEvent) => {
+      await saveHealthEvent(e);
+      if (e.type === 'provider_disabled') await recordAuditEvent({ eventType: 'provider.disabled', actor: 'system', details: { provider_id: e.providerId, reason: e.reason } });
+    }, estimatedInputTokens: ctx.tokens.total,
     onCall: async (resp, info) => { try { await writeLedgerEntry(ledgerEntryFromResponse(resp, { runId, retries: info.retries, routeDecisionId, units: info.units, costEstimate: shadowCostUsd({ input: resp.usage.input ?? 0, output: resp.usage.output ?? 0 }, info.entry.pricing) })); } catch { /* the ledger must not break the run */ } },
   });
   try { await writeRouteDecision(routeDecisionId, route.decision, { runId, sensitivity, status: route.status }); } catch { /* the decision log must not break the run */ }
@@ -57,7 +74,8 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
   await recordAuditEvent({ eventType: 'analysis.completed', actor: 'agent', projectId: input.projectId, details: { run_id: runId, artifact_id: art.artifactId, version: art.version, estimated_input_tokens: ctx.tokens.total } });
   const usage = route.response.usage;
   return { state_version: saved.state_version, changes: saved.changes, summary: parsed.data.summary, artifact: art, run_id: runId, model: `${route.response.providerId}/${route.response.modelId}`,
-    tokens: { estimated: ctx.tokens, actual: usage }, included: ctx.included, excluded_count: ctx.excluded.length, route: route.decision };
+    tokens: { estimated: ctx.tokens, actual: usage }, budget: { used_units: usedToday + route.decision.unitsSpent, cap_units: DEFAULT_DAILY_UNITS, level: budgetLevel(usedToday + route.decision.unitsSpent, DEFAULT_DAILY_UNITS).level },
+    included: ctx.included, excluded_count: ctx.excluded.length, route: route.decision };
 }
 
 /** Human review of one item: confirm or reject. Goes through the same pipeline (actor human). */

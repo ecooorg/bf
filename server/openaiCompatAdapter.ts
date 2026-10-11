@@ -32,8 +32,8 @@ export function createOpenAICompatibleAdapter(cfg: OpenAICompatConfig): Provider
       const ctrl = new AbortController();
       const timer = opts.timeoutMs ? setTimeout(() => ctrl.abort(), opts.timeoutMs) : undefined;
       opts.signal?.addEventListener('abort', () => ctrl.abort(), { once: true });
-      const fail = (cls: ProviderErrorClass, msg: string) =>
-        errorResponse(new ProviderError(cls, msg), { providerId, modelId: req.modelId, latencyMs: Date.now() - t0 });
+      const fail = (cls: ProviderErrorClass, msg: string, retryAfterMs?: number) =>
+        errorResponse(new ProviderError(cls, msg), { providerId, modelId: req.modelId, latencyMs: Date.now() - t0, ...(retryAfterMs !== undefined ? { retryAfterMs } : {}) });
       try {
         const messages = [...(req.system ? [{ role: 'system', content: req.system }] : []), { role: 'user', content: req.prompt }];
         const res = await doFetch(url, {
@@ -50,7 +50,8 @@ export function createOpenAICompatibleAdapter(cfg: OpenAICompatConfig): Provider
         try { body = await res.json(); } catch { /* not JSON */ }
         if (!res.ok) {
           const msg = String(body?.error?.message || body?.error?.code || `HTTP ${res.status}`);
-          return fail(classifyOpenAICompatError(res.status, msg), msg.slice(0, 300));
+          const ra = res.status === 429 ? Number(res.headers.get('retry-after')) : NaN;   // seconds -> ms
+          return fail(classifyOpenAICompatError(res.status, msg), msg.slice(0, 300), res.headers.get('retry-after') !== null && Number.isFinite(ra) && ra >= 0 ? Math.round(ra * 1000) : undefined);
         }
         const choice = body?.choices?.[0];
         const finishReason: string | undefined = choice?.finish_reason ?? undefined;
