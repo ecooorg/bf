@@ -23,3 +23,18 @@
 **Not done.** Running `npm run patch:pack` by the owner on a phone (it is a command for the AI Assistant's environment); the gitleaks scan of the archive (CI does it after upload); mail or chat notification beyond the standard GitHub one.
 
 **Owner check.** After upload, open the Actions run of the commit: the job summary shows `CI: green` (or `CI: red. First failed: ...`). The first real use of `patch:pack` is the next patch, P13b.
+
+## Hardening (after the first P13b build hung for more than 20 minutes)
+
+Changes to the process tools; no product behaviour changed except the bounded database waits.
+
+1. **Archive first.** `patch:pack` runs the preflight, builds the archive and only then runs the checks. A red, hanging or killed check cannot stop it. Only the preflight (manifest, nested folders, secrets, `tests/acceptance/**`, unsafe paths) refuses an archive, exit 1. Stale-link detection (`check:docs`) is now a normal step, not a preflight rule.
+2. **One step per command.** The chain of `npm run check` is split into its commands; `typecheck`, `live` and `build` are steps too. Each step runs in its own process group with a time limit (`--step-timeout`, default 300 s; `npm ci` and live tests 600 s) and a total limit (`--total-timeout`, default 1800 s; later steps are `BLOCKED`). A step over its limit is killed with its whole process tree and recorded as `TIMEOUT`, without a retry. A red step is tried again up to `--attempts` (default 2).
+3. **Nothing is silent.** Output goes straight into `patch-logs`, one file per attempt; progress lines go to stderr; the report is rewritten after every step, so a process killed from outside still leaves an archive and a current report (status `IN_PROGRESS` or `INTERRUPTED`).
+4. **Statuses.** `PASS`; `PARTIAL` (archive built, some step `FAIL` or `TIMEOUT`; the report has the table "Красные проверки" with the first failure and the log); `BLOCKED` (a step could not be checked: no `node_modules`, total limit); `FAIL` (preflight, no archive). `--strict` gives exit code 2 for anything but `PASS` after the archive is built. `--only <step or group>` repeats chosen steps; `--skip` takes a group or a step name.
+5. **Tests.** Every `node --test` script has `--test-timeout=120000 --test-force-exit`; live database tests run with `--test-concurrency=1` (one shared database); `tests/run.sh` limits each file (`VIRTUAL_TEST_TIMEOUT`, default 180 s) and runs all files even after a failure.
+6. **Database waits.** The pool sets `statement_timeout` 30 s, `lock_timeout` 10 s and `idle_in_transaction_session_timeout` 60 s (`PG_STATEMENT_TIMEOUT_MS`, `PG_LOCK_TIMEOUT_MS`, `PG_IDLE_TX_TIMEOUT_MS`; 0 = off). A stuck lock or an open transaction becomes an error in seconds.
+7. **Rules for the agent** are in `AGENTS.md` section 5 and `docs/NEXT.md`.
+
+**Not done.** The worker in `server.ts`, graceful shutdown and the lock order of `decideApproval` and `guardModelCall` belong to P13b (see `docs/NEXT.md`).
+
