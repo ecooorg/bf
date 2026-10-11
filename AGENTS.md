@@ -24,7 +24,7 @@ The agent may be any model or tool chosen by the owner (D-16). The contract is t
 
 ## 3. Establish the baseline
 Before editing:
-1. Read `docs/START_HERE.md` and `docs/CURRENT_STATE.md`.
+1. Read `docs/START_HERE.md`, `docs/CURRENT_STATE.md` and `docs/NEXT.md` (the queue entry for this patch).
 2. Read or create the SPEC: `docs/PNN-SPEC.md` (template: `docs/PATCH_TEMPLATE.md`).
 3. The base is the archive uploaded by the owner; record its name or date in the report.
 4. Read relevant files and tests, including expectation tests if the SPEC has them.
@@ -54,6 +54,7 @@ If, when building a patch, the Navigator has not provided the SPEC, the expectat
 
 ## 5. Delivery of work (actual process)
 - The model has no GitHub access. The owner uploads the repository archive at the start of a session and uploads the patch to `main` by hand; CI checks `main`. There are no branches and no Pull Requests at this stage (TZv3.0, section 16.3.1). Branch and PR rules (`docs/GIT_POLICY.md`) apply when direct Git access appears.
+- From patch P13a on, build the archive and the report with the process tools (TZv3.0, 16.3.2: `npm run patch:pack`, automatic report, preflight); until they exist, do it by hand. An archive that fails the preflight is not delivered. At the end of every patch update `docs/NEXT.md`.
 - Deliver **one cumulative patch**: an archive with the latest version of every file changed since the last upload confirmed by the owner, at repository paths. Do not put any manifest or list-of-files file into the archive.
 - In the chat give one line "replace N, add M, delete K" with file names. Deleting files is done by the owner by hand; deletions are never part of the archive.
 - Do not change repository settings or workflows unless the SPEC says so.
@@ -79,7 +80,7 @@ Every patch ends with a report (in Russian, in the chat) that follows `docs/STEP
 - **Patches with ★ steps and gate patches:** also `docs/PNN-REPORT.md` in the repository.
 - **Every patch:** update `docs/CURRENT_STATE.md` and `CHANGELOG.md` when state or behaviour changed.
 
-Every report contains:
+The report ends with a checklist of three actions for the Navigator on Railway (what to press, what result to expect). Every report contains:
 - patch ID, tool and model used;
 - exact test commands and results;
 - changed files and concise rationale;
