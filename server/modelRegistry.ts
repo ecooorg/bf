@@ -12,7 +12,13 @@ export const registryEntrySchema = z.object({
   contextLimit: z.number().int().positive().optional(),
   qualityClass: z.enum(['A', 'B', 'C']),
   qualityProvisional: z.boolean(),
-  dataPolicy: z.enum(['paid', 'free', 'unknown']),
+  dataPolicy: z.enum(['paid', 'free', 'self_hosted', 'unknown']),
+  /** Cost tier (ADR-07): self_hosted < free < paid. Paid is never used without explicit approval. */
+  costTier: z.enum(['self_hosted', 'free', 'paid']),
+  /** Provider quota windows; Router rejects a model before the call when the estimated call would exceed one. */
+  limits: z.object({ rpm: z.number().int().positive().optional(), rpd: z.number().int().positive().optional(), tpm: z.number().int().positive().optional(), tpd: z.number().int().positive().optional() }).strict().optional(),
+  /** Published price, USD per million tokens; used only for the shadow cost in the ledger. */
+  pricing: z.object({ inputPerMTok: z.number().min(0), outputPerMTok: z.number().min(0) }).strict().optional(),
   trainingOptOutConfirmed: z.boolean(),
   lastVerifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   /** Per-model budgets (e.g. Groq Free: 8K tokens/min), consumed by Context Builder/Router. */
@@ -28,7 +34,7 @@ const GEMINI_MODELS = [
   'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash',
 ];
 export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => registryEntrySchema.parse({
-  providerId: 'gemini', modelId, status: 'active', adapter: 'gemini',
+  providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
   capabilities: ['json_output'], qualityClass: 'B', qualityProvisional: true,
   dataPolicy: 'unknown', trainingOptOutConfirmed: false,
   lastVerifiedAt: '2026-10-10', secretEnvRef: 'GEMINI_API_KEY',
@@ -39,7 +45,9 @@ export const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';
 export const GROQ_SEED: RegistryEntry[] = (['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b'] as const).map((modelId, i) => registryEntrySchema.parse({
   providerId: 'groq', modelId, status: modelId === 'openai/gpt-oss-120b' ? 'active' : 'disabled', adapter: 'openai-compatible',
   capabilities: modelId === 'openai/gpt-oss-120b' ? ['json_output'] : [], roleHint: 'verifier', contextLimit: modelId.startsWith('openai/') ? 131072 : undefined,
-  qualityClass: 'B', qualityProvisional: true, dataPolicy: 'free', trainingOptOutConfirmed: false,
+  qualityClass: 'B', qualityProvisional: true, dataPolicy: 'free', costTier: 'free', trainingOptOutConfirmed: false,
+  limits: { rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000 },
+  ...(modelId === 'openai/gpt-oss-120b' ? { pricing: { inputPerMTok: 0.15, outputPerMTok: 0.6 } } : modelId === 'openai/gpt-oss-20b' ? { pricing: { inputPerMTok: 0.075, outputPerMTok: 0.3 } } : {}),
   inputBudgetTokens: 3500, maxOutputTokens: 1500,
   lastVerifiedAt: '2026-10-10', secretEnvRef: 'GROQ_API_KEY',
 }));

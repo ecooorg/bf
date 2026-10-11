@@ -4,6 +4,8 @@ import { applyPatchToProject, PatchRejectedError } from './stateService.ts';
 import { getProject, recordAuditEvent, StateVersionConflict } from './projectRepository.ts';
 import { readArtifact, saveArtifact } from './artifactRepository.ts';
 import { ledgerEntryFromResponse, writeLedgerEntry } from './ledger.ts';
+import { newRouteDecisionId, writeRouteDecision } from './routeDecisions.ts';
+import { DEFAULT_TASK_UNITS, createQuotaTracker, shadowCostUsd } from './budget.ts';
 import { newRouterState, routeCall, type RouterState } from './router.ts';
 import { REGISTRY_SEED, type RegistryEntry } from './modelRegistry.ts';
 import { statePatchSchema, SECTIONS, type Section } from './statePipeline.ts';
@@ -16,7 +18,10 @@ export class AnalysisError extends Error { constructor(readonly code: string, me
 const outputSchema = z.object({ summary: z.string().max(20000).default(''), patch: statePatchSchema }).strict();
 const routerState: RouterState = newRouterState();
 
-export interface AnalysisDeps { adapters: Record<string, ProviderAdapter>; registry?: RegistryEntry[]; router?: RouterState; maxTokens?: number }
+export interface AnalysisDeps { adapters: Record<string, ProviderAdapter>; registry?: RegistryEntry[]; router?: RouterState; maxTokens?: number; quota?: ReturnType<typeof createQuotaTracker> }
+
+/** Quota windows live for the lifetime of the process (persisted with the full ledger in P09). */
+const quotaTracker = createQuotaTracker();
 
 export async function runAnalysis(input: { projectId: string; expectedVersion: number; task: string; artifactIds?: string[] }, deps: AnalysisDeps) {
   const task = z.string().trim().min(1).max(4000).parse(input.task);
@@ -32,10 +37,14 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
   }
   const ctx = buildContext({ state: project.state, task, artifacts, maxTokens: deps.maxTokens });
   const runId = `${input.projectId}:${crypto.randomBytes(6).toString('hex')}`;
+  const routeDecisionId = newRouteDecisionId();
+  const sensitivity = 'normal' as const;   // the project-level sensitivity field arrives with the passport extension; open-publication work is `normal` (ADR-07)
   const route = await routeCall({ requestId: runId, system: ctx.system, prompt: ctx.prompt, json: true, metadata: {} }, {
     registry: deps.registry ?? REGISTRY_SEED, adapters: deps.adapters, state: deps.router ?? routerState, required: ['json_output'], timeoutMs: 90_000,
-    onCall: async (resp, info) => { try { await writeLedgerEntry(ledgerEntryFromResponse(resp, { runId, retries: info.retries })); } catch { /* the ledger must not break the run */ } },
+    sensitivity, paidApproved: [], budget: { remainingUnits: DEFAULT_TASK_UNITS }, quota: deps.quota ?? quotaTracker, estimatedInputTokens: ctx.tokens.total,
+    onCall: async (resp, info) => { try { await writeLedgerEntry(ledgerEntryFromResponse(resp, { runId, retries: info.retries, routeDecisionId, units: info.units, costEstimate: shadowCostUsd({ input: resp.usage.input ?? 0, output: resp.usage.output ?? 0 }, info.entry.pricing) })); } catch { /* the ledger must not break the run */ } },
   });
+  try { await writeRouteDecision(routeDecisionId, route.decision, { runId, sensitivity, status: route.status }); } catch { /* the decision log must not break the run */ }
   if (route.status !== 'ok' || !route.response) throw new AnalysisError('MODEL_UNAVAILABLE', `The model call failed (${route.decision.reason ?? route.response?.errorClass ?? 'unknown'})`, 502);
   const parsed = outputSchema.safeParse(route.response.output);
   if (!parsed.success) throw new AnalysisError('INVALID_OUTPUT', 'The model returned an unusable result', 502);
