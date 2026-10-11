@@ -21,8 +21,9 @@ Check statuses: `OK`, `FAIL(reason)`, `BLOCKED(reason)`, `DRIFT`, `NOT_RUN`.
 | `gemini` | Gemini API (base provider) | `GEMINI_API_KEY` (paid project); optional `GEMINI_API_KEY_FREE` (synthetic data only), `GEMINI_BASE_URL` | BX-10.b |
 | `groq` | Groq, OpenAI-compatible API (first additional provider; Free plan: data may be used, synthetic data only) | `GROQ_API_KEY`, `GROQ_PLAN` (`free` or `paid`) | BX-12.a |
 | `postgres` | PostgreSQL on Railway | `DATABASE_URL` | BX-04 |
+| `github` | GitHub App API | `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`; optional `GITHUB_REPOSITORY_OWNER`, `GITHUB_REPOSITORY_NAME`, `GITHUB_API_BASE_URL` | BX-19 |
 
-Planned, added to the manifest by their steps: GitHub App (BX-19), code executor (BX-21.a). Application login (`APP_PASSWORD`, `SESSION_SECRET`, `ENABLE_APP_AUTH`) is described in `DEPLOY_RAILWAY.md`.
+Planned, added to the manifest by their steps: code executor (BX-21.a). Application login (`APP_PASSWORD`, `SESSION_SECRET`, `ENABLE_APP_AUTH`) is described in `DEPLOY_RAILWAY.md`.
 
 ## Gemini API
 
