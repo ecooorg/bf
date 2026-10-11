@@ -18,7 +18,7 @@
 - BX-01…BX-05: baseline, documents, CI and operations fixes, characterization tests, PostgreSQL with migrations, base contracts.
 - BX-06: Project Mode separated (`/project`, opt-in), mandatory authentication, CSRF/origin protection, rate limits in the database. Checked by the owner on Railway (`docs/BX-06-REPORT.md`).
 - BX-07: provenance, restart test, manual 409 check, English-only interface, `/health` shows `commit` (`docs/BX-07-REPORT.md`). **Closing condition:** green CI on the last commit and a short Simple Mode check on Railway.
-- P06 (this patch): BX-09.a part 2 and BX-09.b — Context Builder with token measurement, analysis in Project Mode (model -> patch -> human review -> artifact -> ledger). Gate G1a waits for the owner's real analysis.
+- P06 (this patch): BX-09.a part 2 and BX-09.b — Context Builder with token measurement, analysis in Project Mode (model -> patch -> human review -> artifact -> ledger). Gate G1a: the owner confirmed the real analysis on 2026-10-11 (see "Owner checks" below).
 - P05: BX-09.a part 1 — State patch pipeline, validator, compaction, state service (not wired to routes; no model call yet).
 - P04: BX-17.a and BX-10.b — artifact registry (migration 002), ledger-min, `connectors.yaml`, `verify:connections`, `docs/CONNECTIONS.md`. Owner still has to run `verify:connections` with the real key and do the A-01/A-02 console checks.
 - P03: BX-10.a part 2 and BX-11 — Gemini adapter, fake provider, Router-min, conformance tests, ADR-02. Not wired to Simple Mode (`generate()` unchanged).
@@ -65,3 +65,12 @@ Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, inclu
 - Worker success ends in `VALIDATING`; it does not self-approve Task PASS.
 - Added `tests/p15-acceptance.test.mjs`, `docs/P15-REPORT.md`, and pending `docs/ADR-10-code-executor.md`.
 - Status remains PARTIAL until dependencies are installed and full automated/live integration checks pass. G2 and E-01 are explicitly NOT_RUN; no final ADR-10 decision or `model_patch` enablement is claimed.
+
+
+## Owner checks (confirmed by the owner, 2026-10-11)
+The owner states that all manual checks after P01–P15 are done: P01 passport; P04 `verify:connections`, A-01, A-02; G1a items 1-9; P10 report read; P13a CI summary and `patch:pack`; P13b plan confirmation and budget decision; BX-07 closing condition (green CI, Simple Mode on Railway); P15 scenario 18.1 and E-01. Recorded as a statement, no output attached. Details and the automated re-run: `docs/P15-REPORT.md`. Gates: G1a passed on the owner's word; G2 waits for the evidence of 18.1 and E-01 and the ADR-10 decision.
+
+## Remaining checks
+- Owner: attach G2 and E-01 evidence; decide ADR-10 and ADR-04; after the next redeploy confirm no `signal SIGTERM` and no `SSL error` in logs.
+- Automated: CI `ci` on the last commit; `npm run test:ui`; `verify:connections` with real keys; golden-eval on real providers; scripted 18.1 scenario on a disposable database; real provider 429/5xx.
+- Done by the agent on 2026-10-11: `npm run build`, `npm run check`, `npm run test:database:live` (55/55), `npm run test:bx06:api`.

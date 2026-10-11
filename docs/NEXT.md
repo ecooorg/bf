@@ -13,6 +13,12 @@
 
 ## P14 — done (BX-17.b, `docs/P14-SPEC.md`)
 
-## P15 — implementation scaffold added; G2 and E-01 remain open
+## P15 — implemented; owner confirmed manual checks (2026-10-11); G2 and E-01 evidence and ADR-10 still open
 - Run the full TZ 18.1 E2E on a disposable PostgreSQL database with configured provider and preserve evidence (12-call cap).
 - Run E-01 per TZ 11.9: three real task pairs, `manual` vs `model_patch`, with acceptance tests prewritten. Update `docs/P15-REPORT.md` and `docs/ADR-10-code-executor.md` only from observed evidence. Until then, `model_patch` remains disabled and BX-18.b is NOT_RUN. 
+
+
+## Open checks (2026-10-11)
+- Owner: put G2 / E-01 evidence into `docs/P15-REPORT.md`; decide ADR-10 and ADR-04; check logs after the next redeploy.
+- Automated: CI on the last commit, `npm run test:ui`, `verify:connections` with real keys, live golden-eval, scripted 18.1 scenario, real provider failures.
+- Next in the plan: P15a (monitoring of connections and quotas), then P16 (GitHub integration). P15a and P15b are reserve patches.
