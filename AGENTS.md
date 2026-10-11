@@ -9,6 +9,8 @@ These instructions define the default working rules for coding agents. The speci
 
 The agent may be any model or tool chosen by the owner (D-16). The contract is this file, the step SPEC, and CI. Name the tool and model in the PR description.
 
+**Terms.** *Navigator* is the human co-developer (the owner). *AI Assistant* is the AI co-developer, that is, the agent these instructions are written for.
+
 ## 2. Scope
 - Work only on the explicitly assigned patch `PNN` (plan: TZv3.0 section 16.4.2; the steps `BX-XX` it contains are in 16.4.3).
 - Identifiers `BF-01`…`BF-44` are frozen and are not reused. New work is named by patch (`PNN`) and, where needed, by step (`BX-XX`).
@@ -29,6 +31,13 @@ Before editing:
 5. If the baseline is unclear or the requested change conflicts with the archive contents, stop and report `BLOCKED`.
 
 Never overwrite or discard user changes to make the task easier.
+
+### 3.1 When the Navigator did not provide a document
+If, when building a patch, the Navigator has not provided the SPEC, the expectation tests or another document the patch needs, the AI Assistant does not stop and does not wait. It decides on its own, guided by the best quality and the most useful functionality of the program, and does the following:
+- writes the missing SPEC (`docs/PNN-SPEC.md`, from `docs/PATCH_TEMPLATE.md`) and the tests itself, including the checks of the extended test list (TZv3.0, 16.4.4) that apply to the patch;
+- states every such decision in the SPEC under "Defaults chosen" and repeats it in one line in the report, so the Navigator can change it;
+- keeps all other limits: TZv3.0 wins over a decision of the AI Assistant; sections 2, 4, 6 and 7 of this file (scope, flat structure, security, dependencies) are not relaxed; a missing document never allows weakening a test or touching `tests/acceptance/**`;
+- applies this rule to missing documents only. A missing or unclear base archive, or a conflict between the request and the archive or TZv3.0, is still `BLOCKED` (section 3, item 5).
 
 ## 4. Implementation and testing
 - Follow existing project conventions unless the task explicitly changes them.
