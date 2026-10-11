@@ -4,7 +4,7 @@
 
 ## Done
 
-- P10: BX-14 — golden-eval (`evals/golden/tasks.json`, 18 RU/EN tasks; `server/goldenEval.ts`; `npm run eval:golden`, fake adapters only) and report `docs/GOLDEN-EVAL-REPORT.md`; ADR-04 is a draft (the `cross_model` decision belongs to the owner). Live run on real providers and applying `quality_class` to the registry are not done. Simple Mode unchanged.
+- P10: BX-14 — golden-eval (`scripts/golden-tasks.json`, 18 RU/EN tasks; `server/goldenEval.ts`; `npm run eval:golden`, fake adapters only) and report `docs/GOLDEN-EVAL-REPORT.md`; ADR-04 is a draft (the `cross_model` decision belongs to the owner). Live run on real providers and applying `quality_class` to the registry are not done. Simple Mode unchanged.
 - P09: BX-13.b — fallback matrix (TZ 7.4) fully tested, `model_health` (migration 004, `server/modelHealth.ts`), provider disable expires after 6 h with audit event `provider.disabled`, quota restored from the ledger, daily cap 300 units per project (80 % warn, 100 % stop, `DAILY_BUDGET_EXCEEDED`). Latency recorded, not used for ordering (after P10). Simple Mode unchanged.
 - P08: BX-13.a — Router v1 (quota-aware, cost-tier order, paid off by default, sensitivity filter, per-run budget in units), `route_decisions` (migration 003), units and shadow cost in the ledger, ADR-07. Simple Mode unchanged. Live PostgreSQL tests passed on a local database; CI on `main` is the final word.
 - P07: BX-12.a — `openai-compatible` adapter, Groq (`openai/gpt-oss-120b` active as a fallback after Gemini; Free plan, so only open or synthetic data), `verify:connections --only groq` OK.

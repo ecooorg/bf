@@ -6,19 +6,19 @@
 
 **Decisions of the owner (already given).** Run on **fake adapters** only; tasks written by the agent, RU and EN; report is a Markdown artifact in `docs/`; ADR-04 is a draft: the decision on `cross_model` belongs to the owner, the report is only a hypothesis.
 
-**Delivered with this kit (not to be rewritten in the implementation patch).** `evals/golden/tasks.json` (18 tasks), `docs/ADR-04-cross-model-policy.md`, `docs/P10-SPEC.md`, `tests/p10-acceptance.test.mjs` (protected, Test Integrity).
+**Delivered with this kit (not to be rewritten in the implementation patch).** `scripts/golden-tasks.json` (18 tasks), `docs/ADR-04-cross-model-policy.md`, `docs/P10-SPEC.md`, `tests/p10-acceptance.test.mjs` (protected, Test Integrity).
 
 **May change.** New `server/goldenEval.ts`, `scripts/golden-eval.mjs`; `package.json` (scripts `eval:golden`, `test:p10`; `test:p10` added to `check`); `docs/GOLDEN-EVAL-REPORT.md` (generated); `docs/CURRENT_STATE.md`, `docs/REPO_MAP.md` (new paths), `CHANGELOG.md`.
 
 **Must not change.** Simple Mode and `server.ts`; Router, registry (seed `quality_class` stays as is: suggestions are in the report only), adapters, ledger, database and migrations (no database in P10); all earlier tests and `tests/p08-acceptance.test.mjs`, `tests/p09-*.test.mjs`, `tests/p10-acceptance.test.mjs`.
 
-## 1. Task set (`evals/golden/tasks.json`)
+## 1. Task set (`scripts/golden-tasks.json`)
 `{version:1, tasks:[…]}`, 18 tasks, unique ids, 9 `ru` and 9 `en`.
 - `analysis` (10): `{id, kind, lang, title, task, context, mustMention[], minOps, reference}`. Model returns `{summary, patch:{ops:[…]}}` (the S1 output shape). Pass = valid shape, `ops.length ≥ minOps`, every `mustMention` string occurs (case-insensitive) in `summary` plus the JSON of `ops`. `reference` is a passing answer used by the strong fake.
 - `verify` (8): `{id, kind, lang, title, criteria[], artifact, defects[{id, line, severity, note}]}`. `artifact` is text; lines are numbered from 1. 6 tasks have 1–2 injected defects, 2 are clean controls (`defects: []`). Model returns `{findings:[{severity:'low'|'medium'|'high', line:int, text}]}`.
 
 ## 2. `server/goldenEval.ts` (exports)
-- `goldenTaskSchema`, `loadGoldenTasks(file?)` (default `evals/golden/tasks.json`; throws on an invalid file, wrong count (not 15–20), duplicate ids, or a defect line outside the artifact).
+- `goldenTaskSchema`, `loadGoldenTasks(file?)` (default `scripts/golden-tasks.json`; throws on an invalid file, wrong count (not 15–20), duplicate ids, or a defect line outside the artifact).
 - `analysisOutputSchema`, `verifyOutputSchema`.
 - `scoreAnalysis(task, output)` → `{pass, invalid, missing[]}`.
 - `scoreVerify(task, output)` → `{pass, invalid, tp, fn, fp, missed[]}`. A finding is a true positive when its `line` equals a defect line (each defect counted once); other findings are false positives (on clean tasks every finding is). `pass` = `fn = 0 and fp = 0`. Invalid output: `pass false`, all defects counted as `fn`.
