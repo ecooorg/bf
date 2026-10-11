@@ -65,3 +65,10 @@ Owner steps (human only):
 | 404 on a path from this guide | `DRIFT` | Stop, report without secrets |
 | 5xx or timeout | `PROVIDER_TRANSIENT` | One retry, then fallback |
 | Database not reachable | `FAIL(db_unreachable)` | `/ready` returns an error |
+
+
+## GitHub App (BX-19 / P16)
+
+Required Railway variables: `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_REPOSITORY_OWNER`, and `GITHUB_REPOSITORY_NAME`. The owner/repository identify the repository used for the connection check. `GITHUB_API_BASE_URL` is test-only; leave unset in production.
+
+`npm run verify:connections -- --only github` creates a short-lived RS256 App JWT, requests an installation token, rejects permissions broader than the read-only manifest (or the explicit `CODE_EXECUTOR=model_patch` write maximum), and confirms repository access. It never prints JWTs, installation tokens, private keys, or webhook secrets. Webhooks at `/api/webhooks/github` require a valid `X-Hub-Signature-256` HMAC over the exact raw request body. P16 acknowledges `pull_request` and `check_run` events only; processing them into project state/evidence is deferred.

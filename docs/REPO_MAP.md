@@ -79,7 +79,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/database.ts` | Lazy PostgreSQL pool; importing the server never opens a connection |
 | `server/projectRepository.ts` | Project Mode storage: projects, State versions, events (zod contracts) |
 | `server/healthRoutes.ts` | `/health`, `/ready`, `/api/health` (includes `commit`) |
-| `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
+| `server/githubIntegration.ts` | GitHub App JWT, installation-token permission checks, and webhook signature verification (P16) |\n| `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
 | `server/files.ts` | Reading uploaded files (PDF, Word, Excel, etc.), attachment limits |
 | `server/documents.ts` | Building Word and PDF documents |
 | `server/reasoningState.ts` | Reading and sanitizing the decision state sent to the model |
@@ -136,7 +136,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run db:migrate` | Apply migrations |
 | `npm run test:database:live` | Live PostgreSQL contract tests (CI only without a local database) |
 | `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `docs/P13a-SPEC.md` |
-| `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14`, `test:p15` | Acceptance tests of one patch each, no database (part of `check`) |
+| `npm run test:github` | GitHub App JWT, permissions, webhook signature, fake API flow (P16) |\n| `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14`, `test:p15` | Acceptance tests of one patch each, no database (part of `check`) |
 | `npm run test:bx06:api` | Project Mode API tests on PostgreSQL |
 | `npm run test:merge`, `test:security`, `test:core`, `test:reasoning`, `test:export`, `test:sync`, `test:files`, `test:drivedocs`, `test:library`, `test:package-c`, `test:database`, `test:contracts`, `test:bx06` | Single test groups included in `check` |
 | `npm run clean` | Removes `dist/` |
@@ -171,7 +171,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/p13-live-acceptance.test.mjs` | Plans, approvals, budget block, dependencies, concurrency 2, Manual mode (P13, live PostgreSQL) | yes |
 | `tests/p13a-acceptance.test.mjs` | Patch tools, preflight, report, CI summary, pack end to end (P13a) | no |
 | `tests/p14-acceptance.test.mjs` | Artifact rules, boundaries, type by content, ZIP listing, manifest checksum, migration 008 text (P14) | no |
-| `tests/p15-acceptance.test.mjs` | Static invariants for plan/approval API, worker lifecycle, budget guard, Run-linked ledger and evidence-backed validation (P13b/P15) | no |
+| `tests/github-integration.test.mjs` | GitHub App JWT, permission bounds, webhook HMAC, fake GitHub API flow (P16) | no |\n| `tests/p15-acceptance.test.mjs` | Static invariants for plan/approval API, worker lifecycle, budget guard, Run-linked ledger and evidence-backed validation (P13b/P15) | no |
 | `tests/p14-live-acceptance.test.mjs` | Binary artifacts, manifest, tamper and missing-object detection, limits, upgrade of older versions, project delete (P14, live PostgreSQL) | yes |
 | `tests/analysis-live.test.mjs` | Analysis run, review and artifact on live PostgreSQL (P06) | yes |
 | `tests/context-builder.test.mjs` | Context Builder slice and token limit (P06) | no |
@@ -207,7 +207,7 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 | `RAILWAY_GIT_COMMIT_SHA`, `GIT_COMMIT` | set by Railway / optional | Commit shown by `/health` as `commit` (first 12 characters); `unknown` if neither is set |
 | `SKIP_DIST_HEALTHCHECK` | no (`true` only in tests) | Skips the `dist/` presence check in production health |
 | `DISABLE_HMR` | no | Disables hot reload in development |
-| `DATABASE_URL` | Project Mode | PostgreSQL connection string; when set, start runs migrations |
+| `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET` | GitHub integration | GitHub App credentials and HMAC secret; store only in Railway Variables |\n| `GITHUB_REPOSITORY_OWNER`, `GITHUB_REPOSITORY_NAME` | GitHub integration | Repository targeted by connection verification |\n| `GITHUB_API_BASE_URL` | no (tests only) | Override GitHub API base URL for fake-server tests |\n| `CODE_EXECUTOR` | no (`manual`) | Optional write-permission allowance only when explicitly `model_patch` |\n| `DATABASE_URL` | Project Mode | PostgreSQL connection string; when set, start runs migrations |
 | `PG_POOL_MAX`, `PGSSLMODE` | no | Pool size; SSL mode (`disable` in CI) |
 | `ENABLE_PROJECT_MODE` | no (`false`) | Enables `/project`; then `APP_PASSWORD`, `ENABLE_APP_AUTH`, `SESSION_SECRET`, `DATABASE_URL` are all required |
 | `PROJECT_RATE_LIMIT_PER_MINUTE` | no | Project API per-IP limit (default 60) |

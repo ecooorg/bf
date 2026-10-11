@@ -22,3 +22,9 @@
 - Owner: logs of the previous deployment (no `signal SIGTERM`, no `SSL error`); G2 and E-01 data into `docs/P15-REPORT.md`; final ADR-10 after E-01.
 - Automated or with keys: `verify-groq` workflow, live golden-eval, scripted 18.1 scenario, real provider failures.
 - Next in the plan: P15a (monitoring of connections and quotas), then P16 (GitHub integration). Not started: the owner gives the command.
+
+
+## P16 — GitHub integration foundation (BX-19), implementation patch
+- Added GitHub App connection verification and signed webhook ingress; no repo creation, PR writes, event-to-evidence processing, or executor activation.
+- `docs/ADR-06-github-repositories.md` remains proposed until the owner decides visibility/organization and Actions limits.
+- Required checks: `npm ci`, `npm run test:github`, `npm run check`, `npm run build`, and live PostgreSQL integration. Real GitHub verification is `REAL_ONLY` until configured credentials are available.

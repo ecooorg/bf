@@ -1,78 +1,125 @@
-# Current state
+// npm run verify:connections [-- --only gemini,postgres --json --dry-run]  (TZ E.6). No LLM; never prints secret values.
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { REGISTRY_ALL } from '../server/modelRegistry.ts';
+import { verifyGitHubAppConnection } from '../server/githubIntegration.ts';
 
-> State on **11 October 2026**. Replaces `BIFORGE-STATE.json` (removed in P00). Update this file in every patch that changes the state.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const args = process.argv.slice(2);
+const flag = (n) => args.includes(n);
+const only = args.includes('--only') ? String(args[args.indexOf('--only') + 1] || '').split(',').filter(Boolean) : null;
+const dryRun = flag('--dry-run');
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'connectors.yaml'), 'utf8').split('\n').filter((l) => !/^\s*#/.test(l)).join('\n'));
+const TIMEOUT_MS = 10_000;
 
-## Done
+const results = [];
+const add = (connector, check, status, extra = {}) => results.push({ connector, check, status, ...extra });
+const present = (n) => Boolean(process.env[n]);
 
-- P13b (инфраструктурная часть): сборщик создаёт и проверяет ZIP сразу после preflight, до длительных проверок; независимые этапы с таймаутами и потоковыми логами; `PARTIAL` при ошибках/таймаутах/пропусках, критический preflight блокирует выдачу. Добавлены правила агента и CI продолжает независимые этапы после падения предыдущих. Спецификация: `docs/P13b-SPEC.md`. **Не сделано:** подключение обработчика воркера к `server.ts` и функциональные маршруты P13b; это отдельная продуктовая часть. Полный набор тестов для этой правки не запускался в текущем окружении.
+async function httpCheck(id, c, url, body) {
+  const t0 = Date.now();
+  const override = process.env[`${id.toUpperCase()}_BASE_URL_OVERRIDE`];
+  const target = override ? override.replace(/\/$/, '') + new URL(url).pathname + new URL(url).search : url;
+  let res;
+  try {
+    res = await fetch(target, {
+      method: c.method,
+      headers: { [c.auth.header]: (c.auth.scheme ? `${c.auth.scheme} ` : '') + process.env[c.auth.env], ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+  } catch (e) {
+    return { status: 'FAIL', reason: e?.name === 'TimeoutError' ? 'timeout' : 'network_error', latency_ms: Date.now() - t0 };
+  }
+  const latency_ms = Date.now() - t0;
+  let json = null;
+  try { json = await res.json(); } catch { /* not JSON */ }
+  if (res.status === 404) return { status: 'DRIFT', reason: 'http_404', http: 404, latency_ms };
+  if (res.status !== c.expect.status) return { status: 'FAIL', reason: `http_${res.status}`, http: res.status, latency_ms };
+  if (c.expect.content_is_json) {
+    try { JSON.parse(json?.choices?.[0]?.message?.content); } catch { return { status: 'DRIFT', reason: 'content_not_json', http: res.status, latency_ms }; }
+  }
+  const missing = (c.expect.json_has || []).filter((k) => !json || json[k] === undefined);
+  if (missing.length) return { status: 'DRIFT', reason: `missing_field:${missing.join(',')}`, http: res.status, latency_ms };
+  return { status: 'OK', http: res.status, latency_ms, json };
+}
 
-- P13a: BX-28 — process automation: `npm run patch:pack` (archive of changed and new files, checks, report with `NOT_RUN`/`BLOCKED` for what was not run), preflight (manifest, nested folders, secrets, `tests/acceptance/**`, stale links), CI result line and first failed test in `ci.yml`. Spec: `docs/P13a-SPEC.md`. **Not done:** owner has not seen a real CI summary yet. No product code changed; Simple Mode unchanged.
-- P14: BX-17.b — full Artifact Registry (`server/artifactFormat.ts` pure, `server/artifactRepository.ts`, migration 008: `artifact_manifests`). Binary artifacts, type from content, manifest per version (older versions backfilled), tamper and missing object detected on read, limits, inspect/preview/diff/ZIP listing/manifest export. ADR-05 (content in PostgreSQL), ADR-08 (retention). `check:docs` now checks that `server/`, `tests/` and `test:*` scripts are in `docs/REPO_MAP.md`. Spec: `docs/P14-SPEC.md`. **Not done:** routes and UI for binary files, S3 adapter, Artifact Graph. Simple Mode unchanged.
-- P13: BX-16, domain part — budgets (project/task/run; calls, tokens, units, wall clock, attempts, code tasks) checked before every model call, over budget -> `BLOCKED(budget)` and one approval request; Task Graph v1 (`server/planMachine.ts` pure validator and template, `server/planService.ts`, migration 007: `budgets`, `project_settings`, `plans`, `plan_tasks`, `approvals`); a plan runs only after human approval; max 2 Runs per project; modes supervised/manual, no autonomous. Spec: `docs/P13-SPEC.md`. **Not done (P13.b):** routes and the `/project` screen to confirm a plan, starting the worker from `server.ts`, wiring `guardModelCall` into `runAnalysis`. Simple Mode unchanged.
-- P12: BX-15.b — job queue and worker (`server/queueMachine.ts` pure, `server/queueService.ts`, `server/worker.ts`, migration 006: `jobs`). `FOR UPDATE SKIP LOCKED` claim, lease 60 s and heartbeat 20 s, expired lease -> Run `ABANDONED` and Task `BLOCKED(recovery)`, recovery pass on worker start; a lost worker never becomes PASS. `enqueueTask` creates the job, `finishRun` closes it. The worker is a library and is **not** started from `server.ts` (no handler yet). No automatic retry: a human decides. Report: `docs/P12-REPORT.md`. Simple Mode unchanged.
-- P11: BX-15.a — Task/Run state machine and idempotency (`server/taskMachine.ts` pure, `server/taskService.ts`, migration 005: `tasks`, `runs`, `task_events`). Strict transitions, optimistic versions, an event per transition, idempotent `createTask`/`enqueueTask`, PASS only with recorded validation and evidence, ABANDONED -> BLOCKED(recovery), changed input invalidates PASS. Domain service only: no routes, no UI, `runAnalysis` not wired. Queue, worker, lease and recovery are P12. Report: `docs/P11-REPORT.md`. Simple Mode unchanged.
-- P10: BX-14 — golden-eval (`scripts/golden-tasks.json`, 18 RU/EN tasks; `server/goldenEval.ts`; `npm run eval:golden`, fake adapters only) and report `docs/GOLDEN-EVAL-REPORT.md`; ADR-04 is a draft (the `cross_model` decision belongs to the owner). Live run on real providers and applying `quality_class` to the registry are not done. Simple Mode unchanged.
-- P09: BX-13.b — fallback matrix (TZ 7.4) fully tested, `model_health` (migration 004, `server/modelHealth.ts`), provider disable expires after 6 h with audit event `provider.disabled`, quota restored from the ledger, daily cap 300 units per project (80 % warn, 100 % stop, `DAILY_BUDGET_EXCEEDED`). Latency recorded, not used for ordering (after P10). Simple Mode unchanged.
-- P08: BX-13.a — Router v1 (quota-aware, cost-tier order, paid off by default, sensitivity filter, per-run budget in units), `route_decisions` (migration 003), units and shadow cost in the ledger, ADR-07. Simple Mode unchanged. Live PostgreSQL tests passed on a local database; CI on `main` is the final word.
-- P07: BX-12.a — `openai-compatible` adapter, Groq (`openai/gpt-oss-120b` active as a fallback after Gemini; Free plan, so only open or synthetic data), `verify:connections --only groq` OK.
-- BX-01…BX-05: baseline, documents, CI and operations fixes, characterization tests, PostgreSQL with migrations, base contracts.
-- BX-06: Project Mode separated (`/project`, opt-in), mandatory authentication, CSRF/origin protection, rate limits in the database. Checked by the owner on Railway (`docs/BX-06-REPORT.md`).
-- BX-07: provenance, restart test, manual 409 check, English-only interface, `/health` shows `commit` (`docs/BX-07-REPORT.md`). **Closing condition:** green CI on the last commit and a short Simple Mode check on Railway.
-- P06 (this patch): BX-09.a part 2 and BX-09.b — Context Builder with token measurement, analysis in Project Mode (model -> patch -> human review -> artifact -> ledger). Gate G1a: the owner confirmed the real analysis on 2026-10-11 (see "Owner checks" below).
-- P05: BX-09.a part 1 — State patch pipeline, validator, compaction, state service (not wired to routes; no model call yet).
-- P04: BX-17.a and BX-10.b — artifact registry (migration 002), ledger-min, `connectors.yaml`, `verify:connections`, `docs/CONNECTIONS.md`. Owner still has to run `verify:connections` with the real key and do the A-01/A-02 console checks.
-- P03: BX-10.a part 2 and BX-11 — Gemini adapter, fake provider, Router-min, conformance tests, ADR-02. Not wired to Simple Mode (`generate()` unchanged).
-- P02: BX-10.a part 1 — adapter contract, normalized response, error classes, model registry schema and Gemini seed in code; not connected to `generate()`; registry not in the database yet.
-- P01: BX-08 — project passport (State `passport`, zod schema, `proposed`→`confirmed`; confirming moves a `draft` project to `active`); passport form in `/project`; versions, `v…` and `BX-06` removed from screens (`APP_VERSION` stays in `/health`, logs, files).
-- P00: documentation for working with different models; no program code changed.
+async function sqlCheck(c) {
+  const t0 = Date.now();
+  let pool;
+  try {
+    const pg = (await import('pg')).default;
+    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1, connectionTimeoutMillis: TIMEOUT_MS, ssl: process.env.PGSSLMODE === 'disable' ? false : { rejectUnauthorized: false } });
+    const r = await pool.query(c.query);
+    return r.rowCount === c.expect.rows ? { status: 'OK', latency_ms: Date.now() - t0 } : { status: 'FAIL', reason: 'unexpected_rows', latency_ms: Date.now() - t0 };
+  } catch { return { status: 'FAIL', reason: 'db_unreachable', latency_ms: Date.now() - t0 }; }
+  finally { await pool?.end().catch(() => undefined); }
+}
 
-## Checked by the owner on Railway
+for (const [id, conn] of Object.entries(manifest.connectors)) {
+  if (only && !only.includes(id)) continue;
+  const required = id === 'github' && process.env.CODE_EXECUTOR === 'model_patch'
+    ? [...(conn.env.required || []), 'GITHUB_REPOSITORY_OWNER', 'GITHUB_REPOSITORY_NAME']
+    : id === 'github' ? [...(conn.env.required || []), 'GITHUB_REPOSITORY_OWNER', 'GITHUB_REPOSITORY_NAME'] : (conn.env.required || []);
+  const missing = required.filter((n) => !present(n));
+  if (dryRun) {
+    for (const c of conn.checks) add(id, c.id, 'NOT_RUN', { reason: 'dry_run', env_present: Object.fromEntries((conn.env.required || []).map((n) => [n, present(n)])) });
+    continue;
+  }
+  if (missing.length) { add(id, 'env', 'BLOCKED', { reason: `missing_secret:${missing[0]}` }); continue; }
+  let listed = null;
+  for (const c of conn.checks) {
+    let r;
+    if (c.kind === 'github_app_flow') {
+      const result = await verifyGitHubAppConnection({
+        appId: process.env.GITHUB_APP_ID || '',
+        installationId: process.env.GITHUB_APP_INSTALLATION_ID || '',
+        privateKey: (process.env.GITHUB_APP_PRIVATE_KEY || '').replace(/\\\\n/g, '\\n'),
+        owner: process.env.GITHUB_REPOSITORY_OWNER || '',
+        repository: process.env.GITHUB_REPOSITORY_NAME || '',
+        apiBaseUrl: process.env.GITHUB_API_BASE_URL,
+      });
+      add(id, c.id, result.status, result.status === 'OK' ? { repository: result.repository } : { reason: result.reason });
+      continue;
+    }
+    if (c.kind === 'sql') r = await sqlCheck(c);
+    else if (c.id === 'tiny_json_call') {
+      if (!listed) { add(id, c.id, 'NOT_RUN', { reason: 'depends_on:list_models' }); continue; }
+      const names = new Set((listed.data || []).map((m) => String(m.id || '')));
+      const model = REGISTRY_ALL.find((e) => e.providerId === id && names.has(e.modelId));
+      if (!model) { add(id, c.id, 'DRIFT', { reason: 'no_registry_model_in_list' }); continue; }
+      r = await httpCheck(id, c, c.url, { model: model.modelId, messages: [{ role: 'user', content: 'Reply with a JSON object: {"ok":true}' }], response_format: { type: 'json_object' }, max_tokens: 300 });
+    } else if (c.id === 'tiny_call') {
+      if (!listed) { add(id, c.id, 'NOT_RUN', { reason: 'depends_on:list_models' }); continue; }
+      const names = new Set((listed.models || []).map((m) => String(m.name || '').replace(/^models\//, '')));
+      const model = REGISTRY_ALL.find((e) => e.providerId === id && names.has(e.modelId));
+      if (!model) { add(id, c.id, 'DRIFT', { reason: 'no_registry_model_in_list' }); continue; }
+      r = await httpCheck(id, c, c.url.replace('{MODEL_ID}', model.modelId), { contents: [{ parts: [{ text: 'Reply with one word: ok' }] }], generationConfig: { maxOutputTokens: 10 } });
+    } else r = await httpCheck(id, c, c.url);
+    if (c.id === 'list_models' && r.status === 'OK') listed = r.json;
+    const { json: _j, ...clean } = r;
+    add(id, c.id, clean.status, clean);
+  }
+}
 
-- `/health` returns `commit` (value `974cf83e69a8` was seen).
-- Two tabs on one project: the second write got "State version conflict", data not overwritten.
+const summary = { OK: 0, FAIL: 0, DRIFT: 0, BLOCKED: 0, NOT_RUN: 0 };
+for (const r of results) summary[r.status]++;
+let out = JSON.stringify({ version: 1, checked_at: new Date().toISOString(), results, summary });
+for (const n of Object.keys(process.env)) {   // defence in depth: a secret value must never reach the output
+  const v = process.env[n];
+  if (/KEY|SECRET|PASSWORD|DATABASE_URL|TOKEN/.test(n) && v && v.length >= 6) out = out.split(v).join('[redacted]');
+}
+if (flag('--json')) console.log(out);
+else for (const r of results) console.log(`${r.connector}/${r.check}: ${r.status}${r.reason ? ` (${r.reason})` : ''}${r.http ? ` http=${r.http}` : ''}`);
 
-## Not checked by the agent
-
-`npm run check`, `npm run build`, live PostgreSQL tests (`npm run test:database:live`, `npm run test:bx06:api`) were not run in the environment of P00 (no installed dependencies). Their result is the CI result on `main`.
-
-## Known leftovers
-
-- `DEPLOY_RAILWAY.md`, section "Planned changes", is partly outdated (some items were done in BX-02…BX-06); the rest of the file is accurate. Clean up when touching deployment.
-- `docs/DEVELOPMENT.md` says `npm run check` uses `scripts/qa.mjs`; in fact `package.json` runs a chain of commands (see `docs/REPO_MAP.md`).
-- Policy documents `docs/GIT_POLICY.md` and `docs/DEVELOPMENT_PROTOCOL.md` describe branches and Pull Requests; the real process is in `docs/START_HERE.md`.
-- Test Integrity path `tests/acceptance/**` does not exist yet; it is created when the TZ requires expectation tests.
-
-## G1a: owner check on Railway (TZ 18.0, items 1-9)
-
-Needs `ENABLE_PROJECT_MODE=true`, `GEMINI_API_KEY`, `DATABASE_URL`. After upload, `/health` `commit` must match GitHub.
-
-1. Open `/project`, create a project, confirm the passport. The "Analysis" block appears only after that.
-2. Type a real task, press "Run analysis". Expect: proposed items (yellow), an artifact `analysis.md`, one line under "Model calls" with tokens.
-3. Confirm one item and reject one; add a decision. Restart the service on Railway and reopen the project: items, decision and artifact are still there.
-4. Open the project in two tabs; change in one, then press any button in the other: expected "State version conflict".
-5. Write your remarks on the analysis (what was useful, what was wrong) in `docs/CURRENT_STATE.md` or tell the next session.
-
-Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, including `tests/analysis-live.test.mjs`) and the real Gemini call; their result is CI and your check.
-
-## Next patch
-
-**P13b** (rest of BX-16, extended tests 16.4.4 group A): routes and the `/project` screen to confirm a plan and decide approvals, worker started from `server.ts` with a real handler, `guardModelCall` in `runAnalysis`, `writesArtifact` tied to the artifact registry (P14). Build it with `npm run patch:pack`. Then **P15** (BX-18). Plan: TZ 16.4.2.
-
-
-## Cumulative patch: P13b + P15 (2026-10-11)
-- Added Project Mode routes/UI for Task Graph plans, approvals, task queueing, and evidence-backed validation.
-- Added worker startup in `server.ts` for configured Project Mode; worker runs task analysis through the existing Router, invokes budget guard before provider calls, and records usage under the persisted Run ID.
-- Worker success ends in `VALIDATING`; it does not self-approve Task PASS.
-- Added `tests/p15-acceptance.test.mjs`, `docs/P15-REPORT.md`, and pending `docs/ADR-10-code-executor.md`.
-- Status remains PARTIAL until dependencies are installed and full automated/live integration checks pass. G2 and E-01 are explicitly NOT_RUN; no final ADR-10 decision or `model_patch` enablement is claimed.
-
-
-## Owner checks (confirmed by the owner, 2026-10-11)
-The owner states that all manual checks after P01–P15 are done: P01 passport; P04 `verify:connections`, A-01, A-02; G1a items 1-9; P10 report read; P13a CI summary and `patch:pack`; P13b plan confirmation and budget decision; BX-07 closing condition (green CI, Simple Mode on Railway); P15 scenario 18.1 and E-01. Recorded as a statement, no output attached. Details and the automated re-run: `docs/P15-REPORT.md`. Gates: G1a passed on the owner's word; G2 waits for the evidence of 18.1 and E-01 and the ADR-10 decision.
-
-## Evidence and remaining checks (2026-10-11)
-- Verified: commit `1c2719d` on `main` has green GitHub checks (`ci`, `ui-check`); Railway deployment of that commit is Active; `/health` returns `status: ok`, `commit: 1c2719d18247`. The owner checks Simple Mode and Project Mode by hand after every patch. BX-07 closing condition is met.
-- Decisions of the owner (recommendations accepted): ADR-10 interim, `manual` stays, `model_patch` off; ADR-04 scope set (specification, architecture, ADR; no sensitive data; advisory), nothing enabled in code; golden-eval classes not applied (fake adapters).
-- Owner: check logs of the previously active deployment for `signal SIGTERM` / `SSL error`; fill in G2 and E-01 data; final ADR-10 decision after E-01.
-- Automated or with keys: `verify-groq` workflow; golden-eval on real providers; scripted 18.1 scenario; real provider 429/5xx.
-- Done by the agent: `npm run build`, `npm run check`, `npm run test:database:live` (55/55), `npm run test:bx06:api`. Details: `docs/P15-REPORT.md`.
+if (!dryRun && process.env.DATABASE_URL && results.length) {   // record the run; a failure here never changes the verdict
+  try {
+    const pg = (await import('pg')).default;
+    const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1, connectionTimeoutMillis: TIMEOUT_MS, ssl: process.env.PGSSLMODE === 'disable' ? false : { rejectUnauthorized: false } });
+    for (const r of results) await pool.query('INSERT INTO connection_checks(id,connector,check_id,status,reason,http_status,latency_ms) VALUES($1,$2,$3,$4,$5,$6,$7)',
+      [`${Date.now().toString(36)}_${Math.random().toString(16).slice(2, 10)}`, r.connector, r.check, r.status, r.reason ?? null, r.http ?? null, r.latency_ms ?? null]);
+    await pool.end();
+  } catch { if (!flag('--json')) console.log('connection_checks: not recorded (table or database unavailable)'); }
+}
+process.exitCode = summary.FAIL || summary.DRIFT ? 2 : summary.BLOCKED ? 3 : 0;
