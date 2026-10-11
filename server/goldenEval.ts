@@ -109,9 +109,9 @@ export async function runGoldenEval(o: { tasks: GoldenTask[]; models: EvalModel[
       let units = 0;
       if (resp) {
         latency += resp.latencyMs;
-        const tokens = resp.usage.input + resp.usage.output;
-        units = tokens > 0 ? unitsFor(resp.usage.input, resp.usage.output) : 0;
-        if (r.costUsd !== null) r.costUsd += shadowCostUsd(resp.usage, m.entry.pricing) ?? 0;
+        const inTok = resp.usage.input ?? 0, outTok = resp.usage.output ?? 0;
+        units = inTok + outTok > 0 ? unitsFor(inTok, outTok) : 0;
+        if (r.costUsd !== null) r.costUsd += shadowCostUsd({ input: inTok, output: outTok }, m.entry.pricing) ?? 0;
         if (resp.status === 'error') errorClass = resp.errorClass ?? 'unknown';
       }
       r.units += units;
