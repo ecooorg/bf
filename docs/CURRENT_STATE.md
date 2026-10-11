@@ -4,6 +4,7 @@
 
 ## Done
 
+- P12: BX-15.b — job queue and worker (`server/queueMachine.ts` pure, `server/queueService.ts`, `server/worker.ts`, migration 006: `jobs`). `FOR UPDATE SKIP LOCKED` claim, lease 60 s and heartbeat 20 s, expired lease -> Run `ABANDONED` and Task `BLOCKED(recovery)`, recovery pass on worker start; a lost worker never becomes PASS. `enqueueTask` creates the job, `finishRun` closes it. The worker is a library and is **not** started from `server.ts` (no handler yet). No automatic retry: a human decides. Report: `docs/P12-REPORT.md`. Simple Mode unchanged.
 - P11: BX-15.a — Task/Run state machine and idempotency (`server/taskMachine.ts` pure, `server/taskService.ts`, migration 005: `tasks`, `runs`, `task_events`). Strict transitions, optimistic versions, an event per transition, idempotent `createTask`/`enqueueTask`, PASS only with recorded validation and evidence, ABANDONED -> BLOCKED(recovery), changed input invalidates PASS. Domain service only: no routes, no UI, `runAnalysis` not wired. Queue, worker, lease and recovery are P12. Report: `docs/P11-REPORT.md`. Simple Mode unchanged.
 - P10: BX-14 — golden-eval (`scripts/golden-tasks.json`, 18 RU/EN tasks; `server/goldenEval.ts`; `npm run eval:golden`, fake adapters only) and report `docs/GOLDEN-EVAL-REPORT.md`; ADR-04 is a draft (the `cross_model` decision belongs to the owner). Live run on real providers and applying `quality_class` to the registry are not done. Simple Mode unchanged.
 - P09: BX-13.b — fallback matrix (TZ 7.4) fully tested, `model_health` (migration 004, `server/modelHealth.ts`), provider disable expires after 6 h with audit event `provider.disabled`, quota restored from the ledger, daily cap 300 units per project (80 % warn, 100 % stop, `DAILY_BUDGET_EXCEEDED`). Latency recorded, not used for ordering (after P10). Simple Mode unchanged.
@@ -50,4 +51,4 @@ Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, inclu
 
 ## Next patch
 
-**P12** (BX-15.b): PostgreSQL queue, worker, lease and heartbeat, recovery (the producer of `ABANDONED`). Plan: TZ 16.4.2.
+**P13** (BX-16): budgets, Task Graph v1, approvals, concurrency limit; starting the worker from `server.ts` with a real handler. Plan: TZ 16.4.2.

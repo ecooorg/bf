@@ -60,6 +60,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/golden-tasks.json` | Golden task set (18 RU/EN tasks); report: `docs/GOLDEN-EVAL-REPORT.md` |
 | `server/taskMachine.ts` | Task/Run state machine (P11): states, transitions, errors, input fingerprint; pure functions |
 | `server/taskService.ts` | Task/Run domain service (P11): tasks, runs, events in PostgreSQL; idempotent create/enqueue (not wired to routes) |
+| `server/queueMachine.ts` | Job queue rules (P12): states, lease timing, `QueueError`; pure functions |
+| `server/queueService.ts` | Job queue (P12): claim with `SKIP LOCKED`, lease, heartbeat, completion, recovery of expired leases (PostgreSQL) |
+| `server/worker.ts` | Worker (P12): `createWorker()` with `tick/start/stop`; a library, not started from `server.ts` |
 | `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
