@@ -1,9 +1,11 @@
 # Current state
 
-> State on **10 October 2026**. Replaces `BIFORGE-STATE.json` (removed in P00). Update this file in every patch that changes the state.
+> State on **11 October 2026**. Replaces `BIFORGE-STATE.json` (removed in P00). Update this file in every patch that changes the state.
 
 ## Done
 
+- P08: BX-13.a — Router v1 (quota-aware, cost-tier order, paid off by default, sensitivity filter, per-run budget in units), `route_decisions` (migration 003), units and shadow cost in the ledger, ADR-07. Simple Mode unchanged. Live PostgreSQL tests passed on a local database; CI on `main` is the final word.
+- P07: BX-12.a — `openai-compatible` adapter, Groq (`openai/gpt-oss-120b` active as a fallback after Gemini; Free plan, so only open or synthetic data), `verify:connections --only groq` OK.
 - BX-01…BX-05: baseline, documents, CI and operations fixes, characterization tests, PostgreSQL with migrations, base contracts.
 - BX-06: Project Mode separated (`/project`, opt-in), mandatory authentication, CSRF/origin protection, rate limits in the database. Checked by the owner on Railway (`docs/BX-06-REPORT.md`).
 - BX-07: provenance, restart test, manual 409 check, English-only interface, `/health` shows `commit` (`docs/BX-07-REPORT.md`). **Closing condition:** green CI on the last commit and a short Simple Mode check on Railway.
@@ -45,4 +47,4 @@ Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, inclu
 
 ## Next patch
 
-**P07** (BX-12.a): `openai-compatible` adapter and the first additional provider. Plan: TZ 16.4.2. Starts after G1a is passed.
+**P09** (BX-13.b): fallback matrix, `model_health` in the database, full ledger (day cap and persisted quota state). Plan: TZ 16.4.2.

@@ -1,6 +1,6 @@
 # ADR-07 — Budget units, quota-first routing and cost formulas
 
-- **Status:** Proposed for P08 (BX-13.a). Owner approves before implementation (step is marked ★).
+- **Status:** Accepted (owner approved P08 on 10 October 2026); implemented in P08 (BX-13.a).
 - **Context:** BiForge is built by a non-profit that shares knowledge freely. Money is not the scarce resource: free-tier quotas (requests and tokens per minute and per day) are. The owner wants maximum use of free, open and self-hosted capacity and minimum dependence on any single commercial vendor. TZ 7.3 requires a deterministic Router with a budget check before every call; TZ 7.8 requires versioned unit formulas.
 - **Options:**
   1. Budget in money (USD). Simple, but meaningless for free tiers (always 0) and blind to quota exhaustion.
