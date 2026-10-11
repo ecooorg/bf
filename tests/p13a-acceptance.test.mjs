@@ -103,8 +103,9 @@ test('report: statuses come from the commands; NOT_RUN and BLOCKED are never sho
   const cmds = [{ cmd: 'npm run check', status: 'PASS', note: 'exit 0' }, { cmd: 'live', status: 'NOT_RUN', note: 'DATABASE_URL is not set' }];
   assert.equal(overallStatus([], cmds), 'PASS');
   assert.equal(overallStatus([], [...cmds, { cmd: 'b', status: 'BLOCKED', note: '' }]), 'BLOCKED');
-  assert.equal(overallStatus([], [...cmds, { cmd: 'b', status: 'FAIL', note: '' }]), 'FAIL');
-  assert.equal(overallStatus(['x: nested folder'], cmds), 'FAIL');
+  assert.equal(overallStatus([], [...cmds, { cmd: 'b', status: 'FAIL', note: '' }]), 'PARTIAL');   // a red check does not stop the archive
+  assert.equal(overallStatus([], [...cmds, { cmd: 'b', status: 'TIMEOUT', note: '' }]), 'PARTIAL');
+  assert.equal(overallStatus(['x: nested folder'], cmds), 'FAIL');   // only the preflight refuses the archive
   const md = renderReport({ patch: 'P99', agent: 'tool', base: 'base.zip', diff: { replace: ['a.md'], add: [], del: ['c.md'] }, violations: [], commands: cmds, notes: '', ownerSteps: ['one', 'two', 'three'], status: 'PASS' });
   assert.match(md, /\| `live` \| NOT_RUN \| DATABASE_URL is not set \|/);
   assert.match(md, /3\. three/);
@@ -131,4 +132,69 @@ test('pack end to end: only changed and new files in the archive, report written
   assert.equal(bad.status, 1);
   assert.match(bad.stderr, /nested folder/);
   assert.equal(fs.existsSync(path.join(dir, 'work/patch.zip')), false);
+});
+
+// ---------- hardening: a red or hanging check never stops the archive ----------
+const sandbox = (scripts, extra = {}) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hang-'));
+  const w = (rel, text) => { const f = path.join(dir, 'work', rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); };
+  fs.mkdirSync(path.join(dir, 'base'), { recursive: true }); fs.writeFileSync(path.join(dir, 'base/a.md'), 'v1');
+  w('a.md', 'v2'); w('node_modules/.keep', ''); w('package.json', JSON.stringify({ name: 'x', scripts }));
+  for (const [rel, text] of Object.entries(extra)) w(rel, text);
+  for (const rel of ['package.json', ...Object.keys(extra)]) fs.copyFileSync(path.join(dir, 'work', rel), path.join(dir, 'base', rel));   // fixtures are in the base: the diff is a.md only
+  const pack = (more = [], env = {}) => spawnSync('node', [path.join(root, 'scripts/patch-pack.mjs'), '--base', path.join(dir, 'base'), '--patch', 'P99', '--agent', 'test', ...more],
+    { cwd: path.join(dir, 'work'), env: { ...process.env, DATABASE_URL: '', ...env }, encoding: 'utf8', timeout: 60_000 });
+  return { dir, work: path.join(dir, 'work'), pack };
+};
+
+test('a hanging step is killed at its limit, later steps still run, the archive and the report are written', async () => {
+  const sb = sandbox(
+    { typecheck: 'node ok.mjs', check: 'node ok.mjs && node hang.mjs && node red.mjs && node ok.mjs', build: 'node ok.mjs' },
+    { 'ok.mjs': 'process.exit(0)', 'hang.mjs': 'setInterval(() => {}, 1000)', 'red.mjs': 'console.log("not ok 1 - budget test"); process.exit(3)' });
+  const t0 = Date.now();
+  const r = sb.pack(['--step-timeout', '2', '--attempts', '2', '--skip', 'live']);
+  assert.equal(r.status, 0, r.stderr);                                   // red and hanging steps do not fail the pack
+  assert.ok(Date.now() - t0 < 30_000, 'the hang must be cut at the step limit');
+  assert.match(r.stdout, /Status: PARTIAL/);
+  const zip = await readZipTree(fs.readFileSync(path.join(sb.work, 'patch.zip')));
+  assert.deepEqual([...zip.keys()], ['a.md']);                           // the archive holds the change only; logs and node_modules never enter it
+  const report = fs.readFileSync(path.join(sb.work, 'patch-report.md'), 'utf8');
+  assert.match(report, /\| `node hang\.mjs` \| TIMEOUT \|/);
+  assert.match(report, /\| `node red\.mjs` \| FAIL \|.*2 attempt\(s\); first failure: budget test/);
+  assert.match(report, /## Красные проверки/);
+  assert.match(report, /\| `npm run build` \| PASS \|/);               // the step after the red ones still ran
+  assert.ok(fs.readdirSync(path.join(sb.work, 'patch-logs')).length >= 5, 'one log file per attempt');
+  assert.doesNotMatch(report, /IN_PROGRESS/);
+});
+
+test('--strict turns a red check into exit 2 after the archive is built; the total time limit leaves the rest BLOCKED', () => {
+  const sb = sandbox({ typecheck: 'node ok.mjs', check: 'node slow.mjs && node ok.mjs', build: 'node ok.mjs' },
+    { 'ok.mjs': 'process.exit(0)', 'slow.mjs': 'setTimeout(() => process.exit(0), 2500)' });
+  const r = sb.pack(['--skip', 'live', '--total-timeout', '1', '--strict']);
+  assert.equal(r.status, 2);
+  assert.ok(fs.existsSync(path.join(sb.work, 'patch.zip')));
+  const report = fs.readFileSync(path.join(sb.work, 'patch-report.md'), 'utf8');
+  assert.match(report, /BLOCKED \| total time limit 1 s reached/);
+});
+
+test('the pack keeps going without node_modules: BLOCKED rows, archive built, nothing hangs', () => {
+  const sb = sandbox({ typecheck: 'node ok.mjs', check: 'node ok.mjs', build: 'node ok.mjs' }, { 'ok.mjs': 'process.exit(0)' });
+  fs.rmSync(path.join(sb.work, 'node_modules'), { recursive: true });
+  const r = sb.pack(['--skip', 'live']);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /Status: BLOCKED/);
+  assert.ok(fs.existsSync(path.join(sb.work, 'patch.zip')));
+});
+
+test('every node:test script in package.json has a per-test limit; database waits are bounded; the virtual runner limits each file', () => {
+  const scripts = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).scripts;
+  for (const [name, cmd] of Object.entries(scripts)) {
+    if (/node (--import tsx )?--test /.test(cmd)) assert.match(cmd, /--test-timeout=\d+ --test-force-exit/, `${name} has no test timeout`);
+  }
+  assert.match(scripts['test:database:live'], /--test-concurrency=1/);
+  const db = fs.readFileSync(path.join(root, 'server/database.ts'), 'utf8');
+  for (const k of ['statement_timeout', 'lock_timeout', 'idle_in_transaction_session_timeout']) assert.match(db, new RegExp(k));
+  const run = fs.readFileSync(path.join(root, 'tests/run.sh'), 'utf8');
+  assert.match(run, /timeout -k 5/);
+  assert.doesNotMatch(run, /set -e/);   // one failed file must not hide the others
 });
