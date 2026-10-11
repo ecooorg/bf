@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { REGISTRY_ALL } from '../server/modelRegistry.ts';
+import { verifyGitHubAppConnection } from '../server/githubIntegration.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -58,7 +59,10 @@ async function sqlCheck(c) {
 
 for (const [id, conn] of Object.entries(manifest.connectors)) {
   if (only && !only.includes(id)) continue;
-  const missing = (conn.env.required || []).filter((n) => !present(n));
+  const required = id === 'github' && process.env.CODE_EXECUTOR === 'model_patch'
+    ? [...(conn.env.required || []), 'GITHUB_REPOSITORY_OWNER', 'GITHUB_REPOSITORY_NAME']
+    : id === 'github' ? [...(conn.env.required || []), 'GITHUB_REPOSITORY_OWNER', 'GITHUB_REPOSITORY_NAME'] : (conn.env.required || []);
+  const missing = required.filter((n) => !present(n));
   if (dryRun) {
     for (const c of conn.checks) add(id, c.id, 'NOT_RUN', { reason: 'dry_run', env_present: Object.fromEntries((conn.env.required || []).map((n) => [n, present(n)])) });
     continue;
@@ -67,6 +71,18 @@ for (const [id, conn] of Object.entries(manifest.connectors)) {
   let listed = null;
   for (const c of conn.checks) {
     let r;
+    if (c.kind === 'github_app_flow') {
+      const result = await verifyGitHubAppConnection({
+        appId: process.env.GITHUB_APP_ID || '',
+        installationId: process.env.GITHUB_APP_INSTALLATION_ID || '',
+        privateKey: (process.env.GITHUB_APP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+        owner: process.env.GITHUB_REPOSITORY_OWNER || '',
+        repository: process.env.GITHUB_REPOSITORY_NAME || '',
+        apiBaseUrl: process.env.GITHUB_API_BASE_URL,
+      });
+      add(id, c.id, result.status, result.status === 'OK' ? { repository: result.repository } : { reason: result.reason });
+      continue;
+    }
     if (c.kind === 'sql') r = await sqlCheck(c);
     else if (c.id === 'tiny_json_call') {
       if (!listed) { add(id, c.id, 'NOT_RUN', { reason: 'depends_on:list_models' }); continue; }
