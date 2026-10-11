@@ -4,6 +4,7 @@
 
 ## Done
 
+- P13: BX-16, domain part — budgets (project/task/run; calls, tokens, units, wall clock, attempts, code tasks) checked before every model call, over budget -> `BLOCKED(budget)` and one approval request; Task Graph v1 (`server/planMachine.ts` pure validator and template, `server/planService.ts`, migration 007: `budgets`, `project_settings`, `plans`, `plan_tasks`, `approvals`); a plan runs only after human approval; max 2 Runs per project; modes supervised/manual, no autonomous. Spec: `docs/P13-SPEC.md`. **Not done (P13.b):** routes and the `/project` screen to confirm a plan, starting the worker from `server.ts`, wiring `guardModelCall` into `runAnalysis`. Simple Mode unchanged.
 - P12: BX-15.b — job queue and worker (`server/queueMachine.ts` pure, `server/queueService.ts`, `server/worker.ts`, migration 006: `jobs`). `FOR UPDATE SKIP LOCKED` claim, lease 60 s and heartbeat 20 s, expired lease -> Run `ABANDONED` and Task `BLOCKED(recovery)`, recovery pass on worker start; a lost worker never becomes PASS. `enqueueTask` creates the job, `finishRun` closes it. The worker is a library and is **not** started from `server.ts` (no handler yet). No automatic retry: a human decides. Report: `docs/P12-REPORT.md`. Simple Mode unchanged.
 - P11: BX-15.a — Task/Run state machine and idempotency (`server/taskMachine.ts` pure, `server/taskService.ts`, migration 005: `tasks`, `runs`, `task_events`). Strict transitions, optimistic versions, an event per transition, idempotent `createTask`/`enqueueTask`, PASS only with recorded validation and evidence, ABANDONED -> BLOCKED(recovery), changed input invalidates PASS. Domain service only: no routes, no UI, `runAnalysis` not wired. Queue, worker, lease and recovery are P12. Report: `docs/P11-REPORT.md`. Simple Mode unchanged.
 - P10: BX-14 — golden-eval (`scripts/golden-tasks.json`, 18 RU/EN tasks; `server/goldenEval.ts`; `npm run eval:golden`, fake adapters only) and report `docs/GOLDEN-EVAL-REPORT.md`; ADR-04 is a draft (the `cross_model` decision belongs to the owner). Live run on real providers and applying `quality_class` to the registry are not done. Simple Mode unchanged.
@@ -51,4 +52,4 @@ Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, inclu
 
 ## Next patch
 
-**P13** (BX-16): budgets, Task Graph v1, approvals, concurrency limit; starting the worker from `server.ts` with a real handler. Plan: TZ 16.4.2.
+**P13.b** (rest of BX-16): routes and the `/project` screen to confirm a plan and decide approvals, worker started from `server.ts` with a real handler, `guardModelCall` in `runAnalysis`. Then **P14** (BX-17.b). Plan: TZ 16.4.2.

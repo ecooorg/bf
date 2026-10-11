@@ -63,6 +63,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/queueMachine.ts` | Job queue rules (P12): states, lease timing, `QueueError`; pure functions |
 | `server/queueService.ts` | Job queue (P12): claim with `SKIP LOCKED`, lease, heartbeat, completion, recovery of expired leases (PostgreSQL) |
 | `server/worker.ts` | Worker (P12): `createWorker()` with `tick/start/stop`; a library, not started from `server.ts` |
+| `server/planMachine.ts` | Budgets, Task Graph v1 validator and template, approval kinds/modes, `PlanError` (P13); pure functions |
+| `server/planService.ts` | Budgets, plans, approvals, budget guard, concurrency settings (P13, PostgreSQL); not wired to routes |
 | `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
@@ -153,6 +155,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/bx06-runtime.test.mjs` | Project Mode runtime (part of `tests/run.sh`) | yes |
 | `tests/bx06.test.mjs`, `tests/bx06-contract.test.mjs` | Project Mode contracts | yes (mentions `DATABASE_URL`; read the file to see which part is skipped without it) |
 | `tests/bx06-api.test.mjs` | Project Mode API security and 409 conflicts | yes |
+| `tests/p13-acceptance.test.mjs` | Budget checks, plan validator, template, approval rules (P13) | no |
+| `tests/p13-live-acceptance.test.mjs` | Plans, approvals, budget block, dependencies, concurrency 2, Manual mode (P13, live PostgreSQL) | yes |
 | `tests/database-live.test.mjs` | Live PostgreSQL contract, restart recovery, provenance | yes |
 | `tests/ui-check.mjs` | Browser layout at 360–1024 px | no (needs Playwright) |
 | `tests/run.sh` | Runs the virtual test list | see above |
