@@ -93,31 +93,19 @@ export function ciSummary(status, logs) {
   return { ok: false, text: `CI: red. First failed: ${found ?? 'no test log (see the failed step)'}` };
 }
 
-/** FAIL = the archive must not be handed over (preflight). PARTIAL = archive built, some checks red or stopped by a timeout (TZ 16.3.2 hardening). */
 export function overallStatus(preflightViolations, commands) {
   if (preflightViolations.length) return 'FAIL';
-  if (commands.some((c) => c.status === 'FAIL' || c.status === 'TIMEOUT')) return 'PARTIAL';
-  if (commands.some((c) => c.status === 'BLOCKED')) return 'BLOCKED';
+  // PASS means every required check actually passed. Unrun or blocked checks are never green.
+  if (commands.some((c) => ['FAIL', 'TIMEOUT', 'KNOWN_FAIL', 'BLOCKED', 'NOT_RUN'].includes(c.status))) return 'PARTIAL';
   return 'PASS';
 }
 
-const STATUS_NOTE = {
-  PASS: ' по локальным проверкам; окончательный PASS даёт CI на опубликованном коммите (D-08)',
-  PARTIAL: ' — архив собран, но часть проверок красная или остановлена по таймауту (список ниже). Архив можно загружать: итог всё равно даёт CI (D-08); красное разбирается отдельным шагом',
-  BLOCKED: ' — часть проверок нельзя было выполнить (см. BLOCKED ниже)',
-  IN_PROGRESS: ' — проверки ещё идут. Если отчёт остался в этом статусе, процесс был остановлен снаружи: архив уже собран, результат последней записанной проверки смотрите в таблице',
-  INTERRUPTED: ' — процесс прерван сигналом; архив собран до проверок, таблица показывает то, что успело выполниться',
-};
-
 export function renderReport({ patch, agent, base, diff, violations, commands, notes, ownerSteps, status }) {
-  const cell = (t) => String(t ?? '').replace(/\|/g, '/').replace(/\n/g, ' ');
-  const rows = commands.map((c) => `| \`${c.cmd}\` | ${c.status} | ${cell(c.note)}${c.log ? ` (log: \`${c.log}\`)` : ''} |`).join('\n');
-  const red = commands.filter((c) => c.status === 'FAIL' || c.status === 'TIMEOUT');
-  const redSection = red.length
-    ? `\n## Красные проверки (разобрать позже)\n| Команда | Результат | Первое падение или последний вывод | Лог |\n|---|---|---|---|\n${red.map((c) => `| \`${c.cmd}\` | ${c.status} | ${cell(c.failure ?? c.note)} | ${c.log ? `\`${c.log}\`` : ''} |`).join('\n')}\n`
-    : '';
+  const rows = commands.map((c) => `| \`${c.cmd}\` | ${c.status} | ${c.note.replace(/\|/g, '/').replace(/\n/g, ' ')} |`).join('\n');
+  const red = commands.filter((c) => c.status !== 'PASS');
+  const redTable = red.length ? '\n## Ошибки, таймауты и пропущенные проверки\n\n| Этап | Статус | Лог | Детали |\n|---|---|---|---|\n' + red.map((c) => `| ${c.cmd} | ${c.status} | ${c.logPath || 'см. примечание'} | ${c.note.replace(/\|/g, '/').replace(/\n/g, ' ')} |`).join('\n') + '\n' : '';
   const list = (t, l) => (l.length ? l.map((f) => `| \`${f}\` | ${t} |`).join('\n') : '');
   const files = [list('replace', diff.replace), list('add', diff.add), list('delete (by hand)', diff.del)].filter(Boolean).join('\n') || '| (no changes) | |';
   const steps = ownerSteps.map((s, i) => `${i + 1}. ${s}`).join('\n');
-  return `# ${patch} — отчёт\n\n## Статус\n\`${status}\`${STATUS_NOTE[status] ?? ''}\n\n## Сводка\n- **Патч:** ${patch}\n- **Инструмент и модель:** ${agent}\n- **Базовый архив:** ${base}\n- **Состав:** ${summaryLine(diff).split('\n')[0]}\n\n## Файлы\n| Файл | Изменение |\n|---|---|\n${files}\n\n## Preflight\n${violations.length ? violations.map((x) => `- FAIL: ${x}`).join('\n') : '- PASS: нет манифеста, вложенных папок, секретов и правок tests/acceptance/**'}\n\n## Команды (только выполненные скриптом)\n| Команда | Результат | Примечание |\n|---|---|---|\n${rows}\n\nСтатусы: PASS, FAIL, TIMEOUT (остановлена по лимиту времени), BLOCKED (нельзя проверить), NOT_RUN (не запускалось, причина указана).\n${redSection}\n## Не сделано и известные проблемы\n${notes || 'Не указано исполнителем.'}\n\n## Действия владельца на Railway\n${steps}\n`;
+  return `# ${patch} — отчёт\n\n## Статус\n\`${status}\`${status === 'PASS' ? ' по локальным проверкам; окончательный PASS даёт CI на опубликованном коммите (D-08)' : ''}\n\n## Сводка\n- **Патч:** ${patch}\n- **Инструмент и модель:** ${agent}\n- **Базовый архив:** ${base}\n- **Состав:** ${summaryLine(diff).split('\n')[0]}\n\n## Файлы\n| Файл | Изменение |\n|---|---|\n${files}\n\n## Preflight и архив\n${violations.length ? violations.map((x) => `- FAIL: ${x}`).join('\n') : '- PASS: состав и пути проверены; архив создан до запуска проверок и проверен повторным чтением ZIP.'}\n\n## Команды (только выполненные скриптом)\n| Команда | Результат | Примечание |\n|---|---|---|\n${rows}\n${redTable}\nСтатусы этапов: PASS, FAIL, BLOCKED, TIMEOUT, KNOWN_FAIL, NOT_RUN. Итог PASS означает, что все учтённые проверки прошли; любой FAIL/TIMEOUT/BLOCKED/NOT_RUN даёт PARTIAL, если preflight пройден. Критическое нарушение preflight блокирует архив и даёт FAIL.\n\n## Не сделано и известные проблемы\n${notes || 'Не указано исполнителем.'}\n\n## Действия владельца на Railway\n${steps}\n`;
 }

@@ -1,9 +1,4 @@
-// One command for a patch (P13a, TZ 16.3.2; hardened after the P13b hang):
-//   npm run patch:pack -- --base <archive.zip|folder> --patch P13b --agent "tool, model" [--out patch.zip] [--report patch-report.md]
-//   [--ci] [--skip ci,typecheck,check,live,build,<step name>] [--only <step names or groups>] [--notes "text"] [--owner-steps "a;b;c"]
-//   [--step-timeout 300] [--total-timeout 1800] [--attempts 2] [--log-dir patch-logs] [--strict]
-// Order: preflight -> archive is built FIRST -> every check runs as its own step with a time limit -> the report is rewritten after every step.
-// So a red or hanging check never stops the archive; only the preflight (manifest, nested folders, secrets, protected paths) refuses it.
+// Patch delivery runner: preflight and archive creation are independent from quality checks.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -12,146 +7,166 @@ import { readTree, readZipTree, diffTrees, summaryLine, buildZip, preflight, all
 const args = process.argv.slice(2);
 const opt = (name, def) => { const i = args.indexOf(`--${name}`); return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : def; };
 const flag = (name) => args.includes(`--${name}`);
-const num = (name, def) => { const n = Number(opt(name)); return Number.isFinite(n) && n > 0 ? n : def; };
 const root = process.cwd();
 const basePath = opt('base');
-if (!basePath || !fs.existsSync(basePath)) { console.error('Usage: npm run patch:pack -- --base <archive.zip|folder> --patch <PNN> --agent "<tool, model>"'); process.exit(64); }
-const outPath = path.resolve(opt('out', 'patch.zip')); const reportPath = path.resolve(opt('report', 'patch-report.md'));
-const logDir = path.resolve(opt('log-dir', 'patch-logs'));
-const skip = new Set(opt('skip', '').split(',').filter(Boolean));
-const only = new Set(opt('only', '').split(',').filter(Boolean));
-const stepTimeoutOverride = num('step-timeout', null);
-const totalTimeout = num('total-timeout', 1800);
-const attempts = Math.max(1, Math.floor(num('attempts', 2)));
-const patch = opt('patch', 'PNN'); const agent = opt('agent', 'not stated');
+if (!basePath || !fs.existsSync(basePath)) {
+  console.error('Usage: npm run patch:pack -- --base <archive.zip|folder> --patch <PNN> --agent "<tool, model>"');
+  process.exit(64);
+}
+const outPath = path.resolve(opt('out', 'patch.zip'));
+const reportPath = path.resolve(opt('report', 'patch-report.md'));
+fs.mkdirSync(path.dirname(outPath), { recursive: true });
+fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+const skip = new Set(opt('skip', '').split(',').map((x) => x.trim()).filter(Boolean));
+const LIMITS = { ci: 600, typecheck: 300, check: 900, live: 600, build: 300, 'check-version': 120 };
+const DEPENDENCY_FREE = new Set(['check-version', 'check:docs', 'lint:copy', 'test:version']);
+const logPatch = opt('patch', 'PNN').replace(/[^a-zA-Z0-9._-]/g, '_');
+const logDir = path.resolve('patch-logs', logPatch);
+fs.mkdirSync(logDir, { recursive: true });
 
 const base = fs.statSync(basePath).isDirectory() ? readTree(basePath) : await readZipTree(fs.readFileSync(basePath));
 const work = readTree(root);
 const diff = diffTrees(base, work);
 const files = new Map([...diff.replace, ...diff.add].map((rel) => [rel, work.get(rel)]));
-
 const toml = fs.existsSync('.gitleaks.toml') ? fs.readFileSync('.gitleaks.toml', 'utf8') : '';
 const violations = preflight({ files, deleted: diff.del, allowlist: allowlistFromToml(toml) });
 const commands = [];
-const limitsNote = `Лимиты запуска: шаг ${stepTimeoutOverride ?? 'по умолчанию 300 (ci и живые тесты 600)'} с, всего ${totalTimeout} с, попыток на красный шаг ${attempts} (таймаут не повторяется). Логи шагов: \`${path.relative(root, logDir)}/\` (в архив не входят).`;
-const notes = [opt('notes'), limitsNote, only.size ? `Запуск с --only ${[...only].join(',')}: остальные шаги не выполнялись.` : ''].filter(Boolean).join('\n\n');
+const patch = opt('patch', 'PNN');
+const agent = opt('agent', 'not stated');
 const ownerSteps = opt('owner-steps') ? opt('owner-steps').split(';').map((s) => s.trim()) : [
-  'Upload the files from the archive to main (replace and add), delete the files listed as "delete", wait for CI; compare `commit` in /health with GitHub.',
-  'Open the site and /project: the existing screens work as before.',
-  `Do the patch check from its SPEC (docs/${patch}-SPEC.md).`];
-const writeReport = (status) => fs.writeFileSync(reportPath, renderReport({ patch, agent, base: path.basename(basePath), diff, violations, commands, notes, ownerSteps, status }));
+  'Загрузить файлы архива в main; дождаться CI и сверить commit в /health.',
+  'Открыть сайт и /project, проверить сценарий, затронутый патчем.',
+  `Сверить оставшиеся падения с docs/${patch}-REPORT.md.`
+];
 
-console.log(summaryLine(diff));
+function writeReport(status) {
+  fs.writeFileSync(reportPath, renderReport({ patch, agent, base: path.basename(basePath), diff, violations, commands, notes: opt('notes'), ownerSteps, status }));
+}
+
+// A critical preflight violation blocks delivery; no quality checks are needed for an invalid patch.
 if (violations.length) {
-  fs.rmSync(outPath, { force: true });   // a stale archive from an earlier run must not be mistaken for this one
+  commands.push({ cmd: 'quality checks and archive', status: 'NOT_RUN', note: 'not run because critical preflight violations block archive creation', logPath: '' });
   writeReport('FAIL');
   console.error(`Preflight failed, archive NOT built:\n${violations.map((x) => `- ${x}`).join('\n')}\nReport: ${reportPath}`);
   process.exit(1);
 }
-fs.writeFileSync(outPath, await buildZip(files));   // built before any check: a red or hanging check cannot stop it
-console.log(`Archive: ${outPath} (${files.size} files), built before the checks`);
 
-// ---------- steps ----------
-let pkg = { scripts: {} };
-try { pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); } catch { /* no package.json: every npm step becomes NOT_RUN */ }
-const scripts = pkg.scripts ?? {};
-const GROUP_CMD = { ci: 'npm ci', typecheck: 'npm run typecheck', check: 'npm run check', live: 'npm run test:database:live; npm run test:bx06:api', build: 'npm run build' };
-const npmName = (cmd) => cmd.match(/^npm run ([\w:.-]+)$/)?.[1];
-const steps = [];
-const addStep = (group, cmd, o = {}) => { const name = o.name ?? npmName(cmd) ?? cmd; if (!steps.some((s) => s.name === name)) steps.push({ ...o, group, name, cmd }); };
-if (flag('ci')) addStep('ci', 'npm ci --no-audit --no-fund', { timeout: 600 });
-if (fs.existsSync('scripts/check-docs.mjs')) addStep('check', 'node scripts/check-docs.mjs', { name: 'check:docs' });   // documents first: it needs no dependencies
-addStep('typecheck', 'npm run typecheck');
-for (const part of String(scripts.check ?? '').split('&&').map((x) => x.trim()).filter(Boolean)) addStep('check', part, { dropDb: true });   // the chain of `npm run check`, one step per command, run without DATABASE_URL as in CI
-if (process.env.DATABASE_URL) { addStep('live', 'npm run test:database:live', { timeout: 600 }); addStep('live', 'npm run test:bx06:api', { timeout: 600 }); }
-addStep('build', 'npm run build', { dropDb: true });
+// Build and verify the ZIP before running potentially slow checks, so test failures cannot delay delivery.
+let archiveBuffer;
+try {
+  archiveBuffer = await buildZip(files);
+  const verified = await readZipTree(archiveBuffer);
+  if (verified.size !== files.size) throw new Error(`file count mismatch: expected ${files.size}, got ${verified.size}`);
+  for (const [rel, buf] of files) {
+    const actual = verified.get(rel);
+    if (!actual || !actual.equals(buf)) throw new Error(`content mismatch for ${rel}`);
+  }
+  fs.writeFileSync(outPath, archiveBuffer);
+  console.log(`Archive created and verified: ${outPath} (${files.size} files)`);
+} catch (err) {
+  commands.push({ cmd: 'build and verify archive', status: 'FAIL', note: `archive error: ${err.message}`, logPath: '' });
+  writeReport('FAIL');
+  console.error(`Archive failed: ${err.message}\nReport: ${reportPath}`);
+  process.exit(2);
+}
 
-// ---------- running ----------
-let seq = 0; let current = null; let finished = false;
-const killGroup = (child, sig) => { try { process.kill(-child.pid, sig); } catch { /* group already gone */ } };
-const rel = (f) => path.relative(root, f).split(path.sep).join('/');
-
-function runOnce(s, limitSec) {
+function run(cmd, npmArgs, { dropDb = false, key, timeoutSec } = {}) {
   return new Promise((resolve) => {
-    fs.mkdirSync(logDir, { recursive: true });
-    const logFile = path.join(logDir, `${String(++seq).padStart(2, '0')}-${s.name.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 60)}.log`);
-    const fd = fs.openSync(logFile, 'w');   // the child writes straight into the file: nothing is buffered, `tail -f` shows progress
-    const env = { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' };
-    if (s.dropDb) { delete env.DATABASE_URL; delete env.PGSSLMODE; }
-    const t0 = Date.now();
-    const child = spawn('sh', ['-c', s.cmd], { env, detached: true, stdio: ['ignore', fd, fd] });   // own process group: the whole tree can be killed
-    fs.closeSync(fd);
-    current = child;
-    let timedOut = false; let done = false;
-    let timer; let hard;
-    const finish = (code, signal) => {
-      if (done) return; done = true; clearTimeout(timer); clearTimeout(hard);
-      killGroup(child, 'SIGKILL');   // also reaps servers the step left behind
-      current = null;
-      resolve({ code, signal, timedOut, sec: Math.round((Date.now() - t0) / 1000), logFile });
-    };
-    timer = setTimeout(() => { timedOut = true; killGroup(child, 'SIGTERM'); setTimeout(() => killGroup(child, 'SIGKILL'), 3000).unref(); }, limitSec * 1000);
-    hard = setTimeout(() => finish(null, 'SIGKILL'), (limitSec + 10) * 1000);
-    child.on('exit', (code, signal) => finish(code, signal));
-    child.on('error', () => finish(127, null));
+    const logName = String(key).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const logPath = path.join(logDir, `${logName}.log`);
+    if (skip.has(key)) {
+      commands.push({ cmd, status: 'NOT_RUN', note: `skipped by --skip ${key}`, logPath });
+      console.log(`[SKIP] ${cmd}`);
+      return resolve();
+    }
+    if (key !== 'ci' && !DEPENDENCY_FREE.has(key) && !fs.existsSync('node_modules')) {
+      commands.push({ cmd, status: 'BLOCKED', note: 'node_modules is missing; run npm ci', logPath });
+      console.log(`[BLOCKED] ${cmd}: node_modules is missing`);
+      return resolve();
+    }
+    const env = { ...process.env };
+    if (dropDb) { delete env.DATABASE_URL; delete env.PGSSLMODE; }
+    const limit = Math.max(1, Number(opt(`timeout-${key}`, timeoutSec ?? LIMITS[key] ?? 600)) || LIMITS[key] || 600);
+    const out = fs.createWriteStream(logPath, { flags: 'w' });
+    const started = Date.now();
+    let settled = false;
+    let timedOut = false;
+    let tail = '';
+    console.log(`[RUN] ${cmd} (timeout ${limit}s; log ${logPath})`);
+    const child = spawn('npm', npmArgs, { env, detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] });
+    const collect = (chunk) => { out.write(chunk); tail = (tail + chunk.toString()).slice(-12000); process.stdout.write(chunk); };
+    child.stdout.on('data', collect);
+    child.stderr.on('data', collect);
+    const timer = setTimeout(() => {
+      timedOut = true;
+      try {
+        if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, 'SIGKILL');
+        else child.kill('SIGKILL');
+      } catch {}
+    }, limit * 1000);
+    child.on('error', (err) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer); out.end();
+      commands.push({ cmd, status: 'FAIL', note: `spawn error: ${err.message}`, logPath });
+      console.log(`[FAIL] ${cmd}: ${err.message}`);
+      resolve();
+    });
+    child.on('close', (code, signal) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer); out.end();
+      const sec = Math.round((Date.now() - started) / 1000);
+      let result;
+      if (timedOut) result = { status: 'TIMEOUT', note: `TIMEOUT after ${limit} s; last output: ${tail.trim().split('\n').slice(-8).join(' / ')}` };
+      else if (code === 0) result = { status: 'PASS', note: `exit 0, ${sec} s` };
+      else result = { status: 'FAIL', note: `exit ${code ?? signal}, ${sec} s; first failure: ${firstFailure(tail) ?? tail.trim().split('\n').slice(-3).join(' / ')}` };
+      commands.push({ cmd, ...result, logPath });
+      console.log(`[${result.status}] ${cmd} (${sec}s) — ${result.note}`);
+      resolve();
+    });
   });
 }
-const tailOf = (file, n) => { try { return fs.readFileSync(file, 'utf8').slice(-2_000_000).trim().split('\n').slice(-n).join(' / ').slice(0, 300); } catch { return ''; } };
 
-async function execute(s) {
-  const limit = stepTimeoutOverride ?? s.timeout ?? 300;
-  const max = s.group === 'ci' ? 1 : attempts;
-  let r; let tries = 0;
-  for (;;) {
-    tries++;
-    console.error(`[patch-pack] ${s.name}: start (limit ${limit} s, attempt ${tries}/${max})`);
-    r = await runOnce(s, limit);
-    if (r.code === 0 && !r.timedOut) break;
-    if (r.timedOut || tries >= max) break;   // a hang is not retried: it would only repeat the wait
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const requestedSteps = opt('steps');
+const checkScripts = [...(pkg.scripts.check?.matchAll(/npm run ([a-zA-Z0-9:_-]+)/g) ?? [])].map((m) => m[1]);
+let steps = requestedSteps ? requestedSteps.split(',').map((x) => x.trim()).filter(Boolean).flatMap((step) => step === 'check' ? checkScripts : [step]) : checkScripts;
+// Build is a single dedicated stage at the end, even if the caller lists it in --steps.
+steps = steps.filter((step) => step !== 'build');
+if (!requestedSteps && skip.has('check')) {
+  commands.push({ cmd: 'npm run check (expanded independent steps)', status: 'NOT_RUN', note: 'skipped by --skip check', logPath: '' });
+  steps = [];
+}
+if (flag('ci')) await run('npm ci', ['ci', '--no-audit', '--no-fund'], { key: 'ci', timeoutSec: LIMITS.ci });
+if (!requestedSteps && !skip.has('check-version')) await run('node scripts/check-version.mjs', ['exec', '--', 'node', 'scripts/check-version.mjs'], { key: 'check-version' });
+else if (skip.has('check-version')) commands.push({ cmd: 'node scripts/check-version.mjs', status: 'NOT_RUN', note: 'skipped by --skip check-version', logPath: '' });
+
+const uniqueSteps = [...new Set(steps)];
+for (const step of uniqueSteps) {
+  if (step === 'check:version') {
+    await run('node scripts/check-version.mjs', ['exec', '--', 'node', 'scripts/check-version.mjs'], { key: 'check-version' });
+    continue;
   }
-  const log = rel(r.logFile);
-  if (r.timedOut) return { cmd: s.cmd, status: 'TIMEOUT', note: `stopped after ${limit} s (no retry); last output: ${tailOf(r.logFile, 3) || '(none)'}`, log, failure: `TIMEOUT after ${limit} s; ${tailOf(r.logFile, 2) || 'no output'}` };
-  if (r.code === 0) return { cmd: s.cmd, status: 'PASS', note: `exit 0, ${r.sec} s${tries > 1 ? `, passed on attempt ${tries} of ${max}` : ''}`, log };
-  let text = ''; try { text = fs.readFileSync(r.logFile, 'utf8').slice(-2_000_000); } catch { /* unreadable log */ }
-  const first = firstFailure(text) ?? tailOf(r.logFile, 3);
-  return { cmd: s.cmd, status: 'FAIL', note: `exit ${r.code ?? r.signal}, ${r.sec} s, ${tries} attempt(s); first failure: ${first}`, log, failure: first };
+  if (!pkg.scripts[step]) {
+    commands.push({ cmd: `npm run ${step}`, status: 'FAIL', note: 'unknown script in --steps', logPath: '' });
+    console.log(`[FAIL] unknown script: ${step}`);
+    continue;
+  }
+  await run(`npm run ${step}`, ['run', step], { key: step, dropDb: true, timeoutSec: step === 'typecheck' ? LIMITS.typecheck : LIMITS[step] ?? 600 });
 }
 
-const onSignal = (sig) => {
-  if (finished) return;
-  if (current) killGroup(current, 'SIGKILL');
-  commands.push({ cmd: '(patch-pack)', status: 'FAIL', note: `interrupted by ${sig}`, failure: `interrupted by ${sig}` });
-  writeReport('INTERRUPTED');
-  console.error(`Interrupted by ${sig}. Archive: ${outPath}. Report: ${reportPath}`);
-  process.exit(130);
-};
-process.on('SIGINT', () => onSignal('SIGINT')); process.on('SIGTERM', () => onSignal('SIGTERM'));
-
-writeReport('IN_PROGRESS');
-const started = Date.now();
-for (const group of ['ci', 'typecheck', 'check', 'live', 'build']) {
-  const gs = steps.filter((s) => s.group === group);
-  const hasNpmScript = (s) => { const n = npmName(s.cmd); return !n || Boolean(scripts[n]); };
-  if (skip.has(group)) { commands.push({ cmd: GROUP_CMD[group], status: 'NOT_RUN', note: `skipped by --skip ${group}` }); writeReport('IN_PROGRESS'); continue; }
-  if (group === 'ci' && !gs.length) { commands.push({ cmd: GROUP_CMD.ci, status: 'NOT_RUN', note: 'not requested (flag --ci)' }); continue; }
-  if (group === 'live' && !gs.length) { commands.push({ cmd: GROUP_CMD.live, status: 'NOT_RUN', note: 'DATABASE_URL is not set: no database in this environment' }); continue; }
-  if (!gs.length) { commands.push({ cmd: GROUP_CMD[group], status: 'NOT_RUN', note: `no "${group}" script in package.json` }); continue; }
-  for (const s of gs) {
-    if (only.size && !only.has(s.name) && !only.has(group)) continue;
-    if (skip.has(s.name)) { commands.push({ cmd: s.cmd, status: 'NOT_RUN', note: `skipped by --skip ${s.name}` }); continue; }
-    if (!hasNpmScript(s)) { commands.push({ cmd: s.cmd, status: 'NOT_RUN', note: 'script not found in package.json' }); continue; }
-    if (group !== 'ci' && !fs.existsSync('node_modules')) { commands.push({ cmd: s.cmd, status: 'BLOCKED', note: 'node_modules is missing; run npm ci' }); continue; }
-    if ((Date.now() - started) / 1000 > totalTimeout) { commands.push({ cmd: s.cmd, status: 'BLOCKED', note: `total time limit ${totalTimeout} s reached: not checked` }); continue; }
-    const res = await execute(s);
-    commands.push(res);
-    console.error(`[patch-pack] ${s.name}: ${res.status}`);
-    writeReport('IN_PROGRESS');   // a killed process still leaves a current report
-  }
+if (process.env.DATABASE_URL && !skip.has('live')) {
+  await run('npm run test:database:live', ['run', 'test:database:live'], { key: 'database-live', timeoutSec: LIMITS.live });
+  await run('npm run test:bx06:api', ['run', 'test:bx06:api'], { key: 'bx06-api-live', timeoutSec: LIMITS.live });
+} else if (skip.has('live')) {
+  commands.push({ cmd: 'live database and API tests', status: 'NOT_RUN', note: 'skipped by --skip live', logPath: '' });
+} else {
+  commands.push({ cmd: 'live database and API tests', status: 'NOT_RUN', note: 'DATABASE_URL is not set: live tests were not run', logPath: '' });
 }
-finished = true;
-const status = overallStatus(violations, commands);
+
+// Build is a single, independent quality check; it does not rebuild the already-created patch archive.
+await run('npm run build', ['run', 'build'], { dropDb: true, key: 'build', timeoutSec: LIMITS.build });
+const status = overallStatus([], commands);
 writeReport(status);
-const red = commands.filter((c) => c.status === 'FAIL' || c.status === 'TIMEOUT').length;
-console.log(`Report: ${reportPath}\nStatus: ${status}${status === 'PARTIAL' ? ` — archive is built, ${red} red step(s); see "Красные проверки" in the report and the logs in ${path.relative(root, logDir)}/` : ''}`);
-if (flag('strict') && status !== 'PASS') process.exit(2);
+console.log(summaryLine(diff));
+console.log(`Archive: ${outPath}\nReport: ${reportPath}\nStatus: ${status}${status === 'PASS' ? '' : ' (НЕ ГОТОВ К ЗАГРУЗКЕ: см. отчёт)'}`);
 process.exit(0);
