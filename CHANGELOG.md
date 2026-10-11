@@ -39,3 +39,6 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - Started queue worker in configured Project Mode and connected task model calls to pre-call budget guards, Run-linked ledger, and Artifact Registry.
 - Added P15 static acceptance checks and truthful report/ADR-10 pending record.
 - Live G2/E-01 remain unverified; no `model_patch` execution or deployment approval is implied.
+
+## P16 — GitHub integration foundation
+- Added least-privilege GitHub App connection verification and signed webhook ingress for `pull_request` / `check_run` events. Event processing and Code Delivery remain disabled pending owner decisions.

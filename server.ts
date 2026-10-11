@@ -30,6 +30,7 @@ import { getTask, listRuns, listTaskEvents, transitionTask } from './server/task
 import { createWorker } from './server/worker.ts';
 import { readArtifact } from './server/artifactRepository.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
+import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
 
 dotenv.config();
 
@@ -78,6 +79,30 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Behind Railway's proxy: trust exactly the configured number of hops, so X-Forwarded-For cannot be spoofed.
 app.set('trust proxy', process.env.TRUST_PROXY_HOPS !== undefined ? Number(process.env.TRUST_PROXY_HOPS) : (NODE_ENV === 'production' ? 1 : false));
+// GitHub sends a signed raw body; register before express.json so HMAC covers exact bytes.
+app.post('/api/webhooks/github', express.raw({ type: 'application/json', limit: '1mb' }), (req, res) => {
+  const secret = process.env.GITHUB_WEBHOOK_SECRET || '';
+  const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+  if (!secret || !verifyGitHubWebhookSignature(rawBody, req.get('x-hub-signature-256'), secret)) {
+    console.warn('github.webhook.rejected');
+    // Keep an append-only audit record when PostgreSQL is available; never log payloads or secrets.
+    void getPool().then((pool) => pool.query(
+      `INSERT INTO audit_events(id,project_id,event_type,actor,details) VALUES($1,NULL,$2,$3,$4::jsonb)`,
+      [`github_webhook_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`, 'github.webhook.rejected', 'system', JSON.stringify({ event: req.get('x-github-event') || 'unknown' })],
+    )).catch(() => undefined);
+    return res.status(401).json({ success: false, error: 'Invalid webhook signature' });
+  }
+  const event = req.get('x-github-event') || '';
+  if (event !== 'pull_request' && event !== 'check_run') {
+    return res.status(202).json({ success: true, ignored: true });
+  }
+  let payload: any;
+  try { payload = JSON.parse(rawBody.toString('utf8')); }
+  catch { return res.status(400).json({ success: false, error: 'Invalid webhook payload' }); }
+  // Payload content is untrusted data. P16 verifies and acknowledges events; event processing is a later patch.
+  console.info('github.webhook.accepted', JSON.stringify({ event, action: String(payload.action || '').slice(0, 80) }));
+  return res.status(202).json({ success: true, accepted: true });
+});
 app.use('/api/export-document', express.json({ limit: '8mb' }));   // B2: whole-library documents
 app.use(express.json({ limit: MAX_BODY }));
 
