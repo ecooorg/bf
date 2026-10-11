@@ -10,6 +10,10 @@
 - Interface is English only; the Russian UI dictionary and DOM translation were removed.
 - `/health` returns `commit` (checked on Railway: `974cf83e69a8`).
 
+## Closed (2026-10-11)
+
+Closing condition met: CI is green on commit `1c2719d` and the owner confirms the Simple Mode check on Railway after every patch.
+
 ## Not run by the agent
 
 `npm run check`, `npm run build`, live PostgreSQL tests. Evidence is CI on `main`.

@@ -1,6 +1,6 @@
 # ADR-04 — Cross-model verification policy (DRAFT)
 
-**Status:** Draft. The decision belongs to the owner; this file records the frame, not the decision.
+**Status:** Draft frame; the owner decided the scope on 2026-10-11 (see Decision). The golden-eval report remains a hypothesis only.
 
 ## Context
 TZ 7.6: verification levels are `none` → `deterministic` → `cross_model` → `human`. `cross_model` needs a verifier from a different provider than the executor. With one provider connected the check is `NOT_RUN(no_second_provider)` and a human decides.
@@ -11,7 +11,12 @@ TZ 7.6: verification levels are `none` → `deterministic` → `cross_model` →
 - The effect is observed on real data: share of findings accepted by a human, share rejected, verification cost per artifact. The policy may be revised when data accumulates.
 
 ## Decision
-**Not taken.** Owner fills in: artifacts covered: `____`; date: `____`.
+**Taken by the owner on 2026-10-11 (recommendation accepted in chat).**
+- Artifacts covered: specification, architecture, ADR (the candidates of TZ 7.6).
+- Only data without sensitive information goes to the verifier: the second provider, Groq, is on a free plan (open or synthetic data only).
+- The result of the check is advisory; a human decides.
+- Nothing is turned on by this decision: no code runs `cross_model` automatically yet. Review when real data exist (share of findings accepted and rejected, cost per artifact).
+- The `quality_class` values A and C in `docs/GOLDEN-EVAL-REPORT.md` were computed on fake adapters (`fake-strong`, `fake-weak`). They are not applied to the model registry.
 
 ## Consequences
-Until the owner decides, no automatic `cross_model` step is enabled by any code.
+No automatic `cross_model` step is enabled by any code until a later patch implements it under this policy.

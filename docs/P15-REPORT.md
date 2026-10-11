@@ -1,6 +1,6 @@
 # P15 cumulative patch report — P13b + P15
 
-## Status: PARTIAL (owner manual checks confirmed 2026-10-11; automated checks re-run; evidence for G2/E-01 and the ADR-10 decision are still missing in the repository)
+## Status: PARTIAL (CI and Railway green on commit 1c2719d; owner manual checks confirmed; G2 and E-01 evidence not recorded; ADR-10 interim decision only)
 
 This patch wires the existing Task Graph / approval domain into the Project Mode API and UI, starts a bounded queue worker when Project Mode is enabled and authenticated configuration is present, and adds acceptance checks for the new integration. It also prepares a truthful P15 evidence record. It does not fabricate live PostgreSQL/provider results.
 
@@ -27,7 +27,7 @@ This patch wires the existing Task Graph / approval domain into the Project Mode
 | Provider failures 429/5xx and fallback | PASS on fake providers; real provider NOT_RUN | `tests/p09-acceptance.test.mjs` (matrix 7.4), `tests/infra.test.mjs` |
 | Budget-overrun human approval in a live worker run | PASS with a stub handler; owner-confirmed on Railway | `tests/p13-live-acceptance.test.mjs`; owner statement 2026-10-11 |
 | E-01, TZ 11.9 | NOT_RUN | OWNER-CONFIRMED, no evidence in the repository: the owner states it was done. The table of three pairs (SHA, CI link, repairs, time, cost) is not in the repository yet |
-| ADR-10 decision on `model_patch` | PENDING (owner decision) | Write the decision in `docs/ADR-10-code-executor.md` from the E-01 table. Until then `model_patch` stays disabled |
+| ADR-10 decision on `model_patch` | INTERIM | Owner decision 2026-10-11 in `docs/ADR-10-code-executor.md`: `manual` stays the path, `model_patch` is off; the final ADR-10 decision stays pending E-01 data |
 
 ## Important behavior and boundaries
 
@@ -64,6 +64,22 @@ The owner states that all manual checks required after patches P01–P15 are don
 | Simple Mode short check on Railway; green CI on the last commit | BX-07 closing condition | done |
 | Standard scenario of TZ 18.1 (G2) and experiment E-01 | P15 | done, evidence not attached |
 
+## Evidence recorded on 2026-10-11
+
+Taken from the owner's screenshots of GitHub and Railway (device time 17:47) and from the CI logs the owner sent.
+
+| Item | Result |
+|---|---|
+| Checked commit on `main` | `1c2719d` |
+| `/health` on the production URL | `{"status":"ok","version":"1.6.0","commit":"1c2719d18247"}`; the commit matches GitHub |
+| GitHub checks on that commit | green check mark (`ci`, `ui-check` and the Railway check) |
+| `ui-check` (Playwright, `npm run test:ui`) | passed in CI (44 s on the previous commit `26ea7ae`, green on the last commit) |
+| Railway | deployment of that commit is Active, "Deployment successful" |
+| History | commit `26ea7ae`: `ci` failed once at `test:p15` because this report had no `NOT_RUN` in the E-01 row; fixed in `1c2719d` |
+| Simple Mode and Project Mode | the owner states he checks both by hand after every patch and fixes the program until it works; P01–P15 were accepted this way |
+
+Not recorded and therefore not claimed: per-step results of TZ 18.1, the number of model calls in the scenario, the E-01 table (three pairs), the output of `verify:connections` after the latest changes, the result of the `verify-groq` workflow.
+
 ## Automated checks re-run by the agent (2026-10-11)
 
 Environment: Node 22, local PostgreSQL 16, no real provider keys, no GitHub.
@@ -76,20 +92,19 @@ Environment: Node 22, local PostgreSQL 16, no real provider keys, no GitHub.
 | `npm run test:bx06:api` | PASS 1/1 |
 | `node scripts/migrate.mjs` on an empty and on an already migrated database; start with a database that comes up 5 s late | PASS (retry added) |
 | Built server: `/health` 200; SIGTERM stops it in about 1 s | PASS |
+| GitHub Actions `ci` and `ui-check` on commit `1c2719d` | green (owner's screenshot) |
 
 Defects found and fixed in this pass: a type error in `server.ts` (`createPlan` source) that failed `npm run build`; a SIGTERM handler that never ended the process; `migrate.mjs` failed when the database was not ready yet; `npm start` now uses `exec node` so the server gets signals.
 
 ## Still open
 
-Owner (see also `docs/NEXT.md`):
-1. Attach the evidence for G2 and E-01 to this report: checked commit SHA, command outputs or screenshots, the E-01 table. Then change the status of these two rows from NOT_RUN to PASS (and update `tests/p15-acceptance.test.mjs` in the same patch, because it guards this row).
-2. Decide ADR-10 (`model_patch`) and ADR-04 (`cross_model`); apply or reject the `provisional` `quality_class` values.
-3. After the next redeploy, open the deployment logs once: `npm error signal SIGTERM` and `SSL error: unexpected eof` must be gone.
+Owner:
+1. Open the logs of the previous Railway deployment (the one stopped when `1c2719d` started: Deployments → History → that deployment → View logs) and check that `npm error signal SIGTERM` and `SSL error: unexpected eof` are absent. Applies only if that deployment already contained the fixed `server.ts` and `package.json`. Send the logs to the agent to record the result here.
+2. Fill in the G2 and E-01 data from his notes (steps of 18.1, model-call count; E-01 table: patch applies, CI first try, repairs, human time, cost, CI link). Then G2 and E-01 can become PASS, together with an update of `tests/p15-acceptance.test.mjs`, which guards the E-01 row.
+3. Make the final ADR-10 decision by the rule of TZ 11.9 once the E-01 table exists.
 
-Automated or needing keys and an environment:
-1. GitHub Actions `ci` on the final commit (the agent cannot see it).
-2. `npm run test:ui` (Playwright, browser) — not run.
-3. `npm run verify:connections` with real keys — result is in the owner's statement only.
-4. Golden-eval on real providers (`npm run eval:golden` uses fake adapters only).
-5. Scripted full TZ 18.1 scenario against a disposable database and a real provider with a 12-call cap, so that G2 is repeatable without hand work.
-6. Provider failures 429/5xx with a real provider (fault injection).
+Automated or needing keys:
+1. `verify-groq` workflow (Actions → verify-groq → Run workflow; needs the `GROQ_API_KEY` secret). Gemini has no workflow.
+2. Golden-eval on real providers (`npm run eval:golden` uses fake adapters only; needs a code change to run live).
+3. Scripted TZ 18.1 scenario against a disposable database and a real provider, 12-call cap.
+4. Provider failures 429/5xx with a real provider (fault injection).

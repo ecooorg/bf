@@ -70,7 +70,9 @@ Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, inclu
 ## Owner checks (confirmed by the owner, 2026-10-11)
 The owner states that all manual checks after P01–P15 are done: P01 passport; P04 `verify:connections`, A-01, A-02; G1a items 1-9; P10 report read; P13a CI summary and `patch:pack`; P13b plan confirmation and budget decision; BX-07 closing condition (green CI, Simple Mode on Railway); P15 scenario 18.1 and E-01. Recorded as a statement, no output attached. Details and the automated re-run: `docs/P15-REPORT.md`. Gates: G1a passed on the owner's word; G2 waits for the evidence of 18.1 and E-01 and the ADR-10 decision.
 
-## Remaining checks
-- Owner: attach G2 and E-01 evidence; decide ADR-10 and ADR-04; after the next redeploy confirm no `signal SIGTERM` and no `SSL error` in logs.
-- Automated: CI `ci` on the last commit; `npm run test:ui`; `verify:connections` with real keys; golden-eval on real providers; scripted 18.1 scenario on a disposable database; real provider 429/5xx.
-- Done by the agent on 2026-10-11: `npm run build`, `npm run check`, `npm run test:database:live` (55/55), `npm run test:bx06:api`.
+## Evidence and remaining checks (2026-10-11)
+- Verified: commit `1c2719d` on `main` has green GitHub checks (`ci`, `ui-check`); Railway deployment of that commit is Active; `/health` returns `status: ok`, `commit: 1c2719d18247`. The owner checks Simple Mode and Project Mode by hand after every patch. BX-07 closing condition is met.
+- Decisions of the owner (recommendations accepted): ADR-10 interim, `manual` stays, `model_patch` off; ADR-04 scope set (specification, architecture, ADR; no sensitive data; advisory), nothing enabled in code; golden-eval classes not applied (fake adapters).
+- Owner: check logs of the previously active deployment for `signal SIGTERM` / `SSL error`; fill in G2 and E-01 data; final ADR-10 decision after E-01.
+- Automated or with keys: `verify-groq` workflow; golden-eval on real providers; scripted 18.1 scenario; real provider 429/5xx.
+- Done by the agent: `npm run build`, `npm run check`, `npm run test:database:live` (55/55), `npm run test:bx06:api`. Details: `docs/P15-REPORT.md`.

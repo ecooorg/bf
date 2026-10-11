@@ -19,6 +19,6 @@
 
 
 ## Open checks (2026-10-11)
-- Owner: put G2 / E-01 evidence into `docs/P15-REPORT.md`; decide ADR-10 and ADR-04; check logs after the next redeploy.
-- Automated: CI on the last commit, `npm run test:ui`, `verify:connections` with real keys, live golden-eval, scripted 18.1 scenario, real provider failures.
-- Next in the plan: P15a (monitoring of connections and quotas), then P16 (GitHub integration). P15a and P15b are reserve patches.
+- Owner: logs of the previous deployment (no `signal SIGTERM`, no `SSL error`); G2 and E-01 data into `docs/P15-REPORT.md`; final ADR-10 after E-01.
+- Automated or with keys: `verify-groq` workflow, live golden-eval, scripted 18.1 scenario, real provider failures.
+- Next in the plan: P15a (monitoring of connections and quotas), then P16 (GitHub integration). Not started: the owner gives the command.
