@@ -18,3 +18,5 @@
 - **Consequences:** Router cannot silently overspend or burn a free quota. High-sensitivity work has no model until a paid or self-hosted provider exists; this is an honest refusal (TZ 7.3), not a bug. A `self_hosted` model joins later by a registry entry through the existing `openai-compatible` adapter, no code change.
 - **Out of scope for P08:** ToS-evading tactics (many free accounts, key rotation). Capacity grows only through additional independent providers, non-profit/research programmes, open-weight models and self-hosting, each checked by A-08 / E.2.
 - **Revisit when:** a self-hosted model is connected; `model_health` arrives (P09, latency ordering); real usage shows the 30-unit default is wrong.
+
+- **Revisit note (P09):** `model_health` arrived; average latency is recorded but ordering is unchanged (quality → cost tier → registry order) until P10 evidence. Day cap: 300 units per project per 24 h (80 % warn, 100 % stop).
