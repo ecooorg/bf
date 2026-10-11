@@ -32,14 +32,18 @@ jobs:
         env:
           DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
           PGSSLMODE: disable
-      - run: npm run check
+      - name: Check
+        shell: bash
+        run: set -o pipefail; npm run check 2>&1 | tee ci-check.log
       - name: Live PostgreSQL contract tests
-        run: npm run test:database:live
+        shell: bash
+        run: set -o pipefail; npm run test:database:live 2>&1 | tee ci-live.log
         env:
           DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
           PGSSLMODE: disable
       - name: Project Mode API security tests
-        run: npm run test:bx06:api
+        shell: bash
+        run: set -o pipefail; npm run test:bx06:api 2>&1 | tee ci-api.log
         env:
           DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
           PGSSLMODE: disable
@@ -48,3 +52,8 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Result summary
+        if: always()
+        run: node scripts/ci-summary.mjs ci-check.log ci-live.log ci-api.log
+        env:
+          CI_STATUS: ${{ job.status }}
