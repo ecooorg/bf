@@ -56,6 +56,20 @@ for (const rel of pathDocs) {
     }
   }
 }
+// P14 (TZ 16.4.4 item 12): every file in server/ and tests/ and every `test:*` script is described in docs/REPO_MAP.md.
+{
+  const map = fs.readFileSync(path.join(root, 'docs/REPO_MAP.md'), 'utf8');
+  for (const dir of ['server', 'tests']) {
+    for (const name of fs.readdirSync(path.join(root, dir))) {
+      if (!fs.statSync(path.join(root, dir, name)).isFile()) continue;
+      if (!map.includes(`${dir}/${name}`)) errors.push(`docs/REPO_MAP.md: ${dir}/${name} is not described`);
+    }
+  }
+  const scripts = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).scripts ?? {};
+  for (const key of Object.keys(scripts)) {
+    if (key.startsWith('test:') && !map.includes(key)) errors.push(`docs/REPO_MAP.md: npm script ${key} is not described`);
+  }
+}
 if (errors.length) {
   console.error(`check:docs failed (${errors.length} problem(s))`);
   for (const e of errors) console.error(`- ${e}`);
