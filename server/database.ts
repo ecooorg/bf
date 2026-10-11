@@ -3,6 +3,14 @@ import { z } from 'zod';
 const databaseUrlSchema = z.string().url().refine((value) => /^postgres(?:ql)?:\/\//i.test(value), 'DATABASE_URL must be a PostgreSQL URL');
 let poolPromise: Promise<any> | null = null;
 
+/** Milliseconds from the environment; 0 switches the limit off; anything unreadable gives the default. */
+function limitMs(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (raw === undefined || raw.trim() === '') return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : fallback;
+}
+
 /** Lazy pool creation: importing the server never opens a database connection. */
 export async function getPool(): Promise<any> {
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not configured');
@@ -13,6 +21,10 @@ export async function getPool(): Promise<any> {
       max: Number(process.env.PG_POOL_MAX) || 5,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 5_000,
+      // Waits are bounded: a stuck lock or a transaction left open becomes an error in seconds, not a hang (TZ 16.4.4 item 3).
+      statement_timeout: limitMs('PG_STATEMENT_TIMEOUT_MS', 30_000),
+      lock_timeout: limitMs('PG_LOCK_TIMEOUT_MS', 10_000),
+      idle_in_transaction_session_timeout: limitMs('PG_IDLE_TX_TIMEOUT_MS', 60_000),
       ssl: process.env.PGSSLMODE === 'disable' ? false : { rejectUnauthorized: false },
     }));
   }
