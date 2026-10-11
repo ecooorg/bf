@@ -30,6 +30,9 @@ export default function ProjectMode() {
   const [artifactText, setArtifactText] = useState('');
   const [ledger, setLedger] = useState<{ model_id: string; input_tokens: number; output_tokens: number; status: string }[]>([]);
   const [lastRun, setLastRun] = useState<{ model: string; tokens: { estimated: { total: number }; actual: { input: number; output: number } } } | null>(null);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [approvals, setApprovals] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   const loadProjects = useCallback(async (selectProjectId?: string) => {
     const list = await api<Project[]>('/api/projects');
@@ -57,13 +60,17 @@ export default function ProjectMode() {
   }, [authenticated]);
 
   const loadExtras = useCallback(async (id: string) => {
-    try { setArtifacts(await api(`/api/projects/${encodeURIComponent(id)}/artifacts`)); setLedger(await api(`/api/projects/${encodeURIComponent(id)}/ledger`)); } catch { /* shown on next action */ }
+    try {
+      const base = `/api/projects/${encodeURIComponent(id)}`;
+      const [a, l, p, ap, t] = await Promise.all([api<any[]>(`${base}/artifacts`), api<any[]>(`${base}/ledger`), api<any[]>(`${base}/plans`), api<any[]>(`${base}/approvals`), api<any[]>(`${base}/tasks`)]);
+      setArtifacts(a); setLedger(l); setPlans(p); setApprovals(ap); setTasks(t);
+    } catch { /* shown on next action */ }
   }, []);
   useEffect(() => { if (selected?.id) void loadExtras(selected.id); }, [selected?.id, selected?.state_version, loadExtras]);
 
   async function act(fn: () => Promise<string>) {
     if (!selected) return; setBusy(true); setError(''); setNotice('');
-    try { const msg = await fn(); await loadProjects(selected.id); setNotice(msg); }
+    try { const msg = await fn(); await loadProjects(selected.id); await loadExtras(selected.id); setNotice(msg); }
     catch (e) { setError(String((e as Error).message || e)); try { await loadProjects(selected.id); } catch { /* ignore */ } }
     finally { setBusy(false); }
   }
@@ -74,6 +81,32 @@ export default function ProjectMode() {
   });
   const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
   const addDecision = () => act(async () => { await post('decisions', { text: decisionText }); setDecisionText(''); return 'Decision recorded.'; });
+  const createPlan = () => act(async () => { const r = await api<any>(`/api/projects/${encodeURIComponent(selected!.id)}/plans`, { method: 'POST', body: JSON.stringify({ source: 'template', template: 'spec_arch_review_approval', goal: task || goal || selected!.name }) }); setTask(''); return `Plan ${r.plan.id} created; human approval is required before tasks can run.`; });
+  const decide = (approval: any, decision: 'APPROVED' | 'REJECTED') => act(async () => {
+    let budget_limits: any;
+    if (approval.kind === 'budget' && decision === 'APPROVED') {
+      const violation = approval.details?.violations?.[0];
+      const limitKey = violation?.limit || 'max_cost_units';
+      const raw = window.prompt(`Enter the new limit for ${limitKey} (current usage: ${violation?.used ?? 'unknown'}). This is a human budget decision.`);
+      if (raw === null) throw new Error('Budget approval cancelled.');
+      const amount = Number(raw);
+      if (!Number.isSafeInteger(amount) || amount < 0) throw new Error('Budget limit must be a non-negative integer.');
+      const scope = violation?.scope || 'task';
+      const scope_id = scope === 'project' ? selected!.id : scope === 'run' ? (approval.details?.runId || approval.subjectId) : approval.subjectId;
+      budget_limits = { scope, scope_id, limits: { [limitKey]: amount } };
+    }
+    await api(`/api/projects/${encodeURIComponent(selected!.id)}/approvals/${encodeURIComponent(approval.id)}/decision`, { method: 'POST', body: JSON.stringify({ decision, reason: decision === 'REJECTED' ? 'Rejected by project owner' : undefined, ...(budget_limits ? { budget_limits } : {}) }) });
+    return `Approval ${decision.toLowerCase()}.`;
+  });
+  const queueTask = (t: any) => act(async () => { await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/queue`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, idempotency_key: `ui-${t.id}-${t.version}` }) }); return `Task ${t.title} queued.`; });
+  const validateTask = (t: any, passed: boolean) => act(async () => {
+    const raw = window.prompt(passed ? 'Enter concrete acceptance evidence (one item per line). Do not enter PASS without checking the artifact and criteria.' : 'Enter the failed acceptance criteria (one item per line).');
+    if (raw === null) throw new Error('Validation cancelled.');
+    const evidence = raw.split('\n').map((x: string) => x.trim()).filter(Boolean);
+    if (!evidence.length) throw new Error('At least one concrete evidence item is required.');
+    await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/validate`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, passed, evidence }) });
+    return `Task ${passed ? 'marked PASS' : 'marked FAIL'}.`;
+  });
   async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
 
   useEffect(() => { setPassport((selected?.state?.passport as Passport | undefined) ?? null); }, [selected]);
@@ -168,6 +201,14 @@ export default function ProjectMode() {
             {(['facts', 'unknowns', 'hypotheses', 'risks', 'requirements', 'decisions'] as const).map(sec => { const list = ((selected.state.items as Record<string, any[]> | undefined)?.[sec] ?? []); return list.length ? <div key={sec}><h4 style={{ marginBottom: 4 }}>{sec}</h4><ul style={{ paddingLeft: 18, margin: 0 }}>{list.map(it => { const st = it.status === 'open' || it.status === 'resolved' || it.status === 'mitigated' ? it.review : it.status; return <li key={it.id} style={{ margin: '6px 0', fontSize: 13 }}><strong>{it.id}</strong> <em style={{ color: st === 'proposed' ? '#e6c07a' : st === 'rejected' ? '#ffb4b4' : '#7fe0a8' }}>{sec === 'decisions' ? 'human decision' : st}</em>{it.unverified ? ' (unverified)' : ''} {it.text}{st === 'proposed' && <span> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'confirm')}>Confirm</button> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'reject')}>Reject</button></span>}</li>; })}</ul></div> : null; })}
             <h4 style={{ marginBottom: 4 }}>Record a decision (human only)</h4>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><input aria-label="Decision" value={decisionText} onChange={e => setDecisionText(e.target.value)} maxLength={2000} style={{ ...styles.input, flex: '1 1 200px' }} /><button type="button" style={styles.button} disabled={busy || !decisionText.trim()} onClick={() => void addDecision()}>Add decision</button></div>
+            <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
+              <h3 style={{ marginTop: 0 }}>Task Graph & approvals</h3>
+              <p style={{ fontSize: 13, color: '#8fa6c2' }}>Plans are proposals. Tasks are queued only after a human approves the plan; successful runs still require explicit validation.</p>
+              <button type="button" style={styles.button} disabled={busy} onClick={() => void createPlan()}>Create basic plan</button>
+              <h4>Plans</h4>{plans.length ? plans.map(p => <p key={p.id} style={{ fontSize: 13 }}>{p.id} · v{p.version} · <strong>{p.status}</strong> · {p.nodes?.length ?? 0} tasks · {p.totalUnits} units</p>) : <small>No plans yet.</small>}
+              <h4>Pending approvals</h4>{approvals.filter(a => a.status === 'PENDING').length ? approvals.filter(a => a.status === 'PENDING').map(a => <p key={a.id} style={{ fontSize: 13 }}>{a.kind}: {a.subjectId} <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={busy} onClick={() => void decide(a, 'APPROVED')}>Approve</button> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={busy} onClick={() => void decide(a, 'REJECTED')}>Reject</button></p>) : <small>No pending approvals.</small>}
+              <h4>Tasks</h4>{tasks.length ? tasks.map(t => <p key={t.id} style={{ fontSize: 13, borderTop: '1px solid #1f4f86', paddingTop: 8 }}>{t.title} · <strong>{t.state}</strong>{t.blockedReason ? ` (${t.blockedReason})` : ''}<br /><small>{t.id}</small><br />{t.state === 'READY' && <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={busy} onClick={() => void queueTask(t)}>Queue task</button>}{t.state === 'VALIDATING' && <><button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={busy} onClick={() => void validateTask(t, true)}>Validate PASS</button> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={busy} onClick={() => void validateTask(t, false)}>Validate FAIL</button></>}</p>) : <small>No tasks yet.</small>}
+            </section>
             <h4 style={{ marginBottom: 4 }}>Artifacts</h4>{artifacts.length === 0 ? <small>None yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button> <small>{a.hash.slice(0, 12)}</small></li>)}</ul>}
             {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}
             <h4 style={{ marginBottom: 4 }}>Model calls</h4>{ledger.length === 0 ? <small>None yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
