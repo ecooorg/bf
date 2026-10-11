@@ -31,7 +31,7 @@
 2. Do the work. Run what can be run (see "Commands").
 3. Build **one cumulative patch**: an archive with the latest version of every file changed since the last upload the owner confirmed, at its repository path. Do **not** put any manifest or list-of-files file into the archive.
 4. In the chat (Russian) write one line "replace N, add M, delete K" with file names. Deleting files is done by the owner by hand; deletions are never part of the archive.
-5. From patch P13a on, the archive, the "replace/add/delete" line and the report come from the process tools (TZ 16.3.2); the report ends with three actions for the owner on Railway. Also in the chat: the report (what was done, what was run and the actual result, what was not run, known issues) and 2–3 steps for the owner to check on GitHub/Railway.
+5. From patch P13a on, the archive, the "replace/add/delete" line and the report come from `npm run patch:pack -- --base <owner's archive> --patch <PNN> --agent "<tool, model>"` (TZ 16.3.2; options in `docs/P13a-SPEC.md`); if the command cannot run, build by hand and say so; the report ends with three actions for the owner on Railway. Also in the chat: the report (what was done, what was run and the actual result, what was not run, known issues) and 2–3 steps for the owner to check on GitHub/Railway.
 6. The owner uploads the files, CI runs on `main`, the owner reports the result.
 
 ## Where things are
@@ -49,6 +49,7 @@ npm run check        # docs, version, copy lint, typecheck, unit and virtual tes
 npm run build        # vite build + server compile
 npm run test:ui      # browser layout check (needs Playwright; not part of check)
 npm run check:docs   # documents only: needs no dependencies, always try this one
+npm run patch:pack -- --base <archive.zip> --patch <PNN> --agent "<tool, model>"   # archive + report + preflight
 ```
 
 If dependencies cannot be installed (no network), report `BLOCKED` with the reason, run `node scripts/check-docs.mjs` and `node scripts/check-version.mjs` (they need no packages), and say plainly that the rest was not run. Tests marked "PostgreSQL" in `docs/REPO_MAP.md` run in CI only.

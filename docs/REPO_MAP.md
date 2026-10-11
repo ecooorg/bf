@@ -15,7 +15,7 @@
 | `public/` | Icons for the browser and PWA manifest |
 | `docs/NEXT.md` | Queue of next patches (goal, TZ sections, files, tests); updated by the AI Assistant at the end of every patch |
 | `docs/` | Specification, policies, step specs, reports; plus informational agent-instruction materials (not binding; see table below) |
-| `.github/workflows/ci.yml` | CI on every push: migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |
+| `.github/workflows/ci.yml` | CI on every push (writes a short result line, P13a): migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |
 | `.github/workflows/ui-check.yml` | Browser layout check (`npm run test:ui`) |
 | `package.json`, `package-lock.json` | Dependencies and npm scripts. Do not add dependencies without a reason in the SPEC |
 | `tsconfig.json`, `tsconfig.server.json` | TypeScript settings for client and server build |
@@ -111,6 +111,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/check-docs.mjs` | Document check: local Markdown links and backticked paths in the main documents |
 | `scripts/check-version.mjs` | One version everywhere (`src/config.ts`, `package.json`, README, DEPLOY, changelog) |
 | `scripts/lint-copy.mjs` | Forbidden wording scan |
+| `scripts/patch-tools.mjs` | Patch tools (P13a): tree diff, cumulative archive, preflight (manifest, nested folders, secrets, `tests/acceptance/**`), report, CI summary text |
+| `scripts/patch-pack.mjs` | `npm run patch:pack`: archive of changed and new files, checks, report (see the SPEC `docs/P13a-SPEC.md`) |
+| `scripts/ci-summary.mjs` | Last step of `.github/workflows/ci.yml`: one-line CI result and annotation with the first failed test |
 | `scripts/migrate.mjs` | Applies `migrations/` to `DATABASE_URL` |
 | `scripts/qa.mjs` | Runs checks independently and writes a report (see `docs/DEVELOPMENT.md`; it is not what `npm run check` runs) |
 | `scripts/measure-prompt.mjs`, `scripts/cases.mjs`, `scripts/acceptance-s2-05.mjs`, `scripts/acceptance-s2-06.mjs` | Prompt size measurement and blind quality comparison on a live model (owner's key; not in CI) |
@@ -131,7 +134,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:ui` | Browser layout check (Playwright; not in `check`) |
 | `npm run db:migrate` | Apply migrations |
 | `npm run test:database:live` | Live PostgreSQL contract tests (CI only without a local database) |
-| `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p14` | Acceptance tests of one patch each, no database (part of `check`) |
+| `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `docs/P13a-SPEC.md` |
+| `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14` | Acceptance tests of one patch each, no database (part of `check`) |
 | `npm run test:bx06:api` | Project Mode API tests on PostgreSQL |
 | `npm run test:merge`, `test:security`, `test:core`, `test:reasoning`, `test:export`, `test:sync`, `test:files`, `test:drivedocs`, `test:library`, `test:package-c`, `test:database`, `test:contracts`, `test:bx06` | Single test groups included in `check` |
 | `npm run clean` | Removes `dist/` |
@@ -164,6 +168,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/bx06-api.test.mjs` | Project Mode API security and 409 conflicts | yes |
 | `tests/p13-acceptance.test.mjs` | Budget checks, plan validator, template, approval rules (P13) | no |
 | `tests/p13-live-acceptance.test.mjs` | Plans, approvals, budget block, dependencies, concurrency 2, Manual mode (P13, live PostgreSQL) | yes |
+| `tests/p13a-acceptance.test.mjs` | Patch tools, preflight, report, CI summary, pack end to end (P13a) | no |
 | `tests/p14-acceptance.test.mjs` | Artifact rules, boundaries, type by content, ZIP listing, manifest checksum, migration 008 text (P14) | no |
 | `tests/p14-live-acceptance.test.mjs` | Binary artifacts, manifest, tamper and missing-object detection, limits, upgrade of older versions, project delete (P14, live PostgreSQL) | yes |
 | `tests/analysis-live.test.mjs` | Analysis run, review and artifact on live PostgreSQL (P06) | yes |
