@@ -28,6 +28,9 @@ test('P06 live: slice S1 - passport gate, model patch is proposed, human review,
     assert.match(art.text, /Two risks found/);
     const ledger = await listProjectLedger(p.id);
     assert.equal(ledger.length, 1); assert.equal(ledger[0].input_tokens, 10);
+    const { getPool } = await import('../server/database.ts');
+    const dec = await (await getPool()).query('SELECT policy_version, status, units_spent FROM route_decisions WHERE run_id=$1', [r.run_id]);   // P08: every decision is stored
+    assert.equal(dec.rowCount, 1); assert.equal(dec.rows[0].policy_version, 'router-v1/units-v1'); assert.equal(dec.rows[0].status, 'ok');
     assert.ok(r.tokens.estimated.total > 0);
     await assert.rejects(() => runAnalysis({ projectId: p.id, expectedVersion: 2, task: 'stale' }, deps), (e) => e instanceof StateVersionConflict);
     const rv = await reviewItem({ projectId: p.id, expectedVersion: 3, section: 'risks', id: 'R-1', action: 'confirm' });
