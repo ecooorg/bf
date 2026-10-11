@@ -19,12 +19,15 @@ import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSam
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 import { registerHealthRoutes } from './server/healthRoutes.ts';
-import { checkDatabase } from './server/database.ts';
+import { checkDatabase, getPool } from './server/database.ts';
 import { consumeRateLimit, createProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
+import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
+import { getTask, listRuns, listTaskEvents, transitionTask } from './server/taskService.ts';
+import { createWorker } from './server/worker.ts';
 import { readArtifact } from './server/artifactRepository.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
 
@@ -340,6 +343,92 @@ app.post('/api/projects/:projectId/decisions', async (req, res) => {
   } catch (error) { projectError(res, error); }
 });
 
+// Task Graph / approvals API (TZ 8.4–8.6). All decisions made through these routes are human decisions.
+app.get('/api/projects/:projectId/plans', async (req, res) => {
+  try { res.json({ success: true, data: await listPlans(req.params.projectId) }); } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/plans', async (req, res) => {
+  try {
+    const input = z.object({ source: z.enum(['template', 'model', 'human']).default('human'), template: z.string().max(100).optional(), goal: z.string().max(2000).optional(), nodes: z.unknown().optional() }).parse(req.body);
+    const result = await createPlan({ projectId: req.params.projectId, ...input, actor: 'human' });
+    res.status(201).json({ success: true, data: result });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/plans/:planId/tasks', async (req, res) => {
+  try {
+    const plans = await listPlans(req.params.projectId);
+    if (!plans.some((p) => p.id === req.params.planId)) return res.status(404).json({ success: false, error: 'Plan not found', code: 'NOT_FOUND' });
+    res.json({ success: true, data: await listPlanTasks(req.params.planId) });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/approvals', async (req, res) => {
+  try {
+    const status = req.query.status === undefined ? undefined : z.enum(['PENDING', 'APPROVED', 'REJECTED']).parse(req.query.status);
+    res.json({ success: true, data: await listApprovals({ projectId: req.params.projectId, status }) });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/approvals/:approvalId/decision', async (req, res) => {
+  try {
+    const input = z.object({ decision: z.enum(['APPROVED', 'REJECTED']), reason: z.string().max(1000).optional(), budget_limits: z.object({ scope: z.enum(['project', 'task', 'run']), scope_id: z.string().min(1).max(128), limits: z.object({ max_model_calls: z.number().int().min(0).nullable().optional(), max_tokens: z.number().int().min(0).nullable().optional(), max_cost_units: z.number().int().min(0).nullable().optional(), max_wall_clock_ms: z.number().int().min(0).nullable().optional(), max_attempts: z.number().int().min(0).nullable().optional(), max_code_tasks: z.number().int().min(0).nullable().optional() }).strict() }).optional() }).parse(req.body);
+    const data = await decideApproval({ approvalId: req.params.approvalId, decision: input.decision, reason: input.reason, decidedBy: 'human', actorKind: 'human', ...(input.budget_limits ? { budgetLimits: { scope: input.budget_limits.scope, scopeId: input.budget_limits.scope_id, limits: input.budget_limits.limits } } : {}) });
+    res.json({ success: true, data });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/tasks', async (req, res) => {
+  try {
+    const pool = await getPool();
+    const r = await pool.query(`SELECT t.* FROM tasks t WHERE t.project_id=$1 ORDER BY t.created_at DESC LIMIT 200`, [req.params.projectId]);
+    res.json({ success: true, data: r.rows.map((t: any) => ({ id: t.id, projectId: t.project_id, title: t.title, input: t.input, state: t.state, version: t.version, blockedReason: t.blocked_reason, updatedAt: t.updated_at })) });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/budgets/:scope/:scopeId', async (req, res) => {
+  try {
+    const scope = z.enum(['project', 'task', 'run']).parse(req.params.scope);
+    res.json({ success: true, data: await getBudget(req.params.projectId, scope, req.params.scopeId) });
+  } catch (error) { projectError(res, error); }
+});
+app.put('/api/projects/:projectId/budgets/:scope/:scopeId', async (req, res) => {
+  try {
+    const scope = z.enum(['project', 'task', 'run']).parse(req.params.scope);
+    const limits = z.object({ max_model_calls: z.number().int().min(0).nullable().optional(), max_tokens: z.number().int().min(0).nullable().optional(), max_cost_units: z.number().int().min(0).nullable().optional(), max_wall_clock_ms: z.number().int().min(0).nullable().optional(), max_attempts: z.number().int().min(0).nullable().optional(), max_code_tasks: z.number().int().min(0).nullable().optional() }).strict().parse(req.body.limits);
+    res.json({ success: true, data: await setBudget({ projectId: req.params.projectId, scope, scopeId: req.params.scopeId, limits, actor: 'human', actorKind: 'human' }) });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/settings', async (req, res) => {
+  try { res.json({ success: true, data: await getProjectSettings(req.params.projectId) }); } catch (error) { projectError(res, error); }
+});
+app.put('/api/projects/:projectId/settings', async (req, res) => {
+  try {
+    const input = z.object({ approval_mode: z.enum(['supervised', 'manual']).optional(), max_concurrent_runs: z.number().int().min(1).max(10).optional() }).strict().parse(req.body);
+    res.json({ success: true, data: await setProjectSettings({ projectId: req.params.projectId, actorKind: 'human', ...(input.approval_mode ? { approvalMode: input.approval_mode } : {}), ...(input.max_concurrent_runs ? { maxConcurrentRuns: input.max_concurrent_runs } : {}) }) });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/queue', async (req, res) => {
+  try {
+    const input = z.object({ expected_version: z.number().int().min(1), idempotency_key: z.string().trim().min(1).max(200) }).parse(req.body);
+    const task = await getTask(req.params.taskId);
+    if (!task || task.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' });
+    const data = await enqueuePlanTask({ taskId: task.id, expectedVersion: input.expected_version, idempotencyKey: input.idempotency_key, actor: 'human' });
+    res.status(202).json({ success: true, data });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/tasks/:taskId', async (req, res) => {
+  try {
+    const task = await getTask(req.params.taskId);
+    if (!task || task.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' });
+    res.json({ success: true, data: { task, runs: await listRuns(task.id), events: await listTaskEvents(task.id) } });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/validate', async (req, res) => {
+  try {
+    const input = z.object({ expected_version: z.number().int().min(1), passed: z.boolean(), evidence: z.array(z.string().trim().min(1).max(500)).min(1).max(100) }).strict().parse(req.body);
+    const task = await getTask(req.params.taskId);
+    if (!task || task.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' });
+    const data = await transitionTask({ taskId: task.id, expectedVersion: input.expected_version, to: input.passed ? 'PASS' : 'FAIL', actor: 'human', ...(input.passed ? { validation: { passed: true, evidence: input.evidence } } : { reason: 'validation_failed' }) });
+    res.json({ success: true, data });
+  } catch (error) { projectError(res, error); }
+});
+
 app.get('/api/projects/:projectId/artifacts', async (req, res) => {
   try { res.json({ success: true, data: await listProjectArtifacts(req.params.projectId) }); } catch (error) { projectError(res, error); }
 });
@@ -362,6 +451,7 @@ function projectError(res: express.Response, error: unknown) {
     return res.status(409).json({ success: false, error: 'State version conflict', code: 'CONFLICT', expected_version: e.expectedVersion, actual_version: e.actualVersion });
   }
   if (error instanceof AnalysisError) return res.status(error.status).json({ success: false, error: error.message, code: error.code });
+  if (e?.name === 'PlanError' || e?.name === 'TaskError') return res.status((error as any).status || 409).json({ success: false, error: e.message || 'Task operation failed', code: e.code || 'TASK_ERROR', details: (error as any).details });
   if (e?.code === 'VALIDATION') return res.status(422).json({ success: false, error: 'The proposed change was refused by the State policy', code: 'VALIDATION', details: ((error as any).errors ?? []).map((x: any) => x.code) });
   if (e?.code === 'NOT_FOUND') return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
   if (e?.name === 'ZodError' || e?.name === 'ValidationError') return res.status(400).json({ success: false, error: 'Invalid project data', code: 'VALIDATION' });
@@ -2115,6 +2205,39 @@ async function start() {
   if (NODE_ENV === 'production' && !APP_AUTH_ENABLED) {
     console.error('!!! WARNING: password sign-in is DISABLED in production (APP_PASSWORD empty or ENABLE_APP_AUTH=false). The site and its AI endpoints are open to everyone. !!!');
   }
+  // P13b: one bounded worker loop per server process. The database queue lease and
+  // project concurrency limit coordinate replicas; this is not an autonomous code executor.
+  let projectWorker: ReturnType<typeof createWorker> | null = null;
+  if (PROJECT_MODE_ENABLED && process.env.DATABASE_URL && ai) {
+    projectWorker = createWorker({
+      workerId: `biforge-${process.env.RAILWAY_REPLICA_ID || process.pid}`,
+      pollMs: Number(process.env.WORKER_POLL_MS) || 1500,
+      leaseMs: Number(process.env.WORKER_LEASE_MS) || 120000,
+      heartbeatMs: Number(process.env.WORKER_HEARTBEAT_MS) || 15000,
+      handler: async ({ run, task, signal }) => {
+        const project = await getProject(task.projectId);
+        if (!project) throw Object.assign(new Error('Project not found'), { code: 'NOT_FOUND' });
+        const pool = await getPool();
+        const link = await pool.query('SELECT pt.node_key, p.nodes FROM plan_tasks pt JOIN plans p ON p.id=pt.plan_id WHERE pt.task_id=$1', [task.id]);
+        const node = link.rows[0]?.nodes?.find((n: any) => n.key === link.rows[0].node_key);
+        const logicalName = typeof node?.writesArtifact === 'string' ? node.writesArtifact : `task-${task.id}`;
+        const requestedName = typeof node?.writesArtifact === 'string' ? node.writesArtifact : 'analysis.md';
+        const filename = requestedName.length <= 255 && !/[\\/\0]/.test(requestedName) ? requestedName : 'analysis.md';
+        const logicalArtifact = crypto.createHash('sha256').update(`${task.projectId}:${logicalName}`).digest('hex').slice(0, 32);
+        const taskPrompt = task.input.criteria.length ? `${task.input.task}\n\nAcceptance criteria:\n- ${task.input.criteria.join('\n- ')}` : task.input.task;
+        const result = await runAnalysis({ projectId: task.projectId, expectedVersion: Number(project.state_version), task: taskPrompt, artifactIds: task.input.artifactRefs, taskId: task.id, runId: run.id, artifactFilename: filename, artifactId: `artifact_${logicalArtifact}`, signal }, {
+          registry: REGISTRY_ALL,
+          adapters: { gemini: createGeminiAdapter(ai as any), ...(process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}) },
+        });
+        return { status: 'SUCCEEDED', providerId: result.model.split('/')[0], modelId: result.model.split('/').slice(1).join('/'), policyVersion: 'router-v1', budget: result.budget, evidence: [`artifact:${result.artifact.artifactId}@${result.artifact.version}`, `state_version:${result.state_version}`, `run:${run.id}`] };
+      },
+    });
+    await projectWorker.start();
+    console.log('Project Mode worker started');
+  }
+  const shutdownWorker = () => { if (projectWorker) void projectWorker.stop(); };
+  process.once('SIGTERM', shutdownWorker);
+  process.once('SIGINT', shutdownWorker);
   if (NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({

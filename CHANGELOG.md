@@ -32,3 +32,10 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - BX-07.c (part 1): `/project` UI (src/ProjectMode.tsx) is English; test text updated. Simple Mode (src/ui.ts, src/App.tsx) is still Russian — next part.
 - BX-07.c: UI is English only (TZ 6.1.1). Removed the Russian UI dictionary and DOM translation from `src/ui.ts` (`installUiLanguage` is now a no-op), Russian variants of error/status messages (`src/errors.ts`, `attachments.ts`, `ConversationFiles.tsx`, `App.tsx`, `libraryExport.ts`), and the Russian model-unavailable fallback reply (`server.ts`). Kept on purpose: Russian number words and keyword lists (recognition logic), crisis phrases, transliteration table, language detection, and Russian test inputs. Generated document labels still follow the dialogue language.
 - TZ: section 16.4 reworked into a patch-based delivery plan (P01-P25); UI shows only 'BiForge' (6.1.1 rule 4); 16.3 rule 6 and 16.5 updated.
+
+
+## 1.6.0 — cumulative P13b + P15 patch (2026-10-11)
+- Wired Task Graph plan/approval/task routes and Project Mode controls.
+- Started queue worker in configured Project Mode and connected task model calls to pre-call budget guards, Run-linked ledger, and Artifact Registry.
+- Added P15 static acceptance checks and truthful report/ADR-10 pending record.
+- Live G2/E-01 remain unverified; no `model_patch` execution or deployment approval is implied.
