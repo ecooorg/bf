@@ -57,3 +57,11 @@ Not run by the agent: live PostgreSQL tests (`npm run test:database:live`, inclu
 ## Next patch
 
 **P13b** (rest of BX-16, extended tests 16.4.4 group A): routes and the `/project` screen to confirm a plan and decide approvals, worker started from `server.ts` with a real handler, `guardModelCall` in `runAnalysis`, `writesArtifact` tied to the artifact registry (P14). Build it with `npm run patch:pack`. Then **P15** (BX-18). Plan: TZ 16.4.2.
+
+
+## Cumulative patch: P13b + P15 (2026-10-11)
+- Added Project Mode routes/UI for Task Graph plans, approvals, task queueing, and evidence-backed validation.
+- Added worker startup in `server.ts` for configured Project Mode; worker runs task analysis through the existing Router, invokes budget guard before provider calls, and records usage under the persisted Run ID.
+- Worker success ends in `VALIDATING`; it does not self-approve Task PASS.
+- Added `tests/p15-acceptance.test.mjs`, `docs/P15-REPORT.md`, and pending `docs/ADR-10-code-executor.md`.
+- Status remains PARTIAL until dependencies are installed and full automated/live integration checks pass. G2 and E-01 are explicitly NOT_RUN; no final ADR-10 decision or `model_patch` enablement is claimed.

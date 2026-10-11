@@ -38,3 +38,17 @@
 1. Загрузить обновлённый проект в репозиторий и дождаться GitHub Actions.
 2. Проверить итог CI и логи упавших этапов; `PARTIAL` не считать разрешением на развёртывание.
 3. Если CI зелёный, выполнить стандартную проверку `/health` и затронутого пользовательского сценария на Railway.
+
+
+## Cumulative implementation addendum (P13b + P15, 2026-10-11)
+
+The cumulative patch adds the product integration that the original report explicitly left out:
+- Project Mode routes for plans, approvals, budgets, task queueing and validation;
+- UI controls for plan/approval/task lifecycle;
+- worker startup from `server.ts` under configured Project Mode;
+- per-call budget guard in the worker's `runAnalysis` path;
+- usage ledger entries linked to persisted Task Graph Run IDs;
+- worker outputs stored as versioned Artifact Registry objects;
+- P15 static acceptance tests.
+
+This does not supersede the original check results: dependencies could not be installed in the patching environment, so full typecheck/build and live PostgreSQL/provider acceptance remain `NOT_RUN`. The consolidated report is `docs/P15-REPORT.md`; P15/G2 and E-01 remain open until real evidence is recorded.

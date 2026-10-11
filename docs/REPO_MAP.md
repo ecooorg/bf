@@ -136,7 +136,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run db:migrate` | Apply migrations |
 | `npm run test:database:live` | Live PostgreSQL contract tests (CI only without a local database) |
 | `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `docs/P13a-SPEC.md` |
-| `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14` | Acceptance tests of one patch each, no database (part of `check`) |
+| `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14`, `test:p15` | Acceptance tests of one patch each, no database (part of `check`) |
 | `npm run test:bx06:api` | Project Mode API tests on PostgreSQL |
 | `npm run test:merge`, `test:security`, `test:core`, `test:reasoning`, `test:export`, `test:sync`, `test:files`, `test:drivedocs`, `test:library`, `test:package-c`, `test:database`, `test:contracts`, `test:bx06` | Single test groups included in `check` |
 | `npm run clean` | Removes `dist/` |
@@ -171,6 +171,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/p13-live-acceptance.test.mjs` | Plans, approvals, budget block, dependencies, concurrency 2, Manual mode (P13, live PostgreSQL) | yes |
 | `tests/p13a-acceptance.test.mjs` | Patch tools, preflight, report, CI summary, pack end to end (P13a) | no |
 | `tests/p14-acceptance.test.mjs` | Artifact rules, boundaries, type by content, ZIP listing, manifest checksum, migration 008 text (P14) | no |
+| `tests/p15-acceptance.test.mjs` | Static invariants for plan/approval API, worker lifecycle, budget guard, Run-linked ledger and evidence-backed validation (P13b/P15) | no |
 | `tests/p14-live-acceptance.test.mjs` | Binary artifacts, manifest, tamper and missing-object detection, limits, upgrade of older versions, project delete (P14, live PostgreSQL) | yes |
 | `tests/analysis-live.test.mjs` | Analysis run, review and artifact on live PostgreSQL (P06) | yes |
 | `tests/context-builder.test.mjs` | Context Builder slice and token limit (P06) | no |

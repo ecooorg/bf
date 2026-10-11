@@ -5,11 +5,14 @@
 ## P13a — done (BX-28, `docs/P13a-SPEC.md`)
 - Use `npm run patch:pack` from P13b on (see `docs/START_HERE.md`, Delivery).
 
-## P13b — rest of BX-16 (TZ 8.4–8.6, 14, 16.4.4)
-- **Stop rules.** Сборка не блокируется красными проверками. Не больше 2 попыток починки одного теста; на третьем падении — `KNOWN_FAIL` в отчёте с путём к логу, работа продолжается. Любая команда дольше 10 минут — `TIMEOUT`: не ждать и не перезапускать. Архив со статусом `PARTIAL` допустим, но его нельзя выдавать за `PASS`.
-- **Goal.** Routes and the `/project` screen to confirm a plan and decide approvals; worker started from `server.ts` with a real handler; `guardModelCall` in `runAnalysis`, every call in the ledger with `run_id`; `writesArtifact` tied to the artifact registry (after P14).
-- **Tests.** Extended set 16.4.4, group A (items 1–5) in full; group B where it applies. Отчёт явно различает `PASS`, `FAIL`, `TIMEOUT`, `BLOCKED`, `KNOWN_FAIL` и `NOT_RUN`; любой непроверенный обязательный этап не даёт итоговый `PASS`.
-- **Owner check.** Confirm a task plan on Railway; an over-budget run is visible and waits for a decision.
+## P13b — implementation added in cumulative patch (BX-16)
+- Project Mode plan/approval/task APIs and UI are wired; worker startup is integrated into `server.ts`; per-call budget guard and Run-linked ledger are wired; output uses Artifact Registry.
+- See `docs/P15-REPORT.md` for implementation scope and verification status.
+- Required before marking BX-16 PASS: run `npm ci`, `npm run test:p15`, full `npm run check`, `npm run build`, and live PostgreSQL/worker acceptance. If any required check is `NOT_RUN` or `BLOCKED`, status remains `PARTIAL`.
+
 
 ## P14 — done (BX-17.b, `docs/P14-SPEC.md`)
-- Next after P13a and P13b: **P15** (BX-18, end-to-end scenario, gate G2). TZ 11.9, 17, 18.1, 20.2 (ADR-10).
+
+## P15 — implementation scaffold added; G2 and E-01 remain open
+- Run the full TZ 18.1 E2E on a disposable PostgreSQL database with configured provider and preserve evidence (12-call cap).
+- Run E-01 per TZ 11.9: three real task pairs, `manual` vs `model_patch`, with acceptance tests prewritten. Update `docs/P15-REPORT.md` and `docs/ADR-10-code-executor.md` only from observed evidence. Until then, `model_patch` remains disabled and BX-18.b is NOT_RUN. 
