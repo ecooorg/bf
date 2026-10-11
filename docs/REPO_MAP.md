@@ -76,7 +76,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
 | `server/router.ts` | Router-min: candidate selection and fallback by the matrix (not wired) |
 | `server/modelRegistry.ts` | Model registry schema and seed (model names live only here); not wired yet |
-| `server/database.ts` | Lazy PostgreSQL pool; importing the server never opens a connection; waits are bounded by `statement_timeout`, `lock_timeout` and `idle_in_transaction_session_timeout` (see the environment table) |
+| `server/database.ts` | Lazy PostgreSQL pool; importing the server never opens a connection |
 | `server/projectRepository.ts` | Project Mode storage: projects, State versions, events (zod contracts) |
 | `server/healthRoutes.ts` | `/health`, `/ready`, `/api/health` (includes `commit`) |
 | `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
@@ -112,8 +112,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/check-version.mjs` | One version everywhere (`src/config.ts`, `package.json`, README, DEPLOY, changelog) |
 | `scripts/lint-copy.mjs` | Forbidden wording scan |
 | `scripts/patch-tools.mjs` | Patch tools (P13a): tree diff, cumulative archive, preflight (manifest, nested folders, secrets, `tests/acceptance/**`), report, CI summary text |
-| `scripts/patch-pack.mjs` | `npm run patch:pack`: builds the archive first, then runs every check as its own step with a time limit and attempts, logs to `patch-logs`, report rewritten after each step; a red or hanging check never stops the archive (see `docs/P13a-SPEC.md`, section Hardening) |
+| `scripts/patch-pack.mjs` | `npm run patch:pack`: preflight, creates and verifies ZIP before independent timed checks, then writes `PASS`/`PARTIAL` report (see `docs/P13b-SPEC.md`) |
 | `scripts/ci-summary.mjs` | Last step of `.github/workflows/ci.yml`: one-line CI result and annotation with the first failed test |
+| `scripts/run-independent-checks.mjs` | CI check runner: runs each command in the `check` chain independently, with a 10-minute timeout and per-stage logs |
 | `scripts/migrate.mjs` | Applies `migrations/` to `DATABASE_URL` |
 | `scripts/qa.mjs` | Runs checks independently and writes a report (see `docs/DEVELOPMENT.md`; it is not what `npm run check` runs) |
 | `scripts/measure-prompt.mjs`, `scripts/cases.mjs`, `scripts/acceptance-s2-05.mjs`, `scripts/acceptance-s2-06.mjs` | Prompt size measurement and blind quality comparison on a live model (owner's key; not in CI) |
@@ -122,7 +123,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 
 | Command | What it does |
 | --- | --- |
-| `npm run check` | Chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:conformance`, `test:connections`, `test:state`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
+| `npm run check` | Local convenience chain: version check, `check:docs`, `test:version`, `lint:copy`, `typecheck`, then unit tests (`merge`, `security`, `core`, `reasoning`, `export`, `sync`, `files`, `drivedocs`), `test:database`, `test:contracts`, `test:model-layer`, `test:conformance`, `test:connections`, `test:state`, `test:bx06`, `test:library`, `test:package-c`, `test:virtual` |
 | `npm run build` | Client (`vite build`) then server (`build:server` into `dist-server/`) |
 | `npm run dev` / `npm start` | Development server / production start (runs migrations if `DATABASE_URL` is set; Project Mode needs its variables) |
 | `npm run lint`, `npm run typecheck` | `tsc --noEmit` |
@@ -130,11 +131,11 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run verify:connections` | Checks Gemini and PostgreSQL connections (`--only`, `--json`, `--dry-run`); exit 0 / 2 / 3 | 
 | `npm run check:docs` | Document check |
 | `npm run test:version` | Test that the version check catches stale labels |
-| `npm run test:virtual` | `tests/run.sh`: real `server.ts` against a fake Gemini; each file has a time limit (`VIRTUAL_TEST_TIMEOUT`, default 180 s) and runs even if an earlier one failed |
+| `npm run test:virtual` | `tests/run.sh`: real `server.ts` against a fake Gemini |
 | `npm run test:ui` | Browser layout check (Playwright; not in `check`) |
 | `npm run db:migrate` | Apply migrations |
 | `npm run test:database:live` | Live PostgreSQL contract tests (CI only without a local database) |
-| `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); limits `--step-timeout`, `--total-timeout`, `--attempts`, filters `--only`, `--skip`, switch `--strict`; options in `docs/P13a-SPEC.md` |
+| `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `docs/P13a-SPEC.md` |
 | `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14` | Acceptance tests of one patch each, no database (part of `check`) |
 | `npm run test:bx06:api` | Project Mode API tests on PostgreSQL |
 | `npm run test:merge`, `test:security`, `test:core`, `test:reasoning`, `test:export`, `test:sync`, `test:files`, `test:drivedocs`, `test:library`, `test:package-c`, `test:database`, `test:contracts`, `test:bx06` | Single test groups included in `check` |
@@ -177,7 +178,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/p09-live-acceptance.test.mjs`, `tests/p11-live-acceptance.test.mjs`, `tests/p12-live-acceptance.test.mjs` | Live PostgreSQL tests of P09, P11, P12 | yes |
 | `tests/database-live.test.mjs` | Live PostgreSQL contract, restart recovery, provenance | yes |
 | `tests/ui-check.mjs` | Browser layout at 360–1024 px | no (needs Playwright) |
-| `tests/run.sh` | Runs the virtual test list, a time limit per file, exit code 1 if any file failed | see above |
+| `tests/run.sh` | Runs the virtual test list | see above |
 
 ## Environment variables
 
@@ -198,7 +199,6 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 | `RATE_LIMIT_PER_HOUR`, `DAILY_CALL_CAP` | no | Request limits (defaults 60 and 200) |
 | `MAX_MODEL_CALLS` | no | Model responses per request (default 4) |
 | `LLM_CALL_TIMEOUT_MS`, `LLM_TOTAL_DEADLINE_MS` | no | Model call timeouts (defaults 25000 and 70000) |
-| `PG_STATEMENT_TIMEOUT_MS`, `PG_LOCK_TIMEOUT_MS`, `PG_IDLE_TX_TIMEOUT_MS` | no | PostgreSQL waits per connection: a statement, a lock, a transaction left idle (defaults 30000, 10000 and 60000 ms; 0 switches a limit off) |
 | `LOGIN_MAX_FAILS`, `LOGIN_WINDOW_MIN` | no | Failed sign-in limit (defaults 10 per 15 minutes) |
 | `MAX_BODY_BYTES` | no | Request body limit (default 262144) |
 | `MAX_UPLOAD_BYTES`, `MAX_ATTACH_TEXT_CHARS` | no | Attachment size and text limits |
