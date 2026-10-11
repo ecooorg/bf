@@ -5,3 +5,8 @@ ui-welcome-*.png
 
 # Compiled production server output
 dist-server/
+
+# Output of npm run patch:pack
+patch-logs
+patch.zip
+patch-report.md
