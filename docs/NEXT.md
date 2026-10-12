@@ -1,40 +1,20 @@
 # Next patches (queue)
 
-> Updated after P20 + owner decision on the Instructions track (2026-10-12).
+> Updated at end of P20b.
 
-## P20 — done
+## Done recently
 
-- brief_writer, package approval, Test Integrity package baseline, optional package commit (writes gated).
+- P20, P20b (PASS ↔ gates).
 
-## Queue (Project Mode — TZv3 BX / PNN)
+## Queue
 
 | Order | ID | Scope |
 | --- | --- | --- |
-| **1** | **P20b** | Task PASS ↔ Gate Engine; optional approval routes for requirements/spec/review |
-| **2** | **E-01** | Owner experiment → ADR-10 |
-| **3** | **P19x** | Only if ADR-10 enables model_patch |
-| **4** | **P21** | PR → human decision (pilot) |
-| **5** | **P22** | Repair Loop → **G3** |
-| **6** | **P15a** | Quota monitoring (or later) |
-| **7+** | P23–P25 | Security, ops, G4 |
+| **1** | **E-01** | Owner: manual vs model_patch → ADR-10 |
+| **2** | **P19x** | Only if ADR-10 enables model_patch |
+| **3** | **P21** | PR → human decision (pilot) |
+| **4** | **P22** | Repair Loop → **G3** |
+| **5** | **PI-01** | Instructions track (after G3) |
+| **6+** | P15a, P23–P25 | Quota, security, ops, G4 |
 
-Next agent work on this track: **P20b** only, unless the owner names another ID.
-
-## Instructions track (Simple Mode behaviour) — after G3
-
-Owner decision 2026-10-12: do **not** interleave with P20b–P22 and do **not** defer everything until after P25.
-
-Source materials (non-binding until a PI patch adopts them): `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` (TZ-INSTRUCTIONS-01), `CONCEPTS/BiForge_Agent_Instructions_v2_Target.md`, snapshot `CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md`. Analytical background: `CONCEPTS/BiForge_analytical_note_recommendations.md`.
-
-| When | ID | Scope |
-| --- | --- | --- |
-| **After G3 (P22 closed)** | **PI-01** | Uncertainty contract in the Simple Mode prompt (TZ-INSTRUCTIONS P1); regression tests for the dialogue path; no Project Mode scope |
-| After PI-01 stable | **PI-02** | Post-processing / intent flags as in TZ-INSTRUCTIONS P2 |
-| Optional later | **PI-03** | Thin mode paragraph (TZ-INSTRUCTIONS P3) |
-| **After G4 / real need only** | **TP-HALLUC** | Multi-model cross-check (`CONCEPTS/TP_BiForge_Hallucination_CrossCheck.md`) — shelf until hallucinations hurt in production |
-
-Rules:
-
-- PI patches are a **separate queue**: do not mix into a BX/PNN patch without an explicit owner command.
-- Do not open CONCEPTS instruction files unless the owner assigns **PI-** or **TP-HALLUC** work.
-- Product version continues to follow the main patch number when PI ships as its own numbered delivery (owner chooses P-number or PI-label at assignment time).
+Next agent work: **P21** or **P19x** only on owner command (after E-01 if model_patch).

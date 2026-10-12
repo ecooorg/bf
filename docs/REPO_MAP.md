@@ -145,6 +145,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `ARCHIVE/P13a-SPEC.md` |
 | `npm run test:github` | GitHub App JWT, permissions, webhook signature, fake API flow, PR/check-run reads, Task Package commit limits (P16) |
 | `npm run test:gate` | Gate Engine rules without a database (P17) |
+| `npm run test:p20b` | P20b: PASS ↔ gates, approve routes |
 | `npm run test:p20` | P20: brief_writer, package integrity baseline, approval helpers |
 | `npm run test:p18` | CodeExecutor: package, PACKAGE.md, protected paths, diff parse/validate/apply, seeded fuzz, Git Data API writes on a fake GitHub (P18) |
 | `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14`, `test:p15` | Acceptance tests of one patch each, no database (part of `check`) |
@@ -187,6 +188,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/gate-engine.test.mjs` | Gate rules: PASS needs evidence, rejected sources, Test Integrity, waivers, Release Candidate (P17) | no |
 | `tests/gate-live.test.mjs` | Evidence from signed-event payloads, invalidation, waiver and audit on real PostgreSQL (P17) | PostgreSQL |
 | `tests/gate-webhook-live.test.mjs` | The real server: signed `check_run` webhook registers evidence, bad signature is 401, redelivery is idempotent (P17) | PostgreSQL |
+| `tests/p20b-acceptance.test.mjs` | P20b acceptance |
 | `tests/p20-acceptance.test.mjs` | P20 acceptance |
 | `tests/code-executor.test.mjs` | Pure P18 rules: package schema and secrets, limits at the boundary, diff refusals, apply, seeded fuzz, GitHub writes limited to `biforge/<task_id>` | no |
 | `tests/code-task-live.test.mjs` | Code runs on PostgreSQL: human only, idempotent start, race safety, budget, PR / branch / diff results, blocked and resubmitted, webhook sync (P18) | PostgreSQL |
