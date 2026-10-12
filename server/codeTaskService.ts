@@ -5,8 +5,8 @@ import { getProject } from './projectRepository.ts';
 import { getTask, inTx, lockTask, type Db } from './taskService.ts';
 import { readArtifact, saveArtifact, sha256Hex } from './artifactRepository.ts';
 import {
-  CODE_EXECUTOR_IDS, CodeExecutorError, applyFileDiff, buildPackageMd, canExecutorTransition, countChanges, createManualExecutor, packageHash, parseUnifiedDiff,
-  taskPackageSchema, validateChangeSet, type ChangeFile, type CodeExecutor, type CodeExecutorId, type ExecutorState, type TaskPackage, type Violation,
+  CODE_EXECUTOR_IDS, CodeExecutorError, applyFileDiff, buildPackageMd, canExecutorTransition, countChanges, createManualExecutor, createModelPatchExecutor, packageHash, parseUnifiedDiff,
+  taskPackageSchema, validateChangeSet, validateModelPatch, type ChangeFile, type CodeExecutor, type CodeExecutorId, type ExecutorState, type TaskPackage, type Violation,
 } from './codeExecutor.ts';
 import {
   commitChangesToBranch, compareToBase, diffUploadEnabled, findPullRequestByBranch, githubConfigFromEnv, openPullRequest, readBranchHead, readPullRequest, readTextFile,
@@ -72,11 +72,16 @@ function renderPackage(taskId: string, pkg: TaskPackage): string {
   catch (e) { if (e instanceof CodeExecutorError) throw new CodeTaskError(e.code as CodeTaskErrorCode, e.message, e.details); throw e; }
 }
 
-/** `manual` is the only executor in P18; `model_patch` arrives in P19 and is refused until then, whatever the passport or CODE_EXECUTOR says. */
+/** P19: `model_patch` is available only when CODE_EXECUTOR=model_patch (ADR-10 interim; final enablement after E-01). Passport may request it; otherwise default manual. */
 function selectExecutorId(passportExecutor: unknown): CodeExecutorId {
-  const id = (CODE_EXECUTOR_IDS as readonly string[]).includes(passportExecutor as string) ? (passportExecutor as CodeExecutorId) : 'manual';
-  if (id !== 'manual') throw new CodeTaskError('EXECUTOR_UNAVAILABLE', 'This executor is not available yet; use manual', { executor: id });
-  return id;
+  const requested = (CODE_EXECUTOR_IDS as readonly string[]).includes(passportExecutor as string) ? (passportExecutor as CodeExecutorId) : 'manual';
+  if (requested === 'model_patch') {
+    if (process.env.CODE_EXECUTOR !== 'model_patch') {
+      throw new CodeTaskError('EXECUTOR_UNAVAILABLE', 'model_patch is disabled; set CODE_EXECUTOR=model_patch after E-01 / ADR-10 approval, or use manual', { executor: 'model_patch' });
+    }
+    return 'model_patch';
+  }
+  return 'manual';
 }
 
 /** max_code_tasks (TZ 8.4): project scope counts tasks that have code runs, task scope counts executor runs of the task. */
@@ -156,7 +161,7 @@ export async function startCodeTask(input: { projectId: string; taskId: string; 
 }
 
 function executorFor(id: CodeExecutorId, store: Parameters<typeof createManualExecutor>[0]): CodeExecutor {
-  if (id !== 'manual') throw new CodeTaskError('EXECUTOR_UNAVAILABLE', 'This executor is not available yet; use manual', { executor: id });
+  if (id === 'model_patch') return createModelPatchExecutor(store);
   return createManualExecutor(store);
 }
 

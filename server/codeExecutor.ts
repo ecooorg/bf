@@ -377,3 +377,77 @@ export function createManualExecutor(store: ExecutorStore): CodeExecutor {
     },
   };
 }
+
+// ---- structured model_patch (TZ 11.4, P19 / BX-21.b) ----
+/** JSON shape returned by the code_author profile: full-file contents, not a unified diff. */
+export const modelPatchFileSchema = z.object({
+  path: z.string().min(1).max(300),
+  action: z.enum(['create', 'modify', 'delete']),
+  content: z.string().max(MAX_FILE_BYTES).optional(),
+}).strict().superRefine((v, ctx) => {
+  if (v.action !== 'delete' && (v.content === undefined || v.content === null)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'content required for create/modify' });
+  }
+  if (v.action === 'delete' && v.content !== undefined) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'content must be absent for delete' });
+  }
+});
+export const modelPatchSchema = z.object({
+  files: z.array(modelPatchFileSchema).min(1).max(DEFAULT_MAX_FILES),
+  notes: z.string().max(10_000).optional(),
+}).strict();
+export type ModelPatch = z.infer<typeof modelPatchSchema>;
+
+/** Convert a validated model patch into ChangeFile[] (added/removed estimated by line count of content). */
+export function modelPatchToChangeFiles(patch: ModelPatch): ChangeFile[] {
+  return patch.files.map((f) => {
+    const lines = f.content ? f.content.split('\n').length : 0;
+    return {
+      path: f.path,
+      action: f.action,
+      hunks: [],
+      added: f.action === 'delete' ? 0 : lines,
+      removed: f.action === 'create' ? 0 : lines,
+    };
+  });
+}
+
+/**
+ * Validate a model_patch payload against package limits and protected paths (TZ 11.4 points 1–5).
+ * Returns violations; empty array means the patch is acceptable for application.
+ */
+export function validateModelPatch(raw: unknown, o: { allowedPaths: string[]; limits?: { maxFiles?: number; maxChangedLines?: number } }): { ok: true; patch: ModelPatch; files: ChangeFile[] } | { ok: false; violations: Violation[] } {
+  const parsed = modelPatchSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false, violations: [{ code: 'schema_invalid', path: parsed.error.issues[0]?.path?.join('.') }] };
+  }
+  const patch = parsed.data;
+  const files = modelPatchToChangeFiles(patch);
+  const viol = validateChangeSet(files, o);
+  for (const f of patch.files) {
+    if (normalizeRepoPath(f.path) === null) viol.push({ code: 'path_unsafe', path: f.path.slice(0, 200) });
+    if (f.content !== undefined && Buffer.byteLength(f.content, 'utf8') > MAX_FILE_BYTES) viol.push({ code: 'file_too_large', path: f.path });
+  }
+  if (viol.length) return { ok: false, violations: viol };
+  return { ok: true, patch, files };
+}
+
+/**
+ * `model_patch`: product calls code_author via Router, validates the structured patch, writes via Git Data API.
+ * The actual model call and GitHub write live in the service (they need adapters and config). This factory only
+ * manages the WAITING/RUNNING lifecycle; the service drives the work after start returns RUNNING.
+ */
+export function createModelPatchExecutor(store: ExecutorStore): CodeExecutor {
+  return {
+    id: 'model_patch',
+    async start(pkg, run) {
+      const { codeTaskId } = await store.createWaiting(pkg, run, 'model_patch');
+      return { codeTaskId, executor: 'model_patch' };
+    },
+    async poll(h) {
+      const row = await store.read(h.codeTaskId);
+      if (!row) throw new CodeExecutorError('NOT_FOUND', 'Code task not found');
+      return { state: row.state, ...(row.result ? { result: row.result } : {}), ...(row.reason ? { reason: row.reason } : {}) };
+    },
+  };
+}
