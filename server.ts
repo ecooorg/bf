@@ -33,7 +33,8 @@ import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPas
 import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
 import { getTaskGates, ingestGitHubEvent, recordWaiver } from './server/gateService.ts';
 import { isGateName } from './server/gateEngine.ts';
-import { cancelCodeTask, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
+import { approveCodePackage, cancelCodeTask, commitApprovedPackage, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
+import { buildTaskPackageFromBrief } from './server/briefWriter.ts';
 
 dotenv.config();
 
@@ -511,6 +512,42 @@ app.post('/api/projects/:projectId/tasks/:taskId/code/start', async (req, res) =
     const task = await taskOfProject(req, res); if (!task) return;
     const out = await startCodeTask({ projectId: task.projectId, taskId: task.id, package: input.package, baseBranch: input.base_branch, actorKind: 'human' });
     res.status(out.created ? 201 : 200).json({ success: true, data: out.codeTask, created: out.created });
+  } catch (error) { projectError(res, error); }
+});
+/** P20: build a Task Package draft from a structured brief (brief_writer profile, pure). */
+app.post('/api/projects/:projectId/tasks/:taskId/code/brief', async (req, res) => {
+  try {
+    const task = await taskOfProject(req, res); if (!task) return;
+    const body = z.object({
+      goal: z.string().min(1).max(20_000),
+      constraints: z.string().max(20_000).optional(),
+      acceptance_criteria: z.string().max(50_000).optional(),
+      allowed_paths: z.array(z.string()).max(100).optional(),
+      sensitivity: z.enum(['normal', 'high']).optional(),
+      acceptance_tests: z.array(z.object({ path: z.string(), content: z.string() })).max(50).optional(),
+      context_files: z.array(z.object({ path: z.string(), content: z.string() })).max(50).optional(),
+      limits: z.object({ maxFiles: z.number().int().positive().max(50).optional(), maxChangedLines: z.number().int().positive().max(5000).optional() }).optional(),
+    }).strict().parse(req.body);
+    const pkg = buildTaskPackageFromBrief({
+      taskId: task.id, projectId: task.projectId, goal: body.goal, constraints: body.constraints,
+      acceptanceCriteria: body.acceptance_criteria, allowedPaths: body.allowed_paths, sensitivity: body.sensitivity,
+      acceptanceTests: body.acceptance_tests, contextFiles: body.context_files, limits: body.limits,
+    });
+    res.json({ success: true, data: pkg });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/approve', async (req, res) => {
+  try {
+    const task = await taskOfProject(req, res); if (!task) return;
+    const out = await approveCodePackage({ projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, actorKind: 'human', actor: 'human' });
+    res.json({ success: true, data: out });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/commit-package', async (req, res) => {
+  try {
+    const task = await taskOfProject(req, res); if (!task) return;
+    const out = await commitApprovedPackage({ projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, actorKind: 'human' });
+    res.json({ success: true, data: out });
   } catch (error) { projectError(res, error); }
 });
 app.get('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId', async (req, res) => {

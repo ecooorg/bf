@@ -1,6 +1,6 @@
-# BiForge v19
+# BiForge v20
 
-> **Document:** README · **Product version:** 19 · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
+> **Document:** README · **Product version:** 20 · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 
 Decision cockpit implementing the **Before You Choose** method (BiForge).
 
