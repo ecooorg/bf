@@ -25,10 +25,11 @@
 | P20b | PASS requires RC when task has code head |
 | P21 | reviewer findings + human decision accept/repair/reject |
 | **P22** | Repair Loop deployed. Machine criteria PASS. Live `POST .../repair` not run. |
+| **PI-01** | Simple Mode prompt: uncertainty contract block (TZ-INSTRUCTIONS-01 P1). Version label `PI-01`. Not yet deployed; owner checks the winter dialog live. Spec: `docs/PI-01-SPEC.md`. |
 
 ## Open
 
-- E-01 / ADR-10; P19x; PI after the owner accepts G3.
+- E-01 / ADR-10; P19x; PI-02 after PI-01 is checked on production.
 
 ## Next
 
