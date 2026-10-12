@@ -85,8 +85,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/gateService.ts` | Gate evidence persistence, GitHub webhook ingestion, invalidation on a new commit, human approvals and waivers (P17) |
 | `server/briefWriter.ts` | P20: build Task Package draft from a structured brief (pure) |
 | `server/reviewer.ts` | P21: structured review findings from gates + delivery (pure, no model) |
+| `server/repairLoop.ts` | P22: Repair Loop classification, stop rules, repair prompt, diagnostic report (pure) |
 | `server/codeExecutor.ts` | CodeExecutor interface and `manual` executor, Task Package schema, PACKAGE.md, protected paths, allowed_paths, secret scan, unified diff parse/validate/apply; pure, no I/O (P18) |
-| `server/codeTaskService.ts` | Code runs (`code_tasks`): start with a package, PR / branch / diff result, validation, diff applied through the Git Data API, poll and webhook sync, cancel, PACKAGE.md export (P18); review + human decision accept/repair/reject (P21) |
+| `server/codeTaskService.ts` | Code runs (`code_tasks`): start with a package, PR / branch / diff result, validation, diff applied through the Git Data API, poll and webhook sync, cancel, PACKAGE.md export (P18); review + human decision accept/repair/reject (P21); Repair Loop start or diagnostic stop (P22) |
 | `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
 | `server/files.ts` | Reading uploaded files (PDF, Word, Excel, etc.), attachment limits |
 | `server/documents.ts` | Building Word and PDF documents |
@@ -146,6 +147,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `ARCHIVE/P13a-SPEC.md` |
 | `npm run test:github` | GitHub App JWT, permissions, webhook signature, fake API flow, PR/check-run reads, Task Package commit limits (P16) |
 | `npm run test:gate` | Gate Engine rules without a database (P17) |
+| `npm run test:p22` | P22: Repair Loop stop rules and diagnostic report |
 | `npm run test:p21` | P21: reviewer findings + decision routes |
 | `npm run test:p20b` | P20b: PASS ↔ gates, approve routes |
 | `npm run test:p20` | P20: brief_writer, package integrity baseline, approval helpers |
@@ -190,6 +192,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/gate-engine.test.mjs` | Gate rules: PASS needs evidence, rejected sources, Test Integrity, waivers, Release Candidate (P17) | no |
 | `tests/gate-live.test.mjs` | Evidence from signed-event payloads, invalidation, waiver and audit on real PostgreSQL (P17) | PostgreSQL |
 | `tests/gate-webhook-live.test.mjs` | The real server: signed `check_run` webhook registers evidence, bad signature is 401, redelivery is idempotent (P17) | PostgreSQL |
+| `tests/p22-acceptance.test.mjs` | P22 acceptance (repair stop rules) |
 | `tests/p21-acceptance.test.mjs` | P21 acceptance (reviewer + decision) |
 | `tests/p20b-acceptance.test.mjs` | P20b acceptance |
 | `tests/p20-acceptance.test.mjs` | P20 acceptance |
