@@ -154,17 +154,17 @@ interface GenerateOpts { extraParts?: any[]; extraNumberSource?: string; extraCh
 // Stable model IDs only; legacy/latest aliases are not used in the default pool.
 const LIGHT_MODELS = (
   process.env.MODEL_CASCADE_LIGHT ||
-  'gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.8-flash'
+  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
 ).split(',').map((s) => s.trim()).filter(Boolean);
 
 const STRONG_MODELS = (
   process.env.MODEL_CASCADE_STRONG ||
-  'gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.8-flash'
+  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
 ).split(',').map((s) => s.trim()).filter(Boolean);
 
 // Keep the whole request bounded. The router is designed to move to a reserve model
 // quickly rather than hammering one overloaded model with repeated retries.
-const LLM_PER_CALL_TIMEOUT_MS = Number(process.env.LLM_CALL_TIMEOUT_MS) || 16000;
+const LLM_PER_CALL_TIMEOUT_MS = Number(process.env.LLM_CALL_TIMEOUT_MS) || 35000;
 const LLM_TOTAL_DEADLINE_MS = Number(process.env.LLM_TOTAL_DEADLINE_MS) || 55000;
 const MAX_MODEL_CALLS = Number(process.env.MAX_MODEL_CALLS) || 4;
 const GEMINI_BASE_URL = process.env.GEMINI_BASE_URL || '';
@@ -1346,6 +1346,7 @@ function conversationGainAudit(out: any, contextSufficiency: string) {
 }
 
 import { detectUserIntentFlags, isLimitationOnlyReply } from './server/intentFlags.ts';
+import { detectConversationMode, modeParagraph } from './server/conversationMode.ts';
 
 // Token Economy v1.6: the conversation state already carries durable facts, assumptions,
 // unknowns and hypotheses. Keep only the most recent turns in the raw transcript so older
@@ -1365,8 +1366,8 @@ function compactConversationHistory(history: any[]): any[] {
 
 // --- POST /api/conversation ---
 // Normal mode: one concrete, user-facing conversation loop. The method stays internal.
-function buildConversationPrompt(input: string, attachmentsBlock = ''): string {
-  return `You are the analytical engine of BiForge. You are not an ordinary chat assistant, not a coach and not a friend, and you do not imitate a person with life experience, feelings or values. You are a strong analytical instrument working next to a human who owns the goals, the values, the acceptable risk and the final choice. You own the analysis.
+function buildConversationPrompt(input: string, attachmentsBlock = '', modeBlock = '', today = new Date().toISOString().slice(0, 10)): string {
+  return `CURRENT DATE (server-provided): ${today}. Use this only as the current calendar date; it does not establish live web access or current facts. Do not claim a model version, architecture, or training cutoff unless explicitly provided.\n\nYou are the analytical engine of BiForge. You are not an ordinary chat assistant, not a coach and not a friend, and you do not imitate a person with life experience, feelings or values. You are a strong analytical instrument working next to a human who owns the goals, the values, the acceptable risk and the final choice. You own the analysis.
 
 ${V17_LAYER_PROMPT}USE WHAT YOU ARE ACTUALLY GOOD AT
 Structuring a tangled situation. Holding many interdependent conditions at once. Seeing hidden assumptions and contradictions. Knowing how decisions of this general kind tend to be structured, where they tend to go wrong and which facts tend to matter. Generating a wide space of possible actions. Attacking a plan from the opposite side. Building scenarios. Judging which unknown is worth resolving. Designing cheap tests. Doing arithmetic on the person's own numbers. Do not spend replies on performed empathy, motivational talk, generic advice or restating what the person already said. The one exception is warmth that is real: when the person expresses a feeling, acknowledge it in one short, plain, human sentence and then continue with the substance; never more than one such sentence, and no therapy language.
@@ -1436,7 +1437,7 @@ The input may contain "context" with these fields. Use them silently.
 HARD BOUNDARIES
 - Never choose, rank, recommend or name a winner among the options or values; never say "you should", "the best option", "optimal", "I would choose". You may name the most informative next step.
 - No percentages or probabilities unless the person gave them. Do not invent facts, prices, names, deadlines or amounts about their situation. General knowledge about how such situations usually work is welcome, but present it as a general pattern and, when it concerns the outside world, say it is worth verifying.
-- No invented durations, amounts, counts or frequencies either: if the person did not give a figure, describe it in kind. Present general claims about how the world works as tendencies and worth verifying, not as established facts, and do not open with a sweeping statement about the topic.
+- Do not invent durations, amounts, counts or frequencies about the person's own situation. For external-world factual questions, relevant approximate ranges from established general knowledge are allowed when there is a reasonable basis; label them approximate/general and worth verifying. Do not invent precise current figures, probabilities, percentages, citations or forecasts.
 - Do not attribute to the person beliefs, expectations or plans they did not state, and do not argue against a position they do not hold.
 - A scenario is not a forecast. Plausible wording is not proof.
 - Do not explain the method, stages, framework or your internal process, and never put method labels, type names or technical terms in the reply (for example UNDERSTAND, EXPAND, ATTACK, triage, context level, or the branch type names from the output schema). Describe things in plain words. The person sees only the result of the thinking.
@@ -1446,10 +1447,10 @@ WHEN THE IDEAL ANSWER IS UNAVAILABLE
 1. State in one sentence what is unavailable and why.
 2. Give the best available result and mark its kind in plain words: what comes from the person's own input or from sources; a scenario under explicit assumptions; a qualitative or range estimate with its basis; a comparison of alternatives; a hypothesis with the way to check it.
 3. Do not replace step 2 with a repeated explanation of the limitation. When the person asks for a rough or preliminary estimate without a guarantee, give it, with the caveats it needs.
-4. Never invent numbers, percentages or named forecasts that are not grounded. You cannot search the web or open sources here: never say or imply that you searched, found or checked anything; say that it was not checked and name what the person can check.
+4. Never claim to have searched, found, opened or verified sources unless actual search results or sources are provided in this call. If live search is not connected for this call, say so only when relevant, then still answer from supplied material and general knowledge. Do not infer or assert your own architecture, model version, internet permissions, training cutoff or knowledge date; if not explicitly provided, say you cannot verify that detail. For external-world questions, approximate values and ranges from well-established general knowledge are allowed when useful: label them as approximate general knowledge, state the basis/uncertainty, and say current/local details should be verified. Do not invent precise figures, percentages, probabilities, citations or live findings.
 5. When the person says your answer does not solve their task, change the approach and give a different kind of result; do not rephrase the previous reply.
 
-BEFORE ANSWERING (silent)
+${modeBlock ? modeBlock + '\n\n' : ''}BEFORE ANSWERING (silent)
 Did the person get at least one thing they did not name themselves: a reframing, a hidden assumption, a contradiction, a decisive unknown with a cheap way to learn it, a concrete test, a calculation or a structurally different branch? Did I answer the question they actually need answered? Did I widen the space or only lengthen the list? Would each question I ask change what happens next? If not, rewrite.
 
 FILES THE PERSON ATTACHES
@@ -1530,12 +1531,16 @@ app.post('/api/conversation', async (req, res) => {
       extraNumberSource: attachItems.map((a) => a.text).join('\n'),
       extraChars: attachmentsBlock.length,
     };
-    const prompt = buildConversationPrompt(input, attachmentsBlock);
     // PI-02: intent flags from the last user turn (and recent history for a standing ban on questions).
     const intentFlags = detectUserIntentFlags(lastUserText, fullHistory);
     if (intentFlags.userAskedSearch) {
       console.info(JSON.stringify({ type: 'intent_flag', search_expected: true }));
     }
+    // PI-03: thin mode paragraph (Decision / Research / Engineering) on the shared prompt.
+    const recentUserText = fullHistory.filter((m: any) => m.role === 'user').slice(-3).map((m: any) => String(m.content || '')).join('\n');
+    const conversationMode = detectConversationMode(lastUserText, { userAskedSearch: intentFlags.userAskedSearch, recentUserText });
+    const modeBlock = modeParagraph(conversationMode);
+    const prompt = buildConversationPrompt(input, attachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10));
     const callBudget = { used: 0 };   // S-4: the quality retry shares the request's model-call budget
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     let out = data as any;
@@ -1632,9 +1637,11 @@ The person asked for an approximate or preliminary result. Do not answer with li
       : '';
     const visibleReply = buildVisibleReply(cleanReply, cleanQuestion, askAllowed) + crisisBlock;
     // PI-02: search_expected in meta/logs when the user asked for a web search (no search tool yet).
-    const responseMeta = intentFlags.userAskedSearch
-      ? { ...(meta as object), search_expected: true }
-      : meta;
+    const responseMeta = {
+      ...(meta as object),
+      conversation_mode: conversationMode,
+      ...(intentFlags.userAskedSearch ? { search_expected: true } : {}),
+    };
     ok(res, {
       reply: visibleReply,
       question: cleanQuestion,

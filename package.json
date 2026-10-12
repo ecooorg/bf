@@ -1,7 +1,7 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "PI-02",
+  "version": "PI-03final",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -57,7 +57,8 @@
     "test:p22": "node --experimental-strip-types --test --test-timeout=60000 --test-force-exit tests/p22-acceptance.test.mjs",
     "test:pi01": "tsx tests/pi01.test.mjs",
     "test:p21": "node --experimental-strip-types --test --test-timeout=60000 --test-force-exit tests/p21-acceptance.test.mjs",
-    "test:pi02": "tsx tests/pi02.test.mjs"
+    "test:pi02": "tsx tests/pi02.test.mjs",
+    "test:pi03": "tsx tests/pi03.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

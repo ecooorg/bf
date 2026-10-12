@@ -1,3 +1,8 @@
+## vPI-03final
+
+- Кумулятивный поведенческий патч: информационный режим, безопасные формулировки про отсутствие live search, дата сервера в prompt, общие приблизительные диапазоны для внешнего мира, липкий режим по недавним репликам, более сильный порядок моделей и увеличенный per-call timeout.
+- Сохранены PI-01/PI-02 и JSON-контракт; фактический Google Search не добавлен и остаётся отдельной задачей P4.
+
 # Changelog — BiForge: agent behavior and model routing
 
 > **Document:** CHANGELOG_AGENT_BEHAVIOR · **Product version:** 20 · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
