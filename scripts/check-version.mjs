@@ -26,7 +26,7 @@ const files = ['README.md','DEPLOY_RAILWAY.md','server.ts','src/App.tsx','src/co
   'src/icsBuilder.ts','index.html','railway.toml','.env.example'];
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const stale = new RegExp(
-  String.raw`(?<![\w-])v(?:1\d)(?![\w.])|\b1\.\d+\.\d+(?:-\w+)?\b|\b1[0-9]\.\d+\.\d+(?:-\w+)?\b|recovery`,
+  String.raw`(?<![\w-])v(?:1\d)(?![\w])|\b1\.\d+\.\d+(?:-\w+)?\b|\b1[0-9]\.\d+\.\d+(?:-\w+)?\b|recovery`,
   'i'
 );
 for (const f of files) (read(f) || '').split('\n').forEach((line, i) => {
