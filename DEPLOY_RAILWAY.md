@@ -31,6 +31,20 @@ If `APP_PASSWORD` is empty in production the site is open to everyone; the serve
 - `MAX_UPLOAD_BYTES` (default 10485760) — largest file the person can attach. `MAX_ATTACH_TEXT_CHARS` (default 30000) — how much text of one file is passed to the model.
 - `LLM_CALL_TIMEOUT_MS` (default 25000), `LLM_TOTAL_DEADLINE_MS` (default 70000), `LLM_ROUND_PAUSE_MS`, `MAX_BODY_BYTES`, `GEMINI_BASE_URL`.
 
+## Recommended production values (12 October 2026)
+
+| Variable | Value | Note |
+| --- | --- | --- |
+| `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` | not set (code default) | Remove old lists that still contain `gemini-3.7-flash` or `gemini-3.5-flash`; they override the default |
+| `LLM_CALL_TIMEOUT_MS` | `25000` | |
+| `LLM_TOTAL_DEADLINE_MS`, `MAX_MODEL_CALLS` | defaults (`70000`, `4`) | |
+| `DAILY_CALL_CAP` | `1000` during the pilot | Counts every attempt, failed ones too |
+| `RATE_LIMIT_PER_HOUR` | `60` | |
+| `TRUST_PROXY_HOPS` | `1` | Default in production |
+| `GROQ_PLAN` | `free` or `paid` | Not read by server code; documentation marker |
+
+Gemini limits apply per project (not per API key) and per model; daily limits reset at midnight Pacific time. Real project data requires a billed project with a spending limit (A-02). A quota error from one model parks it for 30 minutes (log type `llm_quota`) and the next model is tried; `GEMINI_QUOTA` is returned only when every model is out of quota. Check the model list against the provider's documentation once a month (TZ section 16.7, maintenance table).
+
 ## Health check
 
 - `GET /health` — public liveness probe: JSON with exactly `status` and `version`; no sign-in, no model call, no outbound requests.

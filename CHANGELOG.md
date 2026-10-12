@@ -77,3 +77,5 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - Added least-privilege GitHub App connection verification and signed webhook ingress for `pull_request` / `check_run` events. Event processing and Code Delivery remain disabled pending owner decisions.
 
 - Model pool: removed deprecated aliases gemini-3.7-flash and gemini-3.5-flash (routed by Google to 3.8 / 3.6). A quota error from one model no longer aborts the whole request: the model is parked for 30 min (`llm_quota` log) and the next one is tried; `GEMINI_QUOTA` is returned only when every model is out of quota. Defaults: LLM_CALL_TIMEOUT_MS 25000, LLM_TOTAL_DEADLINE_MS 70000.
+
+- Documents (12 October 2026): TZ section 16.7 added (step-by-step plan to G4: stages A-F, owner and agent roles, PASS criteria, branch on E-01, recommended Railway Variables, after-G4 work); 16.4.1 and 16.4.2.a brought to the actual state (P01-P24 done); `docs/NEXT.md`, `docs/CURRENT_STATE.md`, `docs/START_HERE.md`, `AGENTS.md`, `DEPLOY_RAILWAY.md`, `docs/REPO_MAP.md` updated. No program code changed.
