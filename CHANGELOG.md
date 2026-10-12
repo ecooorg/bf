@@ -1,3 +1,7 @@
+## v24 — 2026-10-12
+
+- **P24 (BX-25):** authenticated `/ops` and `/api/ops` metrics, `ops:backup-check`, ADR-09 (RPO/RTO), OPS_ROLLBACK procedure.
+
 ## v23 — 2026-10-12
 
 - **P23 (BX-24):** security evidence — formal threat model, injection corpus CI assertions, redaction, rights review, audit completeness (login fail, project delete, settings change).

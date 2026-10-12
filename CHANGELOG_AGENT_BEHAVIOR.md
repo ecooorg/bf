@@ -1,3 +1,7 @@
+## v24
+
+- Ops dashboard and backup-check do not change Simple Mode or Router behaviour.
+
 ## v23
 
 - P23 / BX-24: threat model, injection corpus side-effect tests, secret redaction, rights review, audit catalog; project delete + login-failure audit; settings change audit.

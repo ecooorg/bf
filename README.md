@@ -1,3 +1,3 @@
-# BiForge v23
+# BiForge v24
 
-Product version **23** (P23 — BX-24 security evidence). Instruction track PI-01…PI-03final complete; P15a monitoring shipped. See `docs/START_HERE.md` and `docs/CURRENT_STATE.md`.
+Product version **24** (P24 — BX-25 operations: /ops, backup check, ADR-09). See `docs/START_HERE.md`.
