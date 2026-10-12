@@ -31,7 +31,7 @@ import { createWorker } from './server/worker.ts';
 import { readArtifact } from './server/artifactRepository.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
 import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
-import { getTaskGates, ingestGitHubEvent, recordWaiver } from './server/gateService.ts';
+import { getTaskGates, ingestGitHubEvent, recordApproval, recordWaiver } from './server/gateService.ts';
 import { isGateName } from './server/gateEngine.ts';
 import { approveCodePackage, cancelCodeTask, commitApprovedPackage, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
 import { buildTaskPackageFromBrief } from './server/briefWriter.ts';
@@ -487,6 +487,35 @@ app.post('/api/projects/:projectId/tasks/:taskId/gates/:gate/waive', async (req,
     res.json({ success: true, data: await getTaskGates(await getPool(), task.id, input.commit_sha) });
   } catch (error) { projectError(res, error); }
 });
+/** P20b: human approval evidence for requirements / spec / review gates. */
+app.post('/api/projects/:projectId/tasks/:taskId/gates/:gate/approve', async (req, res) => {
+  try {
+    const task = await taskOfProject(req, res); if (!task) return;
+    const gate = req.params.gate;
+    if (!['requirements', 'spec', 'review'].includes(gate)) {
+      return res.status(400).json({ success: false, error: 'Only requirements, spec and review accept approval evidence', code: 'INVALID_GATE' });
+    }
+    const input = z.object({
+      commit_sha: z.string().regex(/^[0-9a-f]{40}$/i).optional(),
+      status: z.enum(['PASS', 'FAIL']).optional(),
+      approval_id: z.string().trim().min(1).max(128).optional(),
+    }).strict().parse(req.body ?? {});
+    const pool = await getPool();
+    const head = input.commit_sha ?? (await getTaskGates(pool, task.id)).commit;
+    if (!head) return res.status(409).json({ success: false, error: 'No commit head for this task; open a PR or set head first', code: 'NO_HEAD' });
+    await recordApproval(pool, {
+      projectId: task.projectId,
+      taskId: task.id,
+      gate: gate as 'requirements' | 'spec' | 'review',
+      commitSha: head,
+      actor: 'human',
+      approvalId: input.approval_id || `ui-${Date.now().toString(36)}`,
+      status: input.status ?? 'PASS',
+    });
+    res.json({ success: true, data: await getTaskGates(pool, task.id, head) });
+  } catch (error) { projectError(res, error); }
+});
+
 
 // ---- P18: Code Delivery, `manual` executor (TZ 11.4). Human session only; the actor is never read from the request body. ----
 const codeNote = z.string().max(500).optional();

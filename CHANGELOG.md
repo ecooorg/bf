@@ -2,6 +2,7 @@
 
 Format: newest first. Behavior changes must update tests and this file in the same step (TZ 16.3).
 
+- P20b: Task PASS blocked unless gates Release Candidate is PASS/WAIVED when a code head exists; `POST .../gates/:gate/approve` for requirements/spec/review.
 - P20: brief_writer package drafts; human package approval; Test Integrity package baseline; optional commit of approved package to `biforge/<task_id>` (writes gated). Product version 20.
 ## Unreleased
 - P19: BX-21.b. `model_patch` executor (gated by CODE_EXECUTOR=model_patch): structured patch schema, validateModelPatch (protected paths, size, allowed_paths), createModelPatchExecutor; ADR-10 remains interim. Repository: ARCHIVE/ (historical SPECs and reports) and CONCEPTS/ (future drafts); AGENTS.md and START_HERE updated. Packer: `scripts/pack-simple.mjs` replaces the previous patch:pack path (timeout-safe, no hanging children). Simple Mode unchanged.
