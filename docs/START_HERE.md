@@ -15,7 +15,7 @@
 
 1. **Process.** The owner uploads the current repository archive at the start of a session. The model has no GitHub access. At the end the owner uploads the patch to `main` by hand (GitHub web interface on Android). CI checks `main`. There are no branches and no Pull Requests.
 2. **Models change between sessions and remember nothing.** Everything needed must be in the archive and in these documents.
-3. **Flat structure.** Files in the root and in first-level directories only; the single exception is `.github/workflows/`. Never create nested directories (for example, no archive subfolder in `docs/`).
+3. **Structure.** Files in the root and in first-level directories only; the single exception is `.github/workflows/`. Never create nested directories inside them. Top-level folders include the usual working ones plus `ARCHIVE/` (historical documents) and `CONCEPTS/` (future-work drafts and proposals). Place new historical or conceptual material into the matching folder at once.
 4. **Languages.** Program interface: English only. Specification: Russian (canonical). `AGENTS.md` and technical documents: English. Reports and chat with the owner: Russian.
 5. **The user sees only the name "BiForge"** in the interface: no versions, step numbers or hashes. (Existing labels `v1.6.0` in Simple Mode and "BIFORGE · BX-06" in the `/project` header are removed in patch P01.)
 6. **Save tokens.** The owner is on a free plan. Do not read what you do not need, do not run what you do not need, deliver the patch as early as possible.
@@ -104,11 +104,11 @@ These files document Simple Mode agent behaviour, a proposed improvement track, 
 
 | File | What it is |
 | --- | --- |
-| `docs/BiForge_Agent_Instructions_v1_Extracted.md` | Snapshot of the **current** agent instructions as extracted from the v1.6.0 codebase (prompts, V17, post-processing, quality-gate). Reference only. |
-| `docs/BiForge_Agent_Instructions_v2_Target.md` | **Proposed** target instruction set (uncertainty contract, intent flags, modes on a single base). Not implemented in code. |
-| `docs/TZ_BiForge_Instructions_Uncertainty.md` | Standalone technical specification (TZ-INSTRUCTIONS-01) for incremental adoption of the v2 behaviour (P1–P3 style patches). Independent of TZv3.0 BX plan. |
-| `docs/BiForge_analytical_note_recommendations.md` | Analytical note and recommendations on the dialogue failure mode (uncertainty vs strict honesty) and architecture options. Background only. |
-| `docs/TP_BiForge_Hallucination_CrossCheck.md` | Post-launch proposal (TP-HALLUC-01): multi-model cross-check and anti-hallucination contour. **Not for implementation now**; shelf plan if hallucinations become a problem after launch. |
+| `CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md` | Snapshot of the **current** agent instructions as extracted from the v1.6.0 codebase (prompts, V17, post-processing, quality-gate). Reference only. |
+| `CONCEPTS/BiForge_Agent_Instructions_v2_Target.md` | **Proposed** target instruction set (uncertainty contract, intent flags, modes on a single base). Not implemented in code. |
+| `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` | Standalone technical specification (TZ-INSTRUCTIONS-01) for incremental adoption of the v2 behaviour (P1–P3 style patches). Independent of TZv3.0 BX plan. |
+| `CONCEPTS/BiForge_analytical_note_recommendations.md` | Analytical note and recommendations on the dialogue failure mode (uncertainty vs strict honesty) and architecture options. Background only. |
+| `CONCEPTS/TP_BiForge_Hallucination_CrossCheck.md` | Post-launch proposal (TP-HALLUC-01): multi-model cross-check and anti-hallucination contour. **Not for implementation now**; shelf plan if hallucinations become a problem after launch. |
 
 Rules for coding agents:
 
@@ -121,7 +121,7 @@ Rules for coding agents:
 
 - `CHANGELOG.md` — the changelog of the project from BX-07 onward. Add an entry for every behaviour change.
 - `CHANGELOG_AGENT_BEHAVIOR.md` — history of the **behaviour of the Simple Mode agent** (versions 1.x: prompts, method, answer layer). Not a project changelog. `npm run check` requires a section for the current version there; do not delete it.
-- `docs/BiForge_Avanproekt_v3.md` — the concept paper (in Russian; its header says it is the conceptual document and the TZ takes priority on technical details). Not a source of requirements: use the TZ.
-- Process documents (reference, may repeat each other; binding rules are here and in `AGENTS.md`): `docs/DEVELOPMENT.md`, `docs/DEVELOPMENT_PROTOCOL.md`, `docs/TESTING_POLICY.md`, `docs/universal_testing_protocol.md` (29 KB, general methodology, read only when designing tests), `docs/GIT_POLICY.md`, `docs/RESOURCE_ECONOMY.md`, `docs/SECURITY_POLICY.md`. Read `docs/SECURITY_POLICY.md` before touching authentication, secrets or uploads.
+- `CONCEPTS/BiForge_Avanproekt_v3.md` — the concept paper (in Russian; its header says it is the conceptual document and the TZ takes priority on technical details). Not a source of requirements: use the TZ.
+- Process documents (reference, may repeat each other; binding rules are here and in `AGENTS.md`): `docs/DEVELOPMENT.md`, `docs/DEVELOPMENT_PROTOCOL.md`, `docs/TESTING_POLICY.md`, `CONCEPTS/universal_testing_protocol.md` (29 KB, general methodology, read only when designing tests), `docs/GIT_POLICY.md`, `docs/RESOURCE_ECONOMY.md`, `docs/SECURITY_POLICY.md`. Read `docs/SECURITY_POLICY.md` before touching authentication, secrets or uploads.
 - `QA_DRIVE_CHECKLIST.md` — manual check of Google Drive sync (needs real Google).
-- Agent-instruction and post-launch reference pack (informational only; see section above): `docs/BiForge_Agent_Instructions_v1_Extracted.md`, `docs/BiForge_Agent_Instructions_v2_Target.md`, `docs/TZ_BiForge_Instructions_Uncertainty.md`, `docs/BiForge_analytical_note_recommendations.md`, `docs/TP_BiForge_Hallucination_CrossCheck.md`.
+- Agent-instruction and post-launch reference pack (informational only; see section above): under `CONCEPTS/`.
