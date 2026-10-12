@@ -74,7 +74,7 @@ Distress detection works in two layers: a multilingual marker list (`src/support
 | `docs/DEVELOPMENT_PROTOCOL.md` | Step cycle and gates (TZv3.0, sections 16–17) |
 | `docs/GIT_POLICY.md`, `docs/SECURITY_POLICY.md`, `docs/TESTING_POLICY.md`, `docs/RESOURCE_ECONOMY.md` | Git, security, testing, and resource policies |
 | `docs/STEP_REPORT_TEMPLATE.md` | Step report template |
-| `docs/universal_testing_protocol.md` | General testing methodology |
+| `CONCEPTS/universal_testing_protocol.md` | General testing methodology |
 | `DEPLOY_RAILWAY.md`, `QA_DRIVE_CHECKLIST.md`, `CHANGELOG_AGENT_BEHAVIOR.md` | Deployment, manual Drive checks, changelog of this application |
 
 ## Version
