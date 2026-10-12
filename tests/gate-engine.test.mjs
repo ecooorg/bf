@@ -52,6 +52,13 @@ test('Test Integrity: any change under tests/acceptance/** is FAIL', () => {
   }
   assert.equal(evaluateTestIntegrity([], { truncated: true }).status, 'BLOCKED', 'an unreadable diff never passes');
   assert.equal(evaluateTestIntegrity([{ filename: 'tests/acceptance-notes.md', status: 'added' }]).status, 'PASS');
+  // P20: paths declared in the approved Task Package do not fail integrity
+  const base = evaluateTestIntegrity(
+    [{ filename: 'tests/acceptance/from-package.test.mjs', status: 'added' }],
+    { packageAcceptancePaths: ['tests/acceptance/from-package.test.mjs'] },
+  );
+  assert.equal(base.status, 'PASS');
+  assert.ok(base.packageBaseline.length >= 1);
 });
 
 test('WAIVED needs a human reason and a matching commit', () => {
