@@ -33,6 +33,7 @@ import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPas
 import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
 import { getTaskGates, ingestGitHubEvent, recordWaiver } from './server/gateService.ts';
 import { isGateName } from './server/gateEngine.ts';
+import { cancelCodeTask, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
 
 dotenv.config();
 
@@ -111,6 +112,12 @@ app.post('/api/webhooks/github', express.raw({ type: 'application/json', limit: 
   return res.status(202).json({ success: true, accepted: true, ...(ingested.ok ? { recorded: ingested.recorded } : {}) });
 });
 app.use('/api/export-document', express.json({ limit: '8mb' }));   // B2: whole-library documents
+// P18: Task Packages and uploaded diffs are larger than the default body limit. Only a signed-in session reaches the larger parser.
+app.use('/api/projects/:projectId/tasks/:taskId/code', (req, res, next) => {
+  if (!PROJECT_MODE_ENABLED) return next();   // the Project Mode boundary below answers 404
+  if (!APP_AUTH_ENABLED || !authenticated(req)) return res.status(401).json({ success: false, error: 'Project Mode authentication required', code: 'UNAUTHORIZED' });
+  next();
+}, express.json({ limit: '1200kb' }));
 app.use(express.json({ limit: MAX_BODY }));
 
 // CSRF defense in depth: reject cross-origin state-changing API requests. Origin
@@ -480,6 +487,70 @@ app.post('/api/projects/:projectId/tasks/:taskId/gates/:gate/waive', async (req,
   } catch (error) { projectError(res, error); }
 });
 
+// ---- P18: Code Delivery, `manual` executor (TZ 11.4). Human session only; the actor is never read from the request body. ----
+const codeNote = z.string().max(500).optional();
+const codeResultSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('pr'), pr_number: z.number().int().min(1).max(100_000_000), note: codeNote }).strict(),
+  z.object({ kind: z.literal('branch'), branch: z.string().min(1).max(200), note: codeNote }).strict(),
+  z.object({ kind: z.literal('diff'), diff: z.string().min(1).max(512_000), title: z.string().max(200).optional(), note: codeNote }).strict(),
+]);
+async function taskOfProject(req: express.Request, res: express.Response) {
+  const task = await getTask(req.params.taskId);
+  if (!task || task.projectId !== req.params.projectId) { res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' }); return null; }
+  return task;
+}
+app.get('/api/projects/:projectId/tasks/:taskId/code', async (req, res) => {
+  try {
+    const task = await taskOfProject(req, res); if (!task) return;
+    res.json({ success: true, data: await listCodeTasks(task.projectId, task.id) });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/code/start', async (req, res) => {
+  try {
+    const input = z.object({ package: z.unknown(), base_branch: z.string().max(100).optional() }).strict().parse(req.body);
+    const task = await taskOfProject(req, res); if (!task) return;
+    const out = await startCodeTask({ projectId: task.projectId, taskId: task.id, package: input.package, baseBranch: input.base_branch, actorKind: 'human' });
+    res.status(out.created ? 201 : 200).json({ success: true, data: out.codeTask, created: out.created });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId', async (req, res) => {
+  try {
+    const task = await taskOfProject(req, res); if (!task) return;
+    res.json({ success: true, data: await getCodeTask(task.projectId, task.id, req.params.codeTaskId) });
+  } catch (error) { projectError(res, error); }
+});
+app.get('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/package', async (req, res) => {
+  try {
+    const task = await taskOfProject(req, res); if (!task) return;
+    res.json({ success: true, data: await exportPackage(task.projectId, task.id, req.params.codeTaskId, 'human') });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/result', async (req, res) => {
+  try {
+    const input = codeResultSchema.parse(req.body);
+    const task = await taskOfProject(req, res); if (!task) return;
+    const result = input.kind === 'pr' ? { kind: 'pr' as const, prNumber: input.pr_number, note: input.note }
+      : input.kind === 'branch' ? { kind: 'branch' as const, branch: input.branch, note: input.note }
+      : { kind: 'diff' as const, diff: input.diff, title: input.title, note: input.note };
+    res.json({ success: true, data: await submitCodeResult({ projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, result, actorKind: 'human' }) });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/refresh', async (req, res) => {
+  try {
+    z.object({}).strict().parse(req.body ?? {});
+    const task = await taskOfProject(req, res); if (!task) return;
+    const out = await refreshCodeTask({ projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, actorKind: 'human' });
+    res.json({ success: true, data: out.codeTask, changed: out.changed });
+  } catch (error) { projectError(res, error); }
+});
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/cancel', async (req, res) => {
+  try {
+    const input = z.object({ reason: z.string().trim().min(1).max(500) }).strict().parse(req.body);
+    const task = await taskOfProject(req, res); if (!task) return;
+    res.json({ success: true, data: await cancelCodeTask({ projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, reason: input.reason, actorKind: 'human' }) });
+  } catch (error) { projectError(res, error); }
+});
+
 app.get('/api/projects/:projectId/artifacts', async (req, res) => {
   try { res.json({ success: true, data: await listProjectArtifacts(req.params.projectId) }); } catch (error) { projectError(res, error); }
 });
@@ -502,7 +573,7 @@ function projectError(res: express.Response, error: unknown) {
     return res.status(409).json({ success: false, error: 'State version conflict', code: 'CONFLICT', expected_version: e.expectedVersion, actual_version: e.actualVersion });
   }
   if (error instanceof AnalysisError) return res.status(error.status).json({ success: false, error: error.message, code: error.code });
-  if (e?.name === 'PlanError' || e?.name === 'TaskError') return res.status((error as any).status || 409).json({ success: false, error: e.message || 'Task operation failed', code: e.code || 'TASK_ERROR', details: (error as any).details });
+  if (e?.name === 'PlanError' || e?.name === 'TaskError' || e?.name === 'CodeTaskError') return res.status((error as any).status || 409).json({ success: false, error: e.message || 'Task operation failed', code: e.code || 'TASK_ERROR', details: (error as any).details });
   if (e?.code === 'VALIDATION') return res.status(422).json({ success: false, error: 'The proposed change was refused by the State policy', code: 'VALIDATION', details: ((error as any).errors ?? []).map((x: any) => x.code) });
   if (e?.code === 'NOT_FOUND') return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
   if (e?.name === 'ZodError' || e?.name === 'ValidationError') return res.status(400).json({ success: false, error: 'Invalid project data', code: 'VALIDATION' });

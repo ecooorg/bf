@@ -24,7 +24,7 @@
     "github": {
       "required_from": "BX-19",
       "service": "GitHub App API",
-      "env": { "required": ["GITHUB_APP_ID", "GITHUB_APP_INSTALLATION_ID", "GITHUB_APP_PRIVATE_KEY", "GITHUB_WEBHOOK_SECRET"], "optional": ["GITHUB_REPOSITORY_OWNER", "GITHUB_REPOSITORY_NAME", "GITHUB_API_BASE_URL"] },
+      "env": { "required": ["GITHUB_APP_ID", "GITHUB_APP_INSTALLATION_ID", "GITHUB_APP_PRIVATE_KEY", "GITHUB_WEBHOOK_SECRET"], "optional": ["GITHUB_REPOSITORY_OWNER", "GITHUB_REPOSITORY_NAME", "GITHUB_API_BASE_URL", "GITHUB_DIFF_UPLOAD"] },
       "max_permissions": { "metadata": "read", "contents": "read", "checks": "read", "pull_requests": "read" },
       "max_permissions_model_patch": { "contents": "write", "pull_requests": "write" },
       "checks": [ { "id": "installation_token_and_repo", "kind": "github_app_flow", "expect": { "status": "2xx", "permissions_within_max": true } } ]

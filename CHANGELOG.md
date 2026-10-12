@@ -4,6 +4,7 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 
 ## Unreleased
 
+- P18: BX-21.a. CodeExecutor interface and the `manual` executor (`server/codeExecutor.ts`, `server/codeTaskService.ts`, migration 010: `code_tasks`). A human starts a run with a Task Package, takes `PACKAGE.md` (artifact, no secrets, deterministic) to any tool and returns a PR, a branch or a unified diff; results are validated (10 files / 400 lines, `allowed_paths`, protected paths, text only, no modes, symlinks or renames) and a refused result is `BLOCKED` with violation codes. Diff upload is applied through the Git Data API as one commit on `biforge/<task_id>` plus a PR, only with `GITHUB_DIFF_UPLOAD=true`; no merge, no `main`. PR found by webhook or `refresh`. `max_code_tasks` is checked at start; `model_patch` is unavailable until P19. Seven routes under `/api/projects/:projectId/tasks/:taskId/code`, human session only. Simple Mode unchanged.
 - P13b (процесс сборки): ZIP создаётся и проверяется до длительных тестов; независимые этапы с таймаутами, принудительной остановкой группы процессов и потоковыми логами; `PARTIAL` при ошибках, таймаутах, блокировках и незапущенных проверках. Критический preflight по-прежнему блокирует выдачу. Уточнены stop-правила агента, отчёт и CI; добавлены ограничения времени тестов и PostgreSQL.
 
 - Process (documents only): TZ 16.3.2 and 16.4.4, patches P13a and P13b in the plan, Navigator / AI Assistant terms and AGENTS.md section 3.1, `docs/NEXT.md`. No program code changed.
