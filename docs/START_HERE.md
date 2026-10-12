@@ -9,9 +9,9 @@
 0. **Patch session prompt:** before implementing a numbered patch, read `docs/PATCH_PROMPT.md` (universal instructions: context order, version = patch number, packaging `bf-PNN.zip`, report). Then follow this file and `AGENTS.md`.
 
 1. BiForge is a decision and project agent on Node/Express + React + the Gemini API, deployed on Railway.
-2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (BiForge, internal version 19).
-3. **Project Mode** (`/project`, opt-in, PostgreSQL) is being built step by step from the specification `docs/BiForge_TZ_v3.md` (Russian, canonical).
-4. The plan is a list of patches P01…P25 (TZ 16.4.2). Current state: `docs/CURRENT_STATE.md`.
+2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (BiForge, product version 24).
+3. **Project Mode** (`/project`, opt-in, PostgreSQL) is built from the specification `docs/BiForge_TZ_v3.md` (Russian, canonical); code is in place through P24, the rest of the work is acceptance (TZ 16.7).
+4. The plan is a list of patches P01…P25 (TZ 16.4.2); the plan to the end of the project is TZ 16.7. Current state: `docs/CURRENT_STATE.md`.
 5. Map of the repository, scripts, tests and environment variables: `docs/REPO_MAP.md`.
 
 ## The 10 rules
@@ -20,7 +20,7 @@
 2. **Models change between sessions and remember nothing.** Everything needed must be in the archive and in these documents.
 3. **Structure.** Files in the root and in first-level directories only; the single exception is `.github/workflows/`. Never create nested directories inside them. Top-level folders include the usual working ones plus `ARCHIVE/` (historical documents) and `CONCEPTS/` (future-work drafts and proposals). Place new historical or conceptual material into the matching folder at once.
 4. **Languages.** Program interface: English only. Specification: Russian (canonical). `AGENTS.md` and technical documents: English. Reports and chat with the owner: Russian.
-5. **The user sees only the name "BiForge"** in the interface: no versions, step numbers or hashes. (Existing labels `v1.6.0` in Simple Mode and "BIFORGE · BX-06" in the `/project` header are removed in patch P01.)
+5. **The user sees only the name "BiForge"** in the interface: no versions, step numbers or hashes. (The labels with versions and step numbers were removed in patch P01; the product version is raised to 2.0 in P25, TZ 16.7.8 step F-07.)
 6. **Save tokens.** The owner is on a free plan. Do not read what you do not need, do not run what you do not need, deliver the patch as early as possible.
 7. **Honest reports.** `node_modules` is usually absent in the model environment, so `npm run check` and `npm run build` often cannot run. Say so; report `BLOCKED` or `NOT_RUN`. Never present an unrun check as passed.
 8. **Programme code is changed only when the patch says so.** Behaviour, tests and `CHANGELOG.md` change together.
@@ -39,7 +39,7 @@
 
 ## Where things are
 
-- Queue of next patches: `docs/NEXT.md`. Current state and next patch: `docs/CURRENT_STATE.md` (next patch is P01 until that file says otherwise; the plan is TZ 16.4.2).
+- Queue of next patches: `docs/NEXT.md`. Current state and next patch: `docs/CURRENT_STATE.md` (the plan to the end of the project is TZ 16.7; the next patches are P19x (conditional) and P25).
 - Patch spec template: `docs/PATCH_TEMPLATE.md`. Report template (starred and gate patches): `docs/STEP_REPORT_TEMPLATE.md`.
 - Repository map, scripts, tests, environment variables: `docs/REPO_MAP.md`.
 - Deployment: `DEPLOY_RAILWAY.md`. Connections inventory: `connectors.yaml`, `docs/CONNECTIONS.md`.

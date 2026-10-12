@@ -252,9 +252,9 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 | `PORT` | set by the platform | HTTP port (default 3000) |
 | `TRUST_PROXY_HOPS` | no | Trusted proxy hops (Railway: 1) |
 | `VITE_GOOGLE_CLIENT_ID` | no | Google OAuth client for Drive; read at build time |
-| `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` | no | Model lists tried in order |
+| `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` | no | Model lists tried in order (default `gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite`; must match `server/modelRegistry.ts`). A set value overrides the default |
 | `GEMINI_BASE_URL` | no | Alternative Gemini endpoint (tests use it for a fake) |
-| `RATE_LIMIT_PER_HOUR`, `DAILY_CALL_CAP` | no | Request limits (defaults 60 and 200) |
+| `RATE_LIMIT_PER_HOUR`, `DAILY_CALL_CAP` | no | Request limits (defaults 60 and 200; recommended `DAILY_CALL_CAP` 1000 during the pilot, see `DEPLOY_RAILWAY.md`) |
 | `MAX_MODEL_CALLS` | no | Model responses per request (default 4) |
 | `LLM_CALL_TIMEOUT_MS`, `LLM_TOTAL_DEADLINE_MS` | no | Model call timeouts (defaults 25000 and 70000) |
 | `LOGIN_MAX_FAILS`, `LOGIN_WINDOW_MIN` | no | Failed sign-in limit (defaults 10 per 15 minutes) |
