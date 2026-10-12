@@ -1,4 +1,4 @@
-# Railway deployment — vPI-01
+# Railway deployment — vPI-02
 
 > **Document:** DEPLOY_RAILWAY · **Product version:** 20b · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, sections 4.4, 13.3–13.6, 14.4, 15, and Appendix E, 9 October 2026)
 

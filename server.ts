@@ -1339,9 +1339,13 @@ function conversationGainAudit(out: any, contextSufficiency: string) {
     gain,
     newOptions,
     structuralNew,
+    substantiveGain,
+    hasNextStep,
     passed: exempt || substantiveGain.length > 0 || structuralNew.length > 0 || (hasNextStep && gain.length > 0),
   };
 }
+
+import { detectUserIntentFlags, isLimitationOnlyReply } from './server/intentFlags.ts';
 
 // Token Economy v1.6: the conversation state already carries durable facts, assumptions,
 // unknowns and hypotheses. Keep only the most recent turns in the raw transcript so older
@@ -1527,6 +1531,11 @@ app.post('/api/conversation', async (req, res) => {
       extraChars: attachmentsBlock.length,
     };
     const prompt = buildConversationPrompt(input, attachmentsBlock);
+    // PI-02: intent flags from the last user turn (and recent history for a standing ban on questions).
+    const intentFlags = detectUserIntentFlags(lastUserText, fullHistory);
+    if (intentFlags.userAskedSearch) {
+      console.info(JSON.stringify({ type: 'intent_flag', search_expected: true }));
+    }
     const callBudget = { used: 0 };   // S-4: the quality retry shares the request's model-call budget
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     let out = data as any;
@@ -1540,13 +1549,28 @@ app.post('/api/conversation', async (req, res) => {
     // Soft quality check: the reply must give the person something they did not name
     // (reframing, hidden assumption, decisive unknown, test, calculation, structurally different branch).
     // One retry; if it still fails the person gets the answer anyway - no hard errors from quality gates.
+    // PI-02: when the user asked for an approximate result and the draft is only limitations → force fail.
     let audit = conversationGainAudit(out, contextSufficiency);
+    if (intentFlags.userAskedApproximate && isLimitationOnlyReply(out, audit)) {
+      audit = { ...audit, passed: false };
+    }
     if (!audit.passed && STRONG_MODELS.length > 1) {
-      const retryPrompt = `${prompt}
+      let retryPrompt = `${prompt}
 
 QUALITY CHECK FAILED. The previous draft gave the person nothing new beyond what they already said, or its only "new" content was another item on the same axis as their existing options. Rewrite the JSON from scratch.
 Before writing, silently do this: restate the problem behind the question; list the assumptions that make the person's current framing look complete; apply the structure operations (timing, sequence, test or pilot, reversible step, splitting, scale, scope, goal reframe, change of conditions, get-the-fact-first, keep-open) and keep only what is realistic for THIS person's facts; look for a contradiction in the person's own statements; find the one unknown whose answer would send them to different branches.
 The reply must contain at least one of: a reframed question, a hidden assumption, a contradiction, a decisive unknown with the cheapest way to learn it, a concrete test, a calculation on the person's own numbers, or a structurally different branch together with what it changes. Fill "gain" and "newOptionTypes" accordingly. Do not rank or choose. Do not mention this check, prompts, models or methodology.`;
+      // PI-02: user criticized evasion → require a strategy change and a usable result under the uncertainty contract.
+      if (intentFlags.userCriticizedEvasion) {
+        retryPrompt += `
+
+The person said the previous answer did not solve their task. Change the approach: do not restate the same limitation. Give the best available result of a marked kind (scenario under assumptions, range or qualitative estimate, comparison, or hypothesis with a way to check).`;
+      }
+      if (intentFlags.userAskedApproximate) {
+        retryPrompt += `
+
+The person asked for an approximate or preliminary result. Do not answer with limitations alone: give a rough available result with explicit caveats.`;
+      }
       try {
         const retry = await generate(retryPrompt, input, 'strong', 'conversation-retry', 1, requestByokKey, requestPreferredModel, callBudget, genOpts);
         const retryOut = retry.data as any;
@@ -1598,7 +1622,8 @@ The reply must contain at least one of: a reframed question, a hidden assumption
     // v21: no two questions in a row on MEDIUM context (the stored reply already ends with the shown question)
     const lastAsst = [...safeHistory].reverse().find((m: any) => m.role === 'assistant')?.content || '';
     const prevAsked = /[?？]\s*$/.test(String(lastAsst).trim());
-    const askAllowed = audit.triage !== 'CRISIS' && !distressMarkerDetected && !documentOut && (problemUnclear || contextSufficiency === 'LOW' || (contextSufficiency === 'MEDIUM' && !prevAsked));
+    // PI-02: explicit user ban on questions forces askAllowed off (critical ambiguity would need an explicit meta override; none is introduced here).
+    const askAllowed = audit.triage !== 'CRISIS' && !distressMarkerDetected && !documentOut && !intentFlags.userForbadeQuestions && (problemUnclear || contextSufficiency === 'LOW' || (contextSufficiency === 'MEDIUM' && !prevAsked));
     const cleanQuestion = askAllowed ? (typeof out.question === 'string' ? firstQuestionOnly(stripMarkdown(scrubInternalLabels(out.question))) : '') : '';
     // The client renders and stores only `reply`, so the follow-up question must be part of it.
     const crisisNow = audit.triage === 'CRISIS' || distressMarkerDetected;
@@ -1606,6 +1631,10 @@ The reply must contain at least one of: a reframed question, a hidden assumption
       ? `\n\n---\nIf you are in immediate danger, contact local emergency services or a person near you right now.\n${SUPPORT_CONTACTS.map((c) => `${c.label}: ${c.value}`).join('\n')}`
       : '';
     const visibleReply = buildVisibleReply(cleanReply, cleanQuestion, askAllowed) + crisisBlock;
+    // PI-02: search_expected in meta/logs when the user asked for a web search (no search tool yet).
+    const responseMeta = intentFlags.userAskedSearch
+      ? { ...(meta as object), search_expected: true }
+      : meta;
     ok(res, {
       reply: visibleReply,
       question: cleanQuestion,
@@ -1624,7 +1653,7 @@ The reply must contain at least one of: a reframed question, a hidden assumption
         userTexts: [String(brief.decision || ''), ...fullHistory.filter((m: any) => m.role === 'user').map((m: any) => m.content)],
         lastAssistantText: [...fullHistory].reverse().find((m: any) => m.role === 'assistant')?.content || '',
       }),
-    }, meta);
+    }, responseMeta);
   } catch (e: any) {
     // Conversation is user-facing: degrade gracefully instead of producing a
     // dead end. The client already stores the user's text locally. Everything
