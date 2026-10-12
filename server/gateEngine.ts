@@ -145,6 +145,29 @@ export function canAdvance(results: Partial<Record<GateName, GateResult>>, requi
 }
 
 /** Release Candidate manifest (12.4): complete only when every field is present. */
+
+/**
+ * P20b: may a Task move to PASS when it has a tracked code head?
+ * No gate snapshot (analysis-only task) → allowed.
+ * Otherwise Release Candidate must be PASS or WAIVED (derived from every required gate).
+ */
+export function gatesAllowTaskPass(
+  gates: Record<GateName, GateResult> | null | undefined,
+): { ok: boolean; blockers: string[] } {
+  if (!gates) return { ok: true, blockers: [] };
+  const rc = gates.release_candidate;
+  if (rc && (rc.status === 'PASS' || rc.status === 'WAIVED')) return { ok: true, blockers: [] };
+  const blockers: string[] = [];
+  for (const g of RC_REQUIRED_GATES) {
+    const s = gates[g]?.status;
+    if (s !== 'PASS' && s !== 'WAIVED') blockers.push(`${g}:${s ?? 'missing'}`);
+  }
+  if (rc && rc.status !== 'PASS' && rc.status !== 'WAIVED') {
+    blockers.push(`release_candidate:${rc.status}`);
+  }
+  return { ok: false, blockers: blockers.slice(0, 30) };
+}
+
 export function releaseManifest(results: Record<GateName, GateResult>, evidence: EvidenceRecord[], commitSha: string, waivers: WaiverRecord[], risks: string[] = []) {
   const used = evidence.filter((e) => e.commitSha === commitSha && !e.invalidated && !validateEvidence(e));
   return {

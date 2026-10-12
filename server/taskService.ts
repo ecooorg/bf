@@ -5,6 +5,8 @@ import {
   DEFAULT_MAX_ATTEMPTS, RUN_STATES, TaskError, assertTaskTransition, canRunTransition, runEffectOnTask, taskFingerprint, taskInputSchema,
   type RunStatus, type TaskInput, type TaskState,
 } from './taskMachine.ts';
+import { gatesAllowTaskPass } from './gateEngine.ts';
+import { getTaskGates } from './gateService.ts';
 
 // Task/Run domain service (TZ 8.1, 8.2). Every change: one transaction, task row locked (FOR UPDATE),
 // version checked, one or more events written. No HTTP routes, no queue (P12).
@@ -149,10 +151,27 @@ export async function transitionTaskInTx(db: Db, input: TransitionInput): Promis
   const t = await lockTask(db, taskId);
   checkVersion(t, expected);
   assertTaskTransition(t.state, input.to, { reason: input.reason, validation: input.validation, attemptsUsed: await countRuns(db, t.id), maxAttempts: t.maxAttempts });
+  let gatesCommit: string | null = null;
+  if (input.to === 'PASS') {
+    const snap = await getTaskGates(db, taskId);
+    gatesCommit = snap.commit;
+    const allow = gatesAllowTaskPass(snap.gates);
+    if (!allow.ok) {
+      const err = new TaskError(
+        'GATES_BLOCKED',
+        'Task PASS requires gate Release Candidate PASS or WAIVED at the current head',
+        409,
+      );
+      (err as any).details = { blockers: allow.blockers, commit: snap.commit };
+      throw err;
+    }
+  }
   return moveTask(db, t, input.to, actor, {
     blockedReason: input.reason ?? null,
     validatedFingerprint: input.to === 'PASS' ? t.inputFingerprint : undefined,
-    details: input.to === 'PASS' ? { validation: input.validation } : input.reason ? { reason: input.reason } : undefined,
+    details: input.to === 'PASS'
+      ? { validation: input.validation, ...(gatesCommit ? { gates_commit: gatesCommit } : {}) }
+      : input.reason ? { reason: input.reason } : undefined,
   });
 }
 
