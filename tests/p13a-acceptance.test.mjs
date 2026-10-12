@@ -1,4 +1,4 @@
-// P13a acceptance (no database): patch tools, preflight, report, CI summary. Describes docs/P13a-SPEC.md.
+// P13a acceptance (no database): patch tools, preflight, report, CI summary. Describes ARCHIVE/P13a-SPEC.md.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

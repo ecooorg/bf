@@ -1,5 +1,5 @@
 // P10 acceptance expectations (TZ 16.3 step 2). Protected by Test Integrity: change only with the owner's approval.
-// They describe docs/P10-SPEC.md and are expected to FAIL until P10 is implemented. No database, no network.
+// They describe ARCHIVE/P10-SPEC.md and are expected to FAIL until P10 is implemented. No database, no network.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -128,7 +128,7 @@ test('CLI: --fake writes a deterministic report; without --fake it refuses with 
 });
 
 test('deliverables: report in docs, ADR-04 draft, npm scripts, check includes test:p10', () => {
-  const report = fs.readFileSync(path.join(root, 'docs/GOLDEN-EVAL-REPORT.md'), 'utf8');
+  const report = fs.readFileSync(path.join(root, 'ARCHIVE/GOLDEN-EVAL-REPORT.md'), 'utf8');
   assert.match(report, /^Mode: fake$/m); assert.match(report, /^# Golden-eval report/m);
   const adr = fs.readFileSync(path.join(root, 'docs/ADR-04-cross-model-policy.md'), 'utf8');
   assert.match(adr, /Draft/); assert.match(adr, /owner/i); assert.match(adr, /hypothesis/i);

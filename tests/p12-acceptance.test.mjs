@@ -1,5 +1,5 @@
 // P12 acceptance expectations (TZ 16.3 step 2). Protected by Test Integrity: change only with the owner's approval.
-// They describe docs/P12-SPEC.md and are expected to FAIL until P12 is implemented. No database needed.
+// They describe ARCHIVE/P12-SPEC.md and are expected to FAIL until P12 is implemented. No database needed.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

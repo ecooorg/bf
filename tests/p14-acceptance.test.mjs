@@ -1,4 +1,4 @@
-// P14 acceptance (no database): artifact rules, boundaries, type by content, safe listing, manifest checksum. Describes docs/P14-SPEC.md.
+// P14 acceptance (no database): artifact rules, boundaries, type by content, safe listing, manifest checksum. Describes ARCHIVE/P14-SPEC.md.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

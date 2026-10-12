@@ -1,5 +1,5 @@
 // P08 acceptance expectations (TZ 16.3 step 2). Protected by Test Integrity: change only with the owner's approval.
-// They describe the contract of docs/P08-SPEC.md and are expected to FAIL until P08 is implemented.
+// They describe the contract of ARCHIVE/P08-SPEC.md and are expected to FAIL until P08 is implemented.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { routeCall, newRouterState } from '../server/router.ts';

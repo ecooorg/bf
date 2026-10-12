@@ -55,7 +55,7 @@ test('Task PASS is impossible without explicit successful validation evidence', 
 });
 
 test('E-01 is not falsely reported as passed without three manual/model_patch pairs', () => {
-  const report = read('docs/P15-REPORT.md');
+  const report = read('ARCHIVE/P15-REPORT.md');
   assert.match(report, /\| E-01,[\s\S]*?\| NOT_RUN \|/);
   assert.match(report, /ADR-10.*pending|pending.*ADR-10/i);
 });

@@ -1,4 +1,4 @@
-// P13 acceptance (no database): budgets, Task Graph v1 validation, approvals rules. Describes docs/P13-SPEC.md.
+// P13 acceptance (no database): budgets, Task Graph v1 validation, approvals rules. Describes ARCHIVE/P13-SPEC.md.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

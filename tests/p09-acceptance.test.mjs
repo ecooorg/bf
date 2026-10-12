@@ -1,5 +1,5 @@
 // P09 acceptance expectations (TZ 16.3 step 2). Protected by Test Integrity: change only with the owner's approval.
-// They describe docs/P09-SPEC.md and are expected to FAIL until P09 is implemented. No database needed.
+// They describe ARCHIVE/P09-SPEC.md and are expected to FAIL until P09 is implemented. No database needed.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { routeCall, newRouterState } from '../server/router.ts';
