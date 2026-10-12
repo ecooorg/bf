@@ -38,7 +38,7 @@
     "test:p13": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p13-acceptance.test.mjs",
     "test:p13a": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p13a-acceptance.test.mjs",
     "test:p14": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p14-acceptance.test.mjs",
-    "patch:pack": "node scripts/patch-pack.mjs",
+    "patch:pack": "node scripts/pack-simple.mjs",
     "eval:golden": "tsx scripts/golden-eval.mjs --fake",
     "test:p09": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p09-acceptance.test.mjs",
     "test:p08": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p08-acceptance.test.mjs",
