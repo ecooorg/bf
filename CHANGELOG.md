@@ -1,4 +1,5 @@
 # Changelog
+- PI-01: Simple Mode conversation prompt gets the uncertainty contract (TZ-INSTRUCTIONS-01 P1): best available result of a marked kind instead of a repeated limitation, no invented numbers, no claimed search. No schema or post-processing change; test `tests/pi01.test.mjs`. Product version label `PI-01`.
 - P22: BX-23 Repair Loop — classify failure, at most two repair packages, stop on limit / identical diff / identical error / no progress / budget with a diagnostic artifact; one flaky CI restart. Product version 22.
 - P21: BX-22.b pilot — structured reviewer findings on DELIVERED code tasks; human decision accept/repair/reject; review gate evidence; product version 21.
 

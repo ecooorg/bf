@@ -1,10 +1,5 @@
-# Патч v22 — CI: package-c
+# Патч vPI-01 — Simple Mode: контракт неопределённости
 
-Замена файла (распаковать поверх репозитория с сохранением путей):
+Источник: `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md`, P1. SPEC: `docs/PI-01-SPEC.md`.
 
-- tests/package-c.test.mjs
-
-Причина: тест искал версию regex'ом (\d+(?:\.\d+\.\d+)?), который не принимает
-буквенный суффикс, а APP_VERSION = '20b'. Совпадения нет, поэтому падало
-"APP_VERSION must be defined in src/config.ts". Новый regex: (\d+[a-z]?(?:\.\d+\.\d+)?).
-Прикладной код не менялся.
+Применить поверх репозитория с сохранением путей. Изменено поведение Simple Mode: в промпт диалога добавлен короткий блок «WHEN THE IDEAL ANSWER IS UNAVAILABLE». Схема JSON ответа и пост-обработка не менялись.

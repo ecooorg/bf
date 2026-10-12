@@ -4,6 +4,11 @@
 >
 > This file records the changes of the application itself. The version here is the product version (`APP_VERSION` in `src/config.ts`). From P19 on it equals the current patch number (P19 → 19). Older entries keep their historical labels. Plan steps of BiForge are named `BX-XX` (TZv3.0, section 16.4); the older identifiers `BF-01`…`BF-44` are frozen and appear only in historical entries. Entries from `v20.0.1` down to `v13` use the numbering scheme that preceded `v1.0` and are kept unchanged.
 
+## vPI-01
+
+- PI-01 (TZ-INSTRUCTIONS-01 P1): Simple Mode conversation prompt gets a short block "WHEN THE IDEAL ANSWER IS UNAVAILABLE" (after HARD BOUNDARIES): state in one sentence what is unavailable, give the best available result of a marked kind (scenario under assumptions, range or qualitative estimate, comparison, hypothesis with a way to check), do not replace it with a repeated limitation, never invent numbers or forecasts, never claim a search or check that was not made, change the approach when the person says the answer does not solve the task.
+- No new JSON fields, no post-processing change (intent flags are PI-02). Version label `PI-01` (track patch, not a P-number).
+
 ## v22
 
 - P22: Repair Loop stop rules and a manual repair package or diagnostic artifact. No Simple Mode change.
