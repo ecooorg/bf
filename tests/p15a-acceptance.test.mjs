@@ -131,17 +131,21 @@ test('CLI monitor exits 0 without keys (NOT_RUN path)', async () => {
   delete env.GROQ_API_KEY;
   delete env.DATABASE_URL;
   const result = await new Promise((resolve) => {
-    const p = spawn(process.execPath, ['--experimental-strip-types', 'scripts/monitor-connections.mjs', '--json', '--dry-run', '--no-db'], {
+    const p = spawn(process.execPath, ['--import', 'tsx', 'scripts/monitor-connections.mjs', '--json', '--dry-run', '--no-db'], {
       env,
       cwd: new URL('..', import.meta.url).pathname,
     });
     let out = '';
+    let err = '';
     p.stdout.on('data', (d) => (out += d));
-    p.stderr.on('data', (d) => (out += d));
-    p.on('close', (code) => resolve({ code, out }));
+    p.stderr.on('data', (d) => (err += d));
+    p.on('close', (code) => resolve({ code, out, err }));
   });
-  assert.equal(result.code, 0, result.out);
-  const j = JSON.parse(result.out);
+  assert.equal(result.code, 0, result.out + result.err);
+  // JSON is on stdout only; stderr may contain Node loader noise
+  const jsonLine = result.out.trim().split('\n').filter((l) => l.startsWith('{')).pop();
+  assert.ok(jsonLine, 'expected JSON on stdout: ' + result.out.slice(0, 200));
+  const j = JSON.parse(jsonLine);
   assert.equal(j.ok, true);
   assert.ok(j.live.every((v) => v.status === 'NOT_RUN' || v.status === 'OK'));
 });

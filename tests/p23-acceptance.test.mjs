@@ -11,7 +11,8 @@ import { asUntrustedDataBlock, listInjectionSignals, looksLikeInjection } from '
 import { redactSecrets, redactDeep, findLeakedSecretNames } from '../server/redact.ts';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const injectionDir = path.join(root, 'tests/fixtures/injection');
+const injectionDir = path.join(root, 'tests');
+const INJECTION_FILES = ['file_approve_plan.txt', 'pr_description_exfil.txt', 'ci_log_fragment.txt', 'plan_node_injection.txt'];
 
 // ---- requireHuman isolation (planService pattern, pure) ----
 const isHuman = (kind) => kind === 'human';
@@ -43,7 +44,7 @@ test('forged actorKind in a request body must not be trusted: server uses litera
 });
 
 test('injection corpus: every fixture is detected as untrusted signals', () => {
-  const files = fs.readdirSync(injectionDir).filter((f) => f.endsWith('.txt'));
+  const files = INJECTION_FILES;
   assert.ok(files.length >= 4);
   for (const name of files) {
     const text = fs.readFileSync(path.join(injectionDir, name), 'utf8');

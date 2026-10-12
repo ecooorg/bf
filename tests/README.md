@@ -1,10 +1,12 @@
-# Prompt-injection corpus (foundation for BX-24 / P23)
+# Tests
 
-Content in these files is **data**, never instructions (TZv3.0 §13.2).
-P23 wires a CI runner that feeds each case into the relevant surface (attached file, plan text, CI log fragment) and asserts:
+Layout is **flat**: all files live directly under `tests/` (no nested folders).
 
-1. No side effect (no approval, no budget change, no registry write).
-2. Output / logs contain no secret values.
-3. The injected imperative text is treated as untrusted content.
+Injection corpus fixtures (P23 / BX-24):
 
-Cases are plain text so they can be embedded in unit tests without network.
+- `file_approve_plan.txt`
+- `pr_description_exfil.txt`
+- `ci_log_fragment.txt`
+- `plan_node_injection.txt`
+
+They are data, not instructions. See `tests/injection-corpus.test.mjs` and `tests/p23-acceptance.test.mjs`.
