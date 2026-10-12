@@ -1,10 +1,10 @@
 # Next patches (queue)
 
-> Updated at end of P22.
+> Updated 12 October 2026. P22 is on production (`da38c1419d51`, version 22, migration 013 applied). See `docs/P22-REPORT.md`.
 
 ## Done recently
 
-- P20, P20b, P21, **P22** (Repair Loop → G3 code path).
+- P20, P20b, P21, **P22** (Repair Loop deployed and checked; G3 not accepted).
 
 ## Queue
 
