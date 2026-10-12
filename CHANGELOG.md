@@ -1,3 +1,9 @@
+## v15a — 2026-10-12
+
+- **P15a (BX-27.a):** provider connection and quota monitoring (Appendix G S1–S2). Migration `014_provider_snapshots`, pure evaluators, CLI `monitor:connections`, weekly GitHub Actions workflow, ADR-11.
+- Instruction track **PI-01 / PI-02 / PI-03final** recorded as complete in CURRENT_STATE.
+- Security foundation for P23: `docs/THREAT_MODEL.md`, `docs/RIGHTS_REVIEW.md`, injection corpus fixtures, `server/redact.ts` + tests.
+
 # Changelog
 - PI-01: Simple Mode conversation prompt gets the uncertainty contract (TZ-INSTRUCTIONS-01 P1): best available result of a marked kind instead of a repeated limitation, no invented numbers, no claimed search. No schema or post-processing change; test `tests/pi01.test.mjs`. Product version label `PI-01`.
 - P22: BX-23 Repair Loop — classify failure, at most two repair packages, stop on limit / identical diff / identical error / no progress / budget with a diagnostic artifact; one flaky CI restart. Product version 22.

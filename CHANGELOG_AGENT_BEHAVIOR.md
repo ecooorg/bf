@@ -1,3 +1,8 @@
+## v15a
+
+- P15a monitoring does not change Router selection or Simple Mode prompts; product version label moves from PI-03final to 15a.
+- Redaction helpers shared with future BX-24; injection corpus is data-only fixtures.
+
 ## vPI-03final
 
 - Кумулятивный поведенческий патч: информационный режим, безопасные формулировки про отсутствие live search, дата сервера в prompt, общие приблизительные диапазоны для внешнего мира, липкий режим по недавним репликам, более сильный порядок моделей и увеличенный per-call timeout.
