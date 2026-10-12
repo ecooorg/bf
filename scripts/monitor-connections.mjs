@@ -101,7 +101,7 @@ const report = {
   snapshots: dryRun || noDb ? [] : live.map((v) => buildSnapshotRow(v)),
 };
 
-const text = JSON.stringify(report, null, 2);
+const text = JSON.stringify(report);
 const leaked = findLeakedSecretNames(text);
 if (leaked.length) {
   console.error('REFUSING TO PRINT: secret values would leak for', leaked.join(','));
