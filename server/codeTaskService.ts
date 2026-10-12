@@ -13,13 +13,17 @@ import {
   taskBranchName, type BranchChange, type ComparedFile, type GitHubAppConfig,
 } from './githubIntegration.ts';
 import { packageAcceptancePaths } from './briefWriter.ts';
+import { buildReviewFindings, type ReviewFindings } from './reviewer.ts';
+import { getTaskGates, recordApproval } from './gateService.ts';
 
 // Code Delivery, executor side (TZ 11.3-11.5; P18 / BX-21.a). A human starts a `manual` run for a task with a Task Package, takes PACKAGE.md
 // into any tool and returns a PR, a branch or a unified diff. Nothing here runs code or calls a model. Merge is never done by this module.
+// P21 / BX-22.b: reviewer findings + human decision (accept | repair | reject) on DELIVERED runs.
 const STATUS = {
   NOT_FOUND: 404, HUMAN_REQUIRED: 403, VALIDATION: 400, PACKAGE_INVALID: 400, PACKAGE_SECRET: 400, PACKAGE_TOO_LARGE: 400, APPROVAL_REQUIRED: 409,
   EXECUTOR_UNAVAILABLE: 409, CODE_TASK_ACTIVE: 409, CODE_TASK_CLOSED: 409, TASK_NOT_ACTIVE: 409, BUDGET_EXCEEDED: 409, GITHUB_NOT_CONFIGURED: 503,
   DIFF_UPLOAD_DISABLED: 409, PR_MISMATCH: 409, PR_NOT_OPEN: 409, BRANCH_MISMATCH: 409, BRANCH_NOT_FOUND: 404, GITHUB_ERROR: 502, ARTIFACT_ERROR: 409,
+  DECISION_REQUIRED: 409, DECISION_EXISTS: 409, HIGH_FINDINGS: 409, NOT_DELIVERED: 409,
 } as const;
 export type CodeTaskErrorCode = keyof typeof STATUS;
 export class CodeTaskError extends Error {
@@ -57,6 +61,10 @@ const mapCodeTask = (r: any) => ({
   packageApprovedAt: (r.package_approved_at ?? null) as Date | null,
   packageApprovedBy: (r.package_approved_by ?? null) as string | null,
   packageBranchSha: (r.package_branch_sha ?? null) as string | null,
+  decision: (r.decision ?? null) as 'accept' | 'repair' | 'reject' | null,
+  decisionReason: (r.decision_reason ?? null) as string | null,
+  decisionAt: (r.decision_at ?? null) as Date | null,
+  reviewFindings: (r.review_findings ?? null) as ReviewFindings | null,
   createdAt: r.created_at as Date, updatedAt: r.updated_at as Date,
 });
 export type CodeTask = ReturnType<typeof mapCodeTask>;
@@ -482,4 +490,105 @@ export async function cancelCodeTask(input: { projectId: string; taskId: string;
   const reason = z.string().trim().min(1).max(500).parse(input.reason);
   const row = await loadRow(await getPool(), input.projectId, input.taskId, input.codeTaskId);
   return settle(row.id, 'FAILED', { reason }, { from: [...OPEN_STATES], event: 'code_task.failed' });
+}
+
+const DECISIONS = ['accept', 'repair', 'reject'] as const;
+export type CodeTaskDecision = (typeof DECISIONS)[number];
+
+/**
+ * P21 / BX-22.b: run structured reviewer on a DELIVERED code task (gates + delivery → findings).
+ * Pure structure; no model call. Findings are stored on the row and audited.
+ */
+export async function runCodeTaskReview(input: {
+  projectId: string; taskId: string; codeTaskId: string; actorKind: string; notes?: string | null;
+}): Promise<{ codeTask: CodeTask; findings: ReviewFindings }> {
+  requireHuman(input.actorKind);
+  const pool = await getPool();
+  const row = await loadRow(pool, input.projectId, input.taskId, input.codeTaskId);
+  if (row.status !== 'DELIVERED') {
+    throw new CodeTaskError('NOT_DELIVERED', 'Review requires a DELIVERED code task', { status: row.status });
+  }
+  const gatesOut = await getTaskGates(pool, row.task_id, row.head_sha ?? undefined);
+  const gateList = gatesOut.gates
+    ? Object.entries(gatesOut.gates).map(([gate, g]: [string, any]) => ({
+        gate: gate as any,
+        status: (g?.status ?? 'NOT_RUN') as any,
+        reasons: Array.isArray(g?.reasons) ? g.reasons : [],
+      }))
+    : [];
+  const findings = buildReviewFindings({
+    commitSha: row.head_sha,
+    delivery: row.delivery,
+    filesChanged: row.files_changed,
+    linesChanged: row.lines_changed,
+    violations: Array.isArray(row.violations) ? row.violations : [],
+    gates: gateList,
+    notes: input.notes ?? null,
+  });
+  const upd = await pool.query(
+    `UPDATE code_tasks SET review_findings=$2::jsonb, updated_at=now() WHERE id=$1 AND status='DELIVERED' RETURNING *`,
+    [row.id, JSON.stringify(findings)],
+  );
+  if (!upd.rows[0]) throw new CodeTaskError('CODE_TASK_CLOSED', 'The code task is no longer delivered');
+  await audit(pool, row.project_id, 'code_task.reviewed', {
+    code_task_id: row.id, task_id: row.task_id, high_count: findings.highCount, has_unresolved_high: findings.hasUnresolvedHigh,
+  });
+  return { codeTask: mapCodeTask(upd.rows[0]), findings };
+}
+
+/**
+ * P21: human decision on a delivered PR/branch/diff — accept | repair | reject (TZ 11.5 step 8).
+ * Merge remains human-only in GitHub (11.5 step 9). Accept with unresolved high findings requires a reason.
+ */
+export async function decideCodeTask(input: {
+  projectId: string; taskId: string; codeTaskId: string; decision: CodeTaskDecision; reason?: string | null; actorKind: string;
+}): Promise<CodeTask> {
+  requireHuman(input.actorKind);
+  if (!(DECISIONS as readonly string[]).includes(input.decision)) {
+    throw new CodeTaskError('VALIDATION', 'decision must be accept, repair or reject');
+  }
+  const reason = input.reason != null ? z.string().trim().max(1000).parse(input.reason) : null;
+  const pool = await getPool();
+  const row = await loadRow(pool, input.projectId, input.taskId, input.codeTaskId);
+  if (row.status !== 'DELIVERED') {
+    throw new CodeTaskError('NOT_DELIVERED', 'A decision requires a DELIVERED code task', { status: row.status });
+  }
+  if (row.decision) {
+    throw new CodeTaskError('DECISION_EXISTS', 'A decision was already recorded for this code task', { decision: row.decision });
+  }
+  const findings = (row.review_findings ?? null) as ReviewFindings | null;
+  if (input.decision === 'accept' && findings?.hasUnresolvedHigh && !(reason && reason.length > 0)) {
+    throw new CodeTaskError('HIGH_FINDINGS', 'Accepting with unresolved high findings requires a non-empty reason', {
+      high_count: findings.highCount,
+    });
+  }
+  if ((input.decision === 'reject' || input.decision === 'repair') && !(reason && reason.length > 0)) {
+    throw new CodeTaskError('VALIDATION', `${input.decision} requires a non-empty reason`);
+  }
+
+  const head = row.head_sha as string | null;
+  if (head && /^[0-9a-f]{40}$/i.test(head)) {
+    if (input.decision === 'accept') {
+      await recordApproval(pool, {
+        projectId: row.project_id, taskId: row.task_id, gate: 'review', commitSha: head,
+        actor: 'human', approvalId: `code_decision_${row.id}`, status: 'PASS',
+      }).catch(() => { /* head may lack prior evidence path; decision still records */ });
+    } else if (input.decision === 'reject') {
+      await recordApproval(pool, {
+        projectId: row.project_id, taskId: row.task_id, gate: 'review', commitSha: head,
+        actor: 'human', approvalId: `code_decision_${row.id}`, status: 'FAIL',
+      }).catch(() => {});
+    }
+  }
+
+  const upd = await pool.query(
+    `UPDATE code_tasks SET decision=$2, decision_reason=$3, decision_at=now(), updated_at=now()
+     WHERE id=$1 AND status='DELIVERED' AND decision IS NULL RETURNING *`,
+    [row.id, input.decision, reason],
+  );
+  if (!upd.rows[0]) throw new CodeTaskError('DECISION_EXISTS', 'A decision was already recorded for this code task');
+  await audit(pool, row.project_id, 'code_task.decision', {
+    code_task_id: row.id, task_id: row.task_id, decision: input.decision, reason: reason ?? null,
+  });
+  return mapCodeTask(upd.rows[0]);
 }
