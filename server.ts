@@ -528,10 +528,12 @@ app.post('/api/projects/:projectId/tasks/:taskId/code/brief', async (req, res) =
       context_files: z.array(z.object({ path: z.string(), content: z.string() })).max(50).optional(),
       limits: z.object({ maxFiles: z.number().int().positive().max(50).optional(), maxChangedLines: z.number().int().positive().max(5000).optional() }).optional(),
     }).strict().parse(req.body);
+    const fileList = (xs: { path: string; content: string }[] | undefined) =>
+      xs?.map((f) => ({ path: f.path, content: f.content }));
     const pkg = buildTaskPackageFromBrief({
       taskId: task.id, projectId: task.projectId, goal: body.goal, constraints: body.constraints,
       acceptanceCriteria: body.acceptance_criteria, allowedPaths: body.allowed_paths, sensitivity: body.sensitivity,
-      acceptanceTests: body.acceptance_tests, contextFiles: body.context_files, limits: body.limits,
+      acceptanceTests: fileList(body.acceptance_tests), contextFiles: fileList(body.context_files), limits: body.limits,
     });
     res.json({ success: true, data: pkg });
   } catch (error) { projectError(res, error); }
