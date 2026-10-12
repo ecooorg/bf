@@ -1,6 +1,6 @@
-# BiForge v1.6.0
+# BiForge v19
 
-> **Document:** README · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
+> **Document:** README · **Product version:** 19 · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 
 Decision cockpit implementing the **Before You Choose** method (BiForge).
 
@@ -79,7 +79,7 @@ Distress detection works in two layers: a multilingual marker list (`src/support
 
 ## Version
 
-One service version everywhere (it is not shown to the user in the interface; the screens show only "BiForge"), defined in `src/config.ts` (`APP_VERSION`); it is independent of the specification number (TZv3.0); `npm run check` fails if `package.json`, README, DEPLOY_RAILWAY.md or the changelog disagree. The local-storage data schema keeps its own number, `SCHEMA_VERSION`.
+One service version everywhere (not shown in the UI; screens show only "BiForge"), defined in `src/config.ts` (`APP_VERSION`). From P19 on it equals the current patch number (P19 → 19). `npm run check` fails if `package.json`, README, DEPLOY_RAILWAY.md or CHANGELOG_AGENT_BEHAVIOR disagree. The local-storage data schema keeps its own number, `SCHEMA_VERSION`.
 Highlights: conversation-first agent with invisible method discipline, memory of the next step between visits, multilingual crisis safety, soft quality checks instead of hard errors, safe Google Drive sync, password sign-in with signed cookies. See `CHANGELOG_AGENT_BEHAVIOR.md`.
 
 ## Deployment notes

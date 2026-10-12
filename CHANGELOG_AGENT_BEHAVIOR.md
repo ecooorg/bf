@@ -1,8 +1,13 @@
 # Changelog — BiForge: agent behavior and model routing
 
-> **Document:** CHANGELOG_AGENT_BEHAVIOR · **Product version:** 1.6.0 (Simple Mode) · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
+> **Document:** CHANGELOG_AGENT_BEHAVIOR · **Product version:** 19 · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026)
 >
-> This file records the changes of the application itself. The version here is the product version (`APP_VERSION`) and is independent of the specification number. Plan steps of BiForge are named `BX-XX` (TZv3.0, section 16.4); the older identifiers `BF-01`…`BF-44` are frozen and appear only in historical entries. Entries from `v20.0.1` down to `v13` use the numbering scheme that preceded `v1.0` and are kept unchanged.
+> This file records the changes of the application itself. The version here is the product version (`APP_VERSION` in `src/config.ts`). From P19 on it equals the current patch number (P19 → 19). Older entries keep their historical labels. Plan steps of BiForge are named `BX-XX` (TZv3.0, section 16.4); the older identifiers `BF-01`…`BF-44` are frozen and appear only in historical entries. Entries from `v20.0.1` down to `v13` use the numbering scheme that preceded `v1.0` and are kept unchanged.
+
+## v19
+
+- Product version scheme: `APP_VERSION` equals the current patch number (single source: `src/config.ts`). README, DEPLOY_RAILWAY, `package.json` and this section stay in sync via `scripts/check-version.mjs`.
+- No Simple Mode behaviour change in this entry; P19 adds gated `model_patch` in Project Mode only.
 
 ## v1.6.0
 

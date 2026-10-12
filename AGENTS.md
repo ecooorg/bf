@@ -53,6 +53,7 @@ If, when building a patch, the Navigator has not provided the SPEC, the expectat
 - **ARCHIVE/** holds historical documents that are no longer needed for current development (old SPECs, completed reports, superseded plans). They are kept for history only.
 - **CONCEPTS/** holds material for future development (drafts, proposals, concepts, preliminary designs) that is not yet binding requirements or active documentation.
 - New documents of those categories must be placed in the matching folder at creation time; do not let such material accumulate in the root or in working directories. Active requirements, current SPECs, ADRs in force, and process documents stay in `docs/` or the root.
+- **Product version.** Single source of truth: `APP_VERSION` in `src/config.ts`. From P19 onward the value equals the current patch number as a decimal string (patch P19 → `"19"`, P20 → `"20"`). On every patch bump: (1) `src/config.ts`, (2) `package.json` `"version"`, (3) first line of `README.md` and `DEPLOY_RAILWAY.md` (`vN`), (4) a new `## vN` section at the top of `CHANGELOG_AGENT_BEHAVIOR.md`. Do not scatter other hard-coded current-version strings; code imports `APP_VERSION`. `scripts/check-version.mjs` enforces the sync. The UI still shows only the name "BiForge" (no version to the user).
 - A change to a connection (environment variable, endpoint, permission) is made together with `connectors.yaml` and `docs/CONNECTIONS.md` in the same patch (both exist in the repository).
 
 ## 5. Delivery of work (actual process)
