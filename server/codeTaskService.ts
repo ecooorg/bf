@@ -9,9 +9,10 @@ import {
   taskPackageSchema, validateChangeSet, validateModelPatch, type ChangeFile, type CodeExecutor, type CodeExecutorId, type ExecutorState, type TaskPackage, type Violation,
 } from './codeExecutor.ts';
 import {
-  commitChangesToBranch, compareToBase, diffUploadEnabled, findPullRequestByBranch, githubConfigFromEnv, openPullRequest, readBranchHead, readPullRequest, readTextFile,
+  commitChangesToBranch, commitTaskPackage, compareToBase, diffUploadEnabled, findPullRequestByBranch, githubConfigFromEnv, githubWritesEnabled, openPullRequest, readBranchHead, readPullRequest, readTextFile,
   taskBranchName, type BranchChange, type ComparedFile, type GitHubAppConfig,
 } from './githubIntegration.ts';
+import { packageAcceptancePaths } from './briefWriter.ts';
 
 // Code Delivery, executor side (TZ 11.3-11.5; P18 / BX-21.a). A human starts a `manual` run for a task with a Task Package, takes PACKAGE.md
 // into any tool and returns a PR, a branch or a unified diff. Nothing here runs code or calls a model. Merge is never done by this module.
@@ -53,6 +54,9 @@ const mapCodeTask = (r: any) => ({
   filesChanged: (r.files_changed ?? null) as number | null, linesChanged: (r.lines_changed ?? null) as number | null,
   statusReason: (r.status_reason ?? null) as string | null, violations: (r.violations ?? []) as Violation[],
   packageHash: r.package_hash as string, packageArtifactId: (r.package_artifact_id ?? null) as string | null, packageArtifactVersion: (r.package_artifact_version ?? null) as number | null,
+  packageApprovedAt: (r.package_approved_at ?? null) as Date | null,
+  packageApprovedBy: (r.package_approved_by ?? null) as string | null,
+  packageBranchSha: (r.package_branch_sha ?? null) as string | null,
   createdAt: r.created_at as Date, updatedAt: r.updated_at as Date,
 });
 export type CodeTask = ReturnType<typeof mapCodeTask>;
@@ -110,7 +114,7 @@ export async function startCodeTask(input: { projectId: string; taskId: string; 
   const projectId = idSchema.parse(input.projectId), taskId = idSchema.parse(input.taskId);
   const baseBranch = baseBranchSchema.parse(input.baseBranch ?? 'main');
   const pkg = parsePackage(input.package);
-  if (pkg.sensitivity === 'high') throw new CodeTaskError('APPROVAL_REQUIRED', 'Handing a package with sensitivity high to an external tool needs a separate approval (TZ 13.6); not available yet');
+  // P20: high sensitivity packages may be stored, but export/commit/handoff require approveCodePackage first (TZ 13.6).
   const md = renderPackage(taskId, pkg);
   const hash = packageHash(pkg);
   const project = await getProject(projectId);
@@ -180,9 +184,96 @@ export async function getCodeTask(projectId: string, taskId: string, codeTaskId:
   return mapCodeTask(await loadRow(await getPool(), projectId, taskId, codeTaskId));
 }
 /** PACKAGE.md for hand-over (11.3), read from the artifact registry with its integrity check. Never committed to the repository. */
+
+/** P20: human approves the Task Package for handoff / commit (TZ 11.3, 13.6). Required before export when sensitivity is high. */
+export async function approveCodePackage(input: {
+  projectId: string; taskId: string; codeTaskId: string; actorKind: string; actor?: string;
+}): Promise<CodeTask> {
+  requireHuman(input.actorKind);
+  const actor = (input.actor || 'human').trim().slice(0, 200) || 'human';
+  const row = await loadRow(await getPool(), input.projectId, input.taskId, input.codeTaskId);
+  if (!['WAITING_HUMAN', 'BLOCKED'].includes(row.status)) {
+    throw new CodeTaskError('CODE_TASK_CLOSED', 'Only an open code task package can be approved', { status: row.status });
+  }
+  const pool = await getPool();
+  const upd = await pool.query(
+    `UPDATE code_tasks SET package_approved_at=now(), package_approved_by=$2, updated_at=now() WHERE id=$1 RETURNING *`,
+    [row.id, actor],
+  );
+  await inTx(async (db) => {
+    await audit(db, input.projectId, 'code_task.package_approved', { code_task_id: row.id, task_id: input.taskId, actor });
+  });
+  return mapCodeTask(upd.rows[0]);
+}
+
+/** Paths declared in the stored package for Test Integrity baseline (P20). */
+export function acceptancePathsFromCodeTaskRow(row: { package?: unknown } | any): string[] {
+  try {
+    const pkg = typeof row.package === 'string' ? JSON.parse(row.package) : row.package;
+    if (!pkg) return [];
+    return packageAcceptancePaths(pkg as TaskPackage);
+  } catch { return []; }
+}
+
+/**
+ * P20: commit approved package files to biforge/<task_id> when GitHub writes are enabled.
+ * PACKAGE.md stays an artifact only (not committed). Acceptance tests from the package become the integrity baseline.
+ */
+export async function commitApprovedPackage(input: {
+  projectId: string; taskId: string; codeTaskId: string; actorKind: string;
+}, deps: CodeTaskDeps = {}): Promise<{ codeTask: CodeTask; branch: string; commitShas: string[] }> {
+  requireHuman(input.actorKind);
+  const row = await loadRow(await getPool(), input.projectId, input.taskId, input.codeTaskId);
+  if (!row.package_approved_at) {
+    throw new CodeTaskError('APPROVAL_REQUIRED', 'Approve the package before committing it to the task branch');
+  }
+  const writeOn = deps.diffUpload?.() ?? (diffUploadEnabled() || githubWritesEnabled());
+  if (!writeOn) {
+    throw new CodeTaskError('DIFF_UPLOAD_DISABLED', 'GitHub writes are off; set GITHUB_DIFF_UPLOAD=true (or enable model_patch writes) to commit the package');
+  }
+  const cfg = deps.githubConfig?.() ?? githubConfigFromEnv();
+  if (!cfg) throw new CodeTaskError('GITHUB_NOT_CONFIGURED', 'GitHub App is not configured');
+  const pkg = row.package as TaskPackage;
+  const taskId = row.task_id as string;
+  const files: Array<{ path: string; content: string }> = [
+    { path: `.biforge/tasks/${taskId}/SPEC.md`, content: pkg.specMd },
+    { path: `.biforge/tasks/${taskId}/ACCEPTANCE.md`, content: pkg.acceptanceMd },
+    { path: `.biforge/tasks/${taskId}/EXECUTOR_PROMPT.md`, content: pkg.executorPromptMd },
+    { path: 'AGENTS.md', content: pkg.agentsMd },
+    ...pkg.acceptanceTests.map((f) => ({ path: f.path, content: f.content })),
+  ];
+  try {
+    const out = await commitTaskPackage(cfg, {
+      taskId,
+      baseBranch: row.base_branch,
+      files,
+      message: `Task Package ${taskId} (approved)`,
+      writeEnabled: true,
+    }, deps.fetcher);
+    const lastSha = out.commitShas.filter(Boolean).pop() || null;
+    const pool = await getPool();
+    const upd = await pool.query(
+      `UPDATE code_tasks SET package_branch_sha=COALESCE($2, package_branch_sha), branch=$3, updated_at=now() WHERE id=$1 RETURNING *`,
+      [row.id, lastSha, out.branch],
+    );
+    await inTx(async (db) => {
+      await audit(db, input.projectId, 'code_task.package_committed', { code_task_id: row.id, branch: out.branch, commits: out.commitShas.length });
+    });
+    return { codeTask: mapCodeTask(upd.rows[0]), branch: out.branch, commitShas: out.commitShas };
+  } catch (e: any) {
+    const msg = String(e?.message || e);
+    if (msg.includes('github_write_disabled')) throw new CodeTaskError('DIFF_UPLOAD_DISABLED', msg);
+    throw new CodeTaskError('GITHUB_ERROR', msg.slice(0, 200));
+  }
+}
+
 export async function exportPackage(projectId: string, taskId: string, codeTaskId: string, actorKind: string): Promise<{ filename: string; text: string; hash: string; packageHash: string }> {
   requireHuman(actorKind);
   const row = await loadRow(await getPool(), projectId, taskId, codeTaskId);
+  const pkgExp = row.package as TaskPackage;
+  if (pkgExp?.sensitivity === 'high' && !row.package_approved_at) {
+    throw new CodeTaskError('APPROVAL_REQUIRED', 'Approve this high-sensitivity package before export (TZ 13.6)');
+  }
   let text: string;
   try {
     const a = row.package_artifact_id ? await readArtifact(row.package_artifact_id, row.package_artifact_version ?? undefined) : null;

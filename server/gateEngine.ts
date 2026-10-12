@@ -63,16 +63,35 @@ export const isProtectedTestPath = (p: string): boolean => {
 };
 export interface ChangedFile { filename: string; status?: string; previous_filename?: string }
 
-/** Test Integrity (12.4): any add, change, rename or removal under tests/acceptance/** is FAIL unless a human waived it. */
-export function evaluateTestIntegrity(files: ChangedFile[], opts: { truncated?: boolean } = {}): { status: GateStatus; reasons: string[]; touched: string[] } {
-  if (opts.truncated) return { status: 'BLOCKED', reasons: ['diff_truncated'], touched: [] };
+/**
+ * Test Integrity (12.4 + P20): any add/change/rename/removal under tests/acceptance/** is FAIL
+ * unless a human waived it, OR the path is declared in the approved Task Package (package baseline).
+ * Package-declared acceptance tests may land on biforge/<task_id> without a false FAIL (TZ 11.3 / P18 open question).
+ */
+export function evaluateTestIntegrity(
+  files: ChangedFile[],
+  opts: { truncated?: boolean; packageAcceptancePaths?: string[] } = {},
+): { status: GateStatus; reasons: string[]; touched: string[]; packageBaseline: string[] } {
+  if (opts.truncated) return { status: 'BLOCKED', reasons: ['diff_truncated'], touched: [], packageBaseline: [] };
+  const baseline = new Set<string>();
+  for (const raw of opts.packageAcceptancePaths ?? []) {
+    const n = normalizeRepoPath(raw);
+    if (n && isProtectedTestPath(n)) baseline.add(n.toLowerCase());
+  }
   const touched = new Set<string>();
+  const packageBaseline: string[] = [];
   for (const f of files) {
-    for (const name of [f.filename, f.previous_filename]) if (name && isProtectedTestPath(name)) touched.add(name);
+    for (const name of [f.filename, f.previous_filename]) {
+      if (!name || !isProtectedTestPath(name)) continue;
+      const n = normalizeRepoPath(name);
+      const key = (n ?? name).toLowerCase();
+      if (n && baseline.has(key)) { packageBaseline.push(n); continue; }
+      touched.add(n ?? name);
+    }
   }
   return touched.size
-    ? { status: 'FAIL', reasons: ['protected_tests_changed'], touched: [...touched].sort().slice(0, 50) }
-    : { status: 'PASS', reasons: [], touched: [] };
+    ? { status: 'FAIL', reasons: ['protected_tests_changed'], touched: [...touched].sort().slice(0, 50), packageBaseline: [...new Set(packageBaseline)].sort().slice(0, 50) }
+    : { status: 'PASS', reasons: packageBaseline.length ? ['package_baseline'] : [], touched: [], packageBaseline: [...new Set(packageBaseline)].sort().slice(0, 50) };
 }
 
 /** An evidence record may be stored only when it satisfies the rules; PASS needs a real source, SHA, tool and rules version. */

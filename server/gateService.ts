@@ -147,8 +147,19 @@ export async function ingestGitHubEvent(event: string, payload: unknown, deps: I
     if (cfg) {
       try {
         const diff = await (deps.listFiles ?? listPullRequestFiles)(cfg, pr.number);
-        const r = evaluateTestIntegrity(diff.files, { truncated: diff.truncated });
-        status = r.status; details = { reasons: r.reasons, touched: r.touched };
+        let packageAcceptancePaths: string[] = [];
+        try {
+          const ct = (await db.query(
+            `SELECT package FROM code_tasks WHERE task_id=$1 AND status IN ('WAITING_HUMAN','RUNNING','BLOCKED','DELIVERED') ORDER BY attempt DESC LIMIT 1`,
+            [task.taskId],
+          )).rows[0];
+          const pkg = ct?.package;
+          if (pkg && Array.isArray(pkg.acceptanceTests)) {
+            packageAcceptancePaths = pkg.acceptanceTests.map((f: { path?: string }) => f.path).filter((x: unknown): x is string => typeof x === 'string');
+          }
+        } catch { /* baseline optional */ }
+        const r = evaluateTestIntegrity(diff.files, { truncated: diff.truncated, packageAcceptancePaths });
+        status = r.status; details = { reasons: r.reasons, touched: r.touched, packageBaseline: r.packageBaseline };
       } catch { details = { reason: 'diff_fetch_failed' }; }
     }
     const inserted = await recordEvidence(db, {
