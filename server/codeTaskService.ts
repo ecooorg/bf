@@ -15,6 +15,7 @@ import {
 import { packageAcceptancePaths } from './briefWriter.ts';
 import { buildReviewFindings, type ReviewFindings } from './reviewer.ts';
 import { getTaskGates, recordApproval } from './gateService.ts';
+import { buildDiagnosticReport, buildRepairPrompt, classifyFailure, evaluateRepairStop, type RepairAttempt, type StopReason } from './repairLoop.ts';
 
 // Code Delivery, executor side (TZ 11.3-11.5; P18 / BX-21.a). A human starts a `manual` run for a task with a Task Package, takes PACKAGE.md
 // into any tool and returns a PR, a branch or a unified diff. Nothing here runs code or calls a model. Merge is never done by this module.
@@ -23,7 +24,7 @@ const STATUS = {
   NOT_FOUND: 404, HUMAN_REQUIRED: 403, VALIDATION: 400, PACKAGE_INVALID: 400, PACKAGE_SECRET: 400, PACKAGE_TOO_LARGE: 400, APPROVAL_REQUIRED: 409,
   EXECUTOR_UNAVAILABLE: 409, CODE_TASK_ACTIVE: 409, CODE_TASK_CLOSED: 409, TASK_NOT_ACTIVE: 409, BUDGET_EXCEEDED: 409, GITHUB_NOT_CONFIGURED: 503,
   DIFF_UPLOAD_DISABLED: 409, PR_MISMATCH: 409, PR_NOT_OPEN: 409, BRANCH_MISMATCH: 409, BRANCH_NOT_FOUND: 404, GITHUB_ERROR: 502, ARTIFACT_ERROR: 409,
-  DECISION_REQUIRED: 409, DECISION_EXISTS: 409, HIGH_FINDINGS: 409, NOT_DELIVERED: 409,
+  DECISION_REQUIRED: 409, DECISION_EXISTS: 409, HIGH_FINDINGS: 409, NOT_DELIVERED: 409, REPAIR_NOT_TRIGGERED: 409, NOT_LATEST: 409,
 } as const;
 export type CodeTaskErrorCode = keyof typeof STATUS;
 export class CodeTaskError extends Error {
@@ -65,6 +66,14 @@ const mapCodeTask = (r: any) => ({
   decisionReason: (r.decision_reason ?? null) as string | null,
   decisionAt: (r.decision_at ?? null) as Date | null,
   reviewFindings: (r.review_findings ?? null) as ReviewFindings | null,
+  repairOf: (r.repair_of ?? null) as string | null,
+  diffHash: (r.diff_hash ?? null) as string | null,
+  errorSignature: (r.error_signature ?? null) as string | null,
+  failingTests: (r.failing_tests ?? null) as number | null,
+  failureKind: (r.failure_kind ?? null) as string | null,
+  ciRestarts: Number(r.ci_restarts ?? 0),
+  repairStopReasons: (r.repair_stop_reasons ?? null) as StopReason[] | null,
+  diagnosticArtifactId: (r.diagnostic_artifact_id ?? null) as string | null,
   createdAt: r.created_at as Date, updatedAt: r.updated_at as Date,
 });
 export type CodeTask = ReturnType<typeof mapCodeTask>;
@@ -592,3 +601,156 @@ export async function decideCodeTask(input: {
   });
   return mapCodeTask(upd.rows[0]);
 }
+
+const SHA64 = /^[0-9a-f]{64}$/i;
+
+/**
+ * P22 / BX-23: Repair Loop on the latest DELIVERED code run.
+ * One flaky CI restart does not open a new executor run. Otherwise classify the failure,
+ * stop with a diagnostic artifact, or open the next manual PACKAGE.md.
+ */
+export async function requestRepair(input: {
+  projectId: string; taskId: string; codeTaskId: string; actorKind: string;
+  trigger?: 'ci' | 'reviewer' | 'human';
+  flaky?: boolean;
+  diffHash?: string | null;
+  failingTests?: number | null;
+  logExcerpt?: string | null;
+  links?: string[];
+}): Promise<{ action: 'ci_restart' | 'repair_started' | 'stopped'; codeTask: CodeTask; child?: CodeTask; reasons?: StopReason[]; diagnostic?: string }> {
+  requireHuman(input.actorKind);
+  const pool = await getPool();
+  const row = await loadRow(pool, input.projectId, input.taskId, input.codeTaskId);
+  if (row.status !== 'DELIVERED') throw new CodeTaskError('NOT_DELIVERED', 'Repair requires a DELIVERED code task', { status: row.status });
+  const latest = (await pool.query('SELECT max(attempt)::int AS n FROM code_tasks WHERE task_id=$1', [row.task_id])).rows[0];
+  if (Number(latest.n) !== Number(row.attempt)) throw new CodeTaskError('NOT_LATEST', 'Repair runs only on the latest code attempt');
+
+  if (Array.isArray(row.repair_stop_reasons) && row.repair_stop_reasons.length) {
+    return { action: 'stopped', codeTask: mapCodeTask(row), reasons: row.repair_stop_reasons };
+  }
+  const existingChild = (await pool.query(
+    `SELECT * FROM code_tasks WHERE repair_of=$1 ORDER BY attempt DESC LIMIT 1`, [row.id],
+  )).rows[0];
+  if (existingChild && (existingChild.status === 'WAITING_HUMAN' || existingChild.status === 'RUNNING' || existingChild.status === 'BLOCKED')) {
+    return { action: 'repair_started', codeTask: mapCodeTask(row), child: mapCodeTask(existingChild) };
+  }
+
+  const findings = (row.review_findings ?? null) as ReviewFindings | null;
+  const triggered = row.decision === 'repair'
+    || (row.decision === 'reject' && !!(row.decision_reason && String(row.decision_reason).trim()))
+    || !!findings?.hasUnresolvedHigh
+    || input.trigger === 'ci' || input.trigger === 'reviewer' || input.trigger === 'human';
+  if (!triggered) throw new CodeTaskError('REPAIR_NOT_TRIGGERED', 'Repair needs a CI failure trigger, a high review finding, or a human repair/reject decision');
+
+  if (input.flaky && Number(row.ci_restarts ?? 0) < 1) {
+    const upd = await pool.query(`UPDATE code_tasks SET ci_restarts=1, updated_at=now() WHERE id=$1 RETURNING *`, [row.id]);
+    await audit(pool, row.project_id, 'code_task.ci_restart', { code_task_id: row.id, task_id: row.task_id });
+    return { action: 'ci_restart', codeTask: mapCodeTask(upd.rows[0]) };
+  }
+
+  const gatesOut = await getTaskGates(pool, row.task_id, row.head_sha ?? undefined);
+  const gateList = gatesOut.gates
+    ? Object.entries(gatesOut.gates).map(([gate, g]: [string, any]) => ({ gate, status: g?.status ?? 'NOT_RUN', reasons: g?.reasons ?? [] }))
+    : [];
+  const classified = classifyFailure({
+    gates: gateList,
+    highFindings: findings?.highCount ?? 0,
+    decision: row.decision,
+    decisionReason: row.decision_reason,
+    failingTests: input.failingTests ?? null,
+    diffHash: input.diffHash ?? null,
+  });
+  const diffHash = input.diffHash && SHA64.test(input.diffHash) ? input.diffHash.toLowerCase() : null;
+  const failingTests = typeof input.failingTests === 'number' && input.failingTests >= 0 ? Math.floor(input.failingTests) : null;
+  await pool.query(
+    `UPDATE code_tasks SET error_signature=$2, failure_kind=$3, diff_hash=COALESCE($4, diff_hash), failing_tests=COALESCE($5, failing_tests), updated_at=now() WHERE id=$1`,
+    [row.id, classified.signature, classified.kind, diffHash, failingTests],
+  );
+
+  const historyRows = (await pool.query(
+    `SELECT attempt, diff_hash, error_signature, failing_tests, id FROM code_tasks WHERE task_id=$1 AND status='DELIVERED' ORDER BY attempt`,
+    [row.task_id],
+  )).rows;
+  const history: RepairAttempt[] = historyRows.map((h: any) => ({
+    attempt: Number(h.attempt),
+    diffHash: h.id === row.id ? (diffHash ?? h.diff_hash) : h.diff_hash,
+    errorSignature: h.id === row.id ? classified.signature : h.error_signature,
+    failingTests: h.id === row.id ? (failingTests ?? (h.failing_tests == null ? null : Number(h.failing_tests))) : (h.failing_tests == null ? null : Number(h.failing_tests)),
+  }));
+  const priorRepairs = Number((await pool.query(
+    `SELECT count(*)::int AS n FROM code_tasks WHERE task_id=$1 AND repair_of IS NOT NULL`, [row.task_id],
+  )).rows[0].n);
+  let budgetExceeded = false;
+  try { await checkCodeTaskBudget(pool, row.project_id, row.task_id); }
+  catch (e) {
+    if (e instanceof CodeTaskError && e.code === 'BUDGET_EXCEEDED') budgetExceeded = true;
+    else throw e;
+  }
+  const stop = evaluateRepairStop({ priorRepairs, history, budgetExceeded });
+  if (stop.stop) {
+    const diagnostic = buildDiagnosticReport({
+      taskId: row.task_id, codeTaskId: row.id, reasons: stop.reasons, kind: classified.kind, summary: classified.summary, attempts: history,
+    });
+    let artifactId: string | null = null;
+    try {
+      const art = await saveArtifact({
+        projectId: row.project_id, artifactId: `repair_${sha256Hex(Buffer.from(row.task_id)).slice(0, 32)}`,
+        filename: 'REPAIR_DIAGNOSIS.md', mime: 'text/markdown', text: diagnostic,
+        createdBy: 'biforge:repair_loop', derivedFrom: [`task:${row.task_id}`, `code_task:${row.id}`],
+      });
+      artifactId = art.artifactId;
+    } catch (e) {
+      if ((e as Error)?.name === 'ArtifactFormatError') throw new CodeTaskError('ARTIFACT_ERROR', 'The diagnostic report could not be stored', { reason: (e as any).code ?? null });
+      throw e;
+    }
+    const upd = await pool.query(
+      `UPDATE code_tasks SET repair_stop_reasons=$2::jsonb, diagnostic_artifact_id=$3, updated_at=now() WHERE id=$1 RETURNING *`,
+      [row.id, JSON.stringify(stop.reasons), artifactId],
+    );
+    await audit(pool, row.project_id, 'code_task.repair_stopped', {
+      code_task_id: row.id, task_id: row.task_id, reasons: stop.reasons, diagnostic_artifact_id: artifactId,
+    });
+    return { action: 'stopped', codeTask: mapCodeTask(upd.rows[0]), reasons: stop.reasons, diagnostic };
+  }
+
+  const pkg = parsePackage(row.package);
+  const attempts = history.map((h) => `attempt ${h.attempt}`);
+  const nextPkg: TaskPackage = {
+    ...pkg,
+    executorPromptMd: buildRepairPrompt(pkg.executorPromptMd, {
+      kind: classified.kind, summary: classified.summary, attempts,
+      logExcerpt: input.logExcerpt ?? null,
+      links: (input.links ?? []).filter((l) => typeof l === 'string' && l.startsWith('https://')).slice(0, 10),
+    }),
+  };
+  const md = renderPackage(row.task_id, nextPkg);
+  const hash = packageHash(nextPkg);
+  let artifact: { artifactId: string; version: number };
+  try {
+    artifact = await saveArtifact({
+      projectId: row.project_id, artifactId: `pkg_${sha256Hex(Buffer.from(row.task_id)).slice(0, 40)}`,
+      filename: 'PACKAGE.md', mime: 'text/markdown', text: md, createdBy: 'biforge:repair_loop', derivedFrom: [`task:${row.task_id}`, `code_task:${row.id}`],
+    });
+  } catch (e) {
+    if ((e as Error)?.name === 'ArtifactFormatError') throw new CodeTaskError('ARTIFACT_ERROR', 'PACKAGE.md could not be stored as an artifact', { reason: (e as any).code ?? null });
+    throw e;
+  }
+  const child = await inTx(async (db) => {
+    await lockTask(db, row.task_id);
+    const open = (await db.query(`SELECT id, status FROM code_tasks WHERE task_id=$1 AND status = ANY($2::text[]) LIMIT 1`, [row.task_id, [...OPEN_STATES]])).rows[0];
+    if (open) throw new CodeTaskError('CODE_TASK_ACTIVE', 'This task already has an open code run', { codeTaskId: open.id, status: open.status });
+    await checkCodeTaskBudget(db, row.project_id, row.task_id);
+    const attempt = Number((await db.query('SELECT COALESCE(max(attempt),0)::int + 1 AS n FROM code_tasks WHERE task_id=$1', [row.task_id])).rows[0].n);
+    const id = newId();
+    await db.query(
+      `INSERT INTO code_tasks(id,project_id,task_id,attempt,executor,status,base_branch,package_hash,package,package_artifact_id,package_artifact_version,repair_of,error_signature,failure_kind)
+       VALUES($1,$2,$3,$4,$5,'WAITING_HUMAN',$6,$7,$8::jsonb,$9,$10,$11,$12,$13)`,
+      [id, row.project_id, row.task_id, attempt, row.executor, row.base_branch, hash, JSON.stringify(nextPkg), artifact.artifactId, artifact.version, row.id, classified.signature, classified.kind],
+    );
+    await audit(db, row.project_id, 'code_task.repair_started', { code_task_id: id, parent_id: row.id, task_id: row.task_id, attempt, kind: classified.kind });
+    return mapCodeTask((await db.query('SELECT * FROM code_tasks WHERE id=$1', [id])).rows[0]);
+  });
+  const parent = mapCodeTask((await pool.query('SELECT * FROM code_tasks WHERE id=$1', [row.id])).rows[0]);
+  return { action: 'repair_started', codeTask: parent, child };
+}
+
