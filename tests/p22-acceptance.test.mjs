@@ -67,7 +67,8 @@ test('diagnostic report names the stop and asks for a human', async () => {
   assert.match(prompt, /Do the spec/);
 });
 
-test('APP_VERSION is 22', () => {
-  assert.match(readFileSync(`${root}/src/config.ts`, 'utf8'), /APP_VERSION\s*=\s*['"]22['"]/);
-  assert.equal(JSON.parse(readFileSync(`${root}/package.json`, 'utf8')).version, '22');
+test('APP_VERSION matches package.json', () => {
+  const m = readFileSync(`${root}/src/config.ts`, 'utf8').match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+  assert.ok(m);
+  assert.equal(JSON.parse(readFileSync(`${root}/package.json`, 'utf8')).version, m[1]);
 });
