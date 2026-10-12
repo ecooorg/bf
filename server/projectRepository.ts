@@ -107,6 +107,35 @@ export async function listStateVersions(projectIdInput: string, limit = 50) {
   return result.rows;
 }
 
+
+/** Delete a project and cascaded rows. Audit keeps only the fact of deletion (ADR-08). */
+export async function deleteProject(input: { projectId: string; actor?: string }) {
+  const projectId = idSchema.parse(input.projectId);
+  const actor = z.string().min(1).max(120).parse(input.actor ?? 'human');
+  const pool = await getPool();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const existing = await client.query('SELECT id, name FROM projects WHERE id=$1 FOR UPDATE', [projectId]);
+    if (!existing.rows[0]) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+    await client.query('DELETE FROM projects WHERE id=$1', [projectId]);
+    await client.query(
+      'INSERT INTO audit_events(id,project_id,event_type,actor,details) VALUES($1,$2,$3,$4,$5::jsonb)',
+      [sortableId(), null, 'project.deleted', actor, JSON.stringify({ project_id: projectId, name: existing.rows[0].name })],
+    );
+    await client.query('COMMIT');
+    return { id: projectId, deleted: true as const };
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function recordAuditEvent(input: { eventType: string; actor: string; projectId?: string; details?: Record<string, unknown> }) {
   const eventType = z.string().min(1).max(120).parse(input.eventType);
   const actor = z.string().min(1).max(120).parse(input.actor);

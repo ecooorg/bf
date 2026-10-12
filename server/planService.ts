@@ -56,6 +56,10 @@ export async function setProjectSettings(input: { projectId: string; actorKind: 
     `INSERT INTO project_settings(project_id, approval_mode, max_concurrent_runs) VALUES($1, COALESCE($2::text,'supervised'), COALESCE($3::int,$4::int))
      ON CONFLICT (project_id) DO UPDATE SET approval_mode=COALESCE($2::text, project_settings.approval_mode),
        max_concurrent_runs=COALESCE($3::int, project_settings.max_concurrent_runs), updated_at=now()`, [projectId, mode, max, DEFAULT_MAX_CONCURRENT_RUNS]);
+  await pool.query(
+    'INSERT INTO audit_events(id,project_id,event_type,actor,details) VALUES($1,$2,$3,$4,$5::jsonb)',
+    [newId(), projectId, 'project.settings.changed', 'human', JSON.stringify({ approvalMode: mode, maxConcurrentRuns: max })],
+  );
   return getProjectSettings(projectId);
 }
 
