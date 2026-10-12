@@ -1,21 +1,40 @@
 # Current state
 
-> Updated at the end of every patch (AGENTS.md section 8).
+> Updated 2026-10-12 (plan reorder + GitHub App confirmation).
 
 ## Product
 
-- **Simple Mode** (`/`): works; internal version 19; not changed by P19.
-- **Project Mode** (`/project`, opt-in, PostgreSQL): built patch by patch from `docs/BiForge_TZ_v3.md` (plan: TZ 16.4.2).
+- **Simple Mode** (`/`): works; product version **19** (`APP_VERSION` = patch number).
+- **Project Mode** (`/project`, opt-in, PostgreSQL): built through P19 from `docs/BiForge_TZ_v3.md`.
 
-## Done (see `CHANGELOG.md` for details)
+## Done (code)
 
 | Patch | Result |
 | --- | --- |
-| P02–P18 | As in previous CURRENT_STATE (through CodeExecutor `manual`, Gate Engine, GitHub integration). |
-| P19 | `model_patch` executor: structured-patch schema, `validateModelPatch`, `createModelPatchExecutor`; gated by `CODE_EXECUTOR=model_patch` (ADR-10 interim). Repository restructure: `ARCHIVE/` (historical SPECs/reports), `CONCEPTS/` (future drafts). Packer replaced by `scripts/pack-simple.mjs` (timeout-safe, no hanging child processes). |
+| P01–P14, P13a, P13b | Foundation through full Artifact Registry, process automation, plan UI/worker wiring |
+| P15 | Partial: structure for G2; **E-01 not run**, ADR-10 **interim** |
+| P16 | GitHub integration (library); **App now live** (see below) |
+| P17 | Gate Engine + CI evidence via webhook |
+| P18 | CodeExecutor `manual`, PACKAGE.md, PR/branch/diff intake |
+| P19 | `model_patch` schema/validation/executor stub; gated by `CODE_EXECUTOR=model_patch`; ARCHIVE/CONCEPTS; pack-simple |
 
-## Open
+## Confirmed by owner (2026-10-12)
 
-- Owner: GitHub App, E-01 evidence into ADR-10 / final decision on enabling `model_patch`.
-- P17/P18 limits unchanged (no UI for gates/code; package commit vs Test Integrity open for P20).
-- Next: P15a or P20 per owner command; P19 enablement only after E-01.
+- GitHub App **biforge-control** (App ID 5276629, installation present).
+- Repository permissions: Metadata, Contents, Checks, Pull requests — **read-only**.
+- Railway variables: `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_REPOSITORY_OWNER`, `GITHUB_REPOSITORY_NAME`.
+- Webhook deliveries for `check_run` return **202** to `https://<railway>/api/webhooks/github`.
+- Stage “GitHub connected for BiForge” treated as **confirmed** for planning (full CLI `verify:connections` optional when shell is available).
+
+## Open / debt
+
+- E-01 evidence and **final ADR-10** (`model_patch` stays off by default).
+- P18: Task Package not committed to task branch (Test Integrity conflict) → **P20**.
+- P17: Task PASS not tied to gates; no requirements/spec/review approval routes → **P20b**.
+- P19: no production model→PR loop until P19x after E-01.
+- ADR-06 still proposed (repo visibility/org).
+- Write permissions / `GITHUB_DIFF_UPLOAD` not enabled (correct for now).
+
+## Next
+
+Operational order: **TZ 16.4.2.a** and `docs/NEXT.md`. First code patch: **P20**.
