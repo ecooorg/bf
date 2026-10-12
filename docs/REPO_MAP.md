@@ -91,6 +91,10 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/codeExecutor.ts` | CodeExecutor interface and `manual` executor, Task Package schema, PACKAGE.md, protected paths, allowed_paths, secret scan, unified diff parse/validate/apply; pure, no I/O (P18) |
 | `server/codeTaskService.ts` | Code runs (`code_tasks`): start with a package, PR / branch / diff result, validation, diff applied through the Git Data API, poll and webhook sync, cancel, PACKAGE.md export (P18); review + human decision accept/repair/reject (P21); Repair Loop start or diagnostic stop (P22) |
 | `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
+| `server/redact.ts` | Secret redaction helpers (values never logged; P15a/P23) |
+| `server/untrustedData.ts` | Label untrusted text as data; injection signal list (P23) |
+| `server/auditCatalog.ts` | Required audit event names and human-only set (P23) |
+| `server/providerMonitor.ts` | Pure S1–S2 monitoring evaluators (P15a / Appendix G) |
 | `server/files.ts` | Reading uploaded files (PDF, Word, Excel, etc.), attachment limits |
 | `server/documents.ts` | Building Word and PDF documents |
 | `server/reasoningState.ts` | Reading and sanitizing the decision state sent to the model |
@@ -153,6 +157,10 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:pi02` | PI-02: intent flags unit + conversation integration (fake Gemini) |
 | `npm run test:pi03` | PI-03: conversation mode unit + mode paragraph in the prompt and health version (fake Gemini) |
 | `npm run test:p22` | P22: Repair Loop stop rules and diagnostic report |
+| `npm run test:p23` | P23: BX-24 security evidence (actorKind, injection, audit catalog, redaction) |
+| `npm run test:p15a` | P15a: monitoring evaluators and monitor CLI (offline) |
+| `npm run test:redact` | Secret redaction unit tests |
+| `npm run test:injection` | Injection corpus fixtures (flat under tests/) |
 | `npm run test:p21` | P21: reviewer findings + decision routes |
 | `npm run test:p20b` | P20b: PASS ↔ gates, approve routes |
 | `npm run test:p20` | P20: brief_writer, package integrity baseline, approval helpers |
@@ -208,6 +216,15 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/code-task-live.test.mjs` | Code runs on PostgreSQL: human only, idempotent start, race safety, budget, PR / branch / diff results, blocked and resubmitted, webhook sync (P18) | PostgreSQL |
 | `tests/code-task-api-live.test.mjs` | The real server: session only, same origin, strict bodies, start, export, refusals (P18) | PostgreSQL |
 | `tests/p15-acceptance.test.mjs` | Static invariants for plan/approval API, worker lifecycle, budget guard, Run-linked ledger and evidence-backed validation (P13b/P15) | no |
+| `tests/p15a-acceptance.test.mjs` | P15a monitoring pure logic and monitor CLI | no |
+| `tests/p23-acceptance.test.mjs` | P23 security evidence: actorKind, injection, audit catalog, docs | no |
+| `tests/redact.test.mjs` | Secret redaction helpers | no |
+| `tests/injection-corpus.test.mjs` | Injection corpus present and treated as data | no |
+| `tests/file_approve_plan.txt` | Injection fixture: approve/budget imperatives | no |
+| `tests/pr_description_exfil.txt` | Injection fixture: PR exfil attempt | no |
+| `tests/ci_log_fragment.txt` | Injection fixture: CI log with forged operator lines | no |
+| `tests/plan_node_injection.txt` | Injection fixture: plan node prose | no |
+| `tests/README.md` | Notes on flat test layout and injection corpus | no |
 | `tests/p14-live-acceptance.test.mjs` | Binary artifacts, manifest, tamper and missing-object detection, limits, upgrade of older versions, project delete (P14, live PostgreSQL) | yes |
 | `tests/analysis-live.test.mjs` | Analysis run, review and artifact on live PostgreSQL (P06) | yes |
 | `tests/context-builder.test.mjs` | Context Builder slice and token limit (P06) | no |
