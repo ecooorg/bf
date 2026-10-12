@@ -30,8 +30,9 @@ export type RegistryEntry = z.infer<typeof registryEntrySchema>;
 
 /** Seed: only what already works in BE v1.6.0 (Gemini, default cascades). Model names live only here. */
 const GEMINI_MODELS = [
-  'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.7-flash',
-  'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite',
+  // gemini-3.7-flash and gemini-3.5-flash are deprecated aliases that Google routes to 3.8 / 3.6 (they share
+  // the same capacity and quota), so they are not independent fallbacks and are left out (checked 12 Oct 2026).
+  'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite',
 ];
 export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => registryEntrySchema.parse({
   providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
