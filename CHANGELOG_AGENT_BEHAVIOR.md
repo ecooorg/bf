@@ -1,3 +1,7 @@
+## v23
+
+- P23 / BX-24: threat model, injection corpus side-effect tests, secret redaction, rights review, audit catalog; project delete + login-failure audit; settings change audit.
+
 ## v15a
 
 - P15a monitoring does not change Router selection or Simple Mode prompts; product version label moves from PI-03final to 15a.

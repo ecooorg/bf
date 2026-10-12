@@ -1,3 +1,8 @@
+## v23 — 2026-10-12
+
+- **P23 (BX-24):** security evidence — formal threat model, injection corpus CI assertions, redaction, rights review, audit completeness (login fail, project delete, settings change).
+- Product version **23**.
+
 ## v15a — 2026-10-12
 
 - **P15a (BX-27.a):** provider connection and quota monitoring (Appendix G S1–S2). Migration `014_provider_snapshots`, pure evaluators, CLI `monitor:connections`, weekly GitHub Actions workflow, ADR-11.

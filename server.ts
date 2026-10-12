@@ -20,7 +20,7 @@ import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, 
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
-import { consumeRateLimit, createProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
+import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
@@ -268,6 +268,10 @@ app.post('/api/login', async (req, res) => {
   const ok = a.length === b.length && a.length > 0 && crypto.timingSafeEqual(a, b);
   if (!ok) {
     if (!PROJECT_MODE_ENABLED) loginLimiter.recordFailure(ip);
+    if (PROJECT_MODE_ENABLED) {
+      try { await recordAuditEvent({ eventType: 'auth.login.failed', actor: 'human', details: { auth_mode: 'password' } }); }
+      catch { /* audit optional on failure path; never block with 503 for wrong password */ }
+    }
     return res.status(401).json({ success: false, error: 'Invalid password', code: 'INVALID_PASSWORD' });
   }
   if (PROJECT_MODE_ENABLED) {
@@ -334,6 +338,15 @@ app.post('/api/projects', async (req, res) => {
     const input = createProjectRequestSchema.parse(req.body);
     const project = await createProject({ name: input.name, state: input.state ?? { passport: defaultPassport(input.goal) } });
     res.status(201).json({ success: true, data: project });
+  } catch (error) { projectError(res, error); }
+});
+
+
+app.delete('/api/projects/:projectId', async (req, res) => {
+  try {
+    const result = await deleteProject({ projectId: req.params.projectId, actor: 'human' });
+    if (!result) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+    res.json({ success: true, data: result });
   } catch (error) { projectError(res, error); }
 });
 

@@ -1,6 +1,6 @@
-# Railway deployment — v15a
+# Railway deployment — v23
 
-> **Document:** DEPLOY_RAILWAY · **Product version:** 15a · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, sections 4.4, 13.3–13.6, 14.4, 15, and Appendix E, 9 October 2026)
+> **Document:** DEPLOY_RAILWAY · **Product version:** 23 · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, sections 4.4, 13.3–13.6, 14.4, 15, and Appendix E, 9 October 2026)
 
 This file describes how the current application (Simple Mode) is deployed. Project Mode and PostgreSQL are opt-in (section "Project Mode (BX-06, opt-in)" below); the other BiForge layers are not deployed yet. Remaining deployment changes are listed in "Planned changes (TZv3.0)"; some of them are already done (see `docs/CURRENT_STATE.md`).
 
