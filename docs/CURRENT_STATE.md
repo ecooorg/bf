@@ -4,7 +4,7 @@
 
 ## Product
 
-- **Simple Mode** (`/`): works; internal version 1.6.0; not changed by P19.
+- **Simple Mode** (`/`): works; internal version 19; not changed by P19.
 - **Project Mode** (`/project`, opt-in, PostgreSQL): built patch by patch from `docs/BiForge_TZ_v3.md` (plan: TZ 16.4.2).
 
 ## Done (see `CHANGELOG.md` for details)
