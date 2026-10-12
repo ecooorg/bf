@@ -75,3 +75,5 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 
 ## P16 — GitHub integration foundation
 - Added least-privilege GitHub App connection verification and signed webhook ingress for `pull_request` / `check_run` events. Event processing and Code Delivery remain disabled pending owner decisions.
+
+- Model pool: removed deprecated aliases gemini-3.7-flash and gemini-3.5-flash (routed by Google to 3.8 / 3.6). A quota error from one model no longer aborts the whole request: the model is parked for 30 min (`llm_quota` log) and the next one is tried; `GEMINI_QUOTA` is returned only when every model is out of quota. Defaults: LLM_CALL_TIMEOUT_MS 25000, LLM_TOTAL_DEADLINE_MS 70000.

@@ -19,7 +19,7 @@ If `APP_PASSWORD` is empty in production the site is open to everyone; the serve
 ## Optional
 
 - `VITE_GOOGLE_CLIENT_ID` — Google OAuth Web client ID for the Railway origin. Enables the Google Drive button. It is read at build time.
-- `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` — comma-separated model lists, tried in order (defaults in `server.ts`).
+- `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` — comma-separated model lists, tried in order (defaults in `server.ts`: `gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite`). Do not add `gemini-3.7-flash` / `gemini-3.5-flash`: since 8 Oct 2026 Google routes them to 3.8 / 3.6, so they share the same quota and are not a fallback. A per-model quota error now parks that model for 30 minutes and the request moves on to the next one.
 - `RATE_LIMIT_PER_HOUR` (default 60), `DAILY_CALL_CAP` (default 200). Requests made with the user's own key (`x-byok-key`) do not use the daily cap.
 - `MAX_MODEL_CALLS` — model responses allowed for one HTTP request, retries included (default 4).
 - `EXPERT_ATTACH_TOTAL_CHARS` (default 20000) — attached file text allowed in expert requests.

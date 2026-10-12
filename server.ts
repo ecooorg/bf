@@ -153,20 +153,21 @@ interface GenerateOpts { extraParts?: any[]; extraNumberSource?: string; extraCh
 // Availability-first defaults. These are deliberately conservative: the router learns from
 // real requests instead of assuming that the most intelligent model is the most available one.
 // Stable model IDs only; legacy/latest aliases are not used in the default pool.
+// gemini-3.7-flash / gemini-3.5-flash are deprecated aliases routed by Google to 3.8 / 3.6: same quota, so no real fallback.
 const LIGHT_MODELS = (
   process.env.MODEL_CASCADE_LIGHT ||
-  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
+  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
 ).split(',').map((s) => s.trim()).filter(Boolean);
 
 const STRONG_MODELS = (
   process.env.MODEL_CASCADE_STRONG ||
-  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
+  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
 ).split(',').map((s) => s.trim()).filter(Boolean);
 
 // Keep the whole request bounded. The router is designed to move to a reserve model
 // quickly rather than hammering one overloaded model with repeated retries.
-const LLM_PER_CALL_TIMEOUT_MS = Number(process.env.LLM_CALL_TIMEOUT_MS) || 35000;
-const LLM_TOTAL_DEADLINE_MS = Number(process.env.LLM_TOTAL_DEADLINE_MS) || 55000;
+const LLM_PER_CALL_TIMEOUT_MS = Number(process.env.LLM_CALL_TIMEOUT_MS) || 25000;
+const LLM_TOTAL_DEADLINE_MS = Number(process.env.LLM_TOTAL_DEADLINE_MS) || 70000;
 const MAX_MODEL_CALLS = Number(process.env.MAX_MODEL_CALLS) || 4;
 const GEMINI_BASE_URL = process.env.GEMINI_BASE_URL || '';
 const isLightModel = (m: string) => /lite/i.test(m);
@@ -183,11 +184,13 @@ type ModelHealth = {
   ewmaLatencyMs: number;
   cooldownUntil: number;
   lastEventAt: number;
+  quotaHit: boolean;   // cooldown was caused by an upstream quota error (per-model/per-project)
 };
 const modelHealth = new Map<string, ModelHealth>();
 const MODEL_COOLDOWN_503_MS = 60 * 1000;
 const MODEL_COOLDOWN_429_MS = 3 * 60 * 1000;
 const MODEL_COOLDOWN_BAD_MS = 10 * 60 * 1000;
+const MODEL_COOLDOWN_QUOTA_MS = 30 * 60 * 1000;
 const BACKOFF_503_MIN_MS = 700;
 const BACKOFF_503_MAX_MS = 1800;
 const BACKOFF_429_MIN_MS = 4500;
@@ -954,7 +957,7 @@ function healthForModel(model: string): ModelHealth {
   let h = modelHealth.get(model);
   if (!h) {
     h = { successes: 0, transientFailures: 0, rateLimits: 0, badModelErrors: 0, timeouts: 0,
-      consecutiveFailures: 0, ewmaLatencyMs: 0, cooldownUntil: 0, lastEventAt: 0 };
+      consecutiveFailures: 0, ewmaLatencyMs: 0, cooldownUntil: 0, lastEventAt: 0, quotaHit: false };
     modelHealth.set(model, h);
   }
   return h;
@@ -965,15 +968,20 @@ function noteModelSuccess(model: string, latencyMs: number): void {
   h.successes++;
   h.consecutiveFailures = 0;
   h.cooldownUntil = 0;
+  h.quotaHit = false;
   h.lastEventAt = Date.now();
   h.ewmaLatencyMs = h.ewmaLatencyMs ? (h.ewmaLatencyMs * 0.7 + latencyMs * 0.3) : latencyMs;
 }
 
-function noteModelFailure(model: string, kind: '503' | '429' | 'bad' | 'timeout'): void {
+function noteModelFailure(model: string, kind: '503' | '429' | 'bad' | 'timeout' | 'quota'): void {
   const h = healthForModel(model);
   h.consecutiveFailures++;
   h.lastEventAt = Date.now();
-  if (kind === '503') {
+  h.quotaHit = kind === 'quota';
+  if (kind === 'quota') {
+    h.rateLimits++;
+    h.cooldownUntil = Date.now() + MODEL_COOLDOWN_QUOTA_MS;
+  } else if (kind === '503') {
     h.transientFailures++;
     h.cooldownUntil = Date.now() + MODEL_COOLDOWN_503_MS;
   } else if (kind === '429') {
@@ -1078,6 +1086,7 @@ async function generate(
   const t0 = Date.now();
   let lastErr: Error | null = null;
   let sawTransient = false;
+  let sawQuota = false;
   let lastTransientErr: Error | null = null;
   let attempts = 0;         // actual upstream model calls made for this request
   let formatFailures = 0;   // unusable answers: bad JSON
@@ -1098,7 +1107,14 @@ async function generate(
     const ready = orderedModels.filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
     // If every model is in a circuit-breaker cooldown, do not immediately hammer one
     // again. The caller will receive the safe fallback instead.
-    if (!ready.length) break;
+    if (!ready.length) {
+      if (round > 0) break;
+      // Every model is cooling down. Say why: all quota -> quota error, otherwise "unavailable".
+      if (orderedModels.length && orderedModels.every((m) => healthForModel(m).quotaHit)) throw new GeminiQuotaError();
+      if (orderedModels.length) throw new GeminiUnavailableError(
+        'Gemini models are cooling down after recent errors. The request was not lost.', { stage });
+      break;
+    }
     const chain = ready;
 
     for (let localIndex = 0; localIndex < chain.length; localIndex++) {
@@ -1183,7 +1199,14 @@ async function generate(
         };
       } catch (e: any) {
         if (e instanceof GeminiFormatError) throw e;
-        if (isGeminiQuotaError(e)) throw new GeminiQuotaError();
+        if (isGeminiQuotaError(e)) {
+          // Quota is per model: park this model for a while and try the next one instead of failing the whole request.
+          sawQuota = true;
+          noteModelFailure(model, 'quota');
+          console.warn(JSON.stringify({ type: 'llm_quota', model, stage, reason: String((e as any)?.message || e).slice(0, 180) }));
+          lastErr = new GeminiQuotaError();
+          continue;
+        }
         lastErr = e instanceof Error ? e : new Error(String(e));
         const msg = lastErr.message || '';
         const status = geminiStatus(e);
@@ -1216,6 +1239,7 @@ async function generate(
     await sleep(pause);
   }
 
+  if (sawQuota && !sawTransient) throw new GeminiQuotaError();
   if (sawTransient) {
     const transientErr = lastTransientErr || lastErr;
     const status = geminiStatus(transientErr);
