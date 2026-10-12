@@ -3,7 +3,10 @@
 > Read this file first. It is enough to start work; do not read the whole specification (225 KB).
 > Binding rules: this file and `AGENTS.md`. Where other documents disagree, these two win.
 
+
 ## What this is (5 lines)
+
+0. **Patch session prompt:** before implementing a numbered patch, read `docs/PATCH_PROMPT.md` (universal instructions: context order, version = patch number, packaging `bf-PNN.zip`, report). Then follow this file and `AGENTS.md`.
 
 1. BiForge is a decision and project agent on Node/Express + React + the Gemini API, deployed on Railway.
 2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (BiForge, internal version 19).

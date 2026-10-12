@@ -14,6 +14,7 @@
 | `tests/` | Tests (see below) |
 | `public/` | Icons for the browser and PWA manifest |
 | `docs/NEXT.md` | Queue of next patches (goal, TZ sections, files, tests); updated by the AI Assistant at the end of every patch |
+| `docs/PATCH_PROMPT.md` | Universal session prompt for any PNN: context order, version = patch number, packaging `bf-PNN.zip`, report |
 | `docs/` | Specification, policies, step specs, reports; plus informational agent-instruction materials (not binding; see table below) |
 | `.github/workflows/ci.yml` | CI on every push (writes a short result line, P13a): migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |
 | `.github/workflows/ui-check.yml` | Browser layout check (`npm run test:ui`) |
