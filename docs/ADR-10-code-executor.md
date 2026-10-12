@@ -6,7 +6,7 @@
 BiForge_TZ_v3.md §11.9 requires a three-pair experiment comparing `manual` with `model_patch` on the same small real tasks, using prewritten acceptance tests. The decision threshold is defined by the TZ and must be based on measured results, not synthetic tests.
 
 ## Decision
-**Interim decision, owner, 2026-10-11 (recommendation accepted in chat):** the execution path stays `manual`; `model_patch` is not enabled; BX-21.b (P19) code is implemented and gated by CODE_EXECUTOR=model_patch; enablement deferred until E-01. No E-01 numbers are recorded in the repository yet, so the rule below has not been applied. The final decision is taken when the E-01 table of three pairs is in `docs/P15-REPORT.md`.
+**Interim decision, owner, 2026-10-11 (recommendation accepted in chat):** the execution path stays `manual`; `model_patch` is not enabled; BX-21.b (P19) code is implemented and gated by CODE_EXECUTOR=model_patch; enablement deferred until E-01. No E-01 numbers are recorded in the repository yet, so the rule below has not been applied. The final decision is taken when the E-01 table of three pairs is in `ARCHIVE/P15-REPORT.md`.
 
 Earlier text of this patch:
 No final decision is made by this patch. Until E-01 evidence is recorded and reviewed by the owner, the supported execution path remains `manual`; `model_patch` is not enabled and no Code Delivery capability is implied.

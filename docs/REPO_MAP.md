@@ -34,15 +34,15 @@
 
 ## `docs/` — informational agent-instruction pack (not binding)
 
-These Markdown files may be present under `docs/`. They are **reference / proposal only** (including post-launch shelf plans). Coding agents must not treat them as SPEC, must not change product behaviour from them without an explicit patch, and tests must not depend on them.
+These Markdown files live under `CONCEPTS/`. They are **reference / proposal only** (including post-launch shelf plans). Coding agents must not treat them as SPEC, must not change product behaviour from them without an explicit patch, and tests must not depend on them.
 
 | Path | What it is |
 | --- | --- |
-| `docs/BiForge_Agent_Instructions_v1_Extracted.md` | Extracted current (v1.6.0) agent instructions from code |
-| `docs/BiForge_Agent_Instructions_v2_Target.md` | Proposed target instruction set (uncertainty contract, modes) |
-| `docs/TZ_BiForge_Instructions_Uncertainty.md` | TZ-INSTRUCTIONS-01: how to adopt v2 behaviour incrementally |
-| `docs/BiForge_analytical_note_recommendations.md` | Analytical note on dialogue failure and architecture options |
-| `docs/TP_BiForge_Hallucination_CrossCheck.md` | TP-HALLUC-01: post-launch anti-hallucination / multi-model cross-check (shelf; not current work) |
+| `CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md` | Extracted current (v1.6.0) agent instructions from code |
+| `CONCEPTS/BiForge_Agent_Instructions_v2_Target.md` | Proposed target instruction set (uncertainty contract, modes) |
+| `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` | TZ-INSTRUCTIONS-01: how to adopt v2 behaviour incrementally |
+| `CONCEPTS/BiForge_analytical_note_recommendations.md` | Analytical note on dialogue failure and architecture options |
+| `CONCEPTS/TP_BiForge_Hallucination_CrossCheck.md` | TP-HALLUC-01: post-launch anti-hallucination / multi-model cross-check (shelf; not current work) |
 
 Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `server/reasoningState.ts`, and history in `CHANGELOG_AGENT_BEHAVIOR.md`. Canonical product plan remains `docs/BiForge_TZ_v3.md`.
 
@@ -58,7 +58,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/contextBuilder.ts` | Context Builder: State slice within a token limit, token measurement; pure function |
 | `server/analysisService.ts` | Slice S1: analysis run (Router-min -> patch pipeline -> artifact -> ledger), human review, decisions |
 | `server/goldenEval.ts` | Golden-eval (P10): task schema, deterministic scoring, fake adapters, report |
-| `scripts/golden-tasks.json` | Golden task set (18 RU/EN tasks); report: `docs/GOLDEN-EVAL-REPORT.md` |
+| `scripts/golden-tasks.json` | Golden task set (18 RU/EN tasks); report: `ARCHIVE/GOLDEN-EVAL-REPORT.md` |
 | `server/taskMachine.ts` | Task/Run state machine (P11): states, transitions, errors, input fingerprint; pure functions |
 | `server/taskService.ts` | Task/Run domain service (P11): tasks, runs, events in PostgreSQL; idempotent create/enqueue (not wired to routes) |
 | `server/queueMachine.ts` | Job queue rules (P12): states, lease timing, `QueueError`; pure functions |
@@ -117,7 +117,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/check-version.mjs` | One version everywhere (`src/config.ts`, `package.json`, README, DEPLOY, changelog) |
 | `scripts/lint-copy.mjs` | Forbidden wording scan |
 | `scripts/patch-tools.mjs` | Patch tools (P13a): tree diff, cumulative archive, preflight (manifest, nested folders, secrets, `tests/acceptance/**`), report, CI summary text |
-| `scripts/patch-pack.mjs` | `npm run patch:pack`: preflight, creates and verifies ZIP before independent timed checks, then writes `PASS`/`PARTIAL` report (see `docs/P13b-SPEC.md`) |
+| `scripts/pack-simple.mjs` | `npm run patch:pack` (P19): timeout-safe zip of changed/new files only; no hanging child processes. Legacy `scripts/patch-pack.mjs` kept for history. |
 | `scripts/ci-summary.mjs` | Last step of `.github/workflows/ci.yml`: one-line CI result and annotation with the first failed test |
 | `scripts/run-independent-checks.mjs` | CI check runner: runs each command in the `check` chain independently, with a 10-minute timeout and per-stage logs |
 | `scripts/migrate.mjs` | Applies `migrations/` to `DATABASE_URL` |
@@ -140,7 +140,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:ui` | Browser layout check (Playwright; not in `check`) |
 | `npm run db:migrate` | Apply migrations |
 | `npm run test:database:live` | Live PostgreSQL contract tests (CI only without a local database) |
-| `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `docs/P13a-SPEC.md` |
+| `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `ARCHIVE/P13a-SPEC.md` |
 | `npm run test:github` | GitHub App JWT, permissions, webhook signature, fake API flow, PR/check-run reads, Task Package commit limits (P16) |
 | `npm run test:gate` | Gate Engine rules without a database (P17) |
 | `npm run test:p18` | CodeExecutor: package, PACKAGE.md, protected paths, diff parse/validate/apply, seeded fuzz, Git Data API writes on a fake GitHub (P18) |
