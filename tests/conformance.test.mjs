@@ -84,7 +84,7 @@ test('router: deterministic selection with recorded rejections', () => {
   const a = selectCandidates(r2, newRouterState(), ['json_output'], 0);
   const b = selectCandidates(r2, newRouterState(), ['json_output'], 0);
   assert.deepEqual(a, b);
-  assert.equal(a.candidates.length, 4);
+  assert.equal(a.candidates.length, reg.length - 2);
   assert.deepEqual(a.rejected.map((x) => x.reason), ['status:disabled', 'missing_capability:json_output']);
 });
 
