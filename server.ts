@@ -33,7 +33,7 @@ import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPas
 import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
 import { getTaskGates, ingestGitHubEvent, recordApproval, recordWaiver } from './server/gateService.ts';
 import { isGateName } from './server/gateEngine.ts';
-import { approveCodePackage, cancelCodeTask, commitApprovedPackage, decideCodeTask, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, runCodeTaskReview, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
+import { approveCodePackage, cancelCodeTask, commitApprovedPackage, decideCodeTask, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, requestRepair, runCodeTaskReview, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
 import { buildTaskPackageFromBrief } from './server/briefWriter.ts';
 
 dotenv.config();
@@ -645,6 +645,26 @@ app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/decide', async
       decision: input.decision, reason: input.reason, actorKind: 'human',
     });
     res.json({ success: true, data });
+  } catch (error) { projectError(res, error); }
+});
+/** P22 / BX-23: Repair Loop — flaky CI restart, next manual package, or diagnostic stop. */
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/repair', async (req, res) => {
+  try {
+    const input = z.object({
+      trigger: z.enum(['ci', 'reviewer', 'human']).optional(),
+      flaky: z.boolean().optional(),
+      diff_hash: z.string().regex(/^[0-9a-f]{64}$/i).optional(),
+      failing_tests: z.number().int().min(0).max(100_000).optional(),
+      log_excerpt: z.string().max(2000).optional(),
+      links: z.array(z.string().max(300)).max(10).optional(),
+    }).strict().parse(req.body ?? {});
+    const task = await taskOfProject(req, res); if (!task) return;
+    const out = await requestRepair({
+      projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, actorKind: 'human',
+      trigger: input.trigger, flaky: input.flaky, diffHash: input.diff_hash, failingTests: input.failing_tests,
+      logExcerpt: input.log_excerpt, links: input.links,
+    });
+    res.json({ success: true, data: out });
   } catch (error) { projectError(res, error); }
 });
 
