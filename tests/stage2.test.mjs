@@ -146,6 +146,10 @@ for (const st of [429, 503]) await withSrv({}, async function H4(s) { script = (
 await withSrv({}, async function H5(s) { script = (q) => q.model === 'm1' ? { status: 404, message: 'model not found' } : { json: GOOD() }; const r = await conv(s, 'Менять ли работу'); T('H5 404 model skipped', okc(r) && r.j.meta.model === 'm2', `${r.s}`); });
 await withSrv({}, async function H6(s) { script = () => ({ status: 429, message: 'RESOURCE_EXHAUSTED' }); const r = await conv(s, 'Менять ли работу'); T('H6 all models 429 -> 429 + code', r.s === 200 && r.j?.meta?.stage === 'conversation-fallback' && /RATE_LIMIT|QUOTA/.test(r.j?.meta?.errorCode || ''), `${r.s} ${r.j?.meta?.errorCode} hits=${recs.length}`); });
 await withSrv({}, async function H6b(s) { script = () => ({ status: 429, message: 'Quota exceeded: daily quota per day' }); const r = await conv(s, 'Менять ли работу'); T('H6b daily quota -> 429 GEMINI_QUOTA', r.s === 200 && r.j?.meta?.errorCode === 'GEMINI_QUOTA', `${r.s} ${r.j?.meta?.errorCode} hits=${recs.length}`); });
+await withSrv({}, async function H6c(s) { // quota on one model must not stop the chain; that model is parked for later requests
+  script = (q) => q.model === 'm1' ? { status: 429, message: 'Quota exceeded for metric generate_content_free_tier_requests, limit: 20' } : { json: GOOD() };
+  const r = await conv(s, 'Менять ли работу'); T('H6c quota on m1 -> answered by m2', okc(r) && r.j.meta.model === 'm2', `${r.s} ${r.j?.meta?.model} ${r.j?.meta?.errorCode}`);
+  recs = []; await conv(s, 'ещё раз'); T('H6d quota: m1 skipped on next request', recs.length >= 1 && recs[0]?.model === 'm2', recs.map((x) => x.model).join(',')); });
 await withSrv({}, async function H7(s) { // quality retry
   const weak = GOOD({ gain: [], newOptions: [] }); script = (q) => q.n === 1 ? { json: weak, usage: { promptTokenCount: 100, candidatesTokenCount: 10 } } : { json: GOOD(), usage: { promptTokenCount: 120, candidatesTokenCount: 20 } };
   const r = await conv(s, 'Менять ли работу'); const m = r.j?.meta || {}; const chars = recs.reduce((a, x) => a + x.system.length + x.prompt.length, 0);
