@@ -1,19 +1,18 @@
 # Next patches (queue)
 
-> Updated 12 October 2026 after P23 (BX-24).
+> Updated 12 October 2026 after P24.
 
 ## Done recently
 
-- P20–P22; PI-01…PI-03final; **P15a**; **P23** (security evidence).
+P20–P23; PI track; P15a; **P24** (ops / backup / ADR-09).
 
 ## Queue
 
 | Order | ID | Scope |
 | --- | --- | --- |
-| **1** | **E-01** | Owner: manual vs model_patch → final ADR-10 (can run in parallel) |
-| **2** | **P24** | BX-25 ops / backup / `/ops` |
+| **1** | **E-01** | Owner: manual vs model_patch → final ADR-10 |
+| **2** | **P25** | BX-26 pilot S3, G4 report |
 | **3** | **P19x** | Only if ADR-10 enables model_patch |
-| **4** | **P25** | BX-26 pilot S3, G4 |
-| — | **P15b** | Market watch — only on explicit owner command |
+| — | **P15b** | Market watch — explicit command only |
 
 Next agent work only on owner command.

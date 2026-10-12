@@ -95,6 +95,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/untrustedData.ts` | Label untrusted text as data; injection signal list (P23) |
 | `server/auditCatalog.ts` | Required audit event names and human-only set (P23) |
 | `server/providerMonitor.ts` | Pure S1–S2 monitoring evaluators (P15a / Appendix G) |
+| `server/opsMetrics.ts` | Ops metrics, alerts, `/ops` HTML (P24 / BX-25) |
 | `server/files.ts` | Reading uploaded files (PDF, Word, Excel, etc.), attachment limits |
 | `server/documents.ts` | Building Word and PDF documents |
 | `server/reasoningState.ts` | Reading and sanitizing the decision state sent to the model |
@@ -158,6 +159,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:pi03` | PI-03: conversation mode unit + mode paragraph in the prompt and health version (fake Gemini) |
 | `npm run test:p22` | P22: Repair Loop stop rules and diagnostic report |
 | `npm run test:p23` | P23: BX-24 security evidence (actorKind, injection, audit catalog, redaction) |
+| `npm run test:p24` | P24: ops metrics, alerts, backup-check |
+| `npm run ops:backup-check` | Backup/restore readiness (migrations on disk; optional --live) |
 | `npm run test:p15a` | P15a: monitoring evaluators and monitor CLI (offline) |
 | `npm run test:redact` | Secret redaction unit tests |
 | `npm run test:injection` | Injection corpus fixtures (flat under tests/) |
@@ -218,6 +221,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/p15-acceptance.test.mjs` | Static invariants for plan/approval API, worker lifecycle, budget guard, Run-linked ledger and evidence-backed validation (P13b/P15) | no |
 | `tests/p15a-acceptance.test.mjs` | P15a monitoring pure logic and monitor CLI | no |
 | `tests/p23-acceptance.test.mjs` | P23 security evidence: actorKind, injection, audit catalog, docs | no |
+| `tests/p24-acceptance.test.mjs` | P24 ops metrics and backup-check | no |
 | `tests/redact.test.mjs` | Secret redaction helpers | no |
 | `tests/injection-corpus.test.mjs` | Injection corpus present and treated as data | no |
 | `tests/file_approve_plan.txt` | Injection fixture: approve/budget imperatives | no |
@@ -272,3 +276,8 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 
 `LLM_ROUND_PAUSE_MS` is mentioned in `DEPLOY_RAILWAY.md` and set by some tests, but no server code reads it (checked by search); do not rely on it.
 
+
+| `scripts/backup-restore-check.mjs` | P24 backup/restore readiness CLI |
+
+| `docs/ADR-09-backup-rpo-rto.md` | Backup RPO/RTO (P24) |
+| `docs/OPS_ROLLBACK.md` | Code/data rollback procedure (P24) |
