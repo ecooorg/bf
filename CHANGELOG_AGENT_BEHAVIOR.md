@@ -4,6 +4,10 @@
 >
 > This file records the changes of the application itself. The version here is the product version (`APP_VERSION` in `src/config.ts`). From P19 on it equals the current patch number (P19 → 19). Older entries keep their historical labels. Plan steps of BiForge are named `BX-XX` (TZv3.0, section 16.4); the older identifiers `BF-01`…`BF-44` are frozen and appear only in historical entries. Entries from `v20.0.1` down to `v13` use the numbering scheme that preceded `v1.0` and are kept unchanged.
 
+## v21
+
+- P21: structured reviewer (gates + delivery → findings); human decision accept|repair|reject on DELIVERED code tasks; review gate approval on accept/reject.
+
 ## v20b
 
 - P20b: Task PASS requires Release Candidate when a code head is tracked; gate approve API for requirements/spec/review.

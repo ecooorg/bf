@@ -1,4 +1,5 @@
 # Changelog
+- P21: BX-22.b pilot — structured reviewer findings on DELIVERED code tasks; human decision accept/repair/reject; review gate evidence; product version 21.
 
 Format: newest first. Behavior changes must update tests and this file in the same step (TZ 16.3).
 

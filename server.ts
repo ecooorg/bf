@@ -33,7 +33,7 @@ import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPas
 import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
 import { getTaskGates, ingestGitHubEvent, recordApproval, recordWaiver } from './server/gateService.ts';
 import { isGateName } from './server/gateEngine.ts';
-import { approveCodePackage, cancelCodeTask, commitApprovedPackage, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
+import { approveCodePackage, cancelCodeTask, commitApprovedPackage, decideCodeTask, exportPackage, getCodeTask, listCodeTasks, refreshCodeTask, runCodeTaskReview, startCodeTask, submitCodeResult } from './server/codeTaskService.ts';
 import { buildTaskPackageFromBrief } from './server/briefWriter.ts';
 
 dotenv.config();
@@ -619,6 +619,32 @@ app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/cancel', async
     const input = z.object({ reason: z.string().trim().min(1).max(500) }).strict().parse(req.body);
     const task = await taskOfProject(req, res); if (!task) return;
     res.json({ success: true, data: await cancelCodeTask({ projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, reason: input.reason, actorKind: 'human' }) });
+  } catch (error) { projectError(res, error); }
+});
+/** P21: structured reviewer on a DELIVERED code task (gates + delivery → findings). */
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/review', async (req, res) => {
+  try {
+    const input = z.object({ notes: z.string().max(2000).optional() }).strict().parse(req.body ?? {});
+    const task = await taskOfProject(req, res); if (!task) return;
+    const out = await runCodeTaskReview({
+      projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId, actorKind: 'human', notes: input.notes,
+    });
+    res.json({ success: true, data: out.codeTask, findings: out.findings });
+  } catch (error) { projectError(res, error); }
+});
+/** P21: human decision accept | repair | reject (TZ 11.5 step 8). Merge stays in GitHub. */
+app.post('/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/decide', async (req, res) => {
+  try {
+    const input = z.object({
+      decision: z.enum(['accept', 'repair', 'reject']),
+      reason: z.string().trim().max(1000).optional(),
+    }).strict().parse(req.body);
+    const task = await taskOfProject(req, res); if (!task) return;
+    const data = await decideCodeTask({
+      projectId: task.projectId, taskId: task.id, codeTaskId: req.params.codeTaskId,
+      decision: input.decision, reason: input.reason, actorKind: 'human',
+    });
+    res.json({ success: true, data });
   } catch (error) { projectError(res, error); }
 });
 
