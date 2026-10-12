@@ -6,6 +6,7 @@ import {
   type EvidenceRecord, type GateName, type GateStatus, type WaiverRecord,
 } from './gateEngine.ts';
 import { listPullRequestFiles, taskIdFromBranch, type GitHubAppConfig } from './githubIntegration.ts';
+import { syncCodeTaskFromPullRequest } from './codeTaskService.ts';
 
 // Gate Engine persistence and GitHub event ingestion (TZ 12.3, 12.5; P17 / BX-20).
 // Webhook payloads are untrusted data: only the fields below are read, free text is never stored or interpreted.
@@ -29,7 +30,7 @@ const pullRequestPayload = z.object({
   pull_request: z.object({ number: z.number().int().min(1), head: z.object({ sha: z.string(), ref: z.string().max(250) }) }),
 });
 
-export interface IngestDeps { db?: Db; githubConfig?: () => GitHubAppConfig | null; listFiles?: typeof listPullRequestFiles }
+export interface IngestDeps { db?: Db; githubConfig?: () => GitHubAppConfig | null; listFiles?: typeof listPullRequestFiles; fetcher?: typeof fetch }
 export type IngestResult = { ok: true; recorded: number; invalidated: number; ignored?: string } | { ok: false; reason: string };
 
 async function taskForBranch(db: Db, ref: unknown): Promise<{ taskId: string; projectId: string } | null> {
@@ -154,6 +155,8 @@ export async function ingestGitHubEvent(event: string, payload: unknown, deps: I
       projectId: task.projectId, taskId: task.taskId, gate: 'test_integrity', checkName: 'tests/acceptance diff', status, commitSha: pr.head.sha,
       source: 'diff', rulesVersion: GATE_RULES_VERSION, tool: 'biforge-diff', toolVersion: GATE_RULES_VERSION, sourceRef: `pr:${pr.number}:${pr.head.sha.toLowerCase()}`, details,
     });
+    // P18: an open manual code run of this task learns about its PR here (no polling needed). Never throws, never changes gate results.
+    await syncCodeTaskFromPullRequest(task.taskId, { number: pr.number, headSha: pr.head.sha }, { githubConfig: deps.githubConfig, fetcher: deps.fetcher });
     return { ok: true, recorded: inserted ? 1 : 0, invalidated };
   }
   return { ok: true, recorded: 0, invalidated: 0, ignored: 'event_not_tracked' };
