@@ -87,6 +87,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/reviewer.ts` | P21: structured review findings from gates + delivery (pure, no model) |
 | `server/repairLoop.ts` | P22: Repair Loop classification, stop rules, repair prompt, diagnostic report (pure) |
 | `server/intentFlags.ts` | PI-02: pure user-intent detectors (forbade questions, approximate, search, evasion criticism) and limitation-only check |
+| `server/conversationMode.ts` | PI-03: conversation mode detection (considers recent turns) and the thin mode paragraph for the shared conversation prompt |
 | `server/codeExecutor.ts` | CodeExecutor interface and `manual` executor, Task Package schema, PACKAGE.md, protected paths, allowed_paths, secret scan, unified diff parse/validate/apply; pure, no I/O (P18) |
 | `server/codeTaskService.ts` | Code runs (`code_tasks`): start with a package, PR / branch / diff result, validation, diff applied through the Git Data API, poll and webhook sync, cancel, PACKAGE.md export (P18); review + human decision accept/repair/reject (P21); Repair Loop start or diagnostic stop (P22) |
 | `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
@@ -150,6 +151,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:gate` | Gate Engine rules without a database (P17) |
 | `npm run test:pi01` | PI-01: uncertainty contract in the conversation prompt; winter dialog through the real server on a fake Gemini |
 | `npm run test:pi02` | PI-02: intent flags unit + conversation integration (fake Gemini) |
+| `npm run test:pi03` | PI-03: conversation mode unit + mode paragraph in the prompt and health version (fake Gemini) |
 | `npm run test:p22` | P22: Repair Loop stop rules and diagnostic report |
 | `npm run test:p21` | P21: reviewer findings + decision routes |
 | `npm run test:p20b` | P20b: PASS ↔ gates, approve routes |
@@ -197,6 +199,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/gate-webhook-live.test.mjs` | The real server: signed `check_run` webhook registers evidence, bad signature is 401, redelivery is idempotent (P17) | PostgreSQL |
 | `tests/pi01.test.mjs` | PI-01: contract block present once and in place on every dialog turn, honesty guards on the server path, no new JSON fields |
 | `tests/pi02.test.mjs` | PI-02: intent-flag detectors and conversation post-processing (askAllowed, search_expected) on a fake Gemini |
+| `tests/pi03.test.mjs` | PI-03: mode detection, mode paragraph on the shared prompt, version in /health |
 | `tests/p22-acceptance.test.mjs` | P22 acceptance (repair stop rules) |
 | `tests/p21-acceptance.test.mjs` | P21 acceptance (reviewer + decision) |
 | `tests/p20b-acceptance.test.mjs` | P20b acceptance |
