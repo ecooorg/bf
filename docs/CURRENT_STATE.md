@@ -1,35 +1,31 @@
 # Current state
 
-> Updated 12 October 2026 after the owner verified the P22 deploy. Evidence: `docs/P22-REPORT.md`.
+> Updated 12 October 2026 after PI-02 patch archive. Base: owner archive `bf-vPI-01.zip`.
 
 ## Product
 
-- **Simple Mode** (`/`): opened on production; product version **22**.
+- **Simple Mode** (`/`): product version **PI-02** (instruction track). Intent flags and post-processing (PI-02) on top of the uncertainty contract (PI-01).
 - **Project Mode**: code through P22. Database migration `013_repair_loop` applied on production. **G3 is not accepted** until the owner records E-01.
 
-## Production evidence (2026-10-12)
+## Production evidence (2026-10-12, pre-PI)
 
 | Check | Result |
 | --- | --- |
 | GitHub `ecooorg/bf` `main` | `da38c1419d51` (`da38c14`), green check, message `Add files via upload` |
-| Railway production | Active, deployment successful via GitHub. Public host `e-production-5cc8.up.railway.app` |
-| Boot log | `013_repair_loop: applied`. `BiForge v22 (da38c1419d51) on :8080 (production)` |
-| `GET /health` | `status ok`, `version 22`, `commit da38c1419d51` |
-| `GET /ready` | `status ready`, `version 22`, `commit da38c1419d51` |
+| Railway production | Active (version 22 at last owner check; PI-01/PI-02 not yet deployed) |
+| Boot log (last checked) | `013_repair_loop: applied`. `BiForge v22 …` |
 
 ## Done
 
 | Patch | Result |
 | --- | --- |
-| P20 | brief_writer, package approval, integrity baseline |
-| P20b | PASS requires RC when task has code head |
-| P21 | reviewer findings + human decision accept/repair/reject |
-| **P22** | Repair Loop deployed. Machine criteria PASS. Live `POST .../repair` not run. |
-| **PI-01** | Simple Mode prompt: uncertainty contract block (TZ-INSTRUCTIONS-01 P1). Version label `PI-01`. Not yet deployed; owner checks the winter dialog live. Spec: `docs/PI-01-SPEC.md`. |
+| P20–P22 | As before |
+| **PI-01** | Uncertainty contract in Simple Mode prompt. Spec: `docs/PI-01-SPEC.md`. |
+| **PI-02** | Intent flags + post-processing (`askAllowed`, soft quality-audit, retry text, `search_expected`). Spec: `docs/PI-02-SPEC.md`. Not yet deployed. |
 
 ## Open
 
-- E-01 / ADR-10; P19x; PI-02 after PI-01 is checked on production.
+- E-01 / ADR-10; P19x; PI-03 optional after PI-02 is checked on production.
 
 ## Next
 
