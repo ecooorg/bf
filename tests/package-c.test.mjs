@@ -10,7 +10,7 @@ const server = read('server.ts');
 const cfg = read('src/config.ts');
 const pkg = JSON.parse(read('package.json'));
 
-const cfgVersion = cfg.match(/APP_VERSION\s*=\s*'(\d+[a-z]?(?:\.\d+\.\d+)?|PI-\d+)'/)?.[1];
+const cfgVersion = cfg.match(/APP_VERSION\s*=\s*'(\d+[a-z]?(?:\.\d+\.\d+)?|PI-\d+[a-z]*)'/)?.[1];
 assert.ok(cfgVersion, 'APP_VERSION must be defined in src/config.ts');
 assert.equal(pkg.version, cfgVersion, 'package.json version must equal APP_VERSION');
 for (const label of ['Shorter', 'Add table', 'Remove section', 'Choose heading', 'Save…', 'Word (.docx)', 'PDF', 'Google Docs']) assert.match(app, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));

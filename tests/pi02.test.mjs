@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import net from 'node:net';
 import { spawn } from 'node:child_process';
+import { APP_VERSION } from '../src/config.ts';
 import { detectUserIntentFlags } from '../server/intentFlags.ts';
 
 const PASS = 'test-pass-123', sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -130,7 +131,7 @@ try {
     await sleep(100);
   }
   const health = await (await fetch(`${base}/health`)).json();
-  assert.equal(health.version, 'PI-02', `health version is PI-02, got ${health.version}`);
+  assert.equal(health.version, APP_VERSION, `health version is ${APP_VERSION}, got ${health.version}`);
 
   const cookie = await login();
 

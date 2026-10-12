@@ -79,7 +79,7 @@ try {
 
   // 3. Contract wording keeps the hard limits and does not touch the answer schema.
   const text = promptText();
-  for (const must of ['State in one sentence what is unavailable', 'Never invent numbers, percentages or named forecasts', 'never say or imply that you searched', 'change the approach'])
+  for (const must of ['State in one sentence what is unavailable', 'Do not invent precise figures, percentages, probabilities, citations or live findings', 'Never claim to have searched', 'change the approach'])
     assert.ok(text.includes(must), 'contract wording lost: ' + must);
   const schema = text.slice(text.indexOf('Return JSON only:'));
   for (const key of ['reply', 'question', 'contextSufficiency', 'triage', 'gain', 'newOptions', 'nextStep', 'factsToCheck', 'document', 'derived_numbers', 'state'])
