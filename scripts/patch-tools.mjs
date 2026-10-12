@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import JSZip from 'jszip';
 
-export const ALLOWED_TOP = ['server', 'src', 'tests', 'scripts', 'docs', 'migrations', 'public'];
+export const ALLOWED_TOP = ['server', 'src', 'tests', 'scripts', 'docs', 'migrations', 'public', 'ARCHIVE', 'CONCEPTS'];
 const IGNORED = [/^node_modules\//, /^dist\//, /^dist-server\//, /^\.git\//, /^artifacts\//, /^perf-report\.json$/, /^[^/]+\.zip$/, /^patch-report\.md$/, /^patch-logs\//, /^ci-[a-z]+\.log$/, /\.tsbuildinfo$/];
 export const isIgnored = (rel) => IGNORED.some((re) => re.test(rel));
 const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
