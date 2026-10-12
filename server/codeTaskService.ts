@@ -114,7 +114,7 @@ export async function startCodeTask(input: { projectId: string; taskId: string; 
   const projectId = idSchema.parse(input.projectId), taskId = idSchema.parse(input.taskId);
   const baseBranch = baseBranchSchema.parse(input.baseBranch ?? 'main');
   const pkg = parsePackage(input.package);
-  // P20: high sensitivity packages may be stored, but export/commit/handoff require approveCodePackage first (TZ 13.6).
+  if (pkg.sensitivity === 'high') throw new CodeTaskError('APPROVAL_REQUIRED', 'Handing a package with sensitivity high to an external tool needs a separate approval (TZ 13.6); use a normal package or an explicit approval flow when provided');
   const md = renderPackage(taskId, pkg);
   const hash = packageHash(pkg);
   const project = await getProject(projectId);
