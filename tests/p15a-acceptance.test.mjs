@@ -142,10 +142,12 @@ test('CLI monitor exits 0 without keys (NOT_RUN path)', async () => {
     p.on('close', (code) => resolve({ code, out, err }));
   });
   assert.equal(result.code, 0, result.out + result.err);
-  // JSON is on stdout only; stderr may contain Node loader noise
-  const jsonLine = result.out.trim().split('\n').filter((l) => l.startsWith('{')).pop();
-  assert.ok(jsonLine, 'expected JSON on stdout: ' + result.out.slice(0, 200));
-  const j = JSON.parse(jsonLine);
+  // Pretty-printed JSON spans multiple lines; take the whole object, not the first "{".
+  const raw = result.out.trim();
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  assert.ok(start >= 0 && end > start, 'expected JSON object on stdout: ' + raw.slice(0, 200));
+  const j = JSON.parse(raw.slice(start, end + 1));
   assert.equal(j.ok, true);
   assert.ok(j.live.every((v) => v.status === 'NOT_RUN' || v.status === 'OK'));
 });
