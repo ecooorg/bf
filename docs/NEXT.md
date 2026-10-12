@@ -34,3 +34,9 @@
 - Evidence from signed GitHub webhooks, Test Integrity, invalidation on a new commit, human waiver, Release Candidate manifest; migration 009; two Project Mode routes. No UI.
 - Owner checks (REAL_ONLY): create and install the GitHub App (TZ E.5), `npm run verify:connections -- --only github`, send a signed `check_run` for a `biforge/<task_id>` branch and read `GET /api/projects/:projectId/tasks/:taskId/gates`.
 - Next patches: P15a, then P18 (Task Package and `manual` executor; will use `commitTaskPackage`). Wiring Task PASS to gate results and an approvals route for `requirements` / `spec` / `review` evidence are open items.
+
+
+## P18 — CodeExecutor and `manual` executor (BX-21.a, `docs/P18-SPEC.md`), implementation patch
+- Task Package, PACKAGE.md export, PR / branch / diff results with TZ 11.4 validation, `code_tasks` (migration 010), seven human-only routes. No UI.
+- Owner checks (REAL_ONLY): see the PASS criteria in `docs/P18-SPEC.md`; diff upload needs `GITHUB_DIFF_UPLOAD=true` and an App with `contents:write` and `pull_requests:write`.
+- Next: P19 (`model_patch`; only if E-01 allows it, ADR-10), P20 (`brief_writer`, package approval; **decide how acceptance tests reach the task branch without failing Test Integrity**), P15a.

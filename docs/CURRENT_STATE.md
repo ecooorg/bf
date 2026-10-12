@@ -23,6 +23,7 @@
 | P15 | Project Mode wiring; owner manual checks confirmed 2026-10-11 |
 | P16 | GitHub App connection check, signed webhook, read of PRs / PR files / check runs, Task Package commit to `biforge/<task_id>` (library only, writes off by default, no merge) |
 | P17 | Gate Engine (`server/gateEngine.ts`, `server/gateService.ts`, migration 009): evidence from CI via webhook, Test Integrity, invalidation on a new commit, human waiver, Release Candidate manifest; routes `GET .../tasks/:taskId/gates`, `POST .../gates/:gate/waive` |
+| P18 | CodeExecutor and `manual` executor (`server/codeExecutor.ts`, `server/codeTaskService.ts`, migration 010): Task Package, PACKAGE.md export, PR / branch / diff results with 11.4 validation, diff upload through the Git Data API (off by default), webhook and polling PR lookup; routes under `.../tasks/:taskId/code` |
 
 CI fix applied before P17: `connectors.yaml` (literal `\n` in the `github` block made it invalid JSON) and the `github` row in `docs/CONNECTIONS.md`.
 
@@ -31,4 +32,5 @@ CI fix applied before P17: `connectors.yaml` (literal `\n` in the `github` block
 - Owner: GitHub App creation and installation (TZ E.5), then `npm run verify:connections -- --only github` and a signed `check_run` for a `biforge/<task_id>` branch (REAL_ONLY until done). ADR-06 stays proposed (repository visibility/organization, Actions limits).
 - G2 and E-01 evidence and the final ADR-10 (see `docs/NEXT.md`); `model_patch` stays disabled; BX-18.b is NOT_RUN.
 - P17 limits: no UI for gates; no route for `requirements` / `spec` / `review` approvals (`recordApproval` exists as a service function); Task PASS is not yet tied to gate results.
-- Next in the plan: P15a (monitoring of connections and quotas), P18 (Task Package and `manual` executor). Not started: the owner gives the command.
+- P18 limits: no UI; no separate package approval and no `sensitivity = high` hand-over; the Task Package is not committed to the task branch (conflicts with the P17 Test Integrity rule; decision needed in P20, see `docs/P18-SPEC.md`); a code run does not move the Task or gates; real GitHub App not exercised (REAL_ONLY).
+- Next in the plan: P15a (monitoring of connections and quotas), P19 (`model_patch`, only if E-01 allows). Not started: the owner gives the command.

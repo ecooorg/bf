@@ -82,6 +82,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/githubIntegration.ts` | GitHub App JWT, installation-token permission checks, webhook signature verification, read of PRs, PR files and check runs, Task Package commit to `biforge/<task_id>` only; no merge (P16) |
 | `server/gateEngine.ts` | Gate Engine rules: statuses, evidence validation, Test Integrity, check-run mapping, Release Candidate manifest; pure, no I/O (P17) |
 | `server/gateService.ts` | Gate evidence persistence, GitHub webhook ingestion, invalidation on a new commit, human approvals and waivers (P17) |
+| `server/codeExecutor.ts` | CodeExecutor interface and `manual` executor, Task Package schema, PACKAGE.md, protected paths, allowed_paths, secret scan, unified diff parse/validate/apply; pure, no I/O (P18) |
+| `server/codeTaskService.ts` | Code runs (`code_tasks`): start with a package, PR / branch / diff result, validation, diff applied through the Git Data API, poll and webhook sync, cancel, PACKAGE.md export (P18) |
 | `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
 | `server/files.ts` | Reading uploaded files (PDF, Word, Excel, etc.), attachment limits |
 | `server/documents.ts` | Building Word and PDF documents |
@@ -141,6 +143,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `docs/P13a-SPEC.md` |
 | `npm run test:github` | GitHub App JWT, permissions, webhook signature, fake API flow, PR/check-run reads, Task Package commit limits (P16) |
 | `npm run test:gate` | Gate Engine rules without a database (P17) |
+| `npm run test:p18` | CodeExecutor: package, PACKAGE.md, protected paths, diff parse/validate/apply, seeded fuzz, Git Data API writes on a fake GitHub (P18) |
 | `npm run test:p08`, `test:p09`, `test:p10`, `test:p11`, `test:p12`, `test:p13`, `test:p13a`, `test:p14`, `test:p15` | Acceptance tests of one patch each, no database (part of `check`) |
 | `npm run test:bx06:api` | Project Mode API tests on PostgreSQL |
 | `npm run test:merge`, `test:security`, `test:core`, `test:reasoning`, `test:export`, `test:sync`, `test:files`, `test:drivedocs`, `test:library`, `test:package-c`, `test:database`, `test:contracts`, `test:bx06` | Single test groups included in `check` |
@@ -181,6 +184,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/gate-engine.test.mjs` | Gate rules: PASS needs evidence, rejected sources, Test Integrity, waivers, Release Candidate (P17) | no |
 | `tests/gate-live.test.mjs` | Evidence from signed-event payloads, invalidation, waiver and audit on real PostgreSQL (P17) | PostgreSQL |
 | `tests/gate-webhook-live.test.mjs` | The real server: signed `check_run` webhook registers evidence, bad signature is 401, redelivery is idempotent (P17) | PostgreSQL |
+| `tests/code-executor.test.mjs` | Pure P18 rules: package schema and secrets, limits at the boundary, diff refusals, apply, seeded fuzz, GitHub writes limited to `biforge/<task_id>` | no |
+| `tests/code-task-live.test.mjs` | Code runs on PostgreSQL: human only, idempotent start, race safety, budget, PR / branch / diff results, blocked and resubmitted, webhook sync (P18) | PostgreSQL |
+| `tests/code-task-api-live.test.mjs` | The real server: session only, same origin, strict bodies, start, export, refusals (P18) | PostgreSQL |
 | `tests/p15-acceptance.test.mjs` | Static invariants for plan/approval API, worker lifecycle, budget guard, Run-linked ledger and evidence-backed validation (P13b/P15) | no |
 | `tests/p14-live-acceptance.test.mjs` | Binary artifacts, manifest, tamper and missing-object detection, limits, upgrade of older versions, project delete (P14, live PostgreSQL) | yes |
 | `tests/analysis-live.test.mjs` | Analysis run, review and artifact on live PostgreSQL (P06) | yes |
