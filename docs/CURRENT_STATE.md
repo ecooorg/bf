@@ -24,3 +24,8 @@
 ## Next
 
 See `docs/NEXT.md` — next code patch **P20b** unless owner names another.
+
+## Instructions track (scheduled)
+
+Simple Mode agent-instruction improvements (`CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` and related) run as **PI-01…** **after G3 (P22)**, not inside P20b–P22 and not only after P25. Hallucination cross-check (TP-HALLUC) stays post-G4 / on demand. See `docs/NEXT.md`.
+

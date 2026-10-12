@@ -116,6 +116,7 @@ These files document Simple Mode agent behaviour, a proposed improvement track, 
 Rules for coding agents:
 
 - Do **not** open these files unless the owner explicitly assigns work on agent instructions / TZ-INSTRUCTIONS-01 / TP-HALLUC-01.
+- **Schedule (owner, 2026-10-12):** instruction track **PI-01…** starts **after G3 (P22)**; TP-HALLUC only after G4 or on real need. Details: `docs/NEXT.md`.
 - Do **not** change Simple Mode prompts or post-processing because of these documents without an explicit patch SPEC.
 - `npm run check`, acceptance tests, and regression suites **do not** and **must not** depend on these informational files.
 - `scripts/check-docs.mjs` only verifies that local Markdown links and backticked paths resolve; presence of these files is enough. They introduce no new required behaviour.
