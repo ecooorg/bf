@@ -64,9 +64,10 @@ test('buildReviewFindings: violations → high', async () => {
   assert.ok(out.findings.some((f) => f.summary.includes('path_not_allowed')));
 });
 
-test('APP_VERSION is 21', () => {
+test('APP_VERSION matches package.json', () => {
   const cfg = readFileSync(`${root}/src/config.ts`, 'utf8');
-  assert.match(cfg, /APP_VERSION\s*=\s*['"]21['"]/);
+  const m = cfg.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+  assert.ok(m);
   const pkg = JSON.parse(readFileSync(`${root}/package.json`, 'utf8'));
-  assert.equal(pkg.version, '21');
+  assert.equal(pkg.version, m[1]);
 });
