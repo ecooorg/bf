@@ -1,6 +1,6 @@
 # START HERE
 
-> Read this file first. It is enough to start work; do not read the whole specification (225 KB).
+> Read this file first. It is enough to start work; do not read the whole specification: it is split into parts (`docs/BiForge_TZ_v3.md` is the index).
 > Binding rules: this file and `AGENTS.md`. Where other documents disagree, these two win.
 
 
@@ -10,8 +10,8 @@
 
 1. BiForge is a decision and project agent on Node/Express + React + the Gemini API, deployed on Railway.
 2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (BiForge, product version 24).
-3. **Project Mode** (`/project`, opt-in, PostgreSQL) is built from the specification `docs/BiForge_TZ_v3.md` (Russian, canonical); code is in place through P24, the rest of the work is acceptance (TZ 16.7).
-4. The plan is a list of patches P01…P25 (TZ 16.4.2); the plan to the end of the project is TZ 16.7. Current state: `docs/CURRENT_STATE.md`.
+3. **Project Mode** (`/project`, opt-in, PostgreSQL) is built from the specification (Russian, canonical; index `docs/BiForge_TZ_v3.md`, parts `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md`); code is in place through P24, the rest of the work is acceptance (`docs/NEXT.md`).
+4. The patch list P01…P25 and the step reference are history (`ARCHIVE/TZ_v3.0_PATCH_HISTORY.md`); the plan to the end of the project is the checklist in `docs/NEXT.md` (former TZ 16.7). Current state: `docs/CURRENT_STATE.md`.
 5. Map of the repository, scripts, tests and environment variables: `docs/REPO_MAP.md`.
 
 ## The 10 rules
@@ -20,7 +20,7 @@
 2. **Models change between sessions and remember nothing.** Everything needed must be in the archive and in these documents.
 3. **Structure.** Files in the root and in first-level directories only; the single exception is `.github/workflows/`. Never create nested directories inside them. Top-level folders include the usual working ones plus `ARCHIVE/` (historical documents) and `CONCEPTS/` (future-work drafts and proposals). Place new historical or conceptual material into the matching folder at once.
 4. **Languages.** Program interface: English only. Specification: Russian (canonical). `AGENTS.md` and technical documents: English. Reports and chat with the owner: Russian.
-5. **The user sees only the name "BiForge"** in the interface: no versions, step numbers or hashes. (The labels with versions and step numbers were removed in patch P01; the product version is raised to 2.0 in P25, TZ 16.7.8 step F-07.)
+5. **The user sees only the name "BiForge"** in the interface: no versions, step numbers or hashes. (The labels with versions and step numbers were removed in patch P01; the product version is raised to 2.0 in P25, `docs/NEXT.md` step RM-F7.)
 6. **Save tokens.** The owner is on a free plan. Do not read what you do not need, do not run what you do not need, deliver the patch as early as possible.
 7. **Honest reports.** `node_modules` is usually absent in the model environment, so `npm run check` and `npm run build` often cannot run. Say so; report `BLOCKED` or `NOT_RUN`. Never present an unrun check as passed.
 8. **Programme code is changed only when the patch says so.** Behaviour, tests and `CHANGELOG.md` change together.
@@ -39,7 +39,7 @@
 
 ## Where things are
 
-- Queue of next patches: `docs/NEXT.md`. Current state and next patch: `docs/CURRENT_STATE.md` (the plan to the end of the project is TZ 16.7; the next patches are P19x (conditional) and P25).
+- Queue of next patches: `docs/NEXT.md`. Current state and next patch: `docs/CURRENT_STATE.md` (the plan to the end of the project is `docs/NEXT.md`; the next patches are P19x (conditional) and P25).
 - Patch spec template: `docs/PATCH_TEMPLATE.md`. Report template (starred and gate patches): `docs/STEP_REPORT_TEMPLATE.md`.
 - Repository map, scripts, tests, environment variables: `docs/REPO_MAP.md`.
 - Deployment: `DEPLOY_RAILWAY.md`. Connections inventory: `connectors.yaml`, `docs/CONNECTIONS.md`.
@@ -59,7 +59,16 @@ If dependencies cannot be installed (no network), report `BLOCKED` with the reas
 
 ## Which parts of the specification to read
 
-The TZ is 225 KB. Read only the sections listed for your patch (plus 16.3–16.4 once). The list was composed from the plan in 16.4.2 and the section headings; if the patch SPEC names other sections, the SPEC wins.
+Read only the sections listed for your patch (plus 16.3–16.4 once). Section numbers are preserved from TZ v3.0; find the file with the map below. If the patch SPEC names other sections, the SPEC wins.
+
+| Sections | File |
+| --- | --- |
+| 0.1, 0.2, 0.3, 1, 2, 5.3, 6, 17, 18, 19 | `docs/SPEC_PRODUCT.md` |
+| 3, 4, 5 (except 5.3), 7–15, 20 | `docs/SPEC_ENGINE.md` |
+| 16.1–16.6, Appendices A and B | `docs/SPEC_DEV_PROCESS.md` |
+| Appendices D and E (E.0–E.9) | `docs/SPEC_CONNECTIONS.md` |
+| 16.7 (plan to G4) | `docs/NEXT.md` |
+| 16.4.1–16.4.3, Appendices C, F, G | `ARCHIVE/TZ_v3.0_*.md` (history, do not read for patches) |
 
 | Patch | Read TZ sections |
 | --- | --- |
@@ -98,6 +107,7 @@ These files are kept as history. Reading them is not needed for any patch. Older
 | File | What it is |
 | --- | --- |
 | `ARCHIVE/BX-06-REPORT.md`, `ARCHIVE/BX-07-REPORT.md` | Reports of the latest finished steps (`docs/CURRENT_STATE.md` summarizes everything done). |
+| `ARCHIVE/TZ_v3.0_monolith.md` and the other `ARCHIVE/TZ_v3.0_*.md` | The original TZ v3.0 in one file, and its parts that left the working specification (patch history, Appendices C, F, G, former 16.7). |
 | `docs/ADR-01-postgresql.md` | Accepted decision; read only if you change database access |
 
 

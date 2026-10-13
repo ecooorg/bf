@@ -13,7 +13,9 @@
 | `scripts/` | Utility scripts (see below) |
 | `tests/` | Tests (see below) |
 | `public/` | Icons for the browser and PWA manifest |
-| `docs/NEXT.md` | Queue of next patches (goal, TZ sections, files, tests); updated by the AI Assistant at the end of every patch |
+| `docs/NEXT.md` | Plan to G4 as a flat checklist (steps `RM-*`: inputs, PASS) and queue of next patches; updated by the AI Assistant at the end of every patch |
+| `docs/BiForge_TZ_v3.md` | Index of the specification (TZ v3.1): file map and section → file map. The text itself: `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md` |
+| `ARCHIVE/TZ_v3.0_monolith.md` | The original TZ v3.0 in one file and its retired parts (`ARCHIVE/TZ_v3.0_*.md`): history only, not read for patches |
 | `docs/PATCH_PROMPT.md` | Universal session prompt for any PNN: context order, version = patch number, packaging `bf-PNN.zip`, report |
 | `docs/` | Specification, policies, step specs, reports; plus informational agent-instruction materials (not binding; see table below) |
 | `.github/workflows/ci.yml` | CI on every push (writes a short result line, P13a): migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |

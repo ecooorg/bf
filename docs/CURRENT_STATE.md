@@ -21,4 +21,4 @@ ADR-06 (`Proposed`), ADR-10 (`INTERIM`).
 
 ## Next
 
-Plan to the end of the project: TZ section 16.7. Queue: `docs/NEXT.md`.
+Plan to the end of the project and queue: `docs/NEXT.md` (former TZ section 16.7).
