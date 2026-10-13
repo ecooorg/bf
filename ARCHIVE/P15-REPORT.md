@@ -1,8 +1,27 @@
 # P15 cumulative patch report — P13b + P15
 
-## Status: PARTIAL (CI and Railway green on commit 1c2719d; owner manual checks confirmed; G2 and E-01 evidence not recorded; ADR-10 interim decision only)
+## Status: PARTIAL (E-01 closed by PA-05 / ADR-10 Accepted; scenario 18.1 and G2 evidence remain NOT_RUN)
 
 This patch wires the existing Task Graph / approval domain into the Project Mode API and UI, starts a bounded queue worker when Project Mode is enabled and authenticated configuration is present, and adds acceptance checks for the new integration. It also prepares a truthful P15 evidence record. It does not fabricate live PostgreSQL/provider results.
+
+## RM-B4 — scenario 18.1 checklist (prepared 13 October 2026)
+
+The checklist is prepared; no live staging execution is claimed. Each row remains `NOT_RUN` until a staging run supplies the actual result, commit SHA and CI/run link.
+
+| # | Scenario 18.1 evidence item | Status | Reason |
+|---:|---|---|---|
+| 1 | Create a synthetic test project | NOT_RUN | Requires live staging Project Mode |
+| 2 | Save project passport / description | NOT_RUN | Requires live staging Project Mode |
+| 3 | Create and save State | NOT_RUN | Requires live staging Project Mode |
+| 4 | Run analysis | NOT_RUN | Live model call; requires configured staging provider and budget |
+| 5 | Review proposed State items | NOT_RUN | Requires owner interaction / evidence |
+| 6 | Create a plan | NOT_RUN | Requires live staging Project Mode |
+| 7 | Exercise approval flow | NOT_RUN | Requires owner interaction / evidence |
+| 8 | Queue an approved task | NOT_RUN | Requires live staging worker and database |
+| 9 | Observe Run and task status transitions | NOT_RUN | Requires live staging worker and database |
+| 10 | Confirm artifact and ledger records | NOT_RUN | Requires live staging database evidence |
+| 11 | Validate completed task with explicit evidence | NOT_RUN | Requires owner acceptance evidence |
+| 12 | Confirm budget / model-call count ≤ 12 and collect redacted logs | NOT_RUN | Requires live ledger and staging logs |
 
 ## P13b implementation in this patch
 
@@ -26,8 +45,8 @@ This patch wires the existing Task Graph / approval domain into the Project Mode
 | Full E2E scenario, TZ 18.1 / G2 | NOT_RUN | OWNER-CONFIRMED, no evidence in the repository: the owner states on 2026-10-11 that the scenario was done by hand. Not run by the agent. Add the commit SHA and output below, then G2 can be marked passed |
 | Provider failures 429/5xx and fallback | PASS on fake providers; real provider NOT_RUN | `tests/p09-acceptance.test.mjs` (matrix 7.4), `tests/infra.test.mjs` |
 | Budget-overrun human approval in a live worker run | PASS with a stub handler; owner-confirmed on Railway | `tests/p13-live-acceptance.test.mjs`; owner statement 2026-10-11 |
-| E-01, TZ 11.9 | NOT_RUN | OWNER-CONFIRMED, no evidence in the repository: the owner states it was done. The table of three pairs (SHA, CI link, repairs, time, cost) is not in the repository yet |
-| ADR-10 decision on `model_patch` | INTERIM | Owner decision 2026-10-11 in `docs/ADR-10-code-executor.md`: `manual` stays the path, `model_patch` is off; the final ADR-10 decision stays pending E-01 data |
+| E-01, TZ 11.9 | PASS | Closed 13 Oct 2026; six pair records in `ARCHIVE/E01-NOTES.md` and `ARCHIVE/E01-RESULTS.json`, with SHAs and workflow-run links. `docs/ADR-10-code-executor.md` Accepted. |
+| ADR-10 decision on `model_patch` | ACCEPTED | Owner decision `ok ADR-10` (13 Oct 2026); default remains `manual` until the owner explicitly configures `CODE_EXECUTOR=model_patch`. |
 
 ## Important behavior and boundaries
 
@@ -62,7 +81,8 @@ The owner states that all manual checks required after patches P01–P15 are don
 | Real CI summary seen; `npm run patch:pack` run | P13a | done |
 | Confirm a task plan; budget overrun is visible and needs a decision | P13b | done |
 | Simple Mode short check on Railway; green CI on the last commit | BX-07 closing condition | done |
-| Standard scenario of TZ 18.1 (G2) and experiment E-01 | P15 | done, evidence not attached |
+| Standard scenario of TZ 18.1 (G2) | P15 | checklist prepared; live evidence NOT_RUN (see RM-B4 table above) |
+| Experiment E-01 / ADR-10 | PA-05 | closed; evidence attached in `ARCHIVE/E01-NOTES.md` and `ARCHIVE/E01-RESULTS.json` |
 
 ## Evidence recorded on 2026-10-11
 
@@ -78,7 +98,7 @@ Taken from the owner's screenshots of GitHub and Railway (device time 17:47) and
 | History | commit `26ea7ae`: `ci` failed once at `test:p15` because this report had no `NOT_RUN` in the E-01 row; fixed in `1c2719d` |
 | Simple Mode and Project Mode | the owner states he checks both by hand after every patch and fixes the program until it works; P01–P15 were accepted this way |
 
-Not recorded and therefore not claimed: per-step results of TZ 18.1, the number of model calls in the scenario, the E-01 table (three pairs), the output of `verify:connections` after the latest changes, the result of the `verify-groq` workflow.
+Not recorded and therefore not claimed: per-step live results of TZ 18.1, the number of model calls in the scenario, the output of `verify:connections` after the latest changes, and the result of the `verify-groq` workflow. E-01 is closed separately by PA-05; see `ARCHIVE/E01-NOTES.md` and `ARCHIVE/E01-RESULTS.json`.
 
 ## Automated checks re-run by the agent (2026-10-11)
 
@@ -100,8 +120,8 @@ Defects found and fixed in this pass: a type error in `server.ts` (`createPlan` 
 
 Owner:
 1. Open the logs of the previous Railway deployment (the one stopped when `1c2719d` started: Deployments → History → that deployment → View logs) and check that `npm error signal SIGTERM` and `SSL error: unexpected eof` are absent. Applies only if that deployment already contained the fixed `server.ts` and `package.json`. Send the logs to the agent to record the result here.
-2. Fill in the G2 and E-01 data from his notes (steps of 18.1, model-call count; E-01 table: patch applies, CI first try, repairs, human time, cost, CI link). Then G2 and E-01 can become PASS, together with an update of `tests/p15-acceptance.test.mjs`, which guards the E-01 row.
-3. Make the final ADR-10 decision by the rule of TZ 11.9 once the E-01 table exists.
+2. Run the 12-point scenario 18.1 checklist against staging and record per-row status, commit SHA, run link, model-call count and redacted evidence. Only then can RM-B4 be considered for G2.
+3. E-01 / ADR-10 are already closed by PA-05; do not reopen them unless new contradictory evidence is found.
 
 Automated or needing keys:
 1. `verify-groq` workflow (Actions → verify-groq → Run workflow; needs the `GROQ_API_KEY` secret). Gemini has no workflow.
