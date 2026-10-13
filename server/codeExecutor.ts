@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { Script } from 'node:vm';
 import { z } from 'zod';
 import { normalizeRepoPath } from './gateEngine.ts';
 
@@ -438,6 +439,36 @@ export function validateModelPatch(raw: unknown, o: { allowedPaths: string[]; li
   }
   if (viol.length) return { ok: false, violations: viol };
   return { ok: true, patch, files };
+}
+
+/**
+ * Static checks for generated source. This parses JavaScript but NEVER evaluates it.
+ * Browser/game intents must include a basic index.html shell; remote script sources are refused.
+ */
+export function validateGeneratedSource(patch: ModelPatch, goal: string): Violation[] {
+  const violations: Violation[] = [];
+  const browserIntent = /\btetris\b|\bbrowser\b|\bweb app\b|\bwebsite\b|\bhtml\b|\bgame\b|тетрис|игр[а-я]*/i.test(goal);
+  const liveFiles = patch.files.filter((f) => f.action !== 'delete' && f.content !== undefined);
+  const html = liveFiles.find((f) => /(?:^|\/)index\.html$/i.test(f.path));
+  if (browserIntent && !html) violations.push({ code: 'browser_entrypoint_missing' });
+  if (html) {
+    if (!/<html\b/i.test(html.content ?? '') || !/<body\b/i.test(html.content ?? '')) violations.push({ code: 'html_shell_invalid', path: html.path });
+    if (/<script\b[^>]*\bsrc\s*=\s*["']https?:\/\//i.test(html.content ?? '')) violations.push({ code: 'remote_script_disallowed', path: html.path });
+    const scripts = html.content ?? '';
+    for (const match of scripts.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+      if (/\bsrc\s*=/i.test(match[1]) || /\btype\s*=\s*["']module["']/i.test(match[1])) continue;
+      try { new Script(match[2], { filename: html.path }); }
+      catch { violations.push({ code: 'javascript_syntax_invalid', path: html.path }); }
+    }
+  }
+  for (const file of liveFiles.filter((f) => /\.js$/i.test(f.path))) {
+    const content = file.content ?? '';
+    // ESM files need a module parser; this conservative MVP reports no claim about their syntax.
+    if (/^\s*(?:import\s|export\s)/m.test(content)) continue;
+    try { new Script(content, { filename: file.path }); }
+    catch { violations.push({ code: 'javascript_syntax_invalid', path: file.path }); }
+  }
+  return violations;
 }
 
 /**

@@ -4,9 +4,10 @@ import { getPool } from './database.ts';
 import { getProject } from './projectRepository.ts';
 import { getTask, inTx, lockTask, type Db } from './taskService.ts';
 import { readArtifact, saveArtifact, sha256Hex } from './artifactRepository.ts';
+import JSZip from 'jszip';
 import {
   CODE_EXECUTOR_IDS, CodeExecutorError, applyFileDiff, buildPackageMd, canExecutorTransition, countChanges, createManualExecutor, createModelPatchExecutor, modelPatchToBranchChanges, packageHash, parseUnifiedDiff,
-  taskPackageSchema, validateChangeSet, validateModelPatch, type ChangeFile, type CodeExecutor, type CodeExecutorId, type ExecutorState, type ModelPatch, type TaskPackage, type Violation,
+  taskPackageSchema, findSecretRules, validateChangeSet, validateGeneratedSource, validateModelPatch, type ChangeFile, type CodeExecutor, type CodeExecutorId, type ExecutorState, type ModelPatch, type TaskPackage, type Violation,
 } from './codeExecutor.ts';
 import {
   commitChangesToBranch, commitTaskPackage, compareToBase, diffUploadEnabled, findPullRequestByBranch, githubConfigFromEnv, githubWritesEnabled, openPullRequest, readBranchHead, readPullRequest, readTextFile,
@@ -44,10 +45,12 @@ export interface CodeTaskDeps {
   diffUpload?: () => boolean;
   /**
    * P19x: injectable model call for `model_patch`. Receives PACKAGE.md text and the Task Package;
-   * must return a structured model_patch JSON object (or throw). Production may wire Router + code_patch;
+   * must return a structured model_patch JSON object (or throw). Production wires Router + confirmed json_output;
    * tests inject a fake. When absent, driveModelPatch fails with MODEL_CALLER_MISSING.
    */
   modelCaller?: (input: { packageMd: string; pkg: TaskPackage; taskId: string; projectId: string }) => Promise<unknown>;
+  /** Product-facing small-program flow: deliver the validated ZIP only; never write user code into BiForge's own repository. */
+  sourceOnly?: boolean;
 }
 
 const idSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
@@ -133,7 +136,7 @@ async function checkCodeTaskBudget(db: Db, projectId: string, taskId: string) {
 }
 
 // ---- start ----
-export async function startCodeTask(input: { projectId: string; taskId: string; package: unknown; baseBranch?: string; actorKind: string }): Promise<{ codeTask: CodeTask; created: boolean }> {
+export async function startCodeTask(input: { projectId: string; taskId: string; package: unknown; baseBranch?: string; actorKind: string }, deps: CodeTaskDeps = {}): Promise<{ codeTask: CodeTask; created: boolean }> {
   requireHuman(input.actorKind);
   const projectId = idSchema.parse(input.projectId), taskId = idSchema.parse(input.taskId);
   const baseBranch = baseBranchSchema.parse(input.baseBranch ?? 'main');
@@ -157,7 +160,7 @@ export async function startCodeTask(input: { projectId: string; taskId: string; 
   }
 
   try {
-    return await inTx(async (db) => {
+    const started = await inTx(async (db) => {
       const locked = await lockTask(db, taskId);
       if (locked.projectId !== projectId) throw new CodeTaskError('NOT_FOUND', 'Task not found');
       const open = (await db.query(`SELECT * FROM code_tasks WHERE task_id=$1 AND status = ANY($2::text[]) ORDER BY attempt DESC LIMIT 1`, [taskId, [...OPEN_STATES]])).rows[0];
@@ -182,6 +185,21 @@ export async function startCodeTask(input: { projectId: string; taskId: string; 
       await audit(db, projectId, 'code_task.started', { code_task_id: handle.codeTaskId, task_id: taskId, executor: executorId, attempt, package_hash: hash });
       return { codeTask: mapCodeTask((await db.query('SELECT * FROM code_tasks WHERE id=$1', [handle.codeTaskId])).rows[0]), created: true };
     });
+    // P19x: a configured model_patch run is driven automatically after its durable row exists.
+    // The default/manual executor path is unchanged; this never merges or deploys.
+    if (started.created && started.codeTask.executor === 'model_patch' && deps.modelCaller) {
+      try {
+        const codeTask = await driveModelPatch({ projectId, taskId, codeTaskId: started.codeTask.id }, deps);
+        return { codeTask, created: true };
+      } catch (driveError) {
+        // Delivery can be blocked after source generation (for example, missing GitHub credentials).
+        // Return the durable task status so the caller can still offer a validated source bundle.
+        const current = await getCodeTask(projectId, taskId, started.codeTask.id).catch(() => null);
+        if (current && ['BLOCKED', 'FAILED', 'DELIVERED'].includes(current.status)) return { codeTask: current, created: true };
+        throw driveError;
+      }
+    }
+    return started;
   } catch (e: any) {
     if (e?.code === '23505') throw new CodeTaskError('CODE_TASK_ACTIVE', 'This task already has an open code run');
     throw e;
@@ -500,9 +518,14 @@ export async function syncCodeTaskFromPullRequest(taskId: string, pr: { number: 
   }
 }
 
+/** Stable artifact id for the validated generated source archive associated with a code task. */
+export function generatedSourceArtifactId(codeTaskId: string): string {
+  return `source_${sha256Hex(Buffer.from(idSchema.parse(codeTaskId))).slice(0, 40)}`;
+}
+
 /**
  * P19x: drive a `model_patch` code task end-to-end (TZ 11.4).
- * Claims RUNNING, calls modelCaller, validates, commits to biforge/<task_id>, opens PR, settles DELIVERED or BLOCKED/FAILED.
+ * Claims RUNNING, calls modelCaller, validates and saves a source ZIP; generic delivery may then commit to biforge/<task_id> and open a PR, while sourceOnly stops after the ZIP. Never merges.
  * Does not merge. Writes only when GitHub write flag is on. Injectable modelCaller for tests.
  */
 export async function driveModelPatch(
@@ -517,11 +540,8 @@ export async function driveModelPatch(
     throw new CodeTaskError('CODE_TASK_CLOSED', 'The code run is not open for model_patch drive', { status: row.status });
   }
   const writeOn = deps.diffUpload?.() ?? (diffUploadEnabled() || githubWritesEnabled());
-  if (!writeOn) {
-    throw new CodeTaskError('DIFF_UPLOAD_DISABLED', 'GitHub writes are off; set GITHUB_DIFF_UPLOAD=true to run model_patch');
-  }
   if (!deps.modelCaller) {
-    throw new CodeTaskError('MODEL_CALLER_MISSING', 'model_patch requires an injected modelCaller (Router + code_patch) or a test fake');
+    throw new CodeTaskError('MODEL_CALLER_MISSING', 'model_patch requires an injected modelCaller (Router + json_output) or a test fake');
   }
 
   const claimed = await (await getPool()).query(
@@ -554,7 +574,44 @@ export async function driveModelPatch(
   if (validated.ok === false) {
     return blockRow(row.id, 'validation_failed', validated.violations.slice(0, 100), 'diff', fromRunning);
   }
+  const generatedSecrets = validated.patch.files.flatMap((file) => file.content === undefined ? [] : findSecretRules(file.content).map((rule) => ({ code: `generated_secret:${rule}`, path: file.path })));
+  if (generatedSecrets.length) return blockRow(row.id, 'generated_source_secret_detected', generatedSecrets.slice(0, 100), 'diff', fromRunning);
+  if (!validated.patch.files.some((file) => file.action !== 'delete')) return blockRow(row.id, 'generated_source_empty', [{ code: 'no_source_files' }], 'diff', fromRunning);
+  const goalText = pkg.specMd.match(/## Goal\s*\n+([\s\S]*?)(?=\n## |$)/)?.[1]?.trim() ?? pkg.specMd;
+  const staticFindings = validateGeneratedSource(validated.patch, goalText);
+  if (staticFindings.length) return blockRow(row.id, 'generated_source_static_validation_failed', staticFindings.slice(0, 100), 'diff', fromRunning);
 
+  // Preserve a downloadable, validated source bundle even when GitHub write access is not enabled.
+  // The archive contains only paths accepted by validateModelPatch; it is never executed on this server.
+  const bundleId = generatedSourceArtifactId(row.id);
+  try {
+    const zip = new JSZip();
+    const outputPrefix = `generated-projects/${row.task_id}/`;
+    for (const file of validated.patch.files) {
+      if (file.action !== 'delete') {
+        const bundlePath = file.path.startsWith(outputPrefix) ? file.path.slice(outputPrefix.length) : file.path;
+        zip.file(bundlePath, file.content ?? '');
+      }
+    }
+    zip.file('BIFORGE-README.txt', [
+      'Generated source bundle from BiForge Project Mode.',
+      `Project: ${row.project_id}`, `Task: ${row.task_id}`, `Code task: ${row.id}`,
+      'Review the files before running them. BiForge did not execute this generated code on its server.',
+      'Static source checks were applied; runtime tests are NOT_RUN.',
+      'For a standalone browser app, open index.html in a modern browser.',
+    ].join('\n') + '\n');
+    const bundle = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    await saveArtifact({ projectId: row.project_id, artifactId: bundleId, filename: 'generated-program.zip', mime: 'application/zip', data: bundle, createdBy: `code_task:${row.id}`, derivedFrom: [`task:${row.task_id}`, `code_task:${row.id}`] });
+  } catch (e) {
+    const reason = String((e as any)?.code || (e as Error)?.message || 'bundle_creation_failed').slice(0, 160);
+    return settle(row.id, 'FAILED', { reason: `source_bundle_error:${reason}` }, { from: fromRunning, event: 'code_task.failed' });
+  }
+  if (deps.sourceOnly) {
+    return blockRow(row.id, 'source_bundle_ready_github_delivery_not_requested', [], undefined, fromRunning);
+  }
+  if (!writeOn) {
+    return blockRow(row.id, 'github_writes_disabled_bundle_available', [], undefined, fromRunning);
+  }
   const changes = modelPatchToBranchChanges(validated.patch);
   const { cfg, fetcher } = githubFor(deps);
   const title = (`model_patch: ${row.task_id}`).slice(0, 200);
