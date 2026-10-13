@@ -1,10 +1,10 @@
 # Next work: the road from P24 to BiForge v2.0 (G4)
 
-> Updated 13 October 2026 after P24 and the model-pool fix. This is the **only** file that changes step by step; the specification files (`docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`) stay stable. It replaces the former TZ section 16.7 (original text: `ARCHIVE/TZ_v3.0_SECTION_16_7.md`). Step set, order and PASS criteria are unchanged; only the form is flat. The AI Assistant updates this file at the end of every patch (step marks `[x]` only with a record in the repository).
+> Updated 13 October 2026 after P19x + PA-02 (process). P24 and the model-pool fix remain the product base. This is the **only** file that changes step by step; the specification files (`docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`) stay stable. It replaces the former TZ section 16.7 (original text: `ARCHIVE/TZ_v3.0_SECTION_16_7.md`). Step set, order and PASS criteria are unchanged; only the form is flat. The AI Assistant updates this file at the end of every patch (step marks `[x]` only with a record in the repository).
 
 **Done recently:** P20–P24; PI-01…PI-03; P15a; model pool update (deprecated Gemini aliases removed, per-model quota no longer aborts a request).
 
-**Code patches left: two.** **P19x** (stage C, only if the E-01 branch allows it) and **P25** (step RM-F7). Everything else is owner actions and documents; they are not patches. Next agent work only on owner command.
+**Code patches left: one product gate.** **P19x** implementation is in the repository (still gated; enablement after positive E-01 / ADR-10). **P25** (step RM-F7) remains. PA-02 harness is ready for the E-01 table on the approved test GitHub repository. Everything else is owner actions and documents. Next agent work only on owner command.
 
 ## Rules
 
@@ -49,6 +49,7 @@
 - [ ] **RM-B5 · Experiment E-01** · O
   - Inputs: `docs/SPEC_ENGINE.md` 11.9; three small tasks (up to 10 files, ~400 lines, acceptance tests written beforehand), each done by `manual` and `model_patch`.
   - PASS: a table of three pairs: patch applies; CI green on the first attempt; number of fixes (up to 2); human time; cost; SHA; CI links.
+  - Agent note (13 Oct 2026): PA-02 harness `scripts/e01-harness.mjs` + fixtures ready; live run needs test repo secrets and owner metrics for the manual side.
 - [ ] **RM-B6 · ADR-10 decision (branch)** · O+A
   - Inputs: the RM-B5 table and the rule in 11.9.
   - PASS: `docs/ADR-10-code-executor.md` with status `ACCEPTED` and a link to the table. The outcome selects the path below.
@@ -69,9 +70,11 @@
 - [ ] **RM-C1 · P19x SPEC** · A
   - Inputs: `docs/PATCH_TEMPLATE.md`; `docs/SPEC_ENGINE.md` 11.4 (`code_author` -> validation -> commit to `biforge/<task_id>` -> PR).
   - PASS: SPEC approved by the owner.
+  - Agent note (13 Oct 2026): draft SPEC at `docs/P19x-SPEC.md` in this patch; awaits owner approval.
 - [ ] **RM-C2 · Implementation and tests** · A
   - Inputs: a protected path, a path outside the root, an oversized patch and a write outside `biforge/*` must all be rejected; the run limit holds.
   - PASS: `npm run check` green; the "Code executor" tests of `docs/SPEC_PRODUCT.md` 18.3 pass.
+  - Agent note (13 Oct 2026): `driveModelPatch` + `tests/p19x-acceptance.test.mjs` added; full `npm run check` / CI not run in agent environment (no node_modules/network).
 - [ ] **RM-C3 · Enable `model_patch` and accept one patch** · O
   - Inputs: `CODE_EXECUTOR=model_patch`, `GITHUB_DIFF_UPLOAD=true`; GitHub App write rights are granted at that moment, not earlier.
   - PASS: one accepted PR; a record in the report.

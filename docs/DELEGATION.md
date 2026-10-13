@@ -22,7 +22,7 @@ Silence never means consent in Tier 2 and Tier 3.
 
 1. Tier 0 and Tier 1 work needed for patches P19x (SPEC, implementation, tests; `CODE_EXECUTOR` stays `manual`) and P25 (code and documents) may be prepared without a separate command per step. Merge into `main` and deployment stay with the Navigator.
 2. P19x may be prepared in parallel with E-01. If the E-01 branch is negative, its SPEC moves to `ARCHIVE/` and nothing is enabled.
-3. Process-automation patches `PA-NN` are started by an explicit command per patch. Recorded: PA-01 started 13 October 2026; a Railway **staging** environment is allowed for PA-03 (separate environment and database, synthetic data only). A test GitHub repository for PA-02 is **not yet** approved.
+3. Process-automation patches `PA-NN` are started by an explicit command per patch. Recorded: PA-01 started 13 October 2026; PA-02 (E-01 harness) started 13 October 2026; P19x started 13 October 2026; a Railway **staging** environment is allowed for PA-03 (separate environment and database, synthetic data only). A test GitHub repository for PA-02 is **approved** (Navigator, 13 October 2026).
 
 ## Limits that do not change
 

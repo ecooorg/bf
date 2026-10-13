@@ -92,7 +92,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/intentFlags.ts` | PI-02: pure user-intent detectors (forbade questions, approximate, search, evasion criticism) and limitation-only check |
 | `server/conversationMode.ts` | PI-03: conversation mode detection (considers recent turns) and the thin mode paragraph for the shared conversation prompt |
 | `server/codeExecutor.ts` | CodeExecutor interface and `manual` executor, Task Package schema, PACKAGE.md, protected paths, allowed_paths, secret scan, unified diff parse/validate/apply; pure, no I/O (P18) |
-| `server/codeTaskService.ts` | Code runs (`code_tasks`): start with a package, PR / branch / diff result, validation, diff applied through the Git Data API, poll and webhook sync, cancel, PACKAGE.md export (P18); review + human decision accept/repair/reject (P21); Repair Loop start or diagnostic stop (P22) |
+| `server/codeTaskService.ts` | Code runs (`code_tasks`): start with a package, PR / branch / diff result, validation, diff applied through the Git Data API, poll and webhook sync, cancel, PACKAGE.md export (P18); review + human decision accept/repair/reject (P21); Repair Loop (P22); **P19x** `driveModelPatch` (model_patch → validate → biforge branch → PR, gated) |
 | `server/security.ts` | Session signing, cookies, login limiter, same-origin check |
 | `server/redact.ts` | Secret redaction helpers (values never logged; P15a/P23) |
 | `server/untrustedData.ts` | Label untrusted text as data; injection signal list (P23) |
@@ -136,6 +136,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/run-independent-checks.mjs` | CI check runner: runs each command in the `check` chain independently, with a 10-minute timeout and per-stage logs |
 | `scripts/gate-eval.mjs` | PA-01 (`npm run gate:eval`): E-01 rule (TZ 11.9) and gate rules (TZ 17) over evidence JSON; prints decision cards |
 | `scripts/evidence-collect.mjs` | PA-01 (`npm run evidence:collect`): read-only service and connection checks; JSON for `scripts/gate-eval.mjs` |
+| `scripts/e01-harness.mjs` | PA-02 (`npm run e01:harness`): external E-01 three-pair experiment (TZ 11.9); dry-run fixtures or live test repo |
 | `scripts/migrate.mjs` | Applies `migrations/` to `DATABASE_URL` |
 | `scripts/qa.mjs` | Runs checks independently and writes a report (see `docs/DEVELOPMENT.md`; it is not what `npm run check` runs) |
 | `scripts/measure-prompt.mjs`, `scripts/cases.mjs`, `scripts/acceptance-s2-05.mjs`, `scripts/acceptance-s2-06.mjs` | Prompt size measurement and blind quality comparison on a live model (owner's key; not in CI) |
@@ -165,6 +166,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:p22` | P22: Repair Loop stop rules and diagnostic report |
 | `npm run test:p23` | P23: BX-24 security evidence (actorKind, injection, audit catalog, redaction) |
 | `npm run test:pa01` | PA-01: gate evaluator, evidence collector (fake fetch), workflow safety, secret scrubbing |
+| `npm run test:p19x` | P19x: validateModelPatch matrix, modelPatchToBranchChanges, createModelPatchExecutor |
+| `npm run test:pa02` | PA-02: E-01 harness dry-run, protected-path reject, gate-eval shape |
+| `npm run e01:harness` | PA-02 tool |
 | `npm run evidence:collect`, `npm run gate:eval` | PA-01 tools (see `docs/PA-01-SPEC.md`) |
 | `npm run test:p24` | P24: ops metrics, alerts, backup-check |
 | `npm run ops:backup-check` | Backup/restore readiness (migrations on disk; optional --live) |
@@ -230,6 +234,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/p23-acceptance.test.mjs` | P23 security evidence: actorKind, injection, audit catalog, docs | no |
 | `tests/pa01-acceptance.test.mjs` | PA-01 evidence collector and gate evaluator | no |
 | `tests/pa01-fixtures.json` | PA-01 E-01 fixtures (positive, negative, both failed, owner judgement, too many fixes) | no |
+| `tests/p19x-acceptance.test.mjs` | P19x model_patch validation and executor factory | no |
+| `tests/pa02-acceptance.test.mjs` | PA-02 E-01 harness | no |
+| `tests/pa02-fixtures.json` | PA-02 three-task fixture packages and patches | no |
 | `tests/p24-acceptance.test.mjs` | P24 ops metrics and backup-check | no |
 | `tests/redact.test.mjs` | Secret redaction helpers | no |
 | `tests/injection-corpus.test.mjs` | Injection corpus present and treated as data | no |
