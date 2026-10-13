@@ -412,6 +412,14 @@ export function modelPatchToChangeFiles(patch: ModelPatch): ChangeFile[] {
   });
 }
 
+/** Full-file payloads for Git Data API: create/modify → text, delete → null. */
+export function modelPatchToBranchChanges(patch: ModelPatch): Array<{ path: string; content: string | null }> {
+  return patch.files.map((f) => ({
+    path: f.path,
+    content: f.action === 'delete' ? null : (f.content ?? ''),
+  }));
+}
+
 /**
  * Validate a model_patch payload against package limits and protected paths (TZ 11.4 points 1–5).
  * Returns violations; empty array means the patch is acceptable for application.

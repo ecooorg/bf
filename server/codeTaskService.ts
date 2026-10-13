@@ -5,8 +5,8 @@ import { getProject } from './projectRepository.ts';
 import { getTask, inTx, lockTask, type Db } from './taskService.ts';
 import { readArtifact, saveArtifact, sha256Hex } from './artifactRepository.ts';
 import {
-  CODE_EXECUTOR_IDS, CodeExecutorError, applyFileDiff, buildPackageMd, canExecutorTransition, countChanges, createManualExecutor, createModelPatchExecutor, packageHash, parseUnifiedDiff,
-  taskPackageSchema, validateChangeSet, validateModelPatch, type ChangeFile, type CodeExecutor, type CodeExecutorId, type ExecutorState, type TaskPackage, type Violation,
+  CODE_EXECUTOR_IDS, CodeExecutorError, applyFileDiff, buildPackageMd, canExecutorTransition, countChanges, createManualExecutor, createModelPatchExecutor, modelPatchToBranchChanges, packageHash, parseUnifiedDiff,
+  taskPackageSchema, validateChangeSet, validateModelPatch, type ChangeFile, type CodeExecutor, type CodeExecutorId, type ExecutorState, type ModelPatch, type TaskPackage, type Violation,
 } from './codeExecutor.ts';
 import {
   commitChangesToBranch, commitTaskPackage, compareToBase, diffUploadEnabled, findPullRequestByBranch, githubConfigFromEnv, githubWritesEnabled, openPullRequest, readBranchHead, readPullRequest, readTextFile,
@@ -25,6 +25,7 @@ const STATUS = {
   EXECUTOR_UNAVAILABLE: 409, CODE_TASK_ACTIVE: 409, CODE_TASK_CLOSED: 409, TASK_NOT_ACTIVE: 409, BUDGET_EXCEEDED: 409, GITHUB_NOT_CONFIGURED: 503,
   DIFF_UPLOAD_DISABLED: 409, PR_MISMATCH: 409, PR_NOT_OPEN: 409, BRANCH_MISMATCH: 409, BRANCH_NOT_FOUND: 404, GITHUB_ERROR: 502, ARTIFACT_ERROR: 409,
   DECISION_REQUIRED: 409, DECISION_EXISTS: 409, HIGH_FINDINGS: 409, NOT_DELIVERED: 409, REPAIR_NOT_TRIGGERED: 409, NOT_LATEST: 409,
+  MODEL_CALLER_MISSING: 503, MODEL_PATCH_INVALID: 400, EXECUTOR_MISMATCH: 409,
 } as const;
 export type CodeTaskErrorCode = keyof typeof STATUS;
 export class CodeTaskError extends Error {
@@ -41,6 +42,12 @@ export interface CodeTaskDeps {
   fetcher?: typeof fetch;
   /** Diff upload writes to GitHub (11.7): off unless GITHUB_DIFF_UPLOAD=true. */
   diffUpload?: () => boolean;
+  /**
+   * P19x: injectable model call for `model_patch`. Receives PACKAGE.md text and the Task Package;
+   * must return a structured model_patch JSON object (or throw). Production may wire Router + code_patch;
+   * tests inject a fake. When absent, driveModelPatch fails with MODEL_CALLER_MISSING.
+   */
+  modelCaller?: (input: { packageMd: string; pkg: TaskPackage; taskId: string; projectId: string }) => Promise<unknown>;
 }
 
 const idSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
@@ -491,6 +498,104 @@ export async function syncCodeTaskFromPullRequest(taskId: string, pr: { number: 
     console.error(JSON.stringify({ type: 'code_task_sync_error', message: String((e as Error)?.message || e).slice(0, 120) }));
     return 'error';
   }
+}
+
+/**
+ * P19x: drive a `model_patch` code task end-to-end (TZ 11.4).
+ * Claims RUNNING, calls modelCaller, validates, commits to biforge/<task_id>, opens PR, settles DELIVERED or BLOCKED/FAILED.
+ * Does not merge. Writes only when GitHub write flag is on. Injectable modelCaller for tests.
+ */
+export async function driveModelPatch(
+  input: { projectId: string; taskId: string; codeTaskId: string },
+  deps: CodeTaskDeps = {},
+): Promise<CodeTask> {
+  const row = await loadRow(await getPool(), input.projectId, input.taskId, input.codeTaskId);
+  if (row.executor !== 'model_patch') {
+    throw new CodeTaskError('EXECUTOR_MISMATCH', 'driveModelPatch only runs for model_patch executor', { executor: row.executor });
+  }
+  if (row.status !== 'WAITING_HUMAN' && row.status !== 'BLOCKED') {
+    throw new CodeTaskError('CODE_TASK_CLOSED', 'The code run is not open for model_patch drive', { status: row.status });
+  }
+  const writeOn = deps.diffUpload?.() ?? (diffUploadEnabled() || githubWritesEnabled());
+  if (!writeOn) {
+    throw new CodeTaskError('DIFF_UPLOAD_DISABLED', 'GitHub writes are off; set GITHUB_DIFF_UPLOAD=true to run model_patch');
+  }
+  if (!deps.modelCaller) {
+    throw new CodeTaskError('MODEL_CALLER_MISSING', 'model_patch requires an injected modelCaller (Router + code_patch) or a test fake');
+  }
+
+  const claimed = await (await getPool()).query(
+    `UPDATE code_tasks SET status='RUNNING', updated_at=now() WHERE id=$1 AND status IN ('WAITING_HUMAN','BLOCKED') RETURNING id`,
+    [row.id],
+  );
+  if (!claimed.rows[0]) throw new CodeTaskError('CODE_TASK_CLOSED', 'The code run is not waiting for a result');
+  const fromRunning = ['RUNNING'] as ExecutorState[];
+
+  const pkg = row.package as TaskPackage;
+  let packageMd: string;
+  try {
+    packageMd = buildPackageMd(row.task_id, pkg);
+  } catch (e) {
+    if (e instanceof CodeExecutorError) {
+      return blockRow(row.id, `package_error:${e.code}`, [], undefined, fromRunning);
+    }
+    throw e;
+  }
+
+  let raw: unknown;
+  try {
+    raw = await deps.modelCaller({ packageMd, pkg, taskId: row.task_id, projectId: row.project_id });
+  } catch (e: any) {
+    const reason = String(e?.message || e).slice(0, 200);
+    return settle(row.id, 'FAILED', { reason: `model_error:${reason}` }, { from: fromRunning, event: 'code_task.failed' });
+  }
+
+  const validated = validateModelPatch(raw, { allowedPaths: pkg.allowedPaths, limits: pkg.limits });
+  if (!validated.ok) {
+    return blockRow(row.id, 'validation_failed', validated.violations.slice(0, 100), 'diff', fromRunning);
+  }
+
+  const changes = modelPatchToBranchChanges(validated.patch);
+  const { cfg, fetcher } = githubFor(deps);
+  const title = (`model_patch: ${row.task_id}`).slice(0, 200);
+  let headSha: string;
+  let prNumber: number | null = null;
+  let prUrl: string | null = null;
+  try {
+    ({ headSha } = await commitChangesToBranch(cfg, {
+      taskId: row.task_id,
+      baseBranch: row.base_branch,
+      changes,
+      message: title,
+      writeEnabled: true,
+    }, fetcher));
+    const pr = await openPullRequest(cfg, {
+      taskId: row.task_id,
+      baseBranch: row.base_branch,
+      title,
+      body: `BiForge model_patch task ${row.task_id}. Review and merge are human actions.`,
+      writeEnabled: true,
+    }, fetcher);
+    prNumber = pr.number;
+    prUrl = pr.htmlUrl ?? null;
+  } catch (e) {
+    const err = githubFailure(e);
+    await blockRow(row.id, `github_error:${String(err.details.reason ?? 'github_error')}`.slice(0, 200), [], 'diff', fromRunning);
+    throw err;
+  }
+
+  const { filesChanged, linesChanged } = countChanges(validated.files);
+  const note = validated.patch.notes ? String(validated.patch.notes).slice(0, 500) : null;
+  return settle(row.id, 'DELIVERED', {
+    delivery: 'diff',
+    branch: taskBranchName(row.task_id),
+    headSha,
+    prNumber,
+    prUrl,
+    files: filesChanged,
+    lines: linesChanged,
+    note,
+  }, { from: fromRunning, event: 'code_task.delivered', extra: { executor: 'model_patch' } });
 }
 
 /** The human gives up on a run (any open state, also a stuck RUNNING). A reason is required; it is stored as text and never interpreted. */
