@@ -6,6 +6,12 @@
 
 **Code patches left: one product gate.** **P19x** implementation is in the repository (gated; enablement authorized by ADR-10 Accepted — RM-C3 on owner command). **P25** (step RM-F7) remains. Everything else is owner actions and documents. Next agent work only on owner command.
 
+## P26 workspace track (owner-commanded, separate from the P25 → G4 checklist)
+
+- [x] **P26a** ZIP ingest core — see `docs/P26a-REPORT.md` (owner reports CI green for base `bf-v26a.zip`).
+- [ ] **P26a.2** Finish tar/folder/IndexedDB/context helpers and wire them into Simple + Expert UI; pass AC-04 with fake Gemini. Current implementation slice is `PARTIAL`; see `docs/P26a.2-REPORT.md`.
+- [ ] **P26b** ChangeSet and export — do not start until P26a.2 gate is closed and the owner commands it.
+
 ## Rules
 
 1. **Strict order:** A -> B -> (C only if the branch after RM-B6 allows it) -> D -> F. Stage E runs in parallel with B-D and must be closed before RM-F4.

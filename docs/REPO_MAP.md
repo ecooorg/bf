@@ -319,17 +319,26 @@ Described: tests/workspace-paths.test.mjs
 
 Described: tests/workspace-ingest.test.mjs
 
+Described: tests/workspace-a2.test.mjs
+
 Described: tests/evidence-markdown.test.mjs
 
 Described: tests/pa03-acceptance.test.mjs
 
 Described: test:p26a
 
+Described: test:p26a2
+
 Described: src/workspace/
 
 | `npm run test:p26a` | P26a workspace path + zip ingest tests |
+| `npm run test:p26a2` | P26a.2 tar/gzip/folder ingest, privacy/context/search and model follow-up tests |
 | `tests/workspace-paths.test.mjs` | Path normalisation |
 | `tests/workspace-ingest.test.mjs` | Zip ingest |
+| `tests/workspace-a2.test.mjs` | Tar/gzip/folder ingest, privacy-gated context, search and follow-up protocol |
 | `tests/evidence-markdown.test.mjs` | Evidence markdown |
 | `tests/pa03-acceptance.test.mjs` | PA-03 acceptance |
 | `src/workspace/` | P26 workspace core modules |
+| `src/workspace/tar.ts` | Safe POSIX tar reader with PAX/GNU long names |
+| `src/workspace/idbStore.ts` | IndexedDB WorkspaceStore adapter |
+| `src/workspace/context.ts` | WORKSPACE context, privacy gate, search and bounded model follow-up |

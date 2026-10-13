@@ -27,4 +27,6 @@
 - `server/files.ts`: code extensions as text; openZip `..` segment fix.
 - AC-01: bf-v24.zip → 345 files, stable manifestHash.
 - Early model experiment: NOT_RUN (owner staging).
-- Next: P26a.2 (tar, IndexedDB, WORKSPACE context) then P26b (ChangeSet).
+- P26a.2 implementation slice (2026-10-13): tar/gzip-tar and folder ingest helpers; IndexedDB adapter; privacy-gated WORKSPACE context, safe file reads/search and bounded `needFiles`/`needSearch` protocol.
+- P26a.2 status: PARTIAL until Simple/Expert UI wiring and AC-04 fake-Gemini end-to-end are completed and tested.
+- Next: complete P26a.2 UI + fake-Gemini acceptance before P26b (ChangeSet).
