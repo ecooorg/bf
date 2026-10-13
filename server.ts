@@ -318,7 +318,7 @@ app.use('/api/projects', async (req, res, next) => {
   if (!process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Project Mode database is not configured', code: 'DATABASE_UNAVAILABLE' });
   try {
     const key = `project-api:${clientIp(req)}`;
-    const result = await consumeRateLimit({ key, limit: Number(process.env.PROJECT_RATE_LIMIT_PER_MINUTE) || 60, windowMs: 60_000 });
+    const result = await consumeRateLimit({ key, limit: Number(process.env.PROJECT_RATE_LIMIT_PER_MINUTE) || 300, windowMs: 60_000 });
     if (!result.allowed) {
       res.setHeader('Retry-After', String(Math.max(1, Math.ceil((result.resetsAt.getTime() - Date.now()) / 1000))));
       return res.status(429).json({ success: false, error: 'Project Mode request limit exceeded', code: 'RATE_LIMITED' });
