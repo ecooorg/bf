@@ -1,3 +1,7 @@
+## Documentation — 2026-10-13 (no product version change)
+
+- TZ v3.0 (one 284 KB file) split into parts, no change of decisions or requirements: `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md`; `docs/BiForge_TZ_v3.md` is now the index with a section → file map. Former section 16.7 became the flat checklist `docs/NEXT.md` (steps `RM-*`). History, Appendices C/F/G and the original monolith moved to `ARCHIVE/TZ_v3.0_*.md`. Section numbers are preserved.
+
 ## v24 — 2026-10-12
 
 - **P24 (BX-25):** authenticated `/ops` and `/api/ops` metrics, `ops:backup-check`, ADR-09 (RPO/RTO), OPS_ROLLBACK procedure.
