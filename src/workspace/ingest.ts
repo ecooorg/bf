@@ -68,11 +68,10 @@ export async function ingestZip(
   let zip: JSZip;
   try {
     // JSZip still loads fully; actual-byte counter below is the safety net.
-    const buf =
-      archiveBytes.buffer.byteLength === archiveBytes.byteLength && archiveBytes.byteOffset === 0
-        ? archiveBytes.buffer
-        : archiveBytes.slice().buffer;
-    zip = await JSZip.loadAsync(buf);
+    // Pass a plain Uint8Array copy so the buffer is ArrayBuffer (not SharedArrayBuffer).
+    const copy = new Uint8Array(archiveBytes.byteLength);
+    copy.set(archiveBytes);
+    zip = await JSZip.loadAsync(copy);
   } catch (e) {
     return reject('unreadable', e instanceof Error ? e.message : 'load failed');
   }
@@ -101,14 +100,15 @@ export async function ingestZip(
     }
 
     const norm = normalizePath(name);
-    if (!norm.ok) {
+    if (norm.ok === false) {
+      const r = norm.reason;
       const reason =
-        norm.reason === 'traversal' || norm.reason === 'absolute' || norm.reason === 'windows_drive' || norm.reason === 'unc'
+        r === 'traversal' || r === 'absolute' || r === 'windows_drive' || r === 'unc'
           ? ('path_traversal' as const)
-          : norm.reason === 'empty'
+          : r === 'empty'
             ? ('empty' as const)
             : ('invalid_name' as const);
-      skipped.push({ path: name, reason, detail: norm.reason });
+      skipped.push({ path: name, reason, detail: r });
       continue;
     }
 
