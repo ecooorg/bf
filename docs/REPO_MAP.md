@@ -13,7 +13,8 @@
 | `scripts/` | Utility scripts (see below) |
 | `tests/` | Tests (see below) |
 | `public/` | Icons for the browser and PWA manifest |
-| `docs/E01_LAB.md` | E-01 live lab guide (Android/GitHub web): tasks, branch rules, progress, next actions |
+| `docs/PA-04-SPEC.md` | PA-04 E-01 lab runner (workflow template + notes merge) |
+| `docs/E01_LAB.md` | E-01 lab Navigator minimum instructions |
 | `docs/NEXT.md` | Plan to G4 as a flat checklist (steps `RM-*`: inputs, PASS) and queue of next patches; updated by the AI Assistant at the end of every patch |
 | `docs/BiForge_TZ_v3.md` | Index of the specification (TZ v3.1): file map and section → file map. The text itself: `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md` |
 | `ARCHIVE/TZ_v3.0_monolith.md` | The original TZ v3.0 in one file and its retired parts (`ARCHIVE/TZ_v3.0_*.md`): history only, not read for patches |
@@ -137,7 +138,10 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/run-independent-checks.mjs` | CI check runner: runs each command in the `check` chain independently, with a 10-minute timeout and per-stage logs |
 | `scripts/gate-eval.mjs` | PA-01 (`npm run gate:eval`): E-01 rule (TZ 11.9) and gate rules (TZ 17) over evidence JSON; prints decision cards |
 | `scripts/evidence-collect.mjs` | PA-01 (`npm run evidence:collect`): read-only service and connection checks; JSON for `scripts/gate-eval.mjs` |
-| `scripts/e01-harness.mjs` | PA-02 (`npm run e01:harness`): external E-01 three-pair experiment (TZ 11.9); dry-run fixtures or live test repo |
+| `scripts/e01-harness.mjs` |
+| `scripts/e01-notes-merge.mjs` | PA-04: merge e01-run.json + minutes → NOTES/RESULTS |
+| `CONCEPTS/e01-task.yml` | Copy to lab as `.github/workflows/e01-task.yml` |
+| `CONCEPTS/e01-lab-SETUP.md` | One-time lab setup on tablet | PA-02 (`npm run e01:harness`): external E-01 three-pair experiment (TZ 11.9); dry-run fixtures or live test repo |
 | `scripts/migrate.mjs` | Applies `migrations/` to `DATABASE_URL` |
 | `scripts/qa.mjs` | Runs checks independently and writes a report (see `docs/DEVELOPMENT.md`; it is not what `npm run check` runs) |
 | `scripts/measure-prompt.mjs`, `scripts/cases.mjs`, `scripts/acceptance-s2-05.mjs`, `scripts/acceptance-s2-06.mjs` | Prompt size measurement and blind quality comparison on a live model (owner's key; not in CI) |

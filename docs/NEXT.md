@@ -49,7 +49,7 @@
 - [ ] **RM-B5 · Experiment E-01** · O
   - Inputs: `docs/SPEC_ENGINE.md` 11.9; three small tasks (up to 10 files, ~400 lines, acceptance tests written beforehand), each done by `manual` and `model_patch`.
   - PASS: a table of three pairs: patch applies; CI green on the first attempt; number of fixes (up to 2); human time; cost; SHA; CI links.
-  - Agent note (13 Oct 2026): PA-02 harness ready. Live lab on tablet: `docs/E01_LAB.md`, test repo `ecooorg/biforge-e01-lab`, notes `ARCHIVE/E01-NOTES.md`. e01-t1 model_patch done (1 fix); continue manual then t2/t3.
+  - Agent note (13 Oct 2026): **PA-04** lab runner ready (`docs/E01_LAB.md`). PA-02 harness `scripts/e01-harness.mjs` + fixtures ready; live run needs test repo secrets and owner metrics for the manual side.
 - [ ] **RM-B6 · ADR-10 decision (branch)** · O+A
   - Inputs: the RM-B5 table and the rule in 11.9.
   - PASS: `docs/ADR-10-code-executor.md` with status `ACCEPTED` and a link to the table. The outcome selects the path below.
