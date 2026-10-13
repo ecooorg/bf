@@ -308,5 +308,5 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 
 | Path | What it is |
 | --- | --- |
-| `CONCEPTS/e01-task.yml` | Workflow to copy into the **lab** repo as `.github/workflows/e01-task.yml` (not used by bf CI) |
+| `CONCEPTS/e01-task.yml` | Workflow template: copy into lab as workflows/e01-task.yml (file lives only under CONCEPTS in bf) |
 | `CONCEPTS/e01-lab-SETUP.md` | One-time setup steps for `ecooorg/biforge-e01-lab` on a tablet |
