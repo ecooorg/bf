@@ -120,3 +120,6 @@ Goal: the least tokens, time and tool calls that still give a correct, tested, s
 - **Stay in scope.** Change only the files the SPEC allows. No refactoring, formatting sweeps, extra files, extra documents or unrelated fixes (see section 4).
 - **Deliver small.** The archive holds only changed and new files (section 5). Update `docs/CURRENT_STATE.md`, `docs/REPO_MAP.md` and `CHANGELOG.md` once, at the end, with one short entry each.
 - **Honest limits.** If a command could not run (no network, no database, missing dependency), say so in one line; never claim a result that was not obtained.
+
+## 12. Delegation of decisions
+Binding from 13 October 2026 (approved by the Navigator): `docs/DELEGATION.md`. Four tiers: the AI Assistant acts (Tier 0), decides and discloses (Tier 1), prepares a decision card for the Navigator (Tier 2, `docs/DECISION_CARD_TEMPLATE.md`, `scripts/gate-eval.mjs`), and never decides what the specification reserves for a human (Tier 3: merge, GitHub App write rights, `WAIVED`, billing, secrets, acceptance tests of a starred step). Silence is never consent in Tiers 2 and 3. The limits of sections 2, 4, 6 and 7 are not relaxed.
