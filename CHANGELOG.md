@@ -1,5 +1,9 @@
 ## Process tooling — 2026-10-13 (no product version change)
 
+- **PA-05:** E-01 closed. `ARCHIVE/E01-NOTES.md`, `ARCHIVE/E01-RESULTS.json`. ADR-10 status → **Accepted** (TZ §11.9 PASS: 3/3 green first, 0 fixes, model ≤ manual human time). Owner: `ok ADR-10`. RM-B5 and RM-B6 closed; Stage C open on command. Product version unchanged (24).
+
+## Process tooling — 2026-10-13 (no product version change)
+
 - **PA-04:** E-01 lab runner template (`CONCEPTS/e01-task.yml`, `workflow_dispatch`, `GITHUB_TOKEN`), setup guide, `scripts/e01-notes-merge.mjs`, `tests/pa04-acceptance.test.mjs`. Navigator: Run workflow + one-line minutes; notes via Assistant patch.
 
 ## Process tooling — 2026-10-13 (no product version change)
