@@ -551,7 +551,7 @@ export async function driveModelPatch(
   }
 
   const validated = validateModelPatch(raw, { allowedPaths: pkg.allowedPaths, limits: pkg.limits });
-  if (!validated.ok) {
+  if (validated.ok === false) {
     return blockRow(row.id, 'validation_failed', validated.violations.slice(0, 100), 'diff', fromRunning);
   }
 
