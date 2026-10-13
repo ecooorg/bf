@@ -295,13 +295,17 @@ export async function processUpload(buf: Buffer, fileName: string): Promise<Extr
   if (s.kind === 'ole') throw new UploadError(415, 'UNSUPPORTED_TYPE', 'Old Office formats (.doc, .xls, .ppt) are not supported. Save the file as .docx, .xlsx or .pptx and try again.');
 
   const ext = extOf(fileName);
-  // P26: accept by content when extension is unknown but bytes look like text (no NUL in first 8KB)
-  const looksText = !buf.subarray(0, Math.min(8192, buf.length)).includes(0);
-  if (!TEXT_EXT.has(ext) && !looksText) {
+  // P26: known text/code extensions, or content that looks like text and is not an executable magic.
+  const head = buf.subarray(0, Math.min(8192, buf.length));
+  const hasNul = head.includes(0);
+  const isExecMagic =
+    (buf.length >= 2 && buf[0] === 0x4d && buf[1] === 0x5a) || // MZ
+    (buf.length >= 4 && buf[0] === 0x7f && buf[1] === 0x45 && buf[2] === 0x4c && buf[3] === 0x46) || // ELF
+    (buf.length >= 4 && buf[0] === 0xcf && buf[1] === 0xfa && buf[2] === 0xed && buf[3] === 0xfe) ||
+    (buf.length >= 4 && buf[0] === 0xce && buf[1] === 0xfa && buf[2] === 0xed && buf[3] === 0xfe);
+  const looksSafeText = !hasNul && !isExecMagic;
+  if (!TEXT_EXT.has(ext) && !looksSafeText) {
     throw new UploadError(415, 'UNSUPPORTED_TYPE', 'This file type is not supported. Attach a PDF, Word, Excel, PowerPoint, text/code file or image.');
-  }
-  if (!TEXT_EXT.has(ext) && looksText) {
-    // allow extensionless or unusual names (Dockerfile, Makefile, etc.)
   }
   const raw = decodeText(buf, ext || 'txt');
   if (!raw.trim()) throw new UploadError(422, 'EMPTY_TEXT', 'The file has no text.');
