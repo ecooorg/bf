@@ -39,6 +39,9 @@ If, when building a patch, the Navigator has not provided the SPEC, the expectat
 - keeps all other limits: TZv3.0 wins over a decision of the AI Assistant; sections 2, 4, 6 and 7 of this file (scope, flat structure, security, dependencies) are not relaxed; a missing document never allows weakening a test or touching `tests/acceptance/**`;
 - applies this rule to missing documents only. A missing or unclear base archive, or a conflict between the request and the archive or TZv3.0, is still `BLOCKED` (section 3, item 5).
 
+### Owner priority: maximum automation
+The owner has set **maximum automation** as one of the project's primary priorities. Prefer reliable automation of repetitive, bounded work, code generation, validation, evidence collection and reporting. This priority does not outrank safety, correctness, evidence requirements or human-only decisions. Do not expand delegation, permissions, billing, merge or deployment authority implicitly. If a delegation rule must change to enable a useful automation, name the exact rule and rationale and ask the owner before changing it. See `docs/DELEGATION.md` and `docs/SPEC_ENGINE.md` §11.10.
+
 ## 4. Implementation and testing
 - Follow existing project conventions unless the task explicitly changes them.
 - Add or update tests for changed behavior. Use fake providers; no real provider, secret, or network access is needed or assumed.
