@@ -1,3 +1,10 @@
+## P26a — Workspace zip ingest (2026-10-13)
+
+- ADR-12: controlled server-side archive unpack in Project Mode only.
+- New `src/workspace/` core: paths, classify, hash, zip ingest, memory store.
+- `server/files.ts`: accept source/config extensions as text; fix zip path `..` check.
+- Tests: `npm run test:p26a` (paths + ingest + bf-v24 fixture).
+
 ## Process tooling — 2026-10-13 (no product version change)
 
 - **PA-05:** E-01 closed. `ARCHIVE/E01-NOTES.md`, `ARCHIVE/E01-RESULTS.json`. ADR-10 status → **Accepted** (TZ §11.9 PASS: 3/3 green first, 0 fixes, model ≤ manual human time). Owner: `ok ADR-10`. RM-B5 and RM-B6 closed; Stage C open on command. Product version unchanged (24).
