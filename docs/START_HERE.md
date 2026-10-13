@@ -42,6 +42,7 @@
 - Queue of next patches: `docs/NEXT.md`. Current state and next patch: `docs/CURRENT_STATE.md` (the plan to the end of the project is `docs/NEXT.md`; the next patches are P19x (conditional) and P25).
 - Patch spec template: `docs/PATCH_TEMPLATE.md`. Report template (starred and gate patches): `docs/STEP_REPORT_TEMPLATE.md`.
 - Repository map, scripts, tests, environment variables: `docs/REPO_MAP.md`.
+- Delegation of decisions and decision cards: `docs/DELEGATION.md`, `docs/DECISION_CARD_TEMPLATE.md`; evidence workflow `.github/workflows/evidence.yml` (PA-01, `docs/PA-01-SPEC.md`).
 - Deployment: `DEPLOY_RAILWAY.md`. Connections inventory: `connectors.yaml`, `docs/CONNECTIONS.md`.
 
 ## Commands

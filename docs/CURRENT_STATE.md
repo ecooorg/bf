@@ -22,3 +22,7 @@ ADR-06 (`Proposed`), ADR-10 (`INTERIM`).
 ## Next
 
 Plan to the end of the project and queue: `docs/NEXT.md` (former TZ section 16.7).
+
+## Process
+
+Delegation policy in force (`docs/DELEGATION.md`, 13 October 2026). PA-01 (evidence workflow and gate evaluator) delivered; it changes no product behaviour. Next: owner commands for P19x, PA-02, PA-03 or P25.

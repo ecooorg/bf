@@ -19,6 +19,7 @@
 | `docs/PATCH_PROMPT.md` | Universal session prompt for any PNN: context order, version = patch number, packaging `bf-PNN.zip`, report |
 | `docs/` | Specification, policies, step specs, reports; plus informational agent-instruction materials (not binding; see table below) |
 | `.github/workflows/ci.yml` | CI on every push (writes a short result line, P13a): migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |
+| `.github/workflows/evidence.yml` | PA-01: manual evidence run (service health, connections), then decision cards; read-only, no commits |
 | `.github/workflows/ui-check.yml` | Browser layout check (`npm run test:ui`) |
 | `package.json`, `package-lock.json` | Dependencies and npm scripts. Do not add dependencies without a reason in the SPEC |
 | `tsconfig.json`, `tsconfig.server.json` | TypeScript settings for client and server build |
@@ -133,6 +134,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/pack-simple.mjs` | `npm run patch:pack` (P19): timeout-safe zip of changed/new files only; no hanging child processes. Legacy `scripts/patch-pack.mjs` kept for history. |
 | `scripts/ci-summary.mjs` | Last step of `.github/workflows/ci.yml`: one-line CI result and annotation with the first failed test |
 | `scripts/run-independent-checks.mjs` | CI check runner: runs each command in the `check` chain independently, with a 10-minute timeout and per-stage logs |
+| `scripts/gate-eval.mjs` | PA-01 (`npm run gate:eval`): E-01 rule (TZ 11.9) and gate rules (TZ 17) over evidence JSON; prints decision cards |
+| `scripts/evidence-collect.mjs` | PA-01 (`npm run evidence:collect`): read-only service and connection checks; JSON for `scripts/gate-eval.mjs` |
 | `scripts/migrate.mjs` | Applies `migrations/` to `DATABASE_URL` |
 | `scripts/qa.mjs` | Runs checks independently and writes a report (see `docs/DEVELOPMENT.md`; it is not what `npm run check` runs) |
 | `scripts/measure-prompt.mjs`, `scripts/cases.mjs`, `scripts/acceptance-s2-05.mjs`, `scripts/acceptance-s2-06.mjs` | Prompt size measurement and blind quality comparison on a live model (owner's key; not in CI) |
@@ -161,6 +164,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:pi03` | PI-03: conversation mode unit + mode paragraph in the prompt and health version (fake Gemini) |
 | `npm run test:p22` | P22: Repair Loop stop rules and diagnostic report |
 | `npm run test:p23` | P23: BX-24 security evidence (actorKind, injection, audit catalog, redaction) |
+| `npm run test:pa01` | PA-01: gate evaluator, evidence collector (fake fetch), workflow safety, secret scrubbing |
+| `npm run evidence:collect`, `npm run gate:eval` | PA-01 tools (see `docs/PA-01-SPEC.md`) |
 | `npm run test:p24` | P24: ops metrics, alerts, backup-check |
 | `npm run ops:backup-check` | Backup/restore readiness (migrations on disk; optional --live) |
 | `npm run test:p15a` | P15a: monitoring evaluators and monitor CLI (offline) |
@@ -223,6 +228,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/p15-acceptance.test.mjs` | Static invariants for plan/approval API, worker lifecycle, budget guard, Run-linked ledger and evidence-backed validation (P13b/P15) | no |
 | `tests/p15a-acceptance.test.mjs` | P15a monitoring pure logic and monitor CLI | no |
 | `tests/p23-acceptance.test.mjs` | P23 security evidence: actorKind, injection, audit catalog, docs | no |
+| `tests/pa01-acceptance.test.mjs` | PA-01 evidence collector and gate evaluator | no |
+| `tests/pa01-fixtures.json` | PA-01 E-01 fixtures (positive, negative, both failed, owner judgement, too many fixes) | no |
 | `tests/p24-acceptance.test.mjs` | P24 ops metrics and backup-check | no |
 | `tests/redact.test.mjs` | Secret redaction helpers | no |
 | `tests/injection-corpus.test.mjs` | Injection corpus present and treated as data | no |

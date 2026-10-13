@@ -148,6 +148,10 @@
   - Inputs: RM-E4, RM-E5, RM-F4…RM-F6.
   - PASS: a dated record "G4 accepted" (the project moves to maintenance), or the list of missing evidence.
 
+## Process automation (owner-approved 13 October 2026)
+
+Policy: `docs/DELEGATION.md`. **PA-01** (`docs/PA-01-SPEC.md`): the manual workflow `evidence` collects read-only evidence (RM-A3, RM-A4, RM-B2, RM-D1 parts) and `npm run gate:eval` renders decision cards for ADR-10, G1a, G1, G2, G3, G4. A run in GitHub Actions provides the record link; copy it into the report, then the step may be ticked. `PARTIAL` is not `PASS`. Planned, each only on an explicit command: **PA-02** (E-01 harness; needs an approved test repository), **PA-03** (staging drills for RM-E2, E4, E5, E6 and scenario 18.1; staging is allowed).
+
 ## Decision points
 
 | Decision | Who | Basis |
