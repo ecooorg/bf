@@ -1,10 +1,10 @@
 # Next work: the road from P24 to BiForge v2.0 (G4)
 
-> Updated 13 October 2026 after P19x + PA-02 (process). P24 and the model-pool fix remain the product base. This is the **only** file that changes step by step; the specification files (`docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`) stay stable. It replaces the former TZ section 16.7 (original text: `ARCHIVE/TZ_v3.0_SECTION_16_7.md`). Step set, order and PASS criteria are unchanged; only the form is flat. The AI Assistant updates this file at the end of every patch (step marks `[x]` only with a record in the repository).
+> Updated 13 October 2026 after PA-05 (E-01 closed, ADR-10 Accepted). P24 and the model-pool fix remain the product base. This is the **only** file that changes step by step; the specification files (`docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`) stay stable. It replaces the former TZ section 16.7 (original text: `ARCHIVE/TZ_v3.0_SECTION_16_7.md`). Step set, order and PASS criteria are unchanged; only the form is flat. The AI Assistant updates this file at the end of every patch (step marks `[x]` only with a record in the repository).
 
-**Done recently:** P20–P24; PI-01…PI-03; P15a; model pool update (deprecated Gemini aliases removed, per-model quota no longer aborts a request).
+**Done recently:** P20–P24; PI-01…PI-03; P15a; model pool update; PA-01…PA-05 (E-01 + ADR-10 Accepted).
 
-**Code patches left: one product gate.** **P19x** implementation is in the repository (still gated; enablement after positive E-01 / ADR-10). **P25** (step RM-F7) remains. PA-02 harness is ready for the E-01 table on the approved test GitHub repository. Everything else is owner actions and documents. Next agent work only on owner command.
+**Code patches left: one product gate.** **P19x** implementation is in the repository (gated; enablement authorized by ADR-10 Accepted — RM-C3 on owner command). **P25** (step RM-F7) remains. Everything else is owner actions and documents. Next agent work only on owner command.
 
 ## Rules
 
@@ -46,13 +46,14 @@
 - [ ] **RM-B4 · End-to-end scenario 18.1 on Railway** · O (agent prepares the checklist)
   - Inputs: `docs/SPEC_PRODUCT.md` 18.1 (12 points); for each point record result, SHA and a log fragment without secrets.
   - PASS: a 12-row table in `ARCHIVE/P15-REPORT.md`, every row `PASS` or `NOT_RUN` with a reason; at most 12 model calls.
-- [ ] **RM-B5 · Experiment E-01** · O
+- [x] **RM-B5 · Experiment E-01** · O
   - Inputs: `docs/SPEC_ENGINE.md` 11.9; three small tasks (up to 10 files, ~400 lines, acceptance tests written beforehand), each done by `manual` and `model_patch`.
   - PASS: a table of three pairs: patch applies; CI green on the first attempt; number of fixes (up to 2); human time; cost; SHA; CI links.
-  - Agent note (13 Oct 2026): **PA-04** lab runner ready (`docs/E01_LAB.md`). PA-02 harness `scripts/e01-harness.mjs` + fixtures ready; live run needs test repo secrets and owner metrics for the manual side.
-- [ ] **RM-B6 · ADR-10 decision (branch)** · O+A
+  - **Closed 13 Oct 2026 (PA-05):** six pairs in `ARCHIVE/E01-NOTES.md` + `ARCHIVE/E01-RESULTS.json`. 3/3 model green first, 0 fixes, model humanMinutes 0.75 ≤ manual 0.75. TZ §11.9 PASS.
+- [x] **RM-B6 · ADR-10 decision (branch)** · O+A
   - Inputs: the RM-B5 table and the rule in 11.9.
   - PASS: `docs/ADR-10-code-executor.md` with status `ACCEPTED` and a link to the table. The outcome selects the path below.
+  - **Closed 13 Oct 2026 (PA-05):** ADR-10 status **Accepted**. Owner decision `ok ADR-10`. Stage C path selected (positive branch).
 - [ ] **RM-B7 · G2 decision** · O
   - Inputs: RM-B4 and RM-B6 with data in the repository; `docs/SPEC_PRODUCT.md` section 17.
   - PASS: a dated record "G2 accepted" or "G2 not accepted, reason" (if not accepted: scope review, review point 2).

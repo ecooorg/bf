@@ -1,19 +1,21 @@
 # Current state
 
-> Updated 13 October 2026 after PA-04 (E-01 lab runner).
+> Updated 13 October 2026 after PA-05 (E-01 close + ADR-10 Accepted).
 
 ## Product
 
-- Version **24**. P19x `driveModelPatch` gated; default `manual` until ADR-10.
+- Version **24**. P19x `driveModelPatch` gated; default `manual`.
+- ADR-10 **Accepted** (2026-10-13). Owner may enable `CODE_EXECUTOR=model_patch` (RM-C3).
 - CI: `test:p19x` / `test:pa02` / `test:pa04` scripts present.
 
 ## E-01
 
 - Lab: `ecooorg/biforge-e01-lab`.
-- **PA-04:** copy `CONCEPTS/e01-task.yml` → lab `.github/workflows/e01-task.yml`, then Run workflow (see `docs/E01_LAB.md`).
-- t1 model done via web earlier; continue via workflow for remaining pairs.
-- Notes: Assistant patches `ARCHIVE/E01-NOTES.md` after your one-line reports.
+- **Closed.** Six pairs recorded in `ARCHIVE/E01-NOTES.md` + `ARCHIVE/E01-RESULTS.json`.
+- TZ §11.9: PASS (3/3 green first, 0 fixes, model humanMinutes 0.75 ≤ manual 0.75).
+- Owner decision: `ok ADR-10` (13 October 2026).
 
 ## Gates
 
-- ADR-10 `INTERIM` until six pairs + RESULTS in repo.
+- ADR-10 **Accepted**. Stage C (P19x enablement) open on owner command.
+- RM-B5 and RM-B6 closed. Next gate steps remain owner actions (RM-B4, RM-B7, …).

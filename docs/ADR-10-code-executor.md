@@ -1,21 +1,38 @@
 # ADR-10 — CodeExecutor composition after E-01
 
-## Status: INTERIM (final decision pending E-01 data)
+## Status: Accepted (2026-10-13)
 
 ## Context
 BiForge_TZ_v3.md §11.9 requires a three-pair experiment comparing `manual` with `model_patch` on the same small real tasks, using prewritten acceptance tests. The decision threshold is defined by the TZ and must be based on measured results, not synthetic tests.
 
+## Evidence
+E-01 was executed on 13 October 2026 via the PA-04 lab runner on `ecooorg/biforge-e01-lab` (six `workflow_dispatch` runs, `GITHUB_TOKEN` only). Results are recorded in:
+
+- `ARCHIVE/E01-NOTES.md`
+- `ARCHIVE/E01-RESULTS.json`
+
+| Metric | Value |
+|--------|-------|
+| model_patch green (≤ 2 fixes) | 3 of 3 |
+| max fixes (model) | 0 |
+| sum humanMinutes (model) | 0.75 |
+| sum humanMinutes (manual) | 0.75 |
+| TZ §11.9 rule | **PASS** |
+
+Owner decision (chat, 13 October 2026): `ok ADR-10`.
+
 ## Decision
-**Interim decision, owner, 2026-10-11 (recommendation accepted in chat):** the execution path stays `manual`; `model_patch` is not enabled; BX-21.b (P19) code is implemented and gated by CODE_EXECUTOR=model_patch; enablement deferred until E-01. No E-01 numbers are recorded in the repository yet, so the rule below has not been applied. The final decision is taken when the E-01 table of three pairs is in `ARCHIVE/P15-REPORT.md`.
+**Accepted.** The product may enable `CODE_EXECUTOR=model_patch`.
 
-Earlier text of this patch:
-No final decision is made by this patch. Until E-01 evidence is recorded and reviewed by the owner, the supported execution path remains `manual`; `model_patch` is not enabled and no Code Delivery capability is implied.
+- Default remains `manual` until the owner explicitly sets the Railway / environment variable (or equivalent) to `model_patch` (RM-C3).
+- BX-21.b (P19x) implementation already present and gated; enablement is now authorized by this ADR.
+- No change to Simple Mode. No automatic enablement on deploy.
 
-## Required evidence
-For each of three task pairs, record: whether the patch applies, whether CI passes on the first attempt, number of repairs (maximum two), human time, model-call cost, checked commit SHA, test/CI links, and any `BLOCKED`/`NOT_RUN` checks.
-
-## Decision rule
-Apply the decision rule in BiForge_TZ_v3.md §11.9 without modification. If the threshold is met, the owner may approve `model_patch` for BX-21.b. If it is not met, keep Code Delivery in `manual` mode or narrow S3 as specified by the TZ.
+## Decision rule applied
+TZ §11.9 without modification: `model_patch` ≥ 2 of 3 green CI within ≤ 2 fixes each, and sum(humanMinutes model) ≤ sum(manual). Condition met.
 
 ## Consequences
-BX-18.b and the G2 evidence package remain open until E-01 is performed and the owner records a final decision.
+- RM-B5 (E-01) and RM-B6 (ADR-10 decision) closed.
+- Stage C (P19x enablement path) is open on owner command.
+- G2 evidence package can proceed once remaining Stage B owner steps are recorded.
+- Rollback: set `CODE_EXECUTOR=manual` (or unset) at any time; no data migration required.
