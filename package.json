@@ -66,6 +66,9 @@
     "test:p23": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p23-acceptance.test.mjs",
     "test:p24": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p24-acceptance.test.mjs",
     "test:pa01": "node --test --test-timeout=60000 --test-force-exit tests/pa01-acceptance.test.mjs",
+    "test:p19x": "node --import tsx --test --test-timeout=60000 --test-force-exit tests/p19x-acceptance.test.mjs",
+    "test:pa02": "node --test --test-timeout=60000 --test-force-exit tests/pa02-acceptance.test.mjs",
+    "e01:harness": "node scripts/e01-harness.mjs",
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs"
