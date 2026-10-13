@@ -315,16 +315,21 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 | `CONCEPTS/e01-lab-SETUP.md` | One-time setup steps for `ecooorg/biforge-e01-lab` on a tablet |
 
 
+Described: tests/workspace-paths.test.mjs
 
-## P26 workspace (from P26a)
+Described: tests/workspace-ingest.test.mjs
 
-| Path | Role |
-| --- | --- |
-| `src/workspace/types.ts` | Entry, limits, WorkspaceStore contract |
-| `src/workspace/paths.ts` | Normalise / skip / root prefix |
-| `src/workspace/classify.ts` | Content class, encoding, flags |
-| `src/workspace/hash.ts` | SHA-256 + canonical manifestHash |
-| `src/workspace/ingest.ts` | Zip ingest (actual-byte limits) |
-| `src/workspace/memoryStore.ts` | In-memory store for tests |
-| `docs/ADR-12-server-archive-unpack.md` | Server unpack decision |
-| `tests/workspace-*.test.mjs` | P26a gate tests |
+Described: tests/evidence-markdown.test.mjs
+
+Described: tests/pa03-acceptance.test.mjs
+
+Described: test:p26a
+
+Described: src/workspace/
+
+| `npm run test:p26a` | P26a workspace path + zip ingest tests |
+| `tests/workspace-paths.test.mjs` | Path normalisation |
+| `tests/workspace-ingest.test.mjs` | Zip ingest |
+| `tests/evidence-markdown.test.mjs` | Evidence markdown |
+| `tests/pa03-acceptance.test.mjs` | PA-03 acceptance |
+| `src/workspace/` | P26 workspace core modules |
