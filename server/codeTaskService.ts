@@ -601,7 +601,7 @@ export async function driveModelPatch(
       'For a standalone browser app, open index.html in a modern browser.',
     ].join('\n') + '\n');
     const bundle = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-    await saveArtifact({ projectId: row.project_id, artifactId: bundleId, filename: 'generated-program.zip', mime: 'application/zip', data: bundle, createdBy: `code_task:${row.id}`, derivedFrom: [`task:${row.task_id}`, `code_task:${row.id}`] });
+    await saveArtifact({ projectId: row.project_id, artifactId: bundleId, filename: 'generated-program.zip', mime: 'application/zip', data: new Uint8Array(bundle), createdBy: `code_task:${row.id}`, derivedFrom: [`task:${row.task_id}`, `code_task:${row.id}`] });
   } catch (e) {
     const reason = String((e as any)?.code || (e as Error)?.message || 'bundle_creation_failed').slice(0, 160);
     return settle(row.id, 'FAILED', { reason: `source_bundle_error:${reason}` }, { from: fromRunning, event: 'code_task.failed' });
