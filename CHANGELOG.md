@@ -1,5 +1,10 @@
 ## Process tooling — 2026-10-13 (no product version change)
 
+- **P19x:** `model_patch` driver — `driveModelPatch` (code_author payload → `validateModelPatch` → `biforge/<task_id>` commit → PR). Still gated by `CODE_EXECUTOR=model_patch` and ADR-10. Tests: `tests/p19x-acceptance.test.mjs`.
+- **PA-02:** E-01 harness (`scripts/e01-harness.mjs`) separate from the product (TZ 11.9); fixtures and `tests/pa02-acceptance.test.mjs`. Test GitHub repository approved for the experiment.
+
+## Process tooling — 2026-10-13 (no product version change)
+
 - PA-01: evidence workflow and gate evaluator (process tooling, no product change). `scripts/gate-eval.mjs`, `scripts/evidence-collect.mjs`, `.github/workflows/evidence.yml`, `tests/pa01-acceptance.test.mjs`. Delegation policy `docs/DELEGATION.md` accepted; `AGENTS.md` section 12.
 
 ## Documentation — 2026-10-13 (no product version change)
