@@ -64,9 +64,9 @@ export default function ProjectMode() {
       const base = `/api/projects/${encodeURIComponent(id)}`;
       const [a, l, p, ap, t] = await Promise.all([api<any[]>(`${base}/artifacts`), api<any[]>(`${base}/ledger`), api<any[]>(`${base}/plans`), api<any[]>(`${base}/approvals`), api<any[]>(`${base}/tasks`)]);
       setArtifacts(a); setLedger(l); setPlans(p); setApprovals(ap); setTasks(t);
-    } catch { /* shown on next action */ }
+    } catch (e) { setError(String((e as Error).message || e)); }
   }, []);
-  useEffect(() => { if (selected?.id) void loadExtras(selected.id); }, [selected?.id, selected?.state_version, loadExtras]);
+  useEffect(() => { if (selected?.id) void loadExtras(selected.id); }, [selected?.id, loadExtras]);
 
   async function act(fn: () => Promise<string>) {
     if (!selected) return; setBusy(true); setError(''); setNotice('');
@@ -116,7 +116,18 @@ export default function ProjectMode() {
     try {
       const next = { ...passport, status: confirm ? 'confirmed' : passport.status };
       await api(`/api/projects/${encodeURIComponent(selected.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: selected.state_version, state: { ...selected.state, passport: next } }) });
-      await loadProjects(selected.id); setNotice(confirm ? 'Passport confirmed.' : 'Passport saved.');
+      await loadProjects(selected.id); await loadExtras(selected.id); setNotice(confirm ? 'Passport confirmed.' : 'Passport saved.');
+    } catch (e) { setError(String((e as Error).message || e)); }
+    finally { setBusy(false); }
+  }
+
+  async function removeProject(p: Project) {
+    if (!window.confirm(`Delete project "${p.name}" with all its data? This cannot be undone.`)) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await api(`/api/projects/${encodeURIComponent(p.id)}`, { method: 'DELETE' });
+      if (selected?.id === p.id) { setSelected(null); setStateText('{}'); setPassport(null); }
+      await loadProjects(); setNotice(`Project "${p.name}" deleted.`);
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
   }
@@ -135,7 +146,9 @@ export default function ProjectMode() {
     e.preventDefault(); setBusy(true); setError(''); setNotice('');
     try {
       const project = await api<Project>('/api/projects', { method: 'POST', body: JSON.stringify({ name: name.trim(), ...(goal.trim() ? { goal: goal.trim() } : {}) }) });
-      setName(''); setGoal(''); setSelected(project); setStateText(JSON.stringify(project.state ?? {}, null, 2));
+      const pp = project.state?.passport as Passport | undefined;
+      if (pp && pp.status !== 'confirmed') await api(`/api/projects/${encodeURIComponent(project.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: project.state_version, state: { ...project.state, passport: { ...pp, status: 'confirmed' } } }) });
+      setName(''); setGoal('');
       await loadProjects(project.id); setNotice('Project created.');
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
@@ -181,17 +194,23 @@ export default function ProjectMode() {
         {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Sign out</button>}
       </div>
     </header>
-    {error && <p role="alert" style={{ color: '#ffb4b4', background: '#3a1216', padding: 12, borderRadius: 8 }}>{error}</p>}
-    {notice && <p role="status" style={{ color: '#7fe0a8' }}>{notice}</p>}
+    {(error || notice) && <div style={{ position: 'fixed', left: 12, right: 12, bottom: 72, zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+      <div role={error ? 'alert' : 'status'} style={{ pointerEvents: 'auto', maxWidth: 560, width: '100%', display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 14px', borderRadius: 10, boxShadow: '0 4px 20px #000a', border: `1px solid ${error ? '#a33' : '#2e7d52'}`, background: error ? '#3a1216' : '#0f2a1d', color: error ? '#ffb4b4' : '#7fe0a8' }}>
+        <span style={{ flex: 1 }}>{error || notice}</span>
+        <button type="button" aria-label="Close message" onClick={() => { setError(''); setNotice(''); }} style={{ background: 'none', border: 0, color: 'inherit', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
+      </div></div>}
     {enabled === null || authenticated === null ? <p>Checking session…</p> : !enabled ? <p role="status">Project Mode is disabled in the server configuration. <a href="/" style={styles.link}>Back to Simple Mode</a>.</p> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Sign in</h2><label htmlFor="project-password">App password</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Sign in</button></form> : <>
       <form onSubmit={create} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0 24px' }}><input aria-label="Project name" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="New project name" required maxLength={200} /><input aria-label="Project goal" style={{ ...styles.input, flex: '1 1 240px' }} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Goal (optional)" maxLength={2000} /><button style={styles.button} disabled={busy || !name.trim()}>Create project</button></form>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
-        <section><h2>Projects</h2>{projects.length === 0 ? <p>No projects yet.</p> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0' }}><button style={{ ...styles.button, width: '100%', textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · version {p.state_version}</small></button></li>)}</ul>}</section>
+        <section><h2>Projects</h2>{projects.length === 0 ? <p>No projects yet.</p> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0', display: 'flex', gap: 8 }}><button style={{ ...styles.button, flex: 1, textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · version {p.state_version}</small></button><button type="button" aria-label={`Delete ${p.name}`} title="Delete project" style={{ ...styles.button, borderColor: '#a33', color: '#ffb4b4' }} disabled={busy} onClick={() => void removeProject(p)}>Delete</button></li>)}</ul>}</section>
         <section><h2>Project State</h2>{selected ? <><p><strong>{selected.name}</strong><br /><small>ID: {selected.id} · version {selected.state_version}</small></p>{passport && <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Passport <small style={{ color: passport.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>({passport.status})</small></h3><div style={{ display: 'grid', gap: 8 }}>
-          {([['projectType', 'Project type'], ['goal', 'Goal'], ['users', 'Users'], ['inputsOutputs', 'Inputs and outputs'], ['constraints', 'Constraints'], ['securityData', 'Security and data requirements'], ['successCriteria', 'Success criteria']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={k === 'projectType' ? 1 : 2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
+          {([['goal', 'Goal']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
+          <details style={{ border: '1px solid #1f4f86', borderRadius: 8, padding: '8px 12px' }}><summary style={{ cursor: 'pointer', minHeight: 32 }}>Advanced parameters</summary><div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+          {([['projectType', 'Project type'], ['users', 'Users'], ['inputsOutputs', 'Inputs and outputs'], ['constraints', 'Constraints'], ['securityData', 'Security and data requirements'], ['successCriteria', 'Success criteria']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={k === 'projectType' ? 1 : 2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
           {([['calls', 'Budget: calls'], ['tokens', 'Budget: tokens'], ['executorRuns', 'Budget: code executor runs']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<input type="number" min={0} value={passport.budget[k]} onChange={e => setPassport({ ...passport, budget: { ...passport.budget, [k]: Math.max(0, Math.floor(Number(e.target.value) || 0)) } })} style={{ ...styles.input, minHeight: 0 }} /></label>)}
           <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>Code executor<select value={passport.executor} onChange={e => setPassport({ ...passport, executor: e.target.value as Passport['executor'] })} style={styles.input}><option value="manual">manual</option><option value="model_patch">model_patch</option></select></label>
           <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>Human involvement<select value={passport.humanLevel} onChange={e => setPassport({ ...passport, humanLevel: e.target.value as Passport['humanLevel'] })} style={styles.input}><option value="supervised">Supervised</option><option value="manual">Manual</option></select></label>
+          </div></details>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><button type="button" style={styles.button} disabled={busy} onClick={() => void savePassport(false)}>Save passport</button>{passport.status !== 'confirmed' && <button type="button" style={styles.button} disabled={busy} onClick={() => void savePassport(true)}>Confirm passport</button>}</div></div></section>}
 
           {passport?.status === 'confirmed' ? <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Analysis</h3>
