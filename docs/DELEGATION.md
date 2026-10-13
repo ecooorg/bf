@@ -22,7 +22,7 @@ Silence never means consent in Tier 2 and Tier 3.
 
 1. Tier 0 and Tier 1 work needed for patches P19x (SPEC, implementation, tests; `CODE_EXECUTOR` stays `manual`) and P25 (code and documents) may be prepared without a separate command per step. Merge into `main` and deployment stay with the Navigator.
 2. P19x may be prepared in parallel with E-01. If the E-01 branch is negative, its SPEC moves to `ARCHIVE/` and nothing is enabled.
-3. Process-automation patches `PA-NN` are started by an explicit command per patch. Recorded: PA-01 started 13 October 2026; PA-04 (E-01 lab runner) started 13 October 2026; PA-02 (E-01 harness) started 13 October 2026; PA-03 (staging drills) started 13 October 2026 by owner approval in the attached automation TZ; P19x started 13 October 2026; a Railway **staging** environment is allowed for PA-03 (separate environment and database, synthetic data only). A test GitHub repository for PA-02 is **approved** (Navigator, 13 October 2026).
+3. Process-automation patches `PA-NN` are started by an explicit command per patch. Recorded: PA-01 started 13 October 2026; PA-04 (E-01 lab runner) started 13 October 2026; PA-02 (E-01 harness) started 13 October 2026; P19x started 13 October 2026; a Railway **staging** environment is allowed for PA-03 (separate environment and database, synthetic data only). A test GitHub repository for PA-02 is **approved** (Navigator, 13 October 2026).
 
 ## Limits that do not change
 
@@ -32,8 +32,6 @@ Silence never means consent in Tier 2 and Tier 3.
 - Code written by one model family is reviewed by another family when a second provider exists.
 - No secrets in reports; variable names only.
 
-## Owner-approved priority: maximum automation
+## Software creation automation (13 October 2026)
 
-**Owner decision (13 October 2026): maximum automation is one of the project's core priorities.** For every new patch, prefer a safe, repeatable script or workflow that replaces recurring manual steps and emits machine-readable evidence plus a run link. Automate preparation, checks, summaries, and evidence collection wherever technically possible; keep manual steps explicit only where a real owner decision, secret, paid resource, external permission, safety-sensitive operation, or acceptance judgment is required.
-
-This priority does **not** silently change delegation tiers or the security boundary. Tier 2 and Tier 3 decisions remain human-controlled; no merge, production deployment, billing change, secret creation, GitHub App write grant, or acceptance-test approval is automated by default. If an implementation requires a change to `docs/DELEGATION.md` tiers or reserved human decisions, the Assistant must identify the exact rule and proposed change and ask the Navigator before implementing that policy change.
+The owner has established **maximum automation** as one of the project's primary priorities. For software creation, the assistant should automate bounded and reversible work by default: build the Task Package, invoke the configured code author, validate generated paths and contents, preserve a downloadable source bundle, and collect test/CI evidence where available. This priority does not override the tier model. The `manual` executor remains the default; `model_patch` remains gated by the accepted E-01 / ADR-10 decision and explicit owner configuration. No merge, deployment, secrets creation, GitHub permission change, or claim of passing tests is delegated. If automation requires changing a delegation rule, the assistant must first name the exact rule, explain why it is insufficient, and ask the owner to decide; it must not change that rule unilaterally.

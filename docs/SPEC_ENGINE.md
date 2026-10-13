@@ -403,7 +403,7 @@ interface CodeExecutor {
 
 **`manual` — MUST.** Продукт формирует Task Package и `PACKAGE.md`; человек передаёт их в любой инструмент по своему выбору и возвращает результат одним из способов: (а) PR в репозитории проекта (продукт находит PR по `task_id` в описании или по ветке `biforge/<task_id>`: webhook GitHub, при его отсутствии — опрос); (б) ссылка на ветку; (в) загрузка unified diff в продукт: диск не затрагивается, патч проходит ту же валидацию, что и в `model_patch` (см. ниже), и применяется через API GitHub. Название использованного инструмента записывается в `executor_note` как свободный текст.
 
-**`model_patch` — SHOULD, включается решением владельца по итогам эксперимента E-01 (п. 11.9).** Продукт вызывает через Router профиль `code_author` (п. 9.2) с требованием `capability = code_patch`. Ответ — структурированный патч:
+**`model_patch` — SHOULD, включается решением владельца по итогам эксперимента E-01 (п. 11.9).** Продукт вызывает профиль `code_author` через Router с подтверждённой `json_output` capability и требует структурированный ответ. Отдельная `code_patch` capability используется только для моделей/адаптеров, где она подтверждена реальной проверкой; текущий Gemini adapter её не объявляет:
 
 ```json
 {"files":[{"path":"src/x.ts","action":"create|modify|delete","content":"...полный новый текст..."}],"notes":"..."}
@@ -425,7 +425,7 @@ interface CodeExecutor {
 
 1. `brief_writer` формирует пакет → проверка схемой; перекрёстная проверка критичных частей (п. 7.6), если доступен второй провайдер.
 2. Человек утверждает пакет (approval).
-3. Запуск исполнителя (`manual`: выдача `PACKAGE.md` и ожидание; `model_patch`: вызов модели и применение патча).
+3. Запуск исполнителя (`manual`: выдача `PACKAGE.md` и ожидание; `model_patch`: вызов модели, проверка патча и подготовка source artifact; GitHub commit/PR — только при включённых правах).
 4. В репозитории появляется PR.
 5. GitHub Actions выполняет проверки.
 6. Gate Engine принимает evidence (раздел 12).
@@ -473,6 +473,17 @@ GitHub App или fine-grained токен: `contents:read`, `checks:read`, `meta
 | Не справляются оба способа | Объём S3 сужается до подготовки спецификации и пакета (без реализации); G3 пересматривается |
 
 Выборка из трёх задач мала: результат — **гипотеза для решения владельца**, а не статистический вывод. Отчёт сохраняется как артефакт; эксперимент повторяется при смене модели или класса задач.
+
+### 11.10. Пользовательский сценарий создания небольших программ
+
+Project Mode MUST distinguish text analysis from a request to create software. The explicit `Create a small program` action submits a natural-language goal to the code-author flow; it does not silently reinterpret ordinary analysis requests. The flow creates a durable Task and Task Package, invokes the configured `model_patch` executor, validates the returned full-file patch, and stores a ZIP source bundle as a project artifact. The bundle is downloadable even if GitHub delivery is blocked after validation.
+
+For the product-facing flow, generated files are confined to `generated-projects/<task_id>/**`; this keeps user-generated code isolated from BiForge application code. A browser game or small browser utility SHOULD be delivered as a self-contained `index.html` with embedded CSS/JavaScript and no remote dependencies when practical. The source ZIP includes a short notice that the code was not executed by BiForge.
+
+The production model call uses the existing Router with the confirmed `json_output` capability to request a schema-shaped `{files, notes}` response. The current Gemini adapter does not advertise a separately verified native `code_patch` capability; this flow MUST NOT claim that it does. Structural/path validation remains deterministic. BiForge MUST NOT execute generated code on its server. The user-facing program-creation flow is source-only and never writes generated code into BiForge’s own repository. The separate Code Delivery workflow retains GitHub branch/PR delivery subject to `CODE_EXECUTOR=model_patch`, the project passport, GitHub write configuration and the existing human review/merge boundaries. Default executor remains `manual`; the feature does not grant merge or deployment rights.
+
+A generated ZIP is a source artifact, not evidence that runtime tests passed. Basic HTML-shell and parse-only JavaScript syntax checks are not runtime tests. Statuses must distinguish successful source generation, blocked GitHub delivery, and actual CI/test evidence. Runtime execution, automatic repair based on runtime failures, and a hosted preview require a separately approved isolated runner/staging design; they are not implied by source generation.
+
 
 ## 12. Качество и evidence
 
@@ -548,7 +559,7 @@ MUST NOT: исполнять недоверенный код на Railway; пе�
 
 ### 14.1. Приоритеты
 
-Безопасность → корректность → проверенное качество результата → стоимость → скорость. Экономия не оправдывает отказ от проверки; дорогой вызов оправдан, если он предотвращает больше повторной работы (D-09).
+Безопасность → корректность → проверенное качество результата → максимальная автоматизация в пределах утверждённых полномочий → стоимость → скорость. Максимальная автоматизация — один из основных приоритетов владельца, но она не отменяет проверки, evidence, бюджетных ограничений или решений Tier 2/3. Экономия не оправдывает отказ от проверки; дорогой вызов оправдан, если он предотвращает больше повторной работы (D-09).
 
 ### 14.2. Обязательные меры
 

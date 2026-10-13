@@ -1,10 +1,10 @@
 # Next work: the road from P24 to BiForge v2.0 (G4)
 
-> Updated 13 October 2026 after PA-05 and automation-priority patch preparation. E-01 is closed (ADR-10 Accepted); PA-03 staging evidence workflow is prepared but has not been run live. P24 and the model-pool fix remain the product base. This is the **only** file that changes step by step; the specification files (`docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`) stay stable. It replaces the former TZ section 16.7 (original text: `ARCHIVE/TZ_v3.0_SECTION_16_7.md`). Step set, order and PASS criteria are unchanged; only the form is flat. The AI Assistant updates this file at the end of every patch (step marks `[x]` only with a record in the repository).
+> Updated 13 October 2026 after PA-05 (E-01 closed, ADR-10 Accepted). P24 and the model-pool fix remain the product base. This is the **only** file that changes step by step; the specification files (`docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`) stay stable. It replaces the former TZ section 16.7 (original text: `ARCHIVE/TZ_v3.0_SECTION_16_7.md`). Step set, order and PASS criteria are unchanged; only the form is flat. The AI Assistant updates this file at the end of every patch (step marks `[x]` only with a record in the repository).
 
 **Done recently:** P20–P24; PI-01…PI-03; P15a; model pool update; PA-01…PA-05 (E-01 + ADR-10 Accepted).
 
-**Automation priority:** by owner decision, maximum automation is a core project priority. PA-03 has a manual-dispatch staging workflow prepared; it does not alter Tier 2/3 authority. Live staging checks require owner-created staging secrets. **P19x** implementation is present (default `manual`; enabling `model_patch` remains an owner action). **P25** spec is prepared in advance; version 2.0 remains blocked until G4.
+**Code patches left: one product gate.** **P19x** implementation is in the repository (gated; enablement authorized by ADR-10 Accepted — RM-C3 on owner command). **P25** (step RM-F7) remains. Everything else is owner actions and documents. Next agent work only on owner command.
 
 ## Rules
 
@@ -14,7 +14,6 @@
 4. **Data.** Until the paid Gemini tier (RM-A2) and the second provider's data terms (RM-B2) are confirmed, only synthetic data goes into Project Mode.
 5. **Rollback.** Every stage ends in a working state. A step that breaks Simple Mode is rolled back per `docs/OPS_ROLLBACK.md`, the reason goes into the report.
 6. Reports are written to the files named in the steps (`ARCHIVE/P15-REPORT.md`, `docs/ADR-10-code-executor.md`, `docs/P25-REPORT.md`, `docs/THREAT_MODEL.md`).
-7. **Maximum automation (owner-approved 13 Oct 2026):** prefer bounded scripts/workflows that automate repeatable work and emit evidence. Do not change delegation tiers or owner-reserved decisions silently; propose the exact policy change to the Navigator first.
 
 **Legend:** **O** owner, **A** agent, **O+A** together. Ids `RM-*` are used so they are not confused with assumptions `A-01…A-10` (`docs/SPEC_ENGINE.md` 3.2), experiment `E-01` and Appendix E sections.
 
@@ -22,8 +21,7 @@
 
 - [ ] **RM-A1 · Align Railway Variables with the recommended values** · O
   - Inputs: Railway Variables; "Reference 1" below; remove old model lists and anything that overrides code defaults.
-  - PASS: no model-cascade override lists and no deprecated aliases (`gemini-3.7-flash`, `gemini-3.5-flash`); the service is active after restart.
-  - Agent note (13 Oct 2026): recommended values are recorded in Reference 1; actual Railway changes remain an owner action.
+  - PASS: no variables with the old lists (`gemini-3.7-flash`, `gemini-3.5-flash`); the service is active after restart.
 - [ ] **RM-A2 · Confirm the paid Gemini tier** · O
   - Inputs: AI Studio / Cloud console: the project of `GEMINI_API_KEY`, billing, spending limit (assumptions A-01, A-02).
   - PASS: a dated record (tier, date) in `docs/CONNECTIONS.md`; the free tier is allowed for synthetic data only.
@@ -42,14 +40,12 @@
 - [ ] **RM-B2 · Confirm the second provider** · O+A (closes G1)
   - Inputs: `verify:connections -- --only groq`; one real smoke per E.2; `data_policy` and `last_verified_at` in the registry (Groq Free: synthetic data only, A-08).
   - PASS: `OK` and a registry record, or `REAL_ONLY` with the reason.
-  - Agent note (13 Oct 2026): owner approved keeping Groq Free; data remains synthetic-only and the provider step is `REAL_ONLY` until a real-provider review / registry evidence is recorded.
 - [ ] **RM-B3 · Real fallback smoke** · O
   - Inputs: a test environment whose first cascade model is deliberately non-existent.
   - PASS: the request is served by the next model; `ARCHIVE/P15-REPORT.md` records the model, time and the `route_decisions` row.
 - [ ] **RM-B4 · End-to-end scenario 18.1 on Railway** · O (agent prepares the checklist)
   - Inputs: `docs/SPEC_PRODUCT.md` 18.1 (12 points); for each point record result, SHA and a log fragment without secrets.
   - PASS: a 12-row table in `ARCHIVE/P15-REPORT.md`, every row `PASS` or `NOT_RUN` with a reason; at most 12 model calls.
-  - Agent note (13 Oct 2026): 12-row checklist prepared; all rows honestly `NOT_RUN` pending a staging run. See `docs/PA-03-SPEC.md`.
 - [x] **RM-B5 · Experiment E-01** · O
   - Inputs: `docs/SPEC_ENGINE.md` 11.9; three small tasks (up to 10 files, ~400 lines, acceptance tests written beforehand), each done by `manual` and `model_patch`.
   - PASS: a table of three pairs: patch applies; CI green on the first attempt; number of fixes (up to 2); human time; cost; SHA; CI links.
@@ -75,11 +71,11 @@
 - [ ] **RM-C1 · P19x SPEC** · A
   - Inputs: `docs/PATCH_TEMPLATE.md`; `docs/SPEC_ENGINE.md` 11.4 (`code_author` -> validation -> commit to `biforge/<task_id>` -> PR).
   - PASS: SPEC approved by the owner.
-  - Agent note (13 Oct 2026): owner approved the SPEC in the automation-TZ response; repository/CI closure evidence is still required by rule 2.
+  - Agent note (13 Oct 2026): draft SPEC at `docs/P19x-SPEC.md` in this patch; awaits owner approval.
 - [ ] **RM-C2 · Implementation and tests** · A
   - Inputs: a protected path, a path outside the root, an oversized patch and a write outside `biforge/*` must all be rejected; the run limit holds.
   - PASS: `npm run check` green; the "Code executor" tests of `docs/SPEC_PRODUCT.md` 18.3 pass.
-  - Agent note (13 Oct 2026): `driveModelPatch` + `tests/p19x-acceptance.test.mjs` are present. The supplied automation TZ reports `npm run check` exit 0 including `test:p19x`; that report is not a CI link, so RM-C2 remains open until the repository run URL is recorded.
+  - Agent note (13 Oct 2026): `driveModelPatch` + `tests/p19x-acceptance.test.mjs` added; full `npm run check` / CI not run in agent environment (no node_modules/network).
 - [ ] **RM-C3 · Enable `model_patch` and accept one patch** · O
   - Inputs: `CODE_EXECUTOR=model_patch`, `GITHUB_DIFF_UPLOAD=true`; GitHub App write rights are granted at that moment, not earlier.
   - PASS: one accepted PR; a record in the report.
@@ -90,9 +86,8 @@
   - Inputs: `npm run verify:connections -- --only github`; a signed webhook.
   - PASS: `OK`, webhook answers 202; a record in `docs/CONNECTIONS.md`.
 - [ ] **RM-D2 · ADR-06 decision and GitHub App rights review** · O
-  - Inputs: ADR-06 (`Accepted`); read-only by default, merge forbidden; any write scope is a separate owner decision.
+  - Inputs: ADR-06 (`Proposed`); minimum rights, merge forbidden.
   - PASS: ADR-06 `ACCEPTED`, or another recorded decision.
-  - Agent note (13 Oct 2026): owner approved read-only rights by default, merge forbidden, write permissions only by separate decision; `docs/ADR-06-github-repositories.md` updated. Live App permissions still require owner-side evidence.
 - [ ] **RM-D3 · Pilot task through "package -> PR -> decision"** · O+A
   - Inputs: Task Package -> human approval -> external tool (or `model_patch`) -> PR -> CI evidence in the Gate Engine.
   - PASS: the task reached a PR; evidence is bound to the head commit; the decision is recorded; a human merged.
@@ -117,7 +112,6 @@
 - [ ] **RM-E3 · Daily Railway PostgreSQL backup** · O
   - Inputs: backup settings (assumption A-06).
   - PASS: frequency and retention recorded in ADR-09.
-  - Agent note (13 Oct 2026): daily backup / 7-day retention recorded as a target only; actual Railway plan and setting remain owner verification.
 - [ ] **RM-E4 · Backup restore** · O
   - Inputs: a clean disposable database; `npm run ops:backup-check -- --live`.
   - PASS: restore succeeds; migrations 001-014 applied; data readable.
@@ -130,14 +124,12 @@
 - [ ] **RM-E7 · Security review** · O+A
   - Inputs: injection corpus in CI; Railway logs; GitHub App roles against `docs/SPEC_ENGINE.md` 11.7.
   - PASS: a dated review record in `docs/THREAT_MODEL.md`.
-  - Agent note (13 Oct 2026): static review recorded; Railway logs and actual installed GitHub App roles unavailable, therefore `PARTIAL`.
 
 ## Stage F. P25: acceptance and G4
 
 - [ ] **RM-F1 · Choose the pilot tool** · O
   - Inputs: a small real tool (up to 1,000 lines, one language).
   - PASS: goal, boundaries and the readiness criterion recorded in the project passport.
-  - Agent note (13 Oct 2026): pilot candidate selected: dependency-free JS CLI `scripts/evidence-to-markdown.mjs` (render evidence JSON to Markdown); copy/trial instructions are in `CONCEPTS/EVIDENCE_RENDERER_SETUP.md`. This does not itself close RM-F1 until the pilot is recorded in the project passport.
 - [ ] **RM-F2 · Acceptance tests before implementation** · O
   - Inputs: tests under `tests/acceptance/**` of the pilot repository.
   - PASS: approved and placed under Test Integrity protection.
@@ -162,7 +154,15 @@
 
 ## Process automation (owner-approved 13 October 2026)
 
-Policy: `docs/DELEGATION.md`. **PA-01** (`docs/PA-01-SPEC.md`): the manual workflow `evidence` collects read-only evidence (RM-A3, RM-A4, RM-B2, RM-D1 parts) and `npm run gate:eval` renders decision cards for ADR-10, G1a, G1, G2, G3, G4. A run in GitHub Actions provides the record link; copy it into the report, then the step may be ticked. `PARTIAL` is not `PASS`. Planned, each only on an explicit command: **PA-02** (E-01 harness; approved test repository), **PA-03** (staging drills for RM-E2, E4, E5, E6 and scenario 18.1; owner has approved and this patch prepares the workflow).
+Policy: `docs/DELEGATION.md`. **PA-01** (`docs/PA-01-SPEC.md`): the manual workflow `evidence` collects read-only evidence (RM-A3, RM-A4, RM-B2, RM-D1 parts) and `npm run gate:eval` renders decision cards for ADR-10, G1a, G1, G2, G3, G4. A run in GitHub Actions provides the record link; copy it into the report, then the step may be ticked. `PARTIAL` is not `PASS`. Planned, each only on an explicit command: **PA-02** (E-01 harness; needs an approved test repository), **PA-03** (staging drills for RM-E2, E4, E5, E6 and scenario 18.1; staging is allowed).
+
+## Project Mode software creation (implementation patch prepared; CI pending)
+
+- Added an explicit **Create a small program** flow; ordinary text analysis remains separate.
+- The flow is gated by the confirmed project passport executor and `CODE_EXECUTOR=model_patch`; the default remains `manual`.
+- The Router-backed code author returns a validated source ZIP under the project artifacts. GitHub delivery remains optional/gated; merge remains human-only.
+- Owner priority: maximum automation within safety, evidence and delegation boundaries. See `docs/DELEGATION.md`, `docs/PROGRAM-CREATION-SPEC.md` and `docs/SPEC_ENGINE.md` §11.10.
+- **Agent note:** docs/version checks pass. Full typecheck/tests/CI are not confirmed because dependency installation timed out in this environment. Do not close this step until CI evidence is recorded under the normal rule 2.
 
 ## Decision points
 
@@ -195,7 +195,7 @@ Policy: `docs/DELEGATION.md`. **PA-01** (`docs/PA-01-SPEC.md`): the manual workf
 
 | Variable | Value | Note |
 | --- | --- | --- |
-| `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` | leave unset; use code defaults | Do not define model lists in Railway. Deprecated aliases `gemini-3.7-flash` and `gemini-3.5-flash` must not be configured |
+| `MODEL_CASCADE_LIGHT`, `MODEL_CASCADE_STRONG` | leave unset (code default) or `gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite` | `gemini-3.7-flash` and `gemini-3.5-flash` are deprecated aliases with a shared quota (checked 12 October 2026) |
 | `LLM_CALL_TIMEOUT_MS` | `25000` | One hung call must not take most of the total time |
 | `LLM_TOTAL_DEADLINE_MS` | `70000` (default) | |
 | `MAX_MODEL_CALLS` | `4` (default) | |
@@ -203,4 +203,4 @@ Policy: `docs/DELEGATION.md`. **PA-01** (`docs/PA-01-SPEC.md`): the manual workf
 | `RATE_LIMIT_PER_HOUR` | `60` | |
 | `TRUST_PROXY_HOPS` | `1` | Production default |
 | `MAX_BODY_BYTES` | leave unset (262144) | |
-| `GROQ_PLAN` | `free` | Owner-approved for the pilot; Groq remains `REAL_ONLY` / synthetic data only until a real-provider review is recorded |
+| `GROQ_PLAN` | `free` or `paid` | Not read by the server; a documentation marker |
