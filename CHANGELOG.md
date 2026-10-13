@@ -1,3 +1,9 @@
+## P26a.2 — tar/folder ingest and workspace storage/context (2026-10-13)
+
+- Added POSIX tar + gzip-tar reader (PAX/GNU long names), folder-ingest helper, IndexedDB store, privacy-gated WORKSPACE context, safe file reads/search and bounded model follow-up contract.
+- Added `test:p26a2` to `npm run check`.
+- AC-04 Simple/Expert UI + fake-Gemini end-to-end remains NOT_RUN; this slice provides the core helpers but does not yet wire them into the chat UI.
+
 ## P26a — Workspace zip ingest (2026-10-13)
 
 - ADR-12: controlled server-side archive unpack in Project Mode only.
