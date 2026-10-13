@@ -1,7 +1,6 @@
-## Fix — 2026-10-13 (no product version change)
+## Process tooling — 2026-10-13 (no product version change)
 
-- **P19x follow-up:** TypeScript narrowing in `driveModelPatch` (`validated.ok === false`) so `npm run build` / CI `check-and-build` passes (TS2339 on `violations`).
-- **E-01 lab docs:** `docs/E01_LAB.md` — Android/GitHub-web procedure, progress, task definitions for session continuity. Owner notes live in `ARCHIVE/E01-NOTES.md`.
+- **PA-04:** E-01 lab runner template (`CONCEPTS/e01-task.yml`, `workflow_dispatch`, `GITHUB_TOKEN`), setup guide, `scripts/e01-notes-merge.mjs`, `tests/pa04-acceptance.test.mjs`. Navigator: Run workflow + one-line minutes; notes via Assistant patch.
 
 ## Process tooling — 2026-10-13 (no product version change)
 
