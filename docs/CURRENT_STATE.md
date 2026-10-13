@@ -19,3 +19,12 @@
 
 - ADR-10 **Accepted**. Stage C (P19x enablement) open on owner command.
 - RM-B5 and RM-B6 closed. Next gate steps remain owner actions (RM-B4, RM-B7, …).
+
+## P26a (2026-10-13)
+
+- Workspace core ingest (zip) + path/classify/hash + in-memory store.
+- ADR-12 Accepted (server unpack only in Project Mode).
+- `server/files.ts`: code extensions as text; openZip `..` segment fix.
+- AC-01: bf-v24.zip → 345 files, stable manifestHash.
+- Early model experiment: NOT_RUN (owner staging).
+- Next: P26a.2 (tar, IndexedDB, WORKSPACE context) then P26b (ChangeSet).

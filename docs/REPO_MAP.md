@@ -314,3 +314,17 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 | `CONCEPTS/e01-task.yml` | Workflow template: copy into lab as workflows/e01-task.yml (file lives only under CONCEPTS in bf) |
 | `CONCEPTS/e01-lab-SETUP.md` | One-time setup steps for `ecooorg/biforge-e01-lab` on a tablet |
 
+
+
+## P26 workspace (from P26a)
+
+| Path | Role |
+| --- | --- |
+| `src/workspace/types.ts` | Entry, limits, WorkspaceStore contract |
+| `src/workspace/paths.ts` | Normalise / skip / root prefix |
+| `src/workspace/classify.ts` | Content class, encoding, flags |
+| `src/workspace/hash.ts` | SHA-256 + canonical manifestHash |
+| `src/workspace/ingest.ts` | Zip ingest (actual-byte limits) |
+| `src/workspace/memoryStore.ts` | In-memory store for tests |
+| `docs/ADR-12-server-archive-unpack.md` | Server unpack decision |
+| `tests/workspace-*.test.mjs` | P26a gate tests |

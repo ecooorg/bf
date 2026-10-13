@@ -38,6 +38,8 @@
 | Staging automation safety | `docs/PA-03-SPEC.md`, `scripts/staging-drills.mjs`, `.github/workflows/staging-drills.yml`; manual dispatch, staging hostname check, GET-only load probe, synthetic data, no restore/rollback or DB writes |
 | GitHub App rights boundary | `docs/ADR-06-github-repositories.md`, `docs/RIGHTS_REVIEW.md`; read-only by default, merge forbidden, write requires a separate owner decision |
 
+| Archive bomb / zip-slip (server) | ADR-12, P26 FW-04…FW-11, `src/workspace/ingest.ts` |
+
 ## 4. Dated review — 13 October 2026 (RM-E7)
 
 - **Injection corpus / CI:** repository contains `tests/fixtures/injection/**`, `tests/injection-corpus.test.mjs`, and the P23 acceptance coverage. The static tests are part of `npm run check`; this patch did not run the live CI workflow, so CI evidence remains dependent on the GitHub Actions run.

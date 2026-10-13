@@ -29,6 +29,13 @@ Require explicit owner authorization before:
 - incurring material external costs or enabling paid services;
 - changing the code executor (`manual` / `model_patch`), budgets, or policies (these are written to the audit log).
 
+
+## Archives (ADR-12 / P26)
+- Server-side unpacking of zip/tar/tar.gz is allowed **only in Project Mode**, inside a `worker_thread`, with actual-byte limits, path normalisation, and a global concurrency semaphore (1–2). See ADR-12.
+- Simple and Expert Mode unpack exclusively in the browser (Web Worker); the server never holds their workspace bytes.
+- Extracted content is never executed. Path traversal, absolute paths, symlinks, and archive-bomb patterns are rejected or skipped per P26 FW-04…FW-11.
+- Header sizes alone are not trusted; counters use bytes actually produced by the decompressor.
+
 ## Prohibitions (TZv3.0, section 13.7)
 The product MUST NOT: execute untrusted code on Railway; pass product secrets to code executors or Actions; merge or deploy; allow a model to change State, profiles, the registry, or permissions without validation; log full prompts or the content of private files by default.
 
