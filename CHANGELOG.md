@@ -1,3 +1,8 @@
+## Fix — 2026-10-13 (no product version change)
+
+- **P19x follow-up:** TypeScript narrowing in `driveModelPatch` (`validated.ok === false`) so `npm run build` / CI `check-and-build` passes (TS2339 on `violations`).
+- **E-01 lab docs:** `docs/E01_LAB.md` — Android/GitHub-web procedure, progress, task definitions for session continuity. Owner notes live in `ARCHIVE/E01-NOTES.md`.
+
 ## Process tooling — 2026-10-13 (no product version change)
 
 - **P19x:** `model_patch` driver — `driveModelPatch` (code_author payload → `validateModelPatch` → `biforge/<task_id>` commit → PR). Still gated by `CODE_EXECUTOR=model_patch` and ADR-10. Tests: `tests/p19x-acceptance.test.mjs`.
