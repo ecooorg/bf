@@ -1,0 +1,83 @@
+{
+  "experiment": "E-01",
+  "date": "2026-10-13",
+  "lab": "ecooorg/biforge-e01-lab",
+  "runner": "PA-04 workflow_dispatch (GITHUB_TOKEN only)",
+  "pairs": [
+    {
+      "taskId": "e01-t1",
+      "side": "model_patch",
+      "sha": "40a6b31",
+      "branch": "biforge/e01-t1-model",
+      "ciGreenFirst": true,
+      "fixes": 0,
+      "humanMinutes": 0.25,
+      "pr": "https://github.com/ecooorg/biforge-e01-lab/pull/1",
+      "workflowRun": "https://github.com/ecooorg/biforge-e01-lab/actions/runs/38390201699"
+    },
+    {
+      "taskId": "e01-t1",
+      "side": "manual",
+      "sha": "511b4b4",
+      "branch": "biforge/e01-t1-manual",
+      "ciGreenFirst": true,
+      "fixes": 0,
+      "humanMinutes": 0.25,
+      "pr": null,
+      "workflowRun": "https://github.com/ecooorg/biforge-e01-lab/actions/runs/38390552756"
+    },
+    {
+      "taskId": "e01-t2",
+      "side": "model_patch",
+      "sha": "b5f08c3",
+      "branch": "biforge/e01-t2-model",
+      "ciGreenFirst": true,
+      "fixes": 0,
+      "humanMinutes": 0.25,
+      "pr": null,
+      "workflowRun": "https://github.com/ecooorg/biforge-e01-lab/actions/runs/38390344023"
+    },
+    {
+      "taskId": "e01-t2",
+      "side": "manual",
+      "sha": "0e97135",
+      "branch": "biforge/e01-t2-manual",
+      "ciGreenFirst": true,
+      "fixes": 0,
+      "humanMinutes": 0.25,
+      "pr": null,
+      "workflowRun": "https://github.com/ecooorg/biforge-e01-lab/actions/runs/38390622196"
+    },
+    {
+      "taskId": "e01-t3",
+      "side": "model_patch",
+      "sha": "002fb9a",
+      "branch": "biforge/e01-t3-model",
+      "ciGreenFirst": true,
+      "fixes": 0,
+      "humanMinutes": 0.25,
+      "pr": null,
+      "workflowRun": "https://github.com/ecooorg/biforge-e01-lab/actions/runs/38390420146"
+    },
+    {
+      "taskId": "e01-t3",
+      "side": "manual",
+      "sha": "03f4683",
+      "branch": "biforge/e01-t3-manual",
+      "ciGreenFirst": true,
+      "fixes": 0,
+      "humanMinutes": 0.25,
+      "pr": null,
+      "workflowRun": "https://github.com/ecooorg/biforge-e01-lab/actions/runs/38390715965"
+    }
+  ],
+  "summary": {
+    "modelGreen": 3,
+    "modelFixesMax": 0,
+    "modelHumanMinutes": 0.75,
+    "manualHumanMinutes": 0.75,
+    "rule119": "PASS",
+    "ownerDecision": "ok ADR-10",
+    "decisionDate": "2026-10-13"
+  }
+}
