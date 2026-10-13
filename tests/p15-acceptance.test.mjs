@@ -1,4 +1,4 @@
-// P15 static/invariant acceptance. Live provider, PostgreSQL, and E-01 remain REAL_ONLY checks.
+// P15 static/invariant acceptance. Live provider, PostgreSQL, and scenario 18.1 remain REAL_ONLY checks; E-01 is closed by PA-05.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -54,8 +54,10 @@ test('Task PASS is impossible without explicit successful validation evidence', 
   assert.match(server, /to: input\.passed \? 'PASS' : 'FAIL'/);
 });
 
-test('E-01 is not falsely reported as passed without three manual/model_patch pairs', () => {
+test('E-01 closure is consistent with PA-05 evidence; scenario 18.1 stays NOT_RUN until live evidence', () => {
   const report = read('ARCHIVE/P15-REPORT.md');
-  assert.match(report, /\| E-01,[\s\S]*?\| NOT_RUN \|/);
-  assert.match(report, /ADR-10.*pending|pending.*ADR-10/i);
+  assert.match(report, /\| E-01,[\s\S]*?\| PASS \|/);
+  assert.match(report, /\| 1 \| Create a synthetic test project \| NOT_RUN \|/);
+  assert.match(report, /\| 12 \| Confirm budget \/ model-call count ≤ 12 .*\| NOT_RUN \|/);
+  assert.match(read('docs/ADR-10-code-executor.md'), /Status: Accepted/i);
 });
