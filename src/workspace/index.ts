@@ -4,3 +4,6 @@ export * from './classify.ts';
 export * from './hash.ts';
 export * from './ingest.ts';
 export * from './memoryStore.ts';
+export * from './tar.ts';
+export * from './idbStore.ts';
+export * from './context.ts';

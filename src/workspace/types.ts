@@ -146,4 +146,5 @@ export interface WorkspaceStore {
   deleteWorkspace(wsId: string): Promise<void>;
   stats(wsId: string): Promise<{ files: number; bytes: number; versions: number }>;
   getWorkspace?(wsId: string): Promise<WorkspaceInfo | null>;
+  setPrivacyAck?(wsId: string, value: boolean): Promise<void>;
 }

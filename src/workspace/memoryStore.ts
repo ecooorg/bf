@@ -128,4 +128,10 @@ export class MemoryWorkspaceStore implements WorkspaceStore {
   async getWorkspace(wsId: string): Promise<WorkspaceInfo | null> {
     return this.workspaces.get(wsId)?.info ?? null;
   }
+
+  async setPrivacyAck(wsId: string, value: boolean): Promise<void> {
+    const ws = this.workspaces.get(wsId);
+    if (!ws) throw new Error('workspace_not_found');
+    ws.info = { ...ws.info, privacyAck: value };
+  }
 }

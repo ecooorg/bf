@@ -22,6 +22,7 @@ import type {
   RejectReason,
 } from './types.ts';
 import { DEFAULT_BROWSER_LIMITS } from './types.ts';
+import { readTar } from './tar.ts';
 
 function isZip(bytes: Uint8Array): boolean {
   return (
@@ -215,10 +216,107 @@ export async function ingestZip(
   };
 }
 
-/** Convenience: ingest any supported archive bytes (zip only in P26a). */
-export async function ingestArchive(
-  bytes: Uint8Array,
-  limits?: IngestLimits,
-): Promise<IngestResult> {
-  return ingestZip(bytes, limits);
+/** Inflate gzip using the platform stream API; no shell or archive utility is invoked. */
+async function gunzip(bytes: Uint8Array): Promise<Uint8Array> {
+  if (typeof DecompressionStream === 'undefined') throw new Error('gzip_unsupported_in_this_browser');
+  const stream = new Blob([bytes as BlobPart]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+function isTar(bytes: Uint8Array): boolean {
+  return bytes.length >= 262 && decoderAscii(bytes.subarray(257, 262)) === 'ustar';
+}
+function decoderAscii(bytes: Uint8Array): string { return String.fromCharCode(...bytes); }
+
+async function ingestTar(bytes: Uint8Array, limits: IngestLimits): Promise<IngestResult> {
+  let tarEntries;
+  try { tarEntries = readTar(bytes, limits); }
+  catch (e) {
+    const message = e instanceof Error ? e.message : 'tar_read_failed';
+    const reason: RejectReason = message.includes('too_many') ? 'too_many_entries' : message.includes('unpacked_too_large') ? 'unpacked_too_large' : 'unreadable';
+    return reject(reason, message);
+  }
+  const z = new JSZip();
+  const skipped: IngestSkipped[] = [];
+  const seen = new Map<string, string>();
+  let files = 0;
+  for (const item of tarEntries) {
+    if (item.type === 'directory') continue;
+    if (item.type !== 'file') {
+      skipped.push({ path: item.path, reason: item.type === 'symlink' || item.type === 'hardlink' ? 'symlink' : 'unsupported_entry', detail: item.linkTarget ? `link target: ${item.linkTarget}` : item.type });
+      continue;
+    }
+    const norm = normalizePath(item.path);
+    if (!norm.ok) {
+      const r = norm.reason;
+      skipped.push({ path: item.path, reason: r === 'traversal' || r === 'absolute' || r === 'windows_drive' || r === 'unc' ? 'path_traversal' : r === 'empty' ? 'empty' : 'invalid_name', detail: r });
+      continue;
+    }
+    const rule = matchesDefaultSkip(norm.path);
+    if (rule) { skipped.push({ path: norm.path, reason: 'default_skip_rule', detail: rule }); continue; }
+    const key = caseKey(norm.path);
+    if (seen.has(key) && seen.get(key) !== norm.path) { skipped.push({ path: norm.path, reason: 'duplicate_case', detail: seen.get(key) }); continue; }
+    if (item.bytes.byteLength > limits.maxFileBytes) { skipped.push({ path: norm.path, reason: 'too_large_file', detail: String(item.bytes.byteLength) }); continue; }
+    if (seen.has(key)) skipped.push({ path: norm.path, reason: 'unsupported_entry', detail: 'duplicate path; last entry kept' });
+    seen.set(key, norm.path);
+    z.file(norm.path, item.bytes);
+    files++;
+    if (files > limits.maxEntries) return reject('too_many_entries', `files ${files}`);
+  }
+  if (!files) {
+    const empty = reject('empty_archive', 'no regular files accepted');
+    empty.report.skipped = skipped;
+    return empty;
+  }
+  const packed = await z.generateAsync({ type: 'uint8array', compression: 'STORE' });
+  const result = await ingestZip(packed, { ...limits, maxArchiveBytes: Math.max(limits.maxArchiveBytes, packed.byteLength), maxRatioTotal: Math.max(limits.maxRatioTotal, 1000) });
+  result.report.skipped = [...skipped, ...result.report.skipped];
+  return result;
+}
+
+/** Ingest ZIP, POSIX tar, or gzip-compressed tar by signature, not filename. */
+export async function ingestArchive(bytes: Uint8Array, limits: IngestLimits = DEFAULT_BROWSER_LIMITS): Promise<IngestResult> {
+  if (!bytes.byteLength) return reject('empty_archive');
+  if (bytes.byteLength > limits.maxArchiveBytes) return reject('too_large_archive', `archive ${bytes.byteLength} > ${limits.maxArchiveBytes}`);
+  if (isZip(bytes)) return ingestZip(bytes, limits);
+  if (bytes.length >= 2 && bytes[0] === 0x1f && bytes[1] === 0x8b) {
+    try {
+      const expanded = await gunzip(bytes);
+      if (expanded.byteLength > limits.maxUnpackedBytes) return reject('unpacked_too_large', `gzip payload ${expanded.byteLength}`);
+      return ingestTar(expanded, limits);
+    } catch (e) { return reject('unreadable', e instanceof Error ? e.message : 'gzip_read_failed'); }
+  }
+  if (isTar(bytes)) return ingestTar(bytes, limits);
+  return reject('unsupported_format', 'expected ZIP, tar, or gzip-compressed tar signature');
+}
+
+/** Ingest a folder picker / dropped file list without uploading its contents to a server. */
+export async function ingestFiles(files: Iterable<{ name: string; size?: number; webkitRelativePath?: string; arrayBuffer(): Promise<ArrayBuffer> }>, limits: IngestLimits = DEFAULT_BROWSER_LIMITS): Promise<IngestResult> {
+  const z = new JSZip();
+  const skipped: IngestSkipped[] = [];
+  const seen = new Map<string, string>();
+  let count = 0;
+  let total = 0;
+  for (const file of files) {
+    const rawPath = file.webkitRelativePath || file.name;
+    const norm = normalizePath(rawPath);
+    if (!norm.ok) { skipped.push({ path: rawPath, reason: norm.reason === 'traversal' || norm.reason === 'absolute' || norm.reason === 'windows_drive' || norm.reason === 'unc' ? 'path_traversal' : 'invalid_name', detail: norm.reason }); continue; }
+    const rule = matchesDefaultSkip(norm.path);
+    if (rule) { skipped.push({ path: norm.path, reason: 'default_skip_rule', detail: rule }); continue; }
+    const key = caseKey(norm.path);
+    if (seen.has(key) && seen.get(key) !== norm.path) { skipped.push({ path: norm.path, reason: 'duplicate_case', detail: seen.get(key) }); continue; }
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (bytes.byteLength > limits.maxFileBytes) { skipped.push({ path: norm.path, reason: 'too_large_file', detail: String(bytes.byteLength) }); continue; }
+    total += bytes.byteLength;
+    if (total > limits.maxUnpackedBytes) return reject('unpacked_too_large', `folder bytes ${total}`);
+    if (seen.has(key)) skipped.push({ path: norm.path, reason: 'unsupported_entry', detail: 'duplicate path; last entry kept' });
+    seen.set(key, norm.path);
+    z.file(norm.path, bytes);
+    if (++count > limits.maxEntries) return reject('too_many_entries', `files ${count}`);
+  }
+  if (!count) { const empty = reject('empty_archive', 'no files accepted'); empty.report.skipped = skipped; return empty; }
+  const packed = await z.generateAsync({ type: 'uint8array', compression: 'STORE' });
+  const result = await ingestZip(packed, { ...limits, maxArchiveBytes: Math.max(limits.maxArchiveBytes, packed.byteLength), maxRatioTotal: Math.max(limits.maxRatioTotal, 1000) });
+  result.report.skipped = [...skipped, ...result.report.skipped];
+  return result;
 }
