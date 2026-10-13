@@ -293,7 +293,7 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 | `DATABASE_URL` | Project Mode | PostgreSQL connection string; when set, start runs migrations |
 | `PG_POOL_MAX`, `PGSSLMODE` | no | Pool size; SSL mode (`disable` in CI) |
 | `ENABLE_PROJECT_MODE` | no (`false`) | Enables `/project`; then `APP_PASSWORD`, `ENABLE_APP_AUTH`, `SESSION_SECRET`, `DATABASE_URL` are all required |
-| `PROJECT_RATE_LIMIT_PER_MINUTE` | no | Project API per-IP limit (default 60) |
+| `PROJECT_RATE_LIMIT_PER_MINUTE` | no | Project API per-IP limit (default 300) |
 | `ONLY`, `CI` | tests only | `ONLY` selects scenarios in `tests/stage2.test.mjs`; `CI` is set by `scripts/qa.mjs` |
 
 `LLM_ROUND_PAUSE_MS` is mentioned in `DEPLOY_RAILWAY.md` and set by some tests, but no server code reads it (checked by search); do not rely on it.
