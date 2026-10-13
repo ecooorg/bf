@@ -14,6 +14,10 @@
 | `tests/` | Tests (see below) |
 | `public/` | Icons for the browser and PWA manifest |
 | `docs/PA-04-SPEC.md` | PA-04 E-01 lab runner (process; workflow template for the test repo) |
+| `docs/PA-03-SPEC.md` | PA-03 staging drills, safety boundaries, owner setup and evidence criteria |
+| `docs/P25-SPEC.md` | P25 final acceptance package; version bump is blocked until G4 |
+| `docs/P25-REPORT.md` | P25 preparation report; no gate acceptance implied |
+| `CONCEPTS/EVIDENCE_RENDERER_SETUP.md` | Instructions to trial the evidence JSON → Markdown pilot in the approved E-01 lab |
 | `docs/E01_LAB.md` | E-01 lab: Navigator runs workflow_dispatch; notes via Assistant patch |
 | `docs/NEXT.md` | Plan to G4 as a flat checklist (steps `RM-*`: inputs, PASS) and queue of next patches; updated by the AI Assistant at the end of every patch |
 | `docs/BiForge_TZ_v3.md` | Index of the specification (TZ v3.1): file map and section → file map. The text itself: `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md` |
@@ -22,6 +26,7 @@
 | `docs/` | Specification, policies, step specs, reports; plus informational agent-instruction materials (not binding; see table below) |
 | `.github/workflows/ci.yml` | CI on every push (writes a short result line, P13a): migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |
 | `.github/workflows/evidence.yml` | PA-01: manual evidence run (service health, connections), then decision cards; read-only, no commits |
+| `.github/workflows/staging-drills.yml` | PA-03: manual staging-only GET probes, ops checks and evidence artifact; no restore/rollback/deploy |
 | `.github/workflows/ui-check.yml` | Browser layout check (`npm run test:ui`) |
 | `package.json`, `package-lock.json` | Dependencies and npm scripts. Do not add dependencies without a reason in the SPEC |
 | `tsconfig.json`, `tsconfig.server.json` | TypeScript settings for client and server build |
@@ -140,6 +145,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `scripts/evidence-collect.mjs` | PA-01 (`npm run evidence:collect`): read-only service and connection checks; JSON for `scripts/gate-eval.mjs` |
 | `scripts/e01-harness.mjs` | PA-02: dry-run E-01 table helper (TZ 11.9) |
 | `scripts/e01-notes-merge.mjs` | PA-04: merge e01-run.json + human minutes into NOTES/RESULTS |
+| `scripts/staging-drills.mjs` | PA-03: safe staging health/readiness/ops checks and bounded GET probe; outputs JSON evidence |
+| `scripts/evidence-to-markdown.mjs` | Dependency-free CLI that renders a safe allowlist from evidence JSON into Markdown |
 | `scripts/migrate.mjs` | Applies `migrations/` to `DATABASE_URL` |
 | `scripts/qa.mjs` | Runs checks independently and writes a report (see `docs/DEVELOPMENT.md`; it is not what `npm run check` runs) |
 | `scripts/measure-prompt.mjs`, `scripts/cases.mjs`, `scripts/acceptance-s2-05.mjs`, `scripts/acceptance-s2-06.mjs` | Prompt size measurement and blind quality comparison on a live model (owner's key; not in CI) |
@@ -172,6 +179,9 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:p19x` | P19x: validateModelPatch matrix, modelPatchToBranchChanges, createModelPatchExecutor |
 | `npm run test:pa02` | PA-02: E-01 harness dry-run, protected-path reject, gate-eval shape |
 | `npm run test:pa04` | PA-04: CONCEPTS templates + e01-notes-merge |
+| `npm run test:pa03` | PA-03: staging URL guard, read-only probes, bounded load and honest NOT_RUN states |
+| `npm run test:evidence-markdown` | Evidence JSON → Markdown renderer sanitization and output contract |
+| `npm run evidence:markdown` | Render evidence.json to Markdown (CLI; optional `--input` / `--out`) |
 | `npm run e01:harness` | PA-02 tool |
 | `npm run evidence:collect`, `npm run gate:eval` | PA-01 tools (see `docs/PA-01-SPEC.md`) |
 | `npm run test:p24` | P24: ops metrics, alerts, backup-check |
@@ -242,6 +252,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/pa02-acceptance.test.mjs` | PA-02 E-01 harness | no |
 | `tests/pa02-fixtures.json` | PA-02 three-task fixture packages and patches | no |
 | `tests/pa04-acceptance.test.mjs` | PA-04 lab template and notes-merge | no |
+| `tests/pa03-acceptance.test.mjs` | PA-03 staging-drills safety and evidence behavior | no |
+| `tests/evidence-markdown.test.mjs` | Evidence JSON → Markdown CLI output and redaction checks | no |
 | `tests/pa04-fixtures.json` | PA-04 sample e01-run rows | no |
 | `tests/p24-acceptance.test.mjs` | P24 ops metrics and backup-check | no |
 | `tests/redact.test.mjs` | Secret redaction helpers | no |

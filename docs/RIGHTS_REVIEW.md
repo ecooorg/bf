@@ -1,6 +1,6 @@
 # Rights and permissions review (BX-24 / P23)
 
-> **Agent sign-off:** 2026-10-12 (P23). Owner formal acknowledgement optional for G4.
+> **Agent review refreshed:** 2026-10-13 (PA-03 preparation / ADR-06). Actual installed GitHub App permissions are NOT_RUN until verified by the owner.
 
 ## 1. Human vs product authority
 
@@ -16,8 +16,8 @@
 
 ## 2. GitHub App scopes
 
-Baseline: `metadata:read`, `contents:read`, `checks:read`, `pull_requests:read`.  
-Write scopes only if `model_patch` / diff upload enabled (off by default).
+Baseline: read-only metadata, contents, checks, and pull requests as required. No administration, secrets, workflows, or merge permission.  
+Any write scope requires a separate owner decision and must be constrained to the approved test repository / `biforge/*` branches; no write to `main`. Actual installed permissions were not inspectable from this archive and remain NOT_RUN.
 
 ## 3. Session and CSRF
 
@@ -37,4 +37,4 @@ See `server/auditCatalog.ts`. Includes login success/failure, project create/del
 | Role | Date | Result |
 | --- | --- | --- |
 | Agent | 2026-10-12 | PASS for machine criteria of BX-24 |
-| Owner | — | Optional acknowledgement |
+| Owner | — | Pending live App-permission verification; ADR-06 decision recorded 2026-10-13 |

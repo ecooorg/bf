@@ -1,6 +1,6 @@
 # P19 — model_patch executor (BX-21.b)
 
-**Goal.** Implement the `model_patch` CodeExecutor: structured patch from `code_author`, deterministic validation (TZ 11.4), application via Git Data API to `biforge/<task_id>` and PR. Gated by `CODE_EXECUTOR=model_patch` until ADR-10 final decision after E-01.
+**Goal.** Implement the `model_patch` CodeExecutor: structured patch from `code_author`, deterministic validation (TZ 11.4), application via Git Data API to `biforge/<task_id>` and PR. ADR-10 is now Accepted after E-01 (PA-05); enablement still requires the owner to explicitly set `CODE_EXECUTOR=model_patch`.
 
 **Base.** bf-v18 (P18 complete).
 
@@ -14,6 +14,6 @@
 - `npm run test:p18` and new model-patch unit tests pass; `npm run check` green where runnable.
 - Pack produces `bf-P19.zip` with only changed/new files, correct relative paths, no deleted files inside ZIP.
 
-**ADR-10.** Code is present and gated. Final enablement remains pending E-01 evidence and owner decision. Default remains `manual`.
+**ADR-10.** Code is present and gated. E-01 is closed and ADR-10 is Accepted; final enablement still requires an explicit owner environment change. Default remains `manual`.
 
 **Read in the TZ.** 11.4, 11.9, 16.4.2 (P19), ADR-10.

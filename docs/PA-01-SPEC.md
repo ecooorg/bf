@@ -18,7 +18,7 @@
 - E-01 "not worse in human time" = summed minutes over three tasks, not the median. `model_patch` succeeded but slower gives `NEEDS_HUMAN`, not an automatic branch.
 - A success of one E-01 pair is: patch applies, final CI green, at most 2 fixes. Every row needs a SHA and an https CI link, otherwise `INSUFFICIENT_EVIDENCE`.
 - Gate requirements: G1a = RM-B1; G1 = RM-B2, RM-B3; G2 = RM-B4, RM-B5, RM-B6; G3 = RM-D1…D5 (plus RM-C2, RM-C3 after a POSITIVE E-01); G4 = RM-E1…E7 and RM-F1…F6. Stage A is not a gate requirement.
-- `OWNER_ATTESTED` closes only `RM-A2` and `RM-B1`. The existing owner statements on scenario 18.1 and E-01 in `ARCHIVE/P15-REPORT.md` stay `NOT_RUN` until data is recorded.
+- `OWNER_ATTESTED` closes only `RM-A2` and `RM-B1`. The live scenario 18.1 in `ARCHIVE/P15-REPORT.md` stays `NOT_RUN` until staging data is recorded. E-01 was closed by PA-05 and its paired evidence is in `ARCHIVE/E01-NOTES.md` / `ARCHIVE/E01-RESULTS.json`.
 - Variable `SERVICE_URL` is a repository variable, not a secret. `APP_PASSWORD` (optional) is a new repository secret; without it the answer smoke is `NOT_RUN`.
 - Smoke login and `/api/conversation` shapes are copied from `scripts/acceptance-s2-05.mjs`; they are unverified against the live service (`REAL_ONLY` until the first run).
 

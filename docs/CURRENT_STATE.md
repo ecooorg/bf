@@ -1,6 +1,6 @@
 # Current state
 
-> Updated 13 October 2026 after PA-05 (E-01 close + ADR-10 Accepted).
+> Updated 13 October 2026 after PA-05 and PA-03 preparation. E-01 is closed; live staging drills have not run.
 
 ## Product
 
@@ -19,3 +19,10 @@
 
 - ADR-10 **Accepted**. Stage C (P19x enablement) open on owner command.
 - RM-B5 and RM-B6 closed. Next gate steps remain owner actions (RM-B4, RM-B7, …).
+
+## Maximum automation
+
+- Owner decision (13 October 2026): maximum automation is a core project priority. Prefer bounded workflows/scripts and evidence artifacts for repetitive tasks.
+- Delegation tiers remain unchanged. The owner retains Tier 2/3 decisions, secrets, live permissions, merges, deployments, billing and acceptance-test approval.
+- PA-03 staging workflow prepared in `.github/workflows/staging-drills.yml`; it requires a dedicated staging service/database and synthetic data. It does not restore, roll back, write to the database, or call models.
+- P25 draft prepared in `docs/P25-SPEC.md`; product version stays 24 until G4 is explicitly accepted.
