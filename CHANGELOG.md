@@ -1,3 +1,12 @@
+# Changelog
+
+## Process tooling — 2026-10-13 (no product version change)
+
+- **PA-03:** manual staging-drills workflow and evidence collector; bounded health/readiness/ops checks, GET-only probe, 12-row scenario checklist and explicit NOT_RUN for restore/rollback until live proof.
+- **Pilot CLI:** dependency-free evidence JSON → Markdown renderer with allowlisted fields and secret-pattern redaction; intended for trial in the approved `biforge-e01-lab`.
+- **Maximum automation priority:** owner-approved and recorded in `docs/DELEGATION.md`; delegation tiers and reserved owner decisions unchanged.
+- **Documentation reconciliation:** P15 report now reflects E-01/ADR-10 closure and the still-unrun RM-B4 scenario; ADR-06 Accepted with read-only default / merge forbidden; ADR-09 daily/7-day backup target clearly distinguished from verified fact; P25 draft prepared without version bump.
+
 ## Process tooling — 2026-10-13 (no product version change)
 
 - **PA-05:** E-01 closed. `ARCHIVE/E01-NOTES.md`, `ARCHIVE/E01-RESULTS.json`. ADR-10 status → **Accepted** (TZ §11.9 PASS: 3/3 green first, 0 fixes, model ≤ manual human time). Owner: `ok ADR-10`. RM-B5 and RM-B6 closed; Stage C open on command. Product version unchanged (24).
@@ -34,7 +43,6 @@
 - Instruction track **PI-01 / PI-02 / PI-03final** recorded as complete in CURRENT_STATE.
 - Security foundation for P23: `docs/THREAT_MODEL.md`, `docs/RIGHTS_REVIEW.md`, injection corpus fixtures, `server/redact.ts` + tests.
 
-# Changelog
 - PI-01: Simple Mode conversation prompt gets the uncertainty contract (TZ-INSTRUCTIONS-01 P1): best available result of a marked kind instead of a repeated limitation, no invented numbers, no claimed search. No schema or post-processing change; test `tests/pi01.test.mjs`. Product version label `PI-01`.
 - P22: BX-23 Repair Loop — classify failure, at most two repair packages, stop on limit / identical diff / identical error / no progress / budget with a diagnostic artifact; one flaky CI restart. Product version 22.
 - P21: BX-22.b pilot — structured reviewer findings on DELIVERED code tasks; human decision accept/repair/reject; review gate evidence; product version 21.
@@ -48,7 +56,7 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - PI-02 (TZ-INSTRUCTIONS-01 P2): server-side intent flags (`userForbadeQuestions`, `userAskedApproximate`, `userAskedSearch`, `userCriticizedEvasion`) adjust Simple Mode post-processing — `askAllowed`, soft quality-audit / retry text, and `meta.search_expected`. No new model JSON fields. Version label `PI-02`.
 
 ## Unreleased
-- P19: BX-21.b. `model_patch` executor (gated by CODE_EXECUTOR=model_patch): structured patch schema, validateModelPatch (protected paths, size, allowed_paths), createModelPatchExecutor; ADR-10 remains interim. Repository: ARCHIVE/ (historical SPECs and reports) and CONCEPTS/ (future drafts); AGENTS.md and START_HERE updated. Packer: `scripts/pack-simple.mjs` replaces the previous patch:pack path (timeout-safe, no hanging children). Simple Mode unchanged.
+- P19: BX-21.b. `model_patch` executor (gated by CODE_EXECUTOR=model_patch): structured patch schema, validateModelPatch (protected paths, size, allowed_paths), createModelPatchExecutor. Historical note: ADR-10 was interim when this entry was written; PA-05 later recorded E-01 and ADR-10 Accepted on 2026-10-13. Repository: ARCHIVE/ (historical SPECs and reports) and CONCEPTS/ (future drafts); AGENTS.md and START_HERE updated. Packer: `scripts/pack-simple.mjs` replaces the previous patch:pack path (timeout-safe, no hanging children). Simple Mode unchanged.
 
 
 - P18: BX-21.a. CodeExecutor interface and the `manual` executor (`server/codeExecutor.ts`, `server/codeTaskService.ts`, migration 010: `code_tasks`). A human starts a run with a Task Package, takes `PACKAGE.md` (artifact, no secrets, deterministic) to any tool and returns a PR, a branch or a unified diff; results are validated (10 files / 400 lines, `allowed_paths`, protected paths, text only, no modes, symlinks or renames) and a refused result is `BLOCKED` with violation codes. Diff upload is applied through the Git Data API as one commit on `biforge/<task_id>` plus a PR, only with `GITHUB_DIFF_UPLOAD=true`; no merge, no `main`. PR found by webhook or `refresh`. `max_code_tasks` is checked at start; `model_patch` is unavailable until P19. Seven routes under `/api/projects/:projectId/tasks/:taskId/code`, human session only. Simple Mode unchanged.
