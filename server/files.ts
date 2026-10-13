@@ -70,7 +70,14 @@ export function sniff(buf: Buffer): Sniffed {
   return { kind: 'unknown', mime: '' };
 }
 
-const TEXT_EXT = new Set(['txt', 'md', 'markdown', 'csv', 'tsv', 'json', 'log']);
+const TEXT_EXT = new Set([
+  'txt', 'md', 'markdown', 'csv', 'tsv', 'json', 'log',
+  // P26: code and config accepted as text attachments when content is text
+  'ts', 'tsx', 'js', 'jsx', 'mjs', 'cjs', 'py', 'go', 'rs', 'java', 'kt', 'cs',
+  'c', 'h', 'cpp', 'hpp', 'rb', 'php', 'swift', 'sql', 'sh', 'bash', 'zsh', 'ps1',
+  'yml', 'yaml', 'toml', 'html', 'htm', 'css', 'scss', 'less', 'vue', 'svelte',
+  'xml', 'svg', 'dockerfile', 'makefile', 'gitignore', 'env', 'ini', 'cfg', 'conf',
+]);
 const extOf = (name: string) => (name.split('.').pop() || '').toLowerCase();
 
 function decodeText(buf: Buffer, ext: string): string {
@@ -123,7 +130,9 @@ async function openZip(buf: Buffer): Promise<JSZip> {
     const e: any = zip.files[n];
     const size = Number(e?._data?.uncompressedSize);
     if (Number.isFinite(size)) total += size;
-    if (n.includes('..')) throw new UploadError(422, 'UNREADABLE', 'This file has an unusual structure and was not opened.');
+    // P26: only path segments equal to '..' are traversal; name a..b.txt is valid
+    const segs = n.replace(/\\/g, '/').split('/');
+    if (segs.some((s) => s === '..')) throw new UploadError(422, 'UNREADABLE', 'This file has an unusual structure and was not opened.');
   }
   if (total > MAX_UNZIPPED_BYTES) throw new UploadError(413, 'TOO_LARGE', 'This file is too large once unpacked.');
   return zip;
@@ -277,7 +286,7 @@ export async function processUpload(buf: Buffer, fileName: string): Promise<Extr
     if (has('word/document.xml')) { kind = 'docx'; mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'; raw = await extractDocx(zip); }
     else if (has('xl/workbook.xml')) { kind = 'xlsx'; mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; raw = await extractXlsx(zip); }
     else if (has('ppt/presentation.xml')) { kind = 'pptx'; mime = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'; raw = await extractPptx(zip); }
-    else throw new UploadError(415, 'UNSUPPORTED_TYPE', 'Archives are not supported. Attach a PDF, Word, Excel, PowerPoint, text file or image.');
+    else throw new UploadError(415, 'UNSUPPORTED_TYPE', 'Program archives are not supported as chat attachments yet. Attach a PDF, Word, Excel, PowerPoint, text/code file or image. Workspace import is coming in P26.');
     if (!raw.trim()) throw new UploadError(422, 'EMPTY_TEXT', 'No text was found in this file.');
     const c = capText(raw);
     return { kind, mime, text: c.text, truncated: c.truncated, native: false };
@@ -286,8 +295,15 @@ export async function processUpload(buf: Buffer, fileName: string): Promise<Extr
   if (s.kind === 'ole') throw new UploadError(415, 'UNSUPPORTED_TYPE', 'Old Office formats (.doc, .xls, .ppt) are not supported. Save the file as .docx, .xlsx or .pptx and try again.');
 
   const ext = extOf(fileName);
-  if (!TEXT_EXT.has(ext)) throw new UploadError(415, 'UNSUPPORTED_TYPE', 'This file type is not supported. Attach a PDF, Word, Excel, PowerPoint, text file or image.');
-  const raw = decodeText(buf, ext);
+  // P26: accept by content when extension is unknown but bytes look like text (no NUL in first 8KB)
+  const looksText = !buf.subarray(0, Math.min(8192, buf.length)).includes(0);
+  if (!TEXT_EXT.has(ext) && !looksText) {
+    throw new UploadError(415, 'UNSUPPORTED_TYPE', 'This file type is not supported. Attach a PDF, Word, Excel, PowerPoint, text/code file or image.');
+  }
+  if (!TEXT_EXT.has(ext) && looksText) {
+    // allow extensionless or unusual names (Dockerfile, Makefile, etc.)
+  }
+  const raw = decodeText(buf, ext || 'txt');
   if (!raw.trim()) throw new UploadError(422, 'EMPTY_TEXT', 'The file has no text.');
   const c = capText(raw);
   return { kind: 'text', mime: 'text/plain', text: c.text, truncated: c.truncated, native: false };
