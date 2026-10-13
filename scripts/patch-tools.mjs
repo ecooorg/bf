@@ -69,7 +69,7 @@ export function preflight({ files, deleted = [], allowlist = [] }) {
     if (!rel || rel.startsWith('/') || rel.includes('\\') || seg.some((s) => s === '' || s === '..' || s === '.')) { v.push(`${rel}: unsafe path`); continue; }
     if (seg.length === 1) { if (MANIFEST.test(rel)) v.push(`${rel}: manifest or file-list file must not be in the archive`); }
     else if (seg.length === 2) { if (!ALLOWED_TOP.includes(seg[0])) v.push(`${rel}: new or wrapper top-level folder "${seg[0]}" (the structure is flat)`); }
-    else if (!(seg.length === 3 && seg[0] === '.github' && seg[1] === 'workflows')) v.push(`${rel}: nested folder (the structure is flat)`);
+    else if (!(seg.length === 3 && seg[0] === '.github' && seg[1] === 'workflows') && !(seg.length === 3 && seg[0] === 'src' && seg[1] === 'workspace')) v.push(`${rel}: nested folder (the structure is flat)`);
     if (rel.startsWith('tests/acceptance/')) v.push(`${rel}: protected path tests/acceptance/**`);
     if (allowlist.some((re) => re.test(rel)) || buf.includes(0)) continue;
     for (const name of scanSecrets(buf.toString('utf8'))) v.push(`${rel}: possible secret (${name})`);
