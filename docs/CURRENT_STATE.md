@@ -1,19 +1,19 @@
 # Current state
 
 > **Updated:** 14 October 2026.  
-> Product version label: **24** (do not bump for documentation-only work; MP2 code changes keep label until owner decides).  
+> Product version label: **24** (do not bump for documentation-only work; MP2/MP3 code changes keep label until owner decides).  
 > **Active work plan:** `docs/MASTER_IMPLEMENTATION_PLAN.md`.
 
 ## Current initiative
 
 | Field | Value |
 | --- | --- |
-| **ID** | **MP2 — shared prompt core and Simple/information contract** |
-| **Base archive** | `bf-v27.zip` (owner upload) |
-| **Scope** | Shared `promptCore.ts`; expanded information detection; default unclear → information; skip gain-audit/retry for information; preserve Expert/Project |
-| **Code permission** | Granted by owner command «Приступай к следующему этапу» (repeated 14 October 2026 for the MP2 completion patch) |
-| **Status** | MP2 completion patch delivered; MP2 closes when CI is green on `main` and the owner confirms. Live-model behaviour is unverified until MP3 / MANUAL1 |
-| **Next after MP2** | MP3 — information-mode output quality guard, soft retry and mode regression fixtures |
+| **ID** | **MP3 — information-mode output quality guard, soft retry and mode regression fixtures** |
+| **Base archive** | `bf-main (13).zip` (owner upload; prior MP2 completion in tree) |
+| **Scope** | Light soft-fail for Simple/information (limitation-only, methodology preamble, invented precision, lecture after ban); one short information-mode retry; mode fixtures; preserve Expert/Project |
+| **Code permission** | Granted by owner command «Приступай к следующему этапу» (14 October 2026) |
+| **Status** | MP3 implementation delivered in this patch. Closes when CI is green on `main` and the owner confirms. Live-model behaviour remains unverified until MANUAL1 |
+| **Next after MP3** | UI1 — user mode selection on the start screen (after owner command) |
 | **Plan** | `docs/MASTER_IMPLEMENTATION_PLAN.md` |
 
 ## Confirmed decisions
@@ -25,20 +25,18 @@
 - MP1–MP3 are documented in the master plan. MP1 exists as preliminary file separation but does not prove the behaviour problem is solved.
 - Documentation must be ready before coding. Coding begins only after a separate owner command.
 
-## MP2 completion (this patch)
+## MP3 (this patch)
 
-- `buildSimpleConversationPrompt(..., mode)`: `information` gets a light prompt; decision, research, engineering and an omitted mode keep the full method unchanged.
-- The information JSON contract keeps the same keys; `gain`, `options`, `newOptions`, `newOptionTypes`, `nextStep`, `derived_numbers` are optional (server defaults verified by `tests/mp2.test.mjs`).
-- Simple prompt size for information: 28 668 → 12 413 chars (offline measurement).
-- Not done: output quality guard / soft retry and mode fixtures (MP3); mode selection UI (UI1).
+- `informationSoftFail` / `informationRetryHint` in `server/intentFlags.ts`: detect limitation-only, methodology preamble, invented precision requirement, lecture after methodology ban / direct-answer demand / evasion critique.
+- `/api/conversation`: for `conversationMode === "information"` run the light soft-fail instead of heavy gain-audit; on fail, one retry with the same information prompt plus a short information-mode repair hint (not the decision package).
+- Non-information modes keep the existing gain-audit + decision repair path.
+- Retry limits, call budget and error handling unchanged (one soft retry; person still receives the draft if retry fails).
+- `tests/mp3.test.mjs`: unit detectors, retry-hint contract, Graubünden information fixture, Expert/Project instruction regression, server wiring checks.
+- Not done: UI mode selection (UI1); live-model acceptance (MANUAL1); QA1 end-to-end suite.
 
-## MP2 first delivery
+## MP2 (prior)
 
-- Added `server/promptCore.ts` (language, honesty/search, safety).
-- `detectConversationMode`: expanded RE_INFORMATION; decision only on explicit signals; default → information.
-- `modeParagraph(information)`: explicit skip of decision-engine rituals.
-- `/api/conversation`: skip `conversationGainAudit` / quality retry when `conversationMode === "information"`.
-- `buildSimpleConversationPrompt` prepends shared core.
+- Shared `promptCore.ts`; expanded information detection; default unclear → information; skip gain-audit for information; light information prompt branch; `tests/mp2.test.mjs`.
 
 ## Deferred, not marked done
 

@@ -1,14 +1,14 @@
 # Next work — pointer to the master implementation plan
 
-> **Updated:** 14 October 2026. The current sequence of work for the approved mode initiative is maintained only in `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not use the legacy P27+ schedule below as the active task queue.
+> **Updated:** 14 October 2026 (MP3). The current sequence of work for the approved mode initiative is maintained only in `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not use the legacy P27+ schedule below as the active task queue.
 
 ## Current stage
 
-**MP2 — shared prompt core and Simple/information contract** (completion patch delivered; closes after green CI and owner confirmation). Next: MP3 on owner command.
+**MP3 — information-mode output quality guard, soft retry and mode regression fixtures** (implementation delivered; closes after green CI and owner confirmation). Next: UI1 on owner command.
 
-## Next stage after D0
+## Next stage after MP3
 
-**MP3 — information-mode output quality guard, soft retry and mode regression fixtures**, only after owner command.
+**UI1 — user mode selection on the start screen**, only after owner command.
 
 ## Status of the previous queue
 

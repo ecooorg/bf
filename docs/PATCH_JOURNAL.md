@@ -5,6 +5,7 @@
 > Historical queue entries are not authorisation to start work.
 
 | Date | ID | Result | Notes |
+| 2026-10-14 | MP3 | implementation | informationSoftFail + informationRetryHint; info-mode soft retry in /api/conversation; tests/mp3.test.mjs; Expert/Project paths unchanged (live checks NOT_RUN) |
 | 2026-10-14 | MP2 | completion | light information prompt branch by mode; decision/research/engineering prompts unchanged; `tests/mp2.test.mjs`; offline prompt-size baseline (live checks NOT_RUN) |
 | 2026-10-14 | MP2 | core + Simple/information | promptCore.ts; expanded information detection; default information; skip gain-audit for information |
 | 2026-10-14 | DOCS-MODE-PLAN-01 | Documentation package | Master plan created; MP1–MP3 and UI/QA/manual sequence recorded; no code changed |
