@@ -295,6 +295,14 @@ export async function processUpload(buf: Buffer, fileName: string): Promise<Extr
   if (s.kind === 'ole') throw new UploadError(415, 'UNSUPPORTED_TYPE', 'Old Office formats (.doc, .xls, .ppt) are not supported. Save the file as .docx, .xlsx or .pptx and try again.');
 
   const ext = extOf(fileName);
+  // Claimed binary extensions must match magic bytes (reject renamed text as .pdf etc.).
+  const BINARY_EXT = new Set([
+    'pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp',
+    'docx', 'xlsx', 'pptx', 'doc', 'xls', 'ppt',
+  ]);
+  if (BINARY_EXT.has(ext) && s.kind === 'unknown') {
+    throw new UploadError(415, 'UNSUPPORTED_TYPE', 'This file does not match its extension. Attach a real PDF, Word, Excel, PowerPoint, text/code file or image.');
+  }
   // P26: known text/code extensions, or content that looks like text and is not an executable magic.
   const head = buf.subarray(0, Math.min(8192, buf.length));
   const hasNul = head.includes(0);
