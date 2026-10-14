@@ -93,7 +93,7 @@ try {
     const gai = page.getByRole('menuitem', { name: /^Google AI$/ });
     if (await gai.count()) {
       await gai.first().click();
-      await page.waitForSelector('input[aria-label="Gemini API key"]', { timeout: 8000 });
+      await page.waitForSelector('input[aria-label="Gemini API key"], input[aria-label="Google AI key"]', { timeout: 8000 });
       await inputSizes('(Google AI)'); await screenTaps('(Google AI)', '.empty button');
       await noHScroll('(Google AI)');
       await page.getByRole('button', { name: /^Cancel$/ }).first().click();
