@@ -58,6 +58,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 
 | File | What it is |
 | --- | --- |
+| `server/promptCore.ts` | Shared prompt core and reusable conversation instructions |
 | `server/contracts.ts` | Shared identifier contract (URL/DB-safe ids) |
 | `server/adapter.ts` | Provider adapter contract, normalized response, provider error classes, fallback matrix (not wired yet) |
 | `server/statePipeline.ts` | State items schema, patch pipeline (schema, policy, apply), compaction; pure functions |
