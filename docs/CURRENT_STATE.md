@@ -1,59 +1,47 @@
 # Current state
 
-> **Read after `docs/START_HERE.md`.** Updated **14 October 2026**.
-> Product version label: **24** (bump only when a product patch SPEC says so).
-> Living queue: `docs/NEXT.md`. Map: `docs/REPO_MAP.md`. **Links:** `docs/OWNER_OPS.md`. **Off-repo history list:** `docs/HISTORY_OFFREPO.md`. **Journal:** `docs/PATCH_JOURNAL.md`.
+> **Updated:** 14 October 2026.  
+> Product version label: **24** (do not bump for documentation-only work).  
+> **Active work plan:** `docs/MASTER_IMPLEMENTATION_PLAN.md`.
 
----
-
-## Next agent patch
+## Current initiative
 
 | Field | Value |
 | --- | --- |
-| **ID** | **P27** (implemented 2026-10-14; owner may advance to **P28**) |
-| **SPEC** | `docs/P27-SPEC.md` |
-| **One line** | P27 done — see `docs/P27-REPORT.md`. Next code: **P28** Expert + dialogue + AC-04 |
-| **Owner says** | «следующий патч» or «делай P27» |
-| **Do not include** | Expert Mode, ChangeSet card, server/Project Mode workspace, model_patch enablement |
+| **ID** | **D0 — documentation package** |
+| **Base archive** | `bf-v27-p1.zip` (owner upload, 14 October 2026) |
+| **Scope** | Documentation only; establish the approved mode architecture and linear implementation plan |
+| **Code permission** | **Not granted.** Do not change runtime code or UI until the owner explicitly commands the next stage. |
+| **Next after D0** | MP2 — shared prompt core and Simple/information contract, only on owner command |
+| **Plan** | `docs/MASTER_IMPLEMENTATION_PLAN.md` |
 
-When P27 is closed (report + CI green), the owner (or the agent if the owner said so) sets this block to **P28**. The agent does **not** invent scope beyond the SPEC of the current ID.
+## Confirmed decisions
 
----
+- The user chooses Simple, Expert or Project on the start screen.
+- The selected product mode is not silently overridden by automatic routing.
+- Simple targets general information and consultation; Expert targets deep analysis and non-obvious solutions; Project targets software/scientific/engineering project work.
+- Use a small shared core plus specialised mode contracts. Preserve Expert and Project strictness while removing unnecessary decision scaffolding from Simple/information.
+- MP1–MP3 are documented in the master plan. MP1 exists as preliminary file separation but does not prove the behaviour problem is solved.
+- Documentation must be ready before coding. Coding begins only after a separate owner command.
 
-## Snapshot
+## Baseline facts from `bf-v27-p1.zip`
 
-| | |
-| --- | --- |
-| **CI** | Green after P26b (`test:p26a`, `test:p26a2`, `test:p26b`) |
-| **Code executor** | ADR-10 Accepted. Railway Variables (14 Oct 2026) show `CODE_EXECUTOR=model_patch`. Mark RM-C3 closed in NEXT only after an accepted PR is recorded. Links: `docs/OWNER_OPS.md` |
-| **Closed agent code** | Through P24; PI/PA as before; **P26a**; **P26b core** (library + tests). Historical labels P26a.2 / P26b-UI are **superseded by P27+** |
-| **Owner path to G4** | `RM-*` stages in `docs/NEXT.md` (not agent “next patch”) |
+- Prompt/router code exists in `server/promptPacks.ts`, `server/conversationMode.ts`, `server/intentFlags.ts`, and `server.ts`.
+- Project Mode has its own instruction in `server/contextBuilder.ts`.
+- `scripts/measure-prompt.mjs` exists.
+- The shared core, information-specific audit/retry behaviour, new mode-selection UI, new regression fixtures, and successful manual Graubünden retest are **not confirmed as completed** by this documentation pass.
 
-### Done (do not re-implement)
+## Active sequence
 
-- E-01 closed; ADR-10 Accepted; RM-B5; RM-B6.
-- P26a — zip ingest core (`docs/P26a-REPORT.md`).
-- P26b — ChangeSet/export **library** (`docs/P26b-REPORT.md`); no chat UI yet.
-- P19x implementation in repo, still off.
+1. **D0** — documentation package (current).
+2. **MP2** — shared core + Simple/information prompt and routing behaviour.
+3. **MP3** — information-mode output quality guard, soft retry and mode regression fixtures.
+4. **UI1** — explicit Simple / Expert / Project start selection and selected-mode propagation.
+5. **QA1** — integrated automated checks across modes, UI, schemas and retries.
+6. **MANUAL1** — owner acceptance, including the original Graubünden dialogue.
 
-### Agent patch plan (from P27)
+Detailed scope and closure criteria: `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not advance without owner command and recorded evidence.
 
-| ID | Scope (half free-session) | Depends on |
-| --- | --- | --- |
-| **P27** | Simple: archive/folder attach, ingest UX, privacy ack, project card, basic file tree shell | P26a/a.2 helpers, P26b not required |
-| **P28** | Expert parity for attach + WORKSPACE in conversation + needFiles/needSearch + AC-04 | P27 |
-| **P29** | ChangeSet card (Apply/Reject/diff) + export actions in UI | P27–P28, P26b library |
-| **P30** | Project Mode: migration + PgStore only | Owner command; ADR-12 |
-| **P31** | Project Mode: HTTP routes for workspace | P30 |
-| **P32** | Project Mode: WorkspacePanel UI + import from code/build ZIP | P31 |
-| **P33** | Workspace polish / parity tests / P26d-style acceptance hooks in code | P32 |
-| **P34** | Product pilot patch (former P25 / RM-F7) | Owner F1–F6 |
-| **P35+** | Only on new owner SPEC | — |
+## Deferred, not marked done
 
-### Gates (owner)
-
-G1a/G1/G2/G3/G4 still open except ADR-10. Details: `docs/NEXT.md` stages A–F.
-
-### After G4
-
-Forbidden without explicit command: P15b, TP-HALLUC, §19 deferred, web search in Simple.
+The previous `docs/NEXT.md` queue for P27+ workspace work and the owner RM-* gates are paused as the active sequence while the mode initiative is underway. This pause does not mean those tasks are implemented or cancelled. After MANUAL1, the owner decides which remaining work becomes the next plan.

@@ -1,6 +1,6 @@
 # START HERE
 
-> Read this file first. It is enough to start work; do not read the whole specification: it is split into parts (`docs/BiForge_TZ_v3.md` is the index).
+> Read this file first. For the active mode initiative, the single task sequence is `docs/MASTER_IMPLEMENTATION_PLAN.md`. The canonical product specification remains `docs/BiForge_TZ_v3.md`.
 > Binding rules: this file and `AGENTS.md`. Where other documents disagree, these two win.
 
 
@@ -10,8 +10,8 @@
 
 1. BiForge is a decision and project agent on Node/Express + React + the Gemini API, deployed on Railway.
 2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (BiForge, product version 24).
-3. **Project Mode** (`/project`, opt-in, PostgreSQL) is built from the specification (Russian, canonical; index `docs/BiForge_TZ_v3.md`, parts `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md`); code is in place through P24, the rest of the work is acceptance (`docs/NEXT.md`).
-4. The patch list P01…P25 and the step reference are history (ARCHIVE/TZ_v3.0_PATCH_HISTORY.md); the plan to the end of the project is the checklist in `docs/NEXT.md` (former TZ 16.7). Current state: `docs/CURRENT_STATE.md`.
+3. **Project Mode** (`/project`, opt-in, PostgreSQL) is built from the specification (Russian, canonical; index `docs/BiForge_TZ_v3.md`, parts `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md`); code is in place through P24, remaining owner gates are retained as deferred reference material in `docs/NEXT.md`; active mode work is sequenced in `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+4. Historical patch lists remain historical. For the active Simple/Expert/Project mode initiative, use `docs/MASTER_IMPLEMENTATION_PLAN.md`; current stage pointer: `docs/CURRENT_STATE.md`. `docs/NEXT.md` contains the legacy queue snapshot, not the active task sequence.
 5. Map of the repository, scripts, tests and environment variables: `docs/REPO_MAP.md`.
 
 
@@ -20,16 +20,19 @@
 0. **Live URLs / Railway / GitHub App:** `docs/OWNER_OPS.md` (owner bookmarks; no secrets).
 0b. **History on owner disk:** paths listed in `docs/HISTORY_OFFREPO.md` (do not re-add bulk ARCHIVE/CONCEPTS).
 0c. **Patch log:** `docs/PATCH_JOURNAL.md` (one line per closed patch).
-1. Read **`docs/CURRENT_STATE.md`** — block **Next agent patch** (today: **P27**).
-2. Read **`docs/PNN-SPEC.md`** for that ID only (e.g. `docs/P27-SPEC.md`).
-3. Full schedule: **`docs/NEXT.md`** section **Agent patch schedule (P27+)**.
-4. Owner gates (Railway, G2…): same file, **Owner checklist** / stages A–F — not “next patch”.
+1. Read **`docs/CURRENT_STATE.md`** for the active initiative and current stage.
+2. For the mode initiative, read and follow **`docs/MASTER_IMPLEMENTATION_PLAN.md`**.
+3. Do not code until the owner explicitly commands the next stage.
+4. The old P27+ queue and owner gates remain in `docs/NEXT.md` as deferred reference material, not the active sequence.
 
-**Closed:** through P24; P26a; P26b **library**. **Next code:** P27 → P28 → P29 (client Workspace UI), then P30+ (server) on command.
+**Mode initiative:** documentation first (D0); next implementation stage is MP2 only on explicit owner command. The former P27+ workspace queue is deferred while this initiative is active.
 
-**Owner command examples:** «следующий патч» · «делай P27» · «после CI сделай P28».
+**Owner command examples:** «начинай MP2» · «начинай MP3» · «начинай UI1». A general «следующий патч» is not sufficient to bypass the master plan or grant permission for a later stage.
 
 ## Documentation hygiene
+
+- Active sequence for the mode initiative: `docs/MASTER_IMPLEMENTATION_PLAN.md`. MP1–MP3 and UI/QA/manual stages are documented there.
+- A documentation package does not authorise implementation; wait for the owner’s explicit coding command.
 
 - Prefer updating **existing** living docs over new Markdown files.
 - Agent patch: only `PNN-SPEC` + `PNN-REPORT` + journal row; see `AGENTS.md`.
@@ -50,8 +53,8 @@
 
 ## Delivery
 
-0. Read `docs/NEXT.md`: the queue entry of the next patch (goal, sections to read, files, tests).
-1. Read the spec of the patch (`docs/PNN-SPEC.md`; create it from `docs/PATCH_TEMPLATE.md` at the start).
+0. Read `docs/CURRENT_STATE.md` and the active plan named there. For the mode initiative, this is `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+1. Before any code stage, create/update the patch-specific SPEC and report required by `AGENTS.md`; the master plan defines the stage scope and acceptance criteria.
 2. Do the work. Run what can be run (see "Commands").
 3. Build **one cumulative patch**: an archive with the latest version of every file changed since the last upload the owner confirmed, at its repository path. Do **not** put any manifest or list-of-files file into the archive.
 4. In the chat (Russian) write one line "replace N, add M, delete K" with file names. Deleting files is done by the owner by hand; deletions are never part of the archive.
@@ -60,7 +63,7 @@
 
 ## Where things are
 
-- Queue of next patches: `docs/NEXT.md`. Current state and next patch: `docs/CURRENT_STATE.md` (the plan to the end of the project is `docs/NEXT.md`; the next patches are P19x (conditional) and P25).
+- Active mode-initiative sequence: `docs/MASTER_IMPLEMENTATION_PLAN.md`. Current stage: `docs/CURRENT_STATE.md`. `docs/NEXT.md` preserves the deferred legacy queue and owner gates.
 - Patch spec template: `docs/PATCH_TEMPLATE.md`. Report template (starred and gate patches): `docs/STEP_REPORT_TEMPLATE.md`.
 - Repository map, scripts, tests, environment variables: `docs/REPO_MAP.md`.
 - Delegation of decisions and decision cards: `docs/DELEGATION.md`, `docs/DECISION_CARD_TEMPLATE.md`; evidence workflow `.github/workflows/evidence.yml` (PA-01, `docs/PA-01-SPEC.md`).

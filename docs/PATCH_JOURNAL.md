@@ -1,10 +1,11 @@
 # Patch journal
 
-> Short log of **agent patches**. Newest entry at the **top**.
-> Full detail stays in `docs/PNN-REPORT.md` until the owner archives that report off-repo (`docs/HISTORY_OFFREPO.md`).
-> Do not invent scope here — scope is `docs/PNN-SPEC.md` and **Next agent patch** in `docs/CURRENT_STATE.md`.
+> Short log of delivered patches and planning transitions. Newest entry at the **top**.
+> For the active mode initiative, scope and sequence are in `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+> Historical queue entries are not authorisation to start work.
 
 | Date | ID | Result | Notes |
+| 2026-10-14 | DOCS-MODE-PLAN-01 | Documentation package | Master plan created; MP1–MP3 and UI/QA/manual sequence recorded; no code changed |
 | 2026-10-14 | — | CI fix | Restored test fixtures ARCHIVE/GOLDEN, P15-REPORT, E01*, CONCEPTS/e01-*; CHANGELOG_AGENT_BEHAVIOR; stripped dead backticks |
 | --- | --- | --- | --- |
 | 2026-10-14 | P26b | core done | ChangeSet/export library + tests; UI → P29 |

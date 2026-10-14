@@ -1,6 +1,6 @@
 # Repository map
 
-> Compiled from the actual archive contents (10 October 2026). Start with `docs/START_HERE.md`. The structure is flat: root and first-level directories only (exception: `.github/workflows/`).
+> Compiled from the actual archive contents (14 October 2026). Start with `docs/START_HERE.md`. Active mode initiative: `docs/MASTER_IMPLEMENTATION_PLAN.md`. The structure is flat: root and first-level directories only (exception: `.github/workflows/`).
 
 ## Root
 
@@ -15,7 +15,8 @@
 | `public/` | Icons for the browser and PWA manifest |
 | `docs/PA-04-SPEC.md` | PA-04 E-01 lab runner (process; workflow template for the test repo) |
 | `docs/E01_LAB.md` | E-01 lab: Navigator runs workflow_dispatch; notes via Assistant patch |
-| `docs/NEXT.md` | Plan to G4 as a flat checklist (steps `RM-*`: inputs, PASS) and queue of next patches; updated by the AI Assistant at the end of every patch |
+| `docs/MASTER_IMPLEMENTATION_PLAN.md` | Single active sequence for the Simple / Expert / Project mode initiative: MP1–MP3, UI, integrated QA and manual acceptance |
+| `docs/NEXT.md` | Legacy P27+ queue and owner RM-* gates retained as a deferred reference snapshot; not the active mode-initiative task sequence |
 | `docs/PROGRAM-CREATION-SPEC.md` | Project Mode small-program generation, validation, ZIP delivery and security boundaries |
 | `docs/BiForge_TZ_v3.md` | Index of the specification (TZ v3.1): file map and section → file map. The text itself: `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md` |
 | ARCHIVE/TZ_v3.0_monolith.md | The original TZ v3.0 in one file and its retired parts (`ARCHIVE/TZ_v3.0_*.md`): history only, not read for patches |
@@ -92,6 +93,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/briefWriter.ts` | P20: build Task Package draft from a structured brief (pure) |
 | `server/reviewer.ts` | P21: structured review findings from gates + delivery (pure, no model) |
 | `server/repairLoop.ts` | P22: Repair Loop classification, stop rules, repair prompt, diagnostic report (pure) |
+| `server/promptPacks.ts` | Simple Mode conversation prompt assembly and Expert step-prefix text; current mode-initiative change point (see `docs/MASTER_IMPLEMENTATION_PLAN.md`) |
 | `server/intentFlags.ts` | PI-02: pure user-intent detectors (forbade questions, approximate, search, evasion criticism) and limitation-only check |
 | `server/conversationMode.ts` | PI-03: conversation mode detection (considers recent turns) and the thin mode paragraph for the shared conversation prompt |
 | `server/codeExecutor.ts` | CodeExecutor interface and `manual` executor, Task Package schema, PACKAGE.md, protected paths, allowed_paths, secret scan, unified diff validation, generated-source HTML/JS static checks; no generated code execution (P18 + program creation) |

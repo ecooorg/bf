@@ -1,3 +1,23 @@
+# Next work — pointer to the master implementation plan
+
+> **Updated:** 14 October 2026. The current sequence of work for the approved mode initiative is maintained only in `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not use the legacy P27+ schedule below as the active task queue.
+
+## Current stage
+
+**D0 — documentation package.** Documentation only. No runtime code, prompts, UI, model selection, or tests are to be changed until the owner explicitly authorises the next stage.
+
+## Next stage after D0
+
+**MP2 — shared prompt core and Simple/information contract**, only after a separate owner command. MP1–MP3 scope and acceptance criteria are in `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+
+## Status of the previous queue
+
+The former P27+ workspace schedule and owner RM-* gates are retained below as a reference snapshot only. They are not the active sequence for the mode initiative. This pause does not mean those items are implemented or cancelled. After MANUAL1, the owner decides what work to carry into the next master plan.
+
+---
+
+# Legacy queue snapshot — superseded for active sequencing on 14 October 2026
+
 # Next work: agent patches P27+ and owner path to G4
 
 > Updated **14 October 2026**. Living checklist. SPEC_* stay stable. Snapshot: `docs/CURRENT_STATE.md`.

@@ -1,3 +1,5 @@
+> **Status note (14 October 2026):** This SPEC is a historical record of PI-03 and is not the active plan for the Simple / Expert / Project mode initiative. The owner has explicitly approved revisiting the “no separate system prompts” and “JSON schema must not change” constraints, subject to backward-compatibility tests. Follow `docs/MASTER_IMPLEMENTATION_PLAN.md` for current requirements and sequence. This note does not claim the new behaviour has been implemented.
+
 # PI-03 — Mode paragraph on the shared Simple Mode prompt
 
 **Goal.** Add a thin mode paragraph (Information / Decision support / Research / Engineering) selected by a local heuristic on the last user text, mixed into the existing conversation system prompt. No separate system prompts; no duplication of HARD BOUNDARIES. Source: CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md §6, §7 P3; TZ 16.4.2 row PI-03.
