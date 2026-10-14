@@ -1,101 +1,64 @@
-# Универсальная инструкция по выполнению патча BiForge
+# Universal BiForge patch execution instructions
 
-**Репозиторий:** приложенный архив BiForge (актуальный зелёный `main` / архив владельца).  
-**Патч:** `PNN` — номер и объём задаёт владелец; правила шага — `docs/SPEC_DEV_PROCESS.md` (§16.3–16.4), операционный порядок и оставшиеся шаги — `docs/NEXT.md`; индекс ТЗ — `docs/BiForge_TZ_v3.md`.  
-**Приоритеты:** корректность > совместимость > полнота проверок > минимальный diff > экономия токенов.
+**Repository:** the attached BiForge archive (current green `main` / owner archive).  
+**Patch:** `PNN` — number and scope set by the owner; step rules — `docs/SPEC_DEV_PROCESS.md` (§16.3–16.4); operational order and remaining steps — `docs/NEXT.md`; TZ index — `docs/BiForge_TZ_v3.md`.  
+**Priorities:** correctness > compatibility > test coverage > minimal diff > token economy.
 
-Подставь вместо `PNN` / `NN` номер патча (например P20 → архив `bf-P20.zip`, версия `"20"`).
+Replace `PNN` / `NN` with the patch number (e.g. P20 → archive `bf-P20.zip`, version `"20"`).
 
 ---
 
-## 1. Анализ контекста
+## 1. Context analysis
 
-До правок файлов прочитай **в этом порядке**:
+Before editing files, read **in this order**:
 
 1. `docs/START_HERE.md`
 2. `AGENTS.md`
 3. `docs/CURRENT_STATE.md`
-4. `docs/NEXT.md` (очередь; не начинай другой патч без команды владельца)
-5. `docs/SPEC_DEV_PROCESS.md` (§16.3–16.4) и разделы ТЗ для этого патча по таблице в `docs/START_HERE.md` (карта «раздел → файл» — `docs/BiForge_TZ_v3.md`); справочник шагов `BX-XX` и история патчей — `ARCHIVE/TZ_v3.0_PATCH_HISTORY.md`
-6. SPEC этого патча, если уже есть (`docs/PNN-SPEC.md`); иначе создай по `docs/PATCH_TEMPLATE.md`
-7. Только нужные исходники, тесты, миграции, `connectors.yaml` / `docs/CONNECTIONS.md`
+4. `docs/NEXT.md` (queue; do not start another patch without the owner’s instruction)
+5. `docs/SPEC_DEV_PROCESS.md` (§16.3–16.4) and the TZ sections for this patch via the map in `docs/START_HERE.md` (section → file map — `docs/BiForge_TZ_v3.md`); step catalogue `BX-XX` and patch history — `ARCHIVE/TZ_v3.0_PATCH_HISTORY.md`
+6. This patch’s SPEC if it exists (`docs/PNN-SPEC.md`); otherwise create it from `docs/PATCH_TEMPLATE.md`
+7. Only the needed sources, tests, migrations, `connectors.yaml` / `docs/CONNECTIONS.md`
 
-Сверь номер и объём с `CURRENT_STATE` и `NEXT`. Не расширяй scope. Simple Mode не меняй, если SPEC этого не требует. `tests/acceptance/**` не трогай без явного разрешения SPEC (Test Integrity).
+Align number and scope with `CURRENT_STATE` and `NEXT`. Do not expand scope. Do not change Simple Mode unless the SPEC requires it. Do not touch `tests/acceptance/**` without explicit SPEC permission (Test Integrity).
 
-Противоречия между правилами и заданием: устрани в рамках патча, если это обязательные правила; блокирующий конфликт — один список вопросов владельцу и остановка.
+Conflicts between rules and the assignment: resolve within the patch when the rules are mandatory; a blocking conflict — one question list to the owner and stop.
 
 ---
 
-## 2. Реализация
+## 2. Implementation
 
-1. Полностью выполни требования патча и критерии приёмки (SPEC + TZ для входящих BX).
-2. Создай/обнови SPEC, тесты, миграции, документацию по шаблонам репозитория.
-3. Обнови `CHANGELOG.md`, `docs/CURRENT_STATE.md`, `docs/NEXT.md` по правилам проекта.
-4. **Версия продукта:** единый источник — `APP_VERSION` в `src/config.ts`. Значение = номер патча строкой (`P20` → `"20"`). Синхронно:
+1. Fully meet the patch requirements and acceptance criteria (SPEC + TZ for inbound BX steps).
+2. Create/update SPEC, tests, migrations, documentation using repository templates.
+3. Update `CHANGELOG.md`, `docs/CURRENT_STATE.md`, `docs/NEXT.md` per project rules.
+4. **Product version:** single source — `APP_VERSION` in `src/config.ts`. Value = patch number as a string (`P20` → `"20"`). Keep in sync:
    - `package.json` → `"version"`
-   - первая строка `README.md` и `DEPLOY_RAILWAY.md` (`vNN`)
-   - секция `## vNN` вверху `CHANGELOG_AGENT_BEHAVIOR.md`  
-   Код импортирует `APP_VERSION`; не размазывай хардкод текущей версии. Проверка: `node scripts/check-version.mjs`.
-5. Исторические SPEC/отчёты предыдущих патчей при вытеснении из «действующих» переноси в `ARCHIVE/`; черновики будущего — в `CONCEPTS/`. Новые такие документы сразу клади в нужный каталог. Обнови ссылки. Действующие документы (`docs/BiForge_TZ_v3.md`, ADR в силе, `START_HERE`, `REPO_MAP`, политики) не архивируй без причины.
-6. Не меняй несвязанные компоненты и публичные контракты. Не отключай проверки и не ослабляй тесты ради CI. Не переходи к следующему патчу без команды владельца.
+   - first line of `README.md` and `DEPLOY_RAILWAY.md` (`vNN`)
+   - section `## vNN` at the top of `CHANGELOG_AGENT_BEHAVIOR.md`  
+   Code imports `APP_VERSION`; do not scatter hard-coded current version. Check: `node scripts/check-version.mjs`.
+5. When historical SPECs/reports leave the “active” set, move them to `ARCHIVE/`; future drafts go to `CONCEPTS/`. Place new documents in the right directory immediately. Update links. Active documents (`docs/BiForge_TZ_v3.md`, ADRs in force, `START_HERE`, etc.) stay in place.
+6. Prefer a minimal diff. No drive-by refactors.
 
 ---
 
-## 3. Решения
+## 3. Verification before hand-off
 
-- Инженерные решения в рамках архитектуры и SPEC принимай сам; существенные фиксируй в SPEC и кратко в отчёте.
-- Блокирующий конфликт / нет исходных данных — все вопросы одним сообщением, работа остановлена.
-- Не спрашивай то, что однозначно следует из ТЗ, SPEC и кода.
-
----
-
-## 4. Проверки
-
-По возможности, в порядке:
-
-1. `npm ci`
-2. `npm run check` (или минимум: `node scripts/check-docs.mjs`, `node scripts/check-version.mjs`, релевантные `test:p*`)
-3. `npm run build`
-4. Тесты, относящиеся к патчу
-5. PostgreSQL / live — только если требует патч или проект; иначе `NOT_RUN` с причиной
-
-**Достоверность:** не заявляй успех без реального запуска; не выдумывай вывод команд; для каждой невыполненной проверки — статус и причина.
+1. Run `npm run check` and `npm run build` when the environment allows; report what passed and what was not run.
+2. Confirm version consistency (`check-version`).
+3. Confirm CI-required checks would pass on the changed surface.
+4. For behaviour changes: tests and changelog updated in the same patch.
 
 ---
 
-## 5. Упаковка патча
+## 4. Delivery
 
-**Стандарт (обязателен):**
-
-- Имя архива: `bf-PNN.zip` (пример: `bf-P20.zip`).
-- Состав: только **новые и изменённые** файлы этого патча относительно базы владельца.
-- Пути — относительно корня репозитория.
-- Не включать: неизменённое, `node_modules`, `dist`, сам ZIP, служебные манифесты, пустые каталоги, секреты.
-- Удалённые файлы в ZIP **не** класть: список «удалить при применении» — в отчёте владельцу.
-- Переименования / перенос в `ARCHIVE`/`CONCEPTS`: в архиве — файл по **новому** пути; старый путь указать к удалению.
-
-**Инструмент:** `npm run patch:pack` → `scripts/pack-simple.mjs` (простой zip без долгих дочерних CI). Не запускай legacy `scripts/patch-pack.mjs` как обязательный полный прогон с CI внутри упаковки. При сбое pack-simple допустим ручной `zip` с тем же составом и правилами; причину укажи в отчёте.
-
-Перед выдачей: просмотри `unzip -l bf-PNN.zip`, сверь полноту, убедись, что упаковка завершилась без зависших процессов.
+1. One patch — one reviewable result (see §16.4).
+2. PR (or owner upload) with clear file list: replace / add / delete.
+3. File deletions are performed by the owner when applying the archive.
+4. Do not put a manifest file inside the patch unless the SPEC asks for it; list changes in the chat or PR body.
 
 ---
 
-## 6. Итоговый отчёт (кратко, по-русски)
+## 5. Stop rules
 
-1. **Архив:** путь к `bf-PNN.zip` и результат проверки состава.  
-2. **Файлы:** новые / изменённые / перемещённые; отдельно — что **удалить** при применении.  
-3. **Команды:** что реально запускалось и чем закончилось.  
-4. **Не выполнено:** что и почему.  
-5. **Решения:** допущения и выбор вариантов.  
-6. **Владельцу:** только необходимые следующие шаги (Railway, GitHub, E-01 и т.д.).
-
-Не объявляй полный успех, если обязательные для патча проверки не сделаны.
-
----
-
-## 7. Напоминания по текущему состоянию проекта
-
-- Очередь патчей: `docs/NEXT.md` (после P19 типичный следующий код-патч — **P20**, если владелец не указал иное).
-- GitHub App для read/webhook уже подключался; write и `GITHUB_DIFF_UPLOAD` — только если патч этого требует.
-- `model_patch` по умолчанию выключен, пока нет финального ADR-10 / E-01.
-- BX-XX — содержание шага; PNN — единица поставки. В отчёте указывай оба, где уместно.
+Stop and ask the owner when: scope is ambiguous; a mandatory rule conflicts with the SPEC; production secrets would be required; Test Integrity would be violated; or the change needs a new ADR and none exists.

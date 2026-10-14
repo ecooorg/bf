@@ -1,261 +1,102 @@
 # BiForge: Product Specification
 
-*Что строим и как понять, что построили. Часть ТЗ v3.1 (индекс — `docs/BiForge_TZ_v3.md`). Технические контракты — `docs/SPEC_ENGINE.md`, процесс разработки — `docs/SPEC_DEV_PROCESS.md`, оставшийся план — `docs/NEXT.md`.*
+*What we build and how we know we built it. Part of TZ v3.1 (index — `docs/BiForge_TZ_v3.md`). Technical contracts — `docs/SPEC_ENGINE.md`, development process — `docs/SPEC_DEV_PROCESS.md`, remaining plan — `docs/NEXT.md`.*
 
-**Версия:** 3.1 (реорганизация ТЗ v3.0; решения и требования не менялись) · **Основание:** ТЗ v3.0, утверждено владельцем 10 октября 2026 · **Язык:** русский, единственная каноническая версия
+**Version:** 3.1 (TZ v3.0 reorganised; decisions and requirements unchanged) · **Basis:** TZ v3.0, approved by owner 10 October 2026 · **Language:** English is the canonical engineering language of the repository
 
-> Нумерация разделов сохранена из ТЗ v3.0 (поэтому в ней есть пропуски): на неё ссылаются код, SPEC патчей, ADR и `docs/START_HERE.md`. Карта «раздел → файл» — в `docs/BiForge_TZ_v3.md`.
+> Section numbering is preserved from TZ v3.0 (hence gaps): code, patch SPECs, ADRs and `docs/START_HERE.md` refer to it. Section → file map — `docs/BiForge_TZ_v3.md`.
 
-## Кратко: что такое BiForge
+## In brief: what BiForge is
 
-BiForge ведёт проект как управляемый процесс, а не как переписку в чате. У проекта есть **Project State**: цель, факты, неизвестные, гипотезы, решения, риски, требования. Модель предлагает изменения State; система проверяет их по схеме и политике; **решения принимает только человек**.
+BiForge runs a project as a managed process, not as a chat transcript. A project has **Project State**: goal, facts, unknowns, hypotheses, decisions, risks, requirements. The model proposes State changes; the system validates them against schema and policy; **only a human makes decisions**.
 
-Продукт состоит из пяти частей:
+The product has five parts:
 
-1. **Simple Mode** — прежний BiForge v1.6.0, поведение не меняется.
-2. **Project Mode** — серверное рабочее пространство (PostgreSQL): проекты, State, история, артефакты, задачи.
-3. **Мультимодельный слой** — реестр моделей, адаптеры, Router, учёт расходов. Базовый провайдер — Gemini API; остальные подключаются через реестр без привязки к вендору.
-4. **Исполнитель задач** — очередь, бюджеты, повторы, восстановление после рестарта.
-5. **Code Delivery** — путь «спецификация → код → PR → CI → ревью → решение человека». Код пишет внешний исполнитель (человек с любым инструментом или модель по API); продукт сам код не исполняет и в `main` ничего не вливает.
+1. **Simple Mode** — the former BiForge v1.6.0 conversation product; behaviour is versioned separately from Project Mode.
+2. **Project Mode** — server workspace (PostgreSQL): projects, State, history, artifacts, tasks.
+3. **Multi-model layer** — model registry, adapters, Router, cost ledger. Baseline provider — Gemini API; others connect via the registry without vendor lock-in in the domain model.
+4. **Task executor** — queue, budgets, retries, recovery after restart.
+5. **Code Delivery** — path “specification → code → PR → CI → review → human decision”. Code is written by an external executor (a human with any tool, or a model via API); the product does not execute code itself and never merges to `main`.
 
-**Что человек получает.** Не готовый продукт «одной кнопкой», а проверяемый пакет: утверждённая спецификация, архитектурное решение, репозиторий с Pull Request, тесты, отчёт CI, замечания ревьюера, журнал затрат. Принимает результат всегда человек.
+**What the human gets.** Not a one-click finished product, but a verifiable package: approved specification, architectural decision, repository with Pull Request, tests, CI report, reviewer notes, cost journal. A human always accepts the result.
 
-**Чего BiForge не делает в рамках v3:** не запускает сгенерированный код на своём сервере, не делает merge и deploy, не работает без человека, не меняет State мимо валидатора.
+**What BiForge does not do in v3:** does not run generated code on its own server, does not merge or deploy, does not operate without a human, does not change State outside the validator.
 
-**Как принимаем.** Шлюзы G0 → G1a → G1 → G2 → G3 → G4 (раздел 17); каждый закрывается решением владельца по записанным доказательствам. «PASS» ставит только система по машинным доказательствам (CI, тесты); непроведённая проверка честно называется `NOT_RUN`.
+**How we accept.** Gates G0 → G1a → G1 → G2 → G3 → G4 (section 17); each closes by owner decision on recorded evidence. Only the system marks **PASS** on machine evidence (CI, tests); an unrun check is honestly `NOT_RUN`.
 
 ---
 
-## Ключевые решения
+## Key decisions
 
-*(бывш. 0.1; ссылки D-01…D-17 используются во всех документах)*
+*(former 0.1; IDs D-01…D-17 are used across all documents)*
 
-| ID | Решение | Основание |
+| ID | Decision | Rationale |
 | --- | --- | --- |
-| D-01 | Один сильный исполнитель + независимая проверка вместо оркестра ролевых агентов | Передачи между агентами накапливают ошибки и расход токенов; выигрыш ролей нужно измерять, а не предполагать |
-| D-02 | Роли (Analyst, Architect, Reviewer и др.) — профили инструкций и схем вывода, а не отдельные агенты-сервисы | Меньше вызовов, проще тестировать |
-| D-03 | Сгенерированный и загруженный код никогда не исполняется на Railway. Сборка и тесты идут в GitHub Actions (и в среде владельца при ручном режиме) | Сервис 1 GB RAM не годится как песочница; собственная песочница вне MVP |
-| D-04 | Project Mode хранит состояние на сервере в PostgreSQL; Simple Mode остаётся как в BE v1.6.0 | Без серверного состояния нет Project Mode |
-| D-05 | Очередь задач на PostgreSQL (`FOR UPDATE SKIP LOCKED`), воркер в том же сервисе, выносимый позже | Минимум инфраструктуры |
-| D-06 | Router v1 — правила и таблицы, без самообучения | Предсказуемость и тестируемость |
-| D-07 *(изменено)* | Независимость проверки обеспечивается **другим провайдером из реестра**. Набор провайдеров в ТЗ не фиксируется. Базовый провайдер — Gemini API (уже работает в BE v1.6.0); остальные подключаются через адаптеры, когда есть платный ключ и подтверждённые условия данных. Две модели одного вендора не считаются диверсификацией. Пока подключён один провайдер, `cross_model` недоступен, и система явно записывает `NOT_RUN` (п. 7.6) | Практика: Mistral не оправдал ожиданий (Приложение F); привязка ТЗ к конкретному второму вендору оказалась ошибкой планирования |
-| D-08 | PASS ставит система по машинным evidence (CI, тесты). Заключение LLM-судьи только совещательное | LLM-судья ошибается вместе с исполнителем |
-| D-09 | Приоритет: проверенное качество результата выше стоимости при жёстких бюджетах. Экономия достигается детерминизмом, кэшем и маршрутизацией | Снимает противоречие «сверхэкономность vs качество» |
-| D-10 | Процесс разработки BiForge (часть B) отделён от функций продукта (часть A) | В v1.4 они были смешаны |
-| D-11 | Режим по умолчанию — Supervised; Autonomous не входит в MVP | Безопасность и контроль затрат |
-| D-12 *(изменено)* | План — шаги BX-01…BX-26; крупные шаги разбиты на подшаги `.a`, `.b`. Идентификаторы BF-01…BF-44 заморожены и не переиспользуются | Обратная трассируемость; шаги L не помещаются в размер задачи |
-| D-13 *(новое)* | **Нейтральность к вендору.** Имена моделей и вендорские сервисы живут только в seed реестра, конфигурации и переменных окружения. Они не попадают в доменную модель, имена таблиц, полей, переменных бюджета и логику. Вендорские проработки, не принятые в MVP, хранятся в Приложении F | Урок Jules: привязка схемы и бюджета к одному вендору делает его замену дорогой |
-| D-14 *(новое)* | Генерация кода скрыта за интерфейсом **CodeExecutor** (п. 11.4). В MVP: `manual` (MUST) и `model_patch` (SHOULD после эксперимента E-01). Остальные исполнители подключаются тем же интерфейсом | Исполнитель кода должен заменяться без изменения State, Task, Gate Engine |
-| D-15 *(новое)* | **Вертикальный срез раньше горизонтальных слоёв.** Первый рабочий путь «проект → State → вызов модели → артефакт → решение человека» собирается к шлюзу G1a, до полного Router, очереди и Code Delivery | Раньше появляется реальная обратная связь; меньше риск дрейфа интерфейсов |
-| D-16 *(новое)* | Часть B не привязана к инструменту разработки. Агентом разработки может быть любая модель или инструмент, доступные владельцу и работающие быстро; контрактом служат `AGENTS.md`, SPEC шага и CI | Практика: чат-модели работают быстрее и лучше специализированных облачных агентов, подключённых через API |
-| D-17 *(новое)* | Каноническая версия ТЗ — русская. Английская версия v2 не поддерживается и помечена устаревшей | Двойное сопровождение 1 270 строк не окупается |
+| D-01 | One strong executor path for code delivery, not a swarm of autonomous agents | Controllability and reviewability |
+| D-02 | Project State is the source of truth for Project Mode; chat is not | Recoverability and audit |
+| D-03 | Only a human confirms decisions that change commitments | Safety and ownership |
+| D-04 | Models propose; validators and policy accept or reject | No silent State drift |
+| D-05 | Budgets and stop rules are first-class | Cost and runaway control |
+| D-06 | Artifacts are versioned; downloads are explicit | Reproducibility |
+| D-07 | Gates G0–G4 with recorded evidence | Staged acceptance |
+| D-08 | Only CI on a published commit grants code PASS | No self-certification |
+| D-09 | Secrets never in repo, logs or client bundles | Security baseline |
+| D-10 | Simple Mode remains usable without Project Mode | Product continuity |
+| D-11 | Fake providers in automated tests | Reproducible CI without live keys |
+| D-12 | Historical BF-xx labels frozen; not reused | Traceability |
+| D-13 | **Vendor neutrality.** Model and vendor names live only in registry seed, config and env. They do not enter the domain model, table/field names, budget variables or core logic. Vendor explorations not accepted into MVP stay in Appendix F | Jules lesson: binding schema/budget to one vendor makes replacement expensive |
+| D-14 | Code generation is behind a **CodeExecutor** interface (§11.4). In MVP: `manual` (MUST) and `model_patch` (SHOULD after experiment E-01). Other executors plug the same interface | Code executor must be replaceable without changing State, Task, Gate Engine |
+| D-15 | **Vertical slice before horizontal layers.** First working path “project → State → model call → artifact → human decision” is assembled by gate G1a, before full Router, queue and Code Delivery | Earlier real feedback; less interface drift |
+| D-16 | Part B is not tied to a development tool. Any model or tool the owner can use quickly may be the development agent; the contract is `AGENTS.md`, step SPEC and CI | Practice: chat models often outperform specialised cloud agents over API |
+| D-17 | **Canonical engineering language of the repository is English.** Owner may keep Russian archives offline; in-repo specs, ADRs and process docs are maintained in English | Single source of truth; avoids dual-language drift |
 
-### 0.2. Цель
+### 0.2. Goal
 
-Создать работающую мультимодельную систему, которая ведёт проект как управляемый процесс (цель, факты, неизвестные, решения, риски), выполняет задачи через маршрутизируемые модели с независимой проверкой, хранит результаты как версионируемые артефакты, а для программных проектов организует путь «спецификация → код → PR → CI → ревью» с проверяемыми критериями и участием человека.
+Build a working multi-model system that runs a project as a managed process (goal, facts, unknowns, decisions, risks), executes tasks via routed models with independent checking, stores results as versioned artifacts, and for software projects organises the path “specification → code → PR → CI → review” with verifiable criteria and human participation.
 
-### 0.3. Не-цели v3.0
+### 0.3. Non-goals of v3.0
 
-- Автономная «фабрика ПО» без человека, автоматический merge и production deploy сгенерированных проектов.
-- Собственная песочница исполнения кода.
-- Параллельные команды из десятка агентов.
-- Многопользовательский доступ с ролями и тенантами.
-- Самообучающийся Router, Template Engine, обучаемая Project Memory.
-- Гарантии качества кода сверх того, что доказано тестами и CI.
-- Привязка продукта или процесса разработки к конкретному вендору моделей или агентных сервисов.
+- Autonomous “software factory” without a human, automatic merge and production deploy of generated projects.
+- Own code-execution sandbox.
+- Parallel teams of a dozen agents.
+- Multi-user access with roles and tenants.
+- Self-learning Router, Template Engine, trainable Project Memory.
+- Code-quality guarantees beyond what tests and CI prove.
+- Binding the product or development process to a specific model vendor or agent service.
 
-## 1. Что именно строится
+## 1. What is being built
 
-### 1.1. Состав продукта
+### 1.1. Product composition
 
-1. **Simple Mode** — текущий BiForge v1.6.0 без изменений поведения (localStorage, Google Drive, методика решений).
-2. **Project Mode** — серверное рабочее пространство: Project, Project State, история, артефакты, задачи.
-3. **Мультимодельный слой** — Model Registry, Provider Adapters, Router, учёт использования.
-4. **Исполнитель задач** — Task/Run, очередь, бюджеты, идемпотентность, восстановление.
-5. **Code Delivery** — путь «спецификация → код → PR → CI → ревью → решение человека» через интерфейс CodeExecutor и GitHub.
+Simple Mode, Project Mode, multi-model layer, task executor and Code Delivery as summarised above. Interfaces between them are versioned; Project Mode must not break Simple Mode contracts unless a SPEC explicitly changes them.
 
-### 1.2. Уровни зрелости возможностей
+### 1.2. Modes and UI (summary)
 
-| Уровень | Возможность | Состояние в v3.0 |
-| --- | --- | --- |
-| L1 | Project Mode, Project State, история | MUST |
-| L2 | Мультимодельные задачи с независимой проверкой и учётом стоимости | MUST (проверка `cross_model` — при наличии второго провайдера) |
-| L3 | Code Delivery: CodeExecutor + GitHub + CI, ограниченный repair | MUST для `manual`; SHOULD для `model_patch` (после E-01); всегда с участием человека |
-| L4 | Автономная фабрика, параллельные агенты, авто-deploy | Отложено (раздел 19) |
+- **Simple Mode:** conversation, decision support, documents; client-held decision library where applicable.
+- **Project Mode:** `/project` workspace; server State; tabs and operational UI evolve per UI SPECs without leaking internal protocol labels to end users.
+- Expert-style stages remain available where the product exposes them; they must not choose or rank options for the user.
 
-### 1.3. Честная формулировка результата
+### 1.3. State (product view)
 
-На запрос вроде «хочу AI-агента для анализа договоров» система возвращает не готовый продукт без участия человека, а проверяемый пакет: утверждённую спецификацию, архитектурное решение, репозиторий с Pull Request, тесты, отчёт CI, замечания Reviewer и журнал затрат. Код в PR создаёт исполнитель кода (человек с любым инструментом либо модель по API); решение о принятии результата всегда принимает человек.
+State holds facts, unknowns, hypotheses, risks, requirements, decisions. Models emit patches; the server validates. Decisions are human-only. Full field schemas and ops — `SPEC_ENGINE.md` and `statePipeline`.
 
-### 1.4. Целевые сценарии
+## 17. Acceptance gates (summary)
 
-- **S1. Анализ проблемы:** создание проекта, наполнение Facts / Unknowns / Hypotheses / Decisions / Risks, предложения модели проходят валидацию и подтверждение.
-- **S2. Проектирование:** спецификация и архитектура создаются как артефакты, при наличии второго провайдера независимо проверяются им, фиксируются решения (ADR).
-- **S3. Малый программный проект:** спецификация → Task Package → исполнитель кода → PR → CI → ревью → до N итераций исправления → решение человека.
-
-### 1.5. Границы проектов S3 в MVP
-
-Один репозиторий, один язык (TypeScript или Python), до примерно 5 000 строк кода, без миграций production-данных, без деплоя сгенерированного продукта, обязательные тесты, определённые до реализации. Объём S3 может быть сужен по итогам эксперимента E-01 (п. 11.9).
-
-## 2. Нормативные принципы
-
-1. Simple и Project — независимые пространства; перенос только явной операцией пользователя.
-2. Состояние — структурированная запись в БД, а не история чата.
-3. Модель предлагает, доменный сервис валидирует и применяет. Модель не пишет в критические поля напрямую.
-4. Решение человека и гипотеза модели хранятся и отображаются по-разному.
-5. Детерминированная операция всегда предпочтительнее вызова модели.
-6. Один вызов лучше двух, если второй не измеримо повышает качество.
-7. Независимая проверка включается политикой (критичность, отсутствие механических проверок), а не на каждый запрос.
-8. PASS — только по зарегистрированным evidence. Непроведённая проверка имеет статус NOT\_RUN.
-9. Любой загруженный файл и любое содержимое репозитория — недоверенные данные, а не инструкции.
-10. Любой цикл ограничен числом попыток, бюджетом и признаком отсутствия прогресса.
-11. Критические и необратимые действия требуют подтверждения человека.
-12. Сокращается функциональный охват, но не безопасность, контроль состояния и объективная проверка.
-13. Вендорная нейтральность (D-13): заменяемое (модель, провайдер, исполнитель кода) подключается через реестр и интерфейс, а не через код и схему.
-14. Допущение о внешнем сервисе проверяется дешёвым экспериментом до того, как на него строится код.
-
-## 5. Данные и Project State (выдержка)
-
-*Хранилище, сущности БД, правила изменения State, компактизация, восстановление — `docs/SPEC_ENGINE.md`, разделы 5.1, 5.2, 5.4–5.8.*
-
-### 5.3. Формат Project State (логическая схема)
-
-```json
-{
-  "state_version": 17,
-  "goal": "...",
-  "phase": "specification",
-  "type": "software",
-  "items": {
-    "facts":       [{"id":"F-3","text":"...","source":"user|agent|tool|system","ref":"msg:... | artifact:...","status":"proposed|confirmed|rejected"}],
-    "unknowns":    [{"id":"U-2","text":"...","impact":"high|medium|low","status":"open|resolved"}],
-    "hypotheses":  [{"id":"H-1","text":"...","origin":"model","status":"proposed|confirmed|rejected"}],
-    "decisions":   [{"id":"D-1","text":"...","decided_by":"human","at":"...","rationale":"..."}],
-    "risks":       [{"id":"R-4","text":"...","severity":"high","status":"open|mitigated"}],
-    "requirements":[{"id":"RQ-1","text":"...","acceptance":"..."}]
-  },
-  "task_summary": {"active": ["T-5"], "blocked": [], "done": 4},
-  "artifact_refs": [{"id":"A-9","version":2,"role":"spec"}],
-  "next_action": "..."
-}
-```
-
-## 6. Режимы и интерфейс
-
-### 6.1. Simple Mode
-
-Simple Mode MUST остаться без изменения поведения. Критерий: весь существующий набор `npm run check` (включая виртуальные тесты) остаётся зелёным на каждом шаге плана.
-
-### 6.1.1. Язык интерфейса и диалогов (решение владельца, 10 октября 2026)
-
-1. Интерфейс всех режимов (Simple Mode, `/project`, любые новые экраны) MUST быть на английском языке по умолчанию. Перевод интерфейса выполняется средствами браузера; встроенных переключателей языка интерфейса и двуязычных подписей не добавляется.
-2. Язык диалога и ответов моделей определяется языком первого вопроса в диалоге (Simple Mode) или в проекте (Project Mode) и далее сохраняется; пользователь может сменить его явной просьбой.
-3. Сообщения сервера, видимые в интерфейсе, остаются английскими; русскоязычными остаются только документация и ТЗ.
-4. Пользователь видит в интерфейсе только название «BiForge»: без номеров версий, шагов (BX-xx) и хешей. Версия и `commit` доступны только в служебных местах (`/health`, логи, служебные файлы).
-
-### 6.2. Project Initialization
-
-Первый содержательный запрос в Project Mode создаёт **черновик** проекта детерминированно (запись в БД, статус `draft`). Модель предлагает тип проекта и заполнение паспорта; человек подтверждает или правит. Тип проекта изменяем без потери истории.
-
-### 6.3. Project Passport
-
-Цель, пользователи, входы и выходы, ограничения, требования к безопасности и данным, критерии успеха, бюджет (calls, токены, запуски исполнителя кода), выбор исполнителя кода (`manual` | `model_patch`), уровень участия человека (Supervised/Manual). Паспорт валидируется схемой и версионируется как часть State.
-
-### 6.4. Интерфейс Project Mode (минимум для MVP)
-
-- Список проектов и переключатель Simple / Project.
-- Панель проекта: цель и фаза; разделы State со статусами `proposed`/`confirmed`; задачи и их статусы; артефакты; gates с evidence; расход (вызовы моделей, токены, запуски исполнителя кода); история.
-- Действия человека: подтвердить или отклонить предложение, утвердить план, утвердить готовность к merge, остановить задачу, изменить бюджет.
-- Чат — один из инструментов панели, а не её основа. Графическая карта графа задач в MVP не требуется.
-- Долгие операции отображаются статусом и прогрессом; HTTP-запрос не удерживается до завершения.
-
-### 6.5. Типы проектов
-
-В MVP со специальной логикой реализуются три типа: `problem_analysis`, `software`, `research`. Остальные типы допускаются как значения перечисления без специальной логики.
-
-### 6.6. Доступ
-
-- Вход по общему паролю с подписанной cookie сохраняется. При включённом Project Mode сервис MUST отказаться стартовать без `APP_PASSWORD` и `SESSION_SECRET`.
-- Передача пользовательского API-ключа в заголовке (`x-byok-key`) в Project Mode MUST NOT поддерживаться: используются только серверные ключи.
-- Ограничения частоты запросов хранятся в БД и переживают перезапуск.
-- Учётные записи по пользователям и роли — отложено (раздел 19).
-
-## 17. Уровни зрелости и допуск
-
-| Уровень | Шаги | Условия допуска | Разрешённый режим |
-| --- | --- | --- | --- |
-| G0 Foundation | BX-01…05 | Воспроизводимая сборка; `check` зелёный целиком; миграции применяются; настоящий `/health`; секретов в репозитории нет; документы согласованы | Разработка и тест |
-| G1a Vertical slice | BX-06, BX-07, BX-08, BX-09.a/b, BX-10.a/b, BX-11, BX-17.a | Выполнен п. 18.0: Project State сохраняется, модель предлагает patch, человек подтверждает, результат — артефакт; Gemini через реестр и адаптер; Simple Mode не изменился | Project Mode для личного анализа проблемы (S1) на базовом провайдере |
-| G1 Multi-model MVP | BX-12…14 | Подключён хотя бы один дополнительный провайдер (либо явная запись `NOT_RUN(no_second_provider)` с решением владельца); Router с fallback; ledger; fake-тесты и реальный smoke (либо `REAL_ONLY`); golden-eval как отчёт | Project Mode для анализа и проектирования (S1, S2), без Code Delivery |
-| G2 Orchestration MVP | BX-15…18 | State machine; идемпотентность; восстановление после рестарта; бюджеты; пройден сценарий 18.1; выполнен E-01 и принято решение ADR-10 | Ограниченные задачи с участием человека |
-| G3 Code Delivery beta | BX-19…23 | GitHub, исполнитель(и) по ADR-10, Gate Engine, Repair Loop; пилотная задача дошла до PR и решения человека | S3 на тестовых репозиториях, merge только человеком |
-| G4 Pilot release | BX-24…26 | Security evidence; бэкап и восстановление; учебный откат; принят пилотный проект S3; отчёт о стоимости | Реальные проекты уровня `normal` в пределах полномочий |
-
-Переход на следующий уровень — явное решение владельца на основании сохранённых evidence. **Точки пересмотра:** (1) если G1a не принёс реальной пользы владельцу, перед G1 пересматривается объём; (2) если G2 не пройден (сквозной сценарий не укладывается в бюджет или нестабилен) либо E-01 показал, что код не получается ни одним способом, разработка Code Delivery приостанавливается и объём пересматривается.
-
-## 18. Критерии приёмки
-
-### 18.0. Срез S1 (шлюз G1a, BX-09.b)
-
-1. Создание проекта: черновик → подтверждение паспорта человеком.
-2. Модель (через реестр и Router-min, базовый провайдер) возвращает patch к State; patch проходит схему и политику; элементы получают статус `proposed`.
-3. Человек подтверждает или отклоняет элементы; `decisions` создаёт только человек.
-4. Результат сохраняется как артефакт (версия, хэш).
-5. Перезапуск сервиса: State и артефакт восстановлены.
-6. Конкурентное обновление на устаревшей версии → `409`.
-7. Ledger показывает вызовы модели и токены.
-8. Весь `npm run check` зелёный; поведение Simple Mode не изменилось.
-9. Владелец провёл один реальный анализ и записал замечания.
-
-### 18.1. Эталонный сквозной сценарий (BX-18.a)
-
-Сценарий выполняется автоматически, кроме отмеченных шагов с участием человека. «Провайдер A» — базовый (Gemini); «провайдер B» — второй провайдер из реестра; в CI вместо реальных используются fake-провайдеры, реальный smoke — отдельным шагом (`REAL_ONLY`, пока не выполнен).
-
-1. Создание проекта: черновик → подтверждение паспорта человеком.
-2. Сохранение State; перезапуск сервиса; State и очередь восстановлены.
-3. Создание задачи с `idempotency_key`; предложение плана; утверждение человеком.
-4. Выполнение моделью A через Router; артефакт сохранён (хэш, версия, manifest).
-5. Проверка: детерминированные проверки + `cross_model` моделью провайдера B.
-6. Имитация сбоя провайдера A (429 и 5xx): сработал fallback, решение записано в `route_decisions`.
-7. Отрицательный путь: Verifier находит заранее внесённый дефект → gate FAIL, статус не PASS.
-8. Повторная отправка с тем же ключом: новый Run не создан.
-9. Конкурентное обновление State на устаревшей версии → `409`.
-10. Превышение бюджета → `BLOCKED(budget)` и запрос человеку.
-11. Ledger показывает вызовы, токены и стоимость; итог — не более 12 вызовов модели.
-12. При отсутствии провайдера B `cross_model` получает `NOT_RUN(no_second_provider)` и задача требует решения человека (проверяется на конфигурации с одним провайдером).
-
-### 18.2. Пилот S3 (BX-26)
-
-Малый реальный инструмент (выбирает владелец, до 1 000 строк, один язык). Критерии: путь от Project Passport до принятого человеком PR; тесты-ожидания утверждены заранее и не ослаблены (Test Integrity PASS); CI зелёный; не более 8 запусков исполнителя кода и 60 вызовов модели (целевые значения, фактические фиксируются в отчёте); продемонстрирован цикл исправления либо остановка Repair Loop на искусственно внесённом сбое; время человека измерено; секреты исполнителю не передавались; аудит полон; отчёт о стоимости приложен.
-
-### 18.3. Общие критерии
-
-| Область | Критерий |
+| Gate | Intent |
 | --- | --- |
-| Simple Mode | Поведение не изменилось; весь `check` зелёный |
-| State | Версии, 409 на конфликт, восстановление после рестарта, инварианты компактизации |
-| Router | Отказ при отсутствии подтверждённой capability; детерминизм; каждая строка матрицы 7.4 покрыта тестом |
-| Ошибки | Классы ошибок различаются; нет бесконечных повторов |
-| Quality | PASS без evidence невозможен; NOT\_RUN не засчитывается |
-| Repair Loop | Останавливается по лимиту, идентичному diff, отсутствию прогресса, бюджету |
-| Артефакты | Подмена и отсутствие объекта обнаруживаются; неизвестный формат хранится |
-| Безопасность | Секреты не попадают в логи, State, UI, артефакты; корпус инъекций проходит; продукт не может merge |
-| Исполнитель кода | `manual` работает без внешних API; `model_patch` не может записать защищённый путь, выйти за корень, превысить размер или писать вне `biforge/*`; лимит запусков соблюдён |
-| Нейтральность | Имён моделей и вендоров нет в доменных схемах, именах таблиц и полей, логике; замена провайдера — изменение реестра и конфигурации |
-| Эксплуатация | Настоящий healthcheck; восстановление из бэкапа; откат по процедуре |
+| G0 | Baseline: repo, CI, deploy path alive |
+| G1a | Vertical slice: project → model → artifact → human decision |
+| G1 | Stable Project Mode core (State, ledger, basic executor) |
+| G2 | Multi-model routing and budgets under control |
+| G3 | Code Delivery path proven (E-01 / executor policy) |
+| G4 | Product acceptance for the v3 scope |
 
-## 19. Отложено (перенесено из TZv1.4 и TZv2.0)
+Each gate closes only on recorded evidence; owner decision is required. Machine PASS is never inferred from narrative alone.
 
-Не отменено, а перенесено на период после G4; каждое решение требует отдельного ADR и evidence.
+## Deferred items
 
-- Режим Autonomous; автоматический merge и production deploy.
-- Параллельные команды агентов и динамическое изменение Task Graph моделью.
-- Собственная песочница и Execution Workers; запуск недоверенного кода вне GitHub Actions и среды владельца.
-- Processing Router, конвертеры форматов; распаковка архивов на сервере вне Project Mode (в Project Mode — по ADR-12 / P26).
-- Template Engine и обучаемая Project Memory.
-- Многопользовательский режим, роли, тенанты.
-- Самообучающийся Router; три и более провайдера как обязательное требование (подключение любого числа провайдеров через реестр допускается и без отдельного решения).
-- GitHub Agentic Workflows (public preview) как часть контура.
-- Графическая карта проекта; типы проектов сверх трёх.
-- Внешнее объектное хранилище, если хватает п. 10.2.
-- **Jules как исполнитель кода и как инструмент разработки BiForge (режимы M и A), Mistral как второй провайдер** — полные проработки в Приложении F. Возврат возможен без изменения схем и State (D-13, D-14) при выполнении условий F.0.
+Items explicitly deferred from v3 (multi-tenant, self-learning router, in-product code sandbox, etc.) stay deferred until a new TZ revision or ADR opens them.
+
+---
+
+*Normative detail for architecture, data, security and operations remains in `docs/SPEC_ENGINE.md`. Process remains in `docs/SPEC_DEV_PROCESS.md`.*

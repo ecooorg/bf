@@ -1,39 +1,41 @@
-# Техническое задание BiForge v3.1: индекс
+# BiForge Technical Specification v3.1: Index
 
-**Статус:** утверждено владельцем (v3.0, 10 октября 2026); с 13 октября 2026 — редакция 3.1: ТЗ разделено на части, **решения D-01…D-17, требования и критерии приёмки не менялись**, нормативный текст перенесён дословно. **Язык:** русский, единственная каноническая версия. **Заменяет:** монолит TZv3.0 (сохранён без изменений: `ARCHIVE/TZ_v3.0_monolith.md`).
+**Status:** approved by owner (v3.0, 10 October 2026); from 13 October 2026 — revision 3.1: the TZ is split into parts; **decisions D-01…D-17, requirements and acceptance criteria are unchanged**; normative text was moved verbatim. **Language:** English is the canonical engineering language of the repository. **Replaces:** the monolithic TZv3.0 (kept unchanged at `ARCHIVE/TZ_v3.0_monolith.md`).
 
-Этот файл сохранил прежнее имя `docs/BiForge_TZ_v3.md`, потому что на него ссылаются `AGENTS.md`, `README.md`, `DEPLOY_RAILWAY.md`, `docs/START_HERE.md`, `docs/REPO_MAP.md`, политики и ADR. Теперь это точка входа.
+This file keeps the path `docs/BiForge_TZ_v3.md` because `AGENTS.md`, `README.md`, `DEPLOY_RAILWAY.md`, `docs/START_HERE.md`, `docs/REPO_MAP.md`, policies and ADRs link to it. It is the entry point.
 
-## Части ТЗ
+## TZ parts
 
-| Файл | Вопрос, на который отвечает | Меняется |
+| File | Question it answers | Changes |
 | --- | --- | --- |
-| `docs/SPEC_PRODUCT.md` | Что строим и как принимаем: решения D, цель и не-цели, принципы, схема State, режимы и интерфейс, шлюзы G0–G4, критерии приёмки, отложенное | Редко, через ADR |
-| `docs/SPEC_ENGINE.md` | Как это работает: ресурсы и допущения, архитектура, данные, модели и Router, исполнитель задач, профили, артефакты, Code Delivery, gates, безопасность, бюджеты, эксплуатация, риски и ADR | Редко, через PR с ревью |
-| `docs/SPEC_DEV_PROCESS.md` | Как строится сам BiForge: роли, цикл шага, stop-правила, патчи, расширенный набор тестов, чек-лист ревью, шаблон задания, `AGENTS.md` | Редко |
-| `docs/SPEC_CONNECTIONS.md` | Подключения: Gemini, провайдеры, Railway, GitHub App; манифест `connectors.yaml`; диагностика; внешние факты | При изменении подключений |
-| `docs/NEXT.md` | **Что осталось до G4**: плоский чек-лист шагов `RM-*` (входы и PASS), точки решения | **После каждого шага** |
-| `ARCHIVE/TZ_v3.0_*.md` | История: монолит v3.0, Приложение C, F, G, история патчей P01–P24 и справочник BX, исходный 16.7 | Не меняется |
+| `docs/SPEC_PRODUCT.md` | What we build and how we accept it: decisions D, goals and non-goals, principles, State schema, modes and UI, gates G0–G4, acceptance criteria, deferred items | Rarely, via ADR |
+| `docs/SPEC_ENGINE.md` | How it works: resources and assumptions, architecture, data, models and Router, task executor, profiles, artifacts, Code Delivery, gates, security, budgets, operations, risks and ADR | Rarely, via reviewed PR |
+| `docs/SPEC_DEV_PROCESS.md` | How BiForge itself is built: roles, step cycle, stop rules, patches, extended tests, review checklist, assignment template, `AGENTS.md` | Rarely |
+| `docs/SPEC_CONNECTIONS.md` | Connections: Gemini, providers, Railway, GitHub App; `connectors.yaml` manifest; diagnostics; external facts | When connections change |
+| `docs/NEXT.md` | **What remains until G4**: flat checklist of `RM-*` steps (inputs and PASS), decision points | **After every step** |
+| `ARCHIVE/TZ_v3.0_*.md` | History: v3.0 monolith, Appendices C, F, G, patch history P01–P24 and BX catalogue, original §16.7 | Frozen |
 
-## Карта «раздел → файл»
+## Section → file map
 
-Нумерация разделов сохранена; ссылки вида «TZ 7.4», «§11.9», «Appendix E.6» работают, ищите по таблице.
+Section numbering is preserved; references such as “TZ 7.4”, “§11.9”, “Appendix E.6” still work — use the table below.
 
-| Раздел ТЗ | Где теперь |
+| TZ section | Location now |
 | --- | --- |
-| 0.1 (D-01…D-17), 0.2, 0.3, 1, 2, 5.3, 6, 17, 18, 19 | `docs/SPEC_PRODUCT.md` |
-| 3, 4, 5 (кроме 5.3), 7–15, 20 (риски R-xx, ADR) | `docs/SPEC_ENGINE.md` |
-| 16.1–16.6 (включая stop-правила, 16.4.4 тесты), Приложения A и B | `docs/SPEC_DEV_PROCESS.md` |
-| 16.7 (план завершения, этапы A–F) | `docs/NEXT.md` (оригинал — `ARCHIVE/TZ_v3.0_SECTION_16_7.md`) |
-| 16.4.1, 16.4.2, 16.4.2.a, 16.4.3 (история патчей, справочник BX) | `ARCHIVE/TZ_v3.0_PATCH_HISTORY.md` |
-| Приложения D и E (включая E.6 — манифест) | `docs/SPEC_CONNECTIONS.md` |
-| 0.4, Приложение C | `ARCHIVE/TZ_v3.0_APPENDIX_C_traceability.md` |
-| Приложение F (Jules, Mistral) | `ARCHIVE/TZ_v3.0_APPENDIX_F_jules_mistral.md` |
-| Приложение G (мониторинг) | `ARCHIVE/TZ_v3.0_APPENDIX_G_monitoring.md` |
+| 1–2 Goals, non-goals, principles | `SPEC_PRODUCT.md` |
+| 3 Resources and assumptions | `SPEC_ENGINE.md` |
+| 4–6 Architecture, data, State | `SPEC_ENGINE.md` / State in `SPEC_PRODUCT.md` |
+| 7 Models, Router, Context Builder | `SPEC_ENGINE.md` |
+| 8–12 Executor, profiles, artifacts, Code Delivery, gates | `SPEC_ENGINE.md` |
+| 13 Security | `SPEC_ENGINE.md` |
+| 14 Budgets and operations | `SPEC_ENGINE.md` |
+| 15 Risks, ADR, deferred | `SPEC_ENGINE.md` / deferred in `SPEC_PRODUCT.md` |
+| 16 Development process (Part B) | `SPEC_DEV_PROCESS.md` |
+| Modes, UI, acceptance, G0–G4 | `SPEC_PRODUCT.md` |
+| Appendix E Connections | `SPEC_CONNECTIONS.md` |
+| Plan / remaining steps | `NEXT.md` |
 
-## Правила поддержки
+## Normative keywords
 
-1. **Один факт — одно место.** Нужна ссылка — ссылайтесь, не копируйте.
-2. **Оперативное живёт только в `docs/NEXT.md`** (и `docs/CURRENT_STATE.md`). В `SPEC_*` не пишутся «сделано в патче PNN», «было в v2.0», «после G2 будет»: это история, её место — `ARCHIVE/`.
-3. Новый урок из практики сначала оформляется как ADR или правило в `docs/SPEC_DEV_PROCESS.md`; в `docs/SPEC_ENGINE.md` попадает только то, что стало постоянным контрактом.
-4. Структура репозитория плоская (`docs/`, `ARCHIVE/` — один уровень): вложенные каталоги `patch:pack` не пропустит.
+**MUST** — mandatory. **SHOULD** — preferred; deviation needs justification. **MAY** — allowed.
+
+On conflict with product goals or acceptance criteria, **`docs/SPEC_PRODUCT.md` takes priority**.
