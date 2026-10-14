@@ -1,5 +1,12 @@
 # Changelog
 
+## Mode initiative — master implementation plan (2026-10-14)
+
+- Added `docs/MASTER_IMPLEMENTATION_PLAN.md` as the single active sequence for the Simple / Expert / Project mode initiative.
+- Recorded owner-approved mode definitions, shared-core architecture, MP1–MP3, explicit start-screen mode selection, integrated automated QA and manual acceptance.
+- Updated `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/START_HERE.md`, `docs/REPO_MAP.md`, and `AGENTS.md` to point to the plan. Marked the earlier PI-03 SPEC and uncertainty concept as historical for active planning.
+- Documentation only: no runtime code, UI, prompt, model or test behaviour changed. Coding requires a separate owner command.
+
 ## Docs — history off-repo + patch journal (2026-10-14)
 
 - `docs/HISTORY_OFFREPO.md`: full path list for owner local archive (ARCHIVE/CONCEPTS bulk + optional CHANGELOG_AGENT_BEHAVIOR).

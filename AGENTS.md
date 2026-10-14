@@ -3,27 +3,30 @@
 > **Start with `docs/START_HERE.md`.** · **Document:** AGENTS.md · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026), Part B (section 16) and Appendix B · **Status:** policy document; changes follow section 10
 
 ## 1. Purpose and authority
-This repository contains BiForge, a multi-model project agent (TZv3.0, section 0.2) that ships as the Simple Mode application (product version 24) and a Project Mode built through P24. Workspace libraries P26a/P26b are in tree. Further agent work is numbered **P27+** (`docs/CURRENT_STATE.md` Next agent patch; schedule in `docs/NEXT.md`). Acceptance to G4 is mostly owner `RM-*`. The canonical product specification is `docs/BiForge_TZ_v3.md` (TZv3.0). It is written in Russian, and the Russian text is the only canonical version (D-17). Earlier editions (TZv1.4, TZv2.0) are obsolete; their deferred material is kept in TZv3.0 section 19 and Appendix F. If editions disagree, TZv3.0 wins.
+This repository contains BiForge, a multi-model project agent (TZv3.0, section 0.2) that ships as the Simple Mode application (product version 24) and a Project Mode built through P24. Workspace libraries P26a/P26b are in tree. The currently approved Simple/Expert/Project mode initiative is sequenced by `docs/MASTER_IMPLEMENTATION_PLAN.md`; its next stage is not authorised until the owner commands it. The former P27+ queue and owner RM-* gates are deferred references while this initiative is active. The canonical product specification is `docs/BiForge_TZ_v3.md` (TZv3.0). It is written in Russian, and the Russian text is the only canonical version (D-17). Earlier editions (TZv1.4, TZv2.0) are obsolete; their deferred material is kept in TZv3.0 section 19 and Appendix F. If editions disagree, TZv3.0 wins.
 
-These instructions define the default working rules for coding agents. The specification defines intended product behavior, architecture, and the development plan. If an instruction appears to conflict with the specification, stop and report the conflict instead of silently choosing one.
+These instructions define the default working rules for coding agents. The canonical product specification defines intended product behavior and architecture; `docs/MASTER_IMPLEMENTATION_PLAN.md` is the single active sequence for the approved mode initiative. If an instruction appears to conflict with an approved owner decision or the canonical specification, stop and report the conflict instead of silently choosing one.
 
 The agent may be any model or tool chosen by the owner (D-16). The contract is this file, the step SPEC, and CI. Name the tool and model in the PR description.
 
 **Terms.** *Navigator* is the human co-developer (the owner). *AI Assistant* is the AI co-developer, that is, the agent these instructions are written for.
 
 ## 2. Scope
-- Work only on the explicitly assigned patch `PNN` (plan: TZv3.0 section 16.4.2; the steps `BX-XX` it contains are in 16.4.3).
+- Work only on the explicitly authorised scope. For the approved mode initiative, the stage sequence and acceptance criteria are in `docs/MASTER_IMPLEMENTATION_PLAN.md`; the owner must explicitly command each implementation stage. Other work follows the numbered `PNN` patch process (TZv3.0 section 16.4.2; steps `BX-XX` in 16.4.3).
 - Identifiers `BF-01`…`BF-44` are frozen and are not reused. New work is named by patch (`PNN`) and, where needed, by step (`BX-XX`).
 - Read the relevant specification section, repository guidance, and current implementation before editing.
-- Do not start a later patch without an explicit command from the owner.
+- Do not start a later patch or stage without an explicit command from the owner.
 - Do not expand scope to unrelated refactoring, dependency upgrades, UI redesign, or behavior changes.
-- Do not change Simple Mode behavior and do not delete existing functionality unless the SPEC says so. `npm run check` stays green.
+- Do not change product behaviour unless the active SPEC/stage says so. The mode initiative explicitly plans Simple behaviour changes in MP2/MP3, but only after the owner commands those stages. `npm run check` stays green.
 - Do not modify or delete `tests/acceptance/**` (will be created when the TZ requires expectation tests; protected by the Test Integrity rule) unless the SPEC explicitly allows it.
 - If a patch does not fit its size, split it and report; never complete part of it silently.
 - Prefer the smallest coherent change that satisfies the acceptance criteria.
 
 
 ## Documentation hygiene (from 14 October 2026)
+
+- For the approved mode initiative, `docs/MASTER_IMPLEMENTATION_PLAN.md` is the single active task sequence, including MP1–MP3, UI, automated QA and manual acceptance. `docs/NEXT.md` is a retained legacy queue snapshot until the owner establishes the next plan.
+- A documentation-only delivery does not grant permission to implement the next stage. Wait for an explicit owner command.
 
 - **Do not** create extra Markdown files for notes, “UI leftovers”, or parallel checklists. Use `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/PATCH_JOURNAL.md`, docs/CHANGELOG.md / root `CHANGELOG.md`, or the active `docs/PNN-SPEC.md` / `docs/PNN-REPORT.md`.
 - **One agent patch** → at most **one** new SPEC and **one** REPORT (`docs/PNN-SPEC.md`, `docs/PNN-REPORT.md`). No `PNN-notes.md`, no duplicate queues.
@@ -32,11 +35,11 @@ The agent may be any model or tool chosen by the owner (D-16). The contract is t
 
 ## 3. Establish the baseline
 Before editing:
-1. Read `docs/START_HERE.md`, then **`docs/CURRENT_STATE.md`** → **Next agent patch** (ID + one line).
-2. Read **`docs/PNN-SPEC.md`** for that ID (template: `docs/PATCH_TEMPLATE.md`). Product norms: `docs/BiForge_TZ_v3.md` index and/or `docs/BiForge_TZ_P26.md` only as cited by the SPEC.
+1. Read `docs/START_HERE.md`, then **`docs/CURRENT_STATE.md`** and the active plan named there. For the mode initiative, use `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+2. Before implementation, read/create the patch-specific SPEC using `docs/PATCH_TEMPLATE.md`; the master plan does not replace the per-delivery report or required CI evidence. Product norms: `docs/BiForge_TZ_v3.md` index and/or `docs/BiForge_TZ_P26.md` only as cited by the SPEC.
 3. The base is the archive uploaded by the owner; record its name or date in the report.
 4. Read relevant files and tests. For production host and Railway/GitHub links use `docs/OWNER_OPS.md` only (no secrets).
-5. If the owner says **«следующий патч»** / **“next patch”**, implement **exactly** the current **Next agent patch**. Do not pull the next ID in the same session unless asked.
+5. If the owner says **«следующий патч»** / **“next patch”**, follow the active plan and current state pointer; this does not authorise skipping the mode initiative sequence. Do not pull the next stage/ID in the same session unless asked.
 6. Default code executor stays `manual` until the owner completes RM-C3. Owner `RM-*` steps are not agent patches.
 5. If the baseline is unclear or the requested change conflicts with the archive contents, stop and report `BLOCKED`.
 
