@@ -368,3 +368,15 @@ Described: src/workspace/
 | Path | Role |
 | --- | --- |
 | `docs/OWNER_OPS.md` | **Single place** for prod/Railway/GitHub public URLs and non-secret env facts |
+
+## P26b tests (CI check:docs)
+
+| Path / script | Role |
+| --- | --- |
+| `tests/workspace-changeset.test.mjs` | P26b ChangeSet validate/apply tests |
+| `tests/workspace-export.test.mjs` | P26b export zip/diff tests |
+| `npm run test:p26b` | Runs workspace-changeset + workspace-export tests |
+| `src/workspace/changeset.ts` | ChangeSet validate/apply |
+| `src/workspace/exportZip.ts` | Deterministic workspace zip export |
+| `src/workspace/diff.ts` | Line diff helpers |
+
