@@ -85,7 +85,7 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
       setStatus('Saving to this device…');
       const store = getStore();
       const persisted = await persistIngestResult(store, result, name);
-      if (!persisted.ok) {
+      if (persisted.ok === false) {
         setError(`Could not save workspace: ${persisted.code}${persisted.detail ? ` — ${persisted.detail}` : ''}`);
         publish(null);
         return;
