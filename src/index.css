@@ -593,3 +593,23 @@ textarea.auto-input:disabled{opacity:.65}
 
 .hdr-sub{display:flex;flex-direction:column;gap:4px;padding-left:14px;width:100%}
 .hdr-sub .ghost{justify-content:flex-start;text-align:left}
+
+
+/* P27 workspace panel (Simple Mode) */
+.workspace-panel{margin:8px 0 6px;display:flex;flex-direction:column;gap:6px}
+.workspace-panel-buttons{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.workspace-card{border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px 12px;background:rgba(0,0,0,0.18)}
+.workspace-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.workspace-card-meta{font-size:12px;opacity:0.85;margin-bottom:8px;word-break:break-word}
+.workspace-privacy{font-size:13px;margin:8px 0;line-height:1.4}
+.workspace-privacy p{margin:0 0 8px}
+.workspace-skipped{font-size:12px;margin:6px 0}
+.workspace-skipped ul{margin:4px 0 0 1.1em;padding:0}
+.workspace-tree{max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.workspace-tree-item{display:flex;align-items:center;gap:6px;text-align:left;background:transparent;border:0;color:inherit;padding:6px 4px;border-radius:6px;cursor:pointer;font-size:12px}
+.workspace-tree-item:hover,.workspace-tree-item.active{background:rgba(255,255,255,0.08)}
+.workspace-tree-path{flex:1;word-break:break-all}
+.workspace-tree-lang{opacity:0.6;font-size:11px}
+.workspace-file-view{margin:8px 0 0;padding:8px;max-height:240px;overflow:auto;font-size:12px;background:rgba(0,0,0,0.25);border-radius:8px;white-space:pre-wrap;word-break:break-word}
+.spin{animation:workspace-spin 1s linear infinite}
+@keyframes workspace-spin{to{transform:rotate(360deg)}}

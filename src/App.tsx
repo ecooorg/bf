@@ -23,6 +23,7 @@ import { HistoryPanel } from './HistoryPanel.tsx';
 import { AutoInput, AutoTextarea } from './AutoGrow.tsx';
 import { decisionToDocument } from './decisionDocument.ts';
 import { FilesPanel, CopyButton, MessageExtras, ProgramFilesManager } from './ConversationFiles.tsx';
+import { WorkspacePanel } from './WorkspacePanel.tsx';
 import {
   Attachment, DocumentSpec, applyAttachmentNotes, attachmentOnlyText, collectAttachments, collectDecisionAttachments,
   conversationToDocument, fitRequest, historyForRequest,
@@ -1116,6 +1117,7 @@ function BriefScreen({
           title={d.title || b.decision.slice(0, 40) || 'Decision'}
           history={[]}
         />
+        <WorkspacePanel disabled={busy} />
         <div className="conversation-entry-actions">
           <button className="primary" disabled={!canContinue || busy} onClick={submit}>{busy ? 'Thinking…' : 'Send'} <ArrowRight size={16} /></button>
           <span className="conversation-hint">Ctrl/Cmd + Enter</span>
@@ -1354,6 +1356,7 @@ function ConversationScreen({
         onAgentSummary={() => send(input.trim() ? input : DOCUMENT_REQUEST, 'DOCUMENT')}
         onCalendar={() => icsDownload(d)}
       />
+      <WorkspacePanel disabled={busy} />
       {history.some((m: any) => m.role === 'assistant') && !waitingForAssistant && !busy && (
         <div className="conversation-composer">
           <AutoTextarea
