@@ -320,8 +320,6 @@ Described: tests/workspace-paths.test.mjs
 Described: tests/workspace-ingest.test.mjs
 
 Described: tests/workspace-a2.test.mjs
-Described: tests/workspace-changeset.test.mjs
-Described: tests/workspace-export.test.mjs
 
 Described: tests/evidence-markdown.test.mjs
 
@@ -330,7 +328,6 @@ Described: tests/pa03-acceptance.test.mjs
 Described: test:p26a
 
 Described: test:p26a2
-Described: test:p26b
 
 Described: src/workspace/
 
@@ -339,15 +336,29 @@ Described: src/workspace/
 | `tests/workspace-paths.test.mjs` | Path normalisation |
 | `tests/workspace-ingest.test.mjs` | Zip ingest |
 | `tests/workspace-a2.test.mjs` | Tar/gzip/folder ingest, privacy-gated context, search and follow-up protocol |
-| `tests/workspace-changeset.test.mjs` | P26b ChangeSet validate/apply, CRLF, rollback, create-from-scratch |
-| `tests/workspace-export.test.mjs` | P26b export full/changed/diff and deterministic zip |
-| `npm run test:p26b` | P26b changeset + export tests |
-| `src/workspace/changeset.ts` | Workspace ChangeSet validate and apply |
-| `src/workspace/exportZip.ts` | Deterministic workspace zip and unified diff export |
-| `src/workspace/diff.ts` | Line diff and EOL helpers for ChangeSet |
 | `tests/evidence-markdown.test.mjs` | Evidence markdown |
 | `tests/pa03-acceptance.test.mjs` | PA-03 acceptance |
 | `src/workspace/` | P26 workspace core modules |
 | `src/workspace/tar.ts` | Safe POSIX tar reader with PAX/GNU long names |
 | `src/workspace/idbStore.ts` | IndexedDB WorkspaceStore adapter |
 | `src/workspace/context.ts` | WORKSPACE context, privacy gate, search and bounded model follow-up |
+
+## Agent orientation (14 Oct 2026)
+
+| Path | Role |
+| --- | --- |
+| `docs/START_HERE.md` | First file; includes done vs remaining |
+| `docs/CURRENT_STATE.md` | Snapshot: done, partial, open, gates |
+| `docs/NEXT.md` | Unified queue table + detailed RM/P26 checkboxes |
+| `docs/BiForge_TZ_P26.md` | Workspace track specification |
+| `docs/P26b-REPORT.md` | Last closed P26 code report |
+
+## Agent patches from P27 (14 Oct 2026)
+
+| Path | Role |
+| --- | --- |
+| `docs/CURRENT_STATE.md` | **Next agent patch** pointer (start here for scope) |
+| `docs/NEXT.md` | Agent patch schedule P27+ and owner RM-* stages |
+| `docs/P27-SPEC.md` | Current/first patch SPEC (Simple workspace attach UI) |
+| `docs/P26b-REPORT.md` | Last closed workspace **library** report |
+| `docs/BiForge_TZ_P26.md` | Workspace product norms (cited by P27+ SPECs) |

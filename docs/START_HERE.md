@@ -14,6 +14,18 @@
 4. The patch list P01…P25 and the step reference are history (`ARCHIVE/TZ_v3.0_PATCH_HISTORY.md`); the plan to the end of the project is the checklist in `docs/NEXT.md` (former TZ 16.7). Current state: `docs/CURRENT_STATE.md`.
 5. Map of the repository, scripts, tests and environment variables: `docs/REPO_MAP.md`.
 
+
+## Done vs remaining (14 October 2026)
+
+1. Read **`docs/CURRENT_STATE.md`** — block **Next agent patch** (today: **P27**).
+2. Read **`docs/PNN-SPEC.md`** for that ID only (e.g. `docs/P27-SPEC.md`).
+3. Full schedule: **`docs/NEXT.md`** section **Agent patch schedule (P27+)**.
+4. Owner gates (Railway, G2…): same file, **Owner checklist** / stages A–F — not “next patch”.
+
+**Closed:** through P24; P26a; P26b **library**. **Next code:** P27 → P28 → P29 (client Workspace UI), then P30+ (server) on command.
+
+**Owner command examples:** «следующий патч» · «делай P27» · «после CI сделай P28».
+
 ## The 10 rules
 
 1. **Process.** The owner uploads the current repository archive at the start of a session. The model has no GitHub access. At the end the owner uploads the patch to `main` by hand (GitHub web interface on Android). CI checks `main`. There are no branches and no Pull Requests.

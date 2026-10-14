@@ -1,17 +1,66 @@
-# Next work: the road from P24 to BiForge v2.0 (G4)
+# Next work: agent patches P27+ and owner path to G4
 
-> Updated 13 October 2026 after PA-05 (E-01 closed, ADR-10 Accepted). P24 and the model-pool fix remain the product base. This is the **only** file that changes step by step; the specification files (`docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`) stay stable. It replaces the former TZ section 16.7 (original text: `ARCHIVE/TZ_v3.0_SECTION_16_7.md`). Step set, order and PASS criteria are unchanged; only the form is flat. The AI Assistant updates this file at the end of every patch (step marks `[x]` only with a record in the repository).
+> Updated **14 October 2026**. Living checklist. SPEC_* stay stable. Snapshot: `docs/CURRENT_STATE.md`.
+> **Agent contract:** owner says **«следующий патч»** or **«делай PNN»** → implement exactly **`Next agent patch`** in `docs/CURRENT_STATE.md` and `docs/PNN-SPEC.md`. No other scope.
 
-**Done recently:** P20–P24; PI-01…PI-03; P15a; model pool update; PA-01…PA-05 (E-01 + ADR-10 Accepted).
+**Closed code (do not repeat):** through P24; PI/PA tracks; E-01; ADR-10 Accepted; **P26a**; **P26b core**. RM-B5, RM-B6 closed.
 
-**Code patches left: one product gate.** **P19x** implementation is in the repository (gated; enablement authorized by ADR-10 Accepted — RM-C3 on owner command). **P25** (step RM-F7) remains. Everything else is owner actions and documents. Next agent work only on owner command.
+**Historical labels:** unfinished “P26a.2 UI” and “P26b UI” are **replaced by agent patches P27–P29**. Do not open work under the old names.
 
-## P26 workspace track (owner-commanded, separate from the P25 → G4 checklist)
+---
 
-- [x] **P26a** ZIP ingest core — see `docs/P26a-REPORT.md` (owner reports CI green for base `bf-v26a.zip`).
-- [ ] **P26a.2** Finish tar/folder/IndexedDB/context helpers and wire them into Simple + Expert UI; pass AC-04 with fake Gemini. Current implementation slice is `PARTIAL`; see `docs/P26a.2-REPORT.md`.
-- [x] **P26b** ChangeSet + export core (2026-10-14) — see `docs/P26b-REPORT.md`. UI ChangeSet card deferred.
-- [ ] **P26c** Project Mode store/routes — only on owner command.
+## Next agent patch
+
+**Current: [P27](./P27-SPEC.md)** — Simple Mode workspace attach UI (see SPEC).
+
+After P27 closes → owner sets current to **P28** (or says so in chat).
+
+---
+
+## Agent patch schedule (P27+)
+
+Each row is sized for **~½ free agent session** of coding; the other half is for discussion and CI fixes. Normative product text remains `docs/BiForge_TZ_P26.md` / SPEC_*; the SPEC of the patch is the binding scope.
+
+| ID | Title | In scope | Out of scope | SPEC |
+| --- | --- | --- | --- | --- |
+| **P27** | Simple attach UI | Zip/folder ingest UX, privacy ack, project card, read-only tree shell | Expert, ChangeSet UI, server | `docs/P27-SPEC.md` |
+| **P28** | Expert + dialogue | Expert attach parity; WORKSPACE in conversation; needFiles/needSearch; AC-04 | ChangeSet card, Project Mode | `docs/P28-SPEC.md` (create at start of P28) |
+| **P29** | ChangeSet + export UI | Apply/Reject/diff card; download full/changed/diff using library | Server workspace | `docs/P29-SPEC.md` (at start) |
+| **P30** | PM store | Migration + `PgStore` only | HTTP routes, UI | at start |
+| **P31** | PM routes | Workspace HTTP API under project auth | Full panel UI | at start |
+| **P32** | PM panel | `WorkspacePanel` + import code/build ZIP | Live multi-tenant load test | at start |
+| **P33** | Workspace harden | Parity tests / acceptance hooks / bugfix from P27–P32 | New product gates | at start |
+| **P34** | Pilot product (ex-P25) | RM-F7 code+docs when owner finished F1–F6 | Enabling production secrets | at start |
+| **P35+** | TBD | Only with new owner SPEC | — | — |
+
+**Rules for agents**
+
+1. One patch per session command unless the owner lists two IDs.
+2. Write `docs/PNN-REPORT.md` before claiming done.
+3. Keep `npm run check` green.
+4. Do not advance **Next agent patch** unless the owner allowed it.
+5. Owner-only `RM-*` steps are **not** “next patch”.
+
+---
+
+## Owner checklist (not agent patches)
+
+Owner work stays `RM-*` below (Railway, GitHub, gates G2–G4). Can run **in parallel** with P27–P29. Agent does not execute RM-A/B/D/E/F for the owner.
+
+Suggested owner order: **A1→A4 → B1→B4 → B7(G2) → (optional C3 when ready) → D1→D6(G3) → E* → F1→F6 → F8(G4)**.  
+C3 enablement of `model_patch` is independent of P27–P29.
+
+---
+
+## P26 historical track (reference)
+
+- [x] **P26a** — `docs/P26a-REPORT.md`
+- [x] **P26a.2 helpers** — in tree; **UI moved to P27–P28**
+- [x] **P26b core** — `docs/P26b-REPORT.md`; **UI moved to P29**
+- [ ] **P26c** — delivered as **P30–P32**
+- [ ] **P26d** — largely **P33** + owner live checks
+
+---
 
 ## Rules
 
