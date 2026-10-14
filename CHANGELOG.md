@@ -1,3 +1,5 @@
+# Changelog
+
 ## Docs — history off-repo + patch journal (2026-10-14)
 
 - `docs/HISTORY_OFFREPO.md`: full path list for owner local archive (ARCHIVE/CONCEPTS bulk + optional CHANGELOG_AGENT_BEHAVIOR).

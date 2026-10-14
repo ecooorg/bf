@@ -25,7 +25,7 @@ The agent may be any model or tool chosen by the owner (D-16). The contract is t
 
 ## Documentation hygiene (from 14 October 2026)
 
-- **Do not** create extra Markdown files for notes, “UI leftovers”, or parallel checklists. Use `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/PATCH_JOURNAL.md`, `docs/CHANGELOG.md` / root `CHANGELOG.md`, or the active `docs/PNN-SPEC.md` / `docs/PNN-REPORT.md`.
+- **Do not** create extra Markdown files for notes, “UI leftovers”, or parallel checklists. Use `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/PATCH_JOURNAL.md`, docs/CHANGELOG.md / root `CHANGELOG.md`, or the active `docs/PNN-SPEC.md` / `docs/PNN-REPORT.md`.
 - **One agent patch** → at most **one** new SPEC and **one** REPORT (`docs/PNN-SPEC.md`, `docs/PNN-REPORT.md`). No `PNN-notes.md`, no duplicate queues.
 - Closed history and CONCEPTS bulk live **off GitHub** per `docs/HISTORY_OFFREPO.md`. Do not restore ARCHIVE/CONCEPTS dumps unless the owner asks.
 - Living bookmarks: `docs/OWNER_OPS.md`. Living queue pointer: **Next agent patch** in `docs/CURRENT_STATE.md`.
