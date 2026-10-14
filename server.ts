@@ -1611,8 +1611,11 @@ app.post('/api/conversation', async (req, res) => {
     // (reframing, hidden assumption, decisive unknown, test, calculation, structurally different branch).
     // One retry; if it still fails the person gets the answer anyway - no hard errors from quality gates.
     // PI-02: when the user asked for an approximate result and the draft is only limitations → force fail.
+    // MP2: skip heavy gain-audit / decision-retry for information mode
     let audit = conversationGainAudit(out, contextSufficiency);
-    if (intentFlags.userAskedApproximate && isLimitationOnlyReply(out, audit)) {
+    if (conversationMode === "information") {
+      audit = { ...audit, passed: true };
+    } else if (intentFlags.userAskedApproximate && isLimitationOnlyReply(out, audit)) {
       audit = { ...audit, passed: false };
     }
     if (!audit.passed && STRONG_MODELS.length > 1) {
