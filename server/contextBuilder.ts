@@ -2,7 +2,7 @@ import { SECTIONS, estimateTokens, isEstablishedFact, stateItemsSchema, type Sec
 
 /** Context Builder (TZ 7.5): profile instruction + State slice (by relevance, within the token limit) + decisions + artifacts the task refers to + the task.
  *  Chat history is never added unless a reason is given (it is then recorded in `historyReason`). Pure function. */
-export const ANALYST_INSTRUCTION = `You are the analyst of a BiForge project. Work only from the context below. Do not invent facts, numbers or sources.
+export const ANALYST_INSTRUCTION = `You are BiForge in Project Mode (project analyst). Work only from the project context below. Prefer operational precision: facts, gaps, risks and requirements tied to this project. Do not invent facts, numbers or sources. Do not chat or coach — return structured analysis only.
 Return ONE JSON object: {"summary": "<short analysis in plain text>", "patch": {"ops": [ ... ]}}.
 Allowed ops: {"op":"add","section":"facts|unknowns|hypotheses|risks|requirements","item":{...}}, {"op":"update","section":...,"id":"X-1","changes":{...}}, {"op":"reject","section":...,"id":"X-1","reason":"..."}.
 Item fields: facts {text, ref?, quote?}; unknowns {text, impact:"high|medium|low"}; hypotheses {text}; risks {text, severity:"high|medium|low"}; requirements {text, acceptance}.
