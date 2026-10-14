@@ -1,3 +1,10 @@
+## Docs — history off-repo + patch journal (2026-10-14)
+
+- `docs/HISTORY_OFFREPO.md`: full path list for owner local archive (ARCHIVE/CONCEPTS bulk + optional CHANGELOG_AGENT_BEHAVIOR).
+- `docs/PATCH_JOURNAL.md`: short newest-first agent patch log.
+- `ARCHIVE/README.md`, `CONCEPTS/README.md`: stubs after bulk leaves GitHub.
+- `AGENTS.md` / `START_HERE.md`: no extra md files; one SPEC + one REPORT per patch.
+
 ## Docs — OWNER_OPS bookmarks (2026-10-14)
 
 - Added `docs/OWNER_OPS.md`: single non-secret registry of prod URL, Railway project, GitHub App, deploy facts.
