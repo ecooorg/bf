@@ -1,26 +1,19 @@
-# CI fix + UI polish
+# CI fix: version-consistency + typecheck
 
-## Root cause of ui-check failure
-`tests/ui-check.mjs` waited for `input[aria-label="Gemini API key"]`.
-The UI patch renamed the aria-label → timeout on every viewport.
+## 3 FAIL names
+1. version-consistency — README.md title lacks v24
+2. test:version — same (README overwritten by old patch notes)
+3. typecheck — WorkspacePanel.tsx: persisted.code on un-narrowed union
 
-## Fix
-1. `src/App.tsx` — aria-label restored to `Gemini API key` (visible text stays “Your Google AI key”)
-2. `tests/ui-check.mjs` — accepts either aria-label
+## NOT caused by UI label changes
+README was accidentally replaced by patch instructions (ui-polish v2 zip contained README.md).
+WorkspacePanel error is P27 typing; fixed with `persisted.ok === false` for TS narrowing.
 
-## check-and-build (3 FAIL)
-Build step itself passed. The independent `npm run check` stages had 3 failures.
-This package keeps all source patterns that bx06 / program-creation / package-c assert on.
-
-If check-and-build still fails after this, open the job log lines like:
-  [FAIL] test:something
-and send those three names.
-
-## Apply (bf-main root)
+## Apply
 ```bash
-unzip -o ui-polish-ci-fix.zip
+unzip -o ci-fix-readme-typecheck.zip
 bash APPLY.sh
-git add src/ tests/ui-check.mjs
-git commit -m "UI polish + fix ui-check Gemini API key selector"
+git add README.md src/WorkspacePanel.tsx
+git commit -m "fix CI: restore README v24 title, narrow PersistIngest fail type"
 git push
 ```
