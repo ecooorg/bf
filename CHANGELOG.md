@@ -1,3 +1,7 @@
+## P26b — Workspace ChangeSet and export (2026-10-14)
+
+- changeset.ts / exportZip.ts / diff.ts; test:p26b; docs P26b-SPEC/REPORT.
+
 ## P26a.2 — tar/folder ingest and workspace storage/context (2026-10-13)
 
 - Added POSIX tar + gzip-tar reader (PAX/GNU long names), folder-ingest helper, IndexedDB store, privacy-gated WORKSPACE context, safe file reads/search and bounded model follow-up contract.
