@@ -4,11 +4,11 @@
 
 ## Current stage
 
-**D0 — documentation package.** Documentation only. No runtime code, prompts, UI, model selection, or tests are to be changed until the owner explicitly authorises the next stage.
+**MP2 — shared prompt core and Simple/information contract** (in progress / delivered this patch). Next: MP3 on owner command.
 
 ## Next stage after D0
 
-**MP2 — shared prompt core and Simple/information contract**, only after a separate owner command. MP1–MP3 scope and acceptance criteria are in `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+**MP3 — information-mode output quality guard, soft retry and mode regression fixtures**, only after owner command.
 
 ## Status of the previous queue
 

@@ -1,18 +1,18 @@
 # Current state
 
 > **Updated:** 14 October 2026.  
-> Product version label: **24** (do not bump for documentation-only work).  
+> Product version label: **24** (do not bump for documentation-only work; MP2 code changes keep label until owner decides).  
 > **Active work plan:** `docs/MASTER_IMPLEMENTATION_PLAN.md`.
 
 ## Current initiative
 
 | Field | Value |
 | --- | --- |
-| **ID** | **D0 — documentation package** |
-| **Base archive** | `bf-v27-p1.zip` (owner upload, 14 October 2026) |
-| **Scope** | Documentation only; establish the approved mode architecture and linear implementation plan |
-| **Code permission** | **Not granted.** Do not change runtime code or UI until the owner explicitly commands the next stage. |
-| **Next after D0** | MP2 — shared prompt core and Simple/information contract, only on owner command |
+| **ID** | **MP2 — shared prompt core and Simple/information contract** |
+| **Base archive** | `bf-v27.zip` (owner upload) |
+| **Scope** | Shared `promptCore.ts`; expanded information detection; default unclear → information; skip gain-audit/retry for information; preserve Expert/Project |
+| **Code permission** | Granted by owner command «Приступай к следующему этапу» |
+| **Next after MP2** | MP3 — information-mode output quality guard, soft retry and mode regression fixtures |
 | **Plan** | `docs/MASTER_IMPLEMENTATION_PLAN.md` |
 
 ## Confirmed decisions
@@ -24,23 +24,13 @@
 - MP1–MP3 are documented in the master plan. MP1 exists as preliminary file separation but does not prove the behaviour problem is solved.
 - Documentation must be ready before coding. Coding begins only after a separate owner command.
 
-## Baseline facts from `bf-v27-p1.zip`
+## MP2 changes (this patch)
 
-- Prompt/router code exists in `server/promptPacks.ts`, `server/conversationMode.ts`, `server/intentFlags.ts`, and `server.ts`.
-- Project Mode has its own instruction in `server/contextBuilder.ts`.
-- `scripts/measure-prompt.mjs` exists.
-- The shared core, information-specific audit/retry behaviour, new mode-selection UI, new regression fixtures, and successful manual Graubünden retest are **not confirmed as completed** by this documentation pass.
-
-## Active sequence
-
-1. **D0** — documentation package (current).
-2. **MP2** — shared core + Simple/information prompt and routing behaviour.
-3. **MP3** — information-mode output quality guard, soft retry and mode regression fixtures.
-4. **UI1** — explicit Simple / Expert / Project start selection and selected-mode propagation.
-5. **QA1** — integrated automated checks across modes, UI, schemas and retries.
-6. **MANUAL1** — owner acceptance, including the original Graubünden dialogue.
-
-Detailed scope and closure criteria: `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not advance without owner command and recorded evidence.
+- Added `server/promptCore.ts` (language, honesty/search, safety).
+- `detectConversationMode`: expanded RE_INFORMATION; decision only on explicit signals; default → information.
+- `modeParagraph(information)`: explicit skip of decision-engine rituals.
+- `/api/conversation`: skip `conversationGainAudit` / quality retry when `conversationMode === "information"`.
+- `buildSimpleConversationPrompt` prepends shared core.
 
 ## Deferred, not marked done
 

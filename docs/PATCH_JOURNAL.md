@@ -5,6 +5,7 @@
 > Historical queue entries are not authorisation to start work.
 
 | Date | ID | Result | Notes |
+| 2026-10-14 | MP2 | core + Simple/information | promptCore.ts; expanded information detection; default information; skip gain-audit for information |
 | 2026-10-14 | DOCS-MODE-PLAN-01 | Documentation package | Master plan created; MP1–MP3 and UI/QA/manual sequence recorded; no code changed |
 | 2026-10-14 | — | CI fix | Restored test fixtures ARCHIVE/GOLDEN, P15-REPORT, E01*, CONCEPTS/e01-*; CHANGELOG_AGENT_BEHAVIOR; stripped dead backticks |
 | --- | --- | --- | --- |
