@@ -1517,7 +1517,7 @@ function conversationGainAudit(out: any, contextSufficiency: string) {
 }
 
 import { detectUserIntentFlags, isLimitationOnlyReply } from './server/intentFlags.ts';
-import { detectConversationMode, modeParagraph } from './server/conversationMode.ts';
+import { detectConversationMode, modeParagraph, type ConversationMode } from './server/conversationMode.ts';
 
 // Token Economy v1.6: the conversation state already carries durable facts, assumptions,
 // unknowns and hypotheses. Keep only the most recent turns in the raw transcript so older
@@ -1537,8 +1537,8 @@ function compactConversationHistory(history: any[]): any[] {
 
 // --- POST /api/conversation ---
 // Simple Mode conversation prompt lives in server/promptPacks.ts (mode packs).
-function buildConversationPrompt(input: string, attachmentsBlock = '', modeBlock = '', today = new Date().toISOString().slice(0, 10)): string {
-  return buildSimpleConversationPrompt(input, attachmentsBlock, modeBlock, today);
+function buildConversationPrompt(input: string, attachmentsBlock = '', modeBlock = '', today = new Date().toISOString().slice(0, 10), mode: ConversationMode = 'decision'): string {
+  return buildSimpleConversationPrompt(input, attachmentsBlock, modeBlock, today, mode);
 }
 
 
@@ -1596,7 +1596,7 @@ app.post('/api/conversation', async (req, res) => {
     const recentUserText = fullHistory.filter((m: any) => m.role === 'user').slice(-3).map((m: any) => String(m.content || '')).join('\n');
     const conversationMode = detectConversationMode(lastUserText, { userAskedSearch: intentFlags.userAskedSearch, recentUserText });
     const modeBlock = modeParagraph(conversationMode);
-    const prompt = buildConversationPrompt(input, attachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10));
+    const prompt = buildConversationPrompt(input, attachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10), conversationMode);
     const callBudget = { used: 0 };   // S-4: the quality retry shares the request's model-call budget
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     let out = data as any;

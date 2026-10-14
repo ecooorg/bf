@@ -1,5 +1,12 @@
 # Changelog
 
+## MP2 completion — light Simple/information prompt (2026-10-14)
+
+- `buildSimpleConversationPrompt` takes the detected conversation mode. `information` now gets a light prompt (shared core, light method, boundaries, unavailable-answer contract, files/documents rules, compact crisis triage, JSON keys with optional scaffold fields) instead of the full decision method. Simple prompt for `information`: 28 668 → 12 413 chars on the same input.
+- `decision`, `research`, `engineering` and an omitted mode keep the previous prompt text unchanged (verified against a pre-change snapshot). Expert and Project instructions untouched.
+- `server.ts` passes the detected mode to the prompt builder. The information mode paragraph no longer mentions the removed rituals.
+- New `tests/mp2.test.mjs` (`npm run test:mp2`, part of `npm run check`). Product version label stays 24.
+
 ## Mode initiative — master implementation plan (2026-10-14)
 
 - Added `docs/MASTER_IMPLEMENTATION_PLAN.md` as the single active sequence for the Simple / Expert / Project mode initiative.
