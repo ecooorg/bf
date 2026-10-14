@@ -320,6 +320,8 @@ Described: tests/workspace-paths.test.mjs
 Described: tests/workspace-ingest.test.mjs
 
 Described: tests/workspace-a2.test.mjs
+Described: tests/workspace-changeset.test.mjs
+Described: tests/workspace-export.test.mjs
 
 Described: tests/evidence-markdown.test.mjs
 
@@ -328,6 +330,7 @@ Described: tests/pa03-acceptance.test.mjs
 Described: test:p26a
 
 Described: test:p26a2
+Described: test:p26b
 
 Described: src/workspace/
 
@@ -336,6 +339,12 @@ Described: src/workspace/
 | `tests/workspace-paths.test.mjs` | Path normalisation |
 | `tests/workspace-ingest.test.mjs` | Zip ingest |
 | `tests/workspace-a2.test.mjs` | Tar/gzip/folder ingest, privacy-gated context, search and follow-up protocol |
+| `tests/workspace-changeset.test.mjs` | P26b ChangeSet validate/apply, CRLF, rollback, create-from-scratch |
+| `tests/workspace-export.test.mjs` | P26b export full/changed/diff and deterministic zip |
+| `npm run test:p26b` | P26b changeset + export tests |
+| `src/workspace/changeset.ts` | Workspace ChangeSet validate and apply |
+| `src/workspace/exportZip.ts` | Deterministic workspace zip and unified diff export |
+| `src/workspace/diff.ts` | Line diff and EOL helpers for ChangeSet |
 | `tests/evidence-markdown.test.mjs` | Evidence markdown |
 | `tests/pa03-acceptance.test.mjs` | PA-03 acceptance |
 | `src/workspace/` | P26 workspace core modules |
