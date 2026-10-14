@@ -259,7 +259,7 @@
     },
     "expect": {
       "maxQuestions": 1,
-      "calls": 1,
+      "calls": 2,
       "noMarkup": true,
       "noLabels": true,
       "factsAbsent": []
@@ -288,7 +288,7 @@
     },
     "expect": {
       "maxQuestions": 1,
-      "calls": 1,
+      "calls": 2,
       "noMarkup": true,
       "noLabels": true,
       "factsAbsent": []
