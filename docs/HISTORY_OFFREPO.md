@@ -87,3 +87,20 @@ Product history remains in `CHANGELOG.md`. Agent-behavior changelog is optional 
 ## After a future patch closes
 
 Move **closed** `docs/PNN-SPEC.md` + `docs/PNN-REPORT.md` into the **next** off-repo history zip (or back into a thin `ARCHIVE/` only if you want them on GitHub). Prefer off-repo for bulk; record one line in `docs/PATCH_JOURNAL.md`.
+
+## Must remain on GitHub (CI / acceptance tests)
+
+These were on the off-repo list but **tests open them by path** — keep on `main`:
+
+```
+ARCHIVE/GOLDEN-EVAL-REPORT.md
+ARCHIVE/P15-REPORT.md
+ARCHIVE/E01-NOTES.md
+ARCHIVE/E01-RESULTS.json
+CONCEPTS/e01-task.yml
+CONCEPTS/e01-lab-SETUP.md
+CHANGELOG_AGENT_BEHAVIOR.md
+```
+
+(`scripts/check-version.mjs` requires `## v24` in `CHANGELOG_AGENT_BEHAVIOR.md`.)
+

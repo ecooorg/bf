@@ -11,7 +11,7 @@
 1. BiForge is a decision and project agent on Node/Express + React + the Gemini API, deployed on Railway.
 2. **Simple Mode** (`/`) works and is used by the owner: a conversation-first decision cockpit (BiForge, product version 24).
 3. **Project Mode** (`/project`, opt-in, PostgreSQL) is built from the specification (Russian, canonical; index `docs/BiForge_TZ_v3.md`, parts `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md`); code is in place through P24, the rest of the work is acceptance (`docs/NEXT.md`).
-4. The patch list P01…P25 and the step reference are history (`ARCHIVE/TZ_v3.0_PATCH_HISTORY.md`); the plan to the end of the project is the checklist in `docs/NEXT.md` (former TZ 16.7). Current state: `docs/CURRENT_STATE.md`.
+4. The patch list P01…P25 and the step reference are history (ARCHIVE/TZ_v3.0_PATCH_HISTORY.md); the plan to the end of the project is the checklist in `docs/NEXT.md` (former TZ 16.7). Current state: `docs/CURRENT_STATE.md`.
 5. Map of the repository, scripts, tests and environment variables: `docs/REPO_MAP.md`.
 
 
@@ -55,7 +55,7 @@
 2. Do the work. Run what can be run (see "Commands").
 3. Build **one cumulative patch**: an archive with the latest version of every file changed since the last upload the owner confirmed, at its repository path. Do **not** put any manifest or list-of-files file into the archive.
 4. In the chat (Russian) write one line "replace N, add M, delete K" with file names. Deleting files is done by the owner by hand; deletions are never part of the archive.
-5. From patch P13a on, the archive, the "replace/add/delete" line and the report come from `npm run patch:pack -- --base <owner's archive> --patch <PNN> --agent "<tool, model>"` (TZ 16.3.2; options in `ARCHIVE/P13a-SPEC.md`); if the command cannot run, build by hand and say so; the report ends with three actions for the owner on Railway. Also in the chat: the report (what was done, what was run and the actual result, what was not run, known issues) and 2–3 steps for the owner to check on GitHub/Railway.
+5. From patch P13a on, the archive, the "replace/add/delete" line and the report come from `npm run patch:pack -- --base <owner's archive> --patch <PNN> --agent "<tool, model>"` (TZ 16.3.2; options in ARCHIVE/P13a-SPEC.md); if the command cannot run, build by hand and say so; the report ends with three actions for the owner on Railway. Also in the chat: the report (what was done, what was run and the actual result, what was not run, known issues) and 2–3 steps for the owner to check on GitHub/Railway.
 6. The owner uploads the files, CI runs on `main`, the owner reports the result.
 
 ## Where things are
@@ -128,8 +128,8 @@ These files are kept as history. Reading them is not needed for any patch. Older
 
 | File | What it is |
 | --- | --- |
-| `ARCHIVE/BX-06-REPORT.md`, `ARCHIVE/BX-07-REPORT.md` | Reports of the latest finished steps (`docs/CURRENT_STATE.md` summarizes everything done). |
-| `ARCHIVE/TZ_v3.0_monolith.md` and the other `ARCHIVE/TZ_v3.0_*.md` | The original TZ v3.0 in one file, and its parts that left the working specification (patch history, Appendices C, F, G, former 16.7). |
+| ARCHIVE/BX-06-REPORT.md, ARCHIVE/BX-07-REPORT.md | Reports of the latest finished steps (`docs/CURRENT_STATE.md` summarizes everything done). |
+| ARCHIVE/TZ_v3.0_monolith.md and the other `ARCHIVE/TZ_v3.0_*.md` | The original TZ v3.0 in one file, and its parts that left the working specification (patch history, Appendices C, F, G, former 16.7). |
 | `docs/ADR-01-postgresql.md` | Accepted decision; read only if you change database access |
 
 
@@ -139,10 +139,10 @@ These files document Simple Mode agent behaviour, a proposed improvement track, 
 
 | File | What it is |
 | --- | --- |
-| `CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md` | Snapshot of the **current** agent instructions as extracted from the v1.6.0 codebase (prompts, V17, post-processing, quality-gate). Reference only. |
-| `CONCEPTS/BiForge_Agent_Instructions_v2_Target.md` | **Proposed** target instruction set (uncertainty contract, intent flags, modes on a single base). Not implemented in code. |
+| CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md | Snapshot of the **current** agent instructions as extracted from the v1.6.0 codebase (prompts, V17, post-processing, quality-gate). Reference only. |
+| CONCEPTS/BiForge_Agent_Instructions_v2_Target.md | **Proposed** target instruction set (uncertainty contract, intent flags, modes on a single base). Not implemented in code. |
 | `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` | Standalone technical specification (TZ-INSTRUCTIONS-01) for incremental adoption of the v2 behaviour (P1–P3 style patches). Independent of TZv3.0 BX plan. |
-| `CONCEPTS/BiForge_analytical_note_recommendations.md` | Analytical note and recommendations on the dialogue failure mode (uncertainty vs strict honesty) and architecture options. Background only. |
+| CONCEPTS/BiForge_analytical_note_recommendations.md | Analytical note and recommendations on the dialogue failure mode (uncertainty vs strict honesty) and architecture options. Background only. |
 | `CONCEPTS/TP_BiForge_Hallucination_CrossCheck.md` | Post-launch proposal (TP-HALLUC-01): multi-model cross-check and anti-hallucination contour. **Not for implementation now**; shelf plan if hallucinations become a problem after launch. |
 
 Rules for coding agents:
@@ -157,7 +157,7 @@ Rules for coding agents:
 
 - `CHANGELOG.md` — the changelog of the project from BX-07 onward. Add an entry for every behaviour change.
 - `CHANGELOG_AGENT_BEHAVIOR.md` — history of the **behaviour of the Simple Mode agent** (versions 1.x: prompts, method, answer layer). Not a project changelog. `npm run check` requires a section for the current version there; do not delete it.
-- `CONCEPTS/BiForge_Avanproekt_v3.md` — the concept paper (in Russian; its header says it is the conceptual document and the TZ takes priority on technical details). Not a source of requirements: use the TZ.
+- CONCEPTS/BiForge_Avanproekt_v3.md — the concept paper (in Russian; its header says it is the conceptual document and the TZ takes priority on technical details). Not a source of requirements: use the TZ.
 - Process documents (reference, may repeat each other; binding rules are here and in `AGENTS.md`): `docs/DEVELOPMENT.md`, `docs/DEVELOPMENT_PROTOCOL.md`, `docs/TESTING_POLICY.md`, `CONCEPTS/universal_testing_protocol.md` (29 KB, general methodology, read only when designing tests), `docs/GIT_POLICY.md`, `docs/RESOURCE_ECONOMY.md`, `docs/SECURITY_POLICY.md`. Read `docs/SECURITY_POLICY.md` before touching authentication, secrets or uploads.
 - `QA_DRIVE_CHECKLIST.md` — manual check of Google Drive sync (needs real Google).
 - Agent-instruction and post-launch reference pack (informational only; see section above): under `CONCEPTS/`.

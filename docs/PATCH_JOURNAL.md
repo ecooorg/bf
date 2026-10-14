@@ -5,6 +5,7 @@
 > Do not invent scope here — scope is `docs/PNN-SPEC.md` and **Next agent patch** in `docs/CURRENT_STATE.md`.
 
 | Date | ID | Result | Notes |
+| 2026-10-14 | — | CI fix | Restored test fixtures ARCHIVE/GOLDEN, P15-REPORT, E01*, CONCEPTS/e01-*; CHANGELOG_AGENT_BEHAVIOR; stripped dead backticks |
 | --- | --- | --- | --- |
 | 2026-10-14 | P26b | core done | ChangeSet/export library + tests; UI → P29 |
 | 2026-10-14 | P26a | done | ZIP ingest core |

@@ -18,7 +18,7 @@
 | `docs/NEXT.md` | Plan to G4 as a flat checklist (steps `RM-*`: inputs, PASS) and queue of next patches; updated by the AI Assistant at the end of every patch |
 | `docs/PROGRAM-CREATION-SPEC.md` | Project Mode small-program generation, validation, ZIP delivery and security boundaries |
 | `docs/BiForge_TZ_v3.md` | Index of the specification (TZ v3.1): file map and section → file map. The text itself: `docs/SPEC_PRODUCT.md`, `docs/SPEC_ENGINE.md`, `docs/SPEC_DEV_PROCESS.md`, `docs/SPEC_CONNECTIONS.md` |
-| `ARCHIVE/TZ_v3.0_monolith.md` | The original TZ v3.0 in one file and its retired parts (`ARCHIVE/TZ_v3.0_*.md`): history only, not read for patches |
+| ARCHIVE/TZ_v3.0_monolith.md | The original TZ v3.0 in one file and its retired parts (`ARCHIVE/TZ_v3.0_*.md`): history only, not read for patches |
 | `docs/PATCH_PROMPT.md` | Universal session prompt for any PNN: context order, version = patch number, packaging `bf-PNN.zip`, report |
 | `docs/` | Specification, policies, step specs, reports; plus informational agent-instruction materials (not binding; see table below) |
 | `.github/workflows/ci.yml` | CI on every push (writes a short result line, P13a): migrations on clean PostgreSQL, `npm run check`, live PostgreSQL tests, Project Mode API tests, build, secret scan. Change only if the SPEC says so |
@@ -45,10 +45,10 @@ These Markdown files live under `CONCEPTS/`. They are **reference / proposal onl
 
 | Path | What it is |
 | --- | --- |
-| `CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md` | Extracted current (v1.6.0) agent instructions from code |
-| `CONCEPTS/BiForge_Agent_Instructions_v2_Target.md` | Proposed target instruction set (uncertainty contract, modes) |
+| CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md | Extracted current (v1.6.0) agent instructions from code |
+| CONCEPTS/BiForge_Agent_Instructions_v2_Target.md | Proposed target instruction set (uncertainty contract, modes) |
 | `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` | TZ-INSTRUCTIONS-01: how to adopt v2 behaviour incrementally |
-| `CONCEPTS/BiForge_analytical_note_recommendations.md` | Analytical note on dialogue failure and architecture options |
+| CONCEPTS/BiForge_analytical_note_recommendations.md | Analytical note on dialogue failure and architecture options |
 | `CONCEPTS/TP_BiForge_Hallucination_CrossCheck.md` | TP-HALLUC-01: post-launch anti-hallucination / multi-model cross-check (shelf; not current work) |
 
 Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `server/reasoningState.ts`, and history in `CHANGELOG_AGENT_BEHAVIOR.md`. Canonical product plan remains `docs/BiForge_TZ_v3.md`.
@@ -161,7 +161,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:ui` | Browser layout check (Playwright; not in `check`) |
 | `npm run db:migrate` | Apply migrations |
 | `npm run test:database:live` | Live PostgreSQL contract tests (CI only without a local database) |
-| `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in `ARCHIVE/P13a-SPEC.md` |
+| `npm run patch:pack -- --base <archive> --patch <PNN> --agent "<tool, model>"` | Builds the patch archive and the report (P13a); options in ARCHIVE/P13a-SPEC.md |
 | `npm run test:github` | GitHub App JWT, permissions, webhook signature, fake API flow, PR/check-run reads, Task Package commit limits (P16) |
 | `npm run test:gate` | Gate Engine rules without a database (P17) |
 | `npm run test:pi01` | PI-01: uncertainty contract in the conversation prompt; winter dialog through the real server on a fake Gemini |
