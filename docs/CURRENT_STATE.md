@@ -2,7 +2,7 @@
 
 > **Read after `docs/START_HERE.md`.** Updated **14 October 2026**.
 > Product version label: **24** (bump only when a product patch SPEC says so).
-> Living queue: `docs/NEXT.md`. Map: `docs/REPO_MAP.md`. **Prod/Railway/GitHub links:** `docs/OWNER_OPS.md`.
+> Living queue: `docs/NEXT.md`. Map: `docs/REPO_MAP.md`. **Links:** `docs/OWNER_OPS.md`. **Off-repo history list:** `docs/HISTORY_OFFREPO.md`. **Journal:** `docs/PATCH_JOURNAL.md`.
 
 ---
 

@@ -18,6 +18,8 @@
 ## Done vs remaining (14 October 2026)
 
 0. **Live URLs / Railway / GitHub App:** `docs/OWNER_OPS.md` (owner bookmarks; no secrets).
+0b. **History on owner disk:** paths listed in `docs/HISTORY_OFFREPO.md` (do not re-add bulk ARCHIVE/CONCEPTS).
+0c. **Patch log:** `docs/PATCH_JOURNAL.md` (one line per closed patch).
 1. Read **`docs/CURRENT_STATE.md`** — block **Next agent patch** (today: **P27**).
 2. Read **`docs/PNN-SPEC.md`** for that ID only (e.g. `docs/P27-SPEC.md`).
 3. Full schedule: **`docs/NEXT.md`** section **Agent patch schedule (P27+)**.
@@ -26,6 +28,12 @@
 **Closed:** through P24; P26a; P26b **library**. **Next code:** P27 → P28 → P29 (client Workspace UI), then P30+ (server) on command.
 
 **Owner command examples:** «следующий патч» · «делай P27» · «после CI сделай P28».
+
+## Documentation hygiene
+
+- Prefer updating **existing** living docs over new Markdown files.
+- Agent patch: only `PNN-SPEC` + `PNN-REPORT` + journal row; see `AGENTS.md`.
+- Bulk history: `docs/HISTORY_OFFREPO.md` (owner local zip), not endless new files under `docs/`.
 
 ## The 10 rules
 

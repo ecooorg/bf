@@ -380,3 +380,13 @@ Described: src/workspace/
 | `src/workspace/exportZip.ts` | Deterministic workspace zip export |
 | `src/workspace/diff.ts` | Line diff helpers |
 
+## Docs orientation (history + journal)
+
+| Path | Role |
+| --- | --- |
+| `docs/HISTORY_OFFREPO.md` | Full list of paths the owner may keep only on local disk |
+| `docs/PATCH_JOURNAL.md` | Short newest-first log of agent patches |
+| `docs/OWNER_OPS.md` | Prod / Railway / GitHub public URLs |
+| `docs/P27-SPEC.md` | Current next agent patch SPEC |
+| `ARCHIVE/README.md` | Stub after bulk history left the remote repo |
+| `CONCEPTS/README.md` | Stub after concepts left the remote repo |

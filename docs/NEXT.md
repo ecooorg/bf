@@ -40,6 +40,7 @@ Each row is sized for **~½ free agent session** of coding; the other half is fo
 3. Keep `npm run check` green.
 4. Do not advance **Next agent patch** unless the owner allowed it.
 5. Owner-only `RM-*` steps are **not** “next patch”.
+6. Log closed patches in `docs/PATCH_JOURNAL.md`. Do not add spare Markdown files; see `docs/HISTORY_OFFREPO.md`.
 
 ---
 
