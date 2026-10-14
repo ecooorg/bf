@@ -60,7 +60,9 @@ try {
     const c = p.indexOf('WHEN THE IDEAL ANSWER IS UNAVAILABLE');
     assert.ok(c > 0, `step ${n + 1}: contract missing from the prompt`);
     assert.equal(p.split('WHEN THE IDEAL ANSWER IS UNAVAILABLE').length - 1, 1, `step ${n + 1}: contract duplicated`);
-    assert.ok(p.indexOf('HARD BOUNDARIES') < c && c < p.indexOf('BEFORE ANSWERING (silent)'), `step ${n + 1}: contract misplaced`);
+    // MP2: the light information prompt has no BEFORE ANSWERING ritual; the contract must then precede the files section.
+    const upper = [p.indexOf('BEFORE ANSWERING (silent)'), p.indexOf('FILES THE PERSON ATTACHES')].filter((i) => i > 0).reduce((a, b) => Math.min(a, b), Infinity);
+    assert.ok(p.indexOf('HARD BOUNDARIES') < c && c < upper, `step ${n + 1}: contract misplaced`);
     assert.ok(p.includes(step.say), `step ${n + 1}: the user's text is not in the prompt`);
     // 2. Server path: no markup, no service labels, honest numbers, no crisis, no model-call surprises.
     const reply = r.data.reply;
