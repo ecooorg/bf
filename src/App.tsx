@@ -356,9 +356,9 @@ export default function App() {
               Your key is stored only in this browser and is sent to this app's server with each request so it can call Google on your behalf. The server does not save it and does not write it to logs.
             </p>
             <label style={{ display: 'block', marginTop: 16 }}>Your Google AI key (optional)</label>
-            <input aria-label="Google AI key" className="input credential-input" type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} placeholder="AIza..." style={{ width: '100%', marginTop: 8 }} />
+            <input aria-label="Gemini API key" className="input credential-input" type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} placeholder="AIza..." style={{ width: '100%', marginTop: 8 }} />
             <label style={{ display: 'block', marginTop: 16 }}>Preferred model</label>
-            <select aria-label="Preferred model" className="input credential-input" value={geminiModel} onChange={e => setGeminiModel(e.target.value)} style={{ width: '100%', marginTop: 8 }}>
+            <select aria-label="Preferred first model" className="input credential-input" value={geminiModel} onChange={e => setGeminiModel(e.target.value)} style={{ width: '100%', marginTop: 8 }}>
               <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
               <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
               <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
