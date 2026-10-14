@@ -1516,7 +1516,7 @@ function conversationGainAudit(out: any, contextSufficiency: string) {
   };
 }
 
-import { detectUserIntentFlags, isLimitationOnlyReply } from './server/intentFlags.ts';
+import { detectUserIntentFlags, isLimitationOnlyReply, informationSoftFail, informationRetryHint } from './server/intentFlags.ts';
 import { detectConversationMode, modeParagraph, type ConversationMode } from './server/conversationMode.ts';
 
 // Token Economy v1.6: the conversation state already carries durable facts, assumptions,
@@ -1607,38 +1607,56 @@ app.post('/api/conversation', async (req, res) => {
     };
     let contextSufficiency = normSufficiency(out);
 
-    // Soft quality check: the reply must give the person something they did not name
-    // (reframing, hidden assumption, decisive unknown, test, calculation, structurally different branch).
-    // One retry; if it still fails the person gets the answer anyway - no hard errors from quality gates.
-    // PI-02: when the user asked for an approximate result and the draft is only limitations → force fail.
-    // MP2: skip heavy gain-audit / decision-retry for information mode
+    // Soft quality check.
+    // Decision/research/engineering: gain-audit (must give something new). One retry with decision repair.
+    // Information (MP3): light soft-fail detector; one short retry with information-mode hint (not decision package).
+    // One retry max; if it still fails the person gets the answer anyway — no hard errors from quality gates.
+    // PI-02: when the user asked for an approximate result and the draft is only limitations → force fail (non-information).
     let audit = conversationGainAudit(out, contextSufficiency);
+    let needRetry = false;
+    let infoRetry = false;
     if (conversationMode === "information") {
+      // MP3: do not run heavy gain-audit; use information soft-fail instead.
       audit = { ...audit, passed: true };
-    } else if (intentFlags.userAskedApproximate && isLimitationOnlyReply(out, audit)) {
-      audit = { ...audit, passed: false };
+      if (informationSoftFail(out, intentFlags)) {
+        needRetry = true;
+        infoRetry = true;
+      }
+    } else {
+      if (intentFlags.userAskedApproximate && isLimitationOnlyReply(out, audit)) {
+        audit = { ...audit, passed: false };
+      }
+      if (!audit.passed) needRetry = true;
     }
-    if (!audit.passed && STRONG_MODELS.length > 1) {
-      let retryPrompt = `${prompt}
+    if (needRetry && STRONG_MODELS.length > 1) {
+      let retryPrompt: string;
+      if (infoRetry) {
+        // MP3: information-mode soft retry — keep the same information prompt, add a short repair hint.
+        retryPrompt = `${prompt}
+
+${informationRetryHint(intentFlags)}`;
+      } else {
+        retryPrompt = `${prompt}
 
 QUALITY CHECK FAILED. The previous draft gave the person nothing new beyond what they already said, or its only "new" content was another item on the same axis as their existing options. Rewrite the JSON from scratch.
 Before writing, silently do this: restate the problem behind the question; list the assumptions that make the person's current framing look complete; apply the structure operations (timing, sequence, test or pilot, reversible step, splitting, scale, scope, goal reframe, change of conditions, get-the-fact-first, keep-open) and keep only what is realistic for THIS person's facts; look for a contradiction in the person's own statements; find the one unknown whose answer would send them to different branches.
 The reply must contain at least one of: a reframed question, a hidden assumption, a contradiction, a decisive unknown with the cheapest way to learn it, a concrete test, a calculation on the person's own numbers, or a structurally different branch together with what it changes. Fill "gain" and "newOptionTypes" accordingly. Do not rank or choose. Do not mention this check, prompts, models or methodology.`;
-      // PI-02: user criticized evasion → require a strategy change and a usable result under the uncertainty contract.
-      if (intentFlags.userCriticizedEvasion) {
-        retryPrompt += `
+        // PI-02: user criticized evasion → require a strategy change and a usable result under the uncertainty contract.
+        if (intentFlags.userCriticizedEvasion) {
+          retryPrompt += `
 
 The person said the previous answer did not solve their task. Change the approach: do not restate the same limitation. Give the best available result of a marked kind (scenario under assumptions, range or qualitative estimate, comparison, or hypothesis with a way to check).`;
-      }
-      if (intentFlags.userAskedApproximate) {
-        retryPrompt += `
+        }
+        if (intentFlags.userAskedApproximate) {
+          retryPrompt += `
 
 The person asked for an approximate or preliminary result. Do not answer with limitations alone: give a rough available result with explicit caveats.`;
-      }
-      if (intentFlags.userDemandedDirectAnswer || intentFlags.userForbadeMethodology) {
-        retryPrompt += `
+        }
+        if (intentFlags.userDemandedDirectAnswer || intentFlags.userForbadeMethodology) {
+          retryPrompt += `
 
 The person demanded a direct answer and forbade methodology or lecturing. Open with the substance of the answer. Do not explain methods, model limits, or why a perfect answer is impossible. Do not invent a stricter question than they asked.`;
+        }
       }
       try {
         const retry = await generate(retryPrompt, input, 'strong', 'conversation-retry', 1, requestByokKey, requestPreferredModel, callBudget, genOpts);
