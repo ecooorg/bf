@@ -7,3 +7,6 @@ export * from './memoryStore.ts';
 export * from './tar.ts';
 export * from './idbStore.ts';
 export * from './context.ts';
+export * from './diff.ts';
+export * from './changeset.ts';
+export * from './exportZip.ts';
