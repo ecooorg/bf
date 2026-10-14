@@ -11,7 +11,8 @@
 | **ID** | **MP2 — shared prompt core and Simple/information contract** |
 | **Base archive** | `bf-v27.zip` (owner upload) |
 | **Scope** | Shared `promptCore.ts`; expanded information detection; default unclear → information; skip gain-audit/retry for information; preserve Expert/Project |
-| **Code permission** | Granted by owner command «Приступай к следующему этапу» |
+| **Code permission** | Granted by owner command «Приступай к следующему этапу» (repeated 14 October 2026 for the MP2 completion patch) |
+| **Status** | MP2 completion patch delivered; MP2 closes when CI is green on `main` and the owner confirms. Live-model behaviour is unverified until MP3 / MANUAL1 |
 | **Next after MP2** | MP3 — information-mode output quality guard, soft retry and mode regression fixtures |
 | **Plan** | `docs/MASTER_IMPLEMENTATION_PLAN.md` |
 
@@ -24,7 +25,14 @@
 - MP1–MP3 are documented in the master plan. MP1 exists as preliminary file separation but does not prove the behaviour problem is solved.
 - Documentation must be ready before coding. Coding begins only after a separate owner command.
 
-## MP2 changes (this patch)
+## MP2 completion (this patch)
+
+- `buildSimpleConversationPrompt(..., mode)`: `information` gets a light prompt; decision, research, engineering and an omitted mode keep the full method unchanged.
+- The information JSON contract keeps the same keys; `gain`, `options`, `newOptions`, `newOptionTypes`, `nextStep`, `derived_numbers` are optional (server defaults verified by `tests/mp2.test.mjs`).
+- Simple prompt size for information: 28 668 → 12 413 chars (offline measurement).
+- Not done: output quality guard / soft retry and mode fixtures (MP3); mode selection UI (UI1).
+
+## MP2 first delivery
 
 - Added `server/promptCore.ts` (language, honesty/search, safety).
 - `detectConversationMode`: expanded RE_INFORMATION; decision only on explicit signals; default → information.

@@ -4,7 +4,7 @@
 
 ## Current stage
 
-**MP2 — shared prompt core and Simple/information contract** (in progress / delivered this patch). Next: MP3 on owner command.
+**MP2 — shared prompt core and Simple/information contract** (completion patch delivered; closes after green CI and owner confirmation). Next: MP3 on owner command.
 
 ## Next stage after D0
 
