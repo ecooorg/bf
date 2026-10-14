@@ -1,5 +1,7 @@
 # TECHNICAL SPECIFICATION
 
+> **Historical / superseded for active planning (14 October 2026):** This concept records the earlier PI-01…PI-03 approach. The owner has since approved a shared core plus specialised Simple / Expert / Project behaviour contracts, reversing the earlier rejection of isolated mode packs. For current requirements and sequencing, use `docs/MASTER_IMPLEMENTATION_PLAN.md`. This historical document is retained to explain the earlier decision; it is not evidence that the new design has been implemented.
+
 ## Improving BiForge agent instructions: uncertainty, modes and adaptation to user intent
 
 | Field | Value |
