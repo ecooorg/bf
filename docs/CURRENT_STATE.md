@@ -10,9 +10,9 @@
 
 | Field | Value |
 | --- | --- |
-| **ID** | **P27** |
+| **ID** | **P27** (implemented 2026-10-14; owner may advance to **P28**) |
 | **SPEC** | `docs/P27-SPEC.md` |
-| **One line** | Simple Mode: attach zip/folder → ingest → project card + privacy ack + read-only file panel shell |
+| **One line** | P27 done — see `docs/P27-REPORT.md`. Next code: **P28** Expert + dialogue + AC-04 |
 | **Owner says** | «следующий патч» or «делай P27» |
 | **Do not include** | Expert Mode, ChangeSet card, server/Project Mode workspace, model_patch enablement |
 

@@ -390,3 +390,12 @@ Described: src/workspace/
 | `docs/P27-SPEC.md` | Current next agent patch SPEC |
 | `ARCHIVE/README.md` | Stub after bulk history left the remote repo |
 | `CONCEPTS/README.md` | Stub after concepts left the remote repo |
+
+## P27 (Simple workspace UI)
+
+| Path / script | Role |
+| --- | --- |
+| `src/WorkspacePanel.tsx` | Simple Mode workspace attach UI |
+| `src/workspace/persistIngest.ts` | Persist IngestResult into WorkspaceStore |
+| `tests/workspace-p27.test.mjs` | P27 persist + privacy guard tests |
+| `npm run test:p27` | Runs workspace-p27 tests |

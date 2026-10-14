@@ -23,7 +23,7 @@ Each row is sized for **~½ free agent session** of coding; the other half is fo
 
 | ID | Title | In scope | Out of scope | SPEC |
 | --- | --- | --- | --- | --- |
-| **P27** | Simple attach UI | Zip/folder ingest UX, privacy ack, project card, read-only tree shell | Expert, ChangeSet UI, server | `docs/P27-SPEC.md` |
+| **P27** | Simple attach UI (**done 2026-10-14**) | Zip/folder ingest UX, privacy ack, project card, read-only tree shell | Expert, ChangeSet UI, server | `docs/P27-SPEC.md` |
 | **P28** | Expert + dialogue | Expert attach parity; WORKSPACE in conversation; needFiles/needSearch; AC-04 | ChangeSet card, Project Mode | `docs/P28-SPEC.md` (create at start of P28) |
 | **P29** | ChangeSet + export UI | Apply/Reject/diff card; download full/changed/diff using library | Server workspace | `docs/P29-SPEC.md` (at start) |
 | **P30** | PM store | Migration + `PgStore` only | HTTP routes, UI | at start |
