@@ -12,7 +12,7 @@ import {
 } from './decision.ts';
 import {
   getStoredDecisions, saveDecisions, getActiveDecisionId, setActiveDecisionId,
-  getPrivacyAccepted, setPrivacyAccepted, getMigrationReport, getArchived,
+  getMigrationReport, getArchived,
 } from './storage.ts';
 import { exportDecisionJson, exportAllJson, downloadBlob, parseImportedJson, parseImportedBackup } from './exportZip.ts';
 import { DISTRESS_MARKERS, SUPPORT_CONTACTS, hasDistressMarker, findDistressInTexts } from './support.ts';
@@ -121,7 +121,6 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [privacy, setPrivacy] = useState(true); // Welcome screen disabled: go straight to workspace after sign-in
   const [showBrief, setShowBrief] = useState(false);
   const [showProgramFiles, setShowProgramFiles] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
@@ -342,35 +341,7 @@ export default function App() {
   }
 
   // --- Privacy / about gate ---
-  if (!privacy) {
-    return (
-      <div className="shell">
-        <div className="empty">
-          <BrainCircuit size={40} />
-          <h1>{en.app}</h1>
-          <p>{en.subtitle}</p>
-          <div className="panel" style={{ maxWidth: 560, textAlign: 'left' }}>
-            <h2>{en.privacyTitle}</h2>
-            <p>{en.privacyBody}</p>
-            <p style={{ fontSize: 12, color: '#7f93aa' }}>
-              Fields that may be sent for analysis: Brief text, confirmed neutralization, answers to
-              unknowns, options, hypotheses, experiment cards (no passwords). Files you attach are read on the server and sent to Gemini only together with the message you attach them to; the server does not store them.
-            </p>
-            <button
-              className="primary"
-              style={{ marginTop: 16 }}
-              onClick={() => {
-                setPrivacyAccepted(true);
-                setPrivacy(true);
-              }}
-            >
-              {en.acceptPrivacy}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Welcome / privacy gate removed — open workspace right after sign-in.
 
   if (showGoogleAI) {
     return (
