@@ -1,667 +1,420 @@
 # BiForge: Runtime Engine & Architecture
 
-*Как это работает: архитектура, контракты данных и модулей, правила для исполнителя. Часть ТЗ v3.1 (индекс — `docs/BiForge_TZ_v3.md`). **MUST** — обязательно; **SHOULD** — желательно, отклонение требует обоснования; **MAY** — допустимо. При противоречии с `docs/SPEC_PRODUCT.md` приоритет у него (цели, критерии приёмки).*
+*How it works: architecture, data and module contracts, executor rules. Part of TZ v3.1 (index — `docs/BiForge_TZ_v3.md`). **MUST** — mandatory; **SHOULD** — preferred, deviation needs justification; **MAY** — allowed. On conflict with `docs/SPEC_PRODUCT.md`, that file wins (goals, acceptance criteria).*
 
-**Версия:** 3.1 (реорганизация ТЗ v3.0; нормативный текст перенесён дословно)
+**Version:** 3.1 (TZ v3.0 reorganised; normative text moved without changing decisions)
 
-> Нумерация разделов сохранена из ТЗ v3.0 (поэтому в ней есть пропуски): на неё ссылаются код, SPEC патчей, ADR и `docs/START_HERE.md`. Карта «раздел → файл» — в `docs/BiForge_TZ_v3.md`.
-> Куда ушло остальное: State-схема, режимы, интерфейс, шлюзы, критерии приёмки — `docs/SPEC_PRODUCT.md`; процесс разработки — `docs/SPEC_DEV_PROCESS.md`; план до G4 (бывш. 16.7) — `docs/NEXT.md`; подключения и `connectors.yaml` (Приложение E) — `docs/SPEC_CONNECTIONS.md`; Приложения C, F (Jules, Mistral), G (мониторинг) — `ARCHIVE/TZ_v3.0_*.md`.
+> Section numbering is preserved from TZ v3.0 (hence gaps): code, patch SPECs, ADRs and `docs/START_HERE.md` refer to it. Section → file map — `docs/BiForge_TZ_v3.md`.
+> Where the rest went: State schema, modes, UI, gates, acceptance — `docs/SPEC_PRODUCT.md`; development process — `docs/SPEC_DEV_PROCESS.md`; plan to G4 (former 16.7) — `docs/NEXT.md`; connections and `connectors.yaml` (Appendix E) — `docs/SPEC_CONNECTIONS.md`; Appendices C, F (Jules, Mistral), G (monitoring) — `ARCHIVE/TZ_v3.0_*.md`.
 
 ---
 
-## 3. Ресурсы и допущения
+## 3. Resources and assumptions
 
-### 3.1. Доступные ресурсы
+### 3.1. Available resources
 
-Внешние факты в основной части ТЗ не утверждаются: условия, лимиты и цены любого сервиса проверяются при подключении (Приложение E, E.8) и записываются в реестр с датой. Исключение — факты, уже подтверждённые рабочей программой (Gemini API в BE v1.6.0).
+External facts are not asserted in the main TZ body: terms, limits and prices of any service are verified at connection time (Appendix E, E.8) and recorded in the registry with a date. Exception — facts already confirmed by the working product (Gemini API in BE v1.6.0).
 
-| Ресурс | Что даёт | Ограничения и примечания |
+| Resource | Provides | Limits and notes |
 | --- | --- | --- |
-| Gemini API | Рантайм-модели продукта; уже используется в BE v1.6.0 и является **базовым провайдером** | Подписка Google AI Pro не равна квоте и биллингу Gemini API (A-01). Бесплатный и платный уровни различаются по лимитам и по условиям использования данных (A-02) |
-| Другие провайдеры моделей | Независимая проверка (`cross_model`), fallback, сильный класс для архитектуры и кода | Любые, чей API подключается адаптером (п. 7.2). Нужны платный ключ, лимит расходов в консоли провайдера и проверенные условия данных (A-08). Конкретный перечень в ТЗ не фиксируется |
-| Инструменты разработки BiForge (часть B) | Реализация шагов плана | Любые доступные и быстрые на момент работы: чат-модели с переносом результата в репозиторий, локальные агентные инструменты и т. п. Выбор владельца; не фиксируется ТЗ (D-16) |
-| Railway | Хостинг web/api и PostgreSQL | Базис 1 реплика, 2 vCPU, 1 GB RAM: только control plane |
-| GitHub (`ecooorg/bf`) | Source of truth, CI (Actions), PR | Минуты Actions для приватных репозиториев ограничены (A-07) |
-| Jules, Mistral | Отложены | Приложение F |
+| Gemini API | Product runtime models; already used in BE v1.6.0; **baseline provider** | Google AI Pro subscription is not the same as Gemini API quota and billing (A-01). Free and paid tiers differ in limits and data-use terms (A-02) |
+| Other model providers | Independent check (`cross_model`), fallback, strong class for architecture and code | Any API that plugs in via an adapter (§7.2). Requires a paid key, spend limit in the provider console and verified data terms (A-08). The TZ does not fix a vendor list |
+| BiForge development tools (Part B) | Implementing plan steps | Any tools available and fast at the time of work: chat models with result transferred into the repo, local agent tools, etc. Owner’s choice; not fixed by the TZ (D-16) |
+| Railway | Web/api hosting and PostgreSQL | Baseline 1 replica, 2 vCPU, 1 GB RAM: control plane only |
+| GitHub (`ecooorg/bf`) | Source of truth, CI (Actions), PR | Actions minutes for private repos are limited (A-07) |
+| Jules, Mistral | Deferred | Appendix F |
 
-### 3.2. Критические допущения (проверяются до указанного шага)
+### 3.2. Critical assumptions (verified before the named step)
 
-| ID | Допущение | Проверка | До шага |
+| ID | Assumption | Check | Before step |
 | --- | --- | --- | --- |
-| A-01 | Подписка Google AI Pro не включает квоту Gemini API для сервера | Консоль AI Studio / Cloud: какой ключ, какой биллинг | BX-10.b |
-| A-02 | На бесплатном уровне Gemini API данные могут использоваться Google для улучшения продуктов; на платном — нет (документация Google, подтверждено 9 октября 2026). Для реальных данных проектов — только платный биллинг с лимитом расходов; бесплатный уровень — для синтетических тестов | Консоль, E.1 | BX-10.b |
-| A-05 | Тесты проходят в GitHub Actions без секретов и с установкой зависимостей (`npm ci && npm test`) | Пробный запуск workflow на `ecooorg/bf` | BX-01.a |
-| A-06 | Railway PostgreSQL предоставляет резервные копии нужной частоты | Проверить тариф и процедуру восстановления | BX-25 |
-| A-07 | Бесплатных минут GitHub Actions хватает для CI | Посчитать минуты на шаг; при нехватке использовать публичные репозитории или лимит запусков | BX-01.a |
-| A-08 *(переформулировано)* | Для **каждого** подключаемого провайдера: платный план или иные подтверждённые условия, при которых данные не используются для обучения; доступность из региона развёртывания; ключ с лимитом расходов | Условия и консоль провайдера; smoke-тест по E.2; запись `data_policy` и `last_verified_at` в реестре | Подключение провайдера (BX-12.a и далее) |
-| A-09 *(новое)* | Ручной цикл «Task Package → любая модель или инструмент → PR» укладывается во время владельца и воспроизводим | Одна пилотная задача на BX-01.a / BX-02: время, число правок, число ошибок переноса | BX-02 |
-| A-10 *(новое)* | Модель по API (`model_patch`) выдаёт структурированный патч, который применим и проходит acceptance-тесты в разумное число попыток | Эксперимент E-01 (п. 11.9) | BX-19 |
+| A-01 | Google AI Pro subscription does not include Gemini API quota for the server | AI Studio / Cloud console: which key, which billing | BX-10.b |
+| A-02 | On the free Gemini API tier Google may use data to improve products; on the paid tier it does not (Google docs, confirmed 9 Oct 2026). Real project data — paid billing with a spend limit only; free tier — synthetic tests | Console, E.1 | BX-10.b |
+| A-05 | Tests pass in GitHub Actions without secrets after `npm ci && npm test` | Trial workflow run on `ecooorg/bf` | BX-01.a |
+| A-06 | Railway PostgreSQL provides backups at the required frequency | Check plan and restore procedure | BX-25 |
+| A-07 | Free GitHub Actions minutes suffice for CI | Count minutes per step; if short, use public repos or limit runs | BX-01.a |
+| A-08 | For **each** connected provider: paid plan or other confirmed terms under which data is not used for training; availability from the deployment region; key with a spend limit | Provider terms and console; smoke test per E.2; record `data_policy` and `last_verified_at` in the registry | Provider connect (BX-12.a+) |
+| A-09 | Manual cycle “Task Package → any model or tool → PR” fits owner time and is reproducible | One pilot task on BX-01.a / BX-02: time, edit count, transfer errors | BX-02 |
+| A-10 | API model (`model_patch`) emits a structured patch that applies and passes acceptance tests in a reasonable number of attempts | Experiment E-01 (§11.9) | BX-19 |
 
-Допущения A-03 (подключение Jules к репозиториям организации), A-04 (стабильность Jules API) и первоначальные A-05, A-08 (в части Jules и Mistral) перенесены в F.3 и F.2 без изменения номеров; новые формулировки A-05 и A-08 выше заменяют их в основной части.
+Assumptions A-03/A-04 (Jules) and earlier Jules/Mistral-specific A-05/A-08 wording live in F.3/F.2; the formulations above replace them in the main body.
 
-### 3.3. Бюджет запусков исполнителя кода
+### 3.3. Code-executor run budget
 
-- На проект задаётся `max_code_tasks` (п. 8.4); значение по умолчанию — 8 запусков исполнителя на пилотный проект S3 (п. 14.3).
-- Исполнитель `manual` не имеет внешней квоты; запуск учитывается в ledger единицей «запуск исполнителя» с нулевой стоимостью моделей и полем `executor_note` (какой инструмент использовал человек — свободный текст, не перечисление).
-- Исполнитель `model_patch` расходует бюджет вызовов моделей и учитывается в ledger обычным образом.
-- При исчерпании бюджета задача получает статус BLOCKED с причиной, а не повторяется.
+- Per project: `max_code_tasks` (§8.4); default 8 executor runs for a pilot S3 project (§14.3).
+- Executor `manual` has no external quota; a run is recorded in the ledger as one “executor run” with zero model cost and optional `executor_note` (free text naming the human’s tool — not an enum).
 
-### 3.4. Реальное узкое место
+### 3.4. Real bottleneck
 
-Узкие места — время владельца на ревью и на написание или утверждение тестов-ожиданий до реализации, стоимость и лимиты API моделей при прогоне golden-eval, а также целостность интерфейсов между шагами. План (раздел 16) строится вокруг этого: малые шаги, вертикальный срез, тесты до реализации, обязательное ревью человека для критических шагов, честная календарная оценка (п. 16.5).
+The bottleneck is owner time (review, Railway checks, decisions), not raw model tokens. Design for short verifiable steps and clear evidence, not maximum autonomous throughput.
 
-## 4. Архитектура
+---
 
-### 4.1. Общая схема
+## 4. Architecture
 
-```
-Пользователь ── UI (React: Simple | Project)
-                 │
-         API / Control Plane (Express, один сервис Railway)
-   ┌─────────────┼───────────────────────────────┐
-   │ Project Engine │ Task Engine │ Artifact Layer │
-   │ (State, History)│ (Run, Queue, Budget) │ (Registry, Storage) │
-   └───────┬─────┴───────┬─────┴───────┬────────┘
-           │             │             │
-       Model Layer   Gate Engine   Integrations + Executors
-  (Registry, Router,  (evidence,    (GitHub; CodeExecutor:
-   Adapters, Ledger)   statuses)     manual | model_patch | ...)
-           │             │             │
-   Провайдеры из реестра  CI-результаты   GitHub (ветки, PR) + GitHub Actions
-   (Gemini — базовый)                     (Execution Plane, внешний)
-           └─────────── PostgreSQL ───────────┘
-```
+### 4.1. Overall scheme
 
-### 4.2. Модульный монолит
+Client (Simple Mode / Project Mode UI) → HTTP API → control plane (auth, projects, State, Router, gates) → model adapters and task worker → PostgreSQL and artifact storage. Generated project code never runs inside the BiForge server process.
 
-Код разделяется на модули в одном репозитории и одном сервисе. Модуль общается с другими только через публичный интерфейс.
+### 4.2. Modular monolith
 
-| Модуль | Ответственность |
-| --- | --- |
-| `domain` | Сущности, zod-схемы, автоматы состояний, ошибки, события. Без ввода-вывода |
-| `db` | Подключение, миграции, репозитории, транзакции |
-| `project` | Project, Project State, история, импорт из Simple |
-| `models` | Registry, Provider Adapters, Router, учёт использования |
-| `tasks` | Task/Run, очередь, воркер, бюджеты, восстановление |
-| `artifacts` | Реестр, версии, хэши, manifest, Storage Adapter |
-| `gates` | Evidence, правила gate, статусы |
-| `integrations` | `github`; внешние API только здесь |
-| `executors` | Реализации CodeExecutor (`manual`, `model_patch`), интерфейс и тесты (п. 11.4) |
-| `security` | Аутентификация, редактирование секретов, аудит, лимиты |
-| `simple` | Существующая логика BE v1.6.0 (не изменяется) |
+One deployable Node service with clear internal modules (routes, repositories, adapters, worker). Boundaries are package/module boundaries, not microservices, until capacity forces a split (§15.6).
 
-Правило зависимостей: `domain` не зависит ни от кого; `integrations` и `models` не знают о `project`; `simple` не импортирует остальные модули; `executors` использует `models` (через Router) и `integrations`, а от `executors` зависит только `tasks`. Имена вендоров и моделей в модулях `domain`, `tasks`, `gates`, `project` не допускаются (D-13).
+### 4.3. Control plane and execution plane
 
-### 4.3. Control plane и execution plane
+**Control plane:** HTTP, sessions, State mutations, budgets, gate evaluation, GitHub webhooks.  
+**Execution plane:** background worker for long model runs and code-delivery orchestration. Same codebase; MAY later split processes if RAM/CPU demand it.
 
-- **Control plane** — сервис на Railway: API, состояние, очередь, Router, gates, бюджеты.
-- **Execution plane** — внешний: GitHub Actions (и среда владельца при ручном режиме). На Railway MUST NOT запускаться никакой сгенерированный или загруженный пользователем код.
-- Сервис MUST NOT передавать в исполнители кода и в Actions секреты рантайма и ключи провайдеров. Тесты в этих контурах проходят на фейковых провайдерах.
-- Реальный smoke-тест провайдера выполняется отдельной задачей control plane с ключами сервера либо в CI с секретами GitHub, ограниченными нужным scope.
-- Собственный sandbox рассматривается только в рамках отдельного ADR после G4.
+### 4.4. Deployment baseline
 
-### 4.4. Базис развёртывания
+Railway service `e`, Node from repo config, Postgres plugin, env from E.3. Health: `/health` (liveness), `/ready` (DB and migrations).
 
-| Параметр | Значение v2.0 |
-| --- | --- |
-| Сервисы | web/api (1 реплика) + PostgreSQL |
-| Воркер | Внутри web/api; интерфейс позволяет вынести в отдельный сервис |
-| Сборка | Компиляция TypeScript в `dist` для продакшена; `tsx` только в разработке |
-| Конфигурация | `railway.toml` в репозитории — источник истины; настройки панели Railway сверяются с ним (BX-02) |
-| Health | `/health` (liveness, без обращений наружу) и `/ready` (БД и миграции) |
-| Секреты | Переменные окружения Railway; в Git, логах, Project State, артефактах и клиентском bundle запрещены |
+---
 
-## 5. Данные и Project State
+## 5. Data and Project State
 
-### 5.1. Хранилище
+### 5.1. Storage
 
-Project Mode MUST хранить состояние в PostgreSQL (сервис Railway). Миграции — версионируемые SQL-файлы, только вперёд; откат выполняется новой миграцией. Доступ к БД — драйвер `pg` и zod-валидация на границе модуля; тяжёлый ORM не требуется (решение фиксируется в ADR-01). Идентификаторы — сортируемые (UUIDv7 или ULID, ADR-01). Каждая таблица содержит `project_id` (где применимо), `created_at`, `updated_at`.
+PostgreSQL is the system of record for projects, State versions, runs, ledger, artifacts metadata. Object bytes for large artifacts MAY live in files or object storage referenced by hash.
 
-### 5.2. Сущности
+### 5.2. Entities
 
-Таблица — **ориентир, а не обязательство**: каждая таблица создаётся миграцией того шага, которому она нужна (BX-04 создаёт только проекты, State, события, аудит и rate limits). Схемы остальных сущностей определяются вместе с шагом, который ими пользуется.
+Projects, State versions, tasks/runs, artifacts, audit events, usage ledger, model health. Exact schemas evolve by migration under expand→contract (§15.3).
 
-| Группа | Таблицы |
-| --- | --- |
-| Проект | `projects`, `project_states` (текущее), `project_state_versions` (append-only), `project_events` (история и аудит) |
-| Диалог | `conversations`, `messages` (проектный диалог; не заменяет State) |
-| Исполнение | `tasks`, `task_dependencies`, `runs`, `run_events`, `jobs` (очередь), `approvals` |
-| Артефакты | `artifacts`, `artifact_versions`, `artifact_relations` |
-| Модели | `providers`, `models`, `route_decisions`, `usage_ledger`, `model_health` |
-| Качество | `gates`, `gate_evidence` |
-| Интеграции | `git_links`, `code_tasks`, `connection_checks` |
-| Безопасность | `audit_events`, `rate_limits` |
+### 5.4. State change rules
 
-### 5.4. Правила изменения State
+- Models propose patches; the server validates schema and policy.
+- Optimistic concurrency via `expected_version` / conflict → 409.
+- Decisions are human-only; model patches must not write the decisions section as committed choices.
 
-1. Любое обновление несёт `expected_version`; при несовпадении — отказ `409 CONFLICT`, молчаливая перезапись запрещена.
-2. Модель не пишет в State напрямую. Она возвращает **patch** (добавить, изменить или отклонить элементы), который проходит конвейер: проверка схемы → проверка политики (кто и что вправе менять) → применение доменным сервисом → запись версии и события.
-3. Элементы, созданные моделью, получают статус `proposed`. В `confirmed` их переводит человек либо детерминированное правило, явно описанное в политике (например, факт со ссылкой на загруженный артефакт и цитатой).
-4. `decisions` создаёт и изменяет только человек. Гипотеза модели не может стать решением без действия человека.
-5. Факт без `ref` на источник MUST иметь пометку `unverified` и не попадает в контекст как установленный.
-6. Каждая версия State сохраняется (append-only); для любого элемента доступен автор, время и источник.
+### 5.5. Compaction
 
-### 5.5. Компактизация
+Long histories are summarised under policy so context stays within model limits; compaction is recorded and reversible from version history where required.
 
-- Для каждой секции задан лимит токенов. При превышении сначала применяется детерминированное правило (приоритет: confirmed > proposed, затем давность и важность), и только потом LLM-сжатие описаний низкого приоритета.
-- **Инвариант:** решения, открытые риски уровня high, требования и критерии приёмки не сжимаются никогда. Тест проверяет, что после компактизации сохранены ID всех элементов этих классов.
-- Результат сжатия сохраняется как новая версия State; полная версия остаётся доступной.
+### 5.6. Recovery
 
-### 5.6. Восстановление
+Restart-safe queues and run statuses; abandoned runs are marked and do not leave State half-applied without an audit trail.
 
-После перезапуска сервиса Project, State и очередь задач восстанавливаются из БД без потери подтверждённых данных. Незавершённые Run обрабатываются по п. 8.3.
+### 5.7. Import from Simple Mode
 
-### 5.7. Импорт из Simple Mode
+Optional export/import of decision material into a project; mapping rules preserve user facts vs hypotheses.
 
-Импорт — явная операция пользователя: он выбирает сообщения, факты или решения в Simple Mode, клиент отправляет выбранный материал в API. Запись получает `origin = simple_import`, время и ссылку на созданный элемент State или артефакт. Simple Mode не пишет в серверную БД и не читает её автоматически.
+### 5.8. Project data
 
-### 5.8. Данные проекта
+Passport and settings (budgets, executor mode, visibility) live with the project; secrets stay in env, not in State JSON.
 
-Удаление проекта удаляет его данные каскадно и оставляет в аудите запись об удалении без содержимого. Политика хранения логов и артефактов задаётся в ADR-08. Реальные данные пользователей не отправляются провайдерам с неподтверждёнными условиями использования данных (A-02, A-08).
+---
 
-## 7. Мультимодельный слой
+## 7. Multi-model layer
 
 ### 7.1. Model Registry
 
-Реестр хранится в БД; начальное содержимое (seed) лежит в репозитории и проверяется CI. Секреты в реестре не хранятся — только имя переменной окружения. **Имена моделей встречаются только в seed реестра и в конфигурации** (D-13); логика Router, профили и тесты ссылаются на классы и capabilities, а не на имена.
+Registry is stored in the DB; seed content lives in the repo and is checked by CI. Secrets are not stored — only the env var name. **Model names appear only in registry seed and configuration** (D-13); Router logic, profiles and tests refer to classes and capabilities, not names.
 
-| Поле | Назначение |
+| Field | Purpose |
 | --- | --- |
-| `provider_id`, `model_id`, `status` | Идентификация и состояние (`active`, `disabled`, `cooldown`). Новая модель создаётся в `disabled` и становится `active` только после проверки `verify:connections` со статусом `OK` |
-| `adapter` | Тип адаптера по формату API: `gemini`, `openai-compatible`, `anthropic`, `fake` (п. 7.2) |
-| `capabilities` | `json_output`, `long_context`, `vision`, `tool_use`, `code_patch` и т. д.; значение считается истинным только после проверки |
-| `role_hint` | Необязательная подсказка роли: `executor`, `verifier`, `code_author`; не обязывает Router |
-| `context_limit` | Окно контекста, если известно |
-| `quality_class` | A / B / C. До накопления реальных данных помечается `provisional`; уточняется по golden-eval (BX-14) и наблюдениям ledger, а не по маркетинговым данным |
-| `cost_in/out/cached` | Стоимость за 1 000 токенов; при неизвестной — расчётная оценка с пометкой `estimate` |
-| `latency_p50/p95` | Измеренные значения |
-| `rate_limit_policy` | Известные лимиты и правила пауз |
-| `data_policy` | `paid` / `free` / `unknown` — условия использования данных провайдером |
-| `training_opt_out_confirmed` | Ставит только человек (E.0, R7) |
-| `last_verified_at` | Дата последней проверки условий и возможностей |
-| `secret_env_ref` | Имя переменной окружения с ключом |
+| `provider_id`, `model_id`, `status` | Identity and state (`active`, `disabled`, `cooldown`). New models start `disabled` and become `active` only after `verify:connections` = `OK` |
+| `adapter` | API shape: `gemini`, `openai-compatible`, `anthropic`, `fake` (§7.2) |
+| `capabilities` | `json_output`, `long_context`, `vision`, `tool_use`, `code_patch`, etc.; true only after verification |
+| `role_hint` | Optional: `executor`, `verifier`, `code_author`; does not bind the Router |
+| `context_limit` | Context window if known |
+| `quality_class` | A / B / C. Marked `provisional` until real data; refined via golden-eval (BX-14) and ledger, not marketing |
+| `cost_in/out/cached` | Cost per 1k tokens; if unknown — estimate flagged `estimate` |
+| `latency_p50/p95` | Measured |
+| `rate_limit_policy` | Known limits and backoff |
+| `data_policy` | `paid` / `free` / `unknown` |
+| `training_opt_out_confirmed` | Human only (E.0, R7) |
+| `last_verified_at` | Last terms/capability check |
+| `secret_env_ref` | Env var name for the key |
 
-Запись без подтверждённой `capability` не может быть выбрана для задачи, которая её требует. Запись с `last_verified_at` старше 90 дней помечается предупреждением в панели.
+A row without a confirmed capability cannot be selected for a task that requires it. `last_verified_at` older than 90 days surfaces a warning in ops UI.
 
-Начальный seed содержит только то, что уже работает в BE v1.6.0 (Gemini, текущие каскады `MODEL_CASCADE_LIGHT` и `MODEL_CASCADE_STRONG`). Остальные записи добавляет владелец при подключении провайдера (E.2).
+Initial seed contains only what already works in BE v1.6.0 (Gemini, current `MODEL_CASCADE_LIGHT` / `MODEL_CASCADE_STRONG` cascades).
 
-### 7.2. Контракт Provider Adapter
+### 7.2. Provider Adapter contract
 
-```ts
-interface ProviderAdapter {
-  id: string;
-  capabilities(): Capability[];
-  call(req: NormalizedRequest, opts: CallOptions): Promise<NormalizedResponse>;
-}
-// NormalizedResponse: status, output (text|json), usage {input, cached, output},
-// latencyMs, providerId, modelId, finishReason, retryable, errorClass, rawRef?
-```
-
-Адаптеры различаются **форматом API, а не вендором**:
-
-| Адаптер | Назначение |
-| --- | --- |
-| `gemini` | Gemini API; переносится из `generate()` в `server.ts` (BX-10.a) |
-| `openai-compatible` | Один универсальный адаптер для провайдеров, чей API следует формату Chat Completions; настраивается адресом, именем переменной ключа и таблицей отличий (`param_map`, `tool_choice_map`, `json_mode`, `error_map`, E.2). Совместимость конкретного провайдера проверяется conformance-тестом и smoke-вызовом, а не принимается по заявлению |
-| `anthropic` | Отдельный адаптер для формата Messages API; реализуется (BX-12.b), только если владельцу нужен провайдер с этим форматом |
-| `fake` | Тестовый провайдер для всех сценариев ошибок (BX-11) |
-
-Для интеграций GitHub отдельные адаптеры живут в модуле `integrations`. Каждый адаптер MUST проходить один и тот же набор conformance-тестов на fake-провайдере (успех, 429, 5xx, таймаут, битый JSON, обрыв ответа, ошибка авторизации, пустой ответ).
-
-Классы ошибок: `PROVIDER_TRANSIENT` (429 без исчерпания квоты, 5xx, таймаут), `PROVIDER_QUOTA` (исчерпана квота), `PROVIDER_AUTH`, `INVALID_REQUEST`, `INVALID_OUTPUT` (не прошла схема), `POLICY_REJECTED` (блокировка контента провайдером). Эти классы не смешиваются с ошибками задачи (`TASK_FAILED`).
+Adapters implement a common interface: chat/completion, optional JSON mode, error normalisation to product codes (`PROVIDER_AUTH`, `PROVIDER_TRANSIENT`, `PROVIDER_QUOTA`, `INVALID_REQUEST`, …). Fake adapter is mandatory for CI.
 
 ### 7.3. Router v1
 
-Router детерминирован: одинаковые вход и состояние дают одинаковый маршрут.
+Selects model by required capabilities, budget remaining, health, and cascade preference (light → strong). Does not hard-code vendor names in domain logic.
 
-1. Вход: класс задачи, обязательные capabilities, нижняя граница качества, остаток бюджета, чувствительность данных, разрешённые провайдеры.
-2. Фильтр: capability подтверждена; `data_policy` допустима для чувствительности данных; контекст помещается; модель не в cooldown; запись `active`.
-3. Порядок: сначала `quality_class` не ниже границы, затем оценка стоимости, затем задержка.
-4. Проверка бюджета до вызова; при нехватке — BLOCKED, а не молчаливое превышение.
-5. Вызов и обработка ошибки по таблице 7.4.
-6. Каждое решение записывается в `route_decisions`: кандидаты, отклонённые с причиной, версия политики.
+### 7.4. Fallback matrix
 
-Если подходящей модели нет, Router возвращает отказ с причиной; подбор «хоть какой-то» модели запрещён. Router работает и при единственном активном провайдере; в этом случае fallback возможен только на другую совместимую модель того же провайдера, а требование независимости (п. 7.6) считается невыполнимым и фиксируется явно.
+On transient failure, try next model in cascade within the same capability set; record fallback in ledger. On auth/quota, mark provider/model and stop the cascade path cleanly.
 
-### 7.4. Матрица fallback
+### 7.5. Model health
 
-| Класс ошибки | Действие |
-| --- | --- |
-| `PROVIDER_TRANSIENT` | Одна повторная попытка на той же модели с exponential backoff и jitter, если позволяет дедлайн; затем следующая совместимая модель |
-| `PROVIDER_QUOTA` | Модель в cooldown до сброса; следующий совместимый кандидат; без повторов |
-| `PROVIDER_AUTH` | Провайдер помечается `disabled`, событие в аудит, оповещение; fallback только на другого провайдера; при его отсутствии — BLOCKED |
-| `INVALID_REQUEST` | Без повторов; задача FAIL с категорией system |
-| `INVALID_OUTPUT` | Одна повторная попытка с подсказкой об ошибке схемы; затем следующая модель; затем FAIL |
-| `POLICY_REJECTED` | Без повторов; эскалация человеку |
+Health events disable or cool down models; ops UI and audit record reason and time.
 
-Предельные значения (по умолчанию): 4 вызова на Run (как в текущем BE), 12 на Task, лимит на Project задаётся паспортом. Fallback допускается только на модель, совместимую с контрактом задачи.
+### 7.6. Independent check (Verifier)
 
-### 7.5. Здоровье моделей
+Where `cross_model` is required, the verifying model **MUST** be a different provider when available; otherwise `NOT_RUN(no_second_provider)`.
 
-Состояние (успехи, ошибки, cooldown, средняя задержка) переносится из памяти процесса в таблицу `model_health` с кэшем в памяти, чтобы переживать перезапуск и работать при нескольких репликах. Логика cooldown и backoff из текущего `server.ts` переиспользуется.
+### 7.7. Context build and cache
 
-Автоматический мониторинг доступных бесплатных и лимитированных возможностей провайдеров, раннее предупреждение и поиск кандидатов описаны в Приложении G (после G2; не входит в MVP и не влияет на работу Router).
+Context Builder (TZ §7.5) assembles instruction + State slice + artifacts + task within a token budget; chat history is included only with an explicit reason.
 
-### 7.6. Независимая проверка (Verifier)
+### 7.8. Usage ledger
 
-Уровни проверки результата: `none` → `deterministic` → `cross_model` → `human`.
+Every model call records project, run, tokens (in/cached/out), latency, retries, fallback share, code-executor runs.
 
-- По умолчанию применяется `deterministic`: схема, линтер, тесты, сверка ссылок и ID.
-- `cross_model` назначается политикой для критичных артефактов (спецификация, архитектура, ADR, изменения, затрагивающие безопасность) и **только** при отсутствии достаточных механических проверок.
-- Проверяющая модель MUST быть **другого провайдера**, чем исполнитель (D-07), и получает критерии приёмки и артефакт, а не самооценку исполнителя. Этот же принцип действует для `reviewer`, если код написан моделью (`model_patch`): ревьюер — другого провайдера, чем `code_author`.
-- **Если независимого провайдера нет** (подключён один), проверка `cross_model` получает статус `NOT_RUN(no_second_provider)`, а решение остаётся за человеком (`human`). Подмена независимой проверки другой моделью того же вендора запрещена.
-- Результат проверки — структурированные замечания с severity и ссылкой на место. Они не меняют статус задачи сами, но замечание уровня high блокирует автоматический переход дальше до решения человека.
-- **Включение `cross_model` не зависит от результата golden-eval.** Эксперимент BX-14 на 15–20 задачах слишком мал для статистического решения и даёт только гипотезу. Политика включения задаётся владельцем (ADR-04); эффект наблюдается по реальным данным: доля замечаний, принятых человеком, доля отклонённых замечаний, стоимость проверки на артефакт. Пересмотр политики возможен при накоплении данных.
+### 7.9. Secrets
 
-### 7.7. Сборка контекста и кэш
+Keys only in env / sealed variables; never in registry rows, logs, client bundles or State.
 
-- Context Builder собирает запрос из: инструкции профиля + срез Project State (по релевантности, в пределах лимита токенов) + связанные решения + артефакты, на которые прямо ссылается задача + сама задача. История чата добавляется только при явной причине, записанной в Run.
-- Прикладной кэш использует ключ `hash(версия профиля, модель, контекст, параметры)`; включается по классу задачи (для генерации вариантов может быть отключён). Кэш провайдера используется, если адаптер заявляет такую capability; `cachedTokens` учитываются.
-- Нерелевантные данные в запрос не включаются; тест проверяет, что контекст не превышает заданный лимит и содержит обязательные элементы State.
+### 7.10. Migrating existing code
 
-### 7.8. Учёт использования (ledger)
+BE v1.6.0 Gemini paths become the `gemini` adapter; cascades become registry-driven without breaking Simple Mode.
 
-Каждый вызов записывается в `usage_ledger`: `run_id`, провайдер, модель, input / cached / output токены, задержка, число повторов, оценка или факт стоимости, `route_decision_id`. Запуски исполнителя кода (п. 11.4) записываются в тот же журнал отдельной единицей. Формулы перевода в условные единицы бюджета (units) хранятся в конфигурации и версионируются (ADR-07).
+---
 
-### 7.9. Секреты
+## 8. Task executor
 
-Ключи — только переменные окружения Railway, доступные серверному процессу. Секреты не попадают в Git, Project State, артефакты, логи, UI и клиентский bundle; логи проходят редактирование. Ротация ключа не требует изменения кода.
+### 8.1. States
 
-### 7.10. Перенос существующего кода
+Tasks/runs move through defined states (queued, running, succeeded, failed, abandoned, …). Transitions are explicit and audited.
 
-Функция `generate()` из `server.ts` выносится в Gemini-адаптер и Router без изменения поведения: существующие виртуальные тесты служат тестами паритета. Simple Mode продолжает работать по прежнему пути, пока паритет не доказан (BX-10.a); затем миграция Simple Mode на общий слой выполняется отдельным решением (ADR-02) и не обязательна для MVP. Руководство по подключению всех моделей и сервисов — Приложение E; оно обязательно и поддерживается по правилам E.0.
+### 8.2. Idempotency
 
-## 8. Исполнитель задач
+Client-supplied idempotency keys prevent double-enqueue of the same work unit.
 
-### 8.1. Состояния
+### 8.3. Queue and recovery
 
-**Task:** `DRAFT → READY → QUEUED → RUNNING → VALIDATING → PASS`; из активных состояний допустимы `FAIL`, `BLOCKED`, `CANCELLED`. `PASS` относится к конкретной версии результата: изменение входов, артефактов или критериев приёмки требует новой валидации.
+Worker claims work with leases; restart re-queues abandoned leases without duplicating committed State side effects.
 
-**Run (попытка):** `QUEUED → RUNNING → SUCCEEDED | FAILED | TIMED_OUT | CANCELLED | ABANDONED`. Повтор создаёт новый Run; прежние попытки не перезаписываются.
+### 8.4. Budgets and stop
 
-Переходы выполняет только доменный сервис с проверкой допустимости, версии записи и записью события.
-
-Каждый Run хранит: `run_id`, `task_id`, `attempt`, время, идентификаторы и хэши входных артефактов, профиль и его версию, провайдера и модель, версию политики Router, бюджет, итоговый статус и ссылки на evidence. Неизвестные значения записываются как `null`, не выдумываются.
-
-### 8.2. Идемпотентность
-
-Создание задачи и дорогие операции принимают `idempotency_key`. Повтор с тем же ключом и тем же `input_fingerprint` возвращает существующий Run или результат. Одинаковое содержимое артефакта не дублируется (по хэшу).
-
-### 8.3. Очередь и восстановление
-
-- Очередь — таблица `jobs`; воркер выбирает задания запросом с `FOR UPDATE SKIP LOCKED`, удерживает lease и обновляет heartbeat.
-- При рестарте Run с просроченным lease получает `ABANDONED`, Task переходит в `BLOCKED(recovery)`. Дальше возможно либо безопасное повторение (если операция идемпотентна и бюджет позволяет), либо решение человека.
-- Потеря воркера никогда не превращается в PASS.
-- Воркер работает внутри основного сервиса; интерфейс допускает вынос в отдельный сервис без изменения моделей данных.
-
-### 8.4. Бюджеты и остановка
-
-На Project, Task и Run задаются: `max_model_calls`, `max_tokens`, `max_cost_units`, `max_wall_clock`, `max_attempts`, `max_code_tasks`. Проверка выполняется до каждого вызова. Превышение переводит задачу в `BLOCKED(budget)` и создаёт запрос подтверждения человеку. Увеличить бюджет может только человек.
+Per-project and global ceilings on model calls and code-executor runs; stop when exhausted with a clear error to the client.
 
 ### 8.5. Task Graph v1
 
-- План строится из статических шаблонов (например, `спецификация → архитектура → проверка → утверждение`). Модель вправе **предложить** план: список задач с зависимостями.
-- Валидатор проверяет: нет циклов, все зависимости существуют, число задач не более 12, суммарный бюджет не превышает лимит проекта.
-- Выполняется только план, **утверждённый человеком**. Модель не изменяет граф в ходе выполнения; новая версия плана тоже требует утверждения.
-- Параллелизм: не более 2 одновременных Run на проект (конфигурируемо), только для независимых задач, не пишущих в общий артефакт.
+Optional graph of dependent tasks with approvals; human gates where policy requires.
 
-### 8.6. Участие человека
+### 8.6. Human participation
 
-Таблица `approvals` хранит запросы и решения: утверждение плана, превышение бюджета, готовность к merge, решение по State, потенциально разрушающие действия. Режимы: **Supervised** (по умолчанию) и **Manual**. Режима Autonomous в MVP нет, и флага для его включения тоже нет.
+Approvals and decisions are session-authenticated; forged `actorKind` in the body is ignored (extended tests 16.4.4).
 
-## 9. Профили вместо агентов
+---
 
-### 9.1. Определение профиля
+## 9. Profiles instead of agents
 
-Профиль = версия инструкций + схема входа + схема выхода (zod) + разрешённые инструменты + политика модели (класс задачи, нижняя граница качества, уровень проверки) + бюджет по умолчанию + правила эскалации. Профили лежат в репозитории (`profiles/`), проходят проверку схем в CI; изменение профиля — это PR и прогон golden-eval (BX-14).
+### 9.1. Profile definition
 
-### 9.2. Профили MVP
+A profile is a named instruction + capability set + budget class for a kind of work (e.g. analysis, code author), not a persistent autonomous agent.
 
-| Профиль | Назначение |
-| --- | --- |
-| `analyst` | Предлагает patch к Project State (факты, неизвестные, гипотезы, риски) по материалам и диалогу |
-| `architect` | Создаёт артефакты спецификации и архитектуры, предлагает ADR |
-| `brief_writer` | Формирует пакет задания для исполнителя кода: `SPEC.md`, критерии приёмки, тесты-ожидания, ограничения |
-| `reviewer` | Читает diff и результаты CI, возвращает структурированные замечания |
-| `summarizer` | Компактизация State, отчёты о шаге и проекте |
-| `code_author` | Возвращает структурированный патч по Task Package; используется только исполнителем `model_patch` (п. 11.4); результат проходит детерминированную валидацию до записи в репозиторий |
+### 9.2. MVP profiles
 
-Дополнительные профили (UI/UX, Security, DevOps и др.) добавляются только после измеренной необходимости; ядро Router и исполнителя при этом не меняется.
+Minimal set sufficient for G1–G2 (analyst, verifier, optional code_author). Expansion is data-driven.
 
-### 9.3. Права
+### 9.3. Rights
 
-- Профиль получает только инструменты из своего списка; вызовы типизированы и валидируются.
-- Вывод, не прошедший схему, отклоняется до записи в State или артефакты.
-- Ни один профиль не вправе выполнять merge, deploy, менять секреты, права доступа или собственный профиль.
+Profiles cannot escalate beyond server policy; they cannot merge code or spend beyond budgets.
 
-## 10. Файлово-артефактный слой
+---
 
-### 10.1. Модель
+## 10. File and artifact layer
 
-Артефакт — версионируемый объект с `artifact_id`, `version`, `filename`, `mime`, `size`, `hash` (SHA-256), `storage_ref`, `created_by` (человек, Run, профиль), `derived_from` (входные артефакты и операция), `security_status`, `classification`. Имя файла не является идентификатором. Любой формат принимается как бинарный артефакт; специальная обработка подключается адаптерами.
+### 10.1. Model
 
-### 10.2. Хранение
+Artifacts have id, version, hash, filename, and optional text extraction for context.
 
-- Метаданные — в PostgreSQL. Содержимое — через Storage Adapter.
-- **Для MVP:** содержимое до 5 МБ — в PostgreSQL (`bytea`) либо на томе Railway; решение фиксируется в ADR-05. Крупные объекты и долговременное хранение — S3-совместимое хранилище, подключаемое тем же адаптером.
-- Артефакт считается подтверждённым после записи, проверки хэша и размера и создания manifest. Ссылка на несуществующий объект — ошибка целостности.
-- Изменение создаёт новую версию. Молчаливая перезапись исходников, отчётов, результатов тестов и snapshot State запрещена.
+### 10.2. Storage
 
-### 10.3. Операции MVP
+Metadata in Postgres; bytes content-addressed where practical.
 
-upload, download, hash, inspect, preview (для безопасных форматов), versions и diff, export, manifest. Распознавание текста PDF, Word, Excel, PowerPoint и изображений переиспользует существующий серверный модуль из BE v1.6.0 (в памяти, с лимитами). Операции convert, compress и extract — отложены, кроме безопасного **просмотра списка** архива.
+### 10.3. MVP operations
 
-### 10.4. Недоверенные файлы
+Upload, list, download, attach to tasks/State references.
 
-Любой загруженный файл недоверен. Тип определяется по содержимому, размер и количество ограничены. Парсеры работают с лимитами памяти и времени. Исполняемые форматы не запускаются. Распаковка архивов на сервере разрешена **только в Project Mode** и только в пределах лимитов и проверок ADR-12 / P26 (нормализация путей, счётчик фактических байт, изоляция в worker_thread, семафор параллельных ингестов). В Simple и Expert Mode распаковка выполняется исключительно в браузере (Web Worker). Содержимое файла передаётся модели как **данные**, но не как инструкции (раздел 13).
+### 10.4. Untrusted files
+
+File content is data, never instructions. Injection corpus and redaction apply.
 
 ### 10.5. Artifact Graph
 
-Связи хранятся в `artifact_relations`: требование → архитектура → спецификация задания → PR/commit → результаты CI → замечания reviewer → решение человека. Для любого результата MUST быть восстановима цепочка: кто и какая задача создали его, какие модель и профиль участвовали, какие входы использованы, какие проверки пройдены (Приложение B v1.4 сохраняется).
+References between artifacts and State items are explicit; deletion policy preserves auditability.
 
-## 11. Code Delivery: CodeExecutor, GitHub и CI
+---
 
-### 11.1. Принцип
+## 11. Code Delivery: CodeExecutor, GitHub and CI
 
-Генерация кода выполняется исполнителем кода (CodeExecutor, п. 11.4), сборка и тестирование — только в GitHub Actions (и в среде владельца при ручном режиме). Продукт (control plane) готовит задание, запускает исполнитель или ожидает результата, собирает evidence, проводит независимую проверку и передаёт решение человеку. **Продукт сам код не исполняет** (D-03). Любой исполнитель возвращает один и тот же тип результата — ветку и PR в GitHub, — поэтому всё, что находится после исполнителя (CI, Gate Engine, reviewer, решение человека), от выбора исполнителя не зависит.
+### 11.1. Principle
 
-### 11.2. Репозитории
+BiForge organises specification → code → PR → CI → review → human decision. It does not execute generated project code on its own server and does not merge to `main`.
 
-- Код самого BiForge — `ecooorg/bf`. Он разрабатывается по части B (раздел 16) и не является проектом Code Delivery.
-- Каждый сгенерированный проект получает **отдельный репозиторий** (ADR-06: видимость, организация, лимиты Actions по A-07).
-- Репозиторий проекта не содержит секретов; `main` защищён, required checks включены, прямой push в `main` запрещён для всех, включая приложение продукта.
+### 11.2. Repositories
 
-### 11.3. Пакет задания (Task Package)
+Product repo `ecooorg/bf`; user/project repos under org policy (`BIFORGE_PROJECTS_ORG`). Product GitHub App permissions are least-privilege (§E.5).
 
-Продукт (профиль `brief_writer`) готовит, человек утверждает, затем пакет коммитится в ветку задачи `biforge/<task_id>`:
+### 11.3. Task Package
 
-| Файл | Содержание |
+Structured package (`PACKAGE.md` and related files) describing the coding task, acceptance expectations and constraints for an external executor.
+
+### 11.4. Code executors
+
+Interface **CodeExecutor** (D-14):
+
+| Mode | Behaviour |
 | --- | --- |
-| `AGENTS.md` (корень) | Правила для агента: scope, запрет трогать защищённые пути, обязательный запуск тестов, запрет секретов, формат отчёта в PR, процедура BLOCKED |
-| `.biforge/tasks/<task_id>/SPEC.md` | Цель, границы, входы и выходы, список `allowed_paths` и `context_files`, ссылки на артефакты и решения |
-| `.biforge/tasks/<task_id>/ACCEPTANCE.md` | Проверяемые критерии приёмки |
-| `tests/acceptance/**` | Тесты-ожидания, написанные и утверждённые **до** реализации |
-| `.biforge/tasks/<task_id>/EXECUTOR_PROMPT.md` | Короткая инструкция исполнителю (шаблон — Приложение A) |
+| `manual` (MUST) | Human uses any tool; returns PR/branch/diff |
+| `model_patch` (SHOULD after E-01 / ADR-10) | Model emits structured patch applied only under policy to `biforge/*` |
 
-Дополнительно продукт формирует **`PACKAGE.md`** — единый текстовый файл для переноса в любой инструмент: инструкция, SPEC, критерии приёмки, тесты-ожидания и содержимое `context_files`. В репозиторий он не коммитится и отдаётся человеку как артефакт (экспорт). Файл не содержит секретов; при `sensitivity = high` его выдача требует отдельного approval (п. 13.6).
+### 11.5. Sequence
 
-Ориентир размера задачи: до 10 файлов и около 400 изменённых строк; более крупные задачи делятся на стадии плана. Исполнителям (людям и моделям) лучше удаются чётко ограниченные задачи, а не открытые архитектурные.
-
-### 11.4. Исполнители кода (CodeExecutor)
-
-```ts
-interface CodeExecutor {
-  id: string;                                        // 'manual' | 'model_patch' | ...
-  start(pkg: TaskPackageRef, run: RunRef): Promise<ExecutorHandle>;
-  poll(h: ExecutorHandle): Promise<ExecutorStatus>;  // WAITING_HUMAN | RUNNING | DELIVERED | FAILED | BLOCKED
-}
-// ExecutorResult (при DELIVERED): executor, branch, headSha, prUrl?, filesChanged,
-// linesChanged, notes?. Код в памяти продукта не передаётся: результат — ветка и коммит в GitHub.
-```
-
-Исполнитель выбирается в паспорте проекта. Запись каждого запуска хранится в `code_tasks` (поля: `executor`, `status`, `branch`, `head_sha`, `pr_url`, `executor_note`). Схема не содержит названий вендоров (D-13).
-
-**`manual` — MUST.** Продукт формирует Task Package и `PACKAGE.md`; человек передаёт их в любой инструмент по своему выбору и возвращает результат одним из способов: (а) PR в репозитории проекта (продукт находит PR по `task_id` в описании или по ветке `biforge/<task_id>`: webhook GitHub, при его отсутствии — опрос); (б) ссылка на ветку; (в) загрузка unified diff в продукт: диск не затрагивается, патч проходит ту же валидацию, что и в `model_patch` (см. ниже), и применяется через API GitHub. Название использованного инструмента записывается в `executor_note` как свободный текст.
-
-**`model_patch` — SHOULD, включается решением владельца по итогам эксперимента E-01 (п. 11.9).** Продукт вызывает профиль `code_author` через Router с подтверждённой `json_output` capability и требует структурированный ответ. Отдельная `code_patch` capability используется только для моделей/адаптеров, где она подтверждена реальной проверкой; текущий Gemini adapter её не объявляет:
-
-```json
-{"files":[{"path":"src/x.ts","action":"create|modify|delete","content":"...полный новый текст..."}],"notes":"..."}
-```
-
-Валидация перед применением выполняется детерминированным кодом:
-
-1. Схема (zod); не более 10 файлов и около 400 изменённых строк (значения из `SPEC.md`, не выше порога по умолчанию).
-2. Каждый путь входит в `allowed_paths` из SPEC и не содержит выхода из корня (`..`, абсолютные пути, символьные ссылки).
-3. Защищённые пути недоступны модели безусловно: `tests/acceptance/**`, `.github/**`, `AGENTS.md`, `.biforge/**`, файлы блокировок зависимостей и конфигурация CI; расширение возможно только явным указанием в SPEC с approval.
-4. Только текстовые файлы; бинарные данные и исполняемые права отклоняются.
-5. Результат записывается через Git Data API GitHub в ветку `biforge/<task_id>` (коммит от приложения), затем создаётся PR. Merge не выполняется.
-
-Модель получает только `context_files` и SPEC (п. 7.7); объём ограничен окном контекста выбранной модели. Если нужный контекст не помещается, задача делится.
-
-**Прочие исполнители** (Jules и подобные облачные агенты) подключаются тем же интерфейсом без изменения State, Task, Gate Engine и схем. Готовые проработки по Jules — F.3. Включение любого дополнительного исполнителя требует отдельного ADR и повторения эксперимента E-01 для него.
-
-### 11.5. Последовательность
-
-1. `brief_writer` формирует пакет → проверка схемой; перекрёстная проверка критичных частей (п. 7.6), если доступен второй провайдер.
-2. Человек утверждает пакет (approval).
-3. Запуск исполнителя (`manual`: выдача `PACKAGE.md` и ожидание; `model_patch`: вызов модели, проверка патча и подготовка source artifact; GitHub commit/PR — только при включённых правах).
-4. В репозитории появляется PR.
-5. GitHub Actions выполняет проверки.
-6. Gate Engine принимает evidence (раздел 12).
-7. `reviewer` читает diff и результаты CI, возвращает замечания; при коде от модели — модель другого провайдера, если он есть.
-8. Человек решает: принять, отправить на исправление или отклонить.
-9. **Merge выполняет человек в GitHub.** Токен продукта не имеет права merge.
-10. Продукт записывает артефакты, обновляет State, ledger и историю.
+Package → executor → PR on `biforge/*` → CI checks → human review → human decision. No automatic merge.
 
 ### 11.6. Repair Loop
 
-Триггеры: падение проверки CI, замечание `reviewer` уровня high, отклонение человеком с комментарием.
+Failed CI or review can re-enter a bounded repair cycle under budget; infinite loops are forbidden.
 
-1. Сбой классифицируется детерминированно по типу проверки (сборка, линтер, тест, безопасность, несоответствие критериям).
-2. Формируется repair-задание: исходная задача + отчёт о сбое (усечённые логи, ссылки) + список уже предпринятых попыток.
-3. Создаётся новый запуск исполнителя (новый Run; для `manual` — новый `PACKAGE.md` с отчётом о сбое).
-4. **Остановка** наступает при любом из условий: достигнут `max_attempts` (по умолчанию 2 исправления); получен идентичный diff (по хэшу) или идентичная сигнатура ошибки; число падающих тестов не уменьшилось за две попытки; исчерпан бюджет.
-5. После остановки создаётся диагностический отчёт (артефакт) и запрос решения человека.
+### 11.7. GitHub rights for the product
 
-Один перезапуск CI без нового запуска исполнителя допустим для случаев, помеченных как нестабильный тест.
+No admin; no merge; write only to `biforge/*` when enabled; ruleset protects `main`.
 
-### 11.7. Права GitHub для продукта
+### 11.8. Trust boundaries
 
-GitHub App или fine-grained токен: `contents:read`, `checks:read`, `metadata:read`, `pull_requests:read`. Записывающие права **включаются только при включённом `model_patch` или загрузке diff** и ограничены: `contents:write` — только в ветки `biforge/*` (обеспечивается ruleset/branch protection; запись в `main` невозможна), `pull_requests:write` — только для создания PR. Не выдаются: admin, merge, secrets, workflows:write. Webhook проверяется по подписи. Фактические права сверяются с манифестом при каждой проверке подключения (E.5, E.6).
+Executor output is untrusted until CI and human acceptance. Secrets never injected into generated projects from BiForge control plane beyond explicit policy.
 
-### 11.8. Границы доверия
+### 11.9. Experiment E-01: admission to Code Delivery
 
-- Код, созданный любым исполнителем (человеком с моделью или моделью по API), недоверен: продукт его не выполняет.
-- Содержимое PR, комментариев и логов CI передаётся моделям как **данные**, не как инструкции (раздел 13).
-- Исполнитель не получает секреты продукта и ключи провайдеров; тесты проходят на fake-провайдерах.
-- Отправка кода или Task Package внешнему провайдеру моделей либо инструменту — передача данных третьей стороне: при `sensitivity = high` допускается только к провайдерам с `data_policy = paid` и с отдельным approval (п. 13.6).
-- Деплой сгенерированного проекта вне продукта и выполняется человеком.
+Validates that `model_patch` produces applicable patches that pass acceptance in a bounded number of attempts (A-10). Positive result feeds ADR-10.
 
-### 11.9. Эксперимент E-01: допуск к Code Delivery
+### 11.10. User scenario: small programs
 
-**Цель.** До построения GitHub-интеграции, Gate Engine и исполнителей (BX-19…23) выяснить, какой путь получения кода работает на практике (A-10, A-09). Выполняется в BX-18.b вручную владельцем, без кода продукта.
+Product path for generating small downloadable programs (e.g. zip) under the same honesty and budget rules; UI must not expose internal executor protocol jargon to end users.
 
-**Процедура.** Взять 3 небольшие реальные задачи (каждая до 10 файлов и около 400 строк, с acceptance-тестами, написанными заранее). Каждую выполнить двумя способами: (1) `manual` — любым инструментом по выбору владельца; (2) `model_patch` — вызовом модели по API с тем же `PACKAGE.md` и структурой ответа из п. 11.4 (скриптом, отдельным от продукта). Измерить для каждой пары: применим ли патч; зелёный ли CI с первой попытки; сколько исправлений понадобилось (до 2); время человека; стоимость вызовов.
+---
 
-**Решение владельца (фиксируется в ADR-10):**
+## 12. Quality and evidence
 
-| Исход | Решение |
-| --- | --- |
-| `model_patch` довёл не менее 2 из 3 задач до зелёного CI не более чем за 2 исправления и не хуже `manual` по времени человека | Включить `model_patch` в BX-21.b |
-| `model_patch` заметно хуже | BX-21.b пропускается (запись в ADR-10); Code Delivery работает только в режиме `manual` |
-| Не справляются оба способа | Объём S3 сужается до подготовки спецификации и пакета (без реализации); G3 пересматривается |
+### 12.1. Principles
 
-Выборка из трёх задач мала: результат — **гипотеза для решения владельца**, а не статистический вывод. Отчёт сохраняется как артефакт; эксперимент повторяется при смене модели или класса задач.
+Machine evidence over narrative. Unrun checks are `NOT_RUN`, not silent pass.
 
-### 11.10. Пользовательский сценарий создания небольших программ
+### 12.2. Statuses
 
-Project Mode MUST distinguish text analysis from a request to create software. The explicit `Create a small program` action submits a natural-language goal to the code-author flow; it does not silently reinterpret ordinary analysis requests. The flow creates a durable Task and Task Package, invokes the configured `model_patch` executor, validates the returned full-file patch, and stores a ZIP source bundle as a project artifact. The bundle is downloadable even if GitHub delivery is blocked after validation.
-
-For the product-facing flow, generated files are confined to `generated-projects/<task_id>/**`; this keeps user-generated code isolated from BiForge application code. A browser game or small browser utility SHOULD be delivered as a self-contained `index.html` with embedded CSS/JavaScript and no remote dependencies when practical. The source ZIP includes a short notice that the code was not executed by BiForge.
-
-The production model call uses the existing Router with the confirmed `json_output` capability to request a schema-shaped `{files, notes}` response. The current Gemini adapter does not advertise a separately verified native `code_patch` capability; this flow MUST NOT claim that it does. Structural/path validation remains deterministic. BiForge MUST NOT execute generated code on its server. The user-facing program-creation flow is source-only and never writes generated code into BiForge’s own repository. The separate Code Delivery workflow retains GitHub branch/PR delivery subject to `CODE_EXECUTOR=model_patch`, the project passport, GitHub write configuration and the existing human review/merge boundaries. Default executor remains `manual`; the feature does not grant merge or deployment rights.
-
-A generated ZIP is a source artifact, not evidence that runtime tests passed. Basic HTML-shell and parse-only JavaScript syntax checks are not runtime tests. Statuses must distinguish successful source generation, blocked GitHub delivery, and actual CI/test evidence. Runtime execution, automatic repair based on runtime failures, and a hosted preview require a separately approved isolated runner/staging design; they are not implied by source generation.
-
-
-## 12. Качество и evidence
-
-### 12.1. Принципы
-
-PASS выставляет только Gate Engine на основании зарегистрированных evidence. Утверждение модели «тесты прошли» доказательством не является. Непроведённая проверка имеет статус `NOT_RUN`.
-
-### 12.2. Статусы
-
-`PASS`, `FAIL`, `BLOCKED` (невозможно проверить: нет доступа, квоты, инфраструктуры), `NOT_RUN`, `REAL_ONLY` (проверяется только на реальном провайдере или среде), `WAIVED` (снято решением человека с обязательной причиной; запись в аудите).
+PASS / FAIL / NOT_RUN / BLOCKED as used in CI and connection verification.
 
 ### 12.3. Evidence
 
-Запись: версия правил gate, перечень проверок, статус каждой, время, инструмент и его версия, код возврата, ссылки на логи (усечённые, как артефакты) и артефакты-доказательства, `commit SHA`, к которому они относятся.
+CI logs, test output, ledger rows, gate records, artifact hashes.
 
-### 12.4. Каталог gates
+### 12.4. Gate catalogue
 
-| Gate | Что проверяется | Источник evidence |
-| --- | --- | --- |
-| Requirements | Требования и критерии приёмки заданы и подтверждены человеком | State + approval |
-| Spec | Спецификация проходит схему; критичные части проверены (7.6); решение человека | Артефакты + findings + approval |
-| Build | Сборка и статический анализ | CI check run |
-| Test | Модульные и acceptance-тесты | CI check run |
-| Test Integrity | Защищённые пути `tests/acceptance/**` не изменены без approval | Diff PR |
-| Security | Поиск секретов, аудит зависимостей, линтер безопасности | CI check run |
-| Review | Нет неснятых замечаний high; решение человека зафиксировано | `reviewer` + approval |
-| Release Candidate | Manifest полон: commit, версии, результаты, решения, риски | Gate Engine |
+Product gates G0–G4 (`SPEC_PRODUCT.md`); technical gates for steps as listed in step SPECs.
 
-### 12.5. Правила
+### 12.5. Rules
 
-- Изменение кода после gate инвалидирует связанные evidence; после merge результат проверяется повторно.
-- Тесты на fake-провайдерах доказывают обработку сценариев и ошибок, но не доступность и совместимость реального провайдера. Реальный smoke-тест обязателен и имеет статус `REAL_ONLY`, пока не выполнен.
-- Переход к следующей стадии при `FAIL`, `BLOCKED` или `NOT_RUN` обязательного gate запрещён; обойти его можно только через `WAIVED` человеком.
-- Gate Engine получает результаты CI через API и webhook GitHub; сами логи не интерпретируются моделью для вынесения статуса.
+Owner closes product gates; CI closes code PASS on published commits (D-08).
 
-## 13. Безопасность
+---
 
-### 13.1. Активы и угрозы
+## 13. Security
 
-Активы: ключи провайдеров, данные GitHub-приложения, данные проектов, Project State, история решений. Основные угрозы: утечка секретов, prompt injection через файлы, PR и логи CI, несанкционированные действия, неконтролируемые расходы, потеря данных.
+### 13.1. Assets and threats
+
+Sessions, project State, API keys, GitHub app credentials, user uploads. Threats: injection, secret leak, privilege escalation, State tampering.
 
 ### 13.2. Prompt injection
 
-- Содержимое загруженных файлов, PR, комментариев и логов CI передаётся моделям в помеченных блоках **данных**; инструкции внутри данных не исполняются. Существующий механизм блока «ATTACHED FILES» (данные, не инструкции) переиспользуется.
-- Побочные эффекты (запись в State, запуск задач, обращение к GitHub) возможны только через типизированные инструменты профиля и доменный валидатор; вывод модели сам по себе действия не вызывает.
-- Обязателен тестовый корпус инъекций (в файле, в описании PR, в логе CI), прогоняемый в CI.
+User files and external text are data. System prompts and tool policy resist instruction smuggling; tests include an injection corpus.
 
-### 13.3. Секреты и токены
+### 13.3. Secrets and tokens
 
-- Секреты хранятся в переменных окружения Railway и GitHub Secrets (в минимальном scope); в Git, State, артефактах, логах, UI и клиентском bundle их быть не должно. Секрет-сканирование выполняется в CI обоих репозиториев.
-- Токены GitHub имеют минимальные права (п. 11.7); подпись webhook проверяется; ротация не требует изменения кода.
-- Тест редактирования: известные значения секретов не появляются в логах, ответах API и телеметрии.
+Env / sealed only; redaction in logs; secret scan in CI.
 
-### 13.4. Веб-безопасность
+### 13.4. Web security
 
-Все эндпоинты Project Mode валидируют вход схемами и лимитами размера; SQL параметризован. Поскольку Project Mode добавляет изменяющие запросы с cookie-сессией, MUST быть защита от CSRF (SameSite и проверка Origin). Ограничения частоты и защита входа от перебора сохраняются и хранятся в БД.
+Auth for Project Mode; CSRF/same-origin rules for mutating routes; password gate for deployment access.
 
-### 13.5. Аудит
+### 13.5. Audit
 
-В `audit_events` (логически append-only, без API изменения и удаления) записываются: вход, создание и удаление проекта, утверждения (approvals), изменение бюджета и политик, `WAIVED`, изменение профилей и реестра моделей, запуск исполнителя кода, смену исполнителя (`manual` / `model_patch`).
+Security-relevant events recorded (login failures, settings changes, provider disable, approvals).
 
-### 13.6. Данные и приватность
+### 13.6. Data and privacy
 
-- У проекта есть поле `sensitivity` (`normal` | `high`). При `high` разрешены только модели с `data_policy = paid`, а передача кода и Task Package внешнему провайдеру или инструменту требует отдельного approval, так как код и задание обрабатываются третьей стороной.
-- Пользователь видит предупреждение, какие провайдеры получат материалы проекта.
-- Для реальных данных проектов используется платный биллинг Gemini API с лимитом бюджета (A-02); для дополнительных провайдеров — условия по A-08. Бесплатные уровни — для синтетических данных и тестов.
+Paid data policy for real projects; free keys isolated to synthetic traffic.
 
-### 13.7. Запреты
+### 13.7. Prohibitions
 
-MUST NOT: исполнять недоверенный код на Railway; передавать секреты продукта в исполнители кода и Actions; выполнять merge и deploy из продукта; позволять модели менять State, профили, реестр или права без валидации; логировать полные промпты и содержимое приватных файлов по умолчанию.
+No secrets in git; no model-chosen irreversible external side effects without human gate; no execution of generated untrusted code on the BiForge host.
 
-## 14. Экономика и бюджеты
+---
 
-### 14.1. Приоритеты
+## 14. Economics and budgets
 
-Безопасность → корректность → проверенное качество результата → максимальная автоматизация в пределах утверждённых полномочий → стоимость → скорость. Максимальная автоматизация — один из основных приоритетов владельца, но она не отменяет проверки, evidence, бюджетных ограничений или решений Tier 2/3. Экономия не оправдывает отказ от проверки; дорогой вызов оправдан, если он предотвращает больше повторной работы (D-09).
+### 14.1. Priorities
 
-### 14.2. Обязательные меры
+Protect owner spend and prevent runaway loops before optimising unit cost.
 
-- Детерминированная операция вместо вызова модели везде, где возможна.
-- Срез State вместо истории; артефакты — по ссылке и фрагментам, а не целиком.
-- Структурированный вывод и ограничение максимальной длины ответа.
-- Один вызов по умолчанию; независимая проверка — по политике (7.6).
-- Дешёвый класс для простых задач; сильный класс — для архитектуры, спецификации, сложного review либо после провала дешёвого (`INVALID_OUTPUT`, FAIL gate), но не по умолчанию.
-- Прикладной кэш и кэш провайдера (7.7); повторное использование результата при неизменных входах.
+### 14.2. Mandatory measures
 
-### 14.3. Целевые лимиты по умолчанию
+Daily/call caps, per-project ceilings, ledger, kill switches for disabled providers.
 
-Значения — стартовые цели; уточняются по измерениям BX-14 и BX-26.
+### 14.3. Default target limits
 
-| Область | Лимит |
-| --- | --- |
-| Run | 4 вызова модели |
-| Task | 12 вызовов, 2 попытки исправления |
-| Эталонный сценарий E2E (п. 18.1) | не более 12 вызовов модели |
-| Малый проект S3 | не более 60 вызовов модели и 8 запусков исполнителя кода (включая исправления) |
-| Платный провайдер, месячный лимит расходов | Задаётся в консоли провайдера (MUST) и дублируется в паспорте проекта |
+Pilot defaults (e.g. max code tasks = 8) are starting points; tuned from ledger data.
 
-### 14.4. Контроль платных расходов
+### 14.4. Paid spend control
 
-Для платного Gemini API MUST быть настроен бюджетный лимит или оповещение на стороне Google Cloud и суточный потолок вызовов в приложении (перенос `DAILY_CALL_CAP` из BE в БД, на проект и глобально). Достижение 80% бюджета — предупреждение в панели; 100% — остановка новых вызовов. То же требование — лимит расходов в консоли — действует для каждого платного провайдера (A-08).
+Provider console limits + app-level daily call ceiling; both required for production real data.
 
-### 14.5. Отчётность
+### 14.5. Reporting
 
-Стоимость и расход доступны по проекту, задаче, Run, провайдеру и модели, шагу плана: вызовы, токены (input / cached / output), задержка, повторы, доля fallback, запуски исполнителя кода.
+`/ops` (authenticated): calls, tokens, latency, fallback share, executor runs, queue depth, integrity errors.
 
-## 15. Эксплуатация и развёртывание
+---
 
-### 15.1. Обязательные исправления базовой конфигурации (BX-02)
+## 15. Operations and deployment
 
-1. Реализовать настоящие `/health` (liveness) и `/ready` (БД и миграции) и установить `Healthcheck Path = /health` в Railway. Сейчас маршрута `/health` нет, а универсальный маршрут отдаёт `index.html`, поэтому проверка может проходить всегда.
-2. Неизвестные маршруты `/api/*` возвращают JSON-ошибку 404, а не страницу приложения.
-3. Привести `railway.toml`, `nixpacks.toml` и настройки панели Railway к одному описанию (сборщик, число перезапусков, команда запуска). Источником истины является файл в репозитории.
-4. Запускать продакшен из скомпилированного `dist`; зафиксировать версию Node.
+### 15.1. Mandatory baseline fixes (BX-02)
+
+1. Real `/health` (liveness) and `/ready` (DB and migrations); Railway Healthcheck Path = `/health`.
+2. Unknown `/api/*` routes return JSON 404, not the SPA shell.
+3. Align `railway.toml`, `nixpacks.toml` and Railway panel settings; repo files are source of truth.
+4. Production runs from compiled `dist`; pin Node version.
 
 ### 15.2. CI
 
-GitHub Actions для `ecooorg/bf`: lint и typecheck, модульные и виртуальные тесты, тест миграций на сервисе PostgreSQL, сборка, сканирование секретов. Required checks включены на `main`; в Railway включено ожидание CI (Wait for CI) и автодеплой из `main`.
+GitHub Actions on `ecooorg/bf`: lint, typecheck, unit and virtual tests, migration tests on PostgreSQL, build, secret scan. Required checks on `main`; Railway Wait for CI and auto-deploy from `main`.
 
-### 15.3. Миграции и откат
+### 15.3. Migrations and rollback
 
-- Миграции выполняются на этапе деплоя (pre-deploy) либо при старте под advisory lock. Схема меняется по принципу expand → contract: код версии N работает со схемой N−1.
-- Откат кода: повторный деплой предыдущей успешной версии или `git revert` → CI → деплой. Данные не откатываются; совместимость схемы обеспечивает возможность отката кода без отката БД.
+Migrations on deploy (pre-deploy) or start under advisory lock. Schema expand → contract: version N code works with schema N−1. Code rollback: redeploy previous success or `git revert` → CI → deploy. Data is not rolled back; schema compatibility allows code rollback without DB rollback.
 
-### 15.4. Резервное копирование и восстановление
+### 15.4. Backup and restore
 
-Ежедневный бэкап БД (A-06); тест восстановления на чистую БД выполняется в BX-25 и затем регулярно. Целевые значения RPO ≤ 24 ч и RTO ≤ 4 ч уточняются в ADR-09 после измерений.
+Daily DB backup (A-06); restore test to a clean DB in BX-25 and regularly thereafter. Target RPO ≤ 24 h and RTO ≤ 4 h refined in ADR-09 after measurement.
 
-### 15.5. Наблюдаемость
+### 15.5. Observability
 
-Структурированные JSON-логи с `project_id`, `task_id`, `run_id`, `artifact_id`; секреты и содержимое приватных файлов редактируются. Метрики (раздел 14.5, а также длительность Run, размер очереди, число ABANDONED, ошибки целостности артефактов, конфликты State, повторные отправки) доступны на странице `/ops` за авторизацией. Минимальные оповещения: циклы перезапуска, 80% бюджета, провайдер переведён в `disabled`, очередь не обрабатывается дольше порога.
+Structured JSON logs with `project_id`, `task_id`, `run_id`, `artifact_id`; secrets and private file contents redacted. Metrics (§14.5 plus run duration, queue size, ABANDONED count, artifact integrity errors, State conflicts, retries) on authenticated `/ops`. Minimal alerts: restart loops, 80% budget, provider disabled, queue stuck beyond threshold.
 
-### 15.6. Ёмкость
+### 15.6. Capacity
 
-Базовая конфигурация (1 реплика, 2 vCPU, 1 GB RAM) принимается как стартовая для control plane. В BX-25 измеряются потребление памяти и процессора при параллельных Run; при устойчивом превышении порога (ориентир — 70% RAM) воркер выносится в отдельный сервис.
+Baseline (1 replica, 2 vCPU, 1 GB RAM) is the starting control plane. BX-25 measures memory and CPU under parallel runs; if sustained above ~70% RAM, move the worker to a separate service.
 
-## 20. Риски и архитектурные решения
+---
 
-### 20.1. Реестр рисков
+## 20. Risks and architectural decisions
 
-| ID | Риск | Мера |
-| --- | --- | --- |
-| R-01 *(переформулирован)* | Исполнитель кода не даёт применимого результата за приемлемое время | Эксперимент E-01 до построения Code Delivery; `manual` как гарантированный путь; точка пересмотра после G2 |
-| R-02 | Изменение лимитов и условий любого внешнего сервиса | Лимиты и условия в реестре и конфигурации, а не в коде; перепроверка перед каждой фазой (E.8) |
-| R-03 | Единая точка отказа в учётных записях и подписках | Репозитории, SPEC и `AGENTS.md` не зависят от конкретного агента разработки (D-16); ключи провайдеров — только переменные окружения |
-| R-04 | Коррелированные ошибки одного семейства моделей (реализация и ревью) | Второй провайдер для проверки; второй проход другой моделью; обязательное ревью человеком для ★-шагов |
-| R-05 | Бесплатные уровни: лимиты и использование данных | A-02, A-08; платный биллинг с лимитом для реальных данных |
-| R-06 | Дрейф интерфейсов при разработке малыми шагами | Контракты определяются в шагах, которые ими пользуются; контрактные тесты в CI; ревью ★-шагов |
-| R-07 | Регрессия Simple Mode | `check` на каждом PR; характеризационные тесты перед BX-03 |
-| R-08 | Рост числа вызовов и стоимости | Бюджеты, ledger, лимиты, оповещения, лимит расходов в консоли каждого платного провайдера |
-| R-09 | LLM-сжатие State теряет важное | Инварианты, версии State, тест |
-| R-10 | Время владельца на ревью и тесты — узкое место | Малые шаги, облегчённый процесс для не-★ шагов, чек-лист; график растягивается, ревью не отменяется |
-| R-11 | Prompt injection через PR, файлы, логи CI | Данные вместо инструкций, корпус тестов, отсутствие побочных эффектов без валидации |
-| R-12 | Нехватка памяти на 1 GB RAM | Замер в BX-25; вынос воркера |
-| R-13 | Нехватка минут GitHub Actions | A-07; лимит запусков; публичные репозитории при допустимости |
-| R-14 *(переформулирован)* | Дополнительный провайдер недоступен или не подходит по условиям данных | A-08; провайдер остаётся `disabled`, пока проверка не пройдена; `cross_model` получает `NOT_RUN`, а не подменяется |
-| R-15 *(новый)* | Расходы на API нескольких провайдеров вместо подписочных инструментов | Лимит расходов у каждого провайдера; разделение: инструменты разработки — вне продукта, API продукта — под бюджетом |
-| R-16 *(новый)* | Качество `model_patch` ниже ожидаемого | E-01; валидация патча; `manual` как основной путь до положительного решения |
-| R-17 *(новый)* | Ручной цикл `manual`: ошибки переноса и потеря времени на копирование | `PACKAGE.md` одним файлом; приём PR или diff; A-09 измеряется в BX-02 |
-| R-18 *(новый)* | Дрейф API провайдеров и ошибки в описании подключений | `verify:connections`, статус `DRIFT`, правило R4 (Приложение E) |
-| R-19 *(новый)* | Вертикальный срез закрепит временные решения | Router-min заменяется в BX-13.a, ledger-min расширяется в BX-13.b; контракты адаптера и реестра стабильны с BX-10.a |
-| R-20 *(новый)* | Агент разработки зацикливается: часами правит те же файлы, повторяет вопросы, не публикует результат | Stop-правила (п. 16.3); шаг забирает владелец; evidence — журнал сессии |
-| R-21 *(новый)* | Бесплатные тарифы и модели исчезают или меняют условия без предупреждения | Мониторинг (Приложение G): расписание проверок, запас квоты, правило N-1; независимость от одного провайдера; кандидаты включаются только человеком |
+### 20.1. Risk register
 
-### 20.2. Обязательные ADR
+| Risk | Mitigation |
+| --- | --- |
+| Vendor lock-in | D-13; adapters; no vendor names in domain schema |
+| Cost runaway | Budgets, ledger, provider console limits |
+| Hallucinated State | Validators, human decisions, optional verifier |
+| Prompt injection | Data-vs-instructions, corpus tests, redaction |
+| CI / Actions minute exhaustion | A-07; public repos or rate limits |
+| Owner time bottleneck | Small patches, clear PASS criteria, automation 16.3.2 |
+| model_patch quality | E-01, ADR-10, bounded repair |
 
-Каждый ADR содержит: контекст, варианты, критерии выбора, решение, способ проверки, условия пересмотра. Открытый ADR блокирует только тот шаг, которому нужно его решение. ADR для решений, которые не блокируют ближайший шаг, не пишутся заранее.
+### 20.2. Required ADRs
 
-| ADR | Тема | Нужен к шагу |
-| --- | --- | --- |
-| ADR-01 | Слой БД, формат ID, миграции | BX-04 |
-| ADR-02 | Gemini-адаптер и дальнейшее место Simple Mode | BX-10.a |
-| ADR-03 *(изменён)* | Порядок подключения дополнительных провайдеров и правила выбора первого; прежнее решение о Mistral — F.2 | BX-12.a |
-| ADR-04 | Политика `cross_model` (по каким артефактам включается); не решается по golden-eval | BX-14 |
-| ADR-05 | Хранилище содержимого артефактов | BX-17.b |
-| ADR-06 | GitHub-интеграция и репозитории проектов | BX-19 |
-| ADR-07 | Единицы бюджета и формулы стоимости | BX-13.a |
-| ADR-08 | Хранение и удаление данных | BX-17.b |
-| ADR-09 | Бэкап, RPO и RTO | BX-25 |
-| ADR-10 *(новый)* | Состав CodeExecutor по итогам E-01 и формат патча | BX-18.b |
-| ADR-11 *(новый)* | Мониторинг провайдеров: источники, пороги, каналы оповещения, место запуска | BX-27.a |
+ADRs are written when a decision blocks the next step (process §16.3). Typical themes: provider choice (ADR-03), GitHub rulesets (ADR-06), backup RPO/RTO (ADR-09), enabling `model_patch` (ADR-10). Non-blocking ideas wait in CONCEPTS until needed.
+
+---
+
+*End of SPEC_ENGINE. Connections detail — `docs/SPEC_CONNECTIONS.md`. Product goals and gates — `docs/SPEC_PRODUCT.md`.*
