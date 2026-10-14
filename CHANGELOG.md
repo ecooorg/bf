@@ -1,3 +1,17 @@
+## Docs — agent patches from P27 (2026-10-14)
+
+- **Next agent patch** pointer in `docs/CURRENT_STATE.md` (current: **P27**).
+- `docs/P27-SPEC.md`: Simple Mode workspace attach UI (~½ session scope).
+- `docs/NEXT.md`: schedule **P27–P34+**; owner `RM-*` separated from agent patches.
+- `docs/START_HERE.md`, `AGENTS.md`: «следующий патч» = pointer + SPEC only.
+- Supersedes unfinished naming P26a.2 UI / P26b-UI (work moves to P27–P29).
+
+## Docs — agent queue snapshot (2026-10-14)
+
+- `docs/CURRENT_STATE.md` rewritten: done / partial / open gates for the next AI Assistant.
+- `docs/NEXT.md`: **Unified queue** table (G4 + P26 in one order).
+- `docs/START_HERE.md`, `AGENTS.md`: pointers to snapshot and queue; do not re-do closed P26a/P26b core.
+
 ## P26b — Workspace ChangeSet and export (2026-10-14)
 
 - changeset.ts / exportZip.ts / diff.ts; test:p26b; docs P26b-SPEC/REPORT.

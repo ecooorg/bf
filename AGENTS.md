@@ -3,7 +3,7 @@
 > **Start with `docs/START_HERE.md`.** · **Document:** AGENTS.md · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026), Part B (section 16) and Appendix B · **Status:** policy document; changes follow section 10
 
 ## 1. Purpose and authority
-This repository contains BiForge, a multi-model project agent (TZv3.0, section 0.2) that ships as the Simple Mode application (product version 24) and a Project Mode built through P24; the remaining work is acceptance (TZ 16.7). The canonical product specification is `docs/BiForge_TZ_v3.md` (TZv3.0). It is written in Russian, and the Russian text is the only canonical version (D-17). Earlier editions (TZv1.4, TZv2.0) are obsolete; their deferred material is kept in TZv3.0 section 19 and Appendix F. If editions disagree, TZv3.0 wins.
+This repository contains BiForge, a multi-model project agent (TZv3.0, section 0.2) that ships as the Simple Mode application (product version 24) and a Project Mode built through P24. Workspace libraries P26a/P26b are in tree. Further agent work is numbered **P27+** (`docs/CURRENT_STATE.md` Next agent patch; schedule in `docs/NEXT.md`). Acceptance to G4 is mostly owner `RM-*`. The canonical product specification is `docs/BiForge_TZ_v3.md` (TZv3.0). It is written in Russian, and the Russian text is the only canonical version (D-17). Earlier editions (TZv1.4, TZv2.0) are obsolete; their deferred material is kept in TZv3.0 section 19 and Appendix F. If editions disagree, TZv3.0 wins.
 
 These instructions define the default working rules for coding agents. The specification defines intended product behavior, architecture, and the development plan. If an instruction appears to conflict with the specification, stop and report the conflict instead of silently choosing one.
 
@@ -24,10 +24,12 @@ The agent may be any model or tool chosen by the owner (D-16). The contract is t
 
 ## 3. Establish the baseline
 Before editing:
-1. Read `docs/START_HERE.md`, `docs/CURRENT_STATE.md` and `docs/NEXT.md` (the queue entry for this patch).
-2. Read or create the SPEC: `docs/PNN-SPEC.md` (template: `docs/PATCH_TEMPLATE.md`).
+1. Read `docs/START_HERE.md`, then **`docs/CURRENT_STATE.md`** → **Next agent patch** (ID + one line).
+2. Read **`docs/PNN-SPEC.md`** for that ID (template: `docs/PATCH_TEMPLATE.md`). Product norms: `docs/BiForge_TZ_v3.md` index and/or `docs/BiForge_TZ_P26.md` only as cited by the SPEC.
 3. The base is the archive uploaded by the owner; record its name or date in the report.
-4. Read relevant files and tests, including expectation tests if the SPEC has them.
+4. Read relevant files and tests.
+5. If the owner says **«следующий патч»** / **“next patch”**, implement **exactly** the current **Next agent patch**. Do not pull the next ID in the same session unless asked.
+6. Default code executor stays `manual` until the owner completes RM-C3. Owner `RM-*` steps are not agent patches.
 5. If the baseline is unclear or the requested change conflicts with the archive contents, stop and report `BLOCKED`.
 
 Never overwrite or discard user changes to make the task easier.
