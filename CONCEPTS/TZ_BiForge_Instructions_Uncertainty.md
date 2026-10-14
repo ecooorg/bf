@@ -1,363 +1,150 @@
-# ТЕХНИЧЕСКОЕ ЗАДАНИЕ
+# TECHNICAL SPECIFICATION
 
-## Улучшение инструкций агента BiForge: работа с неопределённостью, режимы и адаптация к намерению пользователя
+## Improving BiForge agent instructions: uncertainty, modes and adaptation to user intent
 
-| Поле | Значение |
+| Field | Value |
 |------|----------|
-| **Документ** | TZ-INSTRUCTIONS-01 |
-| **Продукт** | BiForge (Simple Mode) v1.6.0+ |
-| **Статус** | черновик для согласования |
-| **Дата** | 10 октября 2026 |
-| **Связь с основным ТЗ** | независимое дополнение; не блокирует разработку движка и модулей по TZv3.0 |
+| **Document** | TZ-INSTRUCTIONS-01 |
+| **Product** | BiForge (Simple Mode) v1.6.0+ |
+| **Status** | draft for alignment (implementation partially landed as PI-01…PI-03) |
+| **Date** | 10 October 2026 |
+| **Relation to main TZ** | independent add-on; does not block engine work under TZv3.0 |
 
-Настоящий документ описывает изменения поведения агента (инструкции модели, post-processing, quality-gate, минимальный маршрутизатор режимов) без обязательной привязки к текущему плану патчей BX-XX. Работы могут выполняться параллельно с основной разработкой или после стабилизации физического движка.
-
----
-
-## 1. Цель и границы работ
-
-### 1.1. Цель
-
-Сделать поведение агента полезным в условиях неопределённости и при прямых указаниях пользователя (запрет вопросов, запрос приблизительной оценки, запрос поиска), сохранив существующую дисциплину честности: запрет выдуманных чисел, запрет выбора за пользователя, запрет выдавать гипотезу за факт.
-
-### 1.2. Не входит в объём
-
-- Переписывание всего system-prompt «с нуля».
-- Два полностью независимых комплекта инструкций (Decision / Engineering).
-- Полноценный multi-agent router с отдельными моделями.
-- Реализация tool-calling / веб-поиска (отдельный патч; здесь только подготовка флагов и критериев).
-- Изменение схемы JSON-ответа conversation (новые обязательные поля).
-- Изменение валидатора `derived_numbers` и арифметического движка.
-- Изменения в основном плане разработки движка (TZv3.0, BX-XX), кроме явных точек интеграции.
-
-### 1.3. Критерий успеха
-
-После внедрения:
-
-- Агент при запросе приблизительной оценки даёт обоснованный сценарий/диапазон с оговорками, а не только лекцию об ограничениях.
-- После явного запрета уточняющих вопросов агент не возвращается к ним без критической необходимости.
-- При запросе «найди / перескажи существующее» агент не подменяет поиск рассуждением о бесполезности поиска (пока tool нет — честно фиксирует отсутствие фактической проверки).
-- После обратной связи пользователя («ты увиливаешь») следующий ответ меняет стратегию, а не перефразирует прежнюю.
-- Все существующие тесты на числа, JSON, quality-gate и regression остаются зелёными.
-- Новый регрессионный тест на диалог-фикстуру (см. §8) проходит.
+This document describes agent behaviour changes (model instructions, post-processing, quality-gate, minimal mode router) without mandatory binding to the BX-XX patch plan. Work may run in parallel with core development or after the physical engine stabilises.
 
 ---
 
-## 2. Архитектура решения
+## 1. Goal and scope
 
-### 2.1. Выбранный подход
+### 1.1. Goal
 
-**Единая базовая модель поведения + тонкие специализированные режимы + явный контракт неопределённости.**
+Make the agent useful under uncertainty and under direct user instructions (ban on questions, request for a rough estimate, request for search), while keeping honesty discipline: no invented numbers, no choosing for the user, no presenting a hypothesis as fact.
 
-Не выбираются:
+### 1.2. Out of scope
 
-- **(A)** один универсальный промпт без различий;
-- **(B)** два изолированных комплекта инструкций.
+- Rewriting the entire system prompt from scratch.
+- Two fully independent instruction sets (Decision / Engineering) as isolated stacks.
+- A full multi-agent router with separate models.
+- Implementing tool-calling / web search (separate patch; here only flags and criteria preparation).
+- Changing the conversation JSON response schema (new required fields).
+- Changing the `derived_numbers` validator and arithmetic engine.
+- Changes to the main engine development plan (TZv3.0, BX-XX), except explicit integration points.
 
-### 2.2. Слои
+### 1.3. Success criteria
 
-1. Базовые принципы (действуют всегда) — уточнение существующего `BASE_SYSTEM` / V17.
-2. Контракт неопределённости — короткий блок в conversation prompt.
-3. Серверные флаги намерения пользователя — post-processing без новых полей JSON.
-4. Мягкое влияние на `askAllowed` и soft quality-audit.
-5. Минимальный маршрутизатор режимов (после стабилизации п.1–4) — выбор дополнительного абзаца, не отдельный system.
-6. Регрессионный тест на проблемный диалог.
+After implementation:
 
-### 2.3. Принцип внедрения
-
-Любое новое поведение сначала появляется как *разрешение* или *исключение* в post-processing / quality-audit, а не как длинный новый текст в system-prompt. Промпт меняется только точечно. Каждое изменение — отдельный маленький патч с прогоном существующих тестов.
-
----
-
-## 3. Базовые принципы (единая модель)
-
-Закрепить в инструкциях (и при необходимости продублировать в post-processing) следующие принципы. Они дополняют, а не отменяют существующие HARD BOUNDARIES.
-
-### Принцип 1. Выполнять запрос, а не подменять его обсуждением ограничений
-
-Если пользователь просит анализ — выполнить доступную часть анализа. Если просит найти информацию — использовать доступные инструменты (когда они есть) или честно зафиксировать, что проверка не выполнялась. Ограничения объяснять ровно в той мере, в какой они нужны для понимания результата; они не заменяют результат.
-
-### Принцип 2. Не останавливаться на невозможности идеального ответа
-
-Если идеальный ответ недоступен, определить лучший доступный вариант: вероятностная/качественная оценка, сценарий при явных допущениях, сравнение альтернатив, выполнение оставшейся части задачи с пометкой невыполненного. Запрет выдумывать факты, числа и проценты сохраняется.
-
-### Принцип 3. Соразмерно выражать неопределённость
-
-Неопределённость влияет на формулировки и степень уверенности, но не блокирует ответ автоматически. Приблизительная оценка по явной просьбе пользователя допустима. Произвольный процент без основания — нет.
-
-### Принцип 4. Не перекладывать на пользователя работу, которую система может выполнить сама
-
-Система сама выбирает способ решения, определяет нужность поиска, формирует обоснованный вывод, исправляет собственные ошибки в пределах задачи. Пользователь не обязан заранее знать «правильную методологию», чтобы получить полезный ответ.
-
-### Принцип 5. Уточнять только когда это действительно необходимо
-
-После прямой просьбы не задавать дополнительных вопросов — максимально использовать имеющиеся сведения и не повторять необязательные уточнения. Один конкретный вопрос допустим только при критической неоднозначности.
-
-### Принцип 6. Адаптироваться к обратной связи
-
-Если пользователь указывает, что ответ не решает задачу, следующий ответ обязан изменить стратегию выполнения, а не перефразировать прежнюю.
-
-### Принцип 7. Различать обещание, действие и результат
-
-Ясно разделять: что система собирается сделать; что фактически сделала; что удалось подтвердить; какой вывод следует из полученного.
+- On a rough-estimate request the agent gives a reasoned scenario/range with caveats, not only a lecture on limits.
+- After an explicit ban on clarifying questions the agent does not return to them without critical need.
+- On “find / summarise existing” the agent does not replace search with reasoning about why search is useless (while there is no tool — honestly record that verification was not performed).
+- After user feedback (“you are dodging”) the next answer changes strategy rather than paraphrasing the previous one.
+- All existing tests for numbers, JSON, quality-gate and regression stay green.
+- A new regression test on a dialogue fixture (§8) passes.
 
 ---
 
-## 4. Контракт неопределённости
+## 2. Solution architecture
 
-Добавить в `buildConversationPrompt` (после HARD BOUNDARIES или в конце V17-слоя) следующий блок. Объём — не более 10–12 строк. Не переписывать остальной промпт.
+### 2.1. Chosen approach
 
-```
-WHEN THE IDEAL ANSWER IS UNAVAILABLE
-1. State in one sentence what is unavailable and why.
-2. Give the best available result of these types (mark the type):
-   - data from sources;
-   - justified scenario under explicit assumptions;
-   - qualitative or range estimate;
-   - comparison of alternatives.
-3. Do not replace step 2 with repeated explanation of the limitation.
-4. Never invent numbers, percentages or named forecasts that are not grounded.
-```
+**One base behaviour model + thin specialised modes + an explicit uncertainty contract.**
 
-Типы утверждений, которые агент обязан различать в reply (и при возможности отражать через существующие `gain` / `factsToCheck` / `nextStep`):
+Not chosen:
 
-| Вид | Смысл | Как работать |
-|-----|-------|--------------|
-| **Установленный факт** | Подтверждено источниками/вводом | Привести и при необходимости источник |
-| **Прогноз из источника** | Оценка будущего из модели/отчёта | Указать источник, горизонт, неопределённость |
-| **Аналитический сценарий** | Обоснованный вариант при допущениях | Явно назвать допущения и последствия |
-| **Гипотеза** | Предположение, требующее проверки | Пометить и указать способ проверки |
+- **(A)** one universal prompt with no distinctions;
+- **(B)** two isolated instruction packs.
 
----
+### 2.2. Layers
 
-## 5. Серверные флаги намерения (post-processing)
+1. Base principles (always on) — refinement of existing `BASE_SYSTEM` / V17.
+2. Uncertainty contract — short block in the conversation prompt.
+3. Server-side user-intent flags — post-processing without new JSON fields.
+4. Soft influence on `askAllowed` and soft quality-audit.
+5. Minimal mode router (after stabilising 1–4) — extra paragraph only, not a separate system prompt.
+6. Regression test on the problem dialogue.
 
-Расширить только серверную логику вокруг conversation (рядом с `conversationGainAudit` и `askAllowed`). Новые поля в JSON-ответе модели **не вводить**.
+### 2.3. Implementation principle
 
-### 5.1. Детекторы (по последнему user-тексту и истории)
-
-- **userForbadeQuestions** — регулярное совпадение с запретом вопросов («не задавай», «просто дай», «больше ничего не говори» и аналоги).
-- **userAskedApproximate** — просьба приблизительной/предварительной оценки без гарантии.
-- **userAskedSearch** — просьба найти/пересказать существующие материалы в сети.
-- **userCriticizedEvasion** — явная критика увиливания / бесполезности ответа.
-
-### 5.2. Влияние на существующую логику
-
-- **askAllowed:** `askAllowed = askAllowed && !userForbadeQuestions` (критическая неоднозначность может переопределять только с явной пометкой в meta).
-- **Soft quality-audit:** если `userAskedApproximate` и ответ по сути состоит только из объяснения ограничений (нет gain-типов, нет nextStep/сценария) → `passed = false` → срабатывает существующий один retry.
-- **Адаптация:** если `userCriticizedEvasion` — в retry-промпт (уже существующий механизм) добавить требование сменить стратегию и дать доступный результат по контракту неопределённости.
-- **userAskedSearch:** пока tool-search нет — в meta/логах фиксировать `search_expected`; в reply не утверждать, что поиск выполнен, если его не было.
-
-### 5.3. Что не менять
-
-- Валидатор `derived_numbers` и `evaluateDerivedFormula`.
-- Парсер JSON и `repairHint`.
-- `scrubInternalLabels`, `stripMarkdown`, `firstQuestionOnly`, `buildVisibleReply` — только входы (`askAllowed`), не алгоритмы.
-- Схему полей ответа модели.
+New behaviour first appears as a *permission* or *exception* in post-processing / quality-audit, not as a long new system-prompt essay. The prompt changes only surgically. Each change is a small separate patch with existing tests run.
 
 ---
 
-## 6. Режимы работы (этап после стабилизации)
+## 3. Base principles (shared model)
 
-Вводить только после зелёных патчей по §4–5. Не создавать отдельные system-промпты. Режим = выбор короткого дополнительного абзаца + приоритетов gain, подмешиваемого к единой базе.
+These complement, not replace, existing HARD BOUNDARIES.
 
-| Режим | Когда | Отличие |
-|-------|-------|---------|
-| **Decision support** | «Что делать?», ценности, неопределённость | Сценарии, decisive unknown, симметричная критика; вопросы минимальны |
-| **Research / Analysis** | «Найди», «сравни», «наиболее реалистичный» | Приоритет источников и проверки; явная уверенность; поиск когда доступен |
-| **Engineering** | Проектирование, код, спецификации, тесты | Формальные требования, критерии приёмки; неопределённость → явные допущения и gaps |
+### Principle 1. Fulfil the request; do not replace it with a discussion of limits
 
-Маршрутизатор смотрит на **тип ожидаемого результата**, а не только на тему. Составные задачи («сравни → выбери → реализуй») проходят цепочку режимов без потери state.
+If the user asks for analysis — perform the available part of the analysis. If they ask to find information — use available tools (when present) or honestly record that verification was not performed. Explain limits only to the extent needed to understand the result; limits do not replace the result.
 
----
+### Principle 2. Do not stop at the impossibility of a perfect answer
 
-## 7. Порядок внедрения (патчи)
+If the ideal answer is unavailable, choose the best available form: qualitative/probabilistic estimate, scenario under explicit assumptions, comparison of alternatives, partial task completion with the unfinished part marked. Ban on inventing facts, numbers and percentages remains.
 
-Каждый патч — минимальный. После каждого — полный прогон существующих тестов + новый регрессионный кейс (накапливается). Откат при любом красном по числам/JSON.
+### Principle 3. Express uncertainty in proportion
 
-### P1 — Контракт неопределённости в промпте
+Uncertainty affects wording and confidence, but does not automatically block an answer. A rough estimate on explicit user request is allowed. An arbitrary percentage without basis is not.
 
-- **Файл:** `server.ts` → `buildConversationPrompt`.
-- **Действие:** вставить блок §4 (10–12 строк). Остальной текст не менять.
-- **Тест:** новый regression-кейс на диалог (см. §8); существующие reasoning/regression/derived — зелёные.
-- **Критерий приёмки:** на фикстуре «дай приблизительный прогноз» reply содержит сценарий/оценку с оговорками, а не только «точный прогноз невозможен».
+### Principle 4. Do not push onto the user work the system can do
 
-### P2 — Серверные флаги намерения
+The system chooses the approach, decides whether search is needed, forms a reasoned conclusion, and corrects its own errors within the task. The user need not know the “right methodology” in advance to get a useful answer.
 
-- **Файлы:** `server.ts` (около conversation handler / `conversationGainAudit`).
-- **Действие:** детекторы §5.1; влияние на `askAllowed` и soft quality-audit §5.2.
-- **Тест:** после «не задавай вопросы» question пустой; при «только ограничения» + `userAskedApproximate` срабатывает retry.
-- **Критерий:** запрет вопросов соблюдается; quality-retry не ломает `derived_numbers`.
+### Principle 5. Clarify only when truly necessary
 
-### P3 — Минимальный режимный абзац (опционально после P1+P2)
+After a direct request not to ask questions — maximise use of what is already known and do not repeat optional clarifications. One concrete question is allowed only under critical ambiguity.
 
-- **Действие:** эвристика Decision / Research / Engineering → один дополнительный абзац в prompt.
-- Не вводить отдельные system-промпты и не дублировать HARD BOUNDARIES.
-- **Критерий:** составной сценарий «анализ → решение» не теряет state; тесты зелёные.
+### Principle 6. Adapt to feedback
 
-### P4 — Tool-search для Research (отдельное ТЗ)
+If the user says the answer does not solve the task, the next answer must change execution strategy, not paraphrase the previous one.
 
-Не входит в объём настоящего документа. Здесь только подготовка флага `userAskedSearch` и запрет имитировать выполненный поиск.
+### Principle 7. Distinguish promise, action and result
+
+Do not claim a search, check or calculation that did not run in this call. Mark scenarios and hypotheses as such.
 
 ---
 
-## 8. Тестирование
+## 4. Uncertainty contract (prompt block)
 
-### 8.1. Обязательный регрессионный тест (диалог-фикстура)
-
-Основа — реальный диалог пользователя о зиме 2026–2027 в Швейцарии (см. Приложение).
-
-**Последовательность входов (сокращённо):**
-
-1. Регион: Швейцария; запрос климатических изменений на зиму 26–27.
-2. «не задавай мне вопросы просто дай прогноз».
-3. «дай свою аналитику какой будет эта зима».
-4. «найди прогнозы которые на эту зиму есть в сети».
-5. «я тебе запрещаю говорить ни о чём дай мне ответ».
-6. Критика увиливания / запрос образца запроса / выполнение по предложенному образцу.
-
-**Мягкие assertions** (без требования конкретных цифр):
-
-- После запрета вопросов: `question` отсутствует или пустой.
-- После запроса приблизительной аналитики: `reply` не состоит только из объяснения невозможности точного прогноза; присутствует хотя бы один содержательный элемент (сценарий, тренд с оговоркой, decisive unknown с путём проверки).
-- `derived_numbers` пуст или проходит существующую валидацию.
-- `triage ≠ CRISIS` (если нет distress-маркеров).
-- Агент не утверждает, что «выполнил поиск», если tool не вызывался.
-
-### 8.2. Сохраняемые существующие проверки
-
-- Все тесты на `derived_numbers` / invented numbers.
-- JSON parse + repair.
-- quality soft-retry (один раз).
-- `contextSufficiency` → `askAllowed`.
-- `scrubInternalLabels`, `buildVisibleReply`.
-- regression suite и reasoning tests.
-
-### 8.3. Две оси оценки качества
-
-1. **Качество результата:** полезность и обоснованность ответа в доступных условиях.
-2. **Качество взаимодействия:** соблюдение явных требований пользователя, отсутствие лишних барьеров, отсутствие перекладывания методологической работы на человека.
+Short block after HARD BOUNDARIES (PI-01): when the ideal answer is unavailable — give the best available result first, mark its kind, at most one short sentence on what is missing; do not open with methodology lectures.
 
 ---
 
-## 9. Риски и меры
+## 5. Intent flags (server)
 
-| Риск | Проявление | Мера |
-|------|------------|------|
-| Раздувание промпта | Слом JSON / рост токенов | Только короткий блок; полный suite после правки |
-| Утечка выдуманных чисел | Проценты/прогнозы без основания | Контракт явно запрещает; валидатор не трогать |
-| Частые quality-retry | Латентность / квоты | Fail-условие только при approximate + «только ограничения» |
-| Сложность режимов | Остановка разработки как ранее | Режимы — только после P1+P2; тонкий абзац, не второй system |
-| Имитация поиска | «Я нашёл…» без tool | Флаг `search_expected`; запрет утверждать выполнение |
+Detected from last user text (and recent history where sticky):
 
----
+- forbade questions  
+- asked approximate  
+- asked search  
+- criticized evasion  
+- (extensions) forbade methodology / demanded direct answer  
 
-## 10. Критерии приёмки документа в целом
-
-1. P1 внедрён: контракт неопределённости в prompt; регрессионный тест на диалог зелёный.
-2. P2 внедрён: запрет вопросов соблюдается; soft audit реагирует на «только ограничения» при approximate.
-3. Существующий test suite (включая `derived_numbers`) — зелёный.
-4. Нет новых обязательных полей в JSON conversation schema.
-5. Документированы флаги намерения и точки расширения под будущий tool-search и режимы.
-6. Принято решение не вводить два изолированных комплекта инструкций.
+Effects: `askAllowed`, soft quality fail on limitation-only when approximate was asked, adapted retry prompts. No new required JSON fields.
 
 ---
 
-## 11. Связь с основной разработкой
+## 6. Modes (thin paragraphs)
 
-Настоящее ТЗ не блокирует и не заменяет работы по TZv3.0 (движок, модули, Project Mode, инфраструктура). Улучшение инструкций и post-processing conversation может выполняться:
-
-- параллельно с BX-патчами, если затрагиваются только `server.ts` / `reasoningState` и тесты conversation;
-- после стабилизации физического движка;
-- как отдельный небольшой трек с собственными P1–P3.
-
-Изменения в `AGENTS.md` / `CHANGELOG_AGENT_BEHAVIOR` — по факту внедрения соответствующего патча.
+`information` | `decision` | `research` | `engineering` — one short CURRENT FOCUS paragraph mixed into the shared Simple Mode prompt (PI-03). Not separate system prompts.
 
 ---
 
-# Приложение А. Предпосылки и полный анализ
+## 7. Integration points
 
-Ниже — обоснование, почему документ нужен: разбор проблемного диалога, выводы эксперта, сравнение архитектурных вариантов и ожидаемый эффект.
-
-## А.1. Откуда возник вопрос
-
-В ходе эксплуатации/тестирования conversation-режима зафиксирован диалог, в котором пользователь запросил климатическую оценку зимы 2026–2027 для Швейцарии. Пользователь многократно:
-
-- просил не задавать уточняющих вопросов;
-- просил приблизительный / предварительный прогноз без гарантии;
-- просил найти и пересказать существующие оценки в сети;
-- прямо указывал, что ответы выглядят как увиливание.
-
-Агент при этом:
-
-- корректно отказывался выдавать несуществующий точный метеорологический прогноз;
-- но не переходил к доступному уровню анализа (сценарий, тренды с оговорками, разбор источников);
-- повторно задавал вопросы о «практической цели» после запрета;
-- подменял поиск рассуждением о том, что надёжных прогнозов «вероятно нет»;
-- сформулировал хороший образец запроса, но при его выполнении снова ушёл в ограничения, не приведя индикаторы;
-- в конце дал приблизительный сценарий, но без явной опоры на проверенные данные.
-
-## А.2. Почему это не «просто слишком строгие инструкции»
-
-Существующие инструкции BiForge (`BASE_SYSTEM`, `V17_LAYER`, HARD BOUNDARIES, soft quality-gate, валидация `derived_numbers`) успешно решают задачу честности: не выдумывать числа, не выбирать за пользователя, не выдавать гипотезу за факт. Проблема в другом:
-
-- **Ограничение стало важнее задачи.** Правило «не выдавай недостоверный прогноз за достоверный» фактически превратилось в «если точного ответа нет — объясняй невозможность».
-- **Не различаются типы результата.** Отсутствие точного прогноза ≠ отсутствие сценария, качественной оценки или обзора источников.
-- **Нет обязательного следующего шага при неопределённости.** В промпте не было контракта: «скажи, что недоступно → дай лучшее доступное → не заменяй результат лекцией».
-- **Слабая адаптация к обратной связи.** Признание проблемы не меняло стратегию ответа.
-- **Уточнения не управляются запретом пользователя.** `askAllowed` опирается на `contextSufficiency`, но не на явный запрет вопросов в реплике пользователя.
-
-## А.3. Выводы внешней оценки
-
-Независимый разбор диалога рекомендовал не создавать два изолированных комплекта инструкций и не оставлять один жёсткий универсальный промпт. Предложенный путь: единая база + специализированные режимы + автоматический выбор режима. Настоящее ТЗ принимает эту логику и уточняет техническую реализацию под текущий код BiForge v1.6.0 (минимальные патчи, без ломки `derived_numbers` и JSON-схемы).
-
-## А.4. Почему не два комплекта инструкций
-
-- Разное понимание правдивости и неопределённости между режимами.
-- Потеря контекста при переходе «сначала анализ → потом реализация».
-- Расхождение инструкций со временем.
-- Пользователь вынужден угадывать режим.
-- Исторический опыт проекта: многоуровневые универсальные инструкции уже приводили к падениям тестов и остановке разработки — поэтому внедрение должно быть инкрементальным и узким.
-
-## А.5. Почему не «только смягчить промпт»
-
-Одно смягчение HARD BOUNDARIES без контракта неопределённости и без серверных флагов рискует вернуть выдуманные проценты и «уверенные» прогнозы. Нужна пара: разрешение давать сценарий/оценку + сохранение запрета на необоснованные числа + детерминированный post-processing.
-
-## А.6. Связь с уже извлечёнными инструкциями агента
-
-Анализ кодовой базы (`server.ts`, `reasoningState.ts`, `contextBuilder.ts`, `CHANGELOG_AGENT_BEHAVIOR`) показал:
-
-- `BASE_SYSTEM` и conversation prompt уже содержат сильный запрет на inventing facts/percentages и на ranking/recommendation.
-- V17 задаёт triage, `contextSufficiency`, drift check, лимит вопросов.
-- Post-processing уже умеет: parseJson+repair, `derived_numbers` validation, soft quality retry, scrub labels, `buildVisibleReply`, `mergeModelState`.
-- Слабое место — отсутствие явного «что делать, когда идеальный ответ недоступен» и отсутствие реакции на запрет вопросов / запрос приблизительности в серверной логике.
-
-Поэтому ТЗ опирается на расширение существующих механизмов, а не на замену архитектуры агента.
-
-## А.7. Ожидаемый эффект
-
-- Пользователь получает полезный ответ при неопределённости, не жертвуя честностью.
-- Инженерный режим сохраняет строгость (числа, приёмка, тесты).
-- Снижается доля диалогов, где человек вынужден «управлять методом рассуждения» агента.
-- Появляется регрессионный якорь (диалог о зиме), защищающий от возврата анти-паттерна.
-- Разработка не останавливается: изменения узкие, откатываемые, совместимые с текущим suite.
-
-## А.8. Пример целевого поведения (не фактический прогноз)
-
-На запрос «дай предварительный приблизительный прогноз зимы в Швейцарии без гарантии» целевой ответ структурируется так:
-
-- Одно предложение: точный сезонный прогноз на горизонт ~2 лет недоступен.
-- Наиболее обоснованный сценарий при текущих трендах (с пометкой «сценарий / экстраполяция», не «факт»).
-- Температура / осадки / снег — качественно или диапазоном, если есть опора; иначе — явно «недостаточно данных для даже качественной оценки по X».
-- Главные факторы неопределённости.
-- Что можно проверить по открытым бюллетеням (без имитации, что проверка уже выполнена, если tool не вызывался).
-
-Это принципиально отличается от многократного повторения «точный прогноз невозможен» без следующего аналитического шага.
-
-## А.9. Итоговая рекомендация
-
-Принять настоящее ТЗ как отдельный трек улучшения поведения агента. Реализовать минимум P1 и P2. Режимы (P3) и tool-search (P4) — после стабилизации. Не вводить два изолированных комплекта инструкций. Сохранить запрет на выдуманные числа и выбор за пользователя. Центральный критерий качества: **максимально полезный и обоснованный результат, доступный в текущих условиях; неопределённость влияет на уверенность, но не заменяет анализ**.
+Conversation path in `server.ts`, `intentFlags.ts`, `conversationMode.ts`, quality retry. Engine BX plan unchanged except explicit hooks.
 
 ---
 
-*Конец документа TZ-INSTRUCTIONS-01.*
+## 8. Regression fixture
+
+A multi-turn dialogue where the user asks for an orienting external-world answer, forbids methodology, and demands a direct answer — the agent must lead with substance, not limits.
+
+---
+
+## 9. Rollout
+
+PI-01 uncertainty contract → PI-02 intent flags → PI-03 mode paragraph. Further work: stronger information mode, optional mode-specific packs, tool-search (separate TZ).
+
+---
+
+*End of TZ-INSTRUCTIONS-01.*

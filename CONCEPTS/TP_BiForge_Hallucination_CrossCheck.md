@@ -1,93 +1,93 @@
-# ТЕХНИЧЕСКОЕ ПРЕДЛОЖЕНИЕ
+# TECHNICAL PROPOSAL
 
-## Снижение галлюцинаций: перекрёстная проверка моделями и расширенный анти-галлюцинационный контур
+## Reducing hallucinations: cross-model checks and an extended anti-hallucination loop
 
-| Поле | Значение |
+| Field | Value |
 |------|----------|
-| **Документ** | TP-HALLUC-01 |
-| **Продукт** | BiForge (Simple Mode / Project Mode) |
-| **Статус** | предложение на этап **после** стабильного запуска; **не** входит в текущий план внедрения |
-| **Дата** | 10 октября 2026 |
-| **Связь** | дополняет TZ-INSTRUCTIONS-01 и cascade light/strong; **не** заменяет tool-search для внешних фактов |
+| **Document** | TP-HALLUC-01 |
+| **Product** | BiForge (Simple Mode / Project Mode) |
+| **Status** | proposal for the phase **after** a stable launch; **not** in the current implementation plan |
+| **Date** | 10 October 2026 |
+| **Related** | complements TZ-INSTRUCTIONS-01 and the light/strong cascade; **does not** replace tool-search for external facts |
 
-Документ фиксирует **готовое решение на полку**: что делать, если после запуска галлюцинации станут заметной проблемой. Сейчас достаточно HARD BOUNDARIES, `derived_numbers` и soft quality retry. Реализацию не начинаем до явной команды владельца.
-
----
-
-## 1. Цель и границы
-
-### 1.1. Цель
-
-Снизить частоту и вред галлюцинаций в видимых ответах за счёт:
-
-1. ужесточения уже заложенных серверных проверок;
-2. точечной перекрёстной проверки второй моделью;
-3. явного разделения «проверка контракта агента» и «проверка фактов о мире».
-
-### 1.2. Не цель
-
-- Гарантировать истинность любых утверждений о мире.
-- Всегда делать две полные генерации на каждый ход (дорого и медленно).
-- Заменить tool-search «голосованием моделей».
-- Внедрять что-либо из этого документа до команды владельца после запуска.
-
-### 1.3. Критерий успеха (когда включат)
-
-- Числовые и структурные галлюцинации реже доходят до reply/state.
-- При расхождении моделей спорное не выдаётся как уверенный факт.
-- Полный dual-pass только по триггерам; стоимость контролируется.
-- Тесты `derived_numbers` / JSON / quality не ломаются; для verifier — отдельные тесты.
+This document records a **ready solution on the shelf**: what to do if hallucinations become a visible problem after launch. HARD BOUNDARIES, `derived_numbers` and soft quality retry are enough for now. Do not implement until the owner explicitly requests it.
 
 ---
 
-## 2. Исходные допущения
+## 1. Goal and scope
 
-- **Программа не обладает полной базой знаний о мире** — не может сама «знать», верен ли внешний тезис.
-- **Вторая модель — не оракул.** Ловит нарушение контракта, несогласованность и часть выдумок; две модели могут согласиться на одной ошибке.
-- **Cascade light/strong и quality retry** — точка расширения, не новая подсистема с нуля.
-- **Внешние факты** проверяются инструментами; модели не подтверждают то, чего tool не вернул.
+### 1.1. Goal
+
+Reduce the frequency and harm of hallucinations in visible replies by:
+
+1. tightening existing server-side checks;
+2. targeted cross-checks with a second model;
+3. clearly separating “agent contract check” from “world-fact check”.
+
+### 1.2. Non-goals
+
+- Guarantee truth of every claim about the world.
+- Always run two full generations per turn (costly and slow).
+- Replace tool-search with “model voting”.
+- Implement anything from this document before an owner command after launch.
+
+### 1.3. Success criteria (when enabled)
+
+- Numeric and structural hallucinations reach reply/state less often.
+- On model disagreement, disputed content is not presented as a confident fact.
+- Full dual-pass only on triggers; cost is controlled.
+- Existing `derived_numbers` / JSON / quality tests stay green; verifier has its own tests.
 
 ---
 
-## 3. Классификация и методы
+## 2. Assumptions
 
-| Класс | Пример | Основной метод |
+- **The product does not own a complete world knowledge base** — it cannot by itself “know” whether an external claim is true.
+- **A second model is not an oracle.** It catches contract breaks, inconsistency and some fabrications; two models may agree on the same error.
+- **Light/strong cascade and quality retry** are the extension point, not a greenfield subsystem.
+- **External facts** are checked with tools; models do not confirm what a tool did not return.
+
+---
+
+## 3. Classification and methods
+
+| Class | Example | Primary method |
 |-------|--------|----------------|
-| **Числовая** | «вероятность 68%» без ввода | `derived_numbers` + запрет prose-цифр (уже есть) |
-| **Факт о пользователе** | выдуманная деталь биографии | `mergeModelState`; verifier: unsupported vs user_input |
-| **Ложный поиск / источник** | «нашёл отчёт…» без tool | запрет имитации поиска; `claims_search_was_done` |
-| **Прогноз как факт** | будущее без типа «сценарий» | типы утверждений + critic |
-| **Семантическая о мире** | ошибочный тезис о регионе | tool-search; при споре моделей — понизить уверенность |
-| **Пустой / зацикленный** | только лекция об ограничениях | quality-audit + retry (TZ-INSTRUCTIONS-01) |
+| **Numeric** | “68% probability” without input | `derived_numbers` + prose-number ban (already present) |
+| **User fact** | invented biography detail | `mergeModelState`; verifier: unsupported vs user_input |
+| **Fake search / source** | “I found a report…” without a tool | ban search imitation; `claims_search_was_done` |
+| **Forecast as fact** | future without “scenario” type | statement types + critic |
+| **World semantics** | wrong claim about a region | tool-search; on model dispute — lower confidence |
+| **Empty / looping** | only a lecture on limits | quality-audit + retry (TZ-INSTRUCTIONS-01) |
 
 ---
 
-## 4. Архитектура будущего контура
+## 4. Future loop architecture
 
-Три (+1) уровня. Включать по мере необходимости.
+Three (+1) levels. Enable as needed.
 
-### Уровень 0 — уже в продукте
+### Level 0 — already in the product
 
-HARD BOUNDARIES, JSON+repair, `derived_numbers`, scrub/buildVisibleReply, `mergeModelState`, soft quality retry на cascade.
+HARD BOUNDARIES, JSON+repair, `derived_numbers`, scrub/buildVisibleReply, `mergeModelState`, soft quality retry on cascade.
 
-### Уровень 1 — усиленный quality retry (низкая стоимость)
+### Level 1 — stronger quality retry (low cost)
 
-При fail retry-промпт явно требует:
+On fail, the retry prompt explicitly requires:
 
-- убрать числа, не выводимые из ввода;
-- пометить спорное как сценарий / pattern / гипотезу;
-- не утверждать поиск без tool;
-- при approximate — дать лучший доступный результат, а не новую лекцию.
+- remove numbers not derived from input;
+- mark disputed content as scenario / pattern / hypothesis;
+- do not claim search without a tool;
+- on approximate — give the best available result, not another lecture.
 
-Реализация: текст retry + предпочтительно другая модель cascade. Без нового эндпоинта.
+Implementation: retry text + preferably another cascade model. No new endpoint.
 
-### Уровень 2 — Light Verifier (перекрёстная проверка)
+### Level 2 — Light Verifier (cross-check)
 
-Короткий вызов **light**-модели после основного ответа. Не второй полный reply, а аудит.
+A short **light** model call after the main answer. Not a second full reply — an audit.
 
-**Вход:** `reply` (+ при необходимости `nextStep` / `factsToCheck`), усечённый user input, флаги (был ли tool, approximate…).
+**Input:** `reply` (and if needed `nextStep` / `factsToCheck`), truncated user input, flags (tool used?, approximate?…).
 
-**Выход (JSON):**
+**Output (JSON):**
 
 - `claims[]`: `{ text, label: grounded_in_user_input | general_pattern | scenario | hypothesis | unsupported }`
 - `has_ungrounded_number`: boolean
@@ -95,121 +95,112 @@ HARD BOUNDARIES, JSON+repair, `derived_numbers`, scrub/buildVisibleReply, `merge
 - `risk`: low | medium | high
 - `suggested_action`: accept | soften | regenerate
 
-**Действия сервера:**
+**Server actions:**
 
-| action | Поведение |
+| action | Behaviour |
 |--------|-----------|
-| **accept** | отдать как есть |
-| **soften** | смягчить формулировки / убрать «нашёл» / не писать unsupported в `state.facts` |
-| **regenerate** | один полный retry с списком unsupported |
+| **accept** | return as-is |
+| **soften** | soften wording / remove “I found” / do not write unsupported into `state.facts` |
+| **regenerate** | one full retry with the unsupported list |
 
-Verifier **не** добавляет факты о мире из своих «знаний».
+The verifier **must not** add world facts from its own “knowledge”.
 
-### Уровень 3 — Dual agreement (редко, по триггерам)
+### Level 3 — Dual agreement (rare, trigger-based)
 
-Две полные генерации на разных моделях cascade.
+Two full generations on different cascade models.
 
-- Сильное согласие → внутренний meta `stable_across_models` (**не** писать пользователю «подтверждено двумя ИИ»).
-- Сильное расхождение → не выбирать победителя; понизить уверенность; спорное в `factsToCheck` / hypotheses.
+- Strong agreement → internal meta `stable_across_models` (**do not** tell the user “confirmed by two AIs”).
+- Strong disagreement → do not pick a winner; lower confidence; disputed items → `factsToCheck` / hypotheses.
 
-Только high-stakes / повторные жалобы — не по умолчанию.
+Only high-stakes / repeated complaints — not by default.
 
-### Уровень 4 — Внешняя истина
+### Level 4 — External truth
 
-Tool-search / API: в reply только то, что вернулось. Соседний контур; граница ответственности зафиксирована здесь.
-
----
-
-## 5. Триггеры (чтобы не жечь квоты)
-
-Verifier / dual-pass только если:
-
-1. Quality-audit fail → сначала уровень 1, при повторном fail — уровень 2.
-2. Числа вне `derived_numbers` / подозрительные проценты (эвристика).
-3. `userAskedSearch` + маркеры «нашёл / по данным» при отсутствии tool.
-4. Высокие ставки (здоровье, закон, крупные суммы, необратимость).
-5. Явная жалоба пользователя на недостоверность.
-6. Env **`ENABLE_HALLUC_VERIFIER=true`** (глобальный выключатель).
-
-По умолчанию после релиза флаг **выключен**.
+Tool-search / API: only what the tool returned goes into the reply. Adjacent loop; responsibility boundary is fixed here.
 
 ---
 
-## 6. Целевой поток
+## 5. Triggers (when levels 2–3 fire)
 
-1. Основная модель (strong) → JSON  
-2. parse + derived_numbers + scrub + mergeState (уровень 0)  
-3. Intent flags + quality-audit  
-4. Fail → retry, другая модель cascade (уровень 1)  
-5. Триггер §5 и флаг → light verifier (уровень 2) → accept | soften | regenerate  
-6. Редкий dual-trigger → вторая генерация + сравнение (уровень 3)  
-7. Reply пользователю; meta для телеметрии  
+Examples: repeated user complaint about invention; `claims_search_was_done`; ungrounded numbers after retry; high-stakes decision language without support. Exact thresholds are set when implementing; default is off behind a feature flag.
 
 ---
 
-## 7. Телеметрия: когда внедрять
+## 6. End-to-end flow (when enabled)
 
-Уже на запуске полезно копить (без verifier):
-
-- доля quality-retry;
-- доля отброшенных `derived_numbers`;
-- жалобы на «выдумку» / «неправду»;
-- «нашёл в сети» без tool.
-
-**Включать уровень 2**, если по выборке диалогов или жалобам фактические выдумки не ловятся уровнем 0–1. Не внедрять «на всякий случай».
+1. Main generation (as today).  
+2. Level 0 checks.  
+3. Soft quality-audit.  
+4. Fail → retry, other model on cascade (level 1).  
+5. §5 trigger + flag → light verifier (level 2) → accept | soften | regenerate.  
+6. Rare dual-trigger → second generation + compare (level 3).  
+7. Reply to the user; meta for telemetry.
 
 ---
 
-## 8. Этапы реализации (когда решим)
+## 7. Telemetry: when to introduce
 
-| Этап | Содержание | Риск |
+At launch it is useful to collect (without verifier):
+
+- share of quality-retries;
+- share of discarded `derived_numbers`;
+- complaints about “invention” / “untruth”;
+- “found online” without a tool.
+
+**Enable level 2** if sample dialogues or complaints show factual inventions slipping past levels 0–1. Do not enable “just in case”.
+
+---
+
+## 8. Implementation stages (when decided)
+
+| Stage | Content | Risk |
 |------|------------|------|
-| **H1** | Усиление retry-промпта + другая модель cascade | Низкий |
-| **H2** | Light Verifier за `ENABLE_HALLUC_VERIFIER` + ledger токенов | Средний; откат = выключить флаг |
-| **H3** | Dual agreement по узким триггерам + лимит N/час | Стоимость |
-| **H4** | Связка с tool-search (отдельное ТЗ) | Отдельный трек |
+| **H1** | Stronger retry prompt + other model on cascade | Low |
+| **H2** | Light Verifier behind `ENABLE_HALLUC_VERIFIER` + token ledger | Medium; rollback = disable flag |
+| **H3** | Dual agreement on narrow triggers + N/hour limit | Cost |
+| **H4** | Link to tool-search (separate TZ) | Separate track |
 
 ---
 
-## 9. Риски
+## 9. Risks
 
-| Риск | Мера |
+| Risk | Mitigation |
 |------|------|
-| «Две модели подтвердили» в UI | Запрет формулировки; только internal meta |
-| Согласованная ошибка A+B | Agreement ≠ доказательство; факты → tool |
-| Latency / cost | Триггеры + feature-flag + budget |
-| Verifier сам ошибается | soften/regenerate, не silent drop; мониторинг |
-| Усложнение разработки | Только пост-запуск; H1→H2→H3; откат флагом |
+| “Two models confirmed” in the UI | Ban that wording; internal meta only |
+| Correlated A+B error | Agreement ≠ proof; facts → tool |
+| Latency / cost | Triggers + feature-flag + budget |
+| Verifier itself errs | soften/regenerate, not silent drop; monitoring |
+| Development complexity | Post-launch only; H1→H2→H3; rollback by flag |
 
 ---
 
-## 10. Что не делать
+## 10. What not to do
 
-- Dual full generate на каждый turn по умолчанию.
-- Говорить пользователю, что ответ «проверен второй нейросетью» как гарантия истины.
-- Давать verifier право добавлять факты о мире.
-- Смешивать с текущими работами по запуску и TZ-INSTRUCTIONS-01 без отдельного решения.
+- Dual full generate on every turn by default.
+- Tell the user the answer was “checked by a second network” as a truth guarantee.
+- Let the verifier add world facts.
+- Mix into current launch work and TZ-INSTRUCTIONS-01 without a separate decision.
 
 ---
 
-## 11. Связь с документами
+## 11. Related documents
 
-| Документ | Роль |
+| Document | Role |
 |----------|------|
-| Код v1.6.0 | Уровень 0 уже работает |
-| TZ-INSTRUCTIONS-01 | Неопределённость и intent-флаги (смежный фокус) |
-| **TP-HALLUC-01** | Резерв на пост-запуск против галлюцинаций |
-| Будущий tool-search | Единственный надёжный путь для внешних фактов |
+| Code v1.6.0 | Level 0 already works |
+| TZ-INSTRUCTIONS-01 | Uncertainty and intent flags (adjacent focus) |
+| **TP-HALLUC-01** | Post-launch reserve against hallucinations |
+| Future tool-search | Only reliable path for external facts |
 
 ---
 
-## 12. Решение для владельца
+## 12. Decision for the owner
 
-1. **Сейчас** — не внедрять, не блокировать запуск.  
-2. **После запуска** — смотреть метрики §7.  
-3. **При проблеме** — H1, затем H2 за feature-flag.  
-4. **H3/H4** — только отдельным решением о приоритете и стоимости.
+1. **Now** — do not implement; do not block launch.  
+2. **After launch** — watch §7 metrics.  
+3. **If there is a problem** — H1, then H2 behind a feature flag.  
+4. **H3/H4** — only by a separate priority and cost decision.
 
 ---
 
-*Конец TP-HALLUC-01. Готовое решение на полке: усиленный retry → light verifier → редкий dual-pass; внешние факты — через tools, не через голосование моделей.*
+*End of TP-HALLUC-01. Shelf solution: stronger retry → light verifier → rare dual-pass; external facts via tools, not model voting.*
