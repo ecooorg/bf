@@ -247,7 +247,7 @@ async function ingestTar(bytes: Uint8Array, limits: IngestLimits): Promise<Inges
       continue;
     }
     const norm = normalizePath(item.path);
-    if (!norm.ok) {
+    if (norm.ok === false) {
       const r = norm.reason;
       skipped.push({ path: item.path, reason: r === 'traversal' || r === 'absolute' || r === 'windows_drive' || r === 'unc' ? 'path_traversal' : r === 'empty' ? 'empty' : 'invalid_name', detail: r });
       continue;
@@ -300,7 +300,7 @@ export async function ingestFiles(files: Iterable<{ name: string; size?: number;
   for (const file of files) {
     const rawPath = file.webkitRelativePath || file.name;
     const norm = normalizePath(rawPath);
-    if (!norm.ok) { skipped.push({ path: rawPath, reason: norm.reason === 'traversal' || norm.reason === 'absolute' || norm.reason === 'windows_drive' || norm.reason === 'unc' ? 'path_traversal' : 'invalid_name', detail: norm.reason }); continue; }
+    if (norm.ok === false) { skipped.push({ path: rawPath, reason: norm.reason === 'traversal' || norm.reason === 'absolute' || norm.reason === 'windows_drive' || norm.reason === 'unc' ? 'path_traversal' : 'invalid_name', detail: norm.reason }); continue; }
     const rule = matchesDefaultSkip(norm.path);
     if (rule) { skipped.push({ path: norm.path, reason: 'default_skip_rule', detail: rule }); continue; }
     const key = caseKey(norm.path);
