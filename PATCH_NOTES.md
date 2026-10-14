@@ -1,19 +1,27 @@
-# CI fix: version-consistency + typecheck
+# Mini-patch: mode packs on bf-v27
 
-## 3 FAIL names
-1. version-consistency — README.md title lacks v24
-2. test:version — same (README overwritten by old patch notes)
-3. typecheck — WorkspacePanel.tsx: persisted.code on un-narrowed union
+Base: bf-v27 (CI green; version/typecheck already OK).
 
-## NOT caused by UI label changes
-README was accidentally replaced by patch instructions (ui-polish v2 zip contained README.md).
-WorkspacePanel error is P27 typing; fixed with `persisted.ok === false` for TS narrowing.
+## What
+Separate instruction packs so Simple Mode is human/substance-first without weakening Expert/Project.
+
+| Mode | Files |
+|------|--------|
+| Simple | `server/promptPacks.ts` + wrapper in `server.ts` |
+| Expert | `EXPERT_STEP_PREFIX` in `generate()` for non-conversation stages |
+| Project | `ANALYST_INSTRUCTION` identity line in `contextBuilder.ts` |
+
+Also: intent flags for no-methodology / direct answer + retry; stronger `information` mode paragraph.
 
 ## Apply
 ```bash
-unzip -o ci-fix-readme-typecheck.zip
+cd bf-main
+unzip -o mode-packs-v27.zip
 bash APPLY.sh
-git add README.md src/WorkspacePanel.tsx
-git commit -m "fix CI: restore README v24 title, narrow PersistIngest fail type"
+git add server.ts server/promptPacks.ts server/conversationMode.ts server/intentFlags.ts server/contextBuilder.ts
+git commit -m "mode packs: Simple substance-first; Expert/Project separate (v27)"
 git push
 ```
+
+## Manual test
+Graubünden-style factual question → orienting answer first, not methodology lecture.
