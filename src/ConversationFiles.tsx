@@ -72,7 +72,7 @@ export function AttachControl({
         <Paperclip size={15} />{uploading > 0 ? 'Reading…' : 'Attach file'}
       </button>
       {showPrivacyNote && value.length > 0 && (
-        <span className="attach-privacy-note" title="Files are sent to Google Gemini together with your message. The server does not keep them.">
+        <span className="attach-privacy-note" title="Files are sent with your message to help the analysis. The server does not keep them.">
           File will be sent to Gemini
         </span>
       )}
@@ -301,7 +301,7 @@ export function FilesPanel({
   title: string;
   history: any[];
   canCalendar?: boolean;
-  /** Ask the agent for "Agent summary" (document intent). */
+  /** Ask the agent for "Short summary" (document intent). */
   onAgentSummary?: () => void;
   /** Download .ics when review dates exist. */
   onCalendar?: () => void;
@@ -487,9 +487,9 @@ export function FilesPanel({
                 <>
                   <div className="files-menu-label">What to save</div>
                   {history.length > 0 && <button type="button" role="menuitem" className={`files-menu-item${what === 'dialogue' ? ' active' : ''}`} onClick={() => { setWhat('dialogue'); setSaveStep('where'); }}>Whole dialogue</button>}
-                  {onAgentSummary && <button type="button" role="menuitem" className={`files-menu-item${what === 'agent-summary' ? ' active' : ''}`} onClick={() => { setWhat('agent-summary'); void doSave('docx'); }}>Agent summary</button>}
+                  {onAgentSummary && <button type="button" role="menuitem" className={`files-menu-item${what === 'agent-summary' ? ' active' : ''}`} onClick={() => { setWhat('agent-summary'); void doSave('docx'); }}>Short summary</button>}
                   {expertMode && (
-                    <button type="button" role="menuitem" className={`files-menu-item${what === 'full-review' ? ' active' : ''}`} onClick={() => { setWhat('full-review'); setSaveStep('where'); }}>Full decision review</button>
+                    <button type="button" role="menuitem" className={`files-menu-item${what === 'full-review' ? ' active' : ''}`} onClick={() => { setWhat('full-review'); setSaveStep('where'); }}>Full decision report</button>
                   )}
                   {canCalendar && (
                     <button type="button" role="menuitem" className="files-menu-item" onClick={() => { setWhat('calendar'); void doSave('docx'); }}>Reminder calendar (.ics)</button>
@@ -512,7 +512,7 @@ export function FilesPanel({
         </div>
       </div>
       {!hideAdd && files.length > 0 && (
-        <span className="attach-privacy-note" title="Files are sent to Google Gemini together with your message. The server does not keep them.">
+        <span className="attach-privacy-note" title="Files are sent with your message to help the analysis. The server does not keep them.">
           File will be sent to Gemini
         </span>
       )}
@@ -526,10 +526,10 @@ export function FilesPanel({
       {quotaMsg && <div className="files-panel-status files-panel-warn" role="status">{quotaMsg}</div>}
 
       {pickerOpen && (
-        <div className="pf-modal" role="dialog" aria-label="Program files">
+        <div className="pf-modal" role="dialog" aria-label="Attached files">
           <div className="pf-modal-card">
             <div className="pf-modal-head">
-              <strong>Program files</strong>
+              <strong>Attached files</strong>
               <button type="button" className="ghost" onClick={() => setPickerOpen(false)} aria-label="Close">Close</button>
             </div>
             {quotaMsg && <div className="files-panel-warn">{quotaMsg}</div>}
@@ -570,7 +570,7 @@ export function FilesPanel({
   );
 }
 
-/** Standalone manager opened from More → Program files */
+/** Standalone manager opened from More → Attached files */
 export function ProgramFilesManager({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [list, setList] = useState<ProgramFile[]>([]);
   const [quotaMsg, setQuotaMsg] = useState('');
@@ -584,15 +584,15 @@ export function ProgramFilesManager({ open, onClose }: { open: boolean; onClose:
   }, [open]);
   if (!open) return null;
   return (
-    <div className="pf-modal" role="dialog" aria-label="Program files">
+    <div className="pf-modal" role="dialog" aria-label="Attached files">
       <div className="pf-modal-card">
         <div className="pf-modal-head">
-          <strong>Program files</strong>
+          <strong>Attached files</strong>
           <button type="button" className="ghost" onClick={onClose} aria-label="Close">Close</button>
         </div>
         <p className="pf-hint">Only text and descriptions are stored in this browser. Originals are not kept. Included in Export all (JSON backup).</p>
         {quotaMsg && <div className="files-panel-warn">{quotaMsg}</div>}
-        {!list.length && <p className="pf-empty">Archive is empty.</p>}
+        {!list.length && <p className="pf-empty">No files yet.</p>}
         <ul className="pf-list">
           {list.map((row) => (
             <li key={row.id} className="pf-row">

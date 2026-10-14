@@ -23,7 +23,6 @@ import { HistoryPanel } from './HistoryPanel.tsx';
 import { AutoInput, AutoTextarea } from './AutoGrow.tsx';
 import { decisionToDocument } from './decisionDocument.ts';
 import { FilesPanel, CopyButton, MessageExtras, ProgramFilesManager } from './ConversationFiles.tsx';
-import { WorkspacePanel } from './WorkspacePanel.tsx';
 import {
   Attachment, DocumentSpec, applyAttachmentNotes, attachmentOnlyText, collectAttachments, collectDecisionAttachments,
   conversationToDocument, fitRequest, historyForRequest,
@@ -122,7 +121,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [privacy, setPrivacy] = useState(() => getPrivacyAccepted());
+  const [privacy, setPrivacy] = useState(true); // Welcome screen disabled: go straight to workspace after sign-in
   const [showBrief, setShowBrief] = useState(false);
   const [showProgramFiles, setShowProgramFiles] = useState(false);
   const [expertMode, setExpertMode] = useState(false);
@@ -333,8 +332,8 @@ export default function App() {
       <div className="shell"><div className="empty">
         <h1>{en.app}</h1><p>{en.subtitle}</p>
         <div className="panel" style={{maxWidth:560,textAlign:'left'}}>
-          <h2>Access password</h2><p>Enter the password for this deployment.</p>
-          <input aria-label="Access password" className="input credential-input" type="password" value={password} placeholder="Enter access password" onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{if(e.key==='Enter') void (async()=>{try{setAuthError('');await loginWithPassword(password);setAuthenticated(true);}catch(err:any){setAuthError(err.message||'Invalid password')}})()}} />
+          <h2>Sign in</h2><p>Enter the password to open this app.</p>
+          <input aria-label="Sign in" className="input credential-input" type="password" value={password} placeholder="Password" onChange={e=>setPassword(e.target.value)} onKeyDown={e=>{if(e.key==='Enter') void (async()=>{try{setAuthError('');await loginWithPassword(password);setAuthenticated(true);}catch(err:any){setAuthError(err.message||'Invalid password')}})()}} />
           {authError && <p className="alert error">{authError}</p>}
           <button className="primary" style={{marginTop:16}} onClick={()=>void (async()=>{try{setAuthError('');await loginWithPassword(password);setAuthenticated(true);}catch(err:any){setAuthError(err.message||'Invalid password')}})()}>Sign in</button>
         </div>
@@ -354,7 +353,7 @@ export default function App() {
             <h2>{en.privacyTitle}</h2>
             <p>{en.privacyBody}</p>
             <p style={{ fontSize: 12, color: '#7f93aa' }}>
-              Fields sent to Gemini API: Brief text, confirmed neutralization, answers to
+              Fields that may be sent for analysis: Brief text, confirmed neutralization, answers to
               unknowns, options, hypotheses, experiment cards (no passwords). Files you attach are read on the server and sent to Gemini only together with the message you attach them to; the server does not store them.
             </p>
             <button
@@ -380,15 +379,15 @@ export default function App() {
           <div className="panel" style={{ maxWidth: 620, textAlign: 'left' }}>
             <h2><KeyRound size={18} /> Google AI</h2>
             <p style={{ color: '#8ea2b8' }}>
-              Connection settings for the Google AI model. They do not change how decisions are analysed.
+              Optional: use your own Google AI key. You can skip this — the app works with the server’s key when available.
             </p>
             <p style={{ color: '#8ea2b8', fontSize: 13 }}>
               Your key is stored only in this browser and is sent to this app's server with each request so it can call Google on your behalf. The server does not save it and does not write it to logs.
             </p>
-            <label style={{ display: 'block', marginTop: 16 }}>Gemini API key (optional)</label>
-            <input aria-label="Gemini API key" className="input credential-input" type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} placeholder="AIza..." style={{ width: '100%', marginTop: 8 }} />
-            <label style={{ display: 'block', marginTop: 16 }}>Preferred first model</label>
-            <select aria-label="Preferred first model" className="input credential-input" value={geminiModel} onChange={e => setGeminiModel(e.target.value)} style={{ width: '100%', marginTop: 8 }}>
+            <label style={{ display: 'block', marginTop: 16 }}>Your Google AI key (optional)</label>
+            <input aria-label="Google AI key" className="input credential-input" type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} placeholder="AIza..." style={{ width: '100%', marginTop: 8 }} />
+            <label style={{ display: 'block', marginTop: 16 }}>Preferred model</label>
+            <select aria-label="Preferred model" className="input credential-input" value={geminiModel} onChange={e => setGeminiModel(e.target.value)} style={{ width: '100%', marginTop: 8 }}>
               <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
               <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
               <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
@@ -397,12 +396,12 @@ export default function App() {
               <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
             </select>
             <p style={{ fontSize: 12, color: '#7f93aa', marginTop: 10 }}>
-              The server will cascade through the configured models if the preferred model is unavailable or overloaded. The preference only changes the starting point.
+              If the preferred model is busy, the app tries others automatically.
             </p>
             {aiHealth && (
               <div className="alert" style={{ marginTop: 14 }}>
-                Server key: <b>{aiHealth.hasKey ? 'configured' : 'not configured'}</b><br />
-                Cascade: {(aiHealth.strongModels || []).join(' → ')}
+                Server has a key: <b>{aiHealth.hasKey ? 'configured' : 'not configured'}</b><br />
+                Fallback order: {(aiHealth.strongModels || []).join(' → ')}
               </div>
             )}
             <div className="actions" style={{ marginTop: 16 }}>
@@ -556,7 +555,7 @@ export default function App() {
             {en.formula}
             <br />
             <br />
-            Human decision:{' '}
+            Your decision:{' '}
             {d.decision ? 'recorded' : 'not yet'}
           </div>
         </aside>}
@@ -644,7 +643,7 @@ function MethodGuide({ step, stageMeta, busy }: { step: Step; stageMeta: typeof 
     <div className="method-guide" style={{ padding: '14px 18px', marginBottom: 16 }}>
       <div className="method-guide-head" style={{ alignItems: 'center' }}>
         <div style={{ minWidth: 0 }}>
-          <div className="eyebrow">EXPERT ANALYSIS</div>
+          <div className="eyebrow">ANALYSIS</div>
           <h1 style={{ marginBottom: 4 }}>Your decision, step by step</h1>
           <p style={{ margin: 0 }}>The analysis below is built from your conversation and the information already found.</p>
         </div>
@@ -664,7 +663,7 @@ function MethodGuide({ step, stageMeta, busy }: { step: Step; stageMeta: typeof 
       </div>
       <div className="method-current" style={{ marginTop: 10, padding: '10px 12px' }}>
         <div>
-          <span className="method-current-label">CURRENT ANALYSIS</span>
+          <span className="method-current-label">NOW</span>
           <strong>{stageMeta.label}</strong>
         </div>
         <div className="method-current-count">{currentLoopIndex + 1} / {LOOPS.length}</div>
@@ -726,7 +725,7 @@ function Header(props: {
         )}
         {props.onHistory && (
           props.historyAvailable === false
-            ? <button className="ghost" disabled title="This browser cannot store data (private mode?)"><HistoryIcon size={14} /> <span className="lbl">History not saved</span></button>
+            ? <button className="ghost" disabled title="This browser cannot save history (private mode?)"><HistoryIcon size={14} /> <span className="lbl">History unavailable</span></button>
             : <button className="ghost" onClick={props.onHistory} title="History"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
         )}
         <div className="hdr-more-wrap" ref={moreRef}>
@@ -1117,7 +1116,6 @@ function BriefScreen({
           title={d.title || b.decision.slice(0, 40) || 'Decision'}
           history={[]}
         />
-        <WorkspacePanel disabled={busy} />
         <div className="conversation-entry-actions">
           <button className="primary" disabled={!canContinue || busy} onClick={submit}>{busy ? 'Thinking…' : 'Send'} <ArrowRight size={16} /></button>
           <span className="conversation-hint">Ctrl/Cmd + Enter</span>
@@ -1356,7 +1354,6 @@ function ConversationScreen({
         onAgentSummary={() => send(input.trim() ? input : DOCUMENT_REQUEST, 'DOCUMENT')}
         onCalendar={() => icsDownload(d)}
       />
-      <WorkspacePanel disabled={busy} />
       {history.some((m: any) => m.role === 'assistant') && !waitingForAssistant && !busy && (
         <div className="conversation-composer">
           <AutoTextarea
@@ -1582,7 +1579,7 @@ function UnderstandScreen({
             <AssistantMessage>
               {summary && (
                 <div className="question">
-                  <div className="listhead">THE DECISION</div>
+                  <div className="listhead">YOUR DECISION</div>
                   <p style={{ marginBottom: 0 }} dir="auto">{summary}</p>
                 </div>
               )}
@@ -1911,7 +1908,7 @@ function TestScreen({
         </p>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div>
-            <label>Cost of error (final)</label>
+            <label>Cost of a wrong choice</label>
             <select
               value={d.brief.errorCost.final || ''}
               onChange={(e) =>
@@ -1934,7 +1931,7 @@ function TestScreen({
             </select>
           </div>
           <div>
-            <label>Reversibility (final)</label>
+            <label>Can you undo it?</label>
             <select
               value={d.brief.reversibility.final || ''}
               onChange={(e) =>
@@ -2088,7 +2085,7 @@ function ExperimentCardEditor({
       )}
       {exp.validityThreats?.length > 0 && (
         <div style={{ marginTop: 8 }}>
-          <h4>Validity threats</h4>
+          <h4>What could make this test unfair?</h4>
           {exp.validityThreats.map((t, i) => (
             <label key={i} style={{ display: 'flex', gap: 8 }}>
               <input
@@ -2109,7 +2106,7 @@ function ExperimentCardEditor({
 
       {/* Forecast (user only) */}
       <div className="forecast" style={{ marginTop: 12 }}>
-        <h4>Forecast (human only)</h4>
+        <h4>Your forecast</h4>
         {!locked && (
           <button
             className="ghost"
@@ -2206,22 +2203,22 @@ function ExperimentCardEditor({
 
       {/* EVPI */}
       <div style={{ marginTop: 12, borderTop: '1px solid #1c3044', paddingTop: 12 }}>
-        <h4>EVPI (local calculation)</h4>
+        <h4>Is more information worth it?</h4>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <label>
-            p %
+            Chance it helps (%)
             <input type="number" value={p} onChange={(e) => setP(Number(e.target.value))} />
           </label>
           <label>
-            G
+            Upside if right
             <input type="number" value={G} onChange={(e) => setG(Number(e.target.value))} />
           </label>
           <label>
-            L
+            Downside if wrong
             <input type="number" value={L} onChange={(e) => setL(Number(e.target.value))} />
           </label>
           <label>
-            c
+            Cost to find out
             <input type="number" value={c} onChange={(e) => setC(Number(e.target.value))} />
           </label>
           <button
@@ -2233,12 +2230,12 @@ function ExperimentCardEditor({
               setC(10);
             }}
           >
-            Example from the article
+            Use example numbers
           </button>
         </div>
         {result && range && verdict && (
           <div className="alert" style={{ marginTop: 8 }}>
-            Expectation without information: {result.evOpen.toFixed(1)}; EVPI = {result.evpi.toFixed(1)};
+            Expected value without more info: {result.evOpen.toFixed(1)}; Value of more info ≈ {result.evpi.toFixed(1)};
             range {range.min.toFixed(0)}–{range.max.toFixed(0)}. {verdict.text}
             <br />
             <small>
@@ -2254,7 +2251,7 @@ function ExperimentCardEditor({
                   })
                 }
               >
-                Save EVPI to card
+                Save this estimate
               </button>
             )}
           </div>
@@ -2775,7 +2772,7 @@ function LearnScreen({
               })
             }
           >
-            <option value="">Discrepancy type</option>
+            <option value="">What went differently?</option>
             <option value="DATA">Data</option>
             <option value="ASSUMPTION">Assumption</option>
             <option value="REASONING">Reasoning</option>
@@ -2783,7 +2780,7 @@ function LearnScreen({
             <option value="LUCK">Chance</option>
           </select>
           <AutoInput
-            placeholder="What I updated"
+            placeholder="What I changed or learned"
             value={j.whatIUpdated || ''}
             disabled={!!j.reviewedAt}
             onChange={(e) =>
@@ -2845,7 +2842,7 @@ function LearnScreen({
       ))}
       {brier && (
         <div className="alert" style={{ marginTop: 12 }}>
-          Brier ≈ {brier.score.toFixed(2)} (N={brier.n}, baseline 0.25)
+          Forecast accuracy ≈ {brier.score.toFixed(2)} ({brier.n} forecasts; 0 is perfect, 0.25 is random)
           {brier.warning && ` · ${brier.warning}`}
         </div>
       )}

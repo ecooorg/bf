@@ -2,7 +2,7 @@
 export const en = {
   app: 'BiForge',
   subtitle: 'A calm way to think through a hard choice',
-  formula: 'UNDERSTAND → EXPAND → ATTACK → VERIFY → LEARN',
+  formula: 'Understand → Explore → Challenge → Check → Learn',
   human: 'You',
   model: 'AI',
   continue: 'Continue',
@@ -12,7 +12,7 @@ export const en = {
     'Please talk to a real person or a help service first. You can pause this decision. This app is not a replacement for help.',
   privacyTitle: 'Welcome',
   privacyBody:
-    'This tool helps you think through a difficult choice step by step. It does not replace professional advice. Do not enter passwords, card numbers, or ID documents. If an API key is set on the server, your answers are sent to Google Gemini to help with the analysis.',
+    'This tool helps you think through a difficult choice step by step. It does not replace professional advice. Do not enter passwords, card numbers, or ID documents. When analysis is enabled, your answers may be sent to a language model to help you.',
   acceptPrivacy: 'Start',
   decision: 'Your situation',
   deadline: 'Deadline (optional)',
@@ -32,8 +32,8 @@ export const en = {
   startTest: 'Start test',
   workPlan: 'Work plan',
   myDecision: 'My decision',
-  exportJson: 'Export',
-  importJson: 'Import',
+  exportJson: 'Download',
+  importJson: 'Upload',
   nextCycle: 'Next cycle',
   scenarioNotForecast: 'Scenario, not a prediction',
   noScore: 'This tool does not pick a winner for you.',
