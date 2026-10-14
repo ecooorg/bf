@@ -1,0 +1,149 @@
+# Copy to ecooorg/biforge-e01-lab → .github/workflows/e01-task.yml
+# Actions → E-01 task → Run workflow. GITHUB_TOKEN only. No schedule. No PAT.
+name: E-01 task
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: E-01 task id
+        required: true
+        type: choice
+        options: [t1, t2, t3]
+      side:
+        description: model_patch or manual path
+        required: true
+        type: choice
+        options: [model, manual]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Apply task files, push branch, open PR
+        env:
+          TASK: ${{ inputs.task }}
+          SIDE: ${{ inputs.side }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const { execSync } = require('child_process');
+          const task = process.env.TASK;
+          const side = process.env.SIDE;
+          const branch = `biforge/e01-${task}-${side}`;
+          const sh = (c) => execSync(c, { stdio: 'inherit' });
+          sh('git config user.name "e01-lab-bot"');
+          sh('git config user.email "e01-lab-bot@users.noreply.github.com"');
+          sh('git checkout main');
+          try { sh('git pull origin main'); } catch (_) {}
+          sh(`git checkout -B ${branch}`);
+          fs.mkdirSync('src', { recursive: true });
+          fs.mkdirSync('tests/acceptance', { recursive: true });
+          fs.mkdirSync('.github/workflows', { recursive: true });
+          const testName = task === 't1' ? 'hello' : task === 't2' ? 'util' : 'obsolete';
+          fs.writeFileSync('package.json', JSON.stringify({
+            name: 'biforge-e01-lab', private: true, type: 'module',
+            scripts: { test: `node --test tests/acceptance/${testName}.test.mjs` }
+          }, null, 2) + '\n');
+          fs.writeFileSync('.github/workflows/ci.yml', [
+            'name: ci',
+            'on:',
+            '  push:',
+            '  pull_request:',
+            'jobs:',
+            '  test:',
+            '    runs-on: ubuntu-latest',
+            '    steps:',
+            '      - uses: actions/checkout@v4',
+            '      - uses: actions/setup-node@v4',
+            '        with:',
+            '          node-version: "22"',
+            '      - name: Run acceptance tests',
+            '        run: npm test',
+            ''
+          ].join('\n'));
+          if (task === 't1') {
+            fs.writeFileSync('src/hello.js', 'export function hello() {\n  return \'hi\';\n}\n');
+            fs.writeFileSync('tests/acceptance/hello.test.mjs',
+              "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { hello } from '../../src/hello.js';\n\n" +
+              "test('hello is a function', () => {\n  assert.equal(typeof hello, 'function');\n});\n");
+          } else if (task === 't2') {
+            fs.writeFileSync('src/util.js',
+              'export function identity(x) {\n  return x;\n}\nexport function clamp(n, lo, hi) {\n  return Math.min(hi, Math.max(lo, n));\n}\n');
+            fs.writeFileSync('tests/acceptance/util.test.mjs',
+              "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { clamp } from '../../src/util.js';\n\n" +
+              "test('clamp', () => {\n  assert.equal(clamp(5, 0, 3), 3);\n});\n");
+          } else if (task === 't3') {
+            for (const f of ['src/obsolete.ts', 'src/obsolete.js']) {
+              try { fs.unlinkSync(f); } catch (_) {}
+            }
+            fs.writeFileSync('tests/acceptance/obsolete.test.mjs',
+              "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport fs from 'node:fs';\n\n" +
+              "test('obsolete file is removed', () => {\n  assert.equal(fs.existsSync('src/obsolete.ts'), false);\n  assert.equal(fs.existsSync('src/obsolete.js'), false);\n});\n");
+          } else {
+            throw new Error('unknown task ' + task);
+          }
+          sh('git add -A');
+          try {
+            sh(`git commit -m "e01-${task} ${side}: apply lab payload"`);
+          } catch (_) {
+            console.log('nothing to commit');
+          }
+          sh(`git push -u origin ${branch} --force`);
+          const sha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+          let prUrl = '';
+          try {
+            prUrl = execSync(
+              `gh pr create --base main --head ${branch} --title "e01-${task} ${side}" --body "E-01 lab automated run (${side}). Merge not required for metrics."`,
+              { encoding: 'utf8', env: process.env }
+            ).trim();
+          } catch (_) {
+            try {
+              prUrl = execSync(`gh pr list --head ${branch} --json url -q '.[0].url'`, { encoding: 'utf8' }).trim();
+            } catch (__) {}
+          }
+          const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+          const payload = {
+            taskId: `e01-${task}`,
+            side,
+            branch,
+            sha,
+            prUrl,
+            workflowRun: runUrl,
+            tool: 'github-actions',
+            generatedAt: new Date().toISOString()
+          };
+          fs.mkdirSync('out', { recursive: true });
+          fs.writeFileSync('out/e01-run.json', JSON.stringify(payload, null, 2));
+          const summary = [
+            '### E-01 run',
+            `- task: e01-${task} / ${side}`,
+            `- branch: \`${branch}\``,
+            `- sha: \`${sha}\``,
+            `- pr: ${prUrl || '(none)'}`,
+            `- run: ${runUrl}`,
+            ''
+          ].join('\n');
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          console.log(JSON.stringify(payload));
+          NODE
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e01-run
+          path: out/e01-run.json
