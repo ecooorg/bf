@@ -152,10 +152,10 @@ await withSrv({}, async function H6c(s) { // quota on one model must not stop th
   recs = []; await conv(s, 'ещё раз'); T('H6d quota: m1 skipped on next request', recs.length >= 1 && recs[0]?.model === 'm2', recs.map((x) => x.model).join(',')); });
 await withSrv({}, async function H7(s) { // quality retry
   const weak = GOOD({ gain: [], newOptions: [] }); script = (q) => q.n === 1 ? { json: weak, usage: { promptTokenCount: 100, candidatesTokenCount: 10 } } : { json: GOOD(), usage: { promptTokenCount: 120, candidatesTokenCount: 20 } };
-  const r = await conv(s, 'Менять ли работу'); const m = r.j?.meta || {}; const chars = recs.reduce((a, x) => a + x.system.length + x.prompt.length, 0);
+  const r = await conv(s, 'Стоит ли менять работу'); const m = r.j?.meta || {}; const chars = recs.reduce((a, x) => a + x.system.length + x.prompt.length, 0);
   T('H7 quality fail -> retry on reserve model', okc(r) && recs.length === 2 && recs[1].model === 'm2' && m.model === 'm2', `${r.s} ${recs.map((x) => x.model)}`);
   T('H7b meta sums calls', m.calls === 2, m.calls); T('H7c meta sums promptChars', m.promptChars === chars, `${m.promptChars} vs ${chars}`); T('H7d meta sums tokens 220/30', m.inputTokens === 220 && m.outputTokens === 30, `${m.inputTokens}/${m.outputTokens}`); });
-await withSrv({}, async function H8(s) { script = (q) => q.n === 1 ? { json: GOOD({ gain: [] }) } : { status: 503, message: 'UNAVAILABLE' }; const r = await conv(s, 'Менять ли работу'); T('H8 retry fails -> first draft returned', okc(r) && !!r.j.data.reply, `${r.s} calls=${r.j?.meta?.calls}`); });
+await withSrv({}, async function H8(s) { script = (q) => q.n === 1 ? { json: GOOD({ gain: [] }) } : { status: 503, message: 'UNAVAILABLE' }; const r = await conv(s, 'Стоит ли менять работу'); T('H8 retry fails -> first draft returned', okc(r) && !!r.j.data.reply, `${r.s} calls=${r.j?.meta?.calls}`); });
 await withSrv({ MAX_MODEL_CALLS: '2' }, async function H9(s) { script = (q) => q.n === 1 ? { raw: 'bad' } : q.n === 2 ? { json: GOOD({ gain: [] }) } : { json: GOOD() }; const r = await conv(s, 'Менять ли работу');
   T('H9 [S-4 probe] request-wide model budget (MAX_MODEL_CALLS=2)', recs.length <= 2, `real model hits=${recs.length}, meta.calls=${r.j?.meta?.calls}`); });
 await withSrv({}, async function H10(s) { script = () => ({ json: { paragraphs: ['один два три', 'четыре', 'пять', 'шесть', 'семь'], derived_numbers: [], open_gaps: [], needs_external_check: [] } }); const r = await s.post('/api/synthesis', { brief: { decision: 'x' } });

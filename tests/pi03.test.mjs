@@ -15,7 +15,8 @@ const freePort = () => new Promise((res) => { const s = net.createServer().liste
   assert.equal(detectConversationMode('Найди прогнозы в сети'), 'research');
   assert.equal(detectConversationMode('compare these two options from sources'), 'research');
   assert.equal(detectConversationMode('Напиши unit test и acceptance criteria для API'), 'engineering');
-  assert.equal(detectConversationMode('обычный текст без сигналов'), 'decision');
+  // MP2: unclear intent defaults to information; decision only on explicit signals.
+  assert.equal(detectConversationMode('обычный текст без сигналов'), 'information');
   assert.equal(detectConversationMode('что угодно', { userAskedSearch: true }), 'research');
   assert.ok(/Decision support/i.test(modeParagraph('decision')));
   assert.ok(/Research/i.test(modeParagraph('research')));
