@@ -27,7 +27,7 @@ Before editing:
 1. Read `docs/START_HERE.md`, then **`docs/CURRENT_STATE.md`** → **Next agent patch** (ID + one line).
 2. Read **`docs/PNN-SPEC.md`** for that ID (template: `docs/PATCH_TEMPLATE.md`). Product norms: `docs/BiForge_TZ_v3.md` index and/or `docs/BiForge_TZ_P26.md` only as cited by the SPEC.
 3. The base is the archive uploaded by the owner; record its name or date in the report.
-4. Read relevant files and tests.
+4. Read relevant files and tests. For production host and Railway/GitHub links use `docs/OWNER_OPS.md` only (no secrets).
 5. If the owner says **«следующий патч»** / **“next patch”**, implement **exactly** the current **Next agent patch**. Do not pull the next ID in the same session unless asked.
 6. Default code executor stays `manual` until the owner completes RM-C3. Owner `RM-*` steps are not agent patches.
 5. If the baseline is unclear or the requested change conflicts with the archive contents, stop and report `BLOCKED`.

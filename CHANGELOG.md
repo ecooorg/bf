@@ -1,3 +1,8 @@
+## Docs — OWNER_OPS bookmarks (2026-10-14)
+
+- Added `docs/OWNER_OPS.md`: single non-secret registry of prod URL, Railway project, GitHub App, deploy facts.
+- Pointers from START_HERE, CURRENT_STATE, REPO_MAP, AGENTS.
+
 ## Docs — agent patches from P27 (2026-10-14)
 
 - **Next agent patch** pointer in `docs/CURRENT_STATE.md` (current: **P27**).
