@@ -10,7 +10,8 @@
 
 - [x] **P26a** ZIP ingest core — see `docs/P26a-REPORT.md` (owner reports CI green for base `bf-v26a.zip`).
 - [ ] **P26a.2** Finish tar/folder/IndexedDB/context helpers and wire them into Simple + Expert UI; pass AC-04 with fake Gemini. Current implementation slice is `PARTIAL`; see `docs/P26a.2-REPORT.md`.
-- [ ] **P26b** ChangeSet and export — do not start until P26a.2 gate is closed and the owner commands it.
+- [x] **P26b** ChangeSet + export core (2026-10-14) — see `docs/P26b-REPORT.md`. UI ChangeSet card deferred.
+- [ ] **P26c** Project Mode store/routes — only on owner command.
 
 ## Rules
 
