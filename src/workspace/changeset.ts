@@ -339,7 +339,7 @@ export async function validateWorkspaceChangeSet(
           warnings.push('prefer_edits_for_large_file');
         }
         const applied = applyEdits(beforeLf, op.edits, eol === 'mixed' ? 'mixed' : eol);
-        if (!applied.ok) {
+        if (applied.ok === false) {
           push({ code: applied.code, path, detail: applied.detail });
           continue;
         }
