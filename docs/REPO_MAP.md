@@ -362,3 +362,9 @@ Described: src/workspace/
 | `docs/P27-SPEC.md` | Current/first patch SPEC (Simple workspace attach UI) |
 | `docs/P26b-REPORT.md` | Last closed workspace **library** report |
 | `docs/BiForge_TZ_P26.md` | Workspace product norms (cited by P27+ SPECs) |
+
+## Owner environment bookmarks
+
+| Path | Role |
+| --- | --- |
+| `docs/OWNER_OPS.md` | **Single place** for prod/Railway/GitHub public URLs and non-secret env facts |

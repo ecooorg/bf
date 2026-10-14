@@ -2,7 +2,7 @@
 
 > **Read after `docs/START_HERE.md`.** Updated **14 October 2026**.
 > Product version label: **24** (bump only when a product patch SPEC says so).
-> Living queue: `docs/NEXT.md`. Map: `docs/REPO_MAP.md`.
+> Living queue: `docs/NEXT.md`. Map: `docs/REPO_MAP.md`. **Prod/Railway/GitHub links:** `docs/OWNER_OPS.md`.
 
 ---
 
@@ -25,7 +25,7 @@ When P27 is closed (report + CI green), the owner (or the agent if the owner sai
 | | |
 | --- | --- |
 | **CI** | Green after P26b (`test:p26a`, `test:p26a2`, `test:p26b`) |
-| **Code executor** | Default `manual`. `model_patch` gated; ADR-10 Accepted — enable only RM-C3 (owner) |
+| **Code executor** | ADR-10 Accepted. Railway Variables (14 Oct 2026) show `CODE_EXECUTOR=model_patch`. Mark RM-C3 closed in NEXT only after an accepted PR is recorded. Links: `docs/OWNER_OPS.md` |
 | **Closed agent code** | Through P24; PI/PA as before; **P26a**; **P26b core** (library + tests). Historical labels P26a.2 / P26b-UI are **superseded by P27+** |
 | **Owner path to G4** | `RM-*` stages in `docs/NEXT.md` (not agent “next patch”) |
 

@@ -17,6 +17,7 @@
 
 ## Done vs remaining (14 October 2026)
 
+0. **Live URLs / Railway / GitHub App:** `docs/OWNER_OPS.md` (owner bookmarks; no secrets).
 1. Read **`docs/CURRENT_STATE.md`** — block **Next agent patch** (today: **P27**).
 2. Read **`docs/PNN-SPEC.md`** for that ID only (e.g. `docs/P27-SPEC.md`).
 3. Full schedule: **`docs/NEXT.md`** section **Agent patch schedule (P27+)**.
