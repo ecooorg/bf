@@ -11,7 +11,7 @@ const RE_RESEARCH = /(?:найди(?:те)?|поиск(?:ай|ать)?|срав�
 const RE_ENGINEERING = /(?:(?:напиши|сгенерируй|сделай)\s+(?:код|тест|спецификац|API|схем)|требования|критери(?:й|и)\s+приёмк|acceptance\s+criteria|unit\s+test|интеграционн(?:ый|ые)\s+тест|рефактор|pull\s+request|\bPR\b|TypeScript|Python\b|SQL\b|миграци(?:я|и)|implement|write\s+(?:code|tests?)|specification|design\s+the\s+(?:API|schema)|refactor)/i;
 // Expanded: question words + tell/explain/suggest/help-with-info style requests (not only leading interrogative).
 const RE_INFORMATION = /(?:^\s*(?:какой|какая|какие|какое|что|кто|где|когда|сколько|почему|зачем|как(?:ой|ая|ие|ое)?|есть\s+ли|what|who|where|when|how\s+much|how\s+many|why|is\s+there|does)(?=\s|[?!.,:;]|$)|(?:расскажи|объясни|подскажи|поясни|опиши|что\s+такое|tell\s+me|explain|describe|what\s+is|how\s+does|help\s+me\s+understand|give\s+me\s+(?:an?\s+)?(?:overview|summary|info)))/i;
-const RE_DECISION = /(?:что\s+(?:(?:мне|нам|же|тут|теперь)\s+)*(?:делать|выбрать)(?:\s|[?!.,:;]|$)|как\s+поступить|решени[ея]|вариант(?:ы|ов)?|выбор(?:а|ом)?|стоит\s+ли|пора\s+ли\s+(?:мне|нам)|что\s+важнее|what\s+should\s+I\s+do|which\s+(?:option|path)|help\s+me\s+decide|should\s+I\b)/i;
+const RE_DECISION = /(?:что\s+(?:(?:мне|нам|же|тут|теперь)\s+)*(?:делать|выбрать)(?:\s|[?!.,:;]|$)|как\s+поступить|решени[ея]|вариант(?:ы|ов)?|выбор(?:а|ом)?|стоит\s+ли|пора\s+ли\s+(?:мне|нам)|что\s+важнее|мне\s+(?:[а-яё]+\s+){0,6}?[а-яё]+(?:ть|ться|ти|тись|чь)\s+(?:[а-яё]+\s+){0,6}?или\s+(?:[а-яё]+\s+){0,2}?[а-яё]+(?:ть|ться|ти|тись|чь)(?=\s|[?!.,:;]|$)|(?:боюсь|опасаюсь|сомневаюсь)(?:\s|[?!.,:;]|$)|what\s+should\s+I\s+do|which\s+(?:option|path)|help\s+me\s+decide|should\s+I\b)/i;
 
 export function detectConversationMode(
   lastUserText: string,
