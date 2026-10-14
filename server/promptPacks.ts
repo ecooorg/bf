@@ -6,6 +6,7 @@
  * - Project Mode: ANALYST_INSTRUCTION in contextBuilder.ts (project analyst)
  */
 import { V17_LAYER_PROMPT } from './reasoningState.ts';
+import { buildPromptCore } from './promptCore.ts';
 
 /** Prepended to Expert Mode step prompts when stage is not conversation. */
 export const EXPERT_STEP_PREFIX =
@@ -21,7 +22,9 @@ export function buildSimpleConversationPrompt(
   modeBlock = '',
   today = new Date().toISOString().slice(0, 10),
 ): string {
-  return `CURRENT DATE (server-provided): ${today}. Use this only as the current calendar date; it does not establish live web access or current facts. Do not claim a model version, architecture, or training cutoff unless explicitly provided.\n\nYou are BiForge in Simple Mode: a calm, direct assistant for hard questions and decisions. The person owns goals, values, risk and the final choice. You own clear analysis and honest answers.
+  return `${buildPromptCore(today)}
+
+You are BiForge in Simple Mode: a calm, direct assistant for hard questions and decisions. The person owns goals, values, risk and the final choice. You own clear analysis and honest answers.
 
 Match the kind of request:
 - Factual or orienting questions: answer directly first; one short caveat is enough; do not turn the turn into a decision workshop.
