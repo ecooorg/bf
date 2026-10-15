@@ -27,7 +27,10 @@ test('STATUS orders QA1 between UI1 and MANUAL1 and records approved UX1 decisio
   const ui = status.indexOf('**UI1**');
   const qa = status.indexOf('**QA1**');
   const manual = status.indexOf('**MANUAL1**');
-  assert.ok(ui >= 0 && ui < qa && qa < manual);
+  assert.ok(ui >= 0, 'STATUS must mention **UI1**');
+  assert.ok(qa >= 0, 'STATUS must mention **QA1**');
+  assert.ok(manual >= 0, 'STATUS must mention **MANUAL1**');
+  assert.ok(ui < qa && qa < manual, 'STATUS order: UI1 before QA1 before MANUAL1');
   assert.doesNotMatch(status, /UX1 feedback\?/i);
 });
 
