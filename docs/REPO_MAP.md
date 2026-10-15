@@ -1,6 +1,6 @@
 # Repository map
 
-> Compiled from the actual archive contents (14 October 2026). Start with `docs/START_HERE.md`. Active mode initiative: `docs/MASTER_IMPLEMENTATION_PLAN.md`. The structure is flat: root and first-level directories only (exception: `.github/workflows/`).
+> Compiled from the actual archive contents (15 October 2026). Start with `docs/START_HERE.md`. Active mode initiative: `docs/MASTER_IMPLEMENTATION_PLAN.md`. The structure is flat: root and first-level directories only (exception: `.github/workflows/`).
 
 ## Root
 
@@ -8,7 +8,7 @@
 | --- | --- |
 | `server.ts` | Server monolith (Express): routes, auth, model calls, Simple Mode API, Project Mode API. Touch for server behaviour; new logic goes to `server/*.ts` where possible |
 | `server/` | Server modules (see below) |
-| `src/` | Client (see below) |
+| `src/` | Client (see below); `src/WorkspacePanel.tsx` is the shared local file/archive/folder import panel for Simple/Expert/Project requests |
 | `migrations/` | SQL migrations for PostgreSQL, applied by `scripts/migrate.mjs`. Add a new numbered file; never edit an applied one |
 | `scripts/` | Utility scripts (see below) |
 | `tests/` | Tests (see below) |
@@ -396,11 +396,15 @@ Described: src/workspace/
 | `ARCHIVE/README.md` | Stub after bulk history left the remote repo |
 | `CONCEPTS/README.md` | Stub after concepts left the remote repo |
 
-## P27 (Simple workspace UI)
+## P27 / P34 (Workspace UI and agent context)
 
 | Path / script | Role |
 | --- | --- |
-| `src/WorkspacePanel.tsx` | Simple Mode workspace attach UI |
+| `src/WorkspacePanel.tsx` | Shared Workspace import UI for Simple, Expert, and Project Mode; privacy-gated agent context |
 | `src/workspace/persistIngest.ts` | Persist IngestResult into WorkspaceStore |
 | `tests/workspace-p27.test.mjs` | P27 persist + privacy guard tests |
 | `npm run test:p27` | Runs workspace-p27 tests |
+| `tests/workspace-p34.test.mjs` | P34 individual-file ingest, persistence, readable content and byte integrity |
+| `npm run test:p34` | Runs workspace-p34 tests |
+| `tests/mp3.test.mjs` | MP3 information-mode output quality guard and regression fixtures |
+| `npm run test:mp3` | Runs MP3 acceptance tests |

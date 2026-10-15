@@ -1,8 +1,18 @@
 # Current state
 
-> **Updated:** 14 October 2026.  
-> Product version label: **24** (do not bump for documentation-only work; MP2/MP3 code changes keep label until owner decides).  
+> **Updated:** 15 October 2026.  
+> Product version label: **34** (P34 explicit owner-directed code patch; MP3/MANUAL1/UI1 initiative remains separately tracked).  
 > **Active work plan:** `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+
+
+## P34 — Universal Workspace MVP (explicit owner request, 15 October 2026)
+
+- Added individual/multiple file selection to the existing Workspace import UI and made the panel available in Simple, Expert, and Project Mode flows.
+- Explicit privacy acknowledgement gates bounded workspace attachments sent through the existing Simple/Expert agent request contract and Project analysis task field; secret-flagged entries are excluded.
+- Ingested non-text files are retained byte-for-byte and represented to the agent by safe metadata unless a reader can decode them. P34 does not implement OCR, PDF/Office extraction, image-byte transport to vision models, or audio/video transcription.
+- Fixed content-addressed blob persistence and added `test:p34` to `npm run check`.
+- Verification status: NOT RUN in this environment because `npm ci --ignore-scripts --no-audit --no-fund` timed out before installing dependencies. Green CI and manual Simple/Expert checks are still required.
+- This was an explicit owner-directed exception to the previously paused legacy Workspace queue; the MP3/MANUAL1/UI1 initiative status below is otherwise unchanged.
 
 ## Current initiative
 

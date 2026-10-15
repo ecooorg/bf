@@ -1,6 +1,10 @@
 # Next work — pointer to the master implementation plan
 
-> **Updated:** 14 October 2026 (MP3). The current sequence of work for the approved mode initiative is maintained only in `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not use the legacy P27+ schedule below as the active task queue.
+> **Updated:** 15 October 2026 (P34 delivered by explicit owner request; MP3 remains the active initiative). The current sequence of work for the approved mode initiative is maintained only in `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not use the legacy P27+ schedule below as the active task queue.
+
+## Explicit owner-directed delivery — P34
+
+P34 adds a usable local Workspace import path to the existing Simple/Expert UI and Project Mode analysis. It is implemented in `docs/P34-SPEC.md`; verification remains pending because dependency installation timed out. Before considering it closed, CI must pass and the Navigator must manually verify consent gating and agent attachment in Simple and Expert. Binary files are preserved; PDF/Office extraction, vision transport, OCR, and audio/video transcription remain future work.
 
 ## Current stage
 
