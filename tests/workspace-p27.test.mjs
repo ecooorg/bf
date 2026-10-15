@@ -33,7 +33,7 @@ const entry = {
 };
 const result = {
   entries: [entry],
-  blobs: new Map([["hello.txt", textBytes]]),
+  blobs: new Map([[sha, textBytes]]),
   report: { accepted: 1, skipped: [], marked: [], rootPrefix: "", limitsHit: [] },
   manifestHash: "test",
 };
