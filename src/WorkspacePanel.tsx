@@ -3,12 +3,13 @@
  * P36: ChangeSet card with human Apply / Reject / Rollback.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FolderOpen, FileArchive, X, ChevronRight, Loader2 } from 'lucide-react';
+import { FolderOpen, X, ChevronRight, Loader2 } from 'lucide-react';
 import { ingestArchive, ingestFiles } from './workspace/ingest.ts';
 import { IndexedDbWorkspaceStore } from './workspace/idbStore.ts';
 import { readWorkspaceFile } from './workspace/context.ts';
 import {
   canBuildWorkspaceContext,
+  isArchiveFileName,
   languageSummaryLine,
   persistIngestResult,
 } from './workspace/persistIngest.ts';
@@ -40,7 +41,6 @@ type Props = {
 };
 
 export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttachmentsChange, proposedChangeSet, onChangeSetSettled }: Props) {
-  const archiveRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -169,7 +169,9 @@ SHA-256: ${entry.sha256}`;
         languagesLine: languageSummaryLine(result.entries),
       };
       publish(next);
-      setStatus(null);
+      setStatus(
+        `Ready: ${next.entries.length} file(s) in workspace. Confirm privacy so the agent can read them, then say what to do.`,
+      );
     } catch (e: any) {
       setError(e?.message || 'Ingest failed');
       publish(null);
@@ -178,29 +180,54 @@ SHA-256: ${entry.sha256}`;
     }
   };
 
-  const onArchive = async (list: FileList | null) => {
-    if (!list?.length || disabled || busy) return;
-    const file = list[0];
-    const buf = new Uint8Array(await file.arrayBuffer());
-    await runIngest(ingestArchive(buf), file.name.replace(/\.(zip|tar\.gz|tgz|tar)$/i, '') || 'workspace');
-    if (archiveRef.current) archiveRef.current.value = '';
-  };
-
-  const onFolder = async (list: FileList | null) => {
+  /** P37: one attach path — archives unpack, other files become workspace entries. */
+  const onAttach = async (list: FileList | null) => {
     if (!list?.length || disabled || busy) return;
     const files = Array.from(list);
-    const label = files[0]?.webkitRelativePath?.split('/')[0] || 'folder';
-    await runIngest(ingestFiles(files), label);
+    const archives = files.filter((f) => isArchiveFileName(f.name));
+    const normals = files.filter((f) => !isArchiveFileName(f.name));
+
+    // Single archive (typical "project zip") → unpack into tree.
+    if (archives.length === 1 && normals.length === 0) {
+      const file = archives[0]!;
+      const buf = new Uint8Array(await file.arrayBuffer());
+      await runIngest(
+        ingestArchive(buf),
+        file.name.replace(/\.(zip|tar\.gz|tgz|tar)$/i, '') || 'workspace',
+      );
+    } else if (archives.length === 0) {
+      // Plain files or a folder selection (webkitRelativePath).
+      const label =
+        files[0]?.webkitRelativePath?.split('/')[0] ||
+        (files.length === 1 ? files[0]!.name.replace(/\.[^.]+$/, '') : `files-${files.length}`) ||
+        'workspace';
+      await runIngest(ingestFiles(files), label);
+    } else if (archives.length === 1 && normals.length > 0) {
+      // One zip plus loose files: unpack zip only (clearer than mixing opaque zip blob).
+      setError('Choose either one project archive or individual files in one step (not both).');
+    } else {
+      setError('Attach one project archive at a time, or attach individual files without a zip.');
+    }
+    if (filesRef.current) filesRef.current.value = '';
     if (folderRef.current) folderRef.current.value = '';
   };
 
-  const onIndividualFiles = async (list: FileList | null) => {
-    if (!list?.length || disabled || busy) return;
-    const files = Array.from(list);
-    const label = files.length === 1 ? files[0]!.name : `files-${files.length}`;
-    await runIngest(ingestFiles(files), label.replace(/\.[^.]+$/, '') || 'workspace');
-    if (filesRef.current) filesRef.current.value = '';
-  };
+  const onAttachRef = useRef(onAttach);
+  onAttachRef.current = onAttach;
+
+  // Drag/drop and composer "Add file" → same workspace path (one place for the agent).
+  useEffect(() => {
+    const handler = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail;
+      const incoming = detail?.files as File[] | undefined;
+      if (!incoming?.length) return;
+      const dt = new DataTransfer();
+      for (const f of incoming) dt.items.add(f);
+      void onAttachRef.current(dt.files);
+    };
+    window.addEventListener('be:attach-files', handler as EventListener);
+    return () => window.removeEventListener('be:attach-files', handler as EventListener);
+  }, []);
 
   const ackPrivacy = async () => {
     if (!state || state.privacyAck) return;
@@ -275,36 +302,35 @@ SHA-256: ${entry.sha256}`;
   return (
     <div className="workspace-panel" data-testid="workspace-panel">
       <div className="workspace-panel-buttons">
-        <button type="button" className="ghost files-panel-btn" disabled={disabled || busy} onClick={() => filesRef.current?.click()} title="Attach one or more individual files">
-          <FolderOpen size={16} /><span>Files</span>
-        </button>
         <button
           type="button"
           className="ghost files-panel-btn"
           disabled={disabled || busy}
-          onClick={() => archiveRef.current?.click()}
-          title="Attach a zip or tar archive as a local workspace"
+          onClick={() => filesRef.current?.click()}
+          title="Attach files or a project zip/tar — they become the workspace the agent can read"
+          data-testid="workspace-attach"
         >
-          {busy ? <Loader2 size={16} className="spin" /> : <FileArchive size={16} />}
-          <span>Workspace archive</span>
+          {busy ? <Loader2 size={16} className="spin" /> : <FolderOpen size={16} />}
+          <span>{busy ? 'Reading…' : 'Attach'}</span>
         </button>
-        <button
-          type="button"
-          className="ghost files-panel-btn"
-          disabled={disabled || busy || !folderSupported}
-          onClick={() => folderRef.current?.click()}
-          title={folderSupported ? 'Attach a folder as a local workspace' : 'Folder pick is not supported in this browser'}
-        >
-          <FolderOpen size={16} />
-          <span>Workspace folder</span>
-        </button>
-        <input ref={filesRef} type="file" multiple style={{ display: 'none' }} onChange={(e) => void onIndividualFiles(e.target.files)} />
+        {folderSupported && (
+          <button
+            type="button"
+            className="ghost files-panel-btn"
+            disabled={disabled || busy}
+            onClick={() => folderRef.current?.click()}
+            title="Attach a whole folder as the workspace"
+          >
+            <FolderOpen size={16} />
+            <span>Folder</span>
+          </button>
+        )}
         <input
-          ref={archiveRef}
+          ref={filesRef}
           type="file"
-          accept=".zip,.tar,.tar.gz,.tgz,application/zip,application/x-tar,application/gzip"
+          multiple
           style={{ display: 'none' }}
-          onChange={(e) => void onArchive(e.target.files)}
+          onChange={(e) => void onAttach(e.target.files)}
         />
         <input
           ref={folderRef}
@@ -314,15 +340,15 @@ SHA-256: ${entry.sha256}`;
           directory=""
           multiple
           style={{ display: 'none' }}
-          onChange={(e) => void onFolder(e.target.files)}
+          onChange={(e) => void onAttach(e.target.files)}
         />
       </div>
 
       {status && <div className="files-panel-status">{status}</div>}
       {error && <div className="files-panel-warn" role="alert">{error}</div>}
-      {!folderSupported && (
-        <div className="files-panel-warn">Folder attach is not available in this browser (e.g. many mobile browsers). Use a zip/tar archive instead.</div>
-      )}
+      <div className="files-panel-status">
+        One place for files: zip/tar is unpacked into a file tree; other files are stored as-is. After privacy approval the agent sees them on every request. Say in your message what to do (analyse, change, compare).
+      </div>
 
       {state && (
         <div className="workspace-card" data-testid="workspace-card">
@@ -352,7 +378,9 @@ SHA-256: ${entry.sha256}`;
               )}
             </div>
           ) : (
-            <div className="files-panel-status">Privacy acknowledged — bounded workspace context is attached to agent requests. Binary files are preserved, but need a format-specific decoder for content analysis.</div>
+            <div className="files-panel-status" data-testid="workspace-context-status">
+              Privacy acknowledged — {state.entries.length} file(s) in workspace are attached to agent requests (text/extract where available; undecoded formats as metadata only). Explain in your message what to do with them.
+            </div>
           )}
 
           {skippedPreview.length > 0 && (
