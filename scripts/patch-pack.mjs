@@ -13,7 +13,9 @@ if (!basePath || !fs.existsSync(basePath)) {
   console.error('Usage: npm run patch:pack -- --base <archive.zip|folder> --patch <PNN> --agent "<tool, model>"');
   process.exit(64);
 }
-const outPath = path.resolve(opt('out', 'patch.zip'));
+const patch = opt('patch', 'PNN');
+const archiveId = patch.toUpperCase().replace(/[^A-Z0-9._-]/g, '_');
+const outPath = path.resolve(opt('out', `bf-${archiveId}.zip`));
 const reportPath = path.resolve(opt('report', 'patch-report.md'));
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.mkdirSync(path.dirname(reportPath), { recursive: true });
@@ -31,7 +33,6 @@ const files = new Map([...diff.replace, ...diff.add].map((rel) => [rel, work.get
 const toml = fs.existsSync('.gitleaks.toml') ? fs.readFileSync('.gitleaks.toml', 'utf8') : '';
 const violations = preflight({ files, deleted: diff.del, allowlist: allowlistFromToml(toml) });
 const commands = [];
-const patch = opt('patch', 'PNN');
 const agent = opt('agent', 'not stated');
 const ownerSteps = opt('owner-steps') ? opt('owner-steps').split(';').map((s) => s.trim()) : [
   'Загрузить файлы архива в main; дождаться CI и сверить commit в /health.',
