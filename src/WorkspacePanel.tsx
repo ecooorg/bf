@@ -1,9 +1,9 @@
 /**
  * Workspace attach UI (archive/folder/files → card → privacy → tree).
- * P36: ChangeSet card. P37.1: primary attach is composer Add file; optional desktop folder only.
+ * P36: ChangeSet. P37.1: attach. P38: export full / changed / diff.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FolderOpen, X, ChevronRight, Loader2 } from 'lucide-react';
+import { FolderOpen, X, ChevronRight, Loader2, Download } from 'lucide-react';
 import { ingestArchive, ingestFiles } from './workspace/ingest.ts';
 import { IndexedDbWorkspaceStore } from './workspace/idbStore.ts';
 import { readWorkspaceFile } from './workspace/context.ts';
@@ -17,6 +17,7 @@ import type { WorkspaceChangeSet } from './workspace/changeset.ts';
 import { parseChangeSetFromText } from './workspace/changeSetParse.ts';
 import { WorkspaceChangeSetCard } from './WorkspaceChangeSetCard.tsx';
 import type { Entry, IngestReport, WorkspaceStore } from './workspace/types.ts';
+import { exportWorkspace, type ExportMode } from './workspace/exportZip.ts';
 
 export type WorkspaceUiState = {
   workspaceId: string;
@@ -241,6 +242,45 @@ SHA-256: ${entry.sha256}`;
     }
   };
 
+  const runExport = async (mode: ExportMode) => {
+    if (!state || disabled || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const store = getStore();
+      const result = await exportWorkspace(store, state.workspaceId, {
+        mode,
+        version: state.version,
+        baseVersion: mode === 'full' ? undefined : Math.max(1, state.version - 1),
+        name: state.name,
+        skipRulesNote: state.report?.skipped?.slice(0, 5).map((s) => s.reason),
+      });
+      const blob = new Blob([result.bytes], {
+        type: mode === 'diff' ? 'text/plain;charset=utf-8' : 'application/zip',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus(
+        mode === 'full'
+          ? `Downloaded ${result.files} file(s) as ${result.filename}`
+          : mode === 'diff'
+            ? `Downloaded diff ${result.filename}`
+            : `Downloaded changed package ${result.filename}`,
+      );
+    } catch (e: any) {
+      setError(e?.message || 'Export failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const clear = async () => {
     onAttachmentsChange?.([]);
     if (state) {
@@ -355,6 +395,39 @@ SHA-256: ${entry.sha256}`;
             {state.entries.length} files · v{state.version}
             {state.languagesLine ? ` · ${state.languagesLine}` : ''}
             {state.report?.skipped?.length ? ` · skipped ${state.report.skipped.length}` : ''}
+          </div>
+
+          <div className="workspace-panel-buttons" data-testid="workspace-export" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+            <button
+              type="button"
+              className="ghost files-panel-btn"
+              disabled={disabled || busy || state.entries.length === 0}
+              onClick={() => void runExport('full')}
+              title="Download every file in this workspace as a zip (original bytes)"
+            >
+              <Download size={16} />
+              <span>Download all (.zip)</span>
+            </button>
+            <button
+              type="button"
+              className="ghost files-panel-btn"
+              disabled={disabled || busy || state.version < 2}
+              onClick={() => void runExport('changed')}
+              title="Zip of files that differ from the previous version, plus a change list"
+            >
+              <Download size={16} />
+              <span>Changes only</span>
+            </button>
+            <button
+              type="button"
+              className="ghost files-panel-btn"
+              disabled={disabled || busy || state.version < 2}
+              onClick={() => void runExport('diff')}
+              title="Unified text diff versus the previous version"
+            >
+              <Download size={16} />
+              <span>Text diff</span>
+            </button>
           </div>
 
           {!state.privacyAck ? (
