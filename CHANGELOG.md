@@ -1,3 +1,10 @@
+## P44 — CI hotfix for P42/P43 (2026-10-15)
+
+- `docs/REPO_MAP.md`: describe `tests/qa1.test.mjs`, `tests/p43-rm-c3.test.mjs`, `test:qa1`, `test:p43`.
+- `tests/p41-ui1.test.mjs`: keep UI1 → QA1 → MANUAL1 marker order requirements with clearer asserts.
+- `package.json`: `test:qa1` uses `node --import tsx --test` so TypeScript server modules load in CI.
+- `docs/STATUS.md`: restore `**UI1**` marker ahead of `**QA1**` / `**MANUAL1**`.
+
 ## P43 — RM-C3 close: authorize `model_patch` (2026-10-15)
 
 - Owner command closed checklist **RM-C3**: `CODE_EXECUTOR=model_patch` authorized after accepted ADR-10 / E-01.
