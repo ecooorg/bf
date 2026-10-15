@@ -35,13 +35,24 @@ try {
     page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.(googleapis|gstatic)\.com/.test(m.location().url || '')) bad(w, `console error: ${m.text().slice(0, 120)}`); });
     await page.goto(base + '/');
     // Welcome / privacy screen: the header exists only after the Start button is pressed.
-    const startBtn = page.locator('.empty button.primary', { hasText: /^Start$/ });
-    try { await startBtn.waitFor({ timeout: 8000 }); } catch {}
-    if (await startBtn.count()) {
-      const sb = await startBtn.first().boundingBox();
-      sb && sb.height < MIN_TAP - 0.5 ? bad(w, `Start button height ${Math.round(sb.height)}px < ${MIN_TAP}px`) : good(w, 'Start button >= 44px');
-      await page.screenshot({ path: `ui-welcome-${w}.png` });
-      await startBtn.first().click();
+    // UI1: explicit Simple / Expert / Project start screen (after sign-in).
+    const modeSimple = page.locator('[data-testid="start-mode-simple"], .mode-start-grid button.panel', { hasText: /Simple/i });
+    try { await modeSimple.first().waitFor({ timeout: 8000 }); } catch {}
+    if (await modeSimple.count()) {
+      const mb = await modeSimple.first().boundingBox();
+      mb && mb.height < MIN_TAP - 0.5 ? bad(w, `Simple mode card height ${Math.round(mb.height)}px < ${MIN_TAP}px`) : good(w, 'Simple mode card >= 44px');
+      await page.screenshot({ path: `ui-mode-start-${w}.png` });
+      await modeSimple.first().click();
+    } else {
+      // Legacy welcome "Start" button (pre-UI1 builds).
+      const startBtn = page.locator('.empty button.primary', { hasText: /^Start$/ });
+      try { await startBtn.waitFor({ timeout: 3000 }); } catch {}
+      if (await startBtn.count()) {
+        const sb = await startBtn.first().boundingBox();
+        sb && sb.height < MIN_TAP - 0.5 ? bad(w, `Start button height ${Math.round(sb.height)}px < ${MIN_TAP}px`) : good(w, 'Start button >= 44px');
+        await page.screenshot({ path: `ui-welcome-${w}.png` });
+        await startBtn.first().click();
+      }
     }
     await page.waitForSelector('.header-actions', { timeout: 15000 });
     // A fresh profile shows "Nothing here yet": open a conversation so the chat, composer and Method button exist.
