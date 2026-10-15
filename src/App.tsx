@@ -567,13 +567,13 @@ export default function App() {
 
           <ErrorBoundary label={stageMeta.label}>
             {!expertMode && d.step !== 'BRIEF' ? (
-              <ConversationScreen d={d} update={update} runApi={runApi} busy={busy} onDocumentEdit={reviseConversationDocument} />
+              <ConversationScreen d={d} update={update} runApi={runApi} busy={busy} onDocumentEdit={reviseConversationDocument} onProposedChangeSet={setProposedWorkspaceChangeSet} />
             ) : (
               <>
                 {d.step === 'TRIAGE' && (
                   <TriageScreen d={d} update={update} onContinue={() => update({ step: 'BRIEF' })} />
                 )}
-                {d.step === 'BRIEF' && <BriefScreen d={d} update={update} runApi={runApi} busy={busy} />}
+                {d.step === 'BRIEF' && <BriefScreen d={d} update={update} runApi={runApi} busy={busy} onProposedChangeSet={setProposedWorkspaceChangeSet} />}
                 {expertMode && d.step === 'UNDERSTAND' && <UnderstandScreen d={d} update={update} runApi={runApi} busy={busy} />}
                 {expertMode && d.step === 'EXPAND' && <ExpandScreen d={d} update={update} runApi={runApi} busy={busy} />}
                 {expertMode && d.step === 'ATTACK' && <AttackScreen d={d} update={update} runApi={runApi} busy={busy} />}
@@ -965,11 +965,13 @@ function BriefScreen({
   update,
   runApi,
   busy,
+  onProposedChangeSet,
 }: {
   d: Decision;
   update: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
   runApi: (path: string, body: unknown, onOk: (data: any, meta: any) => void) => void;
   busy: boolean;
+  onProposedChangeSet?: (text: string | null) => void;
 }) {
   const b = d.brief;
   const setB = (patch: Partial<typeof b>) => update({ brief: { ...b, ...patch } });
@@ -1000,7 +1002,7 @@ function BriefScreen({
     });
     runApi('/api/conversation', fitRequest({ brief: { ...b, decision: text }, history: historyForRequest([userMessage]), attachments: collectDecisionAttachments(d, [userMessage]), intent }), (data, meta) => {
       const assistant: any = { role: 'assistant', content: data.reply, at: Date.now(), ...(data.document ? { document: data.document } : {}) };
-      if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) setProposedWorkspaceChangeSet(data.reply);
+      if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) onProposedChangeSet?.(data.reply);
       setFiles([]);
       update({
         modelSuggestions: {
@@ -1166,12 +1168,14 @@ function ConversationScreen({
   runApi,
   busy,
   onDocumentEdit,
+  onProposedChangeSet,
 }: {
   d: Decision;
   update: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
   runApi: (path: string, body: unknown, onOk: (data: any, meta: any) => void) => void;
   busy: boolean;
   onDocumentEdit?: (index: number, next: DocumentSpec) => void;
+  onProposedChangeSet?: (text: string | null) => void;
 }) {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<Attachment[]>([]);
@@ -1230,7 +1234,7 @@ function ConversationScreen({
           },
           interactionState: 'PREVIEW_READY',
         });
-        if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) setProposedWorkspaceChangeSet(data.reply);
+        if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) onProposedChangeSet?.(data.reply);
         if (data.document) void archiveAgentDocument(data.document, d.id);
       },
     );

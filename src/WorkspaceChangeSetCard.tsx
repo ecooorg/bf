@@ -65,11 +65,12 @@ export function WorkspaceChangeSetCard({
     try {
       const cs = confirmCiLock ? { ...changeSet, confirmCiLock: true } : changeSet;
       const result = await applyWorkspaceChangeSet(store, workspaceId, cs);
-      if (!result.ok) {
-        setError(result.violations.map((v) => `${v.code}${v.path ? ` (${v.path})` : ''}`).join('; '));
+      if (result.ok === false) {
+        const violations = result.violations;
+        setError(violations.map((v) => `${v.code}${v.path ? ` (${v.path})` : ''}`).join('; '));
         setValidation({
           ok: false,
-          violations: result.violations,
+          violations,
           previews: [],
           totals: { files: 0, added: 0, removed: 0 },
           needsCiLockConfirm: false,
