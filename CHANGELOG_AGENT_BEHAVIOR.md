@@ -1,3 +1,7 @@
+## v36
+
+- P36: agent-proposed workspace ChangeSet is shown as a diff card; version advances only after human Apply; Reject leaves workspace unchanged; Rollback creates a new version restoring a prior snapshot. Validate still uses baseSha256.
+
 ## v35
 
 - P35: Workspace attachments may include extracted text from PDF, DOCX, XLSX, CSV and structured files (DATA-marked). Images remain metadata-only. Secrets stay excluded without explicit approval. No change to model cascade or execution policy.

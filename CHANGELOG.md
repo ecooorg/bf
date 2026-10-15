@@ -1,3 +1,11 @@
+## P36 — Workspace ChangeSet UI (2026-10-15)
+
+- Human confirmation card for agent ChangeSet: unified diff, Apply / Reject / Rollback.
+- Version never advances until Apply; validate re-checks baseSha256; rollback commits a new version.
+- `parseChangeSetFromText` extracts ChangeSet from agent JSON fences; App surfaces it to WorkspacePanel.
+- Docs: parallel TZ rules + “later green CI closes earlier gates” in `docs/BiForge_TZ_P26.md` §15.
+- `npm run test:p36`; product version 36.
+
 ## P35 — Universal File Analysis (2026-10-15)
 
 - Shared `FileContentExtractor` (`src/workspace/extract.ts`): PDF via `unpdf`, DOCX/XLSX/PPTX via `jszip`+XML, CSV/TSV/JSON/text via pure JS. No new npm dependencies.
