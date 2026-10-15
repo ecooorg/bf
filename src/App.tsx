@@ -23,6 +23,7 @@ import { HistoryPanel } from './HistoryPanel.tsx';
 import { AutoInput, AutoTextarea } from './AutoGrow.tsx';
 import { decisionToDocument } from './decisionDocument.ts';
 import { FilesPanel, CopyButton, MessageExtras, ProgramFilesManager } from './ConversationFiles.tsx';
+import { WorkspacePanel } from './WorkspacePanel.tsx';
 import {
   Attachment, DocumentSpec, applyAttachmentNotes, attachmentOnlyText, collectAttachments, collectDecisionAttachments,
   conversationToDocument, fitRequest, historyForRequest,
@@ -123,6 +124,7 @@ export default function App() {
   const [message, setMessage] = useState('');
   const [showBrief, setShowBrief] = useState(false);
   const [showProgramFiles, setShowProgramFiles] = useState(false);
+  const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
   const [expertMode, setExpertMode] = useState(false);
   const [migrationReport] = useState(() => getMigrationReport());
   const [authChecked, setAuthChecked] = useState(false);
@@ -306,10 +308,14 @@ export default function App() {
     try {
       // B1: every expert request carries the decision's files (both sources, images as their saved description only).
       let sendBody = body;
-      if (path !== '/api/conversation' && body && typeof body === 'object' && !(body as any).attachments) {
+      if (body && typeof body === 'object') {
         const cur = decisions.find((x) => x.id === activeId) || decisions[0];
-        const att = cur ? collectDecisionAttachments(cur, undefined, true) : [];
-        if (att.length) sendBody = fitRequest({ ...(body as any), attachments: att });
+        const existing = Array.isArray((body as any).attachments) ? (body as any).attachments : [];
+        const decisionFiles = path !== '/api/conversation' && !existing.length && cur
+          ? collectDecisionAttachments(cur, undefined, true)
+          : [];
+        const combined = [...existing, ...workspaceAttachments, ...decisionFiles];
+        if (combined.length) sendBody = fitRequest({ ...(body as any), attachments: combined });
       }
       const j = await api(path, sendBody);
       onOk(j.data, j.meta);
@@ -415,6 +421,9 @@ export default function App() {
         <div className="empty">
           <h1>Nothing here yet</h1>
           <p>Describe the situation in your own words — you do not need to structure it first.</p>
+          <div style={{ maxWidth: 760, margin: '18px auto', textAlign: 'left' }}>
+            <WorkspacePanel onAttachmentsChange={setWorkspaceAttachments} />
+          </div>
           <button className="primary" onClick={createNew}>
             <Plus size={16} /> New decision
           </button>
@@ -532,6 +541,7 @@ export default function App() {
         </aside>}
 
         <main className="content">
+          <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} />
           {expertMode && ((d.modelSuggestions as any)?.conversation?.length ?? 0) > 0 && (
             <SharedConversationContext d={d} onDocumentEdit={reviseConversationDocument} />
           )}

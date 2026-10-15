@@ -2,7 +2,7 @@
  * P27 — Simple Mode workspace attach UI (archive/folder → card → privacy → tree).
  * Expert Mode / ChangeSet / export: out of scope (P28/P29).
  */
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FolderOpen, FileArchive, X, ChevronRight, Loader2 } from 'lucide-react';
 import { ingestArchive, ingestFiles } from './workspace/ingest.ts';
 import { IndexedDbWorkspaceStore } from './workspace/idbStore.ts';
@@ -29,10 +29,13 @@ type Props = {
   /** Injected store for tests; default IndexedDB in browser. */
   storeFactory?: () => WorkspaceStore;
   onStateChange?: (state: WorkspaceUiState | null) => void;
+  /** Text and safe metadata to attach to the next agent request after explicit privacy acknowledgement. */
+  onAttachmentsChange?: (attachments: { name: string; kind: string; text: string }[]) => void;
 };
 
-export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props) {
+export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttachmentsChange }: Props) {
   const archiveRef = useRef<HTMLInputElement>(null);
+  const filesRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +71,47 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
     [onStateChange],
   );
 
+  // Keep a bounded, privacy-gated attachment payload ready for every mode's agent requests.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (!state?.privacyAck || !onAttachmentsChange) {
+        onAttachmentsChange?.([]);
+        return;
+      }
+      try {
+        const store = getStore();
+        const attachments: { name: string; kind: string; text: string }[] = [];
+        let budget = 60_000;
+        for (const entry of state.entries) {
+          if (budget <= 0 || attachments.length >= 40) break;
+          if (entry.flags.includes('secret')) continue;
+          const read = await readWorkspaceFile(store, state.workspaceId, state.version, entry.path);
+          let text = read.text;
+          if (!text) {
+            // Keep arbitrary binary formats uploadable and visible to the agent as metadata,
+            // without pretending their binary contents were decoded.
+            text = `Binary or specialized file; content was not decoded in the browser.
+Path: ${entry.path}
+Class: ${entry.class}
+Size: ${entry.size} bytes
+SHA-256: ${entry.sha256}`;
+          }
+          const max = Math.min(8_000, budget);
+          const content = text.slice(0, max);
+          attachments.push({ name: entry.path, kind: 'text', text: content + (content.length < text.length ? '\n[truncated]' : '') });
+          budget -= content.length;
+        }
+        if (!cancelled) onAttachmentsChange(attachments);
+      } catch {
+        if (!cancelled) onAttachmentsChange([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [state, getStore, onAttachmentsChange]);
+
   const runIngest = async (resultPromise: Promise<Awaited<ReturnType<typeof ingestArchive>>>, name: string) => {
+    onAttachmentsChange?.([]);
     setBusy(true);
     setError(null);
     setStatus('Reading archive…');
@@ -125,6 +168,14 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
     if (folderRef.current) folderRef.current.value = '';
   };
 
+  const onIndividualFiles = async (list: FileList | null) => {
+    if (!list?.length || disabled || busy) return;
+    const files = Array.from(list);
+    const label = files.length === 1 ? files[0]!.name : `files-${files.length}`;
+    await runIngest(ingestFiles(files), label.replace(/\.[^.]+$/, '') || 'workspace');
+    if (filesRef.current) filesRef.current.value = '';
+  };
+
   const ackPrivacy = async () => {
     if (!state || state.privacyAck) return;
     try {
@@ -138,6 +189,7 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
   };
 
   const clear = async () => {
+    onAttachmentsChange?.([]);
     if (state) {
       try {
         const store = getStore();
@@ -193,6 +245,9 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
   return (
     <div className="workspace-panel" data-testid="workspace-panel">
       <div className="workspace-panel-buttons">
+        <button type="button" className="ghost files-panel-btn" disabled={disabled || busy} onClick={() => filesRef.current?.click()} title="Attach one or more individual files">
+          <FolderOpen size={16} /><span>Files</span>
+        </button>
         <button
           type="button"
           className="ghost files-panel-btn"
@@ -213,6 +268,7 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
           <FolderOpen size={16} />
           <span>Workspace folder</span>
         </button>
+        <input ref={filesRef} type="file" multiple style={{ display: 'none' }} onChange={(e) => void onIndividualFiles(e.target.files)} />
         <input
           ref={archiveRef}
           type="file"
@@ -255,7 +311,7 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
           {!state.privacyAck ? (
             <div className="workspace-privacy" data-testid="workspace-privacy">
               <p>
-                Files stay on this device until you send a message. The model receives workspace text only after you agree.
+                Files stay on this device until you explicitly allow workspace context. After approval, readable text and safe file metadata may be included in agent requests across modes.
                 Do not import secrets or personal data you are not willing to share with the model.
               </p>
               <button type="button" className="primary" disabled={disabled} onClick={() => void ackPrivacy()}>
@@ -266,7 +322,7 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange }: Props)
               )}
             </div>
           ) : (
-            <div className="files-panel-status">Privacy acknowledged — workspace may be included when the product wires context (P28).</div>
+            <div className="files-panel-status">Privacy acknowledged — bounded workspace context is attached to agent requests. Binary files are preserved, but need a format-specific decoder for content analysis.</div>
           )}
 
           {skippedPreview.length > 0 && (
