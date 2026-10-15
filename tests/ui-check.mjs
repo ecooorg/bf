@@ -82,23 +82,23 @@ try {
       if (await close.count()) { await noHScroll('(History open)'); await screenTaps('(History open)', '[role=dialog][aria-label="History"] button'); await close.first().click(); }
       else bad(w, 'History panel did not open');
     }
-    // "Google AI" screen: it is a menuitem inside More on narrow screens and
+    // Gemini API key screen: menuitem inside More (UX1 label: Your Gemini API key)
     // an inline menuitem on wide screens. Use its actual ARIA role.
     const moreBtn = page.locator('.hdr-more-btn');
     if (await moreBtn.isVisible()) {
       await moreBtn.click();
       const open = await page.locator('.hdr-secondary.open').count();
-      open ? good(w, 'More menu opens for Google AI') : bad(w, 'More menu did not open for Google AI');
+      open ? good(w, 'More menu opens for Gemini API key') : bad(w, 'More menu did not open for Gemini API key');
     }
-    const gai = page.getByRole('menuitem', { name: /^Google AI$/ });
+    const gai = page.getByRole('menuitem', { name: /Google AI|Your Gemini API key|Gemini API key/i });
     if (await gai.count()) {
       await gai.first().click();
       await page.waitForSelector('input[aria-label="Gemini API key"], input[aria-label="Google AI key"]', { timeout: 8000 });
-      await inputSizes('(Google AI)'); await screenTaps('(Google AI)', '.empty button');
-      await noHScroll('(Google AI)');
+      await inputSizes('(Gemini API key)'); await screenTaps('(Gemini API key)', '.empty button');
+      await noHScroll('(Gemini API key)');
       await page.getByRole('button', { name: /^Cancel$/ }).first().click();
       await page.waitForSelector('.header-actions', { timeout: 8000 });
-    } else bad(w, 'no visible "Google AI" menuitem');
+    } else bad(w, 'no visible Gemini API key menuitem');
 
     // The "More" menu is only a button on narrow screens. The previous test
     // clicked it once before Google AI and then clicked it again here, which
@@ -113,24 +113,30 @@ try {
       if ((await more.getAttribute('aria-expanded')) === 'true') await more.click();
     } else good(w, 'More button not needed (wide screen)');
 
-    // Current UI calls the toggle "Expert mode" / "Simple mode". Verify the
-    // real mode switch instead of the obsolete "Method" / "Normal mode" labels.
-    const modeButton = page.locator('.header-actions button.ghost').filter({ hasText: /Expert mode|Simple mode/ }).first();
+    // UX1: toggle labels "Expert method" / "Simple chat" (legacy "Expert mode"/"Simple mode" still accepted).
+    const modeRe = /Expert method|Simple chat|Expert mode|Simple mode/;
+    const modeButton = page.locator('.header-actions button.ghost').filter({ hasText: modeRe }).first();
     if (await modeButton.count()) {
-      const before = await modeButton.getAttribute('title');
+      const beforeText = ((await modeButton.innerText()) || '').replace(/\s+/g, ' ').trim();
       await modeButton.click();
-      const expected = before === 'Expert mode' ? 'Simple mode' : 'Expert mode';
-      const back = page.locator(`.header-actions > button.ghost[title="${expected}"]`).first();
+      const expectRe = /Expert method|Expert mode/.test(beforeText)
+        ? /Simple chat|Simple mode/
+        : /Expert method|Expert mode/;
+      const back = page.locator('.header-actions button.ghost').filter({ hasText: expectRe }).first();
       await back.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
       if (await back.count() && await back.isVisible()) {
         await noHScroll('(mode switched)'); await taps('(mode switched)');
         const box = await back.first().boundingBox();
-        box && box.x >= -1 && box.x + box.width <= w + 1 ? good(w, `${expected} button reachable`) : bad(w, `${expected} button off screen`);
+        box && box.x >= -1 && box.x + box.width <= w + 1
+          ? good(w, 'mode toggle button reachable after switch')
+          : bad(w, 'mode toggle button off screen after switch');
         await back.first().click();
-        (await page.locator(`.header-actions > button.ghost[title="${before}"]`).count())
+        const restored = page.locator('.header-actions button.ghost').filter({ hasText: modeRe }).first();
+        const restoredText = ((await restored.innerText().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+        restoredText === beforeText || modeRe.test(restoredText)
           ? good(w, 'mode restored')
-          : bad(w, 'could not restore previous mode');
-      } else bad(w, `no "${expected}" button after mode switch`);
+          : bad(w, `could not restore previous mode (was "${beforeText}", now "${restoredText}")`);
+      } else bad(w, `no mode toggle after switch (was "${beforeText}")`);
     } else {
       const headerButtons = await page.locator('.header-actions button').evaluateAll(els => els.map(e => ({ text: e.textContent?.trim(), title: e.getAttribute('title'), html: e.outerHTML.slice(0, 180) })));
       bad(w, `no Expert/Simple mode button; header buttons: ${JSON.stringify(headerButtons).slice(0, 500)}`);
