@@ -775,31 +775,6 @@ function Header(props: {
   return (
     <header className="header" style={{ justifyContent: 'flex-end' }}>
       <div className="header-actions">
-        {props.onChangeMode && (
-          <button
-            className="ghost"
-            onClick={props.onChangeMode}
-            aria-label="Change mode"
-            data-testid="change-mode"
-            title="Return to Simple / Expert / Project start screen"
-          >
-            <RotateCcw size={14} />{' '}
-            <span className="lbl">Modes</span>
-          </button>
-        )}
-        {props.onToggleExpert && (
-          <button
-            className="ghost"
-            onClick={props.onToggleExpert}
-            aria-label={props.expertMode ? 'Simple chat' : 'Expert method'}
-            title={props.expertMode
-              ? 'Switch to Simple: open conversation without the step-by-step method'
-              : 'Switch to Expert: guided decision method — you can still ask questions at every step'}
-          >
-            <SlidersHorizontal size={14} />{' '}
-            <span className="lbl">{props.expertMode ? 'Simple chat' : 'Expert method'}</span>
-          </button>
-        )}
         <button className="ghost" onClick={props.onNew} title="Start a new dialogue"><Plus size={14} /> <span className="lbl">New</span></button>
         {props.onDrive && (
           <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={props.driveConnected ? "Google Drive sync for this decision list is on" : "Connect Google Drive to sync decisions on this device"}>
@@ -858,15 +833,33 @@ function Header(props: {
                 )}
               </div>
             )}
-            {props.onChangeMode && (
-              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onChangeMode?.(); }} title="Return to Simple / Expert / Project start screen">
-                Change mode
-              </button>
-            )}
-            {props.projectModeEnabled && (
-              <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)} title="Separate area for multi-step projects (not the same as this chat)">
-                Project workspace (separate)
-              </a>
+            {(props.onChangeMode || props.onToggleExpert || props.projectModeEnabled) && (
+              <>
+                {props.onChangeMode && (
+                  <button type="button" className="ghost" role="menuitem" data-testid="change-mode" onClick={() => { setMoreOpen(false); props.onChangeMode?.(); }} title="Return to Simple / Expert / Project start screen">
+                    <RotateCcw size={14} /> Mode selection (Simple / Expert / Project)
+                  </button>
+                )}
+                {props.onToggleExpert && (
+                  <button
+                    type="button"
+                    className="ghost"
+                    role="menuitem"
+                    data-testid="toggle-expert-menu"
+                    onClick={() => { setMoreOpen(false); props.onToggleExpert?.(); }}
+                    title={props.expertMode
+                      ? 'Switch to Simple: open conversation without the step-by-step method'
+                      : 'Switch to Expert: guided decision method — you can still ask questions at every step'}
+                  >
+                    <SlidersHorizontal size={14} /> {props.expertMode ? 'Switch to Simple chat' : 'Switch to Expert method'}
+                  </button>
+                )}
+                {props.projectModeEnabled && (
+                  <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)} title="Separate area for multi-step projects (not the same as this chat)">
+                    Project workspace (separate)
+                  </a>
+                )}
+              </>
             )}
             {props.onProgramFiles && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProgramFiles?.(); }} title="Texts saved from chats on this device">
