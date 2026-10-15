@@ -1,3 +1,9 @@
+## P38 — Workspace export UI (2026-10-15)
+
+- Workspace card: Download all (.zip), Changes only, Text diff (when version ≥ 2).
+- Uses existing `exportWorkspace` (byte-identical full export).
+- `test:p38`; product version 39.
+
 ## DOC1 — STATUS hub (2026-10-15)
 
 - Added `docs/STATUS.md` as the only day-to-day progress file (where we are, next, owner blockers, open questions).

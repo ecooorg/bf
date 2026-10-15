@@ -1,3 +1,7 @@
+## v39
+
+- P38: user can download workspace as full zip (original bytes), changes-only zip, or unified text diff versus the previous version. No change to model prompts or cascade.
+
 ## v38
 
 - UX1 trial: clearer mode labels (Simple chat / Expert method); mode banner; Expert keeps an open chat under method stages for clarifications; plainer Attach/privacy/Project copy. Product behaviour of models unchanged aside from UI access to conversation on Expert stages.

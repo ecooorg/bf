@@ -1,3 +1,3 @@
-# BiForge v38
+# BiForge v39
 
-Product version **38** (UX1 — intermediate UI clarity trial). See `docs/START_HERE.md` and `docs/STATUS.md`.
+Product version **39** (P38 — Workspace export: full zip / changes only / text diff). See `docs/STATUS.md`.
