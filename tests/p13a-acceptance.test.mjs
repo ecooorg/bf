@@ -124,7 +124,7 @@ test('pack end to end: only changed and new files in the archive, report written
   const ok = run([]);
   assert.equal(ok.status, 0, ok.stderr);
   assert.match(ok.stdout, /заменить 1, добавить 1, удалить 1/);
-  const zip = await readZipTree(fs.readFileSync(path.join(dir, 'work/patch.zip')));
+  const zip = await readZipTree(fs.readFileSync(path.join(dir, 'work/bf-P99.zip')));
   assert.deepEqual([...zip.keys()].sort(), ['a.md', 'server/new.ts']);
   const report = fs.readFileSync(path.join(dir, 'work/patch-report.md'), 'utf8');
   assert.match(report, /\| `npm run check \(expanded independent steps\)` \| NOT_RUN \| skipped by --skip check \|/);
@@ -133,13 +133,31 @@ test('pack end to end: only changed and new files in the archive, report written
   fs.mkdirSync(path.join(dir, 'work/node_modules'), { recursive: true });
   const partial = run(['--steps', 'fail-check']);
   assert.equal(partial.status, 0, partial.stderr);
-  assert.equal(fs.existsSync(path.join(dir, 'work/patch.zip')), true);
+  assert.equal(fs.existsSync(path.join(dir, 'work/bf-P99.zip')), true);
   const partialReport = fs.readFileSync(path.join(dir, 'work/patch-report.md'), 'utf8');
   assert.match(partialReport, /`PARTIAL`/);
   assert.match(partialReport, /fail-check.*FAIL/s);
-  write('work', 'docs/deep/x.md', 'nested'); fs.rmSync(path.join(dir, 'work/patch.zip'));
+  write('work', 'docs/deep/x.md', 'nested'); fs.rmSync(path.join(dir, 'work/bf-P99.zip'));
   const bad = run([]);
   assert.equal(bad.status, 1);
   assert.match(bad.stderr, /nested folder/);
-  assert.equal(fs.existsSync(path.join(dir, 'work/patch.zip')), false);
+  assert.equal(fs.existsSync(path.join(dir, 'work/bf-P99.zip')), false);
+});
+
+
+test('mandatory delivery contract requires a verified bf-PNN.zip and forbids diff-only handoff', () => {
+  const agents = fs.readFileSync(path.join(root, 'AGENTS.md'), 'utf8');
+  const prompt = fs.readFileSync(path.join(root, 'docs/PATCH_PROMPT.md'), 'utf8');
+  const start = fs.readFileSync(path.join(root, 'docs/START_HERE.md'), 'utf8');
+  const packer = fs.readFileSync(path.join(root, 'scripts/patch-pack.mjs'), 'utf8');
+  for (const text of [agents, prompt]) {
+    assert.match(text, /bf-PNN\.zip/);
+    assert.match(text, /DELIVERY BLOCKED/);
+    assert.match(text, /\.patch.*\.diff/s);
+    assert.match(text, /read-back|reopen/i);
+  }
+  assert.match(start, /bf-PNN\.zip/);
+  assert.match(packer, /opt\('out', `bf-\$\{archiveId\}\.zip`\)/);
+  assert.match(packer, /readZipTree\(archiveBuffer\)/);
+  assert.match(packer, /content mismatch for/);
 });
