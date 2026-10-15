@@ -411,6 +411,8 @@ Described: src/workspace/
 | `npm run test:p35` | Runs workspace-p35 tests |
 | `tests/workspace-p36.test.mjs` | P36 ChangeSet parse, validate-without-write, apply, rollback |
 | `npm run test:p36` | Runs workspace-p36 tests |
+| `tests/workspace-p38.test.mjs` | P38 export full/changed/diff integrity |
+| `npm run test:p38` | Runs workspace-p38 tests |
 | `src/WorkspaceChangeSetCard.tsx` | Human Apply/Reject/Rollback card for workspace ChangeSet |
 | `src/workspace/changeSetParse.ts` | Parse agent JSON/text into WorkspaceChangeSet |
 | `tests/mp3.test.mjs` | MP3 information-mode output quality guard and regression fixtures |
