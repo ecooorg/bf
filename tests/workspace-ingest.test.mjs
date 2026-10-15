@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import JSZip from 'jszip';
 import { readFileSync } from 'node:fs';
-import { ingestZip } from '../src/workspace/ingest.ts';
+import { ingestZip, ingestArchive } from '../src/workspace/ingest.ts';
 import { DEFAULT_BROWSER_LIMITS } from '../src/workspace/types.ts';
 import { MemoryWorkspaceStore } from '../src/workspace/memoryStore.ts';
 
@@ -138,5 +138,40 @@ if (fixture) {
 } else {
   console.log('skip AC-01 fixture (bf-v24.zip not found)');
 }
+
+
+await t('tar duplicate paths keep the first entry', async () => {
+  function tarFile(name, content) {
+    const header = new Uint8Array(512);
+    const enc = new TextEncoder();
+    header.set(enc.encode(name), 0);
+    header.set(enc.encode('0000644\0'), 100);
+    header.set(enc.encode('0000000\0'), 108);
+    header.set(enc.encode('0000000\0'), 116);
+    header.set(enc.encode(content.length.toString(8).padStart(11, '0') + '\0'), 124);
+    header.set(enc.encode('00000000000\0'), 136);
+    header.fill(32, 148, 156);
+    header[156] = 48;
+    header.set(enc.encode('ustar\0'), 257);
+    header.set(enc.encode('00'), 263);
+    let sum = 0;
+    for (const b of header) sum += b;
+    header.set(enc.encode(sum.toString(8).padStart(6, '0') + '\0 '), 148);
+    const data = enc.encode(content);
+    const padded = new Uint8Array(Math.ceil(data.length / 512) * 512);
+    padded.set(data);
+    return [header, padded];
+  }
+  const parts = [...tarFile('same.txt', 'first'), ...tarFile('same.txt', 'second'), new Uint8Array(1024)];
+  const total = parts.reduce((n, part) => n + part.length, 0);
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const part of parts) { bytes.set(part, offset); offset += part.length; }
+  const result = await ingestArchive(bytes);
+  assert.equal(result.report.rejected, undefined);
+  assert.equal(result.entries.length, 1);
+  assert.equal(new TextDecoder().decode(result.blobs.get(result.entries[0].sha256)), 'first');
+  assert.ok(result.report.skipped.some((s) => s.reason === 'duplicate_path'));
+});
 
 console.log('workspace-ingest done');
