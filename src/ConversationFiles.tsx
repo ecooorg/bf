@@ -65,7 +65,7 @@ export function AttachControl({
       </button>
       {showPrivacyNote && value.length > 0 && (
         <span className="attach-privacy-note" title="Files are sent with your message to help the analysis. The server does not keep them.">
-          File will be sent to Gemini
+          Files go to the assistant with your message
         </span>
       )}
       <AttachmentChips items={value} onRemove={(i) => onChange(value.filter((_, k) => k !== i))} />
@@ -360,8 +360,8 @@ export function FilesPanel({
     window.dispatchEvent(new CustomEvent('be:attach-files', { detail: { files: list } }));
     setStatus(
       list.length === 1
-        ? `Sent ${list[0]!.name} to workspace above — confirm privacy if asked, then say what to do.`
-        : `Sent ${list.length} files to workspace above — confirm privacy if asked, then say what to do.`,
+        ? `Added ${list[0]!.name} above — if asked, allow the assistant to read files, then write what to do.`
+        : `Added ${list.length} files above — if asked, allow the assistant to read files, then write what to do.`,
     );
     if (input.current) input.current.value = '';
   };
@@ -442,12 +442,12 @@ export function FilesPanel({
             aria-expanded={addOpen}
             onClick={() => { setSaveOpen(false); setAddOpen((v) => !v); }}
           >
-            <Paperclip size={15} /> Attach
+            <Paperclip size={15} /> Attach files
           </button>
           {addOpen && (
             <div className="files-menu" role="menu">
               <button type="button" role="menuitem" className="files-menu-item" onClick={() => input.current?.click()}>
-                From device (files or project zip)
+                From this device (files or project zip)
               </button>
               <button type="button" role="menuitem" className="files-menu-item" onClick={() => { setAddOpen(false); setPickerOpen(true); void loadPicker(); }}>
                 From program files
@@ -464,7 +464,7 @@ export function FilesPanel({
             aria-expanded={saveOpen}
             onClick={openSave}
           >
-            <Download size={15} />{busy ? 'Saving…' : 'Save to file'}
+            <Download size={15} />{busy ? 'Saving…' : 'Download / save reply'}
           </button>
           {saveOpen && (
             <div className="files-menu" role="menu">
@@ -498,7 +498,7 @@ export function FilesPanel({
       </div>
       {!hideAdd && files.length > 0 && (
         <span className="attach-privacy-note" title="Files are sent with your message to help the analysis. The server does not keep them.">
-          File will be sent to Gemini
+          Files go to the assistant with your message
         </span>
       )}
       <AttachmentChips items={files} onRemove={(i) => onFilesChange(files.filter((_, k) => k !== i))} />

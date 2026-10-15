@@ -360,11 +360,11 @@ SHA-256: ${entry.sha256}`;
           {!state.privacyAck ? (
             <div className="workspace-privacy" data-testid="workspace-privacy">
               <p>
-                Files stay on this device until you explicitly allow workspace context. After approval, readable text and safe file metadata may be included in agent requests across modes.
-                Do not import secrets or personal data you are not willing to share with the model.
+                Files stay on this device until you allow access. After you confirm, the assistant can read them with your messages (not only on this screen).
+                Do not add passwords, keys, or private data you are not willing to share with the model.
               </p>
               <button type="button" className="primary" disabled={disabled} onClick={() => void ackPrivacy()}>
-                I understand — allow workspace context
+                I understand — let the assistant read these files
               </button>
               {!canBuildWorkspaceContext(state.privacyAck) && (
                 <span className="files-panel-warn"> Workspace is not sent to the model until you confirm.</span>
@@ -372,8 +372,7 @@ SHA-256: ${entry.sha256}`;
             </div>
           ) : (
             <div className="files-panel-status" data-testid="workspace-context-status">
-              Privacy acknowledged — {state.entries.length} file(s) in workspace are attached to agent requests (text/extract where available; undecoded formats as metadata only). Explain in your message what to do with them.
-            </div>
+              Assistant can use {state.entries.length} file(s) from this workspace on your next messages. Say in the chat what to do with them.</div>
           )}
 
           {skippedPreview.length > 0 && (

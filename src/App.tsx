@@ -507,7 +507,7 @@ export default function App() {
           </div>
           <div className="method-sidebar-help">
             <b className="ui-label">How to use this</b>
-            <span>Follow the highlighted step, answer the question on screen, then continue.</span>
+            <span>Work through the highlighted step, then use the chat below anytime to clarify or add facts. Stages guide you — they do not end the conversation.</span>
           </div>
           <div className="method-detail-stages">
             <div className="method-detail-title">Detailed steps</div>
@@ -544,6 +544,11 @@ export default function App() {
 
         <main className="content">
           <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
+          <div className="files-panel-status" data-testid="mode-banner" style={{ marginBottom: 8 }}>
+            {expertMode
+              ? 'Mode: Expert method — guided steps plus open chat below for clarifications.'
+              : 'Mode: Simple chat — open conversation. Switch to Expert method for a step-by-step decision review.'}
+          </div>
           {expertMode && ((d.modelSuggestions as any)?.conversation?.length ?? 0) > 0 && (
             <SharedConversationContext d={d} onDocumentEdit={reviseConversationDocument} />
           )}
@@ -591,6 +596,23 @@ export default function App() {
                   setActiveId(next.id);
                   setActiveDecisionId(next.id);
                 }} />}
+                {expertMode && d.step !== 'TRIAGE' && d.step !== 'BRIEF' && (
+                  <div className="expert-open-dialogue" data-testid="expert-open-dialogue" style={{ marginTop: 20, paddingTop: 12, borderTop: '1px solid rgba(127,180,255,0.2)' }}>
+                    <div className="files-panel-status" style={{ marginBottom: 10 }}>
+                      <strong>Ask or clarify anytime</strong>
+                      {' '}— the steps above are a guide; this chat stays open for new facts, corrections, and questions.
+                    </div>
+                    <ConversationScreen
+                      d={d}
+                      update={update}
+                      runApi={runApi}
+                      busy={busy}
+                      onDocumentEdit={reviseConversationDocument}
+                      onProposedChangeSet={setProposedWorkspaceChangeSet}
+                      alwaysShowComposer
+                    />
+                  </div>
+                )}
               </>
             )}
           </ErrorBoundary>
@@ -696,23 +718,30 @@ function Header(props: {
     <header className="header" style={{ justifyContent: 'flex-end' }}>
       <div className="header-actions">
         {props.onToggleExpert && (
-          <button className="ghost" onClick={props.onToggleExpert} title={props.expertMode ? 'Simple mode' : 'Expert mode'}>
-            <SlidersHorizontal size={14} /> <span className="lbl">{props.expertMode ? 'Simple mode' : 'Expert mode'}</span>
+          <button
+            className="ghost"
+            onClick={props.onToggleExpert}
+            title={props.expertMode
+              ? 'Switch to Simple: open conversation without the step-by-step method'
+              : 'Switch to Expert: guided decision method — you can still ask questions at every step'}
+          >
+            <SlidersHorizontal size={14} />{' '}
+            <span className="lbl">{props.expertMode ? 'Simple chat' : 'Expert method'}</span>
           </button>
         )}
-        <button className="ghost" onClick={props.onNew} title="New"><Plus size={14} /> <span className="lbl">New</span></button>
+        <button className="ghost" onClick={props.onNew} title="Start a new dialogue"><Plus size={14} /> <span className="lbl">New</span></button>
         {props.onDrive && (
-          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={driveLabel}>
+          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={props.driveConnected ? "Google Drive sync for this decision list is on" : "Connect Google Drive to sync decisions on this device"}>
             {props.driveConnected ? <CloudUpload size={14} /> : <Cloud size={14} />} <span className="lbl">{driveLabel}</span>
           </button>
         )}
         {props.onHistory && (
           props.historyAvailable === false
             ? <button className="ghost" disabled title="This browser cannot save history (private mode?)"><HistoryIcon size={14} /> <span className="lbl">History unavailable</span></button>
-            : <button className="ghost" onClick={props.onHistory} title="History"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
+            : <button className="ghost" onClick={props.onHistory} title="Open past dialogues on this device"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
         )}
         <div className="hdr-more-wrap" ref={moreRef}>
-          <button className="ghost hdr-more-btn" title="More" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
+          <button className="ghost hdr-more-btn" title="Export, import, Project workspace, API key, and other tools" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
             <MoreHorizontal size={14} /> <span className="lbl">More</span>
           </button>
           {/* Unified More menu (same order in both modes; Brief / Delete only in expert) */}
@@ -754,22 +783,22 @@ function Header(props: {
               </div>
             )}
             {props.projectModeEnabled && (
-              <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)}>
-                Project Mode
+              <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)} title="Separate area for multi-step projects (not the same as this chat)">
+                Project workspace (separate)
               </a>
             )}
             {props.onProgramFiles && (
-              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProgramFiles?.(); }}>
-                Program files
+              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProgramFiles?.(); }} title="Texts saved from chats on this device">
+                Saved texts on this device
               </button>
             )}
             {props.onGoogleAI && (
-              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onGoogleAI?.(); }}>
-                <KeyRound size={14} /> Google AI
+              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onGoogleAI?.(); }} title="Optional: use your own Gemini API key">
+                <KeyRound size={14} /> Your Gemini API key
               </button>
             )}
             {props.expertMode && props.onBrief && (
-              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onBrief?.(); }}>Brief</button>
+              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onBrief?.(); }} title="Short overview of this decision">Decision brief</button>
             )}
             {props.expertMode && props.onDelete && (
               <button type="button" className="ghost danger" role="menuitem" aria-label="Delete" onClick={() => { setMoreOpen(false); props.onDelete?.(); }}>
@@ -1169,6 +1198,7 @@ function ConversationScreen({
   busy,
   onDocumentEdit,
   onProposedChangeSet,
+  alwaysShowComposer,
 }: {
   d: Decision;
   update: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
@@ -1176,6 +1206,8 @@ function ConversationScreen({
   busy: boolean;
   onDocumentEdit?: (index: number, next: DocumentSpec) => void;
   onProposedChangeSet?: (text: string | null) => void;
+  /** Expert: keep the message box visible even mid-method. */
+  alwaysShowComposer?: boolean;
 }) {
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<Attachment[]>([]);
@@ -1343,7 +1375,7 @@ function ConversationScreen({
         onAgentSummary={() => send(input.trim() ? input : DOCUMENT_REQUEST, 'DOCUMENT')}
         onCalendar={() => icsDownload(d)}
       />
-      {history.some((m: any) => m.role === 'assistant') && !waitingForAssistant && !busy && (
+      {(alwaysShowComposer || history.some((m: any) => m.role === 'assistant')) && !waitingForAssistant && !busy && (
         <div className="conversation-composer">
           <AutoTextarea
             value={input}
@@ -1351,7 +1383,13 @@ function ConversationScreen({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') send(); }}
             onPaste={onPaste}
-            placeholder={askedQuestion ? 'Your answer. “I don’t know” is a fine answer too.' : 'Anything to add, or something you want to look at next?'}
+            placeholder={
+              alwaysShowComposer
+                ? 'Clarify a fact, ask a question, or add something the steps missed…'
+                : askedQuestion
+                  ? 'Your answer. “I don’t know” is a fine answer too.'
+                  : 'Anything to add, or something you want to look at next?'
+            }
             rows={3}
           />
           <button className="primary" disabled={!input.trim() && !files.length} onClick={() => send()}>Send <ArrowRight size={16} /></button>

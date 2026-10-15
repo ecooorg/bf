@@ -184,7 +184,7 @@ export function WorkspaceChangeSetCard({
           </button>
         )}
       </div>
-      <p className="files-panel-status">Nothing is written until you press Apply. Rollback adds a new version; history is not rewritten.</p>
+      <p className="files-panel-status">Draft only until Apply. Reject keeps files unchanged. Rollback restores a previous snapshot as a new version.</p>
     </div>
   );
 }
