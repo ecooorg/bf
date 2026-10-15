@@ -1,3 +1,9 @@
+## P42 — QA1 cross-mode automated checks (2026-10-15)
+
+- Added offline QA1 suite (`tests/qa1.test.mjs`) covering Simple classification and soft-fail, Expert/Project instruction isolation, UI start cards, shared honesty core, triage wiring and integrity of prior mode regressions.
+- Wired `npm run test:qa1` into package scripts; product runtime behaviour unchanged.
+- STATUS next gate advanced to MANUAL1 after offline QA1.
+
 ## P40 — Mandatory patch delivery contract (2026-10-15)
 
 - Documented `bf-PNN.zip` as the required primary artifact; `.patch`/`.diff` cannot substitute for the ZIP.
