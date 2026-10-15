@@ -113,32 +113,32 @@ try {
       if ((await more.getAttribute('aria-expanded')) === 'true') await more.click();
     } else good(w, 'More button not needed (wide screen)');
 
-    // UX1: toggle labels "Expert method" / "Simple chat" (legacy "Expert mode"/"Simple mode" still accepted).
-    const modeRe = /Expert method|Simple chat|Expert mode|Simple mode/;
-    const modeButton = page.locator('.header-actions button.ghost').filter({ hasText: modeRe }).first();
-    if (await modeButton.count()) {
-      const beforeText = ((await modeButton.innerText()) || '').replace(/\s+/g, ' ').trim();
-      await modeButton.click();
-      const expectRe = /Expert method|Expert mode/.test(beforeText)
-        ? /Simple chat|Simple mode/
-        : /Expert method|Expert mode/;
-      const back = page.locator('.header-actions button.ghost').filter({ hasText: expectRe }).first();
-      await back.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-      if (await back.count() && await back.isVisible()) {
+    // UX1: mode toggle — use aria-label (visible .lbl may be CSS-hidden on narrow screens).
+    const modeBtn = () => page.getByRole('button', { name: /Expert method|Simple chat|Expert mode|Simple mode/i });
+    if (await modeBtn().count()) {
+      const beforeName = ((await modeBtn().first().getAttribute('aria-label'))
+        || (await modeBtn().first().innerText().catch(() => ''))
+        || '').replace(/\s+/g, ' ').trim();
+      await modeBtn().first().click();
+      const expectName = /Expert method|Expert mode/i.test(beforeName) ? /Simple chat|Simple mode/i : /Expert method|Expert mode/i;
+      const back = page.getByRole('button', { name: expectName });
+      await back.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+      if (await back.count() && await back.first().isVisible()) {
         await noHScroll('(mode switched)'); await taps('(mode switched)');
         const box = await back.first().boundingBox();
         box && box.x >= -1 && box.x + box.width <= w + 1
           ? good(w, 'mode toggle button reachable after switch')
           : bad(w, 'mode toggle button off screen after switch');
         await back.first().click();
-        const restored = page.locator('.header-actions button.ghost').filter({ hasText: modeRe }).first();
-        const restoredText = ((await restored.innerText().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
-        restoredText === beforeText || modeRe.test(restoredText)
+        const restoredName = ((await modeBtn().first().getAttribute('aria-label').catch(() => null))
+          || (await modeBtn().first().innerText().catch(() => ''))
+          || '').replace(/\s+/g, ' ').trim();
+        /Expert method|Simple chat|Expert mode|Simple mode/i.test(restoredName)
           ? good(w, 'mode restored')
-          : bad(w, `could not restore previous mode (was "${beforeText}", now "${restoredText}")`);
-      } else bad(w, `no mode toggle after switch (was "${beforeText}")`);
+          : bad(w, `could not restore previous mode (was "${beforeName}", now "${restoredName}")`);
+      } else bad(w, `no mode toggle after switch (was "${beforeName}")`);
     } else {
-      const headerButtons = await page.locator('.header-actions button').evaluateAll(els => els.map(e => ({ text: e.textContent?.trim(), title: e.getAttribute('title'), html: e.outerHTML.slice(0, 180) })));
+      const headerButtons = await page.locator('.header-actions button').evaluateAll(els => els.map(e => ({ text: e.textContent?.trim(), title: e.getAttribute('title'), aria: e.getAttribute('aria-label'), html: e.outerHTML.slice(0, 180) })));
       bad(w, `no Expert/Simple mode button; header buttons: ${JSON.stringify(headerButtons).slice(0, 500)}`);
     }
     } catch (e) { bad(w, `test error: ${String(e.message).slice(0, 150)}`); } finally { await ctx?.close().catch(() => {}); }
