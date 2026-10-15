@@ -9,6 +9,7 @@
 | **Файлы** | P34–P39: ingest, extract, ChangeSet, unified attach, export; P39 hardens tar duplicate-path handling |
 | **UX1** | В проде (v38); владелец может оставить/убрать по feedback |
 | **Режимы** | Expert open chat (UX1); UI1 старт-выбор — ещё в очереди |
+| **Поставка патчей** | P40 process-only: обязательный проверенный `bf-PNN.zip`; `.patch`/`.diff` не заменяет архив |
 
 ## 2. Следующее
 

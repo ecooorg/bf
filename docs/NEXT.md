@@ -6,6 +6,6 @@
 
 ## Pointer
 
-1. Next agent coding (file line): **P39 file-work stabilization/security** — see STATUS.  
+1. Next owner-authorized implementation: **UI1** — see `docs/STATUS.md` §2. Do not start without the owner command.  
 2. Owner-gated: MANUAL1, UI1, RM-*, GitHub write — see STATUS §3.  
 3. Do not invent a parallel backlog in this file.

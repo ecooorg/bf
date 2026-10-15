@@ -50,12 +50,16 @@ Conflicts between rules and the assignment: resolve within the patch when the ru
 
 ---
 
-## 4. Delivery
+## 4. Delivery — mandatory output contract
 
-1. One patch — one reviewable result (see §16.4).
-2. PR (or owner upload) with clear file list: replace / add / delete.
-3. File deletions are performed by the owner when applying the archive.
-4. Do not put a manifest file inside the patch unless the SPEC asks for it; list changes in the chat or PR body.
+1. The primary deliverable is a downloadable `bf-PNN.zip` containing the actual changed and new repository files at exact repository-relative paths. The owner applies these files manually through GitHub.
+2. A `.patch`, `.diff`, source listing, or explanation is NOT a substitute for the ZIP. A diff may be supplied only as a secondary artifact.
+3. Include every changed/new file since the owner's confirmed base archive; exclude unchanged files, nested repository-root folders, manifests/file lists, temporary files, build output, and secrets. File deletions are reported separately and performed manually by the owner.
+4. Use `npm run patch:pack` and its preflight. Verify the ZIP by reopening it and comparing every entry path and byte against the intended changed/new file set. Do not claim successful delivery based on filename or existence alone.
+5. If the canonical packer is unavailable, diagnose the failure. Use a safe fallback only if equivalent preflight and read-back/content checks can be completed. Never silently substitute a `.patch` for the ZIP.
+6. If no valid ZIP can be produced and verified, report `DELIVERY BLOCKED`, the exact cause, and the required unblock action. Otherwise report artifact validity separately from test/CI status; `PARTIAL` is allowed only when preflight and archive verification pass.
+7. Final response: direct download link to `bf-PNN.zip`; one `replace N, add M, delete K` line with filenames; patch status; exact checks and results; blocked, failed, and unrun checks. Do not finish without the verified ZIP or an explicit `DELIVERY BLOCKED` report.
+8. Do not put a manifest file inside the patch unless the SPEC asks for it; list changes in chat or the PR body.
 
 ---
 
