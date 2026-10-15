@@ -128,6 +128,8 @@ try {
     const openMore = async () => {
       const btn = page.locator('.hdr-more-btn');
       if (!(await btn.count())) return false;
+      // Wide screens (>900px): More button is display:none and the menu items are shown inline.
+      if (!(await btn.isVisible())) return true;
       if ((await btn.getAttribute('aria-expanded')) !== 'true') await btn.click();
       await page.locator('.hdr-secondary.open').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
       return (await page.locator('.hdr-secondary.open').count()) > 0;
