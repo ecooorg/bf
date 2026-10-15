@@ -1,3 +1,10 @@
+## P34 — Universal Workspace MVP (2026-10-15)
+
+- WorkspacePanel is available in the shared Simple/Expert application surface and supports individual/multiple files in addition to archives and folders.
+- After explicit privacy acknowledgement, bounded readable text and safe metadata are attached to agent requests; secret-flagged files are excluded. Unsupported binary formats remain preserved but are not claimed to be decoded.
+- Fixed Workspace persistence to accept content-addressed SHA-256 blobs produced by ingest; added P34 ingest/persistence/byte-integrity tests.
+- Automated checks were NOT RUN: dependency installation timed out in the patch environment. CI must run `npm run test:p27`, `npm run test:p34`, `npm run check`, and `npm run build`.
+
 # Changelog
 
 ## MP2 completion — light Simple/information prompt (2026-10-14)

@@ -1,3 +1,3 @@
-# BiForge v24
+# BiForge v34
 
-Product version **24** (P24 — BX-25 operations: /ops, backup check, ADR-09). See `docs/START_HERE.md`.
+Product version **34** (P34 — Universal Workspace MVP: individual-file import and privacy-gated agent context). See `docs/START_HERE.md`.

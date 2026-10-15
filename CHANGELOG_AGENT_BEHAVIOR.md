@@ -1,3 +1,7 @@
+## v34
+
+- P34 adds privacy-gated Workspace text and safe file metadata to existing agent requests in Simple and Expert flows. Secret-flagged files are excluded; undecoded binary/specialized files are described as metadata only. This patch does not add PDF/Office extraction, image vision transport, OCR, or audio/video transcription.
+
 ## v24
 
 - Ops dashboard and backup-check do not change Simple Mode or Router behaviour.
