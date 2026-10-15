@@ -24,6 +24,7 @@ import { AutoInput, AutoTextarea } from './AutoGrow.tsx';
 import { decisionToDocument } from './decisionDocument.ts';
 import { FilesPanel, CopyButton, MessageExtras, ProgramFilesManager } from './ConversationFiles.tsx';
 import { WorkspacePanel } from './WorkspacePanel.tsx';
+import { parseChangeSetFromText } from './workspace/changeSetParse.ts';
 import {
   Attachment, DocumentSpec, applyAttachmentNotes, attachmentOnlyText, collectAttachments, collectDecisionAttachments,
   conversationToDocument, fitRequest, historyForRequest,
@@ -125,6 +126,7 @@ export default function App() {
   const [showBrief, setShowBrief] = useState(false);
   const [showProgramFiles, setShowProgramFiles] = useState(false);
   const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
+  const [proposedWorkspaceChangeSet, setProposedWorkspaceChangeSet] = useState<string | null>(null);
   const [expertMode, setExpertMode] = useState(false);
   const [migrationReport] = useState(() => getMigrationReport());
   const [authChecked, setAuthChecked] = useState(false);
@@ -422,7 +424,7 @@ export default function App() {
           <h1>Nothing here yet</h1>
           <p>Describe the situation in your own words — you do not need to structure it first.</p>
           <div style={{ maxWidth: 760, margin: '18px auto', textAlign: 'left' }}>
-            <WorkspacePanel onAttachmentsChange={setWorkspaceAttachments} />
+            <WorkspacePanel onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
           </div>
           <button className="primary" onClick={createNew}>
             <Plus size={16} /> New decision
@@ -541,7 +543,7 @@ export default function App() {
         </aside>}
 
         <main className="content">
-          <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} />
+          <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
           {expertMode && ((d.modelSuggestions as any)?.conversation?.length ?? 0) > 0 && (
             <SharedConversationContext d={d} onDocumentEdit={reviseConversationDocument} />
           )}
@@ -998,6 +1000,7 @@ function BriefScreen({
     });
     runApi('/api/conversation', fitRequest({ brief: { ...b, decision: text }, history: historyForRequest([userMessage]), attachments: collectDecisionAttachments(d, [userMessage]), intent }), (data, meta) => {
       const assistant: any = { role: 'assistant', content: data.reply, at: Date.now(), ...(data.document ? { document: data.document } : {}) };
+      if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) setProposedWorkspaceChangeSet(data.reply);
       setFiles([]);
       update({
         modelSuggestions: {
@@ -1227,6 +1230,7 @@ function ConversationScreen({
           },
           interactionState: 'PREVIEW_READY',
         });
+        if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) setProposedWorkspaceChangeSet(data.reply);
         if (data.document) void archiveAgentDocument(data.document, d.id);
       },
     );

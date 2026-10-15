@@ -1,6 +1,6 @@
 /**
- * P27 — Simple Mode workspace attach UI (archive/folder → card → privacy → tree).
- * Expert Mode / ChangeSet / export: out of scope (P28/P29).
+ * Workspace attach UI (archive/folder/files → card → privacy → tree).
+ * P36: ChangeSet card with human Apply / Reject / Rollback.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FolderOpen, FileArchive, X, ChevronRight, Loader2 } from 'lucide-react';
@@ -12,6 +12,9 @@ import {
   languageSummaryLine,
   persistIngestResult,
 } from './workspace/persistIngest.ts';
+import type { WorkspaceChangeSet } from './workspace/changeset.ts';
+import { parseChangeSetFromText } from './workspace/changeSetParse.ts';
+import { WorkspaceChangeSetCard } from './WorkspaceChangeSetCard.tsx';
 import type { Entry, IngestReport, WorkspaceStore } from './workspace/types.ts';
 
 export type WorkspaceUiState = {
@@ -31,9 +34,12 @@ type Props = {
   onStateChange?: (state: WorkspaceUiState | null) => void;
   /** Text and safe metadata to attach to the next agent request after explicit privacy acknowledgement. */
   onAttachmentsChange?: (attachments: { name: string; kind: string; text: string }[]) => void;
+  /** Agent-proposed ChangeSet (or raw JSON/text containing one). Version changes only after Apply. */
+  proposedChangeSet?: WorkspaceChangeSet | string | null;
+  onChangeSetSettled?: () => void;
 };
 
-export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttachmentsChange }: Props) {
+export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttachmentsChange, proposedChangeSet, onChangeSetSettled }: Props) {
   const archiveRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
@@ -43,6 +49,7 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttach
   const [state, setState] = useState<WorkspaceUiState | null>(null);
   const [openPath, setOpenPath] = useState<string | null>(null);
   const [openText, setOpenText] = useState<string | null>(null);
+  const [pendingCs, setPendingCs] = useState<WorkspaceChangeSet | null>(null);
   const [openMeta, setOpenMeta] = useState<string | null>(null);
   const [folderSupported] = useState(() => {
     if (typeof document === 'undefined') return false;
@@ -70,6 +77,20 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttach
     },
     [onStateChange],
   );
+
+  // P36: accept proposed ChangeSet from parent (structured or text).
+  useEffect(() => {
+    if (proposedChangeSet == null || proposedChangeSet === '') {
+      return;
+    }
+    if (typeof proposedChangeSet === 'string') {
+      const parsed = parseChangeSetFromText(proposedChangeSet);
+      setPendingCs(parsed);
+      if (!parsed) setError('Could not parse a workspace ChangeSet from the agent reply.');
+    } else {
+      setPendingCs(proposedChangeSet);
+    }
+  }, [proposedChangeSet]);
 
   // Keep a bounded, privacy-gated attachment payload ready for every mode's agent requests.
   useEffect(() => {
@@ -362,6 +383,43 @@ SHA-256: ${entry.sha256}`;
               </button>
             ))}
           </div>
+
+          {pendingCs && state.privacyAck && (
+            <WorkspaceChangeSetCard
+              store={getStore()}
+              workspaceId={state.workspaceId}
+              headVersion={state.version}
+              changeSet={pendingCs}
+              disabled={disabled || busy}
+              onApplied={({ version, entries }) => {
+                const next = {
+                  ...state,
+                  version,
+                  entries: entries.slice().sort((a, b) => a.path.localeCompare(b.path)),
+                  languagesLine: languageSummaryLine(entries),
+                };
+                publish(next);
+                setPendingCs(null);
+                onChangeSetSettled?.();
+                setStatus(`Applied changes → workspace v${version}`);
+              }}
+              onRejected={() => {
+                setPendingCs(null);
+                onChangeSetSettled?.();
+                setStatus('ChangeSet rejected — workspace unchanged');
+              }}
+              onRolledBack={({ version, entries }) => {
+                const next = {
+                  ...state,
+                  version,
+                  entries: entries.slice().sort((a, b) => a.path.localeCompare(b.path)),
+                  languagesLine: languageSummaryLine(entries),
+                };
+                publish(next);
+                setStatus(`Rolled back → workspace v${version}`);
+              }}
+            />
+          )}
 
           {(openText != null || openMeta != null) && (
             <pre className="workspace-file-view" data-testid="workspace-file-view">
