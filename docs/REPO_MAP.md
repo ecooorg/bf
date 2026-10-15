@@ -161,6 +161,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run check:docs` | Document check |
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
+| `npm run test:qa1` | QA1 offline cross-mode: classification, soft-fail contracts, Expert/Project isolation, UI cards |
+| `npm run test:p43` | RM-C3 closed: model_patch authorization docs and env-gate regression |
 | `npm run test:virtual` | `tests/run.sh`: real `server.ts` against a fake Gemini |
 | `npm run test:ui` | Browser layout check (Playwright; not in `check`) |
 | `npm run db:migrate` | Apply migrations |
@@ -209,6 +211,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/export-name.test.mjs`, `tests/libraryExport.test.mjs` | Export file names; library export and import | no |
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
+| `tests/qa1.test.mjs` | QA1 offline cross-mode suite (classification, soft-fail, mode isolation, UI/STATUS contracts) | no |
+| `tests/p43-rm-c3.test.mjs` | P43 RM-C3 docs + CODE_EXECUTOR env-gate contract; GitHub write remains deferred | no |
 | `tests/package-c.test.mjs` | Static checks of repository files (read the file for details) | no |
 | `tests/state-pipeline.test.mjs` | Patch policy, atomicity, provenance, unverified facts, compaction invariants | no |
 | `tests/state-pipeline-live.test.mjs` | Patch and compaction as State versions, 409, direct model write refused (live PostgreSQL) | yes |
