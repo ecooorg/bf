@@ -128,6 +128,23 @@ export default function App() {
   const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
   const [proposedWorkspaceChangeSet, setProposedWorkspaceChangeSet] = useState<string | null>(null);
   const [expertMode, setExpertMode] = useState(false);
+  const [startMode, setStartMode] = useState<'Simple' | 'Expert' | 'Project' | null>(() => {
+    try {
+      const saved = sessionStorage.getItem('biforge-start-mode');
+      return saved === 'Simple' || saved === 'Expert' || saved === 'Project' ? saved : null;
+    } catch { return null; }
+  });
+  function chooseStartMode(mode: 'Simple' | 'Expert' | 'Project') {
+    if (mode === 'Project' && !projectModeEnabled) return;
+    if (mode === 'Project') {
+      // Project is a separate workspace and is never emulated by the chat UI.
+      window.location.href = '/project';
+      return;
+    }
+    setExpertMode(mode === 'Expert');
+    setStartMode(mode);
+    try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
+  }
   const [migrationReport] = useState(() => getMigrationReport());
   const [authChecked, setAuthChecked] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -345,6 +362,29 @@ export default function App() {
           <button className="primary" style={{marginTop:16}} onClick={()=>void (async()=>{try{setAuthError('');await loginWithPassword(password);setAuthenticated(true);}catch(err:any){setAuthError(err.message||'Invalid password')}})()}>Sign in</button>
         </div>
       </div></div>
+    );
+  }
+
+  if (!startMode && !showGoogleAI) {
+    return (
+      <div className="shell">
+        <div className="empty" style={{ maxWidth: 1040, margin: '0 auto', padding: '48px 20px' }}>
+          <h1>{en.app}</h1>
+          <p>Choose how you want to work. You can change modes explicitly later.</p>
+          <div className="mode-start-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 28, textAlign: 'left' }}>
+            <button type="button" className="panel" onClick={() => chooseStartMode('Simple')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
+              <h2>Simple</h2><p>Information and consultations</p><p>Get an explanation, practical advice, or a clear answer to a question.</p>
+            </button>
+            <button type="button" className="panel" onClick={() => chooseStartMode('Expert')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
+              <h2>Expert</h2><p>In-depth analysis</p><p>Explore a difficult problem, test assumptions, and find less obvious solutions. Ask follow-up questions at any stage.</p>
+            </button>
+            <button type="button" className="panel" onClick={() => chooseStartMode('Project')} disabled={!projectModeEnabled} aria-disabled={!projectModeEnabled} style={{ cursor: projectModeEnabled ? 'pointer' : 'not-allowed', color: 'inherit', textAlign: 'left', padding: 24, opacity: projectModeEnabled ? 1 : 0.65 }}>
+              <h2>Project</h2><p>Project creation</p><p>Design and build software, scientific, and engineering projects with requirements, architecture, tasks, and checks.</p>
+              {!projectModeEnabled && <p role="status"><strong>Currently unavailable</strong> — Project mode is disabled for this deployment.</p>}
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
