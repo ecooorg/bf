@@ -37,3 +37,9 @@ test('STATUS orders QA1 between UI1 and MANUAL1 and records approved UX1 decisio
 test('patch journal records existing folder picker menu behavior', () => {
   assert.match(journal, /PICK_FOLDER_EVENT/);
 });
+
+test('Change mode control returns to start screen', () => {
+  assert.match(app, /data-testid="change-mode"/);
+  assert.match(app, /resetStartMode|onChangeMode/);
+  assert.match(app, /sessionStorage\.removeItem\('biforge-start-mode'\)/);
+});
