@@ -262,6 +262,11 @@ export function classifyBytes(path: string, bytes: Uint8Array): ClassifyResult {
     return { class: 'image', encoding: 'binary', bom: false, flags, editable: false };
   }
   if (bin === 'archive') {
+    // OOXML packages are zip-based; classify as office when the path says so (P35).
+    const officeExt = /\.(docx|xlsx|pptx)$/i.test(base);
+    if (officeExt) {
+      return { class: 'office', encoding: 'binary', bom: false, flags, editable: false };
+    }
     return { class: 'archive', encoding: 'binary', bom: false, flags, editable: false };
   }
   if (bin === 'binary') {

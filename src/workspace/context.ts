@@ -1,5 +1,11 @@
-/** Deterministic, privacy-gated workspace context and model follow-up contract (FW-31…FW-37). */
+/** Deterministic, privacy-gated workspace context and model follow-up contract (FW-31…FW-37). P35: extract-aware. */
 import type { Entry, IngestReport, WorkspaceStore } from './types.ts';
+import {
+  DEFAULT_EXTRACT_LIMITS,
+  extractFileContent,
+  formatExtractForContext,
+  type ExtractResult,
+} from './extract.ts';
 
 export interface NeedFile { path: string; ranges?: { start: number; end: number }[] }
 export interface NeedSearch { pattern: string; glob?: string }
@@ -14,28 +20,67 @@ export interface WorkspaceModelResponse {
 const EXCLUDED = new Set(['secret', 'generated', 'lockfile', 'minified', 'executable']);
 const MAX_FILE_CONTEXT = 12_000;
 
+/** Classes that may yield model-readable content via extractors (P35). */
 function eligible(entry: Entry): boolean {
-  return entry.class !== 'binary' && entry.class !== 'archive' && entry.class !== 'image' && entry.class !== 'pdf' && entry.class !== 'office' && !entry.flags.some((f) => EXCLUDED.has(f));
+  if (entry.flags.some((f) => EXCLUDED.has(f))) return false;
+  // binary / archive / executable stay out of automatic context;
+  // pdf / office / image are attempted via extract (image → metadata only).
+  return entry.class !== 'binary' && entry.class !== 'archive' && entry.class !== 'executable';
 }
+
 function globRegex(glob?: string): RegExp | null {
   if (!glob) return null;
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.');
   return new RegExp(`^${escaped}$`, 'i');
 }
+
 function textOf(bytes: Uint8Array): string | null {
   try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes).replace(/^\uFEFF/, ''); }
   catch { return null; }
 }
 
-export async function readWorkspaceFile(store: WorkspaceStore, wsId: string, version: number, path: string): Promise<{ text?: string; reason?: string }> {
+export async function readWorkspaceFile(
+  store: WorkspaceStore,
+  wsId: string,
+  version: number,
+  path: string,
+): Promise<{ text?: string; reason?: string; extract?: ExtractResult; formatted?: string }> {
   const manifest = await store.getManifest(wsId, version);
   const entry = manifest.find((e) => e.path === path);
   if (!entry) return { reason: 'not_found' };
-  if (!eligible(entry)) return { reason: entry.flags.includes('secret') ? 'secret_requires_explicit_user_approval' : 'file_not_available_to_model' };
-  if (entry.size > 1024 * 1024) return { reason: 'file_too_large_for_model_context' };
-  const text = textOf(await store.readBlob(wsId, entry.sha256));
-  if (text === null) return { reason: 'non_utf8_file_not_available_to_model' };
-  return { text };
+  if (entry.flags.includes('secret')) return { reason: 'secret_requires_explicit_user_approval' };
+  if (entry.flags.some((f) => EXCLUDED.has(f) && f !== 'secret')) {
+    return { reason: 'file_not_available_to_model' };
+  }
+  if (entry.size > 5 * 1024 * 1024) return { reason: 'file_too_large_for_model_context' };
+
+  const bytes = await store.readBlob(wsId, entry.sha256);
+  const extract = await extractFileContent(path, bytes, entry.class, {
+    ...DEFAULT_EXTRACT_LIMITS,
+    maxChars: Math.min(DEFAULT_EXTRACT_LIMITS.maxChars, MAX_FILE_CONTEXT),
+  });
+
+  if (extract.metadataOnly || !extract.text) {
+    const formatted = formatExtractForContext(path, extract, {
+      sha256: entry.sha256,
+      size: entry.size,
+      class: entry.class,
+    });
+    // Still return a short text so attachment builders can show honest metadata.
+    return {
+      text: formatted,
+      reason: extract.meta.note || 'metadata_only',
+      extract,
+      formatted,
+    };
+  }
+
+  const formatted = formatExtractForContext(path, extract, {
+    sha256: entry.sha256,
+    size: entry.size,
+    class: entry.class,
+  });
+  return { text: extract.text, extract, formatted };
 }
 
 export async function searchWorkspace(store: WorkspaceStore, wsId: string, version: number, pattern: string, glob?: string, max = 50): Promise<{ path: string; line: number; context: string }[]> {
@@ -44,8 +89,18 @@ export async function searchWorkspace(store: WorkspaceStore, wsId: string, versi
   const needle = pattern.toLocaleLowerCase();
   const results: { path: string; line: number; context: string }[] = [];
   for (const entry of manifest) {
-    if (!eligible(entry) || entry.size > 1024 * 1024 || (matchGlob && !matchGlob.test(entry.path))) continue;
-    const text = textOf(await store.readBlob(wsId, entry.sha256));
+    if (!eligible(entry) || entry.size > 5 * 1024 * 1024 || (matchGlob && !matchGlob.test(entry.path))) continue;
+    const bytes = await store.readBlob(wsId, entry.sha256);
+    let text: string | null = null;
+    if (entry.class === 'pdf' || entry.class === 'office' || entry.class === 'image') {
+      const extracted = await extractFileContent(entry.path, bytes, entry.class, {
+        ...DEFAULT_EXTRACT_LIMITS,
+        maxChars: MAX_FILE_CONTEXT,
+      });
+      text = extracted.metadataOnly ? null : extracted.text;
+    } else {
+      text = textOf(bytes);
+    }
     if (text === null) continue;
     const lines = text.split(/\r\n|\n|\r/);
     for (let i = 0; i < lines.length; i++) {
@@ -91,10 +146,16 @@ export async function buildWorkspaceBlock(input: {
     const remaining = input.budget - current.length;
     if (remaining < 250) break;
     const file = await readWorkspaceFile(input.store, input.workspaceId, input.version, e.path);
-    if (!file.text) continue;
-    const snippet = file.text.split(/\r\n|\n|\r/).slice(0, 40).join('\n').slice(0, Math.min(MAX_FILE_CONTEXT, remaining - 80));
-    const block = `\n\nFile ${e.path} (lines 1-${Math.min(40, file.text.split(/\r\n|\n|\r/).length)}):\n${snippet}`;
-    current += block;
+    if (!file.text && !file.formatted) continue;
+    // Prefer DATA-marked extract block (P35); fall back to line window for plain text.
+    if (file.formatted) {
+      const block = '\n\n' + file.formatted.slice(0, Math.min(MAX_FILE_CONTEXT, remaining - 20));
+      current += block;
+    } else if (file.text) {
+      const snippet = file.text.split(/\r\n|\n|\r/).slice(0, 40).join('\n').slice(0, Math.min(MAX_FILE_CONTEXT, remaining - 80));
+      const block = `\n\nFile ${e.path} (lines 1-${Math.min(40, file.text.split(/\r\n|\n|\r/).length)}):\n${snippet}`;
+      current += block;
+    }
   }
   return current.slice(0, Math.max(0, input.budget));
 }
