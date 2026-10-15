@@ -721,6 +721,7 @@ function Header(props: {
           <button
             className="ghost"
             onClick={props.onToggleExpert}
+            aria-label={props.expertMode ? 'Simple chat' : 'Expert method'}
             title={props.expertMode
               ? 'Switch to Simple: open conversation without the step-by-step method'
               : 'Switch to Expert: guided decision method — you can still ask questions at every step'}
