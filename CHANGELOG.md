@@ -1,3 +1,10 @@
+## P43 — RM-C3 close: authorize `model_patch` (2026-10-15)
+
+- Owner command closed checklist **RM-C3**: `CODE_EXECUTOR=model_patch` authorized after accepted ADR-10 / E-01.
+- Process/docs only: STATUS, OWNER_OPS, DELEGATION, `.env.example` updated; runtime still requires the environment variable.
+- GitHub App write permissions and `GITHUB_DIFF_UPLOAD` remain deferred (ADR-06).
+- Regression: `tests/p43-rm-c3.test.mjs`.
+
 ## P42 — QA1 cross-mode automated checks (2026-10-15)
 
 - Added offline QA1 suite (`tests/qa1.test.mjs`) covering Simple classification and soft-fail, Expert/Project instruction isolation, UI start cards, shared honesty core, triage wiring and integrity of prior mode regressions.
