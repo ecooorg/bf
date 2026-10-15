@@ -1,3 +1,9 @@
+## P45 — UI1 start screen on prod + ui-check (2026-10-15)
+
+- Confirmed production bundle lacked `chooseStartMode` / start cards; ship `src/App.tsx` with explicit Simple / Expert / Project start screen after sign-in.
+- More menu: **Change mode** returns to the start screen (clears session selection).
+- `tests/ui-check.mjs`: click Simple on the mode start screen before waiting for `.header-actions` (fixes ui-check red).
+
 ## P44 — CI hotfix for P42/P43 (2026-10-15)
 
 - `docs/REPO_MAP.md`: describe `tests/qa1.test.mjs`, `tests/p43-rm-c3.test.mjs`, `test:qa1`, `test:p43`.
