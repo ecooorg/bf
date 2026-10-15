@@ -1,4 +1,8 @@
-# BiForge — Agent Instructions
+# AGENTS — BiForge agent instructions
+
+> **Progress / next / open questions:** always `docs/STATUS.md` first (human + agent).  
+> This file = process rules and prohibitions, not a second task queue.  
+> If an old plan disagrees with STATUS on “what is next”, **STATUS wins**.
 
 > **Start with `docs/START_HERE.md`.** · **Document:** AGENTS.md · **Aligned with:** TZv3.0 (`docs/BiForge_TZ_v3.md`, 9 October 2026), Part B (section 16) and Appendix B · **Status:** policy document; changes follow section 10
 
@@ -31,11 +35,11 @@ The agent may be any model or tool chosen by the owner (D-16). The contract is t
 - **Do not** create extra Markdown files for notes, “UI leftovers”, or parallel checklists. Use `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/PATCH_JOURNAL.md`, docs/CHANGELOG.md / root `CHANGELOG.md`, or the active `docs/PNN-SPEC.md` / `docs/PNN-REPORT.md`.
 - **One agent patch** → at most **one** new SPEC and **one** REPORT (`docs/PNN-SPEC.md`, `docs/PNN-REPORT.md`). No `PNN-notes.md`, no duplicate queues.
 - Closed history and CONCEPTS bulk live **off GitHub** per `docs/HISTORY_OFFREPO.md`. Do not restore ARCHIVE/CONCEPTS dumps unless the owner asks.
-- Living bookmarks: `docs/OWNER_OPS.md`. Living queue pointer: **Next agent patch** in `docs/CURRENT_STATE.md`.
+- Living bookmarks: `docs/OWNER_OPS.md`. Living queue pointer: **`docs/STATUS.md` only** (not CURRENT_STATE / NEXT as parallel queues).
 
 ## 3. Establish the baseline
 Before editing:
-1. Read `docs/START_HERE.md`, then **`docs/CURRENT_STATE.md`** and the active plan named there. For the mode initiative, use `docs/MASTER_IMPLEMENTATION_PLAN.md`.
+1. Read `docs/STATUS.md` (progress). Then `docs/START_HERE.md` if needed. Mode details: `docs/MASTER_IMPLEMENTATION_PLAN.md` only when STATUS points there.
 2. Before implementation, read/create the patch-specific SPEC using `docs/PATCH_TEMPLATE.md`; the master plan does not replace the per-delivery report or required CI evidence. Product norms: `docs/BiForge_TZ_v3.md` index and/or `docs/BiForge_TZ_P26.md` only as cited by the SPEC.
 3. The base is the archive uploaded by the owner; record its name or date in the report.
 4. Read relevant files and tests. For production host and Railway/GitHub links use `docs/OWNER_OPS.md` only (no secrets).

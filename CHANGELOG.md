@@ -1,3 +1,9 @@
+## DOC1 — STATUS hub (2026-10-15)
+
+- Added `docs/STATUS.md` as the only day-to-day progress file (where we are, next, owner blockers, open questions).
+- `START_HERE`, `CURRENT_STATE`, `NEXT` reduced to pointers; AGENTS / PATCH_TEMPLATE / DEVELOPMENT_PROTOCOL require STATUS updates each patch.
+- No product version bump (docs-only hygiene).
+
 ## P37 — Unified Workspace attach (2026-10-15)
 
 - One primary **Attach** button: a single zip/tar is unpacked into the workspace tree; other files are stored as entries. Optional Folder on desktop.
