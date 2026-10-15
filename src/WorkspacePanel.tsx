@@ -255,7 +255,9 @@ SHA-256: ${entry.sha256}`;
         name: state.name,
         skipRulesNote: state.report?.skipped?.slice(0, 5).map((s) => s.reason),
       });
-      const blob = new Blob([result.bytes], {
+      // Copy into a fresh ArrayBuffer-backed view (TS BlobPart + some runtimes reject SharedArrayBuffer views).
+      const payload = Uint8Array.from(result.bytes);
+      const blob = new Blob([payload], {
         type: mode === 'diff' ? 'text/plain;charset=utf-8' : 'application/zip',
       });
       const url = URL.createObjectURL(blob);
