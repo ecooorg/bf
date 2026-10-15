@@ -160,6 +160,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run verify:connections` | Checks Gemini and PostgreSQL connections (`--only`, `--json`, `--dry-run`); exit 0 / 2 / 3 | 
 | `npm run check:docs` | Document check |
 | `npm run test:version` | Test that the version check catches stale labels |
+| `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
 | `npm run test:virtual` | `tests/run.sh`: real `server.ts` against a fake Gemini |
 | `npm run test:ui` | Browser layout check (Playwright; not in `check`) |
 | `npm run db:migrate` | Apply migrations |
@@ -207,6 +208,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/driveMerge.test.mjs`, `tests/driveSync.test.mjs`, `tests/driveDocs.test.mjs` | Drive merge rules, sync core, save as Google Doc (fake Drive) | no |
 | `tests/export-name.test.mjs`, `tests/libraryExport.test.mjs` | Export file names; library export and import | no |
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
+| `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
 | `tests/package-c.test.mjs` | Static checks of repository files (read the file for details) | no |
 | `tests/state-pipeline.test.mjs` | Patch policy, atomicity, provenance, unverified facts, compaction invariants | no |
 | `tests/state-pipeline-live.test.mjs` | Patch and compaction as State versions, 409, direct model write refused (live PostgreSQL) | yes |
