@@ -1,3 +1,9 @@
+## P46 — Return to mode cards from Simple/Expert (2026-10-15)
+
+- Header **Modes** button (and More → Change mode) clears `biforge-start-mode` and shows the three-card start screen again.
+- Stale `Project` session on `/` no longer skips the start screen.
+- Project workspace «Back» links clear session and go to mode selection (symmetric with chat).
+
 ## P45 — UI1 start screen on prod + ui-check (2026-10-15)
 
 - Confirmed production bundle lacked `chooseStartMode` / start cards; ship `src/App.tsx` with explicit Simple / Expert / Project start screen after sign-in.
