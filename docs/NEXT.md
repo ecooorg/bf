@@ -1,5 +1,13 @@
 # Next work
 
+1. **P37** — Export project / changed-only / unified diff; unchanged files bit-identical.
+2. **P38** — Cross-mode e2e, security hardening, stabilisation of all three modes.
+
+Source of truth: `docs/BiForge_TZ_P26.md` §12–§15.
+
+---
+# Next work
+
 1. **P36** — ChangeSet apply, diff card, human confirm, rollback (after green CI for P35).
 2. **P37** — Export full / changed-only / diff; original byte integrity.
 3. **P38** — Cross-mode e2e, security hardening, stabilisation.

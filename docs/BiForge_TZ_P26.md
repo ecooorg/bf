@@ -294,8 +294,8 @@ Owner Railway clicks; real provider cost; subjective UI clarity; live multimodal
 | **P26a.2 / P26b** | Paths, ChangeSet foundations, export helpers | `test:p18` where applicable | Done / partial |
 | **P27** | SHA-keyed blob persistence | `test:p27` | Done |
 | **P34** | Universal Workspace MVP UI + bounded context after privacy ack | `test:p34`, typecheck, build | Done (CI pending in report) |
-| **P35** | **Universal File Analysis** — FileContentExtractor (PDF, DOCX, XLSX/CSV, structured, code); context wiring; honest UI; `test:p35` | Extract fixtures; no false “decoded” claims; injection corpus green | **Next** |
-| **P36** | Agent file mutations: ChangeSet apply, diff card, confirm, rollback | Deterministic apply; no version without Apply | After P35 |
+| **P35** | Universal File Analysis — FileContentExtractor (PDF, DOCX, XLSX/CSV, structured, code); context wiring; honest UI; `test:p35` | Extract fixtures; no false “decoded” claims; injection corpus green | Done (CI green) |
+| **P36** | Agent file mutations: ChangeSet apply, diff card, confirm, rollback | Deterministic apply; no version without Apply | **Next** |
 | **P37** | Export project / changed-only / diff; original integrity | Byte-identical unchanged files | After P36 |
 | **P38** | Cross-mode e2e, security hardening, stabilisation of all three modes | Full check suite; manual mode matrix | After P37 |
 
@@ -350,5 +350,33 @@ Deferred (explicit owner command required): full server-side Workspace versionin
 - Railway memory and request-body limits remain hard constraints for the request path.
 
 ---
+
+
+
+## 15. Parallel product TZs and CI gates
+
+### 15.1. Two TZs may coexist
+
+| Document | Scope |
+| --- | --- |
+| Main product TZ (`docs/BiForge_TZ_v3.md` and related) | Modes, prompts, models, auth, budget, Railway/GitHub product rules |
+| This file (P26 family) | Workspace, ingest, extract, ChangeSet, export |
+
+They run in parallel. Do **not** merge unless file-work requirements are duplicated in the main TZ or patches regularly conflict on the same files.
+
+**Anti-rollback rules**
+
+1. Each patch SPEC lists **May change** and **Must not change**.
+2. File-family patches do not alter prompts/router/auth unless the SPEC explicitly says so.
+3. Main-TZ patches do not remove or weaken P34/P35 workspace extract behaviour without an explicit AC that replaces it.
+4. Shared invariants stay in both: no server execution of user code, no silent GitHub `main`, privacy acknowledgement before model context, secrets excluded by default.
+
+### 15.2. Later green CI closes earlier gates
+
+A full green `npm run check` (and required build jobs) on a **later** patch in the same line of work **closes** pending CI confirmation for **earlier** patches in that line.
+
+Example: green CI for P35 (including `test:p34` / `test:p27`) closes any “CI pending” note left on P34. Only the **current** patch needs explicit CI attention.
+
+Record the closing patch in the earlier REPORT or in CURRENT_STATE when useful; do not block the queue waiting for historical CI narrative.
 
 *End of BiForge_TZ_P26 (updated 15 Oct 2026). Implementation follows the patch plan in §12; each patch ships its own SPEC and REPORT.*

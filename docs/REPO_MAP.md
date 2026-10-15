@@ -408,5 +408,9 @@ Described: src/workspace/
 | `npm run test:p34` | Runs workspace-p34 tests |
 | `tests/workspace-p35.test.mjs` | P35 FileContentExtractor: PDF/Office/CSV/JSON/text, DATA markers, secret block |
 | `npm run test:p35` | Runs workspace-p35 tests |
+| `tests/workspace-p36.test.mjs` | P36 ChangeSet parse, validate-without-write, apply, rollback |
+| `npm run test:p36` | Runs workspace-p36 tests |
+| `src/WorkspaceChangeSetCard.tsx` | Human Apply/Reject/Rollback card for workspace ChangeSet |
+| `src/workspace/changeSetParse.ts` | Parse agent JSON/text into WorkspaceChangeSet |
 | `tests/mp3.test.mjs` | MP3 information-mode output quality guard and regression fixtures |
 | `npm run test:mp3` | Runs MP3 acceptance tests |

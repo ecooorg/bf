@@ -1,12 +1,14 @@
-# Current state (P35)
+# Current state (P36)
 
-**Active patch family:** P26 workspace + **P35 Universal File Analysis** delivered (extract PDF/Office/CSV/JSON/text; DATA markers; `test:p35`). Product version **35**.
+**Active:** P26 family through **P36** (ChangeSet human Apply/Reject/Rollback). Product version **36**.
 
-**Next coding:** P36 — agent file mutations (ChangeSet apply, diff card, confirm, rollback), per `docs/BiForge_TZ_P26.md` §12.
+**Docs:** Parallel main TZ + file TZ rules, and “later green CI closes earlier gates”, in `docs/BiForge_TZ_P26.md` §15.
 
-**Gates:** CI must run `test:p35` with `test:p34` / `test:p27` / typecheck / build / check.
+**Next coding:** P37 — export full / changed-only / diff with original byte integrity.
 
 ---
+
+
 
 # Current state
 

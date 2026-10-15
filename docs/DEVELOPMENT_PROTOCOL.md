@@ -58,3 +58,8 @@ A move to the next gate is an explicit decision of the owner based on saved evid
 
 ## Acceptance principle
 Completion means the acceptance criteria have evidence. A successful commit, a green-looking summary, or a created PR alone is not sufficient. The PASS column of the step in TZv3.0, section 16.4 defines the criteria.
+
+## Parallel technical specifications (files vs product)
+
+BiForge may keep **two** active TZs: the main product TZ and the Workspace/files TZ (`docs/BiForge_TZ_P26.md`). Patches must declare May/Must-not-change so one stream does not silently roll back the other. A **later** green full CI on the same line of work **closes** pending CI confirmation for earlier patches in that line; only the current patch needs active CI attention. Details: `docs/BiForge_TZ_P26.md` §15.
+
