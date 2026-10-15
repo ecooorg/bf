@@ -1,3 +1,7 @@
+## v35
+
+- P35: Workspace attachments may include extracted text from PDF, DOCX, XLSX, CSV and structured files (DATA-marked). Images remain metadata-only. Secrets stay excluded without explicit approval. No change to model cascade or execution policy.
+
 ## v34
 
 - P34 adds privacy-gated Workspace text and safe file metadata to existing agent requests in Simple and Expert flows. Secret-flagged files are excluded; undecoded binary/specialized files are described as metadata only. This patch does not add PDF/Office extraction, image vision transport, OCR, or audio/video transcription.

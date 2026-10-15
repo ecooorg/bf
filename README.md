@@ -1,3 +1,3 @@
-# BiForge v34
+# BiForge v35
 
-Product version **34** (P34 — Universal Workspace MVP: individual-file import and privacy-gated agent context). See `docs/START_HERE.md`.
+Product version **35** (P35 — Universal File Analysis: PDF/Office/CSV/JSON extract into agent context). See `docs/START_HERE.md`.

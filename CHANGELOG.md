@@ -1,3 +1,10 @@
+## P35 — Universal File Analysis (2026-10-15)
+
+- Shared `FileContentExtractor` (`src/workspace/extract.ts`): PDF via `unpdf`, DOCX/XLSX/PPTX via `jszip`+XML, CSV/TSV/JSON/text via pure JS. No new npm dependencies.
+- Office zip packages classified as `office` by extension. `readWorkspaceFile` / WorkspacePanel attachments use extracted text with DATA markers (D-07); images and undecodable binaries stay metadata-only.
+- Secrets remain excluded without explicit approval; original blobs are never mutated.
+- `npm run test:p35`; product version 35.
+
 ## P34 — Universal Workspace MVP (2026-10-15)
 
 - WorkspacePanel is available in the shared Simple/Expert application surface and supports individual/multiple files in addition to archives and folders.
