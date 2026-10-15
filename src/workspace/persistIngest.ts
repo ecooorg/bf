@@ -50,7 +50,7 @@ export async function persistIngestResult(
   try {
     const workspaceId = await store.createWorkspace(name, result.report.rootPrefix || '', false);
     for (const e of result.entries) {
-      const bytes = result.blobs.get(e.path);
+      const bytes = result.blobs.get(e.path) || result.blobs.get(e.sha256);
       if (!bytes) return { ok: false, code: 'missing_blob', detail: e.path };
       await store.putBlob(workspaceId, e.sha256, bytes);
     }
