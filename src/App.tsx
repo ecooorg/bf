@@ -168,6 +168,15 @@ export default function App() {
     sessionStatus().then(s => { setAuthenticated(s.authenticated); setAuthRequired(s.required); setProjectModeEnabled(s.projectModeEnabled); setAuthChecked(true); }).catch(() => { setAuthChecked(true); setAuthRequired(false); setProjectModeEnabled(false); setAuthenticated(true); });
   }, []);
 
+  // Project mode is a separate route (/project). A leftover session value of "Project"
+  // on the chat shell must not hide the mode start screen.
+  useEffect(() => {
+    if (startMode !== 'Project') return;
+    setStartMode(null);
+    setExpertMode(false);
+    try { sessionStorage.removeItem('biforge-start-mode'); } catch {}
+  }, [startMode]);
+
   async function refreshAiHealth() {
     try { const r = await fetch('/api/health'); const j = await r.json(); setAiHealth(j); } catch { setAiHealth(null); }
   }
@@ -766,6 +775,18 @@ function Header(props: {
   return (
     <header className="header" style={{ justifyContent: 'flex-end' }}>
       <div className="header-actions">
+        {props.onChangeMode && (
+          <button
+            className="ghost"
+            onClick={props.onChangeMode}
+            aria-label="Change mode"
+            data-testid="change-mode"
+            title="Return to Simple / Expert / Project start screen"
+          >
+            <RotateCcw size={14} />{' '}
+            <span className="lbl">Modes</span>
+          </button>
+        )}
         {props.onToggleExpert && (
           <button
             className="ghost"
