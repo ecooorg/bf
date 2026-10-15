@@ -1,6 +1,6 @@
 /**
  * Workspace attach UI (archive/folder/files → card → privacy → tree).
- * P36: ChangeSet card with human Apply / Reject / Rollback.
+ * P36: ChangeSet card. P37.1: primary attach is composer Add file; optional desktop folder only.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FolderOpen, X, ChevronRight, Loader2 } from 'lucide-react';
@@ -302,27 +302,18 @@ SHA-256: ${entry.sha256}`;
   return (
     <div className="workspace-panel" data-testid="workspace-panel">
       <div className="workspace-panel-buttons">
-        <button
-          type="button"
-          className="ghost files-panel-btn"
-          disabled={disabled || busy}
-          onClick={() => filesRef.current?.click()}
-          title="Attach files or a project zip/tar — they become the workspace the agent can read"
-          data-testid="workspace-attach"
-        >
-          {busy ? <Loader2 size={16} className="spin" /> : <FolderOpen size={16} />}
-          <span>{busy ? 'Reading…' : 'Attach'}</span>
-        </button>
+        {/* P37.1: primary attach is the bottom composer «Add file» → be:attach-files. Optional folder only on desktop. */}
         {folderSupported && (
           <button
             type="button"
             className="ghost files-panel-btn"
             disabled={disabled || busy}
             onClick={() => folderRef.current?.click()}
-            title="Attach a whole folder as the workspace"
+            title="Import an entire project folder from this computer (not available in most mobile browsers)"
+            data-testid="workspace-folder"
           >
-            <FolderOpen size={16} />
-            <span>Folder</span>
+            {busy ? <Loader2 size={16} className="spin" /> : <FolderOpen size={16} />}
+            <span>Whole folder (this computer)</span>
           </button>
         )}
         <input
@@ -346,9 +337,11 @@ SHA-256: ${entry.sha256}`;
 
       {status && <div className="files-panel-status">{status}</div>}
       {error && <div className="files-panel-warn" role="alert">{error}</div>}
-      <div className="files-panel-status">
-        One place for files: zip/tar is unpacked into a file tree; other files are stored as-is. After privacy approval the agent sees them on every request. Say in your message what to do (analyse, change, compare).
-      </div>
+      {!state && (
+        <div className="files-panel-status">
+          Attach files with <strong>Add file</strong> under the message box (zip is unpacked here). Optional: whole folder on a computer.
+        </div>
+      )}
 
       {state && (
         <div className="workspace-card" data-testid="workspace-card">

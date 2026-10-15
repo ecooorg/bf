@@ -51,16 +51,8 @@ export function AttachControl({
     if (input.current) input.current.value = '';
   }, [value, onChange]);
 
-  // Expose pick for drag-and-drop / paste from parent via ref-like callback or window event.
-  // Parents call the same upload path through a custom event so we keep one implementation.
-  React.useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { files?: File[] } | undefined;
-      if (detail?.files?.length) void pick(detail.files);
-    };
-    window.addEventListener('be:attach-files', handler);
-    return () => window.removeEventListener('be:attach-files', handler);
-  }, [pick]);
+  // P37.1: be:attach-files is owned by WorkspacePanel (one place for agent-visible files).
+  // AttachControl only handles its own input click, not the global event.
 
   return (
     <div className="attach-control">
@@ -363,21 +355,14 @@ export function FilesPanel({
     if (!fileList?.length) return;
     setStatus('');
     setAddOpen(false);
-    const room = MAX_FILES_PER_MESSAGE - files.length;
-    const chosen = Array.from(fileList).slice(0, Math.max(0, room));
-    if (fileList.length > chosen.length) setStatus(`You can attach up to ${MAX_FILES_PER_MESSAGE} files to one message.`);
-    let next = files;
-    for (const f of chosen) {
-      try {
-        const a = await uploadAttachment(f, getStoredUiLanguage());
-        next = [...next, a];
-        onFilesChange(next);
-        setStatus(`Added ${a.name}`);
-        void archiveAttachment(a); // Stage 3: text-only archive in IndexedDB
-      } catch (e: any) {
-        setStatus(e?.message || 'The file could not be attached.');
-      }
-    }
+    const list = Array.from(fileList);
+    // P37.1: one place for the agent — Workspace (zip unpacks; other files become entries).
+    window.dispatchEvent(new CustomEvent('be:attach-files', { detail: { files: list } }));
+    setStatus(
+      list.length === 1
+        ? `Sent ${list[0]!.name} to workspace above — confirm privacy if asked, then say what to do.`
+        : `Sent ${list.length} files to workspace above — confirm privacy if asked, then say what to do.`,
+    );
     if (input.current) input.current.value = '';
   };
 
@@ -457,19 +442,19 @@ export function FilesPanel({
             aria-expanded={addOpen}
             onClick={() => { setSaveOpen(false); setAddOpen((v) => !v); }}
           >
-            <Paperclip size={15} /> Add file
+            <Paperclip size={15} /> Attach
           </button>
           {addOpen && (
             <div className="files-menu" role="menu">
               <button type="button" role="menuitem" className="files-menu-item" onClick={() => input.current?.click()}>
-                From device
+                From device (files or project zip)
               </button>
               <button type="button" role="menuitem" className="files-menu-item" onClick={() => { setAddOpen(false); setPickerOpen(true); void loadPicker(); }}>
                 From program files
               </button>
             </div>
           )}
-          <input ref={input} type="file" hidden multiple accept={ACCEPT_FILES} onChange={(e) => void pickDevice(e.target.files)} />
+          <input ref={input} type="file" hidden multiple accept={ACCEPT_FILES + ',.zip,.tar,.tar.gz,.tgz,application/zip,application/x-tar'} onChange={(e) => void pickDevice(e.target.files)} />
         </div>
         <div className="files-menu-wrap">
           <button
