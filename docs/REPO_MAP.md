@@ -406,5 +406,7 @@ Described: src/workspace/
 | `npm run test:p27` | Runs workspace-p27 tests |
 | `tests/workspace-p34.test.mjs` | P34 individual-file ingest, persistence, readable content and byte integrity |
 | `npm run test:p34` | Runs workspace-p34 tests |
+| `tests/workspace-p35.test.mjs` | P35 FileContentExtractor: PDF/Office/CSV/JSON/text, DATA markers, secret block |
+| `npm run test:p35` | Runs workspace-p35 tests |
 | `tests/mp3.test.mjs` | MP3 information-mode output quality guard and regression fixtures |
 | `npm run test:mp3` | Runs MP3 acceptance tests |
