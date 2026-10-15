@@ -1,3 +1,13 @@
+# Next work
+
+1. **P36** — ChangeSet apply, diff card, human confirm, rollback (after green CI for P35).
+2. **P37** — Export full / changed-only / diff; original byte integrity.
+3. **P38** — Cross-mode e2e, security hardening, stabilisation.
+
+Source of truth for sequence: `docs/BiForge_TZ_P26.md` §12.
+
+---
+
 # Next work — pointer to the master implementation plan
 
 > **Updated:** 15 October 2026 (P34 delivered by explicit owner request; MP3 remains the active initiative). The current sequence of work for the approved mode initiative is maintained only in `docs/MASTER_IMPLEMENTATION_PLAN.md`. Do not use the legacy P27+ schedule below as the active task queue.

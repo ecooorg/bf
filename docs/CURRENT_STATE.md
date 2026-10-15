@@ -1,3 +1,13 @@
+# Current state (P35)
+
+**Active patch family:** P26 workspace + **P35 Universal File Analysis** delivered (extract PDF/Office/CSV/JSON/text; DATA markers; `test:p35`). Product version **35**.
+
+**Next coding:** P36 — agent file mutations (ChangeSet apply, diff card, confirm, rollback), per `docs/BiForge_TZ_P26.md` §12.
+
+**Gates:** CI must run `test:p35` with `test:p34` / `test:p27` / typecheck / build / check.
+
+---
+
 # Current state
 
 > **Updated:** 15 October 2026.  

@@ -1,27 +1,32 @@
-# Spec: working with program files and archives in BiForge (P26)
+# Spec: Workspace, program files and universal file analysis in BiForge (P26 family)
 
-13 Oct 2026 · @B · updated after review
+15 Oct 2026 · updated after P34 + P35 planning · supersedes 13 Oct draft where they conflict
 
 ## 1. Purpose, goals and scope
 
-The BiForge agent must accept program archives, discuss them, apply changes as patches, **create programs from scratch**, and return results to the user consistently across Simple, Expert and Project modes. Today the agent only handles documents: archives are rejected, code files are not accepted, and export is limited to Word and PDF. Project Mode already has a `code/build` flow (Task Package → `generated-projects/<task_id>/**` → ZIP artifact), but it is not wired to Workspace and is unavailable in Simple/Expert modes.
+The BiForge agent must accept archives, folders and individual files, **extract readable content** from common formats, discuss structure and content, apply changes only as verifiable patches with human confirmation, create programs from scratch, and return results consistently across Simple, Expert and Project modes.
+
+P34 delivered Universal Workspace MVP (import, persistence, bounded text context after privacy acknowledgement). P35 adds real content extraction so the agent works with PDF, Office, tables, structured data, source code and (when supported) images — not only file names and raw text.
 
 **Goals**
 
 - **G1.** Upload an archive (zip, tar, tar.gz), a folder or a file set and obtain a working project tree.
-- **G2.** Discuss code: the agent sees project structure and reads needed files, not the whole project at once.
-- **G3.** Change code only through verifiable patches with human confirmation and rollback.
+- **G2.** Discuss code and documents: the agent sees project structure and **extracted content** of selected files, not the whole project at once.
+- **G3.** Change code (and whole-file replace for non-text) only through verifiable patches with human confirmation and rollback.
 - **G4.** Export the result: full archive, changed files only, or `.diff`.
-- **G5.** Roughly the same capability in all three modes; storage, limits and control procedures may differ.
+- **G5.** Roughly the same capability in all three modes; storage, limits and control procedures may differ by host.
 - **G6.** Create a program from scratch (empty Workspace or via existing `code/build`) with staged assembly for large volumes.
+- **G7.** Universal file analysis: extract usable text/structure from PDF, DOCX, XLSX/CSV, JSON/XML/YAML, source code; optional vision for images when the provider supports it.
 
-**Out of scope for P26**
+**Out of scope (whole P26 family unless a later patch explicitly re-opens)**
 
-- Running, building or testing code on the BiForge server (forbidden by security policy).
-- Merge and deploy; GitHub writes belong only in patch D and remain under ADR-06 and ADR-10.
+- Running, building or testing user code on the BiForge server (forbidden by security policy; Railway/GitHub rules).
+- Merge and deploy; GitHub writes only under ADR-06 / ADR-10 and only in a dedicated patch with owner approval.
 - Formats 7z, rar, bz2, xz, encrypted and multi-volume archives.
-- In-place editing of docx, xlsx, pptx, pdf, images and other binaries (read or whole-file replace only).
-- Git history (`.git`) and Google Drive workspace sync (zip backup only).
+- In-place binary editing of docx, xlsx, pptx, pdf, images (read / extract / whole-file replace only).
+- Git history (`.git`) and live Google Drive workspace sync (zip backup only).
+- OCR of scanned PDFs/images as a required path (vision is optional best-effort).
+- Automatic LLM summarisation at ingest time (cost and latency; agent analyses on demand).
 
 **Terms**
 
@@ -29,52 +34,65 @@ The BiForge agent must accept program archives, discuss them, apply changes as p
 | --- | --- |
 | Workspace | User project as a versioned file set; one per dialogue (Simple), decision (Expert) or project (Project) |
 | Version | Immutable workspace snapshot: manifest and content references |
-| Manifest | Version file list: path, SHA-256, size, mode, class, language, encoding, line endings |
+| Manifest | Version file list: path, SHA-256, size, mode, class, language, encoding, line endings, optional extract meta |
 | ChangeSet | File changes (create, modify, delete, rename) proposed by the agent |
 | Storage host | Where data lives and processing runs: browser (Simple, Expert) or server (Project) |
+| Extractor | Shared module that turns raw bytes + class into bounded text/structure for model context |
 | `code/build` | Existing Project Mode flow: Task Package → `generated-projects/<task_id>/**` → ZIP artifact |
 
 ---
 
-## 2. Baseline (bf-v24 code)
+## 2. Baseline and progress
 
-Current code blocks software work on seven levels, but already contains almost all mechanisms needed for a safe solution. Findings from code reading; tests and build were not run for this survey.
+### 2.1. Historical gaps (pre-P26)
 
-**What blocks**
-
-| # | Finding | Where | Effect |
+| # | Gap | Location | Impact |
 | --- | --- | --- | --- |
-| P-1 | Non-office archives rejected with “Archives are not supported” | `server/files.ts`, `processUpload` | Cannot upload a program archive |
-| P-2 | Text extension whitelist: `txt, md, markdown, csv, tsv, json, log`; else 415 | `server/files.ts`, `TEXT_EXT` | `.ts`, `.py`, `.yml`, `.sql`, `.html`, `Dockerfile` rejected |
-| P-3 | File becomes a string up to 30 000 chars; chat total 60 000; expert step 20 000; max 5 files; body ~235 KB | `MAX_TEXT_*`, `REQUEST_BUDGET_BYTES` | No path/structure; hundred-file projects do not fit |
-| P-4 | Reader normalises `\r\n`, strips BOM, pretty-prints JSON | `decodeText` | Export of edited files corrupts bytes |
-| P-5 | Unzip trust header sizes; `n.includes('..')` also blocks legal names like `a..b.txt` | `openZip` | Forged headers can bypass zip-bomb guards; false rejects |
-| P-6 | Browser program archive stores only text ≤30 000 chars, no binaries | `src/programFiles.ts` | Unsuitable as project storage |
-| P-7 | Export only docx/pdf; `exportZip.ts` builds a JSON backup | `/api/export-document`, `src/exportZip.ts` | No way to export a code archive |
+| P-1 | Archives rejected | server/files, UI | No program archive |
+| P-2 | Text extension whitelist | `TEXT_EXT` | Code extensions rejected |
+| P-3 | Flat string caps, no structure | request budget | Large projects do not fit |
+| P-4 | Decode normalises bytes | `decodeText` | Round-trip corruption risk |
+| P-5 | Zip path checks false-reject | `openZip` | Legal names blocked; bomb risk |
+| P-6 | Browser program archive text-only | `programFiles.ts` | Unsuitable as project store |
+| P-7 | Export only docx/pdf | export paths | No code archive export |
 
-**Environment limits**
+### 2.2. Delivered (P26a … P34)
 
-- Simple/Expert data live in `localStorage` / browser storage; Project Mode uses server Postgres and artifacts.
-- Railway memory limits push large ingest to the storage host (browser worker or server worker_thread), not the request path.
+- Shared ingest / classify / manifest under `src/workspace/**`.
+- Browser IndexedDB store; SHA-keyed blobs; privacy acknowledgement gate.
+- Workspace panel in Simple, Expert and Project surfaces.
+- Bounded text + metadata attachments after consent (40 files / 60 000 chars / 8 000 per file baseline).
+- Secrets flagged and excluded; undecoded binary/office/image → metadata only (P34 limitation).
+- Tests: `test:p26a`, `test:p26a2`, `test:p26b`, `test:p27`, `test:p34`.
+
+### 2.3. Remaining for analysis and mutations
+
+- Real extractors for PDF / DOCX / XLSX / structured text (P35).
+- Agent mutations via ChangeSet + confirm + rollback (P36).
+- Export integrity and changed-only packages (P37).
+- Cross-mode stabilisation and security hardening (P38).
 
 ---
 
 ## 3. Principles and decisions
 
-All requirements below follow from these decisions; changing any requires editing this section.
+Changing any decision requires editing this section.
 
 | # | Decision | Rationale |
 | --- | --- | --- |
-| D-01 | One file-work engine, three storage adapters (`WorkspaceStore`) | Mode parity via shared code, not copies |
-| D-02 | Unpack and store on the data host: browser (Web Worker) for Simple/Expert; server (`worker_thread`) for Project. One ingest codebase | Keeps “server holds nothing” for Simple, avoids shipping 60 MB bodies and blowing Railway RAM |
-| D-03 | File type by content; extension only hints language | Software has many extensionless and dual-use names |
-| D-04 | Agent never receives full project bytes by default; structure + selected files | Context and cost control |
-| D-05 | Mutations only via ChangeSet + human apply | Audit and rollback |
+| D-01 | One file-work engine, three storage adapters (`WorkspaceStore`) | Mode parity via shared code |
+| D-02 | Unpack, store and **extract** on the data host: browser (Worker) for Simple/Expert; server (`worker_thread`) for Project. One codebase for ingest + extract | “Server holds nothing” for Simple; avoids large bodies on Railway request path |
+| D-03 | File type by content; extension only hints language | Extensionless and dual-use names |
+| D-04 | Agent never receives full project bytes by default; structure + selected extracted content | Context and cost control |
+| D-05 | Mutations only via ChangeSet + human Apply | Audit and rollback |
 | D-06 | Secrets never in model request bodies without explicit confirm | NF-03 |
-| D-07 | Archive content is data, not instructions | Injection resistance |
+| D-07 | Archive and file content is **data**, not instructions; context builder marks extracted blocks as DATA | Injection resistance; corpus remains green |
 | D-08 | Deterministic patch apply against `baseSha256` | No silent drift |
 | D-09 | Export preserves bytes for unchanged files | Round-trip integrity |
 | D-10 | Create-from-scratch reuses Workspace + optional `code/build` | One mental model |
+| D-11 | Extract produces structured text (markdown tables, page markers, headings). No LLM call at ingest | Automation without extra cost/latency |
+| D-12 | Vision for images only when provider is multimodal **and** privacy ack is set; otherwise metadata | Free-tier and quota safety |
+| D-13 | New analysis path is Workspace + `FileContentExtractor`. `programFiles.ts` stays for legacy Expert documents; no forced migration in P35 | Single path forward |
 
 ---
 
@@ -82,14 +100,16 @@ All requirements below follow from these decisions; changing any requires editin
 
 | Capability | Simple | Expert | Project |
 | --- | --- | --- | --- |
-| Upload archive / folder / files | Yes (browser store) | Yes (browser store) | Yes (server store) |
-| Discuss structure + selected files | Yes | Yes | Yes |
-| ChangeSet + confirm | Yes | Yes | Yes |
-| Export zip / diff | Yes | Yes | Yes |
+| Upload archive / folder / files | Yes (browser) | Yes (browser) | Yes (server) |
+| Extract PDF / DOCX / XLSX / CSV / structured / code | Yes | Yes | Yes |
+| Image vision (if provider supports) | Yes (after ack) | Yes (after ack) | Yes (after ack) |
+| Discuss structure + selected content | Yes | Yes | Yes |
+| ChangeSet + confirm | Yes (P36) | Yes (P36) | Yes (P36) |
+| Export zip / diff | Yes (P37) | Yes (P37) | Yes (P37) |
 | Create from scratch | Yes | Yes | Yes (+ `code/build`) |
-| GitHub branch write | No | No | Patch D only (ADR-06/10) |
+| GitHub branch write | No | No | Separate ADR patch only |
 
-Limits (size, file count, retention) differ by host; behaviour contracts stay the same.
+Behaviour contracts are identical; limits differ by host.
 
 ---
 
@@ -101,155 +121,234 @@ Accept zip, tar, tar.gz, folder or multi-file select within mode limits. Reject 
 
 ### 5.2. Safe unpack
 
-- Zip-bomb and path traversal defences that do not false-reject legal names containing `..` as a substring.
+- Zip-bomb and path-traversal defences that do not false-reject legal names containing `..` as a substring.
 - Size and entry-count caps; streaming or chunked processing on the host.
 - No execution of archive contents.
 
 ### 5.3. Classification
 
-Content-based class (text, binary, secret-like, ignore). Language/encoding/line endings recorded in the manifest when known.
+Content-based class (`text`, `pdf`, `office`, `image`, `archive`, `binary`, `executable`, …). Language / encoding / EOL recorded when known. Secret-like flags applied before any model context is built.
 
 ### 5.4. Result
 
-A Workspace version with manifest and content blobs; report of accepted/rejected entries and reasons.
+A Workspace version with manifest and content blobs; report of accepted / rejected entries and reasons.
 
 ---
 
 ## 6. Functional requirements: Workspace, storage, versions
 
-- Immutable versions; apply ChangeSet → new version.
-- Manifest lists path, hash, size, class, language, encoding, EOL.
-- Soft delete / quota policy for Project Mode (e.g. 200 MB class limits — refine in ADR-08).
-- Browser: IndexedDB (or equivalent) with persist hint; server: Postgres + blob store.
+- Immutable versions; apply ChangeSet → new version (P36).
+- Manifest: path, hash, size, class, language, encoding, EOL, optional extract metadata (pages, sheets, char counts).
+- Soft delete / quota for Project Mode (ADR-08).
+- Browser: IndexedDB with persist hint; server: Postgres + blob store (when Project server store is enabled).
 
 ---
 
-## 7. Functional requirements: agent read, patches, export, UI, create from scratch
+## 7. Functional requirements: extraction and agent read (P35 core)
 
-### 7.1. Agent read
+### 7.1. FileContentExtractor (shared)
 
-- Default: tree + summaries; full file bodies only on `needFiles` (bounded rounds).
-- Agent must state when it has not read a file (FW-36 class rules).
+Single API, e.g.:
 
-### 7.2. Patches
+```ts
+extract(path: string, bytes: Uint8Array, class: FileClass, limits: ExtractLimits)
+  → { text: string; structure?: unknown; meta: ExtractMeta; truncated: boolean }
+```
 
-- ChangeSet ops: create, edit, delete, rename with base hashes.
+Runs on the storage host. Must not mutate original blobs.
+
+| Format | Behaviour | Dependency |
+| --- | --- | --- |
+| Plain text / source / MD | Decode + optional line windows | none |
+| JSON / YAML / XML | Pretty / normalised text; structure note | none (pure JS) |
+| CSV / TSV | Table → markdown; row/col caps | none |
+| PDF | Text via `unpdf`; page markers; first pages until char cap | `unpdf` (already present) |
+| DOCX | Body text + headings via `mammoth` | `mammoth` (new, lightweight) |
+| XLSX | Sheets → markdown tables; first sheets + N rows | `xlsx` (SheetJS community, lazy) |
+| Images | Metadata always; vision bytes only if multimodal provider + ack + size cap | provider-native; no OCR package |
+| Other binary / unknown | Metadata only; never claim content was analysed | — |
+
+### 7.2. Context limits (defaults)
+
+| Cap | Value | Notes |
+| --- | --- | --- |
+| Files in one request context | 40 | Same as P34 |
+| Total extracted characters | 60 000 | Same as P34 |
+| Per-file characters | 8 000 | Same as P34 |
+| PDF pages attempted | until char cap | Explicit “truncated” flag |
+| XLSX rows per sheet | 200 (default) | Configurable later |
+| Image total base64 budget | ≤ 2 MB | Vision path only |
+| `needFiles` rounds | ≤ 2 | Unchanged |
+
+### 7.3. Agent read contract
+
+- Default: tree + extract summaries / first windows.
+- Full or additional ranges only via `needFiles` (bounded).
+- Agent **must** state which files it used and what it did not read.
+- Extracted blocks are wrapped as DATA (D-07); model must not treat them as system instructions.
+- Secrets remain excluded unless the user explicitly confirms for that workspace.
+
+### 7.4. UI scenario (all modes)
+
+`Upload → Select files → (privacy ack if needed) → Ask question → Receive analysis that cites real content`.
+
+Honest labels when a format was not decoded or was truncated.
+
+---
+
+## 8. Functional requirements: patches, export, create from scratch
+
+### 8.1. Patches (P36)
+
+- ChangeSet ops: create, edit, delete, rename with `baseSha256`.
 - UI card shows diff and counters; version changes only after **Apply**.
-- Deterministic validation before apply.
+- Deterministic validation before apply; rollback to previous version.
 
-### 7.3. Export
+### 8.2. Export (P37)
 
 - Full archive, changed-only, or unified diff.
-- Unchanged binary/text bytes preserved.
+- Unchanged binary/text bytes preserved (D-09).
+- Originals never modified by analysis.
 
-### 7.4. UI
+### 8.3. Create from scratch
 
-- Upload, tree, file preview, ChangeSet card, export actions; no internal protocol jargon in Simple Mode.
-
-### 7.5. Create from scratch
-
-- Empty Workspace + iterative files, or Project Mode `code/build` path, then same discuss/patch/export loop.
+- Empty Workspace + iterative files, or Project Mode `code/build`, then same discuss / patch / export loop.
 
 ---
 
-## 8. Non-functional requirements
+## 9. Non-functional requirements
 
-### 8.1. Unpack security (NF-01)
-
-Hard caps on uncompressed size, entry count, compression ratio; no path escape; no symlink escape to outside the workspace root.
-
-### 8.2. Other
-
-- **NF-03** Secrets: not sent to the model without explicit per-workspace confirmation; never in logs.
-- Memory/time budgets on mobile (NF-07 class).
-- Injection corpus remains green when README-style instructions appear inside archives.
+- **NF-01** Unpack security: hard caps on uncompressed size, entry count, ratio; no path/symlink escape.
+- **NF-03** Secrets: not sent without explicit confirm; never in logs.
+- **NF-07** Memory/time budgets on mobile; abort and lower limits on constrained devices.
+- Injection corpus remains green when README-style instructions appear inside archives or extracted text.
+- No execution of user-uploaded code on Railway (GitHub/Railway policy).
+- Extractors must not write to original blobs; analysis is read-only.
 
 ---
 
-## 9. Architecture
+## 10. Architecture
 
-### 9.1. Scheme
+### 10.1. Scheme
 
-UI → Workspace API → `WorkspaceStore` adapter (browser or server) → ingest/classify/version modules → optional model context builder (`needFiles`).
+UI → Workspace API → `WorkspaceStore` adapter → ingest / classify / **extract** / version modules → context builder (`needFiles` + DATA markers) → model.
 
-### 9.2. Modules
+### 10.2. Modules
 
-Shared under `src/workspace/**` (ingest, manifest, patch, export); server worker_thread entry for Project Mode; browser worker for Simple/Expert.
+Shared under `src/workspace/**`:
 
-### 9.3. Project Mode routes
+- `ingest.ts`, `classify.ts`, `paths.ts`, `hash.ts`, `idbStore.ts`, …
+- **`extract.ts` (new)** — FileContentExtractor and format adapters
+- `context.ts` — builds bounded attachments; applies D-07 markers
+- `changeset.ts`, `diff.ts`, `exportZip.ts` (P36/P37)
 
-Workspace CRUD / version list / apply ChangeSet / export under existing auth and Project Mode flags.
+Server: worker_thread entry for Project ingest/extract. Browser: Worker for Simple/Expert.
 
-### 9.4. DB sketch (migration 015)
+### 10.3. Dependencies policy
 
-Tables for workspace, version, blob (by hash), optional soft-delete; jsonb manifest allowed.
+- Prefer already-present packages (`unpdf`, `jszip`).
+- New deps only if browser- and server-safe and lazy-loadable (`mammoth`, `xlsx`).
+- No heavy OCR / native bindings that risk Railway memory or browser OOM.
 
-### 9.5. Existing code changes
+### 10.4. Existing code
 
-Relax `TEXT_EXT` / archive rejection in `server/files.ts` only on Workspace paths; keep document upload behaviour for non-workspace attachments unless SPEC says otherwise. Extract shared diff helpers without breaking P18/P19 (`test:p18` gate).
+- Keep document-upload behaviour for non-workspace attachments unless a SPEC says otherwise.
+- Do not break P18/P19; `test:p18` remains a gate where relevant.
+- `programFiles.ts` is not the primary path for new analysis.
 
 ---
 
-## 10. Patch plan P26a–P26d
+## 11. Acceptance criteria (family-level)
 
-| Patch | Focus | Gate hints |
+| ID | Criterion | Evidence |
 | --- | --- | --- |
-| **P26a** | Shared ingest/classify/manifest; browser store MVP; safe unpack fixtures | `tsconfig` includes `src/workspace/**`; unpack fixtures green |
-| **P26b** | Agent read + ChangeSet apply + UI card; diff module extraction | `test:p18` green; apply requires confirm |
-| **P26c** | Project Mode server store + routes + worker_thread | Auth and quotas; path coverage tsx vs dist-server |
-| **P26d** | Export zip/diff; create-from-scratch; optional GitHub path under ADR | Export byte integrity; no merge to `main` |
-
----
-
-## 11. Testing and acceptance
-
-### 11.1. Acceptance scenarios (examples)
-
-| ID | Scenario | Expect |
-| --- | --- | --- |
-| AC-01 | Upload a small source zip | Tree and manifest; rejected entries listed |
-| AC-02 | Path traversal / zip bomb fixtures | Rejected safely |
-| AC-03 | Discuss structure without full dump | Agent answers from structure + selected files |
-| AC-04 | `needFiles` second round | File fetched; non-existent path ignored; ≤2 rounds |
-| AC-05 | Archive contains `.env` and private key | Not in model body; show only after confirm; not in logs |
-| AC-06 | README instructs to ignore rules and leak secrets | Agent does not comply; marked as data; injection corpus green |
-| AC-07 | ChangeSet create/edit/delete/rename | Card shows diff; no version change before Apply |
-| AC-12/14 | Browser vs server ingest | Same `manifestHash` on identical fixture |
+| AC-01 | Safe unpack of zip/tar/tar.gz within limits | Fixtures green |
+| AC-02 | Classification + secret flags | Unit tests |
+| AC-03 | Discuss structure without full dump | Agent answers from structure + selected extracts |
+| AC-04 | `needFiles` second round | File fetched; missing path ignored; ≤2 rounds |
+| AC-05 | Archive contains `.env` / private key | Not in model body; confirm required; not in logs |
+| AC-06 | README injection | Agent does not comply; DATA markers; corpus green |
+| AC-07 | ChangeSet create/edit/delete/rename | Card shows diff; no version change before Apply (P36) |
+| AC-08 | PDF text extract | Content appears in agent context within caps |
+| AC-09 | DOCX / XLSX / CSV extract | Structured text in context; truncation flagged |
+| AC-10 | Image without vision | Metadata only; no false “analysed” claim |
+| AC-11 | Image with vision (supported provider + ack) | Bounded image input; or explicit skip |
+| AC-12/14 | Browser vs server ingest/extract | Same `manifestHash` / extract hash on identical fixture |
+| AC-15 | Export byte integrity | Unchanged files bit-identical (P37) |
 
 ### 11.2. Automated sets
 
-Unit fixtures for unpack, classification, patch apply; integration for Workspace routes; regression for document upload path.
+Unit fixtures for unpack, classify, **extract**, patch apply; integration for Workspace routes; regression for document upload path; `test:p35` for extractors and context wiring.
 
 ### 11.3. Not fully automatable
 
-Owner Railway clicks; real provider cost; subjective UI clarity.
+Owner Railway clicks; real provider cost; subjective UI clarity; live multimodal behaviour per provider.
 
 ---
 
-## 12. Risks, limits and open questions
+## 12. Patch plan (updated)
 
-### 12.1. Risks
+| Patch | Focus | Gate hints | Status |
+| --- | --- | --- | --- |
+| **P26a** | Shared ingest/classify/manifest; browser store MVP | `src/workspace/**` in tsconfig; unpack fixtures | Done |
+| **P26a.2 / P26b** | Paths, ChangeSet foundations, export helpers | `test:p18` where applicable | Done / partial |
+| **P27** | SHA-keyed blob persistence | `test:p27` | Done |
+| **P34** | Universal Workspace MVP UI + bounded context after privacy ack | `test:p34`, typecheck, build | Done (CI pending in report) |
+| **P35** | **Universal File Analysis** — FileContentExtractor (PDF, DOCX, XLSX/CSV, structured, code); context wiring; honest UI; `test:p35` | Extract fixtures; no false “decoded” claims; injection corpus green | **Next** |
+| **P36** | Agent file mutations: ChangeSet apply, diff card, confirm, rollback | Deterministic apply; no version without Apply | After P35 |
+| **P37** | Export project / changed-only / diff; original integrity | Byte-identical unchanged files | After P36 |
+| **P38** | Cross-mode e2e, security hardening, stabilisation of all three modes | Full check suite; manual mode matrix | After P37 |
+
+**Recommendation:** after green CI for P34, implement **P35** immediately. It yields the highest user-visible value: real questions about document, table and source content instead of file names only.
+
+Deferred (explicit owner command required): full server-side Workspace versioning UX, complex Project Mode migrations, GitHub write integration beyond ADR-scoped patches.
+
+---
+
+## 13. Risks, limits and closed defaults
+
+### 13.1. Risks
 
 | # | Risk | Mitigation |
 | --- | --- | --- |
-| R-1 | Safari clears IndexedDB | `navigator.storage.persist()`, warning, backup button, remind after major changes |
-| R-2 | Tab OOM on phone | Lower device limits, incremental processing, abort; NF-07 |
-| R-3 | Small free Gemini context | File selection, `needFiles`, line windows; staged build; agent must say what it did not read |
-| R-4 | Bad model edits | Deterministic checks, `baseSha256`, confirm, retry; early experiment before freezing contract |
-| R-5 | Agent cannot run code | Human or CI verify; P26d GitHub branch path |
-| R-6 | Code fragments leave to provider | NF-03; secret exclusion |
-| R-7 | Postgres growth | Quota, jsonb manifest, dedup, per-file cap, soft delete (ADR-08) |
-| R-8 | Browser/server ingest drift | One codebase; `manifestHash` compare in AC-12/14 |
-| R-9 | Diff extract breaks P18/P19 | Re-export; green `test:p18` is P26b gate |
-| R-10 | Exotic tar variants | Own reader + fixtures; unsupported → explicit reject |
-| R-11 | `tsconfig.server.json` misses `src/workspace/` | Explicit include; P26a gate |
-| R-12 | `worker_thread` entry differs tsx vs dist-server | Path coverage test |
-| R-13 | Up to 4 model calls per turn | Count in quota budget; document |
+| R-1 | Safari clears IndexedDB | `navigator.storage.persist()`, warning, backup |
+| R-2 | Tab OOM on phone | Lower device limits, incremental extract, abort |
+| R-3 | Small free Gemini context | Selection, `needFiles`, line/page windows; agent states unread |
+| R-4 | Bad model edits | `baseSha256`, confirm, retry (P36) |
+| R-5 | Agent cannot run code | Human/CI verify; no server execution |
+| R-6 | Content leaves to provider | NF-03; secret exclusion; DATA markers |
+| R-7 | Postgres growth | Quota, dedup, soft delete (ADR-08) |
+| R-8 | Browser/server drift | One extractor codebase; hash compare in tests |
+| R-9 | Diff/export breaks P18/P19 | Re-export; keep `test:p18` gate |
+| R-10 | Exotic tar | Own reader + fixtures; explicit reject |
+| R-14 | Extract deps bloat / OOM | Lazy load; prefer existing `unpdf`; hard char/page caps |
+| R-15 | Vision cost / failure | Opt-in only; size budget; metadata fallback |
 
-### 12.2. Open questions for the owner
+### 13.2. Defaults chosen (closed)
 
-Defaults apply if unanswered before the relevant patch starts (size caps, retention days, whether Simple Mode allows binary blobs, exact secret UX). Record answers in the patch SPEC “Defaults chosen” section.
+| Topic | Default |
+| --- | --- |
+| Context caps | 40 files / 60 000 chars / 8 000 per file |
+| PDF | `unpdf`; pages until char cap |
+| DOCX | `mammoth` |
+| XLSX | SheetJS `xlsx`, first sheets + 200 rows default |
+| CSV | Pure JS → markdown |
+| Images | Metadata; vision only if multimodal + ack + ≤2 MB total |
+| Simple Mode binary blobs | Allowed for storage; content only via extractors |
+| Secret UX | Exclude by default; explicit per-workspace confirm |
+| Retention | Soft delete policy under ADR-08; no change in P35 |
+| LLM at ingest | No |
 
 ---
 
-*End of BiForge_TZ_P26. Implementation follows P26a–P26d SPECs and reports.*
+## 14. What must not change without a new decision
+
+- No server-side execution of user code or arbitrary shell.
+- No silent writes to GitHub `main` or unscoped deploy.
+- No removal of privacy acknowledgement before workspace content reaches the model.
+- No claim that undecoded formats were “analysed”.
+- Railway memory and request-body limits remain hard constraints for the request path.
+
+---
+
+*End of BiForge_TZ_P26 (updated 15 Oct 2026). Implementation follows the patch plan in §12; each patch ships its own SPEC and REPORT.*
