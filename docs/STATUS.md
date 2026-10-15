@@ -8,7 +8,7 @@
 | --- | --- |
 | **UI1** | Карточки после входа; **P47:** нет кнопки Expert/Simple в шапке — режимы только через **More** (Mode selection / Switch to Expert|Simple / Project) |
 | **QA1** | P42 offline |
-| **Code Delivery** | RM-C3 closed (P43) |
+| **Code Delivery** | RM-C3 closed (P43); `model_patch` authorized, runtime still gated by `CODE_EXECUTOR=model_patch` |
 | **Поставка** | P40: `bf-PNN.zip` |
 
 ## 2. Следующее
