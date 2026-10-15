@@ -72,9 +72,12 @@ Simple Mode, Project Mode, multi-model layer, task executor and Code Delivery as
 
 ### 1.2. Modes and UI (summary)
 
-- **Simple Mode:** conversation, decision support, documents; client-held decision library where applicable.
+- **Simple Mode:** open-ended conversation, decision support, documents; client-held decision library where applicable. The user may continue the dialogue indefinitely.
 - **Project Mode:** `/project` workspace; server State; tabs and operational UI evolve per UI SPECs without leaking internal protocol labels to end users.
-- Expert-style stages remain available where the product exposes them; they must not choose or rank options for the user.
+- **Expert Mode:** a **structured decision method** (stages such as understand → expand → attack → test → decide → synthesis → learn). Stages must not choose or rank options for the user.
+  - **Required (UI1):** the method must **not** block further dialogue. On every Expert stage and after the final stage, the user can send **clarifications, corrections, and new information**; the agent incorporates them and may revise analysis without forcing an irreversible end of the thread.
+  - Stage navigation (next / skip / enough to decide) remains available; free conversation is **additive**, not a replacement for the method.
+  - Shared conversation state with Simple where the product already uses one history is preferred so switching modes does not erase context without an explicit user action.
 
 ### 1.3. State (product view)
 
