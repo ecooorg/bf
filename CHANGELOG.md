@@ -219,3 +219,9 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - Validated generated source is stored as a downloadable ZIP artifact under `generated-projects/<task_id>/**`; GitHub PR delivery remains gated and merge is still human-only.
 - Documented maximum automation as an owner-set primary priority without expanding delegation permissions.
 - Generated code is not executed by the BiForge server; runtime tests/preview and CI evidence are not implied by source generation.
+
+## P41 — UI1 mode start screen (2026-10-15)
+
+- Added explicit Simple, Expert, and Project start cards. Project shows an explicit disabled state when unavailable; selecting a mode is user-driven and does not auto-switch later.
+- Recorded the existing folder-picker-to-menu behavior (`PICK_FOLDER_EVENT`) in the patch journal.
+- Corrected STATUS sequencing to UI1 → QA1 → MANUAL1 and removed the resolved UX1 feedback question.
