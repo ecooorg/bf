@@ -1,3 +1,9 @@
+## P40 — Mandatory patch delivery contract (2026-10-15)
+
+- Documented `bf-PNN.zip` as the required primary artifact; `.patch`/`.diff` cannot substitute for the ZIP.
+- Required independent archive read-back/content verification and explicit `DELIVERY BLOCKED` when a verified ZIP cannot be produced.
+- `patch:pack` now defaults to `bf-PNN.zip`; added a regression guard for the contract. Process-only; product behavior/version unchanged.
+
 # P39 — file-work security
 
 - TAR ingestion now keeps the first occurrence of an exact duplicate path and reports later duplicates as skipped.
