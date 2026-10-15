@@ -10,5 +10,6 @@ export * from './extract.ts';
 export * from './context.ts';
 export * from './diff.ts';
 export * from './changeset.ts';
+export * from './changeSetParse.ts';
 export * from './exportZip.ts';
 export * from './persistIngest.ts';
