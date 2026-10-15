@@ -30,7 +30,8 @@ assert.equal(manifest.length, fixtures.length);
 const readme = await readWorkspaceFile(store, saved.workspaceId, 1, 'README.md');
 assert.match(readme.text || '', /Readable content/);
 const csv = await readWorkspaceFile(store, saved.workspaceId, 1, 'data.csv');
-assert.match(csv.text || '', /alpha,1/);
+// P35: CSV may be normalised to markdown table (alpha | 1) or kept raw (alpha,1)
+assert.match(csv.text || '', /alpha\s*[,|]\s*1/);
 
 // Original byte hashes survive ingest + persistence.
 for (const entry of ingested.entries) {
