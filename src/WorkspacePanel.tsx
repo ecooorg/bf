@@ -3,7 +3,7 @@
  * P36: ChangeSet. P37.1: attach. P38: export full / changed / diff.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FolderOpen, X, ChevronRight, Loader2, Download } from 'lucide-react';
+import { X, ChevronRight, Loader2, Download } from 'lucide-react';
 import { ingestArchive, ingestFiles } from './workspace/ingest.ts';
 import { IndexedDbWorkspaceStore } from './workspace/idbStore.ts';
 import { readWorkspaceFile } from './workspace/context.ts';
@@ -41,6 +41,23 @@ type Props = {
   onChangeSetSettled?: () => void;
 };
 
+/**
+ * Folder import works only on desktop browsers. Mobile Chrome exposes `webkitdirectory`
+ * on the input but its picker cannot select folders, so also exclude touch/mobile UAs.
+ */
+export function isFolderPickerSupported(): boolean {
+  if (typeof document === 'undefined' || typeof navigator === 'undefined') return false;
+  const input = document.createElement('input');
+  if (!('webkitdirectory' in input || 'directory' in input)) return false;
+  if (/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent || '')) return false;
+  try {
+    if (window.matchMedia?.('(pointer: coarse)').matches) return false;
+  } catch { /* ignore */ }
+  return true;
+}
+
+export const PICK_FOLDER_EVENT = 'be:pick-folder';
+
 export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttachmentsChange, proposedChangeSet, onChangeSetSettled }: Props) {
   const filesRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
@@ -52,12 +69,6 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttach
   const [openText, setOpenText] = useState<string | null>(null);
   const [pendingCs, setPendingCs] = useState<WorkspaceChangeSet | null>(null);
   const [openMeta, setOpenMeta] = useState<string | null>(null);
-  const [folderSupported] = useState(() => {
-    if (typeof document === 'undefined') return false;
-    const input = document.createElement('input');
-    return 'webkitdirectory' in input || 'directory' in input;
-  });
-
   const storeRef = useRef<WorkspaceStore | null>(null);
   const getStore = useCallback(() => {
     if (storeFactory) return storeFactory();
@@ -230,6 +241,16 @@ SHA-256: ${entry.sha256}`;
     return () => window.removeEventListener('be:attach-files', handler as EventListener);
   }, []);
 
+  // Folder import is offered only from the «More» menu (desktop); it fires this event.
+  useEffect(() => {
+    const handler = () => {
+      if (disabled || busy) return;
+      folderRef.current?.click();
+    };
+    window.addEventListener(PICK_FOLDER_EVENT, handler);
+    return () => window.removeEventListener(PICK_FOLDER_EVENT, handler);
+  }, [disabled, busy]);
+
   const ackPrivacy = async () => {
     if (!state || state.privacyAck) return;
     try {
@@ -344,20 +365,7 @@ SHA-256: ${entry.sha256}`;
   return (
     <div className="workspace-panel" data-testid="workspace-panel">
       <div className="workspace-panel-buttons">
-        {/* P37.1: primary attach is the bottom composer «Add file» → be:attach-files. Optional folder only on desktop. */}
-        {folderSupported && (
-          <button
-            type="button"
-            className="ghost files-panel-btn"
-            disabled={disabled || busy}
-            onClick={() => folderRef.current?.click()}
-            title="Import an entire project folder from this computer (not available in most mobile browsers)"
-            data-testid="workspace-folder"
-          >
-            {busy ? <Loader2 size={16} className="spin" /> : <FolderOpen size={16} />}
-            <span>Whole folder (this computer)</span>
-          </button>
-        )}
+        {/* Attach: composer «Attach files» → be:attach-files. Folder import lives in More → Import (desktop only). */}
         <input
           ref={filesRef}
           type="file"
@@ -381,7 +389,7 @@ SHA-256: ${entry.sha256}`;
       {error && <div className="files-panel-warn" role="alert">{error}</div>}
       {!state && (
         <div className="files-panel-status">
-          Attach files with <strong>Add file</strong> under the message box (zip is unpacked here). Optional: whole folder on a computer.
+          Attach files with <strong>Attach files</strong> under the message box (a zip is unpacked automatically).
         </div>
       )}
 

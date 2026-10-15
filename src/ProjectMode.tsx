@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { WorkspacePanel } from './WorkspacePanel.tsx';
+import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
 type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
@@ -215,7 +215,10 @@ export default function ProjectMode() {
       </div>
     </header>
     {authenticated && enabled && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
-      <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
+        {isFolderPickerSupported() && <details style={{ position: 'relative' }}><summary aria-label="More workspace actions" title="More actions" style={{ ...styles.button, padding: '6px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 40, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8, whiteSpace: 'nowrap' }}><button type="button" style={styles.button} disabled={busy} title="Load a whole project folder from this computer (desktop browsers only)" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); window.dispatchEvent(new CustomEvent(PICK_FOLDER_EVENT)); }}>Import project folder…</button></div></details>}
+      </div>
       <p style={{ fontSize: 13, color: '#8fa6c2' }}>After privacy acknowledgement, bounded readable text and metadata are included in Project analysis. Files not decoded by the reader are preserved but only described by metadata.</p>
       <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} />
     </section>}

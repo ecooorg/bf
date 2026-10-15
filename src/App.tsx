@@ -3,7 +3,7 @@ import {
   AlertCircle, ArrowLeft, ArrowRight, BrainCircuit, Check, CircleHelp,
   Download, FlaskConical, KeyRound, Lock, Plus, ShieldAlert, Trash2, Upload,
   Cloud, CloudUpload, History as HistoryIcon, MoreHorizontal, SlidersHorizontal,
-  RotateCcw,
+  RotateCcw, FolderOpen,
 } from 'lucide-react';
 import {
   Decision, emptyDecision, STAGES, LOOPS, Step, Option, ExperimentCard,
@@ -23,7 +23,7 @@ import { HistoryPanel } from './HistoryPanel.tsx';
 import { AutoInput, AutoTextarea } from './AutoGrow.tsx';
 import { decisionToDocument } from './decisionDocument.ts';
 import { FilesPanel, CopyButton, MessageExtras, ProgramFilesManager } from './ConversationFiles.tsx';
-import { WorkspacePanel } from './WorkspacePanel.tsx';
+import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 import { parseChangeSetFromText } from './workspace/changeSetParse.ts';
 import {
   Attachment, DocumentSpec, applyAttachmentNotes, attachmentOnlyText, collectAttachments, collectDecisionAttachments,
@@ -769,6 +769,11 @@ function Header(props: {
                     if (f) { props.onImport(f); setMoreOpen(false); setSub(''); }
                   }} />
                 </label>
+                {isFolderPickerSupported() && (
+                  <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); setSub(''); window.dispatchEvent(new CustomEvent(PICK_FOLDER_EVENT)); }} title="Load a whole project folder from this computer so the assistant can read it (desktop browsers only)">
+                    <FolderOpen size={14} /> Project folder (desktop)
+                  </button>
+                )}
                 {props.onImportDrive && (
                   <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); setSub(''); props.onImportDrive?.(); }}>From Google Drive</button>
                 )}
