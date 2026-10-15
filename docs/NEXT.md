@@ -6,6 +6,7 @@
 
 ## Pointer
 
-1. Next owner-authorized gate after QA1 offline suite (P42): **MANUAL1** live acceptance — see `docs/STATUS.md` §2.  
-2. Owner-gated: MANUAL1, RM-*, GitHub write — see STATUS §3.  
-3. Do not invent a parallel backlog in this file.
+1. RM-C3 **closed** (P43, 2026-10-15): owner authorized `CODE_EXECUTOR=model_patch` after ADR-10 / E-01.  
+2. Next product gates: QA1 target-env run, then **MANUAL1**.  
+3. Owner-gated still open: GitHub App write / `GITHUB_DIFF_UPLOAD`, RM-*, server execution — see STATUS §3.  
+4. Do not invent a parallel backlog in this file.

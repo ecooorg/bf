@@ -43,8 +43,8 @@
 
 ### Observed non-secret value (owner screen, 14 Oct 2026)
 
-- `CODE_EXECUTOR` = **`model_patch`** (visible in Variables UI).  
-  Checklist **RM-C3** still needs a recorded accepted PR / report entry before marking the gate closed in `docs/NEXT.md`.
+- `CODE_EXECUTOR` = **`model_patch`** (visible in Variables UI, observed 14 Oct 2026).  
+  **RM-C3 closed (P43, 2026-10-15):** owner authorized enablement after ADR-10 / E-01. Re-confirm the variable after each deploy. GitHub App **write** and `GITHUB_DIFF_UPLOAD` remain separate owner decisions (ADR-06).
 
 **RM-A1 check:** open Variables → search `MODEL_CASCADE` → ensure no deprecated `gemini-3.7-flash` / `gemini-3.5-flash` overrides (or clear those vars to use code defaults).
 
