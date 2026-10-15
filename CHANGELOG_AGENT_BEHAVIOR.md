@@ -1,3 +1,7 @@
+## v40
+
+- P39: archive ingestion hardening: duplicate file paths in tar archives are handled deterministically; first entry wins and later duplicates are reported as skipped. No execution or export policy change.
+
 ## v39
 
 - P38: user can download workspace as full zip (original bytes), changes-only zip, or unified text diff versus the previous version. No change to model prompts or cascade.

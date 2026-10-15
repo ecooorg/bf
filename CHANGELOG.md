@@ -1,3 +1,7 @@
+# P39 — file-work security
+
+- TAR ingestion now keeps the first occurrence of an exact duplicate path and reports later duplicates as skipped.
+
 ## P38 — Workspace export UI (2026-10-15)
 
 - Workspace card: Download all (.zip), Changes only, Text diff (when version ≥ 2).

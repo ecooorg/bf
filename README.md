@@ -1,3 +1,3 @@
-# BiForge v39
+# BiForge v40
 
-Product version **39** (P38 — Workspace export: full zip / changes only / text diff). See `docs/STATUS.md`.
+Product version **40** (P39 — file-work ingestion hardening: deterministic duplicate handling for tar archives). See `docs/STATUS.md`.
