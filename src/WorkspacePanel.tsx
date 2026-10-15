@@ -86,12 +86,13 @@ export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttach
         for (const entry of state.entries) {
           if (budget <= 0 || attachments.length >= 40) break;
           if (entry.flags.includes('secret')) continue;
+          // P35: readWorkspaceFile runs FileContentExtractor (PDF/Office/CSV/…).
           const read = await readWorkspaceFile(store, state.workspaceId, state.version, entry.path);
-          let text = read.text;
+          let text = read.formatted || read.text;
           if (!text) {
             // Keep arbitrary binary formats uploadable and visible to the agent as metadata,
             // without pretending their binary contents were decoded.
-            text = `Binary or specialized file; content was not decoded in the browser.
+            text = `Binary or specialized file; content was not decoded.
 Path: ${entry.path}
 Class: ${entry.class}
 Size: ${entry.size} bytes
@@ -99,7 +100,11 @@ SHA-256: ${entry.sha256}`;
           }
           const max = Math.min(8_000, budget);
           const content = text.slice(0, max);
-          attachments.push({ name: entry.path, kind: 'text', text: content + (content.length < text.length ? '\n[truncated]' : '') });
+          attachments.push({
+            name: entry.path,
+            kind: read.extract?.metadataOnly ? 'metadata' : 'text',
+            text: content + (content.length < text.length ? '\n[truncated]' : ''),
+          });
           budget -= content.length;
         }
         if (!cancelled) onAttachmentsChange(attachments);
@@ -214,7 +219,11 @@ SHA-256: ${entry.sha256}`;
     try {
       const store = getStore();
       const read = await readWorkspaceFile(store, state.workspaceId, state.version, entry.path);
-      if (read.text != null) {
+      // P35: prefer extracted text; show honest metadata when not decoded.
+      if (read.extract && !read.extract.metadataOnly && read.text) {
+        setOpenText(read.text);
+        setOpenMeta(null);
+      } else if (read.text && !read.reason) {
         setOpenText(read.text);
         setOpenMeta(null);
       } else {
@@ -226,7 +235,7 @@ SHA-256: ${entry.sha256}`;
             entry.lang ? `Language: ${entry.lang}` : null,
             `Size: ${entry.size} bytes`,
             `SHA-256: ${entry.sha256.slice(0, 12)}…`,
-            read.reason ? `Note: ${read.reason}` : 'Binary or non-text — content not shown.',
+            read.extract?.meta?.note || read.reason || 'Binary or non-text — content not shown.',
           ]
             .filter(Boolean)
             .join('\n'),
