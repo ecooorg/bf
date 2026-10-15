@@ -63,3 +63,6 @@ Completion means the acceptance criteria have evidence. A successful commit, a g
 
 BiForge may keep **two** active TZs: the main product TZ and the Workspace/files TZ (`docs/BiForge_TZ_P26.md`). Patches must declare May/Must-not-change so one stream does not silently roll back the other. A **later** green full CI on the same line of work **closes** pending CI confirmation for earlier patches in that line; only the current patch needs active CI attention. Details: `docs/BiForge_TZ_P26.md` §15.
 
+## Single progress file
+
+Day-to-day progress, next patch, and open questions live only in **`docs/STATUS.md`**. Update it every patch. `CURRENT_STATE.md` / `NEXT.md` are pointers, not parallel queues.

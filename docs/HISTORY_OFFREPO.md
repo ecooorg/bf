@@ -1,3 +1,5 @@
+> Progress pointer for humans: `docs/STATUS.md` (not this file).
+
 # History kept off the GitHub repo (owner disk)
 
 > **Policy (14 October 2026).** Closed historical and non-binding concept files may live **only on the owner’s disk** (zip backup), not on `main`.

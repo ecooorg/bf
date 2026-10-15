@@ -27,3 +27,14 @@
 **`CHANGELOG.md`.** The line to add.
 
 **Not done / postponed.** What is deliberately left out.
+
+## STATUS update (required)
+
+After the patch, update `docs/STATUS.md`:
+
+- date, product version
+- §1 last closed patch
+- §2 next step
+- §3–§5 if owner blockers or open questions changed
+
+Do not add a new competing queue file.

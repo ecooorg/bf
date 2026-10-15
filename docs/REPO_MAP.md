@@ -353,6 +353,7 @@ Described: src/workspace/
 | Path | Role |
 | --- | --- |
 | `docs/START_HERE.md` | First file; includes done vs remaining |
+| `docs/STATUS.md` | **Single living progress file** (where we are, next, owner blockers, open questions) |
 | `docs/CURRENT_STATE.md` | Snapshot: done, partial, open, gates |
 | `docs/NEXT.md` | Unified queue table + detailed RM/P26 checkboxes |
 | `docs/BiForge_TZ_P26.md` | Workspace track specification |
