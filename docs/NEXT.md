@@ -6,6 +6,6 @@
 
 ## Pointer
 
-1. Next owner-authorized implementation: **QA1** — see `docs/STATUS.md` §2; UI1 implementation is in P41 and awaits automated verification.  
+1. Next owner-authorized gate after QA1 offline suite (P42): **MANUAL1** live acceptance — see `docs/STATUS.md` §2.  
 2. Owner-gated: MANUAL1, RM-*, GitHub write — see STATUS §3.  
 3. Do not invent a parallel backlog in this file.

@@ -1,6 +1,6 @@
 # BiForge — STATUS
 
-> Единственный живой файл прогресса. Обновлено: 2026-10-15 · **v41 (UI1 mode start screen)**
+> Единственный живой файл прогресса. Обновлено: 2026-10-15 · **v41 + P42 (QA1 offline suite)**
 
 ## 1. Сейчас
 
@@ -9,15 +9,15 @@
 | **Файлы** | P34–P39: ingest, extract, ChangeSet, unified attach, export; P39 hardens tar duplicate-path handling; P41 adds explicit Simple/Expert/Project start screen |
 | **UX1** | В проде (v38); решение принято: стартовый экран с тремя карточками |
 | **Режимы** | UI1: явный стартовый выбор Simple/Expert/Project; недоступный Project отображается явно |
+| **QA1** | P42: offline сквозной набор (classification, soft-fail, Expert/Project isolation, UI cards, contracts) |
 | **Поставка патчей** | P40 process-only: обязательный проверенный `bf-PNN.zip`; `.patch`/`.diff` не заменяет архив |
 
 ## 2. Следующее
 
 | # | ID | Что | Owner кроме CI? |
 | --- | --- | --- | --- |
-| 1 | **UI1** | Стартовый выбор Simple / Expert / Project и Expert open dialogue | Реализовано в P41; требуется проверка |
-| 2 | **QA1** | Сквозные автоматические тесты режимов и UI | После UI1; закрыть автоматические проверки |
-| 3 | **MANUAL1** | Живая приёмка | После QA1; время владельца |
+| 1 | **QA1** | Сквозные автоматические тесты режимов и UI | Реализовано offline в P42; требуется прогон `npm run check` / `test:qa1` на целевой среде |
+| 2 | **MANUAL1** | Живая приёмка | После подтверждения QA1; время владельца |
 | — | GitHub write | Отложено | Команда + ADR |
 
 ## 3. Нельзя без команды
