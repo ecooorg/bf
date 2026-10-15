@@ -1,3 +1,7 @@
+## v38
+
+- UX1 trial: clearer mode labels (Simple chat / Expert method); mode banner; Expert keeps an open chat under method stages for clarifications; plainer Attach/privacy/Project copy. Product behaviour of models unchanged aside from UI access to conversation on Expert stages.
+
 ## v37
 
 - Unified Workspace attach: one primary Attach control; zip/tar unpacks into the file tree; composer/drag-and-drop files join the same workspace the agent reads after privacy acknowledgement.

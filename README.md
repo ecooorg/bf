@@ -1,3 +1,3 @@
-# BiForge v37
+# BiForge v38
 
-Product version **37** (P36 — Workspace ChangeSet: human Apply / Reject / Rollback). See `docs/START_HERE.md`.
+Product version **38** (UX1 — intermediate UI clarity trial). See `docs/START_HERE.md` and `docs/STATUS.md`.
