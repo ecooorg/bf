@@ -43,3 +43,11 @@ test('Change mode control returns to start screen', () => {
   assert.match(app, /resetStartMode|onChangeMode/);
   assert.match(app, /sessionStorage\.removeItem\('biforge-start-mode'\)/);
 });
+
+test('Expert/Simple toggle is in More menu, not a top-level header button', () => {
+  assert.match(app, /Mode selection \(Simple \/ Expert \/ Project\)/);
+  assert.match(app, /Switch to Expert method|Switch to Simple chat/);
+  // Top-level header actions should not render the old Expert method label button
+  assert.match(app, /data-testid="toggle-expert-menu"/);
+  assert.match(app, /data-testid="change-mode"/);
+});

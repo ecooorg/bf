@@ -124,33 +124,37 @@ try {
       if ((await more.getAttribute('aria-expanded')) === 'true') await more.click();
     } else good(w, 'More button not needed (wide screen)');
 
-    // UX1: mode toggle — use aria-label (visible .lbl may be CSS-hidden on narrow screens).
-    const modeBtn = () => page.getByRole('button', { name: /Expert method|Simple chat|Expert mode|Simple mode/i });
-    if (await modeBtn().count()) {
-      const beforeName = ((await modeBtn().first().getAttribute('aria-label'))
-        || (await modeBtn().first().innerText().catch(() => ''))
-        || '').replace(/\s+/g, ' ').trim();
-      await modeBtn().first().click();
-      const expectName = /Expert method|Expert mode/i.test(beforeName) ? /Simple chat|Simple mode/i : /Expert method|Expert mode/i;
-      const back = page.getByRole('button', { name: expectName });
-      await back.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-      if (await back.count() && await back.first().isVisible()) {
-        await noHScroll('(mode switched)'); await taps('(mode switched)');
-        const box = await back.first().boundingBox();
-        box && box.x >= -1 && box.x + box.width <= w + 1
-          ? good(w, 'mode toggle button reachable after switch')
-          : bad(w, 'mode toggle button off screen after switch');
-        await back.first().click();
-        const restoredName = ((await modeBtn().first().getAttribute('aria-label').catch(() => null))
-          || (await modeBtn().first().innerText().catch(() => ''))
-          || '').replace(/\s+/g, ' ').trim();
-        /Expert method|Simple chat|Expert mode|Simple mode/i.test(restoredName)
-          ? good(w, 'mode restored')
-          : bad(w, `could not restore previous mode (was "${beforeName}", now "${restoredName}")`);
-      } else bad(w, `no mode toggle after switch (was "${beforeName}")`);
+    // UX1: mode controls live in More (not a top-level header button).
+    const openMore = async () => {
+      const btn = page.locator('.hdr-more-btn');
+      if (!(await btn.count())) return false;
+      if ((await btn.getAttribute('aria-expanded')) !== 'true') await btn.click();
+      await page.locator('.hdr-secondary.open').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+      return (await page.locator('.hdr-secondary.open').count()) > 0;
+    };
+    if (await openMore()) {
+      const switchExpert = page.getByRole('menuitem', { name: /Switch to Expert method/i });
+      const switchSimple = page.getByRole('menuitem', { name: /Switch to Simple chat/i });
+      const modeSelect = page.getByRole('menuitem', { name: /Mode selection/i });
+      if (await modeSelect.count()) good(w, 'More has Mode selection');
+      else bad(w, 'More menu missing Mode selection');
+      if (await switchExpert.count()) {
+        await switchExpert.first().click();
+        await page.waitForTimeout(300);
+        if (await openMore()) {
+          if (await switchSimple.count()) {
+            good(w, 'mode switched to Expert via More');
+            await switchSimple.first().click();
+            await page.waitForTimeout(300);
+            good(w, 'mode restored to Simple via More');
+          } else bad(w, 'after Expert switch, More has no Switch to Simple');
+        } else bad(w, 'could not reopen More after Expert switch');
+      } else if (await switchSimple.count()) {
+        good(w, 'More has Switch to Simple (already Expert)');
+      } else bad(w, 'More menu missing Expert/Simple switch');
+      await noHScroll('(mode via More)'); await taps('(mode via More)');
     } else {
-      const headerButtons = await page.locator('.header-actions button').evaluateAll(els => els.map(e => ({ text: e.textContent?.trim(), title: e.getAttribute('title'), aria: e.getAttribute('aria-label'), html: e.outerHTML.slice(0, 180) })));
-      bad(w, `no Expert/Simple mode button; header buttons: ${JSON.stringify(headerButtons).slice(0, 500)}`);
+      bad(w, 'More menu not available for mode controls');
     }
     } catch (e) { bad(w, `test error: ${String(e.message).slice(0, 150)}`); } finally { await ctx?.close().catch(() => {}); }
   }
