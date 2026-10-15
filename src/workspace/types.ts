@@ -68,6 +68,7 @@ export type SkipReason =
   | 'invalid_name'
   | 'symlink'
   | 'duplicate_case'
+  | 'duplicate_path'
   | 'too_large_file'
   | 'default_skip_rule'
   | 'empty'

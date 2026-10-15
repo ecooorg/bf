@@ -255,7 +255,17 @@ async function ingestTar(bytes: Uint8Array, limits: IngestLimits): Promise<Inges
     const rule = matchesDefaultSkip(norm.path);
     if (rule) { skipped.push({ path: norm.path, reason: 'default_skip_rule', detail: rule }); continue; }
     const key = caseKey(norm.path);
-    if (seen.has(key) && seen.get(key) !== norm.path) { skipped.push({ path: norm.path, reason: 'duplicate_case', detail: seen.get(key) }); continue; }
+    if (seen.has(key)) {
+      const previous = seen.get(key)!;
+      if (previous !== norm.path) {
+        skipped.push({ path: norm.path, reason: 'duplicate_case', detail: previous });
+      } else {
+        // Deterministic first-wins policy: never let a later duplicate silently
+        // replace an earlier file in an archive.
+        skipped.push({ path: norm.path, reason: 'duplicate_path', detail: 'duplicate path; first entry kept' });
+      }
+      continue;
+    }
     if (item.bytes.byteLength > limits.maxFileBytes) { skipped.push({ path: norm.path, reason: 'too_large_file', detail: String(item.bytes.byteLength) }); continue; }
     if (seen.has(key)) skipped.push({ path: norm.path, reason: 'unsupported_entry', detail: 'duplicate path; last entry kept' });
     seen.set(key, norm.path);
