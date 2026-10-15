@@ -138,12 +138,18 @@ export default function App() {
     if (mode === 'Project' && !projectModeEnabled) return;
     if (mode === 'Project') {
       // Project is a separate workspace and is never emulated by the chat UI.
+      try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
       window.location.href = '/project';
       return;
     }
     setExpertMode(mode === 'Expert');
     setStartMode(mode);
     try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
+  }
+  function resetStartMode() {
+    setStartMode(null);
+    setExpertMode(false);
+    try { sessionStorage.removeItem('biforge-start-mode'); } catch {}
   }
   const [migrationReport] = useState(() => getMigrationReport());
   const [authChecked, setAuthChecked] = useState(false);
@@ -372,13 +378,13 @@ export default function App() {
           <h1>{en.app}</h1>
           <p>Choose how you want to work. You can change modes explicitly later.</p>
           <div className="mode-start-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 28, textAlign: 'left' }}>
-            <button type="button" className="panel" onClick={() => chooseStartMode('Simple')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
+            <button type="button" className="panel" data-testid="start-mode-simple" onClick={() => chooseStartMode('Simple')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
               <h2>Simple</h2><p>Information and consultations</p><p>Get an explanation, practical advice, or a clear answer to a question.</p>
             </button>
-            <button type="button" className="panel" onClick={() => chooseStartMode('Expert')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
+            <button type="button" className="panel" data-testid="start-mode-expert" onClick={() => chooseStartMode('Expert')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
               <h2>Expert</h2><p>In-depth analysis</p><p>Explore a difficult problem, test assumptions, and find less obvious solutions. Ask follow-up questions at any stage.</p>
             </button>
-            <button type="button" className="panel" onClick={() => chooseStartMode('Project')} disabled={!projectModeEnabled} aria-disabled={!projectModeEnabled} style={{ cursor: projectModeEnabled ? 'pointer' : 'not-allowed', color: 'inherit', textAlign: 'left', padding: 24, opacity: projectModeEnabled ? 1 : 0.65 }}>
+            <button type="button" className="panel" data-testid="start-mode-project" onClick={() => chooseStartMode('Project')} disabled={!projectModeEnabled} aria-disabled={!projectModeEnabled} style={{ cursor: projectModeEnabled ? 'pointer' : 'not-allowed', color: 'inherit', textAlign: 'left', padding: 24, opacity: projectModeEnabled ? 1 : 0.65 }}>
               <h2>Project</h2><p>Project creation</p><p>Design and build software, scientific, and engineering projects with requirements, architecture, tasks, and checks.</p>
               {!projectModeEnabled && <p role="status"><strong>Currently unavailable</strong> — Project mode is disabled for this deployment.</p>}
             </button>
@@ -456,6 +462,7 @@ export default function App() {
         projectModeEnabled={projectModeEnabled}
         expertMode={expertMode}
         onToggleExpert={() => setExpertMode((v) => !v)}
+        onChangeMode={resetStartMode}
         onImport={importBackup}
         onImportAsDialog={importAsDialog}
         onImportDrive={drive.onButton}
@@ -524,6 +531,7 @@ export default function App() {
         onDelete={() => removeDecision(d.id)}
         expertMode={expertMode}
         onToggleExpert={() => setExpertMode((v) => !v)}
+        onChangeMode={resetStartMode}
       />
       <div className={`layout ${expertMode ? '' : 'friendly-layout'}`}>
         {expertMode && <aside className="sidebar method-sidebar">
@@ -729,6 +737,7 @@ function Header(props: {
   onDelete?: () => void;
   expertMode?: boolean;
   onToggleExpert?: () => void;
+  onChangeMode?: () => void;
   onDrive?: () => void;
   driveConnected?: boolean;
   driveBusy?: boolean;
@@ -827,6 +836,11 @@ function Header(props: {
                   </label>
                 )}
               </div>
+            )}
+            {props.onChangeMode && (
+              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onChangeMode?.(); }} title="Return to Simple / Expert / Project start screen">
+                Change mode
+              </button>
             )}
             {props.projectModeEnabled && (
               <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)} title="Separate area for multi-step projects (not the same as this chat)">
