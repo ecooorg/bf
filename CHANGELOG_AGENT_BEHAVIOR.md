@@ -1,3 +1,7 @@
+## v37
+
+- Unified Workspace attach: one primary Attach control; zip/tar unpacks into the file tree; composer/drag-and-drop files join the same workspace the agent reads after privacy acknowledgement.
+
 ## v36
 
 - P36: agent-proposed workspace ChangeSet is shown as a diff card; version advances only after human Apply; Reject leaves workspace unchanged; Rollback creates a new version restoring a prior snapshot. Validate still uses baseSha256.

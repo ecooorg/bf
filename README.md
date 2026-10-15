@@ -1,3 +1,3 @@
-# BiForge v36
+# BiForge v37
 
-Product version **36** (P36 — Workspace ChangeSet: human Apply / Reject / Rollback). See `docs/START_HERE.md`.
+Product version **37** (P36 — Workspace ChangeSet: human Apply / Reject / Rollback). See `docs/START_HERE.md`.

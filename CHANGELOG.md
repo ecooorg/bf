@@ -1,3 +1,10 @@
+## P37 — Unified Workspace attach (2026-10-15)
+
+- One primary **Attach** button: a single zip/tar is unpacked into the workspace tree; other files are stored as entries. Optional Folder on desktop.
+- Composer drag-and-drop / `be:attach-files` routes into the same workspace (agent-visible place after privacy ack).
+- Clearer status copy: file count and “say what to do in your message”.
+- Product version 37. Export remains the next planned capability (P38 in the file-work plan).
+
 ## P36 — Workspace ChangeSet UI (2026-10-15)
 
 - Human confirmation card for agent ChangeSet: unified diff, Apply / Reject / Rollback.
