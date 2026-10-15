@@ -1,3 +1,8 @@
+## P47 — Mode controls only in More menu (2026-10-15)
+
+- Removed top-level **Expert method / Simple chat** and **Modes** header buttons.
+- Mode changes only via **More**: Mode selection (three cards), Switch to Expert/Simple, Project workspace.
+
 ## P46 — Return to mode cards from Simple/Expert (2026-10-15)
 
 - Header **Modes** button (and More → Change mode) clears `biforge-start-mode` and shows the three-card start screen again.
