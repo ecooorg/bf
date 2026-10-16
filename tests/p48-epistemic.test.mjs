@@ -10,14 +10,15 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
 
-test('P48 CORE_UNCERTAINTY is part of buildPromptCore', async () => {
-  const { buildPromptCore, CORE_UNCERTAINTY } = await import('../server/promptCore.ts');
-  assert.match(CORE_UNCERTAINTY, /WHEN THE IDEAL ANSWER IS UNAVAILABLE/);
-  assert.match(CORE_UNCERTAINTY, /Do not replace step 2 with repeated methodology/i);
-  assert.match(CORE_UNCERTAINTY, /Never invent numbers/i);
+test('P48 uncertainty contract is single-copy in promptPacks (not duplicated in core)', async () => {
+  const { buildPromptCore, CORE_UNCERTAINTY_HEADING } = await import('../server/promptCore.ts');
   const core = buildPromptCore('2026-10-16');
-  assert.match(core, /WHEN THE IDEAL ANSWER IS UNAVAILABLE/);
   assert.match(core, /HONESTY ABOUT FACTS/);
+  // Core must NOT embed a second UNAVAILABLE block (PI-01 requires exactly one in the full prompt).
+  assert.equal(core.split(CORE_UNCERTAINTY_HEADING).length - 1, 0);
+  const packs = read('server/promptPacks.ts');
+  assert.match(packs, /UNAVAILABLE_CONTRACT/);
+  assert.equal(packs.split('WHEN THE IDEAL ANSWER IS UNAVAILABLE').length - 1, 1);
 });
 
 test('P48 shouldRunVerifier skips without key and on crisis', async () => {
