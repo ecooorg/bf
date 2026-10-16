@@ -354,3 +354,71 @@
 5. После MANUAL1 — обновить CURRENT_STATE / PATCH_JOURNAL / CHANGELOG (по MASTER § «Закрытие инициативы»).
 
 **Вывод A2:** новых обязательных отсутствующих функций не найдено. Плановая разработка по-прежнему выглядит завершённой; блокер — доказательства приёмки (QA1 end-to-end, deploy, MANUAL1, RM-ops) и owner-gated решения. Этап A **не** закрыт.
+
+---
+
+## AUDIT-A3 (2026-10-16) — CI logs + продолжение этапа A
+
+**Источник логов:** `logs_105299845117.zip` (GitHub Actions job `check-and-build`, repo `ecooorg/bf`, branch main, ~2026-10-16T05:27–05:31 UTC).  
+**Режим:** анализ артефактов CI + docs; продукт/тесты/runtime **не** менялись.
+
+### Результат CI (авторитетный)
+
+| Стадия | Результат |
+| :--- | :--- |
+| Independent checks (`run-independent-checks`) | **64 PASS, 1 FAIL** |
+| Первый FAIL | `test:p13a` — *the real repository passes the preflight (no false positives)* |
+| Live PostgreSQL contracts | **66/66 PASS** |
+| Project Mode API security (`test:bx06:api`) | **1/1 PASS** |
+| Build (`vite` + `tsc` server) | **PASS** |
+| Gitleaks | **no leaks** |
+| Итог job | **CI RED** — `CI: red. First failed: the real repository passes the preflight (no false positives)` |
+
+### Подтверждённый дефект A-10 (блокирует CI)
+
+```
+AUDIT/bf_v40_audit_report.md: new or wrapper top-level folder "AUDIT" (the structure is flat)
+AUDIT/bf_v40_code_flags.csv: ...
+AUDIT/bf_v40_file_inventory.csv: ...
+AUDIT/bf_v40_requirements_matrix.csv: ...
+AUDIT/bf_v40_stage_A_report.md: ...
+```
+
+- Тест: `tests/p13a-acceptance.test.mjs` subtest «the real repository passes the preflight».
+- Правило: репозиторий не должен содержать **новых top-level** папок вне допустимой плоской структуры.
+- `ARCHIVE/`, `CONCEPTS/`, `docs/` уже существуют и не вызывают FAIL; **`AUDIT/`** — новый top-level и ломает preflight.
+- **Исправление (этап B):** перенести содержимое в `docs/AUDIT/` **или** `ARCHIVE/AUDIT/`, обновить ссылки в `docs/BiForge_Audit.md`, прогнать `test:p13a` + CI. **Без команды владельца не выполняется.**
+
+### Решения владельца, зафиксированные в A3
+
+| Вопрос | Решение |
+| :--- | :--- |
+| Export UX локализация | **Оставить EN** до отдельного патча (закрыто) |
+| npm ci / прогоны | Разрешено; в этой среде Node v24 vs engine `>=22.12 <23` → полный local `npm ci` **PARTIAL**; авторитет — CI logs |
+
+### Локальные прогоны A3
+
+| Проверка | Результат |
+| :--- | :--- |
+| p41 + p43 + version | **14/14 PASS** (A2) |
+| qa1 offline | **12/12 PASS** |
+| check-docs | **PASS** |
+| npm ci (Node 24) | **PARTIAL** (engine mismatch; install не стабилизирован) |
+| test:ui / Playwright | **NOT_RUN** |
+| Полный `npm run check` локально | **NOT_RUN** |
+
+### Статус этапов
+
+| Этап | Статус |
+| :--- | :--- |
+| A — технический аудит | 🟡 PARTIAL — CI разобран; A-10 подтверждён |
+| B — исправления | ⚪ NOT STARTED — ждать команду на B-AUDIT (перенос `AUDIT/`) |
+| C — приёмка | ⚪ NOT STARTED — deploy + MANUAL1 |
+
+### Что нужно от владельца сейчас
+
+1. **Команда на B-AUDIT?** «перенеси `AUDIT/` в `docs/AUDIT/` и почини ссылки» — единственный подтверждённый блокер CI.
+2. **Deploy P47** на staging.
+3. После зелёного CI + deploy — **MANUAL1**.
+
+**Вывод A3:** продукт по функциональности режимов выглядит завершённым; **CI красный из-за артефактов аудита в top-level `AUDIT/`**. Это не регресс продуктового кода P47, а нарушение контракта поставки/preflight. Этап A не закрыт до решения по A-10.
