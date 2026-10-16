@@ -1,5 +1,5 @@
 /**
- * PA-04: notes-merge helper and presence of lab workflow template.
+ * PA-04: notes-merge helper (lab workflow templates may live off-repo).
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,21 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-test('CONCEPTS/e01-task.yml exists and is workflow_dispatch only', () => {
-  const p = path.join(root, 'CONCEPTS/e01-task.yml');
-  assert.ok(fs.existsSync(p));
-  const t = fs.readFileSync(p, 'utf8');
-  assert.ok(t.includes('workflow_dispatch'));
-  assert.ok(!/^\s*schedule\s*:/m.test(t));
-  assert.ok(t.includes('GITHUB_TOKEN') || t.includes('secrets.GITHUB_TOKEN'));
-  assert.ok(t.includes('contents: write'));
-});
-
-test('e01-lab-SETUP.md exists', () => {
-  assert.ok(fs.existsSync(path.join(root, 'CONCEPTS/e01-lab-SETUP.md')));
-});
-
-test('e01-notes-merge builds NOTES and RESULTS', () => {
+test('e01-notes-merge builds NOTES and RESULTS from fixtures', () => {
   const out = path.join(root, 'tests/pa04-out-tmp');
   fs.rmSync(out, { recursive: true, force: true });
   const r = spawnSync(
@@ -48,4 +34,9 @@ test('e01-notes-merge builds NOTES and RESULTS', () => {
   assert.equal(results.pairs[0].humanMinutes, 9);
   assert.equal(results.pairs[1].humanMinutes, 14);
   fs.rmSync(out, { recursive: true, force: true });
+});
+
+test('CONCEPTS e01 lab files are optional (off-repo allowed)', () => {
+  // CONCEPTS/e01-task.yml and e01-lab-SETUP.md may be removed after local backup (HISTORY_OFFREPO).
+  assert.ok(fs.existsSync(path.join(root, 'scripts/e01-notes-merge.mjs')));
 });

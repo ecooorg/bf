@@ -127,9 +127,15 @@ test('CLI: --fake writes a deterministic report; without --fake it refuses with 
   assert.equal(live.status, 2);
 });
 
-test('deliverables: report in docs, ADR-04 draft, npm scripts, check includes test:p10', () => {
-  const report = fs.readFileSync(path.join(root, 'ARCHIVE/GOLDEN-EVAL-REPORT.md'), 'utf8');
+test('deliverables: golden-eval script, ADR-04 draft, npm scripts, check includes test:p10', () => {
+  // ARCHIVE/GOLDEN-EVAL-REPORT.md is optional (off-repo history). Prove the generator works into a temp file.
+  const out = path.join(root, 'tests/p10-golden-tmp.md');
+  try { fs.unlinkSync(out); } catch { /* missing */ }
+  const args = ['--import', 'tsx', path.join(root, 'scripts/golden-eval.mjs'), '--fake', '--date', '2026-10-16', '--out', out];
+  execFileSync(process.execPath, args, { cwd: root });
+  const report = fs.readFileSync(out, 'utf8');
   assert.match(report, /^Mode: fake$/m); assert.match(report, /^# Golden-eval report/m);
+  try { fs.unlinkSync(out); } catch { /* ignore */ }
   const adr = fs.readFileSync(path.join(root, 'docs/ADR-04-cross-model-policy.md'), 'utf8');
   assert.match(adr, /Draft/); assert.match(adr, /owner/i); assert.match(adr, /hypothesis/i);
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));

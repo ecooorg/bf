@@ -61,8 +61,8 @@ test('PASS without a record counts as NOT_RUN (docs/NEXT.md rule 2)', () => {
 
 test('Attestation closes only owner-judgement steps; WAIVED needs owner and reason; scripted steps carry a deviation', () => {
   assert.ok(ATTEST_ALLOWED.has('RM-B1'));
-  assert.equal(stepVerdict('RM-B1', { status: 'OWNER_ATTESTED', record: 'ARCHIVE/P15-REPORT.md' }).ok, true);
-  assert.equal(stepVerdict('RM-B4', { status: 'OWNER_ATTESTED', record: 'ARCHIVE/P15-REPORT.md' }).ok, false);
+  assert.equal(stepVerdict('RM-B1', { status: 'OWNER_ATTESTED', record: 'docs/ADR-10-code-executor.md' }).ok, true);
+  assert.equal(stepVerdict('RM-B4', { status: 'OWNER_ATTESTED', record: 'docs/ADR-10-code-executor.md' }).ok, false);
   assert.equal(stepVerdict('RM-B5', { status: 'OWNER_ATTESTED', record: 'x' }).ok, false);
   assert.equal(stepVerdict('RM-E1', { status: 'WAIVED', reason: 'r' }).ok, false);
   assert.equal(stepVerdict('RM-E1', { status: 'WAIVED', by: 'owner' }).ok, false);

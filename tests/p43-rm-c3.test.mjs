@@ -46,7 +46,7 @@ test('P43 does not enable GitHub App write by default', () => {
   assert.match(env, /GITHUB_DIFF_UPLOAD/);
 });
 
-test('P43 ADR-10 and E-01 evidence still present', () => {
+test('P43 ADR-10 evidence still present (E-01 lab notes may live off-repo)', () => {
   assert.ok(existsSync(join(root, 'docs/ADR-10-code-executor.md')));
-  assert.ok(existsSync(join(root, 'ARCHIVE/E01-RESULTS.json')) || existsSync(join(root, 'ARCHIVE/E01-NOTES.md')));
+  // ARCHIVE/E01-* moved off-repo (docs/HISTORY_OFFREPO.md); presence is optional.
 });
