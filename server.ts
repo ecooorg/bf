@@ -1517,6 +1517,7 @@ function conversationGainAudit(out: any, contextSufficiency: string) {
 }
 
 import { detectUserIntentFlags, isLimitationOnlyReply, informationSoftFail, informationRetryHint } from './server/intentFlags.ts';
+import { shouldRunVerifier, runEpistemicVerifier, skippedEpistemic } from './server/epistemicVerifier.ts';
 import { detectConversationMode, modeParagraph, type ConversationMode } from './server/conversationMode.ts';
 
 // Token Economy v1.6: the conversation state already carries durable facts, assumptions,
@@ -1718,11 +1719,33 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
       ? `\n\n---\nIf you are in immediate danger, contact local emergency services or a person near you right now.\n${SUPPORT_CONTACTS.map((c) => `${c.label}: ${c.value}`).join('\n')}`
       : '';
     const visibleReply = buildVisibleReply(cleanReply, cleanQuestion, askAllowed) + crisisBlock;
+    // P48: optional Groq verifier — never blocks primary reply; skip if no key / fail / no trigger.
+    let epistemic = skippedEpistemic('skipped');
+    try {
+      const runV = shouldRunVerifier({
+        hasGroqKey: Boolean(process.env.GROQ_API_KEY),
+        triage: audit.triage,
+        hasDocument: Boolean(documentOut),
+        conversationMode,
+        flags: intentFlags,
+        replyText: visibleReply,
+      });
+      if (runV) {
+        epistemic = await runEpistemicVerifier({
+          userText: lastUserText,
+          replyText: visibleReply,
+          requestId: `epistemic-${Date.now()}`,
+        });
+      }
+    } catch {
+      epistemic = skippedEpistemic('error');
+    }
     // PI-02: search_expected in meta/logs when the user asked for a web search (no search tool yet).
     const responseMeta = {
       ...(meta as object),
       conversation_mode: conversationMode,
       ...(intentFlags.userAskedSearch ? { search_expected: true } : {}),
+      epistemic_verifier: epistemic.verifier,
     };
     ok(res, {
       reply: visibleReply,
@@ -1737,6 +1760,8 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
       factsToCheck: Array.isArray(out.factsToCheck) ? out.factsToCheck.filter((x: any) => typeof x === 'string').slice(0, 6) : [],
       document: documentOut,
       attachmentNotes,
+      // P48: additive epistemic meta; old clients ignore unknown fields
+      epistemic,
       state: mergeModelState(out.state, {
         previous: safeState,
         userTexts: [String(brief.decision || ''), ...fullHistory.filter((m: any) => m.role === 'user').map((m: any) => m.content)],

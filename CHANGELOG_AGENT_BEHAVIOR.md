@@ -1,5 +1,13 @@
 ## v47
 
+
+## v48
+
+- **P48 epistemic layer (variant A):** shared prompt `CORE_UNCERTAINTY` (typed best-effort when ideal answer unavailable; no methodology lectures; no invented numbers/URLs).
+- **Optional Groq verifier:** after primary Gemini conversation reply, on triggers only; JSON claims `fact|hypothesis|unknown`; never blocks or rewrites the user-visible reply; skip/error without Groq key or on provider failure.
+- Additive response field `epistemic` + meta `epistemic_verifier`; old clients ignore.
+- Soft-fail / QA1 information retry paths unchanged.
+
 - P47: mode controls only in More menu (no Expert/Simple header toggle). Mode selection / Switch to Expert|Simple / Project via More.
 - P46–P41: UI1 start cards (Simple / Expert / Project), Change mode, header Modes button (later removed in P47), session clear on mode return.
 - P43: RM-C3 closed — `CODE_EXECUTOR=model_patch` authorized (runtime still env-gated).
