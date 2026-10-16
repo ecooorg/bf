@@ -1,5 +1,6 @@
 # Patch journal
 
+- B-AUDIT.3 (2026-10-16) — **docs-only**: restore STATUS markers required by `tests/p41-ui1.test.mjs` and `tests/p43-rm-c3.test.mjs` (**UI1** → **QA1** → **MANUAL1**, RM-C3/model_patch/P43, GitHub write Отложено ADR-06). CI had 63 PASS / 2 FAIL (p41+p43) after B-AUDIT.2 shortened STATUS. Local: p41+p43 **13/13 PASS**.
 - B-AUDIT.2 (2026-10-16) — **CI still red after B-AUDIT**: preflight rejects `docs/AUDIT/*` as nested folder (only depth≤2 under ALLOWED_TOP, except `.github/workflows` and `src/workspace`). Moved `docs/AUDIT/bf_v40_*` → `ARCHIVE/bf_v40_*` (flat); links in `BiForge_Audit.md` → `../ARCHIVE/…`. Owner must delete residual `AUDIT/` and `docs/AUDIT/` if still on main. Expect `test:p13a` PASS.
 - B-AUDIT (2026-10-16) — **этап B (структура + version sync)**. (1) Перенос `AUDIT/*` → `docs/AUDIT/`; top-level `AUDIT/` удалён; ссылки в `docs/BiForge_Audit.md` → `AUDIT/…`. Цель: снять FAIL `test:p13a` preflight (A-10). (2) **Version sync 40→47** по AGENTS (с P19 версия = номер патча): `src/config.ts` APP_VERSION, `package.json`, `package-lock.json`, `README.md`, `DEPLOY_RAILWAY.md`, `## v47` в `CHANGELOG_AGENT_BEHAVIOR.md`. Проверено: `node scripts/check-version.mjs` OK 47; `version-check` tests PASS; `check-docs` PASS. Продуктовое поведение режимов не менялось. CI green ожидает подтверждения логом владельца после upload.
 
