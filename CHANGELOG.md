@@ -119,7 +119,7 @@
 - **Next agent patch** pointer in `docs/CURRENT_STATE.md` (current: **P27**).
 - `docs/P27-SPEC.md`: Simple Mode workspace attach UI (~½ session scope).
 - `docs/NEXT.md`: schedule **P27–P34+**; owner `RM-*` separated from agent patches.
-- `docs/START_HERE.md`, `AGENTS.md`: «следующий патч» = pointer + SPEC only.
+- `docs/START_HERE.md`, `AGENTS.md`: “next patch” = pointer + SPEC only.
 - Supersedes unfinished naming P26a.2 UI / P26b-UI (work moves to P27–P29).
 
 ## Docs — agent queue snapshot (2026-10-14)
@@ -199,7 +199,7 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 
 
 - P18: BX-21.a. CodeExecutor interface and the `manual` executor (`server/codeExecutor.ts`, `server/codeTaskService.ts`, migration 010: `code_tasks`). A human starts a run with a Task Package, takes `PACKAGE.md` (artifact, no secrets, deterministic) to any tool and returns a PR, a branch or a unified diff; results are validated (10 files / 400 lines, `allowed_paths`, protected paths, text only, no modes, symlinks or renames) and a refused result is `BLOCKED` with violation codes. Diff upload is applied through the Git Data API as one commit on `biforge/<task_id>` plus a PR, only with `GITHUB_DIFF_UPLOAD=true`; no merge, no `main`. PR found by webhook or `refresh`. `max_code_tasks` is checked at start; `model_patch` is unavailable until P19. Seven routes under `/api/projects/:projectId/tasks/:taskId/code`, human session only. Simple Mode unchanged.
-- P13b (процесс сборки): ZIP создаётся и проверяется до длительных тестов; независимые этапы с таймаутами, принудительной остановкой группы процессов и потоковыми логами; `PARTIAL` при ошибках, таймаутах, блокировках и незапущенных проверках. Критический preflight по-прежнему блокирует выдачу. Уточнены stop-правила агента, отчёт и CI; добавлены ограничения времени тестов и PostgreSQL.
+- P13b (build process): the ZIP is created and validated before long-running tests; independent stages use timeouts, forced process-group termination, and streaming logs; report `PARTIAL` for errors, timeouts, blockers, and checks that did not start. Критический preflight по-прежнему блокирует выдачу. Уточнены stop-правила агента, отчёт и CI; добавлены ограничения времени тестов и PostgreSQL.
 
 - Process (documents only): TZ 16.3.2 and 16.4.4, patches P13a and P13b in the plan, Navigator / AI Assistant terms and AGENTS.md section 3.1, `docs/NEXT.md`. No program code changed.
 
