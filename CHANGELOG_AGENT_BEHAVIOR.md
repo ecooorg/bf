@@ -1,4 +1,14 @@
+## v47
+
+- P47: mode controls only in More menu (no Expert/Simple header toggle). Mode selection / Switch to Expert|Simple / Project via More.
+- P46–P41: UI1 start cards (Simple / Expert / Project), Change mode, header Modes button (later removed in P47), session clear on mode return.
+- P43: RM-C3 closed — `CODE_EXECUTOR=model_patch` authorized (runtime still env-gated).
+- P42: QA1 offline cross-mode suite.
+- P40: `bf-PNN.zip` mandatory delivery contract.
+- **Version sync:** product version realigned to patch ID 47 (was stuck at 40 after P39; AGENTS rule from P19).
+
 ## v40
+
 
 - P39: archive ingestion hardening: duplicate file paths in tar archives are handled deterministically; first entry wins and later duplicates are reported as skipped. No execution or export policy change.
 

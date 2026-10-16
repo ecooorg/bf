@@ -1,3 +1,3 @@
-# BiForge v40
+# BiForge v47
 
-Product version **40** (P39 — file-work ingestion hardening: deterministic duplicate handling for tar archives). See `docs/STATUS.md`.
+Product version **47** (P47 — mode controls only in More; version number synced to patch ID per AGENTS). See `docs/STATUS.md`.
