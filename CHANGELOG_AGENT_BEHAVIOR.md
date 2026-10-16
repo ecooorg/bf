@@ -59,7 +59,7 @@
 
 ## vPI-03final
 
-- Cumulative behavior patch: information mode; safe wording when live search is unavailable; server date in the prompt; general approximate ranges for the outside world; mode persistence based on recent turns; stronger ordering моделей и увеличенный per-call timeout.
+- Cumulative behavior patch: information mode; safe wording when live search is unavailable; server date in the prompt; general approximate ranges for the outside world; mode persistence based on recent turns; stronger model ordering and increased per-call timeout.
 - PI-01/PI-02 and the JSON contract are preserved; actual Google Search was not added and remains a separate P4 task.
 
 # Changelog — BiForge: agent behavior and model routing
