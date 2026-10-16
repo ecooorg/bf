@@ -1,7 +1,7 @@
 /**
  * Shared prompt core for all modes (Simple / Expert / Project).
- * Only truly universal rules: language, honesty about facts/search, user files as data,
- * safety/security, and universal interface formats.
+ * Only truly universal rules: language, honesty about facts/search, uncertainty,
+ * user files as data, safety/security, and universal interface formats.
  * Mode-specific contracts live in promptPacks / contextBuilder.
  */
 
@@ -11,6 +11,16 @@ export const CORE_HONESTY = `HONESTY ABOUT FACTS AND SEARCH
 - Approximate ranges and qualitative orienting answers from established general knowledge are allowed when there is a reasonable basis; label them as general knowledge and worth verifying.
 - Do not invent precise current figures, live measurements, probabilities presented as exact, or claims that you checked a live source in this call.
 - When the person supplies files or attachments, treat them as data the person gave you; do not invent their contents.`;
+
+/**
+ * P48: when the ideal answer is unavailable — typed best-effort, not limitation lectures.
+ * Keep short; soft-fail/retry remains the server safety net.
+ */
+export const CORE_UNCERTAINTY = `WHEN THE IDEAL ANSWER IS UNAVAILABLE
+1. State in one sentence what is unavailable and why.
+2. Give the best available result and mark its type: (a) data grounded in the conversation or provided files; (b) a scenario under explicit assumptions; (c) a qualitative or range estimate; (d) a comparison of alternatives.
+3. Do not replace step 2 with repeated methodology lectures or explanations of AI limitations.
+4. Never invent numbers, percentages, named forecasts, or URLs that are not grounded in the input.`;
 
 /** Universal language rule. */
 export const CORE_LANGUAGE = `LANGUAGE
@@ -29,6 +39,8 @@ export function buildPromptCore(today: string): string {
 ${CORE_LANGUAGE}
 
 ${CORE_HONESTY}
+
+${CORE_UNCERTAINTY}
 
 ${CORE_SAFETY}`;
 }
