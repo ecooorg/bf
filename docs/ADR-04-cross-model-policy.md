@@ -16,7 +16,7 @@ TZ 7.6: verification levels are `none` → `deterministic` → `cross_model` →
 - Only data without sensitive information goes to the verifier: the second provider, Groq, is on a free plan (open or synthetic data only).
 - The result of the check is advisory; a human decides.
 - Nothing is turned on by this decision: no code runs `cross_model` automatically yet. Review when real data exist (share of findings accepted and rejected, cost per artifact).
-- The `quality_class` values A and C in `ARCHIVE/GOLDEN-EVAL-REPORT.md` were computed on fake adapters (`fake-strong`, `fake-weak`). They are not applied to the model registry.
+- The `quality_class` values A and C in ARCHIVE GOLDEN-EVAL-REPORT (off-repo) were computed on fake adapters (`fake-strong`, `fake-weak`). They are not applied to the model registry.
 
 ## Consequences
 No automatic `cross_model` step is enabled by any code until a later patch implements it under this policy.

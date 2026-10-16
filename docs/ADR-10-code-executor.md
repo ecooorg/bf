@@ -8,8 +8,8 @@ BiForge_TZ_v3.md §11.9 requires a three-pair experiment comparing `manual` with
 ## Evidence
 E-01 was executed on 13 October 2026 via the PA-04 lab runner on `ecooorg/biforge-e01-lab` (six `workflow_dispatch` runs, `GITHUB_TOKEN` only). Results are recorded in:
 
-- `ARCHIVE/E01-NOTES.md`
-- `ARCHIVE/E01-RESULTS.json`
+- ARCHIVE E01-NOTES (off-repo)
+- ARCHIVE E01-RESULTS (off-repo)
 
 | Metric | Value |
 |--------|-------|

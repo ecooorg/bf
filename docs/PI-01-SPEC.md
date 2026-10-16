@@ -1,6 +1,6 @@
 # PI-01 — Uncertainty contract in the Simple Mode prompt
 
-**Goal.** When an ideal answer is unavailable, the Simple Mode conversation gives the best available result of a marked kind instead of repeating the limitation, without inventing numbers or claiming a search that did not happen. Source: `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` §4, §7 P1, §8.1; TZ 16.4.2 row PI-01.
+**Goal.** When an ideal answer is unavailable, the Simple Mode conversation gives the best available result of a marked kind instead of repeating the limitation, without inventing numbers or claiming a search that did not happen. Source: CONCEPTS uncertainty TZ (off-repo) §4, §7 P1, §8.1; TZ 16.4.2 row PI-01.
 
 **Base.** Owner archive `bf-v22.zip` (production version 22, `main` `da38c1419d51`).
 

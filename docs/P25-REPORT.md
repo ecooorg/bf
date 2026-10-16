@@ -13,7 +13,7 @@
 | Item | Status | Evidence / next action |
 |---|---|---|
 | P25 SPEC | PREPARED | `docs/P25-SPEC.md`; version bump deferred until G4 |
-| RM-B4 scenario 18.1 | NOT_RUN | 12-row checklist in `ARCHIVE/P15-REPORT.md`; run only on staging with synthetic data |
+| RM-B4 scenario 18.1 | NOT_RUN | 12-row checklist in ARCHIVE P15-REPORT (off-repo); run only on staging with synthetic data |
 | RM-E2 `/ops` | NOT_RUN live | Run `staging-drills` after owner configures staging secrets |
 | RM-E4 restore | NOT_RUN | A migration-count check is not a restore; perform disposable restore on staging |
 | RM-E5 rollback | NOT_RUN | Owner performs documented staging rollback and records elapsed time |

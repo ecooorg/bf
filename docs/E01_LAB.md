@@ -1,13 +1,13 @@
 # E-01 live lab — Navigator minimum (PA-04)
 
-> Test repo: `ecooorg/biforge-e01-lab`. Product notes: `ARCHIVE/E01-NOTES.md` on `ecooorg/bf`.  
+> Test repo: `ecooorg/biforge-e01-lab`. Product notes: ARCHIVE E01-NOTES (off-repo) on `ecooorg/bf`.  
 > **No PAT in chat. No Railway. No schedule.** Lab runner uses `GITHUB_TOKEN` on the lab repo only.
 
 ## One-time setup
 
-1. From **bf** open `CONCEPTS/e01-task.yml` → copy all.
+1. From **bf** open CONCEPTS e01-task.yml (off-repo) → copy all.
 2. In **lab** on `main`: create `.github/workflows/e01-task.yml` with that content → commit.
-3. Details: `CONCEPTS/e01-lab-SETUP.md`.
+3. Details: CONCEPTS e01-lab-SETUP (off-repo).
 
 ## Each pair (six times)
 
@@ -29,7 +29,7 @@ Assistant updates notes on **bf** (patch). You do not edit `E01-NOTES.md` by han
 
 ## After six rows
 
-Assistant delivers `ARCHIVE/E01-RESULTS.json` + ADR-10 card.  
+Assistant delivers ARCHIVE E01-RESULTS (off-repo) + ADR-10 card.  
 You answer: `ok ADR-10` or `no ADR-10: reason`.
 
 ## Decision rule (TZ 11.9)

@@ -37,7 +37,7 @@
 | `DEPLOY_RAILWAY.md` | Railway deployment and environment variables. First line version is checked |
 | `CHANGELOG.md` | Project changelog (from BX-07). Update with every behaviour change |
 | `CHANGELOG_AGENT_BEHAVIOR.md` | History of the Simple Mode agent behaviour (1.x). A section for the current version is required by the version check |
-| `QA_DRIVE_CHECKLIST.md` | Manual Google Drive check (real Google) |
+| QA_DRIVE_CHECKLIST (removed) | Off-repo (owner disk; was manual Drive check) |
 
 
 ## `docs/` — informational agent-instruction pack (not binding)
@@ -48,9 +48,9 @@ These Markdown files live under `CONCEPTS/`. They are **reference / proposal onl
 | --- | --- |
 | CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md | Extracted current (v1.6.0) agent instructions from code |
 | CONCEPTS/BiForge_Agent_Instructions_v2_Target.md | Proposed target instruction set (uncertainty contract, modes) |
-| `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` | TZ-INSTRUCTIONS-01: how to adopt v2 behaviour incrementally |
+| CONCEPTS uncertainty TZ (removed) | Off-repo concept; uncertainty in product via P48 / promptPacks |
 | CONCEPTS/BiForge_analytical_note_recommendations.md | Analytical note on dialogue failure and architecture options |
-| `CONCEPTS/TP_BiForge_Hallucination_CrossCheck.md` | TP-HALLUC-01: post-launch anti-hallucination / multi-model cross-check (shelf; not current work) |
+| CONCEPTS hallucination TP (removed) | Off-repo concept; verifier path in P48 |
 
 Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `server/reasoningState.ts`, and history in `CHANGELOG_AGENT_BEHAVIOR.md`. Canonical product plan remains `docs/BiForge_TZ_v3.md`.
 
@@ -68,7 +68,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/contextBuilder.ts` | Context Builder: State slice within a token limit, token measurement; pure function |
 | `server/analysisService.ts` | Slice S1: analysis run (Router-min -> patch pipeline -> artifact -> ledger), human review, decisions |
 | `server/goldenEval.ts` | Golden-eval (P10): task schema, deterministic scoring, fake adapters, report |
-| `scripts/golden-tasks.json` | Golden task set (18 RU/EN tasks); report: `ARCHIVE/GOLDEN-EVAL-REPORT.md` |
+| `scripts/golden-tasks.json` | Golden task set (18 RU/EN tasks); report: ARCHIVE GOLDEN-EVAL-REPORT (off-repo) |
 | `server/taskMachine.ts` | Task/Run state machine (P11): states, transitions, errors, input fingerprint; pure functions |
 | `server/taskService.ts` | Task/Run domain service (P11): tasks, runs, events in PostgreSQL; idempotent create/enqueue (not wired to routes) |
 | `server/queueMachine.ts` | Job queue rules (P12): states, lease timing, `QueueError`; pure functions |
@@ -325,8 +325,8 @@ Checked against `process.env.*` in `server.ts`, `server/`, `src/`, `scripts/`, `
 
 | Path | What it is |
 | --- | --- |
-| `CONCEPTS/e01-task.yml` | Workflow template: copy into lab as workflows/e01-task.yml (file lives only under CONCEPTS in bf) |
-| `CONCEPTS/e01-lab-SETUP.md` | One-time setup steps for `ecooorg/biforge-e01-lab` on a tablet |
+| CONCEPTS e01-task.yml (off-repo) | Workflow template: copy into lab as workflows/e01-task.yml (file lives only under CONCEPTS in bf) |
+| CONCEPTS e01-lab-SETUP (off-repo) | One-time setup steps for `ecooorg/biforge-e01-lab` on a tablet |
 
 
 Described: tests/workspace-paths.test.mjs

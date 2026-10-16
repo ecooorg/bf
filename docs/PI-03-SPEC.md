@@ -2,7 +2,7 @@
 
 # PI-03 — Mode paragraph on the shared Simple Mode prompt
 
-**Goal.** Add a thin mode paragraph (Information / Decision support / Research / Engineering) selected by a local heuristic on the last user text, mixed into the existing conversation system prompt. No separate system prompts; no duplication of HARD BOUNDARIES. Source: CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md §6, §7 P3; TZ 16.4.2 row PI-03.
+**Goal.** Add a thin mode paragraph (Information / Decision support / Research / Engineering) selected by a local heuristic on the last user text, mixed into the existing conversation system prompt. No separate system prompts; no duplication of HARD BOUNDARIES. Source: CONCEPTS uncertainty TZ (off-repo) §6, §7 P3; TZ 16.4.2 row PI-03.
 
 **Base.** Owner archive `bf-vPI-02.zip` (version label `PI-02`).
 

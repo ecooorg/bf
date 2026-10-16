@@ -21,21 +21,21 @@
 ## 2. Подготовленные файлы
 
 **Матрица требований:**
-[Матрица ТЗ → код → тест → результат → риск](../ARCHIVE/bf_v40_requirements_matrix.csv)
+Матрица ТЗ → код → тест → результат → риск («bf_v40_requirements_matrix.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
 В ней 764 строки. Для каждого выделенного пункта указаны исходное требование, документ и номер строки, предполагаемые участки кода, предполагаемые тесты и степень подтверждения.
 Пока соответствия помечены как предварительные, а не как PASS.
 
 **Полный реестр файлов:**
-[Реестр 407 файлов с SHA-256](../ARCHIVE/bf_v40_file_inventory.csv)
+Реестр 407 файлов с SHA-256 («bf_v40_file_inventory.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
 
 **Результаты автоматического анализа исходников:**
-[Найденные маркеры потенциальных проблем](../ARCHIVE/bf_v40_code_flags.csv)
+Найденные маркеры потенциальных проблем («bf_v40_code_flags.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
 
 **Отчёт аудита:**
-[Отчёт с выводами и незакрытыми вопросами](../ARCHIVE/bf_v40_audit_report.md)
+Отчёт с выводами и незакрытыми вопросами («bf_v40_audit_report.md», off-repo — see `docs/HISTORY_OFFREPO.md`)
 
 **Отчёт этапа A:**
-[bf_v40_stage_A_report.md](../ARCHIVE/bf_v40_stage_A_report.md)
+bf_v40_stage_A_report.md (`bf_v40_stage_A_report.md`, off-repo — see `docs/HISTORY_OFFREPO.md`)
 
 ## 3. Что удалось установить
 
@@ -335,7 +335,7 @@
 | ID | Критичность | Факт | Действие |
 |---|---|---|---|
 | A-09 | Низкая (docs) | `BiForge_Audit.md` содержал 4 ссылки `sandbox:/mnt/data/…`, ломавшие `check:docs` | **Исправлено** в этом патче (относительные пути `ARCHIVE/`) |
-| A-01…A-08 | без изменений | см. `ARCHIVE/bf_v40_stage_A_report.md` | остаются |
+| A-01…A-08 | без изменений | см. `bf_v40_stage_A_report.md` (off-repo) | остаются |
 
 ### Статус этапов
 
@@ -449,8 +449,8 @@ CI после B-AUDIT всё ещё RED: `docs/AUDIT/*` = **nested folder** (pre
 
 | Действие | Результат |
 | :--- | :--- |
-| `docs/AUDIT/*` → `ARCHIVE/bf_v40_*` (плоско) | **Done** |
-| Ссылки | `../ARCHIVE/bf_v40_…` |
+| `docs/AUDIT/*` → ARCHIVE then **off-repo** (owner disk) | **Done** |
+| Ссылки | off-repo artifacts; `docs/HISTORY_OFFREPO.md` |
 | Ожидание | `test:p13a` preflight empty violations |
 
 Правило (`scripts/patch-tools.mjs`): пути глубины ≥3 запрещены, кроме whitelist. Audit-артефакты живут в `ARCHIVE/`, не в подпапках `docs/`.

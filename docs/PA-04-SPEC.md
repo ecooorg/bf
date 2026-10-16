@@ -1,12 +1,12 @@
 # PA-04 — E-01 lab runner (Navigator minimum)
 
-**Goal.** Run each E-01 pair (t1–t3 × model|manual) with one `workflow_dispatch` on the test repo `ecooorg/biforge-e01-lab`, using the default `GITHUB_TOKEN` (no PAT in chat). Collect a machine-readable run summary; the Assistant merges notes into `ARCHIVE/E01-NOTES.md` / `E01-RESULTS.json` via a patch on `bf`. Product code and Simple Mode are unchanged.
+**Goal.** Run each E-01 pair (t1–t3 × model|manual) with one `workflow_dispatch` on the test repo `ecooorg/biforge-e01-lab`, using the default `GITHUB_TOKEN` (no PAT in chat). Collect a machine-readable run summary; the Assistant merges notes into ARCHIVE E01-NOTES (off-repo) / `E01-RESULTS.json` via a patch on `bf`. Product code and Simple Mode are unchanged.
 
 **Base.** `ecooorg/bf` after P19x/PA-02 and package.json scripts fix; lab repo exists with CI skeleton.
 
-**May change (bf).** New: `docs/PA-04-SPEC.md`, `CONCEPTS/e01-task.yml` (copy target for lab), `CONCEPTS/e01-lab-SETUP.md`, `scripts/e01-notes-merge.mjs`, `tests/pa04-acceptance.test.mjs`, `tests/pa04-fixtures.json`. Changed: `docs/E01_LAB.md`, `docs/DELEGATION.md`, `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/REPO_MAP.md`, `CHANGELOG.md`, `package.json` (`test:pa04`).
+**May change (bf).** New: `docs/PA-04-SPEC.md`, CONCEPTS e01-task.yml (off-repo) (copy target for lab), CONCEPTS e01-lab-SETUP (off-repo), `scripts/e01-notes-merge.mjs`, `tests/pa04-acceptance.test.mjs`, `tests/pa04-fixtures.json`. Changed: `docs/E01_LAB.md`, `docs/DELEGATION.md`, `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/REPO_MAP.md`, `CHANGELOG.md`, `package.json` (`test:pa04`).
 
-**May change (lab, by Navigator upload once).** `.github/workflows/e01-task.yml` ← copy of `CONCEPTS/e01-task.yml`.
+**May change (lab, by Navigator upload once).** `.github/workflows/e01-task.yml` ← copy of CONCEPTS e01-task.yml (off-repo).
 
 **Must not change.** `server/`, Simple Mode, `CODE_EXECUTOR` default, merge rights, production GitHub App, Railway, APP_VERSION.
 
@@ -26,7 +26,7 @@
 **PASS criteria.**
 - Machine (bf): `npm run test:pa04` green; docs check paths exist.
 - Navigator (lab, once): upload `e01-task.yml` → Actions → Run workflow → t1/model → PR + green or recorded fail in summary.
-- After three pairs + minutes: Assistant delivers `ARCHIVE/E01-RESULTS.json` patch; Navigator answers ADR-10 card.
+- After three pairs + minutes: Assistant delivers ARCHIVE E01-RESULTS (off-repo) patch; Navigator answers ADR-10 card.
 
 **Read in the TZ.** 11.9, D-08, DELEGATION tiers.
 

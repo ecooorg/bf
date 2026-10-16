@@ -1,6 +1,6 @@
 # PI-02 — Intent flags and post-processing (Simple Mode)
 
-**Goal.** Server-side detectors of user intent adjust existing conversation post-processing: forbid follow-up questions when the user banned them, force a soft quality retry when an approximate answer was requested but the draft is only limitations, adapt the retry prompt when the user criticized evasion, and record `search_expected` when a web search was requested (no search tool yet). Source: `CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md` §5, §7 P2; TZ 16.4.2 row PI-02.
+**Goal.** Server-side detectors of user intent adjust existing conversation post-processing: forbid follow-up questions when the user banned them, force a soft quality retry when an approximate answer was requested but the draft is only limitations, adapt the retry prompt when the user criticized evasion, and record `search_expected` when a web search was requested (no search tool yet). Source: CONCEPTS uncertainty TZ (off-repo) §5, §7 P2; TZ 16.4.2 row PI-02.
 
 **Base.** Owner archive `bf-vPI-01.zip` (version label `PI-01`).
 
