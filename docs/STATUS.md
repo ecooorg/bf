@@ -1,34 +1,30 @@
 # BiForge — STATUS
 
-> Единственный живой файл прогресса. Обновлено: 2026-10-16 · **v47 deployed; next = MANUAL1**
+> Единственный живой файл прогресса. Обновлено: 2026-10-16 · **v47 freeze · P48-SPEC ready (epistemic)**
 
 ## 1. Сейчас
 
 | Линия | Состояние |
 | --- | --- |
-| **Version** | **47** (`APP_VERSION` = patch ID) |
-| **UI1** | Карточки Simple / Expert / Project; **P47:** mode controls только через **More** |
-| **QA1** | Offline suite PASS (12/12); live path → **MANUAL1** |
-| **Code Delivery** | **RM-C3** closed (**P43**); `model_patch` authorized; runtime still gated by `CODE_EXECUTOR=model_patch` |
-| **CI** | B-AUDIT.2/3 applied; p13a structure fixed; STATUS markers restored |
-| **Поставка** | **Deployed** 2026-10-16 ≈09:00 CEST · `https://e-production-5cc8.up.railway.app` · health `version":"47"` · commit **`2bdd6ae96ce3`** |
-
-## Аудит / патчи
-
-- B-AUDIT → B-AUDIT.3: CI structure + version sync + STATUS contracts.
-- Export UX: **EN until separate patch**. UX1 approved.
-- **Следующий шаг владельца: MANUAL1** (пошагово — `docs/OWNER_OPS.md` § MANUAL1).
+| **Version** | **47** (freeze for pre-P48 baseline) |
+| **UI1** | Карточки Simple / Expert / Project; **P47:** mode controls only via **More** |
+| **QA1** | Offline PASS → **MANUAL1** (owner) |
+| **Code Delivery** | **RM-C3** closed (**P43**); `model_patch`; runtime env-gated |
+| **Build freeze** | Production **v47** · commit **`2bdd6ae96ce3`** · `https://e-production-5cc8.up.railway.app` · health ok |
+| **Next coding** | **P48** — uncertainty + Groq verifier · SPEC: `docs/P48-SPEC.md` · **await owner command to implement** |
 
 ## 2. Следующее
 
 | # | ID | Что | Owner |
 | --- | --- | --- | --- |
-| 1 | **MANUAL1** | Приёмка на production (см. OWNER_OPS) | Владелец |
+| 1 | **P48 implement** | Epistemic layer (SPEC locked, variant A) | Command to agent |
+| 2 | **MANUAL1** | Owner acceptance (OWNER_OPS) — can run on v47 now or after P48 smoke | Owner |
+| 3 | **External testers** | After P48 PASS + short smoke (recommended) or on v47 if P48 deferred | Owner |
 | — | GitHub write | **Отложено** (ADR-06) | Owner |
 
 ## 3. Нельзя без команды
 
-Server execution; silent GitHub main; откат extract/ChangeSet; GitHub App write.
+Server execution; silent GitHub main; implement P48 without command; GitHub App write.
 
 ## 4. Открытые вопросы
 
