@@ -123,15 +123,15 @@ export async function runEpistemicVerifier(opts: {
   const prompt = `USER:\n${String(opts.userText || '').slice(0, 4000)}\n\nASSISTANT_DRAFT:\n${String(opts.replyText || '').slice(0, 6000)}`;
 
   try {
-    const res = await adapter.generate({
+    const res = await adapter.call({
       requestId: opts.requestId || `epistemic-${Date.now()}`,
       modelId,
       system: VERIFIER_SYSTEM,
       prompt,
       json: true,
       maxOutputTokens: 800,
-      timeoutMs: opts.timeoutMs ?? 12_000,
-    });
+      metadata: {},
+    }, { timeoutMs: opts.timeoutMs ?? 12_000 });
     if (res.status !== 'ok') {
       console.info(JSON.stringify({ type: 'epistemic_verifier', status: res.status, errorClass: (res as any).errorClass }));
       return skippedEpistemic('error');
