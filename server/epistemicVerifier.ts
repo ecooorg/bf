@@ -88,7 +88,7 @@ Max 8 claims, max 5 issues, max 5 check_suggestions. Do not rewrite the assistan
 
 /** Prefer small Groq model; override via EPISTEMIC_VERIFIER_MODEL. */
 export function pickVerifierModelId(): string {
-  return process.env.EPISTEMIC_VERIFIER_MODEL || 'openai/gpt-oss-20b';
+  return process.env.EPISTEMIC_VERIFIER_MODEL || 'openai/gpt-oss-120b';
 }
 
 /**
