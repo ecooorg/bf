@@ -11,6 +11,7 @@
 | **QA1** | Offline suite; path to **MANUAL1** |
 | **Code Delivery** | **RM-C3** closed (**P43**); `model_patch`; runtime env-gated |
 | **P48** | Uncertainty core + optional Groq verifier (variant A); never blocks primary reply |
+| **offrepo** | Group B path tests relaxed — ARCHIVE/CONCEPTS bulk may leave main after local zip |
 | **P49** | Multi-provider cascade SPEC **deferred** (`docs/P49-SPEC.md`) — Gemini+Groq+CF primary intent; NIM+OpenRouter spare |
 | **CI / Deploy** | Owner: apply patch → CI → deploy v48 → short smoke → external testers |
 

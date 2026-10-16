@@ -1,5 +1,6 @@
 # Patch journal
 
+- offrepo-B (2026-10-16) — **tests + docs**: allow removing CI-held ARCHIVE/CONCEPTS evidence from main after local backup. Softened: `tests/p43-rm-c3.test.mjs` (E01 optional), `p10-acceptance` (golden-eval to temp), `p15-acceptance` (no ARCHIVE/P15-REPORT), `pa01` (attest record → docs/ADR-10), `pa04` (no CONCEPTS e01 presence). **Keep** `CHANGELOG_AGENT_BEHAVIOR.md`. See `docs/HISTORY_OFFREPO.md`.
 - P48.2 (2026-10-16) — **CI fix**: (1) remove duplicate `WHEN THE IDEAL ANSWER IS UNAVAILABLE` from `promptCore` — contract stays once in `promptPacks.UNAVAILABLE_CONTRACT` (PI-01). (2) Groq registry: only `openai/gpt-oss-120b` **active** again (`test:model-layer`). Verifier default model → 120b. No product UX change.
 - P48.1 (2026-10-16) — **hotfix**: `ProviderAdapter` uses `call()`, not `generate()` — fixes CI `build:server` TS2339 in `server/epistemicVerifier.ts`. Tests mocks updated. Behaviour unchanged.
 - P49-SPEC (2026-10-16) — **docs-only, DEFERRED**. Multi-provider free-tier cascade: primary Gemini → Groq → Cloudflare Workers AI; spare NVIDIA NIM → OpenRouter `:free`. Implement only when owner signals Gemini+Groq insufficient. No runtime change. See `docs/P49-SPEC.md`.

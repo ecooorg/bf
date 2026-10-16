@@ -2,107 +2,70 @@
 
 # History kept off the GitHub repo (owner disk)
 
-> **Policy (14 October 2026).** Closed historical and non-binding concept files may live **only on the owner’s disk** (zip backup), not on `main`.
-> This file is the **canonical list** of paths safe to remove from the remote repository **after** you have saved them locally.
-> Do **not** delete without a local copy. CI and the product do not need these paths.
+> **Policy (updated 2026-10-16).** Closed historical and non-binding concept files may live **only on the owner’s disk** (zip backup), not on `main`.
+> After patch **offrepo-B** (relaxed path tests), the former CI-required ARCHIVE/CONCEPTS evidence files may also be removed from `main` **once** copied locally.
+> Do **not** delete without a local copy.
 
-## How to archive (Android / desktop)
+## How to archive
 
-1. Download the listed files from GitHub (or clone once on desktop).
-2. Save one zip, e.g. `bf-history-2026-10-14.zip`, somewhere safe **outside** the repo.
-3. On GitHub: delete those paths from `main` (web UI or a cleanup commit).
-4. Leave `ARCHIVE/README.md` and `CONCEPTS/README.md` in the repo (stubs point here).
-5. Update the date line in this file when the off-repo zip is refreshed.
+1. Save a zip outside the repo, e.g. `bf-history-2026-10-16.zip`.
+2. Delete listed paths from `main`.
+3. Keep `ARCHIVE/README.md` and `CONCEPTS/README.md` stubs.
+4. Refresh this file’s date when the zip is updated.
 
-## Full path list (remove from repo after local backup)
+## Safe to remove after local backup (group A + group B)
 
-### `ARCHIVE/`
+### `ARCHIVE/` (entire bulk; keep only README)
 
 ```
-ARCHIVE/1
-ARCHIVE/BX-06-REPORT.md
-ARCHIVE/BX-07-REPORT.md
 ARCHIVE/E01-NOTES.md
 ARCHIVE/E01-RESULTS.json
 ARCHIVE/GOLDEN-EVAL-REPORT.md
-ARCHIVE/P08-SPEC.md
-ARCHIVE/P09-SPEC.md
-ARCHIVE/P10-SPEC.md
-ARCHIVE/P11-REPORT.md
-ARCHIVE/P11-SPEC.md
-ARCHIVE/P12-REPORT.md
-ARCHIVE/P12-SPEC.md
-ARCHIVE/P13-SPEC.md
-ARCHIVE/P13a-SPEC.md
-ARCHIVE/P13b-REPORT.md
-ARCHIVE/P13b-SPEC.md
-ARCHIVE/P14-SPEC.md
 ARCHIVE/P15-REPORT.md
-ARCHIVE/P16-REPORT.md
-ARCHIVE/P16-SPEC.md
-ARCHIVE/P17-REPORT.md
-ARCHIVE/P17-SPEC.md
-ARCHIVE/TZ_v3.0_APPENDIX_C_traceability.md
-ARCHIVE/TZ_v3.0_APPENDIX_F_jules_mistral.md
-ARCHIVE/TZ_v3.0_APPENDIX_G_monitoring.md
-ARCHIVE/TZ_v3.0_PATCH_HISTORY.md
-ARCHIVE/TZ_v3.0_SECTION_16_7.md
-ARCHIVE/TZ_v3.0_monolith.md
+ARCHIVE/bf_v40_*
+ARCHIVE/*-SPEC.md
+ARCHIVE/*-REPORT.md
+ARCHIVE/TZ_*
 ```
 
-Keep in repo after cleanup: **`ARCHIVE/README.md` only**.
+Keep: **`ARCHIVE/README.md`** only.
 
-### `CONCEPTS/`
+### `CONCEPTS/` (entire bulk; keep only README)
 
 ```
-CONCEPTS/BiForge_Agent_Instructions_v1_Extracted.md
-CONCEPTS/BiForge_Agent_Instructions_v2_Target.md
-CONCEPTS/BiForge_Avanproekt_v3.md
-CONCEPTS/BiForge_analytical_note_recommendations.md
-CONCEPTS/DECISION_CARD_TEMPLATE.md
-CONCEPTS/DELEGATION_PROPOSAL.md
-CONCEPTS/EVIDENCE_RENDERER_SETUP.md
-CONCEPTS/PA-01-SPEC_DRAFT.md
+CONCEPTS/e01-lab-SETUP.md
+CONCEPTS/e01-task.yml
 CONCEPTS/TP_BiForge_Hallucination_CrossCheck.md
 CONCEPTS/TZ_BiForge_Instructions_Uncertainty.md
-CONCEPTS/e01-lab-SETUP.md
-CONCEPTS/e01-task.yml
 CONCEPTS/universal_testing_protocol.md
+CONCEPTS/* (any other drafts)
 ```
 
-Keep in repo after cleanup: **`CONCEPTS/README.md` only**.
+Keep: **`CONCEPTS/README.md`** only.
 
-### Repository root (optional)
+### Root noise (if still present)
 
 ```
-CHANGELOG_AGENT_BEHAVIOR.md
+e01-lab-SETUP.md
+e01-task.yml
+CHANGELOG_UX1.md
+CHANGELOG_snippet.md
+PATCH_NOTES.md
+PI-03-README.md
+QA_DRIVE_CHECKLIST.md
+TRANSLATION_STATUS.md
+CHECKSUMS.txt
 ```
 
-Product history remains in `CHANGELOG.md`. Agent-behavior changelog is optional local history.
-
-## Do **not** put on this list (stay on GitHub)
+## Must **remain** on GitHub
 
 - `src/`, `server/`, `tests/`, `scripts/`, `migrations/`, `public/`, `.github/`
-- Living docs: `docs/START_HERE.md`, `CURRENT_STATE.md`, `NEXT.md`, `OWNER_OPS.md`, `REPO_MAP.md`, `CONNECTIONS.md`, `AGENTS.md`, `PATCH_JOURNAL.md`, active `P26*` / `P27*` SPEC/REPORT, `BiForge_TZ_*.md`, SPEC_*, ADR_*, policies
-- `README.md`, `DEPLOY_RAILWAY.md`, `CHANGELOG.md`, `package.json`, lockfiles, configs
+- Living docs: STATUS, OWNER_OPS, REPO_MAP, CONNECTIONS, AGENTS, PATCH_JOURNAL, ADR_*, active SPEC/REPORT, TZ
+- `README.md`, `DEPLOY_RAILWAY.md`, `CHANGELOG.md`, **`CHANGELOG_AGENT_BEHAVIOR.md`** (version-check)
+- `package.json`, lockfiles, configs
 
-## After a future patch closes
+`CHANGELOG_AGENT_BEHAVIOR.md` is **not** optional: `scripts/check-version.mjs` requires matching `## vN` headings.
 
-Move **closed** `docs/PNN-SPEC.md` + `docs/PNN-REPORT.md` into the **next** off-repo history zip (or back into a thin `ARCHIVE/` only if you want them on GitHub). Prefer off-repo for bulk; record one line in `docs/PATCH_JOURNAL.md`.
+## Tests (offrepo-B)
 
-## Must remain on GitHub (CI / acceptance tests)
-
-These were on the off-repo list but **tests open them by path** — keep on `main`:
-
-```
-ARCHIVE/GOLDEN-EVAL-REPORT.md
-ARCHIVE/P15-REPORT.md
-ARCHIVE/E01-NOTES.md
-ARCHIVE/E01-RESULTS.json
-CONCEPTS/e01-task.yml
-CONCEPTS/e01-lab-SETUP.md
-CHANGELOG_AGENT_BEHAVIOR.md
-```
-
-(`scripts/check-version.mjs` requires `## v24` in `CHANGELOG_AGENT_BEHAVIOR.md`.)
-
+Path presence of ARCHIVE E01/P15/GOLDEN and CONCEPTS e01 is **no longer** asserted. Generators and ADR-10 remain covered offline.
