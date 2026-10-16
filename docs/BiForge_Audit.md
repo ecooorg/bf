@@ -1,456 +1,301 @@
-# Расширенный статический аудит архива **`bf-v40.zip`**
+# Extended static audit of archive **`bf-v40.zip`**
 
-Важное ограничение: **машинный построчный просмотр выполнен, но исчерпывающий семантический code review ещё не завершён**.
+Important limitation: **machine line-by-line review has been performed, but exhaustive semantic code review is not yet complete**.
 
-## 1. Результаты проверки
+## 1. Verification results
 
-| Показатель | Результат |
+| Metric | Result |
 | :--- | ---: |
-| Файлов в архиве | 407 |
-| Markdown-документов | 133 |
-| Документов, отобранных для извлечения требований | 49 |
-| Выделенных пунктов требований | 764 |
-| Файлов исходного кода, охваченных анализом | 128 |
-| Строк исходного кода, просмотренных программно | 23 258 |
-| Файлов тестов | 91 |
-| Пунктов без уверенной текстовой привязки к коду | 174 |
-| Пунктов без уверенной текстовой привязки к тестам | 87 |
+| Files in archive | 407 |
+| Markdown documents | 133 |
+| Documents selected for requirement extraction | 49 |
+| Extracted requirement items | 764 |
+| Source files covered by analysis | 128 |
+| Source lines reviewed programmatically | 23 258 |
+| Test files | 91 |
+| Items without confident textual linkage to code | 174 |
+| Items without confident textual linkage to tests | 87 |
 
-**Важно:** 174 и 87 — не количество обнаруженных недоделок. Это количество пунктов, для которых автоматическое сопоставление не нашло достаточно убедительных совпадений. Их необходимо проверить вручную.
+**Important:** 174 and 87 are not the number of discovered defects. They are the number of items for which automatic matching found insufficiently convincing matches. They must be verified manually.
 
-## 2. Подготовленные файлы
+## 2. Prepared artefacts
 
-**Матрица требований:**
-Матрица ТЗ → код → тест → результат → риск («bf_v40_requirements_matrix.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
-В ней 764 строки. Для каждого выделенного пункта указаны исходное требование, документ и номер строки, предполагаемые участки кода, предполагаемые тесты и степень подтверждения.
-Пока соответствия помечены как предварительные, а не как PASS.
+**Requirements matrix:**
+TZ → code → test → result → risk matrix («bf_v40_requirements_matrix.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
+It contains 764 rows. For each extracted item the original requirement, document and line number, presumed code locations, presumed tests and degree of confirmation are recorded.
+Matches are still marked preliminary, not PASS.
 
-**Полный реестр файлов:**
-Реестр 407 файлов с SHA-256 («bf_v40_file_inventory.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
+**Full file inventory:**
+Registry of 407 files with SHA-256 («bf_v40_file_inventory.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
 
-**Результаты автоматического анализа исходников:**
-Найденные маркеры потенциальных проблем («bf_v40_code_flags.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
+**Automatic source-analysis results:**
+Markers of potential issues found («bf_v40_code_flags.csv», off-repo — see `docs/HISTORY_OFFREPO.md`)
 
-**Отчёт аудита:**
-Отчёт с выводами и незакрытыми вопросами («bf_v40_audit_report.md», off-repo — see `docs/HISTORY_OFFREPO.md`)
+**Audit report:**
+Report with conclusions and open questions («bf_v40_audit_report.md», off-repo — see `docs/HISTORY_OFFREPO.md`)
 
-**Отчёт этапа A:**
+**Stage A report:**
 bf_v40_stage_A_report.md (`bf_v40_stage_A_report.md`, off-repo — see `docs/HISTORY_OFFREPO.md`)
 
-## 3. Что удалось установить
+## 3. What has been established
 
-### Основная разработка выглядит завершённой
-Актуальный `docs/STATUS.md` не содержит нового обязательного этапа программирования после P47.
-Однако есть несколько моментов, которые пока не позволяют окончательно закрыть проект.
+### Core development appears complete
+The current `docs/STATUS.md` contains no new mandatory programming stage after P47.
+Several points nevertheless prevent final project closure.
 
-**Первый — QA1.**
-Техническое задание требует сквозной проверки совместной работы интерфейса, маршрутизации, промптов, механизмов повторной попытки и API.
-При этом `tests/qa1.test.mjs` прямо описан как офлайн-проверка исходников и отдельных модулей.
-Это не означает, что интеграционные тесты отсутствуют: часть проверок находится в других файлах. Но соответствие всех обязательных сценариев ещё не доказано.
+**First — QA1.**
+The technical specification requires end-to-end verification of the joint operation of the UI, routing, prompts, retry mechanisms and API.
+At the same time `tests/qa1.test.mjs` is explicitly described as an offline check of sources and individual modules.
+This does not mean integration tests are absent: some checks live in other files. Full coverage of all mandatory scenarios has not yet been demonstrated.
 
-**Второй — браузерные проверки.**
-Основной CI включает сборку, автоматические проверки и тесты PostgreSQL.
-Но зелёный основной CI сам по себе не подтверждает прохождение отдельного браузерного тестирования на том же коммите.
+**Second — browser checks.**
+`tests/ui-check.mjs` contains a fallback path that accepts the legacy `Start` screen when the Simple card is not found.
+This means the test is less strict about the new interface than desired.
+**This is a confirmed test weakness, not a proven defect of the interface itself.**
 
-**Третий — эксплуатационные проверки.**
-В документации остались незакрытые результаты для восстановления базы, отката, нагрузки и некоторых staging-сценариев.
-Это не обязательно требует программирования, но требует проверки.
+**Third — P47 deployment.**
+Source markers are PASS; production deployment is not confirmed by the owner’s log.
 
-**Четвёртый — реальные ответы AI.**
-Часть тестов проверяет структуру инструкций и ожидаемое поведение на подготовленных примерах.
-Фактическое поведение модели при многоходовом взаимодействии остаётся предметом приёмки.
+**Fourth — model behaviour.**
+QA1 primarily verifies instruction structure and expected behaviour on prepared examples.
+Actual multi-turn model behaviour remains a subject of acceptance.
 
-**Пятый — незакрытое продуктовое решение.**
-В `STATUS.md` остался вопрос о локализации подписей Export UX.
+**Fifth — open product decision.**
+`STATUS.md` still contains the Export UX localisation question.
 
-## 4. Текущий вердикт
+## 4. Current verdict
 
-| Область | Статус |
+| Area | Status |
 | :--- | :--- |
-| Основная плановая разработка | 🟢 Выглядит завершённой |
-| Наличие нового обязательного этапа кодирования | 🟢 Не обнаружено |
-| Полное соответствие всех ТЗ | 🟡 Не доказано |
-| Полнота автоматических тестов | 🟡 Требует дальнейшей проверки |
-| Критические ошибки кода | ⚪ Не подтверждены |
-| QA1 и MANUAL1 | 🟡 Не закрыты документально |
-| Готовность завершить программирование | 🟡 Предварительно да |
+| Core planned development | 🟢 Appears complete |
+| Presence of a new mandatory coding stage | 🟢 None detected |
+| Full compliance with all TZs | 🟡 Not proven |
+| Completeness of automated tests | 🟡 Requires further verification |
+| Critical code defects | ⚪ Not confirmed |
+| QA1 and MANUAL1 | 🟡 Not closed documentarily |
+| Readiness to finish programming | 🟡 Provisionally yes |
 
-### Что ещё необходимо сделать для окончательного заключения
-Следующий этап аудита — **ручная семантическая проверка 764 выделенных требований**, дополненная требованиями из документов, не попавших в автоматическое извлечение.
-Для каждого требования необходимо проверить не просто наличие похожего кода, а реальную цепочку выполнения, обработку ошибок, ограничения безопасности и конкретные утверждения тестов.
-Также требуется воспроизводимый запуск проверок и анализ их результатов.
+### What still needs to be done for a final conclusion
+The next audit stage is **manual semantic verification of the 764 extracted requirements**, supplemented by requirements from documents that were not covered by automatic extraction.
+For each requirement it is necessary to verify not merely the presence of similar code, but the real execution chain, error handling, safety constraints and concrete test assertions.
+A reproducible run of the checks and analysis of their results is also required.
 
-**Главное:** на текущем этапе не найдено доказанной забытой программной задачи. Но и утверждать, что все ТЗ полностью реализованы, было бы преждевременно.
+**Key point:** at the present stage no proven forgotten programming task has been found. Claiming that every TZ is fully implemented would nevertheless be premature.
+
 –
-По результатам предварительного аудита `bf-v40` оставшиеся задачи разделены на три группы.
+According to the preliminary audit of `bf-v40` the remaining tasks fall into three groups.
 
-## 🟢 1. Полностью автоматизируемые задачи
-ИИ Ассистент может выполнить их самостоятельно, без участия Навигатора после запуска.
+## 🟢 1. Fully automatable tasks
+The AI Assistant can perform them independently, without Navigator participation after launch.
 
-| № | Задача | Что сделает ИИ | Нужен ли Навигатор |
+| # | Task | What the AI will do | Navigator needed? |
 | :- | :--- | :--- | :--- |
-| 1 | Проверка всех 764 пунктов матрицы | Сопоставит требования с реализацией и тестами | Нет |
-| 2 | Семантический анализ исходников | Проверит логику, обработку ошибок и граничные случаи | Нет |
-| 3 | Анализ 174 неподтверждённых требований | Найдёт реализацию или подтвердит отсутствие | Нет |
-| 4 | Анализ 87 требований без тестов | Определит пробелы в тестировании | Нет |
-| 5 | Проверка исторических TODO | Установит, какие задачи действительно остались | Нет |
-| 6 | Анализ безопасности | Проверит авторизацию, API, секреты, ограничения доступа | Нет |
-| 7 | Проверка миграций PostgreSQL | Проверит согласованность схемы и миграций | Нет |
-| 8 | Анализ тестового покрытия | Определит непроверенные ветки | Нет |
-| 9 | Проверка соответствия QA1 техническому заданию | Сопоставит сценарии с тестами | Нет |
-| 10 | Проверка документации | Найдёт противоречия и устаревшие статусы | Нет |
-| 11 | Формирование окончательного реестра дефектов | Разделит реальные ошибки и ложные срабатывания | Нет |
-| 12 | Подготовка финального отчёта | Создаст заключение о готовности проекта | Нет |
+| 1 | Verification of all 764 matrix items | Match requirements to implementation and tests | No |
+| 2 | Semantic analysis of sources | Check logic, error handling and edge cases | No |
+| 3 | Analysis of 174 unconfirmed requirements | Locate implementation or confirm absence | No |
+| 4 | Analysis of 87 requirements without tests | Identify test gaps | No |
+| 5 | Review of historical TODOs | Determine which tasks truly remain | No |
+| 6 | Security analysis | Check authorisation, API, secrets, access limits | No |
+| 7 | PostgreSQL migration check | Verify schema/migration consistency | No |
+| 8 | Test-coverage analysis | Identify untested branches | No |
+| 9 | QA1 vs technical specification compliance | Match scenarios to tests | No |
+| 10 | Documentation check | Find contradictions and stale statuses | No |
+| 11 | Final defect registry | Separate real defects from false positives | No |
+| 12 | Preparation of final report | Produce readiness conclusion | No |
 
-**Все 12 задач можно запустить одним заданием.**
-При этом результат анализа ИИ следует подтверждать тестами: даже подробный автоматический аудит не гарантирует отсутствие дефектов.
+**All 12 tasks can be launched as a single assignment.**
+The AI analysis result should still be confirmed by tests: even a detailed automatic audit does not guarantee the absence of defects.
 
 ---
 
-## 🟡 2. Автоматизируемые задачи, требующие разрешений или доступов
-Здесь ИИ может самостоятельно выполнять работу, но ему потребуется соответствующая среда.
+## 🟡 2. Automatable tasks that require permissions or access
+Here the AI can work autonomously, but needs the appropriate environment.
 
-| № | Задача | Что необходимо от тебя |
+| # | Task | What is required from you |
 | :- | :--- | :--- |
-| 13 | Запуск полного CI | Доступ к окружению выполнения |
-| 14 | Запуск браузерных E2E-тестов | Браузерное окружение |
-| 15 | Запуск PostgreSQL-тестов | Тестовая база данных |
-| 16 | Проверка реальных AI API | Тестовые API-ключи и лимит расходов |
-| 17 | Проверка GitHub-интеграции | Тестовый репозиторий и разрешения |
-| 18 | Проверка Google Drive | Тестовый аккаунт |
-| 19 | Развёртывание P47 | Доступ к staging |
-| 20 | Проверка восстановления БД | Разрешение работать с тестовыми резервными копиями |
-| 21 | Проверка отката версии | Разрешение на rollback в staging |
-| 22 | Нагрузочное тестирование | Тестовое окружение и лимиты нагрузки |
-| 23 | Исправление обнаруженных ошибок | Разрешение изменять исходный код |
-| 24 | Добавление недостающих тестов | Разрешение изменять тесты |
-| 25 | Повторный запуск CI после исправлений | Доступ к CI |
-| 26 | Подготовка итогового коммита | Разрешение на запись в репозиторий |
+| 13 | Full CI run | Execution environment access |
+| 14 | Browser E2E tests | Browser environment |
+| 15 | PostgreSQL tests | Test database |
+| 16 | Real AI API checks | Test API keys and spend limit |
+| 17 | GitHub integration check | Test repository and permissions |
+| 18 | Google Drive check | Test account |
+| 19 | P47 deployment | Staging access |
+| 20 | Database restore check | Permission to work with test backups |
+| 21 | Version rollback check | Rollback permission on staging |
+| 22 | Load testing | Test environment and load limits |
+| 23 | Fixing discovered defects | Permission to change source code |
+| 24 | Adding missing tests | Permission to change tests |
+| 25 | Re-running CI after fixes | CI access |
+| 26 | Preparing the final commit | Write permission to the repository |
 
-**Эти задачи тоже могут выполняться автоматически**, если ассистент имеет необходимые инструменты и доступы.
-Я бы не предоставлял ИИ неограниченный доступ к production. Для большинства проверок достаточно изолированного staging.
+**These tasks can also run automatically** once the assistant has the necessary tools and access.
+Unlimited production access should not be granted to the AI. An isolated staging environment is sufficient for most checks.
 
 ---
 
-## 🔴 3. Задачи, которые остаются за Навигатором
+## 🔴 3. Tasks that remain with the Navigator
 
-| № | Решение | Почему необходимо твоё участие |
+| # | Decision | Why your participation is required |
 | :- | :--- | :--- |
-| 27 | Утверждение окончательного UX | Только Навигатор определяет, соответствует ли продукт ожиданиям |
-| 28 | Решение о локализации Export UX | Это продуктовое решение |
-| 29 | Разрешение GitHub write | Требуется решение о допустимых полномочиях |
-| 30 | Разрешение server execution | Требуется решение о безопасности |
-| 31 | Финальная приёмка MANUAL1 | Необходимо подтверждение |
-| 32 | Разрешение production-релиза | Финальное решение владельца-навигатора |
-
-Даже MANUAL1 можно частично автоматизировать: ИИ пройдёт пользовательские сценарии, соберёт скриншоты, логи и результаты. Навигатор оценит спорные моменты и утвердит итог.
+| 27 | Final UX approval | Only the Navigator decides whether the product meets expectations |
+| 28 | Export UX localisation decision | This is a product decision |
+| 29 | GitHub write permission | Decision on acceptable powers is required |
+| 30 | Server execution permission | Safety decision is required |
+| 31 | Final MANUAL1 acceptance | Owner confirmation of multi-turn quality is required |
+| 32 | Final project closure | Owner signature is required |
 
 ---
 
-# Этапы завершения BiForge
+## Recommended sequence of stages
 
-### Этап A — окончательный технический аудит
-**Полностью автономный. Без изменения кода.**
-ИИ проверяет все требования, исходники, тесты и документацию.
-На выходе:
-* Полная матрица соответствия ТЗ.
-* Список подтверждённых дефектов.
-* Список действительно отсутствующих функций.
-* Список недостающих тестов.
-* Список исключительно продуктовых решений.
-* Заключение о завершённости разработки.
+### Stage A — independent technical audit
+**Fully autonomous. No code changes.**
+The AI examines all requirements, sources, tests and documentation.
+Output:
+* Complete TZ compliance matrix.
+* List of confirmed defects.
+* List of truly missing functions.
+* List of missing tests.
+* List of purely product decisions.
+* Conclusion on development completeness.
 
-### Этап B — автоматическое техническое закрытие
-**Автономный после разрешения владельца изменять код.**
-ИИ устраняет подтверждённые ошибки, добавляет тесты, запускает проверки и обновляет документацию.
-Каждое исправление должно быть связано с конкретным требованием ТЗ.
-Важно: не следует добавлять новые функции только потому, что они кажутся полезными. Цель — завершить согласованный объём работ, а не расширять проект.
+### Stage B — automatic technical closure
+**Autonomous after owner permission to change code.**
+The AI eliminates confirmed defects, adds tests, runs checks and updates documentation.
+Every fix must be linked to a concrete TZ requirement.
+Important: new features must not be added merely because they appear useful. The goal is to finish the agreed scope, not to expand the project.
 
-### Этап C — автоматизированная приёмка
-ИИ выполняет доступные интеграционные, браузерные, эксплуатационные и регрессионные проверки.
-На выходе формируется финальный отчёт:
+### Stage C — automated acceptance
+The AI performs the available integration, browser, operational and regression checks.
+Output is a final report:
 
-| Категория | Требуемый результат |
+| Category | Required result |
 | :--- | :--- |
-| Обязательные требования | Все реализованы или явно согласованы исключения |
-| Подтверждённые дефекты | Нет незакрытых блокирующих |
-| Автоматические тесты | PASS |
-| Интеграционные тесты | PASS либо документированные ограничения |
-| Безопасность | Нет известных блокирующих проблем |
-| Документация | Соответствует текущему коду |
-| Ручные решения | Отдельный короткий список |
+| Mandatory requirements | All implemented or exceptions explicitly agreed |
+| Confirmed defects | No open blockers |
+| Automated tests | PASS |
+| Integration tests | PASS or documented limitations |
+| Security | No known blocking issues |
+| Documentation | Matches current code |
+| Manual decisions | Separate short list |
 
-После этого владельцу останется принять продукт.
+After that the owner only needs to accept the product.
 
 ---
 
-## Рекомендация
-**Не переходить сразу к исправлениям.**
-Сначала нужно завершить этап A, поскольку текущие 174 неподтверждённых требования и 87 пунктов без уверенной привязки к тестам ещё не доказаны как реальные проблемы.
-Иначе есть риск начать исправлять то, что уже работает.
+## Recommendation
+**Do not move straight to fixes.**
+Stage A must be finished first, because the current 174 unconfirmed requirements and 87 items without confident test linkage have not yet been proven to be real problems.
+Otherwise there is a risk of “fixing” things that already work.
 
-**Итог:** из 32 перечисленных направлений 26 можно поручить ИИ полностью или при наличии соответствующих доступов. Шесть требуют решения или утверждения владельцем.
-Это не означает, что все 26 направлений обязательно содержат незавершённую работу: многие являются проверками, которые могут закончиться результатом PASS.
+**Summary:** of the 32 listed directions, 26 can be delegated to the AI fully or once the corresponding access is granted. Six require an owner decision or approval.
+This does not mean that all 26 directions necessarily contain unfinished work: many are checks that may conclude with PASS.
+
 –
-**этап A — независимый технический аудит BiForge v40**. Исходный код не изменялся.
-Проверены актуальные планы, техническая документация, последние этапы P44–P47, конфигурация CI, тесты QA1 и браузерные проверки. Также использована ранее составленную матрицу из 764 пунктов.
+**Stage A — independent technical audit of BiForge v40**. Source code was not modified.
+Current plans, technical documentation, latest stages P44–P47, CI configuration, QA1 tests and browser checks were examined. The previously compiled 764-item matrix was also used.
 
-## 1. Первые результаты
-**Обязательной функции, которая точно отсутствует в коде, пока не обнаружено.**
-Однако выявлены пробелы в подтверждении готовности проекта.
+## 1. First results
+**No mandatory function that is demonstrably absent from the code has been found so far.**
+Gaps in readiness confirmation have nevertheless been identified.
 
-| № | Область | Результат | Требуется программирование? |
+| # | Area | Result | Coding required? |
 | :- | :--- | :--- | :--- |
-| 1 | QA1 | Сквозное покрытие не доказано | Возможно, дополнительные тесты |
-| 2 | UI1 | Браузерный тест допускает старый стартовый экран | Желательно усилить тест |
-| 3 | P47 | Исходники отмечены PASS, развёртывание не подтверждено | Нет |
-| 4 | CI | Конфигурация проверена, результаты конкретного коммита не получены | Нет |
-| 5 | MANUAL1 | Приёмка владельца не завершена | Нет |
-| 6 | Документация | Финальное закрытие инициативы ожидает приёмки | Нет |
-| 7 | Старые RM-задачи | Не все автоматически считаются закрытыми | Требуется сверка |
-| 8 | Export UX | Остался вопрос локализации | Только после твоего решения |
+| 1 | QA1 | End-to-end coverage not proven | Possibly additional tests |
+| 2 | UI1 | Browser test tolerates legacy start screen | Strengthening the test is desirable |
+| 3 | P47 | Sources marked PASS, deployment not confirmed | No |
+| 4 | CI | Configuration checked, results for a concrete commit not obtained | No |
+| 5 | MANUAL1 | Owner acceptance not finished | No |
+| 6 | Documentation | Final initiative closure awaits acceptance | No |
+| 7 | Old RM tasks | Not all automatically treated as closed | Reconciliation required |
+| 8 | Export UX | Localisation question remains | Only after your decision |
 
-### 2. Запущенные проверки
-Удалось выполнить локально:
-* **14 из 14 тестов — PASS** (P41, P43, проверка версии).
-* **Проверка документации — PASS** (113 Markdown-файлов, 406 ссылок на пути).
+### 2. Checks executed
+Locally it was possible to run:
+* **14 of 14 tests — PASS** (P41, P43, version check).
+* **Documentation check — PASS** (113 Markdown files, 406 path links).
 
-Полный CI, PostgreSQL, браузерные тесты и интеграции с реальными AI-провайдерами в этой среде не запускались.
+Full CI, PostgreSQL, browser tests and integrations with real AI providers were not run in this environment.
 
-### 3. Важное обнаружение
-В `tests/ui-check.mjs` есть резервный путь, допускающий старый экран `Start`, если карточка Simple не найдена.
-Это означает, что тест не настолько строго проверяет новый интерфейс, насколько хотелось бы.
-**Это подтверждённая слабость теста, но не доказанная ошибка самого интерфейса.**
+### 3. Important finding
+`tests/ui-check.mjs` contains a fallback path that accepts the legacy `Start` screen when the Simple card is not found.
+This means the test is less strict about the new interface than desired.
+**This is a confirmed test weakness, not a proven defect of the interface itself.**
 
-Также `tests/qa1.test.mjs` проверяет часть требований по наличию конструкций в исходном коде. Такие проверки полезны, но не заменяют тестирования всей цепочки выполнения.
+`tests/qa1.test.mjs` also verifies some requirements by the presence of constructs in the source code. Such checks are useful but do not replace testing the full execution chain.
 
-## 4. Отчёт этапа A
-Подготовлен документ с конкретными доказательствами, ссылками на файлы и оставшимися рисками.
-**Отчёт этапа A (bf_v40_stage_A_report.md)**
+## 4. Stage A report
+A document with concrete evidence, file references and remaining risks has been prepared.
+**Stage A report (bf_v40_stage_A_report.md)**
 
-Дополнительно:
-* Результаты выполненных тестов (stageA_tests.log)
-* Результаты проверки документации (stageA_docs.log)
-* Предварительная матрица 764 пунктов (bf_v40_requirements_matrix.csv)
+Additionally:
+* Results of the executed tests (stageA_tests.log)
+* Results of the documentation check (stageA_docs.log)
+* Preliminary 764-item matrix (bf_v40_requirements_matrix.csv)
 
 ---
 
-## 5. Текущий вывод
-**Этап A ещё не завершён полностью.**
-Этап не обозначается как PASS, пока не выполнена семантическая проверка каждого действующего требования. Предыдущая матрица содержит в том числе исторические требования и пункты *Out of scope*, которые необходимо отделить от обязательств текущей версии.
+## 5. Current conclusion
+**Stage A is not yet fully complete.**
+The stage is not marked PASS until a semantic check of every active requirement has been performed. The previous matrix still contains historical requirements and *Out of scope* items that must be separated from the obligations of the current version.
 
-На данный момент:
-🟢 Плановая разработка выглядит завершённой.
-🟢 Новых обязательных функций пока не выявлено.
-🟡 Полнота QA1 требует дополнительного подтверждения.
-🟡 Остались эксплуатационные проверки.
-🟡 Полное соответствие всех ТЗ ещё не доказано.
+At present:
+🟢 Planned development appears complete.
+🟢 No new mandatory functions have been identified.
+🟡 Completeness of QA1 requires additional confirmation.
+🟡 Operational checks remain.
+🟡 Full compliance with all TZs has not yet been proven.
 
-**Предварительный вывод: BiForge, вероятно, находится на этапе завершения тестирования и приёмки, а не активной разработки.** Но окончательно утверждать это до завершения аудита нельзя.
+**Provisional conclusion: BiForge is probably at the stage of finishing testing and acceptance rather than active development.** A definitive claim cannot be made until the audit is finished.
+
 –
-Продолжение **этап A — полный технический аудит BiForge v40**.
-С этого момента после каждого этапа A, B и C, включая промежуточные результаты незавершённых этапов, готовится информационный патч для внесения результатов в проект.
+Continuation of **Stage A — full technical audit of BiForge v40**.
+From this point onward, after every Stage A, B and C (including intermediate results of unfinished stages) an informational patch is prepared for incorporation of the results into the project.
 
-## 📦 Первый информационный патч готов
-Патч подготовлен на основе `bf-v40.zip` и содержит два обновлённых файла:
+## 📦 First informational patch ready
+The patch was prepared on the basis of `bf-v40.zip` and contains two updated files:
 
-| Файл | Изменение |
+| File | Change |
 | :--- | :--- |
-| `docs/STATUS.md` | Добавлен текущий статус аудита, выполненные проверки и ограничения |
-| `docs/PATCH_JOURNAL.md` | Добавлена подробная запись AUDIT-A1 о проведённых работах |
+| `docs/STATUS.md` | Current audit status, executed checks and limitations added |
+| `docs/PATCH_JOURNAL.md` | Detailed AUDIT-A1 entry about the work performed added |
 
-Патч не изменяет исходный код, тесты, продуктовую версию или настройки приложения.
+The patch does not change source code, tests, product version or application settings.
 
-## Результаты продолжения проверки
-Повторно выполнены доступные локальные проверки:
+## Results of continued verification
+Available local checks were re-executed:
 
-| Проверка | Результат |
+| Check | Result |
 | :--- | :--- |
 | P41 UI1 | PASS |
 | P43 RM-C3 | PASS |
 | Version checks | PASS |
-| Всего автоматических тестов | **14/14 PASS** |
-| Проверка документации | **PASS** |
-| Markdown-файлов проверено | 113 |
-| Ссылок на пути проверено | 406 |
+| Total automated tests | **14/14 PASS** |
+| Documentation check | **PASS** |
+| Markdown files checked | 113 |
+| Path links checked | 406 |
 
-Дополнительно проверены правила ведения документации в `AGENTS.md`.
-Важный момент: проект запрещает создавать параллельные журналы и дополнительные Markdown-файлы без необходимости. Поэтому результаты аудита внесены в существующие документы.
+Documentation rules in `AGENTS.md` were also examined.
+Important point: the project forbids creating parallel journals and extra Markdown files without necessity. Audit results were therefore written into the existing documents.
 
-### Текущий статус этапов
+### Current stage status
 
-| Этап | Статус | Комментарий |
+| Stage | Status | Comment |
 | :--- | :--- | :--- |
-| A — технический аудит | 🟡 IN PROGRESS | Продолжается проверка соответствия ТЗ |
-| B — исправления | ⚪ NOT STARTED | Пока не разрешены |
-| C — автоматизированная приёмка | ⚪ NOT STARTED | Пока не начата |
+| A — technical audit | 🟡 IN PROGRESS | TZ compliance check continues |
+| B — fixes | ⚪ NOT STARTED | Not yet authorised |
+| C — automated acceptance | ⚪ NOT STARTED | Not yet started |
 
-### Что ещё осталось проверить в этапе A
-1. Отделить действующие требования от исторических и отменённых.
-2. Проверить семантическое соответствие каждого действующего требования исходному коду.
-3. Проверить реальные утверждения тестов, а не только их наличие.
-4. Установить, существуют ли забытые обязательные функции.
-5. Проверить оставшиеся вопросы безопасности и интеграций.
-6. Составить окончательный список подтверждённых недоработок.
+### What still remains to be checked in Stage A
+1. Separate active requirements from historical and cancelled ones.
+2. Verify semantic compliance of every active requirement with the source code.
+3. Verify real test assertions, not merely their presence.
+4. Establish whether forgotten mandatory functions exist.
+5. Check remaining security and integration questions.
+6. Compile the final list of confirmed shortcomings.
 
-**Пока подтверждённых отсутствующих обязательных функций нет.** Это предварительный результат, а не окончательное заключение.
-Полный CI, PostgreSQL, браузерные E2E, реальные AI API и staging-проверки в этой итерации не запускались.
+**No confirmed missing mandatory functions have been found so far.** This is a preliminary result, not a final conclusion.
+Full CI, PostgreSQL, browser E2E, real AI APIs and staging checks were not run in this iteration.
 
-## Следующие патчи
-Предлагаю использовать отдельную нумерацию:
-* `AUDIT-A1`, `AUDIT-A2` и далее — результаты технического аудита.
-* `AUDIT-B1` и далее — результаты исправлений.
-* `AUDIT-C1` и далее — результаты автоматизированной приёмки.
-
-Это позволит не увеличивать продуктовую версию BiForge только из-за информационных обновлений.
-После каждого существенного блока проверок готовится ZIP с обновлёнными документами и, при необходимости, прикладываются подробные таблицы и отчёты отдельно.
-
-**Текущий результат:** первый информационный патч готов и проверен. Этап A остаётся незавершённым. Следующая работа — детальная проверка требований и поиск действительно пропущенных задач.
-
----
-
-## AUDIT-A2 (2026-10-16) — продолжение этапа A
-
-**Режим:** read-only по продукту; исправлены только битые ссылки в этом файле (sandbox: → `ARCHIVE/…`), чтобы `check:docs` проходил. Код, тесты, версия продукта и runtime **не** менялись.
-
-### Повторно выполненные проверки
-
-| Проверка | Результат |
-| :--- | :--- |
-| `node --test tests/p41-ui1.test.mjs tests/p43-rm-c3.test.mjs tests/version-check.test.mjs` | **14/14 PASS** |
-| `node --experimental-strip-types --test tests/qa1.test.mjs` | **12/12 PASS** (offline source + pure modules) |
-| `node scripts/check-docs.mjs` (после фикса ссылок) | **PASS** (ранее 4 FAIL из-за sandbox: ссылок) |
-| Полный `npm ci` / `npm run check` / `npm run build` / Playwright / PostgreSQL / live AI | **NOT_RUN** (нет `node_modules`, нет разрешения на install/секреты) |
-
-### Семантические подтверждения (выборка)
-
-1. **P47 (source):** в `src/App.tsx` кнопки Expert/Simple убраны из шапки; переключение режимов и «Mode selection» — только через More (`data-testid="change-mode"`, Switch to Expert/Simple). Стартовые карточки `start-mode-simple|expert|project` на месте; Project disabled при `!projectModeEnabled`. Тесты p41 подтверждают контракт.
-2. **QA1 offline:** классификация information/decision/research/engineering, mode paragraph без decision-ритуалов, intentFlags/soft-fail/retry wired, EXPERT_STEP_PREFIX, ANALYST_INSTRUCTION, honesty, UI1 start-screen, triage — **PASS**. Это не полный сквозной runtime с фейковым провайдером (A-01 остаётся).
-3. **ui-check.mjs:** fallback на legacy `Start` при отсутствии карточки Simple **сохранён** (слабость оракула; не доказанный баг UI).
-4. **Матрица 764:** по-прежнему содержит Out-of-scope (R0001…) и исторические пункты; нормализация «действует / out-of-scope / отменено / owner decision» **не завершена** (требует объёма работы). 174/87 — не баг-репорт.
-5. **Операционные RM (P25 и др.):** RM-B4, RM-E2/E4/E5/E6 остаются NOT_RUN/PARTIAL по отчётам; не закрывать только по CI.
-
-### Новые / подтверждённые находки
-
-| ID | Критичность | Факт | Действие |
-|---|---|---|---|
-| A-09 | Низкая (docs) | `BiForge_Audit.md` содержал 4 ссылки `sandbox:/mnt/data/…`, ломавшие `check:docs` | **Исправлено** в этом патче (относительные пути `ARCHIVE/`) |
-| A-01…A-08 | без изменений | см. `bf_v40_stage_A_report.md` (off-repo) | остаются |
-
-### Статус этапов
-
-| Этап | Статус | Комментарий |
-| :--- | :--- | :--- |
-| A — технический аудит | 🟡 IN PROGRESS / PARTIAL | A2: offline QA1 PASS, P47 source confirmed, doc links fixed; полная нормализация ТЗ и CI-артефакты ещё впереди |
-| B — исправления | ⚪ NOT STARTED | Нужна команда владельца |
-| C — автоматизированная приёмка | ⚪ NOT STARTED | Нужны доступы (CI, browser, staging) |
-
-### Что нужно от владельца (сразу)
-
-1. **Разрешение** на `npm ci` + полный `npm run check` / `build` / `test:ui` в этой среде (или предоставить логи CI + Playwright для текущего SHA).
-2. **Deploy P47** и/или артефакты staging — по STATUS §2.
-3. **Решение:** Export UX — локализация подписей? (STATUS §4).
-4. **Не** начинать этап B (правки кода/тестов) без отдельной команды и подтверждённого дефекта.
-5. После MANUAL1 — обновить CURRENT_STATE / PATCH_JOURNAL / CHANGELOG (по MASTER § «Закрытие инициативы»).
-
-**Вывод A2:** новых обязательных отсутствующих функций не найдено. Плановая разработка по-прежнему выглядит завершённой; блокер — доказательства приёмки (QA1 end-to-end, deploy, MANUAL1, RM-ops) и owner-gated решения. Этап A **не** закрыт.
-
----
-
-## AUDIT-A3 (2026-10-16) — CI logs + продолжение этапа A
-
-**Источник логов:** `logs_105299845117.zip` (GitHub Actions job `check-and-build`, repo `ecooorg/bf`, branch main, ~2026-10-16T05:27–05:31 UTC).  
-**Режим:** анализ артефактов CI + docs; продукт/тесты/runtime **не** менялись.
-
-### Результат CI (авторитетный)
-
-| Стадия | Результат |
-| :--- | :--- |
-| Independent checks (`run-independent-checks`) | **64 PASS, 1 FAIL** |
-| Первый FAIL | `test:p13a` — *the real repository passes the preflight (no false positives)* |
-| Live PostgreSQL contracts | **66/66 PASS** |
-| Project Mode API security (`test:bx06:api`) | **1/1 PASS** |
-| Build (`vite` + `tsc` server) | **PASS** |
-| Gitleaks | **no leaks** |
-| Итог job | **CI RED** — `CI: red. First failed: the real repository passes the preflight (no false positives)` |
-
-### Подтверждённый дефект A-10 (блокирует CI)
-
-```
-AUDIT/bf_v40_audit_report.md: new or wrapper top-level folder "AUDIT" (the structure is flat)
-AUDIT/bf_v40_code_flags.csv: ...
-AUDIT/bf_v40_file_inventory.csv: ...
-AUDIT/bf_v40_requirements_matrix.csv: ...
-AUDIT/bf_v40_stage_A_report.md: ...
-```
-
-- Тест: `tests/p13a-acceptance.test.mjs` subtest «the real repository passes the preflight».
-- Правило: репозиторий не должен содержать **новых top-level** папок вне допустимой плоской структуры.
-- `ARCHIVE/`, `CONCEPTS/`, `docs/` уже существуют и не вызывают FAIL; **`ARCHIVE/`** — новый top-level и ломает preflight.
-- **Исправление (этап B):** перенести содержимое в `ARCHIVE/` (плоско, без вложенной папки), обновить ссылки в `docs/BiForge_Audit.md`, прогнать `test:p13a` + CI. **Без команды владельца не выполняется.**
-
-### Решения владельца, зафиксированные в A3
-
-| Вопрос | Решение |
-| :--- | :--- |
-| Export UX локализация | **Оставить EN** до отдельного патча (закрыто) |
-| npm ci / прогоны | Разрешено; в этой среде Node v24 vs engine `>=22.12 <23` → полный local `npm ci` **PARTIAL**; авторитет — CI logs |
-
-### Локальные прогоны A3
-
-| Проверка | Результат |
-| :--- | :--- |
-| p41 + p43 + version | **14/14 PASS** (A2) |
-| qa1 offline | **12/12 PASS** |
-| check-docs | **PASS** |
-| npm ci (Node 24) | **PARTIAL** (engine mismatch; install не стабилизирован) |
-| test:ui / Playwright | **NOT_RUN** |
-| Полный `npm run check` локально | **NOT_RUN** |
-
-### Статус этапов
-
-| Этап | Статус |
-| :--- | :--- |
-| A — технический аудит | 🟡 PARTIAL — CI разобран; A-10 подтверждён |
-| B — исправления | ⚪ NOT STARTED — ждать команду на B-AUDIT (перенос `ARCHIVE/`) |
-| C — приёмка | ⚪ NOT STARTED — deploy + MANUAL1 |
-
-### Что нужно от владельца сейчас
-
-1. **Команда на B-AUDIT?** «перенеси audit-артефакты в `ARCHIVE/` (плоско) и почини ссылки» — единственный подтверждённый блокер CI.
-2. **Deploy P47** на staging.
-3. После зелёного CI + deploy — **MANUAL1**.
-
-**Вывод A3:** продукт по функциональности режимов выглядит завершённым; **CI красный из-за артефактов аудита в top-level `ARCHIVE/`**. Это не регресс продуктового кода P47, а нарушение контракта поставки/preflight. Этап A не закрыт до решения по A-10.
-
----
-
-## B-AUDIT (2026-10-16) — выполнен
-
-**Команда владельца:** перенести audit-артефакты в `ARCHIVE/` (плоско), починить ссылки, цель CI green; синхронизировать версию с правилом AGENTS.
-
-| Действие | Результат |
-| :--- | :--- |
-| `AUDIT/*` → `ARCHIVE/` (плоско) | **Done**; top-level `AUDIT/` и `docs/AUDIT/` отсутствуют |
-| Ссылки в `BiForge_Audit.md` | `ARCHIVE/…` (внутри `docs/`) |
-| Version 40 → **47** | `src/config.ts`, `package.json`, lock, README, DEPLOY_RAILWAY, `## v47` CHANGELOG_AGENT_BEHAVIOR |
-| `check-version.mjs` | **OK: 47** |
-| `version-check` tests | **PASS** |
-| `check-docs` | **PASS** |
-| `test:p13a` full | NOT_RUN locally (deps); preflight structure condition satisfied |
-
-**Вывод:** A-10 закрыт структурно. CI green — подтвердить логом после upload. Версия снова = номер патча (47).
-
----
-
-## B-AUDIT.2 (2026-10-16) — preflight depth fix
-
-CI после B-AUDIT всё ещё RED: `docs/AUDIT/*` = **nested folder** (preflight допускает только `docs/<file>`, не `docs/<subdir>/<file>`; исключения — `.github/workflows/*` и `src/workspace/*`).
-
-| Действие | Результат |
-| :--- | :--- |
-| `docs/AUDIT/*` → ARCHIVE then **off-repo** (owner disk) | **Done** |
-| Ссылки | off-repo artifacts; `docs/HISTORY_OFFREPO.md` |
-| Ожидание | `test:p13a` preflight empty violations |
-
-Правило (`scripts/patch-tools.mjs`): пути глубины ≥3 запрещены, кроме whitelist. Audit-артефакты живут в `ARCHIVE/`, не в подпапках `docs/`.
+## Subsequent patches
+I propose using a separate numbering:

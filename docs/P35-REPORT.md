@@ -2,7 +2,7 @@
 
 ## Implemented
 
-- Added `src/workspace/extract.ts`: a unified FileContentExtractor for PDF (`unpdf`), DOCX/XLSX/PPTX (`jszip` + XML), CSV/TSV, JSON и обычного текста.
+- Added `src/workspace/extract.ts`: a unified FileContentExtractor for PDF (`unpdf`), DOCX/XLSX/PPTX (`jszip` + XML), CSV/TSV, JSON and plain text.
 - Classification: ZIP files with a `.docx`, `.xlsx`, or `.pptx` extension are assigned class `office`.
 - `readWorkspaceFile` and `buildWorkspaceBlock` use the extractor; blocks are marked as DATA (D-07).
 - WorkspacePanel attachments and previews are built from extracted text; undecodable formats display accurate metadata.

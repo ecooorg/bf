@@ -104,7 +104,7 @@ Current pointer: **P27** (`docs/P27-SPEC.md`) until advanced in `CURRENT_STATE.m
 > Scenario source: `docs/MASTER_IMPLEMENTATION_PLAN.md` § MANUAL1.  
 > **Environment:** production `https://e-production-5cc8.up.railway.app` · commit `2bdd6ae96ce3` · version **47**.  
 > **What cannot be automated:** evaluating the substance of model responses, “useful guidance vs. a lecture,” Expert depth, and preservation of Project structure. The owner must assess these.  
-> Offline QA1 (12/12) и CI/structure have already been completed automatically; live multi-turn testing has not.
+> Offline QA1 (12/12) and CI/structure have already been completed automatically; live multi-turn testing has not.
 
 ### Before starting (2 minutes)
 

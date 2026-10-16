@@ -38,7 +38,7 @@ No new fields in the model JSON.
 ## PASS criteria
 
 - Machine: `npm run test:pi02`; `npm run test:pi01`; `node scripts/check-version.mjs`; `node scripts/check-docs.mjs`; `npm run check` (or the relevant subset); `npm run build` if feasible.
-- Owner on Railway after deploy: 1) `GET /health` shows version `PI-02`. 2) After «не задавай вопросы, просто дай» the visible reply has no follow-up question. 3) After a request for an approximate figure and a limitation-only draft, a retry path is used when multiple strong models are configured. 4) «Найди прогнозы в сети» yields `meta.search_expected === true` and no claim that a search was performed.
+- Owner on Railway after deploy: 1) `GET /health` shows version `PI-02`. 2) After "do not ask questions, just give" the visible reply has no follow-up question. 3) After a request for an approximate figure and a limitation-only draft, a retry path is used when multiple strong models are configured. 4) "Find forecasts on the web" yields `meta.search_expected === true` and no claim that a search was performed.
 
 ## Tests
 

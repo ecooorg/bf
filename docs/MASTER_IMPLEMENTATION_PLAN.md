@@ -1,257 +1,213 @@
-# BiForge — единый план реализации режимов Simple / Expert / Project
+# BiForge — Unified Implementation Plan for Simple / Expert / Project Modes
+
+> **Status:** approved roadmap; implementation has not yet started under this plan.  
+> **Date:** 14 October 2026.  
+> **Current baseline archive:** `bf-v27-p1.zip` (uploaded by the owner on 14 October 2026).  
+> **Current package:** documentation only. Coding may begin only after an explicit owner command.  
+> **Sole source of work sequence for this initiative:** this document.
 
-> **Статус:** утверждённая дорожная карта; реализация ещё не начата по этому плану.  
-> **Дата:** 14 октября 2026 г.  
-> **Текущий базовый архив:** `bf-v27-p1.zip` (загружен владельцем 14 октября 2026 г.).  
-> **Текущий пакет:** только документация. Начало кодирования — только после отдельной команды владельца.  
-> **Единственный источник последовательности работ по этой инициативе:** этот документ.
+## 1. Goal
+
+BiForge must offer the user three explicitly selectable operating modes and give each mode its own behavioural contract. Common rules for honesty, safety and data handling remain shared, but Simple must not inherit the heavy decision-engine framework required for Expert and Project.
+
+The plan organises the remaining work into a linear sequence: first model behaviour, then mode selection in the UI and propagation of the selected mode, then automated integration checks and manual acceptance. Regression tests are added at the corresponding development stages rather than deferred until the very end.
+
+## 2. Owner Decisions Already Taken
+
+The decisions below were approved by the owner on 14 October 2026 and do not require re-confirmation in subsequent sessions.
+
+1. **The user selects the mode on the start screen:** Simple, Expert or Project.
+2. **The selected mode is retained for the duration of the current interaction** and determines the instruction contract in use. The system must not automatically switch the user to another mode; if a request fits the chosen mode poorly, the assistant explains this and invites the user to switch, without changing the mode of its own accord.
+3. **Simple** is intended for general information, explanations, practical advice and decision support. A factual question must not automatically turn into a decision session.
+4. **Expert** is intended for deep problem analysis, assumption checking, discovery of non-obvious solutions and systematic risk consideration. It retains strictness and analytical depth.
+5. **Project** is intended for creating and running software, scientific and engineering projects: requirements, architecture, tasks, checks, artefacts and execution status.
+6. **Common core plus separate thin mode packages** is the target architecture. Only genuinely universal rules remain shared; a single compromise prompt that again subordinates Simple to Expert/Project rules is not permitted.
+7. **Simple distinguishes task type internally.** `information` is the light default when intent is unclear; `decision` is activated by explicit signals of choice or “what should I do / is it worth it” questions. `research` and `engineering` keep their specialised instructions.
+8. **Expert and Project are not weakened for the sake of Simple.** Any shared change must preserve their contracts and be covered by regression checks.
+9. **Documentation first, then code.** This package does not authorise coding. The next stage may start only after an explicit owner command.
+10. **Old technical specifications are no longer the current work queue for this initiative.** Their useful requirements and constraints have been transferred into this plan; the documents themselves remain as history / technical sources, not as parallel task plans. This does not imply that all code described in them has actually been implemented.
 
-## 1. Цель
+## 3. Terms and Boundaries
 
-BiForge должен предлагать пользователю три явно выбираемых режима работы и давать каждому режиму собственный поведенческий контракт. Общие правила честности, безопасности и обработки данных остаются общими, но Simple не должен наследовать тяжёлый decision-engine каркас, необходимый для Expert и Project.
+- **Product mode:** Simple / Expert / Project — selected by the user on the start screen.
+- **Simple task type:** `information` / `decision` / `research` / `engineering` — internal interpretation of a message inside Simple, not a substitute for the user-selected product mode.
+- **Common core:** universal requirements for honesty, response language, safety and treatment of user files.
+- **Mode behavioural package:** instructions about purpose, tone, process and criteria for a good answer in the chosen mode.
+- **MP1–MP3:** agreed stages for correcting Simple instructions. The names are retained from discussion; they are not a renaming of the historical PI-01…PI-03 or P27+.
 
-План организует остаток работы в линейную последовательность: сначала поведение модели, затем выбор режима в интерфейсе и передача выбранного режима, затем интеграционная автоматическая проверка и ручная приёмка. Регрессионные тесты добавляются в соответствующих этапах разработки, а не откладываются до самого конца.
+### In scope for this initiative
+
+- completion of the separation between shared rules and mode contracts;
+- correction of Simple behaviour on informational requests;
+- protection of Expert and Project against unintended behavioural change;
+- start-screen mode selection and propagation of the choice into the corresponding prompt/router;
+- automated regression and integration checks;
+- manual acceptance of the three modes.
+
+### Out of scope without a separate decision
 
-## 2. Принятые решения владельца
+- enabling live web search / external sources (this is a separate capability; absence of search must not be masked by a claim that a search was performed);
+- changing the model, provider or model cascade;
+- changing Project business logic, storage schemas, authorisation or workspace beyond what is necessary to propagate the selected mode;
+- modifying `tests/regression.json`;
+- introducing new production permissions, secrets or automatic deployment;
+- rewriting unrelated parts of the product.
+
+## 4. Reference Behaviour of the Three Modes
 
-Решения ниже утверждены владельцем 14 октября 2026 г. и не требуют повторного согласования в следующих сессиях.
+### 4.1 Simple — general information and advice
 
-1. **Пользователь выбирает режим на стартовом экране:** Simple, Expert или Project.
-2. **Выбранный режим сохраняется в рамках текущего взаимодействия** и определяет используемый контракт инструкций. Автоматически переводить пользователя в другой режим нельзя; если запрос плохо подходит выбранному режиму, помощник объясняет это и предлагает пользователю переключиться, не меняя режим самовольно.
-3. **Simple** предназначен для общей информации, объяснений, практических консультаций и помощи с решениями. Фактический вопрос не должен автоматически превращаться в decision-сессию.
-4. **Expert** предназначен для глубокого анализа проблем, проверки предположений, поиска неочевидных решений и систематического рассмотрения рисков. Он сохраняет строгость и аналитическую глубину.
-5. **Project** предназначен для создания и ведения программных, научных и инженерных проектов: требований, архитектуры, задач, проверок, артефактов и статуса исполнения.
-6. **Общее ядро плюс отдельные тонкие пакеты режимов** — целевая архитектура. Общими остаются только действительно универсальные правила; нельзя делать один компромиссный промпт, который снова подчиняет Simple правилам Expert/Project.
-7. **Simple внутри себя различает тип задачи.** `information` — лёгкий режим по умолчанию при неясном намерении; `decision` включается при явных сигналах выбора или вопроса «что делать / стоит ли». `research` и `engineering` сохраняют свои специализированные указания.
-8. **Expert и Project не ослабляются ради Simple.** Любое общее изменение должно сохранять их контракты и иметь регрессионные проверки.
-9. **Сначала документация, затем код.** Этот пакет не разрешает кодирование. Начать следующий этап можно только после отдельной команды владельца.
-10. **Старые ТЗ больше не являются очередью текущих работ по этой инициативе.** Их полезные требования и ограничения перенесены в этот план; сами документы сохраняются как история/технические источники, а не как параллельные планы задач. Это не означает, что весь описанный в них код фактически реализован.
+- Answer the substance first; embed a brief uncertainty caveat inside the answer rather than substituting it for the answer.
+- Explain in plain, natural language without methodological preambles, lecturing or repeated disclaimers.
+- Qualitative guidance, scenarios and approximate ranges are allowed when there is a reasonable basis and they are marked as estimates.
+- Invented numbers, citations, current data and claims about search/verification that did not occur are forbidden.
+- Do not argue with a constraint the user never stated (for example, do not attribute a requirement for an exact forecast to the request).
+- Do not turn an informational request into coaching or decide for the user; do not ask for goals without necessity.
+- For an explicit choice/decision request use the decision framework. When intent is unclear, prefer the light Simple interpretation rather than the heavy decision framework.
 
-## 3. Термины и границы
+### 4.2 Expert — deep analysis
 
-- **Режим продукта:** Simple / Expert / Project — выбирается пользователем на стартовом экране.
-- **Тип задачи Simple:** `information` / `decision` / `research` / `engineering` — внутренняя интерпретация сообщения внутри Simple, не замена выбранного пользователем режима продукта.
-- **Общее ядро:** универсальные требования к честности, языку ответа, безопасности и трактовке пользовательских файлов.
-- **Поведенческий пакет режима:** инструкции о цели, тоне, процессе и критериях хорошего ответа в выбранном режиме.
-- **MP1–MP3:** согласованные этапы исправления инструкций Simple. Имена сохранены из обсуждения; они не являются переименованием исторических PI-01…PI-03 или P27+.
+- Preserve structured analysis, checking of initial assumptions, alternative explanations, risks and non-obvious options.
+- Separate facts from hypotheses and point out significant data gaps.
+- Do not substitute the user’s decision with the assistant’s own choice.
+- Do not inherit Simple’s simplified tone where it would reduce analytical completeness.
 
-### Входит в эту инициативу
+### 4.3 Project — project design and execution
 
-- завершение разделения общих правил и режимных контрактов;
-- исправление поведения Simple на информационных запросах;
-- защита Expert и Project от непреднамеренного изменения поведения;
-- стартовый выбор режима и передача выбора в соответствующий prompt/router;
-- автоматические регрессионные и интеграционные проверки;
-- ручная приёмка трёх режимов.
+- Work in a project context: requirements, architecture, tasks, dependencies, tests, artefacts, state and next verifiable actions.
+- Preserve operational precision, safety and project constraints.
+- Do not degrade into an ordinary conversational Simple answer or weaken execution control.
 
-### Не входит без отдельного решения
+## 5. Architectural Contract
 
-- подключение live web search / внешних источников (это отдельная функциональность; отсутствие поиска нельзя маскировать утверждением, что поиск выполнялся);
-- смена модели, провайдера или каскада моделей;
-- изменение бизнес-логики Project, схем хранения, авторизации и workspace сверх необходимого для передачи выбранного режима;
-- изменение `tests/regression.json`;
-- включение новых production-разрешений, секретов или автоматического развёртывания;
-- переписывание несвязанных частей продукта.
+1. Extract a minimal common rule set into a shared core (planned file name: `server/promptCore.ts`, unless code inspection at MP2 reveals a more suitable existing location).
+2. Do not copy long universal instructions into every package; do not create three giant independent prompts.
+3. A mode package defines its own goal and working process. The common core must not contain the decision ritual as a mandatory format for every reply.
+4. Simple/information must not require STEP 0–6, SECOND TEST, WHAT THE PERSON SHOULD EXPERIENCE, BEFORE ANSWERING, outside-view/no-homework or other decision rituals that are unnecessary for an informational answer.
+5. The decision block remains without behavioural weakening; specialised research and engineering blocks are retained.
+6. Recognition of informational requests (“tell me”, “explain”, “suggest” and equivalents) is expanded; it must not rely solely on a question word at the beginning.
+7. When intent is unclear, use light Simple/information; activate `decision` only on explicit choice or decision signals.
+8. Verify the JSON contract and all consumers. For information, fields `gain`/`newOptions` may be optional only if compatibility is confirmed by tests; do not change the external response shape more than necessary.
+9. Disable `conversationGainAudit` and the heavy decision-retry for `information` if code analysis confirms that otherwise a good direct answer is rejected. This must not disable general safety checks.
+10. Capture a baseline and compare the Simple/information prompt size with `scripts/measure-prompt.mjs`.
 
-## 4. Эталонное поведение трёх режимов
+**Stage tests:** existing mode/intent/API tests; new unit tests for classification; schema/compatibility checks; tests proving that Expert and Project have not lost their special instructions. Do not modify `tests/regression.json`.
+
+**PASS criteria:**
+- direct informational requests receive the light informational contract;
+- choice/decision still receives the decision contract;
+- common constraints are preserved;
+- Expert and Project are not weakened according to tests;
+- target tests pass; prompt-measurement result is recorded in the report;
+- `npm run check` and `npm run build` pass, or real blockers/NOT_RUN are explicitly stated.
+
+### Stage MP3 — Simple/information answer quality control — **after MP2**
 
-### 4.1 Simple — общая информация и консультации
+**Goal:** catch not only an incorrect prompt but also typical evasive answers on the output side, without forcing the user back into the heavy decision process.
 
-- Сначала дать ответ по существу; краткую оговорку о неопределённости встроить в ответ, а не ставить вместо ответа.
-- Объяснять простым, естественным языком, без методологических вступлений, поучения и повторяющихся дисклеймеров.
-- Разрешены качественные ориентиры, сценарии и приблизительные диапазоны, если есть разумное основание и они обозначены как оценки.
-- Запрещены выдуманные числа, ссылки, текущие данные и заявления о поиске/проверке, которых не было.
-- Не спорить с ограничением, которого пользователь не заявлял (например, не приписывать запросу требование точного прогноза).
-- Не превращать информационный запрос в коучинг или решение за пользователя; не спрашивать цель без необходимости.
-- Для явного запроса о выборе/решении использовать decision-каркас. При неясном намерении выбирать лёгкую Simple-интерпретацию, а не тяжёлый decision-каркас.
+**Work:**
+1. Define light indicators of a failed answer: methodology preamble before the substance, answer consisting only of limitations, arguing with an invented precision requirement, repeating a lecture after an explicit prohibition.
+2. Take into account intent signals “answer directly”, “don’t lecture”, “no methodology” and explicit negative feedback.
+3. On a soft failure for information perform a short retry with the informational prompt, not with the decision package.
+4. Do not make the retry infinite; keep current attempt limits, budget and error handling.
+5. Do not run this specific quality gate on Expert/Project without separate justification.
 
-### 4.2 Expert — глубокий анализ
+**Tests:** unit/integration tests for the indicators; regression that Expert/Project paths remain unchanged; measurement of false-positive rate on legitimate decision answers.
 
-- Сохранять структурированный анализ, проверку исходных предположений, альтернативные объяснения, риски и неочевидные варианты.
-- Отделять факты от гипотез и указывать значимые пробелы в данных.
-- Не подменять решение пользователя собственным выбором.
-- Не наследовать упрощённый тон Simple там, где он снижает аналитическую полноту.
+**PASS:** informational answers become direct; decision answers retain structure; no increase in false blocks on Expert/Project; checks and build pass or blockers are listed.
 
-### 4.3 Project — проектирование и выполнение проектов
+### Stage UI1 — start-screen mode selection and Expert open dialogue — **after MP3**
 
-- Работать в контексте проекта: требования, архитектура, задачи, зависимости, тесты, артефакты, состояние и следующие проверяемые действия.
-- Сохранять операционную точность, безопасность и проектные ограничения.
-- Не превращаться в обычный разговорный Simple-ответ и не ослаблять контроль выполнения.
+**Goal:** (a) let the user choose Simple / Expert / Project on the start screen and propagate the choice into the correct backend contract; (b) keep Expert stages open for clarification rather than turning them into a closed pipeline.
 
-## 5. Архитектурный контракт
+**UI copy (examples, final wording may be refined):**
+- Simple: “Quick answers, explanations and practical advice.”
+- Expert: “Deep analysis of problems, alternatives and risks.”
+- Project: “Design and run software, scientific and engineering projects: requirements, architecture, tasks and checks.”
 
-1. Вынести минимальный общий набор правил в общий core (планируемое имя файла: `server/promptCore.ts`, если проверка кода на MP2 не выявит более подходящего существующего места).
-2. Не копировать длинные универсальные инструкции в каждый пакет; не делать три гигантских независимых промпта.
-3. Режимный пакет задаёт собственную цель и рабочий процесс. Общее ядро не должно содержать decision-ритуал как обязательный формат каждого ответа.
-4. Expert и Project подключают общие правила без ослабления своих специализированных инструкций.
-5. Simple формируется из core, лёгкого базового контракта Simple и блока типа запроса.
-6. Совместимость API/клиента сохраняется. Если поля ответа для `information` становятся необязательными, это должно быть подтверждено проверкой всех потребителей схемы; не ломать парсер ради упрощения промпта.
-7. Выбор Simple/Expert/Project — пользовательское состояние, отдельное от эвристики `information`/`decision` внутри Simple. Роутер не должен незаметно подменять выбранный режим.
-8. Кризисный триаж, защита от prompt injection, обработка пользовательских файлов как данных, честность относительно источников и прочие действительно универсальные ограничения сохраняются.
+**Work (a) — mode selection:**
+1. Inspect current navigation and Project Mode availability; do not assume all modes share the same backend/API.
+2. Add a start-screen choice of the three modes while preserving existing access boundaries and Project Mode opt-in behaviour.
+3. Propagate the selected mode to the correct endpoint/context/prompt; retain the choice within the session/conversation according to the current state model.
+4. Do not switch mode automatically. If a mode is unavailable in the current configuration (e.g. Project Mode disabled), show a clear state and do not mask it as a successful selection.
+5. Do not expose internal stage numbers, versions or prompt-package names to the user.
+6. Preserve accessibility of existing scenarios; do not break the workspace beyond necessity.
 
-## 6. Последовательность реализации и критерии закрытия
+**Work (b) — Expert open dialogue:**
+1. Keep the stepper/method (Understand → … → Learn); **do not** remove stages.
+2. At every Expert stage and after Learn provide the ability to send a clarification / new fact / question (same conversation composer or equivalent).
+3. The agent’s answer takes the clarification into account and may revise stage conclusions; do not reply “stage finished, dialogue closed”.
+4. “Next stage / enough for a decision” buttons remain; free dialogue **supplements** the method.
+5. Prefer a single shared history with Simple (already shared conversation state) without loss of context on clarifications.
+6. Minimal regression checks: “on EXPAND I clarified a fact → answer relies on the fact”; “after Learn another question → there is an answer”.
 
-### Этап D0 — документация и фиксация решений — **текущий пакет**
+**PASS:** (a) mode selection as above; (b) at any Expert stage the user can send a clarification and receive a substantive answer; the pipeline is not a dead end; UI checks/build pass.
 
-**Результат:** этот план находится в репозитории; стартовые документы и очередь указывают на него; MP1–MP3 записаны достаточно подробно, чтобы продолжить работу в новой сессии без повторного обсуждения.
+### Stage QA1 — end-to-end automated verification — **after UI1**
 
-**Граница:** никаких изменений runtime-кода, интерфейса, схемы ответа или тестов поведения.
+**Goal:** prove that mode selection, prompt, router, audit/retry and UI work together.
 
-**Закрытие:** документация проверена на ссылки/согласованность; патч содержит только новые и изменённые документы; архив доставлен владельцу. Закрытие D0 не означает, что поведение модели уже исправлено.
+**Mandatory suites:**
+- Simple: ordinary informational request; “Tell/explain”; explicit decision request; ban on methodology; answer consisting only of limitations; feedback “you are being evasive”; Graubünden dialogue.
+- Expert: deep analysis, alternatives, risks, separation of facts from hypotheses, no decision made for the user.
+- Project: requirements statement, tasks/artefacts/checks and preservation of operational constraints.
+- Modes: selection of each mode, retention of choice, unavailable Project, absence of unsolicited switching.
 
-### Этап MP1 — инвентаризация и фиксация существующего слоя — **реализовано частично / оформляется задним числом**
+**PASS:** all suites green or real NOT_RUN/FAIL items explicitly listed with reasons; no silent weakening of Expert/Project.
 
-**Что уже есть в базовом архиве:** `server/promptPacks.ts`, `server/conversationMode.ts`, `server/intentFlags.ts` и связанные вызовы в `server.ts`; Simple prompt вынесен в отдельный модуль, есть mode paragraph и флаги намерения. `PATCH_NOTES.md` описывает mode packs.
+### Stage MANUAL1 — owner manual acceptance — **after QA1**
 
-**Что MP1 означает в документации:** зафиксировать исходное состояние и исходную проблему, не заявляя, что разделение режимов уже завершено. MP1 — завершён как предварительная упаковка файлов, но не как исправление поведения Simple.
+**Goal:** the owner verifies live behaviour of the three modes.
 
-**Критерии:**
-- подтверждён список существующих prompt/router/audit точек;
-- зафиксированы конфликты старых решений «no separate system prompts» и неизменяемой схемы как решения, пересмотренные владельцем для дальнейшей работы;
-- не заявлять PASS по пользовательскому поведению без тестов/ручной проверки.
+**Scenarios (minimum):**
+1. Start the application, choose each mode in turn, confirm that the choice is visible and retained.
+2. In Simple ask a neutral informational question and an explicit “what should I choose / is it worth it” question. Expectation: different internal task types, same user-facing Simple mode.
+3. In Expert request a deep problem breakdown with alternatives and risks. Expectation: depth is preserved, no simplification to a brief Simple answer.
+3b. In Expert, mid-method (e.g. Expand/Attack) add a new fact and ask a clarifying question; after Learn ask another question. Expectation: the agent accepts clarifications, dialogue does not end with “end of stages”.
+4. In Project create/analyse a software or scientific project. Expectation: operational structure, requirements, tasks and checks are retained.
+5. Switch between modes only by explicit user action. Expectation: choice is predictable and does not change by itself.
 
-### Этап MP2 — общее ядро и контракт Simple — **следующий этап кодирования**
+**Result recording:** date, environment/commit, selected mode, input request, observed result, PASS/FAIL/NOT_RUN and a short note. Do not put secrets or personal data into the report.
 
-**Цель:** убрать обязательный decision-engine каркас из `Simple/information`, не ослабляя Expert и Project.
+**Initiative closure:** all automated checks have a recorded result; the owner has confirmed the manual scenarios or has explicitly listed accepted limitations; `docs/CURRENT_STATE.md`, `docs/PATCH_JOURNAL.md` and `CHANGELOG.md` are updated. Do not start the next initiative automatically.
 
-**Предполагаемые зоны кода (уточнить по фактической реализации перед правками):** `server/promptCore.ts` (новый), `server/promptPacks.ts`, `server/conversationMode.ts`, `server/intentFlags.ts`, `server.ts`, возможно `server/contextBuilder.ts` и тесты prompt/intent.
+## 7. Rules for Transition Between Stages
 
-**Работы:**
-1. Выделить действительно универсальное ядро: язык пользователя, честность фактов и поиска, пользовательские файлы как данные, универсальные safety/security правила, обязательные форматы интерфейса там, где они действительно универсальны.
-2. Подключить core к Simple, Expert и Project; сохранить специальные строгие инструкции Expert и Project.
-3. В Simple/information убрать обязательные STEP 0–6, SECOND TEST, WHAT THE PERSON SHOULD EXPERIENCE, BEFORE ANSWERING, outside-view/no-homework и другие decision-ритуалы, не нужные для информационного ответа.
-4. Оставить decision-блок без поведенческого ослабления; сохранить специализированные блоки research и engineering.
-5. Расширить распознавание информационных запросов («расскажи», «объясни», «подскажи» и аналоги), не полагаясь только на вопросительное слово в начале.
-6. При неясном намерении использовать лёгкий Simple/information; `decision` включать по явным признакам выбора или решения.
-7. Проверить JSON-контракт и все потребители. Для information поля `gain`/`newOptions` могут быть необязательными только если совместимость подтверждена тестами; не менять внешнюю форму ответа шире необходимого.
-8. Отключить `conversationGainAudit` и тяжёлый decision-retry для `information`, если анализ кода подтвердит, что иначе хороший прямой ответ отклоняется. Это не должно отключать общие safety-проверки.
-9. Снять baseline и сравнить размер prompt для Simple/information с `scripts/measure-prompt.mjs`.
+- Strict sequence of the mode initiative: **D0 → MP2 → MP3 → UI1 → QA1 → MANUAL1**.
+- File-line (P38 Export → P39) on STATUS may proceed **before** UI1 if the owner has not raised mode-UX earlier; UI1 includes Expert open dialogue.
+- MP1 is preparatory work recorded retrospectively; it does not replace MP2.
+- Each coding stage starts only after an explicit owner command and receives its own patch/report according to the repository’s current procedure.
+- Within each stage tests are written together with the change. QA1 is an additional end-to-end check, not a substitute for local tests.
+- Do not start the next stage until the current one is closed or the owner has explicitly authorised continuation with noted limitations.
+- If a contradiction with TZv3.0, safety, API schema or the actual architecture is found, stop and describe the exact conflict; do not resolve it silently.
+- Any result that was not actually executed must be marked `NOT_RUN`; a test that finished with an error is `FAIL`/`BLOCKED`, never PASS.
 
-**Тесты этапа:** существующие тесты mode/intent/API; новые unit-тесты на классификацию; проверки схемы/совместимости; тесты, доказывающие, что Expert и Project не потеряли специальные инструкции. Не менять `tests/regression.json`.
+## 8. What Is Known from the Baseline Archive and What Still Needs Confirmation
 
-**PASS:**
-- прямые информационные запросы получают лёгкий информационный контракт;
-- решение/выбор по-прежнему получает decision-контракт;
-- общие ограничения сохранены;
-- Expert и Project не ослаблены по тестам;
-- целевые тесты проходят; результат измерения prompt сохранён в отчёте;
-- `npm run check` и `npm run build` проходят, либо точно указаны реальные блокеры/NOT_RUN.
-
-### Этап MP3 — контроль качества ответа Simple/information — **после MP2**
+**Confirmed by archive inspection:**
+- `server/promptPacks.ts` assembles the Simple prompt;
+- `server/conversationMode.ts` selects the internal task type and forms the mode paragraph;
+- `server/intentFlags.ts` contains intent flags and the limitation-only check;
+- `server.ts` contains `BASE_SYSTEM`, `conversationGainAudit` and retry logic;
+- `server/contextBuilder.ts` contains a separate Project instruction;
+- `scripts/measure-prompt.mjs` exists;
+- PI-03 / concept documentation still contains the older wording “no separate system prompts” and constraints on schema change that conflict with the newly approved decisions.
 
-**Цель:** ловить не только неверный prompt, но и типичные уклончивые ответы на выходе, не возвращая пользователя к тяжёлому decision-процессу.
-
-**Работы:**
-1. Определить лёгкие признаки неудачного ответа: methodology-preamble до сути, ответ только ограничениями, спор с выдуманным требованием точности, повтор лекции после прямого запрета.
-2. Учитывать признаки намерения «ответь прямо», «не поучай», «без методологии» и явную негативную обратную связь.
-3. При мягком провале для information выполнить короткий retry с информационным prompt, а не с decision-пакетом.
-4. Не делать retry бесконечным; сохранять текущие лимиты попыток, бюджет и обработку ошибок.
-5. Не запускать этот специфичный quality gate на Expert/Project без отдельного обоснования.
-6. Создать независимые фикстуры: Simple — исходный диалог о зиме в Граубюндене; Expert — задача на глубокий анализ, где нужен не поверхностный рейтинг; Project — операционная задача по проекту.
-7. Оставить `tests/regression.json` неизменным; новые фикстуры/тесты размещать в разрешённых существующих местах верхнего уровня.
-
-**PASS:**
-- ответы с одним лишь перечислением ограничений распознаются в заданных сценариях;
-- retry не подменяет information на decision;
-- лимиты повторов соблюдаются;
-- все три режимные фикстуры проходят;
-- Expert/Project остаются структурно строгими;
-- целевые тесты и полный `npm run check` проходят или имеют честный статус NOT_RUN/BLOCKED.
-
-### Этап UI1 — выбор режима + Expert open dialogue — **после MP2 и MP3**
-
-**Цель:** (a) явный выбор режима до начала диалога без эвристической подмены; (b) в Expert пользователь **всегда** может уточнять проблему и добавлять новую информацию, не упираясь в конец фиксированного pipeline.
-
-**Планирование относительно file-line:** на дорожной карте владельца UI1 ставится **после P38/P39** (export + стабилизация Workspace), если нет явной команды поднять mode-UX раньше. Норма Expert open dialogue зафиксирована в `docs/SPEC_PRODUCT.md` §1.2.
-
-**Текст стартового выбора (рабочий, можно редакционно уточнить без смены смысла):**
-
-- **Simple — Информация и консультации.** «Получить объяснение, практический совет или понятный ответ на вопрос».
-- **Expert — Глубокий анализ.** «Разобрать сложную проблему, проверить предположения и найти неочевидные решения; можно уточнять и дополнять на любом шаге».
-- **Project — Создание проектов.** «Проектировать и создавать программные, научные и инженерные проекты: требования, архитектура, задачи и проверки».
-
-**Работы (a) — выбор режима:**
-1. Проверить текущую навигацию и доступность Project Mode; не предполагать, что режимы имеют одинаковый backend/API.
-2. Добавить стартовый выбор трёх режимов, сохранив существующие границы доступа и opt-in-поведение Project Mode.
-3. Передавать выбранный режим в правильный endpoint/контекст/prompt; сохранять выбор в пределах сессии/разговора согласно текущей модели состояния.
-4. Не переключать режим автоматически. Если режим недоступен в текущей конфигурации (например, Project Mode выключен), показать ясное состояние и не маскировать его как успешный выбор.
-5. Не показывать пользователю внутренние номера этапов, версии или названия prompt-пакетов.
-6. Сохранить доступность существующих сценариев; workspace не ломать сверх необходимости.
-
-**Работы (b) — Expert open dialogue:**
-1. Сохранить stepper/метод (Understand → … → Learn); **не** удалять этапы.
-2. На каждом Expert stage и после Learn обеспечить возможность отправить уточнение / новый факт / вопрос (тот же conversation composer или эквивалент).
-3. Ответ агента учитывает уточнение и может пересмотреть выводы этапа; не отвечать «этап завершён, диалог закрыт».
-4. Кнопки «следующий этап / достаточно для решения» остаются; свободный диалог **дополняет** метод.
-5. По возможности единая история с Simple (уже shared conversation state), без потери контекста при уточнениях.
-6. Минимальные регрессионные проверки: «на EXPAND уточнил факт → ответ опирается на факт»; «после Learn ещё вопрос → есть ответ».
-
-**PASS:** (a) выбор режима как выше; (b) на любом Expert stage пользователь может отправить уточнение и получить содержательный ответ; pipeline не является тупиком; UI checks/build проходят.
-
-### Этап QA1 — сквозная автоматическая проверка — **после UI1**
-
-**Цель:** доказать, что выбор режима, prompt, router, audit/retry и UI работают совместно.
-
-**Обязательные наборы:**
-- Simple: обычный информационный запрос; «Расскажи/объясни»; явный decision-запрос; запрет на методологию; ответ только ограничениями; обратная связь «ты уклоняешься»; диалог о Граубюндене.
-- Expert: глубокий анализ, альтернативы, риски, отделение фактов от гипотез, отсутствие выбора за пользователя.
-- Project: постановка требований, задачи/артефакты/проверки и сохранение операционных ограничений.
-- Режимы: выбор каждого режима, сохранение выбора, недоступный Project, отсутствие самовольного переключения.
-- Контракты: JSON/API backward compatibility, injection/security, кризисный триаж, ограничение retries, отсутствие фиктивных поисковых заявлений.
-
-**PASS:** тесты воспроизводимы без реальных provider/network/секретов; нет ослабления/удаления существующих тестов; `npm run check`, `npm run build`, применимые UI checks проходят. Live-проверки не имитируются unit-тестами.
-
-### Этап MANUAL1 — ручная приёмка владельцем — **после QA1**
-
-**Сценарии владельца:**
-1. В Simple повторить исходный многоходовый диалог про зимнюю погоду в Граубюндене, включая прямую просьбу без методологии. Ожидание: сначала полезный ориентир/сравнение, короткая честная оговорка по фактам, без лекции и без приписывания требования точного прогноза.
-2. В Simple задать нейтральный информационный вопрос и явный вопрос «что мне выбрать / стоит ли». Ожидание: разные внутренние типы задачи, но тот же пользовательский режим Simple.
-3. В Expert попросить глубокий разбор проблемы с альтернативами и рисками. Ожидание: глубина сохраняется, нет упрощения до краткого Simple.
-3b. В Expert на середине метода (например Expand/Attack) добавить новый факт и задать уточняющий вопрос; после Learn задать ещё один вопрос. Ожидание: агент принимает уточнения, диалог не обрывается «конец этапов».
-4. В Project создать/разобрать программный или научный проект. Ожидание: операционная структура, требования, задачи и проверки сохраняются.
-5. Переключиться между режимами только явным действием пользователя. Ожидание: выбор предсказуем и не изменяется сам по себе.
-
-**Запись результата:** дата, среда/commit, выбранный режим, входной запрос, наблюдаемый результат, PASS/FAIL/NOT_RUN и краткая заметка. Не помещать секреты или персональные данные в отчёт.
-
-**Закрытие инициативы:** все автоматические проверки имеют зафиксированный результат; владелец подтвердил ручные сценарии или явно перечислил принятые ограничения; обновлены `docs/CURRENT_STATE.md`, `docs/PATCH_JOURNAL.md` и `CHANGELOG.md`. Следующую инициативу не начинать автоматически.
-
-## 7. Правила перехода между этапами
-
-- Строгая последовательность mode-инициативы: **D0 → MP2 → MP3 → UI1 → QA1 → MANUAL1**.
-- File-line (P38 Export → P39) на STATUS может идти **перед** UI1, если владелец не поднял mode-UX раньше; UI1 включает Expert open dialogue.
-- MP1 — предварительная работа, зафиксированная ретроспективно; он не заменяет MP2.
-- Каждый этап кодирования начинается только после отдельной команды владельца и получает свой патч/отчёт по действующей процедуре репозитория.
-- В рамках каждого этапа тесты пишутся вместе с изменением. QA1 — дополнительная сквозная проверка, а не замена локальных тестов.
-- Не начинать следующий этап, пока текущий не закрыт или владелец явно не разрешил продолжение с отмеченными ограничениями.
-- Если найдено противоречие с TZv3.0, безопасностью, схемой API или фактической архитектурой, остановиться и описать точный конфликт; не решать молча.
-- Любой результат, который не был реально выполнен, маркировать `NOT_RUN`; тест, завершившийся ошибкой, — `FAIL`/`BLOCKED`, а не PASS.
-
-## 8. Что известно по исходному архиву, а что ещё предстоит подтвердить
-
-**Подтверждено просмотром архива:**
-- `server/promptPacks.ts` собирает prompt Simple;
-- `server/conversationMode.ts` выбирает внутренний тип задачи и формирует mode paragraph;
-- `server/intentFlags.ts` содержит флаги намерений и проверку limitation-only;
-- `server.ts` содержит `BASE_SYSTEM`, `conversationGainAudit` и логику retry;
-- `server/contextBuilder.ts` содержит отдельную инструкцию Project;
-- `scripts/measure-prompt.mjs` существует;
-- в документации PI-03/концепте остаются прежние формулировки «no separate system prompts» и ограничения на изменение схемы, которые конфликтуют с новыми утверждёнными решениями.
-
-**Не подтверждено и не должно считаться выполненным:**
-- фактическое выделение общего `promptCore.ts`;
-- корректность отключения audit/retry для information;
-- наличие и прохождение новых регрессионных фикстур MP2/MP3;
-- UI выбора Simple/Expert/Project;
-- ручной результат диалога о Граубюндене после изменений;
-- полный зелёный `npm run check`/build на текущем окружении.
-
-## 9. Связь со старой документацией
-
-- `docs/PI-03-SPEC.md` и CONCEPTS uncertainty TZ (off-repo) остаются историческими источниками решений PI-01…PI-03, а не актуальной очередью этой инициативы. Новое решение владельца отменяет запрет на раздельные режимные пакеты и допускает проверяемые изменения контракта ответа, если доказана обратная совместимость.
-- `PATCH_NOTES.md` — свидетельство о первоначальном MP1-подобном пакете, не доказательство успешного исправления поведения.
-- `docs/NEXT.md` содержит старую очередь P27+ и owner RM-gates. Эта очередь приостанавливается как источник последовательности задач на время инициативы режимов; это **не** означает, что перечисленные workspace/owner задачи выполнены или отменены. После MANUAL1 владелец отдельно решает, какую из них переносить в следующую актуальную дорожную карту.
-- Остальные технические спецификации остаются справочными источниками для сохранения контрактов. Они не создают параллельную очередь работ по этой инициативе.
-
-## 10. Журнал изменений плана
-
-- **2026-10-14:** владелец утвердил явный выбор трёх режимов, общее ядро + отдельные режимные контракты, последовательную дорожную карту и правило «документация сначала, код только по команде».
+**Not confirmed and must not be treated as done:**
+- actual extraction of a shared `promptCore.ts`;
+- correctness of disabling audit/retry for information;
+- existence and passing of new MP2/MP3 regression fixtures;
+- UI for Simple/Expert/Project selection;
+- manual result of the Graubünden dialogue after the changes;
+- a fully green `npm run check`/build on the current environment.
+
+## 9. Relationship to Older Documentation
+
+- `docs/PI-03-SPEC.md` and the CONCEPTS uncertainty TZ (off-repo) remain historical sources of the PI-01…PI-03 decisions, not the current work queue for this initiative. The new owner decision lifts the ban on separate mode packages and permits verifiable changes to the answer contract provided backward compatibility is demonstrated.
+- `PATCH_NOTES.md` is evidence of the original MP1-like package, not proof of successful behavioural correction.
+- `docs/NEXT.md` contains the old P27+ queue and owner RM-gates. That queue is suspended as a source of task sequence for the duration of the mode initiative; this does **not** mean that the listed workspace/owner tasks are completed or cancelled. After MANUAL1 the owner will separately decide which of them to carry into the next active roadmap.
+- Remaining technical specifications stay reference sources for preserving contracts. They do not create a parallel work queue for this initiative.
+
+## 10. Plan Change Log
+
+- **2026-10-14:** owner approved explicit selection of the three modes, common core + separate mode contracts, sequential roadmap and the “documentation first, code only on command” rule.
