@@ -1,6 +1,6 @@
 # BiForge — STATUS
 
-> Единственный живой файл прогресса. Обновлено: 2026-10-16 · **v47 / P47; B-AUDIT.2; version sync restored**
+> Единственный живой файл прогресса. Обновлено: 2026-10-16 · **v47 deployed; next = MANUAL1**
 
 ## 1. Сейчас
 
@@ -8,24 +8,22 @@
 | --- | --- |
 | **Version** | **47** (`APP_VERSION` = patch ID) |
 | **UI1** | Карточки Simple / Expert / Project; **P47:** mode controls только через **More** |
-| **QA1** | Offline suite PASS; end-to-end runtime не доказан → далее **MANUAL1** |
+| **QA1** | Offline suite PASS (12/12); live path → **MANUAL1** |
 | **Code Delivery** | **RM-C3** closed (**P43**); `model_patch` authorized; runtime still gated by `CODE_EXECUTOR=model_patch` |
-| **CI** | B-AUDIT.2: audit artifacts in `ARCHIVE/` (flat). Residual `AUDIT/` / `docs/AUDIT/` must be deleted if present. |
-| **Поставка** | Deploy v47 — owner |
+| **CI** | B-AUDIT.2/3 applied; p13a structure fixed; STATUS markers restored |
+| **Поставка** | **Deployed** 2026-10-16 ≈09:00 CEST · `https://e-production-5cc8.up.railway.app` · health `version":"47"` · commit **`2bdd6ae96ce3`** |
 
 ## Аудит / патчи
 
-- **B-AUDIT.2:** `docs/AUDIT/*` → `ARCHIVE/bf_v40_*` (preflight forbids nested under `docs/`).
-- **B-AUDIT:** version 40→47; top-level `AUDIT/` removed.
-- Export UX: **EN until separate patch** (owner decision). UX1 approved.
+- B-AUDIT → B-AUDIT.3: CI structure + version sync + STATUS contracts.
+- Export UX: **EN until separate patch**. UX1 approved.
+- **Следующий шаг владельца: MANUAL1** (пошагово — `docs/OWNER_OPS.md` § MANUAL1).
 
 ## 2. Следующее
 
 | # | ID | Что | Owner |
 | --- | --- | --- | --- |
-| 1 | **CI** | Confirm green after B-AUDIT.2 | Owner (log) |
-| 2 | **Deploy** | v47 staging | Owner |
-| 3 | **MANUAL1** | Acceptance after QA1 evidence | Owner |
+| 1 | **MANUAL1** | Приёмка на production (см. OWNER_OPS) | Владелец |
 | — | GitHub write | **Отложено** (ADR-06) | Owner |
 
 ## 3. Нельзя без команды
