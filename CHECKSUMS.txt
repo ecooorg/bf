@@ -1,5 +1,0 @@
-8fa07cd53f0aa96a  src/App.tsx
-ff1a67a7f432de7f  src/ConversationFiles.tsx
-3f0563a7133deac4  src/ProjectMode.tsx
-b8c046f7355a8246  src/en.ts
-36c1668347c6bc4a  src/errors.ts
