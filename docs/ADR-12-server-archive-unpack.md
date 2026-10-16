@@ -6,7 +6,7 @@
 
 ## Context
 
-`docs/SPEC_ENGINE.md` §10.4 and `docs/SPEC_PRODUCT.md` § «не входит» prohibited unpacking archives on the server in MVP, relying on refusal to mitigate path traversal and archive bombs. P26 introduces a shared Workspace engine that must unpack zip/tar in Project Mode (server `worker_thread`) while Simple/Expert Mode unpack in the browser (Web Worker). The same ingest code and limits apply in both hosts.
+`docs/SPEC_ENGINE.md` §10.4 and `docs/SPEC_PRODUCT.md` § “Out of scope” prohibited unpacking archives on the server in MVP, relying on refusal to mitigate path traversal and archive bombs. P26 introduces a shared Workspace engine that must unpack zip/tar in Project Mode (server `worker_thread`) while Simple/Expert Mode unpack in the browser (Web Worker). The same ingest code and limits apply in both hosts.
 
 ## Decision
 

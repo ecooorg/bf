@@ -1,30 +1,30 @@
-# P35 — отчёт о патче
+# P35 — Patch Report
 
-## Что сделано
+## Implemented
 
-- Добавлен `src/workspace/extract.ts`: единый FileContentExtractor для PDF (`unpdf`), DOCX/XLSX/PPTX (`jszip` + XML), CSV/TSV, JSON и обычного текста.
-- Классификация: zip с расширением `.docx` / `.xlsx` / `.pptx` → class `office`.
-- `readWorkspaceFile` и `buildWorkspaceBlock` используют extract; блоки помечены как DATA (D-07).
-- WorkspacePanel: вложения и превью файлов строятся из извлечённого текста; для недекодируемых форматов — честные metadata.
-- Секреты по-прежнему не попадают в контекст без явного подтверждения.
-- Оригинальные blob не изменяются.
-- Тест `tests/workspace-p35.test.mjs` (`npm run test:p35`); версия продукта 35.
+- Added `src/workspace/extract.ts`: a unified FileContentExtractor for PDF (`unpdf`), DOCX/XLSX/PPTX (`jszip` + XML), CSV/TSV, JSON и обычного текста.
+- Classification: ZIP files with a `.docx`, `.xlsx`, or `.pptx` extension are assigned class `office`.
+- `readWorkspaceFile` and `buildWorkspaceBlock` use the extractor; blocks are marked as DATA (D-07).
+- WorkspacePanel attachments and previews are built from extracted text; undecodable formats display accurate metadata.
+- Secrets are still excluded from context unless explicitly approved.
+- Original blobs are not modified.
+- Test: `tests/workspace-p35.test.mjs` (`npm run test:p35`); product version 35.
 
-## Проверки
+## Verification
 
-- Локально в среде патча: unit-фикстуры extract (CSV, JSON, text, image metadata, minimal DOCX/XLSX, secret block, e2e ingest→read).
-- Требуется CI: `npm run test:p35`, `npm run test:p34`, `npm run test:p27`, `npm run typecheck`, `npm run build`, `npm run check`.
+- Run locally in the patch environment: extractor unit fixtures (CSV, JSON, text, image metadata, minimal DOCX/XLSX, secret block, end-to-end ingest → read).
+- CI must run: `npm run test:p35`, `npm run test:p34`, `npm run test:p27`, `npm run typecheck`, `npm run build`, `npm run check`.
 
-## Ограничения
+## Limitations
 
-- Изображения: только metadata (vision — отдельный optional path при multimodal-провайдере).
-- Сканированные PDF без текстового слоя: metadata + note, без ложного «analysed».
-- PPTX поддерживается на уровне extract, но не обязателен в UI-фикстурах.
-- ChangeSet / export / серверная версионность — P36–P38.
+- Images: metadata only (vision is a separate optional path when using a multimodal provider).
+- Scanned PDFs without a text layer: metadata plus a note; do not falsely claim they were “analysed.”
+- PPTX is supported by the extractor but is not required in UI fixtures.
+- ChangeSet, export, and server-side versioning are covered by P36–P38.
 
-## Действия Навигатора
+## Navigator actions
 
-1. После зелёного CI: Simple Mode → загрузить PDF с текстом → privacy ack → спросить содержание.
-2. Повторить с DOCX и XLSX/CSV.
-3. Загрузить изображение: UI и ответ агента не должны утверждать, что содержимое декодировано.
-4. Убедиться, что без privacy ack workspace-текст не уходит в запрос.
+1. After CI passes: Simple Mode → upload a text-based PDF → acknowledge privacy → ask about its contents.
+2. Repeat with DOCX and XLSX/CSV.
+3. Upload an image: neither the UI nor the agent response should claim that its contents were decoded.
+4. Verify that Workspace text is not sent in a request without privacy acknowledgement.

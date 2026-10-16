@@ -2,7 +2,7 @@
 
 > **Superseded for day-to-day use by [`docs/STATUS.md`](./STATUS.md).**  
 > Historical / detailed queues may still live in `MASTER_IMPLEMENTATION_PLAN.md` and older sections of this file’s git history.  
-> Agents and humans must take **«что дальше»** only from STATUS §2.
+> Agents and humans must take **“what’s next”** only from STATUS §2.
 
 ## Pointer
 

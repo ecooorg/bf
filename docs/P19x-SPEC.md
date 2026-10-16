@@ -2,7 +2,7 @@
 
 **Goal.** Wire the full `model_patch` path: after a code task is started with executor `model_patch`, the service calls `code_author` via Router using the currently confirmed `json_output` capability (the Gemini adapter does not claim a separately verified native `code_patch` capability), validates the structured patch with `validateModelPatch`, commits to `biforge/<task_id>` and opens a PR. Enablement remains gated by `CODE_EXECUTOR=model_patch` and ADR-10 (E-01). Default stays `manual`.
 
-**Base.** Owner archive `bf-v24.zip` (13 October 2026), PA-01 delivered, CI green on `main`. Navigator command: «старт P19x + сразу PA-02».
+**Base.** Owner archive `bf-v24.zip` (13 October 2026), PA-01 delivered, CI green on `main`. Navigator command: “start P19x + PA-02 immediately”.
 
 **May change.** `server/codeTaskService.ts` (driveModelPatch, CodeTaskDeps.modelCaller, start path for model_patch), `server/codeExecutor.ts` (exports used by drive; no behaviour change to validateModelPatch), `tests/p19x-acceptance.test.mjs` (new), `docs/P19x-SPEC.md`, `docs/DELEGATION.md` (test repo approved), `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/REPO_MAP.md`, `docs/START_HERE.md`, `CHANGELOG.md`, `package.json` (test script only).
 

@@ -1,23 +1,23 @@
-# P34 — отчёт о патче
+# P34 — Patch Report
 
-## Что сделано
-- Добавлена загрузка одного или нескольких отдельных файлов; сохранены импорт архивов и папок.
-- Общая панель Workspace подключена в Simple и Expert, а также в Project Mode.
-- После явного согласия пользователя ограниченный текстовый контекст и безопасные метаданные включаются в запросы агента. В Project Mode контекст ограничивается и добавляется к задаче анализа в рамках существующего лимита API.
-- Файлы с флагом `secret` исключаются из контекста. Не декодированные бинарные и специализированные форматы сохраняются, но агенту передаются только метаданные.
-- Исправлено сохранение ingest-результатов: хранилище теперь принимает blob по SHA-256, как его фактически выдаёт импортёр, сохраняя обратную совместимость с ключом-путём.
-- Добавлен `test:p34`; тест P27 переведён на реальный SHA-256 контракт.
+## Implemented
+- Added support for uploading one or more individual files; archive and folder imports remain supported.
+- The shared Workspace panel is available in Simple, Expert, and Project Mode.
+- After the user explicitly consents, a bounded text context and safe metadata are included in agent requests. In Project Mode, the context is bounded and appended to the analysis task within the existing API limit.
+- Files marked with the `secret` flag are excluded from context. Undecoded binary and specialized formats are retained, but only their metadata is passed to the agent.
+- Fixed ingest-result persistence: the store now accepts blobs keyed by SHA-256, matching the importer’s actual output while retaining backward compatibility with path keys.
+- Added `test:p34`; the P27 test now uses the actual SHA-256 contract.
 
-## Проверки
-- **NOT RUN:** установка зависимостей (`npm ci --ignore-scripts --no-audit --no-fund`) превысила лимит времени среды и не завершилась.
-- Требуется CI: `npm run test:p27`, `npm run test:p34`, `npm run typecheck`, `npm run build`, `npm run check`.
-- Требуется ручная проверка: загрузка и согласие в Simple, Expert и Project; до согласия workspace-контекст не должен отправляться.
+## Verification
+- **NOT RUN:** dependency installation (`npm ci --ignore-scripts --no-audit --no-fund`) exceeded the environment time limit and did not complete.
+- CI must run: `npm run test:p27`, `npm run test:p34`, `npm run typecheck`, `npm run build`, `npm run check`.
+- Manual verification required: upload and consent in Simple, Expert, and Project; Workspace context must not be sent before consent.
 
-## Ограничения
-- P34 не добавляет извлечение PDF/Office, OCR, передачу байтов изображения vision-модели, транскрибацию аудио/видео.
-- Серверная версия Workspace и общее хранилище Project Mode остаются отдельной работой.
+## Limitations
+- P34 does not add PDF/Office extraction, OCR, image-byte forwarding to a vision model, or audio/video transcription.
+- Server-side Workspace versioning and shared Project Mode storage remain separate work.
 
-## Действия Навигатора в Railway
-1. После зелёного CI открыть Simple Mode, загрузить текстовый файл, подтвердить приватность и попросить агента его разобрать; проверить ответ по содержимому.
-2. Повторить в Expert и Project Mode; убедиться, что без согласия текст файла не включается в запрос.
-3. Загрузить PDF/изображение/бинарный файл и проверить, что он сохраняется, а интерфейс честно указывает, что содержимое не декодировано.
+## Navigator actions in Railway
+1. After CI passes, open Simple Mode, upload a text file, acknowledge the privacy notice, and ask the agent to analyze it; verify the response against the file contents.
+2. Repeat in Expert and Project Mode; verify that file text is not included in a request without consent.
+3. Upload a PDF, image, or binary file and verify that it is retained and the UI clearly states when its contents have not been decoded.

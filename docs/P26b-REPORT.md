@@ -21,7 +21,7 @@
 | `node --experimental-strip-types tests/workspace-export.test.mjs` | PASS | AC-10, AC-11 |
 | `npm run test:p18` | NOT_RUN here | codeExecutor not modified |
 | Full `npm run check` / CI | Pending push | Owner: run after upload |
-| AC-07 UI card «Применить» | NOT_RUN | Library only |
+| AC-07 UI card “Apply” | NOT_RUN | Library only |
 | Live `git apply --check` on exported `.diff` | NOT_RUN | Diff is unified; confirm on host with git |
 
 ## Deliberately deferred

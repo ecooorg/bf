@@ -86,7 +86,7 @@ Workflows for connection checks: open Actions or `.github/workflows/` and pick `
 ## Owner command to the agent
 
 ```text
-База — main (или приложенный zip). Следующий патч.
+Base: `main` (or the supplied ZIP). Next patch.
 ```
 
 Current pointer: **P27** (`docs/P27-SPEC.md`) until advanced in `CURRENT_STATE.md`.
@@ -99,63 +99,63 @@ Current pointer: **P27** (`docs/P27-SPEC.md`) until advanced in `CURRENT_STATE.m
 
 ---
 
-## MANUAL1 — пошаговая приёмка владельцем (v47)
+## MANUAL1 — Owner acceptance walkthrough (v47)
 
-> Источник сценариев: `docs/MASTER_IMPLEMENTATION_PLAN.md` § MANUAL1.  
-> **Среда:** production `https://e-production-5cc8.up.railway.app` · commit `2bdd6ae96ce3` · version **47**.  
-> **Что нельзя автоматизировать:** оценка смысла ответов модели, «полезный ориентир vs лекция», глубина Expert, сохранение Project-структуры. Это делает только владелец.  
-> Offline QA1 (12/12) и CI/structure уже закрыты автоматически; live multi-turn — нет.
+> Scenario source: `docs/MASTER_IMPLEMENTATION_PLAN.md` § MANUAL1.  
+> **Environment:** production `https://e-production-5cc8.up.railway.app` · commit `2bdd6ae96ce3` · version **47**.  
+> **What cannot be automated:** evaluating the substance of model responses, “useful guidance vs. a lecture,” Expert depth, and preservation of Project structure. The owner must assess these.  
+> Offline QA1 (12/12) и CI/structure have already been completed automatically; live multi-turn testing has not.
 
-### Перед стартом (2 минуты)
+### Before starting (2 minutes)
 
-1. Открыть app URL; при необходимости войти с `APP_PASSWORD`.
-2. Убедиться, что на старте видны **три карточки**: Simple / Expert / Project (Project может быть disabled, если Project Mode выключен — это OK).
-3. Подготовить блокнот (или черновик сообщения в чат с ассистентом) по шаблону записи ниже. **Не** вставлять секреты и персональные данные в репозиторий.
+1. Open the app URL; sign in with `APP_PASSWORD`.
+2. Verify that the start screen shows **three cards**: Simple / Expert / Project (Project may be disabled if Project Mode is off — this is OK).
+3. Prepare notes (or a draft message to the assistant) using the record template below. **Do not** put secrets or personal data in the repository.
 
-### Сценарий 1 — Simple, Граубюнден (многоходовый)
+### Scenario 1 — Simple, Graubünden (multi-turn)
 
-1. Выбрать **Simple**.
-2. Спросить про зимнюю погоду в Граубюндене (информационно).
-3. Продолжить диалог 2–3 хода; затем явно попросить **прямой ответ без методологии** / «не уклоняйся».
-4. **Ожидание:** полезный ориентир или сравнение; короткая честная оговорка по фактам; **без** лекции «как AI»; **без** приписывания требования точного прогноза.
-5. Записать: PASS / FAIL / NOT_RUN + 1 строка заметки.
+1. Select **Simple**.
+2. Ask an informational question about winter weather in Graubünden.
+3. Continue for 2–3 turns, then explicitly request a **direct answer without methodology** / “don’t evade the question.”
+4. **Expected:** useful guidance or a comparison; a brief, honest factual caveat; **no** “how AI works” lecture; **no** invented requirement for an exact forecast.
+5. Record: PASS / FAIL / NOT_RUN plus a one-line note.
 
-### Сценарий 2 — Simple, information vs decision
+### Scenario 2 — Simple, information vs. decision
 
-1. В том же или новом Simple: нейтральный информационный вопрос (например «объясни X»).
-2. Отдельный запрос: «что мне выбрать / стоит ли …».
-3. **Ожидание:** оба в режиме Simple для пользователя; внутренне разные типы задачи (информация vs решение) — по тону/структуре ответа, без смены карточки режима.
-4. Записать результат.
+1. In the same or a new Simple conversation, ask a neutral informational question (e.g. “explain X”).
+2. In a separate request, ask “which should I choose / is it worth it…”.
+3. **Expected:** both remain in the user-facing Simple mode; internally they use different task types (information vs. decision), reflected in tone/structure without changing the mode card.
+4. Record the result.
 
-### Сценарий 3 — Expert, глубина
+### Scenario 3 — Expert, analytical depth
 
-1. **More → Mode selection** (или Switch to Expert) → **Expert**.
-2. Попросить глубокий разбор проблемы с альтернативами и рисками.
-3. **Ожидание:** сохраняется глубина метода; нет упрощения до короткого Simple-ответа.
-4. Записать результат.
+1. **More → Mode selection** (or Switch to Expert) → **Expert**.
+2. Request an in-depth analysis of a problem, including alternatives and risks.
+3. **Expected:** the method retains its depth; the response is not reduced to a short Simple-style answer.
+4. Record the result.
 
-### Сценарий 3b — Expert, уточнения на середине метода
+### Scenario 3b — Expert, mid-method follow-up
 
-1. В Expert дойти до середины метода (например Expand / Attack).
-2. Добавить **новый факт** и уточняющий вопрос.
-3. После стадии Learn задать ещё один вопрос.
-4. **Ожидание:** агент принимает уточнения; диалог **не** обрывается фразой вроде «конец этапов» / pipeline complete.
-5. Записать результат.
+1. In Expert, proceed to the middle of the method (e.g. Expand / Attack).
+2. Add a **new fact** and a follow-up question.
+3. Ask another question after the Learn stage.
+4. **Expected:** the agent incorporates follow-up information; the conversation does **not** end with a message such as “end of stages” / “pipeline complete.”
+5. Record the result.
 
-### Сценарий 4 — Project (если включён)
+### Scenario 4 — Project (if enabled)
 
-1. Mode selection → **Project** (если карточка disabled — отметить **NOT_RUN** и причину).
-2. Создать или разобрать небольшой программный/научный проект.
-3. **Ожидание:** операционная структура (требования, задачи, проверки) сохраняется.
-4. Записать результат.
+1. Mode selection → **Project** (if the card is disabled, mark **NOT_RUN** and record the reason).
+2. Create or analyze a small software or scientific project.
+3. **Expected:** the operational structure (requirements, tasks, checks) is preserved.
+4. Record the result.
 
-### Сценарий 5 — смена режимов только явно
+### Scenario 5 — Explicit mode changes only
 
-1. Переключаться Simple ↔ Expert (и Project, если доступен) **только** через More / Mode selection / Switch.
-2. **Ожидание:** режим не меняется сам; после «Mode selection» снова три карточки; нет самовольного переключения.
-3. Записать результат.
+1. Switch between Simple ↔ Expert (and Project, if available) **only** through More / Mode selection / Switch.
+2. **Expected:** the mode never changes automatically; Mode selection shows the three cards again; no unsolicited mode switch occurs.
+3. Record the result.
 
-### Шаблон записи результата (в чат владельцу / PATCH_JOURNAL после закрытия)
+### Result record template (send to owner in chat / add to PATCH_JOURNAL after closure)
 
 ```
 MANUAL1 | 2026-10-16 | https://e-production-5cc8.up.railway.app | commit 2bdd6ae96ce3 | v47
@@ -165,14 +165,14 @@ S3 Expert depth: …
 S3b Expert mid-method: …
 S4 Project: …
 S5 Mode switch: …
-Ограничения (если есть): …
+Limitations (if any): …
 ```
 
-### После MANUAL1
+### After MANUAL1
 
-1. Сообщить ассистенту итог (или вставить шаблон).
-2. Ассистент обновит `STATUS`, `PATCH_JOURNAL`, при закрытии инициативы — `CURRENT_STATE` / `CHANGELOG` (по MASTER).
-3. Старые RM-* / P27+ **не** открываются автоматически (MASTER §9).
+1. Send the results to the assistant (or paste the template).
+2. The assistant will update `STATUS` and `PATCH_JOURNAL`; when the initiative closes, it will update `CURRENT_STATE` / `CHANGELOG` (per MASTER).
+3. Old RM-* / P27+ items are **not** reopened automatically (MASTER §9).
 
 
 When prod host, Railway project id, or App id changes, edit **this file only** (and bump the date). Do not scatter new URLs across SPECs.

@@ -4,7 +4,7 @@
 
 **Base.** Repository state after P42 (QA1 offline suite) on top of `bf-v40.zip`.
 
-**Owner command.** 2026-10-15: «хорошо давай сделаем этот патч и откроем эту возможность» (enable RM-C3 / `model_patch`).
+**Owner command.** 2026-10-15: “Okay, let’s make this patch and enable this capability” (enable RM-C3 / `model_patch`).
 
 **May change.** `docs/STATUS.md`, `docs/NEXT.md`, `docs/PATCH_JOURNAL.md`, `docs/OWNER_OPS.md`, `docs/DELEGATION.md`, `docs/P43-SPEC.md`, `docs/P43-REPORT.md`, `CHANGELOG.md`, `.env.example`, `tests/p43-rm-c3.test.mjs`, `package.json` (test script only).
 

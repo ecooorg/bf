@@ -1,18 +1,18 @@
 # START HERE
 
-> **Прогресс и «что дальше»:** только [`docs/STATUS.md`](./STATUS.md).  
-> **Правила агента:** [`AGENTS.md`](../AGENTS.md).  
-> Где STATUS и AGENTS расходятся с устаревшими очередями — **побеждают STATUS + AGENTS**.
+> **Progress and “what’s next”:** see only [`docs/STATUS.md`](./STATUS.md).  
+> **Agent rules:** [`AGENTS.md`](../AGENTS.md).  
+> If STATUS and AGENTS conflict with outdated backlogs, **STATUS + AGENTS take precedence**.
 
-## За 30 секунд
+## In 30 seconds
 
-1. BiForge — агент решений и проектов (Node/Express + React + Gemini), деплой Railway.
-2. Режимы: Simple `/`, Expert, Project `/project`.
-3. Два ТЗ: продукт `docs/BiForge_TZ_v3.md`, файлы/Workspace `docs/BiForge_TZ_P26.md` — параллельно, без тихого отката друг друга.
-4. Перед патчем: `docs/STATUS.md` → `AGENTS.md` → SPEC патча → код. Не начинать следующий номер без команды владельца.
-5. Карта репо: `docs/REPO_MAP.md`. Операции владельца: `docs/OWNER_OPS.md`.
-6. **Обязательная поставка каждого патча:** проверенный скачиваемый `bf-PNN.zip` с реальными изменёнными/новыми файлами; `.patch`/`.diff` не заменяет ZIP. Правила и критерии завершения — `AGENTS.md`, §5.
+1. BiForge is a decision and project agent (Node/Express + React + Gemini), deployed on Railway.
+2. Modes: Simple `/`, Expert, Project `/project`.
+3. Two specifications: product `docs/BiForge_TZ_v3.md` and files/Workspace `docs/BiForge_TZ_P26.md`. They are maintained in parallel; neither may silently roll back the other.
+4. Before a patch: `docs/STATUS.md` → `AGENTS.md` → patch SPEC → code. Do not start the next patch number without the owner’s instruction.
+5. Repository map: `docs/REPO_MAP.md`. Owner operations: `docs/OWNER_OPS.md`.
+6. **Required deliverable for every patch:** a validated, downloadable `bf-PNN.zip` containing the actual changed/new files; a `.patch`/`.diff` does not replace the ZIP. Rules and completion criteria: `AGENTS.md`, §5.
 
-## Не читать «всё подряд»
+## Don’t read everything indiscriminately
 
-Длинные планы (`docs/MASTER_IMPLEMENTATION_PLAN.md`, старый `docs/NEXT.md`, десятки PNN-REPORT) — **справка**, не ежедневный чеклист. Ежедневно: **`docs/STATUS.md`**.
+Long plans (`docs/MASTER_IMPLEMENTATION_PLAN.md`, the old `docs/NEXT.md`, and numerous PNN-REPORT files) are **reference material**, not a daily checklist. Check **`docs/STATUS.md`** daily.

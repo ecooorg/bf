@@ -21,9 +21,9 @@
 
 Run on staging with real Gemini:
 
-1. Task A: «создай Тетрис» (empty context) — measure whether model emits structured multi-file plan.
+1. Task A: “create Tetris” (empty context) — measure whether model emits structured multi-file plan.
 2. Task B: load `bf-v24.zip` via ingest (or attach summary), ask for a small edit with `edits[{find,replace}]`.
-3. Task C: «добавь функцию X» to a known file.
+3. Task C: “add function X” to a known file.
 
 Record: % of `find` that match exactly once; needFiles usage; round count. Do **not** freeze `workspaceChangeSet` contract until metrics exist.
 

@@ -1,11 +1,11 @@
-# P37 — отчёт
+# P37 — Report
 
-## Сделано
-- Одна кнопка Attach; zip/tar распаковывается; остальные файлы — entries.
-- Drag-drop / Add file из композера → тот же Workspace.
-- Статус с числом файлов и подсказкой «напишите, что сделать».
+## Implemented
+- A single Attach button; ZIP/TAR archives are unpacked, while other files are added as entries.
+- Drag-and-drop / Add file from the composer feeds into the same Workspace.
+- Status displays the file count and the hint “describe what you want done.”
 - Version 37.
 
-## Проверки
+## Verification
 - CI: typecheck, test:p34–p36, check.
-- Ручная: zip → дерево внутренних файлов; privacy → агент видит.
+- Manual: upload a ZIP and inspect the internal file tree; acknowledge privacy and verify that the agent can see the files.

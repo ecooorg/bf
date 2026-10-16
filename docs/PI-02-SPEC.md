@@ -14,7 +14,7 @@
 
 | Flag | Meaning |
 | --- | --- |
-| `userForbadeQuestions` | Explicit ban on questions («не задавай», «просто дай», «don't ask», …) |
+| `userForbadeQuestions` | Explicit ban on questions (“don’t ask,” “just give me,” «don't ask», …) |
 | `userAskedApproximate` | Request for a rough / preliminary estimate |
 | `userAskedSearch` | Request to find / search online materials |
 | `userCriticizedEvasion` | Explicit criticism that the answer does not solve the task |

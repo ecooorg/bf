@@ -1,6 +1,6 @@
 # Delegation of decisions
 
-> **Status: ACCEPTED** by the Navigator in chat on 13 October 2026 ("политику утверждаю"). Binding together with `AGENTS.md` (section 12) and `docs/START_HERE.md`. Revocable at any time by a one-line command from the Navigator.
+> **Status: ACCEPTED** by the Navigator in chat on 13 October 2026 ("I approve the policy"). Binding together with `AGENTS.md` (section 12) and `docs/START_HERE.md`. Revocable at any time by a one-line command from the Navigator.
 > Purpose: apply BiForge's own principle (evidence first, human decides gates) to the process of finishing BiForge, and remove per-patch commands for work that carries no gate risk.
 
 ## Principle

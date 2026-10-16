@@ -2,7 +2,7 @@
 
 **Goal.** A script **separate from the product** (TZ 11.9) that runs the three-pair E-01 experiment against an approved **test** GitHub repository: for each task, apply `model_patch` (model API → validateModelPatch → commit → wait CI, up to 2 fixes) and record a comparable `manual` row. Output is a machine-readable table consumed by `scripts/gate-eval.mjs` for the ADR-10 decision card.
 
-**Base.** Owner archive `bf-v24.zip`, PA-01 delivered, Navigator approved the test GitHub repository and ordered «P19x + сразу PA-02».
+**Base.** Owner archive `bf-v24.zip`, PA-01 delivered, Navigator approved the test GitHub repository and ordered “P19x + PA-02 immediately”.
 
 **May change.** New: `scripts/e01-harness.mjs`, `tests/pa02-acceptance.test.mjs`, `tests/pa02-fixtures.json`, `docs/PA-02-SPEC.md`. Changed: `package.json` (scripts), `scripts/gate-eval.mjs` (consume E-01 table if present), `docs/DELEGATION.md`, `docs/CURRENT_STATE.md`, `docs/NEXT.md`, `docs/REPO_MAP.md`, `CHANGELOG.md`.
 
