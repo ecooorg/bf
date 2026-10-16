@@ -75,7 +75,7 @@ test('P48 parseVerifierPayload accepts valid JSON and rejects garbage', async ()
 test('P48 runEpistemicVerifier degrades on adapter error without throwing', async () => {
   const { runEpistemicVerifier } = await import('../server/epistemicVerifier.ts');
   const failAdapter = {
-    async generate() {
+    async call() {
       return { status: 'error', errorClass: 'PROVIDER_TRANSIENT', message: '429', latencyMs: 1, providerId: 'groq', modelId: 'x', retryable: true };
     },
   };
@@ -89,7 +89,7 @@ test('P48 runEpistemicVerifier degrades on adapter error without throwing', asyn
 test('P48 runEpistemicVerifier maps ok JSON to groq', async () => {
   const { runEpistemicVerifier } = await import('../server/epistemicVerifier.ts');
   const okAdapter = {
-    async generate() {
+    async call() {
       return {
         status: 'ok',
         output: { claims: [{ text: 'X is 10%', kind: 'hypothesis' }], issues: [], check_suggestions: ['check source'] },
