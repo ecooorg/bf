@@ -58,7 +58,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 
 | File | What it is |
 | --- | --- |
-| `server/promptCore.ts` | Shared prompt core and reusable conversation instructions |
+| `server/promptCore.ts` | Shared prompt core (honesty, uncertainty P48, language, safety) |
+| `server/epistemicVerifier.ts` | P48 optional Groq claim verifier (never blocks primary reply) |
 | `server/contracts.ts` | Shared identifier contract (URL/DB-safe ids) |
 | `server/adapter.ts` | Provider adapter contract, normalized response, provider error classes, fallback matrix (not wired yet) |
 | `server/statePipeline.ts` | State items schema, patch pipeline (schema, policy, apply), compaction; pure functions |
@@ -161,6 +162,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run check:docs` | Document check |
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
+| `npm run test:p48` | P48 epistemic: uncertainty core + verifier pure contracts |
 | `npm run test:qa1` | QA1 offline cross-mode: classification, soft-fail contracts, Expert/Project isolation, UI cards |
 | `npm run test:p43` | RM-C3 closed: model_patch authorization docs and env-gate regression |
 | `npm run test:virtual` | `tests/run.sh`: real `server.ts` against a fake Gemini |
@@ -212,6 +214,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
 | `tests/qa1.test.mjs` | QA1 offline cross-mode suite (classification, soft-fail, mode isolation, UI/STATUS contracts) | no |
+| `tests/p48-epistemic.test.mjs` | P48 uncertainty core + verifier pure contracts | no |
 | `tests/p43-rm-c3.test.mjs` | P43 RM-C3 docs + CODE_EXECUTOR env-gate contract; GitHub write remains deferred | no |
 | `tests/package-c.test.mjs` | Static checks of repository files (read the file for details) | no |
 | `tests/state-pipeline.test.mjs` | Patch policy, atomicity, provenance, unverified facts, compaction invariants | no |
