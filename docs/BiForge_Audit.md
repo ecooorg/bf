@@ -21,21 +21,21 @@
 ## 2. Подготовленные файлы
 
 **Матрица требований:**
-[Матрица ТЗ → код → тест → результат → риск](AUDIT/bf_v40_requirements_matrix.csv)
+[Матрица ТЗ → код → тест → результат → риск](../ARCHIVE/bf_v40_requirements_matrix.csv)
 В ней 764 строки. Для каждого выделенного пункта указаны исходное требование, документ и номер строки, предполагаемые участки кода, предполагаемые тесты и степень подтверждения.
 Пока соответствия помечены как предварительные, а не как PASS.
 
 **Полный реестр файлов:**
-[Реестр 407 файлов с SHA-256](AUDIT/bf_v40_file_inventory.csv)
+[Реестр 407 файлов с SHA-256](../ARCHIVE/bf_v40_file_inventory.csv)
 
 **Результаты автоматического анализа исходников:**
-[Найденные маркеры потенциальных проблем](AUDIT/bf_v40_code_flags.csv)
+[Найденные маркеры потенциальных проблем](../ARCHIVE/bf_v40_code_flags.csv)
 
 **Отчёт аудита:**
-[Отчёт с выводами и незакрытыми вопросами](AUDIT/bf_v40_audit_report.md)
+[Отчёт с выводами и незакрытыми вопросами](../ARCHIVE/bf_v40_audit_report.md)
 
 **Отчёт этапа A:**
-[bf_v40_stage_A_report.md](AUDIT/bf_v40_stage_A_report.md)
+[bf_v40_stage_A_report.md](../ARCHIVE/bf_v40_stage_A_report.md)
 
 ## 3. Что удалось установить
 
@@ -311,7 +311,7 @@
 
 ## AUDIT-A2 (2026-10-16) — продолжение этапа A
 
-**Режим:** read-only по продукту; исправлены только битые ссылки в этом файле (sandbox: → `AUDIT/…`), чтобы `check:docs` проходил. Код, тесты, версия продукта и runtime **не** менялись.
+**Режим:** read-only по продукту; исправлены только битые ссылки в этом файле (sandbox: → `ARCHIVE/…`), чтобы `check:docs` проходил. Код, тесты, версия продукта и runtime **не** менялись.
 
 ### Повторно выполненные проверки
 
@@ -334,8 +334,8 @@
 
 | ID | Критичность | Факт | Действие |
 |---|---|---|---|
-| A-09 | Низкая (docs) | `BiForge_Audit.md` содержал 4 ссылки `sandbox:/mnt/data/…`, ломавшие `check:docs` | **Исправлено** в этом патче (относительные пути `AUDIT/`) |
-| A-01…A-08 | без изменений | см. `AUDIT/bf_v40_stage_A_report.md` | остаются |
+| A-09 | Низкая (docs) | `BiForge_Audit.md` содержал 4 ссылки `sandbox:/mnt/data/…`, ломавшие `check:docs` | **Исправлено** в этом патче (относительные пути `ARCHIVE/`) |
+| A-01…A-08 | без изменений | см. `ARCHIVE/bf_v40_stage_A_report.md` | остаются |
 
 ### Статус этапов
 
@@ -386,8 +386,8 @@ AUDIT/bf_v40_stage_A_report.md: ...
 
 - Тест: `tests/p13a-acceptance.test.mjs` subtest «the real repository passes the preflight».
 - Правило: репозиторий не должен содержать **новых top-level** папок вне допустимой плоской структуры.
-- `ARCHIVE/`, `CONCEPTS/`, `docs/` уже существуют и не вызывают FAIL; **`AUDIT/`** — новый top-level и ломает preflight.
-- **Исправление (этап B):** перенести содержимое в `docs/AUDIT/` **или** `ARCHIVE/AUDIT/`, обновить ссылки в `docs/BiForge_Audit.md`, прогнать `test:p13a` + CI. **Без команды владельца не выполняется.**
+- `ARCHIVE/`, `CONCEPTS/`, `docs/` уже существуют и не вызывают FAIL; **`ARCHIVE/`** — новый top-level и ломает preflight.
+- **Исправление (этап B):** перенести содержимое в `ARCHIVE/` (плоско, без вложенной папки), обновить ссылки в `docs/BiForge_Audit.md`, прогнать `test:p13a` + CI. **Без команды владельца не выполняется.**
 
 ### Решения владельца, зафиксированные в A3
 
@@ -412,27 +412,27 @@ AUDIT/bf_v40_stage_A_report.md: ...
 | Этап | Статус |
 | :--- | :--- |
 | A — технический аудит | 🟡 PARTIAL — CI разобран; A-10 подтверждён |
-| B — исправления | ⚪ NOT STARTED — ждать команду на B-AUDIT (перенос `AUDIT/`) |
+| B — исправления | ⚪ NOT STARTED — ждать команду на B-AUDIT (перенос `ARCHIVE/`) |
 | C — приёмка | ⚪ NOT STARTED — deploy + MANUAL1 |
 
 ### Что нужно от владельца сейчас
 
-1. **Команда на B-AUDIT?** «перенеси `AUDIT/` в `docs/AUDIT/` и почини ссылки» — единственный подтверждённый блокер CI.
+1. **Команда на B-AUDIT?** «перенеси audit-артефакты в `ARCHIVE/` (плоско) и почини ссылки» — единственный подтверждённый блокер CI.
 2. **Deploy P47** на staging.
 3. После зелёного CI + deploy — **MANUAL1**.
 
-**Вывод A3:** продукт по функциональности режимов выглядит завершённым; **CI красный из-за артефактов аудита в top-level `AUDIT/`**. Это не регресс продуктового кода P47, а нарушение контракта поставки/preflight. Этап A не закрыт до решения по A-10.
+**Вывод A3:** продукт по функциональности режимов выглядит завершённым; **CI красный из-за артефактов аудита в top-level `ARCHIVE/`**. Это не регресс продуктового кода P47, а нарушение контракта поставки/preflight. Этап A не закрыт до решения по A-10.
 
 ---
 
 ## B-AUDIT (2026-10-16) — выполнен
 
-**Команда владельца:** перенести `AUDIT/` в `docs/AUDIT/`, починить ссылки, цель CI green; синхронизировать версию с правилом AGENTS.
+**Команда владельца:** перенести audit-артефакты в `ARCHIVE/` (плоско), починить ссылки, цель CI green; синхронизировать версию с правилом AGENTS.
 
 | Действие | Результат |
 | :--- | :--- |
-| `AUDIT/*` → `docs/AUDIT/` | **Done**; top-level `AUDIT/` отсутствует |
-| Ссылки в `BiForge_Audit.md` | `AUDIT/…` (внутри `docs/`) |
+| `AUDIT/*` → `ARCHIVE/` (плоско) | **Done**; top-level `AUDIT/` и `docs/AUDIT/` отсутствуют |
+| Ссылки в `BiForge_Audit.md` | `ARCHIVE/…` (внутри `docs/`) |
 | Version 40 → **47** | `src/config.ts`, `package.json`, lock, README, DEPLOY_RAILWAY, `## v47` CHANGELOG_AGENT_BEHAVIOR |
 | `check-version.mjs` | **OK: 47** |
 | `version-check` tests | **PASS** |
@@ -440,3 +440,17 @@ AUDIT/bf_v40_stage_A_report.md: ...
 | `test:p13a` full | NOT_RUN locally (deps); preflight structure condition satisfied |
 
 **Вывод:** A-10 закрыт структурно. CI green — подтвердить логом после upload. Версия снова = номер патча (47).
+
+---
+
+## B-AUDIT.2 (2026-10-16) — preflight depth fix
+
+CI после B-AUDIT всё ещё RED: `docs/AUDIT/*` = **nested folder** (preflight допускает только `docs/<file>`, не `docs/<subdir>/<file>`; исключения — `.github/workflows/*` и `src/workspace/*`).
+
+| Действие | Результат |
+| :--- | :--- |
+| `docs/AUDIT/*` → `ARCHIVE/bf_v40_*` (плоско) | **Done** |
+| Ссылки | `../ARCHIVE/bf_v40_…` |
+| Ожидание | `test:p13a` preflight empty violations |
+
+Правило (`scripts/patch-tools.mjs`): пути глубины ≥3 запрещены, кроме whitelist. Audit-артефакты живут в `ARCHIVE/`, не в подпапках `docs/`.
