@@ -1571,11 +1571,15 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
         }
       } catch { /* keep original; locale still en/us */ }
       const r = await fetchSerperDigestMulti({ apiKey: serperKey, userText, englishQuery, today, timeoutMs });
+      const dig = String(r.digest || '');
       console.info(JSON.stringify({
         type: 'web_search', status: r.status, provider: 'serper', model: r.model,
         sources: r.sources.length, queries: r.queries.length, multi: r.queries.length,
         q: String(r.queries?.[0] || englishQuery || '').slice(0, 120),
         qq: (r.queries || []).slice(0, 5).map((x: string) => String(x).slice(0, 60)),
+        digestChars: dig.length,
+        digestHasPct: /%|\bpercent\b|\bper cent\b/i.test(dig),
+        digestPreview: dig.slice(0, 180).replace(/\s+/g, ' '),
         ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}),
       }));
       return r;
