@@ -125,7 +125,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `src/en.ts`, `src/ui.ts`, `src/errors.ts` | Interface strings and error messages (English only) |
 | `src/decision.ts`, `src/triage.ts`, `src/evpi.ts`, `src/brier.ts`, `src/numberValidator.ts` | Method domain logic: model, applicability check, EVPI, Brier score, number validation |
 | `src/storage.ts`, `src/autosave.ts` | Local storage and autosave rules |
-| `src/driveClient.ts`, `src/driveSync.ts`, `src/driveMerge.ts`, `src/driveExport.ts`, `src/useDrive.ts` | Google Drive: transport, sync core, merge rules, save as Google Doc, React hook |
+| `src/driveClient.ts`, `src/driveMirror.ts`, `src/driveSync.ts`, `src/driveMerge.ts`, `src/driveExport.ts`, `src/useDrive.ts` | Google Drive: transport, sync core, merge rules, save as Google Doc, React hook |
 | `src/attachments.ts`, `src/ConversationFiles.tsx`, `src/programFiles.ts` | Files in the conversation |
 | `src/libraryExport.ts`, `src/exportZip.ts`, `src/exportName.ts`, `src/sha256Export.ts`, `src/icsBuilder.ts`, `src/decisionDocument.ts` | Exports: library, JSON, file names, hash, calendar file, decision document |
 | `src/HistoryPanel.tsx`, `src/AutoGrow.tsx`, `src/OfflineIndicator.tsx`, `src/usePWAInstall.ts` | Small UI parts |
@@ -213,6 +213,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/security.test.mjs` | Sessions, cookies, login limiter, same-origin | no |
 | `tests/files.test.mjs` | Attachments and documents (unit) | no |
 | `tests/driveMerge.test.mjs`, `tests/driveSync.test.mjs`, `tests/driveDocs.test.mjs` | Drive merge rules, sync core, save as Google Doc (fake Drive) | no |
+| `tests/driveMirror.test.mjs` | Drive file mirror manifest/status helpers (no network) | no |
 | `tests/export-name.test.mjs`, `tests/libraryExport.test.mjs` | Export file names; library export and import | no |
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
