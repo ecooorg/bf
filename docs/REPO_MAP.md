@@ -119,6 +119,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | --- | --- |
 | `src/main.tsx`, `src/index.css` | Client entry and styles |
 | `src/App.tsx` | Simple Mode client (the main screen) |
+| `src/expertContext.ts` | P52 compact Expert method state + `productMode` fields sent with the Expert open dialogue |
 | `src/ModeMenu.tsx` | P51 shared Mode button + dropdown (Simple / Expert / Project / back to mode selection) used by the chat header and the Project page |
 | `src/ProjectMode.tsx` | The `/project` page (Project Mode), including the gated “Create a small program” flow and source ZIP link |
 | `src/config.ts` | `APP_VERSION` (single source of the service version), `SCHEMA_VERSION`, feature flags |
@@ -165,6 +166,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
 | `npm run test:p48` | P48 epistemic: uncertainty core + verifier pure contracts |
+| `npm run test:p52` | P52 Expert open dialogue: Expert contract, stage context, wiring on client and server |
 | `npm run test:p50` | P50 web search: trigger rules, grounding contract, fail-safe, wiring |
 | `npm run test:qa1` | QA1 offline cross-mode: classification, soft-fail contracts, Expert/Project isolation, UI cards |
 | `npm run test:p43` | RM-C3 closed: model_patch authorization docs and env-gate regression |
@@ -218,6 +220,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
 | `tests/qa1.test.mjs` | QA1 offline cross-mode suite (classification, soft-fail, mode isolation, UI/STATUS contracts) | no |
+| `tests/p52-expert-dialogue.test.mjs` | P52 Expert open dialogue contract, bounded stage context, client/server wiring | no |
 | `tests/p50-web-search.test.mjs` | P50 web search pure contracts + fake client + wiring | no |
 | `tests/p48-epistemic.test.mjs` | P48 uncertainty core + verifier pure contracts | no |
 | `tests/p43-rm-c3.test.mjs` | P43 RM-C3 docs + CODE_EXECUTOR env-gate contract; GitHub write remains deferred | no |
