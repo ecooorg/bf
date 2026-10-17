@@ -42,6 +42,7 @@ If `APP_PASSWORD` is empty in production the site is open to everyone; the serve
 | `RATE_LIMIT_PER_HOUR` | `60` | |
 | `TRUST_PROXY_HOPS` | `1` | Default in production |
 | `GROQ_PLAN` | `free` or `paid` | Not read by server code; documentation marker |
+| `ENABLE_WEB_SEARCH` | `true` to enable web search for fresh facts (off by default) | Optional: `WEB_SEARCH_MODE` (`auto`/`explicit`), `WEB_SEARCH_MODEL`, `WEB_SEARCH_TIMEOUT_MS` (default `15000`) |
 
 Gemini limits apply per project (not per API key) and per model; daily limits reset at midnight Pacific time. Real project data requires a billed project with a spending limit (A-02). A quota error from one model parks it for 30 minutes (log type `llm_quota`) and the next model is tried; `GEMINI_QUOTA` is returned only when every model is out of quota. Check the model list against the provider's documentation once a month (TZ section 16.7, maintenance table).
 

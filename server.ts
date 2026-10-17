@@ -26,6 +26,8 @@ import { consumeRateLimit, createProject, deleteProject, getProject, listProject
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
+import { fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, webSearchMode } from './server/webSearch.ts';
+import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './server/taskService.ts';
@@ -1536,6 +1538,37 @@ function compactConversationHistory(history: any[]): any[] {
   return normalized.slice(-CONVERSATION_CONTEXT_MESSAGES);
 }
 
+// P50: one grounded Google Search lookup for the person's last message (Gemini + Google Search tool).
+// Never throws: any problem returns a non-"used" result and the conversation continues exactly as before.
+// It does not touch the model-health table of the main cascade (a search-tool failure must not park a model).
+async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string): Promise<WebSearchResult> {
+  try {
+    const key = byokKey || apiKey;
+    if (!key) return skippedWebSearch('skipped', 'no_key');
+    const ownKey = Boolean(byokKey);
+    const now = Date.now();
+    const override = (process.env.WEB_SEARCH_MODEL || '').trim();
+    const pool = override ? [override] : modelsFor('light', preferredModel).filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
+    if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
+    if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
+    const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+    const r = await fetchWebSearchDigest({
+      client: client as any,
+      models: pool,
+      userText,
+      today: new Date().toISOString().slice(0, 10),
+      timeoutMs: Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 15000,
+      maxAttempts: 2,
+      onAttempt: () => { if (!ownKey) globalDayCount++; },
+    });
+    console.info(JSON.stringify({ type: 'web_search', status: r.status, model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
+    return r;
+  } catch (e: any) {
+    console.warn(JSON.stringify({ type: 'web_search', status: 'failed', reason: String(e?.message || e).slice(0, 120) }));
+    return skippedWebSearch('failed', 'exception');
+  }
+}
+
 // --- POST /api/conversation ---
 // Simple Mode conversation prompt lives in server/promptPacks.ts (mode packs).
 function buildConversationPrompt(input: string, attachmentsBlock = '', modeBlock = '', today = new Date().toISOString().slice(0, 10), mode: ConversationMode = 'decision'): string {
@@ -1597,7 +1630,34 @@ app.post('/api/conversation', async (req, res) => {
     const recentUserText = fullHistory.filter((m: any) => m.role === 'user').slice(-3).map((m: any) => String(m.content || '')).join('\n');
     const conversationMode = detectConversationMode(lastUserText, { userAskedSearch: intentFlags.userAskedSearch, recentUserText });
     const modeBlock = modeParagraph(conversationMode);
-    const prompt = buildConversationPrompt(input, attachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10), conversationMode);
+    // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
+    let webSearch: WebSearchResult = skippedWebSearch();
+    let promptAttachmentsBlock = attachmentsBlock;
+    if (isWebSearchEnabled()) {
+      try {
+        if (shouldSearchWeb({
+          enabled: true,
+          mode: webSearchMode(),
+          userText: lastUserText,
+          userAskedSearch: intentFlags.userAskedSearch,
+          distress: distressMarkerDetected,
+          intent: context.intent,
+          hasAttachments: attachItems.length > 0,
+        })) {
+          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel);
+          if (webSearch.status === 'used') {
+            const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
+            promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;
+            // Numbers that come from the search digest are sourced facts, not invented figures.
+            genOpts.extraNumberSource = `${genOpts.extraNumberSource || ''}\n${webSearch.digest}`;
+          }
+        }
+      } catch {
+        webSearch = skippedWebSearch('failed', 'exception');
+        promptAttachmentsBlock = attachmentsBlock;
+      }
+    }
+    const prompt = buildConversationPrompt(input, promptAttachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10), conversationMode);
     const callBudget = { used: 0 };   // S-4: the quality retry shares the request's model-call budget
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     let out = data as any;
@@ -1745,10 +1805,11 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
       ...(meta as object),
       conversation_mode: conversationMode,
       ...(intentFlags.userAskedSearch ? { search_expected: true } : {}),
+      ...(webSearch.status !== 'skipped' ? { web_search: webSearch.status } : {}),
       epistemic_verifier: epistemic.verifier,
     };
     ok(res, {
-      reply: visibleReply,
+      reply: visibleReply + (webSearch.status === 'used' ? formatSourcesFooter(webSearch.sources, lastUserText) : ''),
       question: cleanQuestion,
       contextSufficiency,
       triage: audit.triage,
@@ -1762,6 +1823,7 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
       attachmentNotes,
       // P48: additive epistemic meta; old clients ignore unknown fields
       epistemic,
+      ...(webSearch.status === 'used' ? { sources: webSearch.sources } : {}),
       state: mergeModelState(out.state, {
         previous: safeState,
         userTexts: [String(brief.decision || ''), ...fullHistory.filter((m: any) => m.role === 'user').map((m: any) => m.content)],
