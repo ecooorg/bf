@@ -15,7 +15,7 @@ import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.
 
 import { APP_VERSION } from './src/config.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
-import { buildSimpleConversationPrompt, EXPERT_STEP_PREFIX } from './server/promptPacks.ts';
+import { buildSimpleConversationPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, type ProductMode } from './server/promptPacks.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
@@ -1625,8 +1625,8 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
 
 // --- POST /api/conversation ---
 // Simple Mode conversation prompt lives in server/promptPacks.ts (mode packs).
-function buildConversationPrompt(input: string, attachmentsBlock = '', modeBlock = '', today = new Date().toISOString().slice(0, 10), mode: ConversationMode = 'decision'): string {
-  return buildSimpleConversationPrompt(input, attachmentsBlock, modeBlock, today, mode);
+function buildConversationPrompt(input: string, attachmentsBlock = '', modeBlock = '', today = new Date().toISOString().slice(0, 10), mode: ConversationMode = 'decision', productMode: ProductMode = 'Simple'): string {
+  return buildSimpleConversationPrompt(input, attachmentsBlock, modeBlock, today, mode, productMode);
 }
 
 
@@ -1682,8 +1682,14 @@ app.post('/api/conversation', async (req, res) => {
     }
     // PI-03: thin mode paragraph (Decision / Research / Engineering) on the shared prompt.
     const recentUserText = fullHistory.filter((m: any) => m.role === 'user').slice(-3).map((m: any) => String(m.content || '')).join('\n');
-    const conversationMode = detectConversationMode(lastUserText, { userAskedSearch: intentFlags.userAskedSearch, recentUserText });
-    const modeBlock = modeParagraph(conversationMode);
+    const detectedMode = detectConversationMode(lastUserText, { userAskedSearch: intentFlags.userAskedSearch, recentUserText });
+    // P52: the Expert open dialogue keeps the Expert contract. Only an explicit client field switches it;
+    // nothing here changes the mode by itself. Expert never gets the light information contract.
+    const productMode: ProductMode = req.body?.productMode === 'Expert' ? 'Expert' : 'Simple';
+    const conversationMode: ConversationMode = productMode === 'Expert' && detectedMode === 'information' ? 'decision' : detectedMode;
+    const modeBlock = productMode === 'Expert'
+      ? `${modeParagraph(conversationMode)}\n\n${expertDialogueParagraph(String(req.body?.expertStage || ''), typeof req.body?.expertContext === 'string' ? req.body.expertContext : '')}`
+      : modeParagraph(conversationMode);
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
     let webSearch: WebSearchResult = skippedWebSearch();
     let promptAttachmentsBlock = attachmentsBlock;
@@ -1713,7 +1719,7 @@ app.post('/api/conversation', async (req, res) => {
         promptAttachmentsBlock = attachmentsBlock;
       }
     }
-    const prompt = buildConversationPrompt(input, promptAttachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10), conversationMode);
+    const prompt = buildConversationPrompt(input, promptAttachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10), conversationMode, productMode);
     const callBudget = { used: 0 };   // S-4: the quality retry shares the request's model-call budget
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     let out = data as any;
@@ -1860,6 +1866,7 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
     const responseMeta = {
       ...(meta as object),
       conversation_mode: conversationMode,
+      product_mode: productMode,
       ...(intentFlags.userAskedSearch ? { search_expected: true } : {}),
       ...(webSearch.status !== 'skipped' ? { web_search: webSearch.status } : {}),
       epistemic_verifier: epistemic.verifier,
