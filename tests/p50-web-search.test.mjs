@@ -213,3 +213,24 @@ test('P50 fetchSerperDigest skips without key', async () => {
   assert.equal(r.status, 'skipped');
   assert.equal(r.reason, 'no_serper_key');
 });
+
+test('P50 page fetch URL filters', () => {
+  assert.equal(mod.isFetchableContentUrl('https://www.federalreserve.gov/releases/h15/'), true);
+  assert.equal(mod.isFetchableContentUrl('https://www.youtube.com/watch?v=abc'), false);
+  assert.equal(mod.isFetchableContentUrl('https://x.com/user/status/1'), false);
+  const picked = mod.pickUrlsToFetch([
+    { title: 'YT', url: 'https://www.youtube.com/watch?v=1' },
+    { title: 'Fed', url: 'https://www.federalreserve.gov/releases/h15/' },
+    { title: 'Random', url: 'https://example.com/rates' },
+  ], 2);
+  assert.equal(picked[0].url.includes('federalreserve'), true);
+  assert.equal(picked.length, 2);
+});
+
+test('P50 digestFromPageExtracts prefers page body', () => {
+  const d = mod.digestFromPageExtracts([
+    { title: 'Fed H.15', url: 'https://www.federalreserve.gov/h15', text: 'The federal funds rate was 4.33 percent on October 15, 2026. Target range 4.25 to 4.50.' },
+  ], 'snippet only weak');
+  assert.match(d, /4\.33/);
+  assert.match(d, /SOURCE:/);
+});
