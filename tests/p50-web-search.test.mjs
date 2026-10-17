@@ -190,8 +190,11 @@ test('P50 webSearchProvider: auto prefers serper when SERPER_API_KEY is set', ()
 });
 
 test('P50 serperLocale and digestFromSerperResponse', () => {
-  assert.deepEqual(mod.serperLocale('ключевые ставки G7'), { hl: 'ru', gl: 'ru' });
+  assert.deepEqual(mod.serperLocale('ключевые ставки G7'), { hl: 'en', gl: 'us' });
   assert.deepEqual(mod.serperLocale('G7 interest rates'), { hl: 'en', gl: 'us' });
+  assert.deepEqual(mod.serperLocale('날씨 취리히'), { hl: 'en', gl: 'us' });
+  assert.equal(mod.needsEnglishQueryTranslation('ключевые ставки G7'), true);
+  assert.equal(mod.needsEnglishQueryTranslation('G7 central bank rates October 2026'), false);
   const data = {
     answerBox: { answer: 'Fed rate is 4.25%', title: 'Fed', link: 'https://example.com/fed' },
     organic: [
