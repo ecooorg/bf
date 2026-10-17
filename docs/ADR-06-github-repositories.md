@@ -29,3 +29,18 @@ TZv3.0 sections 11.2 and 3.2 (A-07) require a separate repository for each gener
 ## Review trigger
 
 Revisit after A-07 is checked against the actual GitHub plan, or if private-repository Actions limits become a measured blocker.
+
+## Amendment 1 (2026-10-17) — Project scope «analysis + ZIP»; GitHub stays read-only
+
+**Status:** Accepted on the owner's instruction. Implemented by `docs/P53-SPEC.md`; the interface for it is `docs/P54-SPEC.md`.
+
+**Why.** The decision above (read-only by default) was not fully enforced: `CODE_EXECUTOR=model_patch`, which the ZIP path needs, also switched on the GitHub write mode in code. The owner chose to keep Project as «analysis + ZIP» until MANUAL1 and to decide on GitHub write afterwards.
+
+**Decision.**
+1. In this release Project means: (a) analysis with human-confirmed proposals; (b) plan, approvals and tasks as text artifacts under budgets; (c) a small program as a validated **ZIP download**, never executed on the BiForge server; (d) **manual Code Delivery, read-only** — BiForge prepares the Task Package, the human works in any tool and opens a PR from `biforge/<task_id>`, BiForge reads the PR and checks, evaluates gates, runs the reviewer and records the human decision.
+2. The GitHub App stays **read-only**. The only GitHub write switch is `GITHUB_DIFF_UPLOAD=true`. `CODE_EXECUTOR=model_patch` means ZIP generation and implies no GitHub write.
+3. The write paths (`commit-package`, diff upload, `model_patch` delivery to a branch or PR) remain implemented but off, and are hidden in the interface while the switch is off.
+4. BiForge never merges and never writes to `main` (unchanged).
+
+**Reopen trigger.** The owner decides after MANUAL1 whether to enable write for one named test repository; that needs its own owner decision and a new amendment. Changing the GitHub App permissions remains a Tier 3 owner action.
+

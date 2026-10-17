@@ -12,6 +12,7 @@
 | **Code Delivery** | **RM-C3** closed (**P43**); `model_patch`; runtime env-gated |
 | **P48** | Uncertainty core + optional Groq verifier (variant A); never blocks primary reply |
 | **offrepo** | Group B path tests relaxed — ARCHIVE/CONCEPTS bulk may leave main after local zip |
+| **P53 / P54** | Planned before MANUAL1 (owner, 2026-10-17): P53 = Project scope «analysis + ZIP», GitHub read-only (ADR-06 Amendment 1, `docs/P53-SPEC.md`); P54 = Project interface for gates and manual Code Delivery (`docs/P54-SPEC.md`) |
 | **P52** | Expert open dialogue keeps the Expert contract: mode, stage and method state are sent to `/api/conversation` (`docs/PATCH_JOURNAL.md`) |
 | **P51** | One **Mode** button with a mode dropdown on Simple, Expert and Project; mode items removed from More (`docs/P51-SPEC.md`) |
 | **P50** | Optional web search for fresh facts (Gemini + Google Search); **off** unless `ENABLE_WEB_SEARCH=true` (`docs/P50-SPEC.md`) |
@@ -22,12 +23,14 @@
 
 | # | ID | Item | Owner |
 | --- | --- | --- | --- |
-| 1 | **CI** | Confirm green on P48 | Owner (log) |
-| 2 | **Deploy** | v48 production | Owner |
-| 3 | **Smoke** | Simple plain / research+numbers / Expert; with and without Groq | Owner |
-| 4 | **MANUAL1** | Full acceptance (OWNER_OPS) | Owner |
+| 1 | **CI** | Confirm green on P52 | Owner (log) |
+| 2 | **P53** | Project scope «analysis + ZIP»; `CODE_EXECUTOR=model_patch` no longer implies GitHub write | Patch |
+| 3 | **P54** | Project interface: gates and manual Code Delivery (read-only GitHub) | Patch |
+| 4 | **Deploy** | v48 production | Owner |
+| 5 | **Smoke** | Simple plain / research+numbers / Expert; with and without Groq | Owner |
+| 6 | **MANUAL1** | Full acceptance (OWNER_OPS), incl. Project delivery scenario | Owner |
 | — | **P49** | Cascade expansion — only when Gemini+Groq insufficient | Deferred |
-| — | GitHub write | **Deferred** (ADR-06) | Owner |
+| — | GitHub write | **Deferred** (ADR-06 Amendment 1); reopen after MANUAL1 | Owner |
 
 ## 3. Requires explicit authorization
 
