@@ -269,7 +269,7 @@ export async function commitApprovedPackage(input: {
   if (!row.package_approved_at) {
     throw new CodeTaskError('APPROVAL_REQUIRED', 'Approve the package before committing it to the task branch');
   }
-  const writeOn = deps.diffUpload?.() ?? (diffUploadEnabled() || githubWritesEnabled());
+  const writeOn = deps.diffUpload?.() ?? githubWritesEnabled();
   if (!writeOn) {
     throw new CodeTaskError('DIFF_UPLOAD_DISABLED', 'GitHub writes are off; set GITHUB_DIFF_UPLOAD=true (or enable model_patch writes) to commit the package');
   }
@@ -539,7 +539,7 @@ export async function driveModelPatch(
   if (row.status !== 'WAITING_HUMAN' && row.status !== 'BLOCKED') {
     throw new CodeTaskError('CODE_TASK_CLOSED', 'The code run is not open for model_patch drive', { status: row.status });
   }
-  const writeOn = deps.diffUpload?.() ?? (diffUploadEnabled() || githubWritesEnabled());
+  const writeOn = deps.diffUpload?.() ?? githubWritesEnabled();
   if (!deps.modelCaller) {
     throw new CodeTaskError('MODEL_CALLER_MISSING', 'model_patch requires an injected modelCaller (Router + json_output) or a test fake');
   }

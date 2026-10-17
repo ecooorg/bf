@@ -33,10 +33,11 @@ export function verifyGitHubWebhookSignature(rawBody: Buffer, signature: string 
 }
 
 /**
- * Write permissions are asked for only when `model_patch` is enabled or diff upload is switched on (TZ 11.7).
- * Off by default: with both off the installation token must stay within the read-only manifest.
+ * ADR-06 Amendment 1 (P53): the one GitHub write switch is `GITHUB_DIFF_UPLOAD=true`.
+ * `CODE_EXECUTOR=model_patch` means "generate a source ZIP" and implies no GitHub write.
+ * Off by default: with the switch off the installation token must stay within the read-only manifest.
  */
-export const githubWritesEnabled = (): boolean => process.env.CODE_EXECUTOR === 'model_patch' || process.env.GITHUB_DIFF_UPLOAD === 'true';
+export const githubWritesEnabled = (): boolean => process.env.GITHUB_DIFF_UPLOAD === 'true';
 export const diffUploadEnabled = (): boolean => process.env.GITHUB_DIFF_UPLOAD === 'true';
 
 const BASE_PERMISSIONS: Record<string, string> = {
@@ -47,14 +48,14 @@ const rank: Record<string, number> = { none: 0, read: 1, write: 2, admin: 3 };
 
 export function permissionsWithinMaximum(
   actual: Record<string, string> | undefined,
-  modelPatchEnabled: boolean,
+  writesEnabled: boolean,
 ): boolean {
   if (!actual || typeof actual !== 'object' || Array.isArray(actual)) return false;
-  const maximum = { ...BASE_PERMISSIONS, ...(modelPatchEnabled ? WRITE_PERMISSIONS : {}) };
+  const maximum = { ...BASE_PERMISSIONS, ...(writesEnabled ? WRITE_PERMISSIONS : {}) };
   for (const [permission, level] of Object.entries(actual)) {
     if (!(permission in maximum) || !(level in rank) || rank[level] > rank[maximum[permission] || 'none']) return false;
   }
-  const required = modelPatchEnabled ? { ...BASE_PERMISSIONS, ...WRITE_PERMISSIONS } : BASE_PERMISSIONS;
+  const required = writesEnabled ? { ...BASE_PERMISSIONS, ...WRITE_PERMISSIONS } : BASE_PERMISSIONS;
   return Object.entries(required).every(([key, value]) => (rank[actual[key] || 'none'] || 0) >= rank[value]);
 }
 
