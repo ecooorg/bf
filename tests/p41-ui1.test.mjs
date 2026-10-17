@@ -22,7 +22,8 @@ test('unavailable Project is disabled and not silently substituted', () => {
 
 test('mode selection is explicit and session-persisted', () => {
   assert.match(app, /setExpertMode\(mode === 'Expert'\)/);
-  assert.match(app, /sessionStorage\.setItem\('biforge-start-mode', mode\)/);
+  assert.match(app, /sessionStorage\.setItem\((START_MODE_KEY|'biforge-start-mode'), mode\)/);
+  assert.match(modeMenu, /START_MODE_KEY = 'biforge-start-mode'/);
 });
 
 test('STATUS orders QA1 between UI1 and MANUAL1 and records approved UX1 decision', () => {
@@ -43,7 +44,7 @@ test('patch journal records existing folder picker menu behavior', () => {
 test('Change mode control returns to start screen', () => {
   assert.match(modeMenu, /data-testid="change-mode"/);
   assert.match(app, /resetStartMode|onChangeMode/);
-  assert.match(app, /sessionStorage\.removeItem\('biforge-start-mode'\)/);
+  assert.match(app, /sessionStorage\.removeItem\((START_MODE_KEY|'biforge-start-mode')\)/);
 });
 
 test('P51: one Mode control on every screen; the old duplicate items are gone from More', () => {

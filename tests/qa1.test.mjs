@@ -125,7 +125,7 @@ test('QA1 UI: start screen offers Simple / Expert / Project and disables unavail
   assert.match(app, /chooseStartMode\('Expert'\)/);
   assert.match(app, /disabled=\{!projectModeEnabled\}/);
   assert.match(app, /Currently unavailable/);
-  assert.match(app, /sessionStorage\.setItem\('biforge-start-mode'/);
+  assert.match(app, /sessionStorage\.setItem\((START_MODE_KEY|'biforge-start-mode')/);
   assert.match(app, /if \(mode === 'Project' && !projectModeEnabled\) return/);
 });
 
