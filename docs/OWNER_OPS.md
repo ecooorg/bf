@@ -46,6 +46,7 @@
 
 - `CODE_EXECUTOR` = **`model_patch`** (visible in Variables UI, observed 14 Oct 2026).  
   **RM-C3 closed (P43, 2026-10-15):** owner authorized enablement after ADR-10 / E-01. Re-confirm the variable after each deploy. GitHub App **write** and `GITHUB_DIFF_UPLOAD` remain separate owner decisions (ADR-06).
+  **P53 (ADR-06 Amendment 1):** `model_patch` now means ZIP only and no longer implies GitHub write. The GitHub App must have **read-only** rights (contents, checks, pull requests, metadata). If its page still shows write rights, reduce them before deploying P53: the server now rejects a write-level token while `GITHUB_DIFF_UPLOAD` is off (Tier 3, owner action).
 
 **RM-A1 check:** open Variables → search `MODEL_CASCADE` → ensure no deprecated `gemini-3.7-flash` / `gemini-3.5-flash` overrides (or clear those vars to use code defaults).
 

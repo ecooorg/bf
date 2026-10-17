@@ -90,6 +90,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/database.ts` | Lazy PostgreSQL pool; importing the server never opens a connection |
 | `server/projectRepository.ts` | Project Mode storage: projects, State versions, events (zod contracts) |
 | `server/healthRoutes.ts` | `/health`, `/ready`, `/api/health` (includes `commit`) |
+| `server/projectCapabilities.ts` | P53 pure capability booleans for the Project page (ZIP, GitHub read, GitHub write); returned by `/api/session` for a signed-in person |
 | `server/githubIntegration.ts` | GitHub App JWT, installation-token permission checks, webhook signature verification, read of PRs, PR files and check runs, Task Package commit to `biforge/<task_id>` only; no merge (P16) |
 | `server/gateEngine.ts` | Gate Engine rules: statuses, evidence validation, Test Integrity, check-run mapping, Release Candidate manifest; pure, no I/O (P17) |
 | `server/gateService.ts` | Gate evidence persistence, GitHub webhook ingestion, invalidation on a new commit, human approvals and waivers (P17) |
@@ -119,6 +120,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | --- | --- |
 | `src/main.tsx`, `src/index.css` | Client entry and styles |
 | `src/App.tsx` | Simple Mode client (the main screen) |
+| `src/projectCapabilities.ts` | P53 `Capabilities` type and plain-word rows for «What is available here» on the Project page |
 | `src/expertContext.ts` | P52 compact Expert method state + `productMode` fields sent with the Expert open dialogue |
 | `src/ModeMenu.tsx` | P51 shared Mode button + dropdown (Simple / Expert / Project / back to mode selection) used by the chat header and the Project page |
 | `src/ProjectMode.tsx` | The `/project` page (Project Mode), including the gated “Create a small program” flow and source ZIP link |
@@ -166,6 +168,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
 | `npm run test:p48` | P48 epistemic: uncertainty core + verifier pure contracts |
+| `npm run test:p53` | P53 Project scope «analysis + ZIP»: capability matrix, one GitHub write switch, session wiring, ADR-06 Amendment 1 |
 | `npm run test:p52` | P52 Expert open dialogue: Expert contract, stage context, wiring on client and server |
 | `npm run test:p50` | P50 web search: trigger rules, grounding contract, fail-safe, wiring |
 | `npm run test:qa1` | QA1 offline cross-mode: classification, soft-fail contracts, Expert/Project isolation, UI cards |
@@ -220,6 +223,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
 | `tests/qa1.test.mjs` | QA1 offline cross-mode suite (classification, soft-fail, mode isolation, UI/STATUS contracts) | no |
+| `tests/p53-project-scope.test.mjs` | P53 capability matrix, single write switch, `/api/session` wiring, interface text, ADR-06 Amendment 1 | no |
 | `tests/p52-expert-dialogue.test.mjs` | P52 Expert open dialogue contract, bounded stage context, client/server wiring | no |
 | `tests/p50-web-search.test.mjs` | P50 web search pure contracts + fake client + wiring | no |
 | `tests/p48-epistemic.test.mjs` | P48 uncertainty core + verifier pure contracts | no |
