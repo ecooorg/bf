@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { describeCapabilities, PROJECT_SCOPE_TEXT, ZIP_OFF_HINT, type Capabilities } from './projectCapabilities.ts';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 import { mirrorTextFile } from './driveMirror.ts';
 import { ModeMenu } from './ModeMenu.tsx';
@@ -17,6 +18,7 @@ async function api<T>(url: string, init: RequestInit = {}): Promise<T> {
 export default function ProjectMode() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [capabilities, setCapabilities] = useState<Capabilities | null>(null);
   const [password, setPassword] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [selected, setSelected] = useState<Project | null>(null);
@@ -56,7 +58,7 @@ export default function ProjectMode() {
   useEffect(() => {
     let active = true;
     fetch('/api/session', { credentials: 'same-origin' }).then(r => r.json()).then(s => {
-      if (active) { setAuthenticated(Boolean(s.authenticated)); setEnabled(Boolean(s.projectModeEnabled)); }
+      if (active) { setAuthenticated(Boolean(s.authenticated)); setEnabled(Boolean(s.projectModeEnabled)); setCapabilities(s.capabilities && typeof s.capabilities === 'object' ? s.capabilities as Capabilities : null); }
     }).catch(() => { if (active) { setAuthenticated(false); setEnabled(false); setError('Could not verify the session.'); } });
     return () => { active = false; };
   }, []);
@@ -224,7 +226,7 @@ export default function ProjectMode() {
           }}
         />
       </div>
-      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div><h1 style={{ margin: '6px 0' }}>Project workspace</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p><p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}></p></div>
+      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div><h1 style={{ margin: '6px 0' }}>Project workspace</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p><p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}>{PROJECT_SCOPE_TEXT}</p><details data-testid="project-capabilities" style={{ marginTop: 6, fontSize: 13, color: '#8fa6c2' }}><summary style={{ cursor: 'pointer' }}>What is available here</summary><ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{describeCapabilities(capabilities).map(r => <li key={r.label}><strong>{r.label}: {r.on ? 'on' : 'off'}</strong> — {r.note}</li>)}</ul></details></div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
         
         {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Sign out</button>}
@@ -265,9 +267,10 @@ export default function ProjectMode() {
               <h3 style={{ marginTop: 0 }}>Create a small program</h3>
               <p style={{ fontSize: 13, color: '#8fa6c2' }}>Describe a game, browser tool, or small program. BiForge generates validated source files and offers a ZIP download. Generated code is not executed on the BiForge server; review it before running.</p>
               <textarea aria-label="Program description" value={programGoal} onChange={e => setProgramGoal(e.target.value)} rows={3} maxLength={4000} placeholder="Example: Create a playable Tetris game with keyboard controls, score, restart, and responsive layout." style={{ ...styles.input, minHeight: 0, fontSize: 14 }} />
-              <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || passport.executor !== 'model_patch'} onClick={() => void buildProgram()}>Create program</button>
-              {passport.executor !== 'model_patch' && <p style={{ fontSize: 12, color: '#e6c07a' }}>Automatic coding is off for this project. Turn it on in project settings (How code is written → Automatic) when your administrator has enabled it on the server.</p>}
-              {passport.executor === 'model_patch' && <p style={{ fontSize: 12, color: '#8fa6c2' }}>The server must allow automatic coding. Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>}
+              <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || passport.executor !== 'model_patch' || (capabilities !== null && !capabilities.programZip)} onClick={() => void buildProgram()}>Create program</button>
+              {capabilities && !capabilities.programZip && <p style={{ fontSize: 12, color: '#e6c07a' }}>{ZIP_OFF_HINT}</p>}
+              {(!capabilities || capabilities.programZip) && passport.executor !== 'model_patch' && <p style={{ fontSize: 12, color: '#e6c07a' }}>Automatic coding is off for this project. Turn it on in project settings (How code is written → Automatic).</p>}
+              {passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>}
               {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>Latest code task: {programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' ? 'SOURCE READY' : programResult.codeTask.status}</strong><br /><small>Task {programResult.taskId} · Code task {programResult.codeTask.id}</small>{programResult.codeTask.statusReason && <p style={{ fontSize: 13 }}>{programResult.codeTask.statusReason}</p>}{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open generated-code Pull Request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }}>Download generated program (.zip)</a></p>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
             </section>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([['results', 'Results'], ['plan', 'Plan'], ['journal', 'Activity log'], ['data', 'Data · for developers']] as const).map(([key, label]) => <button key={key} type="button" aria-current={activeTab === key ? 'page' : undefined} onClick={() => setActiveTab(key)} style={{ ...styles.button, minHeight: 38, background: activeTab === key ? '#12345a' : 'transparent', color: activeTab === key ? '#e6edf7' : '#8fa6c2', borderColor: activeTab === key ? '#78baff' : '#25405e' }}>{label}</button>)}</nav>
