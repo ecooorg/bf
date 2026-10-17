@@ -180,3 +180,33 @@ test('P50 docs and connection manifest mention the new variables', () => {
   const manifest = JSON.parse(read('connectors.yaml').split('\n').filter((l) => !/^\s*#/.test(l)).join('\n'));
   assert.ok(manifest.connectors.gemini.env.optional.includes('ENABLE_WEB_SEARCH'));
 });
+
+test('P50 webSearchProvider: auto prefers serper when SERPER_API_KEY is set', () => {
+  assert.equal(mod.webSearchProvider({}), 'gemini');
+  assert.equal(mod.webSearchProvider({ WEB_SEARCH_PROVIDER: 'serper' }), 'serper');
+  assert.equal(mod.webSearchProvider({ WEB_SEARCH_PROVIDER: 'gemini' }), 'gemini');
+  assert.equal(mod.webSearchProvider({ SERPER_API_KEY: 'sk-test' }), 'serper');
+  assert.equal(mod.webSearchProvider({ SERPER_API_KEY: 'sk-test', WEB_SEARCH_PROVIDER: 'gemini' }), 'gemini');
+});
+
+test('P50 serperLocale and digestFromSerperResponse', () => {
+  assert.deepEqual(mod.serperLocale('ключевые ставки G7'), { hl: 'ru', gl: 'ru' });
+  assert.deepEqual(mod.serperLocale('G7 interest rates'), { hl: 'en', gl: 'us' });
+  const data = {
+    answerBox: { answer: 'Fed rate is 4.25%', title: 'Fed', link: 'https://example.com/fed' },
+    organic: [
+      { title: 'ECB', link: 'https://example.com/ecb', snippet: 'Deposit facility 3.00%' },
+      { title: 'BoE', link: 'https://example.com/boe', snippet: 'Bank Rate 4.00%' },
+    ],
+  };
+  const { digest, sources, queries } = mod.digestFromSerperResponse(data, 'G7 rates');
+  assert.ok(digest.includes('4.25') || digest.includes('Fed'));
+  assert.ok(sources.length >= 2);
+  assert.equal(queries[0], 'G7 rates');
+});
+
+test('P50 fetchSerperDigest skips without key', async () => {
+  const r = await mod.fetchSerperDigest({ apiKey: '', userText: 'test query long enough', today: '2026-10-17' });
+  assert.equal(r.status, 'skipped');
+  assert.equal(r.reason, 'no_serper_key');
+});
