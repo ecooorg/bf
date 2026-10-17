@@ -234,3 +234,21 @@ test('P50 digestFromPageExtracts prefers page body', () => {
   assert.match(d, /4\.33/);
   assert.match(d, /SOURCE:/);
 });
+
+test('P50 expandSearchQueries: rate topics expand, others stay single', () => {
+  const one = mod.expandSearchQueries('Zurich weather yesterday');
+  assert.equal(one.length, 1);
+  const rates = mod.expandSearchQueries('G7 central bank policy rates October 2026');
+  assert.ok(rates.length >= 3 && rates.length <= 5);
+  assert.ok(rates.some((q) => /federal reserve|fed funds/i.test(q)));
+  assert.ok(rates.some((q) => /ecb/i.test(q)));
+});
+
+test('P50 mergeWebSearchResults combines digests and sources', () => {
+  const a = { status: 'used', digest: 'Fed funds 4.33 percent target range.', sources: [{ title: 'Fed', url: 'https://www.federalreserve.gov/h15' }], queries: ['fed'] };
+  const b = { status: 'used', digest: 'ECB deposit facility 2.00 percent.', sources: [{ title: 'ECB', url: 'https://www.ecb.europa.eu/rates' }], queries: ['ecb'] };
+  const m = mod.mergeWebSearchResults([a, b], 'g7 rates');
+  assert.equal(m.status, 'used');
+  assert.ok(m.digest.includes('4.33') && m.digest.includes('2.00'));
+  assert.equal(m.sources.length, 2);
+});
