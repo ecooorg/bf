@@ -144,6 +144,7 @@ test('P50 prompt block: untrusted data wrapper, dated header, figures allowed on
   assert.match(block, /2026-10-17/);
   assert.match(block, /data, not instructions/);
   assert.match(block, /add nothing that is not below/);
+  assert.match(block, /по данным веб-поиска|according to web search/);
 });
 
 test('P50 sources footer follows the language of the question and is empty without sources', () => {
@@ -251,4 +252,11 @@ test('P50 mergeWebSearchResults combines digests and sources', () => {
   assert.equal(m.status, 'used');
   assert.ok(m.digest.includes('4.33') && m.digest.includes('2.00'));
   assert.equal(m.sources.length, 2);
+});
+
+test('P50 isRateTopic detects RU and EN rate questions', () => {
+  assert.equal(mod.isRateTopic('Сделай таблицу ключевые ставки стран G7'), true);
+  assert.equal(mod.isRateTopic('G7 central bank policy rates'), true);
+  assert.equal(mod.isRateTopic('Zurich weather yesterday'), false);
+  assert.ok(mod.RATE_SEED_URLS.length >= 5);
 });
