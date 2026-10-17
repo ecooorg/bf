@@ -22,7 +22,10 @@ function check(r: Response, what: string) {
 export const DRIVE_APPDATA_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 /** Only files this app creates (or the person opens with it). Used to save documents as Google Docs. */
 export const DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+/** Library (appdata) + user-visible file mirror (drive.file). */
+export const DRIVE_FULL_SCOPE = `${DRIVE_APPDATA_SCOPE} ${DRIVE_FILE_SCOPE}`;
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+export const BIFORGE_DRIVE_FOLDER = 'BiForge';
 
 export function isDriveConfigured(): boolean { return Boolean((import.meta as any).env?.VITE_GOOGLE_CLIENT_ID); }
 
@@ -91,4 +94,52 @@ export async function driveUploadAsGoogleDoc(token: string, name: string, docx: 
   const j = await r.json().catch(() => ({}));
   if (!j.id) throw new Error('Google Drive did not confirm the save.');
   return { id: j.id, webViewLink: j.webViewLink || `https://docs.google.com/document/d/${j.id}/edit` };
+}
+
+/** Find or create a folder in My Drive (drive.file scope). */
+export async function driveFindOrCreateFolder(token: string, name: string = BIFORGE_DRIVE_FOLDER): Promise<string> {
+  const q = encodeURIComponent(`name='${name.replace(/'/g, "\'")}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const r = await fetch(`${API}/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=1`, { headers: auth(token) });
+  check(r, 'list folders on');
+  const existing = (await r.json()).files?.[0]?.id;
+  if (existing) return String(existing);
+  const cr = await fetch(`${API}/drive/v3/files?fields=id`, {
+    method: 'POST',
+    headers: { ...auth(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder' }),
+  });
+  check(cr, 'create folder on');
+  const j = await cr.json();
+  if (!j.id) throw new Error('Google Drive did not create the folder.');
+  return String(j.id);
+}
+
+/**
+ * Upload a binary (or text) file into My Drive under the BiForge folder.
+ * Requires drive.file scope. Returns Drive file id.
+ */
+export async function driveUploadBinary(
+  token: string,
+  name: string,
+  data: Blob,
+  mimeType = 'application/octet-stream',
+  parentId?: string,
+): Promise<{ id: string; webViewLink?: string }> {
+  const parent = parentId || await driveFindOrCreateFolder(token);
+  const metadata: Record<string, unknown> = {
+    name: String(name || 'file').slice(0, 200),
+    mimeType: mimeType || 'application/octet-stream',
+    parents: [parent],
+  };
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', new Blob([data], { type: mimeType || 'application/octet-stream' }));
+  const r = await fetch(
+    `${API}/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink`,
+    { method: 'POST', headers: auth(token), body: form },
+  );
+  check(r, 'upload the file to');
+  const j = await r.json().catch(() => ({}));
+  if (!j.id) throw new Error('Google Drive did not confirm the file upload.');
+  return { id: String(j.id), webViewLink: j.webViewLink };
 }

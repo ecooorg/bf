@@ -7,6 +7,7 @@ import {
 import { detectUiLanguage, getStoredUiLanguage } from './ui.ts';
 import { localizedException, type ErrorLanguage } from './errors.ts';
 import { isDriveConfigured } from './driveClient.ts';
+import { mirrorUserFile } from './driveMirror.ts';
 import { saveDocumentToGoogleDocs, type SavedDoc } from './driveExport.ts';
 import {
   listProgramFiles, deleteProgramFile, programFileToAttachment, archiveAttachment,
@@ -42,6 +43,7 @@ export function AttachControl({
         const a = await uploadAttachment(f, getStoredUiLanguage());
         next = [...next, a];
         onChange(next);
+        void mirrorUserFile(f, 'simple'); // durable copy when Drive is connected (no-op otherwise)
       } catch (e: any) {
         setError(e?.message || 'The file could not be attached.');
       } finally {

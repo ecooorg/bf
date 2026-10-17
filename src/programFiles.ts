@@ -6,6 +6,7 @@
 
 import type { Attachment } from './attachments.ts';
 import type { DocumentSpec } from './attachments.ts';
+import { mirrorTextFile } from './driveMirror.ts';
 
 const DB_NAME = 'bifurcation_program_files_v1';
 const DB_VERSION = 1;
@@ -229,7 +230,7 @@ export async function archiveAgentDocument(
     }
     const text = parts.join('\n\n');
     const structure = (doc.blocks || []).map((b) => b.type).join(',');
-    return await putProgramFile({
+    const saved = await putProgramFile({
       name: (doc.fileName || doc.title || 'agent-document').slice(0, 120),
       kind: 'agent-document',
       size: text.length,
@@ -237,6 +238,14 @@ export async function archiveAgentDocument(
       summary: `${doc.title || 'Document'} [${structure}]`.slice(0, 500),
       usedIn: decisionId ? [decisionId] : [],
     });
+    // Browser mirror to Google Drive when connected (Simple/Expert); never blocks local archive.
+    void mirrorTextFile(
+      saved?.name || doc.fileName || doc.title || 'agent-document',
+      text,
+      decisionId ? 'expert' : 'simple',
+      saved?.id ? `pf_${saved.id}` : undefined,
+    );
+    return saved;
   } catch {
     return null;
   }

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
-import { ModeMenu, START_MODE_KEY } from './ModeMenu.tsx';
-import type { AppMode } from './ModeMenu.tsx';
+import { mirrorTextFile } from './driveMirror.ts';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
 type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
@@ -129,7 +128,7 @@ export default function ProjectMode() {
     await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/validate`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, passed, evidence }) });
     return `Task ${passed ? 'marked PASS' : 'marked FAIL'}.`;
   });
-  async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
+  async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); const meta = artifacts.find(x => x.artifact_id === id); void mirrorTextFile(meta?.filename || id, a.text || '', 'project', `project_${selected!.id}_${id}`); } catch (e) { setError(String((e as Error).message || e)); } }
 
   useEffect(() => { setPassport((selected?.state?.passport as Passport | undefined) ?? null); }, [selected]);
 
@@ -208,26 +207,13 @@ export default function ProjectMode() {
     link: { color: '#78baff' },
   };
 
-  // P51: same Mode control as the chat screens. Simple/Expert live on the chat page, so choosing them navigates there.
-  function goToMode(mode: AppMode) {
-    if (mode === 'Project') return;
-    try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
-    window.location.href = '/';
-  }
-  function goToModeSelection() {
-    try { sessionStorage.removeItem(START_MODE_KEY); } catch {}
-    window.location.href = '/';
-  }
-
   return <main style={styles.page}><section style={styles.panel}>
-    <nav className="project-topbar" aria-label="Project workspace toolbar">
-      <ModeMenu current="Project" projectEnabled={true} onSelect={goToMode} onOverview={goToModeSelection} />
-      {authenticated && <button type="button" className="ghost" disabled={busy} onClick={() => void logout()}>Sign out</button>}
-    </nav>
-    <header>
-      <div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div>
-      <h1 style={{ margin: '6px 0' }}>Project workspace</h1>
-      <p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here. Your dialogues in the chat modes are not the same list as the projects below.</p>
+    <header style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div><h1 style={{ margin: '6px 0' }}>Project workspace</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p><p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}><a href="/" style={{ color: '#9fd8ff' }} onClick={() => { try { sessionStorage.removeItem('biforge-start-mode'); } catch {} }}>← Back to mode selection</a> — your dialogues there are not the same list as projects below.</p></div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+        <a href="/" style={styles.link} onClick={() => { try { sessionStorage.removeItem('biforge-start-mode'); } catch {} }}>← Back to mode selection</a>
+        {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Sign out</button>}
+      </div>
     </header>
     {authenticated && enabled && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>

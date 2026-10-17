@@ -4,7 +4,7 @@ import { autosaveDelay, hasUnsavedLocal, shouldNotify } from './autosave.ts';
 import { createBackup, mergeLibraries, type Mergeable } from './driveMerge.ts';
 import { syncOnce } from './driveSync.ts';
 import {
-  DriveAuthError, driveFind, driveRead, driveWrite, requestDriveToken,
+  DriveAuthError, DRIVE_FULL_SCOPE, driveFind, driveRead, driveWrite, requestDriveToken,
   type DriveToken,
 } from './driveClient.ts';
 
@@ -95,7 +95,7 @@ export function useDrive<T extends Mergeable>(decisions: T[], setDecisions: (f: 
 
   const connect = useCallback(async () => {
     try {
-      const t = await requestDriveToken();       // first await keeps the click gesture
+      const t = await requestDriveToken(DRIVE_FULL_SCOPE); // appdata library + drive.file mirror
       ss.set(K_TOKEN, t.token); ss.set(K_EXP, String(t.expiresAt)); setTok(t);
       await run(t, 'connect');                   // also repeats a failed save (merge + write)
     } catch (e: any) { notify(e?.message || 'Google Drive connection failed.'); }
