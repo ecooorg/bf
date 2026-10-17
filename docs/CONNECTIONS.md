@@ -18,7 +18,8 @@ Check statuses: `OK`, `FAIL(reason)`, `BLOCKED(reason)`, `DRIFT`, `NOT_RUN`.
 
 | ID | Service | Variables | Needed from |
 | --- | --- | --- | --- |
-| `gemini` | Gemini API (base provider) | `GEMINI_API_KEY` (paid project); optional `GEMINI_API_KEY_FREE` (synthetic data only), `GEMINI_BASE_URL`; web search (P50, off by default): `ENABLE_WEB_SEARCH`, `WEB_SEARCH_MODE`, `WEB_SEARCH_MODEL`, `WEB_SEARCH_TIMEOUT_MS` | BX-10.b |
+| `gemini` | Gemini API (base provider) | `GEMINI_API_KEY` (paid project); optional `GEMINI_API_KEY_FREE` (synthetic data only), `GEMINI_BASE_URL`; optional Gemini-path web search: `WEB_SEARCH_PROVIDER=gemini`, `WEB_SEARCH_MODEL`, `WEB_SEARCH_TIMEOUT_MS` | BX-10.b |
+| `serper` | Serper.dev Google SERP (P50 web search, free trial) | `SERPER_API_KEY`; `ENABLE_WEB_SEARCH=true`; optional `WEB_SEARCH_PROVIDER=serper`, `WEB_SEARCH_MODE`, `WEB_SEARCH_TIMEOUT_MS` | P50 |
 | `groq` | Groq, OpenAI-compatible API (first additional provider; Free plan: data may be used, synthetic data only) | `GROQ_API_KEY`, `GROQ_PLAN` (`free` or `paid`) | BX-12.a |
 | `postgres` | PostgreSQL on Railway | `DATABASE_URL` | BX-04 |
 | `github` | GitHub App API | `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`; optional `GITHUB_REPOSITORY_OWNER`, `GITHUB_REPOSITORY_NAME`, `GITHUB_DIFF_UPLOAD`, `GITHUB_API_BASE_URL` | BX-19 |
