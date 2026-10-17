@@ -1573,8 +1573,9 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
       const r = await fetchSerperDigestMulti({ apiKey: serperKey, userText, englishQuery, today, timeoutMs });
       console.info(JSON.stringify({
         type: 'web_search', status: r.status, provider: 'serper', model: r.model,
-        sources: r.sources.length, queries: r.queries.length,
+        sources: r.sources.length, queries: r.queries.length, multi: r.queries.length,
         q: String(r.queries?.[0] || englishQuery || '').slice(0, 120),
+        qq: (r.queries || []).slice(0, 5).map((x: string) => String(x).slice(0, 60)),
         ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}),
       }));
       return r;
