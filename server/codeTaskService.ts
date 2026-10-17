@@ -61,6 +61,9 @@ const requireHuman = (kind: unknown) => { if (kind !== 'human') throw new CodeTa
 const BASE_BRANCH_RE = /^[A-Za-z0-9._/-]{1,100}$/;
 const baseBranchSchema = z.string().refine((b) => BASE_BRANCH_RE.test(b) && !b.startsWith('biforge/') && !b.includes('..') && !b.startsWith('/') && !b.endsWith('/'), 'invalid base branch');
 
+function expectedBranchOf(taskId: unknown): string | null {
+  try { return taskBranchName(String(taskId)); } catch { return null; }
+}
 const mapCodeTask = (r: any) => ({
   id: r.id as string, projectId: r.project_id as string, taskId: r.task_id as string, runId: (r.run_id ?? null) as string | null, attempt: r.attempt as number,
   executor: r.executor as CodeExecutorId, status: r.status as ExecutorState, delivery: (r.delivery ?? null) as 'pr' | 'branch' | 'diff' | null,
@@ -84,6 +87,8 @@ const mapCodeTask = (r: any) => ({
   ciRestarts: Number(r.ci_restarts ?? 0),
   repairStopReasons: (r.repair_stop_reasons ?? null) as StopReason[] | null,
   diagnosticArtifactId: (r.diagnostic_artifact_id ?? null) as string | null,
+  // P54: the branch the pull request must come from, so the page can say it exactly. Null for an id that cannot form a branch.
+  expectedBranch: expectedBranchOf(r.task_id),
   createdAt: r.created_at as Date, updatedAt: r.updated_at as Date,
 });
 export type CodeTask = ReturnType<typeof mapCodeTask>;
@@ -221,6 +226,15 @@ export async function listCodeTasks(projectId: string, taskId: string): Promise<
   const pool = await getPool();
   const r = await pool.query('SELECT * FROM code_tasks WHERE project_id=$1 AND task_id=$2 ORDER BY attempt DESC LIMIT 100', [idSchema.parse(projectId), idSchema.parse(taskId)]);
   return r.rows.map(mapCodeTask);
+}
+/** P54: every code attempt of a project with its task title, most recently updated first (the Delivery tab groups by task). */
+export async function listProjectCodeTasks(projectId: string): Promise<Array<CodeTask & { taskTitle: string }>> {
+  const pool = await getPool();
+  const r = await pool.query(
+    'SELECT c.*, t.title AS task_title FROM code_tasks c JOIN tasks t ON t.id=c.task_id WHERE c.project_id=$1 ORDER BY c.updated_at DESC, c.attempt DESC LIMIT 200',
+    [idSchema.parse(projectId)],
+  );
+  return r.rows.map((x) => ({ ...mapCodeTask(x), taskTitle: String(x.task_title) }));
 }
 export async function getCodeTask(projectId: string, taskId: string, codeTaskId: string): Promise<CodeTask> {
   return mapCodeTask(await loadRow(await getPool(), projectId, taskId, codeTaskId));
