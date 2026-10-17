@@ -99,6 +99,14 @@ export function buildSearchQuery(text: string): string {
   return String(text || '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
 }
 
+/** Gemini 2.x uses the legacy Search Grounding tool name; Gemini 3+ uses googleSearch. */
+export function googleSearchToolForModel(model: string): Record<string, unknown> {
+  const id = String(model || '').trim().toLowerCase();
+  return /^gemini-2(?:\.0|\.5)?(?:-|$)/.test(id)
+    ? { googleSearchRetrieval: {} }
+    : { googleSearch: {} };
+}
+
 const SEARCH_SYSTEM = `You are a web research helper. Use Google Search to find current, factual information that answers the user's question.
 Return a compact factual digest: 4-10 short lines, newest information first, each line with its date or period when known.
 Write in the language of the user's question. Include concrete figures only if they appear in the search results.
@@ -173,7 +181,7 @@ export async function fetchWebSearchDigest(opts: {
         contents: buildSearchPrompt(opts.userText, opts.today),
         config: {
           systemInstruction: SEARCH_SYSTEM,
-          tools: [{ googleSearch: {} }],
+          tools: [googleSearchToolForModel(model)],
           temperature: 0.2,
           abortSignal: ctrl.signal,
         },
