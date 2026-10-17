@@ -1,3 +1,9 @@
+## P53 — Project scope «analysis + ZIP», GitHub read-only (2026-10-17)
+
+- `CODE_EXECUTOR=model_patch` no longer implies GitHub write; `GITHUB_DIFF_UPLOAD=true` is the only write switch.
+- `/api/session` reports capability booleans to a signed-in person; the Project page shows what is available on this server.
+- ADR-06 Amendment 1.
+
 ## P47 — Mode controls only in More menu (2026-10-15)
 
 - Removed top-level **Expert method / Simple chat** and **Modes** header buttons.

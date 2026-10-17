@@ -34,7 +34,8 @@ import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from '.
 import { createWorker } from './server/worker.ts';
 import { readArtifact, readArtifactBytes } from './server/artifactRepository.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
-import { verifyGitHubWebhookSignature } from './server/githubIntegration.ts';
+import { verifyGitHubWebhookSignature, githubConfigFromEnv } from './server/githubIntegration.ts';
+import { projectCapabilities } from './server/projectCapabilities.ts';
 import { getTaskGates, ingestGitHubEvent, recordApproval, recordWaiver } from './server/gateService.ts';
 import { isGateName } from './server/gateEngine.ts';
 import { approveCodePackage, cancelCodeTask, commitApprovedPackage, decideCodeTask, exportPackage, generatedSourceArtifactId, getCodeTask, listCodeTasks, refreshCodeTask, requestRepair, runCodeTaskReview, startCodeTask, submitCodeResult, driveModelPatch } from './server/codeTaskService.ts';
@@ -267,7 +268,10 @@ function checkRate(req: express.Request, res: express.Response): boolean {
 app.get('/api/session', (req, res) => {
   // Expose only the non-sensitive feature flag so the legacy UI can offer a
   // Project Mode entry point only when the server has it enabled.
-  res.json({ success: true, authenticated: authenticated(req), required: APP_AUTH_ENABLED, projectModeEnabled: PROJECT_MODE_ENABLED });
+  const isAuthenticated = authenticated(req);
+  // P53: capability booleans for the Project page, only for a signed-in person and only when Project Mode is on.
+  const capabilities = isAuthenticated && PROJECT_MODE_ENABLED ? projectCapabilities({ githubConfigured: githubConfigFromEnv() !== null }) : undefined;
+  res.json({ success: true, authenticated: isAuthenticated, required: APP_AUTH_ENABLED, projectModeEnabled: PROJECT_MODE_ENABLED, ...(capabilities ? { capabilities } : {}) });
 });
 
 app.post('/api/login', async (req, res) => {
