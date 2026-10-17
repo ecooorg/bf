@@ -8,6 +8,7 @@ const routes = fs.readFileSync(new URL('../server/healthRoutes.ts', import.meta.
 const main = fs.readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
 const projectUI = fs.readFileSync(new URL('../src/ProjectMode.tsx', import.meta.url), 'utf8');
 const appUI = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+const modeMenuUI = fs.readFileSync(new URL('../src/ModeMenu.tsx', import.meta.url), 'utf8');
 
 test('BX-06 Project Mode is opt-in and fails closed without required security settings', () => {
   assert.match(server, /ENABLE_PROJECT_MODE === 'true'/);
@@ -39,8 +40,10 @@ test('BX-06 Simple Mode and Project Mode have separate UI entry points', () => {
   assert.match(projectUI, /href="\/"/);
   assert.match(server, /projectModeEnabled: PROJECT_MODE_ENABLED/);
   assert.match(appUI, /projectModeEnabled=\{projectModeEnabled\}/);
-  assert.match(appUI, /href="\/project"/);
-  assert.match(appUI, /expertMode=\{expertMode\}[\s\S]*?onToggleExpert=/);
+  // P51: the Project entry lives in the shared Mode menu and leaves the chat shell through chooseStartMode
+  assert.match(modeMenuUI, /mode: 'Project'/);
+  assert.match(appUI, /window\.location\.href = '\/project'/);
+  assert.match(appUI, /expertMode=\{expertMode\}[\s\S]*?onSelectMode=/);
 });
 
 test('health and readiness expose stable JSON status contracts', () => {

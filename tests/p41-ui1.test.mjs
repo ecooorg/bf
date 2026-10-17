@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs';
 const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const status = readFileSync(new URL('../docs/STATUS.md', import.meta.url), 'utf8');
 const journal = readFileSync(new URL('../docs/PATCH_JOURNAL.md', import.meta.url), 'utf8');
+const modeMenu = readFileSync(new URL('../src/ModeMenu.tsx', import.meta.url), 'utf8');
+const projectUi = readFileSync(new URL('../src/ProjectMode.tsx', import.meta.url), 'utf8');
 
 test('UI1 start screen offers all three explicit modes', () => {
   for (const mode of ['Simple', 'Expert', 'Project']) assert.match(app, new RegExp(`<h2>${mode}</h2>`));
@@ -39,15 +41,29 @@ test('patch journal records existing folder picker menu behavior', () => {
 });
 
 test('Change mode control returns to start screen', () => {
-  assert.match(app, /data-testid="change-mode"/);
+  assert.match(modeMenu, /data-testid="change-mode"/);
   assert.match(app, /resetStartMode|onChangeMode/);
   assert.match(app, /sessionStorage\.removeItem\('biforge-start-mode'\)/);
 });
 
-test('Expert/Simple toggle is in More menu, not a top-level header button', () => {
-  assert.match(app, /Mode selection \(Simple \/ Expert \/ Project\)/);
-  assert.match(app, /Switch to Expert method|Switch to Simple chat/);
-  // Top-level header actions should not render the old Expert method label button
-  assert.match(app, /data-testid="toggle-expert-menu"/);
-  assert.match(app, /data-testid="change-mode"/);
+test('P51: one Mode control on every screen; the old duplicate items are gone from More', () => {
+  // Shared control: current mode on the button, three modes + a way back to the start screen in the list
+  assert.match(modeMenu, /data-testid="mode-menu-button"/);
+  assert.match(modeMenu, /role="menuitemradio"/);
+  for (const m of ['Simple', 'Expert', 'Project']) assert.match(modeMenu, new RegExp(`mode: '${m}'`));
+  assert.match(modeMenu, /Back to mode selection/);
+  // Chat shell (Simple and Expert share one Header) renders it first and wires the existing handlers
+  assert.match(app, /<ModeMenu current=\{props\.expertMode \? 'Expert' : 'Simple'\}/);
+  assert.match(app, /onSelectMode=\{chooseStartMode\}/);
+  assert.match(app, /onChangeMode=\{resetStartMode\}/);
+  // Project page uses the same component instead of its own back links
+  assert.match(projectUi, /<ModeMenu current="Project"/);
+  assert.equal((projectUi.match(/Back to mode selection/g) || []).length, 0, 'no duplicated back link on the Project page');
+  // The three overlapping More-menu items are removed
+  assert.doesNotMatch(app, /Mode selection \(Simple \/ Expert \/ Project\)/);
+  assert.doesNotMatch(app, /Switch to Expert method|Switch to Simple chat/);
+  assert.doesNotMatch(app, /data-testid="toggle-expert-menu"/);
+  assert.doesNotMatch(app, /Project workspace \(separate\)/);
+  // Returning from /project as Expert must open Expert, not Simple
+  assert.match(app, /getItem\(START_MODE_KEY\) === 'Expert'/);
 });

@@ -124,7 +124,6 @@ try {
       if ((await more.getAttribute('aria-expanded')) === 'true') await more.click();
     } else good(w, 'More button not needed (wide screen)');
 
-    // UX1: mode controls live in More (not a top-level header button).
     const openMore = async () => {
       const btn = page.locator('.hdr-more-btn');
       if (!(await btn.count())) return false;
@@ -134,29 +133,29 @@ try {
       await page.locator('.hdr-secondary.open').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
       return (await page.locator('.hdr-secondary.open').count()) > 0;
     };
-    if (await openMore()) {
-      const switchExpert = page.getByRole('menuitem', { name: /Switch to Expert method/i });
-      const switchSimple = page.getByRole('menuitem', { name: /Switch to Simple chat/i });
-      const modeSelect = page.getByRole('menuitem', { name: /Mode selection/i });
-      if (await modeSelect.count()) good(w, 'More has Mode selection');
-      else bad(w, 'More menu missing Mode selection');
-      if (await switchExpert.count()) {
-        await switchExpert.first().click();
-        await page.waitForTimeout(300);
-        if (await openMore()) {
-          if (await switchSimple.count()) {
-            good(w, 'mode switched to Expert via More');
-            await switchSimple.first().click();
-            await page.waitForTimeout(300);
-            good(w, 'mode restored to Simple via More');
-          } else bad(w, 'after Expert switch, More has no Switch to Simple');
-        } else bad(w, 'could not reopen More after Expert switch');
-      } else if (await switchSimple.count()) {
-        good(w, 'More has Switch to Simple (already Expert)');
-      } else bad(w, 'More menu missing Expert/Simple switch');
-      await noHScroll('(mode via More)'); await taps('(mode via More)');
+    // P51: one Mode button in the top bar; its list has the three modes and a way back to the start screen.
+    const modeBtn = page.locator('[data-testid="mode-menu-button"]').first();
+    if (await modeBtn.count()) {
+      await modeBtn.click();
+      const modeItems = page.getByRole('menuitemradio');
+      (await modeItems.count()) === 3 ? good(w, 'Mode menu lists three modes') : bad(w, 'Mode menu does not list three modes');
+      (await page.locator('[data-testid="change-mode"]').count()) ? good(w, 'Mode menu has Back to mode selection') : bad(w, 'Mode menu missing Back to mode selection');
+      await noHScroll('(Mode menu open)'); await taps('(Mode menu open)');
+      await page.getByRole('menuitemradio', { name: /Expert method/i }).click();
+      await page.waitForTimeout(300);
+      /Expert/i.test(await modeBtn.innerText()) ? good(w, 'mode switched to Expert via Mode button') : bad(w, 'Mode button does not show Expert after switching');
+      await modeBtn.click();
+      await page.getByRole('menuitemradio', { name: /Simple chat/i }).click();
+      await page.waitForTimeout(300);
+      /Simple/i.test(await modeBtn.innerText()) ? good(w, 'mode restored to Simple via Mode button') : bad(w, 'Mode button does not show Simple after switching back');
+      // The old overlapping items must not come back inside More
+      if (await openMore()) {
+        (await page.getByRole('menuitem', { name: /Switch to (Expert method|Simple chat)|Mode selection \(/i }).count()) === 0
+          ? good(w, 'More has no duplicate mode items') : bad(w, 'More still has duplicate mode items');
+      }
+      await noHScroll('(mode via Mode button)'); await taps('(mode via Mode button)');
     } else {
-      bad(w, 'More menu not available for mode controls');
+      bad(w, 'Mode button missing in the top bar');
     }
     } catch (e) { bad(w, `test error: ${String(e.message).slice(0, 150)}`); } finally { await ctx?.close().catch(() => {}); }
   }
