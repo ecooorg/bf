@@ -200,3 +200,24 @@ test('write permissions are accepted only when the diff-upload switch is on', as
   try { assert.equal(await gh.readBranchHead(cfg, 'biforge/t1', f), S('b')); } finally { delete process.env.GITHUB_DIFF_UPLOAD; }
   assert.equal(gh.githubWritesEnabled(), false);
 });
+
+// P53 / ADR-06 Amendment 1: CODE_EXECUTOR=model_patch means "source ZIP" and implies no GitHub write.
+test('P53: model_patch alone does not switch on GitHub write; a write-level token is rejected, a read-only one accepted', async () => {
+  const READ = { metadata: 'read', contents: 'read', checks: 'read', pull_requests: 'read' };
+  const tokenWith = (permissions) => async (url) => { const u = new URL(url); return new Response(JSON.stringify(u.pathname.endsWith('/access_tokens') ? { token: 't', permissions } : { object: { sha: S('b') } }), { status: 200 }); };
+  const prevExec = process.env.CODE_EXECUTOR; const prevUp = process.env.GITHUB_DIFF_UPLOAD;
+  delete process.env.GITHUB_DIFF_UPLOAD;
+  process.env.CODE_EXECUTOR = 'model_patch';
+  try {
+    assert.equal(gh.githubWritesEnabled(), false);
+    assert.equal(gh.diffUploadEnabled(), false);
+    assert.equal(await gh.readBranchHead(cfg, 'biforge/t1', tokenWith(READ)), S('b'), 'read-only App works with model_patch');
+    await assert.rejects(() => gh.readBranchHead(cfg, 'biforge/t1', tokenWith(WRITE)), /permissions_too_broad_or_missing/);
+    process.env.GITHUB_DIFF_UPLOAD = 'true';
+    assert.equal(gh.githubWritesEnabled(), true);
+    assert.equal(await gh.readBranchHead(cfg, 'biforge/t1', tokenWith(WRITE)), S('b'));
+  } finally {
+    if (prevExec === undefined) delete process.env.CODE_EXECUTOR; else process.env.CODE_EXECUTOR = prevExec;
+    if (prevUp === undefined) delete process.env.GITHUB_DIFF_UPLOAD; else process.env.GITHUB_DIFF_UPLOAD = prevUp;
+  }
+});
