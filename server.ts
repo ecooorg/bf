@@ -26,7 +26,7 @@ import { consumeRateLimit, createProject, deleteProject, getProject, listProject
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
-import { fetchSerperDigest, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { fetchSerperDigest, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -1551,8 +1551,27 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     if (provider === 'serper') {
       const serperKey = (process.env.SERPER_API_KEY || '').trim();
       if (!serperKey) return skippedWebSearch('skipped', 'no_serper_key');
-      const r = await fetchSerperDigest({ apiKey: serperKey, userText, today, timeoutMs });
-      console.info(JSON.stringify({ type: 'web_search', status: r.status, provider: 'serper', model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
+      // External search is always English + international SERP (hl=en, gl=us). User language only affects the reply.
+      let englishQuery = userText;
+      try {
+        const gemKey = byokKey || apiKey;
+        if (gemKey) {
+          const client = new GoogleGenAI({ apiKey: gemKey, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+          englishQuery = await toEnglishSearchQuery({
+            userText,
+            client: client as any,
+            model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
+            timeoutMs: Math.min(8000, timeoutMs),
+          });
+        }
+      } catch { /* keep original; locale still en/us */ }
+      const r = await fetchSerperDigest({ apiKey: serperKey, userText, englishQuery, today, timeoutMs });
+      console.info(JSON.stringify({
+        type: 'web_search', status: r.status, provider: 'serper', model: r.model,
+        sources: r.sources.length, queries: r.queries.length,
+        q: String(r.queries?.[0] || englishQuery || '').slice(0, 120),
+        ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}),
+      }));
       return r;
     }
 
@@ -1568,10 +1587,19 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
     if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
     const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+    let geminiSearchText = userText;
+    try {
+      geminiSearchText = await toEnglishSearchQuery({
+        userText,
+        client: client as any,
+        model: pool[0],
+        timeoutMs: Math.min(8000, timeoutMs),
+      });
+    } catch { /* keep original */ }
     const r = await fetchWebSearchDigest({
       client: client as any,
       models: pool,
-      userText,
+      userText: geminiSearchText,
       today,
       timeoutMs,
       maxAttempts: Math.min(3, Math.max(2, pool.length)),
