@@ -26,7 +26,7 @@ import { consumeRateLimit, createProject, deleteProject, getProject, listProject
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
-import { fetchSerperDigest, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -181,7 +181,7 @@ app.use((req, _res, next) => {
   const att = resolveAttachments(req);
   return att.count ? expertFiles.run(att, next) : next();
 });
-interface GenerateOpts { extraParts?: any[]; extraNumberSource?: string; extraChars?: number }
+interface GenerateOpts { extraParts?: any[]; extraNumberSource?: string; extraChars?: number; allowUnsourcedPercentages?: boolean }
 
 // Availability-first defaults. These are deliberately conservative: the router learns from
 // real requests instead of assuming that the most intelligent model is the most available one.
@@ -1262,9 +1262,14 @@ async function generate(
         if (bad.length) {
           console.warn(JSON.stringify({ type: 'llm_number_warning', model, stage, reason: `numbers outside user input: ${bad.join(', ')}`.slice(0, 240) }));
         }
-        // INFRA-01: an invented percentage is a format failure (one retry); other stray numbers stay warnings.
+        // INFRA-01: invented % is normally a format failure. After web search in simple conversation
+        // we only warn — otherwise live rate/price answers die when SERP extracts omit figures.
         const badPct = bad.filter((n) => n.endsWith('%'));
-        if (!problem && badPct.length) problem = `invented percentage: ${badPct.join(', ')}`.slice(0, 200);
+        if (!problem && badPct.length && !opts?.allowUnsourcedPercentages) {
+          problem = `invented percentage: ${badPct.join(', ')}`.slice(0, 200);
+        } else if (badPct.length && opts?.allowUnsourcedPercentages) {
+          console.warn(JSON.stringify({ type: 'llm_number_soft', model, stage, reason: `unsourced % allowed after web search: ${badPct.join(', ')}`.slice(0, 200) }));
+        }
         if (problem) {
           formatFailures++;
           lastErr = new Error(`Unusable AI response (${problem})`);
@@ -1565,7 +1570,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
           });
         }
       } catch { /* keep original; locale still en/us */ }
-      const r = await fetchSerperDigest({ apiKey: serperKey, userText, englishQuery, today, timeoutMs });
+      const r = await fetchSerperDigestMulti({ apiKey: serperKey, userText, englishQuery, today, timeoutMs });
       console.info(JSON.stringify({
         type: 'web_search', status: r.status, provider: 'serper', model: r.model,
         sources: r.sources.length, queries: r.queries.length,
@@ -1692,8 +1697,10 @@ app.post('/api/conversation', async (req, res) => {
           if (webSearch.status === 'used') {
             const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
             promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;
-            // Numbers that come from the search digest are sourced facts, not invented figures.
+            // Numbers from the search digest are sourced; also allow model % in simple chat after search
+            // so live rate/price answers are not blocked when page extracts omit explicit figures.
             genOpts.extraNumberSource = `${genOpts.extraNumberSource || ''}\n${webSearch.digest}`;
+            genOpts.allowUnsourcedPercentages = true;
           }
         }
       } catch {
