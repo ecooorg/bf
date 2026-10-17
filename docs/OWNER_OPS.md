@@ -156,6 +156,19 @@ Current pointer: **P27** (`docs/P27-SPEC.md`) until advanced in `CURRENT_STATE.m
 2. **Expected:** the mode never changes automatically; Mode selection shows the three cards again; no unsolicited mode switch occurs.
 3. Record the result.
 
+### Scenario 6 — Project delivery, read-only GitHub (P54)
+
+Needs: Project Mode on; a GitHub App with **read-only** rights installed on a test repository; a confirmed project description with «How code is written» = Manual. Without the GitHub App mark steps 4–7 **NOT_RUN** and record why.
+
+1. Project → open **What is available here**: GitHub read on, GitHub write **off**.
+2. **Delivery → New hand-off task**: describe a tiny change. **Expected:** the task shows «Waiting for you»; **Download PACKAGE.md** saves a file; **Approve package** works.
+3. Carry the package to any tool and open a pull request from the branch shown on the page.
+4. **Result → Pull request number**. **Expected:** «Delivered». A pull request from another branch gives a plain explanation, not a code.
+5. **Refresh from GitHub**. **Expected:** Build / Tests / Security rows follow CI; requirements, spec and review can be approved by you; CI rows have **no** approve button and say only CI can set them.
+6. **Run review**, then **Accept** → the dialog says you merge in GitHub yourself and BiForge never merges. On a second task try **Ask for repair**.
+7. **Expected:** no «Diff» or «Commit package» control anywhere; nothing was written to GitHub.
+8. Record the result.
+
 ### Result record template (send to owner in chat / add to PATCH_JOURNAL after closure)
 
 ```
@@ -166,6 +179,7 @@ S3 Expert depth: …
 S3b Expert mid-method: …
 S4 Project: …
 S5 Mode switch: …
+S6 Project delivery (read-only GitHub): …
 Limitations (if any): …
 ```
 

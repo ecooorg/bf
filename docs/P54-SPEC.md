@@ -82,3 +82,11 @@ Gate Engine rules and statuses; Code Delivery state machine; human-only rules; `
 ## Not done / postponed
 
 Any GitHub write (P53 D3); automatic polling or webhooks display; PR creation by BiForge; uploading or downloading arbitrary project artifacts, a budget editor, State version history, a `/ops` link and more plan templates (candidate next patches, not required for MANUAL1).
+
+## As implemented (2026-10-17)
+
+- **Waive** is offered on every gate that is not PASS or WAIVED, including the CI gates; those rows also say «Only CI can set this.», and no button ever sets PASS for them. The release candidate is derived by the server and has no approve button.
+- `tests/ui-check.mjs` is not extended: it starts the server without a database, so Project Mode is not reachable there. The interface is covered by `tests/p54-project-delivery.test.mjs` (model, wiring and a server-side render smoke) and by the live API test; the owner's scenario 6 covers the real screen on a phone.
+- The Plan tab shows **Open in Delivery** for a task that already has a hand-off (the Delivery tab list is loaded once per project selection).
+- `BUDGET_EXCEEDED` says only the owner can raise the budget: `max_code_tasks` lives in the budgets table, not in the passport form.
+

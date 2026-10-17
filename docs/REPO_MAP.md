@@ -123,6 +123,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `src/projectCapabilities.ts` | P53 `Capabilities` type and plain-word rows for «What is available here» on the Project page |
 | `src/expertContext.ts` | P52 compact Expert method state + `productMode` fields sent with the Expert open dialogue |
 | `src/ModeMenu.tsx` | P51 shared Mode button + dropdown (Simple / Expert / Project / back to mode selection) used by the chat header and the Project page |
+| `src/ProjectDelivery.tsx` | P54 Project «Delivery» tab: hand-off task, package, result, checks (gates), review, decision, repair, cancel; GitHub read-only |
+| `src/projectDeliveryModel.ts` | P54 pure model of the Delivery tab: plain labels, error sentences, next-action rules, gate rows |
 | `src/ProjectMode.tsx` | The `/project` page (Project Mode), including the gated “Create a small program” flow and source ZIP link |
 | `src/config.ts` | `APP_VERSION` (single source of the service version), `SCHEMA_VERSION`, feature flags |
 | `src/en.ts`, `src/ui.ts`, `src/errors.ts` | Interface strings and error messages (English only) |
@@ -168,6 +170,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
 | `npm run test:p48` | P48 epistemic: uncertainty core + verifier pure contracts |
+| `npm run test:p54` | P54 Delivery tab: labels cover every gate/status/error code, next-action rules, no write control without the capability, wiring, render smoke |
 | `npm run test:p53` | P53 Project scope «analysis + ZIP»: capability matrix, one GitHub write switch, session wiring, ADR-06 Amendment 1 |
 | `npm run test:p52` | P52 Expert open dialogue: Expert contract, stage context, wiring on client and server |
 | `npm run test:p50` | P50 web search: trigger rules, grounding contract, fail-safe, wiring |
@@ -223,6 +226,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
 | `tests/qa1.test.mjs` | QA1 offline cross-mode suite (classification, soft-fail, mode isolation, UI/STATUS contracts) | no |
+| `tests/p54-project-delivery.test.mjs` | P54 Delivery model, server routes and interface wiring, write controls hidden, render smoke | no |
+| `tests/p54-manual-delivery-live.test.mjs` | The real server: `code/manual`, project code list, `expectedBranch`, refusals, no write paths (P54) | PostgreSQL |
 | `tests/p53-project-scope.test.mjs` | P53 capability matrix, single write switch, `/api/session` wiring, interface text, ADR-06 Amendment 1 | no |
 | `tests/p52-expert-dialogue.test.mjs` | P52 Expert open dialogue contract, bounded stage context, client/server wiring | no |
 | `tests/p50-web-search.test.mjs` | P50 web search pure contracts + fake client + wiring | no |
