@@ -119,6 +119,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | --- | --- |
 | `src/main.tsx`, `src/index.css` | Client entry and styles |
 | `src/App.tsx` | Simple Mode client (the main screen) |
+| `src/ModeMenu.tsx` | P51 shared Mode button + dropdown (Simple / Expert / Project / back to mode selection) used by the chat header and the Project page |
 | `src/ProjectMode.tsx` | The `/project` page (Project Mode), including the gated “Create a small program” flow and source ZIP link |
 | `src/config.ts` | `APP_VERSION` (single source of the service version), `SCHEMA_VERSION`, feature flags |
 | `src/en.ts`, `src/ui.ts`, `src/errors.ts` | Interface strings and error messages (English only) |
