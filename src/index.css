@@ -613,3 +613,27 @@ textarea.auto-input:disabled{opacity:.65}
 .workspace-file-view{margin:8px 0 0;padding:8px;max-height:240px;overflow:auto;font-size:12px;background:rgba(0,0,0,0.25);border-radius:8px;white-space:pre-wrap;word-break:break-word}
 .spin{animation:workspace-spin 1s linear infinite}
 @keyframes workspace-spin{to{transform:rotate(360deg)}}
+
+/* P51 — Mode control (same on Simple, Expert and Project) */
+.mode-menu-wrap{position:relative;display:inline-block}
+.mode-btn{color:#9fc0da;gap:6px}
+.mode-btn .lbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mode-menu-list{position:absolute;left:0;top:calc(100% + 6px);z-index:100;min-width:260px;max-width:min(340px,92vw);display:flex;flex-direction:column;gap:2px;background:#0d1c2b;border:1px solid #3a6287;border-radius:12px;padding:6px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.mode-menu-list .mode-item{justify-content:flex-start;text-align:left;min-height:44px;width:100%;padding:8px 12px !important;white-space:normal !important;overflow:visible !important;text-overflow:clip !important;font-size:14px !important;gap:10px;align-items:flex-start}
+.mode-menu-list .mode-item:disabled{opacity:.5;cursor:default}
+.mode-menu-list .mode-item.selected{border-color:#52769e;background:#102236}
+.mode-item-check{flex:0 0 16px;width:16px;display:inline-flex;justify-content:center;padding-top:2px;color:#8fd1a8}
+.mode-item-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mode-item-text small{font-size:12px;color:#8ea2b8;font-weight:400}
+.mode-menu-sep{height:1px;margin:4px 6px;background:#233a52}
+.project-topbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;margin:0 0 14px}
+@media(max-width:900px){
+  /* Mode takes the first, slightly wider column of the 5-column header grid; the list opens under it. */
+  .header-actions.has-mode{grid-template-columns:minmax(0,1.6fr) repeat(4,minmax(0,1fr)) !important}
+  .header-actions>.mode-menu-wrap{min-width:0;display:block}
+  .header-actions>.mode-menu-wrap>.mode-btn{width:100%;min-width:0 !important;padding-left:6px !important;padding-right:6px !important;overflow:hidden}
+  .project-topbar{justify-content:flex-start}
+}
+@media(max-width:600px){
+  .mode-btn .mode-btn-icon{display:none}
+}

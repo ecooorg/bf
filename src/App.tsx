@@ -2,9 +2,11 @@ import React, { Component, ErrorInfo, useEffect, useMemo, useState, useCallback,
 import {
   AlertCircle, ArrowLeft, ArrowRight, BrainCircuit, Check, CircleHelp,
   Download, FlaskConical, KeyRound, Lock, Plus, ShieldAlert, Trash2, Upload,
-  Cloud, CloudUpload, History as HistoryIcon, MoreHorizontal, SlidersHorizontal,
+  Cloud, CloudUpload, History as HistoryIcon, MoreHorizontal,
   RotateCcw, FolderOpen,
 } from 'lucide-react';
+import { ModeMenu, START_MODE_KEY } from './ModeMenu.tsx';
+import type { AppMode } from './ModeMenu.tsx';
 import {
   Decision, emptyDecision, STAGES, LOOPS, Step, Option, ExperimentCard,
   Hypothesis, NeutralItem, Unknown, uid, computeReviewDates, SCHEMA_VERSION,
@@ -127,7 +129,9 @@ export default function App() {
   const [showProgramFiles, setShowProgramFiles] = useState(false);
   const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
   const [proposedWorkspaceChangeSet, setProposedWorkspaceChangeSet] = useState<string | null>(null);
-  const [expertMode, setExpertMode] = useState(false);
+  const [expertMode, setExpertMode] = useState(() => {
+    try { return sessionStorage.getItem(START_MODE_KEY) === 'Expert'; } catch { return false; }
+  });
   const [startMode, setStartMode] = useState<'Simple' | 'Expert' | 'Project' | null>(() => {
     try {
       const saved = sessionStorage.getItem('biforge-start-mode');
@@ -470,7 +474,7 @@ export default function App() {
         historyAvailable={historyAvailable}
         projectModeEnabled={projectModeEnabled}
         expertMode={expertMode}
-        onToggleExpert={() => setExpertMode((v) => !v)}
+        onSelectMode={chooseStartMode}
         onChangeMode={resetStartMode}
         onImport={importBackup}
         onImportAsDialog={importAsDialog}
@@ -539,7 +543,7 @@ export default function App() {
         onBrief={() => setShowBrief(true)}
         onDelete={() => removeDecision(d.id)}
         expertMode={expertMode}
-        onToggleExpert={() => setExpertMode((v) => !v)}
+        onSelectMode={chooseStartMode}
         onChangeMode={resetStartMode}
       />
       <div className={`layout ${expertMode ? '' : 'friendly-layout'}`}>
@@ -604,7 +608,7 @@ export default function App() {
           <div className="files-panel-status" data-testid="mode-banner" style={{ marginBottom: 8 }}>
             {expertMode
               ? 'Mode: Expert method — guided steps plus open chat below for clarifications.'
-              : 'Mode: Simple chat — open conversation. Switch to Expert method for a step-by-step decision review.'}
+              : 'Mode: Simple chat — open conversation. Use the Mode button above to switch to Expert for a step-by-step decision review.'}
           </div>
           {expertMode && ((d.modelSuggestions as any)?.conversation?.length ?? 0) > 0 && (
             <SharedConversationContext d={d} onDocumentEdit={reviseConversationDocument} />
@@ -745,7 +749,7 @@ function Header(props: {
   onBrief?: () => void;
   onDelete?: () => void;
   expertMode?: boolean;
-  onToggleExpert?: () => void;
+  onSelectMode?: (mode: AppMode) => void;
   onChangeMode?: () => void;
   onDrive?: () => void;
   driveConnected?: boolean;
@@ -774,7 +778,10 @@ function Header(props: {
   }, [moreOpen]);
   return (
     <header className="header" style={{ justifyContent: 'flex-end' }}>
-      <div className="header-actions">
+      <div className={`header-actions${props.onSelectMode ? ' has-mode' : ''}`}>
+        {props.onSelectMode && props.onChangeMode && (
+          <ModeMenu current={props.expertMode ? 'Expert' : 'Simple'} projectEnabled={!!props.projectModeEnabled} onSelect={props.onSelectMode} onOverview={props.onChangeMode} />
+        )}
         <button className="ghost" onClick={props.onNew} title="Start a new dialogue"><Plus size={14} /> <span className="lbl">New</span></button>
         {props.onDrive && (
           <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={props.driveConnected ? "Google Drive sync for this decision list is on" : "Connect Google Drive to sync decisions on this device"}>
@@ -787,7 +794,7 @@ function Header(props: {
             : <button className="ghost" onClick={props.onHistory} title="Open past dialogues on this device"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
         )}
         <div className="hdr-more-wrap" ref={moreRef}>
-          <button className="ghost hdr-more-btn" title="Export, import, Project workspace, API key, and other tools" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
+          <button className="ghost hdr-more-btn" title="Export, import, saved texts, API key, and other tools" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
             <MoreHorizontal size={14} /> <span className="lbl">More</span>
           </button>
           {/* Unified More menu (same order in both modes; Brief / Delete only in expert) */}
@@ -832,34 +839,6 @@ function Header(props: {
                   </label>
                 )}
               </div>
-            )}
-            {(props.onChangeMode || props.onToggleExpert || props.projectModeEnabled) && (
-              <>
-                {props.onChangeMode && (
-                  <button type="button" className="ghost" role="menuitem" data-testid="change-mode" onClick={() => { setMoreOpen(false); props.onChangeMode?.(); }} title="Return to Simple / Expert / Project start screen">
-                    <RotateCcw size={14} /> Mode selection (Simple / Expert / Project)
-                  </button>
-                )}
-                {props.onToggleExpert && (
-                  <button
-                    type="button"
-                    className="ghost"
-                    role="menuitem"
-                    data-testid="toggle-expert-menu"
-                    onClick={() => { setMoreOpen(false); props.onToggleExpert?.(); }}
-                    title={props.expertMode
-                      ? 'Switch to Simple: open conversation without the step-by-step method'
-                      : 'Switch to Expert: guided decision method — you can still ask questions at every step'}
-                  >
-                    <SlidersHorizontal size={14} /> {props.expertMode ? 'Switch to Simple chat' : 'Switch to Expert method'}
-                  </button>
-                )}
-                {props.projectModeEnabled && (
-                  <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)} title="Separate area for multi-step projects (not the same as this chat)">
-                    Project workspace (separate)
-                  </a>
-                )}
-              </>
             )}
             {props.onProgramFiles && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProgramFiles?.(); }} title="Texts saved from chats on this device">
