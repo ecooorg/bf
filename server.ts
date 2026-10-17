@@ -38,7 +38,7 @@ import { verifyGitHubWebhookSignature, githubConfigFromEnv } from './server/gith
 import { projectCapabilities } from './server/projectCapabilities.ts';
 import { getTaskGates, ingestGitHubEvent, recordApproval, recordWaiver } from './server/gateService.ts';
 import { isGateName } from './server/gateEngine.ts';
-import { approveCodePackage, cancelCodeTask, commitApprovedPackage, decideCodeTask, exportPackage, generatedSourceArtifactId, getCodeTask, listCodeTasks, refreshCodeTask, requestRepair, runCodeTaskReview, startCodeTask, submitCodeResult, driveModelPatch } from './server/codeTaskService.ts';
+import { approveCodePackage, cancelCodeTask, commitApprovedPackage, decideCodeTask, exportPackage, generatedSourceArtifactId, getCodeTask, listCodeTasks, listProjectCodeTasks, refreshCodeTask, requestRepair, runCodeTaskReview, startCodeTask, submitCodeResult, driveModelPatch } from './server/codeTaskService.ts';
 import { buildTaskPackageFromBrief } from './server/briefWriter.ts';
 import { routeCall, newRouterState } from './server/router.ts';
 
@@ -624,6 +624,46 @@ app.post('/api/projects/:projectId/code/build', async (req, res) => {
       ...(bundle && bundle.project_id === project.id ? { downloadUrl: `/api/projects/${encodeURIComponent(project.id)}/tasks/${encodeURIComponent(created.task.id)}/code/${encodeURIComponent(started.codeTask.id)}/download` } : {}),
       note: started.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' ? 'Source generation and structural validation finished. GitHub delivery is intentionally not requested for user-created programs.' : started.codeTask.status === 'BLOCKED' ? 'The source bundle may be available, but delivery is blocked. Review the status details.' : undefined,
     } });
+  } catch (error) { projectError(res, error); }
+});
+
+/** P54: every code attempt of the project (the Delivery tab). */
+app.get('/api/projects/:projectId/code', async (req, res) => {
+  try {
+    const project = await getProject(req.params.projectId);
+    if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+    res.json({ success: true, data: await listProjectCodeTasks(project.id) });
+  } catch (error) { projectError(res, error); }
+});
+/**
+ * P54: a hand-off task without a plan. Creates the task, builds the Task Package from a brief and starts a `manual` code task
+ * (WAITING_HUMAN). BiForge writes nothing to GitHub: the person works in any tool and returns a PR or a branch.
+ */
+app.post('/api/projects/:projectId/code/manual', async (req, res) => {
+  try {
+    const input = z.object({
+      goal: z.string().trim().min(1).max(4000),
+      constraints: z.string().trim().max(4000).optional(),
+      acceptance_criteria: z.string().trim().max(4000).optional(),
+      allowed_paths: z.array(z.string().trim().min(1).max(300)).max(100).optional(),
+      idempotency_key: z.string().trim().min(1).max(200).optional(),
+    }).strict().parse(req.body);
+    const project = await getProject(req.params.projectId);
+    if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+    const passport = (project.state as any)?.passport;
+    if (passport?.status !== 'confirmed') return res.status(409).json({ success: false, error: 'Confirm the project passport before creating a hand-off task.', code: 'PASSPORT_NOT_CONFIRMED' });
+    if (passport?.executor !== 'manual') return res.status(409).json({ success: false, error: 'Hand-off tasks need «How code is written» set to Manual in the project settings.', code: 'EXECUTOR_MISMATCH' });
+    const created = await createTask({
+      projectId: project.id, idempotencyKey: input.idempotency_key ?? `code-manual-${crypto.randomUUID()}`, title: input.goal.slice(0, 200),
+      input: { task: input.goal, artifactRefs: [], stateVersion: Number(project.state_version), profile: 'code_author', profileVersion: '1', criteria: ['The result comes as a pull request or branch from the task branch', 'Required checks pass at the delivered commit', 'A human reviews the result and decides'] },
+      actor: 'human',
+    });
+    const pkg = buildTaskPackageFromBrief({
+      taskId: created.task.id, projectId: project.id, goal: input.goal, constraints: input.constraints,
+      acceptanceCriteria: input.acceptance_criteria, allowedPaths: input.allowed_paths, sensitivity: 'normal',
+    });
+    const started = await startCodeTask({ projectId: project.id, taskId: created.task.id, package: pkg, baseBranch: 'main', actorKind: 'human' });
+    res.status(started.created ? 201 : 200).json({ success: true, data: { taskId: created.task.id, codeTask: started.codeTask, created: started.created } });
   } catch (error) { projectError(res, error); }
 });
 

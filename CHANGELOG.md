@@ -1,3 +1,8 @@
+## P54 — Project Delivery tab: gates and manual Code Delivery (2026-10-17)
+
+- New tab **Delivery**: hand-off task, package, result, checks, review, decision, repair, close. GitHub stays read-only.
+- New `POST /api/projects/:projectId/code/manual`, `GET /api/projects/:projectId/code`; `expectedBranch` on code tasks.
+
 ## P53 — Project scope «analysis + ZIP», GitHub read-only (2026-10-17)
 
 - `CODE_EXECUTOR=model_patch` no longer implies GitHub write; `GITHUB_DIFF_UPLOAD=true` is the only write switch.
