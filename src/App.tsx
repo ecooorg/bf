@@ -44,6 +44,7 @@ import { isDriveConfigured } from './driveClient.ts';
 import { downloadDocument, uploadAttachment } from './attachments.ts';
 import { mirrorUserFile } from './driveMirror.ts';
 import { ModeMenu, START_MODE_KEY, type AppMode } from './ModeMenu.tsx';
+import { expertConversationFields } from './expertContext.ts';
 
 // --- API helper ---
 async function api(path: string, body: unknown) {
@@ -642,7 +643,7 @@ export default function App() {
                 {d.step === 'TRIAGE' && (
                   <TriageScreen d={d} update={update} onContinue={() => update({ step: 'BRIEF' })} />
                 )}
-                {d.step === 'BRIEF' && <BriefScreen d={d} update={update} runApi={runApi} busy={busy} onProposedChangeSet={setProposedWorkspaceChangeSet} />}
+                {d.step === 'BRIEF' && <BriefScreen d={d} update={update} runApi={runApi} busy={busy} onProposedChangeSet={setProposedWorkspaceChangeSet} expert={expertMode} />}
                 {expertMode && d.step === 'UNDERSTAND' && <UnderstandScreen d={d} update={update} runApi={runApi} busy={busy} />}
                 {expertMode && d.step === 'EXPAND' && <ExpandScreen d={d} update={update} runApi={runApi} busy={busy} />}
                 {expertMode && d.step === 'ATTACK' && <AttackScreen d={d} update={update} runApi={runApi} busy={busy} />}
@@ -674,6 +675,7 @@ export default function App() {
                       onDocumentEdit={reviseConversationDocument}
                       onProposedChangeSet={setProposedWorkspaceChangeSet}
                       alwaysShowComposer
+                      expert
                     />
                   </div>
                 )}
@@ -1052,7 +1054,9 @@ function BriefScreen({
   runApi,
   busy,
   onProposedChangeSet,
+  expert,
 }: {
+  expert?: boolean;
   d: Decision;
   update: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
   runApi: (path: string, body: unknown, onOk: (data: any, meta: any) => void) => void;
@@ -1086,7 +1090,7 @@ function BriefScreen({
       step: 'UNDERSTAND',
       interactionState: 'UNDERSTANDING',
     });
-    runApi('/api/conversation', fitRequest({ brief: { ...b, decision: text }, history: historyForRequest([userMessage]), attachments: collectDecisionAttachments(d, [userMessage]), intent }), (data, meta) => {
+    runApi('/api/conversation', fitRequest({ brief: { ...b, decision: text }, history: historyForRequest([userMessage]), attachments: collectDecisionAttachments(d, [userMessage]), intent, ...expertConversationFields(d, expert) }), (data, meta) => {
       const assistant: any = { role: 'assistant', content: data.reply, at: Date.now(), ...(data.document ? { document: data.document } : {}) };
       if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) onProposedChangeSet?.(data.reply);
       setFiles([]);
@@ -1256,7 +1260,9 @@ function ConversationScreen({
   onDocumentEdit,
   onProposedChangeSet,
   alwaysShowComposer,
+  expert,
 }: {
+  expert?: boolean;
   d: Decision;
   update: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
   runApi: (path: string, body: unknown, onOk: (data: any, meta: any) => void) => void;
@@ -1308,7 +1314,7 @@ function ConversationScreen({
     });
     runApi(
       '/api/conversation',
-      fitRequest({ brief: d.brief, history: historyForRequest(nextHistory), attachments: collectDecisionAttachments(d, nextHistory), state: ms.conversationState, intent, returningAfterDays: days >= 1 ? days : undefined }),
+      fitRequest({ brief: d.brief, history: historyForRequest(nextHistory), attachments: collectDecisionAttachments(d, nextHistory), state: ms.conversationState, intent, returningAfterDays: days >= 1 ? days : undefined, ...expertConversationFields(d, expert) }),
       (data, meta) => {
         pendingRef.current = null;
         update({
