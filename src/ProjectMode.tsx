@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 import { mirrorTextFile } from './driveMirror.ts';
+import { ModeMenu } from './ModeMenu.tsx';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
 type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
@@ -209,9 +210,23 @@ export default function ProjectMode() {
 
   return <main style={styles.page}><section style={styles.panel}>
     <header style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div><h1 style={{ margin: '6px 0' }}>Project workspace</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p><p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}><a href="/" style={{ color: '#9fd8ff' }} onClick={() => { try { sessionStorage.removeItem('biforge-start-mode'); } catch {} }}>← Back to mode selection</a> — your dialogues there are not the same list as projects below.</p></div>
+      <div className="project-topbar">
+        <ModeMenu current="Project"
+          projectEnabled={enabled !== false}
+          onSelect={(mode) => {
+            if (mode === 'Project') return;
+            try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
+            window.location.href = '/';
+          }}
+          onOverview={() => {
+            try { sessionStorage.removeItem('biforge-start-mode'); } catch {}
+            window.location.href = '/';
+          }}
+        />
+      </div>
+      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div><h1 style={{ margin: '6px 0' }}>Project workspace</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p><p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}></p></div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-        <a href="/" style={styles.link} onClick={() => { try { sessionStorage.removeItem('biforge-start-mode'); } catch {} }}>← Back to mode selection</a>
+        
         {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Sign out</button>}
       </div>
     </header>

@@ -43,6 +43,7 @@ import { saveDocumentToGoogleDocs } from './driveExport.ts';
 import { isDriveConfigured } from './driveClient.ts';
 import { downloadDocument, uploadAttachment } from './attachments.ts';
 import { mirrorUserFile } from './driveMirror.ts';
+import { ModeMenu, START_MODE_KEY, type AppMode } from './ModeMenu.tsx';
 
 // --- API helper ---
 async function api(path: string, body: unknown) {
@@ -128,10 +129,14 @@ export default function App() {
   const [showProgramFiles, setShowProgramFiles] = useState(false);
   const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
   const [proposedWorkspaceChangeSet, setProposedWorkspaceChangeSet] = useState<string | null>(null);
-  const [expertMode, setExpertMode] = useState(false);
+  const [expertMode, setExpertMode] = useState(() => {
+    try { return sessionStorage.getItem(START_MODE_KEY) === 'Expert'; } catch { return false; }
+  });
   const [startMode, setStartMode] = useState<'Simple' | 'Expert' | 'Project' | null>(() => {
     try {
-      const saved = sessionStorage.getItem('biforge-start-mode');
+      const saved = sessionStorage.getItem(START_MODE_KEY);
+      // Returning from /project as Expert must open Expert, not Simple
+      if (sessionStorage.getItem(START_MODE_KEY) === 'Expert') {/* expert restored via saved */}
       return saved === 'Simple' || saved === 'Expert' || saved === 'Project' ? saved : null;
     } catch { return null; }
   });
@@ -139,18 +144,18 @@ export default function App() {
     if (mode === 'Project' && !projectModeEnabled) return;
     if (mode === 'Project') {
       // Project is a separate workspace and is never emulated by the chat UI.
-      try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
+      try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
       window.location.href = '/project';
       return;
     }
     setExpertMode(mode === 'Expert');
     setStartMode(mode);
-    try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
+    try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
   }
   function resetStartMode() {
     setStartMode(null);
     setExpertMode(false);
-    try { sessionStorage.removeItem('biforge-start-mode'); } catch {}
+    try { sessionStorage.removeItem(START_MODE_KEY); } catch {}
   }
   const [migrationReport] = useState(() => getMigrationReport());
   const [authChecked, setAuthChecked] = useState(false);
@@ -175,7 +180,7 @@ export default function App() {
     if (startMode !== 'Project') return;
     setStartMode(null);
     setExpertMode(false);
-    try { sessionStorage.removeItem('biforge-start-mode'); } catch {}
+    try { sessionStorage.removeItem(START_MODE_KEY); } catch {}
   }, [startMode]);
 
   async function refreshAiHealth() {
@@ -472,7 +477,7 @@ export default function App() {
         historyAvailable={historyAvailable}
         projectModeEnabled={projectModeEnabled}
         expertMode={expertMode}
-        onToggleExpert={() => setExpertMode((v) => !v)}
+        onSelectMode={chooseStartMode}
         onChangeMode={resetStartMode}
         onImport={importBackup}
         onImportAsDialog={importAsDialog}
@@ -541,7 +546,7 @@ export default function App() {
         onBrief={() => setShowBrief(true)}
         onDelete={() => removeDecision(d.id)}
         expertMode={expertMode}
-        onToggleExpert={() => setExpertMode((v) => !v)}
+        onSelectMode={chooseStartMode}
         onChangeMode={resetStartMode}
       />
       <div className={`layout ${expertMode ? '' : 'friendly-layout'}`}>
@@ -606,7 +611,7 @@ export default function App() {
           <div className="files-panel-status" data-testid="mode-banner" style={{ marginBottom: 8 }}>
             {expertMode
               ? 'Mode: Expert method — guided steps plus open chat below for clarifications.'
-              : 'Mode: Simple chat — open conversation. Switch to Expert method for a step-by-step decision review.'}
+              : 'Mode: Simple chat — open conversation. Use the Mode control for a step-by-step decision review.'}
           </div>
           {expertMode && ((d.modelSuggestions as any)?.conversation?.length ?? 0) > 0 && (
             <SharedConversationContext d={d} onDocumentEdit={reviseConversationDocument} />
@@ -749,6 +754,7 @@ function Header(props: {
   expertMode?: boolean;
   onToggleExpert?: () => void;
   onChangeMode?: () => void;
+  onSelectMode?: (mode: AppMode) => void;
   onDrive?: () => void;
   driveConnected?: boolean;
   driveBusy?: boolean;
@@ -776,7 +782,10 @@ function Header(props: {
   }, [moreOpen]);
   return (
     <header className="header" style={{ justifyContent: 'flex-end' }}>
-      <div className="header-actions">
+      <div className="header-actions has-mode">
+        {props.onSelectMode && props.onChangeMode && (
+          <ModeMenu current={props.expertMode ? 'Expert' : 'Simple'} projectEnabled={Boolean(props.projectModeEnabled)} onSelect={props.onSelectMode} onOverview={props.onChangeMode} />
+        )}
         <button className="ghost" onClick={props.onNew} title="Start a new dialogue"><Plus size={14} /> <span className="lbl">New</span></button>
         {props.onDrive && (
           <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={props.driveConnected ? "Google Drive connected: decisions + file mirror while this tab is open" : "Connect Google Drive to sync decisions and mirror important files"}>
@@ -834,34 +843,6 @@ function Header(props: {
                   </label>
                 )}
               </div>
-            )}
-            {(props.onChangeMode || props.onToggleExpert || props.projectModeEnabled) && (
-              <>
-                {props.onChangeMode && (
-                  <button type="button" className="ghost" role="menuitem" data-testid="change-mode" onClick={() => { setMoreOpen(false); props.onChangeMode?.(); }} title="Return to Simple / Expert / Project start screen">
-                    <RotateCcw size={14} /> Mode selection (Simple / Expert / Project)
-                  </button>
-                )}
-                {props.onToggleExpert && (
-                  <button
-                    type="button"
-                    className="ghost"
-                    role="menuitem"
-                    data-testid="toggle-expert-menu"
-                    onClick={() => { setMoreOpen(false); props.onToggleExpert?.(); }}
-                    title={props.expertMode
-                      ? 'Switch to Simple: open conversation without the step-by-step method'
-                      : 'Switch to Expert: guided decision method — you can still ask questions at every step'}
-                  >
-                    <SlidersHorizontal size={14} /> {props.expertMode ? 'Switch to Simple chat' : 'Switch to Expert method'}
-                  </button>
-                )}
-                {props.projectModeEnabled && (
-                  <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)} title="Separate area for multi-step projects (not the same as this chat)">
-                    Project workspace (separate)
-                  </a>
-                )}
-              </>
             )}
             {props.onProgramFiles && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProgramFiles?.(); }} title="Texts saved from chats on this device">
