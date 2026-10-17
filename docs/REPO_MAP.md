@@ -83,6 +83,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `server/openaiCompatAdapter.ts` | `openai-compatible` adapter (P07) |
 | `server/ledger.ts` | Ledger-min: one `usage_ledger` row per provider call |
 | `server/geminiAdapter.ts` | Gemini adapter: one call, normalized response, error classification (not wired) |
+| `server/webSearch.ts` | P50 optional web search for fresh facts: Gemini + Google Search lookup, trigger rules, sources (off unless `ENABLE_WEB_SEARCH=true`) |
 | `server/fakeProvider.ts` | Fake provider with scenarios for all error classes |
 | `server/router.ts` | Router-min: candidate selection and fallback by the matrix (not wired) |
 | `server/modelRegistry.ts` | Model registry schema and seed (model names live only here); not wired yet |
@@ -163,6 +164,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
 | `npm run test:p48` | P48 epistemic: uncertainty core + verifier pure contracts |
+| `npm run test:p50` | P50 web search: trigger rules, grounding contract, fail-safe, wiring |
 | `npm run test:qa1` | QA1 offline cross-mode: classification, soft-fail contracts, Expert/Project isolation, UI cards |
 | `npm run test:p43` | RM-C3 closed: model_patch authorization docs and env-gate regression |
 | `npm run test:virtual` | `tests/run.sh`: real `server.ts` against a fake Gemini |
@@ -214,6 +216,7 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
 | `tests/qa1.test.mjs` | QA1 offline cross-mode suite (classification, soft-fail, mode isolation, UI/STATUS contracts) | no |
+| `tests/p50-web-search.test.mjs` | P50 web search pure contracts + fake client + wiring | no |
 | `tests/p48-epistemic.test.mjs` | P48 uncertainty core + verifier pure contracts | no |
 | `tests/p43-rm-c3.test.mjs` | P43 RM-C3 docs + CODE_EXECUTOR env-gate contract; GitHub write remains deferred | no |
 | `tests/package-c.test.mjs` | Static checks of repository files (read the file for details) | no |
