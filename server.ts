@@ -1546,7 +1546,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
   try {
     const provider = webSearchProvider();
     const today = new Date().toISOString().slice(0, 10);
-    const timeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 15000;
+    const timeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 28000;
 
     if (provider === 'serper') {
       const serperKey = (process.env.SERPER_API_KEY || '').trim();
