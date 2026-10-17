@@ -1547,8 +1547,14 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     if (!key) return skippedWebSearch('skipped', 'no_key');
     const ownKey = Boolean(byokKey);
     const now = Date.now();
+    // WEB_SEARCH_MODEL is preferred first, but must not be the only candidate: Google has limited
+    // 2.5 models to prior users (404 "no longer available to new users"), so we always append the
+    // light cascade as fallback. Without fallback a single bad override silently disables search.
     const override = (process.env.WEB_SEARCH_MODEL || '').trim();
-    const pool = override ? [override] : modelsFor('light', preferredModel).filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
+    const cascade = modelsFor('light', preferredModel).filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
+    const pool = override
+      ? [override, ...cascade.filter((m) => m !== override)]
+      : cascade;
     if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
     if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
     const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
@@ -1558,7 +1564,8 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
       userText,
       today: new Date().toISOString().slice(0, 10),
       timeoutMs: Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 15000,
-      maxAttempts: 2,
+      // Try override + at least one cascade model when override is set.
+      maxAttempts: Math.min(3, Math.max(2, pool.length)),
       onAttempt: () => { if (!ownKey) globalDayCount++; },
     });
     console.info(JSON.stringify({ type: 'web_search', status: r.status, model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
