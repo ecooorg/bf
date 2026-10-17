@@ -26,7 +26,7 @@ import { consumeRateLimit, createProject, deleteProject, getProject, listProject
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
-import { fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, webSearchMode } from './server/webSearch.ts';
+import { fetchSerperDigest, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -1538,23 +1538,33 @@ function compactConversationHistory(history: any[]): any[] {
   return normalized.slice(-CONVERSATION_CONTEXT_MESSAGES);
 }
 
-// P50: one grounded Google Search lookup for the person's last message (Gemini + Google Search tool).
+// P50: one web lookup for the person's last message.
+// Providers: serper (Serper.dev HTTP SERP — free trial key, no Gemini quota) or gemini (Google Search tool).
 // Never throws: any problem returns a non-"used" result and the conversation continues exactly as before.
 // It does not touch the model-health table of the main cascade (a search-tool failure must not park a model).
 async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string): Promise<WebSearchResult> {
   try {
+    const provider = webSearchProvider();
+    const today = new Date().toISOString().slice(0, 10);
+    const timeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 15000;
+
+    if (provider === 'serper') {
+      const serperKey = (process.env.SERPER_API_KEY || '').trim();
+      if (!serperKey) return skippedWebSearch('skipped', 'no_serper_key');
+      const r = await fetchSerperDigest({ apiKey: serperKey, userText, today, timeoutMs });
+      console.info(JSON.stringify({ type: 'web_search', status: r.status, provider: 'serper', model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
+      return r;
+    }
+
+    // gemini path (legacy grounding)
     const key = byokKey || apiKey;
     if (!key) return skippedWebSearch('skipped', 'no_key');
     const ownKey = Boolean(byokKey);
     const now = Date.now();
-    // WEB_SEARCH_MODEL is preferred first, but must not be the only candidate: Google has limited
-    // 2.5 models to prior users (404 "no longer available to new users"), so we always append the
-    // light cascade as fallback. Without fallback a single bad override silently disables search.
+    // WEB_SEARCH_MODEL is preferred first; light cascade is always appended so a 404 on 2.5 does not kill search.
     const override = (process.env.WEB_SEARCH_MODEL || '').trim();
     const cascade = modelsFor('light', preferredModel).filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
-    const pool = override
-      ? [override, ...cascade.filter((m) => m !== override)]
-      : cascade;
+    const pool = override ? [override, ...cascade.filter((m) => m !== override)] : cascade;
     if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
     if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
     const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
@@ -1562,13 +1572,12 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
       client: client as any,
       models: pool,
       userText,
-      today: new Date().toISOString().slice(0, 10),
-      timeoutMs: Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 15000,
-      // Try override + at least one cascade model when override is set.
+      today,
+      timeoutMs,
       maxAttempts: Math.min(3, Math.max(2, pool.length)),
       onAttempt: () => { if (!ownKey) globalDayCount++; },
     });
-    console.info(JSON.stringify({ type: 'web_search', status: r.status, model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
+    console.info(JSON.stringify({ type: 'web_search', status: r.status, provider: 'gemini', model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
     return r;
   } catch (e: any) {
     console.warn(JSON.stringify({ type: 'web_search', status: 'failed', reason: String(e?.message || e).slice(0, 120) }));
