@@ -210,10 +210,73 @@ export async function fetchWebSearchDigest(opts: {
   return last;
 }
 
-/** Guess hl/gl for Serper from the query script (ru → Russian results). */
-export function serperLocale(query: string): { hl: string; gl: string } {
-  if (/[\u0400-\u04FF]/.test(query || '')) return { hl: 'ru', gl: 'ru' };
+/**
+ * Serper locale is always international English. No per-language localization:
+ * Russian, Korean, French, etc. UI language of the user must not change the SERP region.
+ */
+export function serperLocale(_query?: string): { hl: string; gl: string } {
   return { hl: 'en', gl: 'us' };
+}
+
+/** True when the text is dominated by non-Latin scripts (Cyrillic, CJK, Hangul, Arabic, …). */
+export function needsEnglishQueryTranslation(text: string): boolean {
+  const t = String(text || '');
+  if (!t.trim()) return false;
+  // Latin letters, digits, common punctuation — count “script letters”
+  const letters = t.match(/\p{L}/gu) || [];
+  if (letters.length < 3) return false;
+  const nonLatin = letters.filter((ch) => !/[A-Za-z\u00C0-\u024F]/.test(ch));
+  return nonLatin.length / letters.length >= 0.25;
+}
+
+/**
+ * Build the query string sent to external search. Always English when possible.
+ * - Already Latin-heavy → cleaned as-is.
+ * - Otherwise, if a Gemini client is provided, one short translation to an English search query.
+ * - On failure → cleaned original (locale is still en/us).
+ */
+export async function toEnglishSearchQuery(opts: {
+  userText: string;
+  client?: SearchClientLike;
+  model?: string;
+  timeoutMs?: number;
+}): Promise<string> {
+  const raw = buildSearchQuery(opts.userText);
+  if (raw.length < 3) return raw;
+  if (!needsEnglishQueryTranslation(raw)) return raw;
+  if (!opts.client) return raw;
+  const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
+  const timeoutMs = Math.max(1000, opts.timeoutMs ?? 8_000);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await opts.client.models.generateContent({
+      model,
+      contents:
+        'Convert the user message into a short English web search query (max 14 words). ' +
+        'Use neutral international terms (e.g. "G7 central bank policy rates", "Zurich weather yesterday daytime temperature"). ' +
+        'Do not mention Russia, Russian sources, or any country-specific portal unless the user explicitly asked about that country. ' +
+        'Output ONLY the English query. No quotes, no explanation, no other language.\n\nUSER:\n' +
+        raw.slice(0, 500),
+      config: { temperature: 0.1, maxOutputTokens: 64, abortSignal: ctrl.signal },
+    });
+    let out = '';
+    try {
+      if (typeof resp?.text === 'string') out = resp.text;
+    } catch { /* */ }
+    if (!out) {
+      const parts = resp?.candidates?.[0]?.content?.parts;
+      if (Array.isArray(parts)) out = parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).join('');
+    }
+    out = String(out || '').replace(/^["'\s]+|["'\s]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
+    // Reject if model still answered in a non-Latin script
+    if (out.length >= 3 && !needsEnglishQueryTranslation(out)) return out;
+    return raw;
+  } catch {
+    return raw;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Build a compact digest + sources from a Serper /search JSON body. Pure. */
@@ -272,13 +335,16 @@ export async function fetchSerperDigest(opts: {
   today: string;
   timeoutMs?: number;
   num?: number;
+  /** Pre-built English query; if omitted, derived from userText (still with en/us locale). */
+  englishQuery?: string;
 }): Promise<WebSearchResult> {
   const key = String(opts.apiKey || '').trim();
   if (!key) return skippedWebSearch('skipped', 'no_serper_key');
-  const q = buildSearchQuery(opts.userText);
+  const q = buildSearchQuery(opts.englishQuery || opts.userText);
   if (q.length < 3) return skippedWebSearch('skipped', 'empty_query');
   const timeoutMs = Math.max(1000, opts.timeoutMs ?? 15_000);
-  const { hl, gl } = serperLocale(q);
+  // Always international English SERP — never localize by user language.
+  const { hl, gl } = serperLocale();
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
