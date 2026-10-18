@@ -2,7 +2,8 @@
 
 **Product version:** 48  
 **Audience:** people who use BiForge to think through decisions or run structured projects  
-**Language:** English
+**Language:** English  
+**Note:** Top menu is aligned across Simple, Expert, and Project (Mode, Drive, More → User guide). The in-app User guide scrolls fully.
 
 BiForge is a calm decision and project workspace. It does **not** replace professional advice (legal, medical, financial, or otherwise). It does **not** pick a winner for you. The AI proposes structure and questions; **only you make decisions**.
 
