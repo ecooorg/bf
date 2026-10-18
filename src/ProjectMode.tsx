@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import ProjectDelivery from './ProjectDelivery.tsx';
 import { describeCapabilities, PROJECT_SCOPE_TEXT, ZIP_OFF_HINT, type Capabilities } from './projectCapabilities.ts';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
-import { mirrorTextFile } from './driveMirror.ts';
+import { DRIVE_STATUS_EVENT, connectDriveFiles, isMirrorConnected, mirrorBlobDetailed, mirrorTextFile, type DriveStatusDetail } from './driveMirror.ts';
+import { isDriveConfigured } from './driveClient.ts';
 import { ModeMenu } from './ModeMenu.tsx';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
@@ -32,6 +33,8 @@ export default function ProjectMode() {
   const [notice, setNotice] = useState('');
   const [task, setTask] = useState('');
   const [programGoal, setProgramGoal] = useState('');
+  const [driveConnected, setDriveConnected] = useState(() => isMirrorConnected());
+  const [driveBusy, setDriveBusy] = useState(false);
   const [programResult, setProgramResult] = useState<{ taskId: string; codeTask: any; downloadUrl?: string; note?: string } | null>(null);
   const [decisionText, setDecisionText] = useState('');
   const [artifacts, setFiles] = useState<{ artifact_id: string; version: number; filename: string; hash: string }[]>([]);
@@ -136,7 +139,41 @@ export default function ProjectMode() {
     await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/validate`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, passed, evidence }) });
     return `Task ${passed ? 'marked PASS' : 'marked FAIL'}.`;
   });
-  async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); const meta = artifacts.find(x => x.artifact_id === id); void mirrorTextFile(meta?.filename || id, a.text || '', 'project', `project_${selected!.id}_${id}`); } catch (e) { setError(String((e as Error).message || e)); } }
+  async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
+  // P55: Google Drive for Project files. Explicit buttons; every result is announced (saved / waiting / the real reason).
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<DriveStatusDetail>).detail;
+      if (!d?.message) return;
+      if (d.kind === 'error') setError(d.message); else setNotice(d.message);
+    };
+    window.addEventListener(DRIVE_STATUS_EVENT, on);
+    return () => window.removeEventListener(DRIVE_STATUS_EVENT, on);
+  }, []);
+  async function connectDrive() {
+    setDriveBusy(true); setError(''); setNotice('');
+    const r = await connectDriveFiles();           // starts inside the click: the sign-in popup needs it
+    setDriveConnected(isMirrorConnected()); setDriveBusy(false);
+    if (r.ok) setNotice(r.message); else setError(r.message);
+  }
+  async function saveArtifactToDrive(a: { artifact_id: string; version: number; filename: string }) {
+    if (!selected) return;
+    const t = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected.id)}/artifacts/${encodeURIComponent(a.artifact_id)}`);
+    await mirrorTextFile(a.filename, t.text || '', 'project', `project_${selected.id}_${a.artifact_id}_v${a.version}`, selected.name);
+    setDriveConnected(isMirrorConnected());
+  }
+  const driveAct = async (fn: () => Promise<void>) => { setDriveBusy(true); setError(''); setNotice(''); try { await fn(); } catch (e) { setError(String((e as Error).message || e)); } finally { setDriveBusy(false); } };
+  const saveAllToDrive = () => driveAct(async () => { for (const a of artifacts) await saveArtifactToDrive(a); if (!artifacts.length) setNotice('There are no files to save yet.'); });
+  const saveProgramToDrive = () => driveAct(async () => {
+    const url = programResult?.downloadUrl; if (!url || !selected) return;
+    const r = await fetch(url, { credentials: 'same-origin' });
+    if (!r.ok) throw new Error('The program archive could not be read.');
+    const blob = await r.blob();
+    const name = decodeURIComponent((r.headers.get('content-disposition') || '').match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i)?.[1] || '') || `${selected.name}-program.zip`;
+    await mirrorBlobDetailed({ name, data: blob, mimeType: 'application/zip', mode: 'project', subfolder: selected.name, localKey: `project_zip_${programResult?.codeTask?.id || url}` });
+    setDriveConnected(isMirrorConnected());
+  });
+
 
   useEffect(() => { setPassport((selected?.state?.passport as Passport | undefined) ?? null); }, [selected]);
 
@@ -214,6 +251,15 @@ export default function ProjectMode() {
     input: { width: '100%', boxSizing: 'border-box', minHeight: 44, padding: 10, border: '1px solid #3d7fc4', borderRadius: 8, background: '#07111f', color: '#e6edf7', fontSize: 16 },
     link: { color: '#78baff' },
   };
+  const driveBar = !isDriveConfigured()
+    ? <p style={{ fontSize: 12, color: '#8fa6c2' }}>Google Drive is not set up on this server, so files stay on this device.</p>
+    : <div data-testid="project-drive" style={{ margin: '8px 0', padding: 8, border: '1px solid #25405e', borderRadius: 8 }}>
+        <strong style={{ fontSize: 13 }}>Google Drive</strong> <small style={{ color: '#8fa6c2' }}>{driveConnected ? 'connected · files go to BiForge / Project / ' + (selected?.name ?? '') : 'not connected'}</small>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+          {!driveConnected && <button type="button" style={styles.button} disabled={driveBusy} onClick={() => void connectDrive()}>Connect Google Drive</button>}
+          <button type="button" style={styles.button} disabled={driveBusy || artifacts.length === 0} onClick={() => void saveAllToDrive()}>Save all files to Google Drive</button>
+        </div>
+      </div>;
 
   return <main style={styles.page}><section style={styles.panel}>
     <header style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
@@ -254,7 +300,7 @@ export default function ProjectMode() {
       <form onSubmit={create} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0 24px' }}><input aria-label="Project name" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="New project name" required maxLength={200} /><input aria-label="Project goal" style={{ ...styles.input, flex: '1 1 240px' }} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Goal (optional)" maxLength={2000} /><button style={styles.button} disabled={busy || !name.trim()}>Create project</button></form>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 24 }}>
         <section><h2>Projects</h2>{projects.length === 0 ? <div style={{ padding: 16, border: '1px dashed #25405e', borderRadius: 8 }}><strong>Create your first project</strong><p style={{ color: '#8fa6c2', fontSize: 13 }}>Describe it, run an analysis, then review the results.</p></div> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0', display: 'flex', gap: 8 }}><button style={{ ...styles.button, flex: 1, textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · version {p.state_version}</small></button><details style={{ position: 'relative' }}><summary aria-label={`More actions for ${p.name}`} title="More actions" style={{ ...styles.button, padding: '10px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 46, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8 }}><button type="button" style={{ ...styles.button, borderColor: '#a33', color: '#ffb4b4' }} disabled={busy} onClick={() => void removeProject(p)}>Delete project</button></div></details></li>)}</ul>}</section>
-        <section><h2>Project workspace</h2>{selected ? <><p><strong>{selected.name}</strong><br /><small>Save {selected.state_version}</small></p>{passport && <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Project description <small style={{ color: passport.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>({passport.status})</small></h3><div style={{ display: 'grid', gap: 8 }}>
+        <section><h2>Project workspace</h2>{selected ? <><p><strong>{selected.name}</strong><br /><small>Save {selected.state_version}</small></p>{driveBar}{passport && <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Project description <small style={{ color: passport.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>({passport.status})</small></h3><div style={{ display: 'grid', gap: 8 }}>
           {([['goal', 'Goal']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
           <details style={{ border: '1px solid #1f4f86', borderRadius: 8, padding: '8px 12px' }}><summary style={{ cursor: 'pointer', minHeight: 32 }}>Advanced parameters</summary><div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
           {([['projectType', 'Project type'], ['users', 'Users'], ['inputsOutputs', 'Inputs and outputs'], ['constraints', 'Constraints'], ['securityData', 'Security and data requirements'], ['successCriteria', 'Success criteria']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={k === 'projectType' ? 1 : 2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
@@ -276,7 +322,7 @@ export default function ProjectMode() {
               {capabilities && !capabilities.programZip && <p style={{ fontSize: 12, color: '#e6c07a' }}>{ZIP_OFF_HINT}</p>}
               {(!capabilities || capabilities.programZip) && passport.executor !== 'model_patch' && <p style={{ fontSize: 12, color: '#e6c07a' }}>Automatic coding is off for this project. Turn it on in project settings (How code is written → Automatic).</p>}
               {passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>}
-              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>Latest code task: {programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' ? 'SOURCE READY' : programResult.codeTask.status}</strong><br /><small>Task {programResult.taskId} · Code task {programResult.codeTask.id}</small>{programResult.codeTask.statusReason && <p style={{ fontSize: 13 }}>{programResult.codeTask.statusReason}</p>}{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open generated-code Pull Request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }}>Download generated program (.zip)</a></p>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
+              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>Latest code task: {programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' ? 'SOURCE READY' : programResult.codeTask.status}</strong><br /><small>Task {programResult.taskId} · Code task {programResult.codeTask.id}</small>{programResult.codeTask.statusReason && <p style={{ fontSize: 13 }}>{programResult.codeTask.statusReason}</p>}{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open generated-code Pull Request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
             </section>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([['results', 'Results'], ['plan', 'Plan'], ['delivery', 'Delivery'], ['journal', 'Activity log'], ['data', 'Data · for developers']] as const).map(([key, label]) => <button key={key} type="button" aria-current={activeTab === key ? 'page' : undefined} onClick={() => setActiveTab(key)} style={{ ...styles.button, minHeight: 38, background: activeTab === key ? '#12345a' : 'transparent', color: activeTab === key ? '#e6edf7' : '#8fa6c2', borderColor: activeTab === key ? '#78baff' : '#25405e' }}>{label}</button>)}</nav>
             {activeTab === 'results' && <><p style={{ fontSize: 13, color: '#8fa6c2' }}>Review the model’s suggestions. Confirm items you accept or reject items that are incorrect.</p>{(['facts', 'unknowns', 'hypotheses', 'risks', 'requirements', 'decisions'] as const).map(sec => { const list = ((selected.state.items as Record<string, any[]> | undefined)?.[sec] ?? []); return list.length ? <div key={sec}><h4 style={{ marginBottom: 4 }}>{sec}</h4><ul style={{ paddingLeft: 18, margin: 0 }}>{list.map(it => { const st = it.status === 'open' || it.status === 'resolved' || it.status === 'mitigated' ? it.review : it.status; return <li key={it.id} style={{ margin: '6px 0', fontSize: 13 }}><strong>{it.id}</strong> <em style={{ color: st === 'proposed' ? '#e6c07a' : st === 'rejected' ? '#ffb4b4' : '#7fe0a8' }}>{sec === 'decisions' ? 'human decision' : st}</em>{it.unverified ? ' (unverified)' : ''} {it.text}{st === 'proposed' && <span> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'confirm')}>Confirm</button> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'reject')}>Reject</button></span>}</li>; })}</ul></div> : null; })}
@@ -292,7 +338,7 @@ export default function ProjectMode() {
             </section>}
             {activeTab === 'delivery' && <ProjectDelivery projectId={selected.id} capabilities={capabilities} passportConfirmed={passport?.status === 'confirmed'} executor={passport?.executor ?? 'manual'} focusTaskId={focusTaskId} onFocusHandled={() => setFocusTaskId(null)} />}
             {activeTab === 'journal' && <section><h3>Files</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Project files and saved versions.</p>
-            <h4 style={{ marginBottom: 4 }}>Files</h4>{artifacts.length === 0 ? <small>Nothing here yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button> <small>{a.hash.slice(0, 12)}</small></li>)}</ul>}
+            <h4 style={{ marginBottom: 4 }}>Files</h4>{artifacts.length === 0 ? <small>Nothing here yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button> <small>{a.hash.slice(0, 12)}</small>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
             {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}
             <h4 style={{ marginBottom: 4 }}>Model request history</h4>{ledger.length === 0 ? <small>Nothing here yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
           </section>}

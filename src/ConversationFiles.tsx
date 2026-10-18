@@ -43,7 +43,7 @@ export function AttachControl({
         const a = await uploadAttachment(f, getStoredUiLanguage());
         next = [...next, a];
         onChange(next);
-        void mirrorUserFile(f, 'simple'); // durable copy when Drive is connected (no-op otherwise)
+        void mirrorUserFile(f); // durable copy in Drive → BiForge → <mode>; waits for Connect when Drive is not connected yet
       } catch (e: any) {
         setError(e?.message || 'The file could not be attached.');
       } finally {

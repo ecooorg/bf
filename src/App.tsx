@@ -42,9 +42,10 @@ import { documentToMarkdown, libraryToDocument, planImport, importReport } from 
 import { saveDocumentToGoogleDocs } from './driveExport.ts';
 import { isDriveConfigured } from './driveClient.ts';
 import { downloadDocument, uploadAttachment } from './attachments.ts';
-import { mirrorUserFile } from './driveMirror.ts';
+import { mirrorUserFile, setMirrorMode } from './driveMirror.ts';
 import { ModeMenu, START_MODE_KEY, type AppMode } from './ModeMenu.tsx';
 import { expertConversationFields } from './expertContext.ts';
+import { briefSections, BRIEF_EMPTY_TEXT } from './briefView.ts';
 
 // --- API helper ---
 async function api(path: string, body: unknown) {
@@ -133,6 +134,8 @@ export default function App() {
   const [expertMode, setExpertMode] = useState(() => {
     try { return sessionStorage.getItem(START_MODE_KEY) === 'Expert'; } catch { return false; }
   });
+  // P55: the Drive folder follows the mode the person is in (BiForge → Simple | Expert).
+  useEffect(() => { setMirrorMode(expertMode ? 'expert' : 'simple'); }, [expertMode]);
   const [startMode, setStartMode] = useState<'Simple' | 'Expert' | 'Project' | null>(() => {
     try {
       const saved = sessionStorage.getItem(START_MODE_KEY);
@@ -329,7 +332,7 @@ export default function App() {
         d.title = att.name.replace(/\.[^.]+$/, '').slice(0, 80) || d.title;
         d.modelSuggestions = { ...(d.modelSuggestions as any), conversation: [{ role: 'user', content: `Attached: ${att.name}`, attachments: [att], at: now }] } as any;
         void archiveAttachment(att, d.id);
-        void mirrorUserFile(file, 'expert');
+        void mirrorUserFile(file);
         setDecisions((prev) => [d, ...prev]);
         setActiveId(d.id);
         setMessage('');
@@ -702,7 +705,7 @@ export default function App() {
         <ProgramFilesManager open={showProgramFiles} onClose={() => setShowProgramFiles(false)} />
       )}
       {showBrief && (
-        <BriefPanel d={d} onClose={() => setShowBrief(false)} update={update} />
+        <BriefPanel d={d} onClose={() => setShowBrief(false)} />
       )}
     </div>
   );
@@ -779,8 +782,9 @@ function Header(props: {
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false); };
     document.addEventListener('mousedown', onDoc);
+    document.addEventListener('touchstart', onDoc as unknown as EventListener, { passive: true });
     document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('touchstart', onDoc as unknown as EventListener); document.removeEventListener('keydown', onKey); };
   }, [moreOpen]);
   return (
     <header className="header" style={{ justifyContent: 'flex-end' }}>
@@ -2949,24 +2953,28 @@ function LearnScreen({
 function BriefPanel({
   d,
   onClose,
-  update,
 }: {
   d: Decision;
   onClose: () => void;
-  update: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
+  update?: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
 }) {
+  const sections = briefSections(d.brief);
   return (
-    <div className="privacy" style={{ maxHeight: '80vh', overflow: 'auto' }}>
-      <h2>Decision Brief</h2>
-      <button className="ghost" onClick={onClose}>
-        Close
-      </button>
-      <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap' }}>
-        {JSON.stringify(d.brief, null, 2)}
-      </pre>
-      {d.brief.reviewDates?.length > 0 && (
-        <p>Review: {d.brief.reviewDates.join(' · ')}</p>
-      )}
+    <div className="brief-backdrop" onClick={onClose}>
+      <div className="brief-panel" role="dialog" aria-modal="true" aria-label="Decision brief" onClick={(e) => e.stopPropagation()}>
+        <div className="brief-head">
+          <h2>Decision brief</h2>
+          <button type="button" className="ghost" onClick={onClose} aria-label="Close the decision brief">Close</button>
+        </div>
+        {sections.length === 0
+          ? <p className="brief-empty">{BRIEF_EMPTY_TEXT}</p>
+          : sections.map((s) => (
+            <section key={s.title} className="brief-section">
+              <h3>{s.title}</h3>
+              {s.items.length === 1 ? <p>{s.items[0]}</p> : <ul>{s.items.map((it, i) => <li key={i}>{it}</li>)}</ul>}
+            </section>
+          ))}
+      </div>
     </div>
   );
 }

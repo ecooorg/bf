@@ -7,6 +7,7 @@ import {
   DriveAuthError, DRIVE_FULL_SCOPE, driveFind, driveRead, driveWrite, requestDriveToken,
   type DriveToken,
 } from './driveClient.ts';
+import { DRIVE_STATUS_EVENT, MIRROR_MESSAGES, flushMirrorQueue, hasFileScope, storeMirrorToken, type DriveStatusDetail } from './driveMirror.ts';
 
 const K_TOKEN = 'be_v13_drive_token', K_EXP = 'be_v13_drive_expires', K_FILE = 'be_v13_drive_file';
 const K_SYNC = 'be_v13_drive_last_sync', K_SAVED = 'be_v13_drive_saved';
@@ -41,7 +42,13 @@ export function useDrive<T extends Mergeable>(decisions: T[], setDecisions: (f: 
   const connected = Boolean(tok);
 
   const notify = useCallback((m: string) => { setMessage(m); }, []);
-  useEffect(() => { if (!message) return; const t = setTimeout(() => setMessage(''), 5000); return () => clearTimeout(t); }, [message]);
+  useEffect(() => { if (!message) return; const t = setTimeout(() => setMessage(''), 8000); return () => clearTimeout(t); }, [message]);
+  // P55: every file saved to (or refused by) Drive is announced, so nothing fails silently.
+  useEffect(() => {
+    const on = (e: Event) => { const m = (e as CustomEvent<DriveStatusDetail>).detail?.message; if (m) setMessage(m); };
+    window.addEventListener(DRIVE_STATUS_EVENT, on);
+    return () => window.removeEventListener(DRIVE_STATUS_EVENT, on);
+  }, []);
 
   // Expiry: switch the button back to "Connect" when the token runs out.
   useEffect(() => {
@@ -96,8 +103,11 @@ export function useDrive<T extends Mergeable>(decisions: T[], setDecisions: (f: 
   const connect = useCallback(async () => {
     try {
       const t = await requestDriveToken(DRIVE_FULL_SCOPE); // appdata library + drive.file mirror
-      ss.set(K_TOKEN, t.token); ss.set(K_EXP, String(t.expiresAt)); setTok(t);
+      storeMirrorToken(t); setTok(t);            // same storage the file mirror reads
       await run(t, 'connect');                   // also repeats a failed save (merge + write)
+      if (!hasFileScope(t)) { notify(MIRROR_MESSAGES.no_file_scope); return; }
+      const waiting = await flushMirrorQueue();  // files attached before Drive was connected
+      if (waiting > 0) notify(`Google Drive connected. Saved ${waiting} waiting file${waiting === 1 ? '' : 's'}.`);
     } catch (e: any) { notify(e?.message || 'Google Drive connection failed.'); }
   }, [run, notify]);
 

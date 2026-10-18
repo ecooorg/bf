@@ -242,7 +242,7 @@ export async function archiveAgentDocument(
     void mirrorTextFile(
       saved?.name || doc.fileName || doc.title || 'agent-document',
       text,
-      decisionId ? 'expert' : 'simple',
+      'unknown',   // the folder follows the mode the person is in
       saved?.id ? `pf_${saved.id}` : undefined,
     );
     return saved;

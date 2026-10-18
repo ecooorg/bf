@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X, ChevronRight, Loader2, Download } from 'lucide-react';
 import { ingestArchive, ingestFiles } from './workspace/ingest.ts';
+import { mirrorBlob, mirrorUserFile } from './driveMirror.ts';
 import { IndexedDbWorkspaceStore } from './workspace/idbStore.ts';
 import { readWorkspaceFile } from './workspace/context.ts';
 import {
@@ -196,6 +197,9 @@ SHA-256: ${entry.sha256}`;
   const onAttach = async (list: FileList | null) => {
     if (!list?.length || disabled || busy) return;
     const files = Array.from(list);
+    // P55: the originals the person attached also go to Drive → BiForge → <mode>, in every mode.
+    // A whole folder from this computer (hundreds of files) is not copied one by one; it is already on the person's disk.
+    for (const f of files.filter((x) => !(x as File & { webkitRelativePath?: string }).webkitRelativePath).slice(0, 10)) void mirrorUserFile(f);
     const archives = files.filter((f) => isArchiveFileName(f.name));
     const normals = files.filter((f) => !isArchiveFileName(f.name));
 
@@ -281,6 +285,8 @@ SHA-256: ${entry.sha256}`;
       const blob = new Blob([payload], {
         type: mode === 'diff' ? 'text/plain;charset=utf-8' : 'application/zip',
       });
+      // P55: what the agent produced (the changed package or the full archive) is kept on Drive too.
+      void mirrorBlob({ name: result.filename, data: blob, mimeType: blob.type, localKey: `workspace_${state.workspaceId}_${state.version}_${mode}` });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
