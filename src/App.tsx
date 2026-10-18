@@ -121,6 +121,7 @@ export default function App() {
   const [activeId, setActiveId] = useState(() => getActiveDecisionId());
   const drive = useDrive<Decision>(decisions, setDecisions);
   const [showHistory, setShowHistory] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
   const historyAvailable = useMemo(() => {
     try { localStorage.setItem('be_probe', '1'); localStorage.removeItem('be_probe'); return true; } catch { return false; }
   }, []);
@@ -467,6 +468,48 @@ export default function App() {
   if (!active) {
     return (
       <div className="shell">
+
+      {showUserGuide && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="User guide" onClick={() => setShowUserGuide(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div className="panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, maxHeight: '85vh', overflow: 'auto', width: '100%', background: 'var(--panel, #0d1b2a)', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <h2 style={{ margin: 0 }}><CircleHelp size={18} style={{ verticalAlign: 'middle', marginRight: 8 }} /> BiForge user guide</h2>
+              <button type="button" className="ghost" onClick={() => setShowUserGuide(false)} aria-label="Close">Close</button>
+            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+              <p><strong>BiForge</strong> helps you think through hard choices and run projects as managed state — not as a chat dump. The AI proposes; <strong>only you decide</strong>.</p>
+              <h3>Three modes</h3>
+              <ul>
+                <li><strong>Simple</strong> — open conversation. Describe the situation and explore options freely.</li>
+                <li><strong>Expert</strong> — guided method: Understand → Explore → Challenge → Check → Learn. Stages appear in the sidebar; confirm suggestions yourself.</li>
+                <li><strong>Project</strong> — separate workspace for multi-step work: passport, analysis (confirm/reject changes), plans, tasks, Delivery (hand-off code packages; GitHub is read-only), files, and developer JSON state.</li>
+              </ul>
+              <h3>Header controls</h3>
+              <ul>
+                <li><strong>Mode</strong> — switch Simple / Expert / Project or return to mode selection.</li>
+                <li><strong>New</strong> — start a new dialogue.</li>
+                <li><strong>Drive</strong> — connect Google Drive for mirroring while this tab is open.</li>
+                <li><strong>History</strong> — past dialogues on this device (when available).</li>
+                <li><strong>More</strong> — Export (JSON, MD, Word, PDF, Google Docs), Import (backup, folder, Drive, file-as-dialogue), saved texts, Gemini API key, Decision brief / Delete (Expert), and this guide.</li>
+              </ul>
+              <h3>Project mode essentials</h3>
+              <ol>
+                <li>Sign in if required; open <em>What is available here</em> for server capabilities.</li>
+                <li>Create a project (name + optional goal); confirm the <strong>passport</strong>.</li>
+                <li>Run <strong>analysis</strong>; on the Results tab, Confirm or Reject every proposed fact, unknown, hypothesis, risk, requirement, or decision.</li>
+                <li>Add human decisions in your own words.</li>
+                <li>Create a <strong>plan</strong>, approve budgets/gates, start tasks.</li>
+                <li>Use <strong>Delivery</strong> to hand off coding tasks externally, download PACKAGE.md, refresh GitHub checks (read-only), and accept or reject results. BiForge never merges.</li>
+                <li>Optional: Program as ZIP (source checked, not executed on the server); save artifacts to Drive.</li>
+              </ol>
+              <h3>Safety</h3>
+              <p>Do not enter passwords, card numbers, or ID documents. If you need urgent personal help, pause and contact a real person or help service. This tool is not professional advice and does not pick a winner for you.</p>
+              <p style={{ color: '#8fa6c2', fontSize: 13 }}>Full documentation lives in the repository as <code>docs/USER_GUIDE.md</code> (operators: see OWNER_OPS.md).</p>
+            </div>
+          </div>
+        </div>
+      )}
+
         {historyPanel}
         <Header
           onNew={createNew}
@@ -486,6 +529,7 @@ export default function App() {
         onImport={importBackup}
         onImportAsDialog={importAsDialog}
         onImportDrive={drive.onButton}
+        onUserGuide={() => setShowUserGuide(true)}
         />
         <div className="empty">
           <h1>Nothing here yet</h1>
@@ -528,6 +572,48 @@ export default function App() {
 
   return (
     <div className="shell">
+
+      {showUserGuide && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="User guide" onClick={() => setShowUserGuide(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div className="panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, maxHeight: '85vh', overflow: 'auto', width: '100%', background: 'var(--panel, #0d1b2a)', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <h2 style={{ margin: 0 }}><CircleHelp size={18} style={{ verticalAlign: 'middle', marginRight: 8 }} /> BiForge user guide</h2>
+              <button type="button" className="ghost" onClick={() => setShowUserGuide(false)} aria-label="Close">Close</button>
+            </div>
+            <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+              <p><strong>BiForge</strong> helps you think through hard choices and run projects as managed state — not as a chat dump. The AI proposes; <strong>only you decide</strong>.</p>
+              <h3>Three modes</h3>
+              <ul>
+                <li><strong>Simple</strong> — open conversation. Describe the situation and explore options freely.</li>
+                <li><strong>Expert</strong> — guided method: Understand → Explore → Challenge → Check → Learn. Stages appear in the sidebar; confirm suggestions yourself.</li>
+                <li><strong>Project</strong> — separate workspace for multi-step work: passport, analysis (confirm/reject changes), plans, tasks, Delivery (hand-off code packages; GitHub is read-only), files, and developer JSON state.</li>
+              </ul>
+              <h3>Header controls</h3>
+              <ul>
+                <li><strong>Mode</strong> — switch Simple / Expert / Project or return to mode selection.</li>
+                <li><strong>New</strong> — start a new dialogue.</li>
+                <li><strong>Drive</strong> — connect Google Drive for mirroring while this tab is open.</li>
+                <li><strong>History</strong> — past dialogues on this device (when available).</li>
+                <li><strong>More</strong> — Export (JSON, MD, Word, PDF, Google Docs), Import (backup, folder, Drive, file-as-dialogue), saved texts, Gemini API key, Decision brief / Delete (Expert), and this guide.</li>
+              </ul>
+              <h3>Project mode essentials</h3>
+              <ol>
+                <li>Sign in if required; open <em>What is available here</em> for server capabilities.</li>
+                <li>Create a project (name + optional goal); confirm the <strong>passport</strong>.</li>
+                <li>Run <strong>analysis</strong>; on the Results tab, Confirm or Reject every proposed fact, unknown, hypothesis, risk, requirement, or decision.</li>
+                <li>Add human decisions in your own words.</li>
+                <li>Create a <strong>plan</strong>, approve budgets/gates, start tasks.</li>
+                <li>Use <strong>Delivery</strong> to hand off coding tasks externally, download PACKAGE.md, refresh GitHub checks (read-only), and accept or reject results. BiForge never merges.</li>
+                <li>Optional: Program as ZIP (source checked, not executed on the server); save artifacts to Drive.</li>
+              </ol>
+              <h3>Safety</h3>
+              <p>Do not enter passwords, card numbers, or ID documents. If you need urgent personal help, pause and contact a real person or help service. This tool is not professional advice and does not pick a winner for you.</p>
+              <p style={{ color: '#8fa6c2', fontSize: 13 }}>Full documentation lives in the repository as <code>docs/USER_GUIDE.md</code> (operators: see OWNER_OPS.md).</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {historyPanel}
       <Header
         onNew={createNew}
@@ -552,6 +638,7 @@ export default function App() {
         expertMode={expertMode}
         onSelectMode={chooseStartMode}
         onChangeMode={resetStartMode}
+        onUserGuide={() => setShowUserGuide(true)}
       />
       <div className={`layout ${expertMode ? '' : 'friendly-layout'}`}>
         {expertMode && <aside className="sidebar method-sidebar">
@@ -769,6 +856,7 @@ function Header(props: {
   onHistory?: () => void;
   historyAvailable?: boolean;
   projectModeEnabled?: boolean;
+  onUserGuide?: () => void;
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [sub, setSub] = useState<'' | 'export' | 'import'>('');
@@ -858,6 +946,11 @@ function Header(props: {
             {props.onGoogleAI && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onGoogleAI?.(); }} title="Optional: use your own Gemini API key">
                 <KeyRound size={14} /> Your Gemini API key
+              </button>
+            )}
+            {props.onUserGuide && (
+              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onUserGuide?.(); }} title="Open the BiForge user guide">
+                <CircleHelp size={14} /> User guide
               </button>
             )}
             {props.expertMode && props.onBrief && (
