@@ -121,7 +121,7 @@ function guideHtmlForPrint(): string {
   // Plain HTML string for the new-tab view (no React).
   return `
 <h1>BiForge User Guide</h1>
-<p><strong>Product version 48.</strong> The AI proposes; <strong>only you decide</strong>. Not legal, medical, or financial advice.</p>
+<p><strong>Product version 55.</strong> The AI proposes; <strong>only you decide</strong>. Not legal, medical, or financial advice.</p>
 <h2>1. Getting started</h2>
 <ol>
 <li>Open the BiForge URL from your administrator.</li>
