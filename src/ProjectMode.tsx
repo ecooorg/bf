@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { CircleHelp, Cloud, CloudUpload, MoreHorizontal, X } from 'lucide-react';
 import ProjectDelivery from './ProjectDelivery.tsx';
 import { describeCapabilities, PROJECT_SCOPE_TEXT, ZIP_OFF_HINT, type Capabilities } from './projectCapabilities.ts';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 import { DRIVE_STATUS_EVENT, connectDriveFiles, isMirrorConnected, mirrorBlobDetailed, mirrorTextFile, type DriveStatusDetail } from './driveMirror.ts';
 import { isDriveConfigured } from './driveClient.ts';
 import { ModeMenu } from './ModeMenu.tsx';
+import { UserGuideModal } from './UserGuide.tsx';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
 type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
@@ -45,6 +47,12 @@ export default function ProjectMode() {
   const [approvals, setApprovals] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'results' | 'plan' | 'delivery' | 'journal' | 'data'>('results');
+  const [showUserGuide, setShowUserGuide] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const [showDevData, setShowDevData] = useState(false);
+  const [budgetModal, setBudgetModal] = useState<{ approval: any; limitKey: string; used: string } | null>(null);
+  const [budgetInput, setBudgetInput] = useState('');
   const [codeTaskIds, setCodeTaskIds] = useState<string[]>([]);
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
   const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
@@ -114,21 +122,33 @@ export default function ProjectMode() {
   const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
   const addDecision = () => act(async () => { await post('decisions', { text: decisionText }); setDecisionText(''); return 'Decision recorded.'; });
   const createPlan = () => act(async () => { const r = await api<any>(`/api/projects/${encodeURIComponent(selected!.id)}/plans`, { method: 'POST', body: JSON.stringify({ source: 'template', template: 'spec_arch_review_approval', goal: task || goal || selected!.name }) }); setTask(''); return `Plan ${r.plan.id} created; human approval is required before tasks can run.`; });
-  const decide = (approval: any, decision: 'APPROVED' | 'REJECTED') => act(async () => {
-    let budget_limits: any;
+  const decide = (approval: any, decision: 'APPROVED' | 'REJECTED') => {
     if (approval.kind === 'budget' && decision === 'APPROVED') {
       const violation = approval.details?.violations?.[0];
       const limitKey = violation?.limit || 'max_cost_units';
-      const raw = window.prompt(`Enter the new limit for ${limitKey} (current usage: ${violation?.used ?? 'unknown'}). This is a human budget decision.`);
-      if (raw === null) throw new Error('Budget approval cancelled.');
-      const amount = Number(raw);
-      if (!Number.isSafeInteger(amount) || amount < 0) throw new Error('Budget limit must be a non-negative integer.');
-      const scope = violation?.scope || 'task';
-      const scope_id = scope === 'project' ? selected!.id : scope === 'run' ? (approval.details?.runId || approval.subjectId) : approval.subjectId;
-      budget_limits = { scope, scope_id, limits: { [limitKey]: amount } };
+      setBudgetInput('');
+      setBudgetModal({ approval, limitKey, used: String(violation?.used ?? 'unknown') });
+      return;
     }
-    await api(`/api/projects/${encodeURIComponent(selected!.id)}/approvals/${encodeURIComponent(approval.id)}/decision`, { method: 'POST', body: JSON.stringify({ decision, reason: decision === 'REJECTED' ? 'Rejected by project owner' : undefined, ...(budget_limits ? { budget_limits } : {}) }) });
-    return `Approval ${decision.toLowerCase()}.`;
+    return act(async () => {
+      await api(`/api/projects/${encodeURIComponent(selected!.id)}/approvals/${encodeURIComponent(approval.id)}/decision`, { method: 'POST', body: JSON.stringify({ decision, reason: decision === 'REJECTED' ? 'Rejected by project owner' : undefined }) });
+      return `Approval ${decision.toLowerCase()}.`;
+    });
+  };
+  const submitBudgetApproval = () => act(async () => {
+    if (!budgetModal || !selected) return;
+    const amount = Number(budgetInput);
+    if (!Number.isSafeInteger(amount) || amount < 0) throw new Error('Budget limit must be a non-negative whole number.');
+    const approval = budgetModal.approval;
+    const violation = approval.details?.violations?.[0];
+    const limitKey = budgetModal.limitKey;
+    const scope = violation?.scope || 'task';
+    const scope_id = scope === 'project' ? selected.id : scope === 'run' ? (approval.details?.runId || approval.subjectId) : approval.subjectId;
+    const budget_limits = { scope, scope_id, limits: { [limitKey]: amount } };
+    await api(`/api/projects/${encodeURIComponent(selected.id)}/approvals/${encodeURIComponent(approval.id)}/decision`, { method: 'POST', body: JSON.stringify({ decision: 'APPROVED', budget_limits }) });
+    setBudgetModal(null);
+    setBudgetInput('');
+    return 'Budget approved with your new limit.';
   });
   const queueTask = (t: any) => act(async () => { await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/queue`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, idempotency_key: `ui-${t.id}-${t.version}` }) }); return `Task ${t.title} queued.`; });
   const validateTask = (t: any, passed: boolean) => act(async () => {
@@ -176,6 +196,17 @@ export default function ProjectMode() {
 
 
   useEffect(() => { setPassport((selected?.state?.passport as Passport | undefined) ?? null); }, [selected]);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
+  }, [moreOpen]);
+
 
   async function savePassport(confirm: boolean) {
     if (!selected || !passport) return; setBusy(true); setError(''); setNotice('');
@@ -252,9 +283,9 @@ export default function ProjectMode() {
     link: { color: '#78baff' },
   };
   const driveBar = !isDriveConfigured()
-    ? <p style={{ fontSize: 12, color: '#8fa6c2' }}>Google Drive is not set up on this server, so files stay on this device.</p>
+    ? <p style={{ fontSize: 12, color: '#8fa6c2' }}>Google Drive is not set up on this server, so files stay on this device. When Drive is available, mirroring works only while this tab is open.</p>
     : <div data-testid="project-drive" style={{ margin: '8px 0', padding: 8, border: '1px solid #25405e', borderRadius: 8 }}>
-        <strong style={{ fontSize: 13 }}>Google Drive</strong> <small style={{ color: '#8fa6c2' }}>{driveConnected ? 'connected · files go to BiForge / Project / ' + (selected?.name ?? '') : 'not connected'}</small>
+        <strong style={{ fontSize: 13 }}>Google Drive</strong> <small style={{ color: '#8fa6c2' }}>{driveConnected ? 'connected · this tab only · files go to BiForge / Project / ' + (selected?.name ?? '') : 'not connected'}</small>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
           {!driveConnected && <button type="button" style={styles.button} disabled={driveBusy} onClick={() => void connectDrive()}>Connect Google Drive</button>}
           <button type="button" style={styles.button} disabled={driveBusy || artifacts.length === 0} onClick={() => void saveAllToDrive()}>Save all files to Google Drive</button>
@@ -268,21 +299,52 @@ export default function ProjectMode() {
           projectEnabled={enabled !== false}
           onSelect={(mode) => {
             if (mode === 'Project') return;
+            const ok = window.confirm('Leave Project workspace and open ' + mode + ' mode?\n\nYour projects stay on the server. Simple/Expert dialogues are separate.');
+            if (!ok) return;
             try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
             window.location.href = '/';
           }}
           onOverview={() => {
+            const ok = window.confirm('Return to mode selection?\n\nYour projects stay on the server.');
+            if (!ok) return;
             try { sessionStorage.removeItem('biforge-start-mode'); } catch {}
             window.location.href = '/';
           }}
         />
       </div>
       <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div><h1 style={{ margin: '6px 0' }}>Project workspace</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p><p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}>{PROJECT_SCOPE_TEXT}</p><details data-testid="project-capabilities" style={{ marginTop: 6, fontSize: 13, color: '#8fa6c2' }}><summary style={{ cursor: 'pointer' }}>What is available here</summary><ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{describeCapabilities(capabilities).map(r => <li key={r.label}><strong>{r.label}: {r.on ? 'on' : 'off'}</strong> — {r.note}</li>)}</ul></details></div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-        
-        {authenticated && <button type="button" style={styles.button} disabled={busy} onClick={() => void logout()}>Sign out</button>}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        {isDriveConfigured() && (
+          <button type="button" style={{ ...styles.button, minHeight: 40, padding: '8px 12px' }} disabled={driveBusy} onClick={() => void connectDrive()} title={driveConnected ? 'Google Drive connected — mirroring only while this tab is open' : 'Connect Google Drive — mirroring only while this tab is open'}>
+            {driveConnected ? <CloudUpload size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> : <Cloud size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />}
+            {driveBusy ? 'Syncing…' : driveConnected ? 'Drive · this tab' : 'Drive'}
+          </button>
+        )}
+        <div ref={moreRef} style={{ position: 'relative' }}>
+          <button type="button" style={{ ...styles.button, minHeight: 40, padding: '8px 12px' }} aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)} title="Export tools, guide, and account">
+            <MoreHorizontal size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> More
+          </button>
+          {moreOpen && (
+            <div role="menu" style={{ position: 'absolute', right: 0, top: 44, zIndex: 20, minWidth: 220, background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 8, padding: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
+              <button type="button" role="menuitem" style={{ ...styles.button, width: '100%', textAlign: 'left', marginBottom: 4 }} onClick={() => { setMoreOpen(false); setShowUserGuide(true); }}>
+                <CircleHelp size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> User guide
+              </button>
+              {isDriveConfigured() && artifacts.length > 0 && (
+                <button type="button" role="menuitem" style={{ ...styles.button, width: '100%', textAlign: 'left', marginBottom: 4 }} disabled={driveBusy} onClick={() => { setMoreOpen(false); void saveAllToDrive(); }}>
+                  Save all files to Drive
+                </button>
+              )}
+              {authenticated && (
+                <button type="button" role="menuitem" style={{ ...styles.button, width: '100%', textAlign: 'left' }} disabled={busy} onClick={() => { setMoreOpen(false); void logout(); }}>
+                  Sign out
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
+    <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
     {authenticated && enabled && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
@@ -324,8 +386,33 @@ export default function ProjectMode() {
               {passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>}
               {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>Latest code task: {programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' ? 'SOURCE READY' : programResult.codeTask.status}</strong><br /><small>Task {programResult.taskId} · Code task {programResult.codeTask.id}</small>{programResult.codeTask.statusReason && <p style={{ fontSize: 13 }}>{programResult.codeTask.statusReason}</p>}{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open generated-code Pull Request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
             </section>
-            <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([['results', 'Results'], ['plan', 'Plan'], ['delivery', 'Delivery'], ['journal', 'Activity log'], ['data', 'Data · for developers']] as const).map(([key, label]) => <button key={key} type="button" aria-current={activeTab === key ? 'page' : undefined} onClick={() => setActiveTab(key)} style={{ ...styles.button, minHeight: 38, background: activeTab === key ? '#12345a' : 'transparent', color: activeTab === key ? '#e6edf7' : '#8fa6c2', borderColor: activeTab === key ? '#78baff' : '#25405e' }}>{label}</button>)}</nav>
-            {activeTab === 'results' && <><p style={{ fontSize: 13, color: '#8fa6c2' }}>Review the model’s suggestions. Confirm items you accept or reject items that are incorrect.</p>{(['facts', 'unknowns', 'hypotheses', 'risks', 'requirements', 'decisions'] as const).map(sec => { const list = ((selected.state.items as Record<string, any[]> | undefined)?.[sec] ?? []); return list.length ? <div key={sec}><h4 style={{ marginBottom: 4 }}>{sec}</h4><ul style={{ paddingLeft: 18, margin: 0 }}>{list.map(it => { const st = it.status === 'open' || it.status === 'resolved' || it.status === 'mitigated' ? it.review : it.status; return <li key={it.id} style={{ margin: '6px 0', fontSize: 13 }}><strong>{it.id}</strong> <em style={{ color: st === 'proposed' ? '#e6c07a' : st === 'rejected' ? '#ffb4b4' : '#7fe0a8' }}>{sec === 'decisions' ? 'human decision' : st}</em>{it.unverified ? ' (unverified)' : ''} {it.text}{st === 'proposed' && <span> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'confirm')}>Confirm</button> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'reject')}>Reject</button></span>}</li>; })}</ul></div> : null; })}
+            <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([
+              ['results', 'Results'],
+              ['plan', 'Plan'],
+              ['delivery', 'Delivery'],
+              ['journal', 'Files'],
+              ...(showDevData ? [['data', 'Data · developers'] as const] : []),
+            ] as const).map(([key, label]) => <button key={key} type="button" aria-current={activeTab === key ? 'page' : undefined} onClick={() => setActiveTab(key as typeof activeTab)} style={{ ...styles.button, minHeight: 38, background: activeTab === key ? '#12345a' : 'transparent', color: activeTab === key ? '#e6edf7' : '#8fa6c2', borderColor: activeTab === key ? '#78baff' : '#25405e' }}>{label}</button>)}
+            {!showDevData && (
+              <button type="button" onClick={() => setShowDevData(true)} style={{ ...styles.button, minHeight: 38, background: 'transparent', color: '#8fa6c2', borderColor: '#25405e', fontSize: 12 }} title="Show raw project JSON editor">Show developer data</button>
+            )}
+            </nav>
+            <div style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 12, padding: '8px 10px', border: '1px dashed #25405e', borderRadius: 8 }}>
+              <strong style={{ color: '#9fd8ff' }}>Suggested path:</strong>{' '}
+              <span style={{ color: passport?.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>1. Confirm description</span>
+              {' → '}
+              <span>2. Run analysis</span>
+              {' → '}
+              <span>3. Confirm or reject items</span>
+              {' → '}
+              <span>4. Plan &amp; tasks</span>
+              {' → '}
+              <span>5. Delivery (optional)</span>
+            </div>
+            {activeTab === 'results' && <><div role="status" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 12, padding: '10px 12px', border: '1px solid #3d7fc4', borderRadius: 8, background: '#0b2545', color: '#c5d4e8' }}>
+<strong>Nothing is accepted automatically.</strong> Proposed items stay proposed until you press <strong>Confirm</strong>. Use <strong>Reject</strong> when the suggestion is wrong. Add your own decisions below — only humans record final decisions.
+</div>
+<p style={{ fontSize: 13, color: '#8fa6c2' }}>Review the model’s suggestions section by section.</p>{(['facts', 'unknowns', 'hypotheses', 'risks', 'requirements', 'decisions'] as const).map(sec => { const list = ((selected.state.items as Record<string, any[]> | undefined)?.[sec] ?? []); return list.length ? <div key={sec}><h4 style={{ marginBottom: 4 }}>{sec}</h4><ul style={{ paddingLeft: 18, margin: 0 }}>{list.map(it => { const st = it.status === 'open' || it.status === 'resolved' || it.status === 'mitigated' ? it.review : it.status; return <li key={it.id} style={{ margin: '6px 0', fontSize: 13 }}><strong>{it.id}</strong> <em style={{ color: st === 'proposed' ? '#e6c07a' : st === 'rejected' ? '#ffb4b4' : '#7fe0a8' }}>{sec === 'decisions' ? 'human decision' : st}</em>{it.unverified ? ' (unverified)' : ''} {it.text}{st === 'proposed' && <span> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'confirm')}>Confirm</button> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 10px' }} disabled={busy} onClick={() => void review(sec, it.id, 'reject')}>Reject</button></span>}</li>; })}</ul></div> : null; })}
             <h4 style={{ marginBottom: 4 }}>Your decision</h4><p style={{ fontSize: 13, color: '#8fa6c2', marginTop: 0 }}>Write down a decision made by you or your team, including the reason if useful.</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><input aria-label="Decision" placeholder="e.g. We will use PostgreSQL because…" value={decisionText} onChange={e => setDecisionText(e.target.value)} maxLength={2000} style={{ ...styles.input, flex: '1 1 200px' }} /><button type="button" style={styles.button} disabled={busy || !decisionText.trim()} onClick={() => void addDecision()}>Add decision</button>{!decisionText.trim() && <small style={{ color: '#8fa6c2' }}>Enter a decision to enable this button.</small>}</div></>}
             {activeTab === 'plan' && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
@@ -338,14 +425,38 @@ export default function ProjectMode() {
             </section>}
             {activeTab === 'delivery' && <ProjectDelivery projectId={selected.id} capabilities={capabilities} passportConfirmed={passport?.status === 'confirmed'} executor={passport?.executor ?? 'manual'} focusTaskId={focusTaskId} onFocusHandled={() => setFocusTaskId(null)} />}
             {activeTab === 'journal' && <section><h3>Files</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Project files and saved versions.</p>
-            <h4 style={{ marginBottom: 4 }}>Files</h4>{artifacts.length === 0 ? <small>Nothing here yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button> <small>{a.hash.slice(0, 12)}</small>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
+            <h4 style={{ marginBottom: 4 }}>Files</h4>{artifacts.length === 0 ? <small>Nothing here yet — files appear after analysis, builds, or uploads.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button> <small>{a.hash.slice(0, 12)}</small>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 28, padding: '2px 8px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
             {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}
-            <h4 style={{ marginBottom: 4 }}>Model request history</h4>{ledger.length === 0 ? <small>Nothing here yet.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
+            <h4 style={{ marginBottom: 4 }}>Model request history</h4>{ledger.length === 0 ? <small>Nothing here yet — model requests will list here after analysis runs.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
           </section>}
             {activeTab === 'data' && <section><h3>Project data <small style={{ color: '#e6c07a', fontWeight: 400 }}>For developers</small></h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>This is raw JSON stored for this project. Manual edits may break project behavior. If the project was changed in another window, saving will be blocked to avoid overwriting newer data.</p><label htmlFor="project-state">Project JSON</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button type="button" style={styles.button} disabled={busy} onClick={() => void saveState()}>Save project data</button></section>}
           </section> : passport && <p style={{ fontSize: 13, color: '#8fa6c2' }}>Confirm the project description to enable analysis.</p>}
           </> : <p>Select a project to view or edit its project details.</p>}</section>
       </div>
     </>}
+
+    {budgetModal && (
+      <div role="dialog" aria-modal="true" aria-label="Budget approval" onClick={() => setBudgetModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div className="panel" onClick={e => e.stopPropagation()} style={{ maxWidth: 420, width: '100%', background: '#0d1b2a', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={{ margin: 0 }}>Approve budget limit</h3>
+            <button type="button" style={styles.button} onClick={() => setBudgetModal(null)} aria-label="Close"><X size={14} /></button>
+          </div>
+          <p style={{ fontSize: 14, color: '#c5d4e8', lineHeight: 1.5 }}>
+            This is a <strong>human budget decision</strong>. Set a new limit for <code>{budgetModal.limitKey}</code>.
+            Current usage: <strong>{budgetModal.used}</strong>.
+          </p>
+          <label style={{ display: 'grid', gap: 6, fontSize: 13, marginTop: 12 }}>
+            New limit (whole number, ≥ 0)
+            <input type="number" min={0} step={1} value={budgetInput} onChange={e => setBudgetInput(e.target.value)} style={styles.input} autoFocus />
+          </label>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+            <button type="button" style={styles.button} disabled={busy || budgetInput === ''} onClick={() => void submitBudgetApproval()}>Approve with this limit</button>
+            <button type="button" style={styles.button} disabled={busy} onClick={() => setBudgetModal(null)}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
+
   </section></main>;
 }

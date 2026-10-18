@@ -177,6 +177,16 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
   return <section aria-label="Delivery" style={{ margin: '16px 0' }}>
     <h3 style={{ marginBottom: 4 }}>Delivery</h3>
     <p style={S.muted}>Hand a coding task to any tool you like, then bring the result back here: BiForge reads the pull request and its checks, and you review and decide. BiForge never merges and never writes to GitHub.</p>
+    <div style={{ ...S.box, background: '#0b2545' }}>
+      <strong style={{ fontSize: 13 }}>How Delivery works (4 steps)</strong>
+      <ol style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 13, color: '#c5d4e8', lineHeight: 1.55 }}>
+        <li><strong>Create</strong> a hand-off task and download PACKAGE.md (the brief for your external tool).</li>
+        <li><strong>Work outside</strong> BiForge (your editor, agent, or CI). The server does not write your code for you here.</li>
+        <li><strong>Refresh from GitHub</strong> (read-only) so BiForge can see the pull request and checks.</li>
+        <li><strong>You decide</strong>: accept, request repair, or reject. Merge only in GitHub by you — never by BiForge.</li>
+      </ol>
+      <p style={{ ...S.muted, marginBottom: 0, marginTop: 8 }}>Gates, fingerprints, and waive live under <em>Advanced details</em> on a task.</p>
+    </div>
     <div role="status" aria-live="polite" style={{ minHeight: 20, fontSize: 13, color: '#9fd8ff' }}>{notice}</div>
     {error && <div role="alert" style={{ ...S.box, borderColor: '#a6584f', color: '#f1b3ac' }}>{error}</div>}
 
@@ -255,6 +265,9 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
           {gates?.commit && <span style={S.muted}>Commit <code>{shortSha(gates.commit)}</code> <button type="button" style={{ ...S.button, minHeight: 32, padding: '2px 10px' }} onClick={() => void copy(gates.commit!)}>Copy</button></span>}
           {action.canRefresh && <button type="button" style={S.button} disabled={busy} onClick={() => void refreshFromGithub(selected)}>Refresh from GitHub</button>}
         </div>
+        <details style={{ marginTop: 8 }}>
+          <summary style={{ cursor: 'pointer', fontSize: 13, color: '#9fd8ff', minHeight: 36 }}>Advanced details — gates, fingerprints, waive</summary>
+          <div style={{ marginTop: 8 }}>
         {gatesError && <p role="alert" style={{ color: '#f1b3ac', fontSize: 13 }}>{gatesError}</p>}
         {!gatesError && rows.length === 0 && <p style={S.muted}>{NO_COMMIT_NOTE(selected.expectedBranch)}</p>}
         {rows.length > 0 && <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0' }}>
@@ -271,6 +284,9 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
           </li>)}
         </ul>}
         {gates?.manifest && <p style={S.muted}>Release summary: {gates.manifest.complete ? 'all checks settled at this commit' : 'not complete yet'}{gates.manifest.tools?.length ? ` · tools: ${gates.manifest.tools.join(', ')}` : ''}</p>}
+
+          </div>
+        </details>
       </div>}
 
       {selected.status === 'DELIVERED' && <div style={S.box}>

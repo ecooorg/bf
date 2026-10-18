@@ -12,9 +12,9 @@ export type AppMode = 'Simple' | 'Expert' | 'Project';
 export const START_MODE_KEY = 'biforge-start-mode';
 
 const ITEMS: { mode: AppMode; label: string; hint: string }[] = [
-  { mode: 'Simple', label: 'Simple chat', hint: 'Information and consultations' },
-  { mode: 'Expert', label: 'Expert method', hint: 'In-depth, step-by-step analysis' },
-  { mode: 'Project', label: 'Project workspace', hint: 'Separate page for building projects' },
+  { mode: 'Simple', label: 'Simple chat', hint: 'Open conversation — no required steps' },
+  { mode: 'Expert', label: 'Expert method', hint: 'Step-by-step decision method with stages' },
+  { mode: 'Project', label: 'Project workspace', hint: 'Separate page: plans, tasks, confirmations' },
 ];
 
 export function ModeMenu(props: {

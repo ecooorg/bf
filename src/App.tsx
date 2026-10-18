@@ -44,6 +44,7 @@ import { isDriveConfigured } from './driveClient.ts';
 import { downloadDocument, uploadAttachment } from './attachments.ts';
 import { mirrorUserFile, setMirrorMode } from './driveMirror.ts';
 import { ModeMenu, START_MODE_KEY, type AppMode } from './ModeMenu.tsx';
+import { UserGuideModal } from './UserGuide.tsx';
 import { expertConversationFields } from './expertContext.ts';
 import { briefSections, BRIEF_EMPTY_TEXT } from './briefView.ts';
 
@@ -149,6 +150,10 @@ export default function App() {
     if (mode === 'Project' && !projectModeEnabled) return;
     if (mode === 'Project') {
       // Project is a separate workspace and is never emulated by the chat UI.
+      const ok = window.confirm(
+        'Open Project workspace?\n\nThis is a separate area from Simple/Expert chat. Your existing dialogues stay on this device; Project uses its own list of projects.\n\nContinue?',
+      );
+      if (!ok) return;
       try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
       window.location.href = '/project';
       return;
@@ -397,19 +402,30 @@ export default function App() {
       <div className="shell">
         <div className="empty" style={{ maxWidth: 1040, margin: '0 auto', padding: '48px 20px' }}>
           <h1>{en.app}</h1>
-          <p>Choose how you want to work. You can change modes explicitly later.</p>
+          <p>Choose how you want to work. You can change modes later with the <strong>Mode</strong> button.</p>
           <div className="mode-start-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 28, textAlign: 'left' }}>
             <button type="button" className="panel" data-testid="start-mode-simple" onClick={() => chooseStartMode('Simple')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
-              <h2>Simple</h2><p>Information and consultations</p><p>Get an explanation, practical advice, or a clear answer to a question.</p>
+              <h2>Simple</h2>
+              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Open conversation — no required steps</p>
+              <p>Get an explanation, practical advice, or a clear answer. Optional detail fields when you want them.</p>
+              <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> everyday questions and light structure.</p>
             </button>
             <button type="button" className="panel" data-testid="start-mode-expert" onClick={() => chooseStartMode('Expert')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
-              <h2>Expert</h2><p>In-depth analysis</p><p>Explore a difficult problem, test assumptions, and find less obvious solutions. Ask follow-up questions at any stage.</p>
+              <h2>Expert</h2>
+              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Step-by-step decision method</p>
+              <p>Understand → Explore → Challenge → Check → Learn. You confirm suggestions; open chat stays available for clarifications.</p>
+              <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> hard choices where a careful process helps.</p>
             </button>
             <button type="button" className="panel" data-testid="start-mode-project" onClick={() => chooseStartMode('Project')} disabled={!projectModeEnabled} aria-disabled={!projectModeEnabled} style={{ cursor: projectModeEnabled ? 'pointer' : 'not-allowed', color: 'inherit', textAlign: 'left', padding: 24, opacity: projectModeEnabled ? 1 : 0.65 }}>
-              <h2>Project</h2><p>Project creation</p><p>Design and build software, scientific, and engineering projects with requirements, architecture, tasks, and checks.</p>
-              {!projectModeEnabled && <p role="status"><strong>Currently unavailable</strong> — Project mode is disabled for this deployment.</p>}
+              <h2>Project</h2>
+              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Managed project workspace</p>
+              <p>Description, analysis, plans, tasks, files, and optional code hand-off. Separate from chat; durable project state.</p>
+              {!projectModeEnabled
+                ? <p role="status" style={{ marginBottom: 0 }}><strong>Unavailable on this server</strong> — an administrator has disabled Project mode (not an error in your browser).</p>
+                : <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> multi-step work with confirmations and deliverables.</p>}
             </button>
           </div>
+          <p style={{ marginTop: 20, fontSize: 13, color: '#8fa6c2' }}>Tip: open <strong>More → User guide</strong> anytime for the full manual.</p>
         </div>
       </div>
     );
@@ -425,8 +441,7 @@ export default function App() {
           <div className="panel" style={{ maxWidth: 620, textAlign: 'left' }}>
             <h2><KeyRound size={18} /> Google AI</h2>
             <p style={{ color: '#8ea2b8' }}>
-              Optional: use your own Google AI key. You can skip this — the app works with the server’s key when available.
-            </p>
+              Optional: use your own Gemini API key only if you want to use your own quota. You can skip this — the app works with the server key when configured.</p>
             <p style={{ color: '#8ea2b8', fontSize: 13 }}>
               Your key is stored only in this browser and is sent to this app's server with each request so it can call Google on your behalf. The server does not save it and does not write it to logs.
             </p>
@@ -468,48 +483,7 @@ export default function App() {
   if (!active) {
     return (
       <div className="shell">
-
-      {showUserGuide && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="User guide" onClick={() => setShowUserGuide(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div className="panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, maxHeight: '85vh', overflow: 'auto', width: '100%', background: 'var(--panel, #0d1b2a)', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <h2 style={{ margin: 0 }}><CircleHelp size={18} style={{ verticalAlign: 'middle', marginRight: 8 }} /> BiForge user guide</h2>
-              <button type="button" className="ghost" onClick={() => setShowUserGuide(false)} aria-label="Close">Close</button>
-            </div>
-            <div style={{ fontSize: 14, lineHeight: 1.6 }}>
-              <p><strong>BiForge</strong> helps you think through hard choices and run projects as managed state — not as a chat dump. The AI proposes; <strong>only you decide</strong>.</p>
-              <h3>Three modes</h3>
-              <ul>
-                <li><strong>Simple</strong> — open conversation. Describe the situation and explore options freely.</li>
-                <li><strong>Expert</strong> — guided method: Understand → Explore → Challenge → Check → Learn. Stages appear in the sidebar; confirm suggestions yourself.</li>
-                <li><strong>Project</strong> — separate workspace for multi-step work: passport, analysis (confirm/reject changes), plans, tasks, Delivery (hand-off code packages; GitHub is read-only), files, and developer JSON state.</li>
-              </ul>
-              <h3>Header controls</h3>
-              <ul>
-                <li><strong>Mode</strong> — switch Simple / Expert / Project or return to mode selection.</li>
-                <li><strong>New</strong> — start a new dialogue.</li>
-                <li><strong>Drive</strong> — connect Google Drive for mirroring while this tab is open.</li>
-                <li><strong>History</strong> — past dialogues on this device (when available).</li>
-                <li><strong>More</strong> — Export (JSON, MD, Word, PDF, Google Docs), Import (backup, folder, Drive, file-as-dialogue), saved texts, Gemini API key, Decision brief / Delete (Expert), and this guide.</li>
-              </ul>
-              <h3>Project mode essentials</h3>
-              <ol>
-                <li>Sign in if required; open <em>What is available here</em> for server capabilities.</li>
-                <li>Create a project (name + optional goal); confirm the <strong>passport</strong>.</li>
-                <li>Run <strong>analysis</strong>; on the Results tab, Confirm or Reject every proposed fact, unknown, hypothesis, risk, requirement, or decision.</li>
-                <li>Add human decisions in your own words.</li>
-                <li>Create a <strong>plan</strong>, approve budgets/gates, start tasks.</li>
-                <li>Use <strong>Delivery</strong> to hand off coding tasks externally, download PACKAGE.md, refresh GitHub checks (read-only), and accept or reject results. BiForge never merges.</li>
-                <li>Optional: Program as ZIP (source checked, not executed on the server); save artifacts to Drive.</li>
-              </ol>
-              <h3>Safety</h3>
-              <p>Do not enter passwords, card numbers, or ID documents. If you need urgent personal help, pause and contact a real person or help service. This tool is not professional advice and does not pick a winner for you.</p>
-              <p style={{ color: '#8fa6c2', fontSize: 13 }}>Full documentation lives in the repository as <code>docs/USER_GUIDE.md</code> (operators: see OWNER_OPS.md).</p>
-            </div>
-          </div>
-        </div>
-      )}
-
+      <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
         {historyPanel}
         <Header
           onNew={createNew}
@@ -572,48 +546,7 @@ export default function App() {
 
   return (
     <div className="shell">
-
-      {showUserGuide && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="User guide" onClick={() => setShowUserGuide(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div className="panel" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 720, maxHeight: '85vh', overflow: 'auto', width: '100%', background: 'var(--panel, #0d1b2a)', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <h2 style={{ margin: 0 }}><CircleHelp size={18} style={{ verticalAlign: 'middle', marginRight: 8 }} /> BiForge user guide</h2>
-              <button type="button" className="ghost" onClick={() => setShowUserGuide(false)} aria-label="Close">Close</button>
-            </div>
-            <div style={{ fontSize: 14, lineHeight: 1.6 }}>
-              <p><strong>BiForge</strong> helps you think through hard choices and run projects as managed state — not as a chat dump. The AI proposes; <strong>only you decide</strong>.</p>
-              <h3>Three modes</h3>
-              <ul>
-                <li><strong>Simple</strong> — open conversation. Describe the situation and explore options freely.</li>
-                <li><strong>Expert</strong> — guided method: Understand → Explore → Challenge → Check → Learn. Stages appear in the sidebar; confirm suggestions yourself.</li>
-                <li><strong>Project</strong> — separate workspace for multi-step work: passport, analysis (confirm/reject changes), plans, tasks, Delivery (hand-off code packages; GitHub is read-only), files, and developer JSON state.</li>
-              </ul>
-              <h3>Header controls</h3>
-              <ul>
-                <li><strong>Mode</strong> — switch Simple / Expert / Project or return to mode selection.</li>
-                <li><strong>New</strong> — start a new dialogue.</li>
-                <li><strong>Drive</strong> — connect Google Drive for mirroring while this tab is open.</li>
-                <li><strong>History</strong> — past dialogues on this device (when available).</li>
-                <li><strong>More</strong> — Export (JSON, MD, Word, PDF, Google Docs), Import (backup, folder, Drive, file-as-dialogue), saved texts, Gemini API key, Decision brief / Delete (Expert), and this guide.</li>
-              </ul>
-              <h3>Project mode essentials</h3>
-              <ol>
-                <li>Sign in if required; open <em>What is available here</em> for server capabilities.</li>
-                <li>Create a project (name + optional goal); confirm the <strong>passport</strong>.</li>
-                <li>Run <strong>analysis</strong>; on the Results tab, Confirm or Reject every proposed fact, unknown, hypothesis, risk, requirement, or decision.</li>
-                <li>Add human decisions in your own words.</li>
-                <li>Create a <strong>plan</strong>, approve budgets/gates, start tasks.</li>
-                <li>Use <strong>Delivery</strong> to hand off coding tasks externally, download PACKAGE.md, refresh GitHub checks (read-only), and accept or reject results. BiForge never merges.</li>
-                <li>Optional: Program as ZIP (source checked, not executed on the server); save artifacts to Drive.</li>
-              </ol>
-              <h3>Safety</h3>
-              <p>Do not enter passwords, card numbers, or ID documents. If you need urgent personal help, pause and contact a real person or help service. This tool is not professional advice and does not pick a winner for you.</p>
-              <p style={{ color: '#8fa6c2', fontSize: 13 }}>Full documentation lives in the repository as <code>docs/USER_GUIDE.md</code> (operators: see OWNER_OPS.md).</p>
-            </div>
-          </div>
-        </div>
-      )}
-
+      <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
       {historyPanel}
       <Header
         onNew={createNew}
@@ -829,6 +762,15 @@ function MethodGuide({ step, stageMeta, busy }: { step: Step; stageMeta: typeof 
         </div>
         <div className="method-current-count">{currentLoopIndex + 1} / {LOOPS.length}</div>
       </div>
+      <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.5, color: '#c5d4e8' }}>
+        <strong>What this step is for:</strong> {stageMeta.human}
+        {stageMeta.model && stageMeta.model !== 'Not used yet' ? (
+          <span> · <strong>Model helps with:</strong> {stageMeta.model}</span>
+        ) : null}
+      </div>
+      <p style={{ margin: '8px 0 0', fontSize: 12, color: '#8fa6c2' }}>
+        Progress when you are ready — nothing advances automatically. Open chat below is for clarifications only.
+      </p>
     </div>
   );
 }
@@ -862,7 +804,7 @@ function Header(props: {
   const [sub, setSub] = useState<'' | 'export' | 'import'>('');
   const moreRef = useRef<HTMLDivElement>(null);
   // Cloud is a sync status indicator only; actions live under More → Import / Export all.
-  const driveLabel = props.driveBusy ? 'Syncing…' : props.driveConnected ? 'Drive connected' : 'Drive';
+  const driveLabel = props.driveBusy ? 'Syncing…' : props.driveConnected ? 'Drive · this tab' : 'Drive';
   React.useEffect(() => {
     if (!moreOpen) return;
     const onDoc = (e: MouseEvent) => {
@@ -882,14 +824,19 @@ function Header(props: {
         )}
         <button className="ghost" onClick={props.onNew} title="Start a new dialogue"><Plus size={14} /> <span className="lbl">New</span></button>
         {props.onDrive && (
-          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={props.driveConnected ? "Google Drive connected: decisions + file mirror while this tab is open" : "Connect Google Drive to sync decisions and mirror important files"}>
+          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={props.driveConnected ? "Google Drive connected: files mirror only while this tab is open (not in the background)" : "Connect Google Drive — mirroring works only while this tab stays open"}>
             {props.driveConnected ? <CloudUpload size={14} /> : <Cloud size={14} />} <span className="lbl">{driveLabel}</span>
           </button>
         )}
         {props.onHistory && (
           props.historyAvailable === false
-            ? <button className="ghost" disabled title="This browser cannot save history (private mode?)"><HistoryIcon size={14} /> <span className="lbl">History unavailable</span></button>
+            ? <button className="ghost" disabled title="Private or restricted mode: this browser cannot save history on the device"><HistoryIcon size={14} /> <span className="lbl">History unavailable</span></button>
             : <button className="ghost" onClick={props.onHistory} title="Open past dialogues on this device"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
+        )}
+        {props.expertMode && props.onBrief && (
+          <button className="ghost" onClick={props.onBrief} title="Short overview of this decision">
+            <SlidersHorizontal size={14} /> <span className="lbl">Decision brief</span>
+          </button>
         )}
         <div className="hdr-more-wrap" ref={moreRef}>
           <button className="ghost hdr-more-btn" title="Export, import, Project workspace, API key, and other tools" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
