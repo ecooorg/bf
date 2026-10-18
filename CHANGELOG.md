@@ -1,3 +1,10 @@
+## P55 — First test round: Drive, Decision brief, More menu (2026-10-18)
+
+- Google Drive: files from every mode go to BiForge / Simple | Expert | Project; every save or refusal is shown; files attached before Connect are saved after it.
+- Project: Drive buttons (connect, save all, save file, save ZIP).
+- «Decision brief» is readable text in a proper dialog.
+- The More menu is closed by default at every width.
+
 ## P54 — Project Delivery tab: gates and manual Code Delivery (2026-10-17)
 
 - New tab **Delivery**: hand-off task, package, result, checks, review, decision, repair, close. GitHub stays read-only.

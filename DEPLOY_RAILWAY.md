@@ -94,7 +94,15 @@ Documents, replies and conversations can be saved to the person's Drive as a nat
 
 ## Google Drive
 
-The app requests only `https://www.googleapis.com/auth/drive.appdata` and stores one JSON library in the user's hidden application-data area. On connection the local and Drive libraries are merged by dialog id (the later `updatedAt` wins) and the result is written to both sides; a local backup is made first and an empty library never overwrites a non-empty one. Autosave runs after connecting (debounce 4 s, at least 30 s between writes); the `Save to Drive` button always writes at once. The Google token lives in `sessionStorage` and is requested again when it expires.
+The Drive button connects with two scopes: `https://www.googleapis.com/auth/drive.appdata` (one hidden JSON library of your dialogues) and `https://www.googleapis.com/auth/drive.file` (the files BiForge saves for you, visible in My Drive). On connection the local and Drive libraries are merged by dialog id (the later `updatedAt` wins) and the result is written to both sides; a local backup is made first and an empty library never overwrites a non-empty one. Autosave runs after connecting (debounce 4 s, at least 30 s between writes); the `Save to Drive` button always writes at once. The Google token lives in `sessionStorage` and is requested again when it expires.
+
+**Where files go (P55).** My Drive → **BiForge** → **Simple**, **Expert** or **Project** (→ the project name). Files you attach, documents the agent writes and the packages it produces are saved there; a file attached before Drive was connected waits in memory and is saved right after you connect. Project files are saved with the buttons on the Project page. The library itself is in the hidden app-data area and is **not** visible in My Drive. Every save, wait or refusal is shown as a message in the header (or on the Project page).
+
+**Google Cloud checklist (owner, once).**
+1. APIs & Services → Library → **Google Drive API** → Enable.
+2. OAuth consent screen → Data access → add **both** scopes: `.../auth/drive.appdata` and `.../auth/drive.file`. If the app is in *Testing*, add your Google account under Test users.
+3. Credentials → the OAuth Web client → Authorized JavaScript origins → the Railway URL of this app (exactly, with `https://`).
+4. When Google asks for permissions, **leave the file permission ticked** («See, edit, create and delete only the specific Google Drive files you use with this app»). If it is unticked the app says so and nothing is saved; press Drive again.
 
 ## Important constraint
 
