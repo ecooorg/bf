@@ -1,3 +1,7 @@
+## v55
+
+- Product version bump to **55** (UX friendliness: unified top menu, privacy sticky confirm, Decision brief gate, full-screen User guide, start-mode copy).
+
 ## v47
 
 
