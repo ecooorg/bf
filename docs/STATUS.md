@@ -1,12 +1,12 @@
 # BiForge — STATUS
 
-> The single authoritative progress file. Updated: 2026-10-16 · **v48 P48 epistemic**
+> The single authoritative progress file. Updated: 2026-10-16 · **v55**
 
 ## 1. Current status
 
 | Workstream | Status |
 | --- | --- |
-| **Version** | **48** |
+| **Version** | **55** |
 | **UI1** | Simple / Expert / Project cards; mode controls via **More** |
 | **QA1** | Offline suite; path to **MANUAL1** |
 | **Code Delivery** | **RM-C3** closed (**P43**); `model_patch`; runtime env-gated |
@@ -19,7 +19,7 @@
 | **P51** | One **Mode** button with a mode dropdown on Simple, Expert and Project; mode items removed from More (`docs/P51-SPEC.md`) |
 | **P50** | Optional web search for fresh facts (Gemini + Google Search); **off** unless `ENABLE_WEB_SEARCH=true` (`docs/P50-SPEC.md`) |
 | **P49** | Multi-provider cascade SPEC **deferred** (`docs/P49-SPEC.md`) — Gemini+Groq+CF primary intent; NIM+OpenRouter spare |
-| **CI / Deploy** | Owner: apply patch → CI → deploy v48 → short smoke → external testers |
+| **CI / Deploy** | Owner: apply patch → CI → deploy v55 → short smoke → external testers |
 
 ## 2. Next
 
@@ -28,7 +28,7 @@
 | 1 | **CI** | Confirm green on P52 | Owner (log) |
 | 2 | **P53** | Done: Project scope «analysis + ZIP»; owner checks the GitHub App has read-only rights before deploy (`docs/OWNER_OPS.md`) | Owner |
 | 3 | **P54** | Done: Project interface for gates and manual Code Delivery (read-only GitHub) | Owner |
-| 4 | **Deploy** | v48 production | Owner |
+| 4 | **Deploy** | v55 production | Owner |
 | 5 | **Smoke** | Simple plain / research+numbers / Expert; with and without Groq | Owner |
 | 6 | **MANUAL1** | Full acceptance (OWNER_OPS), incl. Project delivery scenario | Owner |
 | — | **P49** | Cascade expansion — only when Gemini+Groq insufficient | Deferred |

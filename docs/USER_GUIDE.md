@@ -1,6 +1,6 @@
 # BiForge User Guide
 
-**Product version:** 48  
+**Product version:** 55  
 **Audience:** people who use BiForge to think through decisions or run structured projects  
 **Language:** English  
 **Note:** Top menu is aligned across Simple, Expert, and Project (Mode, Drive, More → User guide). The in-app User guide scrolls fully.
