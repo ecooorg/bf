@@ -665,3 +665,9 @@ textarea.auto-input:disabled{opacity:.65}
 }
 .workspace-privacy-sticky-inner .primary{min-height:44px;white-space:nowrap}
 .workspace-privacy-sticky-inner .ghost{min-height:44px}
+
+.brief-panel-full{max-width:min(720px,100%);max-height:92vh;width:100%}
+@media (max-width:640px){
+  .brief-backdrop{align-items:stretch;padding:0}
+  .brief-panel-full{max-width:100%;max-height:100vh;height:100%;border-radius:0;border-left:none;border-right:none}
+}

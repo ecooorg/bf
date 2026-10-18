@@ -566,7 +566,15 @@ export default function App() {
         onImport={importBackup}
         onImportAsDialog={importAsDialog}
         onImportDrive={drive.onButton}
-        onBrief={() => setShowBrief(true)}
+        onBrief={() => {
+          if (isBriefWorthShowing(d)) {
+            setShowBrief(true);
+            return;
+          }
+          // Analysis is already in the chat — do not cover it with an empty frame.
+          setMessage('Decision brief fills in as you complete Expert steps (facts, options, your decision). The analysis is already in the conversation on this screen — no extra window needed.');
+          window.setTimeout(() => setMessage(''), 6000);
+        }}
         onDelete={() => removeDecision(d.id)}
         expertMode={expertMode}
         onSelectMode={chooseStartMode}
@@ -2990,6 +2998,22 @@ function LearnScreen({
 }
 
 // --- Brief side panel ---
+
+/** True when Decision brief has structured content beyond the first chat line. */
+function isBriefWorthShowing(d: Decision): boolean {
+  const b = d.brief;
+  if (!b) return false;
+  const sections = briefSections(b);
+  if (sections.length === 0) return false;
+  const onlyThin =
+    sections.length === 1 &&
+    sections[0].title === 'Decision' &&
+    sections[0].items.length === 1 &&
+    !(b.facts?.length || b.unknowns?.length || b.values?.length || b.myOptions?.length || b.assumptions?.length || b.constraints?.length || b.goal || b.deadline);
+  if (onlyThin && !d.decision?.whatIDecided) return false;
+  return true;
+}
+
 function BriefPanel({
   d,
   onClose,
@@ -2999,35 +3023,20 @@ function BriefPanel({
   update?: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
 }) {
   const sections = briefSections(d.brief);
-  // A single "Decision" line that is still the first chat message is not a useful brief yet.
-  const onlyThinDecision =
-    sections.length === 1 &&
-    sections[0].title === 'Decision' &&
-    sections[0].items.length === 1 &&
-    !(d.brief?.facts?.length || d.brief?.unknowns?.length || d.brief?.values?.length || d.brief?.myOptions?.length || d.decision?.whatIDecided);
+  const doc = decisionToDocument(d);
+  const extraBlocks = (doc.blocks || []).filter((bl: any) => {
+    if (bl.type === 'heading' && /^(Decision|Решение)$/i.test(String(bl.text || ''))) return false;
+    return true;
+  });
   return (
     <div className="brief-backdrop" onClick={onClose} role="presentation">
-      <div className="brief-panel" role="dialog" aria-modal="true" aria-label="Decision brief" onClick={(e) => e.stopPropagation()}>
+      <div className="brief-panel brief-panel-full" role="dialog" aria-modal="true" aria-label="Decision brief" onClick={(e) => e.stopPropagation()}>
         <div className="brief-head">
           <h2>Decision brief</h2>
           <button type="button" className="ghost" onClick={onClose} aria-label="Close the decision brief">Close</button>
         </div>
-        {sections.length === 0 || onlyThinDecision ? (
-          <div className="brief-empty">
-            <p style={{ marginTop: 0 }}>{BRIEF_EMPTY_TEXT}</p>
-            <p style={{ fontSize: 13, lineHeight: 1.5 }}>
-              This panel summarizes <strong>structured fields</strong> you fill in Expert steps (facts, options, your final decision), not the open chat transcript.
-            </p>
-            <ul style={{ fontSize: 13, lineHeight: 1.5, paddingLeft: 18, color: '#c5d4e8' }}>
-              <li>In <strong>Expert</strong>, complete Clarify → Options → Decide — the brief grows as you go.</li>
-              <li>In <strong>Simple</strong>, use optional detail fields or Export for a full copy of the dialogue.</li>
-            </ul>
-            {onlyThinDecision && (
-              <p style={{ fontSize: 13, color: '#8fa6c2' }}>
-                Starting note on file: <em>{sections[0].items[0].slice(0, 160)}{sections[0].items[0].length > 160 ? '…' : ''}</em>
-              </p>
-            )}
-          </div>
+        {sections.length === 0 ? (
+          <p className="brief-empty">{BRIEF_EMPTY_TEXT}</p>
         ) : (
           sections.map((s) => (
             <section key={s.title} className="brief-section">
@@ -3036,7 +3045,21 @@ function BriefPanel({
             </section>
           ))
         )}
+        {extraBlocks.length > 0 && (
+          <div className="brief-section" style={{ marginTop: 16 }}>
+            {extraBlocks.map((bl: any, i: number) =>
+              bl.type === 'heading' ? (
+                <h3 key={i}>{bl.text}</h3>
+              ) : bl.type === 'bullets' ? (
+                <ul key={i}>{((bl.items as string[]) || []).map((it, j) => <li key={j}>{it}</li>)}</ul>
+              ) : (
+                <p key={i}>{bl.text}</p>
+              ),
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
