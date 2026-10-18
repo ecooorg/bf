@@ -292,9 +292,10 @@ export default function ProjectMode() {
         </div>
       </div>;
 
-  return <main style={styles.page}><section style={styles.panel}>
-    <header style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-      <div className="project-topbar">
+  return <>
+    {/* Same sticky top bar pattern as Simple / Expert (App Header) */}
+    <header className="header project-app-header" style={{ justifyContent: 'flex-end' }}>
+      <div className="header-actions has-mode">
         <ModeMenu current="Project"
           projectEnabled={enabled !== false}
           onSelect={(mode) => {
@@ -311,31 +312,38 @@ export default function ProjectMode() {
             window.location.href = '/';
           }}
         />
-      </div>
-      <div><div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div><h1 style={{ margin: '6px 0' }}>Project workspace</h1><p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p><p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}>{PROJECT_SCOPE_TEXT}</p><details data-testid="project-capabilities" style={{ marginTop: 6, fontSize: 13, color: '#8fa6c2' }}><summary style={{ cursor: 'pointer' }}>What is available here</summary><ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{describeCapabilities(capabilities).map(r => <li key={r.label}><strong>{r.label}: {r.on ? 'on' : 'off'}</strong> — {r.note}</li>)}</ul></details></div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-        {isDriveConfigured() && (
-          <button type="button" style={{ ...styles.button, minHeight: 40, padding: '8px 12px' }} disabled={driveBusy} onClick={() => void connectDrive()} title={driveConnected ? 'Google Drive connected — mirroring only while this tab is open' : 'Connect Google Drive — mirroring only while this tab is open'}>
-            {driveConnected ? <CloudUpload size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> : <Cloud size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />}
-            {driveBusy ? 'Syncing…' : driveConnected ? 'Drive · this tab' : 'Drive'}
-          </button>
-        )}
-        <div ref={moreRef} style={{ position: 'relative' }}>
-          <button type="button" style={{ ...styles.button, minHeight: 40, padding: '8px 12px' }} aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)} title="Export tools, guide, and account">
-            <MoreHorizontal size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> More
+        <button
+          type="button"
+          className="ghost"
+          disabled={driveBusy || !isDriveConfigured()}
+          onClick={() => { if (isDriveConfigured()) void connectDrive(); }}
+          title={
+            !isDriveConfigured()
+              ? 'Google Drive is not set up on this server'
+              : driveConnected
+                ? 'Google Drive connected — mirroring only while this tab is open'
+                : 'Connect Google Drive — mirroring only while this tab is open'
+          }
+        >
+          {driveConnected ? <CloudUpload size={14} /> : <Cloud size={14} />}
+          <span className="lbl">{driveBusy ? 'Syncing…' : !isDriveConfigured() ? 'Drive off' : driveConnected ? 'Drive · this tab' : 'Drive'}</span>
+        </button>
+        <div className="hdr-more-wrap" ref={moreRef}>
+          <button type="button" className="ghost hdr-more-btn" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)} title="User guide, Drive actions, sign out">
+            <MoreHorizontal size={14} /> <span className="lbl">More</span>
           </button>
           {moreOpen && (
-            <div role="menu" style={{ position: 'absolute', right: 0, top: 44, zIndex: 20, minWidth: 220, background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 8, padding: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.35)' }}>
-              <button type="button" role="menuitem" style={{ ...styles.button, width: '100%', textAlign: 'left', marginBottom: 4 }} onClick={() => { setMoreOpen(false); setShowUserGuide(true); }}>
-                <CircleHelp size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} /> User guide
+            <div className={`hdr-secondary open`} role="menu">
+              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowUserGuide(true); }}>
+                <CircleHelp size={14} /> User guide
               </button>
-              {isDriveConfigured() && artifacts.length > 0 && (
-                <button type="button" role="menuitem" style={{ ...styles.button, width: '100%', textAlign: 'left', marginBottom: 4 }} disabled={driveBusy} onClick={() => { setMoreOpen(false); void saveAllToDrive(); }}>
+              {isDriveConfigured() && (
+                <button type="button" className="ghost" role="menuitem" disabled={driveBusy || artifacts.length === 0} onClick={() => { setMoreOpen(false); void saveAllToDrive(); }}>
                   Save all files to Drive
                 </button>
               )}
               {authenticated && (
-                <button type="button" role="menuitem" style={{ ...styles.button, width: '100%', textAlign: 'left' }} disabled={busy} onClick={() => { setMoreOpen(false); void logout(); }}>
+                <button type="button" className="ghost" role="menuitem" disabled={busy} onClick={() => { setMoreOpen(false); void logout(); }}>
                   Sign out
                 </button>
               )}
@@ -345,6 +353,17 @@ export default function ProjectMode() {
       </div>
     </header>
     <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
+    <main style={styles.page}><section style={styles.panel}>
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div>
+        <h1 style={{ margin: '6px 0' }}>Project workspace</h1>
+        <p style={{ marginTop: 0, color: '#8fa6c2' }}>Separate from Simple/Expert chat: create projects, run analysis, and review results here.</p>
+        <p style={{ marginTop: 8, fontSize: 13, color: '#9fd8ff' }}>{PROJECT_SCOPE_TEXT}</p>
+        <details data-testid="project-capabilities" style={{ marginTop: 6, fontSize: 13, color: '#8fa6c2' }}>
+          <summary style={{ cursor: 'pointer' }}>What is available here</summary>
+          <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{describeCapabilities(capabilities).map(r => <li key={r.label}><strong>{r.label}: {r.on ? 'on' : 'off'}</strong> — {r.note}</li>)}</ul>
+        </details>
+      </div>
     {authenticated && enabled && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
@@ -457,6 +476,7 @@ export default function ProjectMode() {
         </div>
       </div>
     )}
-
-  </section></main>;
+    </section></main>
+    </>;
 }
+
