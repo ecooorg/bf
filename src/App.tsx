@@ -2999,21 +2999,43 @@ function BriefPanel({
   update?: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
 }) {
   const sections = briefSections(d.brief);
+  // A single "Decision" line that is still the first chat message is not a useful brief yet.
+  const onlyThinDecision =
+    sections.length === 1 &&
+    sections[0].title === 'Decision' &&
+    sections[0].items.length === 1 &&
+    !(d.brief?.facts?.length || d.brief?.unknowns?.length || d.brief?.values?.length || d.brief?.myOptions?.length || d.decision?.whatIDecided);
   return (
-    <div className="brief-backdrop" onClick={onClose}>
+    <div className="brief-backdrop" onClick={onClose} role="presentation">
       <div className="brief-panel" role="dialog" aria-modal="true" aria-label="Decision brief" onClick={(e) => e.stopPropagation()}>
         <div className="brief-head">
           <h2>Decision brief</h2>
           <button type="button" className="ghost" onClick={onClose} aria-label="Close the decision brief">Close</button>
         </div>
-        {sections.length === 0
-          ? <p className="brief-empty">{BRIEF_EMPTY_TEXT}</p>
-          : sections.map((s) => (
+        {sections.length === 0 || onlyThinDecision ? (
+          <div className="brief-empty">
+            <p style={{ marginTop: 0 }}>{BRIEF_EMPTY_TEXT}</p>
+            <p style={{ fontSize: 13, lineHeight: 1.5 }}>
+              This panel summarizes <strong>structured fields</strong> you fill in Expert steps (facts, options, your final decision), not the open chat transcript.
+            </p>
+            <ul style={{ fontSize: 13, lineHeight: 1.5, paddingLeft: 18, color: '#c5d4e8' }}>
+              <li>In <strong>Expert</strong>, complete Clarify → Options → Decide — the brief grows as you go.</li>
+              <li>In <strong>Simple</strong>, use optional detail fields or Export for a full copy of the dialogue.</li>
+            </ul>
+            {onlyThinDecision && (
+              <p style={{ fontSize: 13, color: '#8fa6c2' }}>
+                Starting note on file: <em>{sections[0].items[0].slice(0, 160)}{sections[0].items[0].length > 160 ? '…' : ''}</em>
+              </p>
+            )}
+          </div>
+        ) : (
+          sections.map((s) => (
             <section key={s.title} className="brief-section">
               <h3>{s.title}</h3>
               {s.items.length === 1 ? <p>{s.items[0]}</p> : <ul>{s.items.map((it, i) => <li key={i}>{it}</li>)}</ul>}
             </section>
-          ))}
+          ))
+        )}
       </div>
     </div>
   );

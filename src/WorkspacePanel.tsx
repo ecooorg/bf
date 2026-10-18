@@ -62,6 +62,7 @@ export const PICK_FOLDER_EVENT = 'be:pick-folder';
 export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttachmentsChange, proposedChangeSet, onChangeSetSettled }: Props) {
   const filesRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
+  const privacyRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -185,6 +186,10 @@ SHA-256: ${entry.sha256}`;
       setStatus(
         `Ready: ${next.entries.length} file(s) in workspace. Confirm privacy so the agent can read them, then say what to do.`,
       );
+      // Bring the privacy control into view (user is often at the bottom composer after Attach).
+      requestAnimationFrame(() => {
+        privacyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
     } catch (e: any) {
       setError(e?.message || 'Ingest failed');
       publish(null);
@@ -447,7 +452,7 @@ SHA-256: ${entry.sha256}`;
           </div>
 
           {!state.privacyAck ? (
-            <div className="workspace-privacy" data-testid="workspace-privacy">
+            <div className="workspace-privacy" data-testid="workspace-privacy" ref={privacyRef}>
               <p>
                 Files stay on this device until you allow access. After you confirm, the assistant can read them with your messages (not only on this screen).
                 Do not add passwords, keys, or private data you are not willing to share with the model.
@@ -535,6 +540,21 @@ SHA-256: ${entry.sha256}`;
               {openText != null ? openText : openMeta}
             </pre>
           )}
+        </div>
+      )}
+      {state && !state.privacyAck && state.entries.length > 0 && (
+        <div className="workspace-privacy-sticky" data-testid="workspace-privacy-sticky" role="status">
+          <div className="workspace-privacy-sticky-inner">
+            <span>
+              <strong>{state.entries.length} file(s)</strong> waiting: allow the assistant to read them, or they stay on this device only.
+            </span>
+            <button type="button" className="primary" disabled={disabled} onClick={() => void ackPrivacy()}>
+              I understand — allow read
+            </button>
+            <button type="button" className="ghost" onClick={() => privacyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
+              Show details
+            </button>
+          </div>
         </div>
       )}
     </div>

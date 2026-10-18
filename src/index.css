@@ -645,3 +645,23 @@ textarea.auto-input:disabled{opacity:.65}
 .brief-section p{margin:0;line-height:1.5}
 .brief-section ul{margin:0;padding-left:18px;line-height:1.5}
 .brief-empty{color:#8fa6c2}
+
+
+/* Privacy confirm stays visible when the user is scrolled to the composer */
+.workspace-privacy-sticky{
+  position:fixed;left:0;right:0;bottom:0;z-index:55;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(180deg,transparent,rgba(3,10,18,.92) 28%);
+  pointer-events:none;
+}
+.workspace-privacy-sticky-inner{
+  pointer-events:auto;
+  max-width:720px;margin:0 auto;
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-radius:12px;
+  background:#0b2545;border:1px solid #3d7fc4;
+  box-shadow:0 -8px 28px rgba(0,0,0,.35);
+  font-size:13px;line-height:1.4;color:#c5d4e8;
+}
+.workspace-privacy-sticky-inner .primary{min-height:44px;white-space:nowrap}
+.workspace-privacy-sticky-inner .ghost{min-height:44px}
