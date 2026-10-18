@@ -13,6 +13,7 @@
 | **P48** | Uncertainty core + optional Groq verifier (variant A); never blocks primary reply |
 | **offrepo** | Group B path tests relaxed — ARCHIVE/CONCEPTS bulk may leave main after local zip |
 | **P53** | Closed: Project scope «analysis + ZIP»; `CODE_EXECUTOR=model_patch` no longer implies GitHub write; capabilities in `/api/session` and «What is available here» (ADR-06 Amendment 1, `docs/P53-SPEC.md`) |
+| **P55** | Closed: first owner test round — Google Drive saves files in every mode with visible results and Project buttons; readable Decision brief; More menu closed by default (`docs/PATCH_JOURNAL.md`) |
 | **P54** | Closed: Project «Delivery» tab for gates and manual Code Delivery, GitHub read-only (`docs/P54-SPEC.md`) |
 | **P52** | Expert open dialogue keeps the Expert contract: mode, stage and method state are sent to `/api/conversation` (`docs/PATCH_JOURNAL.md`) |
 | **P51** | One **Mode** button with a mode dropdown on Simple, Expert and Project; mode items removed from More (`docs/P51-SPEC.md`) |

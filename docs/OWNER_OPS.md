@@ -169,6 +169,18 @@ Needs: Project Mode on; a GitHub App with **read-only** rights installed on a te
 7. **Expected:** no «Diff» or «Commit package» control anywhere; nothing was written to GitHub.
 8. Record the result.
 
+### Scenario 7 — Google Drive files, all modes (P55)
+
+Needs: `VITE_GOOGLE_CLIENT_ID` set at build time and the Google Cloud checklist in `DEPLOY_RAILWAY.md` done.
+
+1. **Simple:** attach a small file (Attach files under the message box) **before** pressing Drive. **Expected:** the header says the file will be saved after you connect.
+2. Press **Drive**, accept the permissions. **Expected:** «Google Drive connected. Saved 1 waiting file.» In Google Drive (My Drive) a folder **BiForge → Simple** holds the file.
+3. Ask the agent for a short document. **Expected:** a message «Saved to Google Drive: BiForge/Simple/…»; the document is in the same folder.
+4. **Expert:** repeat steps 1 and 3. **Expected:** the files are in **BiForge → Expert**.
+5. **Project:** press **Connect Google Drive** (if needed), then **Save all files to Google Drive**, **Save to Google Drive** on one file and, after «Create program», **Save ZIP to Google Drive**. **Expected:** **BiForge → Project → <project name>** holds them.
+6. Untick the file permission when Google asks (on a spare attempt). **Expected:** the app says file access was not granted; nothing is saved silently.
+7. Record the result. If any step shows an error message, copy it into the record: it names the cause.
+
 ### Result record template (send to owner in chat / add to PATCH_JOURNAL after closure)
 
 ```
@@ -180,6 +192,7 @@ S3b Expert mid-method: …
 S4 Project: …
 S5 Mode switch: …
 S6 Project delivery (read-only GitHub): …
+S7 Google Drive files (all modes): …
 Limitations (if any): …
 ```
 
