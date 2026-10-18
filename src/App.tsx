@@ -421,7 +421,7 @@ export default function App() {
               <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Managed project workspace</p>
               <p>Description, analysis, plans, tasks, files, and optional code hand-off. Separate from chat; durable project state.</p>
               {!projectModeEnabled
-                ? <p role="status" style={{ marginBottom: 0 }}><strong>Unavailable on this server</strong> — an administrator has disabled Project mode (not an error in your browser).</p>
+                ? <p role="status" style={{ marginBottom: 0 }}><strong>Currently unavailable</strong> — Project mode is disabled for this deployment by an administrator (not an error in your browser).</p>
                 : <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> multi-step work with confirmations and deliverables.</p>}
             </button>
           </div>
