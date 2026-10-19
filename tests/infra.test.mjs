@@ -27,7 +27,7 @@ const GOOD = JSON.stringify({ items: [], thirdPersonText: 'A person is choosing.
 
 async function startServer(env = {}) {
   const port = await freePort();
-  const child = spawn('tsx', ['server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production', PORT: String(port),
+  const child = spawn('tsx', ['server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, DATABASE_URL: '', NODE_ENV: 'production', PORT: String(port),   // hermetic: this test is about a server without a database
     APP_PASSWORD: PASS, SESSION_SECRET: SECRET, GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: FAKE, TRUST_PROXY_HOPS: '1',
     MODEL_CASCADE_LIGHT: 'm-a,m-b,m-c', LLM_ROUND_PAUSE_MS: '10', ...env } });
   let log = ''; child.stdout.on('data', (d) => (log += d)); child.stderr.on('data', (d) => (log += d));
