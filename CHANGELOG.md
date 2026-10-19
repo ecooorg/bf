@@ -1,3 +1,8 @@
+## P56 — Regression guard and test hygiene (2026-10-18)
+
+- No product change. All test files now run in CI; a guard test fails when a route, module, control or check disappears.
+- Documents synchronised; spec coverage audit added.
+
 ## P55 — First test round: Drive, Decision brief, More menu (2026-10-18)
 
 - Google Drive: files from every mode go to BiForge / Simple | Expert | Project; every save or refusal is shown; files attached before Connect are saved after it.
