@@ -1,6 +1,6 @@
 # BiForge — Unified Implementation Plan for Simple / Expert / Project Modes
 
-> **Status:** approved roadmap; implementation has not yet started under this plan.  
+> **Status:** approved roadmap. MP2, MP3, UI1 and QA1 are delivered (see `docs/STATUS.md`); MANUAL1 is the open step. The baseline lines below are historical.  
 > **Date:** 14 October 2026.  
 > **Current baseline archive:** `bf-v27-p1.zip` (uploaded by the owner on 14 October 2026).  
 > **Current package:** documentation only. Coding may begin only after an explicit owner command.  

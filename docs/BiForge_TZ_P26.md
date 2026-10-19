@@ -296,9 +296,9 @@ Owner Railway clicks; real provider cost; subjective UI clarity; live multimodal
 | **P34** | Universal Workspace MVP UI + bounded context after privacy ack | `test:p34`, typecheck, build | Done (CI pending in report) |
 | **P35** | Universal File Analysis — FileContentExtractor (PDF, DOCX, XLSX/CSV, structured, code); context wiring; honest UI; `test:p35` | Extract fixtures; no false “decoded” claims; injection corpus green | Done (CI green) |
 | **P37** | Unified attach: one button; all files → Workspace agent can read | Manual zip unpack + multi-file | Done |
-| **P36** | Agent file mutations: ChangeSet apply, diff card, confirm, rollback | Deterministic apply; no version without Apply | **Next** |
-| **P38** | Export project / changed-only / diff; original integrity | Byte-identical unchanged files | After P36 |
-| **P39** | Cross-mode e2e, security hardening, stabilisation of all three modes | Full check suite; manual mode matrix | After P37 |
+| **P36** | Agent file mutations: ChangeSet apply, diff card, confirm, rollback | Deterministic apply; no version without Apply | Done (`src/workspace/changeset.ts`, `changeSetParse.ts`, `diff.ts`) |
+| **P38** | Export project / changed-only / diff; original integrity | Byte-identical unchanged files | Done (`src/workspace/exportZip.ts`) |
+| **P39** | Cross-mode e2e, security hardening, stabilisation of all three modes | Full check suite; manual mode matrix | Partly: TAR hardening done; static QA1 and the P56 regression guard are in `check`; the manual mode matrix is MANUAL1 |
 
 **Recommendation:** after green CI for P34, implement **P35** immediately. It yields the highest user-visible value: real questions about document, table and source content instead of file names only.
 

@@ -1,6 +1,6 @@
 # BiForge — STATUS
 
-> The single authoritative progress file. Updated: 2026-10-16 · **v55**
+> The single authoritative progress file. Updated: 2026-10-18 · **v55**
 
 ## 1. Current status
 
@@ -12,9 +12,10 @@
 | **Code Delivery** | **RM-C3** closed (**P43**); `model_patch`; runtime env-gated |
 | **P48** | Uncertainty core + optional Groq verifier (variant A); never blocks primary reply |
 | **offrepo** | Group B path tests relaxed — ARCHIVE/CONCEPTS bulk may leave main after local zip |
-| **P53** | Closed: Project scope «analysis + ZIP»; `CODE_EXECUTOR=model_patch` no longer implies GitHub write; capabilities in `/api/session` and «What is available here» (ADR-06 Amendment 1, `docs/P53-SPEC.md`) |
+| **P56** | Closed: regression guard (`tests/feature-manifest.json` + `tests/p56-feature-guard.test.mjs`), 13 previously unrun tests wired into `check`, stale documents synchronised, spec-coverage audit (`docs/SPEC_COVERAGE_AUDIT.md`) |
 | **P55** | Closed: first owner test round — Google Drive saves files in every mode with visible results and Project buttons; readable Decision brief; More menu closed by default (`docs/PATCH_JOURNAL.md`) |
 | **P54** | Closed: Project «Delivery» tab for gates and manual Code Delivery, GitHub read-only (`docs/P54-SPEC.md`) |
+| **P53** | Closed: Project scope «analysis + ZIP»; `CODE_EXECUTOR=model_patch` no longer implies GitHub write; capabilities in `/api/session` and «What is available here» (ADR-06 Amendment 1, `docs/P53-SPEC.md`) |
 | **P52** | Expert open dialogue keeps the Expert contract: mode, stage and method state are sent to `/api/conversation` (`docs/PATCH_JOURNAL.md`) |
 | **P51** | One **Mode** button with a mode dropdown on Simple, Expert and Project; mode items removed from More (`docs/P51-SPEC.md`) |
 | **P50** | Optional web search for fresh facts (Gemini + Google Search); **off** unless `ENABLE_WEB_SEARCH=true` (`docs/P50-SPEC.md`) |
@@ -25,9 +26,9 @@
 
 | # | ID | Item | Owner |
 | --- | --- | --- | --- |
-| 1 | **CI** | Confirm green on P52 | Owner (log) |
-| 2 | **P53** | Done: Project scope «analysis + ZIP»; owner checks the GitHub App has read-only rights before deploy (`docs/OWNER_OPS.md`) | Owner |
-| 3 | **P54** | Done: Project interface for gates and manual Code Delivery (read-only GitHub) | Owner |
+| 1 | **CI** | Confirm green on P56 | Owner (log) |
+| 2 | **P53 / P54 / P55 / P56** | Done. Before deploy the owner checks the GitHub App has read-only rights (`docs/OWNER_OPS.md`) | Owner |
+| 3 | **P57** | Candidate: `/ops` metrics from the usage ledger (calls, tokens, latency, fallback share, executor runs, integrity errors, State conflicts, retries) — `docs/SPEC_COVERAGE_AUDIT.md` | Patch |
 | 4 | **Deploy** | v55 production | Owner |
 | 5 | **Smoke** | Simple plain / research+numbers / Expert; with and without Groq | Owner |
 | 6 | **MANUAL1** | Full acceptance (OWNER_OPS), incl. Project delivery scenario | Owner |
@@ -42,5 +43,7 @@ Server execution; silent GitHub main; GitHub App write.
 
 1. UX1 has been approved.
 2. Export UX: **closed** — EN until separate patch.
+3. **ADR-12** (server-side unpacking in Project Mode) is accepted but not implemented: Project Mode uses the browser Workspace and passes a bounded excerpt to analysis. Owner decides: implement (then artifact upload/download and a larger analysis limit) or amend the ADR — `docs/SPEC_COVERAGE_AUDIT.md`.
+4. **ADR-03** (provider choice) has no file; the number is skipped.
 
 *STATUS*

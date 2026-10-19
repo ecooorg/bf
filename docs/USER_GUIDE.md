@@ -247,7 +247,11 @@ Use **Sign out** when finished on a shared machine.
 
 - Connect via the **Drive** control (Simple/Expert) or within Project when offered.
 - While the tab is open and connected, decisions and selected files can be mirrored.
-- Mode affects the Drive folder layout (Simple vs Expert vs Project subfolders).
+- Files go to **My Drive → BiForge → Simple / Expert / Project** (Project files into a folder with the project name). The folder follows the mode you are in.
+- Files you attach, documents the assistant writes and exported packages are saved there. A file attached **before** you connect Drive waits and is saved right after you connect.
+- Every save, wait or refusal is shown as a message in the top bar (or on the Project page). If Google did not grant file access, the message says so; press **Drive** again and keep the file permission ticked.
+- In **Project**, use **Connect Google Drive**, **Save all files to Google Drive**, **Save to Google Drive** on a file and **Save ZIP to Google Drive** after creating a program.
+- Your dialogue library is kept in a hidden app-data area and is not visible in My Drive; only the BiForge folders are.
 - Disconnect or close the tab stops live mirroring for that session.
 
 ---

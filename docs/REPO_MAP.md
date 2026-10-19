@@ -171,6 +171,10 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `npm run test:version` | Test that the version check catches stale labels |
 | `npm run test:p41` | UI1 start screen cards, Project unavailable state, explicit mode selection, and STATUS/journal records |
 | `npm run test:p48` | P48 epistemic: uncertainty core + verifier pure contracts |
+| `npm run test:p56` | P56 regression guard: every test file is run, every test script is in `check`, the feature manifest is intact |
+| `npm run test:legacy` | Older real-server and contract tests (bx06 contract/runtime, driveMirror, evidence-markdown, expert-files, infra, perf, regression, server, v17, virtual-files) run in one group |
+| `npm run test:pa03` | PA-03 acceptance |
+| `npm run test:stage2` | Stage 2: the real server against a scripted fake Gemini (204 checks, about two minutes) |
 | `npm run test:p55` | P55 first test round: Drive folders/queue/real error reasons, Project Drive buttons, readable Decision brief, closed More menu |
 | `npm run test:p54` | P54 Delivery tab: labels cover every gate/status/error code, next-action rules, no write control without the capability, wiring, render smoke |
 | `npm run test:p53` | P53 Project scope «analysis + ZIP»: capability matrix, one GitHub write switch, session wiring, ADR-06 Amendment 1 |
@@ -228,6 +232,8 @@ Binding behaviour of Simple Mode remains: runtime prompts in `server.ts` / `serv
 | `tests/version-check.test.mjs` | Version check catches stale labels | no |
 | `tests/p41-ui1.test.mjs` | UI1 mode cards and explicit/disabled mode-selection behavior; STATUS and journal regression checks | no |
 | `tests/qa1.test.mjs` | QA1 offline cross-mode suite (classification, soft-fail, mode isolation, UI/STATUS contracts) | no |
+| `tests/p56-feature-guard.test.mjs` | P56 guard against orphan tests and silently removed routes, modules, controls or checks | no |
+| `tests/feature-manifest.json` | Manifest of the public surface read by the P56 guard | no |
 | `tests/p55-test-round1.test.mjs` | P55 fake Google Drive (folders per mode, waiting list, failure reasons), brief view, header CSS, wiring of every upload path | no |
 | `tests/p54-project-delivery.test.mjs` | P54 Delivery model, server routes and interface wiring, write controls hidden, render smoke | no |
 | `tests/p54-manual-delivery-live.test.mjs` | The real server: `code/manual`, project code list, `expectedBranch`, refusals, no write paths (P54) | PostgreSQL |

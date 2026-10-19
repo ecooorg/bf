@@ -1,6 +1,6 @@
 # Plan note — Expert open dialogue (part of UI1)
 
-**Status:** planned, not implemented.  
+**Status:** implemented (UI1 b). Since P52 the open dialogue also sends the mode, the stage and the method state to `/api/conversation`.  
 **Norm:** `docs/SPEC_PRODUCT.md` §1.2.  
 **Queue:** `docs/STATUS.md` §2 (after P38/P39 unless owner prioritizes).  
 **Delivery stage:** UI1 (b) in `docs/MASTER_IMPLEMENTATION_PLAN.md`.

@@ -26,6 +26,10 @@ What remains forbidden: executing extracted files, forwarding secrets to executo
 - Simple/Expert Mode never unpack on the server; they use the browser Worker only.
 - Acceptance: AC-01, AC-02, AC-12 (P26).
 
+## Implementation status (P56 audit, 2026-10-18)
+
+The decision above is **not implemented yet**: `server/workspace/ingestWorker.ts` does not exist. Project Mode currently uses the browser Workspace (`src/workspace/ingest.ts`) and passes a bounded excerpt of the attached files to analysis. Uploading and downloading Project artifacts is likewise not available. The owner decides whether to implement this ADR or amend it; see `docs/STATUS.md` §4 and `docs/SPEC_COVERAGE_AUDIT.md`. The decision text is unchanged.
+
 ## Related
 
 - P26 TZ (updated), FW-04 … FW-11, NF-01
