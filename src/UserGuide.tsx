@@ -350,6 +350,11 @@ function GuideBody() {
         Connect via <strong>Drive</strong> in the top bar. While the tab is open and connected, decisions and selected files can be
         mirrored. Closing the tab stops live mirroring for that session.
       </p>
+      <p>
+        Files go to <strong>My Drive → BiForge → Simple / Expert / Project</strong>. A file attached before you connect Drive is saved right
+        after you connect, and every save or refusal is shown as a message. In Project use <strong>Connect Google Drive</strong> and the
+        <strong>Save to Google Drive</strong> buttons.
+      </p>
 
       <h2 style={h2}>7. Export and backup</h2>
       <ul>
