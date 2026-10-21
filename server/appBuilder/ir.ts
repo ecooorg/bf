@@ -55,16 +55,16 @@ export function irFromPlainAnswers(input: {
   stack?: string;
   features?: string[];
 }): AppIr {
-  let slug = (input.name || input.idea || 'app')
+  const baseName = input.name || input.idea || '';
+  
+  let slug = baseName
     .toLowerCase()
     .replace(/[^a-z0-9а-яё]+/gi, '-')
     .replace(/^-|-$/g, '');
 
-  if (!slug) {
-    slug = 'app';
+  if (slug) {
+    slug = slug.slice(0, 40);
   }
-
-  slug = slug.slice(0, 40);
 
   const allowedLanguages = ['en', 'ru', 'other'];
   const lang = input.language && allowedLanguages.includes(input.language)
@@ -74,7 +74,7 @@ export function irFromPlainAnswers(input: {
   return parseAppIr({
     version: 1,
     name: slug,
-    goal: (input.idea || '').trim() || 'no goal provided',
+    goal: (input.idea || '').trim(),
     kind: input.kind || 'website',
     stack: input.stack || 'auto',
     needsAuth: input.needsAuth || 'unsure',
@@ -83,4 +83,4 @@ export function irFromPlainAnswers(input: {
     constraints: input.constraints || '',
     features: input.features || [],
   });
-    }
+}
