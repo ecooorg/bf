@@ -35,7 +35,7 @@ export function resolveStack(ir: AppIr): ResolvedStack {
   if (ir.kind === 'utility' && ir.needsDb === 'no' && ir.needsAuth === 'no') return 'static_site';
   if (ir.kind === 'bot' || (ir.kind === 'utility' && ir.needsDb !== 'no')) return 'node_api';
   if (ir.needsAuth === 'yes' || ir.needsDb === 'yes' || ir.kind === 'app') return 'node_express_static';
-  if (ir.kind === 'website') return ir.needsDb === 'yes' ? 'node_express_static' : 'static_site';
+  if (ir.kind === 'website') return ir.needsDb === 'no' ? 'static_site' : 'node_express_static';
   return 'node_express_static';
 }
 
