@@ -9,7 +9,7 @@
 | --- | --- |
 | **Version** | `57` — single source: `src/config.ts` + `package.json` |
 | **Simple / Expert** | Unchanged conversation modes |
-| **Project generation** | Default `POST /code/build` uses **pipeline** (`server/appBuilder`) |
+| **Project generation** | Default `POST /code/build` uses **pipeline** (`server/appBuilderPipeline.ts`) |
 | **Code delivery** | Scaffold ZIP without requiring the model; optional slice if `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`; legacy `engine: "model_patch"` still available |
 | **GitHub write** | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` opt-in only |
 | **Deploy BiForge itself** | `docs/DEPLOY.md` (any host) |
@@ -33,4 +33,4 @@ GitHub App write; executing generated code on the BiForge host.
 
 ## Docs
 
-- Changelog: only `CHANGELOG.md`. The old `CHANGELOG_AGENT_BEHAVIOR.md` name is retired and must not be recreated.
+- Changelog: only `CHANGELOG.md`. The old `CHANGELOG_AGENT_BEHAVIOR.md` name is retired from the repository and must not be recreated.
