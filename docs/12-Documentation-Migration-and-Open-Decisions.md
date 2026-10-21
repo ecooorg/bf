@@ -19,11 +19,11 @@ This set establishes one English-language entry point and separates current cont
 | Deployment/ops | 08 | `docs/OWNER_OPS.md`, `docs/OPS_ROLLBACK.md`, ADR-09 operational targets |
 | Tests and release acceptance | 09 and 10 | `docs/TESTING_POLICY.md`, `docs/SPEC_COVERAGE_AUDIT.md`, patch acceptance reports |
 | Historical decisions | 12, plus preserved ADR register | all ADRs and patch reports; retain as decision history until explicit disposition |
-| Roadmap | 13 | `docs/MASTER_IMPLEMENTATION_PLAN.md`, `docs/NEXT.md`, `docs/STATUS.md` after owner approval |
+| Roadmap | 13 | `docs/MASTER_IMPLEMENTATION_PLAN.md`, `docs/NEXT.md`, `AGENTS.md` after owner approval |
 
 ## 12.3 Do not delete on the basis of this generated package alone
 
-The repository policy says closed history and `ARCHIVE/CONCEPTS` bulk live off-repository, and only `STATUS.md` is the living queue pointer. The owner also requires explicit authorization before implementation or scope changes. Accordingly, this package is a proposed replacement documentation set; the existing repository has **not** been modified. Before deleting/replacing files, first merge the set in a documentation-only patch, validate all links and paths, preserve an immutable archive, and update the project instructions to point to this set. Keep ADR decision records unless a deliberate decision-register format replaces them.
+The repository policy says closed history and `ARCHIVE/CONCEPTS` bulk live off-repository, and only the STATE zone of `AGENTS.md` is the living queue pointer. The owner also requires explicit authorization before implementation or scope changes. Accordingly, this package is a proposed replacement documentation set; the existing repository has **not** been modified. Before deleting/replacing files, first merge the set in a documentation-only patch, validate all links and paths, preserve an immutable archive, and update the project instructions to point to this set. Keep ADR decision records unless a deliberate decision-register format replaces them.
 
 ## 12.4 Open implementation gaps confirmed by current coverage audit
 
@@ -38,7 +38,7 @@ The repository policy says closed history and `ARCHIVE/CONCEPTS` bulk live off-r
 - **T-06:** iOS/Safari Workspace acceptance NOT_RUN.
 - **Release:** the source snapshot still lists CI confirmation, v55 deploy, smoke and MANUAL1 as owner next steps.
 
-Source: `docs/SPEC_COVERAGE_AUDIT.md`, `docs/STATUS.md`, ADR-06/09/12.
+Source: `docs/SPEC_COVERAGE_AUDIT.md`, `AGENTS.md`, ADR-06/09/12.
 
 ## 12.5 Known documentation inconsistencies / provenance risks
 
@@ -49,7 +49,7 @@ Source: `docs/SPEC_COVERAGE_AUDIT.md`, `docs/STATUS.md`, ADR-06/09/12.
 5. `SPEC_COVERAGE_AUDIT.md` asserts three modes work at the level of code/automatic tests, but manual acceptance is still open and this audit could not run the complete suite. The correct release claim is static implementation present, selected checks passed, full suite and MANUAL1 not verified here.
 6. Some historical links point to reports not present in the archive; retain them as history rather than treating missing historical artifacts as current requirements.
 7. ADR-03 is referenced as skipped/missing; do not fabricate an ADR-03 decision.
-8. Version terminology is inconsistent: `package.json` reports version 55 and `docs/STATUS.md` treats v55 as the current baseline, while `AGENTS.md` still calls Simple Mode product version 24. Do not interpret these as the same version scheme without an owner-approved versioning rule.
+8. Version terminology is inconsistent: `package.json` reports version 55 and `AGENTS.md` treats v55 as the current baseline, while `AGENTS.md` still calls Simple Mode product version 24. Do not interpret these as the same version scheme without an owner-approved versioning rule.
 
 ## 12.6 Owner decisions required before final normative adoption
 
@@ -67,7 +67,7 @@ Source: `docs/SPEC_COVERAGE_AUDIT.md`, `docs/STATUS.md`, ADR-06/09/12.
 
 1. Owner approves the new English document set and resolves language authority.
 2. Copy the set into the repository (suggested `docs/canonical/` or replace `docs/` only after path review).
-3. Update `README.md`, `AGENTS.md`, `docs/START_HERE.md` and the doc checker to point to the new index.
+3. Update `AGENTS.md` and the doc checker to point to the new index.
 4. Update links in deployment, CI, patch process and owner operations instructions.
 5. Keep a concise ADR register and append-only decision history.
 6. Move superseded patch specs/reports to an immutable off-repository archive; do not delete without confirming historical references are preserved.

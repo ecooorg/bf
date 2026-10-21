@@ -8,7 +8,7 @@ BiForge is a web application for conversational assistance and managed project w
 
 The application is a TypeScript/React frontend and Node.js/Express backend. PostgreSQL is used for Project Mode persistence when `DATABASE_URL` is configured. Google Gemini is the primary model integration; a Groq-compatible verifier/provider path is optional. The browser has Workspace and Google Drive-related functionality.
 
-**Source evidence:** `package.json`, `src/App.tsx`, `src/ProjectMode.tsx`, `server.ts`, `server/contracts.ts`, `migrations/001_project_state.sql`, `docs/STATUS.md`.
+**Source evidence:** `package.json`, `src/App.tsx`, `src/ProjectMode.tsx`, `server.ts`, `server/contracts.ts`, `migrations/001_project_state.sql`, `AGENTS.md`.
 
 ## 1.2 Operating modes
 
@@ -22,7 +22,7 @@ Purpose: general information, explanations, practical advice, research-like requ
 - An information soft-fail can request a bounded rewrite if the draft is mostly limitations, opens with a methodology preamble, or invents a need for exact/live data that the user did not request.
 - Optional web search is disabled unless `ENABLE_WEB_SEARCH=true`; do not claim a web search occurred when it did not.
 
-**Source evidence:** `server/conversationMode.ts`, `server/promptPacks.ts`, `server/intentFlags.ts`, `server.ts` `/api/conversation`, `docs/MASTER_IMPLEMENTATION_PLAN.md`, `docs/STATUS.md`.
+**Source evidence:** `server/conversationMode.ts`, `server/promptPacks.ts`, `server/intentFlags.ts`, `server.ts` `/api/conversation`, `docs/MASTER_IMPLEMENTATION_PLAN.md`, `AGENTS.md`.
 
 ### Expert
 
@@ -49,7 +49,7 @@ Current shipped scope is **analysis + plans/tasks + human approvals + generated 
 7. **No server-side arbitrary execution:** generated code is delivered as a ZIP; the product must not execute untrusted code on the production server or merge/deploy on behalf of the user (`docs/SECURITY_POLICY.md`, `docs/ADR-06-github-repositories.md`).
 8. **Untrusted content remains data:** files, web pages, PR text and CI logs must not override system/policy instructions (`server/untrustedData.ts`, `docs/THREAT_MODEL.md`).
 9. **Secret minimisation:** credentials stay in environment/secret stores and must not be exposed in client bundles, logs, State, artifacts or model-facing code execution packages (`docs/SECURITY_POLICY.md`, `server/redact.ts`).
-10. **No implicit provider cascade claim:** a broader multi-provider cascade is deferred; current router code exists but is explicitly not wired to Simple Mode (`server/router.ts`, `docs/STATUS.md`, `docs/P49-SPEC.md`).
+10. **No implicit provider cascade claim:** a broader multi-provider cascade is deferred; current router code exists but is explicitly not wired to Simple Mode (`server/router.ts`, `AGENTS.md`, `docs/P49-SPEC.md`).
 
 ## 1.4 Capability inventory
 
@@ -71,7 +71,7 @@ Current shipped scope is **analysis + plans/tasks + human approvals + generated 
 | Project artifact upload/download | **Not implemented as full workflow** | Coverage audit reports artifacts are list/read only. |
 | `/ops` full ledger-derived telemetry | Partial | Coverage audit says calls/tokens/latency/fallback/executor/integrity/state-conflict/retry metrics are missing. |
 | Simple-to-Project import | Not implemented | Schema supports `simple_import` origin, route/button absent per coverage audit. |
-| Production deployment and MANUAL1 acceptance | Not evidenced by this archive | `docs/STATUS.md` records owner-side CI/deploy/smoke/MANUAL1 as next steps. |
+| Production deployment and MANUAL1 acceptance | Not evidenced by this archive | `AGENTS.md` records owner-side CI/deploy/smoke/MANUAL1 as next steps. |
 
 ## 1.5 User-visible project model
 

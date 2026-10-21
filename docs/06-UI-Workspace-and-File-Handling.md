@@ -37,4 +37,4 @@ A rebuild must distinguish local pending/mirrored state from confirmed remote su
 
 ## 6.7 Accessibility, browser and manual acceptance
 
-Preserve accessible labels and stable test IDs. Automated UI checks exist (`npm run test:ui`, `.github/workflows/ui-check.yml`) but Playwright/browser installation and actual iOS/Safari acceptance were not verified here. MANUAL1 is still listed as owner-side work in `docs/STATUS.md`; a successful static test must not be reported as full UX acceptance.
+Preserve accessible labels and stable test IDs. Automated UI checks exist (`npm run test:ui`, `.github/workflows/ui-check.yml`) but Playwright/browser installation and actual iOS/Safari acceptance were not verified here. MANUAL1 is still listed as owner-side work in `AGENTS.md`; a successful static test must not be reported as full UX acceptance.

@@ -77,7 +77,7 @@ Minimum invariant suite:
 
 ## 9.6 Manual acceptance (MANUAL1)
 
-MANUAL1 remains an explicit release gate in the snapshot's `docs/STATUS.md`. Minimum evidence should include: (a) Simple plain factual answer; (b) Simple current research/numbers with search on and off, without false claims of searching; (c) Expert structured analysis and open dialogue preserving mode; (d) Project create/State proposal/human review/version conflict; (e) plan/approval/task/gate path; (f) generated ZIP and manual delivery/reviewer/human decision; (g) Drive save in each mode with visible result; (h) Groq verifier enabled and absent/failing; (i) sign-in/readiness and rollback/backup evidence. Record provider/model and relevant configuration by names only, never secret values.
+MANUAL1 remains an explicit release gate in the snapshot's `AGENTS.md`. Minimum evidence should include: (a) Simple plain factual answer; (b) Simple current research/numbers with search on and off, without false claims of searching; (c) Expert structured analysis and open dialogue preserving mode; (d) Project create/State proposal/human review/version conflict; (e) plan/approval/task/gate path; (f) generated ZIP and manual delivery/reviewer/human decision; (g) Drive save in each mode with visible result; (h) Groq verifier enabled and absent/failing; (i) sign-in/readiness and rollback/backup evidence. Record provider/model and relevant configuration by names only, never secret values.
 
 ## 9.7 Release evidence record template
 
