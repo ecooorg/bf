@@ -31,11 +31,13 @@ export function resolveStack(ir: AppIr): ResolvedStack {
   if (ir.stack === 'static_site') return 'static_site';
   if (ir.stack === 'node_api') return 'node_api';
   if (ir.stack === 'node_express_static') return 'node_express_static';
+  
   // auto
+  if (ir.needsAuth === 'yes' || ir.needsDb === 'yes' || ir.kind === 'app') return 'node_express_static';
   if (ir.kind === 'utility' && ir.needsDb === 'no' && ir.needsAuth === 'no') return 'static_site';
   if (ir.kind === 'bot' || (ir.kind === 'utility' && ir.needsDb !== 'no')) return 'node_api';
-  if (ir.needsAuth === 'yes' || ir.needsDb === 'yes' || ir.kind === 'app') return 'node_express_static';
-  if (ir.kind === 'website') return ir.needsDb === 'yes' ? 'node_express_static' : 'static_site';
+  if (ir.kind === 'website') return ir.needsDb === 'no' ? 'static_site' : 'node_express_static';
+  
   return 'node_express_static';
 }
 
@@ -60,6 +62,7 @@ export function irFromPlainAnswers(input: {
     .replace(/[^a-z0-9а-яё]+/gi, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 40) || 'app';
+    
   return parseAppIr({
     version: 1,
     name: slug,
