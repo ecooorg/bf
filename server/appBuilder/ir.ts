@@ -35,7 +35,7 @@ export function resolveStack(ir: AppIr): ResolvedStack {
   if (ir.kind === 'utility' && ir.needsDb === 'no' && ir.needsAuth === 'no') return 'static_site';
   if (ir.kind === 'bot' || (ir.kind === 'utility' && ir.needsDb !== 'no')) return 'node_api';
   if (ir.needsAuth === 'yes' || ir.needsDb === 'yes' || ir.kind === 'app') return 'node_express_static';
-  if (ir.kind === 'website') return ir.needsDb === 'no' ? 'static_site' : 'node_express_static';
+  if (ir.kind === 'website') return ir.needsDb === 'yes' ? 'node_express_static' : 'static_site';
   return 'node_express_static';
 }
 
@@ -55,31 +55,20 @@ export function irFromPlainAnswers(input: {
   stack?: string;
   features?: string[];
 }): AppIr {
-  const baseName = input.name || input.idea || '';
-  
-  let slug = baseName
+  const slug = (input.name || input.idea || 'app')
     .toLowerCase()
     .replace(/[^a-z0-9а-яё]+/gi, '-')
-    .replace(/^-|-$/g, '');
-
-  if (slug) {
-    slug = slug.slice(0, 40);
-  }
-
-  const allowedLanguages = ['en', 'ru', 'other'];
-  const lang = input.language && allowedLanguages.includes(input.language)
-    ? input.language
-    : 'en';
-
+    .replace(/^-|-$/g, '')
+    .slice(0, 40) || 'app';
   return parseAppIr({
     version: 1,
     name: slug,
-    goal: (input.idea || '').trim(),
+    goal: input.idea.trim(),
     kind: input.kind || 'website',
     stack: input.stack || 'auto',
     needsAuth: input.needsAuth || 'unsure',
     needsDb: input.needsDb || 'unsure',
-    language: lang,
+    language: input.language || 'en',
     constraints: input.constraints || '',
     features: input.features || [],
   });
