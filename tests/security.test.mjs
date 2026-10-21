@@ -198,8 +198,8 @@ const { dirname, join } = await import("node:path");
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
 
-test('P43 STATUS records the model_patch executor', () => {
-  const status = read('docs/STATUS.md');
+test('P43 AGENTS.md state records the model_patch executor', () => {
+  const status = read('AGENTS.md');
   assert.match(status, /model_patch/);
 });
 
@@ -210,7 +210,7 @@ test('P43 runtime gate unchanged: CODE_EXECUTOR must equal model_patch', () => {
 });
 
 test('P43 does not enable GitHub App write by default', () => {
-  const status = read('docs/STATUS.md');
+  const status = read('AGENTS.md');
   assert.match(status, /GitHub write/i);
   assert.match(status, /Отложено|deferred|ADR-06/i);
   const env = read('.env.example');
