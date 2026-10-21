@@ -3,6 +3,14 @@
 - Retired duplicate `CHANGELOG_AGENT_BEHAVIOR.md`. Agent and product history: **only** this file (`CHANGELOG.md`).
 - Operator deploy: `docs/DEPLOY.md` only (no root `DEPLOY_RAILWAY.md`).
 
+## P58 — Start-file consolidation, no product change (2026-10-21)
+
+- `AGENTS.md` is now the only start file: a STATE zone rewritten by every patch, the map, run commands and the frozen RULES.
+- Merged into it and removed: `docs/START_HERE.md`, `docs/STATUS.md`, `docs/DEPLOY.md` (moved to `docs/08` §8.10), `docs/README.md`, root `README.md`.
+- Removed unreferenced files: `APPLY.sh`, `docs/AUDIT_EVIDENCE.json`, `docs/ROUTE-CATALOG.csv` (71 of 74 line numbers were already wrong; routes are guarded by `tests/feature-manifest.json`).
+- `scripts/check-docs.mjs` checks paths in `AGENTS.md` only; `tests/security.test.mjs` reads `AGENTS.md` instead of the removed status file.
+- Product version unchanged.
+
 ## P57 — Conversation latency, no product version change (2026-10-20)
 
 - `conversation_timing` log line per turn: time spent before the model, in the main call, in the quality retry and in the verifier.

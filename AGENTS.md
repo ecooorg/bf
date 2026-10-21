@@ -1,96 +1,145 @@
-# AGENTS — BiForge agent instructions
+# AGENTS — BiForge start file
 
-> **Progress / next / open questions:** always `docs/STATUS.md` first (human + agent).  
-> This file = process rules and prohibitions, not a second task queue.  
-> If any plan disagrees with STATUS on “what is next”, **STATUS wins**.
+> **The only start file.** Read this first. It holds the rules, the current state and the map.
+> Zone **STATE** is rewritten by every patch. Zone **RULES** changes only with owner review.
+> Product version: single source `APP_VERSION` in `src/config.ts` (equal to `package.json` `"version"`, enforced by `scripts/check-version.mjs`). Never write the version number in Markdown.
 
-> **Start with `docs/START_HERE.md`.** · **Document:** AGENTS.md · **Canonical product documentation:** English set under `docs/` (from this patch) · **Status:** policy document
+---
 
-## 1. Purpose and authority
+# STATE (rewrite in every patch)
 
-This repository contains **BiForge**, a multi-model project agent that ships Simple, Expert, and Project modes (product version **55**).
+| Item | Value |
+| --- | --- |
+| Last patch | P58 — start-file consolidation, no product change |
+| Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
+| Modes | Simple, Expert (conversation, unchanged); Project (`POST /code/build` uses `server/appBuilderPipeline.ts`) |
+| Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
+| GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
+| Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
+| Next | Owner decides; open items live in `docs/12-Documentation-Migration-and-Open-Decisions.md` |
+| Last full `npm run check` | Record here: command, date, result, or "not run" with the reason |
 
-**Canonical product documentation is English only**, located under `docs/`:
+Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.
+
+Strings such as DEPLOY-MANUAL.md inside generated ZIPs are archive contents, not paths in this repository.
+
+---
+
+# MAP
+
+Flat structure. Nested folders that exist today: `.github/workflows/` and `src/workspace/`. Do not add others.
+
+| Path | Purpose |
+| --- | --- |
+| `server.ts` | Express entry point and route registration |
+| `server/` | Server modules (file names state the responsibility) |
+| `src/` | React UI and client logic; `src/config.ts` holds `APP_VERSION` |
+| `tests/` | Grouped test suites; `tests/feature-manifest.json` is the regression guard |
+| `scripts/` | Checks, patch packing, evidence, migrations, ops tools |
+| `migrations/` | Ordered SQL migrations |
+| `docs/` | Canonical documentation (table below) |
+| `.github/workflows/` | CI |
+| Root configs | `package.json`, `vite.config.ts`, `tsconfig.json`, `tsconfig.server.json`, `railway.toml`, `nixpacks.toml`, `.env.example`, `.nvmrc`, `connectors.yaml`, `index.html` |
+
+To find a module, search by name or by `grep`; do not rely on a hand-written file list.
 
 | Document | Role |
 | --- | --- |
-| `docs/README.md` | Index of the canonical set |
 | `docs/01-Product-and-System-Specification.md` | Product scope, modes, boundaries |
-| `docs/02-Architecture-and-Components.md` | Runtime architecture |
-| `docs/03-API-and-Integration-Contracts.md` | HTTP and provider contracts |
+| `docs/02-Architecture-and-Components.md` | Runtime architecture, module responsibilities |
+| `docs/03-API-and-Integration-Contracts.md` | HTTP, provider contracts, environment configuration |
 | `docs/04-Database-and-State-Machines.md` | Schema and state machines |
 | `docs/05-Agent-Runtime-and-Prompt-Contracts.md` | Agent runtime and prompts |
-| `docs/06-UI-Workspace-and-File-Handling.md` | UI and Workspace |
+| `docs/06-UI-Workspace-and-File-Handling.md` | UI, Workspace, files |
 | `docs/07-Security-Privacy-and-Operations.md` | Security and ops controls |
-| `docs/08-Deployment-and-Runbook.md` | Install, deploy, run |
+| `docs/08-Deployment-and-Runbook.md` | Install, run, deploy, rollback, operator quickstart |
 | `docs/09-Testing-and-Equivalence.md` | Tests and acceptance |
 | `docs/10-Requirements-Traceability.csv` | Requirements matrix |
-| `docs/11-Repository-and-Route-Inventory.md` | Routes and inventory |
+| `docs/11-Repository-and-Route-Inventory.md` | Route and environment inventory (snapshot) |
 | `docs/12-Documentation-Migration-and-Open-Decisions.md` | Open decisions and gaps |
 | `docs/13-Implementation-Roadmap.md` | Roadmap |
-| `docs/STATUS.md` | Living progress pointer |
-| `docs/START_HERE.md` | 30-second onboarding |
+| `docs/14-SQL-Migration-Reference.md` | SQL reference |
+| `docs/15-Prompt-Source-Snapshot.md` | Prompt snapshot (large; read only when working on prompts) |
+| `docs/16-Project-Mode-App-Builder.md` | Project Mode app builder |
+| `docs/17-App-Builder-IR-Pipeline.md` | IR pipeline |
+| `CHANGELOG.md` | History. Newest entry on top. Read only the top entry |
 
-All previous specifications, patch SPECs/REPORTs, and historical plans are **retired from the repository**. They may exist only in the owner’s local archives. Do not treat retired material as current requirements.
+Do not read everything. Read this file, the files the task names, and the files you will change.
 
-These instructions define the default working rules for coding agents. If an instruction appears to conflict with an approved owner decision or the canonical documentation, stop and report the conflict instead of silently choosing one.
+Evidence labels used in the docs: **IMPLEMENTED (static)**, **TESTED (executed)**, **DOCUMENTED ONLY**, **GAP / NOT IMPLEMENTED**, **NOT RUN / BLOCKED**, **OWNER DECISION REQUIRED**. Static inventory is not proof of runtime acceptance.
 
-**Terms.** *Navigator* is the human co-developer (the owner). *AI Assistant* is the AI co-developer (the agent these instructions are written for).
+---
 
-**Language policy**
+# RUN AND DEPLOY
 
-- All code, comments, and repository documentation: **English only**.
-- UI strings: English in source; browser translation may be used by the end user.
-- Agent dialogue with the user: language of the user’s first message in the conversation.
+```bash
+npm ci && npm run build && npm start      # health: GET /health
+npm run check                             # full gate
+```
+
+Environment names, the operator quickstart and rollback: `docs/08-Deployment-and-Runbook.md`. Start from `.env.example`. Never commit secrets.
+
+---
+
+# RULES (frozen; change only with owner review)
+
+## 1. Authority and language
+
+- *Navigator* is the human co-developer (the owner). *AI Assistant* is the AI co-developer (the agent these rules are written for).
+- Canonical product documentation is English only, under `docs/`. Code, comments and repository documentation: English. UI strings: English in source. Agent dialogue with the user: language of the user's first message.
+- Specifications, patch reports and historical plans are retired from the repository and exist only in the owner's local archives. Do not treat them as requirements. Do not recreate the retired start files (START_HERE, STATUS, DEPLOY, README, APPLY, AUDIT_EVIDENCE, ROUTE-CATALOG): everything they held is in this file or in `docs/08-Deployment-and-Runbook.md`.
+- If an instruction conflicts with an approved owner decision or the canonical docs, stop and report the conflict.
 
 ## 2. Scope
 
-- Work only on the explicitly authorised scope. The owner must command each implementation stage.
-- Do not invent new product requirements. If something is missing from the canonical docs, treat it as an open decision (`docs/12-…` and `docs/STATUS.md`) and ask the Navigator.
-- Identifiers of completed historical patches are frozen; do not reuse old SPEC numbers as living requirements.
+- Work only on the explicitly authorised scope. The owner commands each implementation stage.
+- Do not invent product requirements. A gap in the docs is an open decision: record it in `docs/12-Documentation-Migration-and-Open-Decisions.md` and ask the Navigator.
+- Identifiers of completed historical patches are frozen.
 
 ## 3. Sources of truth (priority)
 
-1. `docs/STATUS.md` — what is current and what is next  
-2. This file (`AGENTS.md`) — process rules  
-3. Canonical set under `docs/01`–`docs/13` — product contract  
-4. Code, migrations, tests — implementation evidence  
-5. Owner command in the current session — overrides plans, never overrides safety
+1. STATE zone of this file: what is current and what is next. If any plan disagrees with it, this file wins.
+2. RULES zone of this file: process rules.
+3. Canonical set `docs/01`–`docs/17`: product contract.
+4. Code, migrations, tests: implementation evidence. For what exists, code wins; log any conflict with the docs instead of silently choosing.
+5. Owner command in the current session: overrides plans, never overrides safety.
 
 ## 4. Hard prohibitions
 
-- Do not commit secrets, API keys, or real credentials.
+- Do not commit secrets, API keys or real credentials.
 - Do not enable GitHub write, silent merge to main, or production deploy without explicit owner authorisation.
 - Do not change application behaviour in a documentation-only patch.
-- Do not reintroduce retired or historical P*-SPEC files into the repository.
+- Do not reintroduce retired specification files.
 - Do not claim a test passed if it did not run, or a dependency is present if install failed.
 - Do not expand scope beyond the authorised patch.
 
 ## 5. Delivery of work
 
-- The model may have no GitHub access. The owner uploads archives and applies patches by hand when required.
-- **Required deliverable for every patch:** a downloadable archive containing only the **changed and new files** (not a full tree dump). A `.patch`/`.diff` alone does not replace the archive.
-- After code changes: run the narrowest relevant tests, then `npm run check` when the environment allows.
-- Update `docs/STATUS.md` and `CHANGELOG.md` when the product version or behaviour changes. Do **not** create or revive `CHANGELOG.md` (retired; history lives only in `CHANGELOG.md`).
-- **Product version.** Single source of truth: `APP_VERSION` in `src/config.ts`, kept equal to `package.json` `"version"`. Enforced by `scripts/check-version.mjs`. Do not require version stamps in README or deploy markdown. Operator deploy: `docs/DEPLOY.md`.
+- The model may have no GitHub access. The owner uploads archives and applies patches by hand.
+- **Required deliverable for every patch:** a downloadable archive with only the **changed and new files** (not a full tree). A `.patch` or `.diff` alone does not replace the archive.
+- An archive cannot carry deletions. List every file to delete, by path, in the hand-over message.
+- Every patch: rewrite the STATE zone above and add one entry on top of `CHANGELOG.md`. Do not write the product version number in Markdown.
+- Removing a public feature on purpose: edit `tests/feature-manifest.json` in the same patch and explain it in `CHANGELOG.md`.
+- After code changes: run the narrowest relevant test, then `npm run check` once when the environment allows.
+- When a file is renamed, moved or deleted: search the whole tree for its old path (code, tests, scripts, docs, this file) in the same patch.
 
 ## 6. Safety and honesty
 
 - Prefer failing a check over claiming success without evidence.
 - Record environment limits (missing packages, no DB, no network) explicitly.
-- Security, auth, and permission changes require owner review.
+- Security, auth and permission changes require owner review.
 
-## 7. Token economy of the development agent
+## 7. Token economy
 
-Goal: fewest tokens, time, and tool calls that still give a correct, tested, safe result. Economy never replaces a required test or a correct answer.
+Goal: fewest tokens, time and tool calls that still give a correct, tested, safe result. Economy never replaces a required test or a correct answer.
 
-- **Read narrowly.** Read first only what the task names plus the files you will change.
-- **Ask once.** Ask only questions that block the start, in one message.
+- **Read narrowly.** Only what the task names plus the files you will change.
+- **Ask once.** Only questions that block the start, in one message.
 - **Act, do not narrate.** No plans or recaps unless the owner asks.
-- **Test in order.** Narrowest test first, then full `npm run check` once when possible.
+- **Test in order.** Narrowest test first, then full `npm run check` once.
 - **Do not repeat output.** Name files and results in one or two lines.
 - **Stay in scope.** Change only authorised files.
-- **Deliver small.** Archive holds only changed and new files.
+- **Deliver small.** The archive holds only changed and new files.
 - **Honest limits.** If a command could not run, say so in one line.
 
 ## 8. Delegation of decisions
@@ -104,4 +153,4 @@ Silence is never consent in Tiers 2 and 3.
 
 ## 9. Changing this file
 
-A change to `AGENTS.md` is a policy change and requires owner review in the same patch that edits it.
+Edit only the STATE zone in a normal patch. A change to RULES is a policy change and requires owner review in the same patch.
