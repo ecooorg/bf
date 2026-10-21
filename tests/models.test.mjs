@@ -1030,6 +1030,8 @@ test('preflight rejects a manifest, nested folders, a wrapper or new top-level f
   for (const bad of ['manifest.json', 'MANIFEST.txt', 'file-list.txt', 'changed_files.md', 'MANIFEST']) assert.match(pf({ [bad]: 'x' })[0], /manifest or file-list/, bad);
   assert.match(pf({ 'docs/archive/old.md': 'x' })[0], /nested folder/);
   assert.match(pf({ 'src/a/b.ts': 'x' })[0], /nested folder/);
+  assert.deepEqual(pf({ 'server/appBuilder/index.ts': 'x', 'server/appBuilder/ir.ts': 'x' }), []);
+  assert.match(pf({ 'server/other/nested.ts': 'x' })[0], /nested folder/);
   assert.match(pf({ '.github/other/x.yml': 'x' })[0], /nested folder/);
   assert.match(pf({ 'bf-main/server/a.ts': 'x' })[0], /nested folder|top-level folder/);
   assert.match(pf({ 'tools/a.ts': 'x' })[0], /top-level folder "tools"/);
