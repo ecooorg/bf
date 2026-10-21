@@ -33,7 +33,7 @@ import { createPlan, decideApproval, getBudget, getProjectSettings, listApproval
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './server/taskService.ts';
 import { createWorker } from './server/worker.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './server/artifactRepository.ts';
-import { runAppBuilderPipeline, irFromPlainAnswers } from './server/appBuilder/index.ts';
+import { runAppBuilderPipeline, irFromPlainAnswers } from './server/appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
 import { verifyGitHubWebhookSignature, githubConfigFromEnv } from './server/githubIntegration.ts';
 import { projectCapabilities } from './server/projectCapabilities.ts';
