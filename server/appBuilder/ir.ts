@@ -55,21 +55,32 @@ export function irFromPlainAnswers(input: {
   stack?: string;
   features?: string[];
 }): AppIr {
-  const slug = (input.name || input.idea || 'app')
+  let slug = (input.name || input.idea || 'app')
     .toLowerCase()
     .replace(/[^a-z0-9а-яё]+/gi, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 40) || 'app';
+    .replace(/^-|-$/g, '');
+
+  if (!slug) {
+    slug = 'app';
+  }
+
+  slug = slug.slice(0, 40);
+
+  const allowedLanguages = ['en', 'ru', 'other'];
+  const lang = input.language && allowedLanguages.includes(input.language)
+    ? input.language
+    : 'en';
+
   return parseAppIr({
     version: 1,
     name: slug,
-    goal: input.idea.trim(),
+    goal: (input.idea || '').trim() || 'no goal provided',
     kind: input.kind || 'website',
     stack: input.stack || 'auto',
     needsAuth: input.needsAuth || 'unsure',
     needsDb: input.needsDb || 'unsure',
-    language: input.language || 'en',
+    language: lang,
     constraints: input.constraints || '',
     features: input.features || [],
   });
-}
+    }
