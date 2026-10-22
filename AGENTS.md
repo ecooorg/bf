@@ -10,13 +10,13 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P60 — interface-copy rules: shared vocabulary, copy lint (jargon and length), screen rules in RULES §9 |
+| Last patch | P61 — Expert screens: step titles, content from the top, one width, visible fields, shorter texts |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
 | Modes | Simple (unchanged), Expert (layout reworked in P59: `src/ExpertNav.tsx`, `src/expertNav.ts`, `src/expertHistory.ts`); Project (`POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
-| Next | P61 Expert screens, P62 Project screens, P63 Simple empty screen, phone header and guide; each lowers the copy-lint allowances. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
+| Next | P62 Project screens, P63 Simple empty screen, phone header and guide; each lowers the copy-lint allowances. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
 | Last full `npm run check` | Record here: command, date, result, or "not run" with the reason |
 
 Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.

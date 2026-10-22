@@ -3,6 +3,17 @@
 - Retired duplicate `CHANGELOG_AGENT_BEHAVIOR.md`. Agent and product history: **only** this file (`CHANGELOG.md`).
 - Operator deploy: `docs/DEPLOY.md` only (no root `DEPLOY_RAILWAY.md`).
 
+## P61 — Expert screens (2026-10-22)
+
+- Every step has a title and a one-line hint at the top (`STEP_TITLE` in `src/uiTerms.ts`). The unused `ExpertStageIntro` component and its long texts are removed.
+- Content starts at the top: the page no longer centres vertically (`margin:auto` on the content in a tall grid row). Step cards, history and dialogue share one width.
+- Input fields that had no style (Decide, Synthesis, Learn and others) now look like fields: `AutoTextarea` gets the `auto-input` class unless a class is passed.
+- Quick check: result shown only after something is ticked; five statements with the same meaning («Tick what applies»); Attach / Download no longer shown there.
+- Download / save reply is hidden when there is nothing to save (empty Your story). Under a disabled Continue a short reason is shown (Test, Decide).
+- Sidebar footer («Understand → Explore → …», «Your decision: not yet») removed: it repeated the list above.
+- Texts shortened and jargon removed (kill criteria, locked card, "two-way door", "Section 11", hand-off). Copy-lint allowance for `App.tsx` lowered from 21 to 4; `ConversationFiles.tsx` removed from the list. The lint no longer counts code fragments as text.
+- Test: `STEP_TITLE` covers every step; hints are at most 12 words.
+
 ## P60 — Interface-copy rules (2026-10-21)
 
 - `src/uiTerms.ts`: one vocabulary for the five loops (Understand, Explore, Challenge, Check, Learn). The Expert navigation now shows these names instead of the internal ids (EXPAND, ATTACK, VERIFY), matching the formula text.
