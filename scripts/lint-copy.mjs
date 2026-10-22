@@ -47,13 +47,13 @@ const NON_TEXT_ATTR = /(className|data-testid|href|src|type|key|role|htmlFor|nam
 const DEBT = {
   'App.tsx': { 'long': 4 },
   'ProjectDelivery.tsx': { 'fingerprint': 2, 'gates': 2, 'hand-off': 6, 'long': 1, 'waive': 5 },
-  'ProjectMode.tsx': { 'long': 2, 'passport': 3 },
+  'ProjectMode.tsx': { 'long': 2 },
   'ProjectNoviceWizard.tsx': { 'scaffold': 1 },
   'ProjectPathChooser.tsx': { 'long': 2 },
   'WorkspacePanel.tsx': { 'long': 1 },
   'driveMirror.ts': { 'long': 1 },
   'en.ts': { 'long': 1 },
-  'projectAppBuilder.ts': { 'long': 6, 'scaffold': 3 },
+  'projectAppBuilder.ts': {},
   'projectCapabilities.ts': { 'hand-off': 2 },
   'projectDeliveryModel.ts': { 'waive': 1 },
 };
