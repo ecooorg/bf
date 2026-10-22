@@ -1226,5 +1226,14 @@ test('P60 copy lint: legacy forbidden phrases still fail', () => {
   const r = lint({ 'A.ts': "export const x = 'Weighted Score Index';\n" });
   assert.equal(r.code, 1);
 });
+test('P61 step titles: every step has a title and a hint of at most 12 words', async () => {
+  const { STEP_TITLE } = await import("../src/uiTerms.ts");
+  const { STAGES } = await import("../src/decision.ts");
+  for (const st of STAGES) {
+    const t = STEP_TITLE[st.id];
+    assert.ok(t && t.title, `missing title for ${st.id}`);
+    assert.ok(t.hint.split(/\s+/).length <= 12, `hint too long for ${st.id}: ${t.hint}`);
+  }
+});
 }
 // ===== END ui-copy.test.mjs =====
