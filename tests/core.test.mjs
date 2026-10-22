@@ -1175,3 +1175,56 @@ test('P59 expert history: one-line label is the first user question, shortened o
 });
 }
 // ===== END expert-nav.test.mjs =====
+
+// ===== BEGIN ui-copy.test.mjs =====
+{
+const test = (await import("node:test")).default;
+const assert = (await import("node:assert/strict")).default;
+const fs = await import("node:fs");
+const os = await import("node:os");
+const path = await import("node:path");
+const { spawnSync } = await import("node:child_process");
+const { LOOP_NAME, LOOP_ORDER_TEXT } = await import("../src/uiTerms.ts");
+const { buildExpertNav } = await import("../src/expertNav.ts");
+const { en } = await import("../src/en.ts");
+
+const lint = (files) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lintcopy-'));
+  for (const [name, text] of Object.entries(files)) fs.writeFileSync(path.join(dir, name), text);
+  const r = spawnSync(process.execPath, ['scripts/lint-copy.mjs'], { env: { ...process.env, LINT_COPY_ROOT: dir }, encoding: 'utf8' });
+  fs.rmSync(dir, { recursive: true, force: true });
+  return { code: r.status, out: `${r.stdout}${r.stderr}` };
+};
+
+test('P60 vocabulary: loop names are one set shared by the navigation and the formula text', () => {
+  assert.deepEqual(Object.values(LOOP_NAME), ['Understand', 'Explore', 'Challenge', 'Check', 'Learn']);
+  assert.equal(LOOP_ORDER_TEXT, en.formula);
+  assert.deepEqual(buildExpertNav('EXPAND').loops.map((l) => l.label), Object.values(LOOP_NAME));
+});
+
+test('P60 copy lint: short plain text passes', () => {
+  const r = lint({ 'A.tsx': "export const A = () => <p>Add your first project.</p>;\n" });
+  assert.equal(r.code, 0, r.out);
+});
+
+test('P60 copy lint: internal jargon in visible text fails; the same word in an identifier does not', () => {
+  const bad = lint({ 'A.tsx': "export const A = () => <p>Set kill criteria before the test.</p>;\n" });
+  assert.equal(bad.code, 1);
+  assert.match(bad.out, /kill criteria/);
+  const ok = lint({ 'A.tsx': "const waiveGate = 1; export const A = () => <p className=\"hand-off row\">Done.</p>;\n" });
+  assert.equal(ok.code, 0, ok.out);
+});
+
+test('P60 copy lint: a visible string longer than 24 words fails', () => {
+  const long = Array.from({ length: 30 }, (_, i) => `word${i}`).join(' ');
+  const r = lint({ 'A.tsx': `export const A = () => <p>${long}</p>;\n` });
+  assert.equal(r.code, 1);
+  assert.match(r.out, /longer than 24 words/);
+});
+
+test('P60 copy lint: legacy forbidden phrases still fail', () => {
+  const r = lint({ 'A.ts': "export const x = 'Weighted Score Index';\n" });
+  assert.equal(r.code, 1);
+});
+}
+// ===== END ui-copy.test.mjs =====
