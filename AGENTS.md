@@ -10,14 +10,14 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P66 — Cross-mode UI audit (Simple / Expert / Project); findings in `docs/18-UI-Cross-Mode-Audit.md` |
+| Last patch | P67 — Project labels (Code package, description notices, Advanced) and hide ids/hashes on default lists |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
-| Modes | Simple (P63 empty state and guide), Expert (P61 layout; P63 shared header/guide), Project (P62 landing/workspace cleanup; `POST /code/build` uses `server/appBuilderPipeline.ts`) |
+| Modes | Simple (P63 empty state and guide), Expert (P61 layout; P63 shared header/guide), Project (P62 landing/workspace cleanup; P67 labels; `POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
-| Next | P67: Project labels (Delivery, Passport notices, Advanced/Data) and hide ids/hashes on default lists. P68: Delivery copy (hand-off / waive / gates) + one primary per step. P69+: Plan/Results hierarchy, Simple banner, shared empty/error patterns. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
-| Last full `npm run check` | 2026-10-22 — BLOCKED at typecheck: `vite/client` type definitions unavailable; `npm ci` timed out in this environment. P66 is docs-only (no UI runtime change). |
+| Next | P68: Delivery/Code package copy (hand-off / waive / gates) + one primary action per step. P69+: Plan/Results hierarchy, Simple banner, shared empty/error patterns. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
+| Last full `npm run check` | 2026-10-22 — BLOCKED at typecheck in prior environment. P67: `npm run lint:copy` PASS. Browser/`test:ui` not re-run here. |
 
 Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.
 

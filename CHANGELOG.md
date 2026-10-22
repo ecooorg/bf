@@ -1,3 +1,13 @@
+## P67 — Project labels and quieter lists (2026-10-22)
+
+- Tab **Delivery** → **Code package**; heading and suggested path aligned; **Open in Code package**.
+- Notices and status: **Passport** → description language (`Description confirmed/saved`, status «confirmed» / «not confirmed yet»).
+- Advanced: one tab name **Advanced** (was «Data · developers»).
+- Default lists no longer show task ids, plan ids, or file content hashes; build result omits machine ids and raw statusReason.
+- `tests/feature-manifest.json` updated for the new strings.
+- `scripts/lint-copy.mjs`: ProjectMode passport debt cleared; projectAppBuilder allowances lowered to match measured zero.
+- Validation: `npm run lint:copy` PASS. No product logic or API change.
+
 ## P66 — Cross-mode UI audit (2026-10-22)
 
 - Added `docs/18-UI-Cross-Mode-Audit.md`: confirmed defects across Simple, Expert and Project (labels, competing actions, controls without a job, inconsistent states), with priorities and source evidence.
