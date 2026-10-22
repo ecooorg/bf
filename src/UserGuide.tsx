@@ -48,7 +48,7 @@ code{background:#07111f;padding:1px 4px;border-radius:4px}a{color:#78baff}ul,ol{
       className="user-guide-root"
       role="dialog"
       aria-modal="true"
-      aria-label="BiForge user guide"
+      aria-label="BiForge quick guide"
       style={{
         position: 'fixed',
         inset: 0,
@@ -77,10 +77,10 @@ code{background:#07111f;padding:1px 4px;border-radius:4px}a{color:#78baff}ul,ol{
         }}
       >
         <h1 style={{ margin: 0, fontSize: 17, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}>
-          <CircleHelp size={18} aria-hidden /> BiForge user guide
+          <CircleHelp size={18} aria-hidden /> BiForge quick guide
         </h1>
         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          <button type="button" className="ghost" onClick={openInNewTab} title="Open the full guide in a new browser tab">
+          <button type="button" className="ghost" onClick={openInNewTab} title="Open this guide in a new browser tab">
             <ExternalLink size={14} /> <span className="lbl">New tab</span>
           </button>
           <button type="button" className="ghost" onClick={onClose} aria-label="Close user guide">
@@ -110,7 +110,7 @@ code{background:#07111f;padding:1px 4px;border-radius:4px}a{color:#78baff}ul,ol{
       >
         <GuideBody />
         <p style={{ color: '#8fa6c2', fontSize: 13, marginTop: 32, paddingBottom: 24 }}>
-          End of guide. Use <strong>New tab</strong> above if you prefer a separate browser window.
+          Quick guide. Use <strong>New tab</strong> to open a separate copy.
         </p>
       </div>
     </div>
@@ -118,317 +118,58 @@ code{background:#07111f;padding:1px 4px;border-radius:4px}a{color:#78baff}ul,ol{
 }
 
 function guideHtmlForPrint(): string {
-  // Plain HTML string for the new-tab view (no React).
   return `
-<h1>BiForge User Guide</h1>
-<p><strong>Product version 55.</strong> The AI proposes; <strong>only you decide</strong>. Not legal, medical, or financial advice.</p>
-<h2>1. Getting started</h2>
-<ol>
-<li>Open the BiForge URL from your administrator.</li>
-<li>Do not enter passwords, card numbers, or ID documents.</li>
-<li>Choose <strong>Simple</strong>, <strong>Expert</strong>, or <strong>Project</strong> (Project may need sign-in).</li>
-</ol>
-<p>Switch modes anytime with the <strong>Mode</strong> button.</p>
-<h2>2. Top menu</h2>
-<ul>
-<li><strong>Mode</strong> — Simple / Expert / Project, or back to mode selection.</li>
-<li><strong>New</strong> — new dialogue (Simple/Expert).</li>
-<li><strong>Drive</strong> — Google Drive mirror <em>while this tab is open</em>.</li>
-<li><strong>History</strong> — past dialogues on this device.</li>
-<li><strong>More</strong> — Export, Import, saved texts, Gemini key, Decision brief / Delete (Expert), User guide.</li>
-</ul>
-<h2>3. Simple mode</h2>
-<p>Open conversation without required steps. Describe the situation, chat, optionally add detail fields, attach files, export under More.</p>
-<h2>4. Expert mode</h2>
-<p>Guided method: Understand → Explore → Challenge → Check → Learn. Confirm suggestions yourself. Open chat stays for clarifications. Decision brief shows structured fields once they exist — not a second copy of the chat.</p>
-<table><thead><tr><th>Stage</th><th>You</th><th>Model</th></tr></thead><tbody>
-<tr><td>Start</td><td>Safety / fit check</td><td>—</td></tr>
-<tr><td>Your story</td><td>Describe the situation</td><td>Helps organize</td></tr>
-<tr><td>Clarify</td><td>Confirm facts / unknowns</td><td>Knowledge map</td></tr>
-<tr><td>Options</td><td>Mark realistic options</td><td>Suggests more</td></tr>
-<tr><td>Challenge</td><td>Stress-test</td><td>Challenges assumptions</td></tr>
-<tr><td>Check</td><td>Small tests</td><td>Helps design tests</td></tr>
-<tr><td>Decide</td><td>Your decision</td><td>Does not choose</td></tr>
-<tr><td>Learn</td><td>Lessons / next cycle</td><td>Supports reflection</td></tr>
-</tbody></table>
-<h2>5. Project mode</h2>
-<p>Separate from Simple/Expert. Two paths: <strong>Simple words</strong> (idea → questions → ZIP + manual deploy steps) or <strong>Professional</strong> (analysis, plan, delivery). GitHub is read-only; BiForge never merges or deploys for you.</p>
-<ol>
-<li>Sign in if required; choose a path; check <em>What is available here</em>.</li>
-<li>Simple words: describe the idea, answer button questions, confirm once, download ZIP.</li>
-<li>Professional: create a project; confirm the <strong>project description</strong>.</li>
-<li>Run analysis; on Results, <strong>Confirm</strong> or <strong>Reject</strong> each item (nothing is accepted automatically).</li>
-<li>Add human decisions; create a plan; approve budgets/gates; start tasks.</li>
-<li>Download source ZIP and follow on-screen manual deploy steps (GitHub + host by hand).</li>
-<li>Files / optional developer JSON.</li>
-</ol>
-<p>Paths: Simple words → ZIP · or Description → Analysis → Confirm → Plan → ZIP / Delivery.</p>
-<h2>6. Google Drive</h2>
-<p>Mirroring works only while the tab is open. Optional.</p>
-<h2>7. Export</h2>
-<p>JSON backup, Markdown, Word, PDF, Google Docs, project artifacts / ZIP.</p>
-<h2>8. Safety</h2>
-<ul>
-<li>No secrets in chat.</li>
-<li>Urgent personal help → real person or local help service.</li>
-<li>Verify important facts yourself.</li>
-</ul>
-<h2>9. Troubleshooting</h2>
-<ul>
-<li>Project unavailable — disabled by admin.</li>
-<li>Analysis blocked — confirm project description.</li>
-<li>Save rejected — project changed in another window; reload.</li>
-<li>Drive not syncing — reconnect; keep tab open.</li>
-<li>Folder import — desktop browser only.</li>
-</ul>
-<p style="color:#8fa6c2">Repository copy: docs/USER_GUIDE.md</p>
-`;
+<h1>BiForge quick guide</h1>
+<p>The AI suggests; <strong>you decide</strong>. Check important facts yourself. Do not enter passwords, card numbers, or ID documents.</p>
+<h2>Choose a mode</h2>
+<ul><li><strong>Simple</strong> — ask a question and chat freely.</li><li><strong>Expert</strong> — work through Understand, Explore, Challenge, Check, and Learn. Confirm suggestions yourself.</li><li><strong>Project</strong> — organise a project, confirm analysis, make a plan, and prepare files. You publish and deploy manually.</li></ul>
+<h2>Top bar</h2>
+<ul><li><strong>Mode</strong> switches modes.</li><li><strong>New</strong> starts a dialogue.</li><li><strong>Drive</strong> mirrors files only while this tab is open.</li><li><strong>History</strong> opens saved dialogues on this device.</li><li><strong>More</strong> contains import, export, saved texts, settings, and help.</li></ul>
+<h2>Quick tips</h2>
+<ul><li><strong>Simple:</strong> describe the situation; attach relevant files only when useful.</li><li><strong>Expert:</strong> follow the stages and confirm each step. The assistant does not choose for you.</li><li><strong>Project:</strong> confirm the project description before analysis; review suggestions before creating a plan.</li><li><strong>Export:</strong> use More → Export for a backup or readable copy.</li></ul>
+<h2>If something does not work</h2>
+<ul><li>Project unavailable — ask the administrator.</li><li>Analysis blocked — confirm the project description.</li><li>Drive not syncing — reconnect and keep this tab open.</li><li>Save rejected — reload if the project changed in another window.</li></ul>
+<p>For advanced operational details, see the repository documentation. Project actions such as approvals and publishing always require your input.</p>`;
 }
 
 function GuideBody() {
   const h2: React.CSSProperties = {
-    fontSize: 18,
-    margin: '28px 0 10px',
-    paddingBottom: 6,
-    borderBottom: '1px solid #1f4f86',
-    color: '#e6edf7',
-  };
-  const h3: React.CSSProperties = {
-    fontSize: 15,
-    margin: '18px 0 8px',
-    color: '#9fd8ff',
+    fontSize: 18, margin: '20px 0 8px', paddingBottom: 5,
+    borderBottom: '1px solid #1f4f86', color: '#e6edf7',
   };
   const muted: React.CSSProperties = { color: '#8fa6c2' };
-
   return (
     <article className="user-guide-article">
-      <p style={{ marginTop: 0 }}>
-        <strong>BiForge</strong> is a calm decision and project workspace. The AI proposes structure and questions;{' '}
-        <strong>only you make decisions</strong>. It does not replace professional advice and does not pick a winner for you.
-      </p>
-
-      <h2 style={h2}>1. Getting started</h2>
-      <ol>
-        <li>Open the BiForge URL provided by your administrator.</li>
-        <li>Do <strong>not</strong> enter passwords, card numbers, or identity documents.</li>
-        <li>
-          Choose a mode:
-          <ul>
-            <li>
-              <strong>Simple</strong> — open conversation, no required steps.
-            </li>
-            <li>
-              <strong>Expert</strong> — guided method: Understand → Explore → Challenge → Check → Learn.
-            </li>
-            <li>
-              <strong>Project</strong> — separate workspace for multi-step work (may require sign-in).
-            </li>
-          </ul>
-        </li>
-      </ol>
-      <p style={muted}>Use the <strong>Mode</strong> button anytime to switch or return to mode selection.</p>
-
-      <h2 style={h2}>2. Top menu (all modes)</h2>
+      <p style={{ marginTop: 0 }}><strong>BiForge</strong> helps you think through decisions and organise projects. The AI suggests; <strong>you decide</strong>. Verify important facts and do not enter passwords, card numbers, or identity documents.</p>
+      <h2 style={h2}>Choose a mode</h2>
       <ul>
-        <li>
-          <strong>Mode</strong> — Simple / Expert / Project, or back to mode selection.
-        </li>
-        <li>
-          <strong>New</strong> (Simple/Expert) — start a new dialogue.
-        </li>
-        <li>
-          <strong>Drive</strong> — connect Google Drive. Mirroring runs <em>only while this tab is open</em>.
-        </li>
-        <li>
-          <strong>History</strong> — past dialogues on this device (unavailable in some private browser modes).
-        </li>
-        <li>
-          <strong>More</strong> — Export (JSON, Markdown, Word, PDF, Google Docs), Import (backup, folder on desktop, Drive,
-          file as new dialogue), saved texts, optional Gemini API key, Decision brief / Delete (Expert), and this guide.
-        </li>
+        <li><strong>Simple</strong> — ask a question and chat freely. Add files only when they help explain the situation.</li>
+        <li><strong>Expert</strong> — follow Understand → Explore → Challenge → Check → Learn. Review and confirm suggestions at each stage.</li>
+        <li><strong>Project</strong> — describe a project, confirm its analysis, create a plan, and prepare files. You publish and deploy manually.</li>
       </ul>
-
-      <h2 style={h2}>3. Simple mode</h2>
-      <ol>
-        <li>Describe the situation in your own words.</li>
-        <li>Chat with the assistant; ask for options, risks, or clearer framing.</li>
-        <li>Optional: add detail fields (facts, unknowns, values, constraints).</li>
-        <li>Attach files the assistant may read (confirm privacy when asked).</li>
-        <li>Export backups under More; connect Drive if you want live mirror while the tab is open.</li>
-      </ol>
-
-      <h2 style={h2}>4. Expert mode</h2>
-      <p>
-        Stages appear in the sidebar. You confirm suggestions. Open chat under the stages is for clarifications only — it does
-        not auto-advance stages.
-      </p>
-      <div style={{ overflowX: 'auto', margin: '12px 0' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '1px solid #1f4f86' }}>
-              <th style={{ padding: '6px 4px' }}>Stage</th>
-              <th style={{ padding: '6px 4px' }}>You</th>
-              <th style={{ padding: '6px 4px' }}>Model</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Start</td>
-              <td style={{ padding: '6px 4px' }}>Safety / fit</td>
-              <td style={{ padding: '6px 4px' }}>—</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Your story</td>
-              <td style={{ padding: '6px 4px' }}>Describe the situation</td>
-              <td style={{ padding: '6px 4px' }}>Helps organize</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Clarify</td>
-              <td style={{ padding: '6px 4px' }}>Confirm facts / unknowns</td>
-              <td style={{ padding: '6px 4px' }}>Knowledge map</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Options</td>
-              <td style={{ padding: '6px 4px' }}>Mark realistic options</td>
-              <td style={{ padding: '6px 4px' }}>Suggests more</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Challenge</td>
-              <td style={{ padding: '6px 4px' }}>Stress-test</td>
-              <td style={{ padding: '6px 4px' }}>Challenges assumptions</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Check</td>
-              <td style={{ padding: '6px 4px' }}>Small tests</td>
-              <td style={{ padding: '6px 4px' }}>Helps design tests</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Decide</td>
-              <td style={{ padding: '6px 4px' }}>Your decision</td>
-              <td style={{ padding: '6px 4px' }}>Does not choose</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '6px 4px' }}>Learn</td>
-              <td style={{ padding: '6px 4px' }}>Lessons / next cycle</td>
-              <td style={{ padding: '6px 4px' }}>Supports reflection</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p style={muted}>
-        <strong>Decision brief</strong> opens only when structured fields exist. The analysis already in the chat is not covered
-        by an empty frame.
-      </p>
-
-      <h2 style={h2}>5. Project mode</h2>
-      <p>
-        Separate workspace (does not change Simple or Expert). Two paths on the start screen:
-      </p>
+      <h2 style={h2}>Top bar</h2>
       <ul>
-        <li>
-          <strong>Simple words</strong> — describe the idea in ordinary language, answer a few button questions, confirm once.
-          When program ZIP is enabled on the server, you get a source archive plus manual deploy steps (GitHub + host by hand).
-        </li>
-        <li>
-          <strong>Professional</strong> — more control: project description, analysis, plans, tasks, delivery tools. Same final
-          idea: a ZIP you publish yourself. <strong>GitHub is read-only</strong>; BiForge never merges or deploys for you.
-        </li>
+        <li><strong>Mode</strong> switches between modes.</li>
+        <li><strong>New</strong> starts a dialogue.</li>
+        <li><strong>Drive</strong> mirrors files only while this tab is open.</li>
+        <li><strong>History</strong> opens dialogues saved on this device.</li>
+        <li><strong>More</strong> contains import, export, saved texts, settings, and help.</li>
       </ul>
-      <h3 style={h3}>Suggested path (Professional)</h3>
-      <ol>
-        <li>Sign in if required; open <em>What is available here</em>; choose Professional if you want full tools.</li>
-        <li>
-          Create a project; confirm the <strong>project description</strong> to unlock analysis.
-        </li>
-        <li>
-          Run <strong>analysis</strong>. On Results, nothing is accepted until you press <strong>Confirm</strong>. Use{' '}
-          <strong>Reject</strong> for wrong suggestions.
-        </li>
-        <li>Add human decisions in your own words.</li>
-        <li>
-          Create a <strong>plan</strong>, approve budgets and gates, start tasks.
-        </li>
-        <li>
-          <strong>Delivery</strong> or <strong>Create program</strong>: download the source ZIP, follow the on-screen manual
-          deploy steps, work outside BiForge. You upload to GitHub and connect Render/Railway yourself.
-        </li>
-        <li>Files: artifacts, Drive save, model request history. Developer JSON is optional and hidden until you enable it.</li>
-      </ol>
-
-      <h2 style={h2}>6. Google Drive</h2>
-      <p>
-        Connect via <strong>Drive</strong> in the top bar. While the tab is open and connected, decisions and selected files can be
-        mirrored. Closing the tab stops live mirroring for that session.
-      </p>
-      <p>
-        Files go to <strong>My Drive → BiForge → Simple / Expert / Project</strong>. A file attached before you connect Drive is saved right
-        after you connect, and every save or refusal is shown as a message. In Project use <strong>Connect Google Drive</strong> and the
-        <strong>Save to Google Drive</strong> buttons.
-      </p>
-
-      <h2 style={h2}>7. Export and backup</h2>
+      <h2 style={h2}>Quick tips</h2>
       <ul>
-        <li>
-          <strong>JSON</strong> — full restore of a dialogue
-        </li>
-        <li>
-          <strong>Markdown / Word / PDF</strong> — sharing or printing
-        </li>
-        <li>
-          <strong>Google Docs</strong> — when Drive is connected
-        </li>
-        <li>Project artifacts and program ZIP — from Project files / build</li>
+        <li><strong>Simple:</strong> start with your question; add context as needed.</li>
+        <li><strong>Expert:</strong> move through the stages; chat clarifications do not advance a stage automatically.</li>
+        <li><strong>Project:</strong> confirm the project description before analysis. Review suggestions before planning.</li>
+        <li><strong>Export:</strong> choose More → Export for a backup or readable copy.</li>
       </ul>
-
-      <h2 style={h2}>8. Safety</h2>
+      <h2 style={h2}>If something does not work</h2>
       <ul>
-        <li>Do not enter passwords, card numbers, or ID documents.</li>
-        <li>If you need urgent personal help, pause and contact a real person or local help service.</li>
-        <li>Model output can be wrong; verify important facts yourself.</li>
-        <li>Optional web search (if enabled on the server) still needs your judgment.</li>
+        <li><strong>Project unavailable</strong> — ask the administrator.</li>
+        <li><strong>Analysis blocked</strong> — confirm the project description.</li>
+        <li><strong>Drive not syncing</strong> — reconnect and keep this tab open.</li>
+        <li><strong>Save rejected</strong> — reload if the project changed in another window.</li>
       </ul>
-
-      <h2 style={h2}>9. Troubleshooting</h2>
-      <ul>
-        <li>
-          <strong>Project unavailable</strong> — disabled for this deployment; ask the administrator.
-        </li>
-        <li>
-          <strong>Analysis blocked</strong> — confirm the project description first.
-        </li>
-        <li>
-          <strong>Save rejected</strong> — the project changed in another window; reload and retry.
-        </li>
-        <li>
-          <strong>Drive not syncing</strong> — reconnect; keep the tab open; check browser permissions.
-        </li>
-        <li>
-          <strong>Folder import missing</strong> — use a desktop browser with folder picker support.
-        </li>
-        <li>
-          <strong>Gemini errors</strong> — try the server key, or set your own key under More.
-        </li>
-      </ul>
-
-      <h2 style={h2}>10. Principles</h2>
-      <ol>
-        <li>
-          <strong>Human decides</strong> — confirm, reject, approve, or write decisions yourself.
-        </li>
-        <li>
-          <strong>State over chat</strong> — especially in Project, durable state matters more than transcript length.
-        </li>
-        <li>
-          <strong>No silent automation</strong> — plans, budgets, gates, and merges require explicit human action.
-        </li>
-        <li>
-          <strong>Calm process</strong> — Simple for free thought, Expert for a careful method, Project for managed delivery.
-        </li>
-      </ol>
-
-      <p style={{ ...muted, marginBottom: 0 }}>
-        Repository copy: <code>docs/USER_GUIDE.md</code>. Operators: <code>docs/OWNER_OPS.md</code>.
-      </p>
+      <p style={{ ...muted, marginBottom: 0 }}>Advanced operational details are in the repository documentation. Approvals and publishing always require your input.</p>
     </article>
   );
 }

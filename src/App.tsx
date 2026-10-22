@@ -490,6 +490,7 @@ export default function App() {
         {historyPanel}
         <Header
           onNew={createNew}
+          showNew={false}
           onExportAll={exportAll}
           onDrive={drive.onButton}
           onGoogleAI={openGoogleAI}
@@ -508,15 +509,18 @@ export default function App() {
         onImportDrive={drive.onButton}
         onUserGuide={() => setShowUserGuide(true)}
         />
-        <div className="empty">
-          <h1>Nothing here yet</h1>
-          <p>Describe the situation in your own words — you do not need to structure it first.</p>
-          <div style={{ maxWidth: 760, margin: '18px auto', textAlign: 'left' }}>
-            <WorkspacePanel onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
-          </div>
-          <button className="primary" onClick={createNew}>
-            <Plus size={16} /> New decision
+        <div className="empty simple-empty">
+          <h1>What would you like help with?</h1>
+          <p>Start a conversation. Add files only if they help explain the situation.</p>
+          <button className="primary simple-start-btn" onClick={createNew}>
+            <Plus size={16} /> Start conversation
           </button>
+          <details className="simple-files-details">
+            <summary>Add files (optional)</summary>
+            <div style={{ maxWidth: 760, margin: '12px auto 0', textAlign: 'left' }}>
+              <WorkspacePanel hideHint onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
+            </div>
+          </details>
           {migrationReport.length > 0 && (
             <div className="panel" style={{ marginTop: 20, textAlign: 'left', maxWidth: 500 }}>
               <h3>Migration report</h3>
@@ -738,6 +742,7 @@ function MethodGuide({ step, stageMeta, busy }: { step: Step; stageMeta: typeof 
 // --- Header ---
 function Header(props: {
   onNew: () => void;
+  showNew?: boolean;
   onExport?: () => void;
   onExportAll: (fmt: 'json' | 'md' | 'docx' | 'pdf' | 'gdocs') => void;
   onImport: (f: File) => void;
@@ -782,20 +787,20 @@ function Header(props: {
         {props.onSelectMode && props.onChangeMode && (
           <ModeMenu current={props.expertMode ? 'Expert' : 'Simple'} projectEnabled={Boolean(props.projectModeEnabled)} onSelect={props.onSelectMode} onOverview={props.onChangeMode} />
         )}
-        <button className="ghost" onClick={props.onNew} title="Start a new dialogue"><Plus size={14} /> <span className="lbl">New</span></button>
+        {props.showNew !== false && <button className="ghost" onClick={props.onNew} title="Start a new dialogue" aria-label="New dialogue"><Plus size={14} /> <span className="lbl">New</span></button>}
         {props.onDrive && (
-          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} title={props.driveConnected ? "Google Drive connected: files mirror only while this tab is open (not in the background)" : "Connect Google Drive — mirroring works only while this tab stays open"}>
+          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} aria-label={driveLabel} title={props.driveConnected ? "Google Drive connected: files mirror only while this tab is open (not in the background)" : "Connect Google Drive — mirroring works only while this tab stays open"}>
             {props.driveConnected ? <CloudUpload size={14} /> : <Cloud size={14} />} <span className="lbl">{driveLabel}</span>
           </button>
         )}
         {props.onHistory && (
           props.historyAvailable === false
             ? <button className="ghost" disabled title="Private or restricted mode: this browser cannot save history on the device"><HistoryIcon size={14} /> <span className="lbl">History unavailable</span></button>
-            : <button className="ghost" onClick={props.onHistory} title="Open past dialogues on this device"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
+            : <button className="ghost" onClick={props.onHistory} aria-label="History" title="Open past dialogues on this device"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
         )}
         {/* Decision brief lives in the More menu (not a header button): six header buttons pushed More onto a second row. */}
         <div className="hdr-more-wrap" ref={moreRef}>
-          <button className="ghost hdr-more-btn" title="Export, import, Project workspace, API key, and other tools" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
+          <button className="ghost hdr-more-btn" aria-label="More tools" title="Export, import, saved texts, help, and settings" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)}>
             <MoreHorizontal size={14} /> <span className="lbl">More</span>
           </button>
           {/* Unified More menu (same order in both modes; Brief / Delete only in expert) */}
