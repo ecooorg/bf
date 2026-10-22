@@ -10,19 +10,18 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P61 — Expert screens: step titles, content from the top, one width, visible fields, shorter texts |
+| Last patch | P63 — Simple empty screen, mobile header and guide |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
-| Modes | Simple (unchanged), Expert (layout reworked in P59: `src/ExpertNav.tsx`, `src/expertNav.ts`, `src/expertHistory.ts`); Project (`POST /code/build` uses `server/appBuilderPipeline.ts`) |
+| Modes | Simple (P63 empty state and guide), Expert (P61 layout; P63 shared header/guide), Project (P62 landing/workspace cleanup; `POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
-| Next | P62 Project screens, P63 Simple empty screen, phone header and guide; each lowers the copy-lint allowances. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
-| Last full `npm run check` | Record here: command, date, result, or "not run" with the reason |
+| Next | Visual acceptance at 1200 px and 390 px across Simple, Expert and Project; patch only confirmed remaining defects. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
+| Last full `npm run check` | 2026-10-22 — BLOCKED at typecheck: `vite/client` type definitions unavailable; `npm ci` timed out in this environment. |
 
 Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.
 
 Strings such as DEPLOY-MANUAL.md inside generated ZIPs are archive contents, not paths in this repository.
-
 ---
 
 # MAP

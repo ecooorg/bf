@@ -1,3 +1,20 @@
+## P63 — Simple empty screen, mobile header and guide (2026-10-22)
+
+- Simple empty state now has one primary action; optional file controls are disclosed separately and no longer refer to a missing message box.
+- Mobile header keeps short navigation labels visible and adds accessible names to icon actions.
+- Shortened the User Guide consistently in the in-app view and its new-tab view, covering Simple, Expert and Project.
+- Lowered `scripts/lint-copy.mjs` allowances for the cleaned Project and guide copy; no allowance was increased.
+- Validation: `npm run lint:copy` and `npm run check:docs` passed. `npm run typecheck` was BLOCKED by missing `vite/client` types; `npm run test:core` was BLOCKED because `tsx` was absent. Browser checks and production build were not run.
+
+## P62 — Project interface cleanup (2026-10-22)
+
+- Simplified the Project start screen and removed repeated scope copy.
+- Show workspace file controls only after a project or builder path is active.
+- Keep the project list available while a project is open; provide a clear return to all projects and hide the create form in the open-project view.
+- Renamed the developer-data entry to “Advanced” and shortened the budget labels.
+- Lowered `scripts/lint-copy.mjs` allowances for Project Mode copy that no longer violates the rules.
+- Validation: `npm run lint:copy` and `npm run check:docs` passed. `npm run check` was BLOCKED at typecheck because `vite/client` type definitions were unavailable. `npm ci` timed out; build and browser acceptance were not run.
+
 ## Docs hygiene
 
 - Retired duplicate `CHANGELOG_AGENT_BEHAVIOR.md`. Agent and product history: **only** this file (`CHANGELOG.md`).
