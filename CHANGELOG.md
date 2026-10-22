@@ -1,3 +1,12 @@
+## P68 — Code package copy and primary actions (2026-10-22)
+
+- User-facing **hand-off / waive / gates / fingerprint** removed from Code package UI and related labels (coding task, Skip check, Skipped by you, Advanced check details, Work in your tool).
+- One primary control per step: New/Create task, Download or Approve package, Send result, Refresh from GitHub, Run review, Accept, Request repair.
+- Package line no longer shows a content fingerprint; status is «approved» / «not approved yet».
+- `projectCapabilities` and `projectDeliveryModel` plain labels aligned; lint debt for those jargon rules cleared on Delivery files.
+- Tests and `feature-manifest.json` updated for the new strings (including P67 Code package expectations).
+- Validation: `npm run lint:copy` PASS. No API or state-machine change.
+
 ## P67 — Project labels and quieter lists (2026-10-22)
 
 - Tab **Delivery** → **Code package**; heading and suggested path aligned; **Open in Code package**.
