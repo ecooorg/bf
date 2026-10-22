@@ -48,6 +48,7 @@ export const AutoTextarea = forwardRef<HTMLTextAreaElement, TextareaProps>(funct
 
   return (
     <textarea
+      className="auto-input" // visible field by default; an explicit className replaces it
       {...props}
       ref={inner}
       // flexBasis: a stylesheet `flex: 1` in a column container would otherwise override the height we set

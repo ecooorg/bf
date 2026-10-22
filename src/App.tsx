@@ -48,6 +48,7 @@ import { UserGuideModal } from './UserGuide.tsx';
 import { expertConversationFields } from './expertContext.ts';
 import { ExpertSidebar, ExpertBottomBar } from './ExpertNav.tsx';
 import { expertBaseline, questionLine } from './expertHistory.ts';
+import { STEP_TITLE } from './uiTerms.ts';
 import { briefSections, BRIEF_EMPTY_TEXT } from './briefView.ts';
 
 // --- API helper ---
@@ -421,7 +422,7 @@ export default function App() {
             <button type="button" className="panel" data-testid="start-mode-project" onClick={() => chooseStartMode('Project')} disabled={!projectModeEnabled} aria-disabled={!projectModeEnabled} style={{ cursor: projectModeEnabled ? 'pointer' : 'not-allowed', color: 'inherit', textAlign: 'left', padding: 24, opacity: projectModeEnabled ? 1 : 0.65 }}>
               <h2>Project</h2>
               <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Managed project workspace</p>
-              <p>Description, analysis, plans, tasks, files, and optional code hand-off. Separate from chat; durable project state.</p>
+              <p>Describe a project, analyse it, and get a plan and a ZIP.</p>
               {!projectModeEnabled
                 ? <p role="status" style={{ marginBottom: 0 }}><strong>Currently unavailable</strong> — Project mode is disabled for this deployment by an administrator (not an error in your browser).</p>
                 : <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> multi-step work with confirmations and deliverables.</p>}
@@ -582,7 +583,7 @@ export default function App() {
             return;
           }
           // Analysis is already in the chat — do not cover it with an empty frame.
-          setMessage('Decision brief fills in as you complete Expert steps (facts, options, your decision). The analysis is already in the conversation on this screen — no extra window needed.');
+          setMessage('The brief fills in as you complete the steps.');
           window.setTimeout(() => setMessage(''), 6000);
         }}
         onDelete={() => removeDecision(d.id)}
@@ -597,7 +598,6 @@ export default function App() {
             step={d.step}
             onGo={goStep}
             heading={<><BrainCircuit size={14} /> Decision method · cycle {d.cycleCount}</>}
-            footer={<>{en.formula}<br /><br />Your decision: {d.decision ? 'recorded' : 'not yet'}</>}
           />
         )}
 
@@ -608,6 +608,7 @@ export default function App() {
               Mode: Simple chat — open conversation. Use the Mode control for a step-by-step decision review.
             </div>
           )}
+          {expertMode && <StepTitle step={d.step} />}
           {methodStarted && expertBase > 0 && (
             <SharedConversationContext d={d} upTo={expertBase} onDocumentEdit={reviseConversationDocument} />
           )}
@@ -658,7 +659,7 @@ export default function App() {
                 {expertMode && d.step !== 'TRIAGE' && d.step !== 'BRIEF' && (
                   <div className="expert-open-dialogue" data-testid="expert-open-dialogue" style={{ marginTop: 20, paddingTop: 12, borderTop: '1px solid rgba(127,180,255,0.2)' }}>
                     <p className="expert-dialogue-title">
-                      <strong>Ask or clarify anytime</strong> — the steps are a guide; new facts and corrections are welcome.
+                      <strong>Ask or add something anytime.</strong>
                     </p>
                     <ConversationScreen
                       d={d}
@@ -676,19 +677,6 @@ export default function App() {
               </>
             )}
           </ErrorBoundary>
-          {expertMode && d.step === 'TRIAGE' && (
-            <FilesPanel
-              files={Array.isArray(d.files) ? d.files : []}
-              onFilesChange={(f) => update({ files: f })}
-              disabled={busy}
-              expertMode
-              title={d.title}
-              history={Array.isArray((d.modelSuggestions as any)?.conversation) ? (d.modelSuggestions as any).conversation : []}
-              canCalendar={Array.isArray(d.brief?.reviewDates) && d.brief.reviewDates.length > 0}
-              onCalendar={() => icsDownload(d)}
-              buildFullReview={() => decisionToDocument(d)}
-            />
-          )}
         </main>
       </div>
       {expertMode && <ExpertBottomBar step={d.step} onGo={goStep} />}
@@ -886,9 +874,20 @@ function Header(props: {
 
 function AssistantMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="panel expert-result-card assistant-surface" style={{ maxWidth: 820, margin: '0 auto 16px', lineHeight: 1.7 }}>
+    <div className="panel expert-result-card assistant-surface" style={{ margin: '0 0 16px', lineHeight: 1.7 }}>
       <div>{children}</div>
     </div>
+  );
+}
+
+function StepTitle({ step }: { step: Step }) {
+  const t = STEP_TITLE[step];
+  if (!t) return null;
+  return (
+    <header className="xn-title" data-testid="step-title">
+      <h1>{t.title}</h1>
+      <p>{t.hint}</p>
+    </header>
   );
 }
 
@@ -927,9 +926,6 @@ function TriageScreen({
 
   return (
     <div className="panel">
-      <h2>
-        <ShieldAlert size={18} /> Safety and fit check
-      </h2>
       <div className="alert" style={{ marginBottom: 16 }}>
         <strong>{en.crisisTitle}</strong>
         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
@@ -967,12 +963,13 @@ function TriageScreen({
       {!crisisBlocked && (
         <>
           <div className="triage-grid" style={{ display: 'grid', gap: 10, marginTop: 16 }}>
+            <strong style={{ gridColumn: '1 / -1' }}>Tick what applies</strong>
             {(
               [
-                ['costly', 'Would a wrong choice cost a lot (money, time, relationships, or health)?'],
-                ['hardToUndo', 'Would it be hard or expensive to undo?'],
-                ['resolvableUnknowns', 'Are there important things you can still find out?'],
-                ['longHorizon', 'Could the effects last a long time (years, not weeks)?'],
+                ['costly', 'A wrong choice would cost a lot'],
+                ['hardToUndo', 'It would be hard to undo'],
+                ['resolvableUnknowns', 'I can still find out important things'],
+                ['longHorizon', 'The effects would last years'],
               ] as const
             ).map(([key, label]) => (
               <label key={key} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -990,12 +987,14 @@ function TriageScreen({
                 checked={t.onlyValues}
                 onChange={(e) => setT({ onlyValues: e.target.checked })}
               />
-              This is only about personal values; there is nothing factual to check
+              It is only about my values, nothing to check
             </label>
           </div>
-          <div className="alert" style={{ marginTop: 16 }}>
-            Result: <b>{TRIAGE_OUTCOME_LABEL[t.outcome]}</b> — {TRIAGE_OUTCOME_TEXT[t.outcome]}
-          </div>
+          {(t.confirmed || t.onlyValues || Object.values(t.q).some(Boolean)) && (
+            <div className="alert" style={{ marginTop: 16 }}>
+              <b>{TRIAGE_OUTCOME_LABEL[t.outcome]}</b> — {TRIAGE_OUTCOME_TEXT[t.outcome]}
+            </div>
+          )}
           <div className="actions" style={{ marginTop: 16 }}>
             <button
               className="primary"
@@ -1169,7 +1168,7 @@ function BriefScreen({
       {dragOver && <div className="drag-overlay" aria-hidden>Drop files to attach</div>}
       <div className="conversation-entry">
         <div className="conversation-promise">
-          Not advice and not a verdict. We look for what you do not know yet, what you may be taking for granted, and the cheapest way to find out. Write in any language.
+          Not advice. We help you find what you do not know yet.
         </div>
         <div className="conversation-chips" role="group" aria-label="How do you want to start?">
           {INTENT_CHIPS.map((c) => (
@@ -1455,20 +1454,6 @@ function ConversationScreen({
   );
 }
 
-function ExpertStageIntro({
-  step: _step,
-  title: _title,
-  task: _task,
-  next: _next,
-}: {
-  step: string;
-  title: string;
-  task: string;
-  next: string;
-}) {
-  return null;
-}
-
 // Model output remains unrestricted. This display-only pass prevents a model-invented
 // numeric example from looking like a user-provided or calculated value. It never retries
 // or rejects an AI response.
@@ -1699,7 +1684,7 @@ function UnderstandScreen({
           )}
 
           {answered.length > 0 && (
-            <div className="panel expert-result-card assistant-surface answered-card" style={{ maxWidth: 820, margin: '0 auto 16px', lineHeight: 1.7 }}>
+            <div className="panel expert-result-card assistant-surface answered-card" style={{ margin: '0 0 16px', lineHeight: 1.7 }}>
               <div className="listhead">Your answers</div>
               <ul>
                 {answered.map((u) => (
@@ -1751,12 +1736,6 @@ function ExpandScreen({ d, update, busy }: { d: Decision; update: (p: Partial<De
   const visible = d.options.filter((o) => o.realistic !== 'NO');
   return (
     <div className="friendly-flow">
-      <ExpertStageIntro
-        step="2 · EXPAND"
-        title="Look beyond the obvious choices"
-        task="The engine widens the decision. Your job is to see which paths are realistic for you — including smaller, reversible, or information-first moves."
-        next="you can stress-test the paths, or stop here if you already have enough to make your own decision."
-      />
       <AssistantMessage>
         <p style={{ marginTop: 0 }}>We have widened the decision beyond the original framing. These are possibilities to consider — not recommendations.</p>
         <p>Here are the main possibilities to keep on the table:</p>
@@ -1771,7 +1750,7 @@ function ExpandScreen({ d, update, busy }: { d: Decision; update: (p: Partial<De
             </div>
           ))}
         </div>
-        <p>The useful question now is not “which one wins?” but “what would we need to learn before one of these becomes clearly more or less workable?”</p>
+        <p>Next: what would we need to learn to trust one of these?</p>
         <div className="actions">
           <button className="primary" disabled={busy || visible.length < 2} onClick={() => update({ step: 'ATTACK', interactionState: 'ATTACK_READY' })}>Let’s test what could go wrong <ArrowRight size={16} /></button>
           <button className="ghost" onClick={() => update({ step: 'DECIDE', interactionState: 'USER_SATISFIED' })}>I have enough to decide</button>
@@ -1817,14 +1796,8 @@ function AttackScreen({
 
   return (
     <div className="friendly-flow">
-      <ExpertStageIntro
-        step="3 · ATTACK"
-        title="Try to break the options before they break you"
-        task="The engine looks for strong reasons each path could fail. You do not need to defend or approve the critique. Look for anything that deserves a real check."
-        next="after the weak points are visible, you can make your decision or choose something worth testing first."
-      />
       <AssistantMessage>
-        <p style={{ marginTop: 0 }}>We will stress-test the paths symmetrically. This is not a vote for or against any option.</p>
+        <p style={{ marginTop: 0 }}>We test every path the same way.</p>
         {!tested && <button className="primary" disabled={busy || !first || !second} onClick={testRisks}>Show me the weak points</button>}
       </AssistantMessage>
 
@@ -1892,17 +1865,10 @@ function TestScreen({
 
   return (
     <div>
-      <ExpertStageIntro
-        step="4 · VERIFY"
-        title="Turn an important uncertainty into a check"
-        task="Choose a critical hypothesis and define a cheap, concrete way to learn whether it is true. Fix the metric, deadline, thresholds, and your own forecast before the result is known."
-        next="once the check is locked, you can run it and later record what actually happened."
-      />
       <div className="panel">
         <h2>Experiment drafts</h2>
         <p style={{ fontSize: 12, color: '#7f93aa' }}>
-          Each selected hypothesis needs a locked card (metric, deadline, thresholds,
-          forecast). Re-fetching drafts does not overwrite locked cards.
+          Each idea needs a metric, a deadline and your forecast.
         </p>
         <button
           className="primary"
@@ -1985,10 +1951,7 @@ function TestScreen({
       ))}
 
       <div className="panel" style={{ marginTop: 12 }}>
-        <h3>Final cost of error and reversibility (before locking kill criteria)</h3>
-        <p style={{ fontSize: 12, color: '#7f93aa' }}>
-          The method requires a final assessment before locking kill criteria.
-        </p>
+        <h3>Cost and risk</h3>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div>
             <label>Cost of a wrong choice</label>
@@ -2030,16 +1993,15 @@ function TestScreen({
               }
             >
               <option value="">—</option>
-              <option value="TWO_WAY">two-way door (can reverse)</option>
-              <option value="ONE_WAY">one-way door (costly to reverse)</option>
+              <option value="TWO_WAY">yes, easily</option>
+              <option value="ONE_WAY">no, hard to undo</option>
               <option value="UNKNOWN">unknown</option>
             </select>
           </div>
         </div>
         {d.brief.errorCost.final === 'HIGH' && d.brief.reversibility.final === 'ONE_WAY' && (
           <div className="alert" style={{ marginTop: 8 }}>
-            High cost of error and hard-to-reverse step: independent re-run is recommended
-            (new chat / different model) plus human expert review. Section 11.
+            High cost and hard to undo: get an independent re-check and an expert review.
           </div>
         )}
       </div>
@@ -2048,13 +2010,6 @@ function TestScreen({
         <button
           className="primary"
           disabled={!allHypsCovered || !finalCostSet || !finalRevSet}
-          title={
-            !allHypsCovered
-              ? 'Lock a card with metric, deadline, thresholds, and forecast for each hypothesis'
-              : !finalCostSet || !finalRevSet
-                ? 'Set final cost of error and reversibility'
-                : undefined
-          }
           onClick={() => {
             // Only set review dates once if empty; do not recalculate on every continue
             const dates =
@@ -2069,6 +2024,9 @@ function TestScreen({
         >
           {en.continue} <ArrowRight size={16} />
         </button>
+        {(!allHypsCovered || !finalCostSet || !finalRevSet) && (
+          <span className="why-disabled">{!allHypsCovered ? 'Finish every card first.' : 'Answer both questions first.'}</span>
+        )}
       </div>
     </div>
   );
@@ -2525,26 +2483,19 @@ function DecideScreen({
 
   return (
     <div className="friendly-flow">
-      <ExpertStageIntro
-        step="4 · VERIFY"
-        title="Make the decision yours"
-        task="The analysis does not choose for you. Decide what you will do, postpone the decision, or choose one more fact to verify before committing."
-        next="your decision and its grounds will be carried into the final picture."
-      />
       <AssistantMessage>
-        <p style={{ marginTop: 0 }}>You have seen the main possibilities and the main ways they could fail. I will not choose for you.</p>
-        <p>Tell me, in plain language, what you are going to do now. It is also completely fine to postpone the decision or decide to gather one more fact first.</p>
+        <p style={{ marginTop: 0 }}>You have seen the options and the risks. The choice is yours.</p>
         <AutoTextarea
           value={hd?.whatIDecided || ''}
           onChange={(e) => setHd({ whatIDecided: e.target.value })}
-          placeholder="What are you going to do now?"
+          placeholder="What will you do now? You may also postpone."
           rows={4}
           style={{ width: '100%' }}
         />
         <AutoTextarea
           value={hd?.onWhichValues || ''}
           onChange={(e) => setHd({ onWhichValues: e.target.value })}
-          placeholder="Why does this make sense for you? (optional)"
+          placeholder="Why? (optional)"
           rows={3}
           style={{ width: '100%', marginTop: 10 }}
         />
@@ -2553,6 +2504,7 @@ function DecideScreen({
             const dates = d.brief.reviewDates?.length > 0 ? d.brief.reviewDates : computeReviewDates(new Date());
             update({ brief: { ...d.brief, reviewDates: dates }, step: 'SYNTHESIS', interactionState: 'SYNTHESIS_READY' });
           }}>Continue <ArrowRight size={16} /></button>
+          {!hd?.whatIDecided?.trim() && <span className="why-disabled">Write what you will do first.</span>}
         </div>
       </AssistantMessage>
     </div>
@@ -2573,12 +2525,6 @@ function SynthesisScreen({
 }) {
   return (
     <div className="panel">
-      <ExpertStageIntro
-        step="4 · VERIFY"
-        title="See the decision in one place"
-        task="This is a summary of what the process found: what is known, what remains uncertain, what could change the decision, and what deserves external checking."
-        next="after reviewing it, continue to Learn so the outcome can be recorded and used in a future cycle."
-      />
       <h2>Decision map</h2>
       <button
         className="primary"
@@ -2705,12 +2651,6 @@ function LearnScreen({
 
   return (
     <div className="panel">
-      <ExpertStageIntro
-        step="5 · LEARN"
-        title="Record what happened"
-        task="Later, compare your forecast with the real result, record what changed your mind, and identify whether the gap came from data, assumptions, reasoning, execution, or chance."
-        next="you can start a new cycle later with the lessons from this one."
-      />
       <h2>Journal and learning</h2>
       <button className="ghost" onClick={addEntry}>
         <Plus size={14} /> Journal entry

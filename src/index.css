@@ -771,3 +771,16 @@ body {
 .expert-history{min-width:0;max-width:100%}
 .expert-history>summary{min-width:0}
 .xn-bar .xn-seg,.xn-bar .xn-seg:disabled,.xn-bar .xn-seg:hover{background:none;box-shadow:none;opacity:1}
+
+/* P61 — Expert screens: content starts at the top, one width, visible fields, step title. */
+.layout>.content{margin:0 auto;align-self:start}
+.friendly-flow{max-width:none}
+.expert-open-dialogue .conversation-shell{max-width:none;padding-top:0}
+.xn-title{margin:0 0 14px}
+.xn-title h1{font-size:22px;line-height:1.25;margin:0 0 4px;font-weight:600;color:#eaf3fd}
+.xn-title p{margin:0;font-size:14px;color:#8da4ba}
+.why-disabled{margin-left:12px;font-size:12px;color:#d9b86c}
+.auto-input:not(.story-input):not(.conversation-input):not(.open-question-input){width:100%;background:#07121e;border:1px solid #3b5872;border-radius:9px;padding:10px 12px;color:#dbe8f5;outline:none;box-shadow:inset 0 0 0 1px #0b1724}
+.expert-open-dialogue button{white-space:nowrap;flex-shrink:0}
+.expert-result-card>div>p:first-child{margin:0 0 10px}
+.xn-bar .xn-seg,.xn-bar .xn-seg:disabled,.xn-bar .xn-seg:hover{background:transparent!important;border:0!important;box-shadow:none!important}

@@ -458,6 +458,7 @@ export function FilesPanel({
           )}
           <input ref={input} type="file" hidden multiple accept={ACCEPT_FILES + ',.zip,.tar,.tar.gz,.tgz,application/zip,application/x-tar'} onChange={(e) => void pickDevice(e.target.files)} />
         </div>
+        {(history.length > 0 || !!buildFullReview) && (
         <div className="files-menu-wrap">
           <button
             type="button"
@@ -497,6 +498,7 @@ export function FilesPanel({
             </div>
           )}
         </div>
+        )}
       </div>
       {!hideAdd && files.length > 0 && (
         <span className="attach-privacy-note" title="Files are sent with your message to help the analysis. The server does not keep them.">
