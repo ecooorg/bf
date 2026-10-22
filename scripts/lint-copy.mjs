@@ -46,7 +46,7 @@ const NON_TEXT_ATTR = /(className|data-testid|href|src|type|key|role|htmlFor|nam
 // Allowed existing violations: { 'path relative to src': { rule: count } }. Only ever decrease.
 const DEBT = {
   'App.tsx': { 'long': 4 },
-  'ProjectDelivery.tsx': { 'fingerprint': 2, 'gates': 2, 'hand-off': 6, 'long': 1, 'waive': 5 },
+  'ProjectDelivery.tsx': { 'long': 1 },
   'ProjectMode.tsx': { 'long': 2 },
   'ProjectNoviceWizard.tsx': { 'scaffold': 1 },
   'ProjectPathChooser.tsx': { 'long': 2 },
@@ -54,8 +54,8 @@ const DEBT = {
   'driveMirror.ts': { 'long': 1 },
   'en.ts': { 'long': 1 },
   'projectAppBuilder.ts': {},
-  'projectCapabilities.ts': { 'hand-off': 2 },
-  'projectDeliveryModel.ts': { 'waive': 1 },
+  'projectCapabilities.ts': {},
+  'projectDeliveryModel.ts': {},
 };
 
 export function visibleTexts(src) {
