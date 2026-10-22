@@ -784,3 +784,14 @@ body {
 .expert-open-dialogue button{white-space:nowrap;flex-shrink:0}
 .expert-result-card>div>p:first-child{margin:0 0 10px}
 .xn-bar .xn-seg,.xn-bar .xn-seg:disabled,.xn-bar .xn-seg:hover{background:transparent!important;border:0!important;box-shadow:none!important}
+
+/* P62: keep the project list available beside the active workspace. */
+.project-workspace-layout.is-open { grid-template-columns: minmax(220px, 0.72fr) minmax(0, 2fr) !important; }
+.project-list-panel, .project-detail-panel { min-width: 0; }
+.project-list-panel ul { padding-left: 0 !important; list-style: none; }
+.project-list-panel li { align-items: stretch; }
+.project-detail-panel textarea, .project-detail-panel input { max-width: 100%; }
+@media (max-width: 760px) {
+  .project-workspace-layout.is-open { grid-template-columns: minmax(0, 1fr) !important; }
+  .project-list-panel { border-bottom: 1px solid #25405e; padding-bottom: 12px; }
+}
