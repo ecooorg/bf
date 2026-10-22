@@ -1,3 +1,11 @@
+## P69 — Plan and Results hierarchy (2026-10-22)
+
+- Results: **Run analysis** is the primary action; **Create a small program** moved under optional details; last-run token/model stats under «Last run details».
+- Plan: **Create a simple plan**, **Approve**, **Start task**, and **Mark as passed** use primary styling; **Open in Code package** is secondary.
+- Files: removed duplicate «Files» heading; **Model request history** collapsed by default.
+- Open project title is the project name (no second «Project workspace» heading).
+- Validation: `npm run lint:copy` PASS. No API or product-logic change.
+
 ## P68 — Code package copy and primary actions (2026-10-22)
 
 - User-facing **hand-off / waive / gates / fingerprint** removed from Code package UI and related labels (coding task, Skip check, Skipped by you, Advanced check details, Work in your tool).
