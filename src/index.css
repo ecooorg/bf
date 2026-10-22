@@ -807,7 +807,7 @@ body {
 .simple-files-details[open]{padding-bottom:14px}
 @media(max-width:900px){
   .header-actions{display:flex !important;flex-wrap:wrap;justify-content:flex-end;gap:5px;width:100%}
-  .header-actions>.ghost,.header-actions .hdr-more-btn,.header-actions .mode-btn{min-height:38px;min-width:0;padding:7px 8px !important;gap:5px;overflow:visible;white-space:nowrap !important}
+  .header-actions>.ghost,.header-actions .hdr-more-btn,.header-actions .mode-btn{min-height:44px;min-width:0;padding:7px 8px !important;gap:5px;overflow:visible;white-space:nowrap !important}
   .header-actions .lbl{display:inline !important;max-width:none;overflow:visible;text-overflow:clip;white-space:nowrap;font-size:12px}
   .header-actions .hdr-more-btn .lbl{display:inline !important}
   .header-actions .hdr-more-wrap{position:relative;flex:0 0 auto}
