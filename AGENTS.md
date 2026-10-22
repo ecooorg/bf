@@ -10,13 +10,13 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P59 — Expert screen: earlier conversation collapsed, one step list (bottom line on narrow screens), one files block |
+| Last patch | P60 — interface-copy rules: shared vocabulary, copy lint (jargon and length), screen rules in RULES §9 |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
 | Modes | Simple (unchanged), Expert (layout reworked in P59: `src/ExpertNav.tsx`, `src/expertNav.ts`, `src/expertHistory.ts`); Project (`POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
-| Next | Owner decides; open items live in `docs/12-Documentation-Migration-and-Open-Decisions.md` |
+| Next | P61 Expert screens, P62 Project screens, P63 Simple empty screen, phone header and guide; each lowers the copy-lint allowances. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
 | Last full `npm run check` | Record here: command, date, result, or "not run" with the reason |
 
 Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.
@@ -151,6 +151,21 @@ Goal: fewest tokens, time and tool calls that still give a correct, tested, safe
 
 Silence is never consent in Tiers 2 and 3.
 
-## 9. Changing this file
+## 9. Screens and interface text
+
+The interface is for a person who has never seen the system. These rules apply to every screen in Simple, Expert and Project.
+
+- **One screen, one job.** A title says what to do now. One primary action. Everything else is secondary and visually quieter.
+- **Few words.** A hint is at most 12 words. Anything longer goes behind a "?" control, at most 25 words. `scripts/lint-copy.mjs` fails visible text over 24 words.
+- **No internals.** Never show names of internal mechanisms, data fields, versions or file formats (the list is in `scripts/lint-copy.mjs`). Say what the person gets or must do, not how the system works.
+- **One name per thing.** Names of loops are in `src/uiTerms.ts`, names of steps are `STAGES[].label` in `src/decision.ts`. Do not invent a second name; do not show the internal ids.
+- **No control without a job.** Do not show Attach or Download when there is nothing to attach or save. A disabled main button says why in at most 8 words next to it.
+- **Never point at what is not on the screen** ("under the message box" when there is no message box).
+- **Say it once.** The same explanation appears in one place only.
+- **Fields look like fields.** Every input has a visible border or background and a visible label.
+- **Debt only goes down.** The allowances in `scripts/lint-copy.mjs` record old violations. Never raise one; fix the text. When you fix a text, lower the allowance.
+- **Look before you ship.** For any UI change open the screen at 1200 px and at 390 px width and check: no horizontal scroll, nothing cut off, every button has a visible label.
+
+## 10. Changing this file
 
 Edit only the STATE zone in a normal patch. A change to RULES is a policy change and requires owner review in the same patch.

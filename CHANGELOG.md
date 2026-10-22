@@ -3,6 +3,14 @@
 - Retired duplicate `CHANGELOG_AGENT_BEHAVIOR.md`. Agent and product history: **only** this file (`CHANGELOG.md`).
 - Operator deploy: `docs/DEPLOY.md` only (no root `DEPLOY_RAILWAY.md`).
 
+## P60 — Interface-copy rules (2026-10-21)
+
+- `src/uiTerms.ts`: one vocabulary for the five loops (Understand, Explore, Challenge, Check, Learn). The Expert navigation now shows these names instead of the internal ids (EXPAND, ATTACK, VERIFY), matching the formula text.
+- `scripts/lint-copy.mjs`: besides the legacy phrases it now fails visible text that contains internal jargon (kill criteria, locked card, fingerprint, waive, hand-off, gates, scaffold, passport, developer data, raw JSON, model_patch) or is longer than 24 words. Existing violations are recorded per file as allowances that may only go down; P61–P63 remove them.
+- `AGENTS.md` RULES: new §9 "Screens and interface text" (title and one action, hints up to 12 words, no internals, one name per thing, no control without a job, never point at what is not on screen, visible fields, check at 1200 and 390 px). Old §9 is now §10.
+- Tests in `tests/core.test.mjs`: vocabulary equals the formula text and the navigation; the copy lint passes plain text and fails jargon, long text and legacy phrases.
+- No screen layout change besides the loop names in the Expert navigation.
+
 ## P59 — Expert screen: one history, one step list, one files block (2026-10-21)
 
 - Expert: the conversation that existed before the method steps is one collapsed line («Earlier conversation» + the first question). Only messages written after that appear in the open dialogue at the bottom; the question and the answer are no longer shown three times.
