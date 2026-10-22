@@ -1,6 +1,6 @@
 # 1. Product and System Specification
 
-**Status:** normative description of the v55 source snapshot; implementation-derived, with open gaps called out.
+**Status:** normative description of the source snapshot; implementation-derived, with open gaps called out.
 
 ## 1.1 Product definition
 
