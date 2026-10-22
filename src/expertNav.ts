@@ -1,6 +1,7 @@
 // Navigation model for the Expert method: five loops, eight detailed steps, one source of truth.
 // Used by the side list (wide screens) and the one-line bar (narrow screens).
 import { LOOPS, STAGES, type Step } from './decision.ts';
+import { LOOP_NAME } from './uiTerms.ts';
 
 export type NavState = 'done' | 'current' | 'next';
 export interface NavStep { id: Step; label: string; state: NavState; reachable: boolean }
@@ -30,7 +31,7 @@ export function buildExpertNav(step: Step): ExpertNav {
     });
     return {
       id: l.id,
-      label: l.label,
+      label: LOOP_NAME[l.id] ?? l.label,
       state: current ? 'current' : done ? 'done' : 'next',
       reachable: idx(l.steps[0] as Step) <= si,
       target: l.steps[0] as Step,
