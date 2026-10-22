@@ -1,3 +1,9 @@
+## P65 — Header tap targets ≥44px on mobile/tablet (2026-10-22)
+
+- Raised header action `min-height` from 38px to 44px under `@media (max-width: 900px)` so Mode, Drive, History and More meet the 44px tap-area rule in `tests/ui-check.mjs`.
+- Fixes CI `test:ui` failures at 360, 414 and 768 px viewports (height was 38px).
+- Validation: CSS-only change. Browser/`npm run test:ui` not re-run here (Playwright chromium deps not installed in this environment).
+
 ## P64 — Restore Project scope copy and remove administrator wording (2026-10-22)
 
 - Restored the P53 Project scope sentence inside the existing collapsed capability details; shortened it to stay within the interface-copy limit.
