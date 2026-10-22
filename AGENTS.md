@@ -10,14 +10,14 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P65 — Header tap targets ≥44px on mobile/tablet (CI ui-check) |
+| Last patch | P66 — Cross-mode UI audit (Simple / Expert / Project); findings in `docs/18-UI-Cross-Mode-Audit.md` |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
 | Modes | Simple (P63 empty state and guide), Expert (P61 layout; P63 shared header/guide), Project (P62 landing/workspace cleanup; `POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
-| Next | P66: cross-mode audit for duplicate copy/actions, unclear labels, irrelevant controls and inconsistent states. P67+: fix only confirmed defects in small patches, preserving product logic. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
-| Last full `npm run check` | 2026-10-22 — BLOCKED at typecheck: `vite/client` type definitions unavailable; `npm ci` timed out in this environment. UI fix not re-run in this environment (Playwright deps). |
+| Next | P67: Project labels (Delivery, Passport notices, Advanced/Data) and hide ids/hashes on default lists. P68: Delivery copy (hand-off / waive / gates) + one primary per step. P69+: Plan/Results hierarchy, Simple banner, shared empty/error patterns. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
+| Last full `npm run check` | 2026-10-22 — BLOCKED at typecheck: `vite/client` type definitions unavailable; `npm ci` timed out in this environment. P66 is docs-only (no UI runtime change). |
 
 Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.
 
@@ -61,6 +61,7 @@ To find a module, search by name or by `grep`; do not rely on a hand-written fil
 | `docs/15-Prompt-Source-Snapshot.md` | Prompt snapshot (large; read only when working on prompts) |
 | `docs/16-Project-Mode-App-Builder.md` | Project Mode app builder |
 | `docs/17-App-Builder-IR-Pipeline.md` | IR pipeline |
+| `docs/18-UI-Cross-Mode-Audit.md` | Cross-mode UI audit (P66); defect list for P67+ |
 | `CHANGELOG.md` | History. Newest entry on top. Read only the top entry |
 
 Do not read everything. Read this file, the files the task names, and the files you will change.

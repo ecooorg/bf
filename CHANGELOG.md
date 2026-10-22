@@ -1,3 +1,10 @@
+## P66 — Cross-mode UI audit (2026-10-22)
+
+- Added `docs/18-UI-Cross-Mode-Audit.md`: confirmed defects across Simple, Expert and Project (labels, competing actions, controls without a job, inconsistent states), with priorities and source evidence.
+- No application code or product logic changed.
+- Next fix order recorded in AGENTS STATE: P67 labels (Delivery / Passport / Advanced), P68 Delivery copy, P69+ hierarchy and shared states.
+- Validation: docs-only. `npm run check:docs` not re-run here (no new broken links expected; path registered in AGENTS.md).
+
 ## P65 — Header tap targets ≥44px on mobile/tablet (2026-10-22)
 
 - Raised header action `min-height` from 38px to 44px under `@media (max-width: 900px)` so Mode, Drive, History and More meet the 44px tap-area rule in `tests/ui-check.mjs`.
