@@ -26,7 +26,7 @@ export const GATE_STATUS_LABELS: Record<GateStatus, string> = {
   BLOCKED: 'Blocked',
   NOT_RUN: 'Not run',
   REAL_ONLY: 'Needs a check in a real environment',
-  WAIVED: 'Waived by you',
+  WAIVED: 'Skipped by you',
 };
 
 /** Gates a person may approve or reject. Everything else is set by CI or derived by the server (TZ 12.2). */
@@ -76,7 +76,7 @@ export interface CodeTaskView {
 export type DeliveryStep = 'package' | 'handoff' | 'result' | 'checks' | 'review' | 'decision' | 'repair' | 'closed';
 export const STEP_ORDER: readonly DeliveryStep[] = ['package', 'handoff', 'result', 'checks', 'review', 'decision', 'repair'];
 export const STEP_LABELS: Record<DeliveryStep, string> = {
-  package: 'Package', handoff: 'Hand-off', result: 'Result', checks: 'Checks', review: 'Review', decision: 'Decision', repair: 'Repair', closed: 'Closed',
+  package: 'Package', handoff: 'Your tool', result: 'Result', checks: 'Checks', review: 'Review', decision: 'Decision', repair: 'Repair', closed: 'Closed',
 };
 
 export interface DeliveryAction {
@@ -189,7 +189,7 @@ export const stopReasonLabel = (r: string): string => ({
   budget: 'the code budget is used up',
 } as Record<string, string>)[r] || r;
 
-/** Plain instructions for the hand-off step. */
+/** Plain instructions for the external-tool step. */
 export function handoffText(branch: string | null | undefined): string[] {
   const b = branch || 'the task branch';
   return [

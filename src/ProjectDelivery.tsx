@@ -27,6 +27,7 @@ async function call<T>(method: 'GET' | 'POST', url: string, body?: unknown): Pro
 const S: Record<string, React.CSSProperties> = {
   box: { margin: '12px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 },
   button: { minHeight: 44, padding: '10px 16px', border: '1px solid #3d7fc4', borderRadius: 8, background: '#0b2545', color: '#9fd8ff', cursor: 'pointer' },
+  primary: { minHeight: 44, padding: '10px 16px', border: '1px solid #4e83b5', borderRadius: 8, background: '#24517b', color: '#fff', cursor: 'pointer', fontWeight: 600 },
   danger: { minHeight: 44, padding: '10px 16px', border: '1px solid #a6584f', borderRadius: 8, background: '#2a1414', color: '#f1b3ac', cursor: 'pointer' },
   input: { width: '100%', boxSizing: 'border-box', minHeight: 44, padding: 10, border: '1px solid #3d7fc4', borderRadius: 8, background: '#07111f', color: '#e6edf7', fontSize: 16 },
   muted: { fontSize: 13, color: '#8fa6c2' },
@@ -116,7 +117,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
     const p = await call<{ taskId: string; codeTask: CodeTaskView }>('POST', `${base}/code/manual`, body);
     setForm({ goal: '', constraints: '', acceptance: '' }); newKey(); setCreating(false);
     if (p.data?.codeTask) setSelectedId(p.data.codeTask.id);
-    return 'Hand-off task created. Download the package and approve it when you are ready.';
+    return 'Coding task created. Download the package and approve it when you are ready.';
   });
   const downloadPackage = (c: CodeTaskView) => act(async () => {
     const p = await call<{ filename: string; text: string }>('GET', `${root(c)}/package`);
@@ -166,7 +167,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
   const waiveGate = (c: CodeTaskView, gate: string, reason: string) => act(async () => {
     if (!gates?.commit) throw new Error(NO_COMMIT_NOTE(c.expectedBranch));
     await call('POST', `${base}/tasks/${encodeURIComponent(c.taskId)}/gates/${gate}/waive`, { commit_sha: gates.commit, reason }); await loadGates(c);
-    return 'Waived. Your reason is recorded.';
+    return 'Check skipped. Your reason is recorded.';
   });
   const copy = async (text: string) => { try { await navigator.clipboard?.writeText(text); setNotice('Copied.'); } catch { setNotice('Could not copy. Select the text and copy it by hand.'); } };
 
@@ -180,34 +181,34 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
     <div style={{ ...S.box, background: '#0b2545' }}>
       <strong style={{ fontSize: 13 }}>How code package works (4 steps)</strong>
       <ol style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 13, color: '#c5d4e8', lineHeight: 1.55 }}>
-        <li><strong>Create</strong> a hand-off task and download PACKAGE.md (the brief for your external tool).</li>
+        <li><strong>Create</strong> a coding task and download PACKAGE.md (the brief for your external tool).</li>
         <li><strong>Work outside</strong> BiForge (your editor, agent, or CI). The server does not write your code for you here.</li>
         <li><strong>Refresh from GitHub</strong> (read-only) so BiForge can see the pull request and checks.</li>
         <li><strong>You decide</strong>: accept, request repair, or reject. Merge only in GitHub by you — never by BiForge.</li>
       </ol>
-      <p style={{ ...S.muted, marginBottom: 0, marginTop: 8 }}>Gates, fingerprints, and waive live under <em>Advanced details</em> on a task.</p>
+      <p style={{ ...S.muted, marginBottom: 0, marginTop: 8 }}>Detailed check controls are under <em>Advanced check details</em> on a task.</p>
     </div>
     <div role="status" aria-live="polite" style={{ minHeight: 20, fontSize: 13, color: '#9fd8ff' }}>{notice}</div>
     {error && <div role="alert" style={{ ...S.box, borderColor: '#a6584f', color: '#f1b3ac' }}>{error}</div>}
 
     {!selected && <>
       <div style={S.row}>
-        <button type="button" style={{ ...S.button, ...dim(!newDisabledReason) }} disabled={Boolean(newDisabledReason) || busy} onClick={() => { newKey(); setCreating((v) => !v); }}>New hand-off task</button>
+        <button type="button" style={{ ...S.primary, ...dim(!newDisabledReason) }} disabled={Boolean(newDisabledReason) || busy} onClick={() => { newKey(); setCreating((v) => !v); }}>New coding task</button>
         {newDisabledReason && <span style={{ ...S.muted, color: '#e6c07a' }}>{newDisabledReason}</span>}
       </div>
       {creating && <div style={S.box}>
         <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>What should be done
-          <textarea aria-label="Goal of the hand-off task" value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} rows={3} maxLength={4000} style={{ ...S.input, minHeight: 0 }} /></label>
+          <textarea aria-label="Goal of the coding task" value={form.goal} onChange={(e) => setForm({ ...form, goal: e.target.value })} rows={3} maxLength={4000} style={{ ...S.input, minHeight: 0 }} /></label>
         <label style={{ display: 'grid', gap: 4, fontSize: 13, marginTop: 8 }}>Limits and constraints (optional)
           <textarea aria-label="Constraints" value={form.constraints} onChange={(e) => setForm({ ...form, constraints: e.target.value })} rows={2} maxLength={4000} style={{ ...S.input, minHeight: 0 }} /></label>
         <label style={{ display: 'grid', gap: 4, fontSize: 13, marginTop: 8 }}>How you will know it is done (optional)
           <textarea aria-label="Acceptance criteria" value={form.acceptance} onChange={(e) => setForm({ ...form, acceptance: e.target.value })} rows={2} maxLength={4000} style={{ ...S.input, minHeight: 0 }} /></label>
         <div style={{ ...S.row, marginTop: 8 }}>
-          <button type="button" style={{ ...S.button, ...dim(Boolean(form.goal.trim()) && !busy) }} disabled={!form.goal.trim() || busy} onClick={() => void createTask()}>Create task</button>
+          <button type="button" style={{ ...S.primary, ...dim(Boolean(form.goal.trim()) && !busy) }} disabled={!form.goal.trim() || busy} onClick={() => void createTask()}>Create task</button>
           <button type="button" style={S.button} disabled={busy} onClick={() => setCreating(false)}>Back</button>
         </div>
       </div>}
-      {loaded && tasks.length === 0 && !creating && <p style={S.muted}>No hand-off tasks yet.</p>}
+      {loaded && tasks.length === 0 && !creating && <p style={S.muted}>No coding tasks yet.</p>}
       <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
         {tasks.map((c) => <li key={c.id} style={{ ...S.box, margin: '8px 0' }}>
           <strong>{c.taskTitle || c.taskId}</strong><br />
@@ -228,15 +229,17 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
 
       <div style={S.box}>
         <strong>1 · Package</strong>
-        <p style={S.muted}>Fingerprint {selected.packageHash.slice(0, 12)} · {selected.packageApprovedAt ? 'approved' : 'not approved yet'}</p>
+        <p style={S.muted}>{selected.packageApprovedAt ? 'Package approved' : 'Package not approved yet'}</p>
         <div style={S.row}>
-          <button type="button" style={S.button} disabled={busy} onClick={() => void downloadPackage(selected)}>Download PACKAGE.md</button>
-          {action.canApprovePackage && <button type="button" style={S.button} disabled={busy} onClick={() => void approvePackage(selected)}>Approve package</button>}
+          {action.canApprovePackage
+            ? <button type="button" style={S.primary} disabled={busy} onClick={() => void approvePackage(selected)}>Approve package</button>
+            : <button type="button" style={S.primary} disabled={busy} onClick={() => void downloadPackage(selected)}>Download PACKAGE.md</button>}
+          {action.canApprovePackage && <button type="button" style={S.button} disabled={busy} onClick={() => void downloadPackage(selected)}>Download PACKAGE.md</button>}
         </div>
       </div>
 
       {(action.step === 'handoff' || action.step === 'result') && <div style={S.box}>
-        <strong>2 · Hand-off</strong>
+        <strong>2 · Work in your tool</strong>
         <ol style={{ fontSize: 14, paddingLeft: 20 }}>{handoffText(selected.expectedBranch).map((t) => <li key={t}>{t}</li>)}</ol>
         {selected.expectedBranch && <div style={S.row}><code style={{ wordBreak: 'break-all' }}>{selected.expectedBranch}</code><button type="button" style={S.button} onClick={() => void copy(selected.expectedBranch!)}>Copy branch name</button></div>}
       </div>}
@@ -252,7 +255,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
             ? <textarea aria-label="Diff" value={diffText} onChange={(e) => setDiffText(e.target.value)} rows={6} style={{ ...S.input, minHeight: 0, fontFamily: 'monospace', fontSize: 13 }} />
             : <input aria-label={resultKind === 'pr' ? 'Pull request number' : 'Branch name'} inputMode={resultKind === 'pr' ? 'numeric' : 'text'} value={resultValue} onChange={(e) => setResultValue(e.target.value)} placeholder={resultKind === 'pr' ? 'e.g. 12' : selected.expectedBranch ?? 'biforge/…'} style={S.input} />}
           <div style={{ ...S.row, marginTop: 8 }}>
-            <button type="button" style={S.button} disabled={busy} onClick={() => void submitResult(selected)}>Send result</button>
+            <button type="button" style={S.primary} disabled={busy} onClick={() => void submitResult(selected)}>Send result</button>
             {action.showCommitPackage && <button type="button" style={S.button} disabled={busy} onClick={() => void commitPackage(selected)}>Commit package to the branch</button>}
           </div>
         </>}
@@ -263,10 +266,10 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
         {selected.prUrl && <p style={S.muted}>Pull request: <a href={selected.prUrl} target="_blank" rel="noreferrer" style={{ color: '#78baff' }}>#{selected.prNumber}</a></p>}
         <div style={S.row}>
           {gates?.commit && <span style={S.muted}>Commit <code>{shortSha(gates.commit)}</code> <button type="button" style={{ ...S.button, minHeight: 32, padding: '2px 10px' }} onClick={() => void copy(gates.commit!)}>Copy</button></span>}
-          {action.canRefresh && <button type="button" style={S.button} disabled={busy} onClick={() => void refreshFromGithub(selected)}>Refresh from GitHub</button>}
+          {action.canRefresh && <button type="button" style={S.primary} disabled={busy} onClick={() => void refreshFromGithub(selected)}>Refresh from GitHub</button>}
         </div>
         <details style={{ marginTop: 8 }}>
-          <summary style={{ cursor: 'pointer', fontSize: 13, color: '#9fd8ff', minHeight: 36 }}>Advanced details — gates, fingerprints, waive</summary>
+          <summary style={{ cursor: 'pointer', fontSize: 13, color: '#9fd8ff', minHeight: 36 }}>Advanced check details</summary>
           <div style={{ marginTop: 8 }}>
         {gatesError && <p role="alert" style={{ color: '#f1b3ac', fontSize: 13 }}>{gatesError}</p>}
         {!gatesError && rows.length === 0 && <p style={S.muted}>{NO_COMMIT_NOTE(selected.expectedBranch)}</p>}
@@ -278,9 +281,9 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
             <div style={{ ...S.row, marginTop: 4 }}>
               {r.canApprove && <button type="button" style={S.button} disabled={busy} onClick={() => void approveGate(selected, r.gate, 'PASS')}>Approve</button>}
               {r.canApprove && <button type="button" style={S.button} disabled={busy} onClick={() => void approveGate(selected, r.gate, 'FAIL')}>Not approved</button>}
-              {r.canWaive && <button type="button" style={S.button} disabled={busy} onClick={() => setPending({ kind: 'waive', gate: r.gate })}>Waive…</button>}
+              {r.canWaive && <button type="button" style={S.button} disabled={busy} onClick={() => setPending({ kind: 'waive', gate: r.gate })}>Skip…</button>}
             </div>
-            {pending?.kind === 'waive' && pending.gate === r.gate && <Confirm title={`Waive «${r.label}»`} text="You accept this check without it passing, at this commit only. Your reason is recorded." needReason reasonLabel="Why do you waive this check?" confirmLabel="Waive" danger busy={busy} onConfirm={(reason) => void waiveGate(selected, r.gate, reason)} onCancel={() => setPending(null)} />}
+            {pending?.kind === 'waive' && pending.gate === r.gate && <Confirm title={`Skip «${r.label}»`} text="You accept this check without it passing, at this commit only. Your reason is recorded." needReason reasonLabel="Why do you skip this check?" confirmLabel="Skip check" danger busy={busy} onConfirm={(reason) => void waiveGate(selected, r.gate, reason)} onCancel={() => setPending(null)} />}
           </li>)}
         </ul>}
         {gates?.manifest && <p style={S.muted}>Release summary: {gates.manifest.complete ? 'all checks settled at this commit' : 'not complete yet'}{gates.manifest.tools?.length ? ` · tools: ${gates.manifest.tools.join(', ')}` : ''}</p>}
@@ -298,7 +301,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
         </> : <p style={S.muted}>Run the review after the checks finish. It reads the checks and the delivery; it changes nothing.</p>}
         {action.canReview && <>
           <textarea aria-label="Notes for the review (optional)" placeholder="Notes for the review (optional)" value={reviewNotes} onChange={(e) => setReviewNotes(e.target.value)} rows={2} maxLength={2000} style={{ ...S.input, minHeight: 0 }} />
-          <div style={{ marginTop: 8 }}><button type="button" style={S.button} disabled={busy} onClick={() => void runReview(selected)}>Run review</button></div>
+          <div style={{ marginTop: 8 }}><button type="button" style={S.primary} disabled={busy} onClick={() => void runReview(selected)}>Run review</button></div>
         </>}
       </div>}
 
@@ -306,7 +309,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
         <strong>6 · Your decision</strong>
         {selected.decision ? <p>{selected.decision === 'accept' ? 'Accepted' : selected.decision === 'repair' ? 'Repair requested' : 'Rejected'}{selected.decisionReason ? ` — ${selected.decisionReason}` : ''}</p> : <p style={S.muted}>Nothing is decided for you. Accepting does not merge: you merge in GitHub yourself.</p>}
         {action.canDecide && <div style={S.row}>
-          <button type="button" style={S.button} disabled={busy} onClick={() => setPending({ kind: 'decide', decision: 'accept' })}>Accept</button>
+          <button type="button" style={S.primary} disabled={busy} onClick={() => setPending({ kind: 'decide', decision: 'accept' })}>Accept</button>
           <button type="button" style={S.button} disabled={busy} onClick={() => setPending({ kind: 'decide', decision: 'repair' })}>Ask for repair</button>
           <button type="button" style={S.danger} disabled={busy} onClick={() => setPending({ kind: 'decide', decision: 'reject' })}>Reject</button>
         </div>}
@@ -325,7 +328,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
             <option value="human">My decision</option><option value="ci">A failed check</option><option value="reviewer">A review finding</option></select></label>
         <label style={{ ...S.row, margin: '8px 0', fontSize: 14 }}><input type="checkbox" checked={repair.flaky} onChange={(e) => setRepair({ ...repair, flaky: e.target.checked })} />The failure looks random (restart the checks)</label>
         <textarea aria-label="Relevant lines from the failing log (optional)" placeholder="Relevant lines from the failing log (optional)" value={repair.log} onChange={(e) => setRepair({ ...repair, log: e.target.value })} rows={3} maxLength={2000} style={{ ...S.input, minHeight: 0, fontFamily: 'monospace', fontSize: 13 }} />
-        <div style={{ marginTop: 8 }}><button type="button" style={S.button} disabled={busy} onClick={() => void requestRepair(selected)}>Request repair</button></div>
+        <div style={{ marginTop: 8 }}><button type="button" style={S.primary} disabled={busy} onClick={() => void requestRepair(selected)}>Request repair</button></div>
         {repairOutcome && <p style={{ fontSize: 14 }}>{repairOutcome}</p>}
         {selected.repairStopReasons && selected.repairStopReasons.length > 0 && <p style={{ ...S.muted, color: '#e6c07a' }}>Stopped because {selected.repairStopReasons.map(stopReasonLabel).join('; ')}.</p>}
       </div>}

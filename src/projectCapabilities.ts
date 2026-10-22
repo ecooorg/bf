@@ -24,7 +24,7 @@ export function describeCapabilities(caps: Capabilities | null | undefined): Cap
     { label: 'Analysis', on: Boolean(caps.analysis), note: 'You confirm or reject every proposed change.' },
     { label: 'Plans and approvals', on: Boolean(caps.plans), note: 'Tasks run under your budgets.' },
     { label: 'Program as ZIP', on: Boolean(caps.programZip), note: caps.programZip ? 'Source is checked, never run on the server. Use Simple words or Create program.' : ZIP_OFF_HINT },
-    { label: 'Receive results from GitHub', on: Boolean(caps.manualDelivery?.githubRead), note: caps.manualDelivery?.githubRead ? 'Needed to read a pull request or checks of a hand-off task.' : 'GitHub is not connected, so results of hand-off tasks cannot be read.' },
+    { label: 'Receive results from GitHub', on: Boolean(caps.manualDelivery?.githubRead), note: caps.manualDelivery?.githubRead ? 'Needed to read a pull request or checks of a coding task.' : 'GitHub is not connected, so results of coding tasks cannot be read.' },
     { label: 'Writing to GitHub', on: Boolean(caps.githubWrite), note: caps.githubWrite ? 'Switched on by the owner.' : 'Off by design. BiForge only reads and never merges.' },
   ];
 }
