@@ -10,13 +10,13 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P63 — Simple empty screen, mobile header and guide |
+| Last patch | P64 — Restore Project scope sentence required by P53 regression test; remove administrator wording |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
 | Modes | Simple (P63 empty state and guide), Expert (P61 layout; P63 shared header/guide), Project (P62 landing/workspace cleanup; `POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
-| Next | Visual acceptance at 1200 px and 390 px across Simple, Expert and Project; patch only confirmed remaining defects. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
+| Next | P65: visual acceptance at 1200 px and 390 px across Simple, Expert and Project. P66: cross-mode audit for duplicate copy/actions, unclear labels, irrelevant controls and inconsistent states. P67+: fix only confirmed defects in small patches, preserving product logic. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
 | Last full `npm run check` | 2026-10-22 — BLOCKED at typecheck: `vite/client` type definitions unavailable; `npm ci` timed out in this environment. |
 
 Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.

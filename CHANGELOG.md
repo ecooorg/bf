@@ -1,3 +1,10 @@
+## P64 — Restore Project scope copy and remove administrator wording (2026-10-22)
+
+- Restored the P53 Project scope sentence inside the existing collapsed capability details; shortened it to stay within the interface-copy limit.
+- Removed “administrator” from user-facing unavailable-state and guide copy.
+- Reduced the `projectCapabilities.ts` long-copy allowance from one to zero.
+- Validation: `npm run lint:copy` PASS; `npm run check:docs` PASS. `npm run test:project` BLOCKED because the supplied `node_modules/tsx` package is empty. Full CI/browser acceptance not confirmed.
+
 ## P63 — Simple empty screen, mobile header and guide (2026-10-22)
 
 - Simple empty state now has one primary action; optional file controls are disclosed separately and no longer refer to a missing message box.
