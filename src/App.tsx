@@ -46,6 +46,8 @@ import { mirrorUserFile, setMirrorMode } from './driveMirror.ts';
 import { ModeMenu, START_MODE_KEY, type AppMode } from './ModeMenu.tsx';
 import { UserGuideModal } from './UserGuide.tsx';
 import { expertConversationFields } from './expertContext.ts';
+import { ExpertSidebar, ExpertBottomBar } from './ExpertNav.tsx';
+import { expertBaseline, questionLine } from './expertHistory.ts';
 import { briefSections, BRIEF_EMPTY_TEXT } from './briefView.ts';
 
 // --- API helper ---
@@ -543,6 +545,14 @@ export default function App() {
   const d = active;
   const si = stageIndex(d.step);
   const stageMeta = STAGES[si] || STAGES[0];
+  const goStep = (target: Step) => {
+    if (stageIndex(target) <= si) update({ step: target });
+  };
+  // Expert: the conversation that existed before the method steps is shown once, collapsed.
+  const methodStarted = expertMode && d.step !== 'TRIAGE' && d.step !== 'BRIEF';
+  const expertBase = methodStarted
+    ? expertBaseline(d.id, Array.isArray((d.modelSuggestions as any)?.conversation) ? (d.modelSuggestions as any).conversation.length : 0)
+    : 0;
 
   return (
     <div className="shell">
@@ -582,71 +592,24 @@ export default function App() {
         onUserGuide={() => setShowUserGuide(true)}
       />
       <div className={`layout ${expertMode ? '' : 'friendly-layout'}`}>
-        {expertMode && <aside className="sidebar method-sidebar">
-          <div className="brand">
-            <BrainCircuit size={14} /> Decision method · cycle {d.cycleCount}
-          </div>
-          <div className="method-loop-list">
-            {LOOPS.map((l, i) => {
-              const current = l.steps.includes(d.step);
-              const completed = l.steps.every((step) => stageIndex(step) < si);
-              return (
-                <div key={l.id} className={`method-loop ${current ? 'current' : ''} ${completed ? 'done' : ''}`}>
-                  <span className="method-loop-number">{completed ? '✓' : i + 1}</span>
-                  <div>
-                    <b>{l.label}</b>
-                    <small>{current ? 'You are here' : completed ? 'Completed' : 'Next'}</small>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="method-sidebar-help">
-            <b className="ui-label">How to use this</b>
-            <span>Work through the highlighted step, then use the chat below anytime to clarify or add facts. Stages guide you — they do not end the conversation.</span>
-          </div>
-          <div className="method-detail-stages">
-            <div className="method-detail-title">Detailed steps</div>
-            {STAGES.filter((s) => s.id !== 'TRIAGE').map((s, i) => {
-              const stageNo = i + 1;
-              const stageNoCurrent = d.step === s.id;
-              const stageDone = stageIndex(s.id) < si;
-              return (
-                <button
-                  key={s.id}
-                  className={`stage ${stageNoCurrent ? 'current' : ''} ${stageDone ? 'done' : ''}`}
-                  disabled={stageIndex(s.id) > si}
-                  onClick={() => {
-                    if (stageIndex(s.id) <= si) update({ step: s.id });
-                  }}
-                >
-                  <span>{stageDone ? '✓' : stageNo}</span>
-                  <div>
-                    <b>{s.label}</b>
-                    <small>{s.loop}</small>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-          <div className="sidebar-note">
-            {en.formula}
-            <br />
-            <br />
-            Your decision:{' '}
-            {d.decision ? 'recorded' : 'not yet'}
-          </div>
-        </aside>}
+        {expertMode && (
+          <ExpertSidebar
+            step={d.step}
+            onGo={goStep}
+            heading={<><BrainCircuit size={14} /> Decision method · cycle {d.cycleCount}</>}
+            footer={<>{en.formula}<br /><br />Your decision: {d.decision ? 'recorded' : 'not yet'}</>}
+          />
+        )}
 
-        <main className="content">
-          <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
-          <div className="files-panel-status" data-testid="mode-banner" style={{ marginBottom: 8 }}>
-            {expertMode
-              ? 'Mode: Expert method — guided steps plus open chat below for clarifications.'
-              : 'Mode: Simple chat — open conversation. Use the Mode control for a step-by-step decision review.'}
-          </div>
-          {expertMode && ((d.modelSuggestions as any)?.conversation?.length ?? 0) > 0 && (
-            <SharedConversationContext d={d} onDocumentEdit={reviseConversationDocument} />
+        <main className={`content${expertMode ? ' has-xn-bar' : ''}`}>
+          <WorkspacePanel hideHint={expertMode} disabled={busy} onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
+          {!expertMode && (
+            <div className="files-panel-status" data-testid="mode-banner" style={{ marginBottom: 8 }}>
+              Mode: Simple chat — open conversation. Use the Mode control for a step-by-step decision review.
+            </div>
+          )}
+          {methodStarted && expertBase > 0 && (
+            <SharedConversationContext d={d} upTo={expertBase} onDocumentEdit={reviseConversationDocument} />
           )}
 
           {error && (
@@ -694,10 +657,9 @@ export default function App() {
                 }} />}
                 {expertMode && d.step !== 'TRIAGE' && d.step !== 'BRIEF' && (
                   <div className="expert-open-dialogue" data-testid="expert-open-dialogue" style={{ marginTop: 20, paddingTop: 12, borderTop: '1px solid rgba(127,180,255,0.2)' }}>
-                    <div className="files-panel-status" style={{ marginBottom: 10 }}>
-                      <strong>Ask or clarify anytime</strong>
-                      {' '}— the steps above are a guide; this chat stays open for new facts, corrections, and questions.
-                    </div>
+                    <p className="expert-dialogue-title">
+                      <strong>Ask or clarify anytime</strong> — the steps are a guide; new facts and corrections are welcome.
+                    </p>
                     <ConversationScreen
                       d={d}
                       update={update}
@@ -705,6 +667,7 @@ export default function App() {
                       busy={busy}
                       onDocumentEdit={reviseConversationDocument}
                       onProposedChangeSet={setProposedWorkspaceChangeSet}
+                      startAt={expertBase}
                       alwaysShowComposer
                       expert
                     />
@@ -713,7 +676,7 @@ export default function App() {
               </>
             )}
           </ErrorBoundary>
-          {expertMode && d.step !== 'BRIEF' && (
+          {expertMode && d.step === 'TRIAGE' && (
             <FilesPanel
               files={Array.isArray(d.files) ? d.files : []}
               onFilesChange={(f) => update({ files: f })}
@@ -728,6 +691,7 @@ export default function App() {
           )}
         </main>
       </div>
+      {expertMode && <ExpertBottomBar step={d.step} onGo={goStep} />}
 
       {showProgramFiles && (
         <ProgramFilesManager open={showProgramFiles} onClose={() => setShowProgramFiles(false)} />
@@ -1250,52 +1214,29 @@ function BriefScreen({
 }
 
 // --- SHARED CONVERSATION CONTEXT ---
-// The conversation is a single shared state. Simple mode and Expert mode
-// display the same messages; Expert mode simply adds the structured method
-// below them. No new AI request is made by this component.
-function SharedConversationContext({ d, onDocumentEdit }: { d: Decision; onDocumentEdit?: (index: number, next: DocumentSpec) => void }) {
-  const history: any[] = Array.isArray(d.modelSuggestions?.conversation)
-    ? d.modelSuggestions!.conversation!
-    : [];
+// The conversation is a single shared state. In Expert the part that existed before the method
+// steps is shown once, collapsed, here; later messages appear in the open dialogue at the bottom.
+// No new AI request is made by this component.
+function SharedConversationContext({ d, upTo, onDocumentEdit }: { d: Decision; upTo: number; onDocumentEdit?: (index: number, next: DocumentSpec) => void }) {
+  const full: any[] = Array.isArray(d.modelSuggestions?.conversation) ? d.modelSuggestions!.conversation! : [];
+  const history = full.slice(0, upTo);
   if (!history.length) return null;
-
-  const firstUser = history.find((m: any) => m.role === 'user');
-  const firstAssistant = history.find((m: any) => m.role === 'assistant');
-  const compact = (value: unknown) => String(value || '').replace(/\s+/g, ' ').trim();
-  const previewText = (value: unknown, max = 360) => {
-    const text = compact(value);
-    if (text.length <= max) return text;
-    return `${text.slice(0, max).replace(/\s+\S*$/, '')}…`;
-  };
-  const userPreview = previewText(firstUser?.content);
-  const assistantPreview = previewText(firstAssistant?.content);
-
+  const line = questionLine(history);
   return (
-    <div className="conversation-shell expert-shared-conversation">
-      <div className="method-transition-card" style={{ marginBottom: 16 }}>
-        <div style={{ marginTop: 0 }}>
-          <div className="conversation-message user" style={{ marginBottom: 8 }}>
-            <div className="conversation-message-text" translate="no" dir="auto" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>{userPreview}</div>
+    <details className="expert-history" data-testid="expert-history">
+      <summary>
+        <span className="expert-history-label">Earlier conversation</span>
+        {line && <span className="expert-history-q" translate="no" dir="auto">{line}</span>}
+      </summary>
+      <div className="expert-history-body conversation-thread">
+        {history.map((m: any, i: number) => (
+          <div key={i} className={`conversation-message ${m.role === 'user' ? 'user' : 'assistant'}`}>
+            <div className="conversation-message-text" translate="no" dir="auto">{m.content}</div>
+            <MessageExtras message={m} onDocumentEdit={onDocumentEdit ? (next) => onDocumentEdit(i, next) : undefined} />
           </div>
-          {assistantPreview && (
-            <div className="conversation-message assistant">
-              <div className="conversation-message-text" translate="no" dir="auto" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>{assistantPreview}</div>
-            </div>
-          )}
-        </div>
-        <details className="method-story-details" style={{ marginTop: 10 }}>
-          <summary>Read the full conversation</summary>
-          <div className="conversation-thread" style={{ marginTop: 10 }}>
-            {history.map((m: any, i: number) => (
-              <div key={i} className={`conversation-message ${m.role === 'user' ? 'user' : 'assistant'}`}>
-                <div className="conversation-message-text" translate="no" dir="auto">{m.content}</div>
-                <MessageExtras message={m} onDocumentEdit={onDocumentEdit ? (next) => onDocumentEdit(i, next) : undefined} />
-              </div>
-            ))}
-          </div>
-        </details>
+        ))}
       </div>
-    </div>
+    </details>
   );
 }
 
@@ -1309,8 +1250,11 @@ function ConversationScreen({
   onProposedChangeSet,
   alwaysShowComposer,
   expert,
+  startAt = 0,
 }: {
   expert?: boolean;
+  /** Expert: first history index to show; earlier messages live in the collapsed history above. */
+  startAt?: number;
   d: Decision;
   update: (p: Partial<Decision> | ((x: Decision) => Decision)) => void;
   runApi: (path: string, body: unknown, onOk: (data: any, meta: any) => void) => void;
@@ -1449,7 +1393,7 @@ function ConversationScreen({
     >
       {dragOver && <div className="drag-overlay" aria-hidden>Drop files to attach</div>}
       <div className="conversation-thread">
-        {history.map((m: any, i: number) => (
+        {history.map((m: any, i: number) => i < startAt ? null : (
           <div key={i} className={`conversation-message ${m.role === 'user' ? 'user' : 'assistant'}`}>
             <div className="conversation-message-text" translate="no" dir="auto">{m.content}</div>
             <MessageExtras message={m} onDocumentEdit={onDocumentEdit ? (next) => onDocumentEdit(i, next) : undefined} />
@@ -1468,7 +1412,7 @@ function ConversationScreen({
         {busy && <div className="conversation-message assistant"><div className="conversation-message-text conversation-thinking">Looking at your specific situation…</div></div>}
       </div>
       {distress && <SafetyBox />}
-      {nextStep && !busy && !ms.conversationCrisis && (
+      {nextStep && !busy && !ms.conversationCrisis && history.length > startAt && (
         <div className="conversation-note assistant-surface">
           <span className="conversation-note-label">Next useful step: </span>
           <span translate="no" dir="auto">{nextStep}</span>
@@ -1479,12 +1423,13 @@ function ConversationScreen({
         files={files}
         onFilesChange={setFiles}
         disabled={busy}
-        expertMode={false}
+        expertMode={!!expert}
         title={d.title}
         history={history}
         canCalendar={Array.isArray(d.brief?.reviewDates) && d.brief.reviewDates.length > 0}
         onAgentSummary={() => send(input.trim() ? input : DOCUMENT_REQUEST, 'DOCUMENT')}
         onCalendar={() => icsDownload(d)}
+        buildFullReview={expert ? () => decisionToDocument(d) : undefined}
       />
       {(alwaysShowComposer || history.some((m: any) => m.role === 'assistant')) && !waitingForAssistant && !busy && (
         <div className="conversation-composer">

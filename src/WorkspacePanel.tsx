@@ -32,6 +32,8 @@ export type WorkspaceUiState = {
 
 type Props = {
   disabled?: boolean;
+  /** Expert: hide the static «how to attach» hint (the Attach button sits next to the message box). */
+  hideHint?: boolean;
   /** Injected store for tests; default IndexedDB in browser. */
   storeFactory?: () => WorkspaceStore;
   onStateChange?: (state: WorkspaceUiState | null) => void;
@@ -59,7 +61,7 @@ export function isFolderPickerSupported(): boolean {
 
 export const PICK_FOLDER_EVENT = 'be:pick-folder';
 
-export function WorkspacePanel({ disabled, storeFactory, onStateChange, onAttachmentsChange, proposedChangeSet, onChangeSetSettled }: Props) {
+export function WorkspacePanel({ disabled, hideHint, storeFactory, onStateChange, onAttachmentsChange, proposedChangeSet, onChangeSetSettled }: Props) {
   const filesRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLInputElement>(null);
   const privacyRef = useRef<HTMLDivElement>(null);
@@ -398,7 +400,7 @@ SHA-256: ${entry.sha256}`;
 
       {status && <div className="files-panel-status">{status}</div>}
       {error && <div className="files-panel-warn" role="alert">{error}</div>}
-      {!state && (
+      {!state && !hideHint && (
         <div className="files-panel-status">
           Attach files with <strong>Attach files</strong> under the message box (a zip is unpacked automatically).
         </div>
