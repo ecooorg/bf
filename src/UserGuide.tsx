@@ -128,7 +128,7 @@ function guideHtmlForPrint(): string {
 <h2>Quick tips</h2>
 <ul><li><strong>Simple:</strong> describe the situation; attach relevant files only when useful.</li><li><strong>Expert:</strong> follow the stages and confirm each step. The assistant does not choose for you.</li><li><strong>Project:</strong> confirm the project description before analysis; review suggestions before creating a plan.</li><li><strong>Export:</strong> use More → Export for a backup or readable copy.</li></ul>
 <h2>If something does not work</h2>
-<ul><li>Project unavailable — ask the administrator.</li><li>Analysis blocked — confirm the project description.</li><li>Drive not syncing — reconnect and keep this tab open.</li><li>Save rejected — reload if the project changed in another window.</li></ul>
+<ul><li>Project unavailable — check whether this site has Project mode enabled.</li><li>Analysis blocked — confirm the project description.</li><li>Drive not syncing — reconnect and keep this tab open.</li><li>Save rejected — reload if the project changed in another window.</li></ul>
 <p>For advanced operational details, see the repository documentation. Project actions such as approvals and publishing always require your input.</p>`;
 }
 
@@ -164,7 +164,7 @@ function GuideBody() {
       </ul>
       <h2 style={h2}>If something does not work</h2>
       <ul>
-        <li><strong>Project unavailable</strong> — ask the administrator.</li>
+        <li><strong>Project unavailable</strong> — check whether this site has Project mode enabled.</li>
         <li><strong>Analysis blocked</strong> — confirm the project description.</li>
         <li><strong>Drive not syncing</strong> — reconnect and keep this tab open.</li>
         <li><strong>Save rejected</strong> — reload if the project changed in another window.</li>

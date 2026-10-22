@@ -12,7 +12,7 @@ export interface Capabilities {
 }
 
 export const PROJECT_SCOPE_TEXT =
-  'Project: two paths — Simple words (guided idea → ZIP) or Professional (analysis, plan, delivery). Output is a source ZIP and manual deploy steps. GitHub is read-only; BiForge never merges or deploys for you.';
+  'Choose guided setup or the full workspace. BiForge prepares a source ZIP and manual deploy steps. GitHub stays read-only; you publish changes yourself.';
 export const ZIP_OFF_HINT = 'Automatic coding is switched off on this server.';
 
 export interface CapabilityRow { label: string; on: boolean; note: string }

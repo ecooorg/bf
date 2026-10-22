@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleHelp, Cloud, CloudUpload, MoreHorizontal, X } from 'lucide-react';
 import ProjectDelivery from './ProjectDelivery.tsx';
-import { describeCapabilities, ZIP_OFF_HINT, type Capabilities } from './projectCapabilities.ts';
+import { describeCapabilities, PROJECT_SCOPE_TEXT, ZIP_OFF_HINT, type Capabilities } from './projectCapabilities.ts';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 import { DRIVE_STATUS_EVENT, connectDriveFiles, isMirrorConnected, mirrorBlobDetailed, mirrorTextFile, type DriveStatusDetail } from './driveMirror.ts';
 import { isDriveConfigured } from './driveClient.ts';
@@ -367,6 +367,7 @@ export default function ProjectMode() {
         </p>
         <details data-testid="project-capabilities" style={{ marginTop: 6, fontSize: 13, color: '#8fa6c2' }}>
           <summary style={{ cursor: 'pointer' }}>What is available here</summary>
+          <p style={{ margin: '6px 0' }}>{PROJECT_SCOPE_TEXT}</p>
           <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{describeCapabilities(capabilities).map(r => <li key={r.label}><strong>{r.label}: {r.on ? 'on' : 'off'}</strong> — {r.note}</li>)}</ul>
         </details>
       </div>
