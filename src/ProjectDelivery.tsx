@@ -174,11 +174,11 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
   const action = selected ? nextDeliveryAction(selected, capabilities) : null;
   const rows = gateRows(gates);
 
-  return <section aria-label="Delivery" style={{ margin: '16px 0' }}>
-    <h3 style={{ marginBottom: 4 }}>Delivery</h3>
+  return <section aria-label="Code package" style={{ margin: '16px 0' }}>
+    <h3 style={{ marginBottom: 4 }}>Code package</h3>
     <p style={S.muted}>Hand a coding task to any tool you like, then bring the result back here: BiForge reads the pull request and its checks, and you review and decide. BiForge never merges and never writes to GitHub.</p>
     <div style={{ ...S.box, background: '#0b2545' }}>
-      <strong style={{ fontSize: 13 }}>How Delivery works (4 steps)</strong>
+      <strong style={{ fontSize: 13 }}>How code package works (4 steps)</strong>
       <ol style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 13, color: '#c5d4e8', lineHeight: 1.55 }}>
         <li><strong>Create</strong> a hand-off task and download PACKAGE.md (the brief for your external tool).</li>
         <li><strong>Work outside</strong> BiForge (your editor, agent, or CI). The server does not write your code for you here.</li>
