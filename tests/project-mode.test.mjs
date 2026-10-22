@@ -1133,7 +1133,7 @@ test('P54 labels cover every gate and every gate status of the engine, in the sa
   assert.deepEqual([...GATE_STATUS_ORDER], [...GATE_STATUSES]);
   for (const g of GATES) assert.ok(GATE_LABELS[g] && !/_/.test(GATE_LABELS[g]), `label for ${g}`);
   for (const s of GATE_STATUSES) assert.ok(GATE_STATUS_LABELS[s], `label for ${s}`);
-  assert.equal(GATE_STATUS_LABELS.WAIVED, 'Waived by you');
+  assert.equal(GATE_STATUS_LABELS.WAIVED, 'Skipped by you');
 });
 
 test('P54 every server error code of the code task service has a plain sentence', () => {
@@ -1254,9 +1254,9 @@ test('P54 server: manual task route, project list and expectedBranch', () => {
 
 test('P54 interface wiring: tab, component, every endpoint, error codes', () => {
   assert.match(pm, /import ProjectDelivery from '\.\/ProjectDelivery\.tsx'/);
-  assert.match(pm, /\['delivery', 'Delivery'\]/);
+  assert.match(pm, /\['delivery', 'Code package'\]/);
   assert.match(pm, /activeTab === 'delivery' && <ProjectDelivery/);
-  assert.match(pm, /Open in Delivery/);
+  assert.match(pm, /Open in Code package/);
   for (const frag of ['/code`', '/code/manual', '/package`', '/approve`', '/commit-package`', '/result`', '/refresh`', '/review`', '/decide`', '/repair`', '/cancel`', '/gates`', '/gates/${gate}/approve', '/gates/${gate}/waive']) assert.ok(comp.includes(frag), `component calls ${frag}`);
   assert.match(comp, /e\.code = p\.code/);
   assert.match(comp, /role="status" aria-live="polite"/);
@@ -1278,7 +1278,7 @@ test('P54 write controls are only reachable behind the write capability; CI gate
 test('P54 destructive and decision actions go through a confirmation with a reason', () => {
   assert.match(comp, /<Confirm\s+title=\{pending\.decision/);
   assert.match(comp, /title="Close this task"/);
-  assert.match(comp, /title=\{`Waive «\$\{r\.label\}»`\}/);
+  assert.match(comp, /title=\{`Skip «\$\{r\.label\}»`\}/);
   assert.match(comp, /needReason/);
   assert.match(comp, /idemKey/);
 });
@@ -1289,12 +1289,12 @@ test('P54 render smoke: the Delivery tab renders its list state for every capabi
   const { default: ProjectDelivery } = await import('../src/ProjectDelivery.tsx');
   const html = (props) => renderToString(React.createElement(ProjectDelivery, { projectId: 'p1', capabilities: caps(), passportConfirmed: true, executor: 'manual', ...props }));
   const ok = html({});
-  assert.match(ok, /Delivery/); assert.match(ok, /New hand-off task/); assert.match(ok, /BiForge never merges/);
+  assert.match(ok, /Code package/); assert.match(ok, /New coding task/); assert.match(ok, /BiForge never merges/);
   assert.match(ok, /role="status"/);
-  assert.doesNotMatch(ok, /disabled=""[^>]*>New hand-off task/);
+  assert.doesNotMatch(ok, /disabled=""[^>]*>New coding task/);
   assert.match(html({ passportConfirmed: false }), /Confirm the project description first\./);
   assert.match(html({ executor: 'model_patch' }), /Set «How code is written» to Manual/);
-  for (const c of [null, caps({ manualDelivery: { githubRead: false } }), caps({ githubWrite: true })]) assert.match(html({ capabilities: c }), /New hand-off task/);
+  for (const c of [null, caps({ manualDelivery: { githubRead: false } }), caps({ githubWrite: true })]) assert.match(html({ capabilities: c }), /New coding task/);
 });
 }
 // ===== END p54-project-delivery.test.mjs =====
