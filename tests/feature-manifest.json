@@ -226,8 +226,8 @@
       "Connect Google Drive",
       "Save all files to Google Drive",
       "Save ZIP to Google Drive",
-      "Open in Delivery",
-      "['delivery', 'Delivery']",
+      "Open in Code package",
+      "['delivery', 'Code package']",
       "ProjectDelivery"
     ],
     "src/ProjectDelivery.tsx": [
