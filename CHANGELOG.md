@@ -3,6 +3,14 @@
 - Retired duplicate `CHANGELOG_AGENT_BEHAVIOR.md`. Agent and product history: **only** this file (`CHANGELOG.md`).
 - Operator deploy: `docs/DEPLOY.md` only (no root `DEPLOY_RAILWAY.md`).
 
+## P59 — Expert screen: one history, one step list, one files block (2026-10-21)
+
+- Expert: the conversation that existed before the method steps is one collapsed line («Earlier conversation» + the first question). Only messages written after that appear in the open dialogue at the bottom; the question and the answer are no longer shown three times.
+- One files block (Attach files, Download / save reply) instead of two; the full-review save option moved into it. The mode banner and the attach hint are hidden in Expert.
+- One step list: five loops, the detailed steps of the current loop open inside it. Wide screens: left column. Narrow screens (900 px and below): one line at the bottom with five segments and the current step; tapping a reachable segment goes back to that loop.
+- New `src/ExpertNav.tsx`, `src/expertNav.ts`, `src/expertHistory.ts`; tests in `tests/core.test.mjs`. Server, API and data unchanged.
+- Test change: `tests/core.test.mjs` (package C static checks) used to require the number 360 in `src/App.tsx`, which was the length cap of the removed answer preview. It now requires `expert-history`.
+
 ## P58 — Start-file consolidation, no product change (2026-10-21)
 
 - `AGENTS.md` is now the only start file: a STATE zone rewritten by every patch, the map, run commands and the frozen RULES.

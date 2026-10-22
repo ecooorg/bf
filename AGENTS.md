@@ -10,9 +10,9 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P58 — start-file consolidation, no product change |
+| Last patch | P59 — Expert screen: earlier conversation collapsed, one step list (bottom line on narrow screens), one files block |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
-| Modes | Simple, Expert (conversation, unchanged); Project (`POST /code/build` uses `server/appBuilderPipeline.ts`) |
+| Modes | Simple (unchanged), Expert (layout reworked in P59: `src/ExpertNav.tsx`, `src/expertNav.ts`, `src/expertHistory.ts`); Project (`POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
