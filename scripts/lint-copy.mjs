@@ -54,7 +54,7 @@ const DEBT = {
   'driveMirror.ts': { 'long': 1 },
   'en.ts': { 'long': 1 },
   'projectAppBuilder.ts': { 'long': 6, 'scaffold': 3 },
-  'projectCapabilities.ts': { 'hand-off': 2, 'long': 1 },
+  'projectCapabilities.ts': { 'hand-off': 2 },
   'projectDeliveryModel.ts': { 'waive': 1 },
 };
 
