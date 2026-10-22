@@ -495,7 +495,7 @@ assert.match(shell, /Retry/);
 assert.match(shell, /onDrop/);
 assert.match(shell, /From backup/);
 assert.match(shell, /Export all/);
-assert.match(shell, /360/);
+assert.match(shell, /expert-history/); // P59: the earlier conversation is one collapsed block in Expert (replaces the old 360-character preview check)
 for (const code of ['TOO_LARGE','UNSUPPORTED_TYPE','UNREADABLE','EMPTY','EMPTY_TEXT','RATE_LIMIT','ATTACH_FAILED','EXPORT_FAILED','BAD_FORMAT','EMPTY_DOCUMENT','BAD_UPLOAD','TOO_LONG','PRECONDITION']) assert.match(errors, new RegExp(code));
 assert.doesNotMatch(ui, /const RU/, 'UI is English only; no Russian dictionary');
 assert.match(server, /app\.post\('\/api\/revise-document'/);
@@ -1122,3 +1122,56 @@ process.exit(failed ? 1 : 0);
 }
 }
 // ===== END version-check.test.mjs =====
+
+// ===== BEGIN expert-nav.test.mjs =====
+{
+const test = (await import("node:test")).default;
+const assert = (await import("node:assert/strict")).default;
+const { buildExpertNav } = await import("../src/expertNav.ts");
+const { expertBaseline, resetExpertBaseline, questionLine } = await import("../src/expertHistory.ts");
+
+test('P59 expert nav: five loops, current loop and reachability follow the step', () => {
+  const nav = buildExpertNav('EXPAND');
+  assert.equal(nav.loops.length, 5);
+  assert.equal(nav.loopNo, 2);
+  assert.equal(nav.stepTotal, 8);
+  assert.equal(nav.stepNo, 3);
+  assert.deepEqual(nav.loops.map((l) => l.state), ['done', 'current', 'next', 'next', 'next']);
+  assert.deepEqual(nav.loops.map((l) => l.reachable), [true, true, false, false, false]);
+  assert.equal(nav.loops[0].target, 'BRIEF');
+});
+
+test('P59 expert nav: detailed steps of a multi-step loop are listed and gated', () => {
+  const nav = buildExpertNav('TEST');
+  const verify = nav.loops.find((l) => l.state === 'current');
+  assert.deepEqual(verify.steps.map((s) => s.id), ['TEST', 'DECIDE', 'SYNTHESIS']);
+  assert.deepEqual(verify.steps.map((s) => s.state), ['current', 'next', 'next']);
+  assert.deepEqual(verify.steps.map((s) => s.reachable), [true, false, false]);
+});
+
+test('P59 expert nav: before the method starts nothing is current', () => {
+  const nav = buildExpertNav('TRIAGE');
+  assert.equal(nav.loopNo, 0);
+  assert.equal(nav.stepLabel, 'Start');
+  assert.ok(nav.loops.every((l) => l.state === 'next'));
+});
+
+test('P59 expert history: baseline is fixed at first sight and never grows', () => {
+  resetExpertBaseline();
+  assert.equal(expertBaseline('d1', 2), 2);
+  assert.equal(expertBaseline('d1', 6), 2);
+  assert.equal(expertBaseline('d1', 1), 1);
+  assert.equal(expertBaseline('d2', 0), 0);
+  resetExpertBaseline('d1');
+  assert.equal(expertBaseline('d1', 4), 4);
+  resetExpertBaseline();
+});
+
+test('P59 expert history: one-line label is the first user question, shortened on a word boundary', () => {
+  assert.equal(questionLine([]), '');
+  assert.equal(questionLine([{ role: 'assistant', content: 'hi' }, { role: 'user', content: '  one \n two ' }]), 'one two');
+  const long = questionLine([{ role: 'user', content: 'word '.repeat(60) }], 40);
+  assert.ok(long.endsWith('…') && long.length <= 41, long);
+});
+}
+// ===== END expert-nav.test.mjs =====
