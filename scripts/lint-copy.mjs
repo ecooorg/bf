@@ -45,26 +45,27 @@ const NON_TEXT_ATTR = /(className|data-testid|href|src|type|key|role|htmlFor|nam
 
 // Allowed existing violations: { 'path relative to src': { rule: count } }. Only ever decrease.
 const DEBT = {
-  'App.tsx': { 'hand-off': 1, 'kill criteria': 2, 'locked card': 1, 'long': 14 },
-  'ConversationFiles.tsx': { 'long': 1 },
-  'ProjectDelivery.tsx': { 'fingerprint': 2, 'gates': 3, 'hand-off': 6, 'long': 2, 'waive': 5 },
-  'ProjectMode.tsx': { 'developer data': 1, 'long': 5, 'passport': 4, 'raw JSON': 1 },
-  'ProjectNoviceWizard.tsx': { 'passport': 1, 'scaffold': 1 },
+  'App.tsx': { 'long': 4 },
+  'ProjectDelivery.tsx': { 'fingerprint': 2, 'gates': 2, 'hand-off': 6, 'long': 1, 'waive': 5 },
+  'ProjectMode.tsx': { 'developer data': 1, 'long': 4, 'passport': 3, 'raw JSON': 1 },
+  'ProjectNoviceWizard.tsx': { 'scaffold': 1 },
   'ProjectPathChooser.tsx': { 'long': 2 },
-  'UserGuide.tsx': { 'gates': 3, 'long': 5 },
+  'UserGuide.tsx': { 'gates': 2, 'long': 5 },
   'WorkspacePanel.tsx': { 'long': 1 },
-  'driveMerge.ts': { 'long': 1 },
   'driveMirror.ts': { 'long': 1 },
   'en.ts': { 'long': 1 },
   'projectAppBuilder.ts': { 'long': 6, 'scaffold': 3 },
   'projectCapabilities.ts': { 'hand-off': 2, 'long': 1 },
   'projectDeliveryModel.ts': { 'waive': 1 },
-  'workspace/changeSetParse.ts': { 'long': 1 },
 };
 
 export function visibleTexts(src) {
   const out = [];
-  for (const m of src.matchAll(/>([^<>{}]*[A-Za-z][^<>{}]*)</g)) out.push(m[1].replace(/\s+/g, ' ').trim());
+  for (const m of src.matchAll(/>([^<>{}]*[A-Za-z][^<>{}]*)</g)) {
+    const t = m[1].replace(/\s+/g, ' ').trim();
+    if (/=>|;|\/\/|\)\s*\{/.test(t)) continue; // code, not text
+    out.push(t);
+  }
   for (const m of src.matchAll(/(?<![\w$])(?:'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)")/g)) {
     const pre = src.slice(Math.max(0, m.index - 14), m.index);
     if (NON_TEXT_ATTR.test(pre)) continue;
