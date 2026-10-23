@@ -1,6 +1,6 @@
 # BiForge AI-Native Transformation — Technical Specification
 
-**Status: Phase 5 acceptance package (p78).** Phases 0–4 implemented; Navigator decides accept/reject via `docs/phase5/ACCEPTANCE.md`. Optional follow-up: full TypeScript `strict`.
+**Status: ACCEPTED (Navigator, 2026-10-23, commit 2232cb9).** Transformation Phases 0–5 closed. Further work is maintenance/product (e.g. UI latency, flatten docs), not reopening Phase 0.
 
 ## 1. Mission
 Optimize the repository for an AI Assistant and a Navigator rather than a human-maintained engineering team. Minimize context needed per task, cross-file change surface, implicit dependencies, error recurrence and verification time without sacrificing functional quality, security or traceability.
