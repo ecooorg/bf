@@ -1,3 +1,13 @@
+## Documentation migration — retire legacy numbered documents
+
+- Retired the numbered documentation set (`docs/01`–`docs/18`) from the active repository.
+- Preserved required security rules in `docs/AI-OPERATING-RULES.md`.
+- Preserved current deployment, backup, restore and rollback guidance in `docs/OPERATIONS.md`.
+- Updated security tests to validate current operating rules instead of reading the legacy security document.
+- Updated operational scripts and documentation navigation to remove dependencies on legacy paths.
+- Historical copies are retained by the owner outside the active repository.
+- Validation status: record actual test and CI results after applying the changes.
+
 ## Documentation-first AI-native transformation proposal
 
 - Introduced a concise AI entry point, permanent rules, technical transformation specification, navigation index and evidence baseline.
