@@ -1,3 +1,8 @@
+## p75.7 — fix lease-loss test timing constraint (2026-10-23)
+
+- p75.6 set `heartbeatMs: 60_000` with `leaseMs: 1000`, which violates `heartbeatMs * 2 <= leaseMs` → `INVALID_TIMING` in live CI.
+- Now `leaseMs: 2000`, `heartbeatMs: 1000` (valid); recovery still runs before the first heartbeat; short retry kept for SKIP LOCKED races.
+
 ## p75.6 — stabilize flaky live lease-loss test (2026-10-23)
 
 - `tests/database.test.mjs`: worker lease-loss case no longer races heartbeat `FOR UPDATE` vs `recoverExpired` `SKIP LOCKED` (empty recovery → flaky CI). Long `heartbeatMs` + short retry loop.
