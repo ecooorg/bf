@@ -1,0 +1,312 @@
+{
+  "summary": {
+    "module_count": 131,
+    "internal_edge_count": 258,
+    "cycle_count": 2,
+    "cycles": [
+      [
+        "server/taskService.ts -> server/gateService.ts -> server/codeTaskService.ts -> server/taskService.ts"
+      ],
+      [
+        "server/gateService.ts -> server/codeTaskService.ts -> server/gateService.ts"
+      ]
+    ]
+  },
+  "top_fan_in": [
+    {
+      "module": "server/database.ts",
+      "count": 12
+    },
+    {
+      "module": "src/workspace/types.ts",
+      "count": 11
+    },
+    {
+      "module": "src/decision.ts",
+      "count": 10
+    },
+    {
+      "module": "src/driveClient.ts",
+      "count": 7
+    },
+    {
+      "module": "src/config.ts",
+      "count": 6
+    },
+    {
+      "module": "server/adapter.js",
+      "count": 6
+    },
+    {
+      "module": "src/driveMirror.ts",
+      "count": 6
+    },
+    {
+      "module": "src/attachments.ts",
+      "count": 6
+    },
+    {
+      "module": "server/taskService.ts",
+      "count": 5
+    },
+    {
+      "module": "server/gateEngine.ts",
+      "count": 5
+    },
+    {
+      "module": "server/statePipeline.ts",
+      "count": 5
+    },
+    {
+      "module": "src/uiStates.tsx",
+      "count": 5
+    },
+    {
+      "module": "server/githubIntegration.ts",
+      "count": 4
+    },
+    {
+      "module": "server/router.ts",
+      "count": 4
+    },
+    {
+      "module": "server/projectRepository.ts",
+      "count": 4
+    },
+    {
+      "module": "src/ui.ts",
+      "count": 4
+    },
+    {
+      "module": "src/errors.ts",
+      "count": 4
+    },
+    {
+      "module": "src/driveMerge.ts",
+      "count": 4
+    },
+    {
+      "module": "src/workspace/hash.ts",
+      "count": 4
+    },
+    {
+      "module": "server/gateService.ts",
+      "count": 3
+    }
+  ],
+  "largest_modules": [
+    {
+      "path": "server.ts",
+      "lines": 2994
+    },
+    {
+      "path": "src/App.tsx",
+      "lines": 2948
+    },
+    {
+      "path": "server/codeTaskService.ts",
+      "lines": 950
+    },
+    {
+      "path": "server/webSearch.ts",
+      "lines": 701
+    },
+    {
+      "path": "src/ConversationFiles.tsx",
+      "lines": 624
+    },
+    {
+      "path": "src/WorkspacePanel.tsx",
+      "lines": 564
+    },
+    {
+      "path": "src/workspace/extract.ts",
+      "lines": 557
+    },
+    {
+      "path": "src/ProjectMode.tsx",
+      "lines": 541
+    },
+    {
+      "path": "src/decision.ts",
+      "lines": 522
+    },
+    {
+      "path": "src/workspace/changeset.ts",
+      "lines": 520
+    },
+    {
+      "path": "server/codeExecutor.ts",
+      "lines": 514
+    },
+    {
+      "path": "server/files.ts",
+      "lines": 421
+    },
+    {
+      "path": "server/appBuilderScaffolds.ts",
+      "lines": 377
+    },
+    {
+      "path": "server/githubIntegration.ts",
+      "lines": 371
+    },
+    {
+      "path": "src/programFiles.ts",
+      "lines": 356
+    },
+    {
+      "path": "src/ProjectDelivery.tsx",
+      "lines": 348
+    },
+    {
+      "path": "server/planService.ts",
+      "lines": 341
+    },
+    {
+      "path": "src/ProjectNoviceWizard.tsx",
+      "lines": 339
+    },
+    {
+      "path": "src/workspace/ingest.ts",
+      "lines": 333
+    },
+    {
+      "path": "src/driveMirror.ts",
+      "lines": 326
+    },
+    {
+      "path": "src/workspace/classify.ts",
+      "lines": 318
+    },
+    {
+      "path": "server/documents.ts",
+      "lines": 293
+    },
+    {
+      "path": "server/taskService.ts",
+      "lines": 285
+    },
+    {
+      "path": "server/promptPacks.ts",
+      "lines": 274
+    },
+    {
+      "path": "server/reasoningState.ts",
+      "lines": 254
+    }
+  ],
+  "edges_sample": {
+    "server.ts": [
+      "server/analysisService.ts",
+      "server/appBuilderIndex.ts",
+      "server/artifactRepository.ts",
+      "server/briefWriter.ts",
+      "server/codeTaskService.ts",
+      "server/contracts.ts",
+      "server/conversationMode.ts",
+      "server/database.ts",
+      "server/documents.ts",
+      "server/epistemicVerifier.ts",
+      "server/files.ts",
+      "server/gateEngine.ts",
+      "server/gateService.ts",
+      "server/geminiAdapter.ts",
+      "server/githubIntegration.ts",
+      "server/healthRoutes.ts",
+      "server/intentFlags.ts",
+      "server/keepAlive.ts",
+      "server/latencyPolicy.ts",
+      "server/modelRegistry.ts",
+      "server/openaiCompatAdapter.ts",
+      "server/opsMetrics.ts",
+      "server/planService.ts",
+      "server/projectCapabilities.ts",
+      "server/projectRepository.ts",
+      "server/promptPacks.ts",
+      "server/reasoningState.ts",
+      "server/router.ts",
+      "server/security.ts",
+      "server/taskService.ts",
+      "server/turnFocus.ts",
+      "server/webSearch.ts",
+      "server/worker.ts",
+      "src/config.ts",
+      "src/numberValidator.ts",
+      "src/support.ts"
+    ],
+    "server/codeTaskService.ts": [
+      "server/artifactRepository.ts",
+      "server/briefWriter.ts",
+      "server/codeExecutor.ts",
+      "server/database.ts",
+      "server/gateService.ts",
+      "server/githubIntegration.ts",
+      "server/projectRepository.ts",
+      "server/repairLoop.ts",
+      "server/reviewer.ts",
+      "server/taskService.ts"
+    ],
+    "server/gateService.ts": [
+      "server/codeTaskService.ts",
+      "server/database.ts",
+      "server/gateEngine.ts",
+      "server/githubIntegration.ts"
+    ],
+    "server/modelHealth.ts": [
+      "server/budget.ts",
+      "server/database.ts",
+      "server/router.ts"
+    ],
+    "server/router.ts": [
+      "server/adapter.js",
+      "server/budget.js",
+      "server/modelHealth.js",
+      "server/modelRegistry.js"
+    ],
+    "server/taskService.ts": [
+      "server/database.ts",
+      "server/gateEngine.ts",
+      "server/gateService.ts",
+      "server/queueMachine.ts",
+      "server/taskMachine.ts"
+    ],
+    "src/App.tsx": [
+      "src/AutoGrow.tsx",
+      "src/ConversationFiles.tsx",
+      "src/ExpertNav.tsx",
+      "src/HistoryPanel.tsx",
+      "src/ModeMenu.tsx",
+      "src/UserGuide.tsx",
+      "src/WorkspacePanel.tsx",
+      "src/attachments.ts",
+      "src/briefView.ts",
+      "src/brier.ts",
+      "src/config.ts",
+      "src/decision.ts",
+      "src/decisionDocument.ts",
+      "src/driveClient.ts",
+      "src/driveExport.ts",
+      "src/driveMirror.ts",
+      "src/en.ts",
+      "src/errors.ts",
+      "src/evpi.ts",
+      "src/expertContext.ts",
+      "src/expertHistory.ts",
+      "src/exportName.ts",
+      "src/exportZip.ts",
+      "src/icsBuilder.ts",
+      "src/libraryExport.ts",
+      "src/programFiles.ts",
+      "src/sha256Export.ts",
+      "src/storage.ts",
+      "src/support.ts",
+      "src/triage.ts",
+      "src/ui.ts",
+      "src/uiStates.tsx",
+      "src/uiTerms.ts",
+      "src/useDrive.ts",
+      "src/workspace/changeSetParse.ts"
+    ]
+  }
+}

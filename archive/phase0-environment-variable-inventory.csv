@@ -1,0 +1,70 @@
+name,in_env_example,file_count,files
+APP_BUILDER_MODEL_SLICE,no,1,server.ts
+APP_PASSWORD,yes,1,server.ts
+CHECK_TIMEOUT_MS,no,1,scripts/run-independent-checks.mjs
+CI,no,2,scripts/qa.mjs; scripts/run-independent-checks.mjs
+CI_STATUS,no,1,scripts/ci-summary.mjs
+CODE_EXECUTOR,yes,4,scripts/verify-connections.mjs; server.ts; server/codeTaskService.ts; tests/project-mode.test.mjs
+DAILY_CALL_CAP,yes,1,server.ts
+DATABASE_URL,yes,9,scripts/backup-restore-check.mjs; scripts/migrate.mjs; scripts/monitor-connections.mjs; scripts/patch-pack.mjs; scripts/verify-connections.mjs; server.ts; server/database.ts; tests/database.test.mjs...
+DISABLE_HMR,yes,1,vite.config.ts
+E01_TEST_REPO,no,1,scripts/e01-harness.mjs
+ENABLE_APP_AUTH,yes,1,server.ts
+ENABLE_PROJECT_MODE,yes,1,server.ts
+EPISTEMIC_VERIFIER_MODEL,no,1,server/epistemicVerifier.ts
+EXPERT_ATTACH_TOTAL_CHARS,yes,1,server/files.ts
+FUZZ_SEED,no,1,tests/project-mode.test.mjs
+GEMINI_API_KEY,yes,2,server.ts; tests/models.test.mjs
+GEMINI_BASE_URL,yes,1,server.ts
+GITHUB_API_BASE_URL,yes,1,scripts/verify-connections.mjs
+GITHUB_APP_ID,yes,1,scripts/verify-connections.mjs
+GITHUB_APP_INSTALLATION_ID,yes,1,scripts/verify-connections.mjs
+GITHUB_APP_PRIVATE_KEY,yes,1,scripts/verify-connections.mjs
+GITHUB_DIFF_UPLOAD,yes,3,server/githubIntegration.ts; tests/database.test.mjs; tests/project-mode.test.mjs
+GITHUB_REPOSITORY_NAME,yes,2,scripts/verify-connections.mjs; server/gateService.ts
+GITHUB_REPOSITORY_OWNER,yes,2,scripts/verify-connections.mjs; server/gateService.ts
+GITHUB_STEP_SUMMARY,no,1,scripts/ci-summary.mjs
+GITHUB_WEBHOOK_SECRET,yes,1,server.ts
+GIT_COMMIT,yes,1,server.ts
+GROQ_API_KEY,no,2,server.ts; server/epistemicVerifier.ts
+GROQ_BASE_URL,no,2,server.ts; server/epistemicVerifier.ts
+KEEP_ALIVE,no,1,server/keepAlive.ts
+LINT_COPY_ROOT,no,1,scripts/lint-copy.mjs
+LLM_CALL_TIMEOUT_MS,yes,1,server.ts
+LLM_TOTAL_DEADLINE_MS,yes,1,server.ts
+LOGIN_MAX_FAILS,yes,1,server.ts
+LOGIN_WINDOW_MIN,yes,1,server.ts
+MAX_ATTACH_TEXT_CHARS,yes,1,server/files.ts
+MAX_BODY_BYTES,yes,1,server.ts
+MAX_MODEL_CALLS,yes,1,server.ts
+MAX_UPLOAD_BYTES,yes,1,server/files.ts
+MODEL_CASCADE_LIGHT,yes,1,server.ts
+MODEL_CASCADE_STRONG,yes,1,server.ts
+NODE_ENV,no,1,server.ts
+ONLY,no,1,tests/pipeline.test.mjs
+OPS_RSS_LIMIT_MB,no,2,server.ts; server/opsMetrics.ts
+PA01_TEST_API_KEY,no,1,tests/gates.test.mjs
+PGSSLMODE,yes,5,scripts/backup-restore-check.mjs; scripts/migrate.mjs; scripts/monitor-connections.mjs; scripts/verify-connections.mjs; server/database.ts
+PG_POOL_MAX,yes,1,server/database.ts
+PORT,no,2,server.ts; server/appBuilderScaffolds.ts
+PROJECT_RATE_LIMIT_PER_MINUTE,yes,1,server.ts
+RAILWAY_GIT_COMMIT_SHA,no,1,server.ts
+RAILWAY_REPLICA_ID,no,1,server.ts
+RATE_LIMIT_PER_HOUR,yes,1,server.ts
+RENDER_EXTERNAL_URL,no,1,server/keepAlive.ts
+RUN_BX06_API,no,1,tests/project-mode.test.mjs
+RUN_LIVE_TESTS,no,2,tests/database.test.mjs; tests/project-mode.test.mjs
+SERPER_API_KEY,yes,1,server.ts
+SESSION_SECRET,yes,1,server.ts
+SKIP_DIST_HEALTHCHECK,yes,1,server.ts
+TRUST_PROXY_HOPS,yes,1,server.ts
+WEB_SEARCH_FETCH_PAGES,yes,1,server/webSearch.ts
+WEB_SEARCH_MAX_PAGES,yes,1,server/webSearch.ts
+WEB_SEARCH_MAX_QUERIES,yes,1,server/webSearch.ts
+WEB_SEARCH_MODEL,yes,1,server.ts
+WEB_SEARCH_SEED_PAGES,no,1,server/webSearch.ts
+WEB_SEARCH_TIMEOUT_MS,yes,1,server.ts
+WEB_SEARCH_TRANSLATE_MODEL,yes,1,server.ts
+WORKER_HEARTBEAT_MS,no,1,server.ts
+WORKER_LEASE_MS,no,1,server.ts
+WORKER_POLL_MS,no,1,server.ts
