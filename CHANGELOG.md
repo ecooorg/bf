@@ -1,3 +1,8 @@
+## p76.1 — restore P43 AGENTS product facts (2026-10-23)
+
+- `AGENTS.md`: re-added `model_patch` executor note and deferred **GitHub write** (ADR-06) required by `tests/security.test.mjs` P43; transformation status (p76 / roadmap) kept.
+- No code changes.
+
 ## p76 — Phase 3 closed + Phase 4/5 roadmap (2026-10-23)
 
 - Phase 3 completion: `docs/phase3/PHASE3-COMPLETE.md` (what shipped, what is deferred).

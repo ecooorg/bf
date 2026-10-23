@@ -9,6 +9,10 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **p76 (Phase 3 closed):** branded path-param validation, shared idSchema in codeTaskService, `docs/phase3/PHASE3-COMPLETE.md`.
 * **Next:** **p77** Phase 4 doc generators → **p78** Phase 5 acceptance — follow `docs/phase4-5-ROADMAP.md`.
 
+### Product / runtime (P43 / ADR-06)
+
+* Code delivery executor **`model_patch`** is documented and env-gated: set `CODE_EXECUTOR=model_patch` only after Navigator approval (ADR-10 / E-01). Default remains `manual`.
+* **GitHub write** (diff upload / App write to the repo) is **deferred** (ADR-06): off unless `GITHUB_DIFF_UPLOAD=true` and App credentials are configured. Do not enable by default.
 
 ## Navigation
 
@@ -18,6 +22,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * Evidence and limits: `docs/DOCUMENTATION-BASELINE.md`.
 * Phase 0 audit: `docs/phase0/BiForge-v70-Phase0-Audit.md`.
 * Phase 1 guardrails: `docs/phase1/PHASE1-GUARDRAILS.md`.
+* Phase 3 closed: `docs/phase3/PHASE3-COMPLETE.md`.
+* Phase 4–5 next: `docs/phase4-5-ROADMAP.md`.
 * Current operational procedures: `docs/OPERATIONS.md`.
 
 ## Commands
