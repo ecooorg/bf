@@ -480,7 +480,8 @@ const { readFileSync } = await import("node:fs");
 
 const read = (f) => readFileSync(f, 'utf8');
 const app = read('src/ConversationFiles.tsx');
-const shell = read('src/App.tsx');
+const { appSources } = await import('./_sources.mjs');
+const shell = appSources();
 const errors = read('src/errors.ts');
 const ui = read('src/ui.ts');
 const server = read('server.ts');

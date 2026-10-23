@@ -34,7 +34,7 @@ function currentRoutes() {
 
 test('P56 every test file is run by some npm script (no silent orphans)', () => {
   const scripts = Object.values(pkg).join(' ');
-  const files = fs.readdirSync(path.join(root, 'tests')).filter((f) => /\.(test\.)?mjs$/.test(f) && f !== 'ui-check.mjs');
+  const files = fs.readdirSync(path.join(root, 'tests')).filter((f) => /\.mjs$/.test(f) && f !== 'ui-check.mjs' && !f.startsWith('_'));
   const orphans = files.filter((f) => !scripts.includes(`tests/${f}`));
   assert.deepEqual(orphans, [], `These test files are not run by any npm script, so CI never runs them: ${orphans.join(', ')}`);
 });
