@@ -72,9 +72,6 @@ export function preflight({ files, deleted = [], allowlist = [] }) {
     else if (!(seg.length === 3 && seg[0] === '.github' && seg[1] === 'workflows')
       && !(seg.length === 3 && seg[0] === 'src' && seg[1] === 'workspace')
       && !(seg.length === 3 && seg[0] === 'server' && seg[1] === 'appBuilder')
-      && !(seg.length === 3 && seg[0] === 'scripts' && seg[1] === 'architecture')
-      && !(seg.length === 3 && seg[0] === 'scripts' && seg[1] === 'docs')
-      && !(seg.length === 3 && seg[0] === 'docs' && /^phase\d+$/i.test(seg[1]))
       && !(seg.length === 4 && seg[0] === 'docs' && /^phase\d+$/i.test(seg[1]) && seg[2] === 'generated'))
       v.push(`${rel}: nested folder (the structure is flat)`);
     if (rel.startsWith('tests/acceptance/')) v.push(`${rel}: protected path tests/acceptance/**`);
