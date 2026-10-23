@@ -1363,3 +1363,27 @@ test('compaction: protected classes keep IDs and full text; low priority is shor
 });
 }
 // ===== END state-pipeline.test.mjs =====
+
+
+// ===== BEGIN project-zip-integrity.test.mjs =====
+{
+  const assert = (await import('node:assert/strict')).default;
+  const { runAppBuilderPipeline } = await import('../server/appBuilderPipeline.ts');
+  const JSZip = (await import('jszip')).default;
+  const result = await runAppBuilderPipeline({
+    ir: { version: 1, name: 'zip-integrity-check', goal: 'Create a simple browser Tetris game', kind: 'utility', stack: 'static_site', needsAuth: 'no', needsDb: 'no', language: 'en', constraints: '', features: [] },
+    allowSlice: false,
+  });
+  assert.ok(result.zipBuffer.length > 22, 'pipeline must produce non-empty ZIP bytes');
+  assert.ok(Object.keys(result.files).length > 0, 'pipeline must generate files');
+  assert.ok(Object.entries(result.files).some(([p, c]) => /\.(html?|[cm]?js|[cm]?ts|tsx|jsx|css|py|vue|svelte)$/i.test(p) && c.trim()), 'pipeline must generate non-empty source code');
+  const reopened = await JSZip.loadAsync(result.zipBuffer);
+  for (const [path, expected] of Object.entries(result.files)) {
+    const entry = reopened.file(path);
+    assert.ok(entry, `ZIP contains ${path}`);
+    assert.equal(await entry.async('string'), expected, `ZIP content matches generated source for ${path}`);
+  }
+  assert.ok(reopened.file('BIFORGE-README.txt'), 'ZIP contains delivery README');
+  console.log('Project ZIP integrity checks OK');
+}
+// ===== END project-zip-integrity.test.mjs =====

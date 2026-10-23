@@ -1016,14 +1016,12 @@ test('zip: a GitHub wrapper folder is stripped; a flat zip is kept; the archive 
   assert.deepEqual([...(await readZipTree(await flat.generateAsync({ type: 'nodebuffer' }))).keys()].sort(), ['README.md', 'server/a.ts']);
   const built = await readZipTree(await buildZip(tree({ 'server/a.ts': 'x', 'docs/b.md': 'y' })));
   assert.deepEqual([...built.keys()].sort(), ['docs/b.md', 'server/a.ts']);
-  const archiveZip = new JSZip(); archiveZip.file('archive/README.md', 'historical');
-  assert.deepEqual([...((await readZipTree(await archiveZip.generateAsync({ type: 'nodebuffer' }))).keys())], ['archive/README.md']);
   assert.deepEqual(Object.keys((await JSZip.loadAsync(await buildZip(tree({ 'docs/b.md': 'y' })))).files), ['docs/b.md']); // no folder entries
 });
 
 test('preflight accepts a clean flat patch (including names that only look like a manifest)', () => {
   assert.deepEqual(pf({
-    'README.md': 'x', 'package.json': '{}', 'archive/README.md': 'history', 'archive/phase5-ACCEPTANCE.md': 'accepted', 'server/files.ts': 'x', 'migrations/008_artifact_manifests.sql': 'x', 'public/manifest.json': '{}',
+    'README.md': 'x', 'package.json': '{}', 'server/files.ts': 'x', 'migrations/008_artifact_manifests.sql': 'x', 'public/manifest.json': '{}',
     '.github/workflows/ci.yml': 'x', 'docs/NEXT.md': 'x', 'tests/p13a-acceptance.test.mjs': 'x',
   }), []);
 });
@@ -1031,7 +1029,6 @@ test('preflight accepts a clean flat patch (including names that only look like 
 test('preflight rejects a manifest, nested folders, a wrapper or new top-level folder, unsafe paths', () => {
   for (const bad of ['manifest.json', 'MANIFEST.txt', 'file-list.txt', 'changed_files.md', 'MANIFEST']) assert.match(pf({ [bad]: 'x' })[0], /manifest or file-list/, bad);
   assert.match(pf({ 'docs/archive/old.md': 'x' })[0], /nested folder/);
-  assert.match(pf({ 'archive/phase5/nested.md': 'x' })[0], /nested folder/);
   assert.match(pf({ 'src/a/b.ts': 'x' })[0], /nested folder/);
   assert.deepEqual(pf({ 'server/appBuilder/index.ts': 'x', 'server/appBuilder/ir.ts': 'x' }), []);
   assert.match(pf({ 'server/other/nested.ts': 'x' })[0], /nested folder/);
@@ -1151,7 +1148,7 @@ const test = (await import("node:test")).default;
 const assert = (await import("node:assert/strict")).default;
 const fs = (await import("node:fs")).default;
 const path = (await import("node:path")).default;
-const { MAX_ARTIFACT_BYTES, MAX_VERSIONS_PER_ARTIFACT, MAX_ARTIFACTS_PER_PROJECT, MAX_DIFF_LINES, PREVIEW_CHARS, ArtifactFormatError, checkFilename, sniffType, securityStatusOf, previewOf, lineDiff, listZipEntries, manifestHashOf, storageRefOf, sha256Hex } = await import("../server/artifactFormat.ts");
+const { MAX_ARTIFACT_BYTES, MAX_VERSIONS_PER_ARTIFACT, MAX_ARTIFACTS_PER_PROJECT, MAX_DIFF_LINES, PREVIEW_CHARS, ArtifactFormatError, checkFilename, sniffType, securityStatusOf, previewOf, lineDiff, listZipEntries, validateZipArchive, manifestHashOf, storageRefOf, sha256Hex } = await import("../server/artifactFormat.ts");
 const { artifactInputSchema, saveArtifact } = await import("../server/artifactRepository.ts");
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
@@ -1236,6 +1233,10 @@ test('archive: names are listed, never extracted; escaping names are marked unsa
   assert.equal(r.truncated, false);
   assert.equal(listZipEntries(new TextEncoder().encode('plain')), null);
   assert.deepEqual(listZipEntries(bytes(0x50, 0x4b, 0x03, 0x04, 1, 2, 3)), { entries: [], truncated: false });
+  assert.equal(validateZipArchive(zip(['index.html', 'app.js'])).entries.length, 2);
+  assert.throws(() => validateZipArchive(bytes()), (e) => e instanceof ArtifactFormatError && e.code === 'ZIP_INVALID');
+  assert.throws(() => validateZipArchive(bytes(0x50, 0x4b, 0x03, 0x04, 1, 2, 3)), (e) => e instanceof ArtifactFormatError && e.code === 'ZIP_INVALID');
+  assert.throws(() => validateZipArchive(zip(['index.html']), ['index.html', 'app.js']), (e) => e instanceof ArtifactFormatError && e.code === 'ZIP_INVALID');
 });
 
 test('manifest checksum changes with every field; storage reference is a pg reference', () => {

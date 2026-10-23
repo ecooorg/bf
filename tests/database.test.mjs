@@ -1501,10 +1501,12 @@ test('inspect, diff, archive listing and project manifest export', async () => {
     assert.equal(i.version, 2); assert.equal(i.preview, 'a\nc\nd'); assert.equal(i.ok, true);
     const bin = await save(p, { filename: 'x.png', data: PNG }); await save(p, { artifactId: bin.artifactId, filename: 'x.png', data: Uint8Array.from([...PNG, 9]) });
     assert.deepEqual(await diffArtifactVersions(bin.artifactId, 1, 2), { binary: true, same: false });
-    const zipBytes = Uint8Array.from(Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.alloc(26)]));
+    const JSZip = (await import('jszip')).default;
+    const zipBytes = new Uint8Array(await new JSZip().file('readme.txt', 'valid archive').generateAsync({ type: 'uint8array' }));
     const z = await save(p, { filename: 'a.zip', data: zipBytes });
     assert.equal(z.kind, 'archive');
-    assert.deepEqual((await inspectArtifact(z.artifactId)).archive, { entries: [], truncated: false });
+    assert.deepEqual((await inspectArtifact(z.artifactId)).archive.entries.map((e) => e.name), ['readme.txt']);
+    await assert.rejects(() => save(p, { filename: 'empty.zip', data: new Uint8Array() }), (e) => e.code === 'ZIP_INVALID');
     const m = await exportProjectManifest(p.id);
     assert.equal(m.artifacts.length, 5); assert.ok(m.artifacts.every((x) => x.ok === true && x.project_id === p.id && !('content' in x)));
     assert.equal(await diffArtifactVersions('missing_id', 1, 2), null);
