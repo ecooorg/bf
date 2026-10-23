@@ -1,3 +1,12 @@
+## p75.1 — CI red fix after Phase 2–3 patches (2026-10-23)
+
+- `src/AppHeader.tsx`: import `ModeMenu` and `PICK_FOLDER_EVENT` (were missing after p74 extract — broke Mode menu at runtime and P51 static checks).
+- `src/App.tsx`: import `StepTitle` and `isBriefWorthShowing` from `ExpertStepScreens` (typecheck errors).
+- `tests/core.test.mjs` (P51): assert ModeMenu markup in `AppHeader.tsx`; keep handler wiring asserts on `App.tsx`.
+- `server/projectRoutes.ts`: add missing `getPool` import (P54 live gates endpoint returned 500 → `gates.data` undefined).
+- Revert premature `DbRow`/`unknown` row typing in `taskService`, `codeTaskService`, `artifactRepository` that produced ~100 typecheck errors under `tsc --noEmit`. Keep `server/domainIds.ts` for later gradual adoption.
+- No intentional product behaviour change beyond restoring broken paths.
+
 ## p75 — Phase 3 start: typing infrastructure and naming conventions (2026-10-23)
 
 - Added `server/domainIds.ts`: branded `ProjectId`, `TaskId`, `CodeTaskId`, `RunId` (Zod parse helpers) and `DbRow`.
