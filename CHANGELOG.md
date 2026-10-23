@@ -1,3 +1,11 @@
+## p75.3 — CI red fix (typecheck, tests, preflight) (2026-10-23)
+
+- `tsconfig.server.json`: `noImplicitReturns` off again (was failing Express handlers with early `return res.status...`).
+- Preflight: allow `scripts/architecture/*` nested path.
+- Static tests: no bare `await import` inside sync `test()` callbacks (async tests / top-level imports); package-c shell uses `appSources()` so `/Retry/` is found after App split.
+- P56 orphans: ignore `tests/_*.mjs` helper modules.
+- No intentional product behaviour change.
+
 ## p75.2 — CI red fix (module-split follow-up) (2026-10-23)
 
 - Source: `appApi` imports `getStoredUiLanguage` from `ui.ts`; `App` imports `SharedConversationContext`; `AppHeader` imports `isFolderPickerSupported`; `projectRoutes` dynamic import path `./codeExecutor.ts` (not `./server/...`).
