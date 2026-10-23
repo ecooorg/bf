@@ -1131,18 +1131,18 @@ test('worker heartbeat keeps a long handler alive; another recovery pass leaves 
 test('worker that lost its lease aborts the handler and writes nothing', async () => {
   const p = await project(); const { task } = await queuedIn(p);
   let aborted = false;
-  // heartbeatMs >> test window so recoverExpired does not race an in-flight heartbeat row lock (SKIP LOCKED → empty).
-  const w = createWorker({ workerId: 'w-lost', projectId: p.id, leaseMs: 1000, heartbeatMs: 60_000, handler: ({ signal }) => new Promise((resolve) => {
+  // Timing must satisfy heartbeatMs * 2 <= leaseMs. First setInterval beat is after heartbeatMs,
+  // so recover within ~200ms after claim avoids racing heartbeat FOR UPDATE + SKIP LOCKED.
+  const w = createWorker({ workerId: 'w-lost', projectId: p.id, leaseMs: 2000, heartbeatMs: 1000, handler: ({ signal }) => new Promise((resolve) => {
     const done = () => resolve({ status: 'SUCCEEDED', evidence: ['late'] });
     signal.addEventListener('abort', () => { aborted = true; done(); }); setTimeout(done, 8000);
   }) });
   const tick = w.tick();
-  await sleep(150); // allow claim; lease still held on wall clock
-  // Force recovery as if the wall clock is past lease_until (worker presumed dead).
+  await sleep(120); // claim only; well before first heartbeat
   let rec = [];
-  for (let i = 0; i < 25 && rec.length === 0; i++) {
+  for (let i = 0; i < 30 && rec.length === 0; i++) {
     rec = await recoverExpired({ projectId: p.id, now: new Date(Date.now() + 3_600_000) });
-    if (rec.length === 0) await sleep(40);
+    if (rec.length === 0) await sleep(30);
   }
   assert.equal(rec.length, 1);
   assert.equal(await tick, 'lease_lost');
