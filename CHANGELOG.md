@@ -1,3 +1,10 @@
+## Documentation-first AI-native transformation proposal
+
+- Introduced a concise AI entry point, permanent rules, technical transformation specification, navigation index and evidence baseline.
+- Preserved all legacy domain documentation pending source-audited migration.
+- No runtime source, configuration, migrations or tests modified.
+- Implementation awaits Navigator approval and Phase 0 baseline audit.
+
 ## P70 — Close the UI cross-mode audit (2026-10-23)
 
 - New `src/uiStates.tsx`: one `StateNotice` for empty / loading / unavailable / error / done in Simple, Expert and Project, plus `BusyHint` (reason next to paused buttons) and one wording for Drive («Drive off / Drive / Drive on») and History («History / History off»). Docs: `docs/06` §6.8.
