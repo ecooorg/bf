@@ -27,10 +27,16 @@ Start with the repository-level `AGENTS.md`. Read only the current documents rel
 * `phase1/known-violations.json` — ratchet baseline for existing cycles.
 * `phase1/generated/` — module-map and last check/impact/verify reports.
 
-## Phase 3 typing and naming (p75)
+## Phase 3 typing and naming (p75–p76)
 
 * `phase3/TYPING-AND-NAMING.md` — TypeScript policy, verb dictionary, rename targets.
-* `../server/domainIds.ts` — branded `ProjectId` / `TaskId` / `CodeTaskId` / `RunId` and `DbRow`.
+* `phase3/PHASE3-COMPLETE.md` — Phase 3 closed; deferred strict work listed.
+* `../server/domainIds.ts` — branded `ProjectId` / `TaskId` / `CodeTaskId` / `RunId`.
+
+## Phase 4–5 roadmap (next session)
+
+* `phase4-5-ROADMAP.md` — instructions for **p77** (generators) and **p78** (acceptance). Copy-paste session prompts included.
+
 
 ## Implementation evidence
 
