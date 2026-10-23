@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "source": "v80 + p80.1 before P81 code changes",
+  "measurement": "Static TS/TSX imports; one-hop context only; line counts are a token-cost proxy, not tokens.",
+  "modules": 138,
+  "staticEdges": 328,
+  "totalSourceLines": 26247,
+  "largest": [
+    {
+      "file": "server.ts",
+      "lines": 2300
+    },
+    {
+      "file": "src/ExpertStepScreens.tsx",
+      "lines": 2128
+    },
+    {
+      "file": "server/codeTaskService.ts",
+      "lines": 951
+    },
+    {
+      "file": "server/projectRoutes.ts",
+      "lines": 717
+    },
+    {
+      "file": "server/webSearch.ts",
+      "lines": 701
+    },
+    {
+      "file": "src/App.tsx",
+      "lines": 645
+    },
+    {
+      "file": "src/ConversationFiles.tsx",
+      "lines": 624
+    },
+    {
+      "file": "src/WorkspacePanel.tsx",
+      "lines": 564
+    },
+    {
+      "file": "src/workspace/extract.ts",
+      "lines": 557
+    },
+    {
+      "file": "src/ProjectMode.tsx",
+      "lines": 541
+    },
+    {
+      "file": "src/decision.ts",
+      "lines": 522
+    },
+    {
+      "file": "src/workspace/changeset.ts",
+      "lines": 520
+    },
+    {
+      "file": "server/codeExecutor.ts",
+      "lines": 514
+    },
+    {
+      "file": "server/files.ts",
+      "lines": 421
+    },
+    {
+      "file": "server/appBuilderScaffolds.ts",
+      "lines": 377
+    }
+  ],
+  "sampleContext": [
+    {
+      "target": "src/ExpertStepScreens.tsx",
+      "oneHopFiles": 37,
+      "oneHopLines": 7376
+    },
+    {
+      "target": "server.ts",
+      "oneHopFiles": 40,
+      "oneHopLines": 9934
+    },
+    {
+      "target": "server/codeTaskService.ts",
+      "oneHopFiles": 14,
+      "oneHopLines": 6254
+    }
+  ]
+}

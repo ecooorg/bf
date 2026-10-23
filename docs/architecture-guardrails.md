@@ -7,6 +7,8 @@ Commands (flat scripts under `scripts/`):
 | `npm run architecture:map` | Regenerate `docs/generated-module-map.json` |
 | `npm run architecture:check` | Cycles + layer boundaries vs ratchet |
 | `npm run architecture:impact` | Change impact for listed files |
+| `npm run context:plan -- --file <path>` | Read-only, deterministic context candidates and uncertainty report (`--json` supported) |
+| `npm run context:baseline` | Print reproducible static baseline metrics; do not overwrite frozen v80 baseline |
 | `npm run verify:change` | Map + inventories + boundaries + docs links |
 | `npm run docs:generate` | Route / env / migration inventories + module map |
 | `npm run docs:check` | Inventories present + markdown link check |
