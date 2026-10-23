@@ -32,28 +32,28 @@ export const STACK_TEMPLATES: StackTemplate[] = [
     label: 'Web app (Node + Express + React)',
     summary: 'Frontend + API server + optional database. Good default for interactive sites.',
     buildHints:
-      'Scaffold a small full-stack app: Node.js + Express API, React frontend (Vite), package.json, .env.example, README with local run and manual deploy steps. Include a health endpoint GET /api/health. Do not execute code on any server; deliver source only.',
+      'Create a small full-stack app: Node.js Express API, React (Vite) frontend, package.json, .env.example, README. Include GET /api/health. Source only; do not run code.',
   },
   {
     id: 'node_express_api',
     label: 'API only (Node + Express)',
     summary: 'Backend API without a complex UI. Suitable for services and bots.',
     buildHints:
-      'Scaffold a small Node.js + Express API: package.json, src/server entry, .env.example, README with local run and manual deploy steps. Include GET /health. Source only; never run on the host.',
+      'Create a small Node.js Express API: package.json, src/server entry, .env.example, README. Include GET /health. Source only; never run on the host.',
   },
   {
     id: 'static_site',
     label: 'Static site (HTML/CSS/JS)',
     summary: 'Simple pages without a heavy backend.',
     buildHints:
-      'Scaffold a static site: index.html, styles, minimal JS, README with how to open locally and how to host as static files. Source only.',
+      'Create a static site: index.html, styles, minimal JS, README with local-open and static-hosting steps. Source only.',
   },
   {
     id: 'auto',
     label: 'Choose for me',
     summary: 'Pick the simplest stack that fits the idea.',
     buildHints:
-      'Choose the simplest appropriate stack for the idea (prefer Node+Express+React for interactive sites, static for pure pages, Express-only for APIs). Include package or equivalent, .env.example when server-side, README with local run and manual deploy. Source only.',
+      'Choose the simplest stack: Node+Express+React for interactive sites, static for pure pages, Express-only for APIs. Add .env.example for servers, and a README. Source only.',
   },
 ];
 
@@ -111,7 +111,7 @@ export function passportFromNoviceAnswers(a: NoviceAnswers): NovicePassportField
       .join(' '),
     securityData: 'Do not embed secrets. Use .env.example. No production credentials in source.',
     successCriteria:
-      'A downloadable source ZIP that runs locally with documented commands, includes README with manual deploy steps (e.g. GitHub + Render/Railway by hand), and matches the stated goal.',
+      'A source ZIP that runs locally with documented commands, has a README with manual deploy steps, and matches the stated goal.',
     budget: { calls: 40, tokens: 200000, executorRuns: 8 },
     executor: 'model_patch',
     humanLevel: 'supervised',
@@ -127,7 +127,7 @@ export function buildGoalFromNoviceAnswers(a: NoviceAnswers): string {
     `Auth: ${a.needsAuth}. Database: ${a.needsDb}. UI language: ${a.language}.`,
     a.constraints.trim() ? `Constraints: ${a.constraints.trim()}` : '',
     stack.buildHints,
-    'Always include: README.md with (1) what this is, (2) how to run locally, (3) how to put the code on GitHub and connect a host such as Render or Railway manually.',
+    'Always include README.md: what this is, how to run locally, how to put the code on GitHub and connect a host by hand.',
     'Always include .env.example when there is a server. Never put real secrets in the ZIP.',
     'Keep the project small and runnable. Prefer clarity over features.',
   ];
@@ -144,8 +144,9 @@ export function manualDeployInstructions(projectName: string): string {
     '2. Read README.md inside — it lists local run commands.',
     '3. Copy `.env.example` to `.env` and fill in values if needed (never commit real secrets).',
     '4. Create a new empty repository on GitHub and upload the unpacked files.',
-    '5. On Render (or Railway): create a new Web Service, connect that GitHub repo, set build/start commands from the README, add environment variables from `.env.example`.',
-    '6. Deploy. Open the health URL if the README mentions one.',
+    '5. On Render or Railway: create a Web Service and connect that GitHub repo.',
+    '6. Set build and start commands from the README; add variables from `.env.example`.',
+    '7. Deploy. Open the health URL if the README mentions one.',
     '',
     'BiForge does not push to GitHub or Render for you. You stay in control of the account and the merge.',
   ].join('\n');
