@@ -1016,12 +1016,14 @@ test('zip: a GitHub wrapper folder is stripped; a flat zip is kept; the archive 
   assert.deepEqual([...(await readZipTree(await flat.generateAsync({ type: 'nodebuffer' }))).keys()].sort(), ['README.md', 'server/a.ts']);
   const built = await readZipTree(await buildZip(tree({ 'server/a.ts': 'x', 'docs/b.md': 'y' })));
   assert.deepEqual([...built.keys()].sort(), ['docs/b.md', 'server/a.ts']);
+  const archiveZip = new JSZip(); archiveZip.file('archive/README.md', 'historical');
+  assert.deepEqual([...((await readZipTree(await archiveZip.generateAsync({ type: 'nodebuffer' }))).keys())], ['archive/README.md']);
   assert.deepEqual(Object.keys((await JSZip.loadAsync(await buildZip(tree({ 'docs/b.md': 'y' })))).files), ['docs/b.md']); // no folder entries
 });
 
 test('preflight accepts a clean flat patch (including names that only look like a manifest)', () => {
   assert.deepEqual(pf({
-    'README.md': 'x', 'package.json': '{}', 'server/files.ts': 'x', 'migrations/008_artifact_manifests.sql': 'x', 'public/manifest.json': '{}',
+    'README.md': 'x', 'package.json': '{}', 'archive/README.md': 'history', 'archive/phase5-ACCEPTANCE.md': 'accepted', 'server/files.ts': 'x', 'migrations/008_artifact_manifests.sql': 'x', 'public/manifest.json': '{}',
     '.github/workflows/ci.yml': 'x', 'docs/NEXT.md': 'x', 'tests/p13a-acceptance.test.mjs': 'x',
   }), []);
 });
@@ -1029,6 +1031,7 @@ test('preflight accepts a clean flat patch (including names that only look like 
 test('preflight rejects a manifest, nested folders, a wrapper or new top-level folder, unsafe paths', () => {
   for (const bad of ['manifest.json', 'MANIFEST.txt', 'file-list.txt', 'changed_files.md', 'MANIFEST']) assert.match(pf({ [bad]: 'x' })[0], /manifest or file-list/, bad);
   assert.match(pf({ 'docs/archive/old.md': 'x' })[0], /nested folder/);
+  assert.match(pf({ 'archive/phase5/nested.md': 'x' })[0], /nested folder/);
   assert.match(pf({ 'src/a/b.ts': 'x' })[0], /nested folder/);
   assert.deepEqual(pf({ 'server/appBuilder/index.ts': 'x', 'server/appBuilder/ir.ts': 'x' }), []);
   assert.match(pf({ 'server/other/nested.ts': 'x' })[0], /nested folder/);
