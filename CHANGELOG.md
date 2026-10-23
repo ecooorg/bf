@@ -1,3 +1,12 @@
+## p71 — Phase 0 forensic audit (2026-10-23)
+
+- Completed static Phase 0 audit of the v70 baseline; no application source, SQL, tests or runtime configuration modified.
+- Added `docs/phase0/BiForge-v70-Phase0-Audit.md` with module sizes, confirmed import cycles (`taskService` ↔ `gateService` ↔ `codeTaskService`), route/ENV/migration/test inventories, coarse capability map and prioritized risk register.
+- Supporting artifacts: `module-inventory.csv`, `dependency-graph.json`, `literal-route-inventory.csv`, `environment-variable-inventory.csv`, `migration-inventory.csv`, `test-inventory.csv`.
+- Updated `AGENTS.md` status, `DOCUMENTATION-INDEX.md` and `DOCUMENTATION-BASELINE.md` to point at Phase 0 results.
+- Runtime `npm run check`, database, browser and live suites were not executed in the audit environment (BLOCKED / NOT RUN).
+- Next: p72 Phase 1 mechanical guardrails after Navigator accepts this baseline.
+
 ## Documentation migration — retire legacy numbered documents
 
 - Retired the numbered documentation set (`docs/01`–`docs/18`) from the active repository.

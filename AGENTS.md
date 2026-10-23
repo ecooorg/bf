@@ -6,8 +6,10 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 * Code delivery: scaffold ZIP works without a model; optional model slice uses `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. The legacy `engine: "model_patch"` path remains available, subject to runtime gates.
 * GitHub write: deferred (ADR-06), disabled by default; `GITHUB_DIFF_UPLOAD` is an explicit opt-in switch and `model_patch` alone never enables write.
+* **p71 (Phase 0 audit):** static forensic audit complete — inventories and report under `docs/phase0/`. No application source changed. Runtime `npm run check` was not executed in the audit environment.
+* Next authorized work: **p72** (Phase 1 mechanical guardrails) after Navigator accepts the Phase 0 baseline. Source modularization (p73+) remains unauthorized until then.
 
-Documentation-first AI-native transformation proposal. Source refactoring is **not yet authorized**. Owner approval of `docs/AI-TRANSFORMATION-SPEC.md` precedes the source audit and implementation. The owner retains the original prototype archive. Previous state and evidence are in `CHANGELOG.md`; historical claims are not proof of current behavior.
+Owner retains the original prototype archive. Previous state and evidence are in `CHANGELOG.md`; historical claims are not proof of current behavior.
 
 ## Navigation
 
@@ -15,6 +17,7 @@ Documentation-first AI-native transformation proposal. Source refactoring is **n
 * Detailed transformation requirements and gates: `docs/AI-TRANSFORMATION-SPEC.md`.
 * Domain reference index: `docs/DOCUMENTATION-INDEX.md`.
 * Evidence and limits: `docs/DOCUMENTATION-BASELINE.md`.
+* Phase 0 audit: `docs/phase0/BiForge-v70-Phase0-Audit.md`.
 * Current operational procedures: `docs/OPERATIONS.md`.
 
 ## Commands
