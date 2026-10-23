@@ -56,3 +56,7 @@ Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not
 * **Tier 3:** Never decide alone — merge to production, GitHub App write rights, billing, secrets, formal acceptance (MANUAL1), waiving gates.
 
 Silence is never consent in Tiers 2 and 3.
+
+## P85 task context
+
+Use `npm run context:task -- --task "..."` for read-only, heuristic task navigation; see `docs/TASK-CONTEXT-P85.md`. Do not confuse a suggested target or test with verified runtime behavior.

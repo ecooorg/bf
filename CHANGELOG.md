@@ -1,3 +1,9 @@
+## P85 — Task-aware context engine (2026-10-23)
+
+- Added read-only `context:task` CLI and deterministic task-to-file suggestions layered on P81 static context planning.
+- Added provenance labels, explicit partial/unknown evidence, Project Mode artifact observability gaps and focused tests integrated into `npm run check`.
+- No runtime API, UI, database or generator changes; benchmark improvement and full CI not claimed.
+
 ## P84.3 — Project Mode diagnostics roadmap (2026-10-23)
 
 - Added `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md` describing proposed structured operation logs, Project Mode stage correlation, archive/source validation, artifact save/readback verification, download-transfer evidence, bounded/redacted diagnostic export, and system diagnostics.
