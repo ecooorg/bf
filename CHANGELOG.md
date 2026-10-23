@@ -1,3 +1,8 @@
+## P84 CI integration fix — 2026-10-23
+
+- Routed `test:context-benchmark` through `npm run check` by invoking the named npm script instead of calling its test file directly. This satisfies the P56 invariant that every `test:*` script is explicitly part of the check chain or declared as a separate CI step.
+- No benchmark logic, gold-set data, product runtime behavior, or test coverage was changed.
+
 ## P84 — AI-Native Context Benchmark (2026-10-23)
 
 - Added a read-only deterministic benchmark harness (`scripts/contextBenchmark.mjs`, `scripts/contextBenchmarkLib.mjs`) and a six-scenario curated gold-set file covering Expert conversation UI, Project Mode API contracts, task-state/database, environment configuration, generated route artifacts and localized compatibility routes.
