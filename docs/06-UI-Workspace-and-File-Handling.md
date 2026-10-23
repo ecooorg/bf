@@ -38,3 +38,9 @@ A rebuild must distinguish local pending/mirrored state from confirmed remote su
 ## 6.7 Accessibility, browser and manual acceptance
 
 Preserve accessible labels and stable test IDs. Automated UI checks exist (`npm run test:ui`, `.github/workflows/ui-check.yml`) but Playwright/browser installation and actual iOS/Safari acceptance were not verified here. MANUAL1 is still listed as owner-side work in `AGENTS.md`; a successful static test must not be reported as full UX acceptance.
+
+## 6.8 Shared states and labels (P70)
+
+All three modes show empty, loading, unavailable, error and done states through one component, `StateNotice` in `src/uiStates.tsx` (`role="status"`, `role="alert"` for errors; one colour per kind in `src/index.css`). A notice is at most 12 words, says what is happening or what to do next, and never shows an id. `BusyHint` explains paused buttons while an action runs.
+
+The Drive control reads «Drive off», «Drive», «Drive on» or «Syncing…», and the History control «History» or «History off», in every mode (`driveLabel`, `historyLabel`). The «only while this tab is open» limit is in the tooltip, not in the label. Plan, approval and task values are shown in plain words through `src/projectLabels.ts`; unknown values fall back to lower-case text, never to the raw status name.

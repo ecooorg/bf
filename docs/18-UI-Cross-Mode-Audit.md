@@ -128,3 +128,33 @@ Rules for all follow-ups: no product-logic change; no removal of a capability wi
 - Scanned visible strings in `App.tsx`, `ProjectMode.tsx`, `ProjectDelivery.tsx`, `ModeMenu.tsx`, `UserGuide.tsx`, `WorkspacePanel.tsx`, path chooser / novice wizard
 - Mapped headings, tab labels, and button labels on Project and Delivery
 - No browser run in the audit environment (Playwright deps not installed here); UI structure claims are from source
+
+---
+
+## 7. Status after P70
+
+Every finding above is closed in code as of P70. Evidence is source and tests (`tests/project-mode.test.mjs`, P70 block); no browser run (see `AGENTS.md` STATE).
+
+| ID | Closed in | How |
+| --- | --- | --- |
+| L1, N2 | P67 | Tab and button read «Code package» |
+| L2 | P67 | Notices say «description» |
+| L3 | P67 | One name: Advanced |
+| L4 | P68 | Hand-off / waive / gates / fingerprint removed from visible text |
+| L5, L6 | P67, P70 | No ids or hashes in lists; P70 also removed raw plan, approval and task values, plan ids in notices and the project version counter (`src/projectLabels.ts`) |
+| L7, N3 | P70 | Simple mode banner removed; the header Mode control and the guide carry it |
+| A1 | P69 | Primary styling on the next action |
+| A2 | P68 | One primary action per Code package step |
+| A3, C1, C2, C5 | P69 | Run analysis first; token stats, request history and program build collapsed |
+| A4 | P69, P70 | Open project shows its name; the empty panel no longer repeats the page title |
+| A5 | P69 | One Files heading |
+| A6 | P63, P70 | New is hidden on the empty screen; the header button reads «New conversation» |
+| A7, S3 | P70 | One Drive / History wording in every mode |
+| C3 | P70 | The capability block lists only what is not available; «Writing to GitHub» is stated once in the scope text |
+| C4 | P70 | All long strings in `App.tsx` shortened |
+| S1 | P70 | `StateNotice` in all three modes |
+| S2 | P70 | `BusyHint` next to paused buttons on Results, Plan and Code package; an empty-program reason next to Create program |
+| S4 | P70 | Shorter confirm dialogs |
+| N1 | P70 | One «Next:» line replaces the five-step path |
+
+Copy-lint debt: all recorded violations are fixed and `DEBT` in `scripts/lint-copy.mjs` is empty. New violations fail the check.
