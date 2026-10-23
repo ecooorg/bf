@@ -20,6 +20,13 @@ Start with the repository-level `AGENTS.md`. Read only the current documents rel
 * `phase0/migration-inventory.csv` — SQL migration summary.
 * `phase0/test-inventory.csv` — test file sizes and approximate test blocks.
 
+## Phase 1 guardrails (p72)
+
+* `phase1/PHASE1-GUARDRAILS.md` — commands, ratchet policy, status codes.
+* `phase1/boundary-rules.json` — allowed layer edges and exceptions.
+* `phase1/known-violations.json` — ratchet baseline for existing cycles.
+* `phase1/generated/` — module-map and last check/impact/verify reports.
+
 ## Implementation evidence
 
 * Source code is the evidence for implemented runtime behavior.

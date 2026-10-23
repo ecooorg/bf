@@ -24,6 +24,13 @@ Legacy numbered documents (`docs/01`–`docs/18`) are historical and live outsid
 - 69 distinct `process.env` names referenced; `.env.example` does not list all of them.
 - Full static inventories: `docs/phase0/`.
 
+## Phase 1 (p72)
+
+- Architecture scripts under `scripts/architecture/`.
+- Ratchet: two known import cycles; zero new boundary violations on baseline.
+- Commands: `architecture:map`, `architecture:check`, `architecture:impact`, `verify:change`.
+- Not yet wired into default `npm run check` (optional until Navigator confirms CI).
+
 ## Verification limitations
 
 - p71 is documentation and inventory only. No application source was modified.
