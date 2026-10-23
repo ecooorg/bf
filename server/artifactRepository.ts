@@ -1,3 +1,4 @@
+import type { DbRow } from './domainIds.ts';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { getPool } from './database.ts';
@@ -49,7 +50,7 @@ export async function saveArtifact(input: ArtifactInput) {
          (SELECT version, project_id FROM artifacts WHERE artifact_id=$1 UNION ALL SELECT version, project_id FROM artifact_manifests WHERE artifact_id=$1) t`, [artifactId]);
     const maxVersion = Number(known.rows[0].max_version ?? 0);
     if (maxVersion && known.rows[0].project_id !== v.projectId) throw new Error('Artifact belongs to another project');
-    const latest = maxVersion ? await client.query('SELECT version, hash FROM artifacts WHERE artifact_id=$1 AND version=$2', [artifactId, maxVersion]) : { rows: [] as any[] };
+    const latest = maxVersion ? await client.query('SELECT version, hash FROM artifacts WHERE artifact_id=$1 AND version=$2', [artifactId, maxVersion]) : { rows: [] as DbRow[] };
     if (latest.rows[0] && latest.rows[0].hash === hash) {
       await client.query('COMMIT');
       return { artifactId, version: maxVersion, hash, size: bytes.length, kind, mime, created: false };
@@ -82,7 +83,7 @@ export async function saveArtifact(input: ArtifactInput) {
   } finally { client.release(); }
 }
 
-type Loaded = { version: number; row: any | undefined; man: any | undefined };
+type Loaded = { version: number; row: DbRow | undefined; man: DbRow | undefined };
 async function load(artifactId: string, version?: number): Promise<Loaded | null> {
   const id = idSchema.parse(artifactId);
   const pool = await getPool();

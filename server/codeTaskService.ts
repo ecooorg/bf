@@ -16,6 +16,7 @@ import {
 import { packageAcceptancePaths } from './briefWriter.ts';
 import { buildReviewFindings, type ReviewFindings } from './reviewer.ts';
 import { getTaskGates, recordApproval } from './gateService.ts';
+import type { DbRow } from './domainIds.ts';
 import { buildDiagnosticReport, buildRepairPrompt, classifyFailure, evaluateRepairStop, type RepairAttempt, type StopReason } from './repairLoop.ts';
 
 // Code Delivery, executor side (TZ 11.3-11.5; P18 / BX-21.a). A human starts a `manual` run for a task with a Task Package, takes PACKAGE.md
@@ -64,7 +65,7 @@ const baseBranchSchema = z.string().refine((b) => BASE_BRANCH_RE.test(b) && !b.s
 function expectedBranchOf(taskId: unknown): string | null {
   try { return taskBranchName(String(taskId)); } catch { return null; }
 }
-const mapCodeTask = (r: any) => ({
+const mapCodeTask = (r: DbRow) => ({
   id: r.id as string, projectId: r.project_id as string, taskId: r.task_id as string, runId: (r.run_id ?? null) as string | null, attempt: r.attempt as number,
   executor: r.executor as CodeExecutorId, status: r.status as ExecutorState, delivery: (r.delivery ?? null) as 'pr' | 'branch' | 'diff' | null,
   baseBranch: r.base_branch as string, branch: (r.branch ?? null) as string | null, headSha: (r.head_sha ?? null) as string | null,
@@ -391,7 +392,7 @@ const githubFailure = (e: unknown): CodeTaskError => {
 };
 
 /** Validates a branch or PR against the package (11.4 items 1 to 4 as far as the GitHub file list shows them) and settles the code task. */
-async function deliverBranch(row: any, input: { delivery: 'pr' | 'branch'; branch: string; baseBranch: string; head: string; prNumber?: number; prUrl?: string | null; note?: string | null; extra?: Violation[] }, deps: CodeTaskDeps): Promise<CodeTask> {
+async function deliverBranch(row: DbRow & Record<string, any>, input: { delivery: 'pr' | 'branch'; branch: string; baseBranch: string; head: string; prNumber?: number; prUrl?: string | null; note?: string | null; extra?: Violation[] }, deps: CodeTaskDeps): Promise<CodeTask> {
   const { cfg, fetcher } = githubFor(deps);
   let compared;
   try { compared = await compareToBase(cfg, row.base_branch, input.head, fetcher); } catch (e) { throw githubFailure(e); }
@@ -439,7 +440,7 @@ export async function submitCodeResult(input: { projectId: string; taskId: strin
   return deliverDiff(row, input.result, note, deps);
 }
 
-async function deliverDiff(row: any, result: { diff: string; title?: string }, note: string | null, deps: CodeTaskDeps): Promise<CodeTask> {
+async function deliverDiff(row: DbRow & Record<string, any>, result: { diff: string; title?: string }, note: string | null, deps: CodeTaskDeps): Promise<CodeTask> {
   if (!(deps.diffUpload ?? diffUploadEnabled)()) throw new CodeTaskError('DIFF_UPLOAD_DISABLED', 'Diff upload is switched off (GITHUB_DIFF_UPLOAD); return a PR or a branch instead');
   const pkg = row.package as TaskPackage;
   const parsed = parseUnifiedDiff(result.diff);
@@ -506,7 +507,7 @@ export async function refreshCodeTask(input: { projectId: string; taskId: string
   return { codeTask: await applyPullRequest(row, pr, deps), changed: true };
 }
 
-async function applyPullRequest(row: any, pr: { number: number; headSha: string; baseRef: string; htmlUrl: string | null }, deps: CodeTaskDeps): Promise<CodeTask> {
+async function applyPullRequest(row: DbRow & Record<string, any>, pr: { number: number; headSha: string; baseRef: string; htmlUrl: string | null }, deps: CodeTaskDeps): Promise<CodeTask> {
   if (row.status === 'DELIVERED') {
     const upd = await (await getPool()).query(`UPDATE code_tasks SET pr_number=COALESCE(pr_number,$2), pr_url=COALESCE(pr_url,$3), updated_at=now() WHERE id=$1 AND status='DELIVERED' RETURNING *`, [row.id, pr.number, pr.htmlUrl]);
     return mapCodeTask(upd.rows[0] ?? row);
@@ -864,7 +865,7 @@ export async function requestRepair(input: {
     `SELECT attempt, diff_hash, error_signature, failing_tests, id FROM code_tasks WHERE task_id=$1 AND status='DELIVERED' ORDER BY attempt`,
     [row.task_id],
   )).rows;
-  const history: RepairAttempt[] = historyRows.map((h: any) => ({
+  const history: RepairAttempt[] = historyRows.map((h: DbRow) => ({
     attempt: Number(h.attempt),
     diffHash: h.id === row.id ? (diffHash ?? h.diff_hash) : h.diff_hash,
     errorSignature: h.id === row.id ? classified.signature : h.error_signature,

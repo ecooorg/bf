@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { idSchema } from './contracts.ts';
+import type { DbRow } from './domainIds.ts';
 import { getPool } from './database.ts';
 import { jobStatusForRun } from './queueMachine.ts';
 import {
@@ -10,7 +12,7 @@ import { getTaskGates } from './gateService.ts';
 
 // Task/Run domain service (TZ 8.1, 8.2). Every change: one transaction, task row locked (FOR UPDATE),
 // version checked, one or more events written. No HTTP routes, no queue (P12).
-const idSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
+/* idSchema: shared from contracts.ts (p75) */
 const keySchema = z.string().trim().min(1).max(200);
 const actorSchema = z.string().trim().min(1).max(100);
 const titleSchema = z.string().trim().min(1).max(200);
@@ -23,15 +25,15 @@ function newId(): string {
   return `${Date.now().toString(36).padStart(9, '0')}_${Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
-export type Db = { query(text: string, values?: unknown[]): Promise<{ rows: any[]; rowCount: number | null }> };
+export type Db = { query(text: string, values?: unknown[]): Promise<{ rows: DbRow[]; rowCount: number | null }> };
 
-const mapTask = (r: any) => ({
+const mapTask = (r: DbRow) => ({
   id: r.id as string, projectId: r.project_id as string, title: r.title as string, input: r.input as TaskInput,
   inputFingerprint: r.input_fingerprint as string, idempotencyKey: r.idempotency_key as string, state: r.state as TaskState,
   version: r.version as number, maxAttempts: r.max_attempts as number, blockedReason: (r.blocked_reason ?? null) as string | null,
   validatedFingerprint: (r.validated_fingerprint ?? null) as string | null, createdAt: r.created_at as Date, updatedAt: r.updated_at as Date,
 });
-const mapRun = (r: any) => ({
+const mapRun = (r: DbRow) => ({
   id: r.id as string, taskId: r.task_id as string, projectId: r.project_id as string, attempt: r.attempt as number, status: r.status as RunStatus,
   idempotencyKey: r.idempotency_key as string, inputFingerprint: r.input_fingerprint as string, inputRefs: r.input_refs as string[],
   profile: (r.profile ?? null) as string | null, profileVersion: (r.profile_version ?? null) as string | null,
@@ -39,7 +41,7 @@ const mapRun = (r: any) => ({
   policyVersion: (r.policy_version ?? null) as string | null, budget: (r.budget ?? null) as unknown, evidence: r.evidence as string[],
   queuedAt: r.queued_at as Date, startedAt: (r.started_at ?? null) as Date | null, finishedAt: (r.finished_at ?? null) as Date | null,
 });
-const mapEvent = (r: any) => ({
+const mapEvent = (r: DbRow) => ({
   id: r.id as string, taskId: r.task_id as string, projectId: r.project_id as string, runId: (r.run_id ?? null) as string | null,
   eventType: r.event_type as string, fromState: (r.from_state ?? null) as string | null, toState: (r.to_state ?? null) as string | null,
   actor: r.actor as string, details: r.details as Record<string, unknown>, createdAt: r.created_at as Date,
