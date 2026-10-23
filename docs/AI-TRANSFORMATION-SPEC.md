@@ -1,6 +1,6 @@
 # BiForge AI-Native Transformation — Technical Specification
 
-**Status: ACCEPTED (Navigator, 2026-10-23, commit 2232cb9).** Transformation Phases 0–5 closed. Further work is maintenance/product (e.g. UI latency, flatten docs), not reopening Phase 0.
+**Status: ACCEPTED (Navigator, 2026-10-23, commit 2232cb9).** Transformation Phases 0–5 closed. **p80:** flat docs/scripts; phase trees in `archive/`. Further work is maintenance/product, not reopening Phase 0.
 
 ## 1. Mission
 Optimize the repository for an AI Assistant and a Navigator rather than a human-maintained engineering team. Minimize context needed per task, cross-file change surface, implicit dependencies, error recurrence and verification time without sacrificing functional quality, security or traceability.

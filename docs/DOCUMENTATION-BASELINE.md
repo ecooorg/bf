@@ -10,7 +10,7 @@ Source: Navigator-supplied `bf-v70` tree (post documentation-foundation patch).
 - `docs/DOCUMENTATION-INDEX.md` — navigation
 - `docs/DOCUMENTATION-BASELINE.md` — this file
 - `docs/OPERATIONS.md` — deployment, backup, restore, rollback
-- `docs/phase0/*` — Phase 0 forensic audit artifacts (p71)
+- `archive/phase0-*` — Phase 0 forensic audit artifacts (p71)
 
 Legacy numbered documents (`docs/01`–`docs/18`) are historical and live outside the active repository. Do not treat them as current requirements.
 
@@ -22,11 +22,11 @@ Legacy numbered documents (`docs/01`–`docs/18`) are historical and live outsid
 - ~81 literal route registrations in `server.ts` / `healthRoutes.ts`.
 - 14 SQL migrations; product `APP_VERSION` / `package.json` version label remains `57`.
 - 69 distinct `process.env` names referenced; `.env.example` does not list all of them.
-- Full static inventories: `docs/phase0/`.
+- Full static inventories: `archive/ (phase0-*)`.
 
 ## Phase 1 (p72)
 
-- Architecture scripts under `scripts/architecture/`.
+- Architecture scripts under `scripts/architecture*.mjs `.
 - Ratchet: two known import cycles; zero new boundary violations on baseline.
 - Commands: `architecture:map`, `architecture:check`, `architecture:impact`, `verify:change`.
 - Not yet wired into default `npm run check` (optional until Navigator confirms CI).
