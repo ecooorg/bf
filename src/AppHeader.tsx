@@ -1,6 +1,6 @@
 /** App chrome: method guide and main header. */
 import React, { useState, useRef } from 'react';
-import type { AppMode } from './ModeMenu.tsx';
+import { ModeMenu, type AppMode } from './ModeMenu.tsx';
 import {
   BrainCircuit, CircleHelp, Cloud, CloudUpload, History as HistoryIcon,
   MoreHorizontal, SlidersHorizontal, Trash2, KeyRound, FolderOpen, Download, Upload, Plus,
@@ -8,6 +8,7 @@ import {
 import { STAGES, LOOPS, type Step, type Decision } from './decision.ts';
 import { FEATURES } from './config.ts';
 import { StateNotice, driveLabel as sharedDriveLabel, driveTitle, historyLabel, HISTORY_OFF_TITLE } from './uiStates.tsx';
+import { PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 
 export function MethodGuide({ step, stageMeta, busy }: { step: Step; stageMeta: typeof STAGES[number]; busy: boolean }) {
   const currentLoopIndex = Math.max(0, LOOPS.findIndex((l) => l.steps.includes(step)));

@@ -67,6 +67,8 @@ import {
   SynthesisScreen,
   LearnScreen,
   BriefPanel,
+  StepTitle,
+  isBriefWorthShowing,
 } from './ExpertStepScreens.tsx';
 
 export default function App() {
