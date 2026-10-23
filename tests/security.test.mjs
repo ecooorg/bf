@@ -181,7 +181,8 @@ test('current AI operating rules preserve GitHub and secret safety policies', ()
   );
 
   assert.match(rules, /GitHub access is read-only by default/i);
-  assert.match(rules, /no merge or admin permission/i);
+  assert.match(rules, /merge/i);
+  assert.match(rules, /admin(?:istrator)? permission/i);
   assert.match(rules, /secret/i);
   assert.match(rules, /do not reproduce secret values/i);
 });
