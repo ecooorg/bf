@@ -1,3 +1,8 @@
+## p75.4 — CI red fix (project-mode static scopes) (2026-10-23)
+
+- `tests/project-mode.test.mjs`: import `serverSources` in P20b / P21 / P22 blocks (was ReferenceError); program-creation static test reads aggregated server sources after route split.
+- No product code changes. Prior stages already green (typecheck, core, models, pipeline, regression, live DB).
+
 ## p75.3 — CI red fix (typecheck, tests, preflight) (2026-10-23)
 
 - `tsconfig.server.json`: `noImplicitReturns` off again (was failing Express handlers with early `return res.status...`).
