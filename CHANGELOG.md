@@ -1,3 +1,8 @@
+## p75.6 — stabilize flaky live lease-loss test (2026-10-23)
+
+- `tests/database.test.mjs`: worker lease-loss case no longer races heartbeat `FOR UPDATE` vs `recoverExpired` `SKIP LOCKED` (empty recovery → flaky CI). Long `heartbeatMs` + short retry loop.
+- Product code unchanged. Full check stages and gitleaks were already green.
+
 ## p75.5 — CI: gitleaks false positive in CHANGELOG (2026-10-23)
 
 - Reworded `AI/conversation` → `AI and conversation` in the p73 CHANGELOG line (gitleaks `generic-api-key` false positive after `auth middleware`).
