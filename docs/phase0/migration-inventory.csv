@@ -1,0 +1,15 @@
+file,lines,creates,alters
+001_project_state.sql,57,"projects, project_states, project_state_versions, project_events, audit_events, rate_limits, schema_migrations",-
+002_artifacts_ledger.sql,48,"artifacts, usage_ledger, connection_checks",-
+003_route_decisions.sql,18,route_decisions,usage_ledger
+004_model_health.sql,15,model_health,-
+005_tasks_runs.sql,57,"tasks, runs, task_events",-
+006_jobs.sql,20,jobs,-
+007_budgets_plans_approvals.sql,57,"budgets, project_settings, plans, plan_tasks, approvals",-
+008_artifact_manifests.sql,29,artifact_manifests,-
+009_gate_evidence.sql,48,"gate_evidence, gate_waivers, task_heads",-
+010_code_tasks.sql,36,code_tasks,-
+011_code_task_package_approval.sql,5,-,code_tasks
+012_code_task_decision.sql,9,-,code_tasks
+013_repair_loop.sql,13,-,code_tasks
+014_provider_snapshots.sql,33,"provider_snapshots, monitor_alerts",-
