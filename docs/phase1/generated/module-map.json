@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-23T10:25:27.744Z",
+  "generatedAt": "2026-10-23T10:42:28.399Z",
   "generator": "scripts/architecture/generate-module-map.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 130,
-    "edgeCount": 250,
+    "moduleCount": 133,
+    "edgeCount": 277,
     "cycleCount": 2,
-    "totalLines": 25900
+    "totalLines": 26089
   },
   "cycles": [
     {
@@ -28,7 +28,7 @@
     }
   ],
   "layers": {
-    "server": 60,
+    "server": 63,
     "src": 69,
     "other": 1
   },
@@ -36,11 +36,12 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2994,
+      "lines": 2300,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderIndex.ts",
         "server/artifactRepository.ts",
+        "server/authRoutes.ts",
         "server/briefWriter.ts",
         "server/codeTaskService.ts",
         "server/contracts.ts",
@@ -60,9 +61,11 @@
         "server/modelRegistry.ts",
         "server/openaiCompatAdapter.ts",
         "server/opsMetrics.ts",
+        "server/opsRoutes.ts",
         "server/planService.ts",
         "server/projectCapabilities.ts",
         "server/projectRepository.ts",
+        "server/projectRoutes.ts",
         "server/promptPacks.ts",
         "server/reasoningState.ts",
         "server/router.ts",
@@ -104,7 +107,7 @@
         "server/statePipeline.ts",
         "server/stateService.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/appBuilderIndex.ts",
@@ -115,7 +118,7 @@
         "server/appBuilderPipeline.ts",
         "server/appBuilderScaffolds.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/appBuilderIr.ts",
@@ -158,7 +161,7 @@
         "server/artifactFormat.ts",
         "server/database.ts"
       ],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "server/auditCatalog.ts",
@@ -168,13 +171,25 @@
       "fanIn": 0
     },
     {
+      "path": "server/authRoutes.ts",
+      "layer": "server",
+      "lines": 106,
+      "imports": [
+        "server/githubIntegration.ts",
+        "server/projectCapabilities.ts",
+        "server/projectRepository.ts",
+        "server/security.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/briefWriter.ts",
       "layer": "server",
       "lines": 101,
       "imports": [
         "server/codeExecutor.ts"
       ],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "server/budget.ts",
@@ -190,7 +205,7 @@
       "imports": [
         "server/gateEngine.ts"
       ],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "server/codeTaskService.ts",
@@ -208,7 +223,7 @@
         "server/reviewer.ts",
         "server/taskService.ts"
       ],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "server/contextBuilder.ts",
@@ -226,7 +241,7 @@
       "imports": [
         "server/statePipeline.ts"
       ],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "server/conversationMode.ts",
@@ -240,7 +255,7 @@
       "layer": "server",
       "lines": 47,
       "imports": [],
-      "fanIn": 12
+      "fanIn": 13
     },
     {
       "path": "server/documents.ts",
@@ -279,7 +294,7 @@
       "layer": "server",
       "lines": 181,
       "imports": [],
-      "fanIn": 5
+      "fanIn": 6
     },
     {
       "path": "server/gateService.ts",
@@ -291,14 +306,14 @@
         "server/gateEngine.ts",
         "server/githubIntegration.ts"
       ],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "server/geminiAdapter.ts",
       "layer": "server",
       "lines": 68,
       "imports": [],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/githubIntegration.ts",
@@ -307,7 +322,7 @@
       "imports": [
         "server/codeExecutor.ts"
       ],
-      "fanIn": 4
+      "fanIn": 5
     },
     {
       "path": "server/goldenEval.ts",
@@ -374,20 +389,30 @@
       "layer": "server",
       "lines": 78,
       "imports": [],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "server/openaiCompatAdapter.ts",
       "layer": "server",
       "lines": 81,
       "imports": [],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/opsMetrics.ts",
       "layer": "server",
       "lines": 190,
       "imports": [],
+      "fanIn": 2
+    },
+    {
+      "path": "server/opsRoutes.ts",
+      "layer": "server",
+      "lines": 65,
+      "imports": [
+        "server/database.ts",
+        "server/opsMetrics.ts"
+      ],
       "fanIn": 1
     },
     {
@@ -407,7 +432,7 @@
         "server/taskMachine.ts",
         "server/taskService.ts"
       ],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "server/projectCapabilities.ts",
@@ -416,7 +441,7 @@
       "imports": [
         "server/githubIntegration.ts"
       ],
-      "fanIn": 1
+      "fanIn": 3
     },
     {
       "path": "server/projectRepository.ts",
@@ -426,7 +451,33 @@
         "server/contracts.ts",
         "server/database.ts"
       ],
-      "fanIn": 4
+      "fanIn": 6
+    },
+    {
+      "path": "server/projectRoutes.ts",
+      "layer": "server",
+      "lines": 712,
+      "imports": [
+        "server/analysisService.ts",
+        "server/appBuilderIndex.ts",
+        "server/artifactRepository.ts",
+        "server/briefWriter.ts",
+        "server/codeExecutor.ts",
+        "server/codeTaskService.ts",
+        "server/contracts.ts",
+        "server/gateEngine.ts",
+        "server/gateService.ts",
+        "server/geminiAdapter.ts",
+        "server/modelRegistry.ts",
+        "server/openaiCompatAdapter.ts",
+        "server/planService.ts",
+        "server/projectCapabilities.ts",
+        "server/projectRepository.ts",
+        "server/router.ts",
+        "server/security.ts",
+        "server/taskService.ts"
+      ],
+      "fanIn": 1
     },
     {
       "path": "server/promptCore.ts",
@@ -517,14 +568,14 @@
       "layer": "server",
       "lines": 144,
       "imports": [],
-      "fanIn": 4
+      "fanIn": 5
     },
     {
       "path": "server/security.ts",
       "layer": "server",
       "lines": 91,
       "imports": [],
-      "fanIn": 1
+      "fanIn": 3
     },
     {
       "path": "server/statePipeline.ts",
@@ -561,7 +612,7 @@
         "server/queueMachine.ts",
         "server/taskMachine.ts"
       ],
-      "fanIn": 5
+      "fanIn": 6
     },
     {
       "path": "server/turnFocus.ts",
@@ -1264,7 +1315,7 @@
   "topFanIn": [
     {
       "path": "server/database.ts",
-      "count": 12
+      "count": 13
     },
     {
       "path": "src/workspace/types.ts",
@@ -1279,6 +1330,18 @@
       "count": 7
     },
     {
+      "path": "server/gateEngine.ts",
+      "count": 6
+    },
+    {
+      "path": "server/projectRepository.ts",
+      "count": 6
+    },
+    {
+      "path": "server/taskService.ts",
+      "count": 6
+    },
+    {
       "path": "src/attachments.ts",
       "count": 6
     },
@@ -1291,7 +1354,11 @@
       "count": 6
     },
     {
-      "path": "server/gateEngine.ts",
+      "path": "server/githubIntegration.ts",
+      "count": 5
+    },
+    {
+      "path": "server/router.ts",
       "count": 5
     },
     {
@@ -1299,23 +1366,23 @@
       "count": 5
     },
     {
-      "path": "server/taskService.ts",
-      "count": 5
-    },
-    {
       "path": "src/uiStates.tsx",
       "count": 5
     },
     {
-      "path": "server/githubIntegration.ts",
+      "path": "server/artifactRepository.ts",
       "count": 4
     },
     {
-      "path": "server/projectRepository.ts",
+      "path": "server/codeExecutor.ts",
       "count": 4
     },
     {
-      "path": "server/router.ts",
+      "path": "server/gateService.ts",
+      "count": 4
+    },
+    {
+      "path": "server/modelRegistry.ts",
       "count": 4
     },
     {
@@ -1343,38 +1410,26 @@
       "count": 3
     },
     {
-      "path": "server/artifactRepository.ts",
-      "count": 3
-    },
-    {
-      "path": "server/budget.ts",
-      "count": 3
-    },
-    {
-      "path": "server/codeExecutor.ts",
-      "count": 3
-    },
-    {
-      "path": "server/conversationMode.ts",
-      "count": 3
-    },
-    {
-      "path": "server/gateService.ts",
+      "path": "server/briefWriter.ts",
       "count": 3
     }
   ],
   "largest": [
     {
-      "path": "server.ts",
-      "lines": 2994
-    },
-    {
       "path": "src/App.tsx",
       "lines": 2948
     },
     {
+      "path": "server.ts",
+      "lines": 2300
+    },
+    {
       "path": "server/codeTaskService.ts",
       "lines": 950
+    },
+    {
+      "path": "server/projectRoutes.ts",
+      "lines": 712
     },
     {
       "path": "server/webSearch.ts",
@@ -1459,10 +1514,6 @@
     {
       "path": "server/promptPacks.ts",
       "lines": 274
-    },
-    {
-      "path": "server/reasoningState.ts",
-      "lines": 254
     }
   ]
 }
