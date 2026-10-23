@@ -15,7 +15,7 @@ Documentation-first AI-native transformation proposal. Source refactoring is **n
 * Detailed transformation requirements and gates: `docs/AI-TRANSFORMATION-SPEC.md`.
 * Domain reference index: `docs/DOCUMENTATION-INDEX.md`.
 * Evidence and limits: `docs/DOCUMENTATION-BASELINE.md`.
-* Existing open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md`.
+* Current operational procedures: `docs/OPERATIONS.md`.
 
 ## Commands
 
