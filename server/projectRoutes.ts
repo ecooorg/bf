@@ -60,6 +60,7 @@ import {
 } from './codeTaskService.ts';
 import { buildTaskPackageFromBrief } from './briefWriter.ts';
 import { isSameOrigin } from './security.ts';
+import { parseProjectId, parseTaskId } from './domainIds.ts';
 import type { TaskPackage } from './codeExecutor.ts';
 
 export type CodeAuthorCaller = (input: {
@@ -329,8 +330,11 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     z.object({ kind: z.literal('diff'), diff: z.string().min(1).max(512_000), title: z.string().max(200).optional(), note: codeNote }).strict(),
   ]);
   async function taskOfProject(req: Request, res: Response) {
-    const task = await getTask(req.params.taskId);
-    if (!task || task.projectId !== req.params.projectId) { res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' }); return null; }
+    // Path params validated with shared id contract (Phase 3 branded ids).
+    const projectId = parseProjectId(req.params.projectId);
+    const taskId = parseTaskId(req.params.taskId);
+    const task = await getTask(taskId);
+    if (!task || task.projectId !== projectId) { res.status(404).json({ success: false, error: 'Task not found', code: 'NOT_FOUND' }); return null; }
     return task;
   }
   app.get('/api/projects/:projectId/tasks/:taskId/code', async (req, res) => {

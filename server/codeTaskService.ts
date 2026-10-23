@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { z } from 'zod';
+import { idSchema } from './contracts.ts';
 import { getPool } from './database.ts';
 import { getProject } from './projectRepository.ts';
 import { getTask, inTx, lockTask, type Db } from './taskService.ts';
@@ -53,7 +54,7 @@ export interface CodeTaskDeps {
   sourceOnly?: boolean;
 }
 
-const idSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
+/* idSchema: shared from contracts.ts (p76) */
 const noteSchema = z.string().trim().max(500);
 const newId = () => `code_${Date.now().toString(36)}_${crypto.randomBytes(6).toString('hex')}`;
 const OPEN_STATES = ['WAITING_HUMAN', 'RUNNING', 'BLOCKED'] as const;
