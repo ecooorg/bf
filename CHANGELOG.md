@@ -1,3 +1,9 @@
+## p80.1 — Fix CI preflight for flat historical archive (2026-10-23)
+
+- `scripts/patch-tools.mjs`: include the existing lowercase `archive/` in allowed top-level folders. Keeps nested-folder, unsafe-path, secret and protected-acceptance checks unchanged.
+- `tests/models.test.mjs`: cover flat archive paths, reject nested archive paths, and preserve archive paths when reading ZIPs.
+- No product runtime behavior changes.
+
 ## p80 — Flatten docs/scripts; archive phase history (2026-10-23)
 
 - Removed nested `docs/phase0…phase5` and `scripts/architecture|docs/`.

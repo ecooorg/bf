@@ -6,6 +6,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 * **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 * **p79:** CI `ui-check` Playwright cache (skip apt on cache hit).
+* **p80.1:** CI preflight now permits the approved flat `archive/` directory; regression coverage added.
 * **p80:** Flat docs/scripts layout — phase folders removed; historical copies in `archive/`; active tools use prefixed script names under `scripts/`.
 * Optional later: domain file prefixes in `server/` (`codeTask*`, …), stricter TypeScript, remaining monolith splits.
 
