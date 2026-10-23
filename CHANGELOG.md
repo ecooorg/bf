@@ -1,3 +1,14 @@
+## p74 — Phase 2b: App.tsx modularization + cycle break (2026-10-23)
+
+- Split `src/App.tsx` (~2947 → ~641 lines) without UI behaviour change:
+  - `src/appApi.ts` — `api`, `sessionStatus`, `loginWithPassword`, `stageIndex`
+  - `src/ErrorBoundary.tsx` — screen error boundary
+  - `src/AppHeader.tsx` — `Header`, `MethodGuide`
+  - `src/ExpertStepScreens.tsx` — triage through learn step screens and brief panel
+- Broke static import cycle `taskService` ↔ `gateService` ↔ `codeTaskService` by replacing the static `gateService` → `codeTaskService` import with a dynamic `import()` at the PR-sync call site.
+- Updated `docs/phase1/known-violations.json` (known cycles empty). `architecture:check` reports 0 cycles.
+- No SQL, route contract, or intentional product behaviour changes. Full `npm run check` / UI viewport not executed in patch environment (NOT_RUN).
+
 ## p73 — Phase 2a: split server.ts route groups (2026-10-23)
 
 - Extracted HTTP route groups from `server.ts` without behaviour change:
