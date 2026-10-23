@@ -6,7 +6,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 * **P81:** Dependency Intelligence context planner and deterministic pre-P81 v80 baseline.
 * **P82:** Conversation/brief UI and compatibility-route extractions; Navigator reports GitHub CI green. Local full verification was blocked by an `npm ci` timeout.
-* **P83 patch:** Runtime validation for Project Mode pagination query strings and explicit contract-to-test context evidence. P83 full CI is not yet verified; see `docs/contracts-verification-p83.json`.
+* **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green. See `docs/contracts-verification-p83.json` for scope and limitations.
+* **P84 patch:** Read-only AI-native context benchmark with six curated scenarios, a pinned v80 + p80.1 comparison, gold-set recall/false-positive metrics and explicit measurement limitations. P84 CI is pending; see `docs/context-benchmark-p84.json` and `docs/context-benchmark-verification-p84.json`. No regression gate is enabled.
 
 * **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 * **p79:** CI `ui-check` Playwright cache (skip apt on cache hit).
@@ -34,7 +35,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run acceptance:report`. Health: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run acceptance:report`. Health: `GET /health`.
 
 ## Critical rules
 
