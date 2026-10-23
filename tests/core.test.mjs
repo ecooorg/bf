@@ -337,6 +337,7 @@ const { readFileSync } = await import("node:fs");
 
 const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const modeMenu = readFileSync(new URL('../src/ModeMenu.tsx', import.meta.url), 'utf8');
+const appHeader = readFileSync(new URL('../src/AppHeader.tsx', import.meta.url), 'utf8');
 const projectUi = readFileSync(new URL('../src/ProjectMode.tsx', import.meta.url), 'utf8');
 
 test('UI1 start screen offers all three explicit modes', () => {
@@ -358,7 +359,7 @@ test('mode selection is explicit and session-persisted', () => {
 });
 
 test('folder picker menu behavior is wired in the UI', () => {
-  assert.match(modeMenu + app, /PICK_FOLDER_EVENT/);
+  assert.match(modeMenu + app + appHeader, /PICK_FOLDER_EVENT/);
 });
 
 test('Change mode control returns to start screen', () => {
@@ -373,18 +374,18 @@ test('P51: one Mode control on every screen; the old duplicate items are gone fr
   assert.match(modeMenu, /role="menuitemradio"/);
   for (const m of ['Simple', 'Expert', 'Project']) assert.match(modeMenu, new RegExp(`mode: '${m}'`));
   assert.match(modeMenu, /Back to mode selection/);
-  // Chat shell (Simple and Expert share one Header) renders it first and wires the existing handlers
-  assert.match(app, /<ModeMenu current=\{props\.expertMode \? 'Expert' : 'Simple'\}/);
+  // Chat shell: ModeMenu lives in AppHeader; App wires chooseStartMode / resetStartMode (p74 split)
+  assert.match(appHeader, /<ModeMenu current=\{props\.expertMode \? 'Expert' : 'Simple'\}/);
   assert.match(app, /onSelectMode=\{chooseStartMode\}/);
   assert.match(app, /onChangeMode=\{resetStartMode\}/);
   // Project page uses the same component instead of its own back links
   assert.match(projectUi, /<ModeMenu current="Project"/);
   assert.equal((projectUi.match(/Back to mode selection/g) || []).length, 0, 'no duplicated back link on the Project page');
   // The three overlapping More-menu items are removed
-  assert.doesNotMatch(app, /Mode selection \(Simple \/ Expert \/ Project\)/);
-  assert.doesNotMatch(app, /Switch to Expert method|Switch to Simple chat/);
-  assert.doesNotMatch(app, /data-testid="toggle-expert-menu"/);
-  assert.doesNotMatch(app, /Project workspace \(separate\)/);
+  assert.doesNotMatch(app + appHeader, /Mode selection \(Simple \/ Expert \/ Project\)/);
+  assert.doesNotMatch(app + appHeader, /Switch to Expert method|Switch to Simple chat/);
+  assert.doesNotMatch(app + appHeader, /data-testid="toggle-expert-menu"/);
+  assert.doesNotMatch(app + appHeader, /Project workspace \(separate\)/);
   // Returning from /project as Expert must open Expert, not Simple
   assert.match(app, /getItem\(START_MODE_KEY\) === 'Expert'/);
 });
