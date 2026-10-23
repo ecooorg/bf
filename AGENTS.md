@@ -25,7 +25,7 @@ Documentation-first AI-native transformation proposal. Source refactoring is **n
 
 Preserve behavior unless change is approved. Never commit secrets. Production deployment, GitHub write, billing, credentials, bypassing security controls and executing generated code on the host require explicit owner authorization. Report passed/failed/blocked/not-run checks separately. Deliver a ZIP containing changed/new files, list deletions separately, and update this status and `CHANGELOG.md` for every patch.
 
-## 8. Delegation of decisions
+## Delegation of decisions
 
 * **Tier 0:** Act (routine implementation inside authorised scope).
 * **Tier 1:** Decide and disclose (local design choices that do not change product contract).
