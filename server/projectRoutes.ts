@@ -376,7 +376,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
           input: { task: input.goal, artifactRefs: [], stateVersion: Number(project.state_version), profile: 'code_author', profileVersion: '1', criteria: ['Generated source passes structural/path validation', 'Source bundle is downloadable', 'No generated code is executed by the BiForge server'] },
           actor: 'human',
         });
-        const { APP_BUILDER_MAX_FILES, APP_BUILDER_MAX_CHANGED_LINES } = await import('./server/codeExecutor.ts');
+        const { APP_BUILDER_MAX_FILES, APP_BUILDER_MAX_CHANGED_LINES } = await import('./codeExecutor.ts');
         const pkg = buildTaskPackageFromBrief({
           taskId: created.task.id, projectId: project.id, goal: input.goal,
           constraints: [input.constraints || '', 'All generated files under generated-projects/<task-id>/.'].filter(Boolean).join('\n\n'),
