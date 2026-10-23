@@ -12,10 +12,10 @@
     "lint:copy": "node scripts/lint-copy.mjs",
     "typecheck": "tsc --noEmit",
     "check:docs": "node scripts/check-docs.mjs",
-    "architecture:map": "node scripts/architecture/generate-module-map.mjs",
-    "architecture:check": "node scripts/architecture/check-boundaries.mjs",
-    "architecture:impact": "node scripts/architecture/change-impact.mjs",
-    "verify:change": "node scripts/architecture/verify-change.mjs",
+    "architecture:map": "node scripts/architectureGenerateModuleMap.mjs",
+    "architecture:check": "node scripts/architectureCheckBoundaries.mjs",
+    "architecture:impact": "node scripts/architectureChangeImpact.mjs",
+    "verify:change": "node scripts/architectureVerifyChange.mjs",
     "verify:connections": "tsx scripts/verify-connections.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "patch:pack": "node scripts/pack-simple.mjs",
@@ -45,9 +45,9 @@
     "test:bx06:api": "RUN_BX06_API=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/project-mode.test.mjs",
     "test:ui": "node --import tsx tests/ui-check.mjs",
     "check": "node scripts/check-version.mjs && npm run check:docs && npm run lint:copy && npm run typecheck && npm run test:core && npm run test:models && npm run test:security && npm run test:files && npm run test:workspace && npm run test:database && npm run test:integrations && npm run test:project && npm run test:gates && npm run test:pipeline && npm run test:web && npm run test:turn && npm run test:regression",
-    "docs:generate": "node scripts/docs/generate-inventories.mjs && node scripts/architecture/generate-module-map.mjs",
-    "docs:check": "node scripts/docs/check-inventories.mjs && npm run check:docs",
-    "acceptance:report": "node scripts/acceptance-report.mjs"
+    "docs:generate": "node scripts/docsGenerateInventories.mjs && node scripts/architectureGenerateModuleMap.mjs",
+    "docs:check": "node scripts/docsCheckInventories.mjs && npm run check:docs",
+    "acceptance:report": "node scripts/acceptanceReport.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

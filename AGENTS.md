@@ -4,14 +4,10 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Current status
 
-* **p71–p74:** Phase 0–2b (audit, guardrails, server routes, App split, cycle break).
-* **p75–p75.7:** Phase 3 start + CI stabilisation (imports, static tests, gitleaks, lease-loss timing).
-* **p76 (Phase 3 closed):** branded path-param validation, shared idSchema in codeTaskService, `docs/phase3/PHASE3-COMPLETE.md`.
-* **p77 (Phase 4 done):** `npm run docs:generate` / `docs:check` — route, env, migration inventories under `docs/phase1/generated/` (`docs/phase4/PHASE4-GENERATORS.md`).
-* **p78 (Phase 5 acceptance package):** `docs/phase5/ACCEPTANCE.md` — Navigator sign-off surface.
-* **Transformation track:** **ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`). Phases 0–5 closed. Maintenance / product work under existing rules.
-* **p79:** CI `ui-check` — cache Playwright Chromium; skip apt `--with-deps` on cache hit (job was 20–25 min on install alone).
-* **Later:** product busy-state timeouts if still needed; flatten phase-folders / prefix naming per original plan.
+* **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
+* **p79:** CI `ui-check` Playwright cache (skip apt on cache hit).
+* **p80:** Flat docs/scripts layout — phase folders removed; historical copies in `archive/`; active tools use prefixed script names under `scripts/`.
+* Optional later: domain file prefixes in `server/` (`codeTask*`, …), stricter TypeScript, remaining monolith splits.
 
 ### Product / runtime (P43 / ADR-06)
 
@@ -21,22 +17,24 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 ## Navigation
 
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
-* Detailed transformation requirements and gates: `docs/AI-TRANSFORMATION-SPEC.md`.
-* Domain reference index: `docs/DOCUMENTATION-INDEX.md`.
-* Evidence and limits: `docs/DOCUMENTATION-BASELINE.md`.
-* Phase 0 audit: `docs/phase0/BiForge-v70-Phase0-Audit.md`.
-* Phase 1 guardrails: `docs/phase1/PHASE1-GUARDRAILS.md`.
-* Phase 3 closed: `docs/phase3/PHASE3-COMPLETE.md`.
-* Phase 5 accepted: `docs/phase5/ACCEPTANCE.md`.
-* Current operational procedures: `docs/OPERATIONS.md`.
+* Transformation contract (historical + gates): `docs/AI-TRANSFORMATION-SPEC.md`.
+* Domain index: `docs/DOCUMENTATION-INDEX.md`.
+* Baseline notes: `docs/DOCUMENTATION-BASELINE.md`.
+* Operations: `docs/OPERATIONS.md`.
+* Architecture guardrails: `docs/architecture-guardrails.md`.
+* Typing conventions: `docs/typing-and-naming.md`.
+* Accepted Phase 5 record (archive): `archive/phase5-ACCEPTANCE.md`.
+* Generated inventories: `docs/generated-*-inventory.json`, `docs/generated-module-map.json`.
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run verify:change`; `npm run architecture:check`; `npm run docs:generate`; `npm run acceptance:report`. Health endpoint: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run architecture:check`; `npm run acceptance:report`. Health: `GET /health`.
 
 ## Critical rules
 
 Preserve behavior unless change is approved. Never commit secrets. Production deployment, GitHub write, billing, credentials, bypassing security controls and executing generated code on the host require explicit owner authorization. Report passed/failed/blocked/not-run checks separately. Deliver a ZIP containing changed/new files, list deletions separately, and update this status and `CHANGELOG.md` for every patch.
+
+Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not add new directory levels without Navigator approval. Historical material belongs in `archive/`.
 
 ## Delegation of decisions
 

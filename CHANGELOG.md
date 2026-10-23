@@ -1,3 +1,11 @@
+## p80 — Flatten docs/scripts; archive phase history (2026-10-23)
+
+- Removed nested `docs/phase0…phase5` and `scripts/architecture|docs/`.
+- Active flat docs: `architecture-guardrails.md`, `architecture-boundary-rules.json`, `architecture-known-violations.json`, `typing-and-naming.md`, `generated-*.json`.
+- Scripts with prefixes: `architecture*.mjs`, `docsGenerateInventories.mjs`, `docsCheckInventories.mjs`, `acceptanceReport.mjs`.
+- Historical copies in `archive/` (flat filenames) + `archive/README.md`.
+- AGENTS / INDEX / package.json / preflight updated. No product behaviour change.
+
 ## p79 — CI ui-check: stop 20+ min Playwright apt install (2026-10-23)
 
 - Root cause of “UI runs 20–25 minutes”: GitHub Actions job `ui` stuck on `npx playwright install --with-deps chromium` (apt packages), before `npm run test:ui`.
