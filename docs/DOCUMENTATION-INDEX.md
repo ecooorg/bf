@@ -10,6 +10,16 @@ Start with the repository-level `AGENTS.md`. Read only the current documents rel
 * `DOCUMENTATION-BASELINE.md` — baseline observations and verification limitations.
 * `OPERATIONS.md` — current operational procedures, deployment boundaries, rollback, backup and restore.
 
+## Phase 0 audit (p71)
+
+* `phase0/BiForge-v70-Phase0-Audit.md` — main forensic report, risks and Phase 0 gate.
+* `phase0/module-inventory.csv` — module paths, line counts, kind.
+* `phase0/dependency-graph.json` — cycles, fan-in, sample edges.
+* `phase0/literal-route-inventory.csv` — HTTP registrations from server entrypoints.
+* `phase0/environment-variable-inventory.csv` — `process.env` usage vs `.env.example`.
+* `phase0/migration-inventory.csv` — SQL migration summary.
+* `phase0/test-inventory.csv` — test file sizes and approximate test blocks.
+
 ## Implementation evidence
 
 * Source code is the evidence for implemented runtime behavior.

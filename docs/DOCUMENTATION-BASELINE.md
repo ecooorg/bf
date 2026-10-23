@@ -1,21 +1,37 @@
-# Documentation Patch — Baseline and Evidence
+# Documentation Baseline and Evidence
 
-Source: Navigator-supplied `bf-v70.zip`, containing the `bf-main/` tree.
+Source: Navigator-supplied `bf-v70` tree (post documentation-foundation patch).
 
-## Observations from archive inspection
-- The old `AGENTS.md` combined current patch state, documentation navigation, policy and UI instructions.
-- The repository has 18 numbered Markdown documents and one requirements CSV.
-- Large source modules include `server.ts`, `src/App.tsx` and `server/codeTaskService.ts`.
-- `tsconfig.server.json` currently specifies `strict: false`.
-- `scripts/check-docs.mjs` checks Markdown links and selected path references.
-- `package.json` defines build, full check and focused test commands.
-- Legacy route and repository inventories may become stale.
+## Current documentation set (authoritative)
 
-## Patch scope
-Replace the AI entry point, introduce permanent rules, full transformation specification, index and evidence note; prepend changelog. All existing domain documents remain intact. No application source, SQL, tests or runtime configuration are intentionally modified.
+- `AGENTS.md` — AI entry point, status, commands, tiers
+- `docs/AI-OPERATING-RULES.md` — permanent operating and security rules
+- `docs/AI-TRANSFORMATION-SPEC.md` — phased transformation mandate
+- `docs/DOCUMENTATION-INDEX.md` — navigation
+- `docs/DOCUMENTATION-BASELINE.md` — this file
+- `docs/OPERATIONS.md` — deployment, backup, restore, rollback
+- `docs/phase0/*` — Phase 0 forensic audit artifacts (p71)
+
+Legacy numbered documents (`docs/01`–`docs/18`) are historical and live outside the active repository. Do not treat them as current requirements.
+
+## Phase 0 observations (p71)
+
+- Largest modules: `server.ts` (~2993 lines), `src/App.tsx` (~2947), `server/codeTaskService.ts` (~949).
+- Confirmed import cycles: `taskService` ↔ `gateService` ↔ `codeTaskService`.
+- `tsconfig.server.json` has `"strict": false`.
+- ~81 literal route registrations in `server.ts` / `healthRoutes.ts`.
+- 14 SQL migrations; product `APP_VERSION` / `package.json` version label remains `57`.
+- 69 distinct `process.env` names referenced; `.env.example` does not list all of them.
+- Full static inventories: `docs/phase0/`.
 
 ## Verification limitations
-Documentation link validation is the only patch-specific check attempted. Runtime, browser, database and provider equivalence are not established by this documentation patch. Phase 0 must measure the actual baseline before any structural changes.
 
-## Risks
-Legacy documents may contain contradictions. Their content cannot be discarded until requirements are mapped to implementation and accepted by the Navigator.
+- p71 is documentation and inventory only. No application source was modified.
+- `npm run check`, database, browser and live provider suites were **not** executed in the audit environment.
+- Functional equivalence to any prior CI green build is therefore **not proven** by p71 alone.
+
+## Risks carried forward
+
+- Stale hand-written inventories must not be reintroduced; prefer generated maps (Phase 1 / 4).
+- Historical requirements in the owner’s archive must be re-validated before deletion or re-incorporation (owner decision D05).
+- Documentation files that tests assert on are part of the public contract; change them with the same discipline as code.
