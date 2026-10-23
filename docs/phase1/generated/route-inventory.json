@@ -1,0 +1,389 @@
+{
+  "generatedAt": "2026-10-23T13:51:20Z",
+  "generator": "scripts/docs/generate-inventories.mjs",
+  "sourceFiles": [
+    "server.ts",
+    "server/authRoutes.ts",
+    "server/healthRoutes.ts",
+    "server/opsRoutes.ts",
+    "server/projectRoutes.ts"
+  ],
+  "count": 75,
+  "routes": [
+    {
+      "method": "GET",
+      "path": "*",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/analyze-full",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/attach",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/conversation",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/evpi",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/expand",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/experiment-draft",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/export-document",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/forecast-wording",
+      "file": "server.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "file": "server/healthRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/knowledge-map",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/login",
+      "file": "server/authRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/logout",
+      "file": "server/authRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/neutralize",
+      "file": "server.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ops",
+      "file": "server/opsRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/premortem",
+      "file": "server.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/projects/:projectId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/analyze",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/approvals",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/approvals/:approvalId/decision",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/artifacts",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/artifacts/:artifactId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/artifacts/:artifactId/download",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/budgets/:scope/:scopeId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/:projectId/budgets/:scope/:scopeId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/code",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/code/build",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/code/manual",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/decisions",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/items/review",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/ledger",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/plans",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/plans",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/plans/:planId/tasks",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/settings",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/:projectId/settings",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/:projectId/state",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/tasks",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/tasks/:taskId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/tasks/:taskId/code",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/approve",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/cancel",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/commit-package",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/decide",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/download",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/package",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/refresh",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/repair",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/result",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/:codeTaskId/review",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/brief",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/code/start",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/tasks/:taskId/gates",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/gates/:gate/approve",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/gates/:gate/waive",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/queue",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/tasks/:taskId/validate",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/versions",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/radar",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/radar-legacy",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/redteam",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/redteam-pair",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/review",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/revise-document",
+      "file": "server.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/session",
+      "file": "server/authRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/synthesis",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/understand",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/webhooks/github",
+      "file": "server.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "file": "server/healthRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/ops",
+      "file": "server/opsRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/ready",
+      "file": "server/healthRoutes.ts"
+    }
+  ]
+}

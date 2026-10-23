@@ -1,0 +1,77 @@
+{
+  "generatedAt": "2026-10-23T13:51:20Z",
+  "generator": "scripts/docs/generate-inventories.mjs",
+  "count": 14,
+  "migrations": [
+    {
+      "file": "migrations/001_project_state.sql",
+      "bytes": 2476,
+      "lines": 57
+    },
+    {
+      "file": "migrations/002_artifacts_ledger.sql",
+      "bytes": 1666,
+      "lines": 48
+    },
+    {
+      "file": "migrations/003_route_decisions.sql",
+      "bytes": 614,
+      "lines": 18
+    },
+    {
+      "file": "migrations/004_model_health.sql",
+      "bytes": 450,
+      "lines": 15
+    },
+    {
+      "file": "migrations/005_tasks_runs.sql",
+      "bytes": 2403,
+      "lines": 57
+    },
+    {
+      "file": "migrations/006_jobs.sql",
+      "bytes": 822,
+      "lines": 20
+    },
+    {
+      "file": "migrations/007_budgets_plans_approvals.sql",
+      "bytes": 2518,
+      "lines": 57
+    },
+    {
+      "file": "migrations/008_artifact_manifests.sql",
+      "bytes": 1782,
+      "lines": 29
+    },
+    {
+      "file": "migrations/009_gate_evidence.sql",
+      "bytes": 2599,
+      "lines": 48
+    },
+    {
+      "file": "migrations/010_code_tasks.sql",
+      "bytes": 2201,
+      "lines": 36
+    },
+    {
+      "file": "migrations/011_code_task_package_approval.sql",
+      "bytes": 344,
+      "lines": 5
+    },
+    {
+      "file": "migrations/012_code_task_decision.sql",
+      "bytes": 483,
+      "lines": 9
+    },
+    {
+      "file": "migrations/013_repair_loop.sql",
+      "bytes": 836,
+      "lines": 13
+    },
+    {
+      "file": "migrations/014_provider_snapshots.sql",
+      "bytes": 1258,
+      "lines": 33
+    }
+  ]
+}

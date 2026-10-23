@@ -1,0 +1,396 @@
+{
+  "generatedAt": "2026-10-23T13:51:20Z",
+  "generator": "scripts/docs/generate-inventories.mjs",
+  "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
+  "count": 54,
+  "variables": [
+    {
+      "name": "APP_BUILDER_MODEL_SLICE",
+      "files": [
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "APP_PASSWORD",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "CODE_EXECUTOR",
+      "files": [
+        "server/codeTaskService.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "name": "DAILY_CALL_CAP",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "DATABASE_URL",
+      "files": [
+        "server.ts",
+        "server/database.ts",
+        "server/opsRoutes.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 4
+    },
+    {
+      "name": "DISABLE_HMR",
+      "files": [
+        "vite.config.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "ENABLE_APP_AUTH",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "ENABLE_PROJECT_MODE",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "EPISTEMIC_VERIFIER_MODEL",
+      "files": [
+        "server/epistemicVerifier.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "EXPERT_ATTACH_TOTAL_CHARS",
+      "files": [
+        "server/files.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GEMINI_API_KEY",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GEMINI_BASE_URL",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GIT_COMMIT",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GITHUB_DIFF_UPLOAD",
+      "files": [
+        "server/githubIntegration.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GITHUB_REPOSITORY_NAME",
+      "files": [
+        "server/gateService.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GITHUB_REPOSITORY_OWNER",
+      "files": [
+        "server/gateService.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GITHUB_WEBHOOK_SECRET",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GROQ_API_KEY",
+      "files": [
+        "server.ts",
+        "server/epistemicVerifier.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 3
+    },
+    {
+      "name": "GROQ_BASE_URL",
+      "files": [
+        "server.ts",
+        "server/epistemicVerifier.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 3
+    },
+    {
+      "name": "KEEP_ALIVE",
+      "files": [
+        "server/keepAlive.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "LLM_CALL_TIMEOUT_MS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "LLM_TOTAL_DEADLINE_MS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "LOGIN_MAX_FAILS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "LOGIN_WINDOW_MIN",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "MAX_ATTACH_TEXT_CHARS",
+      "files": [
+        "server/files.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "MAX_BODY_BYTES",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "MAX_MODEL_CALLS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "MAX_UPLOAD_BYTES",
+      "files": [
+        "server/files.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "MODEL_CASCADE_LIGHT",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "MODEL_CASCADE_STRONG",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "NODE_ENV",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "OPS_RSS_LIMIT_MB",
+      "files": [
+        "server/opsMetrics.ts",
+        "server/opsRoutes.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "name": "PG_POOL_MAX",
+      "files": [
+        "server/database.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "PGSSLMODE",
+      "files": [
+        "server/database.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "PORT",
+      "files": [
+        "server.ts",
+        "server/appBuilderScaffolds.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "name": "PROJECT_RATE_LIMIT_PER_MINUTE",
+      "files": [
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "RAILWAY_GIT_COMMIT_SHA",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "RAILWAY_REPLICA_ID",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "RATE_LIMIT_PER_HOUR",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "RENDER_EXTERNAL_URL",
+      "files": [
+        "server/keepAlive.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "SERPER_API_KEY",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "SESSION_SECRET",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "SKIP_DIST_HEALTHCHECK",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "TRUST_PROXY_HOPS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_FETCH_PAGES",
+      "files": [
+        "server/webSearch.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_MAX_PAGES",
+      "files": [
+        "server/webSearch.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_MAX_QUERIES",
+      "files": [
+        "server/webSearch.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_MODEL",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_SEED_PAGES",
+      "files": [
+        "server/webSearch.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_TIMEOUT_MS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_TRANSLATE_MODEL",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WORKER_HEARTBEAT_MS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WORKER_LEASE_MS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WORKER_POLL_MS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    }
+  ]
+}
