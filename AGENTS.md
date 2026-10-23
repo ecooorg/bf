@@ -7,8 +7,9 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * Code delivery: scaffold ZIP works without a model; optional model slice uses `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. The legacy `engine: "model_patch"` path remains available, subject to runtime gates.
 * GitHub write: deferred (ADR-06), disabled by default; `GITHUB_DIFF_UPLOAD` is an explicit opt-in switch and `model_patch` alone never enables write.
 * **p71 (Phase 0 audit):** static forensic audit complete — inventories and report under `docs/phase0/`.
-* **p72 (Phase 1 guardrails):** architecture map, cycle/boundary ratchet, change-impact, `npm run verify:change`. No application source behaviour change.
-* Next authorized work: **p73** (Phase 2a — split `server.ts` by route groups) after Navigator accepts p72. Further modularization remains staged.
+* **p72 (Phase 1 guardrails):** architecture map, cycle/boundary ratchet, change-impact, `npm run verify:change`.
+* **p73 (Phase 2a):** `server.ts` route groups extracted to `server/authRoutes.ts`, `server/projectRoutes.ts`, `server/opsRoutes.ts`. Behaviour preserved; middleware order unchanged.
+* Next authorized work: **p74** (Phase 2b — App.tsx / large services) after Navigator accepts p73.
 
 Owner retains the original prototype archive. Previous state and evidence are in `CHANGELOG.md`; historical claims are not proof of current behavior.
 

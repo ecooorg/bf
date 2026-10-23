@@ -1,3 +1,13 @@
+## p73 — Phase 2a: split server.ts route groups (2026-10-23)
+
+- Extracted HTTP route groups from `server.ts` without behaviour change:
+  - `server/authRoutes.ts` — `/api/session`, `/api/login`, `/api/logout`
+  - `server/projectRoutes.ts` — Project Mode boundary middleware and all `/api/projects/*` routes (incl. code tasks, artifacts, ledger)
+  - `server/opsRoutes.ts` — `/api/ops`, `/ops`
+- `server.ts` retains bootstrap, body parsers, CSRF/origin checks, GitHub webhook, auth middleware, AI/conversation helpers, static/SPA, and `start()`.
+- Registration order and security middleware chain preserved.
+- No SQL, client, or test changes. Full runtime suite not executed in patch environment (BLOCKED/NOT_RUN).
+
 ## p72 — Phase 1 mechanical guardrails (2026-10-23)
 
 - Added architecture tooling under `scripts/architecture/`: module-map generation, cycle/boundary check with ratchet, change-impact analysis, and `verify:change` orchestrator.
