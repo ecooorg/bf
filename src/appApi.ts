@@ -1,5 +1,6 @@
 /** Shared browser API helpers for App and step screens. */
-import { errorFromResponse, getStoredUiLanguage } from './errors.ts';
+import { errorFromResponse } from './errors.ts';
+import { getStoredUiLanguage } from './ui.ts';
 import { STAGES, type Step } from './decision.ts';
 
 export async function api(path: string, body: unknown) {

@@ -69,6 +69,7 @@ import {
   BriefPanel,
   StepTitle,
   isBriefWorthShowing,
+  SharedConversationContext,
 } from './ExpertStepScreens.tsx';
 
 export default function App() {
