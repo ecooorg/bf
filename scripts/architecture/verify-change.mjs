@@ -78,6 +78,8 @@ function record(id, result, { blockedDetail } = {}) {
 
 // 1. module map
 record('architecture.map', runNode('scripts/architecture/generate-module-map.mjs'));
+record('docs.inventories', runNode('scripts/docs/generate-inventories.mjs'));
+record('docs.inventories.check', runNode('scripts/docs/check-inventories.mjs'));
 
 // 2. boundaries
 record('architecture.boundaries', runNode('scripts/architecture/check-boundaries.mjs'));
