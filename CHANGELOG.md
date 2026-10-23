@@ -1,3 +1,10 @@
+## User Guide — Lab Escape hands-on project (2026-10-23)
+
+- Added a final step-by-step tutorial to the in-app English User Guide and its Markdown copy: build “Lab Escape: The Last Keycard” through Project Mode.
+- Included copyable beginner and Professional-path prompts, scope limits, summary review, download/run cautions, an eight-point play-test checklist, targeted bug-fix prompt, and one-feature-at-a-time extension exercise.
+- Updated the guide table of contents, documentation index, and patch instructions.
+- Documentation/UI content only; no application runtime behavior or project-generation capabilities changed. Actual build success depends on the active BiForge deployment and must be verified by the user.
+
 ## P84.2 — VIX-integrated human-simplicity roadmap (2026-10-23)
 
 - Revised `docs/AI-NATIVE-ROADMAP-P85-P91.md` to selectively incorporate the VIX principles most useful to current BiForge: intent before edits, explicit invariants, counterexample-oriented verification, concise intent diff, honest uncertainty, and traceability from request to verification evidence.
@@ -5,6 +12,13 @@
 - Adjusted P85–P91 to avoid a parallel VIX subsystem, mandatory manual task forms, duplicate sources of truth, noisy warnings, and optimization infrastructure without measured benefit. Added a cross-patch human-simplicity acceptance gate.
 - Documentation-only patch: no product runtime, package scripts, tests, security gates, or generated inventories changed. P85–P91 remain future work; each patch requires separate review and green CI before the next begins.
 - Added `docs/VIX-CONCEPT.md`, a Markdown edition preserving the broader long-term VIX architecture with source attribution and CC BY 4.0 notice. Added it to the documentation index. This is a conceptual reference, not a commitment to implement every target component.
+
+## 23 October 2026 — Detailed in-app User Guide
+
+- Replaced the short help overlay with a full English beginner manual for Simple, Expert, and Project modes.
+- Added step-by-step instructions for attachments, workspace privacy consent, history, import/export, project descriptions, analysis review, plan approvals, task validation, code packages, Drive, and troubleshooting.
+- Kept the guide available in the modal and in a separate browser tab, using one shared content source.
+- Added `docs/USER-GUIDE.md` and indexed it. Documentation/UI only; no workflow behavior changed.
 
 ## P84.1 — AI-native roadmap for P85–P91 (2026-10-23)
 
