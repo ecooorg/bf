@@ -109,7 +109,7 @@ export function ProjectNoviceWizard({
       await confirmPassport(project.id, project.state_version, passport, nextState);
       setNotice('Project created and description confirmed.');
 
-      setNotice('Project created. Building source ZIP (IR → scaffold)…');
+      setNotice('Project created. Building your source ZIP…');
       const built = await requestBuild(project.id, answers.idea.trim(), answers);
       if (built.downloadUrl) {
         setDownloadUrl(built.downloadUrl);

@@ -61,7 +61,7 @@ export interface DriveStatusDetail { kind: 'saved' | 'pending' | 'error'; messag
 /** Plain sentences for every failure. No variable names, no codes. */
 export const MIRROR_MESSAGES: Record<Exclude<MirrorFailure, 'not_configured'>, string> = {
   not_connected: 'Press Drive to connect Google Drive. Waiting files are saved right after.',
-  no_file_scope: 'Google Drive is connected, but file access was not granted. Press Drive again and tick the permission to see, edit, create and delete only the files you use with this app.',
+  no_file_scope: 'Drive is connected, but file access was not granted. Press Drive again and tick the file permission.',
   api_disabled: 'The Google Drive API is switched off for this app in Google Cloud. The owner needs to switch it on.',
   expired: 'The Google Drive session expired. Press Drive to reconnect.',
   quota: 'Google Drive refused the file (storage is full or there were too many requests).',

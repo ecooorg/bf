@@ -13,6 +13,7 @@ import {
   listProgramFiles, deleteProgramFile, programFileToAttachment, archiveAttachment,
   getProgramFilesQuota, type ProgramFile,
 } from './programFiles.ts';
+import { StateNotice } from './uiStates.tsx';
 
 /* ---------- Attach button + chips of files waiting to be sent ---------- */
 
@@ -522,7 +523,7 @@ export function FilesPanel({
               <button type="button" className="ghost" onClick={() => setPickerOpen(false)} aria-label="Close">Close</button>
             </div>
             {quotaMsg && <div className="files-panel-warn">{quotaMsg}</div>}
-            {!pickerList.length && <p className="pf-empty">No files in the archive yet. Attach a file from the device — its text is kept here for reuse.</p>}
+            {!pickerList.length && <StateNotice kind="empty">No files saved yet. Attach a file and its text is kept here.</StateNotice>}
             <ul className="pf-list">
               {pickerList.map((row) => (
                 <li key={row.id} className="pf-row">
@@ -581,7 +582,7 @@ export function ProgramFilesManager({ open, onClose }: { open: boolean; onClose:
         </div>
         <p className="pf-hint">Only text and descriptions are stored in this browser. Originals are not kept. Included in Export all (JSON backup).</p>
         {quotaMsg && <div className="files-panel-warn">{quotaMsg}</div>}
-        {!list.length && <p className="pf-empty">No files yet.</p>}
+        {!list.length && <StateNotice kind="empty">No files yet.</StateNotice>}
         <ul className="pf-list">
           {list.map((row) => (
             <li key={row.id} className="pf-row">

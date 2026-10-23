@@ -9,6 +9,7 @@ import {
   CODE_STATE_LABELS, NO_COMMIT_NOTE, STEP_LABELS, STEP_ORDER, deliveryErrorMessage, gateRows, handoffText, latestPerTask, nextDeliveryAction, shortSha, stopReasonLabel,
   type CodeTaskView, type GatesData,
 } from './projectDeliveryModel.ts';
+import { BusyHint, StateNotice } from './uiStates.tsx';
 
 type Payload<T> = { success?: boolean; data?: T; error?: string; code?: string; changed?: boolean; findings?: unknown };
 class DeliveryCallError extends Error { code?: string; }
@@ -177,7 +178,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
 
   return <section aria-label="Code package" style={{ margin: '16px 0' }}>
     <h3 style={{ marginBottom: 4 }}>Code package</h3>
-    <p style={S.muted}>Hand a coding task to any tool you like, then bring the result back here: BiForge reads the pull request and its checks, and you review and decide. BiForge never merges and never writes to GitHub.</p>
+    <p style={S.muted}>Give a coding task to any tool, then bring the result back here. BiForge never merges and never writes to GitHub.</p>
     <div style={{ ...S.box, background: '#0b2545' }}>
       <strong style={{ fontSize: 13 }}>How code package works (4 steps)</strong>
       <ol style={{ margin: '8px 0 0', paddingLeft: 20, fontSize: 13, color: '#c5d4e8', lineHeight: 1.55 }}>
@@ -189,7 +190,8 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
       <p style={{ ...S.muted, marginBottom: 0, marginTop: 8 }}>Detailed check controls are under <em>Advanced check details</em> on a task.</p>
     </div>
     <div role="status" aria-live="polite" style={{ minHeight: 20, fontSize: 13, color: '#9fd8ff' }}>{notice}</div>
-    {error && <div role="alert" style={{ ...S.box, borderColor: '#a6584f', color: '#f1b3ac' }}>{error}</div>}
+    {error && <StateNotice kind="error">{error}</StateNotice>}
+    <BusyHint busy={busy} />
 
     {!selected && <>
       <div style={S.row}>
@@ -208,7 +210,8 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
           <button type="button" style={S.button} disabled={busy} onClick={() => setCreating(false)}>Back</button>
         </div>
       </div>}
-      {loaded && tasks.length === 0 && !creating && <p style={S.muted}>No coding tasks yet.</p>}
+      {!loaded && <StateNotice kind="loading">Loading coding tasks…</StateNotice>}
+      {loaded && tasks.length === 0 && !creating && <StateNotice kind="empty">No coding tasks yet.</StateNotice>}
       <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0' }}>
         {tasks.map((c) => <li key={c.id} style={{ ...S.box, margin: '8px 0' }}>
           <strong>{c.taskTitle || c.taskId}</strong><br />
@@ -246,7 +249,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
 
       {(action.canSubmitResult || action.needsGithubForResult) && <div style={S.box}>
         <strong>3 · Result</strong>
-        {action.needsGithubForResult && <p style={{ ...S.muted, color: '#e6c07a' }}>GitHub is not connected to BiForge, so a returned result cannot be read yet. The package is still yours to use.</p>}
+        {action.needsGithubForResult && <StateNotice kind="unavailable">GitHub is not connected to BiForge, so a returned result cannot be read yet. The package is still yours to use.</StateNotice>}
         {action.canSubmitResult && <>
           <div role="radiogroup" aria-label="Kind of result" style={{ ...S.row, margin: '8px 0' }}>
             {action.resultKinds.map((k) => <label key={k} style={{ ...S.row, gap: 6 }}><input type="radio" name="result-kind" checked={resultKind === k} onChange={() => setResultKind(k)} />{k === 'pr' ? 'Pull request number' : k === 'branch' ? 'Branch' : 'Diff'}</label>)}
@@ -271,7 +274,7 @@ export default function ProjectDelivery({ projectId, capabilities, passportConfi
         <details style={{ marginTop: 8 }}>
           <summary style={{ cursor: 'pointer', fontSize: 13, color: '#9fd8ff', minHeight: 36 }}>Advanced check details</summary>
           <div style={{ marginTop: 8 }}>
-        {gatesError && <p role="alert" style={{ color: '#f1b3ac', fontSize: 13 }}>{gatesError}</p>}
+        {gatesError && <StateNotice kind="error">{gatesError}</StateNotice>}
         {!gatesError && rows.length === 0 && <p style={S.muted}>{NO_COMMIT_NOTE(selected.expectedBranch)}</p>}
         {rows.length > 0 && <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0' }}>
           {rows.map((r) => <li key={r.gate} style={{ padding: '8px 0', borderTop: '1px solid #25405e' }}>

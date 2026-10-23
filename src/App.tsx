@@ -49,6 +49,7 @@ import { expertConversationFields } from './expertContext.ts';
 import { ExpertSidebar, ExpertBottomBar } from './ExpertNav.tsx';
 import { expertBaseline, questionLine } from './expertHistory.ts';
 import { STEP_TITLE } from './uiTerms.ts';
+import { StateNotice, driveLabel as sharedDriveLabel, driveTitle, historyLabel, HISTORY_OFF_TITLE } from './uiStates.tsx';
 import { briefSections, BRIEF_EMPTY_TEXT } from './briefView.ts';
 
 // --- API helper ---
@@ -154,7 +155,7 @@ export default function App() {
     if (mode === 'Project') {
       // Project is a separate workspace and is never emulated by the chat UI.
       const ok = window.confirm(
-        'Open Project workspace?\n\nThis is a separate area from Simple/Expert chat. Your existing dialogues stay on this device; Project uses its own list of projects.\n\nContinue?',
+        'Open Project?\n\nProjects are separate from your Simple and Expert conversations, which stay on this device.',
       );
       if (!ok) return;
       try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
@@ -384,7 +385,7 @@ export default function App() {
 
   // --- Deployment password gate ---
   if (!authChecked) {
-    return <div className="shell"><div className="empty"><h1>{en.app}</h1><p>Loading…</p></div></div>;
+    return <div className="shell"><div className="empty"><h1>{en.app}</h1><StateNotice kind="loading">Loading…</StateNotice></div></div>;
   }
   if (authRequired && !authenticated) {
     return (
@@ -424,7 +425,7 @@ export default function App() {
               <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Managed project workspace</p>
               <p>Describe a project, analyse it, and get a plan and a ZIP.</p>
               {!projectModeEnabled
-                ? <p role="status" style={{ marginBottom: 0 }}><strong>Currently unavailable</strong> — Project mode is turned off for this site. Your browser is working normally.</p>
+                ? <StateNotice kind="unavailable"><strong>Currently unavailable</strong> — Project mode is turned off for this site. Your browser is working normally.</StateNotice>
                 : <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> multi-step work with confirmations and deliverables.</p>}
             </button>
           </div>
@@ -444,9 +445,9 @@ export default function App() {
           <div className="panel" style={{ maxWidth: 620, textAlign: 'left' }}>
             <h2><KeyRound size={18} /> Google AI</h2>
             <p style={{ color: '#8ea2b8' }}>
-              Optional: use your own Gemini API key only if you want to use your own quota. You can skip this — the app works with the server key when configured.</p>
+              Optional. Add your own Gemini key to use your own quota. Without it, the app uses the server key if set.</p>
             <p style={{ color: '#8ea2b8', fontSize: 13 }}>
-              Your key is stored only in this browser and is sent to this app's server with each request so it can call Google on your behalf. The server does not save it and does not write it to logs.
+              The key stays in this browser and goes to this app's server with each request. The server never saves or logs it.
             </p>
             <label style={{ display: 'block', marginTop: 16 }}>Your Google AI key (optional)</label>
             <input aria-label="Gemini API key" className="input credential-input" type="password" value={geminiKey} onChange={e => setGeminiKey(e.target.value)} placeholder="AIza..." style={{ width: '100%', marginTop: 8 }} />
@@ -607,11 +608,6 @@ export default function App() {
 
         <main className={`content${expertMode ? ' has-xn-bar' : ''}`}>
           <WorkspacePanel hideHint={expertMode} disabled={busy} onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
-          {!expertMode && (
-            <div className="files-panel-status" data-testid="mode-banner" style={{ marginBottom: 8 }}>
-              Mode: Simple chat — open conversation. Use the Mode control for a step-by-step decision review.
-            </div>
-          )}
           {expertMode && <StepTitle step={d.step} />}
           {methodStarted && expertBase > 0 && (
             <SharedConversationContext d={d} upTo={expertBase} onDocumentEdit={reviseConversationDocument} />
@@ -769,7 +765,7 @@ function Header(props: {
   const [sub, setSub] = useState<'' | 'export' | 'import'>('');
   const moreRef = useRef<HTMLDivElement>(null);
   // Cloud is a sync status indicator only; actions live under More → Import / Export all.
-  const driveLabel = props.driveBusy ? 'Syncing…' : props.driveConnected ? 'Drive · this tab' : 'Drive';
+  const driveLabel = sharedDriveLabel({ connected: Boolean(props.driveConnected), busy: props.driveBusy });
   React.useEffect(() => {
     if (!moreOpen) return;
     const onDoc = (e: MouseEvent) => {
@@ -787,16 +783,16 @@ function Header(props: {
         {props.onSelectMode && props.onChangeMode && (
           <ModeMenu current={props.expertMode ? 'Expert' : 'Simple'} projectEnabled={Boolean(props.projectModeEnabled)} onSelect={props.onSelectMode} onOverview={props.onChangeMode} />
         )}
-        {props.showNew !== false && <button className="ghost" onClick={props.onNew} title="Start a new dialogue" aria-label="New dialogue"><Plus size={14} /> <span className="lbl">New</span></button>}
+        {props.showNew !== false && <button className="ghost" onClick={props.onNew} title="Start a new conversation" aria-label="New conversation"><Plus size={14} /> <span className="lbl">New</span></button>}
         {props.onDrive && (
-          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} aria-label={driveLabel} title={props.driveConnected ? "Google Drive connected: files mirror only while this tab is open (not in the background)" : "Connect Google Drive — mirroring works only while this tab stays open"}>
+          <button className="ghost" onClick={props.onDrive} disabled={props.driveBusy} aria-label={driveLabel} title={driveTitle({ connected: Boolean(props.driveConnected) })}>
             {props.driveConnected ? <CloudUpload size={14} /> : <Cloud size={14} />} <span className="lbl">{driveLabel}</span>
           </button>
         )}
         {props.onHistory && (
           props.historyAvailable === false
-            ? <button className="ghost" disabled title="Private or restricted mode: this browser cannot save history on the device"><HistoryIcon size={14} /> <span className="lbl">History unavailable</span></button>
-            : <button className="ghost" onClick={props.onHistory} aria-label="History" title="Open past dialogues on this device"><HistoryIcon size={14} /> <span className="lbl">History</span></button>
+            ? <button className="ghost" disabled aria-label={historyLabel(false)} title={HISTORY_OFF_TITLE}><HistoryIcon size={14} /> <span className="lbl">{historyLabel(false)}</span></button>
+            : <button className="ghost" onClick={props.onHistory} aria-label="History" title="Open past conversations on this device"><HistoryIcon size={14} /> <span className="lbl">{historyLabel(true)}</span></button>
         )}
         {/* Decision brief lives in the More menu (not a header button): six header buttons pushed More onto a second row. */}
         <div className="hdr-more-wrap" ref={moreRef}>
@@ -1040,14 +1036,14 @@ const INTENT_CHIPS: { id: string; label: string; hint: string }[] = [
 ];
 
 const NOTE_REQUEST =
-  'Please write this up as a short note for me: what matters to me, what I do not know yet, and what I will find out this week.';
+  'Please write a short note: what matters to me, what I do not know yet, and what I will find out this week.';
 function icsDownload(d: Decision) {
   const events = (d.brief.reviewDates || []).map((date: string, i: number) => ({ uid: `${d.id}-rev-${i}@bifurcation`, date, summary: `Decision review ${i + 1}` }));
   downloadBlob(new Blob([buildIcs(events)], { type: 'text/calendar' }), 'review.ics');
 }
 
 const DOCUMENT_REQUEST =
-  'Please prepare a document I can download: a clear summary of this conversation with what matters to me, what is not known yet and the next step.';
+  'Please prepare a downloadable document: a clear summary of this conversation, what matters, what is unknown and the next step.';
 
 function SafetyBox() {
   return (

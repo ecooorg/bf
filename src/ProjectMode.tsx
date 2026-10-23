@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleHelp, Cloud, CloudUpload, MoreHorizontal, X } from 'lucide-react';
 import ProjectDelivery from './ProjectDelivery.tsx';
 import { describeCapabilities, PROJECT_SCOPE_TEXT, ZIP_OFF_HINT, type Capabilities } from './projectCapabilities.ts';
+import { BusyHint, StateNotice, driveLabel, driveTitle } from './uiStates.tsx';
+import { approvalKindLabel, blockedReasonLabel, planStatusLabel, taskStateLabel } from './projectLabels.ts';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
 import { DRIVE_STATUS_EVENT, connectDriveFiles, isMirrorConnected, mirrorBlobDetailed, mirrorTextFile, type DriveStatusDetail } from './driveMirror.ts';
 import { isDriveConfigured } from './driveClient.ts';
@@ -126,7 +128,7 @@ export default function ProjectMode() {
   });
   const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
   const addDecision = () => act(async () => { await post('decisions', { text: decisionText }); setDecisionText(''); return 'Decision recorded.'; });
-  const createPlan = () => act(async () => { const r = await api<any>(`/api/projects/${encodeURIComponent(selected!.id)}/plans`, { method: 'POST', body: JSON.stringify({ source: 'template', template: 'spec_arch_review_approval', goal: task || goal || selected!.name }) }); setTask(''); return `Plan ${r.plan.id} created; human approval is required before tasks can run.`; });
+  const createPlan = () => act(async () => { const r = await api<any>(`/api/projects/${encodeURIComponent(selected!.id)}/plans`, { method: 'POST', body: JSON.stringify({ source: 'template', template: 'spec_arch_review_approval', goal: task || goal || selected!.name }) }); setTask(''); return 'Plan created. Approve it before tasks can run.'; });
   const decide = (approval: any, decision: 'APPROVED' | 'REJECTED') => {
     if (approval.kind === 'budget' && decision === 'APPROVED') {
       const violation = approval.details?.violations?.[0];
@@ -162,7 +164,7 @@ export default function ProjectMode() {
     const evidence = raw.split('\n').map((x: string) => x.trim()).filter(Boolean);
     if (!evidence.length) throw new Error('At least one concrete evidence item is required.');
     await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/validate`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, passed, evidence }) });
-    return `Task ${passed ? 'marked PASS' : 'marked FAIL'}.`;
+    return `Task marked as ${passed ? 'passed' : 'failed'}.`;
   });
   async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
   // P55: Google Drive for Project files. Explicit buttons; every result is announced (saved / waiting / the real reason).
@@ -265,7 +267,7 @@ export default function ProjectMode() {
       await api(`/api/projects/${encodeURIComponent(selected.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: selected.state_version, state }) });
       const fresh = await api<Project>(`/api/projects/${encodeURIComponent(selected.id)}`);
       setSelected(fresh); setStateText(JSON.stringify(fresh.state ?? {}, null, 2));
-      await loadProjects(fresh.id); setNotice(`State saved, version ${fresh.state_version}.`);
+      await loadProjects(fresh.id); setNotice('Project data saved.');
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
   }
@@ -288,8 +290,10 @@ export default function ProjectMode() {
     input: { width: '100%', boxSizing: 'border-box', minHeight: 44, padding: 10, border: '1px solid #3d7fc4', borderRadius: 8, background: '#07111f', color: '#e6edf7', fontSize: 16 },
     link: { color: '#78baff' },
   };
+  // One next step at a time instead of a five-step path (docs/18, N1).
+  const nextStepText = passport?.status !== 'confirmed' ? 'Confirm the description.' : !lastRun && artifacts.length === 0 ? 'Run an analysis.' : '';
   const driveBar = !isDriveConfigured()
-    ? <p style={{ fontSize: 12, color: '#8fa6c2' }}>Google Drive is not set up on this server, so files stay on this device. When Drive is available, mirroring works only while this tab is open.</p>
+    ? <StateNotice kind="unavailable">Google Drive is not set up on this server, so files stay on this device.</StateNotice>
     : <div data-testid="project-drive" style={{ margin: '8px 0', padding: 8, border: '1px solid #25405e', borderRadius: 8 }}>
         <strong style={{ fontSize: 13 }}>Google Drive</strong> <small style={{ color: '#8fa6c2' }}>{driveConnected ? 'connected · this tab only · files go to BiForge / Project / ' + (selected?.name ?? '') : 'not connected'}</small>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
@@ -306,7 +310,7 @@ export default function ProjectMode() {
           projectEnabled={enabled !== false}
           onSelect={(mode) => {
             if (mode === 'Project') return;
-            const ok = window.confirm('Leave Project workspace and open ' + mode + ' mode?\n\nYour projects stay on the server. Simple/Expert dialogues are separate.');
+            const ok = window.confirm('Leave Project and open ' + mode + '?\n\nYour projects stay on the server.');
             if (!ok) return;
             try { sessionStorage.setItem('biforge-start-mode', mode); } catch {}
             window.location.href = '/';
@@ -323,16 +327,11 @@ export default function ProjectMode() {
           className="ghost"
           disabled={driveBusy || !isDriveConfigured()}
           onClick={() => { if (isDriveConfigured()) void connectDrive(); }}
-          title={
-            !isDriveConfigured()
-              ? 'Google Drive is not set up on this server'
-              : driveConnected
-                ? 'Google Drive connected — mirroring only while this tab is open'
-                : 'Connect Google Drive — mirroring only while this tab is open'
-          }
+          title={driveTitle({ configured: isDriveConfigured(), connected: driveConnected })}
+          aria-label={driveLabel({ configured: isDriveConfigured(), connected: driveConnected, busy: driveBusy })}
         >
           {driveConnected ? <CloudUpload size={14} /> : <Cloud size={14} />}
-          <span className="lbl">{driveBusy ? 'Syncing…' : !isDriveConfigured() ? 'Drive off' : driveConnected ? 'Drive · this tab' : 'Drive'}</span>
+          <span className="lbl">{driveLabel({ configured: isDriveConfigured(), connected: driveConnected, busy: driveBusy })}</span>
         </button>
         <div className="hdr-more-wrap" ref={moreRef}>
           <button type="button" className="ghost hdr-more-btn" aria-expanded={moreOpen} onClick={() => setMoreOpen(v => !v)} title="User guide, Drive actions, sign out">
@@ -369,7 +368,7 @@ export default function ProjectMode() {
         <details data-testid="project-capabilities" style={{ marginTop: 6, fontSize: 13, color: '#8fa6c2' }}>
           <summary style={{ cursor: 'pointer' }}>What is available here</summary>
           <p style={{ margin: '6px 0' }}>{PROJECT_SCOPE_TEXT}</p>
-          <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{describeCapabilities(capabilities).map(r => <li key={r.label}><strong>{r.label}: {r.on ? 'on' : 'off'}</strong> — {r.note}</li>)}</ul>
+          {describeCapabilities(capabilities).filter(r => !r.on && r.label !== 'Writing to GitHub').map(r => <StateNotice key={r.label} kind="unavailable"><strong>{r.label}: not available</strong> — {r.note}</StateNotice>)}
         </details>
       </div>
     {authenticated && enabled && builderPath === null && !selected && (
@@ -433,7 +432,7 @@ export default function ProjectMode() {
         <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
         {isFolderPickerSupported() && <details style={{ position: 'relative' }}><summary aria-label="More workspace actions" title="More actions" style={{ ...styles.button, padding: '6px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 40, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8, whiteSpace: 'nowrap' }}><button type="button" style={styles.button} disabled={busy} title="Load a whole project folder from this computer (desktop browsers only)" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); window.dispatchEvent(new CustomEvent(PICK_FOLDER_EVENT)); }}>Import project folder…</button></div></details>}
       </div>
-      <p style={{ fontSize: 13, color: '#8fa6c2' }}>After privacy acknowledgement, bounded readable text and metadata are included in Project analysis. Files not decoded by the reader are preserved but only described by metadata.</p>
+      <p style={{ fontSize: 13, color: '#8fa6c2' }}>After you confirm privacy, readable file text is included in analysis. Other files are kept and described by name and type only.</p>
       <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} />
     </section>}
     {(error || notice) && <div style={{ position: 'fixed', left: 12, right: 12, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
@@ -441,13 +440,13 @@ export default function ProjectMode() {
         <span style={{ flex: 1 }}>{error || notice}</span>
         <button type="button" aria-label="Close message" onClick={() => { setError(''); setNotice(''); }} style={{ background: 'none', border: 0, color: 'inherit', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
       </div></div>}
-    {enabled === null || authenticated === null ? <p>Checking session…</p> : !enabled ? <p role="status">Project Mode is disabled in the server configuration. <a href="/" style={styles.link}>Back to Simple Mode</a>.</p> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Sign in</h2><label htmlFor="project-password">App password</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Sign in</button></form> : <>
+    {enabled === null || authenticated === null ? <StateNotice kind="loading">Checking session…</StateNotice> : !enabled ? <StateNotice kind="unavailable">Project Mode is disabled in the server configuration. <a href="/" style={styles.link}>Back to Simple Mode</a>.</StateNotice> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Sign in</h2><label htmlFor="project-password">App password</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Sign in</button></form> : <>
       {!selected && builderPath === 'professional' && (
       <form onSubmit={(e) => { if (builderPath === null) setBuilderPath('professional'); return create(e); }} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0 24px' }}><input aria-label="Project name" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="New project name" required maxLength={200} /><input aria-label="Project goal" style={{ ...styles.input, flex: '1 1 240px' }} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Goal (optional)" maxLength={2000} /><button style={styles.button} disabled={busy || !name.trim()}>Create project</button></form>
       )}
       <div className={selected ? 'project-workspace-layout is-open' : 'project-workspace-layout'} style={{ display: 'grid', gridTemplateColumns: selected ? 'minmax(220px, 0.72fr) minmax(0, 2fr)' : 'minmax(0, 1fr)', gap: 24, alignItems: 'start' }}>
         <section className="project-list-panel"><h2>Projects</h2>{projects.length === 0 ? <div style={{ padding: 16, border: '1px dashed #25405e', borderRadius: 8 }}><strong>Create your first project</strong><p style={{ color: '#8fa6c2', fontSize: 13 }}>Describe it, run an analysis, then review the results.</p></div> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0', display: 'flex', gap: 8 }}><button style={{ ...styles.button, flex: 1, textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · version {p.state_version}</small></button><details style={{ position: 'relative' }}><summary aria-label={`More actions for ${p.name}`} title="More actions" style={{ ...styles.button, padding: '10px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 46, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8 }}><button type="button" style={{ ...styles.button, borderColor: '#a33', color: '#ffb4b4' }} disabled={busy} onClick={() => void removeProject(p)}>Delete project</button></div></details></li>)}</ul>}</section>
-        <section className="project-detail-panel">{selected ? <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><div><h2 style={{ margin: 0, fontSize: 20 }}>{selected.name}</h2><small>Version {selected.state_version}</small></div><button type="button" style={{ ...styles.button, minHeight: 36 }} onClick={() => { setSelected(null); setActiveTab('results'); }}>All projects</button></div>{driveBar}{passport && <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Project description <small style={{ color: passport.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>({passport.status === 'confirmed' ? 'confirmed' : 'not confirmed yet'})</small></h3><div style={{ display: 'grid', gap: 8 }}>
+        <section className="project-detail-panel">{selected ? <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><div><h2 style={{ margin: 0, fontSize: 20 }}>{selected.name}</h2></div><button type="button" style={{ ...styles.button, minHeight: 36 }} onClick={() => { setSelected(null); setActiveTab('results'); }}>All projects</button></div>{driveBar}{passport && <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Project description <small style={{ color: passport.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>({passport.status === 'confirmed' ? 'confirmed' : 'not confirmed yet'})</small></h3><div style={{ display: 'grid', gap: 8 }}>
           {([['goal', 'Goal']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
           <details style={{ border: '1px solid #1f4f86', borderRadius: 8, padding: '8px 12px' }}><summary style={{ cursor: 'pointer', minHeight: 32 }}>Advanced parameters</summary><div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
           {([['projectType', 'Project type'], ['users', 'Users'], ['inputsOutputs', 'Inputs and outputs'], ['constraints', 'Constraints'], ['securityData', 'Security and data requirements'], ['successCriteria', 'Success criteria']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={k === 'projectType' ? 1 : 2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
@@ -459,7 +458,7 @@ export default function ProjectMode() {
 
           {passport?.status === 'confirmed' ? <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>What should we analyse?</h3><p style={{ fontSize: 13, color: '#8fa6c2' }}>Describe the question or problem. The model will suggest facts and risks for you to review below.</p>
             <textarea aria-label="Analysis task" value={task} onChange={e => setTask(e.target.value)} rows={3} maxLength={4000} placeholder="Describe what you want to understand or solve…" style={{ ...styles.input, minHeight: 0, fontSize: 14 }} />
-            <button type="button" style={{ ...styles.primary, marginTop: 8 }} disabled={busy || !task.trim()} onClick={() => void runAnalysis()}>Run analysis</button>{!task.trim() && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#8fa6c2' }}>Enter a question or task to enable analysis.</p>}
+            <button type="button" style={{ ...styles.primary, marginTop: 8 }} disabled={busy || !task.trim()} onClick={() => void runAnalysis()}>Run analysis</button><BusyHint busy={busy} />{!task.trim() && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#8fa6c2' }}>Enter a question or task to enable analysis.</p>}
             {lastRun && <details style={{ marginTop: 8, fontSize: 13, color: '#8fa6c2' }}><summary style={{ cursor: 'pointer', color: '#9fd8ff' }}>Last run details</summary><p style={{ margin: '6px 0 0' }}>Model {lastRun.model}. About {lastRun.tokens.estimated.total} tokens estimated; provider reported {lastRun.tokens.actual.input} in / {lastRun.tokens.actual.output} out.</p></details>}
             <details aria-label="Create a program" style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
               <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#9fd8ff', minHeight: 44, display: 'flex', alignItems: 'center' }}>Create a small program (optional)</summary>
@@ -468,9 +467,10 @@ export default function ProjectMode() {
               <textarea aria-label="Program description" value={programGoal} onChange={e => setProgramGoal(e.target.value)} rows={3} maxLength={4000} placeholder="Example: Create a playable Tetris game with keyboard controls, score, restart, and responsive layout." style={{ ...styles.input, minHeight: 0, fontSize: 14 }} />
               <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || passport.executor !== 'model_patch' || (capabilities !== null && !capabilities.programZip)} onClick={() => void buildProgram()}>Create program</button>
               {capabilities && !capabilities.programZip && <p style={{ fontSize: 12, color: '#e6c07a' }}>{ZIP_OFF_HINT}</p>}
+              {!programGoal.trim() && passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program to enable this button.</p>}
               {(!capabilities || capabilities.programZip) && passport.executor !== 'model_patch' && <p style={{ fontSize: 12, color: '#e6c07a' }}>Automatic coding is off for this project. Turn it on in project settings (How code is written → Automatic).</p>}
               {passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>}
-              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open generated-code Pull Request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
+              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open the pull request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
             </div></details>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([
               ['results', 'Results'],
@@ -483,18 +483,7 @@ export default function ProjectMode() {
               <button type="button" onClick={() => setShowDevData(true)} style={{ ...styles.button, minHeight: 38, background: 'transparent', color: '#8fa6c2', borderColor: '#25405e', fontSize: 12 }} title="Open advanced project settings">Advanced</button>
             )}
             </nav>
-            <div style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 12, padding: '8px 10px', border: '1px dashed #25405e', borderRadius: 8 }}>
-              <strong style={{ color: '#9fd8ff' }}>Suggested path:</strong>{' '}
-              <span style={{ color: passport?.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>1. Confirm description</span>
-              {' → '}
-              <span>2. Run analysis</span>
-              {' → '}
-              <span>3. Confirm or reject items</span>
-              {' → '}
-              <span>4. Plan &amp; tasks</span>
-              {' → '}
-              <span>5. Code package (optional)</span>
-            </div>
+            {nextStepText && <StateNotice kind="empty"><strong style={{ color: '#9fd8ff' }}>Next:</strong> {nextStepText}</StateNotice>}
             {activeTab === 'results' && <><div role="status" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 12, padding: '10px 12px', border: '1px solid #3d7fc4', borderRadius: 8, background: '#0b2545', color: '#c5d4e8' }}>
 <strong>Nothing is accepted automatically.</strong> Proposed items stay proposed until you press <strong>Confirm</strong>. Use <strong>Reject</strong> when the suggestion is wrong. Add your own decisions below — only humans record final decisions.
 </div>
@@ -504,22 +493,22 @@ export default function ProjectMode() {
             {activeTab === 'plan' && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
               <h3 style={{ marginTop: 0 }}>Plan and approvals</h3>
               <p style={{ fontSize: 13, color: '#8fa6c2' }}>Plans are proposals. Tasks are queued only after a human approves the plan; successful runs still require explicit validation.</p>
-              <button type="button" style={styles.primary} disabled={busy} onClick={() => void createPlan()}>Create a simple plan</button>
-              <h4>Plans</h4>{plans.length ? plans.map(p => <p key={p.id} style={{ fontSize: 13 }}>v{p.version} · <strong>{p.status}</strong> · {p.nodes?.length ?? 0} tasks · {p.totalUnits} units</p>) : <small style={{ color: '#8fa6c2' }}>A plan will appear here when you create one for this project.</small>}
-              <h4>Pending approvals</h4>{approvals.filter(a => a.status === 'PENDING').length ? approvals.filter(a => a.status === 'PENDING').map(a => <p key={a.id} style={{ fontSize: 13 }}>{a.kind}: {a.subjectId} <button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void decide(a, 'APPROVED')}>Approve</button> <button type="button" style={{ ...styles.button, minHeight: 44 }} disabled={busy} onClick={() => void decide(a, 'REJECTED')}>Reject</button></p>) : <small style={{ color: '#8fa6c2' }}>No approvals need your attention right now.</small>}
-              <h4>Tasks</h4>{tasks.length ? tasks.map(t => <p key={t.id} style={{ fontSize: 13, borderTop: '1px solid #1f4f86', paddingTop: 8 }}>{t.title} · <strong>{t.state}</strong>{t.blockedReason ? ` (${t.blockedReason})` : ''}<br />{t.state === 'READY' && <button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void queueTask(t)}>Start task</button>}{t.state === 'VALIDATING' && <><button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void validateTask(t, true)}>Mark as passed</button> <button type="button" style={{ ...styles.button, minHeight: 44 }} disabled={busy} onClick={() => void validateTask(t, false)}>Mark as failed</button></>}{codeTaskIds.includes(t.id) && <> <button type="button" style={{ ...styles.button, minHeight: 44 }} onClick={() => { setFocusTaskId(t.id); setActiveTab('delivery'); }}>Open in Code package</button></>}</p>) : <small style={{ color: '#8fa6c2' }}>Tasks will appear here after a plan is created and approved.</small>}
+              <button type="button" style={styles.primary} disabled={busy} onClick={() => void createPlan()}>Create a simple plan</button><BusyHint busy={busy} />
+              <h4>Plans</h4>{plans.length ? plans.map(p => <p key={p.id} style={{ fontSize: 13 }}>Plan {p.version} · <strong>{planStatusLabel(p.status)}</strong> · {p.nodes?.length ?? 0} tasks</p>) : <StateNotice kind="empty">No plan yet. Create one above.</StateNotice>}
+              <h4>Pending approvals</h4>{approvals.filter(a => a.status === 'PENDING').length ? approvals.filter(a => a.status === 'PENDING').map(a => <p key={a.id} style={{ fontSize: 13 }}>{approvalKindLabel(a.kind)} <button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void decide(a, 'APPROVED')}>Approve</button> <button type="button" style={{ ...styles.button, minHeight: 44 }} disabled={busy} onClick={() => void decide(a, 'REJECTED')}>Reject</button></p>) : <StateNotice kind="empty">No approvals need you right now.</StateNotice>}
+              <h4>Tasks</h4>{tasks.length ? tasks.map(t => <p key={t.id} style={{ fontSize: 13, borderTop: '1px solid #1f4f86', paddingTop: 8 }}>{t.title} · <strong>{taskStateLabel(t.state)}</strong>{t.blockedReason ? ` (${blockedReasonLabel(t.blockedReason)})` : ''}<br />{t.state === 'READY' && <button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void queueTask(t)}>Start task</button>}{t.state === 'VALIDATING' && <><button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void validateTask(t, true)}>Mark as passed</button> <button type="button" style={{ ...styles.button, minHeight: 44 }} disabled={busy} onClick={() => void validateTask(t, false)}>Mark as failed</button></>}{codeTaskIds.includes(t.id) && <> <button type="button" style={{ ...styles.button, minHeight: 44 }} onClick={() => { setFocusTaskId(t.id); setActiveTab('delivery'); }}>Open in Code package</button></>}</p>) : <StateNotice kind="empty">Tasks appear after a plan is approved.</StateNotice>}
             </section>}
             {activeTab === 'delivery' && <ProjectDelivery projectId={selected.id} capabilities={capabilities} passportConfirmed={passport?.status === 'confirmed'} executor={passport?.executor ?? 'manual'} focusTaskId={focusTaskId} onFocusHandled={() => setFocusTaskId(null)} />}
             {activeTab === 'journal' && <section><h3>Files</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Project files and saved versions.</p>
-            {artifacts.length === 0 ? <small>Nothing here yet — files appear after analysis, builds, or uploads.</small> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
+            {artifacts.length === 0 ? <StateNotice kind="empty">No files yet. They appear after analysis, builds or uploads.</StateNotice> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
             {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}
             <details style={{ marginTop: 12 }}><summary style={{ cursor: 'pointer', color: '#9fd8ff', fontSize: 13, minHeight: 36 }}>Model request history</summary>
-            {ledger.length === 0 ? <small style={{ display: 'block', marginTop: 6 }}>Nothing here yet — model requests will list here after analysis runs.</small> : <ul style={{ paddingLeft: 18, margin: '6px 0 0' }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
+            {ledger.length === 0 ? <StateNotice kind="empty">No model requests yet.</StateNotice> : <ul style={{ paddingLeft: 18, margin: '6px 0 0' }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
             </details>
           </section>}
             {activeTab === 'data' && <section><h3>Advanced project data</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Edit raw project JSON only if you know the format. Invalid changes can break the project.</p><label htmlFor="project-state">Project JSON</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button type="button" style={styles.button} disabled={busy} onClick={() => void saveState()}>Save project data</button></section>}
-          </section> : <p style={{ fontSize: 13, color: '#8fa6c2' }}>Confirm the project description to enable analysis.</p>}
-          </> : <><h2>Project workspace</h2><p>Select a project to view or edit its project details.</p></>}</section>
+          </section> : <StateNotice kind="unavailable">Confirm the project description to enable analysis.</StateNotice>}
+          </> : <StateNotice kind="empty">Select a project to see its details.</StateNotice>}</section>
       </div>
     </>}
 

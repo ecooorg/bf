@@ -455,10 +455,8 @@ SHA-256: ${entry.sha256}`;
 
           {!state.privacyAck ? (
             <div className="workspace-privacy" data-testid="workspace-privacy" ref={privacyRef}>
-              <p>
-                Files stay on this device until you allow access. After you confirm, the assistant can read them with your messages (not only on this screen).
-                Do not add passwords, keys, or private data you are not willing to share with the model.
-              </p>
+              <p>Files stay on this device until you allow access. Once allowed, the assistant can read them.</p>
+              <p>Do not add passwords, keys or private data you would not share with the model.</p>
               <button type="button" className="primary" disabled={disabled} onClick={() => void ackPrivacy()}>
                 I understand — let the assistant read these files
               </button>

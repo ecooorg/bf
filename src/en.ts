@@ -12,7 +12,8 @@ export const en = {
     'Please talk to a real person or a help service first. You can pause this decision. This app is not a replacement for help.',
   privacyTitle: 'Welcome',
   privacyBody:
-    'This tool helps you think through a difficult choice step by step. It does not replace professional advice. Do not enter passwords, card numbers, or ID documents. When analysis is enabled, your answers may be sent to a language model to help you.',
+    'This tool helps you think through a difficult choice. It does not replace professional advice. Do not enter passwords, card numbers or ID documents.',
+  privacyAiNote: 'When analysis is on, your answers may be sent to a language model.',
   acceptPrivacy: 'Start',
   decision: 'Your situation',
   deadline: 'Deadline (optional)',

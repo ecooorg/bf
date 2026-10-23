@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import type { Decision } from './decision.ts';
+import { StateNotice } from './uiStates.tsx';
 
 /** Short, human title: first user phrase, else the stored title. */
 export function historyTitle(d: Decision): string {
@@ -32,7 +33,7 @@ export function HistoryPanel(props: {
           <button className="ghost" aria-label="Close history" onClick={props.onClose} style={{ minWidth: 44, minHeight: 44, justifyContent: 'center' }}><X size={16} /></button>
         </div>
         {list.length === 0 ? (
-          <div className="empty-inline"><p>No saved conversations yet. Your conversations will appear here.</p></div>
+          <StateNotice kind="empty">No saved conversations yet. They will appear here.</StateNotice>
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
             {list.map((d) => {

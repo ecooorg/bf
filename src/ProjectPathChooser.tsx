@@ -46,8 +46,7 @@ export function ProjectPathChooser({
         >
           <h3 style={S.title}>Simple words</h3>
           <p style={S.body}>
-            Describe the idea in ordinary language. Answer a few questions with buttons. Confirm once. Get a project ZIP and
-            deploy steps — no technical jargon required.
+            Describe your idea, answer a few questions, confirm once. Get a project ZIP and deploy steps.
           </p>
           <span style={S.tag}>Best for beginners and clear goals</span>
         </button>
@@ -60,8 +59,7 @@ export function ProjectPathChooser({
         >
           <h3 style={S.title}>Professional</h3>
           <p style={S.body}>
-            More control: project description, analysis, plans, tasks, and delivery tools. Still ends with a ZIP you upload
-            yourself. Use when you already know the domain and constraints.
+            More control: description, analysis, plans and tasks. Best if you already know your constraints. You still upload the ZIP yourself.
           </p>
           <span style={S.tag}>Best for specialists who want settings</span>
         </button>

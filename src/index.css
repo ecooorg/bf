@@ -825,3 +825,9 @@ body {
   .header-actions button svg{flex:0 0 auto}
   .simple-empty{min-height:calc(100dvh - 62px);padding:24px 14px}
 }
+
+/* Shared empty / loading / unavailable / error / done notice (src/uiStates.tsx). */
+.state-notice{font-size:13px;line-height:1.45;margin:6px 0;color:#8ea2b8;overflow-wrap:anywhere}
+.state-notice[data-state="unavailable"]{color:#e6c07a}
+.state-notice[data-state="error"]{color:#ffb4b4}
+.state-notice[data-state="done"]{color:#7fe0a8}
