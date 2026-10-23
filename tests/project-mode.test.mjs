@@ -724,6 +724,7 @@ const assert = (await import("node:assert/strict")).default;
 const { existsSync, readFileSync } = await import("node:fs");
 const { pathToFileURL } = await import("node:url");
 const test = (await import("node:test")).default;
+const { serverSources } = await import('./_sources.mjs');
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 
@@ -783,6 +784,7 @@ const { pathToFileURL } = await import("node:url");
 const test = (await import("node:test")).default;
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
+const { serverSources } = await import('./_sources.mjs');
 
 test('P21 docs and sources exist', async () => {
   assert.ok(existsSync(`${root}/server/reviewer.ts`));
@@ -860,6 +862,7 @@ const { pathToFileURL } = await import("node:url");
 const test = (await import("node:test")).default;
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
+const { serverSources } = await import('./_sources.mjs');
 
 test('P22 docs and sources exist', async () => {
   assert.ok(existsSync(`${root}/server/repairLoop.ts`));
@@ -1340,11 +1343,12 @@ test('generated source artifact id is deterministic and safe for repository stor
 
 test('program creation is wired end-to-end and remains gated', async () => {
   const { readFile } = await import('node:fs/promises');
-  const [server, service, ui] = await Promise.all([
-    readFile(new URL('../server.ts', import.meta.url), 'utf8'),
+  const { serverSources } = await import('./_sources.mjs');
+  const [service, ui] = await Promise.all([
     readFile(new URL('../server/codeTaskService.ts', import.meta.url), 'utf8'),
     readFile(new URL('../src/ProjectMode.tsx', import.meta.url), 'utf8'),
   ]);
+  const server = serverSources();
   assert.match(server, /\/api\/projects\/:projectId\/code\/build/);
   assert.match(server, /passport\?\.executor !== 'model_patch' \|\| process\.env\.CODE_EXECUTOR !== 'model_patch'/);
   assert.match(server, /\/download/);
