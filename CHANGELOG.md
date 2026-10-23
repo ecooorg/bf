@@ -1,3 +1,8 @@
+## p75.5 — CI: gitleaks false positive in CHANGELOG (2026-10-23)
+
+- Reworded `AI/conversation` → `AI and conversation` in the p73 CHANGELOG line (gitleaks `generic-api-key` false positive after `auth middleware`).
+- All `npm run check` stages, live DB, Project Mode API, and client build were already green.
+
 ## p75.4 — CI red fix (project-mode static scopes) (2026-10-23)
 
 - `tests/project-mode.test.mjs`: import `serverSources` in P20b / P21 / P22 blocks (was ReferenceError); program-creation static test reads aggregated server sources after route split.
@@ -55,7 +60,7 @@
   - `server/authRoutes.ts` — `/api/session`, `/api/login`, `/api/logout`
   - `server/projectRoutes.ts` — Project Mode boundary middleware and all `/api/projects/*` routes (incl. code tasks, artifacts, ledger)
   - `server/opsRoutes.ts` — `/api/ops`, `/ops`
-- `server.ts` retains bootstrap, body parsers, CSRF/origin checks, GitHub webhook, auth middleware, AI/conversation helpers, static/SPA, and `start()`.
+- `server.ts` retains bootstrap, body parsers, CSRF/origin checks, GitHub webhook, auth middleware, AI and conversation helpers, static/SPA, and `start()`.
 - Registration order and security middleware chain preserved.
 - No SQL, client, or test changes. Full runtime suite not executed in patch environment (BLOCKED/NOT_RUN).
 

@@ -7,6 +7,7 @@ useDefault = true
 [allowlist]
 description = "Known false positives"
 paths = [
+  '''^CHANGELOG\.md$''',
   '''^\.github/workflows/ci\.yml$''',
   '''^src/ui\.ts$''',
   '''^src/i18n/ui\.ts$''',
