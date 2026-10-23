@@ -35,3 +35,5 @@ Regenerate: `npm run docs:generate`.
 ## Archive
 
 Historical phase-era files (flat names) under `../archive/` — audit CSVs, acceptance record, old roadmaps. Not required for routine changes.
+
+- `docs/TASK-CONTEXT-P85.md` — P85 task-context CLI, limitations, and human-effort gate.
