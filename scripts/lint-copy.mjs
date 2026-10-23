@@ -44,19 +44,7 @@ const SKIP_FILES = new Set(['demo-coffee.ts', 'decision.ts']);
 const NON_TEXT_ATTR = /(className|data-testid|href|src|type|key|role|htmlFor|name|id|style|target|rel|autoComplete|inputMode|accept|from|import)\s*=?\s*$/;
 
 // Allowed existing violations: { 'path relative to src': { rule: count } }. Only ever decrease.
-const DEBT = {
-  'App.tsx': { 'long': 4 },
-  'ProjectDelivery.tsx': { 'long': 1 },
-  'ProjectMode.tsx': { 'long': 2 },
-  'ProjectNoviceWizard.tsx': { 'scaffold': 1 },
-  'ProjectPathChooser.tsx': { 'long': 2 },
-  'WorkspacePanel.tsx': { 'long': 1 },
-  'driveMirror.ts': { 'long': 1 },
-  'en.ts': { 'long': 1 },
-  'projectAppBuilder.ts': {},
-  'projectCapabilities.ts': {},
-  'projectDeliveryModel.ts': {},
-};
+const DEBT = {};  // P70: all recorded violations are fixed. Do not add entries; fix the text.
 
 export function visibleTexts(src) {
   const out = [];
