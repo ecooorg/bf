@@ -1,0 +1,15 @@
+{
+  "status": "PASSED",
+  "cycles": {
+    "found": 2,
+    "knownResidual": 2,
+    "new": [],
+    "fixedSinceRatchet": []
+  },
+  "boundaries": {
+    "violationsFound": 0,
+    "knownResidual": 0,
+    "new": [],
+    "exceptionsInForce": 3
+  }
+}
