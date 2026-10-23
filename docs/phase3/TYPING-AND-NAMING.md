@@ -1,6 +1,8 @@
-# Phase 3 — Typing and semantic naming (p75)
+# Phase 3 — Typing and semantic naming (p75–p76)
 
 Conventions for AI-assisted changes. Behaviour-preserving; apply gradually.
+
+**Phase 3 track closed in p76** — see `PHASE3-COMPLETE.md`. Full `strict: true` remains optional follow-up.
 
 ## TypeScript policy
 
@@ -60,3 +62,10 @@ Rename only with full reference update + tests; never rename “for style” alo
 - Shared `idSchema` from `contracts.ts` in `taskService`
 - Progressive compiler flags on server (not full `strict` yet)
 - This conventions document
+
+
+## p76 delivered
+
+- `taskOfProject` validates path ids via `parseProjectId` / `parseTaskId`
+- `codeTaskService` uses shared `idSchema` from `contracts.ts`
+- Phase 3 completion record + Phase 4/5 roadmap for next session
