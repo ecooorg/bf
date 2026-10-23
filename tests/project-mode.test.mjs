@@ -1350,3 +1350,61 @@ test('program creation is wired end-to-end and remains gated', async () => {
 });
 }
 // ===== END program-creation.test.mjs =====
+
+// ===== BEGIN p70-ui-states.test.mjs =====
+{
+const test = (await import("node:test")).default;
+const assert = (await import("node:assert/strict")).default;
+const { readFileSync } = await import("node:fs");
+const src = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
+
+test('P70: one wording for Drive and History in every mode', async () => {
+  const u = await import('../src/uiStates.tsx');
+  assert.equal(u.driveLabel({ configured: false, connected: false }), 'Drive off');
+  assert.equal(u.driveLabel({ connected: false }), 'Drive');
+  assert.equal(u.driveLabel({ connected: true }), 'Drive on');
+  assert.equal(u.driveLabel({ connected: true, busy: true }), 'Syncing…');
+  assert.equal(u.historyLabel(true), 'History');
+  assert.equal(u.historyLabel(false), 'History off');
+  assert.match(u.driveTitle({ connected: true }), /only while this tab is open/);
+  for (const f of ['App.tsx', 'ProjectMode.tsx']) assert.doesNotMatch(src(f), /Drive · this tab|History unavailable/, f);
+});
+
+test('P70: StateNotice renders status/alert roles for every kind', async () => {
+  const React = (await import('react')).default;
+  const { renderToString } = await import('react-dom/server');
+  const { StateNotice, BusyHint } = await import('../src/uiStates.tsx');
+  for (const kind of ['loading', 'empty', 'unavailable', 'done']) {
+    assert.match(renderToString(React.createElement(StateNotice, { kind }, 'x')), new RegExp(`data-state="${kind}"[^>]*role="status"|role="status"[^>]*data-state="${kind}"`));
+  }
+  assert.match(renderToString(React.createElement(StateNotice, { kind: 'error' }, 'x')), /role="alert"/);
+  assert.equal(renderToString(React.createElement(BusyHint, { busy: false })), '');
+  assert.match(renderToString(React.createElement(BusyHint, { busy: true })), /Working/);
+});
+
+test('P70: plan, approval and task values are shown in plain words', async () => {
+  const l = await import('../src/projectLabels.ts');
+  for (const s of ['DRAFT', 'READY', 'QUEUED', 'RUNNING', 'VALIDATING', 'PASS', 'FAIL', 'BLOCKED', 'CANCELLED']) assert.doesNotMatch(l.taskStateLabel(s), /^[A-Z_]{3,}$/, s);
+  for (const k of ['plan', 'budget', 'merge_ready', 'state_decision', 'destructive', 'task_start']) assert.doesNotMatch(l.approvalKindLabel(k), /_/, k);
+  for (const s of ['PENDING', 'APPROVED', 'REJECTED', 'SUPERSEDED']) assert.doesNotMatch(l.planStatusLabel(s), /^[A-Z_]{3,}$/, s);
+  assert.equal(l.taskStateLabel('SOMETHING_NEW'), 'something new');
+  assert.equal(l.blockedReasonLabel(null), '');
+  const pm = src('ProjectMode.tsx');
+  assert.doesNotMatch(pm, /<strong>\{t\.state\}<\/strong>|<strong>\{p\.status\}<\/strong>|\{a\.kind\}: \{a\.subjectId\}|Version \{selected\.state_version\}|\{p\.totalUnits\} units/);
+});
+
+test('P70: Simple mode banner, five-step path and capability dump are gone', () => {
+  assert.doesNotMatch(src('App.tsx'), /data-testid="mode-banner"/);
+  const pm = src('ProjectMode.tsx');
+  assert.doesNotMatch(pm, /Suggested path/);
+  assert.match(pm, /nextStepText/);
+  assert.match(pm, /filter\(r => !r\.on && r\.label !== 'Writing to GitHub'\)/);
+  assert.match(pm, /What is available here/);
+});
+
+test('P70: copy lint carries no recorded debt', () => {
+  const lint = readFileSync(new URL('../scripts/lint-copy.mjs', import.meta.url), 'utf8');
+  assert.match(lint, /const DEBT = \{\};/);
+});
+}
+// ===== END p70-ui-states.test.mjs =====
