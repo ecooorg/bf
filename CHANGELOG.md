@@ -1,3 +1,10 @@
+## P84.1 — AI-native roadmap for P85–P91 (2026-10-23)
+
+- Added `docs/AI-NATIVE-ROADMAP-P85-P91.md`, a detailed implementation plan for task-aware context planning, change-impact and generator lineage, verification planning, real-task AI benchmarking, task contracts, incremental refresh, and context-completeness guards.
+- Documented patch dependencies, scope boundaries, implementation steps, acceptance gates, stop conditions, measurement rules, cross-patch verification checklist, and a reusable bootstrap prompt for the next AI implementation session.
+- Updated `AGENTS.md`, `docs/DOCUMENTATION-INDEX.md`, and the P81–P84 roadmap to record that the Navigator reports P84 CI green after the P56 check-chain fix and to point to the next roadmap.
+- Documentation-only patch: no product runtime, package scripts, test behavior, security gates, or generated inventories changed. The roadmap does not authorize automatic merges, deployment, or bypassing mandatory CI.
+
 ## P84 CI integration fix — 2026-10-23
 
 - Routed `test:context-benchmark` through `npm run check` by invoking the named npm script instead of calling its test file directly. This satisfies the P56 invariant that every `test:*` script is explicitly part of the check chain or declared as a separate CI step.
