@@ -8,6 +8,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const norm = (p) => p.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^bf-main\//, '');
 const uniq = (xs) => [...new Set(xs)].sort();
 const relatedTests = [
+  [/^server\/compatibilityRoutes\.ts$/, ['test:core', 'test:pipeline']],
   [/^server\/(taskService|gateService|codeTaskService|gateEngine)/, ['test:gates', 'test:project', 'test:pipeline']],
   [/^server\/(security|redact|untrustedData)/, ['test:security']],
   [/^server\/(database|projectRepository|stateService)/, ['test:database', 'test:project']],
@@ -28,10 +29,31 @@ export function planContext(inputs, { graph = buildGraph(), readFile = read, fil
     for (const dest of dests) if (incoming.has(dest)) incoming.get(dest).push(from);
   }
   const confirmed = new Map();
+  const integrationPoints = [];
   const add = (file, reason) => {
     if (!fileExists(file) || targets.includes(file)) return;
     if (!confirmed.has(file)) confirmed.set(file, new Set());
     confirmed.get(file).add(reason);
+  };
+  // A route registration module is wired by server.ts. For that known composition
+  // pattern, point to the import and registration lines instead of recommending the
+  // entire 2k-line server entry point as routine context.
+  const routeRegistrationPoint = (importer, target) => {
+    if (importer !== 'server.ts' || !/^server\/[^/]+Routes\.ts$/.test(target)) return null;
+    const targetText = readFile(target);
+    const exportMatch = targetText.match(/export\s+function\s+(register[A-Za-z0-9]*Routes)\s*\(/);
+    if (!exportMatch) return null;
+    const name = exportMatch[1];
+    const importerLines = readFile(importer).split(/\r?\n/);
+    const importIndex = importerLines.findIndex((line) => line.includes(name) && line.includes(`./${target}`));
+    const registrationIndex = importerLines.findIndex((line) => new RegExp(`\\b${name}\\s*\\(\\s*app\\s*,`).test(line));
+    if (importIndex < 0 || registrationIndex < 0) return null;
+    return {
+      file: importer,
+      reasons: [`composition-root import and registration for ${target}`],
+      lines: [...new Set([importIndex + 1, registrationIndex + 1])].sort((a, b) => a - b),
+      policy: 'Read the referenced integration lines first; read the full composition root only if wiring behavior remains unclear.',
+    };
   };
   const uncertainty = new Set([
     'Static imports do not establish runtime behavior or dynamic-import reachability.',
@@ -44,7 +66,11 @@ export function planContext(inputs, { graph = buildGraph(), readFile = read, fil
   for (const target of targets) {
     if (moduleSet.has(target)) {
       for (const dep of graph.edges[target] || []) add(dep, `static import from ${target}`);
-      for (const importer of incoming.get(target) || []) add(importer, `static importer of ${target}`);
+      for (const importer of incoming.get(target) || []) {
+        const point = routeRegistrationPoint(importer, target);
+        if (point) integrationPoints.push(point);
+        else add(importer, `static importer of ${target}`);
+      }
     } else uncertainty.add(`No static TypeScript module graph entry for ${target}.`);
     for (const [pattern, tests] of relatedTests) if (pattern.test(target)) tests.forEach((t) => suggested.add(t));
     // Explicit textual evidence, never interpreted as an authoritative runtime dependency.
@@ -68,6 +94,7 @@ export function planContext(inputs, { graph = buildGraph(), readFile = read, fil
     targets,
     staticContextCandidates: evidence.filter((e) => e.reasons.some((r) => r.startsWith('static '))),
     supportingContext: evidence.filter((e) => !e.reasons.some((r) => r.startsWith('static '))),
+    integrationPoints: integrationPoints.sort((a, b) => a.file.localeCompare(b.file) || a.lines[0] - b.lines[0]),
     suggestedNpmScripts: [...suggested].sort(),
     verification: ['npm run architecture:check', 'npm run check:docs', 'npm run check'],
     uncertainties: [...uncertainty].sort(),
