@@ -73,7 +73,24 @@ export const updateProjectStateRequestSchema = z.object({
   expected_version: z.number().int().positive(),
   state: stateSchemaWithPassport,
 }).strict();
+
 export type UpdateProjectStateRequest = z.infer<typeof updateProjectStateRequestSchema>;
+
+/**
+ * Query-string limits are untrusted strings, unlike internal repository limits.
+ * Accept only decimal-digit strings, then enforce the same
+ * 1..200 range as the repository. Defaults preserve the existing API defaults.
+ */
+function queryLimitSchema(defaultValue: number) {
+  return z.preprocess((value) => {
+    if (value === undefined) return undefined;
+    if (typeof value !== 'string' || !/^\d+$/.test(value)) return Number.NaN;
+    return Number(value);
+  }, z.number().int().min(1).max(200).default(defaultValue));
+}
+
+export const projectListLimitQuerySchema = queryLimitSchema(100);
+export const stateVersionsLimitQuerySchema = queryLimitSchema(50);
 
 export const projectEventSchema = z.object({
   id: idSchema,

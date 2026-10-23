@@ -37,7 +37,7 @@ import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from '.
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
-import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './contracts.ts';
+import { createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, defaultPassport } from './contracts.ts';
 import { projectCapabilities } from './projectCapabilities.ts';
 import { getTaskGates, recordApproval, recordWaiver } from './gateService.ts';
 import { isGateName } from './gateEngine.ts';
@@ -120,7 +120,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
 
   app.get('/api/projects', async (req, res) => {
     try {
-      const limit = req.query.limit === undefined ? 100 : Number(req.query.limit);
+      const limit = projectListLimitQuerySchema.parse(req.query.limit);
       res.json({ success: true, data: await listProjects(limit) });
     } catch (error) { projectError(res, error); }
   });
@@ -152,7 +152,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
 
   app.get('/api/projects/:projectId/versions', async (req, res) => {
     try {
-      const limit = req.query.limit === undefined ? 50 : Number(req.query.limit);
+      const limit = stateVersionsLimitQuerySchema.parse(req.query.limit);
       res.json({ success: true, data: await listStateVersions(req.params.projectId, limit) });
     } catch (error) { projectError(res, error); }
   });
