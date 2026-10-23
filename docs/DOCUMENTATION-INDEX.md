@@ -11,7 +11,7 @@ Start with root `AGENTS.md`. Read the smallest relevant set of domain references
 ## Preserved domain references (pending validated migration)
 - Product: `01-Product-and-System-Specification.md`.
 - Architecture: `02-Architecture-and-Components.md`.
-- API and integrations: `03-API-and-Integration-Contracts.md`.
+- Integration contracts and HTTP interfaces: `03-API-and-Integration-Contracts.md`.
 - Database and states: `04-Database-and-State-Machines.md`.
 - Agent and prompts: `05-Agent-Runtime-and-Prompt-Contracts.md`.
 - UI and workspace: `06-UI-Workspace-and-File-Handling.md`.
