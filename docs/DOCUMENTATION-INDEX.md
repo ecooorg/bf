@@ -1,30 +1,32 @@
-# Documentation Index — Selective AI Navigation
+# Documentation Index
 
-Start with root `AGENTS.md`. Read the smallest relevant set of domain references and actual source files.
+Start with the repository-level `AGENTS.md`. Read only the current documents relevant to the task and inspect the implementation when behavior must be verified.
 
-## AI operating set
-- `AI-OPERATING-RULES.md` — permanent rules and permissions.
-- `AI-TRANSFORMATION-SPEC.md` — proposed detailed technical assignment and gates.
-- `DOCUMENTATION-BASELINE.md` — inspected facts and verification limits.
-- `12-Documentation-Migration-and-Open-Decisions.md` — existing unresolved decisions; revalidate historical claims.
+## Current authoritative documents
 
-## Preserved domain references (pending validated migration)
-- Product: `01-Product-and-System-Specification.md`.
-- Architecture: `02-Architecture-and-Components.md`.
-- Integration contracts and HTTP interfaces: `03-API-and-Integration-Contracts.md`.
-- Database and states: `04-Database-and-State-Machines.md`.
-- Agent and prompts: `05-Agent-Runtime-and-Prompt-Contracts.md`.
-- UI and workspace: `06-UI-Workspace-and-File-Handling.md`.
-- Security: `07-Security-Privacy-and-Operations.md`.
-- Deployment: `08-Deployment-and-Runbook.md`.
-- Tests: `09-Testing-and-Equivalence.md`.
-- Requirements matrix: `10-Requirements-Traceability.csv`.
-- Legacy inventory (may be stale): `11-Repository-and-Route-Inventory.md`.
-- Historical roadmap: `13-Implementation-Roadmap.md`.
-- SQL reference: `14-SQL-Migration-Reference.md`.
-- Prompt snapshot: `15-Prompt-Source-Snapshot.md`.
-- Project builder: `16-Project-Mode-App-Builder.md`.
-- IR pipeline: `17-App-Builder-IR-Pipeline.md`.
-- UI audit history: `18-UI-Cross-Mode-Audit.md`.
+* `../AGENTS.md` — repository instructions, authorization boundaries and delegation policy.
+* `AI-OPERATING-RULES.md` — permanent AI operating and security rules.
+* `AI-TRANSFORMATION-SPEC.md` — transformation scope, phases and acceptance gates.
+* `DOCUMENTATION-BASELINE.md` — baseline observations and verification limitations.
+* `OPERATIONS.md` — current operational procedures, deployment boundaries, rollback, backup and restore.
 
-These references remain available to avoid silently losing requirements. Static documentation is not proof of running behavior. During later source-audited migration, extract current contracts, generate mechanical inventories and retire redundant documents only with owner approval.
+## Implementation evidence
+
+* Source code is the evidence for implemented runtime behavior.
+* Tests are evidence for the specific behavior they assert.
+* Database migrations are evidence for the schema changes they define.
+* CI results are evidence only for the checks actually executed in that run.
+
+Documentation does not prove that a feature works in production. Report contradictions between specifications, code, tests and observed behavior rather than silently resolving them.
+
+## Historical material
+
+The former numbered documentation set (`01`–`18`) is historical reference material retained outside the active repository documentation.
+
+Do not use those files as current requirements. If a historical detail is needed, retrieve it from the owner's local archive, verify it against the current implementation and obtain approval when it changes product scope, security or external behavior.
+
+## Conflicts and missing requirements
+
+If current documents conflict, identify the relevant sources and request a decision when the conflict affects product behavior, security, data handling or scope.
+
+Do not invent product requirements. Record unresolved decisions in the active specification or change proposal before implementation.
