@@ -1,0 +1,321 @@
+# AI-native engineering roadmap — P85–P91
+
+Status: Navigator-requested implementation roadmap, 2026-10-23. This document describes future work; it does not authorize automatic merges, production deployment, security-gate changes, GitHub write access, or acceptance on the Navigator's behalf. Build and review one patch at a time. Do not begin the next patch until the current patch has green GitHub CI reported by the Navigator.
+
+## 1. North star
+
+Make AI-assisted BiForge development faster and safer by giving an agent the **minimum sufficient verified context** for a specific task, making change consequences visible, selecting the right verification, and measuring successful outcomes.
+
+Optimize for **cost per safely completed task**, not minimum file count, smallest context, fewest tests, or smallest diff in isolation. A smaller context that omits a required contract is a regression. Static analysis must label evidence, heuristics, and unknowns separately; absence of a detected relationship is not proof that no relationship exists.
+
+### Current foundation
+
+- **P81:** deterministic file-oriented `context:plan`, static import/importer evidence, selected env/SQL/manifest clues, test suggestions, and explicit uncertainties.
+- **P82:** context locality improvements and explicit integration points for selected composition-root patterns.
+- **P83:** selected runtime API-boundary validation and negative tests.
+- **P84:** six curated static benchmark scenarios, pinned historical comparison, recall/false-positive/context-line proxies, and documented measurement limitations. The Navigator reports P84 CI green after the P56 check-chain fix. The gold set still requires maintainer review; the generated-route-artifact scenario exposed a generator-to-artifact discovery gap. No benchmark regression threshold is enabled.
+
+Use `docs/AI-NATIVE-ROADMAP-P81-P84.md` for the original scope and detailed P81–P84 notes, `docs/context-benchmark-p84.json` for recorded results, and `docs/context-benchmark-verification-p84.json` for verification evidence and limits. Do not rewrite historical metrics to make a new result look better.
+
+## 2. Delivery rules for every future patch
+
+1. **Inspect before editing.** Read `AGENTS.md`, relevant operating rules, this roadmap, `package.json`, the relevant source/test files, and the latest P84 benchmark report. Use repository evidence rather than assumptions.
+2. **Start from the user's current tree.** Do not silently rebuild from an old archive or overwrite later fixes. If the current tree is unavailable, request an archive or clearly label the patch's expected base revision.
+3. **Keep scope narrow.** One patch should have one primary outcome. Prefer docs/tooling/tests before runtime changes where that achieves the goal. Avoid unrelated formatting and generated-file churn.
+4. **Respect repository layout.** Keep active `docs/` and `scripts/` flat with prefixed filenames. Do not create nested directories such as `tests/fixtures/`; put a small curated gold set beside tests (for example, `tests/context-benchmark-gold-p84.json`) or use an existing approved flat layout. Do not add directories without explicit Navigator approval.
+5. **Preserve the verification chain.** Every `test:*` npm script must be included in `npm run check` or explicitly declared as a separate CI step, in a way that the existing P56 check detects. Add a regression test for that invariant when changing the check chain. Do not call a test file directly while leaving its named `test:*` script disconnected.
+6. **Preserve security and contracts.** Never weaken auth, authorization, secret handling, approval gates, SQL protections, or compatibility guarantees to make a test pass. Do not enable GitHub write, production operations, or generated-code execution without explicit approval.
+7. **Test negative paths.** For new inference or planning features, test missing evidence, malformed inputs, ambiguous/dynamic relationships, stale generated artifacts, and safe failure modes—not only the happy path.
+8. **Report verification truthfully.** Separate `PASS`, `FAIL`, `BLOCKED`, and `NOT RUN`; distinguish local results from the Navigator-reported GitHub CI result. Never infer green CI from focused tests or archive integrity.
+9. **Ship a patch ZIP.** Include only changed/new files with repository-relative paths. List deletions separately, explain the base, provide SHA-256, rollback instructions, and commands to run. Verify ZIP integrity. Do not include `node_modules`, secrets, logs containing sensitive data, or the whole repository.
+10. **Update documentation.** Each patch updates `CHANGELOG.md` and relevant status/index documentation. Keep metrics reproducible and explain their limits. Do not claim token or wall-clock savings without actual captured measurements.
+11. **Stop on scope escalation.** Ask the Navigator before changing product behavior, public API behavior, persisted formats, data migrations, external integrations, access permissions, acceptance criteria, or mandatory security gates.
+
+## 3. Recommended sequence and dependency graph
+
+The sequence is intentionally incremental. P85 and P86 together form the context-planning initiative, but they remain separate patches so each has a clear review and rollback boundary. Begin collecting P88 measurements as soon as a few stable task scenarios exist; do not wait for all roadmap items to finish.
+
+| Patch | Main result | Depends on | Runtime code expected? |
+|---|---|---|---|
+| **P85** | Task-aware context plans | P81–P84 | No, unless later explicitly justified |
+| **P86** | Change-impact and generator/artifact relationships | P85, existing inventories | Prefer no |
+| **P87** | Verification planner and safe test tiers | P85–P86, current check-chain rules | No product runtime change |
+| **P88** | Real-task AI benchmark | P84, stable P85 plans; can start early | No |
+| **P89** | Machine-readable task contract | P85–P87 | No by default |
+| **P90** | Incremental architecture/context refresh | P86 and stable deterministic outputs | No |
+| **P91** | Context completeness/confidence guard | P85–P90 evidence | No |
+
+P88 is an evidence stream as well as a patch. If P85/P86 materially change planner outputs, update benchmark expectations with a reviewed rationale rather than silently replacing the gold set.
+
+---
+
+## 4. P85 — Task-Aware Context Engine
+
+### Goal
+
+Extend file-oriented `context:plan` to plan around a natural-language change request. The output should identify the likely task area, minimal candidate read set, contracts, integration points, tests, invariants, and unresolved questions without loading the whole repository by default.
+
+### Implementation plan
+
+1. Inspect the current CLI argument parser and planner library. Reuse existing evidence collectors and stable output conventions; do not fork a second dependency engine.
+2. Add a task-planning entry point (proposed CLI: `npm run context:task -- --task "Fix project saving"`). Confirm naming against existing scripts before implementation.
+3. Start with deterministic task-to-evidence rules and explicit keyword/feature mappings backed by existing manifests, route inventory, module map, tests and contracts. Do not imply that free-text classification is complete or semantically authoritative.
+4. Emit a compact JSON plan, with human-readable output available if consistent with existing tooling. Suggested fields:
+   - `taskSummary` — normalized task intent and assumptions;
+   - `changeTargets` — candidate files with reasons and evidence source;
+   - `mustRead` — minimum files needed before changing code;
+   - `readIfNeeded` — conditional follow-up context;
+   - `notNeededByDefault` — known irrelevant candidates, explicitly not prohibited;
+   - `contracts` — request/response, domain, DB, configuration or artifact contracts;
+   - `requiredTests` — targeted tests plus mandatory global checks;
+   - `invariants` — compatibility, auth, data and UI behaviors to preserve;
+   - `uncertainties` — unknown/dynamic links and why they matter;
+   - `confidence` / `completeness` — calibrated labels, not an unexplained numeric score.
+5. Every suggested item must include a reason and evidence class: `static`, `manifest`, `contract`, `heuristic`, or `unknown`. Keep the distinction between evidence and guess explicit.
+6. Add representative tests for UI, API contract, persistence/DB, env/config and generated artifact tasks. Include ambiguous, unrecognized and empty tasks; safe fallback must request more context or return a broad-but-bounded plan rather than a falsely precise one.
+7. Re-run P84 benchmark scenarios unchanged as a baseline, then add task-oriented variants only with reviewed gold dependencies. Compare recall and false positives, not just output size.
+
+### Acceptance gates
+
+- Stable deterministic output for the same tree and task.
+- Existing `context:plan` behavior remains compatible.
+- No default whole-repository read or hidden network call.
+- Each candidate and uncertainty is traceable to evidence.
+- Unknown task types do not return an empty plan presented as complete.
+- `test:*` is integrated into `npm run check` or an explicit CI step satisfying P56.
+- Relevant focused tests, `check:docs`, `docs:check`, `architecture:check`, typecheck/build, full check and CI status are reported separately.
+
+### Stop conditions
+
+Stop if a natural-language heuristic cannot distinguish likely targets without unacceptable false negatives, if P84 recall regresses without an approved tradeoff, or if task planning duplicates existing feature/route inventories instead of referencing them.
+
+### Deliverables
+
+CLI/API documentation, focused tests, a compact example plan, benchmark deltas with limitations, changelog/status updates, changed-files ZIP, SHA-256 and rollback instructions.
+
+---
+
+## 5. P86 — Change Impact Graph and generator lineage
+
+### Goal
+
+Show what an edit may affect beyond direct imports: public API consumers, tests, manifests, SQL/data paths, environment settings, route registration, and generated artifacts. Explicitly close P84's known generator-to-generated-route-inventory gap.
+
+### Implementation plan
+
+1. Inventory current graph sources and generators before adding new data structures. Identify how `docs/generated-route-inventory.json`, env/migration inventories, module map and feature manifest are produced.
+2. Represent a small, typed edge vocabulary such as `imports`, `importedBy`, `registers`, `consumesContract`, `coveredByTest`, `readsEnv`, `queriesTable`, `generatedBy`, `consumesArtifact`. Use only edges supported by evidence; unknown edges remain unknown.
+3. Add generator lineage: source generator script → output artifact → runtime/test/documentation consumers. Prefer explicit metadata or deterministic source inspection over filename guesses.
+4. Provide a read-only command or extend the existing plan output to show impact for a target. Keep output bounded and sorted; include a short path explaining why each impact node is included.
+5. Use the route inventory scenario as a mandatory regression: planner should discover the generator and related checks, or clearly report why it cannot. A zero-recall result must never be presented as a successful low-context plan.
+6. Add tests for missing generator, stale artifact, generated-file edits, multiple consumers, cycles, dynamic paths and false inferred edges.
+7. Keep the graph generated/reproducible where possible. Do not hand-edit generated inventories; update source rules and run the repository's documented generator.
+
+### Acceptance gates
+
+- P84 generated-artifact gold scenario improves in recall without unexplained false-positive growth.
+- Each edge carries provenance and confidence/evidence type.
+- Generated artifacts can be traced back to a generator and verification command, or explicitly marked unresolved.
+- No cycles/boundary regressions; existing architecture checks stay intact.
+- Repeated generation is deterministic and produces no timestamp-only diff.
+
+### Stop conditions
+
+Stop if the graph treats heuristics as proven relationships, requires a repository-wide scan for every local request, creates a second source of truth, or increases recall only by listing nearly every file.
+
+### Deliverables
+
+Documented edge schema, example impact report, generator-lineage tests, before/after P84 scenario metrics, changelog/status and rollback.
+
+---
+
+## 6. P87 — Verification Planner
+
+### Goal
+
+Recommend the cheapest sufficient targeted verification for a change while preserving mandatory repository and CI gates. It must not let an AI agent declare a change complete based only on the fastest test tier.
+
+### Implementation plan
+
+1. Inventory existing `npm run` scripts, test file ownership, CI workflow steps and P56's `test:*` check-chain invariant.
+2. Create explicit machine-readable mappings from change evidence to test commands. Reuse existing names; do not invent commands that do not exist.
+3. Define tiers:
+   - **Fast:** low-cost checks directly associated with changed files;
+   - **Targeted:** affected contracts, integration tests and relevant architecture checks;
+   - **Full:** required full `npm run check`, build/typecheck and mandatory CI workflows.
+4. For each command record why it is selected, prerequisite/environment needs, expected coverage, and whether it is required or advisory.
+5. Include special handling for DB, migrations, generated artifacts, secrets/security-sensitive code, UI/browser tests and env-dependent checks. If a required check cannot run locally, mark it `BLOCKED` or `NOT RUN`; do not silently downgrade it.
+6. Add a `verify:plan`-style read-only CLI only if it fits current naming and script conventions. The first version should print a plan; it must not execute arbitrary commands automatically.
+7. Add a CI/test-chain regression test ensuring every `test:*` script is in `npm run check` or explicitly represented as a CI step. Include a negative test that demonstrates the failure mode.
+
+### Acceptance gates
+
+- Commands are real, deterministic and ordered by prerequisites/cost.
+- Plan distinguishes required from optional and local checks from CI gates.
+- Security, contract, DB and generated-artifact changes cannot be assigned Fast-only completion.
+- P56 invariant remains enforced.
+- No shell command execution or auto-approval is introduced by the planner.
+
+### Stop conditions
+
+Stop if test ownership cannot be mapped reliably; report ambiguity and ask for an explicit mapping rather than pretending to know coverage.
+
+---
+
+## 7. P88 — Real-task AI benchmark
+
+### Goal
+
+Measure whether the system improves end-to-end AI development, not merely static context-line counts.
+
+### Dataset
+
+Build a small, reviewed set of approximately 20–30 representative BiForge tasks over time: bug fixes, UI behavior, API changes, DB/persistence, configuration, generated artifacts, refactors, documentation and CI failures. Begin with a smaller pilot; do not wait for all tasks to exist.
+
+Each task should define a stable starting revision, task prompt, known relevant dependencies, protected invariants, acceptance criteria, required checks, and human-reviewed outcome. Keep task data in the approved flat layout; no nested `fixtures/` directory. Avoid including secrets, personal data or production records.
+
+### Measurements
+
+- Input tokens and output tokens only when a named model/tokenizer or provider trace actually supplies them.
+- Wall-clock time from task start to accepted result, with environment and model recorded.
+- Number of agent turns/iterations and human interventions.
+- Pass rate for acceptance criteria and required tests.
+- Dependency recall and false-positive rate against a reviewed gold set.
+- Actual changed-file count and change surface, with unrelated changes identified.
+- Contract/security regressions and rollback/rework.
+- Cost per safely completed task where reliable provider pricing data exists.
+
+Never convert source lines into token counts. Never compare runs with materially different task wording, model, repository base, tools or test environment without disclosing the difference. Keep failed and abandoned runs in the report to avoid survivorship bias.
+
+### Acceptance gates
+
+- Repeatable harness with pinned task and revision metadata.
+- Results distinguish measured, estimated, unavailable and not-run values.
+- Gold-set changes are reviewed and explained; historical reports are not silently overwritten.
+- Compare baseline workflow and context-engine workflow on matched tasks where practical.
+- No threshold is enabled until the sample and variability justify one.
+
+---
+
+## 8. P89 — AI Task Contract
+
+### Goal
+
+Turn a natural-language request into a small, reviewable statement of intended behavior and constraints before editing code.
+
+### Proposed contract fields
+
+- `goal` and explicit out-of-scope items;
+- `allowedAreas` or candidate change boundaries, not absolute prohibitions on discovering a required dependency;
+- `requiredInvariants` (API compatibility, authorization, persistence, UI behavior, data safety);
+- `acceptanceCriteria` stated as observable outcomes;
+- `requiredVerification` derived from P87;
+- `assumptions` and `openQuestions`;
+- references to the P85 context plan and P86 impact evidence.
+
+The contract may be generated from a prompt as a draft. It must not silently change the user's requested behavior or treat inferred criteria as user-approved. When ambiguity could alter product behavior, data migration, security or external integrations, ask the Navigator before implementation.
+
+### Implementation plan and gates
+
+1. Define a minimal schema with runtime validation using the project's existing validation approach.
+2. Add deterministic validation and readable diagnostics for missing goals, empty acceptance criteria, conflicting invariants and unknown verification command names.
+3. Add a draft-only CLI or document template; no autonomous approval or auto-merge.
+4. Link the contract to the context and verification plans without duplicating their underlying inventories.
+5. Test valid, incomplete, contradictory, malformed and security-sensitive examples.
+6. Confirm that the final summary maps each acceptance criterion to evidence or clearly says it is unverified.
+
+---
+
+## 9. P90 — Incremental architecture/context refresh
+
+### Goal
+
+Avoid recomputing all derived architecture data after every small edit while preserving a deterministic full rebuild as the correctness oracle.
+
+### Implementation plan
+
+1. Profile existing generators and planner commands first; optimize only a measured bottleneck.
+2. Define cache keys using relevant input content hashes, tool/version/config and schema version—not timestamps alone.
+3. Track dependency invalidation: source module changes invalidate its edges and affected summaries; generator changes invalidate generated outputs and consumers; contract changes invalidate linked plans and tests.
+4. Keep a full rebuild command and compare incremental output to full output in tests/CI.
+5. Handle file deletion, rename, case sensitivity, branch switch, stale cache, changed tool version, failed generator and interrupted run.
+6. Prefer ephemeral/local caches or clearly generated artifacts; do not commit machine-specific absolute paths or nondeterministic state.
+
+### Acceptance gates
+
+- Incremental and full rebuilds yield identical canonical output for the same tree.
+- Cache invalidation tests cover add/change/delete/rename and generator lineage.
+- Report measured speed-up and workload size; do not claim faster operation without timing evidence.
+- Cache corruption or uncertainty falls back safely to a full rebuild.
+
+---
+
+## 10. P91 — Context completeness and confidence guard
+
+### Goal
+
+Prevent a planner from mistaking “no relationship found” for “no relationship exists”.
+
+### Required states
+
+- **Complete:** all required links for the declared scenario are found within validated rule coverage. This is scoped completeness, never a claim that all runtime relationships in the entire application are known.
+- **Partial:** some relationships are unresolved, dynamic or heuristic.
+- **Unverified:** insufficient evidence to safely claim the plan is adequate.
+
+Each unresolved relationship should name the possible consequence, missing evidence and recommended next action. A scalar confidence score alone is not sufficient.
+
+### Implementation plan
+
+1. Define rules that cause Partial/Unverified: dynamic import or dispatch, unknown generator, absent test mapping, contract with untracked consumers, unresolved env/SQL/data access, stale generated artifact, benchmark gold dependency not found.
+2. Make P85/P86/P87 outputs propagate those states rather than dropping them at the next stage.
+3. Add adversarial tests where an edge is intentionally hidden, a generator is renamed, a test mapping is absent or an artifact is stale.
+4. Add an optional strict mode for CI only after false-positive/false-negative behavior is reviewed. Initially it should report; it must not block product CI based on unreviewed heuristics.
+5. Use P84/P88 benchmark evidence to calibrate rules and avoid a guard that merely marks every task Unverified.
+
+### Acceptance gates
+
+- Missing known gold dependencies cannot be represented as Complete.
+- Every non-complete state has actionable explanations.
+- Strict-mode behavior, if approved later, is deterministic and has a documented override policy; no security or required test gate may be bypassed.
+
+---
+
+## 11. Cross-patch verification checklist
+
+For every patch P85–P91, report this checklist explicitly:
+
+- [ ] Base revision/current tree confirmed.
+- [ ] Scope and non-goals stated; product runtime changes justified or absent.
+- [ ] Changed/new/deleted files enumerated.
+- [ ] Tests cover positive, negative and uncertainty cases.
+- [ ] All `test:*` scripts satisfy P56 check-chain or explicit CI-step policy.
+- [ ] Focused tests run and results recorded.
+- [ ] `npm run check:docs`, `npm run docs:check`, `npm run architecture:check` and applicable generators run.
+- [ ] Typecheck, build, full `npm run check`, browser/DB checks and CI are separately reported as pass/fail/blocked/not run.
+- [ ] P84/P88 metrics compared where relevant; gold-set edits explained.
+- [ ] No nested directories added without approval; no `tests/fixtures/` introduced.
+- [ ] Security, API, persisted-data and approval invariants reviewed.
+- [ ] ZIP integrity and SHA-256 verified; rollback instructions included.
+- [ ] Changelog and status docs updated; next patch not started until Navigator reports green CI.
+
+## 12. Bootstrap prompt for the next AI implementation session
+
+Copy this prompt when starting P85 (and adapt the patch number only after the prior patch is accepted):
+
+> Work on BiForge patch P85 — Task-Aware Context Engine. Read `AGENTS.md`, `docs/AI-OPERATING-RULES.md`, `docs/AI-NATIVE-ROADMAP-P81-P84.md`, this document `docs/AI-NATIVE-ROADMAP-P85-P91.md`, the current `package.json`, the current context planner implementation/tests, and `docs/context-benchmark-p84.json` plus `docs/context-benchmark-verification-p84.json`. Treat the checked-out user tree as authoritative; do not rebuild from an older archive. First report the exact current implementation and a narrow plan, then implement only P85. Reuse existing planner/inventory evidence; do not create a second source of truth. Keep docs and scripts flat; do not create nested `tests/fixtures/`. Do not change product runtime behavior unless the Navigator explicitly approves a justified need. Preserve all security and compatibility guarantees. Add positive, negative and uncertainty tests. Ensure every `test:*` script is part of `npm run check` or an explicit CI step detectable by P56. Run the focused tests and all available docs/architecture/typecheck/build/full-check commands, reporting PASS/FAIL/BLOCKED/NOT RUN honestly. Update the benchmark only with reviewed, traceable evidence. Deliver a ZIP containing only changed/new repository-relative files, list deletions separately, include SHA-256 and rollback instructions, and update `CHANGELOG.md`, `AGENTS.md`, and `docs/DOCUMENTATION-INDEX.md`. Do not claim CI is green; wait for the Navigator to report it before beginning P86.
+
+For P86–P91, reuse the same operating requirements but replace the scope, acceptance gates and prompt with the corresponding section above. Each patch should be independently reviewable and revertible.
+
+## 13. Decision points reserved for the Navigator
+
+The AI implementer may make routine local design decisions and disclose them, but must request explicit direction before:
+
+- enabling an automatic benchmark regression threshold or making it a required merge gate;
+- changing product/runtime behavior or public API compatibility;
+- adding a new persistent data format, migration or external service;
+- executing planned shell commands automatically from a planner;
+- introducing automatic task approval, auto-merge, GitHub write, deployment or production operations;
+- creating new directory levels or changing repository layout rules;
+- accepting a patch formally or waiving mandatory checks.
+
+The goal of this roadmap is a controlled sequence of evidence-backed improvements—not a grant of autonomy to modify or deploy the product without review.

@@ -1,6 +1,6 @@
 # AI-native roadmap — P81–P84
 
-Status: Navigator-approved direction, 2026-10-23. P81 is implemented; P82 and P83 GitHub CI are reported green by the Navigator. P84 implementation is prepared in this patch and awaits its own CI. P84 does not authorize changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
+Status: Navigator-approved direction, 2026-10-23. P81 is implemented; P82, P83 and P84 GitHub CI are reported green by the Navigator. P84 CI was reported green after the P56 check-chain fix. P84.1 documents the next roadmap in `docs/AI-NATIVE-ROADMAP-P85-P91.md`. P84 does not authorize changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
 
 ## North star and definitions
 
@@ -87,8 +87,13 @@ Acceptance: stable sorted output; explicit evidence and uncertainties; safe reje
 - The localized compatibility-route scenario falls from 9,934 to 2,314 candidate source lines and rises from 66.7% to 100% comparable-gold recall; Expert conversation UI falls from 7,376 to 3,337 lines at 100% recall. These are static source-line proxies from the same P84 planner applied to both trees, not historical measurements of an agent using the old toolchain.
 - Added `npm run benchmark:context` and `npm run test:context-benchmark`; the fixture test is part of `npm run check`. The tests validate deterministic metrics and schema, not benchmark thresholds. No metric regression gate was added.
 - Verification commands in the report are marked `not-run-by-benchmark` with `durationMs: null`; actual verification duration, model tokens, agent read traces and implementation touched-file counts are not measured. The lower aggregate line cost is not unconditional evidence of improvement: the artifact scenario's zero line cost is a miss, not an optimization.
-- Local focused tests (6/6 planner tests, 3/3 benchmark tests), docs checks, architecture checks, version check, copy lint and benchmark-script syntax checks passed. `npm run check` is blocked at typecheck because the local dependency tree lacks `vite/client` definitions; build was not run, and GitHub CI remains pending. See the verification manifest for command-level status and duration. Gold-set review and repeated stability runs are required before any future metric gate.
+- Local focused tests (6/6 planner tests, 3/3 benchmark tests), docs checks, architecture checks, version check, copy lint and benchmark-script syntax checks passed. `npm run check` was blocked at typecheck because the local dependency tree lacked `vite/client` definitions; build was not run in that local environment. The Navigator subsequently reported GitHub CI green after the P56 check-chain fix. See the verification manifest for command-level local status and duration; this does not overwrite the historical local blockers. Gold-set review and repeated stability runs are required before any future metric gate.
 
 ## Execution sequence
 
 P81 baseline and planning → P82 measured locality changes → P83 stronger contracts and verification → P84 stable benchmark and governance. P82 and P83 must report metrics using the P81 baseline and retain evidence for P84. A green CI is necessary but not sufficient evidence of lower AI context cost.
+
+
+## Next roadmap
+
+P84.1 records the next proposed sequence, P85–P91, in `docs/AI-NATIVE-ROADMAP-P85-P91.md`: task-aware context planning, change-impact/generator lineage, verification planning, real-task AI benchmarking, task contracts, incremental refresh, and context-completeness guards. These are future scopes, not implemented features or automatic authorization. Build one patch at a time and wait for the Navigator to report green CI before starting the next.
