@@ -1,3 +1,10 @@
+## P81 — Dependency Intelligence and P82–P84 approved roadmap (2026-10-23)
+
+- Added read-only `context:plan` with one-hop static imports/importers, explicit env/SQL/manifest evidence, test hints and uncertainties. No claim of exhaustive cross-layer dependencies.
+- Captured reproducible static pre-P81 v80 metrics in `docs/context-baseline-v80.json`; source-line costs are proxies, not measured agent tokens.
+- Added context-planner regression tests and documented approved P82–P84 scopes, verification gates, metrics and stop conditions in `docs/AI-NATIVE-ROADMAP-P81-P84.md`.
+- No product runtime or security policy changes; no deletions.
+
 ## p80.1 — Fix CI preflight for flat historical archive (2026-10-23)
 
 - `scripts/patch-tools.mjs`: include the existing lowercase `archive/` in allowed top-level folders. Keeps nested-folder, unsafe-path, secret and protected-acceptance checks unchanged.

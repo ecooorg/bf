@@ -4,6 +4,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Current status
 
+* **P81:** Dependency Intelligence context planner, deterministic pre-P81 v80 baseline, and Navigator-approved P82–P84 roadmap (implementation pending).
+
 * **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 * **p79:** CI `ui-check` Playwright cache (skip apt on cache hit).
 * **p80.1:** CI preflight now permits the approved flat `archive/` directory; regression coverage added.
@@ -23,13 +25,14 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * Baseline notes: `docs/DOCUMENTATION-BASELINE.md`.
 * Operations: `docs/OPERATIONS.md`.
 * Architecture guardrails: `docs/architecture-guardrails.md`.
+* AI-native delivery plan P81–P84: `docs/AI-NATIVE-ROADMAP-P81-P84.md`.
 * Typing conventions: `docs/typing-and-naming.md`.
 * Accepted Phase 5 record (archive): `archive/phase5-ACCEPTANCE.md`.
 * Generated inventories: `docs/generated-*-inventory.json`, `docs/generated-module-map.json`.
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run architecture:check`; `npm run acceptance:report`. Health: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run acceptance:report`. Health: `GET /health`.
 
 ## Critical rules
 
