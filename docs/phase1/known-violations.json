@@ -1,0 +1,21 @@
+{
+  "_about": "Ratchet baseline for architecture:check (p72). Existing violations may remain; new ones fail the check. Remove entries only after the underlying issue is fixed.",
+  "knownCycles": [
+    {
+      "key": "server/codeTaskService.ts | server/gateService.ts",
+      "modules": ["server/codeTaskService.ts", "server/gateService.ts"],
+      "note": "gateService imports syncCodeTaskFromPullRequest; codeTaskService imports getTaskGates/recordApproval"
+    },
+    {
+      "key": "server/codeTaskService.ts | server/gateService.ts | server/taskService.ts",
+      "modules": [
+        "server/codeTaskService.ts",
+        "server/gateService.ts",
+        "server/taskService.ts"
+      ],
+      "note": "taskService ↔ gateService ↔ codeTaskService cluster (Phase 0 R02)"
+    }
+  ],
+  "knownBoundaryViolations": [],
+  "updatedIn": "p72"
+}
