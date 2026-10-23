@@ -1,6 +1,6 @@
 # AI-native roadmap — P81–P84
 
-Status: Navigator-approved direction, 2026-10-23. P81 is implemented; P82 code changes are prepared in this patch but remain unverified until full CI passes. P83–P84 are approved objectives, **not** pre-authorized changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
+Status: Navigator-approved direction, 2026-10-23. P81 is implemented; P82 CI is reported green by the Navigator. P83 implementation is prepared in this patch and awaits its own full CI. P84 remains an approved objective, **not** pre-authorized changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
 
 ## North star and definitions
 
@@ -30,7 +30,7 @@ Acceptance: stable sorted output; explicit evidence and uncertainties; safe reje
 - Extracted the three compatibility/retired endpoints into `server/compatibilityRoutes.ts`. Registration remains at the previous point in `server.ts`, preserving middleware and route ordering.
 - Extended `context:plan` to report import and registration line references for the recognized `server.ts` route-registration pattern instead of recommending the entire server entry point as routine context. This is an evidence-backed special case, not a general proof that composition roots are irrelevant.
 - Added before/after static measurements to `docs/context-locality-p82.json`. The conversation/brief scenario's one-hop proxy changed from 37 files / 7,376 lines to 15 files / 3,400 lines (53.9% fewer candidate lines). These are static proxies, not measured token use or completion time.
-- Full verification remains pending: `npm ci` timed out in the local environment, so typecheck, build, behavioral tests and browser checks were not run. Green GitHub CI is required before P82 is considered verified.
+- Verification note at P82 handoff: local `npm ci` timed out, so typecheck/build/behavioral/UI checks were not established locally. The Navigator subsequently reported P82 GitHub CI green; this report records that external result without claiming it was rerun here.
 
 
 1. **Scenarios selected:** Expert brief/conversation UI and compatibility/retired HTTP routes. The code-task workflow was not changed in P82.
@@ -55,6 +55,14 @@ Acceptance: stable sorted output; explicit evidence and uncertainties; safe reje
 **Gates:** compatibility tests for existing APIs, persisted data and artifacts; negative tests for malformed/untrusted inputs; no weakening of auth, secret handling or approval gates; focused tests, `typecheck`, build, `architecture:check`, full `check`, and CI. Report unavailable DB/browser checks separately. Stop on contract duplication, unapproved behavior changes or loss of security coverage.
 
 **Deliverables:** contract inventory and chosen single sources of truth, tests with documented before/after guarantees, migration/compatibility notes, changed-files ZIP, rollback, status and changelog.
+
+### P83 implementation status (this patch)
+
+- Chosen narrow boundary: `GET /api/projects` and `GET /api/projects/:projectId/versions` query-string pagination. `server/contracts.ts` is the authoritative runtime schema; defaults remain 100 and 50, and the accepted range remains 1–200.
+- Previously each route coerced query values with `Number(...)` and relied on repository validation to reject invalid values. The routes now validate untrusted query values at the HTTP boundary and reject malformed, non-integer, zero, negative, exponent, whitespace-padded, non-string, array and over-limit values through the existing Project Mode validation error mapping. The existing 400 validation response, successful response shape and defaults are preserved.
+- Added negative/default/boundary tests in the existing contracts suite and explicit context-plan evidence from `server/projectRoutes.ts` to `server/contracts.ts`, plus test hints for the contract module.
+- Inventory: `docs/contracts-verification-p83.json`. Existing source-text assertions in database/security tests were reviewed as structural checks; this patch does not remove or weaken them. Broad source scans and API/DB/runtime links remain incompletely discoverable and are explicitly listed as limitations.
+- P83 verification is pending in this patch until the focused tests, typecheck/build, full check and CI are run. The Navigator's P82 green CI does not verify P83.
 
 ## P84 — AI-Native Benchmark
 

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "patch": "P83",
+  "status": "implemented-pending-verification",
+  "scope": "Project Mode pagination query strings only",
+  "authoritativeContracts": [
+    {
+      "name": "projectListLimitQuerySchema",
+      "source": "server/contracts.ts",
+      "consumers": ["server/projectRoutes.ts GET /api/projects", "server/projectRepository.ts listProjects"],
+      "default": 100,
+      "acceptedRange": {"min": 1, "max": 200, "integerOnly": true},
+      "inputBoundary": "Express query string (untrusted)",
+      "compatibility": "Existing successful response shape and default/range are preserved; invalid query values continue to use the existing 400 VALIDATION response, now rejected at the HTTP boundary."
+    },
+    {
+      "name": "stateVersionsLimitQuerySchema",
+      "source": "server/contracts.ts",
+      "consumers": ["server/projectRoutes.ts GET /api/projects/:projectId/versions", "server/projectRepository.ts listStateVersions"],
+      "default": 50,
+      "acceptedRange": {"min": 1, "max": 200, "integerOnly": true},
+      "inputBoundary": "Express query string (untrusted)",
+      "compatibility": "Existing successful response shape and default/range are preserved; invalid query values continue to use the existing 400 VALIDATION response, now rejected at the HTTP boundary."
+    }
+  ],
+  "negativeTestCases": ["empty string", "zero", "negative", "fractional", "exponent notation", "whitespace-padded integer", "over maximum", "oversized integer", "array query value", "non-string parser value"],
+  "existingStructuralTestsReviewed": [
+    {"file": "tests/database.test.mjs", "guarantee": "Migration/table and transaction structure checks supplement live database tests; retained because they cover SQL structure not provided by the focused contract tests."},
+    {"file": "tests/security.test.mjs", "guarantee": "Source/structural security assertions retained; this patch does not alter authentication, secret handling, origin checks or approval gates."}
+  ],
+  "verification": {
+    "focusedContractTests": "pending",
+    "typecheck": "pending",
+    "build": "pending",
+    "fullCheck": "pending",
+    "githubCi": "pending",
+    "databaseLiveTests": "not run in this patch environment",
+    "browserUiChecks": "not applicable to this server-only change"
+  },
+  "limitations": [
+    "This inventory covers only the selected pagination query contracts, not all API request/response schemas.",
+    "Static context evidence does not prove runtime route coverage or exhaustive cross-layer dependencies.",
+    "Historical token costs and agent task timings were not measured.",
+    "P82 CI was reported green by the Navigator; that does not verify P83."
+  ],
+  "rollback": "Revert changes to server/contracts.ts, server/projectRoutes.ts, scripts/architectureContextLib.mjs, tests/core.test.mjs, tests/architecture-context.test.mjs and the P83 documentation. No database migration or persisted-data change is required."
+}
