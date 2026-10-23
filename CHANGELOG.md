@@ -1,3 +1,11 @@
+## P84.2 — VIX-integrated human-simplicity roadmap (2026-10-23)
+
+- Revised `docs/AI-NATIVE-ROADMAP-P85-P91.md` to selectively incorporate the VIX principles most useful to current BiForge: intent before edits, explicit invariants, counterexample-oriented verification, concise intent diff, honest uncertainty, and traceability from request to verification evidence.
+- Made total human effort per safely completed change the north-star metric. Every future patch must state human work removed, safety/evidence added, complexity introduced, and how net benefit will be evaluated.
+- Adjusted P85–P91 to avoid a parallel VIX subsystem, mandatory manual task forms, duplicate sources of truth, noisy warnings, and optimization infrastructure without measured benefit. Added a cross-patch human-simplicity acceptance gate.
+- Documentation-only patch: no product runtime, package scripts, tests, security gates, or generated inventories changed. P85–P91 remain future work; each patch requires separate review and green CI before the next begins.
+- Added `docs/VIX-CONCEPT.md`, a Markdown edition preserving the broader long-term VIX architecture with source attribution and CC BY 4.0 notice. Added it to the documentation index. This is a conceptual reference, not a commitment to implement every target component.
+
 ## P84.1 — AI-native roadmap for P85–P91 (2026-10-23)
 
 - Added `docs/AI-NATIVE-ROADMAP-P85-P91.md`, a detailed implementation plan for task-aware context planning, change-impact and generator lineage, verification planning, real-task AI benchmarking, task contracts, incremental refresh, and context-completeness guards.

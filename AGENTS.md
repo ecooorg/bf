@@ -8,7 +8,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **P82:** Conversation/brief UI and compatibility-route extractions; Navigator reports GitHub CI green. Local full verification was blocked by an `npm ci` timeout.
 * **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green. See `docs/contracts-verification-p83.json` for scope and limitations.
 * **P84:** Read-only AI-native context benchmark with six curated scenarios, a pinned v80 + p80.1 comparison, gold-set recall/false-positive metrics and explicit measurement limitations. The Navigator reports GitHub CI green after the P56 check-chain fix. Gold-set maintainer review is still required; no regression gate is enabled. See `docs/context-benchmark-p84.json` and `docs/context-benchmark-verification-p84.json`.*
-* **P84.1:** Documentation-only roadmap for P85–P91, including scope, dependency order, acceptance gates, stop conditions and a bootstrap prompt for AI implementation sessions. No runtime behavior changes.
+* **P84.2:** Documentation-only revision of the P85–P91 roadmap, selectively integrating VIX-inspired intent, invariant, counterexample, intent-diff, traceability and honest-uncertainty principles. Human simplicity is an explicit acceptance gate; no separate VIX subsystem or runtime behavior is introduced.
+  * `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
 * **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 * **p79:** CI `ui-check` Playwright cache (skip apt on cache hit).
@@ -30,7 +31,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * Operations: `docs/OPERATIONS.md`.
 * Architecture guardrails: `docs/architecture-guardrails.md`.
 * AI-native delivery plan P81–P84: `docs/AI-NATIVE-ROADMAP-P81-P84.md`.
-* Next AI-native roadmap P85–P91: `docs/AI-NATIVE-ROADMAP-P85-P91.md` (future work; one patch at a time, green CI required between patches).
+* Next AI-native roadmap P85–P91: `docs/AI-NATIVE-ROADMAP-P85-P91.md` (VIX-inspired principles integrated into existing workflows; human-effort gate; future work, one patch at a time, green CI required between patches).
 * Typing conventions: `docs/typing-and-naming.md`.
 * Accepted Phase 5 record (archive): `archive/phase5-ACCEPTANCE.md`.
 * Generated inventories: `docs/generated-*-inventory.json`, `docs/generated-module-map.json`.
