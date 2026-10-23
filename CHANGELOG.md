@@ -1,3 +1,12 @@
+## p75 — Phase 3 start: typing infrastructure and naming conventions (2026-10-23)
+
+- Added `server/domainIds.ts`: branded `ProjectId`, `TaskId`, `CodeTaskId`, `RunId` (Zod parse helpers) and `DbRow`.
+- `taskService`: shared `idSchema` from `contracts.ts`; `Db` rows and mappers use `DbRow` instead of `any`.
+- `codeTaskService` / `artifactRepository`: row mappers and helpers prefer `DbRow` over `any`.
+- `tsconfig.server.json`: `noImplicitReturns`, `noFallthroughCasesInSwitch`, `forceConsistentCasingInFileNames` (full `strict: true` still false — gradual).
+- Documented policy: `docs/phase3/TYPING-AND-NAMING.md` (verb dictionary, boundary rules, rename targets).
+- No intentional API, SQL schema, or product behaviour changes. Full typecheck/suite NOT_RUN in patch environment if dependencies unavailable.
+
 ## p74 — Phase 2b: App.tsx modularization + cycle break (2026-10-23)
 
 - Split `src/App.tsx` (~2947 → ~641 lines) without UI behaviour change:
