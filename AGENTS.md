@@ -3,6 +3,9 @@
 The Navigator owns decisions and acceptance. The AI Assistant implements explicitly authorized changes. Read this file first, then only relevant contracts and affected source files.
 
 ## Current status
+- Code delivery: scaffold ZIP works without a model; optional model slice uses `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. The legacy `engine: "model_patch"` path remains available, subject to runtime gates.
+- GitHub write: deferred (ADR-06), disabled by default; `GITHUB_DIFF_UPLOAD` is an explicit opt-in switch and `model_patch` alone never enables write.
+
 Documentation-first AI-native transformation proposal. Source refactoring is **not yet authorized**. Owner approval of `docs/AI-TRANSFORMATION-SPEC.md` precedes the source audit and implementation. The owner retains the original prototype archive. Previous state and evidence are in `CHANGELOG.md`; historical claims are not proof of current behavior.
 
 ## Navigation
