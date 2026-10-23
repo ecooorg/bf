@@ -9,6 +9,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green. See `docs/contracts-verification-p83.json` for scope and limitations.
 * **P84:** Read-only AI-native context benchmark with six curated scenarios, a pinned v80 + p80.1 comparison, gold-set recall/false-positive metrics and explicit measurement limitations. The Navigator reports GitHub CI green after the P56 check-chain fix. Gold-set maintainer review is still required; no regression gate is enabled. See `docs/context-benchmark-p84.json` and `docs/context-benchmark-verification-p84.json`.*
 * **P84.2:** Documentation-only revision of the P85–P91 roadmap, selectively integrating VIX-inspired intent, invariant, counterexample, intent-diff, traceability and honest-uncertainty principles. Human simplicity is an explicit acceptance gate; no separate VIX subsystem or runtime behavior is introduced.
+* **P84.3 (proposed diagnostics roadmap):** Documentation-only addition of staged Project Mode observability and artifact-verification requirements across P85–P91. No logging/UI/runtime behavior is implemented by this patch. See `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md`.
   * `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
 * **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
@@ -32,6 +33,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * Architecture guardrails: `docs/architecture-guardrails.md`.
 * AI-native delivery plan P81–P84: `docs/AI-NATIVE-ROADMAP-P81-P84.md`.
 * Next AI-native roadmap P85–P91: `docs/AI-NATIVE-ROADMAP-P85-P91.md` (VIX-inspired principles integrated into existing workflows; human-effort gate; future work, one patch at a time, green CI required between patches).
+* Project Mode diagnostics roadmap: `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md` (proposed stage-by-stage logging, ZIP/artifact integrity checks, bounded diagnostic export and P85–P91 mapping; future work only).
 * Typing conventions: `docs/typing-and-naming.md`.
 * Accepted Phase 5 record (archive): `archive/phase5-ACCEPTANCE.md`.
 * Generated inventories: `docs/generated-*-inventory.json`, `docs/generated-module-map.json`.

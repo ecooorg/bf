@@ -1,9 +1,9 @@
-## User Guide — Lab Escape hands-on project (2026-10-23)
+## P84.3 — Project Mode diagnostics roadmap (2026-10-23)
 
-- Added a final step-by-step tutorial to the in-app English User Guide and its Markdown copy: build “Lab Escape: The Last Keycard” through Project Mode.
-- Included copyable beginner and Professional-path prompts, scope limits, summary review, download/run cautions, an eight-point play-test checklist, targeted bug-fix prompt, and one-feature-at-a-time extension exercise.
-- Updated the guide table of contents, documentation index, and patch instructions.
-- Documentation/UI content only; no application runtime behavior or project-generation capabilities changed. Actual build success depends on the active BiForge deployment and must be verified by the user.
+- Added `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md` describing proposed structured operation logs, Project Mode stage correlation, archive/source validation, artifact save/readback verification, download-transfer evidence, bounded/redacted diagnostic export, and system diagnostics.
+- Integrated diagnostics as a cross-cutting, incremental workstream across P85–P91: task context (P85), generator/artifact lineage (P86), counterexample-oriented tests (P87), real-task measurements (P88), optional artifact intent criteria (P89), evidence-driven refresh (P90), and uncertainty guards against false success (P91).
+- Documented candidate More-menu entries (`Download diagnostic logs`, `Run system diagnostics`, `View recent operations`) as future proposals, not existing features. No runtime, UI, API, package, test, security gate, or persisted format changed.
+- Human-simplicity goal: reduce repeated manual diagnosis and prevent a download link from being mistaken for proof of successful delivery. Measurement ideas include stage-localization rate, false-success rate, diagnosis time and rework; no savings are claimed before measurement.
 
 ## P84.2 — VIX-integrated human-simplicity roadmap (2026-10-23)
 
