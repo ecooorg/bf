@@ -1,6 +1,6 @@
 # BiForge AI-Native Transformation — Technical Specification
 
-**Status: active.** Phase 0 (p71) and Phase 1 guardrails (p72) delivered. Source modularization (Phase 2 / p73+) remains unauthorized until Navigator accepts p72 and authorizes the next patch. Baseline: owner-provided prototype archive (v70 tree).
+**Status: active.** Phase 0–1 and Phase 2a (`server.ts` route split, p73) delivered. Further modularization (p74+) remains staged pending Navigator acceptance. Baseline: owner-provided prototype archive (v70 tree).
 
 ## 1. Mission
 Optimize the repository for an AI Assistant and a Navigator rather than a human-maintained engineering team. Minimize context needed per task, cross-file change surface, implicit dependencies, error recurrence and verification time without sacrificing functional quality, security or traceability.
