@@ -43,19 +43,38 @@ Use `docs/AI-NATIVE-ROADMAP-P81-P84.md` for the original scope and detailed P81�
 10. **Update documentation.** Each patch updates `CHANGELOG.md` and relevant status/index documentation. Keep metrics reproducible and explain their limits. Do not claim token or wall-clock savings without actual captured measurements.
 11. **Stop on scope escalation.** Ask the Navigator before changing product behavior, public API behavior, persisted formats, data migrations, external integrations, access permissions, acceptance criteria, or mandatory security gates.
 
+## Cross-cutting workstream — Project Mode observability and artifact diagnostics
+
+The roadmap now includes a staged diagnostics workstream for Project Mode. The detailed proposal, event contract, artifact checks, More-menu concepts, and acceptance guidance live in `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md`.
+
+This is **not** an instruction to implement a large logging subsystem in P85. Integrate the smallest useful part into each patch only when it fits that patch's existing scope. Reuse existing logs, operation identifiers, artifact metadata, tests and reports; do not duplicate inventories or create a separate VIX/diagnostics service. Runtime logging and UI changes remain future work and require a focused implementation patch and the normal review/CI gate.
+
+The core principle is that **a generated URL is not evidence of a valid, delivered artifact**. Eventually, Project Mode should distinguish file generation, source validation, ZIP assembly, archive validation, artifact persistence/readback, HTTP transfer, and optional client-side download verification. A valid ZIP is not proof that the requested application works; app-specific behavior needs separate verification. Missing evidence must remain `UNKNOWN`/`PARTIAL`/`BLOCKED`, not be promoted to `PASS`.
+
+Patch-level integration is mapped in the diagnostics document and summarized below:
+
+- **P85:** discover relevant logs, validators and failure tests as part of task context; mark observability gaps explicitly.
+- **P86:** trace intent → engine/generator → file manifest → archive → artifact/download route using existing identifiers and evidence.
+- **P87:** plan positive and negative artifact tests, including empty output, malformed ZIP, storage corruption, missing artifact and download interruption.
+- **P88:** measure stage-localization rate, false-success rate, diagnosis time and human rework on reviewed real-task scenarios.
+- **P89:** express expected artifact properties and behavior checks as optional, provenance-backed intent criteria.
+- **P90:** refresh diagnostic/source lineage only if measured staleness justifies the cost.
+- **P91:** prevent confident success claims when required artifact evidence is missing or contradictory.
+
+The More-menu items `Download diagnostic logs`, `Run system diagnostics`, and `View recent operations` are candidates, not current product features. Inspect existing UI/access controls and logging before implementation. Diagnostic exports must be bounded, redacted, truthful about unavailable evidence, and useful even when generation fails.
+
 ## 3. Recommended sequence and dependency graph
 
 The sequence is intentionally incremental. P85 and P86 together form the context-planning initiative, but they remain separate patches so each has a clear review and rollback boundary. Begin collecting P88 measurements as soon as a few stable task scenarios exist; do not wait for all roadmap items to finish.
 
-| Patch | Main result | Depends on | Runtime code expected? |
-|---|---|---|---|
-| **P85** | Intent-aware task context plan: goal, assumptions, invariants, bounded context | P81–P84 | No, unless later explicitly justified |
-| **P86** | Change impact, generator lineage and concise intent diff | P85, existing inventories | Prefer no |
-| **P87** | Verification planner with counterexample-oriented test suggestions | P85–P86, current check-chain rules | No product runtime change |
-| **P88** | Real-task benchmark including human effort and rework | P84, stable P85 plans; can start early | No |
-| **P89** | Lightweight generated intent contract, not a mandatory user form | P85–P87 | No by default |
-| **P90** | Incremental architecture/context refresh, only if profiling proves value | P86 and stable deterministic outputs | No |
-| **P91** | Context completeness and material-uncertainty guard | P85–P90 evidence | No |
+| Patch | Main result | Depends on | Runtime code expected? | Diagnostics integration (see detailed proposal) |
+| **P85** | Intent-aware task context plan: goal, assumptions, invariants, bounded context | P81–P84 | No, unless later explicitly justified | Discover relevant logs/validators/tests and report observability gaps |
+| **P86** | Change impact, generator lineage and concise intent diff | P85, existing inventories | Prefer no | Trace known generator-to-artifact/download lineage without inventing links |
+| **P87** | Verification planner with counterexample-oriented test suggestions | P85–P86, current check-chain rules | No product runtime change | Suggest positive/negative artifact and transfer tests |
+| **P88** | Real-task benchmark including human effort and rework | P84, stable P85 plans; can start early | No | Measure diagnosis time, stage-localization and false-success rate |
+| **P89** | Lightweight generated intent contract, not a mandatory user form | P85–P87 | No by default | Capture optional expected artifact properties and behavior checks |
+| **P90** | Incremental architecture/context refresh, only if profiling proves value | P86 and stable deterministic outputs | No | Refresh stale lineage only if evidence proves the need |
+| **P91** | Context completeness and material-uncertainty guard | P85–P90 evidence | No | Keep missing artifact evidence from becoming a false PASS |
 
 P88 is an evidence stream as well as a patch. If P85/P86 materially change planner outputs, update benchmark expectations with a reviewed rationale rather than silently replacing the gold set.
 
