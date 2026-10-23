@@ -6,8 +6,9 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 * Code delivery: scaffold ZIP works without a model; optional model slice uses `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. The legacy `engine: "model_patch"` path remains available, subject to runtime gates.
 * GitHub write: deferred (ADR-06), disabled by default; `GITHUB_DIFF_UPLOAD` is an explicit opt-in switch and `model_patch` alone never enables write.
-* **p71 (Phase 0 audit):** static forensic audit complete — inventories and report under `docs/phase0/`. No application source changed. Runtime `npm run check` was not executed in the audit environment.
-* Next authorized work: **p72** (Phase 1 mechanical guardrails) after Navigator accepts the Phase 0 baseline. Source modularization (p73+) remains unauthorized until then.
+* **p71 (Phase 0 audit):** static forensic audit complete — inventories and report under `docs/phase0/`.
+* **p72 (Phase 1 guardrails):** architecture map, cycle/boundary ratchet, change-impact, `npm run verify:change`. No application source behaviour change.
+* Next authorized work: **p73** (Phase 2a — split `server.ts` by route groups) after Navigator accepts p72. Further modularization remains staged.
 
 Owner retains the original prototype archive. Previous state and evidence are in `CHANGELOG.md`; historical claims are not proof of current behavior.
 
@@ -18,11 +19,12 @@ Owner retains the original prototype archive. Previous state and evidence are in
 * Domain reference index: `docs/DOCUMENTATION-INDEX.md`.
 * Evidence and limits: `docs/DOCUMENTATION-BASELINE.md`.
 * Phase 0 audit: `docs/phase0/BiForge-v70-Phase0-Audit.md`.
+* Phase 1 guardrails: `docs/phase1/PHASE1-GUARDRAILS.md`.
 * Current operational procedures: `docs/OPERATIONS.md`.
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`. Health endpoint: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run verify:change`; `npm run architecture:check`. Health endpoint: `GET /health`.
 
 ## Critical rules
 

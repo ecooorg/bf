@@ -1,3 +1,12 @@
+## p72 — Phase 1 mechanical guardrails (2026-10-23)
+
+- Added architecture tooling under `scripts/architecture/`: module-map generation, cycle/boundary check with ratchet, change-impact analysis, and `verify:change` orchestrator.
+- Config: `docs/phase1/boundary-rules.json`, `docs/phase1/known-violations.json` (two known cycles from Phase 0).
+- Docs: `docs/phase1/PHASE1-GUARDRAILS.md`; generated reports under `docs/phase1/generated/`.
+- npm scripts: `architecture:map`, `architecture:check`, `architecture:impact`, `verify:change`.
+- No application source, SQL, tests or runtime behaviour changed. Ratchet holds on current tree (`architecture:check` PASSED).
+- Full `npm run check` not required for this infrastructure-only patch; `check:docs` PASSED via `verify:change`.
+
 ## p71 — Phase 0 forensic audit (2026-10-23)
 
 - Completed static Phase 0 audit of the v70 baseline; no application source, SQL, tests or runtime configuration modified.
