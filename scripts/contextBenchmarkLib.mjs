@@ -153,7 +153,7 @@ function summarize(results) {
 
 export function runBenchmark({ currentRoot, baselineRoot = null, fixturePath, verificationPath = null }) {
   const current = path.resolve(currentRoot);
-  const fixtureFile = fixturePath || path.join(current, 'tests/fixtures/context-benchmark-gold-p84.json');
+  const fixtureFile = fixturePath || path.join(current, 'tests/context-benchmark-gold-p84.json');
   const fixture = JSON.parse(fs.readFileSync(fixtureFile, 'utf8'));
   const verificationRun = verificationPath
     ? JSON.parse(fs.readFileSync(path.resolve(verificationPath), 'utf8'))
