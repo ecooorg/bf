@@ -44,6 +44,33 @@ test('route context plan narrows composition-root context to import and registra
   assert.match(plan.integrationPoints[0].policy, /full composition root only if/);
 });
 
+test('Project Mode route context points to authoritative contracts and focused tests', () => {
+  const graph = {
+    modules: ['server/projectRoutes.ts', 'server/contracts.ts'],
+    edges: { 'server/projectRoutes.ts': ['server/contracts.ts'], 'server/contracts.ts': [] },
+  };
+  const bodies = {
+    'server/projectRoutes.ts': "import { projectListLimitQuerySchema } from './contracts.ts';",
+    'server/contracts.ts': 'export const projectListLimitQuerySchema = schema;',
+  };
+  const available = new Set([...Object.keys(bodies), 'tests/core.test.mjs', 'tests/project-mode.test.mjs', 'tests/database.test.mjs']);
+  const plan = planContext(['server/projectRoutes.ts'], {
+    graph,
+    readFile: (f) => bodies[f] ?? '',
+    fileExists: (f) => available.has(f),
+  });
+  assert.ok(plan.staticContextCandidates.some((x) => x.file === 'server/contracts.ts' && x.reasons.some((r) => /authoritative Project Mode/.test(r))));
+  assert.ok(plan.suggestedNpmScripts.includes('test:project'));
+
+  const contractPlan = planContext(['server/contracts.ts'], {
+    graph,
+    readFile: (f) => bodies[f] ?? '',
+    fileExists: (f) => available.has(f),
+  });
+  assert.ok(contractPlan.supportingContext.some((x) => x.file === 'tests/core.test.mjs' && x.reasons.some((r) => /runtime contract regression tests/.test(r))));
+  assert.ok(contractPlan.suggestedNpmScripts.includes('test:core'));
+});
+
 test('v80 baseline includes reproducible static measurements', () => {
   const b = baselineMetrics();
   assert.ok(b.modules > 100);

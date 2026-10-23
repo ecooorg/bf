@@ -56,7 +56,7 @@ test('P06 context: history only with a recorded reason; artifacts are referenced
 {
 const test = (await import("node:test")).default;
 const assert = (await import("node:assert/strict")).default;
-const { idSchema, projectSchema, stateSchema, projectEventSchema, normalizedRequestSchema, normalizedResponseSchema, createProjectRequestSchema, updateProjectStateRequestSchema, BiForgeError, ValidationError, NotFoundError, ConflictError, UnauthorizedError, ForbiddenError, RateLimitedError, UnavailableError } = await import("../server/contracts.ts");
+const { idSchema, projectSchema, stateSchema, projectEventSchema, normalizedRequestSchema, normalizedResponseSchema, createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, BiForgeError, ValidationError, NotFoundError, ConflictError, UnauthorizedError, ForbiddenError, RateLimitedError, UnavailableError } = await import("../server/contracts.ts");
 
 test('ID contract accepts stable safe IDs and rejects malformed IDs', () => {
   assert.equal(idSchema.parse('proj_123-A'), 'proj_123-A');
@@ -103,6 +103,19 @@ test('BX-05 project API request contracts reject unknown fields and invalid vers
   assert.equal(createProjectRequestSchema.safeParse({ name: 'Project', isAdmin: true }).success, false);
   assert.equal(updateProjectStateRequestSchema.safeParse({ expected_version: 1, state: {} }).success, true);
   assert.equal(updateProjectStateRequestSchema.safeParse({ expected_version: '1', state: {} }).success, false);
+});
+
+test('P83 pagination query contracts preserve defaults and reject malformed or out-of-range values', () => {
+  assert.equal(projectListLimitQuerySchema.parse(undefined), 100);
+  assert.equal(stateVersionsLimitQuerySchema.parse(undefined), 50);
+  assert.equal(projectListLimitQuerySchema.parse('1'), 1);
+  assert.equal(projectListLimitQuerySchema.parse('001'), 1);
+  assert.equal(stateVersionsLimitQuerySchema.parse('200'), 200);
+  for (const value of ['', '0', '-1', '1.5', '1e2', ' 10 ', '201', '999999999999999999999', ['10'], 10, null]) {
+    if (value === undefined) continue;
+    assert.equal(projectListLimitQuerySchema.safeParse(value).success, false, `project limit should reject ${JSON.stringify(value)}`);
+    assert.equal(stateVersionsLimitQuerySchema.safeParse(value).success, false, `versions limit should reject ${JSON.stringify(value)}`);
+  }
 });
 
 test('P01 passport: default is valid, state with invalid passport is rejected', async () => {
