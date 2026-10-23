@@ -12,6 +12,8 @@ Start with repository-level `AGENTS.md`. Read only documents relevant to the tas
 * `AI-NATIVE-ROADMAP-P81-P84.md` — approved P81–P84 objectives, scope, gates and measurement plan
 * `context-locality-p82.json` — P82 before/after task-local context evidence and verification limits
 * `contracts-verification-p83.json` — P83 selected API contract inventory, negative-test guarantees and verification limits
+* `context-benchmark-p84.json` — P84 deterministic scenario metrics, v80 + p80.1 comparison and recall gaps
+* `context-benchmark-verification-p84.json` — captured local verification statuses, measured command durations and CI/build blockers
 * `architecture-guardrails.md` — map, boundaries, inventories commands
 * `architecture-boundary-rules.json` / `architecture-known-violations.json` — ratchet config
 * `typing-and-naming.md` — TypeScript and naming conventions

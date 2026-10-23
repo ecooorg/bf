@@ -1,6 +1,6 @@
 # AI-native roadmap — P81–P84
 
-Status: Navigator-approved direction, 2026-10-23. P81 is implemented; P82 CI is reported green by the Navigator. P83 implementation is prepared in this patch and awaits its own full CI. P84 remains an approved objective, **not** pre-authorized changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
+Status: Navigator-approved direction, 2026-10-23. P81 is implemented; P82 and P83 GitHub CI are reported green by the Navigator. P84 implementation is prepared in this patch and awaits its own CI. P84 does not authorize changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
 
 ## North star and definitions
 
@@ -62,7 +62,7 @@ Acceptance: stable sorted output; explicit evidence and uncertainties; safe reje
 - Previously each route coerced query values with `Number(...)` and relied on repository validation to reject invalid values. The routes now validate untrusted query values at the HTTP boundary and reject malformed, non-integer, zero, negative, exponent, whitespace-padded, non-string, array and over-limit values through the existing Project Mode validation error mapping. The existing 400 validation response, successful response shape and defaults are preserved.
 - Added negative/default/boundary tests in the existing contracts suite and explicit context-plan evidence from `server/projectRoutes.ts` to `server/contracts.ts`, plus test hints for the contract module.
 - Inventory: `docs/contracts-verification-p83.json`. Existing source-text assertions in database/security tests were reviewed as structural checks; this patch does not remove or weaken them. Broad source scans and API/DB/runtime links remain incompletely discoverable and are explicitly listed as limitations.
-- P83 verification is pending in this patch until the focused tests, typecheck/build, full check and CI are run. The Navigator's P82 green CI does not verify P83.
+- The Navigator reports P83 GitHub CI green. Local typecheck/build/full-check status remains separate from that external CI report; this patch environment did not independently reproduce the full pipeline.
 
 ## P84 — AI-Native Benchmark
 
@@ -77,6 +77,17 @@ Acceptance: stable sorted output; explicit evidence and uncertainties; safe reje
 **Gates:** benchmark repeatability, gold-set fixture tests, explicit uncertainty, no repository-wide context loading as a default, no product runtime change, standard CI checks. Benchmark code must not execute generated or untrusted application code. Stop if optimization improves a proxy while reducing gold-set dependency recall.
 
 **Deliverables:** benchmark script/fixtures, v80 vs current comparison where verifiable, methodology, results with provenance, rollback, ZIP, status and changelog.
+
+### P84 implementation status (this patch)
+
+- Added `tests/fixtures/context-benchmark-gold-p84.json`: six read-only analysis scenarios and explicit gold dependencies. Status is `author-curated-maintainer-review-required`; this is not represented as independent human review.
+- Added `scripts/contextBenchmarkLib.mjs` and `scripts/contextBenchmark.mjs`. The harness statically scans TypeScript imports and calls the P81 context planner with a supplied root. It does not execute application modules. Use `npm run benchmark:context -- --baseline-root /path/to/v80-plus-p80.1/bf-main`; optional `--output <file>` writes JSON.
+- Added `docs/context-benchmark-p84.json` from the v80 + p80.1 archive and current P84 working tree. Source-tree fingerprints identify the measured trees without recording machine-specific absolute paths. `docs/context-benchmark-verification-p84.json` records local command statuses and measured wall-clock durations separately from scenario metrics.
+- Initial result: six scenarios, summed candidate source-line cost 35,221 → 23,551 (−33.1%); comparable-gold recall 83.3% → 86.1% over 36 dependencies present in both trees (all-available-gold summaries are 83.3% → 83.8% because the baseline tree lacks one newer test file); aggregate false-positive candidate rate 79.4% → 59.7%. Scenario sums are not deduplicated. The generated-route-artifact scenario has 0 recall on both trees because the static planner does not infer the generated JSON-to-script relationship. Task-state/database recall remains 80%.
+- The localized compatibility-route scenario falls from 9,934 to 2,314 candidate source lines and rises from 66.7% to 100% comparable-gold recall; Expert conversation UI falls from 7,376 to 3,337 lines at 100% recall. These are static source-line proxies from the same P84 planner applied to both trees, not historical measurements of an agent using the old toolchain.
+- Added `npm run benchmark:context` and `npm run test:context-benchmark`; the fixture test is part of `npm run check`. The tests validate deterministic metrics and schema, not benchmark thresholds. No metric regression gate was added.
+- Verification commands in the report are marked `not-run-by-benchmark` with `durationMs: null`; actual verification duration, model tokens, agent read traces and implementation touched-file counts are not measured. The lower aggregate line cost is not unconditional evidence of improvement: the artifact scenario's zero line cost is a miss, not an optimization.
+- Local focused tests (6/6 planner tests, 3/3 benchmark tests), docs checks, architecture checks, version check, copy lint and benchmark-script syntax checks passed. `npm run check` is blocked at typecheck because the local dependency tree lacks `vite/client` definitions; build was not run, and GitHub CI remains pending. See the verification manifest for command-level status and duration. Gold-set review and repeated stability runs are required before any future metric gate.
 
 ## Execution sequence
 
