@@ -1,3 +1,11 @@
+## P83 — Contract & Verification Integrity (2026-10-23)
+
+- Added authoritative Zod query-string schemas in `server/contracts.ts` for Project Mode project listing and state-version pagination. The HTTP boundary now validates query values before repository calls rather than relying on repository validation after `Number(...)` coercion; existing 400 validation response, defaults (100/50), range (1–200), and successful response shapes are preserved.
+- Added negative tests for malformed, fractional, exponent, whitespace-padded, array, zero, negative and out-of-range query values, including default and boundary cases.
+- `context:plan` now adds explicit contract/test evidence for Project Mode route/schema targets and suggests focused test suites.
+- `docs/contracts-verification-p83.json` inventories selected contracts, consumers, guarantees, reviewed structural tests, risks and verification status. No auth/approval gates, SQL schema, persisted data format, model-output contract or generated artifact was changed.
+- P83 focused tests and full CI are pending in this patch; do not treat P82's reported green CI as P83 verification.
+
 ## P82 — Context Locality (2026-10-23)
 
 - Extracted `BriefScreen`, `ConversationScreen`, `SharedConversationContext`, `SafetyBox` and conversation helpers into `src/ConversationScreens.tsx`; updated `App.tsx`, aggregated source tests and the feature manifest. No intended UI or state behavior change.
