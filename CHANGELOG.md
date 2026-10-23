@@ -1,3 +1,12 @@
+## p75.2 — CI red fix (module-split follow-up) (2026-10-23)
+
+- Source: `appApi` imports `getStoredUiLanguage` from `ui.ts`; `App` imports `SharedConversationContext`; `AppHeader` imports `isFolderPickerSupported`; `projectRoutes` dynamic import path `./codeExecutor.ts` (not `./server/...`).
+- Tests: `tests/_sources.mjs` aggregates `server.ts` + route modules and App + extracted UI for static contract tests; project-mode / models / core P52 / pipeline updated to use it.
+- Preflight allows `docs/phaseN/` and `docs/phaseN/generated/`.
+- `tests/feature-manifest.json` UI needles updated for AppHeader / ExpertStepScreens.
+- P56: architecture/verify scripts listed as separate CI steps.
+- No intentional product behaviour change.
+
 ## p75.1 — CI red fix after Phase 2–3 patches (2026-10-23)
 
 - `src/AppHeader.tsx`: import `ModeMenu` and `PICK_FOLDER_EVENT` (were missing after p74 extract — broke Mode menu at runtime and P51 static checks).
