@@ -47,7 +47,7 @@ Statuses: **PASS** | **FAIL** | **NOT_RUN** | **BLOCKED**.
 Fill commit SHA here after green CI on the p78 tip:
 
 ```text
-Acceptance CI commit: ________________ (YYYY-MM-DD)
+Acceptance CI commit: 2232cb9 (2026-10-23)
 ```
 
 ---
