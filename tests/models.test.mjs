@@ -1266,8 +1266,9 @@ const path = (await import("node:path")).default;
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
-test('P13b routes expose plans, approvals, queueing and explicit evidence-backed validation', () => {
-  const server = read('server.ts');
+test('P13b routes expose plans, approvals, queueing and explicit evidence-backed validation', async () => {
+  const { serverSources } = await import('./_sources.mjs');
+  const server = serverSources();
   for (const route of [
     "'/api/projects/:projectId/plans'",
     "'/api/projects/:projectId/approvals'",
@@ -1306,10 +1307,11 @@ test('plan approval creates READY tasks; queue requires approved plan and depend
   assert.match(plans, /kind: 'budget'/);
 });
 
-test('Task PASS is impossible without explicit successful validation evidence', () => {
+test('Task PASS is impossible without explicit successful validation evidence', async () => {
   const machine = read('server/taskMachine.ts');
   assert.match(machine, /if \(!v \|\| v\.passed !== true \|\| !Array\.isArray\(v\.evidence\) \|\| v\.evidence\.length < 1/);
-  const server = read('server.ts');
+  const { serverSources } = await import('./_sources.mjs');
+  const server = serverSources();
   assert.match(server, /to: input\.passed \? 'PASS' : 'FAIL'/);
 });
 

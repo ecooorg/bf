@@ -210,15 +210,23 @@
       "data-testid=\"start-mode-simple\"",
       "data-testid=\"start-mode-expert\"",
       "data-testid=\"start-mode-project\"",
+      "mirrorUserFile",
+      "setMirrorMode",
+      "START_MODE_KEY",
+      "chooseStartMode"
+    ],
+    "src/AppHeader.tsx": [
       "Decision brief",
       "Export all",
       "Saved texts on this device",
       "Your Gemini API key",
       "hdr-more-btn",
-      "mirrorUserFile",
-      "setMirrorMode",
+      "ModeMenu"
+    ],
+    "src/ExpertStepScreens.tsx": [
       "expertConversationFields",
-      "START_MODE_KEY"
+      "ConversationScreen",
+      "BriefPanel"
     ],
     "src/ProjectMode.tsx": [
       "What is available here",

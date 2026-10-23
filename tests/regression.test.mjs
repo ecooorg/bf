@@ -23,7 +23,7 @@ const manifest = JSON.parse(read('tests/feature-manifest.json'));
 const hint = 'If this removal is intentional, update tests/feature-manifest.json in the same patch and explain it in CHANGELOG.md.';
 
 // Test scripts that run as their own CI step (they need PostgreSQL, a browser or network), not inside `npm run check`.
-const SEPARATE_CI_STEPS = new Set(['lint', 'test', 'test:live', 'test:ui', 'verify:connections', 'test:database:live', 'test:bx06:api']);
+const SEPARATE_CI_STEPS = new Set(['lint', 'test', 'test:live', 'test:ui', 'verify:connections', 'test:database:live', 'test:bx06:api', 'verify:change', 'architecture:check', 'architecture:impact', 'architecture:map']);
 
 function currentRoutes() {
   const files = ['server.ts', ...fs.readdirSync(path.join(root, 'server')).filter((f) => f.endsWith('.ts')).map((f) => `server/${f}`)];

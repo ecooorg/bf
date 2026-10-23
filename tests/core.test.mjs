@@ -401,8 +401,9 @@ const { buildSimpleConversationPrompt, expertDialogueParagraph } = await import(
 const { modeParagraph } = await import("../server/conversationMode.ts");
 const { buildExpertStageContext, expertConversationFields, EXPERT_CONTEXT_MAX_CHARS } = await import("../src/expertContext.ts");
 
-const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
-const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+const { serverSources, appSources } = await import('./_sources.mjs');
+const server = serverSources();
+const app = appSources();
 
 const decision = (over = {}) => ({
   step: 'ATTACK',

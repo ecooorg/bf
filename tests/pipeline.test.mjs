@@ -290,7 +290,8 @@ client._setDriveClientIdForTests('test-client-id');
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const css = read('src/index.css');
-const app = read('src/App.tsx');
+const { appSources } = await import('./_sources.mjs');
+const app = appSources();
 const pm = read('src/ProjectMode.tsx');
 const wp = read('src/WorkspacePanel.tsx');
 const cf = read('src/ConversationFiles.tsx');

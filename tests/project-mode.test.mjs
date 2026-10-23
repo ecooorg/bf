@@ -208,7 +208,8 @@ const test = (await import("node:test")).default;
 const assert = (await import("node:assert/strict")).default;
 const fs = (await import("node:fs")).default;
 
-const server = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
+const { serverSources } = await import('./_sources.mjs');
+const server = serverSources();
 const app = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const repo = fs.readFileSync(new URL('../server/projectRepository.ts', import.meta.url), 'utf8');
 const main = fs.readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
@@ -277,7 +278,8 @@ const test = (await import("node:test")).default;
 const assert = (await import("node:assert/strict")).default;
 const fs = (await import("node:fs")).default;
 
-const server = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
+const { serverSources } = await import('./_sources.mjs');
+const server = serverSources();
 const database = fs.readFileSync(new URL('../server/database.ts', import.meta.url), 'utf8');
 const routes = fs.readFileSync(new URL('../server/healthRoutes.ts', import.meta.url), 'utf8');
 const main = fs.readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
@@ -707,7 +709,8 @@ test('approval and commit helpers are present', () => {
   assert.match(src, /approveCodePackage/);
   assert.match(src, /commitApprovedPackage/);
   assert.match(src, /package_approved_at/);
-  const server = readFileSync(`${root}/server.ts`, 'utf8');
+  const { serverSources } = await import('./_sources.mjs');
+  const server = serverSources();
   assert.match(server, /code\/brief/);
   assert.match(server, /commit-package/);
 });
@@ -727,7 +730,7 @@ const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 test('P20b docs and sources exist', () => {
   assert.ok(readFileSync(`${root}/server/taskService.ts`, 'utf8').includes('gatesAllowTaskPass'));
   assert.ok(readFileSync(`${root}/server/gateEngine.ts`, 'utf8').includes('gatesAllowTaskPass'));
-  assert.ok(readFileSync(`${root}/server.ts`, 'utf8').includes("gates/:gate/approve"));
+  assert.ok((await import('./_sources.mjs')).serverSources().includes("gates/:gate/approve"));
 });
 
 test('gatesAllowTaskPass: no snapshot allows PASS; RC PASS allows; blocked otherwise', async () => {
@@ -784,7 +787,7 @@ const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 test('P21 docs and sources exist', () => {
   assert.ok(existsSync(`${root}/server/reviewer.ts`));
   assert.ok(existsSync(`${root}/migrations/012_code_task_decision.sql`));
-  const srv = readFileSync(`${root}/server.ts`, 'utf8');
+  const srv = (await import('./_sources.mjs')).serverSources();
   assert.match(srv, /code\/:codeTaskId\/review/);
   assert.match(srv, /code\/:codeTaskId\/decide/);
   const cts = readFileSync(`${root}/server/codeTaskService.ts`, 'utf8');
@@ -861,7 +864,7 @@ const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 test('P22 docs and sources exist', () => {
   assert.ok(existsSync(`${root}/server/repairLoop.ts`));
   assert.ok(existsSync(`${root}/migrations/013_repair_loop.sql`));
-  const srv = readFileSync(`${root}/server.ts`, 'utf8');
+  const srv = (await import('./_sources.mjs')).serverSources();
   assert.match(srv, /code\/:codeTaskId\/repair/);
   assert.match(readFileSync(`${root}/server/codeTaskService.ts`, 'utf8'), /requestRepair/);
 });
@@ -1033,7 +1036,8 @@ const { githubWritesEnabled } = await import("../server/githubIntegration.ts");
 const { describeCapabilities, PROJECT_SCOPE_TEXT, ZIP_OFF_HINT } = await import("../src/projectCapabilities.ts");
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
-const server = read('server.ts');
+const { serverSources } = await import('./_sources.mjs');
+const server = serverSources();
 const gh = read('server/githubIntegration.ts');
 const svc = read('server/codeTaskService.ts');
 const pm = read('src/ProjectMode.tsx');
@@ -1119,7 +1123,8 @@ const { CODE_ERROR_MESSAGES, CODE_STATE_LABELS, GATE_LABELS, GATE_STATUS_LABELS,
 const { STOP_REASONS } = await import("../server/repairLoop.ts");
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
-const server = read('server.ts');
+const { serverSources } = await import('./_sources.mjs');
+const server = serverSources();
 const svc = read('server/codeTaskService.ts');
 const comp = read('src/ProjectDelivery.tsx');
 const pm = read('src/ProjectMode.tsx');
