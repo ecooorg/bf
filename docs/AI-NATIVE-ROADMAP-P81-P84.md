@@ -1,6 +1,6 @@
 # AI-native roadmap — P81–P84
 
-Status: Navigator-approved direction, 2026-10-23. P81 implemented in this patch; P82–P84 are approved objectives, **not** pre-authorized changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
+Status: Navigator-approved direction, 2026-10-23. P81 is implemented; P82 code changes are prepared in this patch but remain unverified until full CI passes. P83–P84 are approved objectives, **not** pre-authorized changes to security gates, product contracts, production, GitHub write access, or formal acceptance. Apply permanent rules in `AI-OPERATING-RULES.md`. Each patch requires a separately reviewed change set and green CI before proceeding.
 
 ## North star and definitions
 
@@ -25,11 +25,19 @@ Acceptance: stable sorted output; explicit evidence and uncertainties; safe reje
 
 **Objective:** reduce task-specific reading cost, not maximize file count or enforce a line limit.
 
-1. Select 2–3 representative tasks using P81 context plans and baseline: one Expert Mode UI task (`src/ExpertStepScreens.tsx`), one server route task (`server.ts` / `server/projectRoutes.ts`), and optionally one code-task workflow task. Record the task, known dependencies, required contracts, touched files and baseline one-hop lines **before** editing.
-2. Inspect actual state ownership, effects, shared invariants and module consumers. Identify boundaries by independent change responsibility. Do not split cohesive code just to meet a line threshold.
-3. Apply small, independently reversible extractions. Prefer explicit exports and unidirectional dependencies; do not hide cycles with dynamic imports merely to satisfy the static cycle checker.
-4. Preserve public API, UI behavior, authentication, authorization, error handling and persistence. Avoid introducing new abstractions, duplicated contracts or deep folder nesting.
-5. Compare before/after task-specific context candidates, changed-file counts and known dependency coverage. Report regressions as well as gains.
+**Implementation status (P82 patch):**
+- Extracted the cohesive brief-entry/conversation flow into `src/ConversationScreens.tsx`; `src/ExpertStepScreens.tsx` now owns the remaining Expert/Simple step screens. `src/App.tsx` imports each module explicitly.
+- Extracted the three compatibility/retired endpoints into `server/compatibilityRoutes.ts`. Registration remains at the previous point in `server.ts`, preserving middleware and route ordering.
+- Extended `context:plan` to report import and registration line references for the recognized `server.ts` route-registration pattern instead of recommending the entire server entry point as routine context. This is an evidence-backed special case, not a general proof that composition roots are irrelevant.
+- Added before/after static measurements to `docs/context-locality-p82.json`. The conversation/brief scenario's one-hop proxy changed from 37 files / 7,376 lines to 15 files / 3,400 lines (53.9% fewer candidate lines). These are static proxies, not measured token use or completion time.
+- Full verification remains pending: `npm ci` timed out in the local environment, so typecheck, build, behavioral tests and browser checks were not run. Green GitHub CI is required before P82 is considered verified.
+
+
+1. **Scenarios selected:** Expert brief/conversation UI and compatibility/retired HTTP routes. The code-task workflow was not changed in P82.
+2. **Boundaries inspected:** conversation state, attachment flow, UI callers, route registration order, and `ok`/`fail` response helpers.
+3. **Extractions applied:** `src/ConversationScreens.tsx` and `server/compatibilityRoutes.ts`; both retain explicit imports/exports and avoid new directory levels.
+4. **Compatibility preserved by construction:** component props and route paths are unchanged; route registration call stays at the original position. Runtime equivalence still awaits behavioral CI.
+5. **Before/after evidence:** `docs/context-locality-p82.json`; it reports the measured static proxy and its limitations, not token savings.
 
 **Gates:** targeted behavior tests; `architecture:check`; `check:docs`; build/typecheck; full `npm run check` and UI checks at 1200px/390px for UI changes when browser available. Record blocked checks. No automatic merge or acceptance. Stop if a split increases context cost without compensating verified benefit, changes runtime behavior, or creates untracked dependencies.
 

@@ -1,24 +1,24 @@
 {
-  "generatedAt": "2026-10-23T15:41:52.218Z",
+  "generatedAt": "2026-10-23T17:15:20.369Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 138,
-    "edgeCount": 328,
+    "moduleCount": 140,
+    "edgeCount": 339,
     "cycleCount": 0,
-    "totalLines": 26247
+    "totalLines": 26272
   },
   "cycles": [],
   "layers": {
-    "server": 64,
-    "src": 73,
+    "server": 65,
+    "src": 74,
     "other": 1
   },
   "modules": [
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2300,
+      "lines": 2285,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderIndex.ts",
@@ -26,6 +26,7 @@
         "server/authRoutes.ts",
         "server/briefWriter.ts",
         "server/codeTaskService.ts",
+        "server/compatibilityRoutes.ts",
         "server/contracts.ts",
         "server/conversationMode.ts",
         "server/database.ts",
@@ -207,6 +208,13 @@
         "server/taskService.ts"
       ],
       "fanIn": 2
+    },
+    {
+      "path": "server/compatibilityRoutes.ts",
+      "layer": "server",
+      "lines": 29,
+      "imports": [],
+      "fanIn": 1
     },
     {
       "path": "server/contextBuilder.ts",
@@ -645,11 +653,12 @@
     {
       "path": "src/App.tsx",
       "layer": "src",
-      "lines": 645,
+      "lines": 643,
       "imports": [
         "src/AppHeader.tsx",
         "src/AutoGrow.tsx",
         "src/ConversationFiles.tsx",
+        "src/ConversationScreens.tsx",
         "src/ErrorBoundary.tsx",
         "src/ExpertNav.tsx",
         "src/ExpertStepScreens.tsx",
@@ -707,7 +716,7 @@
       "layer": "src",
       "lines": 85,
       "imports": [],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "src/ConversationFiles.tsx",
@@ -723,7 +732,27 @@
         "src/ui.ts",
         "src/uiStates.tsx"
       ],
-      "fanIn": 2
+      "fanIn": 3
+    },
+    {
+      "path": "src/ConversationScreens.tsx",
+      "layer": "src",
+      "lines": 448,
+      "imports": [
+        "src/AutoGrow.tsx",
+        "src/ConversationFiles.tsx",
+        "src/attachments.ts",
+        "src/decision.ts",
+        "src/decisionDocument.ts",
+        "src/expertContext.ts",
+        "src/expertHistory.ts",
+        "src/exportZip.ts",
+        "src/icsBuilder.ts",
+        "src/programFiles.ts",
+        "src/support.ts",
+        "src/workspace/changeSetParse.ts"
+      ],
+      "fanIn": 1
     },
     {
       "path": "src/ErrorBoundary.tsx",
@@ -745,7 +774,7 @@
     {
       "path": "src/ExpertStepScreens.tsx",
       "layer": "src",
-      "lines": 2128,
+      "lines": 1693,
       "imports": [
         "src/AutoGrow.tsx",
         "src/ConversationFiles.tsx",
@@ -766,11 +795,9 @@
         "src/en.ts",
         "src/errors.ts",
         "src/evpi.ts",
-        "src/expertContext.ts",
         "src/expertHistory.ts",
         "src/exportName.ts",
         "src/exportZip.ts",
-        "src/icsBuilder.ts",
         "src/libraryExport.ts",
         "src/programFiles.ts",
         "src/sha256Export.ts",
@@ -780,8 +807,7 @@
         "src/ui.ts",
         "src/uiStates.tsx",
         "src/uiTerms.ts",
-        "src/useDrive.ts",
-        "src/workspace/changeSetParse.ts"
+        "src/useDrive.ts"
       ],
       "fanIn": 1
     },
@@ -911,7 +937,7 @@
       "imports": [
         "src/errors.ts"
       ],
-      "fanIn": 7
+      "fanIn": 8
     },
     {
       "path": "src/autosave.ts",
@@ -950,7 +976,7 @@
       "imports": [
         "src/config.ts"
       ],
-      "fanIn": 13
+      "fanIn": 14
     },
     {
       "path": "src/decisionDocument.ts",
@@ -961,7 +987,7 @@
         "src/decision.ts",
         "src/ui.ts"
       ],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "src/demo-coffee.ts",
@@ -1051,7 +1077,7 @@
       "layer": "src",
       "lines": 26,
       "imports": [],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "src/expertNav.ts",
@@ -1079,7 +1105,7 @@
       "imports": [
         "src/decision.ts"
       ],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "src/icsBuilder.ts",
@@ -1128,7 +1154,7 @@
         "src/attachments.ts",
         "src/driveMirror.ts"
       ],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "src/projectAppBuilder.ts",
@@ -1181,7 +1207,7 @@
       "layer": "src",
       "lines": 64,
       "imports": [],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "src/triage.ts",
@@ -1391,11 +1417,15 @@
     },
     {
       "path": "src/decision.ts",
-      "count": 13
+      "count": 14
     },
     {
       "path": "src/workspace/types.ts",
       "count": 11
+    },
+    {
+      "path": "src/attachments.ts",
+      "count": 8
     },
     {
       "path": "src/config.ts",
@@ -1404,10 +1434,6 @@
     {
       "path": "src/driveClient.ts",
       "count": 8
-    },
-    {
-      "path": "src/attachments.ts",
-      "count": 7
     },
     {
       "path": "src/driveMirror.ts",
@@ -1478,22 +1504,22 @@
       "count": 4
     },
     {
-      "path": "src/driveMerge.ts",
+      "path": "src/decisionDocument.ts",
       "count": 4
     },
     {
-      "path": "src/workspace/hash.ts",
+      "path": "src/driveMerge.ts",
       "count": 4
     }
   ],
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2300
+      "lines": 2285
     },
     {
       "path": "src/ExpertStepScreens.tsx",
-      "lines": 2128
+      "lines": 1693
     },
     {
       "path": "server/codeTaskService.ts",
@@ -1509,7 +1535,7 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 645
+      "lines": 643
     },
     {
       "path": "src/ConversationFiles.tsx",
@@ -1538,6 +1564,10 @@
     {
       "path": "server/codeExecutor.ts",
       "lines": 514
+    },
+    {
+      "path": "src/ConversationScreens.tsx",
+      "lines": 448
     },
     {
       "path": "server/files.ts",
@@ -1582,10 +1612,6 @@
     {
       "path": "server/documents.ts",
       "lines": 293
-    },
-    {
-      "path": "server/taskService.ts",
-      "lines": 286
     }
   ]
 }

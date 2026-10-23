@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "patch": "P82 \u2014 Context Locality",
+  "baseline": "docs/context-baseline-v80.json",
+  "measurement": "Deterministic static one-hop file/line proxy. Line counts are not token counts and do not establish runtime equivalence.",
+  "scenarios": [
+    {
+      "id": "expert-conversation-and-brief-screens",
+      "change": "Extracted BriefScreen, ConversationScreen, SharedConversationContext, SafetyBox and conversation helpers from src/ExpertStepScreens.tsx into src/ConversationScreens.tsx.",
+      "before": {
+        "target": "src/ExpertStepScreens.tsx",
+        "targetLines": 2128,
+        "oneHopFiles": 37,
+        "oneHopLines": 7376
+      },
+      "after": {
+        "target": "src/ConversationScreens.tsx",
+        "targetLines": 447,
+        "oneHopFiles": 15,
+        "oneHopLines": 3400
+      },
+      "proxyDelta": {
+        "oneHopFiles": -22,
+        "oneHopLines": -3976,
+        "oneHopLinesReductionPercent": 53.9
+      },
+      "limits": [
+        "The before target grouped unrelated Expert screens with conversation flows.",
+        "The after plan still includes App.tsx and direct imported modules.",
+        "This is a source-line proxy, not measured agent tokens or task completion time."
+      ]
+    },
+    {
+      "id": "compatibility-and-retired-server-routes",
+      "change": "Extracted POST /api/analyze-full, POST /api/radar-legacy and POST /api/evpi into server/compatibilityRoutes.ts, preserving registration position through a call at the original location.",
+      "before": {
+        "target": "server.ts",
+        "targetLines": 2300,
+        "oneHopFiles": 40,
+        "oneHopLines": 9934,
+        "note": "P81's whole-entry-point context plan; not a route-only measure."
+      },
+      "after": {
+        "target": "server/compatibilityRoutes.ts",
+        "targetLines": 28,
+        "staticContextCandidateFiles": 0,
+        "staticContextCandidateLines": 0,
+        "integrationPoints": [
+          {
+            "file": "server.ts",
+            "line": 26,
+            "purpose": "module import"
+          },
+          {
+            "file": "server.ts",
+            "line": 2109,
+            "purpose": "registration call"
+          }
+        ]
+      },
+      "limits": [
+        "Before and after targets differ, so no percentage reduction is claimed.",
+        "The planner narrows only this known server.ts route-registration pattern; full root context may still be required when integration behavior is unclear.",
+        "Endpoint behavior still requires pipeline/API tests and full CI."
+      ]
+    }
+  ],
+  "verification": {
+    "PASS": [
+      "node --test tests/architecture-context.test.mjs (5/5)",
+      "npm run check:docs",
+      "npm run architecture:check (0 cycles, 0 boundary violations)",
+      "npm run docs:generate (75 routes, 54 env names, 14 migrations; 140 modules / 339 static edges)"
+    ],
+    "BLOCKED": [
+      "npm ci timed out; tsx and TypeScript dependencies were not installed",
+      "Full npm run check, typecheck, build, behavioral pipeline tests and browser checks were not run",
+      "GitHub CI must be run after applying this patch"
+    ]
+  }
+}

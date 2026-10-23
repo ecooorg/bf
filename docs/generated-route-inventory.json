@@ -1,9 +1,10 @@
 {
-  "generatedAt": "2026-10-23T15:41:51Z",
+  "generatedAt": "2026-10-23T17:15:20Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "sourceFiles": [
     "server.ts",
     "server/authRoutes.ts",
+    "server/compatibilityRoutes.ts",
     "server/healthRoutes.ts",
     "server/opsRoutes.ts",
     "server/projectRoutes.ts"
@@ -18,7 +19,7 @@
     {
       "method": "POST",
       "path": "/api/analyze-full",
-      "file": "server.ts"
+      "file": "server/compatibilityRoutes.ts"
     },
     {
       "method": "POST",
@@ -33,7 +34,7 @@
     {
       "method": "POST",
       "path": "/api/evpi",
-      "file": "server.ts"
+      "file": "server/compatibilityRoutes.ts"
     },
     {
       "method": "POST",
@@ -328,7 +329,7 @@
     {
       "method": "POST",
       "path": "/api/radar-legacy",
-      "file": "server.ts"
+      "file": "server/compatibilityRoutes.ts"
     },
     {
       "method": "POST",

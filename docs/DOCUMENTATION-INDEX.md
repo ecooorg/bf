@@ -10,6 +10,7 @@ Start with repository-level `AGENTS.md`. Read only documents relevant to the tas
 * `DOCUMENTATION-BASELINE.md` — baseline observations
 * `OPERATIONS.md` — deploy, rollback, backup
 * `AI-NATIVE-ROADMAP-P81-P84.md` — approved P81–P84 objectives, scope, gates and measurement plan
+* `context-locality-p82.json` — P82 before/after task-local context evidence and verification limits
 * `architecture-guardrails.md` — map, boundaries, inventories commands
 * `architecture-boundary-rules.json` / `architecture-known-violations.json` — ratchet config
 * `typing-and-naming.md` — TypeScript and naming conventions
