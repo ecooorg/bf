@@ -57,8 +57,6 @@ import { ErrorBoundary } from './ErrorBoundary.tsx';
 import { Header } from './AppHeader.tsx';
 import {
   TriageScreen,
-  BriefScreen,
-  ConversationScreen,
   UnderstandScreen,
   ExpandScreen,
   AttackScreen,
@@ -69,8 +67,8 @@ import {
   BriefPanel,
   StepTitle,
   isBriefWorthShowing,
-  SharedConversationContext,
 } from './ExpertStepScreens.tsx';
+import { BriefScreen, ConversationScreen, SharedConversationContext } from './ConversationScreens.tsx';
 
 export default function App() {
   const [decisions, setDecisions] = useState<Decision[]>(() => getStoredDecisions());
