@@ -1,3 +1,14 @@
+## P70 — Close the UI cross-mode audit (2026-10-23)
+
+- New `src/uiStates.tsx`: one `StateNotice` for empty / loading / unavailable / error / done in Simple, Expert and Project, plus `BusyHint` (reason next to paused buttons) and one wording for Drive («Drive off / Drive / Drive on») and History («History / History off»). Docs: `docs/06` §6.8.
+- New `src/projectLabels.ts`: plan, approval and task values in plain words. Removed plan ids from notices, the project version counter, «units», and `kind: id` from approvals.
+- Simple: mode banner removed; header button is «New conversation».
+- Project: capability block lists only what is not available; one «Next:» line replaces the five-step path; Results link reads «Open the pull request»; empty project panel no longer repeats the page title; shorter leave/return dialogs.
+- Copy: all remaining long strings and the last «scaffold» fixed (App, Delivery, ProjectMode, Wizard, PathChooser, WorkspacePanel, driveMirror, en). `DEBT` in `scripts/lint-copy.mjs` is now empty. Contract strings kept: «Project Mode is disabled», «BiForge never merges», «file access was not granted».
+- `docs/18` got §7 with the status of every finding. No API, state-machine or product-logic change; `tests/feature-manifest.json` unchanged.
+- Tests: P70 block added to `tests/project-mode.test.mjs`.
+- Validation: full `npm run check` PASS; `test:database` ran only its non-live tests (no PostgreSQL). Browser `test:ui` and the 1200 px / 390 px look were not run (no Chromium download here).
+
 ## P69.1 — Fix CI lint:copy failure (2026-10-23)
 
 - CI `check-and-build` failed at `lint:copy`: `src/projectAppBuilder.ts` had 3 × internal term «scaffold» and 6 × text over 24 words (allowance 0).
