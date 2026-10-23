@@ -96,4 +96,4 @@ P81 baseline and planning → P82 measured locality changes → P83 stronger con
 
 ## Next roadmap
 
-P84.1 records the next proposed sequence, P85–P91, in `docs/AI-NATIVE-ROADMAP-P85-P91.md`: task-aware context planning, change-impact/generator lineage, verification planning, real-task AI benchmarking, task contracts, incremental refresh, and context-completeness guards. These are future scopes, not implemented features or automatic authorization. Build one patch at a time and wait for the Navigator to report green CI before starting the next.
+P84.2 revises the proposed P85–P91 sequence in `docs/AI-NATIVE-ROADMAP-P85-P91.md` to selectively integrate VIX-inspired intent capture, invariant protection, counterexample-oriented verification, intent diff, traceability and honest uncertainty. The primary acceptance criterion is lower total human effort per safely completed change. These are future scopes, not implemented features or automatic authorization; do not build a parallel VIX subsystem. Build one patch at a time and wait for the Navigator to report green CI before starting the next.
