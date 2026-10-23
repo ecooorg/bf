@@ -9,6 +9,8 @@ const norm = (p) => p.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^bf-main
 const uniq = (xs) => [...new Set(xs)].sort();
 const relatedTests = [
   [/^server\/compatibilityRoutes\.ts$/, ['test:core', 'test:pipeline']],
+  [/^server\/contracts\.ts$/, ['test:core', 'test:project', 'test:database']],
+  [/^server\/projectRoutes\.ts$/, ['test:project', 'test:core']],
   [/^server\/(taskService|gateService|codeTaskService|gateEngine)/, ['test:gates', 'test:project', 'test:pipeline']],
   [/^server\/(security|redact|untrustedData)/, ['test:security']],
   [/^server\/(database|projectRepository|stateService)/, ['test:database', 'test:project']],
@@ -75,6 +77,14 @@ export function planContext(inputs, { graph = buildGraph(), readFile = read, fil
     for (const [pattern, tests] of relatedTests) if (pattern.test(target)) tests.forEach((t) => suggested.add(t));
     // Explicit textual evidence, never interpreted as an authoritative runtime dependency.
     const body = readFile(target);
+    // Explicit cross-layer contract evidence: these are known source/test links,
+    // not an assertion that every HTTP or persistence contract is discoverable.
+    if (target === 'server/projectRoutes.ts' && fileExists('server/contracts.ts')) {
+      add('server/contracts.ts', 'authoritative Project Mode request and query schemas consumed by project routes');
+    }
+    if (target === 'server/contracts.ts' && fileExists('tests/core.test.mjs')) {
+      add('tests/core.test.mjs', 'runtime contract regression tests for schemas exported by server/contracts.ts');
+    }
     const envNames = uniq([...body.matchAll(/process\.env\.([A-Z][A-Z0-9_]+)/g)].map((m) => m[1]));
     if (envNames.length && fileExists('.env.example')) add('.env.example', `environment names in ${target}: ${envNames.join(', ')}`);
     if (/\b(?:fetch\(|app\.(?:get|post|put|patch|delete)\(|router\.(?:get|post|put|patch|delete)\()/.test(body)) {
