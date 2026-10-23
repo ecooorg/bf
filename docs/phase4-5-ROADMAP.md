@@ -58,6 +58,8 @@ Keep AI entry docs short; generate route / module / env / schema inventories fro
 
 ## p78 — Phase 5: acceptance package
 
+**Status: packaged in p78.** Open `docs/phase5/ACCEPTANCE.md` for Navigator decision.
+
 ### Goal
 
 Prove behavioural / security equivalence vs pre-transformation baseline; record evidence; list residual risks. Navigator accepts or rejects.

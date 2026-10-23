@@ -39,6 +39,12 @@ Start with the repository-level `AGENTS.md`. Read only the current documents rel
 * `phase4/PHASE4-GENERATORS.md` — how to regenerate inventories.
 * Generated (do not hand-edit): `phase1/generated/route-inventory.json`, `env-inventory.json`, `migration-inventory.json`, `module-map.json`.
 
+
+## Phase 5 acceptance (p78)
+
+* `phase5/ACCEPTANCE.md` — evidence checklist, equivalence, residual risks, Navigator decision.
+* `phase5/generated/acceptance-summary.json` — optional machine summary from `npm run acceptance:report`.
+
 ## Phase 4–5 roadmap (next session)
 
 * `phase4-5-ROADMAP.md` — instructions for **p77** (generators) and **p78** (acceptance). Copy-paste session prompts included.
