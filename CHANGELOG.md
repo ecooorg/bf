@@ -1,3 +1,10 @@
+## P69.1 — Fix CI lint:copy failure (2026-10-23)
+
+- CI `check-and-build` failed at `lint:copy`: `src/projectAppBuilder.ts` had 3 × internal term «scaffold» and 6 × text over 24 words (allowance 0).
+- Reworded the stack build hints, success criteria, goal line and manual deploy steps (step 5 split in two, steps renumbered). No allowance raised; no logic or API change.
+- Model prompt text is slightly shorter; the README requirements in the goal are unchanged in meaning.
+- Validation: `lint:copy` PASS, `typecheck` PASS, `test:project` 75/75, `test:regression` 8/8. Full `npm run check` and `test:ui` not run.
+
 ## P69 — Plan and Results hierarchy (2026-10-22)
 
 - Results: **Run analysis** is the primary action; **Create a small program** moved under optional details; last-run token/model stats under «Last run details».

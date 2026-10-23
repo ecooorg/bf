@@ -10,14 +10,14 @@
 
 | Item | Value |
 | --- | --- |
-| Last patch | P69 — Plan/Results hierarchy: primary actions; quieter tokens and ledger |
+| Last patch | P69.1 — CI fix: `lint:copy` failures in `src/projectAppBuilder.ts` (internal term, long strings); on top of P69 Plan/Results hierarchy |
 | Product line | **builder**: pipeline-first generation (IR → verified scaffolds → optional model slice → ZIP) |
 | Modes | Simple (P63 empty state and guide), Expert (P61 layout; P63 shared header/guide), Project (P62/P67–P69 UI; `POST /code/build` uses `server/appBuilderPipeline.ts`) |
 | Code delivery | Scaffold ZIP needs no model. Optional model slice: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true`. Legacy `engine: "model_patch"` still available |
 | GitHub write | Deferred (ADR-06); off by default; `GITHUB_DIFF_UPLOAD` is the only opt-in switch |
 | Owner authorisation pending | GitHub App write; executing generated code on the BiForge host |
 | Next | P70: Simple mode-banner and remaining long copy in App. P71+: shared empty/error patterns across modes. Open decisions: `docs/12-Documentation-Migration-and-Open-Decisions.md` |
-| Last full `npm run check` | 2026-10-22 — BLOCKED at typecheck in prior environment. P69: `npm run lint:copy` PASS. Browser not re-run here. |
+| Last full `npm run check` | Not run in full here. 2026-10-23: `lint:copy` PASS, `typecheck` PASS, `test:project` 75/75 PASS, `test:regression` 8/8 PASS. Browser/`test:ui` not run. |
 
 Generation flow: wizard / goal → App IR → resolve stack → materialize scaffold → optional model slice → ZIP (README + BIFORGE-IR.json) → the owner uploads to GitHub or a host by hand.
 
