@@ -6,7 +6,7 @@ import {
   type EvidenceRecord, type GateName, type GateStatus, type WaiverRecord,
 } from './gateEngine.ts';
 import { listPullRequestFiles, taskIdFromBranch, type GitHubAppConfig } from './githubIntegration.ts';
-import { syncCodeTaskFromPullRequest } from './codeTaskService.ts';
+/** Dynamic import breaks static cycle with codeTaskService (p74). */
 
 // Gate Engine persistence and GitHub event ingestion (TZ 12.3, 12.5; P17 / BX-20).
 // Webhook payloads are untrusted data: only the fields below are read, free text is never stored or interpreted.
@@ -167,6 +167,7 @@ export async function ingestGitHubEvent(event: string, payload: unknown, deps: I
       source: 'diff', rulesVersion: GATE_RULES_VERSION, tool: 'biforge-diff', toolVersion: GATE_RULES_VERSION, sourceRef: `pr:${pr.number}:${pr.head.sha.toLowerCase()}`, details,
     });
     // P18: an open manual code run of this task learns about its PR here (no polling needed). Never throws, never changes gate results.
+    const { syncCodeTaskFromPullRequest } = await import('./codeTaskService.ts');
     await syncCodeTaskFromPullRequest(task.taskId, { number: pr.number, headSha: pr.head.sha }, { githubConfig: deps.githubConfig, fetcher: deps.fetcher });
     return { ok: true, recorded: inserted ? 1 : 0, invalidated };
   }
