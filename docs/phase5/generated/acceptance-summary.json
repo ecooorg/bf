@@ -1,0 +1,44 @@
+{
+  "generatedAt": "2026-10-23T14:25:50.805Z",
+  "phase": 5,
+  "patch": "p78",
+  "overall": "PASSED",
+  "note": "Static gates only. Full npm run check + live/API must still pass on CI before formal acceptance.",
+  "checks": [
+    {
+      "id": "architecture.check",
+      "status": "PASSED",
+      "command": "/usr/bin/node scripts/architecture/check-boundaries.mjs",
+      "detail": "  boundaries: 0 violations, 0 known, 0 new | architecture:check PASSED (ratchet holds)"
+    },
+    {
+      "id": "docs.inventories",
+      "status": "PASSED",
+      "command": "/usr/bin/node scripts/docs/check-inventories.mjs",
+      "detail": "  env-inventory.json: count=54 |   migration-inventory.json: count=14"
+    },
+    {
+      "id": "docs.links",
+      "status": "PASSED",
+      "command": "/usr/bin/node scripts/check-docs.mjs",
+      "detail": "check:docs OK (13 Markdown files, 14 backticked paths checked)"
+    }
+  ],
+  "inventories": {
+    "route-inventory.json": {
+      "count": 75
+    },
+    "env-inventory.json": {
+      "count": 54
+    },
+    "migration-inventory.json": {
+      "count": 14
+    }
+  },
+  "notRunHere": [
+    "npm run check",
+    "test:live",
+    "test:bx06:api",
+    "test:ui"
+  ]
+}
