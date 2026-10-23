@@ -19,6 +19,8 @@ Use this file when starting a **new chat session**. Do not restart Phase 0–3.
 
 ## p77 — Phase 4: documentation generators
 
+**Status: done in p77.** See `docs/phase4/PHASE4-GENERATORS.md`.
+
 ### Goal (from `docs/AI-TRANSFORMATION-SPEC.md`)
 
 Keep AI entry docs short; generate route / module / env / schema inventories from source; detect broken links and map↔docs drift; do not invent product facts.
