@@ -1,6 +1,6 @@
 # Phase 5 — Acceptance package (p78)
 
-**Transformation track status: ready for Navigator acceptance.**
+**Transformation track status: ACCEPTED by Navigator (Tier 3).**
 
 This document records structural change vs behavioural equivalence after Phases 0–4 (p71–p77). It is the sign-off surface for Phase 5.
 
@@ -9,7 +9,7 @@ This document records structural change vs behavioural equivalence after Phases 
 | Item | Value |
 |------|--------|
 | Pre-transformation baseline | BiForge **v70** (`bf-v70.zip` / Phase 0 audit) |
-| Post-transformation tree | **v76** + p77 generators (`bf-v76` / green CI after p76.1) |
+| Post-transformation tree | **v78** (`bf-v78.zip`, green CI) |
 | Spec | `docs/AI-TRANSFORCE-SPEC.md` (phases 0–5) |
 | Roadmap | `docs/phase4-5-ROADMAP.md` |
 
@@ -28,7 +28,7 @@ Statuses: **PASS** | **FAIL** | **NOT_RUN** | **BLOCKED**.
 | `npm run architecture:check` | **PASS** | 0 cycles, 0 new boundary violations (ratchet holds) |
 | `npm run docs:check` / inventories | **PASS** | 75 routes, 54 env names, 14 migrations |
 | `npm run check:docs` | **PASS** | Markdown links OK |
-| Full `npm run check` | **NOT_RUN** | Prefer GitHub Actions after p78 is applied |
+| Full `npm run check` | **PASS** (CI) | Green CI on commit `2232cb9` (Navigator) |
 | Live PostgreSQL suite | **NOT_RUN** | Requires `RUN_LIVE_TESTS` + DB (green on prior CI runs post p75.7) |
 | Project Mode API security | **NOT_RUN** | Requires `RUN_BX06_API` (green 81/81 on prior CI) |
 | Browser UI (`test:ui`) | **NOT_RUN** | Viewport / Playwright not available in this environment |
@@ -47,7 +47,7 @@ Statuses: **PASS** | **FAIL** | **NOT_RUN** | **BLOCKED**.
 Fill commit SHA here after green CI on the p78 tip:
 
 ```text
-Acceptance CI commit: 2232cb9 (2026-10-23)
+Acceptance CI commit: `2232cb9` (2026-10-23) — green CI confirmed by Navigator.
 ```
 
 ---
@@ -108,12 +108,15 @@ No open **P0** product regressions known at packaging time.
 
 ## 6. Navigator decision
 
-- [ ] **Accept** — transformation track complete; maintenance / product work proceeds under `AGENTS.md` rules.
+- [x] **Accept** — transformation track complete; maintenance / product work proceeds under `AGENTS.md` rules.
 - [ ] **Reject** — list required remediations below.
 
 ```text
-Decision: _______________  Date: _______________  By: _______________
-Notes:
+Decision: ACCEPT
+Date: 2026-10-23
+Commit: 2232cb9
+By: Navigator
+Notes: Green CI. Tier 3 acceptance of Phases 0–5 transformation package (p71–p78).
 ```
 
 ---
