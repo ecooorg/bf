@@ -27,6 +27,11 @@ Start with the repository-level `AGENTS.md`. Read only the current documents rel
 * `phase1/known-violations.json` — ratchet baseline for existing cycles.
 * `phase1/generated/` — module-map and last check/impact/verify reports.
 
+## Phase 3 typing and naming (p75)
+
+* `phase3/TYPING-AND-NAMING.md` — TypeScript policy, verb dictionary, rename targets.
+* `../server/domainIds.ts` — branded `ProjectId` / `TaskId` / `CodeTaskId` / `RunId` and `DbRow`.
+
 ## Implementation evidence
 
 * Source code is the evidence for implemented runtime behavior.

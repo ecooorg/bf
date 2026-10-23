@@ -1,6 +1,6 @@
 # BiForge AI-Native Transformation — Technical Specification
 
-**Status: active.** Phase 0–2b delivered through p74 (`server` routes + `App.tsx` split + import-cycle break). Phase 3 typing/contracts (p75+) staged pending Navigator acceptance.
+**Status: active.** Through p75: Phase 0–2b complete; Phase 3 started (branded ids, DbRow, progressive server flags, naming/typing conventions). Full `strict: true` and remaining contract consolidation remain staged.
 
 ## 1. Mission
 Optimize the repository for an AI Assistant and a Navigator rather than a human-maintained engineering team. Minimize context needed per task, cross-file change surface, implicit dependencies, error recurrence and verification time without sacrificing functional quality, security or traceability.
