@@ -1,3 +1,9 @@
+## p79 — CI ui-check: stop 20+ min Playwright apt install (2026-10-23)
+
+- Root cause of “UI runs 20–25 minutes”: GitHub Actions job `ui` stuck on `npx playwright install --with-deps chromium` (apt packages), before `npm run test:ui`.
+- `.github/workflows/ui-check.yml`: cache `~/.cache/ms-playwright`; run `--with-deps` only on cache miss; on hit only `playwright install chromium`; job `timeout-minutes: 20`.
+- No product application code changes.
+
 ## p78.1 — Navigator Accept (Tier 3) recorded (2026-10-23)
 
 - `docs/phase5/ACCEPTANCE.md`: Decision **ACCEPT**, date 2026-10-23, commit `2232cb9` (green CI).

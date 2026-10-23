@@ -10,7 +10,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **p77 (Phase 4 done):** `npm run docs:generate` / `docs:check` — route, env, migration inventories under `docs/phase1/generated/` (`docs/phase4/PHASE4-GENERATORS.md`).
 * **p78 (Phase 5 acceptance package):** `docs/phase5/ACCEPTANCE.md` — Navigator sign-off surface.
 * **Transformation track:** **ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`). Phases 0–5 closed. Maintenance / product work under existing rules.
-* **Next priority:** UI responsiveness (long “Working…” on small edits) — candidate **p79**; optional later: flatten phase-folders / prefix naming per original plan.
+* **p79:** CI `ui-check` — cache Playwright Chromium; skip apt `--with-deps` on cache hit (job was 20–25 min on install alone).
+* **Later:** product busy-state timeouts if still needed; flatten phase-folders / prefix naming per original plan.
 
 ### Product / runtime (P43 / ADR-06)
 
