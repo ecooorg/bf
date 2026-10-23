@@ -174,11 +174,16 @@ test('audit catalog covers TZ §13.5 required event names', () => {
 });
 
 
-test('security policy still forbids product merge and secret logging', () => {
-  const pol = fs.readFileSync(path.join(root, 'docs/07-Security-Privacy-and-Operations.md'), 'utf8');
-  assert.match(pol, /merge/i);
-  assert.match(pol, /secret/i);
-  assert.match(pol, /do not reproduce/i);
+test('current AI operating rules preserve GitHub and secret safety policies', () => {
+  const rules = fs.readFileSync(
+    path.join(root, 'docs/AI-OPERATING-RULES.md'),
+    'utf8'
+  );
+
+  assert.match(rules, /GitHub access is read-only by default/i);
+  assert.match(rules, /no merge or admin permission/i);
+  assert.match(rules, /secret/i);
+  assert.match(rules, /do not reproduce secret values/i);
 });
 }
 // ===== END p23-acceptance.test.mjs =====
