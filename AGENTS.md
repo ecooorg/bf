@@ -9,7 +9,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **p76 (Phase 3 closed):** branded path-param validation, shared idSchema in codeTaskService, `docs/phase3/PHASE3-COMPLETE.md`.
 * **p77 (Phase 4 done):** `npm run docs:generate` / `docs:check` — route, env, migration inventories under `docs/phase1/generated/` (`docs/phase4/PHASE4-GENERATORS.md`).
 * **p78 (Phase 5 acceptance package):** `docs/phase5/ACCEPTANCE.md` — Navigator sign-off surface.
-* **Transformation track:** Phases 0–5 packaged. Maintenance / product work under existing rules; optional post-accept: full `strict: true`.
+* **Transformation track:** **ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`). Phases 0–5 closed. Maintenance / product work under existing rules.
+* **Next priority:** UI responsiveness (long “Working…” on small edits) — candidate **p79**; optional later: flatten phase-folders / prefix naming per original plan.
 
 ### Product / runtime (P43 / ADR-06)
 
@@ -25,7 +26,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * Phase 0 audit: `docs/phase0/BiForge-v70-Phase0-Audit.md`.
 * Phase 1 guardrails: `docs/phase1/PHASE1-GUARDRAILS.md`.
 * Phase 3 closed: `docs/phase3/PHASE3-COMPLETE.md`.
-* Phase 4–5 next: `docs/phase4-5-ROADMAP.md`.
+* Phase 5 accepted: `docs/phase5/ACCEPTANCE.md`.
 * Current operational procedures: `docs/OPERATIONS.md`.
 
 ## Commands

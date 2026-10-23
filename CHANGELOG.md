@@ -1,3 +1,9 @@
+## p78.1 — Navigator Accept (Tier 3) recorded (2026-10-23)
+
+- `docs/phase5/ACCEPTANCE.md`: Decision **ACCEPT**, date 2026-10-23, commit `2232cb9` (green CI).
+- AGENTS / AI-TRANSFORCE-SPEC status: transformation track **accepted**; next focus product issues (UI long busy state), not new phases 0–5.
+- No application code changes in this documentation-only record.
+
 ## p78 — Phase 5 acceptance package (2026-10-23)
 
 - `docs/phase5/ACCEPTANCE.md` — evidence checklist, structural vs behavioural equivalence, residual risks, rollback, Navigator decision block.
