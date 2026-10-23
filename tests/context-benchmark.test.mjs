@@ -5,7 +5,7 @@ import path from 'node:path';
 import { root } from '../scripts/architectureLib.mjs';
 import { runBenchmark } from '../scripts/contextBenchmarkLib.mjs';
 
-const fixturePath = path.join(root, 'tests/fixtures/context-benchmark-gold-p84.json');
+const fixturePath = path.join(root, 'tests/context-benchmark-gold-p84.json');
 const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
 
 test('P84 gold fixture contains 4–6 uniquely named scenarios and explicit review status', () => {
