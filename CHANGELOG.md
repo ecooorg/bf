@@ -1,3 +1,11 @@
+## p76 — Phase 3 closed + Phase 4/5 roadmap (2026-10-23)
+
+- Phase 3 completion: `docs/phase3/PHASE3-COMPLETE.md` (what shipped, what is deferred).
+- Roadmap for next session: `docs/phase4-5-ROADMAP.md` (**p77** doc generators, **p78** acceptance package) with copy-paste bootstrap prompts.
+- Code: `taskOfProject` parses path ids via `domainIds` (`parseProjectId` / `parseTaskId`); `codeTaskService` shares `idSchema` from `contracts.ts`.
+- Docs: AGENTS, AI-TRANSFORMATION-SPEC, DOCUMENTATION-INDEX, TYPING-AND-NAMING updated.
+- No intentional product behaviour or SQL changes. Optional full `strict: true` remains post-acceptance.
+
 ## p75.7 — fix lease-loss test timing constraint (2026-10-23)
 
 - p75.6 set `heartbeatMs: 60_000` with `leaseMs: 1000`, which violates `heartbeatMs * 2 <= leaseMs` → `INVALID_TIMING` in live CI.
