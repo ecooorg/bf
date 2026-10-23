@@ -1,3 +1,11 @@
+## P82 — Context Locality (2026-10-23)
+
+- Extracted `BriefScreen`, `ConversationScreen`, `SharedConversationContext`, `SafetyBox` and conversation helpers into `src/ConversationScreens.tsx`; updated `App.tsx`, aggregated source tests and the feature manifest. No intended UI or state behavior change.
+- Extracted `/api/analyze-full`, `/api/radar-legacy` and `/api/evpi` into `server/compatibilityRoutes.ts`; registration remains at the prior position in `server.ts` to preserve middleware and route order.
+- `context:plan` now reports the `server.ts` import and registration lines for the recognized route-registration pattern instead of listing the entire entry point as routine context.
+- `docs/context-locality-p82.json` records before/after static evidence. Conversation/brief one-hop proxy: 37 files / 7,376 lines → 15 files / 3,400 lines (53.9% fewer candidate lines; not token measurements).
+- Focused planner tests (5/5), `check:docs`, `architecture:check` and `docs:generate` passed. `npm ci` timed out; full check, typecheck, build, behavioral/UI checks and GitHub CI are **NOT RUN / BLOCKED**. No deletions.
+
 ## P81 — Dependency Intelligence and P82–P84 approved roadmap (2026-10-23)
 
 - Added read-only `context:plan` with one-hop static imports/importers, explicit env/SQL/manifest evidence, test hints and uncertainties. No claim of exhaustive cross-layer dependencies.

@@ -4,7 +4,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Current status
 
-* **P81:** Dependency Intelligence context planner, deterministic pre-P81 v80 baseline, and Navigator-approved P82–P84 roadmap (implementation pending).
+* **P81:** Dependency Intelligence context planner and deterministic pre-P81 v80 baseline.
+* **P82 patch:** Conversation/brief UI module extraction, compatibility-route extraction, and registration-line context evidence. Focused static checks pass; full CI/typecheck/build remain pending after local `npm ci` timeout.
 
 * **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 * **p79:** CI `ui-check` Playwright cache (skip apt on cache hit).

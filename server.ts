@@ -23,6 +23,7 @@ import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { registerAuthRoutes } from './server/authRoutes.ts';
 import { registerProjectRoutes } from './server/projectRoutes.ts';
 import { registerOpsRoutes } from './server/opsRoutes.ts';
+import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
 import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
@@ -2104,24 +2105,8 @@ Questions only, no diagnosis and no changing the forecast. Tie each question to 
   }
 });
 
-// Legacy endpoints return 410
-app.post('/api/analyze-full', (_req, res) => {
-  fail(res, 410, 'Monolithic analysis removed. Use step endpoints.', 'GONE');
-});
-app.post('/api/radar-legacy', (_req, res) => {
-  fail(res, 410, 'Legacy radar. Use /api/neutralize → /api/radar.', 'GONE');
-});
-
-// EVPI is client-side only (G-09) — optional server echo for tests
-app.post('/api/evpi', (req, res) => {
-  const { p, G, L, c } = req.body || {};
-  const pNorm = p > 1 ? p / 100 : p;
-  const evOpen = pNorm * G - (1 - pNorm) * L;
-  const bestNoInfo = Math.max(evOpen, 0);
-  const evPerfect = pNorm * G;
-  const evpiVal = evPerfect - bestNoInfo;
-  ok(res, { evOpen, bestNoInfo, evPerfect, evpi: evpiVal, testCost: c }, { model: 'local', fallback: false, durationMs: 0, stage: 'evpi' });
-});
+// Compatibility and retired endpoints are isolated in server/compatibilityRoutes.ts.
+registerCompatibilityRoutes(app, { ok, fail });
 
 // --- Document quick edits (Package C) ---
 app.post('/api/revise-document', async (req, res) => {
