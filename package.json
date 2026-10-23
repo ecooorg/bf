@@ -46,7 +46,8 @@
     "test:ui": "node --import tsx tests/ui-check.mjs",
     "check": "node scripts/check-version.mjs && npm run check:docs && npm run lint:copy && npm run typecheck && npm run test:core && npm run test:models && npm run test:security && npm run test:files && npm run test:workspace && npm run test:database && npm run test:integrations && npm run test:project && npm run test:gates && npm run test:pipeline && npm run test:web && npm run test:turn && npm run test:regression",
     "docs:generate": "node scripts/docs/generate-inventories.mjs && node scripts/architecture/generate-module-map.mjs",
-    "docs:check": "node scripts/docs/check-inventories.mjs && npm run check:docs"
+    "docs:check": "node scripts/docs/check-inventories.mjs && npm run check:docs",
+    "acceptance:report": "node scripts/acceptance-report.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

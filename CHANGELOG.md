@@ -1,3 +1,10 @@
+## p78 — Phase 5 acceptance package (2026-10-23)
+
+- `docs/phase5/ACCEPTANCE.md` — evidence checklist, structural vs behavioural equivalence, residual risks, rollback, Navigator decision block.
+- `scripts/acceptance-report.mjs` + `npm run acceptance:report` → `docs/phase5/generated/acceptance-summary.json` (static gates only).
+- AGENTS / SPEC / INDEX / roadmap updated: transformation track packaged; formal accept is Tier 3 (Navigator).
+- No application behaviour or SQL changes.
+
 ## p77 — Phase 4 documentation generators (2026-10-23)
 
 - Generators: `scripts/docs/generate-inventories.mjs` → `docs/phase1/generated/{route,env,migration}-inventory.json` (75 routes, 54 env names, 14 migrations in this tree).

@@ -8,7 +8,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **p75–p75.7:** Phase 3 start + CI stabilisation (imports, static tests, gitleaks, lease-loss timing).
 * **p76 (Phase 3 closed):** branded path-param validation, shared idSchema in codeTaskService, `docs/phase3/PHASE3-COMPLETE.md`.
 * **p77 (Phase 4 done):** `npm run docs:generate` / `docs:check` — route, env, migration inventories under `docs/phase1/generated/` (`docs/phase4/PHASE4-GENERATORS.md`).
-* **Next:** **p78** Phase 5 acceptance — follow `docs/phase4-5-ROADMAP.md`.
+* **p78 (Phase 5 acceptance package):** `docs/phase5/ACCEPTANCE.md` — Navigator sign-off surface.
+* **Transformation track:** Phases 0–5 packaged. Maintenance / product work under existing rules; optional post-accept: full `strict: true`.
 
 ### Product / runtime (P43 / ADR-06)
 
@@ -29,7 +30,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run verify:change`; `npm run architecture:check`. Health endpoint: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run verify:change`; `npm run architecture:check`; `npm run docs:generate`; `npm run acceptance:report`. Health endpoint: `GET /health`.
 
 ## Critical rules
 
