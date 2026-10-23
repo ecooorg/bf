@@ -25,6 +25,25 @@ test('missing file is not silently treated as a graph node', () => {
   assert.throws(() => planContext(['server/missing.ts'], opts), /Missing/);
 });
 
+
+test('route context plan narrows composition-root context to import and registration lines', () => {
+  const graph = {
+    modules: ['server.ts', 'server/compatibilityRoutes.ts'],
+    edges: { 'server.ts': ['server/compatibilityRoutes.ts'], 'server/compatibilityRoutes.ts': [] },
+  };
+  const bodies = {
+    'server.ts': "import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';\nconst unrelated = true;\nregisterCompatibilityRoutes(app, { ok, fail });",
+    'server/compatibilityRoutes.ts': 'export function registerCompatibilityRoutes(app, helpers) {}',
+  };
+  const opts = { graph, readFile: (f) => bodies[f], fileExists: (f) => f in bodies };
+  const plan = planContext(['server/compatibilityRoutes.ts'], opts);
+  assert.deepEqual(plan.staticContextCandidates, []);
+  assert.deepEqual(plan.integrationPoints.map((p) => ({ file: p.file, lines: p.lines })), [
+    { file: 'server.ts', lines: [1, 3] },
+  ]);
+  assert.match(plan.integrationPoints[0].policy, /full composition root only if/);
+});
+
 test('v80 baseline includes reproducible static measurements', () => {
   const b = baselineMetrics();
   assert.ok(b.modules > 100);

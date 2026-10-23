@@ -224,9 +224,12 @@
       "ModeMenu"
     ],
     "src/ExpertStepScreens.tsx": [
+      "BriefPanel"
+    ],
+    "src/ConversationScreens.tsx": [
       "expertConversationFields",
       "ConversationScreen",
-      "BriefPanel"
+      "BriefScreen"
     ],
     "src/ProjectMode.tsx": [
       "What is available here",

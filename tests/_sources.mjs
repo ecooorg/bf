@@ -20,6 +20,7 @@ export function serverSources() {
     read('server/projectRoutes.ts'),
     read('server/authRoutes.ts'),
     read('server/opsRoutes.ts'),
+    read('server/compatibilityRoutes.ts'),
     read('server/healthRoutes.ts'),
   ].join('\n');
 }
@@ -30,6 +31,7 @@ export function appSources() {
     read('src/App.tsx'),
     read('src/AppHeader.tsx'),
     read('src/ExpertStepScreens.tsx'),
+    read('src/ConversationScreens.tsx'),
     read('src/appApi.ts'),
     read('src/ErrorBoundary.tsx'),
   ].join('\n');
