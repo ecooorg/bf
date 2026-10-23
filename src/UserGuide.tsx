@@ -1,23 +1,151 @@
 /**
- * Full-screen User Guide for Simple, Expert and Project.
- * - Covers the whole viewport (not a small card over the chat)
- * - Body scrolls end-to-end (flex minHeight: 0 — required on mobile Chrome)
- * - Optional “Open in new tab” for a real separate browser window
+ * Full, beginner-friendly in-app manual for all BiForge modes.
+ * The same static guide is shown in the modal and in the optional new tab,
+ * so the two reading experiences cannot silently drift apart.
  */
 import React, { useEffect, useCallback } from 'react';
 import { CircleHelp, ExternalLink, X } from 'lucide-react';
 
+const GUIDE_HTML = String.raw`
+<h1>Welcome to BiForge</h1>
+<p class="lead">This guide explains how to use <strong>all three BiForge modes</strong>: <strong>Simple</strong>, <strong>Expert</strong>, and <strong>Project</strong>. You do not need to know anything about artificial intelligence to begin.</p>
+<div class="callout"><strong>The most important rule:</strong> BiForge can help you think, analyse information, and prepare work. It can make mistakes. <strong>You remain in control.</strong> Read important suggestions, correct anything that is wrong, and make the final decisions yourself.</div>
+
+<nav class="toc" aria-label="Guide contents"><strong>In this guide</strong><ol><li><a href="#start">Start here</a></li><li><a href="#basics">How to work with an AI assistant</a></li><li><a href="#modes">Choose the right mode</a></li><li><a href="#simple">Simple mode: step by step</a></li><li><a href="#expert">Expert mode: the decision method</a></li><li><a href="#project">Project mode: build and manage a project</a></li><li><a href="#files">Files and attachments</a></li><li><a href="#topbar">Top bar, history, import and export</a></li><li><a href="#privacy">Privacy and safe use</a></li><li><a href="#troubleshooting">Troubleshooting</a></li><li><a href="#glossary">Small glossary</a></li><li><a href="#lab-escape">Your first project: build Lab Escape</a></li></ol></nav>
+
+<h2 id="start">1. Start here</h2>
+<ol>
+<li>Open BiForge in your web browser.</li>
+<li>On the start screen, choose the mode that best matches what you want to do. If you are unsure, begin with <strong>Simple chat</strong>.</li>
+<li>Type your request in ordinary language. You do not need special commands or technical vocabulary.</li>
+<li>Press <strong>Send</strong> (or the equivalent action shown on the screen) and wait for the response.</li>
+<li>Read the response. If it is unclear, incomplete, or based on a wrong assumption, say so and explain what needs to change.</li>
+</ol>
+<p>You can ask follow-up questions. You do not have to get the wording perfect on your first try. For example, you can say: <em>“Please explain that in simpler English,” “Give me an example,” “You misunderstood the second point,”</em> or <em>“Ask me one question at a time.”</em></p>
+
+<h2 id="basics">2. How to work with an AI assistant</h2>
+<h3>Give enough context</h3><p>A useful request usually says what you want, why you want it, and any important limits. Compare these examples:</p>
+<div class="example"><p><strong>Too vague:</strong> “Help me with a website.”</p><p><strong>More useful:</strong> “I want a small website for a local gardening club. Visitors should be able to read announcements and send a contact message. I have no coding experience. Please explain the simplest approach and its likely costs.”</p></div>
+<h3>Work in small steps</h3><p>For a large task, ask BiForge to start with an outline, then improve one part at a time. You can ask it to stop after each step so you can review the result.</p>
+<h3>Correct mistakes directly</h3><p>If a response is wrong, do not assume the assistant will notice by itself. Point to the exact sentence or claim and provide the correction or the missing information.</p>
+<h3>Ask for uncertainty to be explained</h3><p>Ask which statements are known, which are assumptions, and what needs checking. A confident-sounding answer is not automatically a correct answer.</p>
+<h3>Know what “Send” does</h3><p>Sending a message asks the assistant to process it. It does not mean you have approved the answer, accepted a project change, published a website, or authorised a real-world action.</p>
+
+<h2 id="modes">3. Choose the right mode</h2>
+<table><thead><tr><th>Mode</th><th>Use it when…</th><th>How it feels</th></tr></thead><tbody>
+<tr><td><strong>Simple chat</strong></td><td>You have a question, need an explanation, want to draft text, or need practical help.</td><td>Like a normal conversation. No required sequence of stages.</td></tr>
+<tr><td><strong>Expert method</strong></td><td>You face an important decision and want to examine options, challenge assumptions, test ideas, and record what you learn.</td><td>A guided, step-by-step decision process. You move forward when you are ready.</td></tr>
+<tr><td><strong>Project workspace</strong></td><td>You want to define a project, organise requirements and risks, create a plan, track approvals and tasks, or prepare a source-code package.</td><td>A separate workspace with project records and explicit human confirmations.</td></tr>
+</tbody></table>
+<p>Use the <strong>Mode</strong> control in the top bar to switch between available modes. Choose <strong>Back to mode selection</strong> to return to the start screen. If Project is shown as unavailable, this BiForge installation has not enabled it; this is not a problem with your browser.</p>
+
+<h2 id="simple">4. Simple mode: step by step</h2>
+<h3>4.1 Start a conversation</h3><ol><li>Choose <strong>Simple chat</strong>.</li><li>If you see the empty start screen, select <strong>Start conversation</strong>.</li><li>Type one clear request into the message box.</li><li>Press <strong>Send</strong>.</li><li>Read the answer and continue the conversation as needed.</li></ol>
+<h3>4.2 Improve the answer</h3><p>Use follow-up messages to narrow or correct the response. Examples:</p><ul><li>“Keep the answer under 200 words.”</li><li>“Assume I am a complete beginner.”</li><li>“Separate confirmed facts from assumptions.”</li><li>“Give me three alternatives and explain the trade-offs without choosing for me.”</li><li>“Please revise the previous answer using this correction: …”</li></ul>
+<h3>4.3 Start a fresh conversation</h3><p>Choose <strong>New</strong> in the top bar. This starts a new dialogue rather than continuing the current thread. If you need the earlier conversation later, check <strong>History</strong> or export a copy first.</p>
+<h3>4.4 Use Simple mode for everyday work</h3><p>Simple mode is a good place to ask for explanations, brainstorm ideas, translate or improve text, prepare a checklist, compare options, or get help understanding a document. For high-impact choices, ask for risks and uncertainties and verify important facts independently.</p>
+
+<h2 id="expert">5. Expert mode: the decision method</h2>
+<p>Expert mode is designed for decisions that deserve more care than a quick chat. It guides you through five broad loops: <strong>Understand</strong> (make the situation clear), <strong>Expand</strong> (explore options), <strong>Attack</strong> (stress-test assumptions), <strong>Verify</strong> (test ideas and evidence), and <strong>Learn</strong> (record the decision, plan, and lessons). The exact screen may use labels such as <strong>Your story</strong>, <strong>Clarify</strong>, <strong>Options</strong>, <strong>Stress-test</strong>, <strong>Test ideas</strong>, <strong>Decide</strong>, <strong>Plan</strong>, and <strong>Learn</strong>.</p>
+<div class="callout"><strong>Important:</strong> Expert mode does not make the decision for you. The assistant helps structure the thinking; you supply your values and constraints, review the evidence, and own the final choice.</div>
+<h3>5.1 Describe the decision</h3><ol><li>Choose <strong>Expert method</strong> from the Mode menu.</li><li>Describe the situation in your own words. Say what decision you face and what makes it difficult.</li><li>Include a deadline, budget, people affected, or non-negotiable constraints if they matter.</li><li>Read the resulting summary. Correct it if it changes your meaning or leaves out something important.</li></ol>
+<h3>5.2 Understand and clarify</h3><p>The assistant helps separate facts, unknowns, assumptions, goals, and constraints. Answer questions when you can. If you do not know an answer, say “I don’t know” rather than guessing. Check that the assistant’s description is fair and neutral before relying on it.</p>
+<h3>5.3 Explore options</h3><p>Review the possible paths. Add options the assistant missed, remove unrealistic options, and explain practical limits. You do not have to accept every suggestion just because it appears on screen.</p>
+<h3>5.4 Stress-test the options</h3><p>Look for objections, failure scenarios, hidden costs, and assumptions that could be wrong. Consider what might make each option fail. The purpose is not to be negative; it is to discover problems while there is still time to respond.</p>
+<h3>5.5 Test ideas and evidence</h3><p>Where appropriate, define what evidence would support or weaken an idea. Ask what can be checked, what result would count as success, and what would change your mind. Do not treat an untested prediction as a fact.</p>
+<h3>5.6 Decide</h3><p>Review the trade-offs and record your own decision, including the reason if useful. The assistant may help make the wording clearer, but it must not substitute its preferences for yours.</p>
+<h3>5.7 Create and review the plan</h3><p>Read the proposed work plan. Edit it until the actions, owners, timing, and conditions are realistic. Export it if you need to share or store it elsewhere.</p>
+<h3>5.8 Learn from the outcome</h3><p>When you have new evidence or the result of your decision, record what happened and what differed from expectations. You can start another cycle if the situation has changed or a new decision is needed.</p>
+<h3>5.9 Move through the stages</h3><ul><li>Use the Expert stage navigation to revisit earlier stages when available.</li><li>The method does not automatically move forward just because you chat. Complete or review the current stage and use the stage controls when you are ready.</li><li>The open conversation area remains available for questions and clarifications during the process.</li><li>If you are unsure what a stage asks for, ask BiForge to explain the task in plain English before proceeding.</li></ul>
+<h3>5.10 Save or remove a decision dialogue</h3><p>Use the top-bar export options to save a copy. Expert mode also provides a <strong>Decision brief</strong> in <strong>More</strong> when enough information exists. Use <strong>Delete dialogue</strong> only when you really want to remove that dialogue from the local workspace.</p>
+
+<h2 id="project">6. Project mode: build and manage a project</h2>
+<p>Project mode is a separate workspace. It may require you to sign in with the application password configured by the person who runs this BiForge installation. If you do not have access, ask that administrator. Project mode can be disabled on some installations.</p>
+<h3>6.1 Sign in</h3><ol><li>Open <strong>Project workspace</strong> from the Mode menu.</li><li>If prompted, enter the application password supplied by the administrator and choose <strong>Sign in</strong>.</li><li>Never send that password to the AI in a chat message.</li></ol>
+<h3>6.2 Choose a project-building path</h3><p>When no project is selected, BiForge offers two paths:</p><ul><li><strong>Simple words</strong> — recommended for beginners. Describe the idea, answer a few guided questions, review the summary, and ask BiForge to create the project and prepare a source ZIP if the server supports it.</li><li><strong>Professional</strong> — for people who want more direct control. Enter a project name and optional goal, create the project, then work with the description, analysis, plans, tasks, and delivery tools.</li></ul>
+<h3>6.3 Beginner path: Simple words</h3><ol><li><strong>What do you want to build?</strong> Describe the idea in everyday language. Include the main purpose and what a user should be able to do. You need at least a short description before Next becomes available.</li><li><strong>Choose the product type.</strong> Select the closest match from the choices shown. If none is perfect, choose the nearest one and clarify the difference in your idea.</li><li><strong>Answer the practical setup questions.</strong> Choose whether people need to sign in, whether the app needs to store data in a database, and the interface language (English, Russian, or another/mixed language). If you are unsure, choose “Not sure” rather than guessing. Add optional constraints such as “must be free to run,” “must work on a phone,” or “no paid APIs.”</li><li><strong>Choose a technical shape.</strong> If you do not understand the options, leave <strong>Choose for me</strong> selected. You can change this later with more knowledge.</li><li><strong>Review the summary.</strong> Check that the generated goal, inputs and outputs, and constraints describe what you actually want.</li><li>Select <strong>Create project &amp; build ZIP</strong>. Wait for the result. Do not close the page while it is working.</li><li>If a source ZIP is produced, choose <strong>Download source ZIP</strong> and save it somewhere you can find again. Read the deployment instructions displayed below the download link.</li><li>Use the project list and workspace for further analysis or professional tools when needed.</li></ol>
+<p>A ZIP file is a package of files, not a live website. Creating or downloading it does <strong>not</strong> publish it to the internet, upload it to GitHub, or deploy it to a hosting provider.</p>
+<h3>6.4 Professional path: create a project</h3><ol><li>Choose <strong>Professional</strong>.</li><li>Enter a short, recognisable project name. This field is required.</li><li>Optionally enter the main goal. Be specific about the outcome you want.</li><li>Choose <strong>Create project</strong>.</li><li>Select the project in the project list to open its details. Choose <strong>All projects</strong> to return to the list.</li></ol>
+<h3>6.5 Review the project description</h3><p>The project description is the shared starting point for later analysis. Review the <strong>Goal</strong> field. Open <strong>Advanced parameters</strong> to review the project type, intended users, inputs and outputs, constraints, security and data requirements, success criteria, request/token/code-run limits, how code is written, and how involved you want to be.</p><ol><li>Edit any field that is incomplete or incorrect.</li><li>Choose <strong>Save description</strong> to save edits without confirming the description.</li><li>When it accurately represents the project, choose <strong>Confirm description</strong>. Analysis is unavailable until the description is confirmed.</li><li>If you change important requirements later, review and save the description again before relying on subsequent results.</li></ol>
+<h3>6.6 Run an analysis</h3><ol><li>In <strong>What should we analyse?</strong>, write one clear question or task. For example: “Identify the main risks and missing requirements before we build the first version.”</li><li>If useful, attach project files in the Workspace files area and confirm that the assistant may read them (see the Files section below).</li><li>Choose <strong>Run analysis</strong> and wait for completion.</li><li>Read the proposed results. The assistant may suggest facts, unknowns, hypotheses, risks, requirements, and other project items.</li><li>Check each suggestion. Select <strong>Confirm</strong> only if it is accurate enough to keep; select <strong>Reject</strong> if it is wrong or unsuitable. A proposed item is not accepted automatically.</li><li>Record a decision made by you or your team in <strong>Your decision</strong>, then choose <strong>Add decision</strong>. This records a human decision; it is not a decision made by the model.</li></ol>
+<h3>6.7 Understand the project tabs</h3><ul><li><strong>Results</strong> — review proposed facts, unknowns, hypotheses, risks, requirements, and recorded decisions. Confirm or reject proposed items here.</li><li><strong>Plan</strong> — choose <strong>Create a simple plan</strong> to prepare a proposed plan. Review the plan and any pending approvals. Use <strong>Approve</strong> only when you understand and accept the requested action; use <strong>Reject</strong> when you do not. A plan must be approved before its tasks can run.</li><li><strong>Tasks</strong> (shown within the Plan area) — when a task is ready, choose <strong>Start task</strong> to queue it. After it runs, inspect the actual output. Use <strong>Mark as passed</strong> only after checking the acceptance evidence and criteria. Use <strong>Mark as failed</strong> if the criteria were not met. BiForge asks you to enter concrete evidence; do not mark a task as passed merely to clear the status.</li><li><strong>Code package</strong> — review code-generation or delivery hand-off information when available. Download the resulting package if offered, inspect it, and follow the manual instructions. Capabilities depend on the server configuration.</li><li><strong>Files</strong> — open saved project artifacts and versions. If Google Drive is configured, you can explicitly save an artifact to Drive.</li><li><strong>Advanced</strong> — exposes raw project JSON. This is for people who understand the data format. Incorrect JSON can damage project state; beginners should leave it alone.</li></ul>
+<h3>6.8 Create a program or source package</h3><p>If the <strong>Create a program</strong> area is available, describe the program you want and request a build. Wait for the result. If a downloadable ZIP is offered, download it and inspect its contents. If no ZIP is produced, read the status message and check the server's available capabilities. Do not assume every deployment has every build or execution feature.</p>
+<h3>6.9 Approvals, budgets and safety</h3><p>Project mode intentionally separates suggestions from approvals. Read what an approval is for before acting. A budget approval may ask you to enter a new numeric limit; enter only a limit you understand and are willing to authorise. Reject or cancel if you are unsure. Do not approve a task or budget just because the button is available.</p>
+<h3>6.10 Google Drive and sign-out</h3><ul><li>Use the Google Drive control to connect if it is configured for this server. A Google sign-in window may open.</li><li>Project files are saved to Drive only when you use an explicit save action. The application does not silently publish a project to GitHub or deploy it for you.</li><li>The connection may be available only while this browser tab is open. Read the status message in the workspace.</li><li>Choose <strong>More → Sign out</strong> when finished on a shared computer.</li></ul>
+<h3>6.11 Delete a project</h3><p>In the project list, open the <strong>⋯</strong> menu next to a project and choose <strong>Delete project</strong>. Read the confirmation carefully. Deleting a project and its data cannot be undone. If you may need it later, export or save the relevant files first.</p>
+
+<h2 id="files">7. Files and attachments</h2>
+<h3>7.1 Attach files to a conversation</h3><ol><li>Use <strong>Attach files</strong> near the message box, or open the available file/workspace control.</li><li>Select the files you want the assistant to consider. On supported desktop browsers, you may also be able to import a whole project folder through <strong>More → Import → Project folder (desktop)</strong>.</li><li>For a project archive, attach one ZIP at a time. BiForge may unpack it into a local workspace.</li><li>Check the file list and remove anything irrelevant or sensitive.</li><li>In the workspace privacy panel, read the notice. Until you choose <strong>I understand — let the assistant read these files</strong>, the workspace is not included in the model context.</li><li>After confirming, tell the assistant exactly what to do with the files, such as “Summarise the README” or “Find the configuration that controls the login page.”</li></ol>
+<p>Readable text from selected files may be sent to the AI provider when you use the assistant. Other files may be retained locally and described by name/type rather than read as text. Never include passwords, API keys, private keys, payment-card details, identity documents, or other information you would not want processed by the model.</p>
+<h3>7.2 Export a workspace</h3><ul><li><strong>Download all (.zip)</strong> downloads the files in the current workspace.</li><li><strong>Changes only</strong> downloads files that differ from the previous workspace version and a change list. It becomes available after a later version exists.</li><li><strong>Text diff</strong> downloads a readable text comparison with the previous version, when available.</li><li>Store downloads in a known folder and use clear filenames so you can find them later.</li></ul>
+<h3>7.3 Google Drive</h3><p>Drive features are optional and depend on server configuration and your Google access. Use the Drive button or an explicit <strong>Save to Google Drive</strong> action. Read the status message to see whether a save succeeded. A cloud icon is not a guarantee that every local file has been uploaded.</p>
+
+<h2 id="topbar">8. Top bar, history, import and export</h2>
+<h3>Mode</h3><p>Shows the current mode and opens the mode menu. Choose Simple chat, Expert method, or Project workspace if available. <strong>Back to mode selection</strong> returns to the mode chooser. When leaving Project mode, your projects remain on the server, but confirm before leaving if you have unsaved browser input.</p>
+<h3>New</h3><p>Starts a new conversation/decision dialogue. It does not mean “delete everything.” Use History or export to return to older work.</p>
+<h3>History</h3><p>Opens dialogues saved on this device. Select an item to reopen it. If History is disabled, the installation or current browser state does not provide it. History on this device is not the same as a server-wide account history; do not assume it appears on another device.</p>
+<h3>More → Export all</h3><ul><li><strong>Backup (.json)</strong> — a machine-readable backup. Use this format when you want to import BiForge data again.</li><li><strong>Readable text (.md)</strong> — a text/Markdown copy that is easy to read or edit.</li><li><strong>Word</strong> — a document for editing or sharing in a word processor.</li><li><strong>PDF</strong> — a fixed-layout document for reading or sharing.</li><li><strong>Google Docs</strong> — sends an export to Google Docs when that integration is configured.</li></ul><p>Choose a format, then follow the browser's download or save prompt. Keep backup files somewhere safe. An export is a copy; it does not automatically synchronise every future edit.</p>
+<h3>More → Import</h3><ul><li><strong>From backup (.json)</strong> — select a BiForge backup JSON file. Review any import/merge information before relying on the result.</li><li><strong>Project folder (desktop)</strong> — available only in supported desktop browsers. It loads a folder into the local workspace; it does not deploy the project.</li><li><strong>From Google Drive</strong> — available when the Drive integration is provided. Select or connect the appropriate Drive source and check the status message.</li><li><strong>From a file as a new dialogue</strong> — imports a supported text, Word, or PDF document as a new dialogue context. The assistant can still misunderstand the document, so verify important details.</li></ul>
+<h3>Saved texts on this device</h3><p>Opens texts saved from chats on this device. This is useful for retrieving a piece of generated text without searching through a whole conversation.</p>
+<h3>Your Gemini API key</h3><p>This optional setting may let you use your own Gemini API key if the installation supports it. Only use it if you understand the provider account and billing implications. Never paste API keys into ordinary chat messages. If you do not need this feature, leave it alone.</p>
+<h3>New tab and Close in this guide</h3><p><strong>New tab</strong> opens a separate copy of this guide so you can keep it beside BiForge. <strong>Close</strong> returns you to your work. You can reopen this guide any time through <strong>More → User guide</strong>.</p>
+
+<h2 id="privacy">9. Privacy and safe use</h2><ul><li><strong>Do not enter secrets.</strong> Avoid passwords, API keys, private keys, payment-card numbers, identity documents, and confidential information unless you have checked the applicable data-handling rules and explicitly intend to share it.</li><li><strong>Review file access.</strong> The workspace asks for permission before its readable contents are made available to the assistant. Only grant it when you are comfortable sharing those contents with the AI provider.</li><li><strong>Verify important claims.</strong> Check legal, medical, financial, security, employment, and other high-impact information against reliable sources or qualified professionals.</li><li><strong>Check generated code.</strong> A source ZIP is not proof that software is secure, correct, or ready for production. Test it, review dependencies and configuration, and protect real user data.</li><li><strong>Review before approving.</strong> In Expert and Project modes, a suggestion, plan, task result, or generated file is not automatically correct or approved.</li><li><strong>Publishing is manual.</strong> BiForge does not automatically push your code to GitHub or deploy it to a hosting service. Follow the instructions and perform those actions yourself.</li><li><strong>Understand where things are stored.</strong> Simple/Expert conversations and workspace files may be stored locally in your browser; Project data is stored on the server. Drive actions depend on configuration. Export important work if you need a separate copy.</li><li><strong>Shared devices.</strong> Sign out of Project mode and avoid leaving sensitive files or conversations open where others can access them.</li></ul>
+
+<h2 id="troubleshooting">10. Troubleshooting</h2>
+<table><thead><tr><th>What you see</th><th>What to try</th></tr></thead><tbody>
+<tr><td><strong>Project is unavailable</strong></td><td>The server may have Project mode disabled, or your account may not be authorised. Ask the BiForge administrator. Simple and Expert may still work.</td></tr>
+<tr><td><strong>Sign-in fails</strong></td><td>Check that you are using the application password supplied by the administrator. Do not send it in chat. If it still fails, contact the administrator.</td></tr>
+<tr><td><strong>Run analysis is disabled</strong></td><td>Confirm the project description first, then enter a non-empty analysis task.</td></tr>
+<tr><td><strong>Confirm/Reject buttons are missing</strong></td><td>They appear only for items that are still proposed. Already reviewed items may not offer the same actions.</td></tr>
+<tr><td><strong>A task cannot start</strong></td><td>Check its status and any displayed blocked reason. The plan may need approval, a required capability may be unavailable, or a limit may have been reached.</td></tr>
+<tr><td><strong>Task completed but I am unsure it worked</strong></td><td>Inspect the actual output and acceptance criteria. Do not mark it passed until you can enter concrete evidence.</td></tr>
+<tr><td><strong>No source ZIP appears</strong></td><td>Read the build status and note. Code generation may be disabled or unavailable in this deployment, or the request may not have produced a package.</td></tr>
+<tr><td><strong>Drive is not connected</strong></td><td>Check whether Drive is configured for this server, allow the sign-in window if expected, and try the explicit Connect/Save action again. Read the resulting status message.</td></tr>
+<tr><td><strong>Import or export does not work</strong></td><td>Check the file type, browser download permissions, available storage, and any error message. Use JSON for a BiForge backup that you plan to re-import.</td></tr>
+<tr><td><strong>Save rejected or data changed</strong></td><td>The project may have changed in another tab or window. Reload the project and review the latest values before trying again.</td></tr>
+<tr><td><strong>The assistant misunderstood me</strong></td><td>Explain what it misunderstood, provide the missing fact, and ask it to revise the answer. For a project, also update the project description if the underlying requirement has changed.</td></tr>
+<tr><td><strong>The page seems stuck</strong></td><td>Wait briefly, check your connection, and read any error/status message. If you reload, be aware that unsaved text in the current form may be lost.</td></tr>
+</tbody></table>
+
+<h2 id="glossary">11. Small glossary</h2><dl><dt>AI assistant / model</dt><dd>The software that reads your request and generates a response. It can be useful but can also be wrong.</dd><dt>Prompt</dt><dd>The instruction or question you send to the assistant.</dd><dt>Context</dt><dd>The information available to the assistant for the current task, such as your message and files you have allowed it to read.</dd><dt>Assumption</dt><dd>Something treated as true for the purpose of an answer even though it has not been confirmed.</dd><dt>Requirement</dt><dd>Something the project must do or a condition it must satisfy.</dd><dt>Artifact</dt><dd>A saved file or output produced during project work.</dd><dt>Plan</dt><dd>A proposed sequence of tasks. In Project mode it requires human approval before tasks can run.</dd><dt>Task validation</dt><dd>A human check of whether the task output meets its acceptance criteria.</dd><dt>Source ZIP</dt><dd>A downloadable archive of source files. It is not a live or deployed application.</dd><dt>Deploy / publish</dt><dd>Make a software application available on a hosting service or to real users. This is a separate step from generating a ZIP.</dd></dl>
+
+
+<h2 id="lab-escape">12. Your first project: build Lab Escape</h2>
+<p>You are going to try a real project from beginning to end: a small browser escape-room game called <strong>Lab Escape: The Last Keycard</strong>. The goal is to learn how to describe an idea, review what BiForge understood, request a build, test the result, and improve it. You do not need to know how to code.</p>
+<div class="callout"><strong>A realistic promise:</strong> this is a deliberately small project, not a guarantee that every BiForge installation can generate a working game in one click. Project Mode features depend on the server configuration and generated code can contain mistakes. If a step or button is unavailable, follow the capability notes in Section 6 and ask the administrator which project-building features are enabled.</div>
+<h3>12.1 What you are going to build</h3>
+<p>You are trapped in a small science laboratory. To escape, you must discover a clue, enter a code into an electrical panel, restore power, obtain an access card from a terminal, and unlock the exit.</p>
+<p>The first version should contain:</p><ul><li>One screen showing a single laboratory room.</li><li>Four clickable objects: a desk, an electrical panel, a terminal, and an exit door.</li><li>A simple puzzle whose clue is found at the desk.</li><li>A small inventory or status area showing what you have discovered.</li><li>Clear messages explaining what happens after each action.</li><li>A victory screen when the exit is unlocked.</li><li>A <strong>Restart</strong> button so you can play again.</li></ul>
+<p>To keep the first attempt manageable, do <strong>not</strong> add accounts, online scores, a database, multiplayer, paid services, external APIs, or complicated animation. You can add extras after the basic game works.</p>
+<h3>12.2 Open Project Mode</h3><ol><li>Choose <strong>Project workspace</strong> from the <strong>Mode</strong> menu.</li><li>If BiForge asks you to sign in, use the application password supplied by the administrator. Never paste that password into the AI chat.</li><li>If the project-building choices appear, choose <strong>Simple words</strong>. It is designed for describing an idea without technical language.</li><li>If Project Mode or Simple words is not available, do not try to bypass the restriction. Use the available mode or ask the administrator whether project creation and ZIP generation are enabled.</li></ol>
+<h3>12.3 Describe the game in your own words</h3><p>In the <strong>What do you want to build?</strong> field, enter the following request. You can copy and paste it as written:</p>
+<div class="example"><p>Build a small browser game called “Lab Escape: The Last Keycard”. The player is locked in a science laboratory and must escape by solving one simple puzzle. Make a single-screen escape-room game with four clickable objects: a desk, an electrical panel, a terminal, and an exit door. The desk reveals a clue. The player uses the clue to enter a code into the electrical panel and restore power. The powered terminal provides an access card. The player can use the access card to unlock the exit and win. Show clear messages after every action, show collected items or progress, include a Restart button, and display a victory message when the puzzle is complete. Use a simple, attractive science-lab theme that works on desktop and mobile screens. Keep the game small and easy to understand. Do not add accounts, a database, online features, paid services, external APIs, or unnecessary dependencies. The game should run locally if the generated package supports that. Include clear instructions for running and testing it.</p></div>
+<p>This is a <strong>prompt</strong>: a written instruction for the AI. It describes the goal, the main interactions, and what to leave out. You do not need to know the technical details to ask for a useful result.</p>
+<h3>12.4 Choose the product type and answer the setup questions</h3><ol><li>Choose the closest product type offered by BiForge, such as a small web application or browser-based tool. The exact choices may vary by installation.</li><li>If asked whether users need to sign in, choose <strong>No</strong> for this game.</li><li>If asked whether the project needs a database, choose <strong>No</strong>.</li><li>Choose <strong>English</strong> for the interface, unless you want to practise another language.</li><li>If asked about technical setup, choose <strong>Choose for me</strong> if you are unsure.</li><li>Add or keep these constraints if the form offers them: <strong>small first version</strong>, <strong>mobile-friendly</strong>, <strong>no external APIs</strong>, <strong>no paid services</strong>, and <strong>no user accounts</strong>.</li><li>Continue to the project summary.</li></ol><p>Do not worry if a label is slightly different. Read the available options and choose the closest match. If a question is unclear, ask BiForge to explain it before proceeding.</p>
+<h3>12.5 Review the project summary before creating anything</h3><p>Read the summary slowly. Check these points:</p><ul><li>Is the project a small browser game, not a large online game?</li><li>Does it include the desk clue, code panel, powered terminal, access card, and exit?</li><li>Does the game have a clear win condition and a Restart button?</li><li>Does it avoid accounts, a database, external APIs, and paid services?</li><li>Does it include instructions for running and testing the result?</li></ul><p>If something is wrong, go back and correct the description. You can also ask BiForge:</p><div class="example"><p>Please revise the project summary so it matches my original request. Keep the first version small. Do not add features I did not ask for. List any requirement you cannot support or are uncertain about.</p></div><p>When the summary matches your idea, choose <strong>Create project &amp; build ZIP</strong> if that action is available. Wait for the operation to finish and read the status message. Do not assume the build succeeded just because you clicked the button.</p>
+<h3>12.6 If you use the Professional path instead</h3><p>If you chose <strong>Professional</strong>, create a project with a recognisable name such as <strong>Lab Escape — The Last Keycard</strong> and set its goal to <strong>Create a small, locally runnable browser escape-room game for beginners</strong>. Save and confirm the project description before running analysis.</p><p>For the analysis task, you can use:</p><div class="example"><p>Review the requirements for Lab Escape: The Last Keycard. Identify missing requirements, likely implementation risks, and a small first-version plan. Keep the game to one room, four clickable objects, one code puzzle, an inventory/status area, a victory state, and a Restart button. Do not add accounts, a database, online features, external APIs, or paid services. Separate confirmed requirements from assumptions and tell me if any requested capability may not be available.</p></div><p>Read the results and confirm only suggestions that are accurate. Reject suggestions that change the game into something larger or different. Then create a simple plan if that option is available. Review every task and approval before starting it. If a task asks you to approve an action you do not understand, stop and ask for an explanation.</p>
+<h3>12.7 Download and inspect the result</h3><p>If BiForge provides <strong>Download source ZIP</strong>, download it to a folder you can find again, such as <strong>Downloads/Lab-Escape</strong>. A ZIP is a package of source files; it is not automatically a published website.</p><ol><li>Open the downloaded ZIP in your computer's file manager.</li><li>Extract it to a new folder. Do not edit files while they are still inside the ZIP.</li><li>Look for a <strong>README</strong> or other run instructions. Read them before opening or running anything.</li><li>If the package is a simple static web game and includes an <code>index.html</code>, the instructions may tell you to open that file in a browser. If it includes <code>package.json</code>, a build folder, or other setup files, follow the package's instructions instead; it may require a local development server or installed tools.</li><li>If you are unsure, return to BiForge and ask it to explain the exact files it generated and the safest way to run the game on your computer. Do not run unknown scripts with administrator privileges.</li></ol><p>If no ZIP is offered, read the displayed status and the <strong>Code package</strong> or <strong>Create a program</strong> notes in Section 6. This may mean code generation is not enabled for this BiForge installation. Do not claim the game has been built until you can inspect an actual output.</p>
+<h3>12.8 Play-test the game like a detective</h3><p>Try the game from a fresh start. Use this checklist and record what happens:</p><ol><li><strong>The desk:</strong> clicking it reveals a clue or code hint.</li><li><strong>Wrong code:</strong> entering an incorrect code does not restore power.</li><li><strong>Correct code:</strong> entering the correct code restores power and changes the game's status.</li><li><strong>The terminal:</strong> before power is restored, it should explain why it cannot provide the access card. After power is restored, it should provide the card.</li><li><strong>The exit:</strong> the door must stay locked until the player has the access card.</li><li><strong>Victory:</strong> using the card at the exit completes the game and shows a clear victory message.</li><li><strong>Restart:</strong> the Restart button returns the game to its initial state; the clue, power, card, and victory state are reset.</li><li><strong>Usability:</strong> text is readable, controls are clear, and the game is usable on a narrow browser window as well as a desktop screen.</li></ol><p>If any item fails, the game is not finished yet. This is normal: generating a first version is the start of testing, not the end.</p>
+<h3>12.9 Ask BiForge to fix one problem at a time</h3><p>Describe the observed problem, not just “the game is broken”. For example, if the door opens too early, send this request:</p><div class="example"><p>Fix this specific bug: the exit door currently opens before the player has collected the access card. The door must remain locked until the access-card item is in the inventory. After the change, explain which file or logic was changed and how I can test that the door stays locked before collecting the card and opens afterward. Do not change unrelated game features.</p></div><p>If the game is generated as a project that supports follow-up code changes, ask BiForge to make the fix and provide a new package or explain where the changed files are. Replace your local copy only after you have saved a backup of the version that worked. Then repeat the relevant checklist items.</p>
+<h3>12.10 Make your first improvement</h3><p>Once the core game works, choose <strong>one</strong> improvement. Do not ask for everything at once. Here are good beginner-sized ideas:</p><ul><li>Add a timer that starts when the game begins.</li><li>Add two difficulty settings with different puzzle codes.</li><li>Add a second clue hidden in the room.</li><li>Improve the colours, typography, and laboratory background.</li><li>Add simple sound effects with a mute button.</li><li>Add a short hint button for players who get stuck.</li></ul><p>Use a request like this:</p><div class="example"><p>Please add a Hint button to Lab Escape. It should give one small clue at a time without revealing the full answer immediately. Keep all existing game rules working. After making the change, tell me how to test the hint button and confirm that the player can still win and restart the game. Do not add external services or unrelated features.</p></div><p>After each improvement, replay the relevant tests. If the change breaks something that previously worked, ask BiForge to fix the regression before adding another feature.</p>
+<h3>12.11 What you have learned</h3><p>You have practised a complete small-project workflow:</p><ol><li>Describe a goal in plain language.</li><li>State the important requirements and limits.</li><li>Review the project description before building.</li><li>Inspect the generated files and follow their run instructions.</li><li>Test the actual behaviour instead of trusting a success message.</li><li>Report a specific bug, make a small change, and test again.</li></ol><p>You do not need to understand every line of code to begin. You do need to understand what the game should do, inspect the result, and keep control of decisions. That is the central habit this example is meant to teach.</p>
+
+<div class="callout final"><strong>When in doubt, take the safe next step:</strong> ask BiForge to explain, review the result, and do not approve or publish anything you do not understand. You do not need to be an expert to use BiForge well; clear questions and careful review are enough to get started.</div>
+`;
+
+const GUIDE_CSS = String.raw`
+:root{color-scheme:dark}*{box-sizing:border-box}body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.68;max-width:900px;margin:0 auto;padding:24px 22px 56px;background:#0d1b2a;color:#e6edf7;font-size:15px}h1{font-size:2rem;line-height:1.2;margin:.2em 0 .55em}h2{font-size:1.4rem;line-height:1.3;margin:2.2em 0 .65em;padding-bottom:.4em;border-bottom:1px solid #28527c;color:#f1f6ff;scroll-margin-top:16px}h3{font-size:1.08rem;margin:1.5em 0 .4em;color:#9fd8ff}p{margin:.6em 0 .9em}li{margin:.35em 0}ul,ol{padding-left:1.5em}a{color:#8fc8ff;text-decoration:underline;text-underline-offset:2px}strong{color:#fff}code{background:#07111f;padding:2px 5px;border-radius:4px}table{border-collapse:collapse;width:100%;margin:1em 0 1.4em;font-size:.93rem}th,td{border:1px solid #31506e;padding:10px 12px;text-align:left;vertical-align:top}th{background:#142b43;color:#fff}tr:nth-child(even) td{background:#0b1929}.lead{font-size:1.12rem;color:#d1e2f5}.callout{margin:1.2em 0;padding:14px 16px;border:1px solid #3d7fc4;border-left:4px solid #78baff;border-radius:8px;background:#0b2545}.callout.final{margin-top:2em}.example{border:1px solid #294663;border-radius:8px;padding:8px 14px;background:#0a1726}.toc{border:1px solid #294663;border-radius:10px;background:#0a1726;padding:16px 20px;margin:1.5em 0}.toc ol{columns:2;column-gap:30px}.toc li{break-inside:avoid}.toc a{text-decoration:none}.toc a:hover{text-decoration:underline}dt{font-weight:700;color:#9fd8ff;margin-top:.8em}dd{margin-left:1.2em;color:#d3deeb} @media(max-width:620px){body{padding:18px 15px 40px;font-size:14px}h1{font-size:1.65rem}h2{font-size:1.25rem}.toc ol{columns:1}table{font-size:.85rem}th,td{padding:7px}.guide-shell{padding:12px!important}}
+`;
+
 export function UserGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
     const prevPos = document.body.style.position;
     document.body.style.overflow = 'hidden';
-    // Reduce background scroll on iOS/Android while guide is open
     document.body.style.position = 'relative';
     return () => {
       document.removeEventListener('keydown', onKey);
@@ -27,14 +155,7 @@ export function UserGuideModal({ open, onClose }: { open: boolean; onClose: () =
   }, [open, onClose]);
 
   const openInNewTab = useCallback(() => {
-    const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>BiForge User Guide</title>
-<style>
-body{font-family:system-ui,-apple-system,sans-serif;line-height:1.6;max-width:720px;margin:24px auto;padding:0 16px 48px;background:#0d1b2a;color:#e6edf7}
-h1{font-size:1.5rem}h2{font-size:1.2rem;margin-top:1.6em;border-bottom:1px solid #1f4f86;padding-bottom:6px}
-h3{font-size:1.05rem;margin-top:1.2em;color:#9fd8ff}table{border-collapse:collapse;width:100%;font-size:0.9rem}
-th,td{border:1px solid #25405e;padding:6px 8px;text-align:left}th{background:#10243a}
-code{background:#07111f;padding:1px 4px;border-radius:4px}a{color:#78baff}ul,ol{padding-left:1.3em}
-</style></head><body>${guideHtmlForPrint()}</body></html>`;
+    const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>BiForge User Guide</title><style>${GUIDE_CSS}</style></head><body>${GUIDE_HTML}</body></html>`;
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -42,135 +163,21 @@ code{background:#07111f;padding:1px 4px;border-radius:4px}a{color:#78baff}ul,ol{
   }, []);
 
   if (!open) return null;
-
   return (
-    <div
-      className="user-guide-root"
-      role="dialog"
-      aria-modal="true"
-      aria-label="BiForge quick guide"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 3000,
-        display: 'flex',
-        flexDirection: 'column',
-        background: '#07111f',
-        color: '#e6edf7',
-        width: '100%',
-        height: '100%',
-        maxHeight: '100dvh',
-      }}
-    >
-      <div
-        className="user-guide-toolbar"
-        style={{
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 10,
-          padding: '12px 14px',
-          paddingTop: 'max(12px, env(safe-area-inset-top))',
-          borderBottom: '1px solid #1f4f86',
-          background: '#0d1b2a',
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: 17, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}>
-          <CircleHelp size={18} aria-hidden /> BiForge quick guide
-        </h1>
+    <div className="user-guide-root" role="dialog" aria-modal="true" aria-label="BiForge User Guide" style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', flexDirection: 'column', background: '#07111f', color: '#e6edf7', width: '100%', height: '100%', maxHeight: '100dvh' }}>
+      <style>{`.user-guide-content{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.68;font-size:15px;color:#e6edf7}.user-guide-content h1{font-size:27px;line-height:1.2;margin:.2em 0 .55em}.user-guide-content h2{font-size:20px;line-height:1.3;margin:2em 0 .65em;padding-bottom:.4em;border-bottom:1px solid #28527c;color:#f1f6ff;scroll-margin-top:10px}.user-guide-content h3{font-size:16px;margin:1.5em 0 .4em;color:#9fd8ff}.user-guide-content p{margin:.6em 0 .9em}.user-guide-content li{margin:.35em 0}.user-guide-content ul,.user-guide-content ol{padding-left:1.5em}.user-guide-content a{color:#8fc8ff;text-underline-offset:2px}.user-guide-content strong{color:#fff}.user-guide-content table{border-collapse:collapse;width:100%;margin:1em 0 1.4em;font-size:.92em}.user-guide-content th,.user-guide-content td{border:1px solid #31506e;padding:9px 10px;text-align:left;vertical-align:top}.user-guide-content th{background:#142b43}.user-guide-content tr:nth-child(even) td{background:#0b1929}.user-guide-content .lead{font-size:1.08em;color:#d1e2f5}.user-guide-content .callout{margin:1.2em 0;padding:14px 16px;border:1px solid #3d7fc4;border-left:4px solid #78baff;border-radius:8px;background:#0b2545}.user-guide-content .callout.final{margin-top:2em}.user-guide-content .example,.user-guide-content .toc{border:1px solid #294663;border-radius:8px;padding:10px 14px;background:#0a1726}.user-guide-content .toc{padding:16px 20px;margin:1.5em 0}.user-guide-content .toc ol{columns:2;column-gap:26px}.user-guide-content .toc li{break-inside:avoid}.user-guide-content .toc a{text-decoration:none}.user-guide-content dt{font-weight:700;color:#9fd8ff;margin-top:.8em}.user-guide-content dd{margin-left:1.2em;color:#d3deeb}@media(max-width:620px){.user-guide-content{font-size:14px}.user-guide-content .toc ol{columns:1}.user-guide-content table{font-size:.84em}.user-guide-content th,.user-guide-content td{padding:6px}}`}</style>
+      <div className="user-guide-toolbar" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 14px', paddingTop: 'max(12px, env(safe-area-inset-top))', borderBottom: '1px solid #1f4f86', background: '#0d1b2a' }}>
+        <h1 style={{ margin: 0, fontSize: 17, display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}><CircleHelp size={18} aria-hidden /> BiForge User Guide</h1>
         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          <button type="button" className="ghost" onClick={openInNewTab} title="Open this guide in a new browser tab">
-            <ExternalLink size={14} /> <span className="lbl">New tab</span>
-          </button>
-          <button type="button" className="ghost" onClick={onClose} aria-label="Close user guide">
-            <X size={16} /> <span className="lbl">Close</span>
-          </button>
+          <button type="button" className="ghost" onClick={openInNewTab} title="Open this guide in a new browser tab"><ExternalLink size={14} /> <span className="lbl">New tab</span></button>
+          <button type="button" className="ghost" onClick={onClose} aria-label="Close user guide"><X size={16} /> <span className="lbl">Close</span></button>
         </div>
       </div>
-
-      {/* minHeight: 0 is required so this flex child can scroll on mobile Chrome */}
-      <div
-        className="user-guide-scroll"
-        style={{
-          flex: '1 1 auto',
-          minHeight: 0,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          WebkitOverflowScrolling: 'touch',
-          overscrollBehavior: 'contain',
-          padding: '16px 16px max(32px, env(safe-area-inset-bottom))',
-          maxWidth: 720,
-          width: '100%',
-          margin: '0 auto',
-          boxSizing: 'border-box',
-          fontSize: 15,
-          lineHeight: 1.65,
-        }}
-      >
-        <GuideBody />
-        <p style={{ color: '#8fa6c2', fontSize: 13, marginTop: 32, paddingBottom: 24 }}>
-          Quick guide. Use <strong>New tab</strong> to open a separate copy.
-        </p>
+      <div className="user-guide-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: '16px 16px max(32px, env(safe-area-inset-bottom))', maxWidth: 940, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+        <article className="user-guide-content" dangerouslySetInnerHTML={{ __html: GUIDE_HTML }} />
+        <p style={{ color: '#8fa6c2', fontSize: 12, marginTop: 28, paddingBottom: 20 }}>BiForge User Guide · You can reopen this manual at any time from More → User guide.</p>
       </div>
     </div>
-  );
-}
-
-function guideHtmlForPrint(): string {
-  return `
-<h1>BiForge quick guide</h1>
-<p>The AI suggests; <strong>you decide</strong>. Check important facts yourself. Do not enter passwords, card numbers, or ID documents.</p>
-<h2>Choose a mode</h2>
-<ul><li><strong>Simple</strong> — ask a question and chat freely.</li><li><strong>Expert</strong> — work through Understand, Explore, Challenge, Check, and Learn. Confirm suggestions yourself.</li><li><strong>Project</strong> — organise a project, confirm analysis, make a plan, and prepare files. You publish and deploy manually.</li></ul>
-<h2>Top bar</h2>
-<ul><li><strong>Mode</strong> switches modes.</li><li><strong>New</strong> starts a dialogue.</li><li><strong>Drive</strong> mirrors files only while this tab is open.</li><li><strong>History</strong> opens saved dialogues on this device.</li><li><strong>More</strong> contains import, export, saved texts, settings, and help.</li></ul>
-<h2>Quick tips</h2>
-<ul><li><strong>Simple:</strong> describe the situation; attach relevant files only when useful.</li><li><strong>Expert:</strong> follow the stages and confirm each step. The assistant does not choose for you.</li><li><strong>Project:</strong> confirm the project description before analysis; review suggestions before creating a plan.</li><li><strong>Export:</strong> use More → Export for a backup or readable copy.</li></ul>
-<h2>If something does not work</h2>
-<ul><li>Project unavailable — check whether this site has Project mode enabled.</li><li>Analysis blocked — confirm the project description.</li><li>Drive not syncing — reconnect and keep this tab open.</li><li>Save rejected — reload if the project changed in another window.</li></ul>
-<p>For advanced operational details, see the repository documentation. Project actions such as approvals and publishing always require your input.</p>`;
-}
-
-function GuideBody() {
-  const h2: React.CSSProperties = {
-    fontSize: 18, margin: '20px 0 8px', paddingBottom: 5,
-    borderBottom: '1px solid #1f4f86', color: '#e6edf7',
-  };
-  const muted: React.CSSProperties = { color: '#8fa6c2' };
-  return (
-    <article className="user-guide-article">
-      <p style={{ marginTop: 0 }}><strong>BiForge</strong> helps you think through decisions and organise projects. The AI suggests; <strong>you decide</strong>. Verify important facts and do not enter passwords, card numbers, or identity documents.</p>
-      <h2 style={h2}>Choose a mode</h2>
-      <ul>
-        <li><strong>Simple</strong> — ask a question and chat freely. Add files only when they help explain the situation.</li>
-        <li><strong>Expert</strong> — follow Understand → Explore → Challenge → Check → Learn. Review and confirm suggestions at each stage.</li>
-        <li><strong>Project</strong> — describe a project, confirm its analysis, create a plan, and prepare files. You publish and deploy manually.</li>
-      </ul>
-      <h2 style={h2}>Top bar</h2>
-      <ul>
-        <li><strong>Mode</strong> switches between modes.</li>
-        <li><strong>New</strong> starts a dialogue.</li>
-        <li><strong>Drive</strong> mirrors files only while this tab is open.</li>
-        <li><strong>History</strong> opens dialogues saved on this device.</li>
-        <li><strong>More</strong> contains import, export, saved texts, settings, and help.</li>
-      </ul>
-      <h2 style={h2}>Quick tips</h2>
-      <ul>
-        <li><strong>Simple:</strong> start with your question; add context as needed.</li>
-        <li><strong>Expert:</strong> move through the stages; chat clarifications do not advance a stage automatically.</li>
-        <li><strong>Project:</strong> confirm the project description before analysis. Review suggestions before planning.</li>
-        <li><strong>Export:</strong> choose More → Export for a backup or readable copy.</li>
-      </ul>
-      <h2 style={h2}>If something does not work</h2>
-      <ul>
-        <li><strong>Project unavailable</strong> — check whether this site has Project mode enabled.</li>
-        <li><strong>Analysis blocked</strong> — confirm the project description.</li>
-        <li><strong>Drive not syncing</strong> — reconnect and keep this tab open.</li>
-        <li><strong>Save rejected</strong> — reload if the project changed in another window.</li>
-      </ul>
-      <p style={{ ...muted, marginBottom: 0 }}>Advanced operational details are in the repository documentation. Approvals and publishing always require your input.</p>
-    </article>
   );
 }
 
