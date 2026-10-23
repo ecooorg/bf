@@ -34,6 +34,7 @@ import {
   enqueuePlanTask,
 } from './planService.ts';
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './taskService.ts';
+import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './contracts.ts';
