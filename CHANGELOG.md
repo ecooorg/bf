@@ -1,3 +1,11 @@
+## p77 — Phase 4 documentation generators (2026-10-23)
+
+- Generators: `scripts/docs/generate-inventories.mjs` → `docs/phase1/generated/{route,env,migration}-inventory.json` (75 routes, 54 env names, 14 migrations in this tree).
+- Check: `scripts/docs/check-inventories.mjs`; npm scripts `docs:generate`, `docs:check`.
+- `verify:change` runs inventory generate + check; preflight allows `scripts/docs/`.
+- Docs: `docs/phase4/PHASE4-GENERATORS.md`, INDEX / AGENTS / roadmap / SPEC updated.
+- No application behaviour or SQL changes.
+
 ## p76.1 — restore P43 AGENTS product facts (2026-10-23)
 
 - `AGENTS.md`: re-added `model_patch` executor note and deferred **GitHub write** (ADR-06) required by `tests/security.test.mjs` P43; transformation status (p76 / roadmap) kept.
