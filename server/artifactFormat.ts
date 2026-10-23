@@ -11,7 +11,7 @@ export const MAX_ARCHIVE_ENTRIES = 1000;
 
 export type ArtifactKind = 'text' | 'binary' | 'archive' | 'executable';
 export class ArtifactFormatError extends Error {
-  constructor(readonly code: 'FILENAME' | 'TOO_LARGE' | 'LIMIT' | 'EMPTY_INPUT' | 'NOT_TEXT' | 'TOO_MANY_LINES', message: string) { super(message); }
+  constructor(readonly code: 'FILENAME' | 'TOO_LARGE' | 'LIMIT' | 'EMPTY_INPUT' | 'NOT_TEXT' | 'TOO_MANY_LINES' | 'ZIP_INVALID', message: string) { super(message); }
 }
 
 export const sha256Hex = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex');
@@ -95,6 +95,26 @@ export function listZipEntries(data: Uint8Array): { entries: Array<{ name: strin
     p += 46 + len + extra + comment;
   }
   return { entries, truncated: total > entries.length };
+}
+
+/** Strict validation for downloadable project ZIPs. Checks a real central directory and, when supplied, required paths. */
+export function validateZipArchive(data: Uint8Array, expectedNames: string[] = []): { entries: Array<{ name: string; unsafe: boolean }>; size: number } {
+  if (!data || data.length < 22 || !startsWith(data, [0x50, 0x4b, 0x03, 0x04])) {
+    throw new ArtifactFormatError('ZIP_INVALID', 'ZIP archive is empty or has no local-file signature');
+  }
+  const archive = listZipEntries(data);
+  if (!archive || archive.entries.length === 0 || archive.truncated) {
+    throw new ArtifactFormatError('ZIP_INVALID', 'ZIP archive has no complete, readable file list');
+  }
+  if (archive.entries.some((entry) => entry.unsafe)) {
+    throw new ArtifactFormatError('ZIP_INVALID', 'ZIP archive contains an unsafe file path');
+  }
+  const names = new Set(archive.entries.map((entry) => entry.name));
+  const missing = expectedNames.filter((name) => !names.has(name));
+  if (missing.length) {
+    throw new ArtifactFormatError('ZIP_INVALID', `ZIP archive is missing expected files: ${missing.slice(0, 10).join(', ')}`);
+  }
+  return { entries: archive.entries, size: data.length };
 }
 
 export const storageRefOf = (rowId: string) => `pg:${rowId}`;

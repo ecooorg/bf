@@ -5,6 +5,7 @@
 import JSZip from 'jszip';
 import { parseAppIr, resolveStack, type AppIr } from './appBuilderIr.ts';
 import { materializeScaffold } from './appBuilderScaffolds.ts';
+import { validateZipArchive } from './artifactFormat.ts';
 
 export type PipelineStep = {
   id: string;
@@ -121,10 +122,15 @@ export async function runAppBuilderPipeline(input: {
   const zipBuffer = await step(
     'assemble_zip',
     async () => {
+      const sourceEntries = Object.entries(files);
+      if (!sourceEntries.length) throw new Error('No files were generated; refusing to create an empty project ZIP');
+      const hasSource = sourceEntries.some(([path, content]) =>
+        /\.(html?|[cm]?js|[cm]?ts|tsx|jsx|css|py|vue|svelte)$/i.test(path) && typeof content === 'string' && content.trim().length > 0,
+      );
+      if (!hasSource) throw new Error('Generated project contains no non-empty source-code file');
+
       const zip = new JSZip();
-      for (const [path, content] of Object.entries(files)) {
-        zip.file(path, content);
-      }
+      for (const [path, content] of sourceEntries) zip.file(path, content);
       zip.file(
         'BIFORGE-README.txt',
         [
@@ -136,7 +142,17 @@ export async function runAppBuilderPipeline(input: {
           '',
         ].join('\n'),
       );
-      return Buffer.from(await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } }));
+      const buffer = Buffer.from(await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } }));
+      const checked = validateZipArchive(buffer, [...Object.keys(files), 'BIFORGE-README.txt']);
+      const reopened = await JSZip.loadAsync(buffer);
+      for (const [path, expected] of sourceEntries) {
+        const entry = reopened.file(path);
+        if (!entry) throw new Error(`ZIP verification failed: missing ${path}`);
+        const actual = await entry.async('string');
+        if (actual !== expected) throw new Error(`ZIP verification failed: content mismatch for ${path}`);
+      }
+      log.push(`zip_verify:ok:${checked.entries.length}_entries:${checked.size}_bytes`);
+      return buffer;
     },
     steps,
     log,

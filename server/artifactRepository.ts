@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getPool } from './database.ts';
 import {
   ArtifactFormatError, MAX_ARTIFACT_BYTES, MAX_ARTIFACTS_PER_PROJECT, MAX_VERSIONS_PER_ARTIFACT, checkFilename, sha256Hex, sniffType,
-  securityStatusOf, previewOf, lineDiff, listZipEntries, manifestHashOf, storageRefOf, type Manifest,
+  securityStatusOf, previewOf, lineDiff, listZipEntries, validateZipArchive, manifestHashOf, storageRefOf, type Manifest,
 } from './artifactFormat.ts';
 
 /** Artifact Registry (BX-17.a minimal, BX-17.b full; TZ 10.1-10.4): versions, SHA-256, manifest, binary artifacts, tamper detection, limits. */
@@ -35,6 +35,10 @@ export async function saveArtifact(input: ArtifactInput) {
   const bytes = v.data ? Buffer.from(v.data) : Buffer.from(v.text ?? '', 'utf8');
   if (bytes.length > MAX_ARTIFACT_BYTES) throw new ArtifactFormatError('TOO_LARGE', 'Artifact is larger than 5 MB');
   const filename = checkFilename(v.filename);
+  // Never persist a payload labelled as a ZIP unless it is a readable, non-empty archive.
+  if (v.mime.toLowerCase() === 'application/zip' || filename.toLowerCase().endsWith('.zip')) {
+    validateZipArchive(bytes);
+  }
   const { mime, kind } = sniffType(bytes, v.mime);
   const hash = sha256Hex(bytes);
   const pool = await getPool();
