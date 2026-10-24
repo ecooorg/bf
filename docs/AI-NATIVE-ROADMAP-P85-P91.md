@@ -307,6 +307,8 @@ Avoid recomputing all derived architecture data after every small edit only when
 
 ## 10. P91 — Context completeness and material-uncertainty guard
 
+**P91 implementation status (2026-10-24):** prepared as a read-only `context:completeness` CLI that composes P85/P86/P87/P89 evidence into scoped `COMPLETE`, `PARTIAL` or `UNVERIFIED` results. Missing sources, stale generated artifacts, unaccounted-for expected dependencies, unverified acceptance criteria and unsupported PASS claims remain actionable issues. Referenced evidence metadata is retained but not fetched or authenticated. No strict CI gate is enabled. See `docs/CONTEXT-COMPLETENESS-P91.md`; focused tests and full CI must be reported separately.
+
 ### Goal
 
 Prevent a planner from mistaking “no relationship found” for “no relationship exists”, while keeping uncertainty reporting useful rather than alarming or verbose.
@@ -323,8 +325,8 @@ Each unresolved relationship should name the possible consequence, missing evide
 
 1. Define rules that cause Partial/Unverified: dynamic import or dispatch, unknown generator, absent test mapping, contract with untracked consumers, unresolved env/SQL/data access, stale generated artifact, benchmark gold dependency not found.
 2. Make P85/P86/P87 outputs propagate those states rather than dropping them at the next stage.
-3. Add adversarial tests where an edge is intentionally hidden, a generator is renamed, a test mapping is absent or an artifact is stale.
-4. Add an optional strict mode for CI only after false-positive/false-negative behavior is reviewed. Initially it should report; it must not block product CI based on unreviewed heuristics.
+3. Add adversarial tests where an edge is intentionally hidden, a generator is renamed, a test mapping is absent or an artifact is stale. The P91 pilot now covers absent sources, stale artifacts, missing expected dependencies, unverified criteria and unsupported PASS claims.
+4. Keep the first implementation report-only. Do not add an optional strict CI mode until false-positive/false-negative behavior is reviewed and the Navigator explicitly approves it.
 5. Use P84/P88 benchmark evidence to calibrate rules and avoid a guard that merely marks every task Unverified. Measure whether warnings change a decision or prevent rework; remove warnings that consistently add no value.
 
 ### Acceptance gates
