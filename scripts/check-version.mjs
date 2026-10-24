@@ -27,13 +27,16 @@ if (!/import\s*\{[^}]*APP_VERSION[^}]*\}\s*from\s*'\.\/src\/config/.test(server)
 }
 
 // CHANGELOG.md is newest-first: its first "## P<major>[.<minor>] — title" heading is the exact release label.
-const head = ((read('CHANGELOG.md') || '').match(/^## (P(\d+)(?:\.\d+)*)\b/m) || []);
-if (!head[1]) errors.push('CHANGELOG.md: first "## P<N>[.<M>]" heading not found');
-else if (head[2] !== V) errors.push(`CHANGELOG.md top entry ${head[1]} does not match APP_VERSION ${V}; add the new entry at the very top`);
-else if ((read('CHANGELOG.md') || '').search(/^## /m) !== (read('CHANGELOG.md') || '').search(/^## P\d/m)) errors.push('CHANGELOG.md: the first "## " heading must be the newest release entry');
+const changelog = read('CHANGELOG.md'); // optional: trees without markdown (copied subsets) are still valid
+const head = ((changelog || '').match(/^## (P(\d+)(?:\.\d+)*)\b/m) || []);
+if (changelog !== null) {
+  if (!head[1]) errors.push('CHANGELOG.md: first "## P<N>[.<M>]" heading not found');
+  else if (head[2] !== V) errors.push(`CHANGELOG.md top entry ${head[1]} does not match APP_VERSION ${V}; add the new entry at the very top`);
+  else if (changelog.search(/^## /m) !== changelog.search(/^## P\d/m)) errors.push('CHANGELOG.md: the first "## " heading must be the newest release entry');
+}
 
 if (errors.length) {
   console.error('Version check FAILED:\n- ' + errors.join('\n- '));
   process.exit(1);
 }
-console.log(`Version check OK: ${V} (release ${head[1]})`);
+console.log(`Version check OK: ${V} (release ${head[1] ?? 'n/a: no CHANGELOG.md'})`);
