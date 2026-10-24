@@ -209,38 +209,41 @@ Stop if test ownership cannot be mapped reliably; report ambiguity and ask for a
 
 ### Goal
 
-Measure whether the system improves end-to-end AI development and makes work simpler for the human—not merely whether it reduces static context-line counts.
+Measure end-to-end human effort and evidence quality on pinned, reviewed tasks—not merely static context-line counts.
 
-### Dataset
+### P88 pilot implementation
 
-Build a small, reviewed set of approximately 20–30 representative BiForge tasks over time: bug fixes, UI behavior, API changes, DB/persistence, configuration, generated artifacts, refactors, documentation and CI failures. Begin with a smaller pilot; do not wait for all tasks to exist.
+- `scripts/realTaskBenchmarkLib.mjs` validates task/run records and produces an auditable report; `scripts/realTaskBenchmark.mjs` is the read-only CLI (`npm run benchmark:real-tasks`).
+- `tests/p88-real-task-benchmark.json` starts with four draft scenarios: Project Mode artifact delivery, copy-lint/CI repair, generated inventory lineage, and test-chain coverage. They have no pinned revisions or reviewed gold dependencies yet and are explicitly **not** claimed as reviewed or executed tasks.
+- `tests/p88-real-task-results-template.json` describes run capture. Keep actual/private evidence in an approved separate file; do not commit secrets or sensitive traces.
+- Focused tests are `tests/real-task-benchmark.test.mjs`, included in `npm run check` via `test:real-task-benchmark`.
 
-Each task should define a stable starting revision, task prompt, known relevant dependencies, protected invariants, acceptance criteria, required checks, and human-reviewed outcome. Keep task data in the approved flat layout; no nested `fixtures/` directory. Avoid including secrets, personal data or production records.
+### Measurements and evidence semantics
 
-### Measurements
+- Input/output tokens only from a named model/tokenizer or provider trace.
+- Wall-clock time from recorded start to accepted result, with model/workflow, toolchain, environment, prompt version and base SHA.
+- Agent turns, human interventions, manual context gathering, review and rework minutes.
+- Stage-localization, false-success, acceptance and required-check outcomes.
+- Dependency recall/false-positive rate only against a reviewed gold set; changed-file count and unrelated change surface.
+- Measured values alone contribute to measured averages. Estimated, unavailable and not-run are not zero. Source lines are never tokens.
+- A paired baseline/context-engine run is comparable only when the task is reviewed and base revision, prompt version, model, toolchain and environment match. Human review and repeated observations are still required before causal claims.
 
-- Input tokens and output tokens only when a named model/tokenizer or provider trace actually supplies them.
-- Wall-clock time from task start to accepted result, with environment and model recorded.
-- Number of agent turns/iterations and human interventions, including clarification requests and manual context gathering.
-- Human review/acceptance effort where it can be captured consistently (for example, elapsed review time or a small documented ordinal scale); mark unavailable when not measured.
-- Rework caused by missed dependencies, misunderstood intent, false alarms or incomplete verification.
-- Pass rate for acceptance criteria and required tests.
-- Dependency recall and false-positive rate against a reviewed gold set.
-- Actual changed-file count and change surface, with unrelated changes identified.
-- Contract/security regressions and rollback/rework.
-- Cost per safely completed task where reliable provider pricing data exists.
+The pilot report explicitly warns that missing or unmatched observations do not establish improvement. Failed, rejected and abandoned runs remain in the data to avoid survivorship bias. No threshold or CI regression gate is introduced by P88; the four starter tasks must be reviewed and pinned before comparative use. Grow toward 20–30 reviewed tasks over time rather than fabricating missing evidence. See `docs/REAL-TASK-BENCHMARK-P88.md`.
 
-The primary decision is whether total effort and risk per accepted change improve. Do not optimize one metric (such as fewer tokens) if it increases human review, rework or maintenance burden.
+### Human-simplicity gate
 
-Never convert source lines into token counts. Never compare runs with materially different task wording, model, repository base, tools or test environment without disclosing the difference. Keep failed and abandoned runs in the report to avoid survivorship bias.
+- Human work removed: repeated manual counting and narrative comparison of effort and evidence.
+- Guarantees added: pinned metadata for comparisons, reviewed gold sets for dependency metrics, and honest missing-data semantics.
+- Complexity cost: a schema, small CLI, reviewed task records and run-capture discipline.
+- Value measurement: diagnosis time, stage localization, false-success, manual context/review/rework time, acceptance/check pass rates and unrelated changes. Net improvement remains a hypothesis until measured.
 
 ### Acceptance gates
 
-- Repeatable harness with pinned task and revision metadata.
+- Repeatable harness with pinned task/revision metadata.
 - Results distinguish measured, estimated, unavailable and not-run values.
-- Gold-set changes are reviewed and explained; historical reports are not silently overwritten.
-- Compare baseline workflow and context-engine workflow on matched tasks where practical.
-- No threshold is enabled until the sample and variability justify one.
+- Gold-set changes are reviewed; historical reports are not silently overwritten.
+- Baseline and context-engine comparisons use matched task wording, base, model, tools and environment where practical.
+- No threshold is enabled until sample size and variability justify one.
 
 ---
 

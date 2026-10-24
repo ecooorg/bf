@@ -39,3 +39,5 @@ Historical phase-era files (flat names) under `../archive/` — audit CSVs, acce
 - `docs/TASK-CONTEXT-P85.md` — P85 task-context CLI, limitations, and human-effort gate.
 * `CHANGE-IMPACT-P86.md` — P86 change-impact graph, generator lineage, evidence semantics, limitations, and rollback.
 * `VERIFICATION-PLANNER-P87.md` — P87 read-only verification plan, risk-based counterexamples, test-chain guard, command usage, limitations, and rollback.
+
+* `REAL-TASK-BENCHMARK-P88.md` — P88 pilot task dataset, run-capture schema, measured-vs-unavailable semantics and benchmark CLI.
