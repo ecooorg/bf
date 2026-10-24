@@ -4,6 +4,7 @@
  */
 import type { Express, Request, Response } from 'express';
 import crypto from 'node:crypto';
+import JSZip from 'jszip';
 import { z } from 'zod';
 import { createGeminiAdapter } from './geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './openaiCompatAdapter.ts';
@@ -36,9 +37,8 @@ import {
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './taskService.ts';
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
-import { sha256Hex, validateZipArchive } from './artifactFormat.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
-import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './contracts.ts';
+import { createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, defaultPassport } from './contracts.ts';
 import { projectCapabilities } from './projectCapabilities.ts';
 import { getTaskGates, recordApproval, recordWaiver } from './gateService.ts';
 import { isGateName } from './gateEngine.ts';
@@ -63,6 +63,7 @@ import { buildTaskPackageFromBrief } from './briefWriter.ts';
 import { isSameOrigin } from './security.ts';
 import { parseProjectId, parseTaskId } from './domainIds.ts';
 import type { TaskPackage } from './codeExecutor.ts';
+import { diagnosticArchive, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics } from './projectDiagnostics.ts';
 
 export type CodeAuthorCaller = (input: {
   packageMd: string;
@@ -119,9 +120,20 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     }
   });
 
+  // P92: all routes remain behind the mandatory Project Mode auth/rate-limit boundary.
+  app.get('/api/projects/diagnostics/operations', async (_req, res) => {
+    try { res.json({ success: true, data: await recentDiagnostics() }); } catch (error) { projectError(res, error); }
+  });
+  app.get('/api/projects/diagnostics/system', async (_req, res) => {
+    try { res.json({ success: true, data: await systemDiagnostics() }); } catch (error) { projectError(res, error); }
+  });
+  app.get('/api/projects/diagnostics/export', async (_req, res) => {
+    try { const bytes = await diagnosticArchive(); res.setHeader('Content-Type', 'application/zip'); res.setHeader('Content-Disposition', 'attachment; filename="biforge-diagnostics.zip"'); res.setHeader('Content-Length', String(bytes.length)); res.send(bytes); } catch (error) { projectError(res, error); }
+  });
+
   app.get('/api/projects', async (req, res) => {
     try {
-      const limit = req.query.limit === undefined ? 100 : Number(req.query.limit);
+      const limit = projectListLimitQuerySchema.parse(req.query.limit);
       res.json({ success: true, data: await listProjects(limit) });
     } catch (error) { projectError(res, error); }
   });
@@ -153,7 +165,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
 
   app.get('/api/projects/:projectId/versions', async (req, res) => {
     try {
-      const limit = req.query.limit === undefined ? 50 : Number(req.query.limit);
+      const limit = stateVersionsLimitQuerySchema.parse(req.query.limit);
       res.json({ success: true, data: await listStateVersions(req.params.projectId, limit) });
     } catch (error) { projectError(res, error); }
   });
@@ -350,6 +362,10 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
    * Legacy model_patch-only path remains available via body.engine = "model_patch".
    */
   app.post('/api/projects/:projectId/code/build', async (req, res) => {
+    const operationId = newOperationId(); const startedAt = Date.now();
+    res.setHeader('X-BiForge-Operation-Id', operationId);
+    await recordDiagnostic({ operationId, event: 'PROJECT_BUILD_STARTED', stage: 'request', status: 'STARTED' });
+    res.once('finish', () => { void recordDiagnostic({ operationId, event: 'BUILD_HTTP_RESPONSE_FINISHED', stage: 'http', status: res.statusCode < 400 ? 'PASS' : 'FAIL', durationMs: Date.now() - startedAt, errorCode: res.statusCode < 400 ? undefined : `HTTP_${res.statusCode}` }); });
     try {
       const input = z.object({
         goal: z.string().trim().min(1).max(8000),
@@ -415,6 +431,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
           });
 
       const modelSliceEnabled = process.env.CODE_EXECUTOR === 'model_patch' && process.env.APP_BUILDER_MODEL_SLICE === 'true';
+      await recordDiagnostic({ operationId, event: 'GENERATION_STARTED', stage: 'generation', status: 'STARTED' });
       const result = await runAppBuilderPipeline({
         ir,
         allowSlice: modelSliceEnabled,
@@ -454,52 +471,48 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
           : undefined,
       });
 
+      const expectedFiles = Object.entries(result.files) as [string, string][];
+      if (!expectedFiles.length || !result.zipBuffer.length) { await recordDiagnostic({ operationId, event: 'ZIP_VALIDATION_FAILED', stage: 'zip', status: 'FAIL', errorCode: 'EMPTY_ZIP' }); return res.status(422).json({ success: false, error: 'Generated ZIP is empty', code: 'ZIP_INVALID', operationId }); }
+      let validZip = false;
+      try {
+        const archive = await JSZip.loadAsync(result.zipBuffer, { checkCRC32: true });
+        const entries = Object.values(archive.files).filter(f => !f.dir);
+        validZip = entries.length >= expectedFiles.length && expectedFiles.every(([path, content]) => {
+          const file = archive.file(path);
+          return Boolean(file && !file.dir && typeof content === 'string');
+        });
+        if (validZip) for (const [path, content] of expectedFiles) {
+          if (!Buffer.from(await archive.file(path)!.async('nodebuffer')).equals(Buffer.from(content))) { validZip = false; break; }
+        }
+      } catch { validZip = false; }
+      if (!validZip) { await recordDiagnostic({ operationId, event: 'ZIP_VALIDATION_FAILED', stage: 'zip', status: 'FAIL', errorCode: 'ZIP_INVALID' }); return res.status(422).json({ success: false, error: 'Generated ZIP failed integrity checks', code: 'ZIP_INVALID', operationId }); }
+      await recordDiagnostic({ operationId, event: 'ZIP_INTEGRITY_CHECKED', stage: 'zip', status: 'PASS', bytes: result.zipBuffer.length, fileCount: expectedFiles.length });
       const artifactId = `app_zip_${Date.now().toString(36)}_${crypto.randomBytes(4).toString('hex')}`;
-      const sourceZip = Buffer.from(result.zipBuffer);
-      const sourceArchiveCheck = validateZipArchive(sourceZip, [...Object.keys(result.files), 'BIFORGE-README.txt']);
-      result.steps.push({ id: 'verify_zip_before_save', status: 'ok', ms: 0, detail: `${sourceArchiveCheck.entries.length} entries, ${sourceArchiveCheck.size} bytes` });
-      result.log.push(`verify_zip_before_save:ok:${sourceArchiveCheck.entries.length}_entries:${sourceArchiveCheck.size}_bytes`);
-      const persistStarted = Date.now();
-      const saved = await saveArtifact({
+      await recordDiagnostic({ operationId, event: 'ARTIFACT_SAVE_STARTED', stage: 'storage', status: 'STARTED' });
+      await saveArtifact({
         projectId: project.id,
         artifactId,
         filename: `${result.ir.name || 'app'}-source.zip`,
         mime: 'application/zip',
-        data: new Uint8Array(sourceZip),
+        data: new Uint8Array(result.zipBuffer),
         createdBy: 'app_builder_pipeline',
         derivedFrom: [`project:${project.id}`, `stack:${result.stack}`],
       });
-      if (saved.kind !== 'archive' || saved.size !== sourceZip.length || saved.hash !== sha256Hex(sourceZip)) {
-        throw new Error('Artifact verification failed after saving the generated project ZIP');
-      }
-      result.steps.push({ id: 'persist_artifact', status: 'ok', ms: Date.now() - persistStarted, detail: `${saved.size} bytes, sha256 verified` });
-      result.log.push(`persist_artifact:ok:${Date.now() - persistStarted}ms:${saved.size}_bytes`);
-      const readbackStarted = Date.now();
-      const persisted = await readArtifactBytes(artifactId);
-      if (!persisted || persisted.kind !== 'archive' || persisted.data.length !== sourceZip.length || sha256Hex(persisted.data) !== sha256Hex(sourceZip)) {
-        throw new Error('Saved project ZIP could not be read back byte-for-byte; download link withheld');
-      }
-      const persistedArchiveCheck = validateZipArchive(persisted.data, [...Object.keys(result.files), 'BIFORGE-README.txt']);
-      result.steps.push({ id: 'verify_saved_artifact', status: 'ok', ms: Date.now() - readbackStarted, detail: `${persistedArchiveCheck.entries.length} entries, ${persisted.data.length} bytes, byte-for-byte match` });
-      result.log.push(`verify_saved_artifact:ok:${Date.now() - readbackStarted}ms:${persistedArchiveCheck.entries.length}_entries`);
 
+      const readback = await readArtifactBytes(artifactId);
+      if (!readback || readback.project_id !== project.id || !Buffer.from(readback.data).equals(Buffer.from(result.zipBuffer))) { await recordDiagnostic({ operationId, event: 'ARTIFACT_READBACK_FAILED', stage: 'storage', status: 'FAIL', errorCode: 'READBACK_MISMATCH' }); throw new Error('ARTIFACT_READBACK_MISMATCH'); }
+      await recordDiagnostic({ operationId, event: 'ARTIFACT_SAVE_VERIFIED', stage: 'storage', status: 'PASS', bytes: readback.data.length });
       const downloadUrl = `/api/projects/${encodeURIComponent(project.id)}/artifacts/${encodeURIComponent(artifactId)}/download`;
       res.status(201).json({
         success: true,
         data: {
+          operationId,
           engine: 'pipeline',
           stack: result.stack,
           ir: result.ir,
           steps: result.steps,
           log: result.log,
           fileCount: Object.keys(result.files).length,
-          artifactVerification: {
-            sourceFiles: Object.keys(result.files).length,
-            zipEntries: persistedArchiveCheck.entries.length,
-            sizeBytes: persisted.data.length,
-            sha256: sha256Hex(persisted.data),
-            savedReadbackVerified: true,
-          },
           downloadUrl,
           note: 'IR → scaffold → ZIP. Upload to GitHub and connect Render/Railway manually. Generated code was not executed on BiForge.',
           // shape compatibility with older UI expecting codeTask
@@ -512,25 +525,28 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
 
   /** Download an artifact by id (App Builder ZIP and other binary artifacts). */
   app.get('/api/projects/:projectId/artifacts/:artifactId/download', async (req, res) => {
+    const operationId = newOperationId(); const startedAt = Date.now();
+    res.setHeader('X-BiForge-Operation-Id', operationId);
+    await recordDiagnostic({ operationId, event: 'DOWNLOAD_REQUESTED', stage: 'download', status: 'STARTED' });
+    res.once('finish', () => { void recordDiagnostic({ operationId, event: 'DOWNLOAD_RESPONSE_FINISHED', stage: 'download', status: res.statusCode < 400 ? 'PASS' : 'FAIL', durationMs: Date.now() - startedAt, errorCode: res.statusCode < 400 ? undefined : `HTTP_${res.statusCode}` }); });
+    res.once('close', () => { if (!res.writableFinished) void recordDiagnostic({ operationId, event: 'DOWNLOAD_INTERRUPTED', stage: 'download', status: 'FAIL', errorCode: 'CONNECTION_CLOSED' }); });
     try {
       const project = await getProject(req.params.projectId);
       if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
       const bytes = await readArtifactBytes(req.params.artifactId);
       if (!bytes || (bytes as any).project_id !== project.id) return res.status(404).json({ success: false, error: 'Artifact not found', code: 'NOT_FOUND' });
-      const payload = Buffer.from((bytes as any).data);
-      const filename = String((bytes as any).filename || 'download.bin').replace(/["\r\n]/g, '');
+      if ((bytes as any).mime === 'application/zip') {
+        const data = Buffer.from((bytes as any).data);
+        let valid = data.length > 0;
+        try { if (valid) await JSZip.loadAsync(data, { checkCRC32: true }); } catch { valid = false; }
+        if (!valid) { await recordDiagnostic({ operationId, event: 'DOWNLOAD_FAILED', stage: 'download', status: 'FAIL', errorCode: 'ZIP_INVALID' }); return res.status(422).json({ success: false, error: 'Stored ZIP is invalid', code: 'ZIP_INVALID', operationId }); }
+      }
+      const filename = String((bytes as any).filename || 'download.bin').replace(/"/g, '');
       const mime = String((bytes as any).mime || 'application/octet-stream');
-      if (mime === 'application/zip' || filename.toLowerCase().endsWith('.zip')) {
-        validateZipArchive(payload);
-        if ((bytes as any).kind !== 'archive') throw new Error('Download refused: ZIP content was not classified as an archive');
-      }
       res.setHeader('Content-Type', mime);
-      res.setHeader('Content-Length', String(payload.length));
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      if (mime === 'application/zip' || filename.toLowerCase().endsWith('.zip')) {
-        console.info(JSON.stringify({ type: 'project_zip_download_verified', projectId: project.id, artifactId: req.params.artifactId, sizeBytes: payload.length, sha256: sha256Hex(payload) }));
-      }
-      res.send(payload);
+      res.setHeader('Content-Length', String((bytes as any).data.length));
+      res.send(Buffer.from((bytes as any).data));
     } catch (error) { projectError(res, error); }
   });
 
@@ -635,8 +651,6 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       const codeTask = await getCodeTask(task.projectId, task.id, req.params.codeTaskId);
       const bundle = await readArtifactBytes(generatedSourceArtifactId(codeTask.id));
       if (!bundle || bundle.project_id !== task.projectId) return res.status(404).json({ success: false, error: 'Generated source bundle is not available yet.', code: 'BUNDLE_NOT_FOUND' });
-      validateZipArchive(bundle.data);
-      if (bundle.kind !== 'archive' || bundle.data.length === 0) throw new Error('Generated source bundle failed ZIP integrity checks');
       res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', `attachment; filename="generated-program-${task.id}.zip"`);
       res.setHeader('Content-Length', String(bundle.data.length));
@@ -746,7 +760,6 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     if (e?.name === 'PlanError' || e?.name === 'TaskError' || e?.name === 'CodeTaskError') return res.status((error as any).status || 409).json({ success: false, error: e.message || 'Task operation failed', code: e.code || 'TASK_ERROR', details: (error as any).details });
     if (e?.code === 'VALIDATION') return res.status(422).json({ success: false, error: 'The proposed change was refused by the State policy', code: 'VALIDATION', details: ((error as any).errors ?? []).map((x: any) => x.code) });
     if (e?.code === 'NOT_FOUND') return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
-    if (e?.code === 'ZIP_INVALID') return res.status(500).json({ success: false, error: 'ZIP integrity verification failed. BiForge withheld the download link.', code: 'ZIP_INTEGRITY_FAILED' });
     if (e?.name === 'ZodError' || e?.name === 'ValidationError') return res.status(400).json({ success: false, error: 'Invalid project data', code: 'VALIDATION' });
     console.error(JSON.stringify({ type: 'project_api_error', message: String(e?.message || error).slice(0, 180) }));
     return res.status(500).json({ success: false, error: 'Project operation failed', code: 'INTERNAL' });
