@@ -1,3 +1,10 @@
+## P91 — Context completeness and material-uncertainty guard (2026-10-24)
+
+- Added read-only `context:completeness` to combine P85 task context, P86 impact lineage, P87 verification planning and P89 intent criteria into scoped `COMPLETE`, `PARTIAL` or `UNVERIFIED` states.
+- Missing inputs, stale/invalid generated artifacts, unaccounted expected dependencies, absent required-check evidence and unverified acceptance criteria produce actionable issues; every issue names consequence, missing evidence and next action.
+- Added a validated optional evidence JSON shape for observed command runs, criterion evidence, expected/observed dependencies, referenced scope reviews and exact issue resolutions. Suggested commands are never execution evidence; external references are not fetched/authenticated.
+- Added eleven focused tests to `npm run check`. No strict CI gate, runtime/UI/API/database changes, cache or persisted product data format. Full CI remains to be confirmed after applying.
+
 ## P90 — Profile-guided context refresh (2026-10-24)
 
 - Added a read-only profiler for P85 task context, P86 impact lineage, P87 verification planning, and P89 composed intent-contract work. Reports warmup/run counts, min/median/p95/max/mean timing, canonical output hashes, output size, environment and content fingerprints for relevant inputs.
