@@ -16,10 +16,9 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green. See `docs/contracts-verification-p83.json` for scope and limitations.
 * **P82:** Conversation/brief UI and compatibility-route extractions; Navigator reports GitHub CI green. Local full verification was blocked by an `npm ci` timeout.
 * **P81:** Dependency Intelligence context planner and deterministic pre-P81 v80 baseline.
-* **p80.1:** CI preflight now permits the approved flat `archive/` directory; regression coverage added.
-* **p80:** Flat docs/scripts layout — phase folders removed; historical copies in `archive/`; active tools use prefixed script names under `scripts/`.
+* **p80:** CI preflight now permits the approved flat `archive/` directory; regression coverage added. Flat docs/scripts layout — phase folders removed; historical copies in `archive/`; active tools use prefixed script names under `scripts/`.
 * **p79:** CI `ui-check` Playwright cache (skip apt on cache hit)
-* **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
+* **p71–p78 (Transformation track): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 
 * **VIX:** `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
