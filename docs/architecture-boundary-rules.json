@@ -1,14 +1,18 @@
 {
-  "_about": "Import boundary rules for architecture:check. Layers: server, src, test, script, other. Edges not listed are denied unless allowedExceptions match.",
+  "_about": "Import boundary rules for architecture:check. Layers: server, src, test, script, appBuilder, other. Edges not listed are denied unless allowedExceptions match.",
   "allowedEdges": [
     { "from": "server", "to": "server" },
+    { "from": "server", "to": "appBuilder" },
     { "from": "src", "to": "src" },
     { "from": "test", "to": "server" },
     { "from": "test", "to": "src" },
     { "from": "test", "to": "test" },
+    { "from": "test", "to": "appBuilder" },
     { "from": "script", "to": "server" },
     { "from": "script", "to": "src" },
-    { "from": "script", "to": "script" }
+    { "from": "script", "to": "script" },
+    { "from": "script", "to": "appBuilder" },
+    { "from": "appBuilder", "to": "appBuilder" }
   ],
   "allowedExceptions": [
     {
@@ -30,6 +34,7 @@
   "notes": [
     "src must not import server (client bundle isolation).",
     "server may only reach src via the three exceptions above until a dedicated shared/ package exists.",
+    "appBuilder must not import server or src; adapters live in server/ and inject ports.",
     "New cross-layer edges require an allowedExceptions entry or a rule change approved by the Navigator."
   ]
 }
