@@ -1,3 +1,12 @@
+## P93.2a — App Builder generic engine, cache, ZIP report, and English specification
+
+* Added provider-agnostic `runBuild` engine over existing ports, versioned prompt definitions (`static_site.v1`), deterministic cache keys, and ZIP assembly with `build-report.json`.
+* Added fake-ModelPort tests for a successful build, report-in-ZIP, cache-key versioning, and one-level nested path safety.
+* Updated path validation to allow one nested level while rejecting deeper paths; added `timeout` to typed model errors.
+* Rewrote `docs/tz-appbuilder.md` entirely in English and integrated accepted clarifications: `Profile.maxUnits`, machine-checkable acceptance predicates, `goalImplemented` / NOT RUN honesty, retry rules, adapter-owned SQL mapping, event types, `APP_BUILDER_STALE_MS`, legacy-flag regression, and P93.2a/2b split.
+* Updated `AGENTS.md`, documentation index, and documentation baseline.
+* Verification: `check-version` PASS; `check:docs` PASS; TypeScript syntax checks PASS. Focused tests BLOCKED because `node_modules` is absent and `npm ci --ignore-scripts --no-audit --no-fund` timed out. `architecture:check` FAILS on an existing import `server/projectDiagnostics.ts → src/config.ts` not covered by the current exception list; this patch does not broaden that architectural exception without owner approval. P93.2a does not include the static-site stack/validators, DB adapter, routes, or UI.
+
 ## P93.1 — App Builder core contracts (types, ports, plan, markers)
 
 * New flat directory `appBuilder/`: `core-types.ts`, `core-ports.ts`, `core-plan.ts`, `core-markers.ts`, `profile-default.ts`, `index.ts`.
