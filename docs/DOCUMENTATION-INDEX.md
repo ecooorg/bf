@@ -41,3 +41,4 @@ Historical phase-era files (flat names) under `../archive/` — audit CSVs, acce
 * `VERIFICATION-PLANNER-P87.md` — P87 read-only verification plan, risk-based counterexamples, test-chain guard, command usage, limitations, and rollback.
 
 * `REAL-TASK-BENCHMARK-P88.md` — P88 pilot task dataset, run-capture schema, measured-vs-unavailable semantics and benchmark CLI.
+* `INTENT-CONTRACT-P89.md` — P89 draft-only intent contract, explicit/inferred fields, P85–P87 links, validation, command usage, evidence limits and rollback.

@@ -249,6 +249,9 @@ The pilot report explicitly warns that missing or unmatched observations do not 
 
 ## 8. P89 — Lightweight Intent Contract (VIX-inspired)
 
+**P89 implementation status (2026-10-24):** prepared as an optional, read-only draft CLI (`npm run intent:contract`) with explicit/inferred source labels, P85/P86 summaries when available, P87 verification suggestions, deterministic validation and an unverified-by-default intent diff. Focused tests and full CI must be reported separately; no approval or test execution is performed by this tool. See `docs/INTENT-CONTRACT-P89.md`.
+
+
 ### Goal
 
 Turn a natural-language request into a small, reviewable statement of intended behavior and constraints before editing code, using an automatically generated draft rather than a mandatory user-authored form. This is the practical Intent IR element adopted from VIX; it is not a separate orchestration framework.
