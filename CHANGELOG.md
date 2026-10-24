@@ -1,3 +1,11 @@
+## P93.1 — App Builder core contracts (types, ports, plan, markers)
+
+* New flat directory `appBuilder/`: `core-types.ts`, `core-ports.ts`, `core-plan.ts`, `core-markers.ts`, `profile-default.ts`, `index.ts`.
+* Plan validation (cycles, missing deps, unsafe paths, schemaVersion), file-marker parser, conservative profile.
+* `tsconfig.server.json` includes `appBuilder/**/*.ts`; architecture layer `appBuilder` with edges server/test/script → appBuilder (no reverse).
+* Tests: `tests/app-builder-contracts.test.mjs` (plan contracts, markers, boundary); `npm run test:app-builder`.
+* Engine, adapters, routes, and model calls are **not** in this patch (P93.2+).
+
 ## P93.0 — Safe download filenames; patch preflight allows /appBuilder
 
 * Downloads with non-ASCII (e.g. Cyrillic) names no longer fail with HTTP 500 (`Invalid character in header content ["Content-Disposition"]`): header is now ASCII `filename=` plus UTF-8 `filename*=`.

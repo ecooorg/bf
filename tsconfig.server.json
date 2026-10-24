@@ -23,6 +23,7 @@
   "include": [
     "server.ts",
     "server/**/*.ts",
+    "appBuilder/**/*.ts",
     "src/support.ts",
     "src/numberValidator.ts",
     "src/config.ts"
