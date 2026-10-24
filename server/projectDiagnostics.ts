@@ -1,7 +1,33 @@
 /** P92: bounded, sanitized Project Mode operation evidence. Never store user content. */
 import crypto from 'node:crypto';
 import JSZip from 'jszip';
+import fs from 'node:fs';
+import path from 'node:path';
 import { getPool } from './database.ts';
+import { redactSecrets } from './redact.ts';
+import { verifyArtifact } from './artifactRepository.ts';
+
+// Real server console output, redacted, bounded. Without this the export has nothing but operation events.
+const consoleLines: string[] = [];
+const MAX_LINES = 500;
+let captureInstalled = false;
+export function installLogCapture(): void {
+  if (captureInstalled) return; captureInstalled = true;
+  for (const level of ['log', 'info', 'warn', 'error'] as const) {
+    const original = console[level].bind(console);
+    console[level] = (...args: unknown[]) => {
+      try {
+        const text = args.map((a) => typeof a === 'string' ? a : (() => { try { return JSON.stringify(a); } catch { return String(a); } })()).join(' ');
+        consoleLines.push(`${new Date().toISOString()} [${level}] ${redactSecrets(text).slice(0, 500)}`);
+        if (consoleLines.length > MAX_LINES) consoleLines.splice(0, consoleLines.length - MAX_LINES);
+      } catch { /* capture must never break logging */ }
+      original(...args);
+    };
+  }
+}
+export const capturedConsole = () => consoleLines.slice();
+function appVersion(): string { try { return JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')).version; } catch { return 'unknown'; } }
+
 
 export type DiagnosticEvent = { timestamp: string; operationId: string; event: string; stage: string; status: string; durationMs?: number; bytes?: number; fileCount?: number; errorCode?: string };
 const memory: DiagnosticEvent[] = [];
@@ -43,11 +69,26 @@ export async function systemDiagnostics() {
     const pool = await getPool(); await pool.query('SELECT 1');
     checks.push({ name: 'database-connectivity', status: 'PASS', evidence: 'SELECT 1 completed' });
     const result = await pool.query("SELECT to_regclass('public.project_diagnostic_events') AS table_name");
+    try {
+      const applied = (await pool.query('SELECT version FROM schema_migrations ORDER BY version')).rows.map((r: any) => r.version as string);
+      const dir = path.resolve(process.cwd(), 'migrations');
+      const onDisk = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.sql')) : [];
+      const pending = onDisk.filter((f) => !applied.includes(f) && !applied.includes(f.replace(/\.sql$/, '')));
+      checks.push({ name: 'migrations', status: onDisk.length === 0 ? 'WARN' : pending.length ? 'FAIL' : 'PASS', evidence: `${applied.length} applied, ${onDisk.length} on disk${pending.length ? `; pending: ${pending.join(', ')}` : ''}` });
+    } catch (e) { checks.push({ name: 'migrations', status: 'FAIL', evidence: `schema_migrations query failed: ${String((e as Error).message).slice(0, 120)}` }); }
+    try {
+      const last = await pool.query('SELECT artifact_id, version FROM artifacts ORDER BY created_at DESC LIMIT 1');
+      const row = last.rows[0];
+      const ix = checks.findIndex((c) => c.name === 'artifact-storage');
+      const entry = !row ? { name: 'artifact-storage', status: 'NOT RUN', evidence: 'No stored artifacts yet to verify (read-only check; nothing is written).' }
+        : await (async () => { const v = await verifyArtifact(row.artifact_id, row.version); return v?.ok ? { name: 'artifact-storage', status: 'PASS', evidence: `Latest artifact ${row.artifact_id} v${row.version} re-read and hash-verified` } : { name: 'artifact-storage', status: 'FAIL', evidence: `Latest artifact ${row.artifact_id} failed verification: ${JSON.stringify(v?.problems ?? 'not found').slice(0, 160)}` }; })();
+      checks[ix] = entry;
+    } catch (e) { /* keep NOT RUN with explicit reason below */ const ix = checks.findIndex((c) => c.name === 'artifact-storage'); checks[ix] = { name: 'artifact-storage', status: 'FAIL', evidence: `artifact check errored: ${String((e as Error).message).slice(0, 120)}` }; }
     checks.push({ name: 'diagnostic-event-schema', status: result.rows[0]?.table_name ? 'PASS' : 'FAIL', evidence: 'project_diagnostic_events table lookup' });
   } catch { checks.push({ name: 'database-connectivity', status: 'FAIL', evidence: 'Database query failed; operations use process-local fallback.' }); }
-  return { timestamp: new Date().toISOString(), checks, overall: checks.some(c => c.status === 'FAIL') ? 'FAIL' : checks.some(c => c.status !== 'PASS') ? 'WARN' : 'PASS' };
+  return { timestamp: new Date().toISOString(), runtime: { appVersion: appVersion(), node: process.version, uptimeSec: Math.round(process.uptime()), rssMb: Math.round(process.memoryUsage().rss / 1048576), capturedConsoleLines: consoleLines.length }, checks, overall: checks.some(c => c.status === 'FAIL') ? 'FAIL' : checks.some(c => c.status !== 'PASS') ? 'WARN' : 'PASS' };
 }
-export const REQUIRED_DIAGNOSTIC_ENTRIES = ['README.txt', 'manifest.json', 'operations/recent-operations.json', 'diagnostics/diagnostic-summary.json', 'logs/application.jsonl'];
+export const REQUIRED_DIAGNOSTIC_ENTRIES = ['logs/server-console.log', 'README.txt', 'manifest.json', 'operations/recent-operations.json', 'diagnostics/diagnostic-summary.json', 'logs/application.jsonl'];
 /** Reads the ZIP back independently (CRC on) and compares every entry with the hash recorded in its manifest. Returns problems; empty = intact. */
 export async function verifyDiagnosticArchive(buf: Buffer): Promise<string[]> {
   const problems: string[] = [];
@@ -72,14 +113,17 @@ export async function diagnosticArchive(operationId?: string): Promise<Buffer> {
   const [operations, summary] = await Promise.all([recentDiagnostics(200), systemDiagnostics()]);
   const zip = new JSZip(); const entries: { path: string; bytes: number; sha256: string }[] = [];
   function add(path: string, text: string) { const bytes = Buffer.from(text); zip.file(path, bytes); entries.push({ path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') }); }
-  add('README.txt', 'BiForge Project Mode diagnostics. No prompts, source code, credentials or cookies are exported. Operation history is bounded to 200 events. DB events persist until retention cleanup; memory fallback is process-local. HTTP response completion does not prove browser download.\n');
+  add('README.txt', 'BiForge Project Mode diagnostics. No prompts, source code, credentials or cookies are exported. Operation history is bounded to 200 events; logs/server-console.log holds the last 500 redacted console lines since the last server start. DB events persist until retention cleanup; memory fallback is process-local. HTTP response completion does not prove browser download.\n');
   add('operations/recent-operations.json', JSON.stringify(operations, null, 2));
   add('diagnostics/diagnostic-summary.json', JSON.stringify(summary, null, 2));
+  add('logs/server-console.log', (consoleLines.length ? consoleLines.join('\n') : '(no console output captured since the last server start)') + '\n');
   add('logs/application.jsonl', operations.events.map(e => JSON.stringify(e)).join('\n') + '\n');
   const skipped = [
     ...(operations.source !== 'database' ? [{ item: 'persistent operation history', reason: 'database unavailable; only process-local events since last restart are included' }] : []),
     ...summary.checks.filter((c) => c.status !== 'PASS').map((c) => ({ item: `check:${c.name}`, reason: `${c.status}: ${c.evidence}` })),
-    { item: 'server application logs / CI logs', reason: 'not part of this archive by design; CI logs are in the ci-execution-logs workflow artifact' },
+    { item: 'Render platform logs / CI logs', reason: 'outside the application; CI logs are in the ci-execution-logs workflow artifact' },
+    ...(consoleLines.length === 0 ? [{ item: 'logs/server-console.log', reason: 'server produced no console output since the last start (or capture was not installed)' }] : []),
+    ...(operations.events.length === 0 ? [{ item: 'operation events', reason: 'no builds, downloads or exports recorded in the retention window' }] : []),
   ];
   add('manifest.json', JSON.stringify({ exportedAt: new Date().toISOString(), operationId: operationId ?? null, entries, source: operations.source, skipped }, null, 2));
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });

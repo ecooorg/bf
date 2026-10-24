@@ -63,7 +63,7 @@ import { buildTaskPackageFromBrief } from './briefWriter.ts';
 import { isSameOrigin } from './security.ts';
 import { parseProjectId, parseTaskId } from './domainIds.ts';
 import type { TaskPackage } from './codeExecutor.ts';
-import { diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive } from './projectDiagnostics.ts';
+import { installLogCapture, diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive } from './projectDiagnostics.ts';
 
 export type CodeAuthorCaller = (input: {
   packageMd: string;
@@ -84,6 +84,7 @@ export interface ProjectRouteDeps {
 }
 
 export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): void {
+  installLogCapture();
   const {
     projectModeEnabled: PROJECT_MODE_ENABLED,
     appAuthEnabled: APP_AUTH_ENABLED,
@@ -125,7 +126,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     try { res.json({ success: true, data: await recentDiagnostics() }); } catch (error) { projectError(res, error); }
   });
   app.get('/api/projects/diagnostics/system', async (_req, res) => {
-    try { res.json({ success: true, data: await systemDiagnostics() }); } catch (error) { projectError(res, error); }
+    try { const data = await systemDiagnostics(); await recordDiagnostic({ operationId: newOperationId(), event: 'SYSTEM_DIAGNOSTICS_RUN', stage: 'diagnostics', status: data.overall === 'FAIL' ? 'FAIL' : data.overall === 'PASS' ? 'PASS' : 'WARN' }); res.json({ success: true, data }); } catch (error) { projectError(res, error); }
   });
   app.get('/api/projects/diagnostics/export', async (_req, res) => {
     const operationId = newOperationId(); const startedAt = Date.now();
