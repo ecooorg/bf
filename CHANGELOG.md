@@ -1,3 +1,24 @@
+## P92.2 — CI log delivery and diagnostic export integrity
+
+### Fixed
+
+* CI: all step logs (`ci-install`, `ci-migrate`, `ci-check`, `ci-live`, `ci-api`, `ci-build`) are now written with `pipefail` into `artifacts/ci-checks/`, and the whole directory (including per-stage logs and `results.json`) is uploaded; previously only three top-level logs were uploaded and install/migrate/build output existed only in the console.
+* CI: upload fails (`if-no-files-found: error`) instead of warning; job timeout (75 min) now exceeds the sum of step timeouts so `if: always()` steps can run; removed `DEBUG: "*"` and the ineffective `--foreground-scripts` argument.
+* `scripts/ci-summary.mjs` reads `results.json` and all logs, lists non-passing stages and states why each missing log is missing (CLI file arguments remain supported).
+* Diagnostic export (`/api/projects/diagnostics/export`) now has an operation ID, records start/result/interruption events, verifies the ZIP (CRC read-back and manifest hashes) before sending, and returns 422 on a failed check. The manifest has a `skipped` section explaining missing data.
+* Artifacts from App Builder are linked to their operation in `project_diagnostic_artifacts` (the table was previously never written).
+* Failed diagnostic DB writes are logged (rate-limited) instead of being silently ignored.
+
+### Tests
+
+* New `tests/ci-diagnostics-chain.test.mjs` (included in `test:project-diagnostics`); one assertion in `tests/models.test.mjs` updated for the new `ci-summary` workflow step.
+
+### Not changed / known limitations
+
+* Google Drive synchronization of diagnostics (P92.1 entry above) is **not implemented in code**; the entry describes intended behavior only.
+* Upload from GitHub Actions and browser-side download completion are not verifiable locally.
+* The `model_patch` build path still has no granular ZIP events.
+
 ## P92.1 — Diagnostics Drive Sync and Artifact Correlation
 
 ### Added
