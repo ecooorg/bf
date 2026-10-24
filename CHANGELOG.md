@@ -1,3 +1,10 @@
+## P88 — Real-task AI benchmark pilot (2026-10-24)
+
+- Added a read-only, data-driven benchmark CLI and validation library for task prompts, pinned revisions, reviewed dependency gold sets, protected invariants, acceptance criteria, required checks and baseline/context-engine run records.
+- Added four starter scenarios, all explicitly marked draft, plus a separate results template. No task execution, human review, provider-token trace, or improvement is claimed by the starter dataset.
+- Reports measured, estimated, unavailable and not-run values honestly; computes dependency metrics only for reviewed gold sets; checks metadata before marking paired runs comparable; and never treats missing values as zero.
+- Added nine focused tests to `npm run check`. No runtime/UI/API/database changes, no performance threshold, and no new CI regression gate.
+
 ## P87 — Verification Planner (2026-10-24)
 
 - Added read-only `verification:plan` CLI with explicit task/file rules, existing-script validation, fast/targeted/full tiers, required `check`/build/hosted-CI gates, and actionable uncertainty when file ownership is unknown.
