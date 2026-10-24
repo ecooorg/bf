@@ -475,12 +475,18 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
                 registry, adapters: { gemini: adapter }, state: codeRouterState, required: ['json_output'], maxCalls: 1, timeoutMs: 60_000,
                 sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 65_000,
               });
-              if (routed.status !== 'ok' || !routed.response) return { notes: 'slice unavailable' };
+              if (routed.status !== 'ok' || !routed.response) {
+                const d = routed.decision;
+                const why = [`router:${routed.status}`, d.reason, ...d.attempts.map((a) => `${a.model}:${a.status}${a.errorClass ? `/${a.errorClass}` : ''}`), ...d.rejected.slice(0, 3).map((r) => `rejected ${r.model}:${r.reason}`)].filter(Boolean).join('; ').slice(0, 200);
+                console.warn(JSON.stringify({ type: 'app_builder_slice_unavailable', why }));
+                return { notes: `model call failed (${why})` };
+              }
               const out = routed.response.output as any;
               if (out && typeof out === 'object' && out.files && typeof out.files === 'object') {
                 return { files: out.files as Record<string, string>, notes: String(out.notes || '') };
               }
-              return { notes: 'slice shape ignored' };
+              console.warn(JSON.stringify({ type: 'app_builder_slice_bad_shape', outputType: typeof out }));
+              return { notes: `model answered but not with {files:{...}} (got ${typeof out})` };
             }
           : undefined,
       });
