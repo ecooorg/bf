@@ -14,6 +14,7 @@ import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
 import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.ts';
 
 import { APP_VERSION } from './src/config.ts';
+import { buildCommit } from './server/projectDiagnostics.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
 import { buildSimpleConversationPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, type ProductMode } from './server/promptPacks.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
@@ -878,7 +879,7 @@ function fail(res: express.Response, status: number, error: string, code?: strin
 
 // Health route contracts are isolated so they can be characterized independently.
 registerHealthRoutes(app, {
-  appVersion: APP_VERSION, commit: (process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || 'unknown').slice(0, 12), nodeEnv: NODE_ENV, appAuthEnabled: APP_AUTH_ENABLED,
+  appVersion: APP_VERSION, commit: buildCommit(), nodeEnv: NODE_ENV, appAuthEnabled: APP_AUTH_ENABLED,
   hasApiKey: Boolean(apiKey), lightModels: LIGHT_MODELS, strongModels: STRONG_MODELS,
   isAuthenticated: authenticated, distDirectory: DIST_DIR,
   skipDistHealthcheck: process.env.SKIP_DIST_HEALTHCHECK === 'true',
@@ -2272,7 +2273,7 @@ async function start() {
     });
   }
   httpServer = app.listen(PORT, () => {
-    console.log(`BiForge v${APP_VERSION} (${(process.env.RAILWAY_GIT_COMMIT_SHA || 'unknown').slice(0, 12)}) on :${PORT} (${NODE_ENV})`);
+    console.log(`BiForge v${APP_VERSION} (${buildCommit()}) on :${PORT} (${NODE_ENV})`);
     // Render free tier: имитация визитов живого пользователя, чтобы сервис не засыпал.
     if (NODE_ENV === 'production') stopKeepAlive = startKeepAlive();
   });

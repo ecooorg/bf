@@ -1,3 +1,12 @@
+## P92.5 — Release label from CHANGELOG
+
+* The first `## P…` heading of `CHANGELOG.md` is the exact release label. `scripts/check-version.mjs` (part of `npm run check`) fails if the top entry's major number differs from `APP_VERSION` or if the newest entry is not at the top. The diagnostics screen and ZIP show it (e.g. `v92 (P92.5)`). Add every new patch entry at the very top.
+
+## P92.4 — Version and commit in diagnostics
+
+* Product version label raised from `57` to `92` (`src/config.ts`, `package.json`, lock file, baseline doc) to match the P92 line.
+* Diagnostics screen and ZIP show the build commit (7 chars) from `RENDER_GIT_COMMIT` (also Railway/`GIT_COMMIT`); startup line and `/health` use the same helper. Previously only Railway's variable was read, so on Render it was always `unknown`.
+
 ## P92.3 — Diagnostics with real content
 
 ### Fixed
