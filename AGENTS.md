@@ -9,6 +9,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green. See `docs/contracts-verification-p83.json` for scope and limitations.
 * **P84:** Read-only AI-native context benchmark with six curated scenarios, a pinned v80 + p80.1 comparison, gold-set recall/false-positive metrics and explicit measurement limitations. The Navigator reports GitHub CI green after the P56 check-chain fix. Gold-set maintainer review is still required; no regression gate is enabled. See `docs/context-benchmark-p84.json` and `docs/context-benchmark-verification-p84.json`.*
 * **P84.2:** Documentation-only revision of the P85–P91 roadmap, selectively integrating VIX-inspired intent, invariant, counterexample, intent-diff, traceability and honest-uncertainty principles. Human simplicity is an explicit acceptance gate; no separate VIX subsystem or runtime behavior is introduced.
+* **P85:** Navigator reports GitHub CI green. Read-only task-aware context planner is available via `npm run context:task`; see `docs/TASK-CONTEXT-P85.md`.
+* **P86 (prepared patch):** Read-only change-impact and generator-lineage report, including generated route/env/migration inventory relationships. Focused local tests pass; full CI is pending Navigator execution. See `docs/CHANGE-IMPACT-P86.md`.
 * **P84.3 (proposed diagnostics roadmap):** Documentation-only addition of staged Project Mode observability and artifact-verification requirements across P85–P91. No logging/UI/runtime behavior is implemented by this patch. See `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md`.
   * `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
@@ -40,7 +42,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run acceptance:report`. Health: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run impact:lineage -- --file scripts/docsGenerateInventories.mjs`; `npm run test:impact-lineage`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run acceptance:report`. Health: `GET /health`.
 
 ## Critical rules
 
@@ -60,3 +62,7 @@ Silence is never consent in Tiers 2 and 3.
 ## P85 task context
 
 Use `npm run context:task -- --task "..."` for read-only, heuristic task navigation; see `docs/TASK-CONTEXT-P85.md`. Do not confuse a suggested target or test with verified runtime behavior.
+
+## P86 change impact
+
+Use `npm run impact:lineage -- --task "..." <changed-file>` for a read-only, provenance-labelled impact estimate. Treat `PRESENT` as a limited structural artifact check, not proof of freshness or runtime behavior; suggested tests are not executed automatically.

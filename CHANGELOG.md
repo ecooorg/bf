@@ -1,3 +1,11 @@
+## P86 — Change impact graph and generator lineage (2026-10-24)
+
+- Added read-only `impact:lineage` reporting static import impact and typed, provenance-labelled relationships for generated route, environment, migration and module-map artifacts.
+- Closed the known route-inventory lineage gap with explicit `docsGenerateInventories.mjs` output mapping, known consumers, route registration records and suggested verification commands.
+- Added limited artifact health checks and a concise intent diff that marks suggested tests as not run and preserves uncertainty for dynamic imports, missing generators, stale metadata and unknown lineage.
+- Added nine focused tests for generator outputs, generated-file edits, multiple consumers, missing generators, stale metadata, source relationships, import cycles, dynamic imports and false filename-based inference. Integrated `test:impact-lineage` into `npm run check`.
+- No product runtime/API/UI/database behavior or generated inventory contents changed. Full CI is pending; no benchmark recall improvement or time savings are claimed.
+
 ## P85 — Task-aware context engine (2026-10-23)
 
 - Added read-only `context:task` CLI and deterministic task-to-file suggestions layered on P81 static context planning.
