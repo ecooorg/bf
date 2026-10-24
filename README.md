@@ -1,1 +1,1 @@
-#BiForge
+BiForge is a powerful, evidence-driven engineering platform designed to turn complex workflows into verifiable, reproducible results. Combining automated validation, security checks, and structured diagnostics, it helps teams build with confidence, traceability, and precision.
