@@ -1,3 +1,18 @@
+## P92.6 — App Builder: honest goal status, working download, binary-safe Drive save
+
+### Fixed
+
+* Tetris test: the model step was skipped because the wizard sends no features/constraints and the pipeline required one of them. The goal text now also triggers it. Whether the goal was actually built is returned (`goalImplemented`, `sliceStatus`), recorded as `GOAL_IMPLEMENTATION` in diagnostics and logged; if not built, the UI shows a `WARNING: this ZIP is only a generic starter` note with the reason (e.g. model step disabled: `CODE_EXECUTOR=model_patch` and `APP_BUILDER_MODEL_SLICE=true` are required).
+* Files tab "Save to Google Drive" sent ZIPs through the text API, producing a corrupted `*.zip.txt` on Drive. Binary files are now uploaded as blobs with their real name; an empty file is refused.
+* Files tab no longer prints binary ZIP bytes as text; a Download button was added.
+* Download links (wizard "Download source ZIP", build result) now use fetch+blob (the path that works for the diagnostic ZIP) and show the HTTP status/reason on failure. The previous plain link never reached the server on the reporter's device (no `DOWNLOAD_REQUESTED` event).
+
+* `check-version.mjs`: the CHANGELOG check applies only when `CHANGELOG.md` exists (restores the existing contract that trees without markdown pass; the P92.5 version broke `test:core`).
+
+### Limits
+
+* Whether Tetris is really written depends on the server having the model step enabled and a working model key; this cannot be verified without the deployed environment.
+
 ## P92.5 — Release label from CHANGELOG
 
 * The first `## P…` heading of `CHANGELOG.md` is the exact release label. `scripts/check-version.mjs` (part of `npm run check`) fails if the top entry's major number differs from `APP_VERSION` or if the newest entry is not at the top. The diagnostics screen and ZIP show it (e.g. `v92 (P92.5)`). Add every new patch entry at the very top.
