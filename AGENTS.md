@@ -17,16 +17,15 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **P82:** Conversation/brief UI and compatibility-route extractions; Navigator reports GitHub CI green. Local full verification was blocked by an `npm ci` timeout.
 * **P81:** Dependency Intelligence context planner and deterministic pre-P81 v80 baseline.
 * **p80:** CI preflight now permits the approved flat `archive/` directory; regression coverage added. Flat docs/scripts layout — phase folders removed; historical copies in `archive/`; active tools use prefixed script names under `scripts/`.
-* **p79:** CI `ui-check` Playwright cache (skip apt on cache hit)
+* **p79:** CI ui-check Playwright cache (skip apt on cache hit)
 * **p71–p78 (Transformation track): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 
 * **VIX:** `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
-
 ### Product / runtime (P43 / ADR-06)
 
 * Code delivery executor **`model_patch`** is documented and env-gated: set `CODE_EXECUTOR=model_patch` only after Navigator approval (ADR-10 / E-01). Default remains `manual`.
-* **GitHub write** (diff upload / App write to the repo) is **deferred** (ADR-06): off unless `GITHUB_DIFF_UPLOAD=true` and App credentials are configured. Do not enable by default.
+* **GitHub write** (diff upload and repository write access) is **deferred** (ADR-06): disabled unless credentials and verified variables are configured. Do not enable by default.
 
 ## Navigation
 
