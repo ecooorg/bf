@@ -1,3 +1,67 @@
+## P92.1 — Diagnostics Drive Sync and Artifact Correlation
+
+### Added
+
+* Added diagnostic synchronization controls for Google Drive.
+* Added a target diagnostics folder path: `My Drive/BiForge/диагностика`.
+* Added operation and artifact correlation fields intended to associate diagnostic events, generated artifacts, and exported logs.
+* Added support for grouping related diagnostic operations.
+* Added synchronization triggers for user-initiated synchronization and periodic synchronization while the application remains open.
+
+### Improved
+
+* Expanded artifact validation to include `model_patch` artifacts.
+* Improved the intended traceability of diagnostic operations and their associated artifacts.
+* Extended diagnostic export and synchronization workflows.
+
+### Notes
+
+* Google Drive synchronization must be verified against an authorized Google Drive account.
+* Operation and artifact correlation must be verified using actual generated artifacts and recorded database events.
+* The existence of synchronization controls does not by itself confirm successful upload or persistent storage.
+* Integration tests for ZIP generation, storage failures, HTTP errors, timeouts, and synchronization failures remain necessary where not yet implemented.
+
+## Diagnostic Infrastructure — Follow-up Validation
+
+### Verification Requirements
+
+* Verify that system diagnostic checks report accurate results against the deployed application.
+* Verify that recent operations are written to and retrieved from the database.
+* Verify that generated artifacts can be correlated with their originating operations.
+* Verify that exported diagnostic files contain only the intended diagnostic data.
+* Verify that Google Drive synchronization succeeds and reports failures clearly.
+* Verify that artifact storage integrity is tested during actual build and export workflows.
+* Add or complete integration tests for successful operations and failure scenarios.
+
+### Known Limitations
+
+* A green deployment or successful build does not establish that diagnostic event recording, artifact correlation, or Google Drive synchronization works end to end.
+* Platform-generated GitHub and Render logs are separate from BiForge's application-level diagnostic records.
+* Diagnostic functionality should be considered fully verified only after the relevant runtime and integration tests pass.
+
+
+## P92 — Project Mode Diagnostics
+
+### Added
+
+* Added a System Diagnostics entry point for checking Project Mode configuration, database connectivity, diagnostic event schema, and related runtime capabilities.
+* Added a Recent Operations view for inspecting recorded diagnostic and build-related operations.
+* Added a diagnostic log export entry point.
+* Added structured diagnostic events to support troubleshooting and operational visibility.
+* Added checks intended to report diagnostic status and supporting evidence.
+
+### Improved
+
+* Made diagnostic results more explicit by distinguishing successful checks, warnings, and checks that have not been run.
+* Added diagnostic evidence to help identify which checks were performed and what they verified.
+
+### Notes
+
+* A successful database connectivity check does not by itself confirm artifact storage integrity.
+* The presence of a diagnostic events table does not guarantee that all expected events are being recorded.
+* End-to-end diagnostic coverage and artifact-storage verification require runtime validation.
+
+
 ## P91 — Context completeness and material-uncertainty guard (2026-10-24)
 
 - Added read-only `context:completeness` to combine P85 task context, P86 impact lineage, P87 verification planning and P89 intent criteria into scoped `COMPLETE`, `PARTIAL` or `UNVERIFIED` states.
