@@ -281,9 +281,11 @@ The contract is generated from the prompt and existing evidence as a draft. Expl
 
 ## 9. P90 — Incremental architecture/context refresh
 
+**P90 implementation status (2026-10-24):** prepared a benchmark-first, read-only profiler (`npm run context:refresh-profile`) for P85/P86/P87/P89 operations. It reports repeated-run timing, canonical output stability and content fingerprints. The representative local micro-profile kept all operation medians below the 50 ms triage threshold and recommended no cache. This is not end-to-end latency evidence; do not add caching without representative P88 paired-task evidence. See `docs/CONTEXT-REFRESH-P90.md`. Full CI is pending Navigator confirmation.
+
 ### Goal
 
-Avoid recomputing all derived architecture data after every small edit while preserving a deterministic full rebuild as the correctness oracle. This is an optimization, not a goal by itself: implement only if profiling shows a meaningful reduction in developer wait or repeated work.
+Avoid recomputing all derived architecture data after every small edit only when measurement proves it matters, while preserving a deterministic full rebuild as the correctness oracle. P90 itself adds profiling only; it does not add cache or incremental invalidation logic without evidence of value.
 
 ### Implementation plan
 
