@@ -1,3 +1,17 @@
+## P92.3 — Diagnostics with real content
+
+### Fixed
+
+* Diagnostic ZIP was nearly empty (one event). It now also contains `logs/server-console.log` (last 500 redacted console lines since server start) and a `runtime` block (app version, Node, uptime, memory).
+* System diagnostics gained real checks: `migrations` (applied vs files on disk) and `artifact-storage` (read-only re-read and hash verification of the latest stored artifact; `NOT RUN` with an explicit reason when none exists).
+* Running system diagnostics now records a `SYSTEM_DIAGNOSTICS_RUN` event.
+* "Run system diagnostics" and "View recent operations" show readable lists (status, stage, duration, errors) instead of raw JSON.
+
+### Limits
+
+* Console capture starts at server start and is process-local; Render platform logs are not included.
+* `artifact-storage` verifies the latest existing artifact; it does not write a probe.
+
 ## P92.2 — CI log delivery and diagnostic export integrity
 
 ### Fixed
