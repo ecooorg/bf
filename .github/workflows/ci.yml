@@ -67,6 +67,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Result summary
         if: always()
-        run: node scripts/ci-summary.mjs ci-check.log ci-live.log ci-api.log
+        run: |
+          cp artifacts/ci-checks/*.log ./ 2>/dev/null || true
+          node scripts/ci-summary.mjs ci-check.log ci-live.log ci-api.log
         env:
           CI_STATUS: ${{ job.status }}
+      - name: Upload Actual Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-detailed-test-logs
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
