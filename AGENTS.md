@@ -68,10 +68,28 @@ Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not
 
 Silence is never consent in Tiers 2 and 3.
 
-## P85 task context
+### Documentation Policy
 
-Use `npm run context:task -- --task "..."` for read-only, heuristic task navigation; see `docs/TASK-CONTEXT-P85.md`. Do not confuse a suggested target or test with verified runtime behavior.
+**`CHANGELOG.md` — Patch History**
 
-## P86 change impact
+* MUST be updated in every patch.
+* Record the patch ID, important changes, verification results, and known limitations.
+* Preserve previous entries and append the new entry using the existing format.
 
-Use `npm run impact:lineage -- --task "..." <changed-file>` for a read-only, provenance-labelled impact estimate. Treat `PRESENT` as a limited structural artifact check, not proof of freshness or runtime behavior; suggested tests are not executed automatically.
+**`AGENTS.md` — Major Product Changes**
+
+* Record only significant changes to product functionality, architecture, core workflows, or development principles that future agents must understand.
+* Update this file only when a patch introduces a significant change that affects how the product works or how it should be developed.
+* Do not add routine bug fixes, minor improvements, or a duplicate list of patch changes.
+* Keep existing instructions and product context accurate when major changes occur.
+
+**Patch Archive Rules**
+
+* Do not include `README.md`, `AGENTS.md`, or other informational documentation files in patch ZIP archives unless explicitly requested.
+* Include `CHANGELOG.md` whenever a patch changes project code or functionality.
+* Include `AGENTS.md` only when a significant product change requires updating it, unless explicitly requested otherwise.
+
+**Verification**
+
+* Clearly distinguish implemented functionality from functionality that has been tested or verified in production.
+* Never claim that a feature works merely because the build or deployment succeeded.
