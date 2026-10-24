@@ -59,14 +59,47 @@ jobs:
       - name: Build application
         if: always() && steps.deps.outcome == 'success'
         timeout-minutes: 8
-        run: npm run build
+        # Добавлен флаг --foreground-scripts для детального вывода сборки
+        run: npm run build -- --foreground-scripts
+        env:
+          DEBUG: "*" # Включает отладку для многих Node.js библиотек
+
       - name: Scan repository for leaked secrets
         if: always()
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_ARGS: "--verbose" # Можно раскомментировать для еще более детального лога gitleaks
+
       - name: Result summary
         if: always()
+        # Используем предложенный вами скрипт
         run: node scripts/ci-summary.mjs ci-check.log ci-live.log ci-api.log
         env:
           CI_STATUS: ${{ job.status }}
+
+      # 1. СТРУКТУРИРОВАННЫЙ ВЫВОД ЛОГОВ В КОНСОЛЬ GITHUB
+      - name: Print CI logs to GitHub Console
+        if: always()
+        run: |
+          echo "=== Сontent of ci-check.log ==="
+          cat ci-check.log || echo "File ci-check.log not found"
+          
+          echo "=== Content of ci-live.log ==="
+          cat ci-live.log || echo "File ci-live.log not found"
+          
+          echo "=== Content of ci-api.log ==="
+          cat ci-api.log || echo "File ci-api.log not found"
+
+      # 2. СОХРАНЕНИЕ ЛОГОВ В ВИДЕ СКАЧИВАЕМЫХ АРТЕФАКТОВ
+      - name: Upload CI Logs as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-execution-logs
+          path: |
+            ci-check.log
+            ci-live.log
+            ci-api.log
+          if-no-files-found: warn
+          retention-days: 7
