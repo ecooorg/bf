@@ -1,237 +1,182 @@
-# ТЗ (финал): ядро конструктора /appBuilder для BiForge
+# Final Technical Specification: BiForge App Builder Core (`appBuilder`)
 
-Документ рассчитан на исполнение в отдельной сессии: из него должно быть понятно, какие файлы создать, какие существующие править, в каком порядке собирать патчи и как принимать результат. Заменяет черновик «ТЗ: пошаговый конструктор программ».
+This document is an execution-ready specification for a separate implementation session. It defines files, module boundaries, patch order, and acceptance criteria. It supersedes the draft “Step-by-Step Program Builder Specification.”
 
-## 1. Назначение, решения и принципы
+## 1. Purpose, decisions, and principles
 
-Нужно сделать ядро конструктора, которое собирает программу из маленьких проверяемых шагов и одинаково работает у школьника с бесплатным ключом и у профессионала с дорогой подпиской: разница только в профиле возможностей, а не в коде. Первая версия — минимальная (однофайловые и малые многофайловые статические сайты, эталон — тетрис), но форматы данных и границы модулей закладываются сразу так, чтобы рост до больших проектов не требовал переделки хранимых данных.
+Build a core that creates programs from small, verifiable steps and behaves consistently for a school student using a free API key and a professional using a paid subscription. Only the capability profile differs; core code must not branch on “free” or “paid”. Version 1 targets small static websites (including the Tetris golden task), while data formats and module boundaries should allow growth without persisted-data redesign.
 
-**Принятые решения (не переоткрывать без владельца)**
+**Accepted decisions (do not reopen without owner approval):**
 
-1. Ядро живёт в отдельном каталоге `/appBuilder` в корне репозитория, без подкаталогов (плоская структура с префиксами имён файлов, как в `docs/` и `scripts/`).
-2. Ядро не импортирует ничего из `server/` и `src/`. Всё внешнее (вызов модели, хранилище, диагностика, время) приходит через «порты» (интерфейсы), которые подставляет тонкий адаптер в `server/`.
-3. Единица работы — «юнит» (Unit), план — граф юнитов с зависимостями. Сегодня юнит = один файл, выполняется по очереди; формат разрешает позже делить юнит и выполнять независимые параллельно.
-4. Возможности описываются профилем (`Profile`: лимиты вывода, запросов в минуту, параллелизм, бюджет вызовов), получаемым из реестра моделей, а не зашитыми числами. Слова «бесплатный/платный» в коде ядра не встречаются.
-5. Контекст юнита ограничен его ТЗ и интерфейсами соседей (без их кода) — размер запроса не растёт с проектом.
-6. Результат юнита кешируется по хэшу входов: так делаются возобновление после сбоя и дешёвая пересборка.
-7. Все хранимые форматы имеют `schemaVersion`.
-8. Режимы внедряются «заменой по частям»: новый движок за флагом `APP_BUILDER_ENGINE=staged`, старый одношаговый путь остаётся запасным до приёмки.
-9. Проверяет код, а не модель; сгенерированный код на сервере не запускается.
+1. The core lives in the repository-root `appBuilder/` directory. It is flat: no subdirectories. Files use role prefixes, including `stack-<id>.ts` and `validator-<id>.ts` in the root only.
+2. Core code must not import from `server/` or `src/`. Model calls, storage, diagnostics, and time are supplied through ports implemented by a thin server adapter.
+3. Work is represented by `Unit` nodes in a dependency graph. In v1, file units are processed sequentially; the data model permits later decomposition and parallel independent units.
+4. Capabilities come from a model registry through `Profile` fields, not hard-coded provider tiers. Core code must not contain “free”/“paid” branches.
+5. Unit context is limited to its own task and neighbouring interfaces, not neighbouring source code; prompt size must not grow with the whole project.
+6. Unit results are cached by a hash of inputs, prompt version, and model identity to support recovery and inexpensive rebuilds.
+7. Every persisted or exchanged contract carries `schemaVersion`; unknown versions must be rejected explicitly.
+8. Rollout is incremental. `APP_BUILDER_ENGINE=staged` is opt-in; the legacy one-shot path remains the default until acceptance.
+9. Generated code is checked statically and is never executed on the server.
 
-**Не входит в задачу:** автоматическая публикация в GitHub и деплой; смена провайдера; переписывание режимов Simple/Expert; реализация параллелизма, многих стеков и ревизии моделью в первой версии (для них закладываются только интерфейсы и поля данных).
+**Out of scope:** automatic GitHub publication or deployment, provider replacement, rewriting Simple/Expert modes, parallel execution, multiple stacks, and model-based review in the first version. Interfaces/data fields may prepare for later work, but do not implement it here.
 
-## 2. Исходное состояние и ограничения репозитория
+## 2. Baseline and repository constraints
 
-**База:** патч P92.7 (кумулятивный) поверх репозитория BiForge: Node 22, Express, TypeScript через tsx, PostgreSQL, JSZip, деплой на Render. Версия приложения — `92`, метка релиза берётся из первого заголовка `## P<N>…` файла `CHANGELOG.md` (новейшая запись сверху; `scripts/check-version.mjs` это проверяет).
+**Baseline:** cumulative P92.7 or newer, with P93.1 core contracts already applied in the current baseline archive. Repository stack: Node 22, Express, TypeScript/tsx, PostgreSQL, JSZip, deployment to Render. Application version is `93`; the newest `## P<N>…` heading in `CHANGELOG.md` is authoritative and checked by `scripts/check-version.mjs`.
 
-**Что уже есть:**
+**Existing components:**
 
-- Проектный режим с конвейером App Builder: IR → scaffold → необязательный шаг модели «slice» → ZIP (`server/appBuilder*.ts`, `server/appBuilderPipeline.ts`, `server/projectRoutes.ts`). Это «старый путь»; он остаётся запасным.
-- Маршрутизатор моделей `routeCall` (здоровье, квоты, решения `decision` с причиной/попытками/отказами).
-- Таблицы артефактов (с хэшами) и диагностики `project_diagnostic_events`, `project_diagnostic_artifacts`; запись событий `recordDiagnostic`.
-- CI: `.github/workflows/ci.yml`, `scripts/run-independent-checks.mjs`, `scripts/ci-summary.mjs`, `scripts/check-version.mjs`.
-- Упаковка патчей: `scripts/pack-simple.mjs` и `scripts/patch-tools.mjs` (preflight: список `ALLOWED_TOP`, плоская структура, поиск секретов).
+- Project Mode's legacy App Builder pipeline: IR → scaffold → optional model “slice” → ZIP (`server/appBuilder*.ts`, `server/appBuilderPipeline.ts`, `server/projectRoutes.ts`). Keep it as fallback.
+- Model router `routeCall`, with health/quota decisions and reasons/attempts/rejections.
+- Artifact and diagnostics tables, including `project_diagnostic_events` and `project_diagnostic_artifacts`, plus `recordDiagnostic`.
+- CI scripts/workflow: `.github/workflows/ci.yml`, `scripts/run-independent-checks.mjs`, `scripts/ci-summary.mjs`, and `scripts/check-version.mjs`.
+- Patch packaging via `scripts/pack-simple.mjs` and `scripts/patch-tools.mjs`, including `ALLOWED_TOP`, flat-layout preflight, and secret scanning.
 
-**Известные дефекты, из-за которых нужен конструктор:**
+**Known issue motivating this work:** a one-shot Gemini generation on a free key can hit HTTP 429 or truncate its response, leaving the Tetris task unbuilt. P93.0 separately fixed non-ASCII `Content-Disposition` filenames by using an ASCII `filename=` and UTF-8 `filename*=`.
 
-1. Одношаговая генерация на бесплатном ключе Gemini упирается в лимит 429 и обрезку ответа; шаг модели возвращает «slice unavailable», игра (тетрис) не создаётся.
-2. Имя файла с кириллицей в `Content-Disposition` давало HTTP 500 (`Invalid character in header content`). Правило: заголовок только ASCII + `filename*=UTF-8''<percent-encoded>`. **Исправлено в патче P93.0.**
+**Repository rules:**
 
-**Жёсткие ограничения репозитория (проверять по AGENTS.md перед работой):**
+- Keep `appBuilder/` flat. Permit only one nested path level in generated project files (e.g. `assets/logo.svg`); reject deeper paths. The archive path validator and preflight must agree.
+- `appBuilder` is already in `scripts/patch-tools.mjs` `ALLOWED_TOP`; `tsconfig.server.json` includes the core.
+- Architecture rules define the `appBuilder` layer and permit `server → appBuilder`, `test → appBuilder`, and `script → appBuilder`; never permit `appBuilder → server` or `appBuilder → src`.
+- Keep documentation inventories and `check-docs` green. Do not weaken or remove existing tests.
 
-- Плоская структура: в каталогах нет подкаталогов, имена файлов с префиксами.
-- `scripts/patch-tools.mjs`: `appBuilder` добавлен в `ALLOWED_TOP` (сделано в P93.0); иначе патч с новым каталогом отклоняется.
-- `tsconfig.server.json`: в `include` добавить `appBuilder/*.ts`.
-- `docs/architecture-boundary-rules.json`: новый слой `appBuilder`; разрешённые рёбра server → appBuilder, test → appBuilder, script → appBuilder; запрещено appBuilder → server и appBuilder → src.
-- Инвентари документации и `check-docs`: новые файлы должны быть учтены, иначе проверка падает.
-- Нельзя ослаблять или удалять существующие тесты; общий прогон `run-independent-checks` должен остаться зелёным (на P93.0 — 26 PASS).
+## 3. `appBuilder/` file layout and boundaries
 
-## 3. Каталог /appBuilder: состав и границы
+The directory is flat, TypeScript ESM, with side-effect-free functions where practical.
 
-Каталог в корне репозитория, **без подкаталогов**. Роль файла кодируется префиксом имени. Код на TypeScript (ESM, как остальной проект), чистые функции без побочных эффектов там, где возможно.
-
-| Префикс / файл | Назначение |
+| File / prefix | Responsibility |
 |---|---|
-| `appBuilder/core-types.ts` | Все типы и константы `schemaVersion`: Unit, Plan, Profile, Spec, Report, JobState |
-| `appBuilder/core-ports.ts` | Интерфейсы портов: `ModelPort`, `StorePort`, `EventPort`, `ClockPort` |
-| `appBuilder/core-plan.ts` | Построение и проверка графа юнитов (топологический порядок, поиск циклов) |
-| `appBuilder/core-engine.ts` | Главный цикл этапов, планировщик, бюджет вызовов, возобновление |
-| `appBuilder/core-cache.ts` | Ключ кеша = хэш (вход юнита + версия промпта + id модели) |
-| `appBuilder/core-markers.ts` | Разбор вывода модели в формате `<<<FILE path>>> … <<<END>>>`, обнаружение обрезки |
-| `appBuilder/core-prompts.ts` | Шаблоны запросов с номерами версий |
-| `appBuilder/profile-*.ts` | Профиль возможностей и сопоставление ролей (planner/coder/reviewer) с моделями |
-| `appBuilder/stack-static-site.ts` | Единственный стек первой версии; реестр в `appBuilder/stack-registry.ts` |
-| `appBuilder/validator-*.ts` | Статические проверки (html, js-syntax, refs, size, secrets) |
-| `appBuilder/pack-zip.ts` | Сборка архива и `build-report.json` |
-| `appBuilder/index.ts` | Единственная публичная точка входа ядра |
+| `core-types.ts` | Shared contracts and `schemaVersion`: Unit, Plan, Profile, Spec, Report, JobState |
+| `core-ports.ts` | `ModelPort`, `StorePort`, `EventPort`, `ClockPort` interfaces |
+| `core-plan.ts` | Dependency graph, topological ordering, cycle and path validation |
+| `core-engine.ts` | Main stage loop, scheduling, call budget, resume-ready contracts |
+| `core-cache.ts` | Content hash; cache key includes unit input, prompt version, and model ID |
+| `core-markers.ts` | Parse `<<<FILE path>>> … <<<END>>>`; detect truncation and unsafe paths |
+| `core-prompts.ts` | Versioned prompts; the initial code prompt version is the constant `static_site.v1` |
+| `profile-*.ts` | Conservative capability profile and role/model profile mapping |
+| `stack-<id>.ts` | Stack implementation; first stack is `static_site` |
+| `validator-<id>.ts` | Static validators for HTML, JS syntax, references, size, and secrets |
+| `pack-zip.ts` | ZIP assembly and embedded `build-report.json` |
+| `index.ts` | Sole public entry point |
 
-**Порты (в `core-ports.ts`):**
+Ports:
 
-- `ModelPort.complete({role, system, prompt, maxOutputTokens, signal}) → {text, finishReason, usage, modelId}` либо типизированная ошибка (`rate_limited` с `retryAfterMs`, `truncated`, `unavailable`, `bad_request`).
+- `ModelPort.complete({role, system, prompt, maxOutputTokens, signal})` returns `{text, finishReason, usage, modelId}` or a typed error: `rate_limited` (with optional `retryAfterMs`), `truncated`, `unavailable`, `timeout`, or `bad_request`.
 - `StorePort`: `saveJob`, `loadJob`, `listResumable`, `putUnitResult`, `getUnitResult(cacheKey)`, `putArtifact`.
 - `EventPort.emit({jobId, unitId?, type, level, data})`.
-- `ClockPort.now()` и `sleep(ms, signal)` — чтобы тесты не ждали реальное время.
+- `ClockPort.now()` and `sleep(ms, signal)` enable deterministic tests.
 
-**Адаптер:** один файл `server/appBuilderAdapter.ts` связывает порты с `routeCall`, таблицами БД и `recordDiagnostic`. Ядро не знает о Render, Gemini, Express и PostgreSQL. Любой импорт из `server/` или `src/` внутри `appBuilder/` — нарушение, которое должен ловить тест архитектурных границ.
+The `server/appBuilderAdapter.ts` adapter connects these ports to `routeCall`, the database, artifact storage, and `recordDiagnostic`. Core code must know nothing about Render, Gemini, Express, or PostgreSQL. Any core import from `server/` or `src/` is an architecture violation.
 
-## 4. Контракты данных
+## 4. Data contracts
 
-Каждый объект содержит `schemaVersion: 1`. Читатель обязан отказаться работать с неизвестной версией с понятной ошибкой, а не угадывать.
+All contract objects use `schemaVersion: 1`. Readers reject unknown versions with a clear error.
 
-**Spec** (общее ТЗ программы): `{schemaVersion, title, goal, language, stack, features[], nonGoals[], acceptance[]}`. `acceptance[]` — проверяемые строки (например, «есть `index.html`, который подключает `game.js`»).
+- **Spec:** `{schemaVersion, title, goal, language, stack, features[], nonGoals[], acceptance[]}`. Acceptance criteria support both human-readable checks and machine-checkable predicates such as `has_file:path`, `html_has:path:selector-or-token`, and `js_contains:path:token`. Unsupported predicates must be reported as unsupported, not silently passed.
+- **Unit:** `{id, kind: 'file'|'check'|'assemble', path?, purpose, dependsOn[], exports[], contract, maxOutputTokens, status: 'pending'|'running'|'done'|'failed'|'skipped', attempts, cacheKey?, resultRef?}`. `contract` describes the file interface (functions, DOM IDs, etc.) and is what neighbouring units receive.
+- **Plan:** `{schemaVersion, specHash, units[], order[]}`. `order` is topological. A valid plan has no cycles, all dependencies exist, paths are unique/safe (no `..`, absolute paths, control characters, or more than one nested level), and unit count does not exceed `profile.maxUnits`.
+- **Profile:** `{schemaVersion, id, maxOutputTokens, requestsPerMinute, tokensPerMinute, maxParallel, maxCallsPerJob, contextTokens, supportsLongOutput, maxUnits}`. The adapter derives role profiles from the model registry; core has only `conservativeProfile()` defaults.
+- **JobState:** mirrors `app_build_jobs`: `id uuid`, `project_id`, `user_id`, `status` (`queued|running|done|failed|cancelled`), `stage`, `spec jsonb`, `plan jsonb`, `calls_used int`, `calls_budget int`, `error jsonb`, `report jsonb`, `artifact_id`, `schema_version int`, `created_at`, `updated_at`, `heartbeat_at`. Unit results live in `app_build_unit_results(job_id, unit_id, cache_key, content text, content_hash, created_at)`. The adapter owns JSONB/SQL-column mapping; core sees only camelCase `JobState`.
+- **build-report.json:** `{schemaVersion, jobId, status: 'complete'|'partial'|'failed', goalImplemented, files[{path, bytes, sha256, unitId}], units[{id, status, attempts, modelId, cacheHit}], validators[{name, ok, issues[]}], callsUsed, durationMs, failureReason?}`. `goalImplemented=true` only when all file units are done and every required validator has run and passed. A required validator that is `NOT RUN` means `goalImplemented=false`.
 
-**Unit**: `{id, kind: 'file'|'check'|'assemble', path?, purpose, dependsOn[], exports[], contract, maxOutputTokens, status: 'pending'|'running'|'done'|'failed'|'skipped', attempts, cacheKey?, resultRef?}`. `contract` — краткое описание интерфейса файла (функции, id элементов DOM), именно он попадает в контекст соседей.
+## 5. Engine, stages, cache, and recovery
 
-**Plan**: `{schemaVersion, specHash, units[], order[]}`; `order` — топологический порядок. Валидный план: без циклов, все `dependsOn` существуют, пути уникальны и безопасны (без `..`, абсолютных путей, управляющих символов), число юнитов ≤ `profile.maxUnits`.
+One `runBuild(input, ports, options)` pass uses these stages:
 
-**Profile**: `{schemaVersion, id, maxOutputTokens, requestsPerMinute, tokensPerMinute, maxParallel, maxCallsPerJob, contextTokens, supportsLongOutput}`. Строится из реестра моделей адаптером; каждой роли — свой профиль. В ядре только дефолт `conservativeProfile()`.
+1. **preflight** — validate task length/language, choose stack, build role profiles and call budget. No model call.
+2. **spec** — ask for a general `Spec` as JSON; retry once only for invalid JSON/schema.
+3. **plan** — request one unit per file and a dependency graph. If planning fails, P93.2b's stack may supply a template plan (`index.html`, `style.css`, `app.js`, `README.md`).
+4. **code** — generate file units in topological order. Each prompt includes a compact Spec, dependency contracts only, and the current unit contract. Output uses `<<<FILE path>>>` … `<<<END>>>`, not JSON. Missing `<<<END>>>` is truncation; retry with a compression instruction or split the unit in a later patch.
+5. **check** — run static stack validators; never execute generated code.
+6. **cross-check** — deterministically verify that HTML script/style references and acceptance predicates match generated files.
+7. **assemble** — create ZIP and `build-report.json`.
 
-**JobState** (таблица `app_build_jobs`, миграция 017): `id uuid`, `project_id`, `user_id`, `status` (`queued|running|done|failed|cancelled`), `stage`, `spec jsonb`, `plan jsonb`, `calls_used int`, `calls_budget int`, `error jsonb`, `report jsonb`, `artifact_id`, `schema_version int`, `created_at`, `updated_at`, `heartbeat_at`. Отдельная таблица `app_build_unit_results(job_id, unit_id, cache_key, content text, content_hash, created_at)`.
+Cache keys must include a stable prompt version constant (initial code prompt: `static_site.v1`) so a prompt change invalidates stale results. Identical inputs, prompt version, and configured model ID should yield the same key; the adapter supplies the selected model identity in engine options. Cache hits must not consume model calls.
 
-**build-report.json** (лежит внутри ZIP и в ответе API): `{schemaVersion, jobId, status: 'complete'|'partial'|'failed', goalImplemented, files[{path, bytes, sha256, unitId}], units[{id, status, attempts, modelId, cacheHit}], validators[{name, ok, issues[]}], callsUsed, durationMs, failureReason?}`. Правило честности: `goalImplemented=true` только если все файловые юниты `done` и все обязательные валидаторы `ok`.
+**Rate limits and retry policy:** budget is at most 25 model generation calls per job by default, with at most 2 generation attempts per unit. A `bad_request` is not retried. `rate_limited`, `timeout`, `unavailable`, and truncation follow bounded retry rules and the unit/job budgets. Waiting after 429 does **not** count as a generation attempt or call, but it **does** count toward the wall-clock duration of the job. Use `ClockPort` for waits; tests must not sleep in real time.
 
-## 5. Движок: этапы, планирование, кеш, возобновление
+A partial ZIP must state what is missing. “Continue” reuses completed units and must not charge again for cached completed work. `goalImplemented` is a factual result, not a model assertion.
 
-**Этапы (один проход `runBuild(input, ports, options)`):**
+## 6. ZIP and static-site security
 
-1. **preflight** — проверка входа (длина задачи, язык), выбор стека, построение профилей, бюджета вызовов. Без модели.
-2. **spec** — запрос «собери общее ТЗ» → `Spec` (JSON, до 1 повтора при невалидном JSON).
-3. **plan** — «сделай спецификацию на каждый файл» → `Plan`. Если модель не осилила, план берётся из шаблона стека (для static_site: `index.html`, `style.css`, `app.js`, `README.md`).
-4. **code** — по одному запросу на файловый юнит в порядке `order`. В запрос идут: Spec (кратко), интерфейсы (`contract`) только зависимых юнитов, собственный контракт. Вывод — в маркерах `<<<FILE path>>>` … `<<<END>>>` (не в JSON). Ответ без `<<<END>>>` = обрезка → повтор с пометкой «сжать» или дробление юнита.
-5. **check** — статические валидаторы стека (без запуска кода).
-6. **cross-check** — детерминированная сверка связей: скрипты/стили из HTML существуют, id из JS есть в HTML, экспорты совпадают с `exports`.
-7. **revision** — только заглушка-интерфейс в первой версии (вызывается, если есть бюджет и найдены проблемы; реализация — P93.5).
-8. **assemble** — сборка файлов и README, проверка размера и путей.
-9. **pack** — ZIP + `build-report.json`, артефакт через `StorePort`.
-10. **report** — итоговое событие и статус.
+ZIP output contains generated files plus `build-report.json`. File paths are normalized and rejected if absolute, traversal-based, contain control characters, or exceed one nested level (for example, `assets/x.png` is allowed; `assets/img/x.png` is not). Enforce file-count and total-size limits. Generated source is never executed on the server: no `eval`, subprocess, or network access to run it.
 
-**Планировщик.** Сегодня — последовательный, но интерфейс `nextRunnable(plan) → Unit[]` уже возвращает список готовых юнитов, а движок берёт не более `profile.maxParallel` (сейчас = 1). Только значение меняется при росте.
+## 7. First stack: `static_site` (P93.2b)
 
-**Повторы и лимиты.** Максимум 2 попытки на юнит; общий максимум вызовов на задачу — `profile.maxCallsPerJob` (по умолчанию 25). Бюджет исчерпан → статус `partial` с понятной причиной, не бесконечный цикл.
+Only one stack is in scope for P93. The default template plan contains `index.html`, `style.css`, `app.js`, and `README.md`; a plan may add JavaScript/CSS files up to eight files total. A one-level nested path is allowed for assets. No build tools, external dependencies, or CDN: the project should open by double-clicking `index.html`.
 
-**Кеш.** `cacheKey = sha256(unit.kind + unit.id + sha256(inputs) + promptVersion + stackId)`. Попадание — модель не вызывается, в отчёте `cacheHit=true`. После смены промпта или входа кеш промахивается автоматически.
+Required validators: `html-structure` (HTML/body structure and closed tags), `js-syntax` (parse source without executing it), `refs` (all `src`/`href` references resolve to planned files), `size` (non-empty, not truncated, total ≤ 2 MB), and `secrets` (no strings resembling credentials). Optional `goal-keywords` checks expected acceptance features such as `canvas` and `keydown` for a game. Machine-checkable predicates in `acceptance[]` must be deterministic and report each result explicitly.
 
-**Возобновление.** После каждого юнита состояние пишется в БД. При старте сервера `listResumable()` находит задачи со статусом `running` и старым `heartbeat_at` (> 2 мин) и продолжает с первого незавершённого юнита, не затрагивая готовые.
+## 8. Repository integration
 
-## 6. Профили моделей, роли, темп и обработка 429
-
-**Роли:** `planner` (spec, plan), `coder` (файлы), `reviewer` (зарезервирована под revision). Движок просит у `ModelPort` роль, а не конкретную модель. Адаптер в `server/appBuilderAdapter.ts` сопоставляет роль с моделью через `routeCall` и реестр моделей. Сегодня все три роли могут указывать на одну модель; завтра — на разные, без правки ядра.
-
-**Профиль из реестра.** Адаптер берёт для модели лимиты (вывод, контекст, RPM/TPM), если они известны; если нет — `conservativeProfile()`: `maxOutputTokens=2048`, `requestsPerMinute=5`, `maxParallel=1`, `maxCallsPerJob=25`. Для модели с большими лимитами юниты можно укрупнять без изменения кода — только по профилю (`planner` учитывает `maxOutputTokens` при резке файлов).
-
-**Темп и 429.**
-
-- Движок держит окно `requestsPerMinute`: между вызовами ждёт через `ClockPort.sleep`, не удерживая соединение дольше лимита платформы.
-- `rate_limited` → пауза `retryAfterMs` (если нет — экспоненциальный бэкофф 30 → 60 → 120 с), не более 3 ждущих попыток на юнит. Паузы не считаются как попытки генерации, но входят в бюджет времени задачи.
-- `truncated` → повтор с указанием сократить файл или разбить юнит на два (если план уже содержит подходящее место для деления; простейшая реализация — повтор с пометкой).
-- `unavailable` → попытка через другую модель самим роутером адаптера; ядро видит только итог.
-- Каждая причина отказа (`routed.decision`: reason, attempts, rejected) должна попасть в событие диагностики и в `failureReason` — никакого «недоступно» без причины.
-
-**Оценка времени.** При `requestsPerMinute=5` и ~10 вызовах тетрис должен собраться примерно за 2–4 минуты. Это и есть причина фоновой задачи с прогрессом (раздел 8), а не одного долгого HTTP-запроса.
-
-## 7. Плагины стеков и валидаторов
-
-**Интерфейс стека** (`Stack`, реестр в `stack-registry.ts`): `{id, title, detect(spec) → boolean, templatePlan(spec) → Plan, filePrompt(unit, ctx) → {system, prompt}, validators: Validator[], entryFile, packLayout}`. Новый стек = новый файл `stack-<id>.ts` + строка в реестре; движок не меняется.
-
-**Интерфейс валидатора**: `{id, required: boolean, run(files: Map<path,string>) → {ok, issues[{path, line?, message}]}}`. Валидаторы — чистые функции над текстом; их можно тестировать без модели.
-
-**Стек `static_site` (единственный в P93):**
-
-- Шаблон плана: `index.html` (точка входа), `style.css`, `app.js`, `README.md`; для больших задач планировщик может добавить ещё файлы JS/CSS (без подкаталогов в первой версии, до 8 файлов).
-- Без сборщиков, без внешних зависимостей и CDN: программа открывается двойным кликом по `index.html`.
-- Валидаторы (обязательные): `html-structure` (есть `<html>`, `<body>`, закрытые теги), `js-syntax` (только синтаксический разбор текста, без выполнения), `refs` (все `src`/`href` ведут на файлы плана), `size` (файл не пустой и не обрезан, сумма ≤ 2 МБ), `secrets` (нет похожих на ключи строк).
-- Дополнительный (не обязательный) валидатор `goal-keywords`: проверяет наличие ожидаемых элементов из `acceptance[]` (например, `canvas`, `keydown` для игры).
-
-**Безопасность:** сгенерированный код на сервере **не исполняется** (ни `eval`, ни подпроцессы, ни сеть). Пути файлов от модели нормализуются и отклоняются, если выходят за корень архива (zip-slip), содержат `..`, абсолютные пути или недопустимые расширения; максимум файлов и размер ограничены.
-
-## 8. Точные изменения в репозитории (интеграция)
-
-| Файл | Изменение |
+| File | Required change |
 |---|---|
-| `scripts/patch-tools.mjs` | Добавить `appBuilder` в `ALLOWED_TOP` (**сделано в P93.0**); плоская структура внутри каталога требуется как и в остальных. Тест: патч с `appBuilder/core-types.ts` проходит preflight, с `appBuilder/x/y.ts` — нет |
-| `tsconfig.server.json` | Добавить `appBuilder/*.ts` в `include`; `npm run check` компилирует ядро в strict-режиме |
-| `docs/architecture-boundary-rules.json` | Слой `appBuilder` (`appBuilder/*.ts`), рёбра server → appBuilder, test → appBuilder, script → appBuilder; запрет appBuilder → server и appBuilder → src |
-| Инвентари docs, `check-docs` | Внести новые файлы в инвентари, `docs/DOCUMENTATION-BASELINE.md`; описание слоя в `AGENTS.md` (строка про то, что `appBuilder/` известный каталог с плоской структурой) |
-| `server/migrations/017_app_build_jobs.sql` (имя по текущему паттерну папки миграций) | `app_build_jobs`, `app_build_unit_results`, индексы по `status`, `project_id`; идемпотентно (`IF NOT EXISTS`) |
-| `server/appBuilderAdapter.ts` (новый) | Порты ↔ `routeCall`, БД, артефакты, `recordDiagnostic`; запуск фоновой задачи; возобновление при старте сервера |
-| `server/projectRoutes.ts` | Флаг `APP_BUILDER_ENGINE=staged`: запуск нового движка вместо старого шага slice для задач с целью; при пустом/«legacy» — старое поведение без изменений. Новый маршрут старта возвращает **202** и `{jobId}`; `GET …/code/build/:jobId` — статус, этап, список юнитов, причина ошибки, ссылка на архив после готовности; `POST …/code/build/:jobId/cancel` |
-| `server/projectDiagnostics.ts` | События `BUILD_JOB_STARTED`, `BUILD_STAGE`, `BUILD_UNIT_DONE`, `BUILD_UNIT_FAILED`, `BUILD_FINISHED`; `build-report.json` включается в архив диагностики |
-| `server/projectRoutes.ts` (скачивание) | `Content-Disposition`: ASCII `filename=` + `filename*=UTF-8''<percent-encoded>` (**сделано в P93.0**, функция `contentDisposition` в `server/projectDiagnostics.ts`) |
-| `src/ProjectMode.tsx`, `src/ProjectNoviceWizard.tsx` | Экран прогресса: опрос статуса каждые 3 с, полоса «шаг N из M», список файлов со статусами, понятное сообщение об ожидании лимита, кнопки «Скачать» и «В Drive» (через уже готовые `downloadViaFetch` и binary-safe сохранение), честный статус `partial`/`failed` |
-| `CHANGELOG.md`, `package.json`, `src/config.ts` | Новая версия по правилу «CHANGELOG сверху = источник»: запись `## P93.x` + совпадающая версия в конфигах (`93`), `scripts/check-version.mjs` зелёный |
+| `scripts/patch-tools.mjs` | `appBuilder` in `ALLOWED_TOP` (already done in P93.0); flat core layout. Preflight accepts `appBuilder/core-types.ts`, rejects `appBuilder/x/y.ts`. |
+| `tsconfig.server.json` | Include `appBuilder/*.ts` and compile the core in the server type-check. |
+| `docs/architecture-boundary-rules.json` | `appBuilder` layer; permit server/test/script → appBuilder, prohibit reverse imports from appBuilder. |
+| Documentation inventories and `check-docs` | Register active docs and maintain documentation baseline/index. |
+| `server/migrations/017_app_build_jobs.sql` | Idempotent `app_build_jobs`, `app_build_unit_results`, indexes for status/project ID. |
+| `server/appBuilderAdapter.ts` | Implement ports over model routing, database, artifacts, diagnostics, and job recovery. |
+| `server/projectRoutes.ts` | With `APP_BUILDER_ENGINE=staged`, start the new engine instead of the legacy slice for eligible tasks; default/unset remains legacy. Start returns HTTP 202 and `{jobId}`; `GET …/code/build/:jobId` reports status/stage/units/error/archive; `POST …/code/build/:jobId/cancel` cancels. |
+| `server/projectDiagnostics.ts` | Diagnostic events: `BUILD_JOB_STARTED`, `BUILD_STAGE`, `BUILD_UNIT_DONE`, `BUILD_UNIT_FAILED`, `BUILD_FINISHED`; include `build-report.json` in diagnostic ZIP. |
+| Download routes | Keep ASCII `filename=` plus UTF-8 `filename*=` (P93.0). |
+| `src/ProjectMode.tsx`, `src/ProjectNoviceWizard.tsx` | Progress polling every 3 s, stage and unit list, wait-for-limit messaging, Download/Drive actions, honest `partial`/`failed` display. |
+| `CHANGELOG.md`, `package.json`, `src/config.ts` | Add a topmost `P93.x` changelog entry and keep application version `93` consistent. |
 
-**Стратегия «замена по частям»:** старый путь не удаляется и не меняется. Стратегия работы флага: до приёмки — выключен (по умолчанию legacy); после приёмки по golden-задачам — включается в Render; старый путь удаляется в отдельном патче по явной команде владельца.
+The legacy path is not removed or changed. The staged flag stays off until golden-task acceptance and explicit deployment approval; removing the legacy path requires a separate owner-approved patch.
 
-## 9. Тесты, эталонные задачи и приёмка
+Minimum event types for UI integration: `stage_changed`, `unit_started`, `unit_done`, `unit_failed`, `job_done`.
 
-**Тесты** (файлы `tests/app-builder-*.test.mjs`, включить в `run-independent-checks` и отдельный npm-скрипт `test:app-builder`):
+## 9. Tests and acceptance
 
-1. **Контракты:** валидатор Plan отклоняет цикл, несуществующую зависимость, `..` в пути, неизвестную `schemaVersion`.
-2. **Разбор маркеров:** нормальный ответ, обрезанный без `<<<END>>>`, два файла в одном ответе, мусор до/после маркеров, вредный путь.
-3. **Движок с «поддельной моделью»** (`ModelPort` в тесте): успешный проход; невалидный JSON с повтором; обрезка; 429 с ожиданием через поддельный `ClockPort` (без реальных пауз); `unavailable` с причиной в отчёте; исчерпание бюджета → `partial`.
-4. **Кеш:** повторный запуск с тем же входом не вызывает модель; смена `promptVersion` инвалидирует кеш.
-5. **Возобновление на реальном PostgreSQL:** обрыв на третьем юните, «перезапуск» адаптера, продолжение без повторных вызовов готовых юнитов (выполняется в тесте live-секции CI, как уже делаются другие live-тесты).
-6. **Валидаторы:** на хороших и на заведомо плохих файлах (отсутствующая ссылка, синтаксическая ошибка JS, похожий на ключ текст).
-7. **Безопасность:** zip-slip, лимиты размера и числа файлов, отсутствие выполнения сгенерированного кода.
-8. **Скачивание:** имя файла `Тетрис игра.zip` → 200, корректный `Content-Disposition`.
-9. **Регрессия:** с выключенным флагом старый API и все существующие тесты ведут себя как раньше.
-10. **Границы архитектуры:** тест находит запрещённый импорт `server/` из `appBuilder/` (на фикстуре).
+Tests belong in `tests/app-builder-*.test.mjs`, run via a dedicated `test:app-builder` script and the independent-check chain.
 
-**Голден-бенчмарк** (файл `tests/app-builder-golden.json`, запуск с поддельным и — вручную — с реальным провайдером): «тетрис», «список дел», «калькулятор», «сайт-визитка из 3 страниц». Для каждой: ожидаемые файлы, обязательные ключевые слова, максимум вызовов.
+1. **Contracts:** reject cycles, missing dependencies, unsafe paths, unknown `schemaVersion`; accept one-level nested paths and reject deeper paths.
+2. **Markers:** normal output, missing `<<<END>>>`, multiple files, leading/trailing garbage, unsafe path.
+3. **Engine with fake ModelPort:** successful pass, invalid JSON retry, truncation, 429 with fake-clock wait, unavailable/timeout reason, exhausted budget → partial/failed report.
+4. **Cache:** identical inputs avoid another model call; changing `promptVersion` invalidates the key.
+5. **Recovery (live PostgreSQL, P93.3):** interrupt on unit three, restart adapter, resume without regenerating completed units.
+6. **Validators (P93.2b):** good and bad files, missing references, JS syntax error, secret-like text, acceptance predicates.
+7. **Security:** zip-slip, size/file limits, and proof generated code is not executed.
+8. **Download (P93.3):** Unicode filename returns 200 and valid `Content-Disposition`.
+9. **Regression (P93.3):** with flag unset/false, legacy API behavior is unchanged and legacy pipeline does not touch `app_build_*` tables.
+10. **Architecture:** fixture confirms imports from `server/` inside `appBuilder/` are rejected.
 
-**Приёмка всего ядра (критерии «готово»):**
+Golden benchmark (`tests/app-builder-golden.json`): Tetris, to-do list, calculator, three-page business card site. Each task defines expected files, required acceptance predicates/keywords, and a call ceiling. The Tetris ZIP with fake model is an acceptance gate for P93.2a + P93.2b together, not P93.2a alone.
 
-- Все тесты и `run-independent-checks` зелёные; `check-version`, `check-docs`, архитектурные границы и `tsc` без ошибок.
-- На поддельной модели «тетрис» даёт ZIP с непустыми `index.html`/`app.js`, `goalImplemented=true`.
-- При сбое любого юнита статус честный (`partial`/`failed`) с причиной, видной в интерфейсе и в архиве диагностики.
+Whole-core acceptance requires all relevant tests and independent checks green; `check-version`, `check-docs`, architecture boundaries, and TypeScript must pass. On the fake model, Tetris must produce non-empty `index.html` and `app.js`, with `goalImplemented=true` only after required validators pass. Failures must be honestly reported as `partial`/`failed` with reasons in the report and diagnostics.
 
-## 10. План патчей
+## 10. Patch sequence
 
-Каждый патч — кумулятивный ZIP через `scripts/pack-simple.mjs`, с записью в `CHANGELOG.md` сверху. Порядок обязателен: каждый следующий — только после зелёного CI предыдущего.
+Each patch is a cumulative ZIP produced with `scripts/pack-simple.mjs`, with a new topmost `CHANGELOG.md` entry. Apply one patch at a time; proceed only after CI is green for the previous patch.
 
-| Патч | Содержание | Файлы | Приёмка |
-|---|---|---|---|
-| **P93.0** | `Content-Disposition` (ASCII + `filename*`) и подготовка preflight: `appBuilder` в `ALLOWED_TOP` | `server/projectRoutes.ts`, `server/projectDiagnostics.ts`, `scripts/patch-tools.mjs`, тесты, CHANGELOG, версия 93 | Скачивание с кириллическим именем — 200; preflight пропускает `appBuilder/*.ts` |
-| **P93.1** | Контракты, юниты, профиль, порты, валидатор плана, разбор маркеров + `tsconfig.server.json` + архитектурные правила + docs | `appBuilder/core-types.ts`, `core-ports.ts`, `core-plan.ts`, `core-markers.ts`, `profile-*.ts`, `index.ts`, правки конфигов | Тесты 1, 2, 10 из раздела 9 зелёные; ядро ещё ничего не вызывает |
-| **P93.2** | Движок с поддельным провайдером, стек `static_site`, валидаторы, кеш, `pack-zip`, отчёт | `core-engine.ts`, `core-cache.ts`, `core-prompts.ts`, `stack-*.ts`, `validator-*.ts`, `pack-zip.ts` | Тесты 3, 4, 6, 7 зелёные; голден-задача «тетрис» на поддельной модели |
-| **P93.3** | Хранилище задач, возобновление, адаптер, маршруты 202 и статуса, флаг | миграция 017, `server/appBuilderAdapter.ts`, `server/projectRoutes.ts`, `server/projectDiagnostics.ts` | Тесты 5, 8, 9 зелёные; флаг выключен — поведение как в P92.7 |
-| **P93.4** | Экран прогресса в интерфейсе и итоги в диагностике | `src/ProjectMode.tsx`, `src/ProjectNoviceWizard.tsx` | Ручная проверка на Render с бесплатным ключом: «тетрис» в архиве, скачивание и Drive |
-| **P93.5** | Ревизия моделью, другие стеки (по одному), параллелизм по профилю | `core-engine.ts`, `stack-*.ts` | Отдельное ТЗ, после приёмки P93.4 |
+| Patch | Scope | Acceptance |
+|---|---|---|
+| **P93.0** | Safe Unicode download filename; preflight allows flat `appBuilder/` files | Unicode download returns 200; preflight accepts `appBuilder/*.ts` |
+| **P93.1** | Contracts, units, profiles, ports, plan validation, markers, TypeScript/architecture/docs integration | Tests 1, 2, 10 for the original contract scope pass; core makes no model calls |
+| **P93.2a** | Generic engine, fake `ModelPort` tests, versioned prompts, cache keys, ZIP packer, build report | Fake-model engine, report/ZIP, cache-key and marker tests pass; no provider adapter, routes, DB, static-site stack, or stack validators |
+| **P93.2b** | `static_site` stack, static validators, cross-check and machine-checkable acceptance predicates | Validator and golden tests pass; Tetris golden task passes with fake model when combined with P93.2a |
+| **P93.3** | Persistence/recovery, adapter, routes, diagnostics, feature flag | Live recovery tests pass; unset/false flag preserves legacy behavior and does not access `app_build_*` tables |
+| **P93.4** | Progress UI and diagnostic result integration | Manual Render verification with a free key: Tetris ZIP, download, and Drive flow |
+| **P93.5** | Model review, additional stacks one at a time, profile-based parallelism | Separate specification, only after P93.4 acceptance |
 
-Патч P93.1 — это и есть «патч-ядро»: внедрить каталог, границы и контракты; P93.2–P93.3 делают его рабочим. Если в одной сессии будет тесно, выполнять P93.0–P93.2 (рабочий патч на поддельной модели без веба), остальное — во второй.
+P93.1 is the contract foundation. P93.2a and P93.2b deliberately separate the generic execution machinery from the first stack and its validators. P93.3–P93.5 remain out of P93.2a scope.
 
-## 11. Регламент исполнителя и решения по умолчанию
+## 11. Execution protocol and defaults
 
-**Порядок работы сессии по этому ТЗ:**
+1. Read `AGENTS.md` and the newest `CHANGELOG.md` entry. Confirm the baseline is P92.7 or newer with P93.1 contracts; ask if it is not.
+2. Follow the patch order in §10, one patch at a time, with cumulative ZIP and a topmost changelog entry.
+3. Before delivery, run `check-version`, TypeScript, `check-docs`, architecture checks, focused App Builder tests, and the full independent-check chain where the environment permits. Report checks as passed, failed, blocked, or not run.
+4. Never weaken/remove tests or present a fake provider as a real model integration.
+5. Owner response should be concise and in Russian.
 
-1. Прочитать `AGENTS.md`, первую запись `CHANGELOG.md`, убедиться, что архив базовой версии — P92.7 или новее (если нет — спросить).
-2. Выполнять патчи строго по разделу 10, по одному за раз, с кумулятивным ZIP и записью в CHANGELOG сверху.
-3. Перед выдачей прогнать `check-version`, `tsc`, `check-docs`, полный `run-independent-checks` (либо минимум тесты на локальном PostgreSQL, как раньше).
-4. Честно сообщать результат: что запускалось, что не запускалось. Не ослаблять и не удалять тесты; не выдавать «заглушку» за работу на реальной модели.
-5. Ответ владельцу — коротко, по-русски (он просил экономии токенов); без пересказа шагов.
+Defaults unless the owner changes them:
 
-**Решения по умолчанию (менять только по команде владельца):**
+- At most 25 model generation calls per job; at most 2 generation attempts per unit.
+- Partial results are downloadable with an explicit list of missing work; “Continue” reuses completed units without additional generation calls for those units.
+- First stack: `static_site` only.
+- `APP_BUILDER_ENGINE` is off by default.
+- Core has no provider/server dependencies; JSZip is an existing project dependency used for archive assembly.
 
-- Бюджет — до 25 вызовов модели на задачу; до 2 попыток на юнит.
-- Частичный результат: архив выдаётся со статусом `partial` и явным списком недостающего; кнопка «Доделать» продолжает с готовых юнитов без новой оплаты вызовов за готовое.
-- Первый стек — только `static_site`.
-- Флаг `APP_BUILDER_ENGINE` по умолчанию выключен.
-- Ядро без внешних npm-зависимостей (кроме уже установленных на уровне адаптера, например JSZip).
-
-
-
-**Лимиты для БЕСПЛАТНОГО ключа Gemini API**
-
-| Модель | Запросов в минуту (RPM) | Запросов в сутки (RPD) | Сколько секунд ждать между запросами |
-| :--- | :--- | :--- | :--- |
-| **Gemini 3.1 Flash-Lite** | 15 | 1 500 | 4.5 |
-| **Gemini 3.5 Flash-Lite** | 15 | 1 500 | 4.5 |
-| **Gemini 3 Flash** | 10 | 1 500 | 6.0 |
-| **Gemini 3.6 Flash** | 10 | 1 500 | 6.0 |
-
-**Реальный каскад** на 24 октября 2026 (необходимо уточнить по результатам тестов):
-
-MODEL_CASCADE_LIGHT="gemini-3.5-flash-lite,gemini-3.1-flash-lite"
-MODEL_CASCADE_STRONG="gemini-3.5-flash-lite,gemini-3.1-flash-lite"
-
-
+**Gemini free-tier rate limits and model cascade:** values previously noted for Gemini 3.x models and `MODEL_CASCADE_LIGHT` / `MODEL_CASCADE_STRONG` are provisional operational notes, not core constants. Verify them against current provider limits and observed tests before using them in deployment configuration.

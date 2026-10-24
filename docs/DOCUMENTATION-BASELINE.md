@@ -9,6 +9,7 @@ Source: Navigator-supplied `bf-v70` tree (post documentation-foundation patch).
 - `docs/AI-TRANSFORMATION-SPEC.md` — phased transformation mandate
 - `docs/DOCUMENTATION-INDEX.md` — navigation
 - `docs/DOCUMENTATION-BASELINE.md` — this file
+- `docs/tz-appbuilder.md` — English App Builder core specification (P93.x), contracts, patch sequence, acceptance gates
 - `docs/OPERATIONS.md` — deployment, backup, restore, rollback
 - `archive/phase0-*` — Phase 0 forensic audit artifacts (p71)
 

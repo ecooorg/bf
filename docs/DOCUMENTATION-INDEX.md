@@ -44,4 +44,4 @@ Historical phase-era files (flat names) under `../archive/` — audit CSVs, acce
 * `INTENT-CONTRACT-P89.md` — P89 draft-only intent contract, explicit/inferred fields, P85–P87 links, validation, command usage, evidence limits and rollback.
 * `CONTEXT-REFRESH-P90.md` — P90 benchmark-first profiling of P85–P89 planner work; timing and output stability report, no cache or performance claim.
 * `CONTEXT-COMPLETENESS-P91.md` — P91 scoped completeness guard, evidence-file schema, actionable uncertainty states and rollback.
-* `tz-appbuilder.md` — ТЗ ядра конструктора `/appBuilder` (P93.x): контракты, порты, план патчей, приёмка.
+* `tz-appbuilder.md` — Final English technical specification for the `/appBuilder` core (P93.x): contracts, ports, patch sequence, and acceptance criteria.
