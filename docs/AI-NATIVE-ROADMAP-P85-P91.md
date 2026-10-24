@@ -172,6 +172,8 @@ Documented edge schema, example impact report, generator-lineage tests, before/a
 
 ## 6. P87 — Verification Planner
 
+**Implementation status (2026-10-24):** read-only `verification:plan` CLI and `test:verification-plan` are implemented in this patch. The planner uses explicit file/task rules, validates suggested command names against `package.json`, emits risk-specific counterexamples, preserves full repository/build/hosted-CI gates, and labels commands `SUGGESTED_NOT_RUN`. It does not execute commands. GitHub CI remains pending until the Navigator applies the patch and runs the workflow.
+
 ### Goal
 
 Recommend the cheapest sufficient targeted verification for a change while preserving mandatory repository and CI gates. For behavior changes, include counterexample-oriented tests: a small, risk-based set of cases that could disprove the intended behavior. It must not let an AI agent declare a change complete based only on the fastest test tier.
