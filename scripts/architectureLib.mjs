@@ -146,13 +146,14 @@ export function cycleKey(cyclePath) {
 /**
  * Layer of a module path for boundary rules.
  * @param {string} rel
- * @returns {'server'|'src'|'test'|'script'|'other'}
+ * @returns {'server'|'src'|'test'|'script'|'appBuilder'|'other'}
  */
 export function layerOf(rel) {
   if (rel === 'server.ts' || rel.startsWith('server/')) return 'server';
   if (rel.startsWith('src/')) return 'src';
   if (rel.startsWith('tests/')) return 'test';
   if (rel.startsWith('scripts/')) return 'script';
+  if (rel.startsWith('appBuilder/')) return 'appBuilder';
   return 'other';
 }
 
