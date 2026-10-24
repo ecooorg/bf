@@ -29,9 +29,11 @@ jobs:
       - run: test -f tests/core.test.mjs
       - name: Install dependencies
         id: deps
-        run: npm ci
+        shell: bash
+        run: set -o pipefail; npm ci 2>&1 | tee ci-install.log
       - name: Apply migrations to clean PostgreSQL
-        run: npm run db:migrate
+        shell: bash
+        run: set -o pipefail; npm run db:migrate 2>&1 | tee ci-migrate.log
         env:
           DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
           PGSSLMODE: disable
@@ -59,7 +61,8 @@ jobs:
       - name: Build application
         if: always() && steps.deps.outcome == 'success'
         timeout-minutes: 8
-        run: npm run build
+        shell: bash
+        run: set -o pipefail; npm run build 2>&1 | tee ci-build.log
       - name: Scan repository for leaked secrets
         if: always()
         uses: gitleaks/gitleaks-action@v2
@@ -67,9 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Result summary
         if: always()
-        run: |
-          cp artifacts/ci-checks/*.log ./ 2>/dev/null || true
-          node scripts/ci-summary.mjs ci-check.log ci-live.log ci-api.log
+        run: node scripts/ci-summary.mjs ci-check.log ci-live.log ci-api.log
         env:
           CI_STATUS: ${{ job.status }}
       - name: Upload Actual Test Artifacts
