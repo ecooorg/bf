@@ -229,6 +229,9 @@
 | **Gemini 3 Flash** | 10 | 1 500 | 6.0 |
 | **Gemini 3.6 Flash** | 10 | 1 500 | 6.0 |
 
-**Оптимальный каскад** на 24 октября 2026 (необходимо уточнить по результатам тестов):
-gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-3.6-flash, gemini-3-flash
+**Реальный каскад** на 24 октября 2026 (необходимо уточнить по результатам тестов):
+
+MODEL_CASCADE_LIGHT="gemini-3.5-flash-lite,gemini-3.1-flash-lite"
+MODEL_CASCADE_STRONG="gemini-3.5-flash-lite,gemini-3.1-flash-lite"
+
 
