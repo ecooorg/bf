@@ -98,7 +98,8 @@ test('isSafePath and topoSort basics', () => {
   assert.equal(isSafePath('index.html'), true);
   assert.equal(isSafePath('../x'), false);
   assert.equal(isSafePath('/abs'), false);
-  assert.equal(isSafePath('a/b.js'), false);
+  assert.equal(isSafePath('a/b.js'), true);
+  assert.equal(isSafePath('a/b/c.js'), false);
   const order = topoSort([unit('b', ['a']), unit('a', [])]);
   assert.deepEqual(order, ['a', 'b']);
 });
