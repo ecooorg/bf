@@ -6,7 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import JSZip from 'jszip';
-import { installLogCapture, diagnosticArchive, verifyDiagnosticArchive, recordDiagnostic, REQUIRED_DIAGNOSTIC_ENTRIES } from '../server/projectDiagnostics.ts';
+import { releaseLabel, buildCommit, installLogCapture, diagnosticArchive, verifyDiagnosticArchive, recordDiagnostic, REQUIRED_DIAGNOSTIC_ENTRIES } from '../server/projectDiagnostics.ts';
 import { inspectLogs, renderStageTable } from '../scripts/ci-summary.mjs';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'bf-chain-'));
@@ -83,4 +83,23 @@ test('diagnostic ZIP carries real captured console output, redacted', async () =
   const summary = JSON.parse(await zip.file('diagnostics/diagnostic-summary.json').async('string'));
   assert.ok(summary.runtime.node && summary.runtime.appVersion !== 'unknown');
   assert.ok(summary.checks.some((c) => c.name === 'database-connectivity'));
+});
+
+test('build commit comes from the platform env (Render first), shortened to 7; unknown otherwise', () => {
+  assert.equal(buildCommit({ RENDER_GIT_COMMIT: '3ab7083f00112233445566778899aabbccddeeff' }), '3ab7083');
+  assert.equal(buildCommit({ RAILWAY_GIT_COMMIT_SHA: 'abcdef1234567' }), 'abcdef1');
+  assert.equal(buildCommit({}), 'unknown');
+});
+
+test('release label is the first CHANGELOG heading and check-version enforces it', () => {
+  const dir = tmp(); const f = path.join(dir, 'CHANGELOG.md');
+  fs.writeFileSync(f, '# Log\n\n## P92.7 — newest\n\n## P92.6 — older\n');
+  assert.equal(releaseLabel(f), 'P92.7'); assert.equal(releaseLabel(path.join(dir, 'none.md')), null);
+  assert.match(releaseLabel(path.join(root, 'CHANGELOG.md')) ?? '', /^P92(\.\d+)*$/);
+  const run = (cwd) => spawnSync('node', [path.join(root, 'scripts/check-version.mjs')], { cwd, encoding: 'utf8' });
+  assert.equal(run(root).status, 0);
+  fs.cpSync(path.join(root, 'src/config.ts'), path.join(dir, 'src/config.ts'), { recursive: true });
+  fs.copyFileSync(path.join(root, 'package.json'), path.join(dir, 'package.json')); fs.copyFileSync(path.join(root, 'server.ts'), path.join(dir, 'server.ts'));
+  fs.writeFileSync(f, '## P91.9 — stale top entry\n');
+  const bad = run(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /does not match APP_VERSION 92/);
 });
