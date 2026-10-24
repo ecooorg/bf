@@ -30,6 +30,7 @@ test('scaffold-only results are labelled skipped/failed with a reason, never app
 test('build route reports goalImplemented and an explicit WARNING when the goal was not built; client downloads via fetch', () => {
   const route = fs.readFileSync(new URL('../server/projectRoutes.ts', import.meta.url), 'utf8');
   assert.match(route, /goalImplemented,\n\s+sliceStatus: result\.slice\.status/); assert.match(route, /WARNING: this ZIP is only a generic starter/);
+  assert.match(route, /model call failed \(\$\{why\}\)/); assert.match(route, /d\.attempts\.map/);
   const dl = fs.readFileSync(new URL('../src/downloadFile.ts', import.meta.url), 'utf8');
   assert.match(dl, /response\.ok/); assert.match(dl, /blob\.size/);
   for (const f of ['../src/ProjectNoviceWizard.tsx', '../src/ProjectMode.tsx']) assert.match(fs.readFileSync(new URL(f, import.meta.url), 'utf8'), /downloadViaFetch/);
