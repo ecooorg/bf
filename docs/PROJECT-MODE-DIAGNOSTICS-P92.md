@@ -15,3 +15,8 @@ The diagnostic ZIP contains `README.txt`, `manifest.json`, `operations/recent-op
 Apply migration `015_project_diagnostics.sql` via `npm run db:migrate` before enabling the new routes. Project Mode requires authentication. Logging is best-effort and does not turn an otherwise successful build into a failure merely because diagnostic storage is down. The model_patch legacy path currently has only build-start and HTTP-finish events, not the pipeline's granular ZIP checks. An HTTP 2xx and server-side `finish` event cannot establish browser-side download completion. There is no active synthetic external-provider health check, and no separate log collector.
 
 Human-simplicity gate: replaces manual server-log correlation with three actions in More; adds a small DB table and isolated diagnostic helper, no new telemetry infrastructure. Measure value by ability to identify last completed stage and time to explain an invalid ZIP; do not claim measured savings without production evidence.
+
+
+## P92.2 note
+
+Diagnostic export is verified (CRC read-back and manifest hashes) before it is sent and fails with HTTP 422 otherwise. Google Drive synchronization of diagnostics is not implemented in code. CI logs live in the `ci-execution-logs` workflow artifact (`artifacts/ci-checks/`), not in the diagnostic ZIP.
