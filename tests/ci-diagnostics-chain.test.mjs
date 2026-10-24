@@ -6,7 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import JSZip from 'jszip';
-import { diagnosticArchive, verifyDiagnosticArchive, recordDiagnostic, REQUIRED_DIAGNOSTIC_ENTRIES } from '../server/projectDiagnostics.ts';
+import { installLogCapture, diagnosticArchive, verifyDiagnosticArchive, recordDiagnostic, REQUIRED_DIAGNOSTIC_ENTRIES } from '../server/projectDiagnostics.ts';
 import { inspectLogs, renderStageTable } from '../scripts/ci-summary.mjs';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'bf-chain-'));
@@ -70,4 +70,17 @@ test('CI workflow: every log is written into the uploaded directory, upload runs
   assert.ok(!/\|\| true/.test(ci));
   const steps = [...ci.matchAll(/timeout-minutes: (\d+)/g)].map((m) => Number(m[1]));
   assert.ok(steps[0] > steps.slice(1).reduce((a, b) => a + b, 0), 'job timeout must exceed the sum of step timeouts so that always() steps can run');
+});
+
+test('diagnostic ZIP carries real captured console output, redacted', async () => {
+  installLogCapture();
+  process.env.GEMINI_API_KEY = 'AIzaSyFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE12';
+  console.warn('chain-marker boot warning', process.env.GEMINI_API_KEY);
+  const zip = await JSZip.loadAsync(await diagnosticArchive());
+  const log = await zip.file('logs/server-console.log').async('string');
+  assert.match(log, /\[warn\] chain-marker boot warning/);
+  assert.ok(!log.includes('AIzaSyFAKE'), 'secret must be redacted');
+  const summary = JSON.parse(await zip.file('diagnostics/diagnostic-summary.json').async('string'));
+  assert.ok(summary.runtime.node && summary.runtime.appVersion !== 'unknown');
+  assert.ok(summary.checks.some((c) => c.name === 'database-connectivity'));
 });
