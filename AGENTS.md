@@ -81,9 +81,9 @@ Silence is never consent in Tiers 2 and 3.
 
 **Patch Archive Rules**
 
-* Do not include `README.md`, `AGENTS.md`, or other informational documentation files in patch ZIP archives unless explicitly requested.
-* Include `CHANGELOG.md` whenever a patch changes project code or functionality.
-* Include `AGENTS.md` only when a significant product change requires updating it, unless explicitly requested otherwise.
+* Do not include `./README.md`, `./AGENTS.md`, or other informational documentation files in patch ZIP archives unless explicitly requested.
+* Include `./CHANGELOG.md` whenever a patch changes project code or functionality.
+* Include `./AGENTS.md` only when a significant product change requires updating it, unless explicitly requested otherwise.
 
 **Verification**
 
