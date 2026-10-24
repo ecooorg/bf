@@ -1,3 +1,10 @@
+## P89 — Lightweight Intent Contract (2026-10-24)
+
+- Added optional read-only `intent:contract` CLI and deterministic schema validator. It preserves the task request as the goal, separates explicit user input from inferred risk/criteria, links compact P85 context and P86 impact summaries when available, and reuses P87 verification suggestions.
+- Added validation for missing goals/criteria, overlapping scope, contradictory compatibility invariants, unknown npm script names, and unsupported PASS claims. Intent-diff statuses default to `UNVERIFIED`; verification commands remain `NOT RUN`/`SUGGESTED_NOT_RUN`.
+- Added 14 focused tests to `npm run check`, including malformed input, high-impact ambiguity, false success and explicit-vs-inferred criteria. No mandatory user form, model call, shell execution, approval automation, runtime/UI/API/database changes or persisted product format changes.
+- The initial inferred acceptance criterion is a draft only; P89 makes no correctness or human-time savings claim. Full CI must be confirmed by the Navigator after applying.
+
 ## P88 — Real-task AI benchmark pilot (2026-10-24)
 
 - Added a read-only, data-driven benchmark CLI and validation library for task prompts, pinned revisions, reviewed dependency gold sets, protected invariants, acceptance criteria, required checks and baseline/context-engine run records.
