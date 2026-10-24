@@ -22,6 +22,8 @@ export type PipelineResult = {
   zipBuffer: Buffer;
   /** Machine log for debugging the middle layer */
   log: string[];
+  /** Whether the user's goal went beyond the generic scaffold. 'applied' only if the model returned files that were merged. */
+  slice: { status: 'applied' | 'skipped' | 'failed'; reason: string };
 };
 
 export type SliceGenerator = (input: {
@@ -71,19 +73,22 @@ export async function runAppBuilderPipeline(input: {
 }): Promise<PipelineResult> {
   const steps: PipelineStep[] = [];
   const log: string[] = [];
+  let slice: PipelineResult['slice'] = { status: 'skipped', reason: 'model slice is not enabled on this server' };
 
   const ir = await step('parse_ir', () => parseAppIr(input.ir), steps, log);
   const stack = await step('resolve_stack', () => resolveStack(ir), steps, log);
   let files = await step('materialize_scaffold', () => materializeScaffold(stack, ir), steps, log);
 
   const allowSlice = input.allowSlice !== false && typeof input.sliceGenerate === 'function';
-  if (allowSlice && (ir.features.length > 0 || ir.constraints.trim().length > 0)) {
+  if (allowSlice && (ir.goal.trim().length > 0 || ir.features.length > 0 || ir.constraints.trim().length > 0)) {
     const t0 = Date.now();
     try {
       const sliced = await input.sliceGenerate!({ ir, stack, files });
       if (sliced?.files && Object.keys(sliced.files).length) {
+        const before = JSON.stringify(files);
         files = mergeFiles(files, sliced.files);
-      }
+        slice = JSON.stringify(files) !== before ? { status: 'applied', reason: sliced.notes?.slice(0, 200) || 'model files merged' } : { status: 'skipped', reason: 'model returned only rejected files (bad paths or too large)' };
+      } else slice = { status: 'skipped', reason: sliced?.notes?.slice(0, 200) || 'model returned no files' };
       steps.push({
         id: 'slice_generate',
         status: 'ok',
@@ -99,10 +104,12 @@ export async function runAppBuilderPipeline(input: {
         ms: Date.now() - t0,
         detail: String((e as Error)?.message || e).slice(0, 300),
       });
+      slice = { status: 'failed', reason: String((e as Error)?.message || e).slice(0, 200) };
       log.push(`slice_generate:soft_fail:${String((e as Error)?.message || e).slice(0, 200)}`);
     }
   } else {
-    steps.push({ id: 'slice_generate', status: 'skipped', ms: 0, detail: 'no features/constraints or disabled' });
+    if (allowSlice) slice = { status: 'skipped', reason: 'empty goal, features and constraints' };
+    steps.push({ id: 'slice_generate', status: 'skipped', ms: 0, detail: slice.reason });
     log.push('slice_generate:skipped');
   }
 
@@ -158,5 +165,5 @@ export async function runAppBuilderPipeline(input: {
     log,
   );
 
-  return { ir, stack, files, steps, zipBuffer, log };
+  return { ir, stack, files, steps, zipBuffer, log, slice };
 }

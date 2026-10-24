@@ -485,6 +485,10 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
           : undefined,
       });
 
+      const sliceReason = !modelSliceEnabled ? 'the model step is disabled on this server (CODE_EXECUTOR=model_patch and APP_BUILDER_MODEL_SLICE=true are required)' : result.slice.reason;
+      const goalImplemented = result.slice.status === 'applied';
+      await recordDiagnostic({ operationId, event: 'GOAL_IMPLEMENTATION', stage: 'generation', status: goalImplemented ? 'PASS' : 'WARN', ...(goalImplemented ? {} : { errorCode: result.slice.status === 'failed' ? 'SLICE_FAILED' : 'SLICE_SKIPPED' }) });
+      if (!goalImplemented) console.warn(JSON.stringify({ type: 'app_builder_goal_not_implemented', operationId, status: result.slice.status, reason: sliceReason.slice(0, 200) }));
       const expectedFiles = Object.entries(result.files) as [string, string][];
       if (!expectedFiles.length || !result.zipBuffer.length) { await recordDiagnostic({ operationId, event: 'ZIP_VALIDATION_FAILED', stage: 'zip', status: 'FAIL', errorCode: 'EMPTY_ZIP' }); return res.status(422).json({ success: false, error: 'Generated ZIP is empty', code: 'ZIP_INVALID', operationId }); }
       let validZip = false;
@@ -530,7 +534,11 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
           log: result.log,
           fileCount: Object.keys(result.files).length,
           downloadUrl,
-          note: 'IR → scaffold → ZIP. Upload to GitHub and connect Render/Railway manually. Generated code was not executed on BiForge.',
+          goalImplemented,
+          sliceStatus: result.slice.status,
+          note: goalImplemented
+            ? 'IR → scaffold → model-written files → ZIP. Upload to GitHub and connect Render/Railway manually. Generated code was not executed on BiForge.'
+            : `WARNING: this ZIP is only a generic starter. Your goal was NOT implemented: ${sliceReason}. Upload to GitHub and connect Render/Railway manually only if a starter is what you need.`,
           // shape compatibility with older UI expecting codeTask
           taskId: artifactId,
           codeTask: { id: artifactId, status: 'DELIVERED', statusReason: 'app_builder_pipeline' },
