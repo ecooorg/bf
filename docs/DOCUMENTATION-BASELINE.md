@@ -20,7 +20,7 @@ Legacy numbered documents (`docs/01`–`docs/18`) are historical and live outsid
 - Confirmed import cycles: `taskService` ↔ `gateService` ↔ `codeTaskService`.
 - `tsconfig.server.json` has `"strict": false`.
 - ~81 literal route registrations in `server.ts` / `healthRoutes.ts`.
-- 14 SQL migrations; product `APP_VERSION` / `package.json` version label remains `57`.
+- 14 SQL migrations; product `APP_VERSION` / `package.json` version label is `92` (aligned with the P92 diagnostics line).
 - 69 distinct `process.env` names referenced; `.env.example` does not list all of them.
 - Full static inventories: `archive/ (phase0-*)`.
 
