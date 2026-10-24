@@ -3,6 +3,7 @@
  * Uses existing Project APIs only. Does not change Simple/Expert.
  */
 import React, { useMemo, useState } from 'react';
+import { downloadViaFetch } from './downloadFile.ts';
 import {
   NOVICE_KIND_OPTIONS,
   STACK_TEMPLATES,
@@ -74,7 +75,7 @@ export function ProjectNoviceWizard({
     passport: ReturnType<typeof passportFromNoviceAnswers> & { status: 'proposed' | 'confirmed' },
     stateBase: Record<string, unknown>,
   ) => Promise<{ state_version: number }>;
-  requestBuild: (projectId: string, goal: string, answers: NoviceAnswers) => Promise<{ downloadUrl?: string; note?: string; status?: string; stack?: string }>;
+  requestBuild: (projectId: string, goal: string, answers: NoviceAnswers) => Promise<{ downloadUrl?: string; note?: string; status?: string; stack?: string; goalImplemented?: boolean }>;
   programZipAvailable: boolean;
 }) {
   const [step, setStep] = useState<Step>(0);
@@ -113,7 +114,7 @@ export function ProjectNoviceWizard({
       const built = await requestBuild(project.id, answers.idea.trim(), answers);
       if (built.downloadUrl) {
         setDownloadUrl(built.downloadUrl);
-        setNotice(`Source ZIP ready${built.stack ? ` (stack: ${built.stack})` : ''}. Download and follow the steps below.`);
+        setNotice(built.goalImplemented === false && built.note ? built.note : `Source ZIP ready${built.stack ? ` (stack: ${built.stack})` : ''}. Download and follow the steps below.`);
       } else {
         setNotice(
           `Project is ready. Build status: ${built.status || 'unknown'}. ${built.note || 'Open the project for more tools.'}`,
@@ -302,7 +303,15 @@ export function ProjectNoviceWizard({
           {notice && <p style={{ color: '#9fd8ff' }}>{notice}</p>}
           {downloadUrl && (
             <p>
-              <a href={downloadUrl} style={{ color: '#78baff', fontWeight: 600 }} download>
+              <a
+                href={downloadUrl}
+                style={{ color: '#78baff', fontWeight: 600 }}
+                download
+                onClick={(e) => {
+                  e.preventDefault();
+                  void downloadViaFetch(downloadUrl, 'source.zip').catch((err) => setNotice(`Download failed: ${String(err?.message || err)}`));
+                }}
+              >
                 Download source ZIP
               </a>
             </p>

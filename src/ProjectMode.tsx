@@ -11,6 +11,7 @@ import { ModeMenu } from './ModeMenu.tsx';
 import { UserGuideModal } from './UserGuide.tsx';
 import { ProjectPathChooser } from './ProjectPathChooser.tsx';
 import { ProjectNoviceWizard } from './ProjectNoviceWizard.tsx';
+import { downloadViaFetch } from './downloadFile.ts';
 import { manualDeployInstructions, type BuilderPath } from './projectAppBuilder.ts';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
@@ -45,6 +46,8 @@ function DiagnosticsView({ data }: { data: any }) {
   }
   return <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}>{JSON.stringify(data, null, 2)}</pre>;
 }
+
+const isBinaryName = (n: string) => /\.(zip|png|jpe?g|gif|pdf|docx?|xlsx?|pptx?)$/i.test(n);
 
 export default function ProjectMode() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
@@ -168,7 +171,7 @@ export default function ProjectMode() {
   const buildProgram = () => act(async () => {
     const r = await api<{ taskId: string; codeTask: any; downloadUrl?: string; note?: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: programGoal }) });
     setProgramResult(r); setProgramGoal('');
-    return r.downloadUrl ? 'Program source generated; download is ready.' : (r.note || 'No downloadable source was produced. Check project settings and try again.');
+    return r.downloadUrl ? (r.note?.startsWith('WARNING') ? r.note : 'Program source generated; download is ready.') : (r.note || 'No downloadable source was produced. Check project settings and try again.');
   });
   const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
   const addDecision = () => act(async () => { await post('decisions', { text: decisionText }); setDecisionText(''); return 'Decision recorded.'; });
@@ -210,7 +213,8 @@ export default function ProjectMode() {
     await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/validate`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, passed, evidence }) });
     return `Task marked as ${passed ? 'passed' : 'failed'}.`;
   });
-  async function openArtifact(id: string) { try { const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
+  async function openArtifact(id: string, filename = '') { try {
+    if (isBinaryName(filename)) { setArtifactText(`Binary file (${filename}) — it cannot be shown as text. Use "Download" next to it.`); return; } const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
   // P55: Google Drive for Project files. Explicit buttons; every result is announced (saved / waiting / the real reason).
   useEffect(() => {
     const on = (e: Event) => {
@@ -229,6 +233,14 @@ export default function ProjectMode() {
   }
   async function saveArtifactToDrive(a: { artifact_id: string; version: number; filename: string }) {
     if (!selected) return;
+    if (isBinaryName(a.filename)) {
+      const r = await fetch(`/api/projects/${encodeURIComponent(selected.id)}/artifacts/${encodeURIComponent(a.artifact_id)}/download`, { credentials: 'same-origin' });
+      if (!r.ok) throw new Error(`The file could not be read (HTTP ${r.status}).`);
+      const blob = await r.blob(); if (!blob.size) throw new Error('The file is empty; nothing was saved to Google Drive.');
+      await mirrorBlobDetailed({ name: a.filename, data: blob, mimeType: blob.type || 'application/octet-stream', mode: 'project', subfolder: selected.name, localKey: `project_${selected.id}_${a.artifact_id}_v${a.version}` });
+      setDriveConnected(isMirrorConnected());
+      return;
+    }
     const t = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected.id)}/artifacts/${encodeURIComponent(a.artifact_id)}`);
     await mirrorTextFile(a.filename, t.text || '', 'project', `project_${selected.id}_${a.artifact_id}_v${a.version}`, selected.name);
     setDriveConnected(isMirrorConnected());
@@ -469,7 +481,7 @@ export default function ProjectMode() {
               }) },
             );
             setProgramResult(r as any);
-            return { downloadUrl: r.downloadUrl, note: r.note || r.codeTask?.statusReason, status: r.codeTask?.status, stack: r.stack };
+            return { downloadUrl: r.downloadUrl, goalImplemented: (r as any).goalImplemented, note: r.note || r.codeTask?.statusReason, status: r.codeTask?.status, stack: r.stack };
           } finally { setBusy(false); }
         }}
       />
@@ -523,7 +535,7 @@ export default function ProjectMode() {
               {!programGoal.trim() && passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program to enable this button.</p>}
               {(!capabilities || capabilities.programZip) && passport.executor !== 'model_patch' && <p style={{ fontSize: 12, color: '#e6c07a' }}>Automatic coding is off for this project. Turn it on in project settings (How code is written → Automatic).</p>}
               {passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>}
-              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open the pull request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
+              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open the pull request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }} onClick={(e) => { e.preventDefault(); void downloadViaFetch(programResult.downloadUrl!, `${selected?.name || 'program'}-source.zip`).catch((err) => setError(String(err.message || err))); }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
             </div></details>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([
               ['results', 'Results'],
@@ -553,7 +565,7 @@ export default function ProjectMode() {
             </section>}
             {activeTab === 'delivery' && <ProjectDelivery projectId={selected.id} capabilities={capabilities} passportConfirmed={passport?.status === 'confirmed'} executor={passport?.executor ?? 'manual'} focusTaskId={focusTaskId} onFocusHandled={() => setFocusTaskId(null)} />}
             {activeTab === 'journal' && <section><h3>Files</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Project files and saved versions.</p>
-            {artifacts.length === 0 ? <StateNotice kind="empty">No files yet. They appear after analysis, builds or uploads.</StateNotice> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id)}>{a.filename} v{a.version}</button>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
+            {artifacts.length === 0 ? <StateNotice kind="empty">No files yet. They appear after analysis, builds or uploads.</StateNotice> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id, a.filename)}>{a.filename} v{a.version}</button>{isBinaryName(a.filename) && <> <button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void downloadViaFetch(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(a.artifact_id)}/download`, a.filename).catch((e) => setError(String(e.message || e)))}>Download</button></>}{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
             {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}
             <details style={{ marginTop: 12 }}><summary style={{ cursor: 'pointer', color: '#9fd8ff', fontSize: 13, minHeight: 36 }}>Model request history</summary>
             {ledger.length === 0 ? <StateNotice kind="empty">No model requests yet.</StateNotice> : <ul style={{ paddingLeft: 18, margin: '6px 0 0' }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
