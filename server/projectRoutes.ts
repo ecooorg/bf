@@ -63,7 +63,7 @@ import { buildTaskPackageFromBrief } from './briefWriter.ts';
 import { isSameOrigin } from './security.ts';
 import { parseProjectId, parseTaskId } from './domainIds.ts';
 import type { TaskPackage } from './codeExecutor.ts';
-import { installLogCapture, diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive } from './projectDiagnostics.ts';
+import { contentDisposition, installLogCapture, diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive } from './projectDiagnostics.ts';
 
 export type CodeAuthorCaller = (input: {
   packageMd: string;
@@ -571,10 +571,10 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
         try { if (valid) await JSZip.loadAsync(data, { checkCRC32: true }); } catch { valid = false; }
         if (!valid) { await recordDiagnostic({ operationId, event: 'DOWNLOAD_FAILED', stage: 'download', status: 'FAIL', errorCode: 'ZIP_INVALID' }); return res.status(422).json({ success: false, error: 'Stored ZIP is invalid', code: 'ZIP_INVALID', operationId }); }
       }
-      const filename = String((bytes as any).filename || 'download.bin').replace(/"/g, '');
+      const filename = String((bytes as any).filename || 'download.bin');
       const mime = String((bytes as any).mime || 'application/octet-stream');
       res.setHeader('Content-Type', mime);
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Disposition', contentDisposition(filename));
       res.setHeader('Content-Length', String((bytes as any).data.length));
       res.send(Buffer.from((bytes as any).data));
     } catch (error) { projectError(res, error); }

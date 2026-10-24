@@ -134,3 +134,11 @@ export async function diagnosticArchive(operationId?: string): Promise<Buffer> {
   add('manifest.json', JSON.stringify({ exportedAt: new Date().toISOString(), operationId: operationId ?? null, entries, source: operations.source, skipped }, null, 2));
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 }
+
+/** RFC 6266/5987 safe Content-Disposition: ASCII fallback + UTF-8 filename*. Never throws on non-ASCII names. */
+export function contentDisposition(name: string, disposition: 'attachment' | 'inline' = 'attachment'): string {
+  const clean = String(name || 'download.bin').replace(/[\u0000-\u001f\u007f"\\\/]/g, '_').trim() || 'download.bin';
+  const ascii = clean.replace(/[^\x20-\x7e]/g, '_').replace(/%/g, '_') || 'download.bin';
+  const encoded = encodeURIComponent(clean).replace(/['()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+  return `${disposition}; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
