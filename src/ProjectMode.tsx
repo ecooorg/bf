@@ -24,6 +24,28 @@ async function api<T>(url: string, init: RequestInit = {}): Promise<T> {
   return payload.data as T;
 }
 
+type DiagCheck = { name: string; status: string; evidence: string };
+type DiagEvent = { timestamp: string; operationId: string; event: string; stage: string; status: string; durationMs?: number | null; bytes?: number | null; errorCode?: string | null };
+const statusColor = (s: string) => s === 'PASS' ? '#5fd38d' : s === 'FAIL' ? '#ff6b6b' : '#f0c24b';
+function DiagnosticsView({ data }: { data: any }) {
+  if (data?.error) return <p style={{ color: '#ff6b6b' }}>Error: {String(data.error)}</p>;
+  const d = data?.data ?? data;
+  if (d?.checks) {
+    const r = d.runtime || {};
+    return <div style={{ fontSize: 14 }}>
+      <p>Overall: <b style={{ color: statusColor(d.overall) }}>{d.overall}</b> · {new Date(d.timestamp).toLocaleString()}</p>
+      {d.checks.map((c: DiagCheck) => <p key={c.name} style={{ margin: '6px 0' }}><b style={{ color: statusColor(c.status) }}>{c.status}</b> {c.name}<br /><span style={{ opacity: .8 }}>{c.evidence}</span></p>)}
+      <p style={{ opacity: .7, fontSize: 12 }}>v{r.appVersion} · node {r.node} · uptime {r.uptimeSec}s · {r.rssMb} MB · console lines captured: {r.capturedConsoleLines}</p>
+    </div>;
+  }
+  if (d?.events) {
+    if (!d.events.length) return <p>No operations recorded yet (source: {d.source}). Builds, downloads and exports will appear here.</p>;
+    return <div style={{ fontSize: 13 }}><p style={{ opacity: .7 }}>Source: {d.source}</p>
+      {d.events.map((e: DiagEvent, i: number) => <p key={i} style={{ margin: '6px 0' }}><b style={{ color: statusColor(e.status) }}>{e.status}</b> {e.event} <span style={{ opacity: .7 }}>({e.stage}{e.durationMs != null ? `, ${e.durationMs} ms` : ''}{e.bytes != null ? `, ${e.bytes} B` : ''}{e.errorCode ? `, ${e.errorCode}` : ''})</span><br /><span style={{ opacity: .6, fontSize: 11 }}>{new Date(e.timestamp).toLocaleString()} · {e.operationId.slice(0, 8)}</span></p>)}</div>;
+  }
+  return <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}>{JSON.stringify(data, null, 2)}</pre>;
+}
+
 export default function ProjectMode() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -385,7 +407,7 @@ export default function ProjectMode() {
     {diagnosticsOpen && <div role="dialog" aria-modal="true" aria-label={diagnosticsTitle} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 20 }}>
       <div style={{ background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20, width: 'min(800px,95vw)', maxHeight: '80vh', overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><h2>{diagnosticsTitle}</h2><button type="button" onClick={() => setDiagnosticsOpen(false)} aria-label="Close diagnostics">Close</button></div>
-        {diagnosticsBusy ? <p>Checking…</p> : <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}>{JSON.stringify(diagnosticsData, null, 2)}</pre>}
+        {diagnosticsBusy ? <p>Checking…</p> : <DiagnosticsView data={diagnosticsData} />}
       </div>
     </div>}
     <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
