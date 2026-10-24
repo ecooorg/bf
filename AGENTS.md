@@ -23,9 +23,8 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **p79:** CI `ui-check` Playwright cache (skip apt on cache hit)
 * **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 
-  * `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
+* **VIX:** `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
-* Optional later: domain file prefixes in `server/` (`codeTask*`, …), stricter TypeScript, remaining monolith splits.
 
 ### Product / runtime (P43 / ADR-06)
 
