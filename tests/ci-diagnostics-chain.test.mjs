@@ -95,11 +95,11 @@ test('release label is the first CHANGELOG heading and check-version enforces it
   const dir = tmp(); const f = path.join(dir, 'CHANGELOG.md');
   fs.writeFileSync(f, '# Log\n\n## P92.7 — newest\n\n## P92.6 — older\n');
   assert.equal(releaseLabel(f), 'P92.7'); assert.equal(releaseLabel(path.join(dir, 'none.md')), null);
-  assert.match(releaseLabel(path.join(root, 'CHANGELOG.md')) ?? '', /^P92(\.\d+)*$/);
+  assert.match(releaseLabel(path.join(root, 'CHANGELOG.md')) ?? '', /^P\d+(\.\d+)*$/);
   const run = (cwd) => spawnSync('node', [path.join(root, 'scripts/check-version.mjs')], { cwd, encoding: 'utf8' });
   assert.equal(run(root).status, 0);
   fs.cpSync(path.join(root, 'src/config.ts'), path.join(dir, 'src/config.ts'), { recursive: true });
   fs.copyFileSync(path.join(root, 'package.json'), path.join(dir, 'package.json')); fs.copyFileSync(path.join(root, 'server.ts'), path.join(dir, 'server.ts'));
   fs.writeFileSync(f, '## P91.9 — stale top entry\n');
-  const bad = run(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /does not match APP_VERSION 92/);
+  const bad = run(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /does not match APP_VERSION \d+/);
 });
