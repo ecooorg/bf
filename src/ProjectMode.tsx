@@ -35,7 +35,7 @@ function DiagnosticsView({ data }: { data: any }) {
     return <div style={{ fontSize: 14 }}>
       <p>Overall: <b style={{ color: statusColor(d.overall) }}>{d.overall}</b> · {new Date(d.timestamp).toLocaleString()}</p>
       {d.checks.map((c: DiagCheck) => <p key={c.name} style={{ margin: '6px 0' }}><b style={{ color: statusColor(c.status) }}>{c.status}</b> {c.name}<br /><span style={{ opacity: .8 }}>{c.evidence}</span></p>)}
-      <p style={{ opacity: .7, fontSize: 12 }}>v{r.appVersion} · node {r.node} · uptime {r.uptimeSec}s · {r.rssMb} MB · console lines captured: {r.capturedConsoleLines}</p>
+      <p style={{ opacity: .7, fontSize: 12 }}>v{r.appVersion}{r.release ? ` (${r.release})` : ''} · commit {r.commit || 'unknown'} · node {r.node} · uptime {r.uptimeSec}s · {r.rssMb} MB · console lines captured: {r.capturedConsoleLines}</p>
     </div>;
   }
   if (d?.events) {
