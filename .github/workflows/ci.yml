@@ -73,7 +73,6 @@ jobs:
 
       - name: Result summary
         if: always()
-        # Используем предложенный вами скрипт
         run: node scripts/ci-summary.mjs ci-check.log ci-live.log ci-api.log
         env:
           CI_STATUS: ${{ job.status }}
