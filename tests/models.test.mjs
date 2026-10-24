@@ -1081,7 +1081,7 @@ test('CI summary: green is one line; red names the first failed test, or says th
 
 test('the CI workflow writes the summary after every run and adds no new secret', () => {
   const ci = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  assert.match(ci, /if: always\(\)\n\s+run: node scripts\/ci-summary\.mjs ci-check\.log ci-live\.log ci-api\.log/);
+  assert.match(ci, /if: always\(\)\n\s+run: node scripts\/ci-summary\.mjs\n/);
   assert.match(ci, /CI_STATUS: \$\{\{ job\.status \}\}/);
   assert.deepEqual([...new Set([...ci.matchAll(/secrets\.([A-Z_]+)/g)].map((m) => m[1]))], ['GITHUB_TOKEN']);
 });
