@@ -4,7 +4,7 @@ import { isModelError, type Ports } from './core-ports.ts';
 import { makeCacheKey, sha256 } from './core-cache.ts';
 import { promptFor } from './core-prompts.ts';
 import { parseFileMarkers } from './core-markers.ts';
-import { validatePlan } from './core-plan.ts';
+import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
 
@@ -55,7 +55,9 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     event(ports, input.jobId, 'stage_changed', { stage: 'plan' }); state.stage = 'plan';
     const planResult = await call('planner', `Create a Plan JSON with schemaVersion=1, specHash="${sha256(JSON.stringify(spec))}", units[], order[]. Each unit requires id, kind="file", path, purpose, dependsOn[], exports[], contract, maxOutputTokens, status="pending", attempts=0. Task spec: ${JSON.stringify(spec)}`);
     const plan = planResult ? asObject<Plan>(planResult.text) : null;
-    const checked = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'invalid_plan', message: failureReason ?? 'invalid_plan' }] };
+    const checked: PlanValidationResult = plan
+      ? validatePlan(plan, profile)
+      : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? 'invalid_plan' }] };
     if (!plan || !checked.ok) throw new Error(checked.issues.map((i) => i.message).join('; ') || 'invalid_plan');
     state.plan = { ...plan, order: checked.order ?? plan.order };
 
@@ -67,7 +69,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       const key = makeCacheKey({ unitInput: { spec, unit: { ...unit, status: undefined, attempts: undefined } }, promptVersion: options.promptVersion, modelId: options.modelId ?? profile.id });
       const cached = await ports.store.getUnitResult(key);
       let content = cached?.content;
-      let modelId = cached ? undefined : undefined;
+      let modelId: string | undefined = undefined;
       if (!content) {
         const output = await call('coder', `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.`);
         if (!output) { unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts }); break; }
