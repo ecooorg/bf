@@ -15,7 +15,17 @@ export async function recordDiagnostic(value: Omit<DiagnosticEvent, 'timestamp'>
   if (value.errorCode) event.errorCode = safe(value.errorCode);
   memory.push(event); if (memory.length > MAX_MEMORY) memory.splice(0, memory.length - MAX_MEMORY);
   try { const pool = await getPool(); await pool.query('INSERT INTO project_diagnostic_events (operation_id,event,stage,status,duration_ms,bytes,file_count,error_code) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [event.operationId,event.event,event.stage,event.status,event.durationMs ?? null,event.bytes ?? null,event.fileCount ?? null,event.errorCode ?? null]); }
-  catch { /* in-memory fallback survives a temporarily unavailable DB within this process */ }
+  catch (error) { dbWriteFailures++; if (dbWriteFailures === 1 || dbWriteFailures % 100 === 0) console.error(JSON.stringify({ type: 'project_diagnostic_db_write_failed', failures: dbWriteFailures, message: String((error as Error)?.message || error).slice(0, 160) })); /* in-memory fallback survives a temporarily unavailable DB within this process */ }
+}
+let dbWriteFailures = 0;
+export const diagnosticDbWriteFailures = () => dbWriteFailures;
+/** Correlate a stored artifact with the operation that produced it (project_diagnostic_artifacts, migration 016). Returns false on failure; never throws. */
+export async function linkDiagnosticArtifact(operationId: string, artifactId: string): Promise<boolean> {
+  try { const pool = await getPool(); await pool.query('INSERT INTO project_diagnostic_artifacts (artifact_id, operation_id) VALUES ($1,$2) ON CONFLICT (artifact_id) DO UPDATE SET operation_id = EXCLUDED.operation_id', [artifactId, operationId]); return true; }
+  catch { return false; }
+}
+export async function artifactOperation(artifactId: string): Promise<string | null> {
+  try { const pool = await getPool(); const r = await pool.query('SELECT operation_id FROM project_diagnostic_artifacts WHERE artifact_id=$1', [artifactId]); return r.rows[0]?.operation_id ?? null; } catch { return null; }
 }
 export async function recentDiagnostics(limit = 100): Promise<{ events: DiagnosticEvent[]; source: string }> {
   const n = Math.min(200, Math.max(1, Math.trunc(limit)));
@@ -37,7 +47,28 @@ export async function systemDiagnostics() {
   } catch { checks.push({ name: 'database-connectivity', status: 'FAIL', evidence: 'Database query failed; operations use process-local fallback.' }); }
   return { timestamp: new Date().toISOString(), checks, overall: checks.some(c => c.status === 'FAIL') ? 'FAIL' : checks.some(c => c.status !== 'PASS') ? 'WARN' : 'PASS' };
 }
-export async function diagnosticArchive(): Promise<Buffer> {
+export const REQUIRED_DIAGNOSTIC_ENTRIES = ['README.txt', 'manifest.json', 'operations/recent-operations.json', 'diagnostics/diagnostic-summary.json', 'logs/application.jsonl'];
+/** Reads the ZIP back independently (CRC on) and compares every entry with the hash recorded in its manifest. Returns problems; empty = intact. */
+export async function verifyDiagnosticArchive(buf: Buffer): Promise<string[]> {
+  const problems: string[] = [];
+  if (!buf.length) return ['archive is empty'];
+  let zip: JSZip;
+  try { zip = await JSZip.loadAsync(buf, { checkCRC32: true }); } catch (e) { return [`archive unreadable: ${(e as Error).message}`]; }
+  for (const name of REQUIRED_DIAGNOSTIC_ENTRIES) if (!zip.file(name)) problems.push(`missing entry ${name}`);
+  const mf = zip.file('manifest.json');
+  if (!mf) return problems;
+  try {
+    const manifest = JSON.parse(await mf.async('string'));
+    for (const e of manifest.entries ?? []) {
+      const f = zip.file(e.path);
+      if (!f) { problems.push(`manifest lists missing file ${e.path}`); continue; }
+      const bytes = await f.async('nodebuffer');
+      if (bytes.length !== e.bytes || crypto.createHash('sha256').update(bytes).digest('hex') !== e.sha256) problems.push(`hash mismatch ${e.path}`);
+    }
+  } catch { problems.push('manifest.json unreadable'); }
+  return problems;
+}
+export async function diagnosticArchive(operationId?: string): Promise<Buffer> {
   const [operations, summary] = await Promise.all([recentDiagnostics(200), systemDiagnostics()]);
   const zip = new JSZip(); const entries: { path: string; bytes: number; sha256: string }[] = [];
   function add(path: string, text: string) { const bytes = Buffer.from(text); zip.file(path, bytes); entries.push({ path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') }); }
@@ -45,6 +76,11 @@ export async function diagnosticArchive(): Promise<Buffer> {
   add('operations/recent-operations.json', JSON.stringify(operations, null, 2));
   add('diagnostics/diagnostic-summary.json', JSON.stringify(summary, null, 2));
   add('logs/application.jsonl', operations.events.map(e => JSON.stringify(e)).join('\n') + '\n');
-  add('manifest.json', JSON.stringify({ exportedAt: new Date().toISOString(), entries, source: operations.source }, null, 2));
+  const skipped = [
+    ...(operations.source !== 'database' ? [{ item: 'persistent operation history', reason: 'database unavailable; only process-local events since last restart are included' }] : []),
+    ...summary.checks.filter((c) => c.status !== 'PASS').map((c) => ({ item: `check:${c.name}`, reason: `${c.status}: ${c.evidence}` })),
+    { item: 'server application logs / CI logs', reason: 'not part of this archive by design; CI logs are in the ci-execution-logs workflow artifact' },
+  ];
+  add('manifest.json', JSON.stringify({ exportedAt: new Date().toISOString(), operationId: operationId ?? null, entries, source: operations.source, skipped }, null, 2));
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 }

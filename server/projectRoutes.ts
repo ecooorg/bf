@@ -63,7 +63,7 @@ import { buildTaskPackageFromBrief } from './briefWriter.ts';
 import { isSameOrigin } from './security.ts';
 import { parseProjectId, parseTaskId } from './domainIds.ts';
 import type { TaskPackage } from './codeExecutor.ts';
-import { diagnosticArchive, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics } from './projectDiagnostics.ts';
+import { diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive } from './projectDiagnostics.ts';
 
 export type CodeAuthorCaller = (input: {
   packageMd: string;
@@ -128,7 +128,20 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     try { res.json({ success: true, data: await systemDiagnostics() }); } catch (error) { projectError(res, error); }
   });
   app.get('/api/projects/diagnostics/export', async (_req, res) => {
-    try { const bytes = await diagnosticArchive(); res.setHeader('Content-Type', 'application/zip'); res.setHeader('Content-Disposition', 'attachment; filename="biforge-diagnostics.zip"'); res.setHeader('Content-Length', String(bytes.length)); res.send(bytes); } catch (error) { projectError(res, error); }
+    const operationId = newOperationId(); const startedAt = Date.now();
+    res.setHeader('X-BiForge-Operation-Id', operationId);
+    await recordDiagnostic({ operationId, event: 'DIAGNOSTIC_EXPORT_STARTED', stage: 'export', status: 'STARTED' });
+    try {
+      const bytes = await diagnosticArchive(operationId);
+      const problems = await verifyDiagnosticArchive(bytes);
+      if (problems.length) {
+        await recordDiagnostic({ operationId, event: 'DIAGNOSTIC_EXPORT_FAILED', stage: 'export', status: 'FAIL', errorCode: 'ZIP_INVALID', bytes: bytes.length });
+        return res.status(422).json({ success: false, error: 'Diagnostic ZIP failed integrity checks', code: 'ZIP_INVALID', operationId, problems });
+      }
+      await recordDiagnostic({ operationId, event: 'ZIP_INTEGRITY_CHECKED', stage: 'export', status: 'PASS', bytes: bytes.length, durationMs: Date.now() - startedAt });
+      res.once('close', () => { void recordDiagnostic({ operationId, event: res.writableFinished ? 'DIAGNOSTIC_EXPORT_RESPONSE_FINISHED' : 'DIAGNOSTIC_EXPORT_INTERRUPTED', stage: 'export', status: res.writableFinished ? 'PASS' : 'FAIL', ...(res.writableFinished ? {} : { errorCode: 'CONNECTION_CLOSED' }) }); });
+      res.setHeader('Content-Type', 'application/zip'); res.setHeader('Content-Disposition', 'attachment; filename="biforge-diagnostics.zip"'); res.setHeader('Content-Length', String(bytes.length)); res.send(bytes);
+    } catch (error) { await recordDiagnostic({ operationId, event: 'DIAGNOSTIC_EXPORT_FAILED', stage: 'export', status: 'FAIL', errorCode: 'EXPORT_ERROR' }); projectError(res, error); }
   });
 
   app.get('/api/projects', async (req, res) => {
@@ -502,6 +515,8 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       const readback = await readArtifactBytes(artifactId);
       if (!readback || readback.project_id !== project.id || !Buffer.from(readback.data).equals(Buffer.from(result.zipBuffer))) { await recordDiagnostic({ operationId, event: 'ARTIFACT_READBACK_FAILED', stage: 'storage', status: 'FAIL', errorCode: 'READBACK_MISMATCH' }); throw new Error('ARTIFACT_READBACK_MISMATCH'); }
       await recordDiagnostic({ operationId, event: 'ARTIFACT_SAVE_VERIFIED', stage: 'storage', status: 'PASS', bytes: readback.data.length });
+      const linked = await linkDiagnosticArtifact(operationId, artifactId);
+      await recordDiagnostic({ operationId, event: 'ARTIFACT_LINKED', stage: 'storage', status: linked ? 'PASS' : 'WARN', ...(linked ? {} : { errorCode: 'LINK_FAILED' }) });
       const downloadUrl = `/api/projects/${encodeURIComponent(project.id)}/artifacts/${encodeURIComponent(artifactId)}/download`;
       res.status(201).json({
         success: true,
