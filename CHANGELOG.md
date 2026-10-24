@@ -1,3 +1,10 @@
+## P87 — Verification Planner (2026-10-24)
+
+- Added read-only `verification:plan` CLI with explicit task/file rules, existing-script validation, fast/targeted/full tiers, required `check`/build/hosted-CI gates, and actionable uncertainty when file ownership is unknown.
+- Added counterexample-oriented test suggestions for Project Mode archives/downloads, database persistence, API/authentication, security/configuration, UI/copy, generated documentation, and test/CI tooling. Suggested commands are marked `SUGGESTED_NOT_RUN`; the planner never executes shell commands.
+- Added `test:verification-plan` to `npm run check`, including a negative regression case for a test script omitted from both the check chain and explicit CI-step allowlist.
+- No product runtime, UI, API, database, migration, generated inventory, or persisted format changed. Local focused tests are reported separately; full CI is pending.
+
 ## P86 — Change impact graph and generator lineage (2026-10-24)
 
 - Added read-only `impact:lineage` reporting static import impact and typed, provenance-labelled relationships for generated route, environment, migration and module-map artifacts.

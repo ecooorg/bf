@@ -11,6 +11,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **P84.2:** Documentation-only revision of the P85–P91 roadmap, selectively integrating VIX-inspired intent, invariant, counterexample, intent-diff, traceability and honest-uncertainty principles. Human simplicity is an explicit acceptance gate; no separate VIX subsystem or runtime behavior is introduced.
 * **P85:** Navigator reports GitHub CI green. Read-only task-aware context planner is available via `npm run context:task`; see `docs/TASK-CONTEXT-P85.md`.
 * **P86 (prepared patch):** Read-only change-impact and generator-lineage report, including generated route/env/migration inventory relationships. Focused local tests pass; full CI is pending Navigator execution. See `docs/CHANGE-IMPACT-P86.md`.
+* **P87 (prepared patch):** Read-only verification planner with risk-based counterexample suggestions, script-name validation, P56 test-chain guard, and explicit NOT RUN status. Focused tests must pass; full CI is pending Navigator execution. See `docs/VERIFICATION-PLANNER-P87.md`.
 * **P84.3 (proposed diagnostics roadmap):** Documentation-only addition of staged Project Mode observability and artifact-verification requirements across P85–P91. No logging/UI/runtime behavior is implemented by this patch. See `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md`.
   * `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
@@ -42,7 +43,7 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run impact:lineage -- --file scripts/docsGenerateInventories.mjs`; `npm run test:impact-lineage`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run acceptance:report`. Health: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run impact:lineage -- --file scripts/docsGenerateInventories.mjs`; `npm run test:impact-lineage`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run verification:plan -- --task "Fix Project Mode ZIP download" server/projectRoutes.ts`; `npm run test:verification-plan`; `npm run acceptance:report`. Health: `GET /health`.
 
 ## Critical rules
 
