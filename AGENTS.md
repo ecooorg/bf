@@ -4,25 +4,27 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 
 ## Current status
 
-* **P81:** Dependency Intelligence context planner and deterministic pre-P81 v80 baseline.
-* **P82:** Conversation/brief UI and compatibility-route extractions; Navigator reports GitHub CI green. Local full verification was blocked by an `npm ci` timeout.
-* **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green. See `docs/contracts-verification-p83.json` for scope and limitations.
-* **P84:** Read-only AI-native context benchmark with six curated scenarios, a pinned v80 + p80.1 comparison, gold-set recall/false-positive metrics and explicit measurement limitations. The Navigator reports GitHub CI green after the P56 check-chain fix. Gold-set maintainer review is still required; no regression gate is enabled. See `docs/context-benchmark-p84.json` and `docs/context-benchmark-verification-p84.json`.*
-* **P84.2:** Documentation-only revision of the P85–P91 roadmap, selectively integrating VIX-inspired intent, invariant, counterexample, intent-diff, traceability and honest-uncertainty principles. Human simplicity is an explicit acceptance gate; no separate VIX subsystem or runtime behavior is introduced.
-* **P85:** Navigator reports GitHub CI green. Read-only task-aware context planner is available via `npm run context:task`; see `docs/TASK-CONTEXT-P85.md`.
-* **P86 (prepared patch):** Read-only change-impact and generator-lineage report, including generated route/env/migration inventory relationships. Focused local tests pass; full CI is pending Navigator execution. See `docs/CHANGE-IMPACT-P86.md`.
-* **P87 (prepared patch):** Read-only verification planner with risk-based counterexample suggestions, script-name validation, P56 test-chain guard, and explicit NOT RUN status. Focused tests must pass; full CI is pending Navigator execution. See `docs/VERIFICATION-PLANNER-P87.md`.
-* **P88 (prepared patch):** Read-only real-task benchmark pilot. Four starter tasks remain draft until a maintainer pins revisions and reviews gold dependencies, invariants, acceptance criteria and required checks. Reports keep missing values unavailable; no performance gain or CI threshold is claimed. See `docs/REAL-TASK-BENCHMARK-P88.md`.
-* **P89 (prepared patch):** Optional read-only intent-contract draft CLI, with explicit/inferred source labels, P85 context and P86 impact summaries when available, P87 verification suggestions, contradiction checks and an unverified-by-default intent diff. It never approves a contract or runs commands. Focused tests/full CI must be confirmed after applying. See `docs/INTENT-CONTRACT-P89.md`.
+* **P92 / P92.1 — Project Mode Diagnostics:** Added system diagnostics, recent operations, diagnostic log export, and initial Google Drive synchronization and operation/artifact correlation support. Build and deployment succeeded, but production verification remains incomplete. Diagnostic checks reported `WARN`; artifact storage was `NOT RUN`, recent operations returned no events, and Google Drive diagnostic files were not observed. Verify deployed changes, database migrations, event persistence, artifact correlation, and Drive synchronization before considering diagnostics complete. See `CHANGELOG.md` for change history.
+* **P91 (prepared patch):** Read-only scoped completeness and material-uncertainty guard combining P85–P89 outputs. Missing sources and unproven PASS claims cannot become COMPLETE; evidence references are retained but not fetched/authenticated. No strict CI gate or runtime changes. Focused tests and full CI must be confirmed after applying. See `docs/CONTEXT-COMPLETENESS-P91.md`.  
 * **P90 (prepared patch):** Benchmark-first read-only profiler for P85/P86/P87/P89 planner work. Reports repeated-run timings, canonical output stability and content fingerprints. Deliberately adds no cache; local profile alone does not prove human-time savings. Focused tests and full CI must be confirmed after applying. See `docs/CONTEXT-REFRESH-P90.md`.
-* **P91 (prepared patch):** Read-only scoped completeness and material-uncertainty guard combining P85–P89 outputs. Missing sources and unproven PASS claims cannot become COMPLETE; evidence references are retained but not fetched/authenticated. No strict CI gate or runtime changes. Focused tests and full CI must be confirmed after applying. See `docs/CONTEXT-COMPLETENESS-P91.md`.
+* **P89 (prepared patch):** Optional read-only intent-contract draft CLI, with explicit/inferred source labels, P85 context and P86 impact summaries when available, P87 verification suggestions, contradiction checks and an unverified-by-default intent diff. It never approves a contract or runs commands. Focused tests/full CI must be confirmed after applying. See `docs/INTENT-CONTRACT-P89.md`.
+* **P88 (prepared patch):** Read-only real-task benchmark pilot. Four starter tasks remain draft until a maintainer pins revisions and reviews gold dependencies, invariants, acceptance criteria and required checks. Reports keep missing values unavailable; no performance gain or CI threshold is claimed. See `docs/REAL-TASK-BENCHMARK-P88.md`.
+* **P87 (prepared patch):** Read-only verification planner with risk-based counterexample suggestions, script-name validation, P56 test-chain guard, and explicit NOT RUN status. Focused tests must pass; full CI is pending Navigator execution. See `docs/VERIFICATION-PLANNER-P87.md`.
+* **P86 (prepared patch):** Read-only change-impact and generator-lineage report, including generated route/env/migration inventory relationships. Focused local tests pass; full CI is pending Navigator execution. See `docs/CHANGE-IMPACT-P86.md`.
+* **P85:** Navigator reports GitHub CI green. Read-only task-aware context planner is available via `npm run context:task`; see `docs/TASK-CONTEXT-P85.md`.
 * **P84.3 (proposed diagnostics roadmap):** Documentation-only addition of staged Project Mode observability and artifact-verification requirements across P85–P91. No logging/UI/runtime behavior is implemented by this patch. See `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md`.
-  * `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
-
-* **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
-* **p79:** CI `ui-check` Playwright cache (skip apt on cache hit).
+* **P84.2:** Documentation-only revision of the P85–P91 roadmap, selectively integrating VIX-inspired intent, invariant, counterexample, intent-diff, traceability and honest-uncertainty principles. Human simplicity is an explicit acceptance gate; no separate VIX subsystem or runtime behavior is introduced.
+* **P84:** Read-only AI-native context benchmark with six curated scenarios, a pinned v80 + p80.1 comparison, gold-set recall/false-positive metrics and explicit measurement limitations. The Navigator reports GitHub CI green after the P56 check-chain fix. Gold-set maintainer review is still required; no regression gate is enabled. See `docs/context-benchmark-p84.json` and `docs/context-benchmark-verification-p84.json`.*
+* **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green. See `docs/contracts-verification-p83.json` for scope and limitations.
+* **P82:** Conversation/brief UI and compatibility-route extractions; Navigator reports GitHub CI green. Local full verification was blocked by an `npm ci` timeout.
+* **P81:** Dependency Intelligence context planner and deterministic pre-P81 v80 baseline.
 * **p80.1:** CI preflight now permits the approved flat `archive/` directory; regression coverage added.
 * **p80:** Flat docs/scripts layout — phase folders removed; historical copies in `archive/`; active tools use prefixed script names under `scripts/`.
+* **p79:** CI `ui-check` Playwright cache (skip apt on cache hit)
+* **Transformation track (p71–p78): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
+
+  * `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
+
 * Optional later: domain file prefixes in `server/` (`codeTask*`, …), stricter TypeScript, remaining monolith splits.
 
 ### Product / runtime (P43 / ADR-06)
