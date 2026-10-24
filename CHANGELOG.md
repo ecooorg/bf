@@ -1,3 +1,7 @@
+## P92.7 — Model-step failure reason is reported
+
+* When the App Builder model step fails, the reason (router status, per-model status and error class such as rate limit, rejected models) is logged (`app_builder_slice_unavailable`) and shown in the WARNING note instead of "slice unavailable". A wrong-shaped model answer is reported separately.
+
 ## P92.6 — App Builder: honest goal status, working download, binary-safe Drive save
 
 ### Fixed
