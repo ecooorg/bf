@@ -1,3 +1,10 @@
+## P90 — Profile-guided context refresh (2026-10-24)
+
+- Added a read-only profiler for P85 task context, P86 impact lineage, P87 verification planning, and P89 composed intent-contract work. Reports warmup/run counts, min/median/p95/max/mean timing, canonical output hashes, output size, environment and content fingerprints for relevant inputs.
+- Added a stable JSON canonicalizer and tests for repeatable hashes, output instability, timing thresholds and argument bounds. Added `test:context-refresh-profile` to `npm run check` to preserve the P56 test-chain invariant.
+- Profiled the representative Project Mode ZIP-download task locally: all four operation outputs were stable in the sample run; operation medians were below the 50 ms local triage threshold, so the report recommended no cache. This is a local micro-profile, not an end-to-end latency or human-time savings claim.
+- No cache, persistent state, runtime/UI/API/database behavior, generated inventory, or product format was added. Full CI remains to be confirmed by the Navigator after applying.
+
 ## P89 — Lightweight Intent Contract (2026-10-24)
 
 - Added optional read-only `intent:contract` CLI and deterministic schema validator. It preserves the task request as the goal, separates explicit user input from inferred risk/criteria, links compact P85 context and P86 impact summaries when available, and reuses P87 verification suggestions.
