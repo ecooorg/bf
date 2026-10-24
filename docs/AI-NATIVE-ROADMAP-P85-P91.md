@@ -131,6 +131,11 @@ CLI/API documentation, focused tests, a compact example plan, benchmark deltas w
 
 ## 5. P86 — Change Impact Graph and generator lineage
 
+### P86 implementation status (patch prepared; CI pending)
+
+The current P86 patch adds a read-only `impact:lineage` CLI, a small typed evidence graph, generator/output mappings for generated inventories, artifact structural-health labels, intent-diff reporting, and focused counterexample tests. It does not prove artifact freshness where source fingerprints are absent, and it does not claim complete semantic/runtime lineage. See `docs/CHANGE-IMPACT-P86.md`.
+
+
 ### Goal
 
 Show what an edit may affect beyond direct imports: public API consumers, tests, manifests, SQL/data paths, environment settings, route registration, and generated artifacts. Add a concise intent diff: requested behavior/invariants versus the observed change surface and available verification evidence. Explicitly close P84's known generator-to-generated-route-inventory gap.
