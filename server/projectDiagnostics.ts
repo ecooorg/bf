@@ -6,6 +6,7 @@ import path from 'node:path';
 import { getPool } from './database.ts';
 import { redactSecrets } from './redact.ts';
 import { verifyArtifact } from './artifactRepository.ts';
+import { APP_VERSION } from '../src/config.ts';
 
 // Real server console output, redacted, bounded. Without this the export has nothing but operation events.
 const consoleLines: string[] = [];
@@ -26,7 +27,12 @@ export function installLogCapture(): void {
   }
 }
 export const capturedConsole = () => consoleLines.slice();
-function appVersion(): string { try { return JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')).version; } catch { return 'unknown'; } }
+/** Commit of the running build. Render sets RENDER_GIT_COMMIT, Railway RAILWAY_GIT_COMMIT_SHA; 'unknown' if none is provided. */
+/** Exact release label = first "## P…" heading of CHANGELOG.md (newest first); null if the file is not deployed. */
+export function releaseLabel(file = path.resolve(process.cwd(), 'CHANGELOG.md')): string | null {
+  try { const m = fs.readFileSync(file, 'utf8').match(/^## (P\d+(?:\.\d+)*)\b/m); return m ? m[1] : null; } catch { return null; }
+}
+export const buildCommit = (env: NodeJS.ProcessEnv = process.env): string => (env.RENDER_GIT_COMMIT || env.RAILWAY_GIT_COMMIT_SHA || env.GIT_COMMIT || 'unknown').slice(0, 7);
 
 
 export type DiagnosticEvent = { timestamp: string; operationId: string; event: string; stage: string; status: string; durationMs?: number; bytes?: number; fileCount?: number; errorCode?: string };
@@ -86,7 +92,7 @@ export async function systemDiagnostics() {
     } catch (e) { /* keep NOT RUN with explicit reason below */ const ix = checks.findIndex((c) => c.name === 'artifact-storage'); checks[ix] = { name: 'artifact-storage', status: 'FAIL', evidence: `artifact check errored: ${String((e as Error).message).slice(0, 120)}` }; }
     checks.push({ name: 'diagnostic-event-schema', status: result.rows[0]?.table_name ? 'PASS' : 'FAIL', evidence: 'project_diagnostic_events table lookup' });
   } catch { checks.push({ name: 'database-connectivity', status: 'FAIL', evidence: 'Database query failed; operations use process-local fallback.' }); }
-  return { timestamp: new Date().toISOString(), runtime: { appVersion: appVersion(), node: process.version, uptimeSec: Math.round(process.uptime()), rssMb: Math.round(process.memoryUsage().rss / 1048576), capturedConsoleLines: consoleLines.length }, checks, overall: checks.some(c => c.status === 'FAIL') ? 'FAIL' : checks.some(c => c.status !== 'PASS') ? 'WARN' : 'PASS' };
+  return { timestamp: new Date().toISOString(), runtime: { appVersion: APP_VERSION, release: releaseLabel(), commit: buildCommit(), node: process.version, uptimeSec: Math.round(process.uptime()), rssMb: Math.round(process.memoryUsage().rss / 1048576), capturedConsoleLines: consoleLines.length }, checks, overall: checks.some(c => c.status === 'FAIL') ? 'FAIL' : checks.some(c => c.status !== 'PASS') ? 'WARN' : 'PASS' };
 }
 export const REQUIRED_DIAGNOSTIC_ENTRIES = ['logs/server-console.log', 'README.txt', 'manifest.json', 'operations/recent-operations.json', 'diagnostics/diagnostic-summary.json', 'logs/application.jsonl'];
 /** Reads the ZIP back independently (CRC on) and compares every entry with the hash recorded in its manifest. Returns problems; empty = intact. */
