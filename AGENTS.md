@@ -26,11 +26,6 @@ The Navigator owns decisions and acceptance. The AI Assistant implements explici
 * **VIX:** `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
 
 
-### Product / runtime (P43 / ADR-06)
-
-* Code delivery executor **`model_patch`** is documented and env-gated: set `CODE_EXECUTOR=model_patch` only after Navigator approval (ADR-10 / E-01). Default remains `manual`.
-* **GitHub write** (diff upload / App write to the repo) is **deferred** (ADR-06): off unless `GITHUB_DIFF_UPLOAD=true` and App credentials are configured. Do not enable by default.
-
 ## Navigation
 
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
@@ -68,7 +63,7 @@ Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not
 
 Silence is never consent in Tiers 2 and 3.
 
-### Documentation Policy
+## Documentation Policy
 
 **`CHANGELOG.md` — Patch History**
 
