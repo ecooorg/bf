@@ -39,8 +39,9 @@ export function isSafePath(p: string): boolean {
   if (typeof p !== 'string' || p.length === 0 || p.length > 256) return false;
   if (UNSAFE_PATH_RE.test(p)) return false;
   if (p.includes('//')) return false;
-  // No subdirectories in v1 static_site; allow only basename-like paths.
-  if (p.includes('/')) return false;
+  // v1 permits a single nested level (e.g. assets/logo.svg), never deeper paths.
+  const segments = p.split('/');
+  if (segments.length > 2 || segments.some((part) => !part || part === '.' || part === '..')) return false;
   return true;
 }
 

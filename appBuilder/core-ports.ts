@@ -24,6 +24,7 @@ export type ModelErrorCode =
   | 'rate_limited'
   | 'truncated'
   | 'unavailable'
+  | 'timeout'
   | 'bad_request';
 
 export interface ModelError {

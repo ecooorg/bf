@@ -66,3 +66,8 @@ export {
   defaultRoleProfiles,
   type RoleProfileMap,
 } from './profile-default.ts';
+
+export { runBuild, type BuildResult, type EngineOptions } from './core-engine.ts';
+export { makeCacheKey, sha256, PROMPT_VERSION } from './core-cache.ts';
+export { packZip, type PackFile } from './pack-zip.ts';
+export { promptFor, PROMPT_VERSIONS } from './core-prompts.ts';
