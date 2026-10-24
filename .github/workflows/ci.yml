@@ -76,7 +76,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-detailed-test-logs
-          path: artifacts/
+          name: ci-detailed-test-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/
+            ci-install.log
+            ci-migrate.log
+            ci-check.log
+            ci-live.log
+            ci-api.log
+            ci-build.log
           if-no-files-found: warn
           retention-days: 14
