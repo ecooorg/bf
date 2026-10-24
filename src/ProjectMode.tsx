@@ -54,6 +54,28 @@ export default function ProjectMode() {
   const [activeTab, setActiveTab] = useState<'results' | 'plan' | 'delivery' | 'journal' | 'data'>('results');
   const [showUserGuide, setShowUserGuide] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
+  const [diagnosticsTitle, setDiagnosticsTitle] = useState('');
+  const [diagnosticsData, setDiagnosticsData] = useState<unknown>(null);
+  const [diagnosticsBusy, setDiagnosticsBusy] = useState(false);
+  const openDiagnostics = async (kind: 'system' | 'operations') => {
+    setMoreOpen(false); setDiagnosticsOpen(true); setDiagnosticsBusy(true);
+    setDiagnosticsTitle(kind === 'system' ? 'System diagnostics' : 'Recent operations'); setDiagnosticsData(null);
+    try { setDiagnosticsData(await api<unknown>(`/api/projects/diagnostics/${kind}`)); }
+    catch (e) { setDiagnosticsData({ error: String((e as Error).message || e) }); }
+    finally { setDiagnosticsBusy(false); }
+  };
+  const downloadDiagnostics = async () => {
+    setMoreOpen(false);
+    try {
+      const response = await fetch('/api/projects/diagnostics/export', { credentials: 'same-origin' });
+      if (!response.ok) throw new Error(`Diagnostic export failed (${response.status})`);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a'); link.href = url; link.download = 'biforge-diagnostics.zip'; document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch (e) { setError(String((e as Error).message || e)); }
+  };
   const moreRef = useRef<HTMLDivElement>(null);
   const [showDevData, setShowDevData] = useState(false);
   const [budgetModal, setBudgetModal] = useState<{ approval: any; limitKey: string; used: string } | null>(null);
@@ -347,6 +369,9 @@ export default function ProjectMode() {
                   Save all files to Drive
                 </button>
               )}
+              <button type="button" className="ghost" role="menuitem" onClick={() => void openDiagnostics('system')}>Run system diagnostics</button>
+              <button type="button" className="ghost" role="menuitem" onClick={() => void openDiagnostics('operations')}>View recent operations</button>
+              <button type="button" className="ghost" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic logs</button>
               {authenticated && (
                 <button type="button" className="ghost" role="menuitem" disabled={busy} onClick={() => { setMoreOpen(false); void logout(); }}>
                   Sign out
@@ -357,6 +382,12 @@ export default function ProjectMode() {
         </div>
       </div>
     </header>
+    {diagnosticsOpen && <div role="dialog" aria-modal="true" aria-label={diagnosticsTitle} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 20 }}>
+      <div style={{ background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20, width: 'min(800px,95vw)', maxHeight: '80vh', overflow: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><h2>{diagnosticsTitle}</h2><button type="button" onClick={() => setDiagnosticsOpen(false)} aria-label="Close diagnostics">Close</button></div>
+        {diagnosticsBusy ? <p>Checking…</p> : <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}>{JSON.stringify(diagnosticsData, null, 2)}</pre>}
+      </div>
+    </div>}
     <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
     <main style={styles.page}><section style={styles.panel}>
       <div style={{ marginBottom: 8 }}>
