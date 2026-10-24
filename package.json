@@ -1,7 +1,7 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "92",
+  "version": "93",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -66,7 +66,7 @@
     "test:context-refresh-profile": "node --test tests/context-refresh-profile.test.mjs",
     "context:completeness": "node scripts/contextCompletenessGuard.mjs",
     "test:context-completeness": "node --test tests/context-completeness-guard.test.mjs",
-    "test:project-diagnostics": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/app-builder-goal.test.mjs"
+    "test:project-diagnostics": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/app-builder-goal.test.mjs tests/content-disposition-p93.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

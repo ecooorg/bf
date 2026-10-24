@@ -1,3 +1,9 @@
+## P93.0 — Safe download filenames; patch preflight allows /appBuilder
+
+* Downloads with non-ASCII (e.g. Cyrillic) names no longer fail with HTTP 500 (`Invalid character in header content ["Content-Disposition"]`): header is now ASCII `filename=` plus UTF-8 `filename*=`.
+* `scripts/patch-tools.mjs`: `appBuilder` added to `ALLOWED_TOP` (flat files only) as groundwork for the constructor core (P93.1+).
+* Version label is now `93`. Test: `tests/content-disposition-p93.test.mjs`.
+
 ## P92.7 — Model-step failure reason is reported
 
 * When the App Builder model step fails, the reason (router status, per-model status and error class such as rate limit, rejected models) is logged (`app_builder_slice_unavailable`) and shown in the WARNING note instead of "slice unavailable". A wrong-shaped model answer is reported separately.
