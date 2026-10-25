@@ -68,7 +68,7 @@ jobs:
         shell: bash
         run: set -o pipefail; node scripts/run-independent-checks.mjs 2>&1 | tee artifacts/ci-checks/ci-check.log
         env:
-          CHECK_SKIP_SCRIPTS: typecheck,test:core,test:models,test:files,test:app-builder,test:verification-plan,test:project,test:regression,test:pipeline
+          CHECK_SKIP_SCRIPTS: typecheck,test:core,test:models,test:files,test:app-builder,test:project,test:regression,test:pipeline
 
       - name: Live PostgreSQL contract tests
         id: live
