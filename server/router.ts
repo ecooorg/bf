@@ -1,6 +1,7 @@
 import type { Capability, ProviderAdapter, ProviderRequest, ProviderResponse } from './adapter.js';
 import type { HealthEvent } from './modelHealth.js';
 import type { RegistryEntry } from './modelRegistry.js';
+import { ModelDailyLimitError, waitForModelStart } from './modelRateLimit.js';
 import { BUDGET_POLICY_VERSION, DEFAULT_OUTPUT_ESTIMATE, unitsFor, type QuotaTracker } from './budget.js';
 
 export const ROUTER_POLICY_VERSION = `router-v1/${BUDGET_POLICY_VERSION}`;
