@@ -1,3 +1,11 @@
+## P93.9 — Minimum diagnostic gate and compact CI handoff
+
+* Replaces stop-on-first-failure behavior with a two-phase diagnostic gate. The minimum high-risk set runs every check and records all failures/timeouts before deciding whether to continue.
+* Minimum set: typecheck, core/router, models, files, App Builder, verification planner, and Project Mode. If any fail, later diagnostics, full check chain, live contract tests, and build are skipped.
+* When the minimum set is green, regression and pipeline checks both run; if either fails, full checks and build are skipped. Remaining check-chain scripts run only after both diagnostic phases pass, with already-passed suites excluded to avoid duplicate execution.
+* `NEXT_PATCH.md` aggregates results from both diagnostic phases and remaining checks, lists skipped stages, and keeps a compact `ASSISTANT HANDOFF` block. Report generation remains deterministic and uses no AI tokens.
+* Local validation: new runner syntax checks PASS; P93.8 report tests PASS (2/2). Full CI/build not run in this preparation environment.
+
 ## P93.8 — CI patch handoff artifact without AI tokens
 
 * GitHub Actions now creates `artifacts/ci-checks/NEXT_PATCH.md` in an `if: always()` step and uploads it with the existing CI logs artifact, including when tests fail or `results.json` is missing.
@@ -904,3 +912,14 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - Added explicit Simple, Expert, and Project start cards. Project shows an explicit disabled state when unavailable; selecting a mode is user-driven and does not auto-switch later.
 - Recorded the existing folder-picker-to-menu behavior (`PICK_FOLDER_EVENT`) in the patch journal.
 - Corrected STATUS sequencing to UI1 → QA1 → MANUAL1 and removed the resolved UX1 feedback question.
+
+## P93.9 — Priority CI Gate
+- Added an early gate for historically failure-prone suites: verification planner, App Builder, Project Mode, regression, and TypeScript.
+- When the gate is red, expensive downstream checks are skipped for that run, while diagnostics, NEXT_PATCH.md generation, and artifact upload still run.
+- When the gate is green, the full CI continues and the already-passed priority checks are not repeated by the independent-check runner.
+- No model calls or API tokens are required.
+
+## P93.9 revised — failure-first CI gate
+- Added core/models/files to the start of the priority sequence based on P93.8 results.
+- Stop at the first failing or timed-out priority suite, write structured results, and let always() create NEXT_PATCH.md.
+- Keep expensive checks and build skipped while priority gate is red.
