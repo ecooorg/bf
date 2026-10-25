@@ -1,4 +1,5 @@
 ## Current status
+* **P93.6 (prepared patch):** adds shared model request-start pacing (PostgreSQL-coordinated when migration 018 is applied), Gemini RPM/RPD metadata and request pacing/daily reservation enforcement, bounded model recovery with visible wait states, shorter recovery prompts, and a live project-build status banner. Local/full CI and Render acceptance remain to be run.
 * **P93.5 (prepared patch):** Render-configured Gemini allowlists now govern the App Builder model registry; obsolete model/provider fallbacks are excluded. Novice and professional project flows poll staged jobs and show a ZIP or actionable status. Local checks pending; Render/live-provider acceptance remains owner-run.
 
 * **P93.3 — staged App Builder (flag-gated):** `appBuilder/` engine now persists jobs/units (`migrations/017_app_build_jobs.sql`), resumes without regenerating finished units, and is exposed through `server/appBuilderAdapter.ts` and async job routes only when `APP_BUILDER_ENGINE=staged`; default stays legacy. Not yet verified against live PostgreSQL, a real model or Render; no UI until P93.4. See `docs/tz-appbuilder.md` and `CHANGELOG.md`.

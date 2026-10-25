@@ -1,3 +1,12 @@
+## P93.6 — Transparent model waits, paced requests, and bounded recovery
+
+* Added shared request-start pacing for all `routeCall` traffic and direct Gemini generation: 4.7s default for Flash-Lite and 6.1s for other Flash models, optionally overridden by `MODEL_MIN_INTERVAL_MS`. Migration `018_model_request_slots.sql` coordinates reserved slots across Render instances; if DB coordination is unavailable, the limiter falls back to best-effort process-local pacing.
+* Added Gemini registry quota metadata (15 RPM / 1,500 RPD) matching the owner-provided free-tier figures; these are configuration metadata, not a guarantee that Google has assigned those quotas to the live project.
+* App Builder tries each configured cascade model at most once per stage call (no hidden router retry multiplication), persists visible `waiting_rate_limit`, `waiting_model`, and `retrying_model` states; retries are bounded, respect retry delays up to `APP_BUILDER_MAX_RATE_WAIT_MS`, and use a shorter recovery prompt for timeout/unavailable/truncated responses. No unbounded retry loop is introduced.
+* Project Mode shows a live, accessible build-status banner with stage, elapsed time, model-call budget, completed-file count, and explicit waiting/retry messages. Both novice and professional flows feed status polling into it.
+* Verification: `check-version`, `check:docs`, `docs:check`, `lint:copy`, generated inventories, and Node syntax checks PASS. Existing staged-build polling tests PASS (2/2). Model-cascade/rate-limiter/engine retry tests are BLOCKED by missing local dependencies (`zod`, `pg`, `tsx`); full TypeScript/Vite build and full CI were NOT RUN. PostgreSQL migration and real Gemini/Render behavior require deployment acceptance.
+* Limitation: the supplied quota data contains RPM/RPD only, so this patch enforces request pacing and daily request counts; it does not invent or enforce a TPM ceiling without a verified TPM value.
+
 ## P93.5 — Configured Gemini cascades and visible project-build outcomes
 
 * Model registry now seeds only the two supported Gemini Flash-Lite models; `registryForGeminiCascade()` treats Render cascade values as an allowlist and preserves configured order. App Builder uses LIGHT for planning and STRONG for code generation; it no longer silently falls back to historical Gemini models or Groq. Server defaults and `.env.example` match the two-model configuration.

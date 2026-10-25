@@ -27,6 +27,7 @@ import { registerOpsRoutes } from './server/opsRoutes.ts';
 import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
 import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
+import { waitForModelStart } from './server/modelRateLimit.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
@@ -737,12 +738,19 @@ async function generate(
       if (budget) budget.used++;
       if (!ownKey) globalDayCount++;
 
-      const ctrl = new AbortController();
-      const timeoutMs = Math.min(LLM_PER_CALL_TIMEOUT_MS, Math.max(1000, LLM_TOTAL_DEADLINE_MS - elapsed));
-      const timeout = setTimeout(() => ctrl.abort(), timeoutMs);
-      const callStarted = Date.now();
+      let ctrl: AbortController | undefined;
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      let callStarted = 0;
       try {
         const contents = repairHint ? `${prompt}${repairHint}` : prompt;
+        // Queue pacing is deliberately outside the provider-call timeout: waiting for a
+        // permitted slot must not look like a hung model request or abort before the call.
+        const spacingWaitMs = await waitForModelStart(model);
+        if (spacingWaitMs > 0) console.info(JSON.stringify({ type: 'llm_spacing_wait', model, stage, waitMs: spacingWaitMs }));
+        callStarted = Date.now();
+        ctrl = new AbortController();
+        const timeoutMs = Math.min(LLM_PER_CALL_TIMEOUT_MS, Math.max(1000, LLM_TOTAL_DEADLINE_MS - (Date.now() - t0)));
+        timeout = setTimeout(() => ctrl?.abort(), timeoutMs);
         const r = await client.models.generateContent({
           model,
           contents: opts?.extraParts?.length ? [{ role: 'user', parts: [{ text: contents }, ...opts.extraParts] }] : contents,
@@ -821,7 +829,7 @@ async function generate(
         lastErr = e instanceof Error ? e : new Error(String(e));
         const msg = lastErr.message || '';
         const status = geminiStatus(e);
-        const timedOut = ctrl.signal.aborted || /abort|timed? ?out|deadline_exceeded/i.test(msg);
+        const timedOut = Boolean(ctrl?.signal.aborted) || /abort|timed? ?out|deadline_exceeded/i.test(msg);
         if (isBadModelError(e)) {
           noteModelFailure(model, 'bad');
           console.warn(JSON.stringify({ type: 'llm_skip', model, stage, reason: msg.slice(0, 120) }));
@@ -837,7 +845,7 @@ async function generate(
           console.warn(JSON.stringify({ type: 'llm_error', model, stage, reason: msg.slice(0, 120) }));
         }
       } finally {
-        clearTimeout(timeout);
+        if (timeout) clearTimeout(timeout);
       }
     }
     if (Date.now() - t0 >= LLM_TOTAL_DEADLINE_MS || (budget ? budget.used : attempts) >= MAX_MODEL_CALLS) break;

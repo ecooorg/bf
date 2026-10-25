@@ -27,7 +27,7 @@
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
     "test:core": "node --import tsx --test --test-timeout=60000 tests/core.test.mjs",
-    "test:models": "node --import tsx --test --test-timeout=60000 tests/models.test.mjs && node --experimental-strip-types --test tests/model-cascade-p93-5.test.mjs",
+    "test:models": "node --import tsx --test --test-timeout=60000 tests/models.test.mjs && node --experimental-strip-types --test tests/model-cascade-p93-5.test.mjs tests/model-rate-limit-p93-6.test.mjs",
     "test:security": "node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
     "test:files": "node --import tsx --test --test-timeout=60000 tests/files.test.mjs",
     "test:workspace": "node --import tsx --test --test-timeout=60000 tests/workspace.test.mjs",
