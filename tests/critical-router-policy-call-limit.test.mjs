@@ -1,3 +1,7 @@
+// Keep model start-rate gate at zero so this critical probe finishes well under
+// the 15s node:test budget (default spacing is ~6s per model/retry).
+process.env.MODEL_MIN_INTERVAL_MS = '0';
+
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { routeCall, newRouterState } from '../server/router.ts';
