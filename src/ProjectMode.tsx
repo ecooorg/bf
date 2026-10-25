@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleHelp, Cloud, CloudUpload, MoreHorizontal, X } from 'lucide-react';
 import ProjectDelivery from './ProjectDelivery.tsx';
-import { describeCapabilities, PROJECT_SCOPE_TEXT, ZIP_OFF_HINT, type Capabilities } from './projectCapabilities.ts';
+import { describeCapabilities, PROJECT_SCOPE_TEXT, type Capabilities } from './projectCapabilities.ts';
 import { BusyHint, StateNotice, driveLabel, driveTitle } from './uiStates.tsx';
 import { approvalKindLabel, blockedReasonLabel, planStatusLabel, taskStateLabel } from './projectLabels.ts';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
@@ -13,6 +13,7 @@ import { ProjectPathChooser } from './ProjectPathChooser.tsx';
 import { ProjectNoviceWizard } from './ProjectNoviceWizard.tsx';
 import { downloadViaFetch } from './downloadFile.ts';
 import { manualDeployInstructions, type BuilderPath } from './projectAppBuilder.ts';
+import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
 type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
@@ -169,8 +170,9 @@ export default function ProjectMode() {
     setLastRun(r); setTask(''); return `Analysis done: ${r.changes.length} proposed change(s). Review them below.`;
   });
   const buildProgram = () => act(async () => {
-    const r = await api<{ taskId: string; codeTask: any; downloadUrl?: string; note?: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: programGoal }) });
-    setProgramResult(r); setProgramGoal('');
+    const started = await api<BuildJobResult & { taskId?: string; codeTask?: any; stack?: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: programGoal }) });
+    const r = started.jobId ? await waitForProjectBuild(selected!.id, started) : started;
+    setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build', codeTask: r.codeTask || { status: r.status || 'unknown', statusReason: r.note } } as any); setProgramGoal('');
     return r.downloadUrl ? (r.note?.startsWith('WARNING') ? r.note : 'Program source generated; download is ready.') : (r.note || 'No downloadable source was produced. Check project settings and try again.');
   });
   const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
@@ -309,7 +311,18 @@ export default function ProjectMode() {
       const pp = project.state?.passport as Passport | undefined;
       if (pp && pp.status !== 'confirmed') await api(`/api/projects/${encodeURIComponent(project.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: project.state_version, state: { ...project.state, passport: { ...pp, status: 'confirmed' } } }) });
       setName(''); setGoal('');
-      await loadProjects(project.id); setNotice('Project created.');
+      if (goal.trim()) {
+        setNotice('Project created. Building the program ZIP…');
+        try {
+          const started = await api<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim(), engine: 'pipeline' }) });
+          const result = started.jobId ? await waitForProjectBuild(project.id, started) : started;
+          setProgramResult({ ...result, taskId: result.taskId || result.jobId || 'build', codeTask: result.codeTask || { status: result.status || 'unknown', statusReason: result.note } } as any);
+          setNotice(result.downloadUrl ? (result.goalImplemented === true ? 'Project created; program ZIP is ready below.' : `Project created; ZIP is available but validation is incomplete. ${result.note || ''}`) : `Project created, but no ZIP was produced. ${result.note || 'Open the project and retry the build or check diagnostics.'}`);
+        } catch (buildError) {
+          setNotice(`Project created, but automatic build did not finish: ${String((buildError as Error).message || buildError)}. Select the project and use “Create a small program” to retry.`);
+        }
+      } else setNotice('Project created. Enter a program description in “Create a small program” to generate a ZIP.');
+      await loadProjects(project.id);
     } catch (e) { setError(String((e as Error).message || e)); }
     finally { setBusy(false); }
   }
@@ -466,7 +479,7 @@ export default function ProjectMode() {
         requestBuild={async (projectId, goal, answers) => {
           setBusy(true);
           try {
-            const r = await api<{ taskId: string; codeTask: { status?: string; statusReason?: string }; downloadUrl?: string; note?: string; stack?: string }>(
+            const started = await api<BuildJobResult & { taskId: string; codeTask: { status?: string; statusReason?: string }; stack?: string }>(
               `/api/projects/${encodeURIComponent(projectId)}/code/build`,
               { method: 'POST', body: JSON.stringify({
                 goal,
@@ -480,8 +493,9 @@ export default function ProjectMode() {
                 name: answers ? undefined : undefined,
               }) },
             );
+            const r = started.jobId ? await waitForProjectBuild(projectId, started) : started;
             setProgramResult(r as any);
-            return { downloadUrl: r.downloadUrl, goalImplemented: (r as any).goalImplemented, note: r.note || r.codeTask?.statusReason, status: r.codeTask?.status, stack: r.stack };
+            return { downloadUrl: r.downloadUrl, goalImplemented: r.goalImplemented ?? undefined, note: r.note || r.codeTask?.statusReason || (r.status ? `Build status: ${r.status}` : 'Build finished without a downloadable ZIP.'), status: r.status || r.codeTask?.status, stack: r.stack };
           } finally { setBusy(false); }
         }}
       />
@@ -530,11 +544,9 @@ export default function ProjectMode() {
               <div style={{ marginTop: 10 }}>
               <p style={{ fontSize: 13, color: '#8fa6c2' }}>Describe a game, browser tool, or small program. BiForge generates validated source files and offers a ZIP download. Generated code is not executed on the BiForge server; review it before running.</p>
               <textarea aria-label="Program description" value={programGoal} onChange={e => setProgramGoal(e.target.value)} rows={3} maxLength={4000} placeholder="Example: Create a playable Tetris game with keyboard controls, score, restart, and responsive layout." style={{ ...styles.input, minHeight: 0, fontSize: 14 }} />
-              <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || passport.executor !== 'model_patch' || (capabilities !== null && !capabilities.programZip)} onClick={() => void buildProgram()}>Create program</button>
-              {capabilities && !capabilities.programZip && <p style={{ fontSize: 12, color: '#e6c07a' }}>{ZIP_OFF_HINT}</p>}
-              {!programGoal.trim() && passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program to enable this button.</p>}
-              {(!capabilities || capabilities.programZip) && passport.executor !== 'model_patch' && <p style={{ fontSize: 12, color: '#e6c07a' }}>Automatic coding is off for this project. Turn it on in project settings (How code is written → Automatic).</p>}
-              {passport.executor === 'model_patch' && (!capabilities || capabilities.programZip) && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>}
+              <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim()} onClick={() => void buildProgram()}>Create program</button>
+              {!programGoal.trim() && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program to enable this button. The source pipeline can generate a ZIP without changing project permissions.</p>}
+              <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>
               {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open the pull request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }} onClick={(e) => { e.preventDefault(); void downloadViaFetch(programResult.downloadUrl!, `${selected?.name || 'program'}-source.zip`).catch((err) => setError(String(err.message || err))); }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
             </div></details>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([
