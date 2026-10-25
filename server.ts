@@ -30,7 +30,7 @@ import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
-import { REGISTRY_ALL, GROQ_BASE_URL } from './server/modelRegistry.ts';
+import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
 import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
@@ -154,7 +154,7 @@ const codeRouterState = newRouterState();
 async function callCodeAuthor(input: { packageMd: string; pkg: import('./server/codeExecutor.ts').TaskPackage; taskId: string; projectId: string }): Promise<unknown> {
   if (!ai) throw Object.assign(new Error('MODEL_NOT_CONFIGURED: GEMINI_API_KEY is not configured'), { code: 'MODEL_NOT_CONFIGURED' });
   const adapter = createGeminiAdapter(ai as any);
-  const registry = REGISTRY_ALL.filter((entry) => entry.providerId === 'gemini' && entry.capabilities.includes('json_output'));
+  const registry = registryForGeminiCascade('STRONG').filter((entry) => entry.capabilities.includes('json_output'));
   const prefix = `generated-projects/${input.taskId}/`;
   const maxFiles = input.pkg.limits?.maxFiles ?? 10;
   const maxLines = input.pkg.limits?.maxChangedLines ?? 400;
@@ -205,12 +205,12 @@ interface GenerateOpts { extraParts?: any[]; extraNumberSource?: string; extraCh
 // gemini-3.7-flash / gemini-3.5-flash are deprecated aliases routed by Google to 3.8 / 3.6: same quota, so no real fallback.
 const LIGHT_MODELS = (
   process.env.MODEL_CASCADE_LIGHT ||
-  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
+  'gemini-3.5-flash-lite,gemini-3.1-flash-lite'
 ).split(',').map((s) => s.trim()).filter(Boolean);
 
 const STRONG_MODELS = (
   process.env.MODEL_CASCADE_STRONG ||
-  'gemini-3.8-flash,gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
+  'gemini-3.5-flash-lite,gemini-3.1-flash-lite'
 ).split(',').map((s) => s.trim()).filter(Boolean);
 
 // Keep the whole request bounded. The router is designed to move to a reserve model

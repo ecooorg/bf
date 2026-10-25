@@ -1,4 +1,5 @@
 ## Current status
+* **P93.5 (prepared patch):** Render-configured Gemini allowlists now govern the App Builder model registry; obsolete model/provider fallbacks are excluded. Novice and professional project flows poll staged jobs and show a ZIP or actionable status. Local checks pending; Render/live-provider acceptance remains owner-run.
 
 * **P93.3 — staged App Builder (flag-gated):** `appBuilder/` engine now persists jobs/units (`migrations/017_app_build_jobs.sql`), resumes without regenerating finished units, and is exposed through `server/appBuilderAdapter.ts` and async job routes only when `APP_BUILDER_ENGINE=staged`; default stays legacy. Not yet verified against live PostgreSQL, a real model or Render; no UI until P93.4. See `docs/tz-appbuilder.md` and `CHANGELOG.md`.
 * **P93.1 — App Builder core contracts:** Flat `appBuilder/` with types, ports, plan validator, marker parser, conservative profile. No engine/adapter/runtime yet. Architecture layer and tsconfig include added. Tests 1, 2, 10 (contracts, markers, boundaries). See `docs/tz-appbuilder.md` and `CHANGELOG.md`.

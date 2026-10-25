@@ -1,3 +1,9 @@
+## P93.5 — Configured Gemini cascades and visible project-build outcomes
+
+* Model registry now seeds only the two supported Gemini Flash-Lite models; `registryForGeminiCascade()` treats Render cascade values as an allowlist and preserves configured order. App Builder uses LIGHT for planning and STRONG for code generation; it no longer silently falls back to historical Gemini models or Groq. Server defaults and `.env.example` match the two-model configuration.
+* Added shared staged-build polling for novice and professional project flows. HTTP 202 jobs are polled until terminal state; complete builds expose the ZIP, partial/failed/cancelled jobs show a reason, and repeated status-fetch failures give users the job ID and diagnostics next step.
+* Verification: `check-version`, `check:docs`, and `lint:copy` PASS. Build-job polling tests PASS (2/2). Model-cascade tests are blocked locally because `node_modules`/`zod` are absent; TypeScript/build and Render/live-provider acceptance are not run.
+
 ## P93.4 — App Builder progress UI and diagnostic result integration
 
 * `src/projectBuildJob.ts` (new): job polling every 3 s with tolerance for short network outages (gives up after 5 consecutive errors; stops on abort), honest summaries. Only a server-reported `goalImplemented === true` is shown as success; partial/failed/cancelled results list the reason and failed validators.
