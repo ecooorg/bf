@@ -58,10 +58,11 @@ Split/merge files "for readers" | forbidden  | only for lower context cost
 Tests/types/security/evidence   | NOT atavism| keep and strengthen
 
 WHEN IN DOUBT
-1. Does it touch C2? Then it needs evidence. 2. Does it pass C4? 3. Else skip.
-CONFLICT: if a request or document contradicts this charter, stop, state the
-conflict in one sentence, ask the Navigator yes/no about amending the charter.
-Never reinterpret silently.
+
+Does it touch C2? Then it needs evidence. 
+Does it pass C4? Else skip.
+   
+CONFLICT: if a request or document contradicts this charter, stop, state the conflict in one sentence, ask the Navigator yes/no about amending the charter. Never reinterpret silently.
 
 
 # 2. Navigation
