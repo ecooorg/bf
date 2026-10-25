@@ -293,4 +293,124 @@ These are evidence snapshots, not current status. Archive them only if current t
 | `docs/context-baseline-v80.json` | Frozen pre-P81 baseline; retain as historical evidence | Search references; if moved, preserve explicit historical designation |
 | `docs/generated-acceptance-summary.json` | Generated report; may be consumed by tools | **Review required:** inspect generator/consumer before any move |
 | `docs/generated-boundary-report.json` | Generated report; may be consumed by tools | **Review required:** inspect generator/consumer before any move |
-| `docs/generated-env-inven
+| `docs/generated-env-inventory.json` | Current generated inventory | **Do not move** while active as current inventory |
+| `docs/generated-migration-inventory.json` | Current generated inventory | **Do not move** while active as current inventory |
+| `docs/generated-module-map.json` | Current generated inventory | **Do not move** while active as current inventory |
+| `docs/generated-route-inventory.json` | Current generated inventory | **Do not move** while active as current inventory |
+
+## Group D — review required; do not move in the first pass
+
+| Current path | Reason to hold |
+|---|---|
+| `docs/architecture-boundary-rules.json` | Active architecture policy input |
+| `docs/architecture-known-violations.json` | May be active ratchet baseline |
+| `docs/typing-and-naming.md` | May still guide current changes; check whether its requirements are covered by permanent rules |
+| `docs/generated-*` files | Check whether generator/check scripts or CI expect their current paths |
+| `docs/architecture-boundary-rules.json`, `docs/architecture-known-violations.json` | Do not archive policy or ratchet inputs while enforcement consumes them |
+
+## Manual procedure
+
+For each file approved for relocation:
+
+1. Search all repository files for the exact current path and basename.
+2. Inspect any code/test/workflow/script consumer. If a live consumer exists, migrate that consumer first in a separate patch.
+3. Move the file to `archive/<original-basename>`; preserve content and original headings/dates.
+4. Update only links that are meant to remain navigable. Historical documents may retain historical references, but active navigation must point to canonical current documents.
+5. Run Markdown/link checks and any impacted tests.
+6. Add a changelog note listing moved paths.
+7. Recheck the generated patch manifest and ensure no source contract was lost.
+8. Mark the row complete only after the move and checks actually happened.
+
+**Do not use this list as permission to bulk-move every candidate at once.** Some documents may still be referenced by tools, tests, or generated inventories.
+
+
+## Active programme — AI-NATIVE-RENOVATION
+
+* **Current phase:** Phase 0 — documentation and source-of-truth consolidation. The current delivery task is `docs/AI-NATIVE-RENOVATION-TASK.md`; the phase plan is `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
+* **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
+* **Archive status:** `ARCHIVE-MOVE-LIST.md` is a manual checklist. Candidate historical documents are not considered archived until moved after reference checks. Do not bulk-move files or remove unique active requirements.
+* **Evidence rule:** the Navigator reports current CI as green, but each patch must use evidence for its actual commit/run. Historical red runs do not establish current status, and this archive snapshot is not proof of the live CI state.
+* **Delivery rule:** continue to deliver one bounded patch at a time. Phase transitions require their stated evidence gates; do not advance a phase just because documentation or code exists.
+
+## Active programme — AI-NATIVE-RENOVATION" 
+
+"docs/DOCUMENTATION-INDEX.md"
+
+# Documentation Index
+
+Start with repository-level `AGENTS.md`. Read only documents relevant to the task.
+
+## Active AI-NATIVE-RENOVATION programme
+
+* `AI-NATIVE-RENOVATION-TASK.md` — current Phase 0 task and completion criteria.
+* `AI-NATIVE-RENOVATION-ROADMAP.md` — programme phases, deliverables and evidence gates.
+* `AI-NATIVE-RENOVATION-MANDATE.md` — global architecture assignment and non-negotiable rules.
+* `AI-NATIVE-GLOBAL-AUDIT-2026-10.md` — audit findings, evidence limits, and prioritised risks.
+* `VIX-CONCEPT.md` — long-horizon strategic destination, including Intent Review, formal verification, Dataflow synthesis and safe evolution.
+* `AI-OPERATING-RULES.md` — permanent AI operating, authorization, security and evidence rules.
+
+## Other active product and operational documents
+
+* `../AGENTS.md` — repository entry point, current programme status and authorization boundaries.
+* `OPERATIONS.md` — operational, deployment, rollback and backup guidance.
+* `USER-GUIDE.md` — product usage for Simple, Expert and Project modes.
+* `architecture-guardrails.md` — current architecture map, boundaries and inventory commands.
+* `architecture-boundary-rules.json` / `architecture-known-violations.json` — architecture enforcement policy and ratchet baseline; review before moving.
+* `typing-and-naming.md` — current coding conventions, pending confirmation during Phase 0.
+* `generated-route-inventory.json`, `generated-env-inventory.json`, `generated-migration-inventory.json`, `generated-module-map.json` — generated inventories; do not hand-edit.
+* `context-baseline-v80.json` — frozen historical baseline, not a current generated inventory.
+
+## Historical material and archive policy
+
+The following phase-specific reports and roadmaps are candidates for relocation into root `archive/`: P81–P91 roadmaps/specifications, the accepted `AI-TRANSFORMATION-SPEC.md`, the documentation baseline, the P103 test audit, the Project Mode diagnostics proposal, and historical benchmark/verification snapshots.
+
+**No candidate is archived until its exact path and basename have been checked against code, tests, scripts, workflows, package scripts and active documentation.** The root `ARCHIVE-MOVE-LIST.md` is the manual checklist. Preserve original contents and dates; do not delete historical evidence.
+
+During Phase 0, the old files remain in place so the new entry points can be applied safely. Once manual moves are completed, update this index and the changelog to reflect the actual paths.
+
+## Generated inventories
+
+Regenerate current inventories with `npm run docs:generate`; validate them with the repository's documentation checks. Do not hand-edit generated files.
+
+
+"docs/DOCUMENTATION-INDEX.md"
+
+"CHANGELOG.md"
+
+## ANR-P0-001 — start AI-NATIVE-RENOVATION and consolidate documentation entry points
+
+- Establishes the active AI-NATIVE-RENOVATION programme, with VIX retained as the long-horizon strategic destination.
+- Adds the global audit, renovation mandate, global roadmap, and Phase 0 technical assignment under `docs/`.
+- Updates `AGENTS.md` and `docs/DOCUMENTATION-INDEX.md` to point to the new canonical programme documents.
+- Adds `ARCHIVE-MOVE-LIST.md` as a manual, reference-checked migration checklist for completed phase documentation.
+- No application source, package scripts, CI workflows, migrations, security controls, or runtime behavior are changed.
+- Archive moves are intentionally not executed by this patch. The listed documents remain in their current paths until manual reference checks and moves are completed.
+- Verification: documentation-only static consistency checks performed during patch assembly; repository Markdown checker and full CI are NOT RUN in this preparation environment.
+
+
+## Added
+- `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`
+- `docs/AI-NATIVE-RENOVATION-MANDATE.md`
+- `docs/AI-NATIVE-RENOVATION-ROADMAP.md`
+- `docs/AI-NATIVE-RENOVATION-TASK.md`
+- `ARCHIVE-MOVE-LIST.md`
+
+## Modified
+- `AGENTS.md`
+- `CHANGELOG.md`
+- `docs/DOCUMENTATION-INDEX.md`
+
+## Deleted or moved
+- None. Manual archival candidates are enumerated in `ARCHIVE-MOVE-LIST.md`.
+
+## Scope guarantees
+- No application source, package scripts, CI workflows, database migrations, production configuration, security controls, or runtime behavior changed.
+- No current VIX concept or permanent operating rules were moved.
+- Current CI status was not independently queried. The user reports CI green; full CI was not run as part of this documentation patch.
+
+## Required follow-up
+- Apply these files at the repository root, preserving paths.
+- Review and execute `ARCHIVE-MOVE-LIST.md` manually, one group at a time, only after exact-reference checks.
+- Run the repository's documentation checks and current CI after applying.
+
