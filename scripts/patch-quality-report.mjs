@@ -77,7 +77,7 @@ function sourceContext(stage, logText) {
     }
   }
   if (!lineNo) return [`SOURCE=${file}; source line unavailable`];
-  const start = Math.max(1, lineNo - 7), end = Math.min(lines.length, lineNo + 10);
+  const start = Math.max(1, lineNo - 15), end = Math.min(lines.length, lineNo + 25);
   return [`SOURCE=${file}:${lineNo}-${end}`, ...lines.slice(start - 1, end).map((line, idx) => `${start+idx}${start+idx===lineNo?' >>>':'    '} ${oneLine(line, 220)}`)];
 }
 for (const name of workflowLogNames) {
@@ -127,6 +127,19 @@ for (const group of workflowErrors) {
   errorSections.push(...group.evidence.slice(0, 10));
 }
 if (!errorSections.length && status === 'FAILED') errorSections.push('ERROR_EVIDENCE=No detailed stage record found; inspect workflow step outcomes and logs named below.');
+// Make the handoff useful without requiring the source archive: record the repo's check command,
+// the exact failing stage commands when available, and source excerpts around each reported location.
+const packageJson = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')); } catch { return {}; } })();
+const rerunCommands = [];
+for (const stage of failedRows) {
+  const id = String(stage.id || '');
+  const script = id.startsWith('test:') || id.startsWith('check:') ? id : null;
+  const command = stage.command ? [stage.command, ...(stage.args || [])].join(' ') : (script && packageJson.scripts?.[script] ? `npm run ${script}` : null);
+  if (command) rerunCommands.push(`${id}: ${command}`);
+}
+handoff.push(`REPO_CHECK_COMMAND=${oneLine(packageJson.scripts?.check || 'unavailable', 1800)}`);
+handoff.push(`FAILED_STAGE_RERUN_COMMANDS=${rerunCommands.length ? rerunCommands.map((x) => oneLine(x, 1000)).join(' | ') : 'not recorded; use log/source evidence below'}`);
+handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacted failure evidence and source excerpts. Treat absent evidence as unknown; do not claim unrun checks passed. Ask for diagnostics.zip only if this report explicitly says logs/evidence are missing or the failure cannot be resolved from included evidence.');
 handoff.push('EVIDENCE_BEGIN', ...errorSections, 'EVIDENCE_END');
 const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? ['critical-router-selection.log','critical-router-policy-call-limit.log','critical-gemini-timeout.log','critical-app-builder-recovery.log'] : [];
 handoff.push(`LOG_FILES=${[...new Set([...criticalLogSet, ...failedRows.map((r) => path.basename(r.log || `${r.id}.log`)), ...workflowErrors.map((g) => g.log)])].filter((name) => fs.existsSync(path.join(dir,name))).join(', ') || logs.join(', ') || 'none'}`);

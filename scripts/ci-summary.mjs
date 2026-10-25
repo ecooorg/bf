@@ -17,5 +17,4 @@ if (!report.trim()) {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(reportPath, report);
 }
-process.stdout.write(report);
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
