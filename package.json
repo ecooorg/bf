@@ -1,7 +1,7 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "93",
+  "version": "94",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -44,7 +44,7 @@
     "test:database:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs",
     "test:bx06:api": "RUN_BX06_API=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/project-mode.test.mjs",
     "test:ui": "node --import tsx tests/ui-check.mjs",
-    "check": "node scripts/check-version.mjs && node --test tests/architecture-context.test.mjs && npm run test:context-benchmark && npm run test:task-context && npm run test:impact-lineage && npm run test:verification-plan && npm run test:real-task-benchmark && npm run test:intent-contract && npm run test:context-refresh-profile && npm run test:context-completeness && npm run check:docs && npm run lint:copy && npm run typecheck && npm run test:core && npm run test:models && npm run test:security && npm run test:files && npm run test:workspace && npm run test:database && npm run test:integrations && npm run test:project && npm run test:gates && npm run test:pipeline && npm run test:web && npm run test:turn && npm run test:regression && npm run test:app-builder && npm run test:project-diagnostics && npm run test:diagnostics:p93-7 && npm run test:patch-quality-report",
+    "check": "node scripts/check-version.mjs && node --test tests/architecture-context.test.mjs && npm run test:context-benchmark && npm run test:task-context && npm run test:impact-lineage && npm run test:verification-plan && npm run test:real-task-benchmark && npm run test:intent-contract && npm run test:context-refresh-profile && npm run test:context-completeness && npm run check:docs && npm run lint:copy && npm run typecheck && npm run test:core && npm run test:models && npm run test:security && npm run test:files && npm run test:workspace && npm run test:database && npm run test:integrations && npm run test:project && npm run test:gates && npm run test:pipeline && npm run test:web && npm run test:turn && npm run test:regression && npm run test:app-builder && npm run test:project-diagnostics && npm run test:diagnostics:p93-7 && npm run test:patch-quality-report && npm run test:compact-ci-artifacts",
     "docs:generate": "node scripts/docsGenerateInventories.mjs && node scripts/architectureGenerateModuleMap.mjs",
     "docs:check": "node scripts/docsCheckInventories.mjs && npm run check:docs",
     "acceptance:report": "node scripts/acceptanceReport.mjs",
@@ -71,7 +71,8 @@
     "test:ai": "node scripts/ai-test-harness-p93-7.mjs",
     "test:diagnostics:p93-7": "node --import tsx --test tests/p93-7-diagnostic-logging.test.mjs",
     "patch:quality-report": "node scripts/patch-quality-report.mjs",
-    "test:patch-quality-report": "node --test tests/patch-quality-report-p93-8.test.mjs"
+    "test:patch-quality-report": "node --test tests/patch-quality-report-p93-8.test.mjs",
+    "test:compact-ci-artifacts": "node --test tests/compact-ci-artifacts-p94.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

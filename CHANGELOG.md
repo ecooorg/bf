@@ -1,10 +1,11 @@
-## P93.9 — Minimum diagnostic gate and compact CI handoff
+## P94 — Compact CI artifacts and evidence-rich diagnostic handoff
 
-* Replaces stop-on-first-failure behavior with a two-phase diagnostic gate. The minimum high-risk set runs every check and records all failures/timeouts before deciding whether to continue.
-* Minimum set: typecheck, core/router, models, files, App Builder, verification planner, and Project Mode. If any fail, later diagnostics, full check chain, live contract tests, and build are skipped.
-* When the minimum set is green, regression and pipeline checks both run; if either fails, full checks and build are skipped. Remaining check-chain scripts run only after both diagnostic phases pass, with already-passed suites excluded to avoid duplicate execution.
-* `NEXT_PATCH.md` aggregates results from both diagnostic phases and remaining checks, lists skipped stages, and keeps a compact `ASSISTANT HANDOFF` block. Report generation remains deterministic and uses no AI tokens.
-* Local validation: new runner syntax checks PASS; P93.8 report tests PASS (2/2). Full CI/build not run in this preparation environment.
+* GitHub Actions now publishes one `biforge-ci-report` artifact: `NEXT_PATCH.md` plus `diagnostics.zip` only when the run fails. Successful runs keep only the short report; detailed success logs are not uploaded individually.
+* The report is added to the Actions job Summary. Failure evidence preserves TAP assertion context (expected/actual/stack when emitted), the last successful test and final output for timeouts, phase outcomes, and a concise `ASSISTANT HANDOFF` block. Secret-like values are redacted from diagnostic excerpts and bundled logs.
+* Failed-stage logs and relevant workflow logs are packaged in `diagnostics.zip` with `diagnostics-index.json`; temporary logs are removed from the upload directory after packaging. Retention remains seven days. Gitleaks' own SARIF artifact is controlled by its action and remains separate.
+* The remaining-check runner now honours `CHECK_SKIP_SCRIPTS` and merges prior diagnostic results, so the seven minimum checks and the secondary checks are not repeated during the final check chain.
+* Current red-CI root causes are not guessed: the supplied P93.9 handoff omits the router assertions' expected/actual/stack details and the full timeout tail. P94 makes those details available in the next diagnostic bundle, instead of applying speculative runtime changes.
+* Added focused tests for TAP evidence extraction, timeout tails, and compact artifact contents. Local static syntax and YAML checks are performed for this patch; full hosted CI/build remains unverified until applied to GitHub.
 
 ## P93.8 — CI patch handoff artifact without AI tokens
 
@@ -912,14 +913,3 @@ Format: newest first. Behavior changes must update tests and this file in the sa
 - Added explicit Simple, Expert, and Project start cards. Project shows an explicit disabled state when unavailable; selecting a mode is user-driven and does not auto-switch later.
 - Recorded the existing folder-picker-to-menu behavior (`PICK_FOLDER_EVENT`) in the patch journal.
 - Corrected STATUS sequencing to UI1 → QA1 → MANUAL1 and removed the resolved UX1 feedback question.
-
-## P93.9 — Priority CI Gate
-- Added an early gate for historically failure-prone suites: verification planner, App Builder, Project Mode, regression, and TypeScript.
-- When the gate is red, expensive downstream checks are skipped for that run, while diagnostics, NEXT_PATCH.md generation, and artifact upload still run.
-- When the gate is green, the full CI continues and the already-passed priority checks are not repeated by the independent-check runner.
-- No model calls or API tokens are required.
-
-## P93.9 revised — failure-first CI gate
-- Added core/models/files to the start of the priority sequence based on P93.8 results.
-- Stop at the first failing or timed-out priority suite, write structured results, and let always() create NEXT_PATCH.md.
-- Keep expensive checks and build skipped while priority gate is red.
