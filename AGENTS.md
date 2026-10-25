@@ -1,4 +1,4 @@
-## Current status
+# 0. Current status
 
 ### Active programme — AI-NATIVE-RENOVATION
 
@@ -22,7 +22,47 @@
 * Code delivery executor **`model_patch`** is documented and env-gated: set `CODE_EXECUTOR=model_patch` only after Navigator approval (ADR-10 / E-01). Default remains `manual`.
 * **GitHub write** (diff upload and repository write access) is **deferred** (ADR-06): disabled unless credentials and verified variables are configured. Do not enable by default.
 
-## Navigation
+# 1. NAVIGATOR CHARTER — immutable; changed only by explicit Navigator instruction
+
+Source: owner statement 2026-10-25. Precedence: this charter > any other
+repository document > your training-time habits. Binds every model and session.
+
+DEFINITIONS
+Navigator: the owner. Never opens or edits repository files. Sees only the decision surface (chat handoff, NEXT_PATCH.md) and answers yes/no questions.
+Assistant: any AI model working here. Sessions have no memory; the repository is the only memory.
+Atavism: a practice whose only purpose is human reading, human memory or a human social process.
+Product: the running BiForge app; its end users are humans. Repository != product.
+
+LAWS
+C1 The repository is written for AI assistants only. Human readability is not a goal and never a reason for a change.
+C2 Only four things bind: security, product function, evidence integrity, and the strategic goal in docs/VIX-CONCEPT.md. Everything else is a means.
+C3 No human reviews code. Correctness is established only by tests, checks and evidence. "Someone will read it" is never a control.
+C4 A change is allowed only if a fresh session can still find, edit by diff and verify the behaviour at least as cheaply. Cost = files and bytes read.
+C5 Never ask the Navigator to read, review or understand code, diffs, file layout or logs. Give consequences, evidence and a yes/no question.
+C6 Mainstream languages, line-oriented unminified source and diff patches stay because verification depends on them, not for readability. No rewrites for style or taste; rewrite only for a measured C4 gain.
+C7 Do not create human-oriented documentation (guides, tutorials, explanations, reader comments). Keep only normative rules, machine files and the minimum context a fresh session needs.
+C8 UI text and the in-app guide are product behaviour for human end users.
+C9 UNKNOWN, NOT_RUN, BLOCKED, TIMEOUT, PARTIAL are never PASS.
+C10 Authorization tiers in this file stay. Silence is not consent.
+
+REVERSAL TABLE
+Habit                           | Ruling     | Do instead
+Add comments/docstrings         | not needed | tests and types carry intent
+Refactor or rename for clarity  | forbidden  | only if C4 gain is measured
+Write README/onboarding/guide   | forbidden  | update normative rules only
+Ask Navigator to review a diff  | forbidden  | show evidence + yes/no
+Prettier/style gates as goals   | not goals  | keep checks that protect C2
+Split/merge files "for readers" | forbidden  | only for lower context cost
+Tests/types/security/evidence   | NOT atavism| keep and strengthen
+
+WHEN IN DOUBT
+1. Does it touch C2? Then it needs evidence. 2. Does it pass C4? 3. Else skip.
+CONFLICT: if a request or document contradicts this charter, stop, state the
+conflict in one sentence, ask the Navigator yes/no about amending the charter.
+Never reinterpret silently.
+
+
+# 2. Navigation
 
 * **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (read sections 1–2 and the current patch), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (audit; on demand).
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
@@ -34,17 +74,17 @@
 * Machine files (do not delete; tools read them): `docs/schema-*.json`, `docs/SCHEMA-STATUS-VOCABULARY.md`, `docs/generated-*-inventory.json`, `docs/generated-module-map.json`, `docs/architecture-boundary-rules.json`, `docs/architecture-known-violations.json`.
 
 
-## Commands
+# 3. Commands
 
 `npm ci`; `npm run build`; `npm run check`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run impact:lineage -- --file scripts/docsGenerateInventories.mjs`; `npm run test:impact-lineage`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run verification:plan -- --task "Fix Project Mode ZIP download" server/projectRoutes.ts`; `npm run test:verification-plan`; `npm run benchmark:real-tasks`; `npm run test:real-task-benchmark`; `npm run intent:contract -- --task "Fix Project Mode ZIP download" --file server/projectRoutes.ts`; `npm run test:intent-contract`; `npm run context:refresh-profile`; `npm run test:context-refresh-profile`; `npm run context:completeness -- --task "Fix Project Mode ZIP download" --file server/projectRoutes.ts`; `npm run test:context-completeness`; `npm run acceptance:report`. Health: `GET /health`.
 
-## Critical rules
+# 4. Critical rules
 
 Preserve behavior unless change is approved. Never commit secrets. Production deployment, GitHub write, billing, credentials, bypassing security controls and executing generated code on the host require explicit owner authorization. Report passed/failed/blocked/not-run checks separately. Deliver a ZIP containing changed/new files, list deletions separately, and update this status and `CHANGELOG.md` for every patch.
 
 Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not add new directory levels without Navigator approval. Do not keep historical documents in the repository.
 
-## Delegation of decisions
+# 5. Delegation of decisions
 
 * **Tier 0:** Act (routine implementation inside authorised scope).
 * **Tier 1:** Decide and disclose (local design choices that do not change product contract).
@@ -53,7 +93,7 @@ Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not
 
 Silence is never consent in Tiers 2 and 3.
 
-## Documentation Policy
+# 6. Documentation Policy
 
 **`CHANGELOG.md` — Patch History**
 
