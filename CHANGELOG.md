@@ -1,12 +1,9 @@
-## P103.1 — CI handoff output newline fix (2026-10-25)
-- `scripts/ci-summary.mjs`: write the handoff report verbatim instead of using `console.log`, which appended an extra newline and broke the strict CLI contract test.
-- Verification: failure reproduced from CI evidence; local test execution not run in this patch workspace.
+## P104 — quiet CI handoff and self-contained NEXT_PATCH.md
 
-## P103 CI follow-up — collect all checks after failures
-
-- Fixed `ci-diagnostics-chain.test.mjs` to test the current P96 `ci-summary.mjs` handoff-report contract; removed imports of obsolete `inspectLogs` / `renderStageTable` exports.
-- CI workflow now runs secondary diagnostics, migrations, remaining checks, live/API tests, and build after earlier failures (provided dependency installation succeeded). Each stage still records its own result; the workflow remains failed if any required stage fails.
-- Verification: pending local test execution; hosted CI not run in this patch.
+- `scripts/ci-summary.mjs`: no longer prints the handoff report (or a missing-report stub) to stdout; it still writes the GitHub Actions step summary and creates `NEXT_PATCH.md` if missing.
+- `scripts/patch-quality-report.mjs`: adds the exact repository check chain, best-effort failing-stage rerun commands, and wider redacted source context around reported failure locations so `NEXT_PATCH.md` can be forwarded without the source archive for common failures.
+- Updated CI summary tests to enforce zero console output and verify the report/step-summary files instead.
+- Verification: pending local checks; no claim of green CI.
 
 ## P103 — test audit: remove obsolete tests, fix check chain
 
