@@ -11,7 +11,7 @@ import { templatePlan } from './stack-static-site.ts';
 import { runStaticValidators, REQUIRED_VALIDATORS } from './validator-static-site.ts';
 
 export interface BuildResult { state: JobState; report: BuildReport; archive: Uint8Array | null }
-export interface EngineOptions { profileId?: string; modelId?: string; maxCallsPerJob?: number; maxAttemptsPerUnit?: number; promptVersion?: string }
+export interface EngineOptions { profileId?: string; modelId?: string; maxCallsPerJob?: number; maxAttemptsPerUnit?: number; promptVersion?: string; resumeFrom?: JobState | null; signal?: AbortSignal; isCancelled?: () => boolean | Promise<boolean> }
 
 function asObject<T>(text: string): T | null { try { return JSON.parse(text) as T; } catch { return null; } }
 function event(ports: Ports, jobId: string, type: string, data?: Record<string, unknown>): void { void ports.events.emit({ jobId, type, level: 'info', data }); }
@@ -21,6 +21,10 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const profile = conservativeProfile(options.profileId ?? 'conservative');
   const budget = Math.max(1, Math.min(options.maxCallsPerJob ?? profile.maxCallsPerJob, profile.maxCallsPerJob));
   const state: JobState = { schemaVersion: SCHEMA_VERSION, id: input.jobId, projectId: input.projectId, userId: input.userId, status: 'running', stage: 'preflight', spec: null, plan: null, callsUsed: 0, callsBudget: budget, error: null, report: null, artifactId: null, createdAt: new Date(started).toISOString(), updatedAt: new Date(started).toISOString(), heartbeatAt: new Date(started).toISOString() };
+  const resume = options.resumeFrom && options.resumeFrom.id === input.jobId ? options.resumeFrom : null;
+  if (resume) { state.spec = resume.spec; state.plan = resume.plan; state.callsUsed = resume.callsUsed; state.createdAt = resume.createdAt; }
+  let cancelled = false;
+  const save = async () => { state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt; try { await ports.store.saveJob(state); } catch (e) { void ports.events.emit({ jobId: input.jobId, type: 'store_warning', level: 'warn', data: { message: e instanceof Error ? e.message.slice(0, 160) : 'saveJob failed' } }); } };
   const files = new Map<string, { content: string; unitId: string }>();
   const unitReports: BuildReport['units'] = [];
   let failureReason: string | undefined;
@@ -29,7 +33,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     if (state.callsUsed >= budget) return null;
     const p = promptFor(role, context);
     state.callsUsed++;
-    const result = await ports.model.complete({ role, system: p.system, prompt: p.prompt, maxOutputTokens: profile.maxOutputTokens });
+    const result = await ports.model.complete({ role, system: p.system, prompt: p.prompt, maxOutputTokens: profile.maxOutputTokens, signal: options.signal });
     if (isModelError(result)) {
       if (result.code === 'rate_limited') {
         // Waits count against elapsed wall-clock time but not against generation-call budget.
@@ -38,7 +42,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
         await ports.clock.sleep(wait);
         if (state.callsUsed >= budget) return null;
         state.callsUsed++;
-        const retry = await ports.model.complete({ role, system: p.system, prompt: p.prompt, maxOutputTokens: profile.maxOutputTokens });
+        const retry = await ports.model.complete({ role, system: p.system, prompt: p.prompt, maxOutputTokens: profile.maxOutputTokens, signal: options.signal });
         if (isModelError(retry)) { failureReason = `${retry.code}: ${retry.message}`; return null; }
         return { ...retry, promptVersion: version ?? p.version };
       }
@@ -48,12 +52,17 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     return { ...result, promptVersion: version ?? p.version };
   };
   try {
+    await save();
+    if (!state.spec) {
     event(ports, input.jobId, 'stage_changed', { stage: 'spec' }); state.stage = 'spec';
     let specResult = await call('planner', `Create a concise project specification as JSON with schemaVersion, title, goal, language, stack, features[], nonGoals[], acceptance[]. Task: ${input.taskText}`);
     let spec = specResult ? asObject<Spec>(specResult.text) : null;
     if (!spec && state.callsUsed < budget) { specResult = await call('planner', `Return corrected valid JSON only for a Spec with schemaVersion=1. Task: ${input.taskText}`); spec = specResult ? asObject<Spec>(specResult.text) : null; }
     if (!spec || spec.schemaVersion !== SCHEMA_VERSION || !Array.isArray(spec.acceptance)) throw new Error(failureReason ?? 'invalid_spec');
-    state.spec = spec;
+    state.spec = spec; await save();
+    }
+    const spec = state.spec!;
+    if (!state.plan?.units.length) {
 
     event(ports, input.jobId, 'stage_changed', { stage: 'plan' }); state.stage = 'plan';
     const planResult = await call('planner', `Create a Plan JSON with schemaVersion=1, specHash="${sha256(JSON.stringify(spec))}", units[], order[]. Each unit requires id, kind="file", path, purpose, dependsOn[], exports[], contract, maxOutputTokens, status="pending", attempts=0. Task spec: ${JSON.stringify(spec)}`);
@@ -67,30 +76,32 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       failureReason = undefined; templateUsed = why;
       event(ports, input.jobId, 'plan_fallback', { reason: why });
     }
-    state.plan = { ...plan, order: checked.order ?? plan.order };
+    state.plan = { ...plan, order: checked.order ?? plan.order }; await save();
+    }
 
     event(ports, input.jobId, 'stage_changed', { stage: 'code' }); state.stage = 'code';
     const byId = new Map(state.plan.units.map((u) => [u.id, u]));
     for (const id of state.plan.order) {
+      if (options.isCancelled && await options.isCancelled()) { cancelled = true; failureReason = 'cancelled'; break; }
       const unit = byId.get(id)!; unit.status = 'running'; unit.attempts++;
       event(ports, input.jobId, 'unit_started', { unitId: id, path: unit.path });
-      const key = makeCacheKey({ unitInput: { spec, unit: { ...unit, status: undefined, attempts: undefined } }, promptVersion: options.promptVersion, modelId: options.modelId ?? profile.id });
+      const key = makeCacheKey({ unitInput: { spec, unit: { ...unit, status: undefined, attempts: undefined, cacheKey: undefined, resultRef: undefined } }, promptVersion: options.promptVersion, modelId: options.modelId ?? profile.id });
       const cached = await ports.store.getUnitResult(key);
       let content = cached?.content;
       let modelId: string | undefined = undefined;
       if (!content) {
         const output = await call('coder', `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.`);
-        if (!output) { unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts }); break; }
+        if (!output) { unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts }); void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason ?? 'model_unavailable' } }); await save(); break; }
         modelId = output.modelId;
         const parsed = parseFileMarkers(output.text);
         const found = parsed.files.find((f) => f.path === unit.path);
-        if (!found || parsed.truncated) { unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts, modelId }); failureReason = parsed.issues.join(', ') || 'missing_expected_file_or_truncated'; break; }
+        if (!found || parsed.truncated) { unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts, modelId }); failureReason = parsed.issues.join(', ') || 'missing_expected_file_or_truncated'; void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason } }); await save(); break; }
         content = found.content;
         await ports.store.putUnitResult({ jobId: input.jobId, unitId: id, cacheKey: key, content, contentHash: sha256(content), createdAt: new Date(ports.clock.now()).toISOString() });
       }
       files.set(unit.path!, { content, unitId: id }); unit.status = 'done'; unit.cacheKey = key;
       unitReports.push({ id, status: 'done', attempts: unit.attempts, modelId, cacheHit: Boolean(cached) });
-      event(ports, input.jobId, 'unit_done', { unitId: id, cacheHit: Boolean(cached) });
+      event(ports, input.jobId, 'unit_done', { unitId: id, cacheHit: Boolean(cached) }); await save();
     }
   } catch (error) { failureReason = error instanceof Error ? error.message : String(error); }
 
@@ -106,7 +117,8 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const status = validatorsOk ? 'complete' : files.size ? 'partial' : 'failed';
   const note = failureReason ?? (templateUsed ? `plan_fallback_used: ${templateUsed}` : undefined);
   const report: BuildReport = { schemaVersion: SCHEMA_VERSION, jobId: input.jobId, status, goalImplemented: validatorsOk, files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })), units: unitReports, validators, callsUsed: state.callsUsed, durationMs: Math.max(0, ports.clock.now() - started), ...(note ? { failureReason: note } : {}) };
-  state.status = status === 'complete' ? 'done' : status === 'partial' ? 'failed' : 'failed'; state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
+  state.status = cancelled ? 'cancelled' : status === 'complete' ? 'done' : 'failed'; if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : 'build_incomplete', message: failureReason.slice(0, 300) }; state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
+  await save();
   event(ports, input.jobId, 'job_done', { status, goalImplemented: report.goalImplemented });
   const archive = files.size ? await packZip([...files].map(([path, f]) => ({ path, content: f.content })), report) : null;
   return { state, report, archive };
