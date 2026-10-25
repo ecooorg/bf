@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T17:15:20Z",
+  "generatedAt": "2026-10-25T04:39:23Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "sourceFiles": [
     "server.ts",
@@ -9,7 +9,7 @@
     "server/opsRoutes.ts",
     "server/projectRoutes.ts"
   ],
-  "count": 75,
+  "count": 80,
   "routes": [
     {
       "method": "GET",
@@ -159,6 +159,16 @@
     {
       "method": "POST",
       "path": "/api/projects/:projectId/code/build",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/code/build/:jobId",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/code/build/:jobId/cancel",
       "file": "server/projectRoutes.ts"
     },
     {
@@ -319,6 +329,21 @@
     {
       "method": "GET",
       "path": "/api/projects/:projectId/versions",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/diagnostics/export",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/diagnostics/operations",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/diagnostics/system",
       "file": "server/projectRoutes.ts"
     },
     {

@@ -2,12 +2,33 @@
   "generatedAt": "2026-10-23T15:41:51Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
-  "count": 54,
+  "count": 57,
   "variables": [
+    {
+      "name": "APP_BUILDER_ENGINE",
+      "files": [
+        "server/appBuilderAdapter.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "APP_BUILDER_MODEL_ID",
+      "files": [
+        "server/appBuilderAdapter.ts"
+      ],
+      "fileCount": 1
+    },
     {
       "name": "APP_BUILDER_MODEL_SLICE",
       "files": [
         "server/projectRoutes.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "APP_BUILDER_STALE_MS",
+      "files": [
+        "server/appBuilderAdapter.ts"
       ],
       "fileCount": 1
     },
@@ -93,13 +114,6 @@
       "fileCount": 1
     },
     {
-      "name": "GIT_COMMIT",
-      "files": [
-        "server.ts"
-      ],
-      "fileCount": 1
-    },
-    {
       "name": "GITHUB_DIFF_UPLOAD",
       "files": [
         "server/githubIntegration.ts"
@@ -122,6 +136,13 @@
     },
     {
       "name": "GITHUB_WEBHOOK_SECRET",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GIT_COMMIT",
       "files": [
         "server.ts"
       ],
@@ -238,14 +259,14 @@
       "fileCount": 2
     },
     {
-      "name": "PG_POOL_MAX",
+      "name": "PGSSLMODE",
       "files": [
         "server/database.ts"
       ],
       "fileCount": 1
     },
     {
-      "name": "PGSSLMODE",
+      "name": "PG_POOL_MAX",
       "files": [
         "server/database.ts"
       ],

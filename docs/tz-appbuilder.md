@@ -116,7 +116,7 @@ Required validators: `html-structure` (HTML/body structure and closed tags), `js
 | `tsconfig.server.json` | Include `appBuilder/*.ts` and compile the core in the server type-check. |
 | `docs/architecture-boundary-rules.json` | `appBuilder` layer; permit server/test/script → appBuilder, prohibit reverse imports from appBuilder. |
 | Documentation inventories and `check-docs` | Register active docs and maintain documentation baseline/index. |
-| `server/migrations/017_app_build_jobs.sql` | Idempotent `app_build_jobs`, `app_build_unit_results`, indexes for status/project ID. |
+| `migrations/017_app_build_jobs.sql` | Idempotent `app_build_jobs`, `app_build_unit_results`, indexes for status/project ID. |
 | `server/appBuilderAdapter.ts` | Implement ports over model routing, database, artifacts, diagnostics, and job recovery. |
 | `server/projectRoutes.ts` | With `APP_BUILDER_ENGINE=staged`, start the new engine instead of the legacy slice for eligible tasks; default/unset remains legacy. Start returns HTTP 202 and `{jobId}`; `GET …/code/build/:jobId` reports status/stage/units/error/archive; `POST …/code/build/:jobId/cancel` cancels. |
 | `server/projectDiagnostics.ts` | Diagnostic events: `BUILD_JOB_STARTED`, `BUILD_STAGE`, `BUILD_UNIT_DONE`, `BUILD_UNIT_FAILED`, `BUILD_FINISHED`; include `build-report.json` in diagnostic ZIP. |

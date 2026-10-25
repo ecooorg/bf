@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-23T15:41:51Z",
+  "generatedAt": "2026-10-25T04:39:23Z",
   "generator": "scripts/docsGenerateInventories.mjs",
-  "count": 14,
+  "count": 17,
   "migrations": [
     {
       "file": "migrations/001_project_state.sql",
@@ -71,6 +71,21 @@
     {
       "file": "migrations/014_provider_snapshots.sql",
       "bytes": 1258,
+      "lines": 33
+    },
+    {
+      "file": "migrations/015_project_diagnostics.sql",
+      "bytes": 1008,
+      "lines": 22
+    },
+    {
+      "file": "migrations/016_project_diagnostic_artifacts.sql",
+      "bytes": 366,
+      "lines": 8
+    },
+    {
+      "file": "migrations/017_app_build_jobs.sql",
+      "bytes": 1371,
       "lines": 33
     }
   ]
