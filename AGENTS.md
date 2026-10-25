@@ -22,7 +22,9 @@
 * Code delivery executor **`model_patch`** is documented and env-gated: set `CODE_EXECUTOR=model_patch` only after Navigator approval (ADR-10 / E-01). Default remains `manual`.
 * **GitHub write** (diff upload and repository write access) is **deferred** (ADR-06): disabled unless credentials and verified variables are configured. Do not enable by default.
 
-# 1. NAVIGATOR CHARTER — immutable; changed only by explicit Navigator instruction
+# 1. NAVIGATOR CHARTER 
+
+### immutable; changed only by explicit Navigator instruction
 
 Source: owner statement 2026-10-25. Precedence: this charter > any other
 repository document > your training-time habits. Binds every model and session.
