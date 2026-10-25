@@ -1,147 +1,137 @@
-// P94 compact, evidence-rich CI handoff. Deterministic; no model/API calls.
+// P96: the same compact, evidence-complete handoff is written to NEXT_PATCH.md and GitHub Actions Summary.
+// No AI/API calls. Secrets are redacted before any evidence is published.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/ci-checks');
-const outFile = path.join(dir, 'NEXT_PATCH.md');
-const exists = (name) => fs.existsSync(path.join(dir, name));
+fs.mkdirSync(dir, { recursive: true });
 const read = (name) => { try { return fs.readFileSync(path.join(dir, name), 'utf8'); } catch { return ''; } };
 const json = (name) => { try { return JSON.parse(read(name)); } catch { return null; } };
 const redact = (value) => String(value ?? '')
   .replace(/\u001b\[[0-9;]*m/g, '').replace(/\r/g, '')
-  .replace(/(GEMINI_API_KEY|GOOGLE_API_KEY|GROQ_API_KEY|OPENAI_API_KEY|API_KEY|SESSION_SECRET|APP_PASSWORD)\s*[:=]\s*[^\s,;]+/gi, '$1=[REDACTED]')
+  .replace(/(GEMINI_API_KEY|GOOGLE_API_KEY|GROQ_API_KEY|OPENAI_API_KEY|API_KEY|SESSION_SECRET|APP_PASSWORD|DATABASE_URL)\s*[:=]\s*[^\s,;]+/gi, '$1=[REDACTED]')
   .replace(/\bBearer\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [REDACTED]')
   .replace(/\bAIza[0-9A-Za-z_-]{20,}\b/g, '[REDACTED_GOOGLE_KEY]')
   .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, '[REDACTED_API_KEY]');
-const safe = (s, n = 420) => redact(s).replace(/`/g, "'").replace(/[\r\n]+/g, ' ').trim().slice(0, n);
-const clip = (s, n = 3600) => { const t = redact(s).trim(); return t.length > n ? `…[trimmed to last ${n} chars]\n${t.slice(-n)}` : t; };
-
-fs.mkdirSync(dir, { recursive: true });
+const oneLine = (s, max = 500) => redact(s).replace(/[`\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
 const resultsDoc = json('results.json');
-const stages = Array.isArray(resultsDoc?.results) ? resultsDoc.results : [];
-const uniqueStages = [...new Map(stages.map((s) => [`${s.id}:${s.status}`, s])).values()];
-const failedStages = uniqueStages.filter((s) => s.status !== 'PASS' && s.status !== 'SKIPPED');
-const workflowLogs = [
-  'ci-install.log', 'ci-diagnostic-gate.log', 'ci-secondary-diagnostic.log', 'ci-migrate.log',
-  'ci-check.log', 'ci-live.log', 'ci-api.log', 'ci-build.log',
-];
-const presentLogs = fs.readdirSync(dir).filter((f) => f.endsWith('.log')).sort();
-const failedDetails = [];
-const rootCauseHints = [];
-
-function extractEvidence(logText, status) {
-  const lines = redact(logText).split('\n');
-  const evidence = [];
-  const interesting = /(^\s*not ok\s+\d+\s+-|AssertionError|ERR_[A-Z_]+|error TS\d+|Error:|Expected:|Actual:|expected\s|actual\s|operator:|\bcode: 'ERR|timed out|TIMEOUT|ELIFECYCLE|Assertion failed|failed to|uncaught exception|Cancelled|cancelled|\bat\s+.*\([^)]*:\d+:\d+\)|\bexpected:|\bactual:|\+ actual|\- expected|duration_ms|# tests |# pass |# fail |# cancelled )/i;
-  for (let i = 0; i < lines.length; i++) {
-    if (!interesting.test(lines[i])) continue;
-    const start = Math.max(0, i - (/(not ok|AssertionError|error TS|timed out)/i.test(lines[i]) ? 2 : 1));
-    const end = Math.min(lines.length, i + (/(not ok|AssertionError|error TS)/i.test(lines[i]) ? 14 : 4));
-    for (let j = start; j < end; j++) if (lines[j].trim()) evidence.push(safe(lines[j]));
-  }
-  const deduped = [...new Set(evidence)];
-  if (status === 'TIMEOUT' || /test timed out after|SIGKILL|timed out/i.test(logText)) {
-    const lastOk = [...lines].reverse().find((l) => /^\s*(?:ok\s+\d+\s+-|ok\s+-|\d+ tests? passed)/i.test(l.trim()));
-    const lastOutput = lines.filter((l) => l.trim()).slice(-18).map((l) => safe(l));
-    if (lastOk) deduped.unshift(`LAST_SUCCESSFUL_TEST=${safe(lastOk)}`);
-    deduped.push(...lastOutput.map((l) => `TAIL=${l}`));
-  }
-  return [...new Set(deduped)].slice(-42);
-}
-
-for (const stage of failedStages) {
-  const logName = path.basename(stage.log || `${stage.id}.log`);
-  const text = read(logName);
-  const evidence = extractEvidence(text, stage.status);
-  failedDetails.push({ ...stage, logName, evidence });
-  if (stage.status === 'TIMEOUT' || /test timed out after|timed out/i.test(text)) {
-    rootCauseHints.push(`${stage.id}: timeout observed; root cause not proven from current logs. Check final test output, pending requests, open handles and child-process cleanup.`);
-  }
-  if (!evidence.length && text) rootCauseHints.push(`${stage.id}: failure has no recognised assertion/error markers; inspect ${logName}.`);
-}
-
+const rows = Array.isArray(resultsDoc?.results) ? resultsDoc.results : [];
+const uniqueRows = [...new Map(rows.map((r) => [`${r.id}:${r.status}`, r])).values()];
+const logs = fs.readdirSync(dir).filter((f) => f.endsWith('.log')).sort();
+const activeStage = resultsDoc?.active && !uniqueRows.some((r) => r.id === resultsDoc.active.id) ? resultsDoc.active : null;
+const interruptedRow = activeStage ? { ...activeStage, status: /test timed out after|testTimeoutFailure/i.test(read(path.basename(activeStage.log || ''))) ? 'TIMEOUT' : 'INTERRUPTED', durationMs: 0, exitCode: null, signal: null, log: activeStage.log || `${activeStage.id}.log`, note: 'Runner ended before this probe recorded a final result; inspect captured log tail.' } : null;
+const failedRows = [...uniqueRows.filter((r) => ['FAIL','TIMEOUT'].includes(r.status)), ...(interruptedRow ? [interruptedRow] : [])];
+const stepOutcomes = {
+  diagnostic: process.env.DIAGNOSTIC_OUTCOME || 'unknown', secondary: process.env.SECONDARY_OUTCOME || 'unknown',
+  check: process.env.CHECK_OUTCOME || 'unknown', live: process.env.LIVE_OUTCOME || 'unknown',
+  api: process.env.API_OUTCOME || 'unknown', build: process.env.BUILD_OUTCOME || 'unknown',
+};
+const workflowLogNames = ['ci-install.log','ci-diagnostic-gate.log','ci-secondary-diagnostic.log','ci-migrate.log','ci-check.log','ci-live.log','ci-api.log','ci-build.log'];
 const workflowErrors = [];
-for (const name of workflowLogs) {
+const errorRe = /(^\s*not ok\s+\d+\s+-|AssertionError|ERR_[A-Z_]+|error TS\d+|(?:^|\s)Error:|Expected values|expected:|actual:|operator:|test timed out after|testTimeoutFailure|ELIFECYCLE|uncaught exception|Cannot find name|SyntaxError|TypeError|ReferenceError|failed with exit code|\[FAIL\]|\[TIMEOUT\])/i;
+function excerptForLog(text, status) {
+  const lines = redact(text).split('\n');
+  const selected = new Set();
+  // Keep each TAP failure's assertion body and stack, not only generic node:test frames.
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\s*not ok\s+\d+\s+-|AssertionError|test timed out after|testTimeoutFailure|Cannot find name|SyntaxError:|TypeError:|ReferenceError:/i.test(lines[i])) {
+      const start = Math.max(0, i - 1);
+      const end = Math.min(lines.length, i + (/not ok|AssertionError/i.test(lines[i]) ? 26 : 12));
+      for (let j = start; j < end; j++) if (lines[j].trim()) selected.add(j);
+    }
+  }
+  if (status === 'TIMEOUT' || /test timed out after|testTimeoutFailure/i.test(text)) {
+    const nonempty = lines.map((line, i) => ({ line, i })).filter((x) => x.line.trim());
+    for (const x of nonempty.slice(-35)) selected.add(x.i);
+  }
+  if (!selected.size) {
+    const nonempty = lines.map((line, i) => ({ line, i })).filter((x) => x.line.trim() && errorRe.test(x.line));
+    for (const x of nonempty.slice(0, 16)) { selected.add(Math.max(0, x.i - 1)); selected.add(x.i); }
+  }
+  return [...selected].sort((a,b) => a-b).map((i) => `${i+1}:${oneLine(lines[i], 300)}`).slice(0, 36);
+}
+function sourceContext(stage, logText) {
+  let file = stage.sourceFile || null;
+  let lineNo = null;
+  const cleanLog = redact(logText);
+  const stackLoc = cleanLog.match(/TestContext\.<anonymous> \(([^\s()]+\.(?:mjs|cjs|js|ts)):(\d+):(\d+)\)/);
+  const loc = stackLoc || cleanLog.match(/(?:file:\/\/)?([^\s'"()]+\.(?:mjs|cjs|js|ts)):(\d+):(\d+)/);
+  if (loc) {
+    const suffix = loc[1].replace(/\\/g, '/');
+    const marker = suffix.match(/(?:^|\/)(tests|scripts|server|src)\/.+$/);
+    if (marker) file = marker[0].replace(/^\//, '');
+    lineNo = Number(loc[2]);
+  }
+  if (!file) return [];
+  file = file.replace(/^\//, '').replace(/^.*?((?:tests|scripts|server|src)\/)/, '$1');
+  const full = path.resolve(root, file);
+  if (!full.startsWith(root + path.sep) || !fs.existsSync(full)) return [];
+  const lines = fs.readFileSync(full, 'utf8').split('\n');
+  if (!lineNo || lineNo <= 1) {
+    const pattern = stage.targetPattern;
+    if (pattern) {
+      const p = pattern.split('|')[0];
+      const idx = lines.findIndex((line) => line.includes(p));
+      if (idx >= 0) lineNo = idx + 1;
+    }
+  }
+  if (!lineNo) return [`SOURCE=${file}; source line unavailable`];
+  const start = Math.max(1, lineNo - 7), end = Math.min(lines.length, lineNo + 10);
+  return [`SOURCE=${file}:${lineNo}-${end}`, ...lines.slice(start - 1, end).map((line, idx) => `${start+idx}${start+idx===lineNo?' >>>':'    '} ${oneLine(line, 220)}`)];
+}
+for (const name of workflowLogNames) {
   const text = read(name);
   if (!text) continue;
-  const matches = extractEvidence(text, 'FAIL');
-  if (matches.length) workflowErrors.push({ log: name, evidence: matches.slice(-8) });
-}
-
-const stepOutcomes = {
-  diagnostic: process.env.DIAGNOSTIC_OUTCOME || 'unknown',
-  secondary: process.env.SECONDARY_OUTCOME || 'unknown',
-  check: process.env.CHECK_OUTCOME || 'unknown',
-  live: process.env.LIVE_OUTCOME || 'unknown',
-  api: process.env.API_OUTCOME || 'unknown',
-  build: process.env.BUILD_OUTCOME || 'unknown',
-};
-const workflowFailed = process.env.CI_STATUS === 'failure' || process.env.CI_STATUS === 'cancelled';
-const status = workflowFailed || failedStages.length > 0 || !resultsDoc ? (process.env.CI_STATUS === 'cancelled' ? 'CANCELLED' : 'FAILED') : 'PASSED';
-const sha = safe(process.env.GITHUB_SHA || 'local/unknown', 80);
-const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
-  ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : 'unavailable';
-const count = (s) => uniqueStages.filter((x) => x.status === s).length;
-const lines = [
-  '# BiForge NEXT_PATCH', '',
-  `- **Status:** ${status}`,
-  `- **Commit:** ${sha}`,
-  `- **Workflow run:** ${runUrl}`,
-  `- **Generated (UTC):** ${new Date().toISOString()}`,
-  `- **Diagnostic results:** ${count('PASS')} PASS / ${count('FAIL')} FAIL / ${count('TIMEOUT')} TIMEOUT / ${count('SKIPPED')} SKIPPED`,
-  `- **Phases:** minimum=${stepOutcomes.diagnostic}; secondary=${stepOutcomes.secondary}; remaining-check=${stepOutcomes.check}; live=${stepOutcomes.live}; api=${stepOutcomes.api}; build=${stepOutcomes.build}`,
-  '', '## Execution order',
-  '- Wave 0 runs targeted router-selection, policy/call-limit, Gemini-timeout, and App Builder recovery probes before broad suites, typecheck, or database migrations.',
-  '- If any Wave 0 probe fails, broad minimum suites are skipped; otherwise all minimum suites run independently and collect failures/timeouts.',
-  '', '## Failures with evidence'
-];
-if (failedDetails.length) {
-  for (const s of failedDetails) {
-    lines.push(`- **${safe(s.status)} — ${safe(s.id)}**; duration ${Math.round((s.durationMs || 0) / 1000)}s; exit ${s.exitCode ?? 'unknown'}; log: \`${safe(s.log || s.logName)}\``);
-    if (s.note) lines.push(`  - Spawn/runner note: ${safe(s.note)}`);
-    if (s.evidence.length) for (const clue of s.evidence.slice(-14)) lines.push(`  - ${clue}`);
-    else lines.push('  - No reliable error detail extracted; full failed log is in diagnostics.zip.');
+  const evidence = excerptForLog(text, /timeout/i.test(text) ? 'TIMEOUT' : 'FAIL');
+  if (evidence.length && (/(?:error|failed|not ok|timeout|timed out|ERR_|AssertionError|\[FAIL\]|\[TIMEOUT\])/i.test(text))) {
+    workflowErrors.push({ log: name, evidence: evidence.slice(0, 12) });
   }
-} else if (!resultsDoc) lines.push('- `results.json` is missing or unreadable; the runner may not have completed.');
-else lines.push('- No failed diagnostic stage recorded. Check workflow-level outcomes and security scan.');
-
-lines.push('', '## Exact evidence files');
-if (presentLogs.length) for (const name of presentLogs) lines.push(`- \`${name}\``);
-else lines.push('- No .log files were produced.');
-lines.push('', '## Workflow-level evidence');
-if (workflowErrors.length) for (const group of workflowErrors) {
-  lines.push(`- **${group.log}**`);
-  for (const clue of group.evidence.slice(-6)) lines.push(`  - ${clue}`);
-} else lines.push('- No additional workflow-level error markers found.');
-lines.push('', '## Root-cause confidence');
-if (rootCauseHints.length) for (const hint of [...new Set(rootCauseHints)].slice(0, 8)) lines.push(`- ${hint}`);
-else if (status === 'FAILED') lines.push('- No root cause is asserted without supporting error evidence. Review the included assertion output before changing product logic.');
-else lines.push('- No failure root cause indicated by the collected diagnostic stages.');
-
-lines.push('', '## Next action');
-if (status === 'PASSED') lines.push('- Diagnostic and workflow checks report no failure. Review the run summary before release.');
-else {
-  lines.push('- Fix confirmed failures first; do not treat a timeout as a proven code defect without its last output/context.');
-  lines.push('- The `diagnostics.zip` artifact contains failed-stage logs and a machine-readable index. Download it only if this report does not contain enough evidence.');
-  lines.push('- Do not mark the patch complete until the required full CI and build pass.');
 }
-
-lines.push('', '---', '', '## ASSISTANT HANDOFF — COPY THIS BLOCK', '```text',
-  `PATCH_STATUS=${status}`,
-  `COMMIT=${sha}`,
-  `FAILED_STAGES=${failedDetails.map((s) => `${safe(s.id)}:${safe(s.status)}`).join('; ') || (resultsDoc ? 'none recorded' : 'results.json missing')}`,
-  `TIMEOUTS=${failedDetails.filter((s) => s.status === 'TIMEOUT' || /test timed out after|timed out/i.test(read(s.logName))).map((s) => `${safe(s.id)}:${Math.round((s.durationMs || 0) / 1000)}s`).join('; ') || 'none recorded'}`,
-  `TOP_ERRORS=${failedDetails.flatMap((s) => [`[${safe(s.id)}:${safe(s.status)} duration=${Math.round((s.durationMs || 0) / 1000)}s log=${safe(s.log || s.logName)}]`, ...s.evidence.slice(-12)]).concat(workflowErrors.flatMap((g) => g.evidence.slice(-4).map((e) => `[${safe(g.log)}] ${e}`))).slice(0, 44).join(' | ').slice(0, 7600) || 'No concise error lines extracted; inspect diagnostics.zip.'}`,
-  `LOG_FILES=${[...new Set([...failedDetails.map((s) => s.logName), ...workflowErrors.map((g) => g.log)])].join(', ') || 'none'}`,
-  `SKIPPED_STAGES=${uniqueStages.filter((s) => s.status === 'SKIPPED').map((s) => safe(s.id)).join(', ') || 'none'}`,
-  `ROOT_CAUSE_CONFIDENCE=${rootCauseHints.length ? 'unconfirmed-for-timeouts; inspect evidence per failure' : failedDetails.length ? 'assertion/error evidence captured; confirm before editing product logic' : 'no failures recorded'}`, 
-  `DIAGNOSTICS_ARTIFACT=${status === 'FAILED' ? 'diagnostics.zip' : 'none'}`,
-  `NEXT_ACTION=${status === 'PASSED' ? 'Review run summary; no corrective patch indicated by this report.' : 'Use assertion details and failed-stage logs in diagnostics.zip to fix confirmed root causes; rerun diagnostic gate.'}`,
-  '```', ''
-);
-const report = lines.join('\n');
-fs.writeFileSync(outFile, report);
-console.log(`Wrote ${path.relative(root, outFile)} (${Buffer.byteLength(report)} bytes); status=${status}`);
-
+const envFailed = Object.entries(stepOutcomes).filter(([, value]) => value === 'failure' || value === 'cancelled').map(([key]) => key);
+const workflowFailed = ['failure','cancelled'].includes(process.env.CI_STATUS);
+const status = process.env.CI_STATUS === 'cancelled' ? 'CANCELLED' : (workflowFailed || failedRows.length || activeStage || !resultsDoc ? 'FAILED' : 'PASSED');
+const sha = oneLine(process.env.GITHUB_SHA || resultsDoc?.commit || 'local/unknown', 80);
+const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : 'unavailable';
+const count = (s) => uniqueRows.filter((r) => r.status === s).length;
+const failedStageNames = [...new Set([...failedRows.map((r) => `${r.id}:${r.status}`), ...envFailed.map((s) => `workflow-${s}:FAIL`)])];
+const skipped = uniqueRows.filter((r) => r.status === 'SKIPPED').map((r) => r.id);
+const handoff = [];
+handoff.push('# BiForge ASSISTANT HANDOFF');
+handoff.push(`PATCH_STATUS=${status}`, `COMMIT=${sha}`, `WORKFLOW_RUN=${runUrl}`);
+const lockVersion = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'package-lock.json'), 'utf8')).lockfileVersion; } catch { return 'unknown'; } })();
+handoff.push(`RUNTIME=node ${oneLine(process.version,40)}; platform=${process.platform}; package-lock-version=${lockVersion}`);
+handoff.push(`PHASES=diagnostic:${stepOutcomes.diagnostic}; secondary:${stepOutcomes.secondary}; check:${stepOutcomes.check}; live:${stepOutcomes.live}; api:${stepOutcomes.api}; build:${stepOutcomes.build}`);
+handoff.push(`DIAGNOSTIC_RESULTS=${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('TIMEOUT')} TIMEOUT, ${count('SKIPPED')} SKIPPED`);
+handoff.push(`FAILED_STAGES=${failedStageNames.join('; ') || 'none recorded'}`);
+handoff.push(`TIMEOUTS=${failedRows.filter((r) => r.status === 'TIMEOUT').map((r) => `${r.id}:${Math.round((r.durationMs||0)/1000)}s; origin=${r.timeoutOrigin||'unknown'}; limit=${r.timeoutMs||'unknown'}ms`).join(' | ') || 'none'}`);
+handoff.push(`SKIPPED_STAGES=${skipped.join(', ') || 'none'}`);
+handoff.push(`ACTIVE_AT_RUN_END=${activeStage ? `${activeStage.id}; phase=${activeStage.phase}; log=${activeStage.log}; timeout-limit=${activeStage.timeoutMs}ms` : 'none'}`);
+handoff.push(`MISSING_LOGS=${['critical-router-selection.log','critical-router-policy-call-limit.log','critical-gemini-timeout.log','critical-app-builder-recovery.log'].filter((name) => !fs.existsSync(path.join(dir,name))).join(', ') || 'none'}`);
+const errorSections = [];
+for (const stage of failedRows) {
+  const logName = path.basename(stage.log || `${stage.id}.log`);
+  const text = read(logName);
+  errorSections.push(`--- ${stage.id} ${stage.status}; duration=${Math.round((stage.durationMs||0)/1000)}s; exit=${stage.exitCode ?? 'unknown'}; signal=${stage.signal||'none'}; timeout=${stage.timeoutOrigin||'none'}; limit=${stage.timeoutMs||'unknown'}ms; log=${logName}`);
+  errorSections.push(`COMMAND=${oneLine(`${stage.command || ''} ${(stage.args||[]).join(' ')}`, 900) || oneLine(stage.script || 'unknown',900)}`);
+  if (stage.note) errorSections.push(`RUNNER_NOTE=${oneLine(stage.note,500)}`);
+  const evidence = excerptForLog(text, stage.status === 'INTERRUPTED' ? 'TIMEOUT' : stage.status);
+  errorSections.push(...(evidence.length ? evidence : ['LOG_EVIDENCE=empty or unavailable']));
+  errorSections.push(...sourceContext(stage, text));
+  if (stage.lastOutput?.length) errorSections.push(`LAST_OUTPUT=${stage.lastOutput.slice(-12).map((x) => oneLine(x,220)).join(' || ')}`);
+}
+for (const group of workflowErrors) {
+  // Avoid duplicating the diagnostic gate output already represented by per-probe logs unless it has independent evidence.
+  if (group.log === 'ci-diagnostic-gate.log' && failedRows.length) continue;
+  errorSections.push(`--- WORKFLOW_LOG=${group.log}`);
+  errorSections.push(...group.evidence.slice(0, 10));
+}
+if (!errorSections.length && status === 'FAILED') errorSections.push('ERROR_EVIDENCE=No detailed stage record found; inspect workflow step outcomes and logs named below.');
+handoff.push('EVIDENCE_BEGIN', ...errorSections, 'EVIDENCE_END');
+const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? ['critical-router-selection.log','critical-router-policy-call-limit.log','critical-gemini-timeout.log','critical-app-builder-recovery.log'] : [];
+handoff.push(`LOG_FILES=${[...new Set([...criticalLogSet, ...failedRows.map((r) => path.basename(r.log || `${r.id}.log`)), ...workflowErrors.map((g) => g.log)])].filter((name) => fs.existsSync(path.join(dir,name))).join(', ') || logs.join(', ') || 'none'}`);
+handoff.push(`ROOT_CAUSE_CONFIDENCE=${failedRows.some((r) => r.status === 'TIMEOUT') ? 'assertion evidence may be confirmed; timeout cause remains unproven unless final active test/operation is identified' : failedRows.length ? 'use assertion and source context; do not infer intent beyond evidence' : status === 'FAILED' ? 'workflow failure recorded but diagnostic stage evidence incomplete' : 'no failure recorded'}`);
+handoff.push(`NEXT_ACTION=${status === 'PASSED' ? 'No corrective patch indicated by these checks; verify required release gates.' : 'Fix only evidenced failures; use source context and exact command. For timeouts, investigate the last active test/output and cleanup before changing product logic.'}`);
+const report = handoff.join('\n') + '\n';
+fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), report);
+console.log(`Wrote ${path.relative(root, path.join(dir,'NEXT_PATCH.md'))} (${Buffer.byteLength(report)} bytes); status=${status}`);

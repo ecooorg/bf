@@ -23,6 +23,8 @@ if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
 if (failed) {
   const zip = new JSZip();
   const selected = new Set(['results.json', 'diagnostic-results.json', 'secondary-results.json', 'ci-diagnostic-gate.log', 'ci-secondary-diagnostic.log']);
+  // On any failure, preserve the complete first-wave comparison set, including passing probes.
+  for (const name of ['critical-router-selection.log', 'critical-router-policy-call-limit.log', 'critical-gemini-timeout.log', 'critical-app-builder-recovery.log']) selected.add(name);
   for (const row of failedRows) if (row.log) selected.add(path.basename(row.log));
   // Include workflow-level logs only when they contain failure signals; install/migration logs are kept on failure for setup diagnosis.
   for (const name of ['ci-install.log', 'ci-migrate.log', 'ci-check.log', 'ci-live.log', 'ci-api.log', 'ci-build.log']) {
