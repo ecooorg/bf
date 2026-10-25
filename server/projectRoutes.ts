@@ -37,6 +37,7 @@ import {
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './taskService.ts';
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
+import { stagedEnabled, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, defaultPassport } from './contracts.ts';
 import { projectCapabilities } from './projectCapabilities.ts';
@@ -128,12 +129,13 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
   app.get('/api/projects/diagnostics/system', async (_req, res) => {
     try { const data = await systemDiagnostics(); await recordDiagnostic({ operationId: newOperationId(), event: 'SYSTEM_DIAGNOSTICS_RUN', stage: 'diagnostics', status: data.overall === 'FAIL' ? 'FAIL' : data.overall === 'PASS' ? 'PASS' : 'WARN' }); res.json({ success: true, data }); } catch (error) { projectError(res, error); }
   });
-  app.get('/api/projects/diagnostics/export', async (_req, res) => {
+  app.get('/api/projects/diagnostics/export', async (req, res) => {
     const operationId = newOperationId(); const startedAt = Date.now();
     res.setHeader('X-BiForge-Operation-Id', operationId);
     await recordDiagnostic({ operationId, event: 'DIAGNOSTIC_EXPORT_STARTED', stage: 'export', status: 'STARTED' });
     try {
-      const bytes = await diagnosticArchive(operationId);
+      const wantedJob = typeof req.query.jobId === 'string' && /^[0-9a-f-]{36}$/i.test(req.query.jobId) ? req.query.jobId : undefined;
+      const bytes = await diagnosticArchive(operationId, stagedEnabled() ? await buildReportForDiagnostics(wantedJob) : []);
       const problems = await verifyDiagnosticArchive(bytes);
       if (problems.length) {
         await recordDiagnostic({ operationId, event: 'DIAGNOSTIC_EXPORT_FAILED', stage: 'export', status: 'FAIL', errorCode: 'ZIP_INVALID', bytes: bytes.length });
@@ -370,6 +372,32 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       res.json({ success: true, data: await listCodeTasks(task.projectId, task.id) });
     } catch (error) { projectError(res, error); }
   });
+  // P93.3: staged App Builder (flag APP_BUILDER_ENGINE=staged; unset/false keeps the legacy path and never touches app_build_* tables).
+  const stagedDeps = (): AdapterDeps | null => {
+    if (!ai) return null;
+    const adapters: AdapterDeps['adapters'] = { gemini: createGeminiAdapter(ai as any), ...(process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}) };
+    return { registry: REGISTRY_ALL.filter((e) => adapters[e.providerId]), adapters, routerState: codeRouterState };
+  };
+  if (stagedEnabled() && ai && process.env.DATABASE_URL) setTimeout(() => { const d = stagedDeps(); if (d) void resumeStaleJobs(d).then((n) => n && console.warn(JSON.stringify({ type: 'app_builder_jobs_resumed', count: n }))).catch(() => undefined); }, 5_000).unref?.();
+  const jobIdParam = (v: string) => /^[0-9a-f-]{36}$/i.test(v);
+  app.get('/api/projects/:projectId/code/build/:jobId', async (req, res) => {
+    if (!stagedEnabled() || !jobIdParam(req.params.jobId)) return res.status(404).json({ success: false, error: 'Build job not found', code: 'NOT_FOUND' });
+    try {
+      const job = await createStorePort().loadJob(req.params.jobId);
+      if (!job || job.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Build job not found', code: 'NOT_FOUND' });
+      res.json({ success: true, data: publicJob(job, job.projectId) });
+    } catch (error) { projectError(res, error); }
+  });
+  app.post('/api/projects/:projectId/code/build/:jobId/cancel', async (req, res) => {
+    if (!stagedEnabled() || !jobIdParam(req.params.jobId)) return res.status(404).json({ success: false, error: 'Build job not found', code: 'NOT_FOUND' });
+    try {
+      const store = createStorePort(); const job = await store.loadJob(req.params.jobId);
+      if (!job || job.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Build job not found', code: 'NOT_FOUND' });
+      const cancelled = await cancelStagedBuild({}, job.id);
+      res.json({ success: true, data: { jobId: job.id, cancelled, status: cancelled ? 'cancelled' : job.status } });
+    } catch (error) { projectError(res, error); }
+  });
+
   /**
    * Product-facing App Builder (P59): IR → verified scaffold → optional narrow model slice → ZIP.
    * Scaffold materialization does not require CODE_EXECUTOR; model slice is optional.
@@ -426,6 +454,17 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
           ...(bundle && bundle.project_id === project.id ? { downloadUrl: `/api/projects/${encodeURIComponent(project.id)}/tasks/${encodeURIComponent(created.task.id)}/code/${encodeURIComponent(started.codeTask.id)}/download` } : {}),
           note: 'Legacy model_patch engine.',
         } });
+      }
+
+      // --- P93.3: staged engine (flag-gated; default stays legacy) ---
+      if (stagedEnabled() && engine === 'pipeline' && !input.ir) {
+        const deps = stagedDeps();
+        if (deps) {
+          const taskText = [input.goal, input.constraints ? `Constraints: ${input.constraints}` : ''].filter(Boolean).join('\n');
+          const started = await startStagedBuild(deps, { projectId: project.id, userId: 'owner', taskText });
+          res.setHeader('X-BiForge-Operation-Id', started.jobId);
+          return res.status(202).json({ success: true, data: { jobId: started.jobId, engine: 'staged', operationId: started.jobId, statusUrl: `/api/projects/${encodeURIComponent(project.id)}/code/build/${started.jobId}` } });
+        }
       }
 
       // --- Default: IR pipeline (scaffold; model optional) ---

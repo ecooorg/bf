@@ -115,7 +115,7 @@ export async function verifyDiagnosticArchive(buf: Buffer): Promise<string[]> {
   } catch { problems.push('manifest.json unreadable'); }
   return problems;
 }
-export async function diagnosticArchive(operationId?: string): Promise<Buffer> {
+export async function diagnosticArchive(operationId?: string, extraFiles: { path: string; text: string }[] = []): Promise<Buffer> {
   const [operations, summary] = await Promise.all([recentDiagnostics(200), systemDiagnostics()]);
   const zip = new JSZip(); const entries: { path: string; bytes: number; sha256: string }[] = [];
   function add(path: string, text: string) { const bytes = Buffer.from(text); zip.file(path, bytes); entries.push({ path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') }); }
@@ -124,6 +124,7 @@ export async function diagnosticArchive(operationId?: string): Promise<Buffer> {
   add('diagnostics/diagnostic-summary.json', JSON.stringify(summary, null, 2));
   add('logs/server-console.log', (consoleLines.length ? consoleLines.join('\n') : '(no console output captured since the last server start)') + '\n');
   add('logs/application.jsonl', operations.events.map(e => JSON.stringify(e)).join('\n') + '\n');
+  for (const f of extraFiles) add(f.path, f.text);
   const skipped = [
     ...(operations.source !== 'database' ? [{ item: 'persistent operation history', reason: 'database unavailable; only process-local events since last restart are included' }] : []),
     ...summary.checks.filter((c) => c.status !== 'PASS').map((c) => ({ item: `check:${c.name}`, reason: `${c.status}: ${c.evidence}` })),
