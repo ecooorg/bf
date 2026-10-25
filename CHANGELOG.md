@@ -1,3 +1,11 @@
+## P93.2b — App Builder static_site stack, validators, acceptance predicates
+
+* New `appBuilder/stack-static-site.ts` (template plan: `index.html`, `style.css`, `app.js`, `README.md`; limits 8 files / 2 MB) and `appBuilder/validator-static-site.ts` (`html-structure`, `js-syntax` via compile-only `vm.Script`, `refs` incl. external/`javascript:` rejection, `size`, `secrets`, optional `goal-keywords`, deterministic `has_file` / `html_has` / `js_contains` predicates; unsupported predicates fail and are reported).
+* Engine: if model planning fails or the plan is invalid, the template plan is used (event `plan_fallback`, noted in `failureReason`); validators run in the `check` stage; `goalImplemented=true` / `complete` only when all file units are done and every required validator ran and passed, otherwise `partial` with reasons.
+* Tests: `tests/app-builder-validators-p93-2b.test.mjs`, `tests/app-builder-golden.json` (Tetris, to-do, calculator, business-card site; Tetris run end-to-end with fake model). `test:app-builder` extended.
+* Verification: focused app-builder tests (contracts, engine P93.2a, validators P93.2b) PASS, 27/27, run on Node 22 native TS stripping. `check-version` PASS. `npm ci` failed in this sandbox (no network), so `tsc` typecheck, `check:docs`, `architecture:check`, the full `npm run check` chain and tests needing tsx (`app-builder-goal`) are NOT RUN.
+* Known limits: no adapter, routes, DB or UI (P93.3+); `html-structure` is a regex tag-balance check, not a full HTML parser; golden tasks other than Tetris are not yet run end-to-end; `goal-keywords` is exported but not required.
+
 ## P93.2a — App Builder generic engine, cache, ZIP report, and English specification
 
 * Added provider-agnostic `runBuild` engine over existing ports, versioned prompt definitions (`static_site.v1`), deterministic cache keys, and ZIP assembly with `build-report.json`.
