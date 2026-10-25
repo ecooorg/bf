@@ -1,3 +1,13 @@
+## ANR-P1-0 — Phase 1 schemas, status vocabulary, read-only validator
+
+- Adds canonical JSON Schema set as flat `docs/schema-*.json` files for Intent/Policy Contract, Change/Impact Plan, Verification Plan, Evidence Record, Artifact Manifest, Handoff Report, and Approval Decision, plus shared `common.schema.json`.
+- Adds `docs/SCHEMA-STATUS-VOCABULARY.md` with the authoritative status enum and non-equivalence rule (`UNKNOWN` / `NOT_RUN` / `BLOCKED` / `TIMEOUT` / `PARTIAL` are never `PASS`).
+- Adds read-only `scripts/schemaValidate.mjs` and focused tests in `tests/schema-validate.test.mjs`. Critical evidence items cannot support overall `PASS` when provenance is incomplete or non-passing.
+- Layout respects repository policy: flat `docs/` tree only (prefixed `schema-*` filenames); no nested `docs/schemas/` directory.
+- Optional npm script `schema:validate` (not wired into the mandatory `check` chain).
+- Active navigation docs (`AGENTS.md`, `DOCUMENTATION-INDEX.md`) and the global audit no longer use archive-candidate paths as entry points; historical phase specs remain on disk pending `ARCHIVE-MOVE-LIST.md` moves.
+- Does **not** change `NEXT_PATCH.md` generation, CI workflows, server runtime, or archive file locations.
+
 ## ANR-P0-001 — start AI-NATIVE-RENOVATION and consolidate documentation entry points
 
 - Establishes the active AI-NATIVE-RENOVATION programme, with VIX retained as the long-horizon strategic destination.
