@@ -153,7 +153,7 @@ try {
   console.log('mp2 integration OK');
 } finally {
   child.kill('SIGTERM');
-  fake.close();
+  fake.closeAllConnections?.(); fake.close();
   await sleep(50);
 }
 }
@@ -573,7 +573,7 @@ try {
   assert.equal('outputTokens' in r.meta, false);
   console.log('ok - without usageMetadata only promptChars is reported');
   console.log('2 tests passed');
-} finally { child.kill(); fake.close(); }
+} finally { child.kill(); fake.closeAllConnections?.(); fake.close(); }
 }
 // ===== END perf.test.mjs =====
 
@@ -670,7 +670,7 @@ try {
   assert.ok(!/"(uncertainty|forecastType|searchExpected|search_expected)"/.test(schema), 'a new field leaked into the JSON schema');
   console.log('ok - contract wording present; JSON schema has no new fields');
   console.log('2 tests passed');
-} finally { child.kill(); fake.close(); }
+} finally { child.kill(); fake.closeAllConnections?.(); fake.close(); }
 }
 // ===== END pi01.test.mjs =====
 
@@ -843,7 +843,7 @@ try {
   console.log('pi02 integration OK');
 } finally {
   child.kill('SIGTERM');
-  fake.close();
+  fake.closeAllConnections?.(); fake.close();
   await sleep(50);
 }
 }
@@ -994,7 +994,7 @@ try {
   console.log('pi03 integration OK');
 } finally {
   child.kill('SIGTERM');
-  fake.close();
+  fake.closeAllConnections?.(); fake.close();
   await sleep(50);
 }
 }
@@ -1239,7 +1239,7 @@ await withSrv({ MODEL_CASCADE_STRONG: 'm1,m2', MODEL_CASCADE_LIGHT: 'm1,m2', MAX
 });
 
 const f = R.filter((x) => !x.ok); console.log(`\nSTAGE 2: ${R.length - f.length}/${R.length} passed, ${f.length} failed`); for (const x of f) console.log('FAIL', x.id, '-', x.note);
-bridge.close(); process.exit(f.length ? 1 : 0);
+bridge.closeAllConnections?.(); bridge.close(); process.exit(f.length ? 1 : 0);
 } finally {
   process.exit = __groupOriginalProcessExit;
 }

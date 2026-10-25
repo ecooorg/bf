@@ -148,7 +148,7 @@ try {
   console.log(`\n${n} checks passed`);
 } finally {
   if (srv) await srv.stop();
-  fake.close();
+  fake.closeAllConnections?.(); fake.close();
 }
 process.exit(0);
 } finally {
@@ -745,9 +745,9 @@ try {
 } catch (e) {
   if (srv) await srv.stop();
   console.error('\nFAILED:', e?.stack || e);
-  fake.close(); process.exit(1);
+  fake.closeAllConnections?.(); fake.close(); process.exit(1);
 }
-fake.close();
+fake.closeAllConnections?.(); fake.close();
 } finally {
   process.exit = __groupOriginalProcessExit;
 }

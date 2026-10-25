@@ -333,7 +333,7 @@ try {
     assert.ok(calls.length >= 3 && calls.every((c) => c.key === USER_KEY), 'user key must be the one sent to Google');
   });
   await s.stop();
-} finally { fake.close(); }
+} finally { fake.closeAllConnections?.(); fake.close(); }
 console.log(`${n} tests passed`);
 process.exit(0);
 } finally {
@@ -1043,7 +1043,7 @@ try {
     assert.equal((await (await fetch(s.base + '/api/session')).json()).required, false);
     await s.stop();
   });
-} finally { fake.close(); }
+} finally { fake.closeAllConnections?.(); fake.close(); }
 
 console.log(`${n} tests passed${skipped ? `, ${skipped} skipped` : ''}`);
 process.exit(0);
@@ -1095,7 +1095,7 @@ try {
   assert.deepEqual(r.data.state.facts, []);
   console.log('ok - hypothesis from the model does not reach facts in the response');
   console.log('2 tests passed');
-} finally { child.kill(); fake.close(); }
+} finally { child.kill(); fake.closeAllConnections?.(); fake.close(); }
 }
 // ===== END v17.test.mjs =====
 

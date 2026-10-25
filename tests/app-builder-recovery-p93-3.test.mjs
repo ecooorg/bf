@@ -16,7 +16,7 @@ function world() {
       ? { text: JSON.stringify({ schemaVersion: 1, title: 'Tetris', goal: 'Tetris', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: ['has_file:index.html', 'html_has:index.html:canvas', 'js_contains:app.js:keydown'] }), finishReason: 'stop', modelId: 'fake' }
       : { text: 'not json', finishReason: 'stop', modelId: 'fake' }; }
     calls.coder++;
-    if (calls.coder === failCoderCall) return { code: 'unavailable', message: 'provider down' };
+    if (failCoderCall && calls.coder >= failCoderCall && calls.coder < failCoderCall + 2) return { code: 'unavailable', message: 'provider down' };
     const path = JSON.parse(/Implement unit (\{.*?\}) for spec/s.exec(a.prompt)[1]).path;
     return { text: formatFileMarker(path, body(path)), finishReason: 'stop', modelId: 'fake' };
   } });
@@ -73,4 +73,22 @@ test('persistence failure does not break the build', async () => {
   const r = await runBuild(input, ports);
   assert.equal(r.report.goalImplemented, true);
   assert.ok(w.events.some((e) => e.type === 'store_warning'));
+});
+
+test('rate-limit retry is bounded, persists a visible waiting state, and resumes after fake-clock sleep', async () => {
+  const w = world();
+  const base = w.model(0);
+  let failedOnce = false;
+  const model = { async complete(args) {
+    if (!failedOnce) { failedOnce = true; return { code: 'rate_limited', message: '429 quota', retryAfterMs: 1200 }; }
+    return base.complete(args);
+  } };
+  const ports = w.ports(model);
+  const waits = [];
+  ports.clock.sleep = async (ms) => { waits.push(ms); };
+  const result = await runBuild(input, ports);
+  assert.equal(result.report.goalImplemented, true);
+  assert.deepEqual(waits, [1200]);
+  assert.ok(w.events.some((e) => e.type === 'model_wait' && e.data?.reason === 'rate_limit'));
+  assert.ok(result.state.callsUsed >= 1);
 });

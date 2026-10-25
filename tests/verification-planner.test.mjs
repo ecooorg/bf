@@ -7,7 +7,7 @@ import { planVerification, validateTestChain } from '../scripts/verificationPlan
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const separateCiSteps = ['lint', 'test', 'test:live', 'test:ui', 'verify:connections', 'test:database:live', 'test:bx06:api', 'verify:change', 'architecture:check', 'architecture:impact', 'architecture:map'];
+const separateCiSteps = ['lint', 'test', 'test:live', 'test:ui', 'verify:connections', 'test:database:live', 'test:bx06:api', 'verify:change', 'architecture:check', 'architecture:impact', 'architecture:map', 'test:ai'];
 
 test('P87 project ZIP task suggests targeted negative cases and never executes checks', () => {
   const plan = planVerification({ task: 'Fix Project Mode ZIP download', changedFiles: ['server/projectRoutes.ts'], scripts: pkg.scripts, separateCiSteps });
