@@ -67,6 +67,8 @@ export interface RouteContext {
   /** P09: deadline (ms) that bounds retry waits; health hook (TZ 7.5). */
   deadlineAt?: number; onHealth?: (e: HealthEvent) => void | Promise<void>;
   now?: () => number; sleep?: (ms: number) => Promise<void>; backoffMs?: () => number;
+  onWait?: (info: { model: string; waitMs: number; reason: 'model_spacing' }) => void | Promise<void>;
+  retryTransient?: boolean; retryOutput?: boolean;
 }
 export interface RouteDecision { candidates: string[]; rejected: Rejected[]; attempts: { model: string; status: string; errorClass?: string }[]; reason?: string; policy: string; unitsSpent: number; category?: 'system'; escalate?: 'human' }
 export interface RouteResult { status: 'ok' | 'error' | 'blocked'; response?: ProviderResponse; decision: RouteDecision }
@@ -98,6 +100,14 @@ export async function routeCall(req: Omit<ProviderRequest, 'modelId'>, ctx: Rout
         budgetBlocked = true;
         continue outer;
       }
+      let waitMs = 0;
+      try {
+        waitMs = await waitForModelStart(entry.modelId, { onWait: async (waitMs) => { try { await ctx.onWait?.({ model: key(entry), waitMs, reason: 'model_spacing' }); } catch { /* progress reporting must not block generation */ } } });
+      } catch (error) {
+        if (error instanceof ModelDailyLimitError) { decision.rejected.push({ model: key(entry), reason: `quota:rpd:${error.retryAfterMs}` }); continue outer; }
+        throw error;
+      }
+      if (waitMs > 0) { try { await ctx.onWait?.({ model: key(entry), waitMs: 0, reason: 'model_spacing' }); } catch { /* progress reporting must not block generation */ } }
       calls++;
       const resp = await ctx.adapters[entry.providerId].call({ ...req, ...(cap !== undefined ? { maxOutputTokens: cap } : {}), modelId: entry.modelId, prompt: req.prompt + hint }, { timeoutMs: ctx.timeoutMs });
       last = resp;
@@ -112,7 +122,7 @@ export async function routeCall(req: Omit<ProviderRequest, 'modelId'>, ctx: Rout
       if (resp.status === 'ok') return { status: 'ok', response: resp, decision };
       switch (resp.errorClass) {
         case 'PROVIDER_TRANSIENT':
-          if (!retriedTransient && calls < maxCalls) {
+          if (ctx.retryTransient !== false && !retriedTransient && calls < maxCalls) {
             const wait = backoff();
             if (ctx.deadlineAt === undefined || now() + wait < ctx.deadlineAt) { retriedTransient = true; await sleep(wait); continue; }
           }
@@ -126,7 +136,7 @@ export async function routeCall(req: Omit<ProviderRequest, 'modelId'>, ctx: Rout
           await health({ type: 'provider_disabled', providerId: entry.providerId, reason: 'PROVIDER_AUTH' });
           continue outer;
         case 'INVALID_OUTPUT':
-          if (!retriedOutput) { retriedOutput = true; hint = REPAIR_HINT; continue; }
+          if (ctx.retryOutput !== false && !retriedOutput) { retriedOutput = true; hint = REPAIR_HINT; continue; }
           continue outer;
         case 'INVALID_REQUEST':
           return { status: 'error', response: resp, decision: { ...decision, reason: resp.errorClass, category: 'system' } };

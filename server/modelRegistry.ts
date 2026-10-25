@@ -37,7 +37,8 @@ export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => reg
   providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
   capabilities: ['json_output'], qualityClass: 'B', qualityProvisional: true,
   dataPolicy: 'unknown', trainingOptOutConfirmed: false,
-  lastVerifiedAt: '2026-10-10', secretEnvRef: 'GEMINI_API_KEY',
+  limits: { rpm: 15, rpd: 1500 },
+  lastVerifiedAt: '2026-10-25', secretEnvRef: 'GEMINI_API_KEY',
 }));
 
 /** Groq (P07, BX-12.a): openai-compatible, Free plan. verify:connections --only groq was OK on 2026-10-10, so the primary model is active (json_output confirmed); the others stay disabled. */

@@ -51,7 +51,7 @@ export function createStorePort(deps: Pick<AdapterDeps, 'getPoolFn'> = {}): Stor
 }
 
 /** Maps the router outcome onto the typed ModelPort errors. */
-export function createModelPort(deps: AdapterDeps, projectId: string): ModelPort {
+export function createModelPort(deps: AdapterDeps, projectId: string, jobId?: string): ModelPort {
   return {
     async complete(a): Promise<ModelResult> {
       const json = a.role === 'planner';
@@ -59,7 +59,12 @@ export function createModelPort(deps: AdapterDeps, projectId: string): ModelPort
       const configured = registryForGeminiCascade(cascade);
       const registry = configured.length ? configured.filter((e) => deps.registry.some((d) => d.providerId === e.providerId && d.modelId === e.modelId)) : [];
       const routed = await routeCall({ requestId: `app-build-${projectId}-${crypto.randomBytes(4).toString('hex')}`, system: a.system, prompt: a.prompt, json, maxOutputTokens: a.maxOutputTokens, metadata: { role: `app_builder_${a.role}`, projectId } },
-        { registry, adapters: deps.adapters, state: deps.routerState, required: json ? ['json_output'] : [], maxCalls: 1, timeoutMs: 90_000, sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 95_000 });
+        { registry, adapters: deps.adapters, state: deps.routerState, required: json ? ['json_output'] : [], maxCalls: Math.max(1, configured.length), retryTransient: false, retryOutput: false, timeoutMs: 90_000, sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 95_000, onWait: async ({ model, waitMs }) => {
+          if (!jobId) return;
+          const store = createStorePort(deps); const current = await store.loadJob(jobId);
+          if (!current || current.status === 'cancelled' || current.status === 'done') return;
+          await store.saveJob({ ...current, stage: waitMs > 0 ? 'waiting_model' : (a.role === 'planner' ? 'planning' : 'code'), error: waitMs > 0 ? { code: 'waiting_model', message: `Waiting for a safe request slot for ${model} (${Math.ceil(waitMs / 1000)}s)…` } : null });
+        } });
       const r = routed.response;
       if (routed.status === 'ok' && r) {
         const out = typeof r.output === 'string' ? r.output : JSON.stringify(r.output);
@@ -69,7 +74,12 @@ export function createModelPort(deps: AdapterDeps, projectId: string): ModelPort
       const d = routed.decision; const last = d.attempts[d.attempts.length - 1];
       const why = [`router:${routed.status}`, d.reason, ...d.attempts.map((x) => `${x.model}:${x.errorClass ?? x.status}`), ...d.rejected.slice(0, 3).map((x) => `rejected ${x.model}:${x.reason}`)].filter(Boolean).join('; ').slice(0, 300);
       const cls = r?.errorClass ?? last?.errorClass;
-      if (cls === 'PROVIDER_QUOTA' || d.rejected.some((x) => x.reason === 'cooldown' || x.reason.startsWith('quota:'))) return { code: 'rate_limited', message: why, retryAfterMs: r?.retryAfterMs ?? 30_000 };
+      if (cls === 'PROVIDER_QUOTA' || d.rejected.some((x) => x.reason === 'cooldown' || x.reason.startsWith('quota:'))) {
+        const cooldownUntil = configured.reduce((max, e) => Math.max(max, deps.routerState.cooldownUntil.get(`${e.providerId}/${e.modelId}`) ?? 0), 0);
+        const cooldownWait = Math.max(0, cooldownUntil - Date.now());
+        const dailyWait = d.rejected.reduce((max, x) => Math.max(max, Number(x.reason.match(/^quota:rpd:(\d+)$/)?.[1] || 0)), 0);
+        return { code: 'rate_limited', message: why, retryAfterMs: Math.max(r?.retryAfterMs ?? 0, cooldownWait, dailyWait, 5_000) };
+      }
       if (cls === 'INVALID_REQUEST') return { code: 'bad_request', message: why };
       if (cls === 'INVALID_OUTPUT') return { code: 'truncated', message: why };
       if (/timeout|abort/i.test(r?.rawRef ?? '') || /timeout/i.test(why)) return { code: 'timeout', message: why };
@@ -114,7 +124,7 @@ export async function executeJob(deps: AdapterDeps, jobId: string): Promise<void
   try {
     const job = await store.loadJob(jobId); if (!job || job.status === 'done' || job.status === 'cancelled') return;
     const taskText = (await store.taskText(jobId)) ?? '';
-    const ports: Ports = { model: createModelPort(deps, job.projectId), store, events: createEventPort(), clock: realClock };
+    const ports: Ports = { model: createModelPort(deps, job.projectId, jobId), store, events: createEventPort(), clock: realClock };
     const input: BuildInput = { schemaVersion: SCHEMA_VERSION, jobId, projectId: job.projectId, userId: job.userId, taskText };
     const result = await runBuild(input, ports, { modelId: deps.modelId ?? process.env.APP_BUILDER_MODEL_ID ?? 'router', resumeFrom: job, signal: ac.signal, isCancelled: async () => (await store.loadJob(jobId))?.status === 'cancelled' });
     if (result.archive && result.state.status !== 'cancelled') {
