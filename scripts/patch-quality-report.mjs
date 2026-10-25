@@ -18,8 +18,14 @@ const json = (name) => { try { return JSON.parse(read(name)); } catch { return n
 
 fs.mkdirSync(dir, { recursive: true });
 const resultsDoc = json('results.json');
-const stages = Array.isArray(resultsDoc?.results) ? resultsDoc.results : [];
-const workflowLogs = ['ci-install.log', 'ci-migrate.log', 'ci-check.log', 'ci-ai.log', 'ci-live.log', 'ci-api.log', 'ci-build.log'];
+const primaryDoc = json('diagnostic-results.json');
+const secondaryDoc = json('secondary-results.json');
+const stageMap = new Map();
+for (const doc of [primaryDoc, secondaryDoc, resultsDoc]) {
+  for (const stage of (Array.isArray(doc?.results) ? doc.results : [])) stageMap.set(stage.id, stage);
+}
+const stages = [...stageMap.values()];
+const workflowLogs = ['ci-install.log', 'ci-diagnostic-gate.log', 'ci-secondary-diagnostic.log', 'ci-migrate.log', 'ci-check.log', 'ci-ai.log', 'ci-live.log', 'ci-api.log', 'ci-build.log'];
 const presentLogs = fs.readdirSync(dir).filter((f) => f.endsWith('.log')).sort();
 const failedStages = stages.filter((s) => s.status !== 'PASS');
 const failures = [];
@@ -36,6 +42,18 @@ for (const name of workflowLogs) {
   const lines = text.split(/\n/).filter((line) => /(^|\s)(not ok \d+|✖|Error:|ERR!|error TS\d+|AssertionError|timed out|failed|ELIFECYCLE)/i.test(line));
   if (lines.length) otherFailureSignals.push({ log: name, clues: lines.slice(-5).map((x) => safe(x)) });
 }
+const skippedStages = stages.filter((s) => s.status === 'SKIPPED' || s.status === 'SKIPPED_AFTER_FAILURE');
+const inferredSkipped = [];
+if (primaryDoc && (primaryDoc.failed?.length || primaryDoc.results?.some((s) => s.status === 'FAIL' || s.status === 'TIMEOUT'))) {
+  inferredSkipped.push('secondary diagnostic: test:regression', 'secondary diagnostic: test:pipeline', 'remaining check chain', 'live database tests', 'Project Mode API tests', 'build');
+} else if (secondaryDoc && (secondaryDoc.failed?.length || secondaryDoc.results?.some((s) => s.status === 'FAIL' || s.status === 'TIMEOUT'))) {
+  inferredSkipped.push('remaining check chain', 'live database tests', 'Project Mode API tests', 'build');
+} else if (primaryDoc && !secondaryDoc && !primaryDoc.failed?.length) {
+  inferredSkipped.push('secondary diagnostic: test:regression', 'secondary diagnostic: test:pipeline', 'remaining check chain', 'live database tests', 'Project Mode API tests', 'build');
+} else if (!primaryDoc) {
+  inferredSkipped.push('minimum diagnostic gate', 'secondary diagnostic gate', 'remaining check chain', 'live database tests', 'Project Mode API tests', 'build');
+}
+const skippedLabels = [...new Set([...skippedStages.map((s) => safe(s.id)), ...inferredSkipped])];
 const overallFailed = process.env.CI_STATUS === 'failure' || failedStages.length > 0 || !resultsDoc;
 const status = overallFailed ? 'FAILED' : process.env.CI_STATUS === 'cancelled' ? 'CANCELLED' : 'PASSED';
 const sha = safe(process.env.GITHUB_SHA || 'local/unknown');
@@ -47,7 +65,8 @@ const lines = [
   `- **Commit:** ${sha}`,
   `- **Workflow run:** ${runUrl}`,
   `- **Generated (UTC):** ${new Date().toISOString()}`,
-  `- **Stages:** ${stages.filter((s) => s.status === 'PASS').length} PASS / ${stages.filter((s) => s.status === 'FAIL').length} FAIL / ${stages.filter((s) => s.status === 'TIMEOUT').length} TIMEOUT`, '',
+  `- **Stages:** ${stages.filter((s) => s.status === 'PASS').length} PASS / ${stages.filter((s) => s.status === 'FAIL').length} FAIL / ${stages.filter((s) => s.status === 'TIMEOUT').length} TIMEOUT`,
+  `- **Diagnostic phases:** minimum=${primaryDoc ? 'completed' : 'not run'}, secondary=${secondaryDoc ? 'completed' : 'not run'}`, '',
   '## Failed or incomplete stages'
 ];
 if (failedStages.length) {
@@ -60,6 +79,10 @@ if (failedStages.length) {
   lines.push('- `results.json` is missing or unreadable; the independent-check runner may not have started or completed.');
 } else {
   lines.push('- No failed stages recorded in `results.json`. Check workflow-level steps below for failures.');
+}
+if (skippedLabels.length) {
+  lines.push('', '## Skipped diagnostic stages');
+  for (const label of skippedLabels) lines.push(`- ${label}`);
 }
 lines.push('', '## Workflow-level error clues');
 if (otherFailureSignals.length) {
@@ -85,6 +108,8 @@ lines.push('', '---', '', '## ASSISTANT HANDOFF — COPY THIS BLOCK', '```text',
   `PATCH_STATUS=${status}`,
   `COMMIT=${sha}`,
   `FAILED_STAGES=${failedStages.map((s) => `${safe(s.id)}:${safe(s.status)}`).join('; ') || (resultsDoc ? 'none recorded' : 'results.json missing')}`,
+  `DIAGNOSTIC_PHASES=minimum:${primaryDoc ? 'completed' : 'not_run'};secondary:${secondaryDoc ? 'completed' : 'not_run'}`,
+  `SKIPPED_STAGES=${skippedLabels.join('; ') || 'none recorded'}`, 
   `TOP_ERRORS=${[...failures.flatMap((f) => f.clues), ...otherFailureSignals.flatMap((g) => g.clues)].slice(0, 14).join(' | ').slice(0, 2600) || 'No concise error lines extracted; inspect attached logs.'}`,
   `LOG_FILES=${[...new Set([...workflowLogs, ...presentLogs])].filter(exists).join(', ')}`,
   `NEXT_ACTION=${status === 'PASSED' ? 'Review final build/security status; no test-driven fix suggested.' : 'Use this report and attached logs to prepare the smallest corrective patch; rerun failed stages, then full check/build.'}`,
