@@ -19,7 +19,7 @@ The audit finds substantial capability but weak consolidation. Some documentatio
 ## 2. Audit scope and evidence limits
 
 ### Inspected
-- `AGENTS.md`, `docs/VIX-CONCEPT.md`, `docs/AI-OPERATING-RULES.md`, `docs/AI-TRANSFORMATION-SPEC.md`, the P81–P91 roadmaps, `docs/test-audit-p103.md`, `docs/DOCUMENTATION-INDEX.md`, and `package.json`.
+- `AGENTS.md`, `docs/VIX-CONCEPT.md`, `docs/AI-OPERATING-RULES.md`, the accepted transformation specification (historical), the P81–P91 roadmaps, the P103 test-audit note (historical), `docs/DOCUMENTATION-INDEX.md`, and `package.json`.
 - CI workflow definitions, CI handoff/report scripts, the top-level application/server/module layout, migrations, tests, and App Builder core contracts/engine/validators.
 - The supplied `biforge-ci-report.zip` handoff and its diagnostics archive.
 
@@ -78,13 +78,13 @@ VIX's staged approach matters. The early proof points are not bare-metal executi
 
 ### F1 — AI-native capabilities are distributed across overlapping tools
 **Priority:** P1 — high  
-**Evidence:** P81–P91 documents and scripts cover context planning, impact analysis, verification planning, task benchmarks, intent contracts, refresh profiling, and completeness guards. These appear as separate utilities with separate reports and conventions. `docs/test-audit-p103.md` also labels several of these tools as removal candidates, while the corresponding test files are still present in the supplied snapshot.  
+**Evidence:** P81–P91 documents and scripts cover context planning, impact analysis, verification planning, task benchmarks, intent contracts, refresh profiling, and completeness guards. These appear as separate utilities with separate reports and conventions. the P103 test-audit note (historical) also labels several of these tools as removal candidates, while the corresponding test files are still present in the supplied snapshot.  
 **Risk:** the Navigator/agent must discover which tool is authoritative; context and evidence can diverge; maintenance cost grows faster than capability.  
 **Direction:** consolidate around a single lifecycle API and a common typed artifact/evidence schema. Retain a tool only if benchmark evidence shows that it contributes unique value.
 
 ### F2 — Intent is not yet the authoritative control plane
 **Priority:** P0/P1 — foundational  
-**Evidence:** `docs/INTENT-CONTRACT-P89.md` describes an optional, draft-only contract. VIX requires a versioned Normative Core and traceability for goals, assumptions, invariants, constraints, and decisions.  
+**Evidence:** the P89 intent-contract note (historical) describes an optional, draft-only contract. VIX requires a versioned Normative Core and traceability for goals, assumptions, invariants, constraints, and decisions.  
 **Risk:** requirements, implementation, tests, and approval decisions can disagree without a machine-enforced canonical contract.  
 **Direction:** evolve the intent contract into a canonical, versioned **Intent/Policy Contract** with provenance, confidence, criticality, contradiction status, acceptance criteria, authority tier, and evidence links. Begin read-only and advisory; do not silently change product behavior.
 
@@ -114,13 +114,13 @@ VIX's staged approach matters. The early proof points are not bare-metal executi
 
 ### F7 — The test audit reduced historical/textual tests, but the evidence policy needs a principled replacement
 **Priority:** P1  
-**Evidence:** `docs/test-audit-p103.md` records removal of 150 tests and says tests about docs, source text, frozen history, and test-chain wiring were removed. Yet the supplied tree still contains several context-related test files named as removal candidates, and the document's status may not match this snapshot.  
+**Evidence:** the P103 test-audit note (historical) records removal of 150 tests and says tests about docs, source text, frozen history, and test-chain wiring were removed. Yet the supplied tree still contains several context-related test files named as removal candidates, and the document's status may not match this snapshot.  
 **Risk:** blanket deletion can remove useful regression protection; conversely, brittle tests of incidental implementation details can block valid refactoring.  
 **Direction:** classify tests by the property they protect: business behavior, security invariant, compatibility contract, reliability/recovery, architecture policy, tool self-test, or documentation-only assertion. Delete only when the property is obsolete or covered better elsewhere. Test the externally meaningful invariant, not a particular implementation shape.
 
 ### F8 — Documentation and status are fragmented and partly contradictory
 **Priority:** P1  
-**Evidence:** `AGENTS.md` describes P93 as current, package scripts include P94/P96-era names and tests, and `docs/test-audit-p103.md` refers to P103. Some documentation marks tools as prepared or pending even though code is present. `docs/DOCUMENTATION-INDEX.md` calls the P85–P91 roadmap the next roadmap while later status records exist.  
+**Evidence:** `AGENTS.md` describes P93 as current, package scripts include P94/P96-era names and tests, and the P103 test-audit note (historical) refers to P103. Some documentation marks tools as prepared or pending even though code is present. `docs/DOCUMENTATION-INDEX.md` calls the P85–P91 roadmap the next roadmap while later status records exist.  
 **Risk:** an AI agent can follow obsolete instructions, misinterpret what is implemented, or waste time reconstructing status from patch history.  
 **Direction:** generate a compact machine-readable capability/status manifest from code and verification evidence. Keep one authoritative current-status document; label all other material `normative`, `implemented`, `proposed`, `historical`, or `superseded`. Avoid manual status duplication.
 

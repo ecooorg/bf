@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://biforge.local/schemas/schema-approval-decision.json",
+  "title": "Approval and authority decision",
+  "description": "Record of who may decide, what was decided, and under which authority tier.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "status",
+    "decision",
+    "authorityTier"
+  ],
+  "properties": {
+    "meta": {
+      "$ref": "schema-common.json#/$defs/schemaMeta"
+    },
+    "status": {
+      "$ref": "schema-common.json#/$defs/status"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "approve",
+        "reject",
+        "defer",
+        "request_changes",
+        "not_required"
+      ]
+    },
+    "authorityTier": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3,
+      "description": "0 act, 1 decide-and-disclose, 2 prepare for Navigator, 3 Navigator-only."
+    },
+    "decidedBy": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "relatedArtifactRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

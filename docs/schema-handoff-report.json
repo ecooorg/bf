@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://biforge.local/schemas/schema-handoff-report.json",
+  "title": "Handoff Report",
+  "description": "Single primary handoff artifact summarizing outcome, evidence completeness, and next action. Must remain producible even when checks fail.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "status",
+    "summary",
+    "evidenceCompleteness"
+  ],
+  "properties": {
+    "meta": {
+      "$ref": "schema-common.json#/$defs/schemaMeta"
+    },
+    "status": {
+      "$ref": "schema-common.json#/$defs/status"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidenceCompleteness": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "partial",
+        "minimal",
+        "unavailable"
+      ]
+    },
+    "failedStages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notRunStages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blockedStages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nextAction": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "string"
+    },
+    "secretsRedacted": {
+      "type": "boolean"
+    }
+  }
+}

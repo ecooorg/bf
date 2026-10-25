@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://biforge.local/schemas/schema-intent-policy-contract.json",
+  "title": "Intent/Policy Contract",
+  "description": "Versioned statement of approved intent, policy constraints, assumptions, invariants, non-goals, and acceptance criteria.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "goal",
+    "status",
+    "items"
+  ],
+  "properties": {
+    "meta": {
+      "$ref": "schema-common.json#/$defs/schemaMeta"
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "$ref": "schema-common.json#/$defs/status"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "text",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "requirement",
+              "constraint",
+              "invariant",
+              "assumption",
+              "non_goal",
+              "acceptance_criterion",
+              "authority"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "$ref": "schema-common.json#/$defs/sourceLabel"
+          },
+          "criticality": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "normal",
+              "low"
+            ]
+          }
+        }
+      }
+    },
+    "changedFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

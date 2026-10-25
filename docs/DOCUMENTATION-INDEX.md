@@ -11,6 +11,15 @@ Start with repository-level `AGENTS.md`. Read only documents relevant to the tas
 * `VIX-CONCEPT.md` — long-horizon strategic destination (Intent Review, formal verification, Dataflow synthesis, safe evolution). Conceptual reference; not blanket authorization for immediate implementation.
 * `AI-OPERATING-RULES.md` — permanent AI operating, authorization, security and evidence rules.
 
+## Phase 1 schemas and evidence vocabulary
+
+Flat files under `docs/` (no nested schema directory):
+
+* `SCHEMA-STATUS-VOCABULARY.md` — authoritative status values and non-equivalence rule.
+* `schema-common.json` — shared definitions (status, provenance, schemaMeta).
+* `schema-intent-policy-contract.json`, `schema-change-impact-plan.json`, `schema-verification-plan.json`, `schema-evidence-record.json`, `schema-artifact-manifest.json`, `schema-handoff-report.json`, `schema-approval-decision.json`.
+* Validate: `node scripts/schemaValidate.mjs --type <artifact-type> --file <instance.json>`.
+
 ## Other active product and operational documents
 
 * `../AGENTS.md` — repository entry point, current programme status and authorization boundaries.

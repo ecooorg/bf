@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://biforge.local/schemas/schema-common.json",
+  "title": "BiForge common Phase-1 definitions",
+  "description": "Shared status vocabulary and evidence provenance used by all AI-NATIVE-RENOVATION Phase 1 artifact schemas.",
+  "$defs": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "SKIPPED_BY_POLICY",
+        "TIMEOUT",
+        "NOT_RUN",
+        "UNKNOWN",
+        "PARTIAL"
+      ],
+      "description": "Authoritative status vocabulary. UNKNOWN, NOT_RUN, BLOCKED, TIMEOUT, and PARTIAL are never equivalent to PASS."
+    },
+    "isoDateTime": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO-8601 timestamp when known; empty string is not allowed \u2014 use omission or explicit UNKNOWN status instead."
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "commandOrObservation",
+        "environment",
+        "timestamp",
+        "status"
+      ],
+      "properties": {
+        "revision": {
+          "type": "string",
+          "description": "Git commit SHA, release tag, or explicit UNKNOWN if not available."
+        },
+        "commandOrObservation": {
+          "type": "string",
+          "description": "Exact command, check id, or observation label that produced this evidence."
+        },
+        "environment": {
+          "type": "string",
+          "description": "Runner/environment label (e.g. github-actions, local, staging)."
+        },
+        "timestamp": {
+          "$ref": "#/$defs/isoDateTime"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "logRef": {
+          "type": "string",
+          "description": "Path or URI of the primary log/artifact supporting this record."
+        },
+        "redactionNotes": {
+          "type": "string",
+          "description": "What was redacted and why, if anything."
+        },
+        "completenessLimits": {
+          "type": "string",
+          "description": "Explicit limits on what this evidence does and does not prove."
+        }
+      }
+    },
+    "sourceLabel": {
+      "type": "string",
+      "enum": [
+        "explicit",
+        "inferred",
+        "assumed",
+        "unknown"
+      ],
+      "description": "Provenance of a claim inside an intent or plan artifact."
+    },
+    "schemaMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaId",
+        "schemaVersion",
+        "artifactType"
+      ],
+      "properties": {
+        "schemaId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+        },
+        "artifactType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generatedAt": {
+          "$ref": "#/$defs/isoDateTime"
+        }
+      }
+    }
+  }
+}
