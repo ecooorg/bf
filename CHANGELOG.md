@@ -1,9 +1,30 @@
+## P99 — trace router policy latency and call-limit timeout. Apply on top of P98. Changes:
+- Adds trace markers around policy routeCall, adapter calls, onCall/onHealth hooks, and call-limit retries/backoff/sleep.
+- Does not alter router/product behavior; this is a diagnostic-only patch intended to identify the last operation reached before a timeout.
+- Preserves assertions for policy rejection without fallback and exactly four calls before `call_limit`.
+
+## P98 — isolate the router policy/call-limit probe. Apply on top of P97. Changes:
+- Replaces the filtered run of tests/models.test.mjs for the policy/call-limit critical stage with a dedicated test file.
+- Splits invalid-request stop, policy-rejection stop, and maxCalls behavior into separate named tests so a timeout identifies the exact subtest.
+- The critical stage no longer relies on --test-name-pattern for this probe. Exact argv remains captured in diagnostic evidence.
+- This patch is diagnostic isolation, not a claim that the underlying router defect is fixed.
+
+## P97 — Router critical-probe correction. Apply this overlay on top of P96. Changes:
+- Make the shared Router test fixture contain at least four deterministic entries even if REGISTRY_SEED shrinks. This preserves coverage for disabled/missing-capability rejection and ensures the call-limit test reaches its intended guard before candidates are exhausted.
+- Pass --test-name-pattern as its own argv element and record the exact argv in ASSISTANT HANDOFF.
+- Report Node test timeout and runner watchdog limits separately.
+- Add three static regression tests to test:compact-ci-artifacts.
+
+## P96 — Evidence-complete compact ASSISTANT HANDOFF
+
+Overlay on the repository version containing P95 critical-first diagnostics. Purpose: make `check-and-build summary` and `artifacts/ci-checks/NEXT_PATCH.md` contain the same concise, actionable handoff without requiring a separate diagnostics download for ordinary assertion failures.
 
 ## P95 — Critical-first CI diagnostics and assistant handoff
 
 - Run targeted historically failing router/Gemini/App Builder recovery tests before broad suites, typecheck, or database migrations.
 - Publish the evidence-rich `ASSISTANT HANDOFF` as the main GitHub Actions job summary.
 - Keep the compact artifact contract: `NEXT_PATCH.md` plus `diagnostics.zip` only on failure.
+- 
 ## P94 — Compact CI artifacts and evidence-rich diagnostic handoff
 
 * GitHub Actions now publishes one `biforge-ci-report` artifact: `NEXT_PATCH.md` plus `diagnostics.zip` only when the run fails. Successful runs keep only the short report; detailed success logs are not uploaded individually.
