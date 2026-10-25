@@ -66,8 +66,10 @@
     "test:context-refresh-profile": "node --test tests/context-refresh-profile.test.mjs",
     "context:completeness": "node scripts/contextCompletenessGuard.mjs",
     "test:context-completeness": "node --test tests/context-completeness-guard.test.mjs",
-    "test:project-diagnostics": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/app-builder-goal.test.mjs tests/content-disposition-p93.test.mjs tests/app-builder-contracts.test.mjs",
-    "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-adapter-p93-3.test.mjs"
+    "test:project-diagnostics": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/app-builder-goal.test.mjs tests/content-disposition-p93.test.mjs tests/app-builder-contracts.test.mjs tests/p93-7-diagnostic-logging.test.mjs",
+    "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-adapter-p93-3.test.mjs",
+    "test:ai": "node scripts/ai-test-harness-p93-7.mjs",
+    "test:diagnostics:p93-7": "node --import tsx --test tests/p93-7-diagnostic-logging.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

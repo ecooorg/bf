@@ -14,7 +14,7 @@ import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
 import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.ts';
 
 import { APP_VERSION } from './src/config.ts';
-import { buildCommit } from './server/projectDiagnostics.ts';
+import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
 import { buildSimpleConversationPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, type ProductMode } from './server/promptPacks.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
@@ -52,12 +52,14 @@ import { startKeepAlive } from './server/keepAlive.ts';
 import { readLatencyPolicy, shouldSkipQualityRetry, trimOlderAssistantMessages, createPhaseTimer } from './server/latencyPolicy.ts';
 
 dotenv.config();
+void recordApplicationLog({ level: 'info', component: 'runtime', event: 'process_boot', message: 'BiForge server process initialized', details: { node: process.version, nodeEnv: process.env.NODE_ENV || 'development', appVersion: APP_VERSION, projectModeEnabled: process.env.ENABLE_PROJECT_MODE === 'true', appBuilderEngine: process.env.APP_BUILDER_ENGINE || 'legacy', hasDatabaseUrl: Boolean(process.env.DATABASE_URL), hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) } });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Source execution uses ./dist; compiled production server lives in ./dist-server.
 const DIST_DIR = path.basename(__dirname) === 'dist-server' ? path.resolve(__dirname, '../dist') : path.resolve(__dirname, 'dist');
 const app = express();
+app.use(requestDiagnosticsMiddleware);
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_BODY = Number(process.env.MAX_BODY_BYTES) || 256 * 1024;
 const APP_PASSWORD = process.env.APP_PASSWORD || '';

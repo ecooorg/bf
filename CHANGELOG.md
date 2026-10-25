@@ -1,3 +1,11 @@
+## P93.7 — Bounded AI test harness and persistent internal diagnostics
+
+* Added `npm run test:ai`: a local verification harness with a hard 9.5-minute budget, per-step timeouts, separate logs, and a machine-readable JSON report. It runs deterministic static checks, frontend build, server TypeScript, App Builder, diagnostics, security, core, project-mode, and cascade/rate-limit tests when dependencies are installed; missing dependencies are reported as BLOCKED, never silently passed. Browser UI checks are opt-in with `BIFORGE_RUN_BROWSER_TESTS=true`; no dependencies are installed and no live provider calls are made.
+* Added structured application diagnostics with bounded in-memory capture, PostgreSQL persistence through migration `019_application_diagnostic_logs.sql`, seven-day retention, request IDs, HTTP status/duration tracing, App Builder model-call start/success/failure events, bounded stack capture, and inclusion in the authenticated diagnostic ZIP as `logs/application-detail.jsonl`.
+* Diagnostic fields omit prompt/source/request/response bodies, cookies, authorization and secret-like values; logs avoid query strings and bodies. DB failures use a throttled bounded memory fallback and are exposed in diagnostic summary.
+* Added focused tests for redaction, request correlation, diagnostic ZIP integrity, and harness budget behavior.
+* Verification in this preparation environment: static syntax and documentation checks to be reported separately; full TypeScript/Vite build and dependency-based tests require the project dependencies and were not assumed to pass. No live database, Gemini API, Render or GitHub actions were invoked.
+
 ## P93.6 — Transparent model waits, paced requests, and bounded recovery
 
 * Added shared request-start pacing for all `routeCall` traffic and direct Gemini generation: 4.7s default for Flash-Lite and 6.1s for other Flash models, optionally overridden by `MODEL_MIN_INTERVAL_MS`. Migration `018_model_request_slots.sql` coordinates reserved slots across Render instances; if DB coordination is unavailable, the limiter falls back to best-effort process-local pacing.

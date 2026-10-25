@@ -1,4 +1,6 @@
 ## Current status
+
+* **P93.7 — bounded verification and internal diagnostics:** `npm run test:ai` runs a deterministic, no-live-provider test sequence under a hard 9.5-minute budget and writes a JSON report plus per-step logs. Missing dependencies are `BLOCKED`, not `PASS`; browser tests are opt-in. Runtime diagnostics include request correlation, model-call lifecycle events, bounded redacted console capture, PostgreSQL-backed application logs (migration 019, seven-day retention), and diagnostic ZIP export. Logs must not include prompts, source code, request/response bodies, cookies, or secrets. See `docs/TEST-HARNESS-P93.7.md`.
 * **P93.6 (prepared patch):** adds shared model request-start pacing (PostgreSQL-coordinated when migration 018 is applied), Gemini RPM/RPD metadata and request pacing/daily reservation enforcement, bounded model recovery with visible wait states, shorter recovery prompts, and a live project-build status banner. Local/full CI and Render acceptance remain to be run.
 * **P93.5 (prepared patch):** Render-configured Gemini allowlists now govern the App Builder model registry; obsolete model/provider fallbacks are excluded. Novice and professional project flows poll staged jobs and show a ZIP or actionable status. Local checks pending; Render/live-provider acceptance remains owner-run.
 
