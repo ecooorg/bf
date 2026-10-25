@@ -5,7 +5,7 @@
 **Normative strategic destination:** `VIX-CONCEPT.md`  
 **Audit basis:** `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`  
 **Renovation mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`  
-**Current phase:** Phase 0 — establish one authoritative source of truth  
+**Current phase:** Phase 1 — one evidence model (Phase 0 closed by P104)  
 **Rule:** one bounded patch at a time; preserve safety; report evidence honestly.
 
 ## 1. North star
@@ -29,11 +29,11 @@ VIX remains the long-term architectural destination: formalisation of business i
 7. Every patch is bounded, reversible where possible, and delivered with a changed/new-files ZIP, explicit deletion list, exact checks and outcomes, and rollback notes.
 8. The normal Navigator interface is a concise decision surface and `NEXT_PATCH.md`; routine work must not require source inspection.
 9. GitHub writes/merges, production changes, secrets, billing, privileged host execution of generated code, and formal acceptance remain authorization-gated.
-10. Archive only documents that have been mapped to the new canonical sources. The initial archive list is a manual migration list; do not delete source requirements or move files automatically without checking references.
+10. Superseded documents are deleted, not archived in the repository (git and the owner's backups hold history). Normative requirements must first live in a canonical source. Never delete generated inventories, schemas or architecture policy files that tools read.
 
 ## 3. Phases and gates
 
-### Phase 0 — Documentation and truth consolidation (current)
+### Phase 0 — Documentation and truth consolidation (closed by P104)
 
 **Goal:** remove ambiguity about what is current, historical, proposed, or superseded without losing requirements.
 
@@ -41,12 +41,10 @@ VIX remains the long-term architectural destination: formalisation of business i
 - Publish the global audit, renovation mandate, this roadmap, and the active renovation task in `docs/`.
 - Update `AGENTS.md` and `docs/DOCUMENTATION-INDEX.md` so the new documents are the active entry points.
 - Keep permanent operational/security rules in `docs/AI-OPERATING-RULES.md`; do not duplicate the full policy in every roadmap.
-- Prepare `ARCHIVE-MOVE-LIST.md` with each proposed move, reason, replacement canonical source, and reference-check requirement.
-- Manually move the listed completed P81–P103 technical specifications/reports into root `archive/` only after confirming that no active links, scripts, tests, or operational instructions depend on their current paths.
-- Update links after manual moves. Do not archive VIX, permanent AI operating rules, current operations, user guide, architecture guardrails, generated current inventories, or unresolved owner decisions.
-- Establish a machine-readable status vocabulary and current baseline commit/CI evidence in a later evidence patch; do not infer green CI from an old archive.
+- (Done in P104) Completed P81–P103 specs, roadmaps, reports and benchmark snapshots were deleted after live requirements were moved into `OPERATIONS.md` and `architecture-guardrails.md`; tests and CI no longer read documentation prose.
+- Machine-readable status vocabulary and baseline evidence are Phase 1 work (P105–P106); do not infer green CI from old reports.
 
-**Gate:** one clear active entry point; every live requirement has a canonical source; archive candidates are listed rather than silently removed; all moved-document references are either updated or intentionally preserved as historical links.
+**Gate (met by P104):** one clear active entry point; every live requirement has a canonical source; no active reference to deleted documents; no test or CI step reads documentation prose.
 
 ### Phase 1 — Canonical schemas and evidence ledger
 
@@ -145,6 +143,6 @@ For each patch:
 
 ## 5. Current next action
 
-Complete Phase 0 documentation consolidation and archive migration. The initial task is specified in `AI-NATIVE-RENOVATION-TASK.md`. The archive migration list is `../ARCHIVE-MOVE-LIST.md` relative to the repository root.
+Phase 0 is closed by P104. Continue with P105–P108 as specified in `AI-NATIVE-RENOVATION-TASK.md`.
 
 No source-code rewrite, production action, GitHub write, permission change, or generated-code execution is authorized by this roadmap.

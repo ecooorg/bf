@@ -75,3 +75,18 @@ Report these activities as NOT_RUN until separately performed and evidenced.
 * Operational endpoints must remain protected by the application's authentication and authorization rules.
 
 Do not expose operational diagnostics without verifying access controls and data minimization.
+
+## 8. Bounded test harness (`npm run test:ai`)
+
+* Deterministic local checks, no provider calls, hard budget 570 s (`BIFORGE_TEST_BUDGET_MS` may lower it, clamped to 30–570 s). `BIFORGE_RUN_BROWSER_TESTS=true` adds the Playwright smoke test. `BIFORGE_TEST_LOG_DIR` / `BIFORGE_TEST_REPORT` set output locations (default: temporary directory outside the repository).
+* It installs nothing and touches no production data. One log per command plus a JSON report. Outcomes: `PASS`, `FAIL`, `TIMEOUT`, `BLOCKED`, `NOT RUN`. Missing `node_modules` makes dependency-based steps `BLOCKED`; static steps still run. `BLOCKED`/`NOT RUN` never equals `PASS`.
+* It cannot prove live Gemini quota, Render deployment, GitHub CI, real OAuth, webhooks or device behaviour. Those stay `NOT RUN` until an authorised environment executes them.
+
+## 9. Project Mode diagnostics
+
+* More-menu actions: system diagnostics, recent operations, diagnostic log download. They use the authenticated, rate-limited Project Mode API; no third-party telemetry. Apply migration `015_project_diagnostics.sql` (and `019_application_diagnostic_logs.sql` for detailed logs) with `npm run db:migrate` before relying on them.
+* Events hold only operation ID, stage/status, timestamps, error codes, durations, file and byte counts. Never log prompts, generated source, request/response bodies, cookies, tokens or credentials. HTTP requests carry `X-Request-Id`; paths are logged without query strings.
+* PostgreSQL keeps event rows for seven days (opportunistic pruning). If the database is unreachable a bounded in-memory ring (1,000 events) is used and does not survive restart. Lists and exports return at most 200 events.
+* The diagnostic ZIP (`README.txt`, `manifest.json`, `operations/recent-operations.json`, `diagnostics/diagnostic-summary.json`, `logs/application.jsonl`, `logs/application-detail.jsonl`, `logs/server-console.log`) is verified (CRC read-back, manifest hashes) before it is sent; failure returns HTTP 422. It is a snapshot, not a continuous log archive. CI logs live in the CI workflow artifact, not in this ZIP.
+* An HTTP 2xx and a server-side finish event do not prove the browser saved the ZIP. Google Drive synchronisation of diagnostics is not implemented in code.
+* **Open verification (P92):** production diagnostics were reported with `WARN`, artifact storage `NOT RUN`, no recent operations and no Drive files observed. Migrations, event persistence and artifact correlation in production remain unverified.

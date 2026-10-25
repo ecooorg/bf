@@ -1,13 +1,13 @@
 # AI-NATIVE-RENOVATION — Task: Phases 0–2 in five patches (P104–P108)
 
 **Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108
-**Status:** Active. Supersedes ANR-P0-001 (its documents exist; its archival step is executed by P104).
+**Status:** P104 delivered (see its section); P105–P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
 **Authority:** Navigator directive of 2026-10-25 (section 1). Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
 
 | Patch | Phase | Outcome |
 |---|---|---|
-| P104 | 0 | Clean documentation set; archive candidates moved; zero live references to them; guard in `check:docs` |
+| P104 | 0 | Clean documentation set; superseded documents deleted; tests/CI no longer read documentation prose |
 | P105 | 1a | Evidence records written by the check runners; one handoff generator validated against schemas |
 | P106 | 1b | Legacy P82–P91 tools resolved; `schema:validate` in CI; Phase 1 gate accepted |
 | P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons |
@@ -26,7 +26,7 @@ The owner never opens or edits repository files and does not care about code sty
   * Source stays line-oriented and unminified. Patches are delivered as diffs and `str_replace` edits and failures are localised by line; single-line blobs break all three.
   * No style-only rewrites. Structural rewrites (for example splitting files above 50 KB) only with a measured ND-4 gain and only after the Phase 2 gate.
   * Human-facing material that stays because it is product, not documentation: UI strings (`lint:copy`), the in-app guide `src/UserGuide.tsx`, and the Navigator decision surface (`NEXT_PATCH.md`, chat handoff).
-  * History is git. `archive/` is dead storage and is never loaded as context.
+  * History is git and the owner's backups. Superseded documents are deleted, not archived. Tests and CI never read documentation prose.
 * **ND-6 Context budget.** Mandatory reading for a fresh session: `AGENTS.md`, `docs/AI-OPERATING-RULES.md`, sections 1–2 of this file plus the current patch section. Target ≤ 40 KB in total. Everything else is on demand through `docs/DOCUMENTATION-INDEX.md`, which lists each document with size and trigger.
 
 ## 2. Rules for every patch
@@ -39,38 +39,20 @@ The owner never opens or edits repository files and does not care about code sty
 6. **No weakening.** Tests, gates, security controls and acceptance criteria are never relaxed to get green. A test may be removed only with evidence in CHANGELOG that it is an orphan or duplicate.
 7. **Honest status.** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 
-## 3. P104 — Phase 0 closure: documentation order and archive
+## 3. P104 — Phase 0 closure (delivered)
 
-**Objective.** Leave only documents an assistant needs. Move every archive candidate to `archive/` so that no active file, script, test or workflow refers to it, and keep everything the running product needs.
+**Decisions.** Navigator, 2026-10-25: CI green at the baseline, old material is backed up locally, `USER-GUIDE.md` goes, documents the assistant does not need are deleted, `CHANGELOG.md` keeps history as plain text without links, and nothing in tests may check documents.
 
-**Facts established from the P103.3 tree (re-verify with `grep -rIF` before each move).**
+**Done in P104**
 
-* The 16 candidates of Groups A and B reference almost only each other (roadmaps P81–P84 / P85–P91 ↔ specs P85–P91 ↔ `PROJECT-MODE-DIAGNOSTICS-ROADMAP`; `DOCUMENTATION-BASELINE` → `AI-TRANSFORMATION-SPEC`, `tz-appbuilder`; the specs cite `test-audit-p103`). Moving them together removes those links.
-* `tests/context-benchmark.test.mjs` is the only reader of `docs/context-benchmark-verification-p84.json`. It is an orphan: no `package.json` script runs it and its fixture `tests/context-benchmark-gold-p84.json` is not in the repository. `scripts/contextBenchmarkLib.mjs` reads the same missing fixture.
-* `scripts/acceptanceReport.mjs` and `scripts/architectureCheckBoundaries.mjs` **write** `docs/generated-acceptance-summary.json` and `docs/generated-boundary-report.json`. Moving these files without changing the writers would recreate them. `docs:check` requires only the route/env/migration inventories.
-* `docs/DOCUMENTATION-INDEX.md` links `context-baseline-v80.json`; `AGENTS.md` links `typing-and-naming.md`; `tests/security.test.mjs` asserts that `AGENTS.md` mentions "GitHub write" and "deferred/ADR-06". That wording must survive any `AGENTS.md` cleanup.
-* `scripts/check-docs.mjs` validates markdown links in `AGENTS.md` and `docs/` and backtick paths in `AGENTS.md` only.
-* Scripts mention documents that do not exist: `docs/NEXT.md`, `docs/CURRENT_STATE.md`, `docs/DECISION_CARD_TEMPLATE.md`, `docs/ADR-10-code-executor.md`, `docs/08-Deployment-and-Runbook.md`, `docs/${patch}-REPORT.md` (in `gate-eval`, `evidence-collect`, `staging-drills`, `patch-pack`).
-* `CHANGELOG.md` is 108 KB / 87 entries; `check-version` and `patch-quality-report` read only its top.
+* Deleted 17 documents (the P85–P93.7 specs, both P81–P91 roadmaps, transformation spec, documentation baseline, P103 test audit, diagnostics roadmap, `tz-appbuilder`, `USER-GUIDE`), 7 stale JSON snapshots/reports in `docs/`, the whole `archive/` directory, `ARCHIVE-MOVE-LIST.md`, the orphan `tests/context-benchmark.test.mjs` (unwired, fixture absent), and `scripts/check-docs.mjs`.
+* Live requirements preserved first: `test:ai` harness and Project Mode diagnostics (with the open P92 production verification) in `OPERATIONS.md`; App Builder invariants in `architecture-guardrails.md`.
+* `check:docs` removed from `package.json`, the `check` chain, `docs:check`, `qa.mjs`, `acceptanceReport.mjs`, `architectureVerifyChange.mjs`, the test harness, patch-pack's dependency-free set and `tests/feature-manifest.json`. Suggested-command lists in the P85–P91 tool libraries no longer name it.
+* `tests/security.test.mjs` asserts the GitHub-write default from code (`githubWritesEnabled`, `github_write_disabled`) instead of reading `AGENTS.md`. The only remaining repository file that tests read besides code is `CHANGELOG.md` (top entry, `check-version`), and that tolerates its absence.
+* `acceptanceReport.mjs` and `architectureCheckBoundaries.mjs` write to `artifacts/qa/` (git-ignored) instead of `docs/`.
+* `AGENTS.md`, `DOCUMENTATION-INDEX.md` (tiers, sizes, triggers), roadmap and audit updated; version 104.
 
-**Work items**
-
-* **W1 Preserve live requirements first.** Before moving, extract what is still true into canonical files: the `test:ai` harness usage and diagnostics operation notes (from `TEST-HARNESS-P93.7`, `PROJECT-MODE-DIAGNOSTICS-P92`) into `OPERATIONS.md`, with the unfinished P92 production verification as an explicit open item; the App Builder invariants (staged, flag-gated, no execution of generated JS, ports/contracts) from `tz-appbuilder.md` into `architecture-guardrails.md`. Compare `docs/USER-GUIDE.md` with `src/UserGuide.tsx`; if it holds no requirement that is absent from the code and tests, archive it; otherwise record a hold reason.
-* **W2 Move to `archive/<basename>`** (flat, content unchanged): the 11 Group A files, the 5 Group B files, and `context-locality-p82.json`, `contracts-verification-p83.json`, `context-benchmark-p84.json`, `context-benchmark-verification-p84.json`, `context-baseline-v80.json`, plus `docs/USER-GUIDE.md` if W1 allows. Do not move `AI-OPERATING-RULES.md`, `VIX-CONCEPT.md`, `OPERATIONS.md`, `architecture-*`, `typing-and-naming.md`, the schema files, or the four current `generated-*` inventories/module map.
-* **W3 Remove the orphan consumer.** Delete `tests/context-benchmark.test.mjs` and record the evidence (unwired, fixture missing). Leave `scripts/contextBenchmark*.mjs` for P106.
-* **W4 Redirect generated reports.** `acceptanceReport.mjs` and `architectureCheckBoundaries.mjs` write to `artifacts/qa/` (already git-ignored). No behaviour change besides the output directory; `architecture:check` keeps failing on new violations.
-* **W5 Split the changelog.** Keep the newest 10 entries in `CHANGELOG.md`; move older entries unchanged to `archive/CHANGELOG-P1-P93.md` (exact range set at execution). Re-run `check-version`.
-* **W6 Clean entry points.** `AGENTS.md`: one-line historical track, current phase P104+, Navigator directive summary (ND-1..ND-6), keep the "GitHub write … deferred (ADR-06)" wording. `DOCUMENTATION-INDEX.md`: tier each document as *mandatory / on demand*, with size and trigger; remove the archive-policy prose. Move `ARCHIVE-MOVE-LIST.md` into `archive/` as the last step.
-* **W7 Dangling-reference inventory.** List every script string naming a non-existent document. Fix messages/comments that no test asserts; leave logic-bearing ones (`gate-eval`, `evidence-collect`) to P106 with the list recorded in CHANGELOG.
-* **W8 Guard.** Extend `scripts/check-docs.mjs`: fail if any file outside `archive/` and `CHANGELOG.md` references `archive/` or a moved basename, and extend backtick-path checks from `AGENTS.md` to `docs/*.md`. `CHANGELOG.md` is excepted because it is append-only history.
-
-**Verification.** `check:docs`, `docs:check`, `architecture:check`, `check-version`, `lint:copy`, `schema:validate`; a repository-wide `grep -rIF` for every moved basename returning only `archive/` and `CHANGELOG.md`; `npm run check` (CI) for the changed generators. Report each result separately; dependency-backed checks that cannot run locally are `NOT_RUN`.
-
-**Done when:** the mandatory reading set is ≤ 40 KB; no active reference to any moved file; guard W8 passes and fails on a planted bad reference; generators no longer write into `docs/` except the four current inventories; CHANGELOG lists every move and deletion.
-
-**Non-goals.** No application source, migration, CI-logic or security change. No deletion of `archive/`. No work on P82–P91 tool scripts.
-
-**Rollback.** Move the files back and revert the generator output path; nothing else depends on the change.
+**Known leftovers handed to P106:** scripts that name documents that never existed (`docs/NEXT.md`, `docs/CURRENT_STATE.md`, `docs/DECISION_CARD_TEMPLATE.md`, `docs/ADR-10-code-executor.md`, `docs/08-Deployment-and-Runbook.md`, `docs/${patch}-REPORT.md` in `gate-eval`, `evidence-collect`, `staging-drills`, `patch-pack`); `scripts/contextBenchmark*.mjs` reads a missing fixture. Machine files stay in `docs/` (schemas, architecture policy, generated inventories); moving all of `docs/` off the repository would break tools that read them.
 
 ## 4. P105 — Phase 1a: evidence records and one handoff generator
 
@@ -88,12 +70,12 @@ The owner never opens or edits repository files and does not care about code sty
 
 ## 5. P106 — Phase 1b: tool consolidation and Phase 1 acceptance
 
-* **W1 Decision card for the legacy tools** (Tier 2, Navigator approval): `context:task`, `context:plan`, `impact:lineage`, `verification:plan`, `benchmark:real-tasks`, `intent:contract`, `context:refresh-profile`, `context:completeness`, `benchmark:context` and their `*Lib.mjs`. For each: adapt to emit a schema artifact (Change/Impact Plan, Verification Plan, Evidence Record), or retire. Evidence for the card: current exit status, whether it runs at all (`benchmark:context` reads a missing fixture), who calls it, ND-4 benefit. Default recommendation: retire everything that neither feeds a schema nor runs.
+* **W1 Decision on the legacy tools** (assistant decides, discloses in CHANGELOG): `context:task`, `context:plan`, `impact:lineage`, `verification:plan`, `benchmark:real-tasks`, `intent:contract`, `context:refresh-profile`, `context:completeness`, `benchmark:context` and their `*Lib.mjs`. For each: adapt to emit a schema artifact (Change/Impact Plan, Verification Plan, Evidence Record), or retire. Evidence for the card: current exit status, whether it runs at all (`benchmark:context` reads a missing fixture), who calls it, ND-4 benefit. Default: retire everything that neither feeds a schema nor runs.
 * **W2 Execute the decision.** Remove retired scripts, package entries, boundary-rule and inventory references; regenerate inventories; update `AGENTS.md` command list.
 * **W3 Dangling references** left from P104-W7: fix or retire `gate-eval`, `evidence-collect`, `staging-drills` strings together with their workflows' expectations; keep `tests/gates.test.mjs` assertions intact.
 * **W4 CI wiring.** `schema:validate` joins `npm run check` and `ci.yml`. A schema check over the generated records of the run itself.
 * **W5 Generated status graph.** A deterministic status/capability file generated from code plus records (module → checks → last status), replacing hand-written status prose in `AGENTS.md`.
-* **W6 Optional deletion of `archive/`** (Tier 2): only if a git tag of the pre-P104 tree exists and the Navigator approves; otherwise keep.
+* **W6 Machine data location.** Decide whether schemas, architecture policy and generated inventories move out of `docs/` (for example flat into `scripts/` with prefixed names) so that `docs/` can be removed without breaking tools; update readers and tests together.
 
 **Gate (Phase 1).** Missing/malformed/contradictory critical evidence cannot yield a success claim; a generator failure still produces a bounded handoff; no tool remains without a schema role or an explicit retirement; evidence of the gate is stored as records.
 **Rollback.** Retired scripts are recoverable from git; the decision card lists the commit.

@@ -239,3 +239,5 @@ These remain subject to the project's authority model.
 ## 11. Final recommendation
 
 Treat this audit as the architectural mandate for the next era of BiForge. Do not begin with a large mechanical rewrite. Begin by consolidating truth and evidence, then make the lifecycle coherent, then prove one VIX-aligned vertical slice. Keep each transformation reversible and measured. The goal is not code that looks elegant to a human reviewer; it is a system that reliably converts intent into safe, verified change while keeping the Navigator's cognitive load close to zero.
+
+> Note (P104): documents cited above as historical (P81–P91 roadmaps and specs, transformation spec, documentation baseline, P103 test audit) were deleted from the repository; their findings are summarised in this audit and in `CHANGELOG.md`.

@@ -2,7 +2,7 @@
 
 Conventions for AI-assisted changes. Behaviour-preserving; apply gradually.
 
-**Phase 3 track closed in p76** — see `archive/phase3-PHASE3-COMPLETE.md`. Full `strict: true` remains optional follow-up.
+**Phase 3 track closed in p76.** Full `strict: true` remains optional follow-up.
 
 ## TypeScript policy
 
