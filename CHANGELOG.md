@@ -7,6 +7,14 @@
 - Keeps diagnostic ZIP integrity, `ci-summary` handoff contract, compact CI packaging (P94), preflight/secrets/path policy, and the `check-version` script itself.
 - No product/runtime behavior change.
 
+### ANR-P0-002 — five-patch plan for Phases 0–2 and Navigator directive (docs only; no product version bump)
+
+- Rewrites `docs/AI-NATIVE-RENOVATION-TASK.md` as the task for P104–P108: P104 documentation/archive closure, P105 evidence records and one handoff generator, P106 tool consolidation and Phase 1 acceptance, P107 verification DAG, P108 fault injection and bounded repair. Each patch has scope, work items, tests, gate and rollback.
+- Records the owner directive (ND-1..ND-6): repository is AI-operated; human readability is not a goal; limits are security and product function, enforced by tests/evidence; mainstream, line-oriented source retained for verifiability; context budget for fresh sessions; `archive/` is not context.
+- `AGENTS.md`: current phase and directive summary updated. No source, script, CI, migration or archive-location change.
+- Findings recorded for P104 (from static search of the P103.3 tree): `tests/context-benchmark.test.mjs` is unwired and its fixture `tests/context-benchmark-gold-p84.json` is absent; `acceptanceReport.mjs` and `architectureCheckBoundaries.mjs` write into `docs/`; several scripts name documents that do not exist.
+- Verification: `check-version`, `check:docs`, `lint:copy` run locally (see handoff). Full CI NOT RUN; CI status of P103.3 remains unverified.
+
 ## P103.2 — ANR-P1-0 Phase 1 schemas, status vocabulary, read-only validator
 
 - Adds canonical JSON Schema set as flat `docs/schema-*.json` files for Intent/Policy Contract, Change/Impact Plan, Verification Plan, Evidence Record, Artifact Manifest, Handoff Report, and Approval Decision, plus shared `common.schema.json`.

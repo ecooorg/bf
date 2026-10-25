@@ -2,7 +2,8 @@
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** Phase 0 — documentation and source-of-truth consolidation. The current delivery task is `docs/AI-NATIVE-RENOVATION-TASK.md`; the phase plan is `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** Phase 0 closure → Phase 1 → Phase 2, delivered as patches P104–P108. The current delivery task (per-patch scope, work items, gates) is `docs/AI-NATIVE-RENOVATION-TASK.md`; the phase plan is `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Owner directive (2026-10-25, details ND-1..ND-6 in the task file):** the Navigator never opens repository files. The repository is written for AI assistants; human readability, naming, layout and style are not goals. The only limits are security and preserved product function, both enforced by tests and evidence, not by review. Source stays mainstream (TypeScript/JavaScript/SQL/JSON/Markdown) and line-oriented, because diff-based patching and verification depend on it. Keep the mandatory reading set small; `archive/` is never context.
 * **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
 * **Archive status:** root `ARCHIVE-MOVE-LIST.md` is the manual checklist. Candidate historical documents are **not** considered archived until moved after reference checks. Do not bulk-move files or remove unique active requirements.
