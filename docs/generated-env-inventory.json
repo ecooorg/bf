@@ -1,9 +1,16 @@
 {
-  "generatedAt": "2026-10-25T05:59:52Z",
+  "generatedAt": "2026-10-25T06:36:30Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
-  "count": 53,
+  "count": 55,
   "variables": [
+    {
+      "name": "APP_BUILDER_MAX_RATE_WAIT_MS",
+      "files": [
+        "appBuilder/core-engine.ts"
+      ],
+      "fileCount": 1
+    },
     {
       "name": "APP_BUILDER_MODEL_ID",
       "files": [
@@ -220,6 +227,13 @@
       "name": "MODEL_CASCADE_STRONG",
       "files": [
         "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "MODEL_MIN_INTERVAL_MS",
+      "files": [
+        "server/modelRateLimit.ts"
       ],
       "fileCount": 1
     },

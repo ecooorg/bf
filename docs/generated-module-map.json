@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-10-25T05:59:52.191Z",
+  "generatedAt": "2026-10-25T06:36:30.956Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 156,
-    "edgeCount": 390,
+    "moduleCount": 157,
+    "edgeCount": 392,
     "cycleCount": 0,
-    "totalLines": 27914
+    "totalLines": 28090
   },
   "cycles": [],
   "layers": {
-    "server": 67,
+    "server": 68,
     "src": 76,
     "other": 13
   },
@@ -25,7 +25,7 @@
     {
       "path": "appBuilder/core-engine.ts",
       "layer": "appBuilder",
-      "lines": 126,
+      "lines": 156,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-markers.ts",
@@ -145,7 +145,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2286,
+      "lines": 2294,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderIndex.ts",
@@ -168,6 +168,7 @@
         "server/intentFlags.ts",
         "server/keepAlive.ts",
         "server/latencyPolicy.ts",
+        "server/modelRateLimit.ts",
         "server/modelRegistry.ts",
         "server/openaiCompatAdapter.ts",
         "server/opsMetrics.ts",
@@ -223,7 +224,7 @@
     {
       "path": "server/appBuilderAdapter.ts",
       "layer": "server",
-      "lines": 160,
+      "lines": 170,
       "imports": [
         "appBuilder/index.ts",
         "server/adapter.ts",
@@ -390,7 +391,7 @@
       "layer": "server",
       "lines": 47,
       "imports": [],
-      "fanIn": 16
+      "fanIn": 17
     },
     {
       "path": "server/documents.ts",
@@ -528,9 +529,18 @@
       "fanIn": 1
     },
     {
+      "path": "server/modelRateLimit.ts",
+      "layer": "server",
+      "lines": 76,
+      "imports": [
+        "server/database.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/modelRegistry.ts",
       "layer": "server",
-      "lines": 93,
+      "lines": 94,
       "imports": [],
       "fanIn": 5
     },
@@ -725,7 +735,7 @@
     {
       "path": "server/router.ts",
       "layer": "server",
-      "lines": 144,
+      "lines": 154,
       "imports": [],
       "fanIn": 6
     },
@@ -1007,7 +1017,7 @@
     {
       "path": "src/ProjectMode.tsx",
       "layer": "src",
-      "lines": 609,
+      "lines": 648,
       "imports": [
         "src/ModeMenu.tsx",
         "src/ProjectDelivery.tsx",
@@ -1334,7 +1344,7 @@
     {
       "path": "src/projectBuildJob.ts",
       "layer": "src",
-      "lines": 37,
+      "lines": 39,
       "imports": [],
       "fanIn": 1
     },
@@ -1588,7 +1598,7 @@
   "topFanIn": [
     {
       "path": "server/database.ts",
-      "count": 16
+      "count": 17
     },
     {
       "path": "src/decision.ts",
@@ -1690,7 +1700,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2286
+      "lines": 2294
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1709,16 +1719,16 @@
       "lines": 701
     },
     {
+      "path": "src/ProjectMode.tsx",
+      "lines": 648
+    },
+    {
       "path": "src/App.tsx",
       "lines": 643
     },
     {
       "path": "src/ConversationFiles.tsx",
       "lines": 624
-    },
-    {
-      "path": "src/ProjectMode.tsx",
-      "lines": 609
     },
     {
       "path": "src/WorkspacePanel.tsx",

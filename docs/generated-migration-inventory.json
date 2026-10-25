@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-25T05:59:52Z",
+  "generatedAt": "2026-10-25T06:36:30Z",
   "generator": "scripts/docsGenerateInventories.mjs",
-  "count": 17,
+  "count": 18,
   "migrations": [
     {
       "file": "migrations/001_project_state.sql",
@@ -87,6 +87,11 @@
       "file": "migrations/017_app_build_jobs.sql",
       "bytes": 1371,
       "lines": 33
+    },
+    {
+      "file": "migrations/018_model_request_slots.sql",
+      "bytes": 705,
+      "lines": 12
     }
   ]
 }
