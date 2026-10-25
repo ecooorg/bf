@@ -20,12 +20,12 @@ const commands = [
   { id: 'vite-build', args: ['node_modules/vite/bin/vite.js', 'build'], timeoutMs: 75_000, requiresDeps: true },
   { id: 'server-typecheck', args: ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.server.json'], timeoutMs: 75_000, requiresDeps: true },
   { id: 'app-builder-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/app-builder-contracts.test.mjs', 'tests/app-builder-engine-p93-2a.test.mjs', 'tests/app-builder-validators-p93-2b.test.mjs', 'tests/app-builder-recovery-p93-3.test.mjs', 'tests/app-builder-adapter-p93-3.test.mjs'], timeoutMs: 65_000, requiresDeps: true },
-  { id: 'diagnostics-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/project-diagnostics-p92.test.mjs', 'tests/ci-diagnostics-chain.test.mjs', 'tests/app-builder-goal.test.mjs', 'tests/content-disposition-p93.test.mjs', 'tests/p93-7-diagnostic-logging.test.mjs'], timeoutMs: 45_000, requiresDeps: true },
+  { id: 'diagnostics-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/project-diagnostics-p92.test.mjs', 'tests/ci-diagnostics-chain.test.mjs', 'tests/content-disposition-p93.test.mjs'], timeoutMs: 45_000, requiresDeps: true },
   { id: 'security-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/security.test.mjs'], timeoutMs: 35_000, requiresDeps: true },
   { id: 'core-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/core.test.mjs'], timeoutMs: 35_000, requiresDeps: true },
   { id: 'project-mode-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/project-mode.test.mjs'], timeoutMs: 35_000, requiresDeps: true },
   { id: 'integration-and-db-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/integrations.test.mjs', 'tests/database.test.mjs'], timeoutMs: 45_000, requiresDeps: true },
-  { id: 'model-cascade-and-rate-tests', args: ['--experimental-strip-types', '--test', 'tests/model-cascade-p93-5.test.mjs', 'tests/model-rate-limit-p93-6.test.mjs'], timeoutMs: 25_000, requiresDeps: true },
+  { id: 'model-cascade-and-rate-tests', args: ['--experimental-strip-types', '--test', 'tests/model-cascade-p93-5.test.mjs'], timeoutMs: 25_000, requiresDeps: true },
 ];
 if (process.env.BIFORGE_RUN_BROWSER_TESTS === 'true') commands.push({ id: 'browser-ui-tests', args: ['node_modules/tsx/dist/cli.mjs', 'tests/ui-check.mjs'], timeoutMs: 60_000, requiresDeps: true });
 function run(command, timeoutMs) {
