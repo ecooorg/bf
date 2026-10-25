@@ -1,3 +1,10 @@
+## P93.8 — CI patch handoff artifact without AI tokens
+
+* GitHub Actions now creates `artifacts/ci-checks/NEXT_PATCH.md` in an `if: always()` step and uploads it with the existing CI logs artifact, including when tests fail or `results.json` is missing.
+* The report contains commit/run references, failed stages, compact error clues, available log names, and a final `ASSISTANT HANDOFF` block designed to paste into the next assistant session. It also appears in the GitHub Actions job summary.
+* Report generation is deterministic Node.js only: no model API calls, no added secrets, no extra AI tokens. Added two focused tests for failed-stage extraction and missing-results fallback; wired them into `npm run check`.
+* Local validation: report-generator tests and verification-planner tests pass. Full CI/build is not claimed as locally verified because dependencies are not installed in this preparation environment; hosted GitHub Actions is the end-to-end validation.
+
 ## P93.7 — Bounded AI test harness and persistent internal diagnostics
 
 * Added `npm run test:ai`: a local verification harness with a hard 9.5-minute budget, per-step timeouts, separate logs, and a machine-readable JSON report. It runs deterministic static checks, frontend build, server TypeScript, App Builder, diagnostics, security, core, project-mode, and cascade/rate-limit tests when dependencies are installed; missing dependencies are reported as BLOCKED, never silently passed. Browser UI checks are opt-in with `BIFORGE_RUN_BROWSER_TESTS=true`; no dependencies are installed and no live provider calls are made.
