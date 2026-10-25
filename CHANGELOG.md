@@ -1,3 +1,13 @@
+## P103 — test audit: remove obsolete tests, fix check chain
+
+Apply on top of P102. Changes:
+- Removed 150 tests that guarded wording, file presence, history or the test setup itself (list and rules: `docs/test-audit-p103.md`): 15 whole files (P82–P91 context tooling tests, P95–P98 handoff text checks, `app-builder-goal`, `p93-7-diagnostic-logging`) and 63 tests inside 12 kept files.
+- `package.json`: removed the ten scripts of the deleted tests from `scripts` and from `check`; `test:project-diagnostics` no longer runs `app-builder-contracts` a second time; `test:compact-ci-artifacts` runs only the P94 test; removed the reference to the missing `tests/model-rate-limit-p93-6.test.mjs`; `scripts/ai-test-harness-p93-7.mjs` list updated.
+- Version: `package.json` and `src/config.ts` set to 103 (they were still 94 while CHANGELOG was at P102, so `check-version` could not pass).
+- `tests/compact-ci-artifacts-p94.test.mjs`: dropped the assertions for `LAST_SUCCESSFUL_TEST` and `diagnostics.zip` in the report text, which the P96+ report no longer produces (the first test was failing before P103; now 3/3 pass).
+- Not changed: scripts and docs of the P82–P91 tools (now without automated tests; candidates for removal), `workspace`/`files` tests, the diagnostic gate and its critical probes.
+- Verification: node syntax check of every remaining test file, `check-version`, `check:docs`, `docs:check`, `architecture:check`, `lint:copy` PASS. NOT RUN: the test suites themselves and `tsc` (dependencies and PostgreSQL are not available here); the first real run is in CI.
+
 ## P102 — align CI summary unit test with P96 handoff publisher
 
 Apply on top of P101. Changes:
