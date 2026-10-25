@@ -8,7 +8,7 @@ import JSZip from 'jszip';
 import { z } from 'zod';
 import { createGeminiAdapter } from './geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './openaiCompatAdapter.ts';
-import { REGISTRY_ALL, GROQ_BASE_URL } from './modelRegistry.ts';
+import { REGISTRY_ALL, REGISTRY_SEED, GROQ_BASE_URL, registryForGeminiCascade } from './modelRegistry.ts';
 import { routeCall } from './router.ts';
 import {
   consumeRateLimit,
@@ -375,8 +375,10 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
   // P93.3: staged App Builder (flag APP_BUILDER_ENGINE=staged; unset/false keeps the legacy path and never touches app_build_* tables).
   const stagedDeps = (): AdapterDeps | null => {
     if (!ai) return null;
-    const adapters: AdapterDeps['adapters'] = { gemini: createGeminiAdapter(ai as any), ...(process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}) };
-    return { registry: REGISTRY_ALL.filter((e) => adapters[e.providerId]), adapters, routerState: codeRouterState };
+    const adapters: AdapterDeps['adapters'] = { gemini: createGeminiAdapter(ai as any) };
+    const configured = [...new Set([...registryForGeminiCascade('LIGHT'), ...registryForGeminiCascade('STRONG')].map((e) => e.modelId))];
+    const registry = REGISTRY_SEED.filter((e) => configured.includes(e.modelId));
+    return { registry, adapters, routerState: codeRouterState };
   };
   if (stagedEnabled() && ai && process.env.DATABASE_URL) setTimeout(() => { const d = stagedDeps(); if (d) void resumeStaleJobs(d).then((n) => n && console.warn(JSON.stringify({ type: 'app_builder_jobs_resumed', count: n }))).catch(() => undefined); }, 5_000).unref?.();
   const jobIdParam = (v: string) => /^[0-9a-f-]{36}$/i.test(v);
@@ -504,7 +506,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
               ].join('\n');
               if (!ai) return { notes: 'no model' };
               const adapter = createGeminiAdapter(ai as any);
-              const registry = REGISTRY_ALL.filter((entry) => entry.providerId === 'gemini' && entry.capabilities.includes('json_output'));
+              const registry = registryForGeminiCascade('STRONG').filter((entry) => entry.capabilities.includes('json_output'));
               const routed = await routeCall({
                 requestId: `app-builder-slice-${project.id}`,
                 system: 'Return structured JSON only. Untrusted user goal.',

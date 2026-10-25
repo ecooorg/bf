@@ -30,9 +30,8 @@ export type RegistryEntry = z.infer<typeof registryEntrySchema>;
 
 /** Seed: only what already works in BE v1.6.0 (Gemini, default cascades). Model names live only here. */
 const GEMINI_MODELS = [
-  // gemini-3.7-flash and gemini-3.5-flash are deprecated aliases that Google routes to 3.8 / 3.6 (they share
-  // the same capacity and quota), so they are not independent fallbacks and are left out (checked 12 Oct 2026).
-  'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite',
+  // Keep this seed aligned with the only two models configured for the free-key deployment.
+  'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite',
 ];
 export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => registryEntrySchema.parse({
   providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
@@ -74,4 +73,20 @@ export function supports(entry: RegistryEntry, required: Capability[]): boolean 
 /** Entries verified more than 90 days ago get a warning (TZ 7.1). */
 export function staleEntries(entries: RegistryEntry[], now: Date = new Date()): RegistryEntry[] {
   return entries.filter((e) => now.getTime() - Date.parse(`${e.lastVerifiedAt}T00:00:00Z`) > 90 * 86_400_000);
+}
+
+/** Parse the Render cascade as an allowlist. Never silently add historical models/providers. */
+export function configuredGeminiCascade(kind: 'LIGHT' | 'STRONG', env: NodeJS.ProcessEnv = process.env): string[] {
+  const raw = env[`MODEL_CASCADE_${kind}`] ?? (kind === 'LIGHT' ? 'gemini-3.1-flash-lite,gemini-3.5-flash-lite' : 'gemini-3.5-flash-lite,gemini-3.1-flash-lite');
+  const names = raw.split(',').map((x) => x.trim()).filter(Boolean);
+  const allowed = new Set(GEMINI_MODELS);
+  const valid = [...new Set(names)].filter((name) => allowed.has(name));
+  // Fail closed if a configured cascade has no supported entries; no legacy fallback.
+  return valid;
+}
+
+/** Registry in cascade order. Only explicitly configured Gemini models can be called. */
+export function registryForGeminiCascade(kind: 'LIGHT' | 'STRONG', env: NodeJS.ProcessEnv = process.env): RegistryEntry[] {
+  const order = configuredGeminiCascade(kind, env);
+  return order.flatMap((name) => REGISTRY_SEED.filter((entry) => entry.modelId === name));
 }

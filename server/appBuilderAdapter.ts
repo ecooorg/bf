@@ -55,8 +55,11 @@ export function createModelPort(deps: AdapterDeps, projectId: string): ModelPort
   return {
     async complete(a): Promise<ModelResult> {
       const json = a.role === 'planner';
+      const cascade = a.role === 'coder' ? 'STRONG' : 'LIGHT';
+      const configured = registryForGeminiCascade(cascade);
+      const registry = configured.length ? configured.filter((e) => deps.registry.some((d) => d.providerId === e.providerId && d.modelId === e.modelId)) : [];
       const routed = await routeCall({ requestId: `app-build-${projectId}-${crypto.randomBytes(4).toString('hex')}`, system: a.system, prompt: a.prompt, json, maxOutputTokens: a.maxOutputTokens, metadata: { role: `app_builder_${a.role}`, projectId } },
-        { registry: deps.registry, adapters: deps.adapters, state: deps.routerState, required: json ? ['json_output'] : [], maxCalls: 1, timeoutMs: 90_000, sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 95_000 });
+        { registry, adapters: deps.adapters, state: deps.routerState, required: json ? ['json_output'] : [], maxCalls: 1, timeoutMs: 90_000, sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 95_000 });
       const r = routed.response;
       if (routed.status === 'ok' && r) {
         const out = typeof r.output === 'string' ? r.output : JSON.stringify(r.output);
