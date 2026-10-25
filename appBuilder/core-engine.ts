@@ -30,31 +30,61 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   let failureReason: string | undefined;
   let templateUsed: string | undefined;
   const call = async (role: 'planner' | 'coder', context: string, version?: string) => {
-    if (state.callsUsed >= budget) return null;
     const p = promptFor(role, context);
-    state.callsUsed++;
-    const result = await ports.model.complete({ role, system: p.system, prompt: p.prompt, maxOutputTokens: profile.maxOutputTokens, signal: options.signal });
-    if (isModelError(result)) {
-      if (result.code === 'rate_limited') {
-        // Waits count against elapsed wall-clock time but not against generation-call budget.
-        const wait = Math.max(0, result.retryAfterMs ?? 1000);
-        state.callsUsed--;
-        await ports.clock.sleep(wait);
-        if (state.callsUsed >= budget) return null;
-        state.callsUsed++;
-        const retry = await ports.model.complete({ role, system: p.system, prompt: p.prompt, maxOutputTokens: profile.maxOutputTokens, signal: options.signal });
-        if (isModelError(retry)) { failureReason = `${retry.code}: ${retry.message}`; return null; }
-        return { ...retry, promptVersion: version ?? p.version };
+    const maxAttempts = 2; // bounded: one original call plus at most one recovery call
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) {
+        failureReason = 'cancelled';
+        return null;
       }
-      failureReason = `${result.code}: ${result.message}`;
-      return null;
+      if (state.callsUsed >= budget) return null;
+      const concise = attempt > 0;
+      const prompt = concise
+        ? `${p.prompt.slice(0, 6500)}\n\nRECOVERY: keep the answer minimal and valid. Return only the requested JSON/file marker; omit explanations and optional features.`
+        : p.prompt;
+      state.callsUsed++;
+      const result = await ports.model.complete({ role, system: p.system, prompt, maxOutputTokens: profile.maxOutputTokens, signal: options.signal });
+      if (!isModelError(result)) return { ...result, promptVersion: version ?? p.version };
+
+      const retryable = result.code === 'rate_limited' || result.code === 'timeout' || result.code === 'unavailable' || result.code === 'truncated';
+      if (!retryable || attempt + 1 >= maxAttempts || state.callsUsed >= budget) {
+        failureReason = `${result.code}: ${result.message}`;
+        return null;
+      }
+
+      if (result.code === 'rate_limited') {
+        // Show the wait in the persisted job so the browser can explain that work is ongoing.
+        const requestedWait = Math.max(1000, result.retryAfterMs ?? 5_000);
+        const maxWait = Math.max(1_000, Math.min(180_000, Number(process.env.APP_BUILDER_MAX_RATE_WAIT_MS) || 180_000));
+        if (requestedWait > maxWait) {
+          failureReason = `rate_limited: retry suggested after ${Math.ceil(requestedWait / 1000)}s, beyond the configured wait window; retry this build later. ${result.message}`;
+          return null;
+        }
+        state.error = { code: 'waiting_rate_limit', message: `Waiting ${Math.ceil(requestedWait / 1000)} seconds for model quota before retrying…` };
+        state.stage = 'waiting_model';
+        event(ports, input.jobId, 'model_wait', { reason: 'rate_limit', waitMs: requestedWait, role });
+        await save();
+        await ports.clock.sleep(requestedWait, options.signal);
+        if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) { failureReason = 'cancelled'; return null; }
+        state.error = null;
+        state.stage = role === 'planner' ? 'planning' : 'code';
+        await save();
+      } else {
+        const pause = Math.min(4_000, 900 * (attempt + 1) + Math.floor((ports.clock.now() % 700)));
+        state.error = { code: 'retrying_model', message: `The model did not return a usable response (${result.code}). Retrying once with a shorter request…` };
+        event(ports, input.jobId, 'model_retry', { reason: result.code, waitMs: pause, role });
+        await save();
+        await ports.clock.sleep(pause, options.signal);
+        state.error = null;
+        await save();
+      }
     }
-    return { ...result, promptVersion: version ?? p.version };
+    return null;
   };
   try {
     await save();
     if (!state.spec) {
-    event(ports, input.jobId, 'stage_changed', { stage: 'spec' }); state.stage = 'spec';
+    state.stage = 'spec'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'spec' });
     let specResult = await call('planner', `Create a concise project specification as JSON with schemaVersion, title, goal, language, stack, features[], nonGoals[], acceptance[]. Task: ${input.taskText}`);
     let spec = specResult ? asObject<Spec>(specResult.text) : null;
     if (!spec && state.callsUsed < budget) { specResult = await call('planner', `Return corrected valid JSON only for a Spec with schemaVersion=1. Task: ${input.taskText}`); spec = specResult ? asObject<Spec>(specResult.text) : null; }
@@ -64,7 +94,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     const spec = state.spec!;
     if (!state.plan?.units.length) {
 
-    event(ports, input.jobId, 'stage_changed', { stage: 'plan' }); state.stage = 'plan';
+    state.stage = 'plan'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'plan' });
     const planResult = await call('planner', `Create a Plan JSON with schemaVersion=1, specHash="${sha256(JSON.stringify(spec))}", units[], order[]. Each unit requires id, kind="file", path, purpose, dependsOn[], exports[], contract, maxOutputTokens, status="pending", attempts=0. Task spec: ${JSON.stringify(spec)}`);
     let plan = planResult ? asObject<Plan>(planResult.text) : null;
     let checked: PlanValidationResult = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? 'invalid_plan' }] };
@@ -79,7 +109,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     state.plan = { ...plan, order: checked.order ?? plan.order }; await save();
     }
 
-    event(ports, input.jobId, 'stage_changed', { stage: 'code' }); state.stage = 'code';
+    state.stage = 'code'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'code' });
     const byId = new Map(state.plan.units.map((u) => [u.id, u]));
     for (const id of state.plan.order) {
       if (options.isCancelled && await options.isCancelled()) { cancelled = true; failureReason = 'cancelled'; break; }
@@ -103,12 +133,12 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       unitReports.push({ id, status: 'done', attempts: unit.attempts, modelId, cacheHit: Boolean(cached) });
       event(ports, input.jobId, 'unit_done', { unitId: id, cacheHit: Boolean(cached) }); await save();
     }
-  } catch (error) { failureReason = error instanceof Error ? error.message : String(error); }
+  } catch (error) { if (options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; } else { failureReason = error instanceof Error ? error.message : String(error); } }
 
   const allFilesDone = Boolean(state.plan?.units.length) && state.plan!.units.every((u) => u.status === 'done' || u.status === 'skipped');
   let validators: BuildReport['validators'] = [];
   if (files.size) {
-    event(ports, input.jobId, 'stage_changed', { stage: 'check' }); state.stage = 'check';
+    state.stage = 'check'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'check' });
     validators = runStaticValidators(new Map([...files].map(([p, f]) => [p, f.content])), state.spec);
   }
   const ran = new Set(validators.map((v) => v.name));
