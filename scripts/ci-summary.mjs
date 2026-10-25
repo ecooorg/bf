@@ -17,4 +17,4 @@ if (!report.trim()) {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(reportPath, report);
 }
-if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
+// Intentionally no console or GitHub Actions step-summary output; NEXT_PATCH.md is the sole handoff.

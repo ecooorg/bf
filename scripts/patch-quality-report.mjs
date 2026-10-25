@@ -27,7 +27,7 @@ const stepOutcomes = {
   check: process.env.CHECK_OUTCOME || 'unknown', live: process.env.LIVE_OUTCOME || 'unknown',
   api: process.env.API_OUTCOME || 'unknown', build: process.env.BUILD_OUTCOME || 'unknown',
 };
-const workflowLogNames = ['ci-install.log','ci-diagnostic-gate.log','ci-secondary-diagnostic.log','ci-migrate.log','ci-check.log','ci-live.log','ci-api.log','ci-build.log'];
+const workflowLogNames = ['version-consistency.log','ci-install.log','ci-diagnostic-gate.log','ci-secondary-diagnostic.log','ci-migrate.log','ci-check.log','ci-live.log','ci-api.log','ci-build.log'];
 const workflowErrors = [];
 const errorRe = /(^\s*not ok\s+\d+\s+-|AssertionError|ERR_[A-Z_]+|error TS\d+|(?:^|\s)Error:|Expected values|expected:|actual:|operator:|test timed out after|testTimeoutFailure|ELIFECYCLE|uncaught exception|Cannot find name|SyntaxError|TypeError|ReferenceError|failed with exit code|\[FAIL\]|\[TIMEOUT\])/i;
 function excerptForLog(text, status) {
@@ -118,7 +118,21 @@ for (const stage of failedRows) {
   const evidence = excerptForLog(text, stage.status === 'INTERRUPTED' ? 'TIMEOUT' : stage.status);
   errorSections.push(...(evidence.length ? evidence : ['LOG_EVIDENCE=empty or unavailable']));
   errorSections.push(...sourceContext(stage, text));
+  if (stage.id === 'version-consistency' && !text.trim()) {
+    const pkg = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')); } catch { return {}; } })();
+    const configText = (() => { try { return fs.readFileSync(path.join(root, 'src/config.ts'), 'utf8'); } catch { return ''; } })();
+    const appVersion = (configText.match(/APP_VERSION\s*=\s*'([^']+)'/) || [])[1] || 'unknown';
+    const changelog = (() => { try { return fs.readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8'); } catch { return ''; } })();
+    const release = (changelog.match(/^## (P[0-9]+(?:\.[0-9]+)*)/m) || [])[1] || 'unknown';
+    errorSections.push(`VERSION_CHECK_CONTEXT=package.json version=${pkg.version ?? 'unknown'}; src/config.ts APP_VERSION=${appVersion}; CHANGELOG first release=${release}`);
+    errorSections.push('VERSION_CHECK_SOURCE=scripts/check-version.mjs; rerun: node scripts/check-version.mjs');
+  }
   if (stage.lastOutput?.length) errorSections.push(`LAST_OUTPUT=${stage.lastOutput.slice(-12).map((x) => oneLine(x,220)).join(' || ')}`);
+}
+if (failedStageNames.some((name) => name.startsWith('version-consistency:')) && !workflowErrors.some((group) => group.log === 'version-consistency.log')) {
+  const versionLog = read('version-consistency.log');
+  errorSections.push('--- WORKFLOW_LOG=version-consistency.log');
+  errorSections.push(...(versionLog.trim() ? excerptForLog(versionLog, 'FAIL') : ['LOG_EVIDENCE=empty or unavailable; inspect ci-check.log for the actual check-version output.']));
 }
 for (const group of workflowErrors) {
   // Avoid duplicating the diagnostic gate output already represented by per-probe logs unless it has independent evidence.
@@ -134,7 +148,7 @@ const rerunCommands = [];
 for (const stage of failedRows) {
   const id = String(stage.id || '');
   const script = id.startsWith('test:') || id.startsWith('check:') ? id : null;
-  const command = stage.command ? [stage.command, ...(stage.args || [])].join(' ') : (script && packageJson.scripts?.[script] ? `npm run ${script}` : null);
+  const command = stage.command ? [stage.command, ...(stage.args || [])].join(' ') : (id === 'version-consistency' ? 'node scripts/check-version.mjs' : (script && packageJson.scripts?.[script] ? `npm run ${script}` : null));
   if (command) rerunCommands.push(`${id}: ${command}`);
 }
 handoff.push(`REPO_CHECK_COMMAND=${oneLine(packageJson.scripts?.check || 'unavailable', 1800)}`);
