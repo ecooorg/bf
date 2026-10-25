@@ -1082,11 +1082,25 @@ test('CI summary: green is one line; red names the first failed test, or says th
   assert.deepEqual(ciSummary('success', []), { ok: true, text: 'CI: green' });
   assert.equal(ciSummary('failure', ['ok 1 - a', 'not ok 1 - live restart test']).text, 'CI: red. First failed: live restart test');
   assert.match(ciSummary('failure', []).text, /no test log/);
+  // P96: scripts/ci-summary.mjs publishes NEXT_PATCH.md (or a missing-report stub), not the legacy ::error one-liner.
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-'));
-  fs.writeFileSync(path.join(dir, 'ci-check.log'), 'not ok 3 - something broke\n');
-  const r = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs'), path.join(dir, 'ci-check.log'), path.join(dir, 'missing.log')], { env: { ...process.env, CI_STATUS: 'failure' }, encoding: 'utf8' });
-  assert.equal(r.status, 0);
-  assert.match(r.stdout, /^::error title=BiForge CI::CI: red\. First failed: something broke/);
+  const logsDir = path.join(dir, 'ci-checks');
+  fs.mkdirSync(logsDir, { recursive: true });
+  const rMissing = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
+    env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: logsDir },
+    encoding: 'utf8',
+  });
+  assert.equal(rMissing.status, 0);
+  assert.match(rMissing.stdout, /ASSISTANT HANDOFF/);
+  assert.match(rMissing.stdout, /NEXT_PATCH\.md missing/);
+  fs.writeFileSync(path.join(logsDir, 'NEXT_PATCH.md'), '# BiForge ASSISTANT HANDOFF\nPATCH_STATUS=FAILED\nNEXT_ACTION=fix only\n');
+  const rPresent = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
+    env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: logsDir },
+    encoding: 'utf8',
+  });
+  assert.equal(rPresent.status, 0);
+  assert.match(rPresent.stdout, /PATCH_STATUS=FAILED/);
+  assert.match(rPresent.stdout, /NEXT_ACTION=fix only/);
 });
 
 test('the CI workflow writes the summary after every run and adds no new secret', () => {
