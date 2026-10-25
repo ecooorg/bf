@@ -1,9 +1,9 @@
-## P104 — quiet CI handoff and self-contained NEXT_PATCH.md
+## P103.1 — quiet CI handoff and self-contained NEXT_PATCH.md
 
-- `scripts/ci-summary.mjs`: no longer prints the handoff report (or a missing-report stub) to stdout; it still writes the GitHub Actions step summary and creates `NEXT_PATCH.md` if missing.
+- `scripts/ci-summary.mjs`: emits no console output and writes nothing to the GitHub Actions step summary; it only creates `NEXT_PATCH.md` if missing.
 - `scripts/patch-quality-report.mjs`: adds the exact repository check chain, best-effort failing-stage rerun commands, and wider redacted source context around reported failure locations so `NEXT_PATCH.md` can be forwarded without the source archive for common failures.
 - Updated CI summary tests to enforce zero console output and verify the report/step-summary files instead.
-- Verification: pending local checks; no claim of green CI.
+- Verification: version consistency and focused tests checked locally where dependencies permit; CI status remains unverified.
 
 ## P103 — test audit: remove obsolete tests, fix check chain
 
