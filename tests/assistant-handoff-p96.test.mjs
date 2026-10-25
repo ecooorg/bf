@@ -15,7 +15,7 @@ test('P96 handoff contains exact command, assertion evidence and source context'
   const report = fs.readFileSync('scripts/patch-quality-report.mjs', 'utf8');
   assert.match(fs.readFileSync('scripts/run-diagnostic-gate.mjs', 'utf8'), /expectedTestNames/);
   assert.match(report, /sourceContext/);
-  assert.match(report, /COMMAND=/);
+  assert.match(report, /COMMAND_ARGV=/);
   assert.match(report, /EVIDENCE_BEGIN/);
   assert.match(report, /MISSING_LOGS=/);
   assert.match(report, /timeoutOrigin/);

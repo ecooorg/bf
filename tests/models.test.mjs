@@ -78,7 +78,17 @@ test('gemini adapter maps usage and never exposes the key', async () => {
 });
 
 // ---- Router-min ----
-const reg = REGISTRY_SEED.map((e) => ({ ...e, providerId: 'a', modelId: e.modelId }));
+const reg = (() => {
+  // Router-min tests intentionally require at least four candidates: two rejected
+  // entries plus enough remaining models to reach the maxCalls guard before the
+  // candidate list is exhausted. Do not couple this fixture to production seed size.
+  const entries = REGISTRY_SEED.map((e) => ({ ...e, providerId: 'a', modelId: e.modelId }));
+  while (entries.length < 4) {
+    const source = REGISTRY_SEED[entries.length % REGISTRY_SEED.length];
+    entries.push({ ...source, providerId: 'a', modelId: `${source.modelId}-router-test-${entries.length}` });
+  }
+  return entries;
+})();
 const regTwo = [{ ...reg[0], providerId: 'p1' }, { ...reg[1], providerId: 'p2' }];
 const base = (adapterMap, registry = regTwo, extra = {}) => ({
   registry, adapters: adapterMap, state: newRouterState(), required: ['json_output'],
