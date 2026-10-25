@@ -85,7 +85,7 @@ export function createModelPort(deps: AdapterDeps, projectId: string, jobId?: st
         const cooldownUntil = configured.reduce((max, e) => Math.max(max, deps.routerState.cooldownUntil.get(`${e.providerId}/${e.modelId}`) ?? 0), 0);
         const cooldownWait = Math.max(0, cooldownUntil - Date.now());
         const dailyWait = d.rejected.reduce((max, x) => Math.max(max, Number(x.reason.match(/^quota:rpd:(\d+)$/)?.[1] || 0)), 0);
-        return { code: 'rate_limited', message: why, retryAfterMs: Math.max(r?.retryAfterMs ?? 0, cooldownWait, dailyWait, 5_000) };
+        return { code: 'rate_limited', message: why, retryAfterMs: r?.retryAfterMs != null ? Math.max(5_000, r.retryAfterMs) : Math.max(cooldownWait, dailyWait, 5_000) };
       }
       if (cls === 'INVALID_REQUEST') return { code: 'bad_request', message: why };
       if (cls === 'INVALID_OUTPUT') return { code: 'truncated', message: why };
