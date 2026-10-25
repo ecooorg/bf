@@ -1,10 +1,11 @@
-## P100 — critical router call-limit probe finishes under 15s budget
+## P101 — offline CI suites skip production model start-spacing
 
-Apply on top of P99. Changes:
-- `tests/critical-router-policy-call-limit.test.mjs`: set `MODEL_MIN_INTERVAL_MS=0` at load time so `waitForModelStart` does not apply the default ~6.1s per-model spacing (and same-model transient retry wait) inside the 15s node:test timeout used by the diagnostic gate.
-- Root cause of the P99 TIMEOUT: the third subtest (`router: call limit stops after maxCalls`) performs up to four provider calls with one transient retry path; each same-model retry and subsequent models hit the local rate-limit gate, accumulating past 15s. The first two subtests already passed; the file was cancelled by the test runner.
-- No product/router logic change. Assertions and maxCalls=4 behaviour unchanged.
-- Verification: the isolated critical probe must complete with three PASS under `--test-timeout=15000`. Full diagnostic gate and remaining CI stages NOT RUN in this sandbox (no full `npm ci` / Node 22 image).
+Apply on top of P100. Changes:
+- After P100 the critical router probe was green, but the next diagnostic suites timed out at 60s: `test-core`, `test-models`, `test-files`. Evidence showed ~9–10s between successive expert-endpoint checks in `test-files` — the production default from `minModelIntervalMs` (~6.1s) plus overhead, inherited by servers spawned from tests via `...process.env`.
+- Set `MODEL_MIN_INTERVAL_MS=0` in the child env of `scripts/run-diagnostic-gate.mjs`, `scripts/run-secondary-diagnostic.mjs`, and `scripts/run-independent-checks.mjs` so all offline diagnostic/check stages (and servers they start) skip spacing.
+- Prefix the same env on the main offline `package.json` test scripts (`test:core`, `test:models`, `test:files`, and siblings) so local and non-gated runs stay under the 60s file timeout.
+- No product/router/rate-limit behaviour change in production (env unset → default spacing remains). Rate-limit unit tests that need a non-zero interval can still pass `intervalMs` to `waitForModelStart` or set the env themselves.
+- Verification: diagnostic gate should report PASS for test-core / test-models / test-files (no TIMEOUT). Full secondary/check/live NOT RUN in this sandbox.
 
 ## P99 — trace router policy latency and call-limit timeout. Apply on top of P98. Changes:
 - Adds trace markers around policy routeCall, adapter calls, onCall/onHealth hooks, and call-limit retries/backoff/sleep.
