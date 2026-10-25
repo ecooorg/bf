@@ -53,7 +53,7 @@ for (const item of INVENTORIES) {
 }
 
 const TEST_HINTS = [
-  { match: /^scripts\/docsGenerateInventories\.mjs$/, tests: ['docs:check', 'check:docs', 'test:regression'] },
+  { match: /^scripts\/docsGenerateInventories\.mjs$/, tests: ['docs:check', 'test:regression'] },
   { match: /^scripts\/architectureGenerateModuleMap\.mjs$/, tests: ['architecture:check', 'test:regression'] },
   { match: /^tests\/impact-lineage\.test\.mjs$/, tests: ['test:impact-lineage'] },
   { match: /^server\/(?:.*Routes|server)\.ts$|^server\.ts$/, tests: ['test:core', 'test:project', 'test:security'] },

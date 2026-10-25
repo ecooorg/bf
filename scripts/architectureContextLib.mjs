@@ -106,7 +106,7 @@ export function planContext(inputs, { graph = buildGraph(), readFile = read, fil
     supportingContext: evidence.filter((e) => !e.reasons.some((r) => r.startsWith('static '))),
     integrationPoints: integrationPoints.sort((a, b) => a.file.localeCompare(b.file) || a.lines[0] - b.lines[0]),
     suggestedNpmScripts: [...suggested].sort(),
-    verification: ['npm run architecture:check', 'npm run check:docs', 'npm run check'],
+    verification: ['npm run architecture:check', 'npm run check'],
     uncertainties: [...uncertainty].sort(),
     scope: 'One-hop static imports and importers; explicit source evidence for selected non-import links. Not a complete dependency graph.',
   };

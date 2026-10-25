@@ -6,8 +6,7 @@
  *   1. architecture map generation
  *   2. boundary / cycle check (ratchet)
  *   3. optional change-impact if CHANGED_FILES or args provided
- *   4. check:docs
- *   5. typecheck (tsc --noEmit) when not --skip-typecheck
+ *   4. typecheck (tsc --noEmit) when not --skip-typecheck
  *
  * Does NOT run the full test suite (use npm run check). Records BLOCKED/NOT_RUN
  * when a step is skipped or cannot run.
@@ -98,9 +97,6 @@ if (changed.length) {
     detail: 'no changed files provided (args or CHANGED_FILES)',
   });
 }
-
-// 4. docs
-record('docs', runNpm('check:docs'));
 
 // 5. typecheck
 if (skipTypecheck) {

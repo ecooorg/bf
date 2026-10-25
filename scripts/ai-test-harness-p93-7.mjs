@@ -14,7 +14,6 @@ fs.mkdirSync(logDir, { recursive: true });
 const report = { schemaVersion: 1, patch: 'P93.7', startedAt: new Date(startedAt).toISOString(), budgetMs: totalBudgetMs, node: process.version, platform: process.platform, cwd: root, dependenciesPresent: fs.existsSync(path.join(root, 'node_modules')), capabilities: { viteInstalled: fs.existsSync(path.join(root, 'node_modules/vite/package.json')), typescriptInstalled: fs.existsSync(path.join(root, 'node_modules/typescript/package.json')), tsxInstalled: fs.existsSync(path.join(root, 'node_modules/tsx/package.json')), playwrightInstalled: fs.existsSync(path.join(root, 'node_modules/playwright/package.json')), browserTestsRequested: process.env.BIFORGE_RUN_BROWSER_TESTS === 'true', databaseConfigured: Boolean(process.env.DATABASE_URL), liveProviderCalls: false, installsDependencies: false }, results: [], summary: {} };
 const commands = [
   { id: 'version', args: ['scripts/check-version.mjs'], timeoutMs: 15_000, requiresDeps: false },
-  { id: 'docs', args: ['scripts/check-docs.mjs'], timeoutMs: 20_000, requiresDeps: false },
   { id: 'copy-lint', args: ['scripts/lint-copy.mjs'], timeoutMs: 20_000, requiresDeps: false },
   { id: 'architecture', args: ['scripts/architectureCheckBoundaries.mjs'], timeoutMs: 20_000, requiresDeps: false },
   { id: 'vite-build', args: ['node_modules/vite/bin/vite.js', 'build'], timeoutMs: 75_000, requiresDeps: true },

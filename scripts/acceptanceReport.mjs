@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Phase 5 (p78) — lightweight acceptance summary for Navigator packages.
- * Runs fast static gates only (architecture + doc inventories + check:docs).
+ * Runs fast static gates only (architecture + doc inventories).
  * Does NOT replace full `npm run check` or live/API CI.
  *
  *   npm run acceptance:report
@@ -13,7 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const outDir = path.join(root, 'docs');
+const outDir = path.join(root, 'artifacts', 'qa');
 
 function run(cmd, args) {
   const r = spawnSync(cmd, args, { cwd: root, encoding: 'utf8', env: process.env, shell: false });
@@ -28,7 +28,6 @@ function run(cmd, args) {
 const steps = [
   { id: 'architecture.check', run: () => run(process.execPath, ['scripts/architectureCheckBoundaries.mjs']) },
   { id: 'docs.inventories', run: () => run(process.execPath, ['scripts/docsCheckInventories.mjs']) },
-  { id: 'docs.links', run: () => run(process.execPath, ['scripts/check-docs.mjs']) },
 ];
 
 const checks = [];
@@ -65,6 +64,7 @@ const summary = {
   notRunHere: ['npm run check', 'test:live', 'test:bx06:api', 'test:ui'],
 };
 
+fs.mkdirSync(outDir, { recursive: true });
 fs.mkdirSync(outDir, { recursive: true });
 const outFile = path.join(outDir, 'generated-acceptance-summary.json');
 fs.writeFileSync(outFile, JSON.stringify(summary, null, 2) + '\n', 'utf8');

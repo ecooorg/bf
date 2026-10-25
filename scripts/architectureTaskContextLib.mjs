@@ -49,7 +49,7 @@ export function planTaskContext(task, { contextPlanner = planContext, fileExists
     changeTargets, mustRead: changeTargets.slice(0, 5), readIfNeeded: supporting.slice(0, 12), notNeededByDefault: [],
     contracts: matched.map((f) => ({ name: f.contract, evidence: 'heuristic', sourceCandidates: f.files.filter(fileExists) })),
     requiredTests: tests.map((name) => ({ name, reason: 'Feature or P81 context mapping', evidence: 'heuristic' })),
-    mandatoryChecks: ['npm run check:docs', 'npm run architecture:check', 'npm run check'],
+    mandatoryChecks: ['npm run architecture:check', 'npm run check'],
     invariants: matched.map((f) => ({ text: f.invariant, evidence: 'heuristic', status: 'review-required' })),
     integrationPoints: existing?.integrationPoints || [],
     uncertainties: [...gaps, ...(existing?.uncertainties || []), 'Task intent, test coverage, dynamic dependencies and runtime outcomes require human verification.'],

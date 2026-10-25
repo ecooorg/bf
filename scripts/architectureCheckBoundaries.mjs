@@ -114,7 +114,7 @@ if (newBoundary.length) {
   }
 }
 
-const outDir = path.join(root, 'docs');
+const outDir = path.join(root, 'artifacts', 'qa');
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(
   path.join(outDir, 'generated-boundary-report.json'),

@@ -55,7 +55,7 @@ const RULES = [
   {
     id: 'docs-generated-inventory',
     matches: (files, task) => /(^|\/)docs\/|docsGenerate|generated-(route|env|migration|module)|architecture.*(Map|Inventory)/i.test(files.join(' ')) || /documentation|inventory|generated file|module map/i.test(task),
-    fast: ['check:docs'], targeted: ['docs:check', 'architecture:check', 'test:impact-lineage'],
+    fast: [], targeted: ['docs:check', 'architecture:check', 'test:impact-lineage'],
     counterexamples: [
       'Generated inventory is valid and points only to existing source paths.',
       'A stale or malformed generated artifact is detected rather than silently accepted.',

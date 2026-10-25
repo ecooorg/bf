@@ -126,7 +126,7 @@ function evaluateScenario(root, graph, scenario, targetField) {
     suggestedNpmScripts: plan.suggestedNpmScripts,
     uncertainties: plan.uncertainties,
     missingGoldInTree: missingGold,
-    verification: uniq(['npm run architecture:check', 'npm run check:docs', 'npm run typecheck', 'npm run check', ...plan.suggestedNpmScripts]).map((command) => ({ command, status: 'not-run-by-benchmark', durationMs: null })),
+    verification: uniq(['npm run architecture:check', 'npm run typecheck', 'npm run check', ...plan.suggestedNpmScripts]).map((command) => ({ command, status: 'not-run-by-benchmark', durationMs: null })),
     touchedFiles: { status: 'not-applicable-read-only-analysis', count: null },
   };
 }

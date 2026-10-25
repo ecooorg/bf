@@ -21,7 +21,7 @@ fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 const skip = new Set(opt('skip', '').split(',').map((x) => x.trim()).filter(Boolean));
 const LIMITS = { ci: 600, typecheck: 300, check: 900, live: 600, build: 300, 'check-version': 120 };
-const DEPENDENCY_FREE = new Set(['check-version', 'check:docs', 'lint:copy', 'test:version']);
+const DEPENDENCY_FREE = new Set(['check-version', 'lint:copy', 'test:version']);
 const logPatch = opt('patch', 'PNN').replace(/[^a-zA-Z0-9._-]/g, '_');
 const logDir = path.resolve('patch-logs', logPatch);
 fs.mkdirSync(logDir, { recursive: true });

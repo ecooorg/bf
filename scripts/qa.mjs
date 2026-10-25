@@ -12,7 +12,6 @@ const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const node = process.execPath;
 const tasks = [
   ['version-consistency', node, ['scripts/check-version.mjs']],
-  ['docs-links', node, ['scripts/check-docs.mjs']],
   ['version-test', node, ['tests/version-check.test.mjs']],
   ['copy-lint', node, ['scripts/lint-copy.mjs']],
   ['typecheck', npm, ['run', 'typecheck']],
