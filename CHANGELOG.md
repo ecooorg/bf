@@ -1,3 +1,9 @@
+## P103 CI follow-up — collect all checks after failures
+
+- Fixed `ci-diagnostics-chain.test.mjs` to test the current P96 `ci-summary.mjs` handoff-report contract; removed imports of obsolete `inspectLogs` / `renderStageTable` exports.
+- CI workflow now runs secondary diagnostics, migrations, remaining checks, live/API tests, and build after earlier failures (provided dependency installation succeeded). Each stage still records its own result; the workflow remains failed if any required stage fails.
+- Verification: pending local test execution; hosted CI not run in this patch.
+
 ## P103 — test audit: remove obsolete tests, fix check chain
 
 Apply on top of P102. Changes:
