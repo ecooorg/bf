@@ -42,28 +42,28 @@ jobs:
         shell: bash
         run: set -o pipefail; node scripts/run-diagnostic-gate.mjs 2>&1 | tee artifacts/ci-checks/ci-diagnostic-gate.log
 
-      # Phase 2 only runs if all checks in phase 1 passed; both secondary suites run regardless of each other's result.
+      # Secondary diagnostics always run after install, even if the primary gate fails.
       - name: P93.9 secondary diagnostic gate
         id: secondary
-        if: steps.diagnostic.outcome == 'success'
+        if: always() && steps.deps.outcome == 'success'
         timeout-minutes: 8
         shell: bash
         run: set -o pipefail; node scripts/run-secondary-diagnostic.mjs 2>&1 | tee artifacts/ci-checks/ci-secondary-diagnostic.log
 
-      # Migrations are delayed until all offline diagnostics are green.
+      # Migrations run after install regardless of diagnostic results, to collect downstream evidence.
       - name: Apply migrations to clean PostgreSQL
         id: migrate
-        if: steps.secondary.outcome == 'success'
+        if: always() && steps.deps.outcome == 'success'
         shell: bash
         run: set -o pipefail; npm run db:migrate 2>&1 | tee artifacts/ci-checks/ci-migrate.log
         env:
           DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
           PGSSLMODE: disable
 
-      # Run remaining npm check chain only after diagnostics are green. Skip suites already passed in the gates.
+      # Run remaining checks even after failures; the runner records each result and continues. Skip suites already covered in gates.
       - name: Check (remaining independent stages)
         id: check
-        if: steps.secondary.outcome == 'success' && steps.migrate.outcome == 'success'
+        if: always() && steps.deps.outcome == 'success'
         timeout-minutes: 30
         shell: bash
         run: set -o pipefail; node scripts/run-independent-checks.mjs 2>&1 | tee artifacts/ci-checks/ci-check.log
@@ -72,7 +72,7 @@ jobs:
 
       - name: Live PostgreSQL contract tests
         id: live
-        if: steps.check.outcome == 'success'
+        if: always() && steps.deps.outcome == 'success'
         timeout-minutes: 10
         shell: bash
         run: set -o pipefail; npm run test:database:live 2>&1 | tee artifacts/ci-checks/ci-live.log
@@ -81,7 +81,7 @@ jobs:
           PGSSLMODE: disable
       - name: Project Mode API security tests
         id: api
-        if: steps.live.outcome == 'success'
+        if: always() && steps.deps.outcome == 'success'
         timeout-minutes: 10
         shell: bash
         run: set -o pipefail; npm run test:bx06:api 2>&1 | tee artifacts/ci-checks/ci-api.log
@@ -90,7 +90,7 @@ jobs:
           PGSSLMODE: disable
       - name: Build application
         id: build
-        if: steps.api.outcome == 'success'
+        if: always() && steps.deps.outcome == 'success'
         timeout-minutes: 8
         shell: bash
         run: set -o pipefail; npm run build 2>&1 | tee artifacts/ci-checks/ci-build.log
