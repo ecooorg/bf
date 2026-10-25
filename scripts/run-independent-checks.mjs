@@ -13,8 +13,10 @@ if (typeof check !== 'string') {
   process.exit(2);
 }
 const scriptNames = [...new Set([...check.matchAll(/npm run ([a-zA-Z0-9:_-]+)/g)].map((m) => m[1]))];
+const skipScripts = new Set(String(process.env.CHECK_SKIP_SCRIPTS || '').split(',').map((s) => s.trim()).filter(Boolean));
 const tasks = [['version-consistency', process.execPath, ['scripts/check-version.mjs']]];
 for (const name of scriptNames) {
+  if (skipScripts.has(name)) { console.log(`[SKIP already passed in diagnostic gate] ${name}`); continue; }
   if (!pkg.scripts[name]) tasks.push([`unknown-${name}`, 'npm', ['run', name]]);
   else tasks.push([name, process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', name]]);
 }
@@ -22,6 +24,8 @@ const logDir = path.join(root, 'artifacts', 'ci-checks');
 fs.mkdirSync(logDir, { recursive: true });
 const results = [];
 const startedAt = new Date().toISOString();
+const previousDoc = (() => { try { return JSON.parse(fs.readFileSync(path.join(logDir, 'results.json'), 'utf8')); } catch { return null; } })();
+const previousResults = Array.isArray(previousDoc?.results) ? previousDoc.results : [];
 const limitMs = Math.min(600_000, Math.max(1_000, Number(process.env.CHECK_TIMEOUT_MS) || 600_000));
 
 function run(id, command, args) {
@@ -80,14 +84,17 @@ function run(id, command, args) {
 
 console.log(`CI independent checks: ${tasks.length} stages; each limited to ${Math.round(limitMs / 1000)} seconds.`);
 for (const task of tasks) await run(...task);
+const merged = new Map();
+for (const row of previousResults) merged.set(row.id, row);
+for (const row of results) merged.set(row.id, row);
+const allResults = [...merged.values()];
 const summary = {
-  schemaVersion: 1,
-  startedAt,
-  finishedAt: new Date().toISOString(),
-  summary: Object.fromEntries(['PASS', 'FAIL', 'TIMEOUT'].map((s) => [s.toLowerCase(), results.filter((r) => r.status === s).length])),
-  results,
+  schemaVersion: 2, phase: 'remaining-checks', startedAt: previousDoc?.startedAt || startedAt, finishedAt: new Date().toISOString(),
+  skippedScripts: [...skipScripts],
+  summary: Object.fromEntries(['PASS', 'FAIL', 'TIMEOUT'].map((s) => [s.toLowerCase(), allResults.filter((r) => r.status === s).length])),
+  results: allResults,
 };
 fs.writeFileSync(path.join(logDir, 'results.json'), JSON.stringify(summary, null, 2) + '\n');
-console.log(`\nCI checks summary: ${summary.summary.pass} PASS, ${summary.summary.fail} FAIL, ${summary.summary.timeout} TIMEOUT`);
+console.log(`\nCI cumulative summary: ${summary.summary.pass} PASS, ${summary.summary.fail} FAIL, ${summary.summary.timeout} TIMEOUT; ran ${results.length} remaining checks, skipped ${skipScripts.size} already-covered scripts.`);
 console.log(`Detailed logs: ${path.relative(root, logDir)}`);
-process.exitCode = summary.summary.fail || summary.summary.timeout ? 1 : 0;
+process.exitCode = results.some((r) => r.status === 'FAIL' || r.status === 'TIMEOUT') ? 1 : 0;

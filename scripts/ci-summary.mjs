@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ciSummary } from './patch-tools.mjs';
 
-export const EXPECTED_LOGS = ['ci-install.log', 'ci-migrate.log', 'ci-check.log', 'ci-live.log', 'ci-api.log', 'ci-build.log'];
+export const EXPECTED_LOGS = ['ci-install.log', 'ci-migrate.log', 'ci-diagnostic-gate.log', 'ci-secondary-diagnostic.log', 'ci-check.log', 'ci-live.log', 'ci-api.log', 'ci-build.log'];
 
 /** Pure: describes which logs exist in `dir` and why the others are missing. */
 export function inspectLogs(dir) {
