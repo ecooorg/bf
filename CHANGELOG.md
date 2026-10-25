@@ -1,3 +1,7 @@
+## P103.1 — CI handoff output newline fix (2026-10-25)
+- `scripts/ci-summary.mjs`: write the handoff report verbatim instead of using `console.log`, which appended an extra newline and broke the strict CLI contract test.
+- Verification: failure reproduced from CI evidence; local test execution not run in this patch workspace.
+
 ## P103 CI follow-up — collect all checks after failures
 
 - Fixed `ci-diagnostics-chain.test.mjs` to test the current P96 `ci-summary.mjs` handoff-report contract; removed imports of obsolete `inspectLogs` / `renderStageTable` exports.
