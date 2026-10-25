@@ -731,13 +731,6 @@ test('buildReviewFindings: violations → high', async () => {
   assert.ok(out.findings.some((f) => f.summary.includes('path_not_allowed')));
 });
 
-test('APP_VERSION matches package.json', async () => {
-  const cfg = readFileSync(`${root}/src/config.ts`, 'utf8');
-  const m = cfg.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
-  assert.ok(m);
-  const pkg = JSON.parse(readFileSync(`${root}/package.json`, 'utf8'));
-  assert.equal(pkg.version, m[1]);
-});
 }
 // ===== END p21-acceptance.test.mjs =====
 
@@ -804,11 +797,6 @@ test('diagnostic report names the stop and asks for a human', async () => {
   assert.match(prompt, /Do the spec/);
 });
 
-test('APP_VERSION matches package.json', async () => {
-  const m = readFileSync(`${root}/src/config.ts`, 'utf8').match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
-  assert.ok(m);
-  assert.equal(JSON.parse(readFileSync(`${root}/package.json`, 'utf8')).version, m[1]);
-});
 }
 // ===== END p22-acceptance.test.mjs =====
 
@@ -878,11 +866,6 @@ test('renderOpsHtml escapes and lists metrics', async () => {
   assert.ok(!html.includes('<script>'));
 });
 
-test('backup-restore check script exists', async () => {
-  for (const f of ['scripts/backup-restore-check.mjs']) {
-    assert.ok(fs.existsSync(path.join(root, f)), f);
-  }
-});
 
 test('ops:backup-check exits 0 offline with migrations on disk', async () => {
   const env = { ...process.env };

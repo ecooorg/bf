@@ -550,11 +550,6 @@ test('QA1 Simple: information mode paragraph has no decision rituals', () => {
 // ---------------------------------------------------------------------------
 // 9. Integrity of prior mode regressions
 // ---------------------------------------------------------------------------
-test('QA1 integrity: MP2/MP3/P41 regression files exist', () => {
-  for (const f of ['tests/pipeline.test.mjs', 'tests/core.test.mjs']) {
-    assert.ok(existsSync(join(root, f)), `missing ${f}`);
-  }
-});
 
 console.log('QA1 offline cross-mode suite loaded');
 }

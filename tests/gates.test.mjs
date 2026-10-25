@@ -457,9 +457,5 @@ test('e01-notes-merge builds NOTES and RESULTS from fixtures', () => {
   fs.rmSync(out, { recursive: true, force: true });
 });
 
-test('CONCEPTS e01 lab files are optional (off-repo allowed)', () => {
-  // CONCEPTS/e01-task.yml and e01-lab-SETUP.md may be removed after local backup (HISTORY_OFFREPO).
-  assert.ok(fs.existsSync(path.join(root, 'scripts/e01-notes-merge.mjs')));
-});
 }
 // ===== END pa04-acceptance.test.mjs =====
