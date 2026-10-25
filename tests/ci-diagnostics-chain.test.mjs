@@ -42,6 +42,7 @@ test('ci-summary publishes NEXT_PATCH.md without writing the handoff to console'
   const dir = tmp();
   fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# BiForge ASSISTANT HANDOFF\nPATCH_STATUS=FAILED\nNEXT_ACTION=fix only\n');
   const summaryPath = path.join(dir, 'github-summary.md');
+  fs.writeFileSync(summaryPath, '');
   const r = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
     env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: dir, GITHUB_STEP_SUMMARY: summaryPath },
     encoding: 'utf8',
@@ -49,7 +50,7 @@ test('ci-summary publishes NEXT_PATCH.md without writing the handoff to console'
   assert.equal(r.status, 0);
   assert.equal(r.stdout, '');
   assert.equal(r.stderr, '');
-  assert.equal(fs.readFileSync(summaryPath, 'utf8'), fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8') + '\n');
+  assert.equal(fs.readFileSync(summaryPath, 'utf8'), '', 'GitHub Actions summary must remain completely empty');
 });
 
 test('ci-summary creates a useful NEXT_PATCH.md stub when the report is missing without console output', () => {
