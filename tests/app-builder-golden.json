@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    { "id": "tetris", "task": "Tetris game", "acceptance": ["has_file:index.html", "has_file:app.js", "html_has:index.html:canvas", "js_contains:app.js:keydown"], "expectedFiles": ["index.html", "style.css", "app.js", "README.md"], "keywords": ["canvas", "keydown"], "maxCalls": 6 },
+    { "id": "todo", "task": "To-do list", "acceptance": ["has_file:index.html", "html_has:index.html:#todo-list", "js_contains:app.js:addEventListener"], "expectedFiles": ["index.html", "style.css", "app.js", "README.md"], "keywords": ["todo"], "maxCalls": 6 },
+    { "id": "calculator", "task": "Calculator", "acceptance": ["has_file:index.html", "html_has:index.html:button", "js_contains:app.js:addEventListener"], "expectedFiles": ["index.html", "style.css", "app.js", "README.md"], "keywords": ["button"], "maxCalls": 6 },
+    { "id": "business-card-site", "task": "Three-page business card site", "acceptance": ["has_file:index.html", "has_file:about.html", "has_file:contacts.html", "html_has:index.html:about.html"], "expectedFiles": ["index.html", "about.html", "contacts.html", "style.css"], "keywords": ["contacts"], "maxCalls": 8 }
+  ]
+}
