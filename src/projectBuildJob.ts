@@ -2,6 +2,7 @@
 export type BuildJobResult = {
   jobId?: string; status?: string; stage?: string; downloadUrl?: string;
   goalImplemented?: boolean | null; error?: { code?: string; message?: string } | string | null;
+  callsUsed?: number; callsBudget?: number; units?: Array<{ id: string; path?: string | null; status?: string; attempts?: number }>; 
   report?: { status?: string; failureReason?: string | null } | null;
   diagnosticsUrl?: string; note?: string; taskId?: string; codeTask?: { status?: string; statusReason?: string; [key: string]: unknown }; stack?: string;
 };
@@ -15,6 +16,7 @@ async function getData<T>(url: string): Promise<T> {
 
 export async function waitForProjectBuild(projectId: string, initial: BuildJobResult, onProgress?: (job: BuildJobResult) => void): Promise<BuildJobResult> {
   if (!initial.jobId) return initial;
+  onProgress?.(initial);
   const statusUrl = `/api/projects/${encodeURIComponent(projectId)}/code/build/${encodeURIComponent(initial.jobId)}`;
   let consecutiveErrors = 0;
   for (let i = 0; i < 240; i++) {

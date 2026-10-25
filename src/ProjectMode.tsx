@@ -69,6 +69,12 @@ export default function ProjectMode() {
   const [driveConnected, setDriveConnected] = useState(() => isMirrorConnected());
   const [driveBusy, setDriveBusy] = useState(false);
   const [programResult, setProgramResult] = useState<{ taskId: string; codeTask: any; downloadUrl?: string; note?: string } | null>(null);
+  const [buildProgress, setBuildProgress] = useState<{ job: BuildJobResult; startedAt: number } | null>(null);
+  const buildStartedAtRef = useRef<number | null>(null);
+  const updateBuildProgress = (job: BuildJobResult) => {
+    if (buildStartedAtRef.current == null) buildStartedAtRef.current = Date.now();
+    setBuildProgress({ job, startedAt: buildStartedAtRef.current });
+  };
   const [decisionText, setDecisionText] = useState('');
   const [artifacts, setFiles] = useState<{ artifact_id: string; version: number; filename: string; hash: string }[]>([]);
   const [artifactText, setArtifactText] = useState('');
@@ -170,8 +176,11 @@ export default function ProjectMode() {
     setLastRun(r); setTask(''); return `Analysis done: ${r.changes.length} proposed change(s). Review them below.`;
   });
   const buildProgram = () => act(async () => {
+    buildStartedAtRef.current = Date.now();
     const started = await api<BuildJobResult & { taskId?: string; codeTask?: any; stack?: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: programGoal }) });
-    const r = started.jobId ? await waitForProjectBuild(selected!.id, started) : started;
+    if (started.jobId) updateBuildProgress(started);
+    const r = started.jobId ? await waitForProjectBuild(selected!.id, started, updateBuildProgress) : started;
+    if (started.jobId) updateBuildProgress(r);
     setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build', codeTask: r.codeTask || { status: r.status || 'unknown', statusReason: r.note } } as any); setProgramGoal('');
     return r.downloadUrl ? (r.note?.startsWith('WARNING') ? r.note : 'Program source generated; download is ready.') : (r.note || 'No downloadable source was produced. Check project settings and try again.');
   });
@@ -449,6 +458,24 @@ export default function ProjectMode() {
           {describeCapabilities(capabilities).filter(r => !r.on && r.label !== 'Writing to GitHub').map(r => <StateNotice key={r.label} kind="unavailable"><strong>{r.label}: not available</strong> — {r.note}</StateNotice>)}
         </details>
       </div>
+    {buildProgress && (() => {
+      const job = buildProgress.job;
+      const code = typeof job.error === 'object' && job.error ? (job.error as any).code : '';
+      const msg = code === 'waiting_rate_limit' ? 'Лимит модели достигнут — ожидаем разрешённого повтора. Сборка не зависла.'
+        : code === 'waiting_model' ? 'Ожидаем безопасный интервал перед запросом к модели…'
+        : code === 'retrying_model' ? 'Модель не вернула пригодный ответ. Повторяем один раз с более коротким запросом…'
+        : job.status === 'done' ? (job.goalImplemented ? 'Сборка завершена и проверена.' : 'ZIP создан, но часть проверок не подтверждена.')
+        : job.status === 'failed' ? 'Сборка остановлена. Ниже указана причина и дальнейшие действия.'
+        : job.status === 'cancelled' ? 'Сборка отменена.'
+        : ({ spec: 'Уточняем требования…', plan: 'Планируем файлы…', planning: 'Ожидаем ответа модели при планировании…', code: 'Ожидаем ответа модели / создаём файлы…', waiting_model: 'Ожидаем ответа модели. Это может занять некоторое время…', check: 'Проверяем созданные файлы…', preflight: 'Подготавливаем сборку…' } as Record<string, string>)[job.stage || ''] || 'Сборка выполняется…';
+      return <div role="status" aria-live="polite" data-testid="project-build-live-status" style={{ margin: '12px 0', padding: '12px 14px', border: '1px solid #3d7fc4', borderRadius: 9, background: '#0b2545', color: '#e6edf7' }}>
+        <strong>{['done', 'failed', 'cancelled'].includes(String(job.status)) ? 'Статус сборки' : 'Сборка проекта'}</strong>
+        <p style={{ margin: '6px 0' }}>{msg}</p>
+        <small style={{ color: '#a9bfd8' }}>Этап: {job.stage || 'подготовка'} · Прошло {Math.max(0, Math.floor((Date.now() - buildProgress.startedAt) / 1000))} с · Запросов модели: {job.callsUsed ?? 0}/{job.callsBudget ?? '—'}{job.jobId ? ` · Задание ${job.jobId.slice(0, 8)}` : ''}</small>
+        {job.units?.length ? <p style={{ margin: '6px 0 0', fontSize: 12, color: '#a9bfd8' }}>Файлы: {job.units.filter((u: any) => u.status === 'done').length}/{job.units.length} готовы.</p> : null}
+        {job.note && <p style={{ margin: '6px 0 0', fontSize: 13 }}>{job.note}</p>}
+      </div>;
+    })()}
     {authenticated && enabled && builderPath === null && !selected && (
       <ProjectPathChooser disabled={busy} onChoose={(p) => setBuilderPath(p)} />
     )}
@@ -493,7 +520,10 @@ export default function ProjectMode() {
                 name: answers ? undefined : undefined,
               }) },
             );
-            const r = started.jobId ? await waitForProjectBuild(projectId, started) : started;
+            buildStartedAtRef.current = Date.now();
+            if (started.jobId) updateBuildProgress(started);
+            const r = started.jobId ? await waitForProjectBuild(projectId, started, updateBuildProgress) : started;
+            if (started.jobId) updateBuildProgress(r);
             setProgramResult(r as any);
             return { downloadUrl: r.downloadUrl, goalImplemented: r.goalImplemented ?? undefined, note: r.note || r.codeTask?.statusReason || (r.status ? `Build status: ${r.status}` : 'Build finished without a downloadable ZIP.'), status: r.status || r.codeTask?.status, stack: r.stack };
           } finally { setBusy(false); }
