@@ -1,3 +1,16 @@
+## ANR-P0-001 — start AI-NATIVE-RENOVATION and consolidate documentation entry points
+
+- Establishes the active AI-NATIVE-RENOVATION programme, with VIX retained as the long-horizon strategic destination.
+- Adds/normalizes the four canonical programme documents under `docs/`:
+  - `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`
+  - `docs/AI-NATIVE-RENOVATION-MANDATE.md`
+  - `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (clean filename; replaces the Unicode/em-dash variant)
+  - `docs/AI-NATIVE-RENOVATION-TASK.md` (Phase 0 technical assignment only; draft appendices removed)
+- Updates `AGENTS.md` and `docs/DOCUMENTATION-INDEX.md` so the renovation documents are the active entry points; historical P81–P103 status is retained under a historical track.
+- Adds root `ARCHIVE-MOVE-LIST.md` as the exhaustive, reference-checked manual migration checklist (Groups A–D). No files are moved or deleted by this patch.
+- No application source, package scripts, CI workflows, migrations, security controls, or runtime behavior are changed.
+- Verification: documentation-only static consistency checks. Full CI and Markdown link scanner NOT RUN in this preparation environment. User reports baseline CI green.
+
 ## P103.1 — quiet CI handoff and self-contained NEXT_PATCH.md
 
 - `scripts/ci-summary.mjs`: emits no console output and writes nothing to the GitHub Actions step summary; it only creates `NEXT_PATCH.md` if missing.

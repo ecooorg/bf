@@ -1,5 +1,16 @@
 ## Current status
 
+### Active programme — AI-NATIVE-RENOVATION
+
+* **Current phase:** Phase 0 — documentation and source-of-truth consolidation. The current delivery task is `docs/AI-NATIVE-RENOVATION-TASK.md`; the phase plan is `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
+* **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
+* **Archive status:** root `ARCHIVE-MOVE-LIST.md` is the manual checklist. Candidate historical documents are **not** considered archived until moved after reference checks. Do not bulk-move files or remove unique active requirements.
+* **Evidence rule:** the Navigator reports current CI as green; each patch must still use evidence for its actual commit/run. Historical red runs do not establish current status.
+* **Delivery rule:** continue one bounded patch at a time. Phase transitions require their stated evidence gates; do not advance a phase just because documentation or code exists.
+
+### Recent product / patch status (historical track)
+
 * **P93 — bounded verification and internal diagnostics:** `npm run test:ai` runs a deterministic, no-live-provider test sequence under a hard 9.5-minute budget and writes a JSON report plus per-step logs. Adds shared model request-start pacing (PostgreSQL-coordinated when migration 018 is applied), Gemini RPM/RPD metadata and request pacing/daily reservation enforcement, bounded model recovery with visible wait states, shorter recovery prompts, and a live project-build status banner. Staged App Builder (flag-gated). App Builder core contracts:** Flat `appBuilder/` with types, ports, plan validator, marker parser, conservative profile. No engine/adapter/runtime yet. Architecture layer and tsconfig include added.
 * **P92 — Project Mode Diagnostics:** Added system diagnostics, recent operations, diagnostic log export, and initial Google Drive synchronization and operation/artifact correlation support. Build and deployment succeeded, but production verification remains incomplete. Diagnostic checks reported `WARN`; artifact storage was `NOT RUN`, recent operations returned no events, and Google Drive diagnostic files were not observed. Verify deployed changes, database migrations, event persistence, artifact correlation, and Drive synchronization before considering diagnostics complete. See `CHANGELOG.md` for change history.
 * **P91 (prepared patch):** Read-only scoped completeness and material-uncertainty guard combining P85–P89 outputs. Missing sources and unproven PASS claims cannot become COMPLETE; evidence references are retained but not fetched/authenticated. No strict CI gate or runtime changes. Focused tests and full CI must be confirmed after applying. See `docs/CONTEXT-COMPLETENESS-P91.md`.  
@@ -17,8 +28,6 @@
 * **p79:** CI ui-check Playwright cache (skip apt on cache hit)
 * **p71–p78 (Transformation track): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 
-* **VIX:** `docs/VIX-CONCEPT.md` preserves the broader VIX target architecture as a long-term conceptual reference; it does not expand the near-term implementation scope by itself.
-
 ### Product / runtime (P43 / ADR-06)
 
 * Code delivery executor **`model_patch`** is documented and env-gated: set `CODE_EXECUTOR=model_patch` only after Navigator approval (ADR-10 / E-01). Default remains `manual`.
@@ -26,21 +35,18 @@
 
 ## Navigation
 
+* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (current Phase 0 task), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (audit).
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
-* Transformation contract (historical + gates): `docs/AI-TRANSFORMATION-SPEC.md`.
 * Domain index: `docs/DOCUMENTATION-INDEX.md`.
-* Baseline notes: `docs/DOCUMENTATION-BASELINE.md`.
 * Operations: `docs/OPERATIONS.md`.
 * Architecture guardrails: `docs/architecture-guardrails.md`.
-* AI-native delivery plan P81–P84: `docs/AI-NATIVE-ROADMAP-P81-P84.md`.
-* Next AI-native roadmap P85–P91: `docs/AI-NATIVE-ROADMAP-P85-P91.md` (VIX-inspired principles integrated into existing workflows; human-effort gate; future work, one patch at a time, green CI required between patches).
-* Project Mode diagnostics roadmap: `docs/PROJECT-MODE-DIAGNOSTICS-ROADMAP.md` (proposed stage-by-stage logging, ZIP/artifact integrity checks, bounded diagnostic export and P85–P91 mapping; future work only).
-* Intent contract P89: `docs/INTENT-CONTRACT-P89.md` (optional draft-only contract, no approval or command execution).
-* Context refresh profile P90: `docs/CONTEXT-REFRESH-P90.md` (profile before optimizing; no cache introduced).
-* Context completeness guard P91: `docs/CONTEXT-COMPLETENESS-P91.md` (scoped COMPLETE/PARTIAL/UNVERIFIED states, traceable evidence and actionable gaps; report-only).
+* Strategic destination (not near-term implementation authority): `docs/VIX-CONCEPT.md`.
+* Manual archive checklist: `ARCHIVE-MOVE-LIST.md` (root).
+* Historical / superseded phase specs and roadmaps: see `ARCHIVE-MOVE-LIST.md`; until moved they remain under `docs/` but are not active entry points.
 * Typing conventions: `docs/typing-and-naming.md`.
 * Accepted Phase 5 record (archive): `archive/phase5-ACCEPTANCE.md`.
 * Generated inventories: `docs/generated-*-inventory.json`, `docs/generated-module-map.json`.
+
 
 ## Commands
 
