@@ -72,7 +72,7 @@
     "test:diagnostics:p93-7": "node --import tsx --test tests/p93-7-diagnostic-logging.test.mjs",
     "patch:quality-report": "node scripts/patch-quality-report.mjs",
     "test:patch-quality-report": "node --test tests/patch-quality-report-p93-8.test.mjs",
-    "test:compact-ci-artifacts": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/assistant-handoff-p96.test.mjs"
+    "test:compact-ci-artifacts": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/assistant-handoff-p96.test.mjs tests/critical-first-p97.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
