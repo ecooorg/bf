@@ -14,7 +14,7 @@ const rows = [];
 for (const task of tasks) {
   const logPath = path.join(dir, `${task.id}.log`), out = fs.createWriteStream(logPath);
   const start = Date.now(); let timedOut = false, settled = false;
-  const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', task.script], { cwd: root, env: { ...process.env, CI: process.env.CI || '1' }, stdio: ['ignore','pipe','pipe'], shell: process.platform === 'win32', detached: process.platform !== 'win32' });
+  const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', task.script], { cwd: root, env: { ...process.env, CI: process.env.CI || '1', MODEL_MIN_INTERVAL_MS: '0' }, stdio: ['ignore','pipe','pipe'], shell: process.platform === 'win32', detached: process.platform !== 'win32' });
   const collect = (chunk) => { out.write(chunk); process.stdout.write(chunk); };
   child.stdout.on('data', collect); child.stderr.on('data', collect);
   const timer = setTimeout(() => { timedOut = true; try { if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, 'SIGKILL'); else child.kill('SIGKILL'); } catch {} }, task.timeoutMs);

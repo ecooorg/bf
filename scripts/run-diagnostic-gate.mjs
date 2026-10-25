@@ -54,7 +54,9 @@ function run(task, args, logName, stage) {
     const childArgs = task.script ? ['run', task.script] : args;
     const child = spawn(command, childArgs, {
       cwd: root,
-      env: { ...process.env, CI: process.env.CI || '1' },
+      // Offline diagnostic probes and suites must not pay the production model
+      // start-spacing (~6s). Server processes spawned by tests inherit this env.
+      env: { ...process.env, CI: process.env.CI || '1', MODEL_MIN_INTERVAL_MS: '0' },
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: process.platform === 'win32',
       detached: process.platform !== 'win32',

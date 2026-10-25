@@ -39,7 +39,7 @@ function run(id, command, args) {
     console.log(`\n[RUN] ${id}: ${command} ${args.join(' ')} (timeout ${Math.round(limitMs / 1000)}s)`);
     const child = spawn(command, args, {
       cwd: root,
-      env: { ...process.env, CI: process.env.CI || '1' },
+      env: { ...process.env, CI: process.env.CI || '1', MODEL_MIN_INTERVAL_MS: '0' },
       detached: process.platform !== 'win32',
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: process.platform === 'win32',
