@@ -108,6 +108,12 @@ jobs:
         run: node scripts/patch-quality-report.mjs
         env:
           CI_STATUS: ${{ job.status }}
+          DIAGNOSTIC_OUTCOME: ${{ steps.diagnostic.outcome }}
+          SECONDARY_OUTCOME: ${{ steps.secondary.outcome }}
+          CHECK_OUTCOME: ${{ steps.check.outcome }}
+          LIVE_OUTCOME: ${{ steps.live.outcome }}
+          API_OUTCOME: ${{ steps.api.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
 
       - name: Result summary
         if: always()
@@ -115,11 +121,15 @@ jobs:
         env:
           CI_STATUS: ${{ job.status }}
 
-      - name: Upload CI Logs as Artifacts
+      - name: Package compact CI artifact
+        if: always()
+        run: node scripts/package-ci-artifacts.mjs
+
+      - name: Upload compact CI report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-execution-logs
+          name: biforge-ci-report
           path: artifacts/ci-checks/
           if-no-files-found: error
           retention-days: 7
