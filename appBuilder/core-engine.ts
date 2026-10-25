@@ -34,6 +34,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     const maxAttempts = 2; // bounded: one original call plus at most one recovery call
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) {
+        cancelled = true;
         failureReason = 'cancelled';
         return null;
       }
@@ -65,7 +66,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
         event(ports, input.jobId, 'model_wait', { reason: 'rate_limit', waitMs: requestedWait, role });
         await save();
         await ports.clock.sleep(requestedWait, options.signal);
-        if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) { failureReason = 'cancelled'; return null; }
+        if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) { cancelled = true; failureReason = 'cancelled'; return null; }
         state.error = null;
         state.stage = role === 'planner' ? 'planning' : 'code';
         await save();
@@ -112,7 +113,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     state.stage = 'code'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'code' });
     const byId = new Map(state.plan.units.map((u) => [u.id, u]));
     for (const id of state.plan.order) {
-      if (options.isCancelled && await options.isCancelled()) { cancelled = true; failureReason = 'cancelled'; break; }
+      if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) { cancelled = true; failureReason = 'cancelled'; break; }
       const unit = byId.get(id)!; unit.status = 'running'; unit.attempts++;
       event(ports, input.jobId, 'unit_started', { unitId: id, path: unit.path });
       const key = makeCacheKey({ unitInput: { spec, unit: { ...unit, status: undefined, attempts: undefined, cacheKey: undefined, resultRef: undefined } }, promptVersion: options.promptVersion, modelId: options.modelId ?? profile.id });
@@ -121,7 +122,10 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       let modelId: string | undefined = undefined;
       if (!content) {
         const output = await call('coder', `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.`);
-        if (!output) { unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts }); void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason ?? 'model_unavailable' } }); await save(); break; }
+        if (!output) {
+          if (cancelled || options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; unit.status = 'pending'; await save(); break; }
+          unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts }); void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason ?? 'model_unavailable' } }); await save(); break;
+        }
         modelId = output.modelId;
         const parsed = parseFileMarkers(output.text);
         const found = parsed.files.find((f) => f.path === unit.path);
@@ -144,7 +148,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const ran = new Set(validators.map((v) => v.name));
   const validatorsOk = allFilesDone && REQUIRED_VALIDATORS.every((n) => ran.has(n)) && validators.every((v) => v.ok);
   if (allFilesDone && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || 'not run'}`;
-  const status = validatorsOk ? 'complete' : files.size ? 'partial' : 'failed';
+  const status = cancelled ? 'partial' : validatorsOk ? 'complete' : files.size ? 'partial' : 'failed';
   const note = failureReason ?? (templateUsed ? `plan_fallback_used: ${templateUsed}` : undefined);
   const report: BuildReport = { schemaVersion: SCHEMA_VERSION, jobId: input.jobId, status, goalImplemented: validatorsOk, files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })), units: unitReports, validators, callsUsed: state.callsUsed, durationMs: Math.max(0, ports.clock.now() - started), ...(note ? { failureReason: note } : {}) };
   state.status = cancelled ? 'cancelled' : status === 'complete' ? 'done' : 'failed'; if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : 'build_incomplete', message: failureReason.slice(0, 300) }; state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
