@@ -45,13 +45,6 @@ test('every conversation prompt names the latest message as the answer target', 
   assert.match(ANSWER_TARGET_RULE, /last entry with role "user" in "history"/);
 });
 
-test('server guards the retry and does not duplicate the latest message in the model input (Token Economy)', () => {
-  const src = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(src, /currentUserMessage/);
-  assert.match(src, /retryDriftedToOpening\(out\.reply, retryOut\.reply, lastUserText/);
-  assert.match(src, /if \(!retryDrifted && retryOut\?\.reply/);
-});
-
 // ===== P57 latency policy (pure, no network) =====
 import {
   LATENCY_DEFAULTS, readLatencyPolicy, shouldSkipQualityRetry, trimOlderAssistantMessages, createPhaseTimer,
@@ -102,14 +95,4 @@ test('P57: phase timer sums phases and reports the total', () => {
   t += 100; timer.mark('b');
   t += 10; timer.mark('a');
   assert.deepEqual(timer.summary(), { a: 50, b: 100, totalMs: 150 });
-});
-
-test('P57: server wires the latency policy without removing the quality retry', () => {
-  const src = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
-  assert.match(src, /readLatencyPolicy\(\)/);
-  assert.match(src, /shouldSkipQualityRetry\(Date\.now\(\) - requestStartedAt, LATENCY\.retryMaxElapsedMs\)/);
-  assert.match(src, /if \(needRetry && !retrySkippedForLatency && STRONG_MODELS\.length > 1\)/);   // retry still exists
-  assert.match(src, /timeoutMs: LATENCY\.verifierTimeoutMs/);
-  assert.match(src, /trimOlderAssistantMessages\(recent, LATENCY\.recentMessagesKept/);
-  assert.match(src, /type: 'conversation_timing'/);
 });

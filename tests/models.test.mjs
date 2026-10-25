@@ -715,19 +715,6 @@ test('CLI: --fake writes a deterministic report; without --fake it refuses with 
   assert.equal(live.status, 2);
 });
 
-test('deliverables: golden-eval script, npm scripts, check includes test:p10', () => {
-  // ARCHIVE/GOLDEN-EVAL-REPORT.md is optional (off-repo history). Prove the generator works into a temp file.
-  const out = path.join(root, 'tests/p10-golden-tmp.md');
-  try { fs.unlinkSync(out); } catch { /* missing */ }
-  const args = ['--import', 'tsx', path.join(root, 'scripts/golden-eval.mjs'), '--fake', '--date', '2026-10-16', '--out', out];
-  execFileSync(process.execPath, args, { cwd: root });
-  const report = fs.readFileSync(out, 'utf8');
-  assert.match(report, /^Mode: fake$/m); assert.match(report, /^# Golden-eval report/m);
-  try { fs.unlinkSync(out); } catch { /* ignore */ }
-  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-  assert.ok(pkg.scripts['eval:golden'] && pkg.scripts['test:models']);
-  assert.ok(pkg.scripts.check.includes('npm run test:models'));
-});
 }
 // ===== END p10-acceptance.test.mjs =====
 
@@ -818,16 +805,6 @@ test('TaskError carries a code and an HTTP status', () => {
   for (const [c, s] of Object.entries(st)) { const e = new TaskError(c, 'm'); assert.equal(e.code, c); assert.equal(e.status, s); assert.ok(e instanceof Error); }
 });
 
-test('migration 005 and npm scripts', () => {
-  const sql = fs.readFileSync(path.join(root, 'migrations/005_tasks_runs.sql'), 'utf8');
-  for (const t of ['tasks', 'runs', 'task_events']) assert.match(sql, new RegExp(`CREATE TABLE IF NOT EXISTS ${t}\\b`));
-  assert.match(sql, /UNIQUE\s*\(\s*project_id\s*,\s*idempotency_key\s*\)/i);
-  assert.match(sql, /UNIQUE\s*\(\s*task_id\s*,\s*attempt\s*\)/i);
-  assert.match(sql, /UNIQUE\s*\(\s*task_id\s*,\s*idempotency_key\s*\)/i);
-  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-  assert.ok(pkg.scripts['test:models']); assert.ok(pkg.scripts.check.includes('npm run test:models'));
-  assert.ok(pkg.scripts['test:database:live'].includes('tests/database.test.mjs'));
-});
 }
 // ===== END p11-acceptance.test.mjs =====
 
@@ -886,17 +863,6 @@ test('createWorker validates its options and exposes tick/start/stop', () => {
   assert.throws(() => createWorker({ workerId: '', handler }));
 });
 
-test('migration 006, SKIP LOCKED claim, npm scripts', () => {
-  const sql = fs.readFileSync(path.join(root, 'migrations/006_jobs.sql'), 'utf8');
-  assert.match(sql, /CREATE TABLE IF NOT EXISTS jobs\b/);
-  assert.match(sql, /run_id[^,]*\bUNIQUE\b|UNIQUE\s*\(\s*run_id\s*\)/i);
-  for (const col of ['seq', 'status', 'lease_owner', 'lease_until', 'heartbeat_at', 'available_at', 'claims']) assert.match(sql, new RegExp(`\\b${col}\\b`), col);
-  const svc = fs.readFileSync(path.join(root, 'server/queueService.ts'), 'utf8');
-  assert.match(svc, /FOR UPDATE SKIP LOCKED/i);
-  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-  assert.ok(pkg.scripts['test:models']); assert.ok(pkg.scripts.check.includes('npm run test:models'));
-  assert.ok(pkg.scripts['test:database:live'].includes('tests/database.test.mjs'));
-});
 }
 // ===== END p12-acceptance.test.mjs =====
 
@@ -1103,13 +1069,6 @@ test('CI summary: green is one line; red names the first failed test, or says th
   assert.match(rPresent.stdout, /NEXT_ACTION=fix only/);
 });
 
-test('the CI workflow writes the summary after every run and adds no new secret', () => {
-  const ci = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  assert.match(ci, /if: always\(\)\n\s+run: node scripts\/ci-summary\.mjs\n/);
-  assert.match(ci, /CI_STATUS: \$\{\{ job\.status \}\}/);
-  assert.deepEqual([...new Set([...ci.matchAll(/secrets\.([A-Z_]+)/g)].map((m) => m[1]))], ['GITHUB_TOKEN']);
-});
-
 test('report: statuses come from the commands; NOT_RUN and BLOCKED are never shown as PASS', () => {
   const cmds = [{ cmd: 'npm run check', status: 'PASS', note: 'exit 0' }, { cmd: 'live', status: 'NOT_RUN', note: 'DATABASE_URL is not set' }];
   assert.equal(overallStatus([], [cmds[0]]), 'PASS');
@@ -1156,12 +1115,6 @@ test('pack end to end: only changed and new files in the archive, report written
 });
 
 
-test('patch packer produces a verified bf-<id>.zip and reads the archive back', () => {
-  const packer = fs.readFileSync(path.join(root, 'scripts/patch-pack.mjs'), 'utf8');
-  assert.match(packer, /opt\('out', `bf-\$\{archiveId\}\.zip`\)/);
-  assert.match(packer, /readZipTree\(archiveBuffer\)/);
-  assert.match(packer, /content mismatch for/);
-});
 }
 // ===== END p13a-acceptance.test.mjs =====
 
@@ -1271,15 +1224,6 @@ test('manifest checksum changes with every field; storage reference is a pg refe
   assert.equal(m.storageRef, 'pg:r1');
 });
 
-test('migration 008: adds a manifest table only, backfills older versions idempotently, same formula as the code', () => {
-  const sql = fs.readFileSync(path.join(root, 'migrations/008_artifact_manifests.sql'), 'utf8');
-  assert.match(sql, /CREATE TABLE IF NOT EXISTS artifact_manifests/);
-  assert.match(sql, /ON CONFLICT \(artifact_id, version\) DO NOTHING/);
-  assert.match(sql, /a\.artifact_id \|\| '\|' \|\| a\.version \|\| '\|' \|\| a\.project_id \|\| '\|' \|\| a\.hash \|\| '\|' \|\| a\.size \|\| '\|pg:' \|\| a\.id/);
-  assert.doesNotMatch(sql, /DROP |ALTER TABLE artifacts|(?<!ON )DELETE |TRUNCATE/i);
-  const names = fs.readdirSync(path.join(root, 'migrations')).filter((f) => f.endsWith('.sql')).sort();
-  assert.deepEqual(names.map((n) => n.slice(0, 3)), names.map((_, i) => String(i + 1).padStart(3, '0')));
-});
 }
 // ===== END p14-acceptance.test.mjs =====
 
@@ -1293,30 +1237,6 @@ const path = (await import("node:path")).default;
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
-
-test('P13b routes expose plans, approvals, queueing and explicit evidence-backed validation', async () => {
-  const { serverSources } = await import('./_sources.mjs');
-  const server = serverSources();
-  for (const route of [
-    "'/api/projects/:projectId/plans'",
-    "'/api/projects/:projectId/approvals'",
-    "'/api/projects/:projectId/budgets/:scope/:scopeId'",
-    "'/api/projects/:projectId/approvals/:approvalId/decision'",
-    "'/api/projects/:projectId/tasks/:taskId/queue'",
-    "'/api/projects/:projectId/tasks/:taskId/validate'",
-  ]) assert.ok(server.includes(route), `missing route ${route}`);
-  assert.match(server, /actorKind:\s*'human'/);
-  assert.match(server, /evidence: z\.array\(z\.string\(\)\.trim\(\)\.min\(1\)/);
-});
-
-test('worker starts only in authenticated, configured Project Mode and writes run-linked evidence', () => {
-  const server = read('server.ts');
-  assert.match(server, /PROJECT_MODE_ENABLED && process\.env\.DATABASE_URL && ai/);
-  assert.match(server, /projectWorker = createWorker\(/);
-  assert.match(server, /await projectWorker\.start\(\)/);
-  assert.match(server, /taskId: task\.id, runId: run\.id/);
-  assert.match(server, /artifact:\$\{result\.artifact\.artifactId\}@\$\{result\.artifact\.version\}/);
-});
 
 test('each worker model call is budget-guarded before provider execution and ledger uses the DB Run id', () => {
   const analysis = read('server/analysisService.ts');

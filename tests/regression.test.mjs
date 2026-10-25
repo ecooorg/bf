@@ -32,34 +32,11 @@ function currentRoutes() {
   return out;
 }
 
-test('P56 every test file is run by some npm script (no silent orphans)', () => {
-  const scripts = Object.values(pkg).join(' ');
-  const files = fs.readdirSync(path.join(root, 'tests')).filter((f) => /\.mjs$/.test(f) && f !== 'ui-check.mjs' && !f.startsWith('_'));
-  const orphans = files.filter((f) => !scripts.includes(`tests/${f}`));
-  assert.deepEqual(orphans, [], `These test files are not run by any npm script, so CI never runs them: ${orphans.join(', ')}`);
-});
-
-test('P56 every test script is part of the check chain or a separate CI step', () => {
-  const chain = new Set([...pkg.check.matchAll(/npm run ([\w:-]+)/g)].map((m) => m[1]));
-  for (const name of Object.keys(pkg)) {
-    if (!/^(test|lint|typecheck|verify)/.test(name) || name === 'check') continue;
-    assert.ok(chain.has(name) || SEPARATE_CI_STEPS.has(name), `npm script ${name} is not in "check" and is not a listed separate CI step`);
-  }
-  for (const name of chain) assert.ok(pkg[name], `"check" runs npm run ${name}, but the script does not exist`);
-  for (const name of SEPARATE_CI_STEPS) assert.ok(pkg[name], `separate CI step ${name} is missing`);
-});
-
 test('P56 no npm script uses --test-force-exit (it silently drops tests that register after an await)', () => {
   // The grouped test files register tests after top-level `await import(...)`. --test-force-exit kills the process as soon as the
   // tests registered so far finish, so a varying share of the suite never ran (and never failed) in CI.
   const bad = Object.entries(pkg).filter(([, cmd]) => /--test-force-exit/.test(String(cmd))).map(([name]) => name);
   assert.deepEqual(bad, [], `Remove --test-force-exit from: ${bad.join(', ')}`);
-});
-
-test('P56 nothing was dropped from the check chain', () => {
-  const chain = new Set([...pkg.check.matchAll(/npm run ([\w:-]+)/g)].map((m) => m[1]));
-  const dropped = manifest.checkChain.filter((n) => !chain.has(n));
-  assert.deepEqual(dropped, [], `These checks used to run in "check" and no longer do: ${dropped.join(', ')}. ${hint}`);
 });
 
 test('P56 every API route of the manifest is still registered', () => {

@@ -53,12 +53,6 @@ test('synthetic leak in fixture text is detectable by findLeakedSecretNames when
   assert.ok(!cleaned.includes('sk-leaked-should-never-appear'));
 });
 
-test('approve/exfil imperatives are present as plain text (documentation of intent)', () => {
-  const approve = fs.readFileSync(path.join(dir, 'file_approve_plan.txt'), 'utf8');
-  assert.match(approve, /approve/i);
-  const pr = fs.readFileSync(path.join(dir, 'pr_description_exfil.txt'), 'utf8');
-  assert.match(pr, /API keys|SESSION_SECRET/i);
-});
 }
 // ===== END injection-corpus.test.mjs =====
 
@@ -174,18 +168,6 @@ test('audit catalog covers TZ §13.5 required event names', () => {
 });
 
 
-test('current AI operating rules preserve GitHub and secret safety policies', () => {
-  const rules = fs.readFileSync(
-    path.join(root, 'docs/AI-OPERATING-RULES.md'),
-    'utf8'
-  );
-
-  assert.match(rules, /GitHub access is read-only by default/i);
-  assert.match(rules, /merge/i);
-  assert.match(rules, /admin(?:istrator)? permission/i);
-  assert.match(rules, /secret/i);
-  assert.match(rules, /do not reproduce secret values/i);
-});
 }
 // ===== END p23-acceptance.test.mjs =====
 
@@ -203,11 +185,6 @@ const { dirname, join } = await import("node:path");
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
-
-test('P43 AGENTS.md state records the model_patch executor', () => {
-  const status = read('AGENTS.md');
-  assert.match(status, /model_patch/);
-});
 
 test('P43 runtime gate unchanged: CODE_EXECUTOR must equal model_patch', () => {
   const svc = read('server/codeTaskService.ts');

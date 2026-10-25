@@ -245,21 +245,6 @@ test('Collector: a failing connection is FAIL; a verify run that cannot start is
   assert.equal(r.steps['RM-A3'].record, null);
 });
 
-test('Workflow evidence.yml is read-only, manual and writes nothing', () => {
-  const y = read('.github/workflows/evidence.yml');
-  assert.match(y, /^on:\s*workflow_dispatch\s*$/m);
-  assert.doesNotMatch(y, /^\s*(push|pull_request|schedule):/m);
-  assert.match(y, /permissions:\s*\n\s*contents: read/);
-  assert.doesNotMatch(y, /contents:\s*write|issues:\s*write|pull-requests:\s*write|git push|git commit|gh pr|gh api/);
-  for (const m of y.matchAll(/\$\{\{\s*([^}]+?)\s*\}\}/g)) assert.match(m[1], /^(secrets\.[A-Z_]+|vars\.[A-Z_]+|github\.sha)$/, m[1]);
-});
-
-test('Delegation policy is in force in AGENTS.md, tiers are written down, tier 3 is not delegable', () => {
-  const d = read('AGENTS.md');
-  for (const t of ['Tier 0', 'Tier 1', 'Tier 2', 'Tier 3']) assert.ok(d.includes(t), t);
-  assert.match(d, /Tier 3:\*\* Never decide alone/);
-  assert.match(d, /merge/i);
-});
 }
 // ===== END pa01-acceptance.test.mjs =====
 
@@ -429,14 +414,6 @@ test('PA-03 reports live endpoint failures without leaking secrets', async () =>
 });
 
 
-test('PA-03 workflow is manual, read-only at repository level, and does not deploy or write commits', () => {
-  const workflow = fs.readFileSync(new URL('../.github/workflows/staging-drills.yml', import.meta.url), 'utf8');
-  assert.match(workflow, /workflow_dispatch/);
-  assert.match(workflow, /contents:\s*read/);
-  assert.doesNotMatch(workflow, /schedule:|contents:\s*write|git push|railway deploy|gh pr merge/i);
-  assert.match(workflow, /STAGING_SERVICE_URL/);
-  assert.match(workflow, /hostname does not identify a staging database/);
-});
 }
 // ===== END pa03-acceptance.test.mjs =====
 

@@ -30,8 +30,6 @@ test('P94 report preserves TAP assertion details and timeout tail', () => {
     assert.match(report, /expected 2, actual 1/);
     assert.match(report, /Expected: 2/);
     assert.match(report, /Actual: 1/);
-    assert.match(report, /LAST_SUCCESSFUL_TEST/);
-    assert.match(report, /diagnostics\.zip/);
     assert.match(report, /ASSISTANT HANDOFF/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

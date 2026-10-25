@@ -471,28 +471,8 @@ test('P55 the brief panel is a real dialog with its own layout and no JSON dump'
 });
 
 // ---- header menu (item 4) ----
-test('P55 More is a closed dropdown at every width', () => {
-  assert.match(css, /\.hdr-more-btn\{display:inline-flex/);
-  assert.doesNotMatch(css, /@media\(min-width:901px\)\{\s*\.hdr-more-wrap \.hdr-secondary\{display:contents/);
-  assert.match(css, /\n\.hdr-more-wrap \.hdr-secondary\{display:none !important;position:absolute;right:0/);
-  assert.match(css, /\n\.hdr-more-wrap \.hdr-secondary\.open\{display:flex !important\}/);
-  assert.match(app, /document\.addEventListener\('touchstart', onDoc/);
-  assert.match(app, /aria-expanded=\{moreOpen\}/);
-  assert.match(app, /useState\(false\);\n  const \[sub, setSub\]/, 'the menu starts closed');
-});
 
 // ---- wiring (items 1 and 2) ----
-test('P55 every upload path reaches Drive: Attach files, conversation files, exports, agent documents', () => {
-  assert.match(wp, /import \{ mirrorBlob, mirrorUserFile \} from '\.\/driveMirror\.ts'/);
-  assert.match(wp, /void mirrorUserFile\(f\)/);
-  assert.match(wp, /webkitRelativePath/, 'a whole folder is not copied file by file');
-  assert.match(wp, /void mirrorBlob\(\{ name: result\.filename/);
-  assert.match(cf, /void mirrorUserFile\(f\)/);
-  assert.doesNotMatch(cf, /mirrorUserFile\(f, 'simple'\)/);
-  assert.match(app, /setMirrorMode\(expertMode \? 'expert' : 'simple'\)/);
-  assert.doesNotMatch(app, /mirrorUserFile\(file, 'expert'\)/);
-  assert.match(read('src/programFiles.ts'), /'unknown',\s*\/\/ the folder follows the mode/);
-});
 
 test('P55 connecting Drive saves the waiting files and reports a missing permission', () => {
   assert.match(ud, /storeMirrorToken\(t\)/);

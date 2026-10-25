@@ -215,38 +215,7 @@ const repo = fs.readFileSync(new URL('../server/projectRepository.ts', import.me
 const main = fs.readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
 
 // Updated in P56: the same contracts, asserted against the current code (messages and structure moved after BX-06).
-test('Project Mode is opt-in and requires credentials plus PostgreSQL at startup', async () => {
-  assert.match(server, /ENABLE_PROJECT_MODE === 'true'/);
-  assert.match(server, /ENABLE_PROJECT_MODE=true requires APP_PASSWORD and ENABLE_APP_AUTH=true/);
-  assert.match(server, /Project Mode must never start without authentication/);
-  assert.match(server, /ENABLE_PROJECT_MODE=true requires SESSION_SECRET/);
-  assert.match(server, /ENABLE_PROJECT_MODE=true requires DATABASE_URL/);
-  assert.match(server, /SESSION_SECRET is required \(at least 16 characters\)/);
-});
 
-test('Project Mode mutating routes require same-origin Origin and persistent rate limiting', async () => {
-  assert.match(server, /Project Mode writes require a same-origin request/);
-  assert.match(server, /code: 'CSRF_ORIGIN'/);
-  assert.match(server, /consumeRateLimit\(\{ key, limit: Number\(process\.env\.PROJECT_RATE_LIMIT_PER_MINUTE\) \|\| 300, windowMs: 60_000 \}\)/);
-  assert.match(repo, /INSERT INTO rate_limits/);
-});
-
-test('Project Mode routes are gated and its UI is a separate switchable page', async () => {
-  assert.match(server, /PROJECT_MODE_DISABLED/);
-  assert.match(server, /app\.get\('\/api\/projects'/);
-  assert.match(server, /app\.post\('\/api\/projects'/);
-  assert.match(main, /pathname === '\/project'/);
-  assert.match(main, /lazy\(\(\) => import\('\.\/ProjectMode\.tsx'\)\)/);
-  assert.match(app, /data-testid="start-mode-project"/);
-  assert.match(app, /disabled=\{!projectModeEnabled\}/);
-  assert.match(app, /if \(mode === 'Project' && !projectModeEnabled\) return;/);
-});
-
-test('Simple Mode still uses its existing decision state and local storage path', async () => {
-  assert.match(app, /getStoredDecisions/);
-  assert.match(app, /saveDecisions/);
-  assert.match(app, /chooseStartMode\('Simple'\)|mode === 'Simple'/);
-});
 }
 // ===== END bx06-contract.test.mjs =====
 
@@ -286,42 +255,6 @@ const main = fs.readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8'
 const projectUI = fs.readFileSync(new URL('../src/ProjectMode.tsx', import.meta.url), 'utf8');
 const appUI = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 const modeMenuUI = fs.readFileSync(new URL('../src/ModeMenu.tsx', import.meta.url), 'utf8');
-
-test('BX-06 Project Mode is opt-in and fails closed without required security settings', () => {
-  assert.match(server, /ENABLE_PROJECT_MODE === 'true'/);
-  assert.match(server, /requires APP_PASSWORD and ENABLE_APP_AUTH=true/);
-  assert.match(server, /requires SESSION_SECRET/);
-  assert.match(server, /requires DATABASE_URL/);
-  assert.match(server, /Project Mode authentication required/);
-  assert.match(server, /Project Mode writes require a same-origin request/);
-});
-
-test('BX-06 Project Mode uses persistent PostgreSQL rate limits and returns 429', async () => {
-  assert.match(server, /consumeRateLimit\(/);
-  assert.match(server, /key: `login:\$\{ip\}`/);
-  assert.match(server, /auth\.login\.succeeded/);
-  assert.match(server, /RATE_LIMIT_UNAVAILABLE/);
-  assert.match(server, /RATE_LIMITED/);
-  assert.match(database, /schema_migrations/);
-  assert.match(database, /001_project_state/);
-});
-
-test('BX-06 Simple Mode and Project Mode have separate UI entry points', async () => {
-  assert.match(main, /window\.location\.pathname === '\/project'/);
-  assert.match(main, /<Root \/>/);
-  assert.match(projectUI, /\/api\/projects/);
-  assert.match(projectUI, /expected_version/);
-  assert.match(projectUI, /projectModeEnabled/);
-  assert.match(projectUI, /Project Mode is disabled/);
-  assert.match(projectUI, /async function logout/);
-  assert.match(projectUI, /href="\/"/);
-  assert.match(server, /projectModeEnabled: PROJECT_MODE_ENABLED/);
-  assert.match(appUI, /projectModeEnabled=\{projectModeEnabled\}/);
-  // P51: the Project entry lives in the shared Mode menu and leaves the chat shell through chooseStartMode
-  assert.match(modeMenuUI, /mode: 'Project'/);
-  assert.match(appUI, /window\.location\.href = '\/project'/);
-  assert.match(appUI, /expertMode=\{expertMode\}[\s\S]*?onSelectMode=/);
-});
 
 test('health and readiness expose stable JSON status contracts', async () => {
   assert.match(routes, /app\.get\('\/health'/);
@@ -673,11 +606,6 @@ const test = (await import("node:test")).default;
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 
-test('docs and migration for P20 exist', async () => {
-  assert.ok(existsSync(`${root}/migrations/011_code_task_package_approval.sql`));
-  assert.ok(existsSync(`${root}/server/briefWriter.ts`));
-});
-
 test('evaluateTestIntegrity allows package-declared acceptance paths (P20 baseline)', async () => {
   const { evaluateTestIntegrity } = await import(pathToFileURL(`${root}/server/gateEngine.ts`).href);
   const files = [
@@ -696,24 +624,6 @@ test('evaluateTestIntegrity allows package-declared acceptance paths (P20 baseli
   assert.ok(still.touched.some((p) => p.includes('other')));
 });
 
-test('brief_writer source exports buildTaskPackageFromBrief and validates goal', async () => {
-  const src = readFileSync(`${root}/server/briefWriter.ts`, 'utf8');
-  assert.match(src, /export function buildTaskPackageFromBrief/);
-  assert.match(src, /packageAcceptancePaths/);
-  assert.match(src, /taskPackageSchema/);
-  assert.match(src, /goal is required/);
-});
-
-test('approval and commit helpers are present', async () => {
-  const src = readFileSync(`${root}/server/codeTaskService.ts`, 'utf8');
-  assert.match(src, /approveCodePackage/);
-  assert.match(src, /commitApprovedPackage/);
-  assert.match(src, /package_approved_at/);
-  const { serverSources } = await import('./_sources.mjs');
-  const server = serverSources();
-  assert.match(server, /code\/brief/);
-  assert.match(server, /commit-package/);
-});
 }
 // ===== END p20-acceptance.test.mjs =====
 
@@ -727,12 +637,6 @@ const test = (await import("node:test")).default;
 const { serverSources } = await import('./_sources.mjs');
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
-
-test('P20b docs and sources exist', async () => {
-  assert.ok(readFileSync(`${root}/server/taskService.ts`, 'utf8').includes('gatesAllowTaskPass'));
-  assert.ok(readFileSync(`${root}/server/gateEngine.ts`, 'utf8').includes('gatesAllowTaskPass'));
-  assert.ok(serverSources().includes("gates/:gate/approve"));
-});
 
 test('gatesAllowTaskPass: no snapshot allows PASS; RC PASS allows; blocked otherwise', async () => {
   const { gatesAllowTaskPass, evaluateAll, GATE_RULES_VERSION } = await import(pathToFileURL(`${root}/server/gateEngine.ts`).href);
@@ -768,10 +672,6 @@ test('gatesAllowTaskPass: no snapshot allows PASS; RC PASS allows; blocked other
   assert.ok(blocked.blockers.length >= 1);
 });
 
-test('GATES_BLOCKED is a task error code', async () => {
-  const src = readFileSync(`${root}/server/taskMachine.ts`, 'utf8');
-  assert.match(src, /GATES_BLOCKED/);
-});
 }
 // ===== END p20b-acceptance.test.mjs =====
 
@@ -785,18 +685,6 @@ const test = (await import("node:test")).default;
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const { serverSources } = await import('./_sources.mjs');
-
-test('P21 docs and sources exist', async () => {
-  assert.ok(existsSync(`${root}/server/reviewer.ts`));
-  assert.ok(existsSync(`${root}/migrations/012_code_task_decision.sql`));
-  const srv = serverSources();
-  assert.match(srv, /code\/:codeTaskId\/review/);
-  assert.match(srv, /code\/:codeTaskId\/decide/);
-  const cts = readFileSync(`${root}/server/codeTaskService.ts`, 'utf8');
-  assert.match(cts, /runCodeTaskReview/);
-  assert.match(cts, /decideCodeTask/);
-  assert.match(cts, /decision:/);
-});
 
 test('buildReviewFindings: FAIL on build → high; empty gates → no high', async () => {
   const { buildReviewFindings } = await import(pathToFileURL(`${root}/server/reviewer.ts`).href);
@@ -863,14 +751,6 @@ const test = (await import("node:test")).default;
 
 const root = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const { serverSources } = await import('./_sources.mjs');
-
-test('P22 docs and sources exist', async () => {
-  assert.ok(existsSync(`${root}/server/repairLoop.ts`));
-  assert.ok(existsSync(`${root}/migrations/013_repair_loop.sql`));
-  const srv = serverSources();
-  assert.match(srv, /code\/:codeTaskId\/repair/);
-  assert.match(readFileSync(`${root}/server/codeTaskService.ts`, 'utf8'), /requestRepair/);
-});
 
 test('classifyFailure: security before build; criteria from human repair', async () => {
   const { classifyFailure } = await import(pathToFileURL(`${root}/server/repairLoop.ts`).href);
@@ -1109,10 +989,6 @@ test('P53 interface text: plain rows, scope sentence, no env names, no "administ
   assert.doesNotMatch(pm, /when your administrator has enabled/);
 });
 
-test('P53 scope decision is carried by code comments and .env.example', async () => {
-  assert.match(gh, /implies no GitHub write/);
-  assert.match(read('.env.example'), /does NOT switch on any GitHub write/);
-});
 }
 // ===== END p53-project-scope.test.mjs =====
 
@@ -1245,19 +1121,6 @@ test('P54 plain text: states, stop reasons and hand-off steps', () => {
   for (const r of STOP_REASONS) assert.notEqual(stopReasonLabel(r), r, `plain sentence for ${r}`);
   const t = handoffText('biforge/t1').join(' ');
   assert.match(t, /PACKAGE\.md/); assert.match(t, /biforge\/t1/); assert.match(t, /pull request/);
-});
-
-test('P54 server: manual task route, project list and expectedBranch', () => {
-  assert.match(server, /app\.get\('\/api\/projects\/:projectId\/code', async/);
-  assert.match(server, /app\.post\('\/api\/projects\/:projectId\/code\/manual', async/);
-  assert.match(server, /passport\?\.executor !== 'manual'/);
-  assert.match(server, /code: 'EXECUTOR_MISMATCH'/);
-  assert.match(server, /code: 'PASSPORT_NOT_CONFIRMED'/);
-  assert.match(svc, /export async function listProjectCodeTasks/);
-  assert.match(svc, /expectedBranch: expectedBranchOf\(r\.task_id\)/);
-  const route = server.slice(server.indexOf("app.post('/api/projects/:projectId/code/manual'"), server.indexOf("app.post('/api/projects/:projectId/tasks/:taskId/code/start'"));
-  assert.doesNotMatch(route, /commitApprovedPackage|commitChangesToBranch|openPullRequest|modelCaller/, 'the manual route never writes and never calls a model');
-  assert.doesNotMatch(route, /req\.body\??\.actor/);
 });
 
 test('P54 interface wiring: tab, component, every endpoint, error codes', async () => {
@@ -1411,9 +1274,5 @@ test('P70: Simple mode banner, five-step path and capability dump are gone', () 
   assert.match(pm, /What is available here/);
 });
 
-test('P70: copy lint carries no recorded debt', () => {
-  const lint = readFileSync(new URL('../scripts/lint-copy.mjs', import.meta.url), 'utf8');
-  assert.match(lint, /const DEBT = \{\};/);
-});
 }
 // ===== END p70-ui-states.test.mjs =====

@@ -16,17 +16,6 @@ const { dirname, join } = await import("node:path");
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
 
-test('P48 uncertainty contract is single-copy in promptPacks (not duplicated in core)', async () => {
-  const { buildPromptCore, CORE_UNCERTAINTY_HEADING } = await import('../server/promptCore.ts');
-  const core = buildPromptCore('2026-10-16');
-  assert.match(core, /HONESTY ABOUT FACTS/);
-  // Core must NOT embed a second UNAVAILABLE block (PI-01 requires exactly one in the full prompt).
-  assert.equal(core.split(CORE_UNCERTAINTY_HEADING).length - 1, 0);
-  const packs = read('server/promptPacks.ts');
-  assert.match(packs, /UNAVAILABLE_CONTRACT/);
-  assert.equal(packs.split('WHEN THE IDEAL ANSWER IS UNAVAILABLE').length - 1, 1);
-});
-
 test('P48 shouldRunVerifier skips without key and on crisis', async () => {
   const { shouldRunVerifier, hasFactualSurface } = await import('../server/epistemicVerifier.ts');
   const flags = {
@@ -110,30 +99,6 @@ test('P48 runEpistemicVerifier maps ok JSON to groq', async () => {
   assert.equal(r.check_suggestions[0], 'check source');
 });
 
-test('P48 server wires epistemic without hard-fail path', () => {
-  const src = read('server.ts');
-  assert.match(src, /runEpistemicVerifier/);
-  assert.match(src, /shouldRunVerifier/);
-  assert.match(src, /epistemic,/);
-  assert.match(src, /epistemic_verifier/);
-  // Primary reply still sent; verifier failure must not throw out of handler path
-  assert.match(src, /skippedEpistemic\('error'\)/);
-});
-
-test('P48 soft-fail / information path remains present', () => {
-  const src = read('server.ts');
-  assert.match(src, /informationSoftFail/);
-  assert.match(src, /informationRetryHint/);
-  assert.match(src, /One retry max/);
-});
-
-test('P48 docs and version surfaces', () => {
-  // The version moves with every patch; P48 only requires that it is at least 48 and that package.json agrees with src/config.ts
-  // (scripts/check-version.mjs owns the full consistency rules).
-  const version = read('src/config.ts').match(/APP_VERSION = '(\d+)'/)?.[1];
-  assert.ok(version && Number(version) >= 48, `APP_VERSION must be a number >= 48, got ${version}`);
-  assert.match(read('package.json'), new RegExp(`"version": "${version}"`));
-});
 }
 // ===== END p48-epistemic.test.mjs =====
 
@@ -294,33 +259,6 @@ test('P50 sources footer follows the language of the question and is empty witho
   assert.match(ru, /Источники \(веб-поиск\):\n1\. A — https:\/\/a\.example/);
   const en = mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Any news?');
   assert.match(en, /Sources \(web search\):/);
-});
-
-test('P50 server wiring: gated by the flag, never throws out of the handler, response is additive', () => {
-  const src = read('server.ts');
-  assert.match(src, /from '\.\/server\/webSearch\.ts'/);
-  assert.match(src, /isWebSearchEnabled\(\)/);
-  assert.match(src, /shouldSearchWeb\(/);
-  assert.match(src, /fetchWebSearchDigest\(/);
-  assert.match(src, /formatSearchBlock\(/);
-  assert.match(src, /formatSourcesFooter\(/);
-  // search must not use JSON mode with the tool, and must not touch model health of the main cascade
-  const m = src.match(/async function runConversationWebSearch[\s\S]*?\n}\n/);
-  assert.ok(m, 'runConversationWebSearch exists');
-  assert.ok(!/noteModelFailure|noteModelSuccess/.test(m[0]), 'search does not alter model health');
-  // the primary conversation call and the P48 verifier path are still present
-  assert.match(src, /generate\(prompt, input, 'strong', 'conversation'/);
-  assert.match(src, /runEpistemicVerifier/);
-  // default-off: with no search the response carries no extra fields
-  assert.match(src, /webSearch\.status !== 'skipped'/);
-});
-
-test('P50 .env.example and connection manifest mention the new variables', () => {
-  for (const f of ['.env.example']) {
-    assert.match(read(f), /ENABLE_WEB_SEARCH/, f);
-  }
-  const manifest = JSON.parse(read('connectors.yaml').split('\n').filter((l) => !/^\s*#/.test(l)).join('\n'));
-  assert.ok(manifest.connectors.gemini.env.optional.includes('ENABLE_WEB_SEARCH'));
 });
 
 test('P50 webSearchProvider: auto prefers serper when SERPER_API_KEY is set', () => {

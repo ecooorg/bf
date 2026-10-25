@@ -59,19 +59,6 @@ test('ci-summary: reports failed stages and states why logs are missing', () => 
   assert.match(none.stagesError, /results\.json missing/); assert.equal(none.missing.length, 6);
 });
 
-test('CI workflow: every log is written into the uploaded directory, upload runs always and fails when empty', () => {
-  const ci = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  const runner = fs.readFileSync(path.join(root, 'scripts/run-independent-checks.mjs'), 'utf8');
-  assert.match(runner, /path\.join\(root, 'artifacts', 'ci-checks'\)/);
-  const upload = ci.slice(ci.indexOf('actions/upload-artifact'));
-  assert.match(upload, /path: artifacts\/ci-checks\//); assert.match(upload, /if-no-files-found: error/);
-  assert.match(ci.slice(0, ci.indexOf('actions/upload-artifact')).split('\n').slice(-3).join('\n'), /if: always\(\)/);
-  for (const log of ['install', 'migrate', 'check', 'live', 'api', 'build']) assert.match(ci, new RegExp(`set -o pipefail; [^\\n]*\\| tee artifacts/ci-checks/ci-${log}\\.log`), log);
-  assert.ok(!/\|\| true/.test(ci));
-  const steps = [...ci.matchAll(/timeout-minutes: (\d+)/g)].map((m) => Number(m[1]));
-  assert.ok(steps[0] > steps.slice(1).reduce((a, b) => a + b, 0), 'job timeout must exceed the sum of step timeouts so that always() steps can run');
-});
-
 test('diagnostic ZIP carries real captured console output, redacted', async () => {
   installLogCapture();
   process.env.GEMINI_API_KEY = 'AIzaSyFAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE12';

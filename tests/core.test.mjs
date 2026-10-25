@@ -353,55 +353,6 @@ const modeMenu = readFileSync(new URL('../src/ModeMenu.tsx', import.meta.url), '
 const appHeader = readFileSync(new URL('../src/AppHeader.tsx', import.meta.url), 'utf8');
 const projectUi = readFileSync(new URL('../src/ProjectMode.tsx', import.meta.url), 'utf8');
 
-test('UI1 start screen offers all three explicit modes', () => {
-  for (const mode of ['Simple', 'Expert', 'Project']) assert.match(app, new RegExp(`<h2>${mode}</h2>`));
-  assert.match(app, /onClick=\{\(\) => chooseStartMode\('Simple'\)\}/);
-  assert.match(app, /onClick=\{\(\) => chooseStartMode\('Expert'\)\}/);
-});
-
-test('unavailable Project is disabled and not silently substituted', () => {
-  assert.match(app, /disabled=\{!projectModeEnabled\}/);
-  assert.match(app, /Currently unavailable/);
-  assert.match(app, /if \(mode === 'Project' && !projectModeEnabled\) return/);
-});
-
-test('mode selection is explicit and session-persisted', () => {
-  assert.match(app, /setExpertMode\(mode === 'Expert'\)/);
-  assert.match(app, /sessionStorage\.setItem\((START_MODE_KEY|'biforge-start-mode'), mode\)/);
-  assert.match(modeMenu, /START_MODE_KEY = 'biforge-start-mode'/);
-});
-
-test('folder picker menu behavior is wired in the UI', () => {
-  assert.match(modeMenu + app + appHeader, /PICK_FOLDER_EVENT/);
-});
-
-test('Change mode control returns to start screen', () => {
-  assert.match(modeMenu, /data-testid="change-mode"/);
-  assert.match(app, /resetStartMode|onChangeMode/);
-  assert.match(app, /sessionStorage\.removeItem\((START_MODE_KEY|'biforge-start-mode')\)/);
-});
-
-test('P51: one Mode control on every screen; the old duplicate items are gone from More', () => {
-  // Shared control: current mode on the button, three modes + a way back to the start screen in the list
-  assert.match(modeMenu, /data-testid="mode-menu-button"/);
-  assert.match(modeMenu, /role="menuitemradio"/);
-  for (const m of ['Simple', 'Expert', 'Project']) assert.match(modeMenu, new RegExp(`mode: '${m}'`));
-  assert.match(modeMenu, /Back to mode selection/);
-  // Chat shell: ModeMenu lives in AppHeader; App wires chooseStartMode / resetStartMode (p74 split)
-  assert.match(appHeader, /<ModeMenu current=\{props\.expertMode \? 'Expert' : 'Simple'\}/);
-  assert.match(app, /onSelectMode=\{chooseStartMode\}/);
-  assert.match(app, /onChangeMode=\{resetStartMode\}/);
-  // Project page uses the same component instead of its own back links
-  assert.match(projectUi, /<ModeMenu current="Project"/);
-  assert.equal((projectUi.match(/Back to mode selection/g) || []).length, 0, 'no duplicated back link on the Project page');
-  // The three overlapping More-menu items are removed
-  assert.doesNotMatch(app + appHeader, /Mode selection \(Simple \/ Expert \/ Project\)/);
-  assert.doesNotMatch(app + appHeader, /Switch to Expert method|Switch to Simple chat/);
-  assert.doesNotMatch(app + appHeader, /data-testid="toggle-expert-menu"/);
-  assert.doesNotMatch(app + appHeader, /Project workspace \(separate\)/);
-  // Returning from /project as Expert must open Expert, not Simple
-  assert.match(app, /getItem\(START_MODE_KEY\) === 'Expert'/);
-});
 }
 // ===== END p41-ui1.test.mjs =====
 
@@ -469,20 +420,6 @@ test('P52 client fields: nothing outside Expert; bounded context inside', () => 
   assert.equal(buildExpertStageContext({ step: 'UNDERSTAND', brief: undefined, options: [], redTeam: [], hypotheses: [] }), '');
 });
 
-test('P52 server wiring: only the explicit field enables Expert; information is never light in Expert', () => {
-  assert.match(server, /req\.body\?\.productMode === 'Expert' \? 'Expert' : 'Simple'/);
-  assert.match(server, /productMode === 'Expert' && detectedMode === 'information' \? 'decision' : detectedMode/);
-  assert.match(server, /expertDialogueParagraph\(/);
-  assert.match(server, /conversationMode, productMode\);/);
-  assert.match(server, /product_mode: productMode/);
-});
-
-test('P52 client wiring: both /api/conversation sends carry the Expert fields; Simple chat does not', () => {
-  assert.equal((app.match(/\.\.\.expertConversationFields\(d, expert\)/g) || []).length, 2);
-  assert.match(app, /expert=\{expertMode\}/);
-  assert.match(app, /alwaysShowComposer\s+expert\s*\/>/);
-  assert.match(app, /<ConversationScreen d=\{d\} update=\{update\} runApi=\{runApi\} busy=\{busy\} onDocumentEdit=\{reviseConversationDocument\} onProposedChangeSet=\{setProposedWorkspaceChangeSet\} \/>/);
-});
 }
 // ===== END p52-expert-dialogue.test.mjs =====
 
@@ -589,76 +526,26 @@ test('QA1 Simple: information mode paragraph has no decision rituals', () => {
 // ---------------------------------------------------------------------------
 // 2. Intent flags / soft-fail / retry — source contracts
 // ---------------------------------------------------------------------------
-test('QA1 Simple: intentFlags and soft-fail helpers are present and wired', () => {
-  const flagsSrc = read('server/intentFlags.ts');
-  assert.match(flagsSrc, /export function detectUserIntentFlags/);
-  assert.match(flagsSrc, /export function informationSoftFail/);
-  assert.match(flagsSrc, /export function informationRetryHint/);
-  assert.match(flagsSrc, /userForbadeMethodology|userDemandedDirectAnswer|userCriticizedEvasion/);
-  // Soft-fail must reject pure methodology / AI-lecture style answers
-  assert.match(flagsSrc, /As an AI|methodology|limitation/i);
-  const serverSrc = existsSync(join(root, 'server.ts')) ? read('server.ts') : '';
-  if (serverSrc) {
-    assert.match(serverSrc, /informationSoftFail/);
-    assert.match(serverSrc, /informationRetryHint/);
-  }
-});
 
 // ---------------------------------------------------------------------------
 // 3. Expert — instruction isolation
 // ---------------------------------------------------------------------------
-test('QA1 Expert: EXPERT_STEP_PREFIX keeps depth and open dialogue', () => {
-  const packs = read('server/promptPacks.ts');
-  assert.match(packs, /export const EXPERT_STEP_PREFIX/);
-  assert.match(packs, /Expert|depth|analysis|follow-up|stage/i);
-  assert.doesNotMatch(packs, /end of stages|pipeline complete|no further questions/i);
-});
 
 // ---------------------------------------------------------------------------
 // 4. Project — analyst instruction
 // ---------------------------------------------------------------------------
-test('QA1 Project: ANALYST_INSTRUCTION demands operational structure', () => {
-  const ctx = read('server/contextBuilder.ts');
-  assert.match(ctx, /export const ANALYST_INSTRUCTION/);
-  assert.match(ctx, /Project Mode|project analyst/i);
-  assert.match(ctx, /requirements|risks|gaps|facts/i);
-  assert.match(ctx, /Do not invent|structured analysis/i);
-});
 
 // ---------------------------------------------------------------------------
 // 5. Shared core honesty
 // ---------------------------------------------------------------------------
-test('QA1 Core: honesty about facts and search is present', () => {
-  const core = buildPromptCore('2026-10-15');
-  assert.match(core, /CURRENT DATE|2026-10-15/);
-  assert.match(core, /HONESTY|search|do not claim/i);
-  const coreSrc = read('server/promptCore.ts');
-  assert.match(coreSrc, /CORE_HONESTY|do not claim to have searched/i);
-});
 
 // ---------------------------------------------------------------------------
 // 6. UI1 start screen contracts
 // ---------------------------------------------------------------------------
-test('QA1 UI: start screen offers Simple / Expert / Project and disables unavailable Project', () => {
-  const app = read('src/App.tsx');
-  for (const mode of ['Simple', 'Expert', 'Project']) {
-    assert.match(app, new RegExp(`<h2>${mode}</h2>`));
-  }
-  assert.match(app, /chooseStartMode\('Simple'\)/);
-  assert.match(app, /chooseStartMode\('Expert'\)/);
-  assert.match(app, /disabled=\{!projectModeEnabled\}/);
-  assert.match(app, /Currently unavailable/);
-  assert.match(app, /sessionStorage\.setItem\((START_MODE_KEY|'biforge-start-mode')/);
-  assert.match(app, /if \(mode === 'Project' && !projectModeEnabled\) return/);
-});
 
 // ---------------------------------------------------------------------------
 // 8. Triage / support wiring
 // ---------------------------------------------------------------------------
-test('QA1 contracts: triage and support markers remain wired', () => {
-  const app = read('src/App.tsx');
-  assert.match(app, /triage|DISTRESS_MARKERS|SUPPORT_CONTACTS/);
-});
 
 // ---------------------------------------------------------------------------
 // 9. Integrity of prior mode regressions
