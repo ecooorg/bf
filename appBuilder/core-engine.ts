@@ -7,6 +7,8 @@ import { parseFileMarkers } from './core-markers.ts';
 import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
+import { templatePlan } from './stack-static-site.ts';
+import { runStaticValidators, REQUIRED_VALIDATORS } from './validator-static-site.ts';
 
 export interface BuildResult { state: JobState; report: BuildReport; archive: Uint8Array | null }
 export interface EngineOptions { profileId?: string; modelId?: string; maxCallsPerJob?: number; maxAttemptsPerUnit?: number; promptVersion?: string }
@@ -22,6 +24,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const files = new Map<string, { content: string; unitId: string }>();
   const unitReports: BuildReport['units'] = [];
   let failureReason: string | undefined;
+  let templateUsed: string | undefined;
   const call = async (role: 'planner' | 'coder', context: string, version?: string) => {
     if (state.callsUsed >= budget) return null;
     const p = promptFor(role, context);
@@ -54,11 +57,16 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
 
     event(ports, input.jobId, 'stage_changed', { stage: 'plan' }); state.stage = 'plan';
     const planResult = await call('planner', `Create a Plan JSON with schemaVersion=1, specHash="${sha256(JSON.stringify(spec))}", units[], order[]. Each unit requires id, kind="file", path, purpose, dependsOn[], exports[], contract, maxOutputTokens, status="pending", attempts=0. Task spec: ${JSON.stringify(spec)}`);
-    const plan = planResult ? asObject<Plan>(planResult.text) : null;
-    const checked: PlanValidationResult = plan
-      ? validatePlan(plan, profile)
-      : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? 'invalid_plan' }] };
-    if (!plan || !checked.ok) throw new Error(checked.issues.map((i) => i.message).join('; ') || 'invalid_plan');
+    let plan = planResult ? asObject<Plan>(planResult.text) : null;
+    let checked: PlanValidationResult = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? 'invalid_plan' }] };
+    if (!plan || !checked.ok) {
+      // static_site template fallback (P93.2b); the reason stays visible in the report.
+      const why = checked.issues.map((i) => i.message).join('; ') || 'invalid_plan';
+      plan = templatePlan(spec); checked = validatePlan(plan, profile);
+      if (!checked.ok) throw new Error(why);
+      failureReason = undefined; templateUsed = why;
+      event(ports, input.jobId, 'plan_fallback', { reason: why });
+    }
     state.plan = { ...plan, order: checked.order ?? plan.order };
 
     event(ports, input.jobId, 'stage_changed', { stage: 'code' }); state.stage = 'code';
@@ -87,8 +95,17 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   } catch (error) { failureReason = error instanceof Error ? error.message : String(error); }
 
   const allFilesDone = Boolean(state.plan?.units.length) && state.plan!.units.every((u) => u.status === 'done' || u.status === 'skipped');
-  const status = allFilesDone ? 'complete' : files.size ? 'partial' : 'failed';
-  const report: BuildReport = { schemaVersion: SCHEMA_VERSION, jobId: input.jobId, status, goalImplemented: allFilesDone, files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })), units: unitReports, validators: [], callsUsed: state.callsUsed, durationMs: Math.max(0, ports.clock.now() - started), ...(failureReason ? { failureReason } : {}) };
+  let validators: BuildReport['validators'] = [];
+  if (files.size) {
+    event(ports, input.jobId, 'stage_changed', { stage: 'check' }); state.stage = 'check';
+    validators = runStaticValidators(new Map([...files].map(([p, f]) => [p, f.content])), state.spec);
+  }
+  const ran = new Set(validators.map((v) => v.name));
+  const validatorsOk = allFilesDone && REQUIRED_VALIDATORS.every((n) => ran.has(n)) && validators.every((v) => v.ok);
+  if (allFilesDone && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || 'not run'}`;
+  const status = validatorsOk ? 'complete' : files.size ? 'partial' : 'failed';
+  const note = failureReason ?? (templateUsed ? `plan_fallback_used: ${templateUsed}` : undefined);
+  const report: BuildReport = { schemaVersion: SCHEMA_VERSION, jobId: input.jobId, status, goalImplemented: validatorsOk, files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })), units: unitReports, validators, callsUsed: state.callsUsed, durationMs: Math.max(0, ports.clock.now() - started), ...(note ? { failureReason: note } : {}) };
   state.status = status === 'complete' ? 'done' : status === 'partial' ? 'failed' : 'failed'; state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
   event(ports, input.jobId, 'job_done', { status, goalImplemented: report.goalImplemented });
   const archive = files.size ? await packZip([...files].map(([path, f]) => ({ path, content: f.content })), report) : null;
