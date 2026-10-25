@@ -104,7 +104,7 @@ handoff.push(`RUNTIME=node ${oneLine(process.version,40)}; platform=${process.pl
 handoff.push(`PHASES=diagnostic:${stepOutcomes.diagnostic}; secondary:${stepOutcomes.secondary}; check:${stepOutcomes.check}; live:${stepOutcomes.live}; api:${stepOutcomes.api}; build:${stepOutcomes.build}`);
 handoff.push(`DIAGNOSTIC_RESULTS=${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('TIMEOUT')} TIMEOUT, ${count('SKIPPED')} SKIPPED`);
 handoff.push(`FAILED_STAGES=${failedStageNames.join('; ') || 'none recorded'}`);
-handoff.push(`TIMEOUTS=${failedRows.filter((r) => r.status === 'TIMEOUT').map((r) => `${r.id}:${Math.round((r.durationMs||0)/1000)}s; origin=${r.timeoutOrigin||'unknown'}; limit=${r.timeoutMs||'unknown'}ms`).join(' | ') || 'none'}`);
+handoff.push(`TIMEOUTS=${failedRows.filter((r) => r.status === 'TIMEOUT').map((r) => `${r.id}:${Math.round((r.durationMs||0)/1000)}s; origin=${r.timeoutOrigin||'unknown'}; node-test-limit=${r.nodeTestTimeoutMs ?? 'n/a'}ms; watchdog-limit=${r.watchdogTimeoutMs ?? r.timeoutMs ?? 'unknown'}ms`).join(' | ') || 'none'}`);
 handoff.push(`SKIPPED_STAGES=${skipped.join(', ') || 'none'}`);
 handoff.push(`ACTIVE_AT_RUN_END=${activeStage ? `${activeStage.id}; phase=${activeStage.phase}; log=${activeStage.log}; timeout-limit=${activeStage.timeoutMs}ms` : 'none'}`);
 handoff.push(`MISSING_LOGS=${['critical-router-selection.log','critical-router-policy-call-limit.log','critical-gemini-timeout.log','critical-app-builder-recovery.log'].filter((name) => !fs.existsSync(path.join(dir,name))).join(', ') || 'none'}`);
@@ -112,8 +112,8 @@ const errorSections = [];
 for (const stage of failedRows) {
   const logName = path.basename(stage.log || `${stage.id}.log`);
   const text = read(logName);
-  errorSections.push(`--- ${stage.id} ${stage.status}; duration=${Math.round((stage.durationMs||0)/1000)}s; exit=${stage.exitCode ?? 'unknown'}; signal=${stage.signal||'none'}; timeout=${stage.timeoutOrigin||'none'}; limit=${stage.timeoutMs||'unknown'}ms; log=${logName}`);
-  errorSections.push(`COMMAND=${oneLine(`${stage.command || ''} ${(stage.args||[]).join(' ')}`, 900) || oneLine(stage.script || 'unknown',900)}`);
+  errorSections.push(`--- ${stage.id} ${stage.status}; duration=${Math.round((stage.durationMs||0)/1000)}s; exit=${stage.exitCode ?? 'unknown'}; signal=${stage.signal||'none'}; timeout=${stage.timeoutOrigin||'none'}; node-test-limit=${stage.nodeTestTimeoutMs ?? 'n/a'}ms; watchdog-limit=${stage.watchdogTimeoutMs ?? stage.timeoutMs ?? 'unknown'}ms; log=${logName}`);
+  errorSections.push(`COMMAND_ARGV=${oneLine(JSON.stringify(stage.command ? [stage.command, ...(stage.args || [])] : (stage.script || 'unknown')), 900)}`);
   if (stage.note) errorSections.push(`RUNNER_NOTE=${oneLine(stage.note,500)}`);
   const evidence = excerptForLog(text, stage.status === 'INTERRUPTED' ? 'TIMEOUT' : stage.status);
   errorSections.push(...(evidence.length ? evidence : ['LOG_EVIDENCE=empty or unavailable']));

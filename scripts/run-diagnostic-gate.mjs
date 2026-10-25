@@ -70,7 +70,7 @@ function run(task, args, logName, stage) {
       for (const line of parts) { tail.push(line); if (tail.length > 160) tail.shift(); }
     };
     fs.writeFileSync(logPath, '');
-    persist('running', { active: { id: task.id, phase: stage, command, args: childArgs, sourceFile: task.file || null, targetPattern: task.pattern || null, timeoutMs: task.timeoutMs, startedAt: started, pid: child.pid || null, log: path.relative(root, logPath) } });
+    persist('running', { active: { id: task.id, phase: stage, command, args: childArgs, sourceFile: task.file || null, targetPattern: task.pattern || null, timeoutMs: task.timeoutMs, nodeTestTimeoutMs: task.script ? null : 15_000, watchdogTimeoutMs: task.timeoutMs, startedAt: started, pid: child.pid || null, log: path.relative(root, logPath) } });
     child.stdout.on('data', capture);
     child.stderr.on('data', capture);
     const finish = async (row) => {
@@ -90,8 +90,9 @@ function run(task, args, logName, stage) {
       }
       const result = {
         id: task.id, phase: stage, status,
-        script: task.script || `${process.execPath} --import tsx --test --test-timeout=15000 --test-name-pattern=${task.pattern} ${task.file}`,
+        script: task.script || `${process.execPath} --import tsx --test --test-timeout=15000 --test-name-pattern ${JSON.stringify(task.pattern)} ${task.file}`,
         command: command, args: childArgs, cwd: root,
+        nodeTestTimeoutMs: task.script ? null : 15_000, watchdogTimeoutMs: task.timeoutMs,
         sourceFile: task.file || null, targetPattern: task.pattern || null,
         expectedTestNames: task.expected || [],
         timeoutMs: task.timeoutMs, timeoutOrigin,
@@ -120,7 +121,7 @@ function run(task, args, logName, stage) {
 console.log(`P96 critical-first diagnostic gate: ${critical.length} targeted probes start before broad suites, typecheck, or database migrations; node=${nodeVersion}; platform=${process.platform}.`);
 persist('critical-probes', { suitesSkipped: false });
 for (const task of critical) {
-  const args = ['--import', 'tsx', '--test', '--test-timeout=15000', `--test-name-pattern=${task.pattern}`, task.file];
+  const args = ['--import', 'tsx', '--test', '--test-timeout=15000', '--test-name-pattern', task.pattern, task.file];
   await run(task, args, `${task.id}.log`, 'critical');
 }
 const criticalFailed = results.filter((r) => r.phase === 'critical' && r.status !== 'PASS');
