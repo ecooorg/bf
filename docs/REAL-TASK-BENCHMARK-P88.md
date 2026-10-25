@@ -1,5 +1,7 @@
 # P88 — Real-task AI benchmark pilot
 
+> **P103:** the automated tests for this tool (`test:*` script and test file) were removed in the test audit. The tool itself is unchanged and is now a candidate for removal; see `docs/test-audit-p103.md`.
+
 ## Purpose
 
 P88 measures end-to-end human effort and evidence quality on pinned, reviewed tasks. It extends P84's static context measurements; it does not treat fewer candidate files or source lines as proof of a better outcome.

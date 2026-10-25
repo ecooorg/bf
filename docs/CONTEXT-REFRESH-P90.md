@@ -1,5 +1,7 @@
 # P90 — Profile-guided context refresh
 
+> **P103:** the automated tests for this tool (`test:*` script and test file) were removed in the test audit. The tool itself is unchanged and is now a candidate for removal; see `docs/test-audit-p103.md`.
+
 ## Purpose
 
 Measure the existing P85 task-context, P86 impact-lineage, P87 verification-plan, and P89 composed intent-contract work before introducing cache or incremental invalidation complexity. This patch intentionally adds a profiler, not a cache. A microbenchmark is not proof of human wait-time savings.

@@ -1,5 +1,7 @@
 # P87 — Verification Planner
 
+> **P103:** the automated tests for this tool (`test:*` script and test file) were removed in the test audit. The tool itself is unchanged and is now a candidate for removal; see `docs/test-audit-p103.md`.
+
 ## Purpose
 
 `verification:plan` proposes the cheapest useful first checks for a task while keeping the repository's full check chain, build, and hosted required CI as separate mandatory gates. It offers risk-specific counterexamples that could disprove the intended behavior. It is a planning aid, not evidence that a change passed.

@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-25T06:56:21.189Z",
+  "generatedAt": "2026-10-25T12:54:55.369Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "work",
+  "root": "bf-main",
   "summary": {
     "moduleCount": 157,
     "edgeCount": 391,
     "cycleCount": 0,
-    "totalLines": 28165
+    "totalLines": 28172
   },
   "cycles": [],
   "layers": {
@@ -25,7 +25,7 @@
     {
       "path": "appBuilder/core-engine.ts",
       "layer": "appBuilder",
-      "lines": 156,
+      "lines": 160,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-markers.ts",
@@ -620,7 +620,7 @@
     {
       "path": "server/projectRoutes.ts",
       "layer": "server",
-      "lines": 837,
+      "lines": 839,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderAdapter.ts",
@@ -734,7 +734,7 @@
     {
       "path": "server/router.ts",
       "layer": "server",
-      "lines": 154,
+      "lines": 155,
       "imports": [],
       "fanIn": 6
     },
@@ -1711,7 +1711,7 @@
     },
     {
       "path": "server/projectRoutes.ts",
-      "lines": 837
+      "lines": 839
     },
     {
       "path": "server/webSearch.ts",

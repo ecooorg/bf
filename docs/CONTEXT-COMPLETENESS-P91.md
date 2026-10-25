@@ -1,5 +1,7 @@
 # P91 — Context completeness and material-uncertainty guard
 
+> **P103:** the automated tests for this tool (`test:*` script and test file) were removed in the test audit. The tool itself is unchanged and is now a candidate for removal; see `docs/test-audit-p103.md`.
+
 ## Purpose
 
 P91 combines the existing P85 task-context, P86 impact-lineage, P87 verification-plan and P89 intent-contract outputs into one read-only evidence summary. It is a guard against false confidence, not a formal proof engine and not a new source of truth.

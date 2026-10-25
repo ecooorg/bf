@@ -1,5 +1,7 @@
 # P89 — Lightweight Intent Contract
 
+> **P103:** the automated tests for this tool (`test:*` script and test file) were removed in the test audit. The tool itself is unchanged and is now a candidate for removal; see `docs/test-audit-p103.md`.
+
 ## Purpose
 
 P89 turns a task request into a small, reviewable draft before implementation. It is a deterministic helper over existing P85 context, P86 impact and P87 verification tools—not a separate VIX subsystem, an LLM call, an approval workflow, or a mandatory user-authored form.

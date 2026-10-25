@@ -1,5 +1,7 @@
 # AI-native engineering roadmap — P85–P91 (VIX-integrated)
 
+> **P103:** the automated tests for this tool (`test:*` script and test file) were removed in the test audit. The tool itself is unchanged and is now a candidate for removal; see `docs/test-audit-p103.md`.
+
 Status: Navigator-requested documentation revision, 2026-10-23. This roadmap selectively integrates VIX principles into existing BiForge workflows; it does not propose a separate VIX subsystem. This document describes future work; it does not authorize automatic merges, production deployment, security-gate changes, GitHub write access, or acceptance on the Navigator's behalf. Build and review one patch at a time. Do not begin the next patch until the current patch has green GitHub CI reported by the Navigator.
 
 ## 1. North star
