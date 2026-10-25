@@ -1057,16 +1057,15 @@ test('CI summary: green is one line; red names the first failed test, or says th
     encoding: 'utf8',
   });
   assert.equal(rMissing.status, 0);
-  assert.match(rMissing.stdout, /ASSISTANT HANDOFF/);
-  assert.match(rMissing.stdout, /NEXT_PATCH\.md missing/);
+  assert.equal(rMissing.stdout, '');
+  assert.match(fs.readFileSync(path.join(logsDir, 'NEXT_PATCH.md'), 'utf8'), /NEXT_PATCH\.md missing/);
   fs.writeFileSync(path.join(logsDir, 'NEXT_PATCH.md'), '# BiForge ASSISTANT HANDOFF\nPATCH_STATUS=FAILED\nNEXT_ACTION=fix only\n');
   const rPresent = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
     env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: logsDir },
     encoding: 'utf8',
   });
   assert.equal(rPresent.status, 0);
-  assert.match(rPresent.stdout, /PATCH_STATUS=FAILED/);
-  assert.match(rPresent.stdout, /NEXT_ACTION=fix only/);
+  assert.equal(rPresent.stdout, '');
 });
 
 test('report: statuses come from the commands; NOT_RUN and BLOCKED are never shown as PASS', () => {

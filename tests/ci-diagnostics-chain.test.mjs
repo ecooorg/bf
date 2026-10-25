@@ -38,20 +38,29 @@ test('diagnostic ZIP verification rejects empty, truncated, tampered and incompl
   assert.ok((await verifyDiagnosticArchive(await z2.generateAsync({ type: 'nodebuffer' }))).some((p) => /missing entry logs\/application\.jsonl/.test(p)));
 });
 
-test('ci-summary CLI publishes the current handoff report contract', () => {
+test('ci-summary publishes NEXT_PATCH.md without writing the handoff to console', () => {
   const dir = tmp();
-  const run = () => spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
+  fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# BiForge ASSISTANT HANDOFF\nPATCH_STATUS=FAILED\nNEXT_ACTION=fix only\n');
+  const summaryPath = path.join(dir, 'github-summary.md');
+  const r = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
+    env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: dir, GITHUB_STEP_SUMMARY: summaryPath },
+    encoding: 'utf8',
+  });
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, '');
+  assert.equal(r.stderr, '');
+  assert.equal(fs.readFileSync(summaryPath, 'utf8'), fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8') + '\n');
+});
+
+test('ci-summary creates a useful NEXT_PATCH.md stub when the report is missing without console output', () => {
+  const dir = tmp();
+  const r = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
     env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: dir },
     encoding: 'utf8',
   });
-  const missing = run();
-  assert.equal(missing.status, 0);
-  assert.match(missing.stdout, /NEXT_PATCH\.md missing/);
-  const report = '# BiForge ASSISTANT HANDOFF\\nPATCH_STATUS=FAILED\\nFAILED_STAGES=test:core:FAIL\\n';
-  fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), report);
-  const present = run();
-  assert.equal(present.status, 0);
-  assert.equal(present.stdout, report);
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, '');
+  assert.match(fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8'), /NEXT_PATCH\.md missing/);
 });
 
 test('diagnostic ZIP carries real captured console output, redacted', async () => {
