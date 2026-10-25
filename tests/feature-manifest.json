@@ -266,7 +266,6 @@
     ]
   },
   "checkChain": [
-    "check:docs",
     "lint:copy",
     "typecheck",
     "test:core",

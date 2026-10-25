@@ -193,9 +193,9 @@ test('P43 runtime gate unchanged: CODE_EXECUTOR must equal model_patch', () => {
 });
 
 test('P43 does not enable GitHub App write by default', () => {
-  const status = read('AGENTS.md');
-  assert.match(status, /GitHub write/i);
-  assert.match(status, /Отложено|deferred|ADR-06/i);
+  const gh = read('server/githubIntegration.ts');
+  assert.match(gh, /githubWritesEnabled = \(\): boolean => process\.env\.GITHUB_DIFF_UPLOAD === 'true'/);
+  assert.match(gh, /if \(input\.writeEnabled !== true\) throw new Error\('github_write_disabled'\)/);
   const env = read('.env.example');
   // GITHUB_DIFF_UPLOAD remains commented / opt-in
   assert.match(env, /GITHUB_DIFF_UPLOAD/);
