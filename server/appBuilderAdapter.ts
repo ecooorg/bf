@@ -2,7 +2,7 @@
 import crypto from 'node:crypto';
 import { runBuild, SCHEMA_VERSION, type BuildInput, type ClockPort, type EventPayload, type EventPort, type JobState, type ModelPort, type ModelResult, type Ports, type StorePort } from '../appBuilder/index.ts';
 import type { ProviderAdapter } from './adapter.ts';
-import type { RegistryEntry } from './modelRegistry.ts';
+import { registryForGeminiCascade, type RegistryEntry } from './modelRegistry.ts';
 import { routeCall, type RouterState } from './router.ts';
 import { getPool } from './database.ts';
 import { saveArtifact } from './artifactRepository.ts';
