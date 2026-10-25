@@ -2,46 +2,36 @@
 
 Start with repository-level `AGENTS.md`. Read only documents relevant to the task.
 
-## Active documents
+## Active AI-NATIVE-RENOVATION programme
 
-* `../AGENTS.md` — entry, authorization, status
-* `AI-OPERATING-RULES.md` — permanent AI operating rules
-* `AI-TRANSFORMATION-SPEC.md` — transformation contract (accepted; reference)
-* `DOCUMENTATION-BASELINE.md` — baseline observations
-* `OPERATIONS.md` — deploy, rollback, backup
-* `AI-NATIVE-ROADMAP-P81-P84.md` — P81–P84 objectives, implementation notes, gates and measurements
-* `AI-NATIVE-ROADMAP-P85-P91.md` — VIX-integrated, human-simplicity-focused next steps for AI-assisted development; per-patch plans, acceptance gates, stop conditions and bootstrap prompt
-* `PROJECT-MODE-DIAGNOSTICS-ROADMAP.md` — proposed staged observability, artifact-integrity checks, diagnostic export and P85–P91 integration; documentation only, not implemented runtime behavior
-* `VIX-CONCEPT.md` — preserved long-term VIX target architecture; conceptual reference only, not a commitment to implement every component in the near-term roadmap
-* `USER-GUIDE.md` — detailed beginner-friendly English instructions for Simple, Expert and Project modes, including files, exports, approvals, safety, troubleshooting, and a hands-on Lab Escape game project
-* `context-locality-p82.json` — P82 before/after task-local context evidence and verification limits
-* `contracts-verification-p83.json` — P83 selected API contract inventory, negative-test guarantees and verification limits
-* `context-benchmark-p84.json` — P84 deterministic scenario metrics, v80 + p80.1 comparison and recall gaps
-* `context-benchmark-verification-p84.json` — captured local verification statuses, measured command durations and CI/build blockers
-* `architecture-guardrails.md` — map, boundaries, inventories commands
-* `architecture-boundary-rules.json` / `architecture-known-violations.json` — ratchet config
-* `typing-and-naming.md` — TypeScript and naming conventions
+* `AI-NATIVE-RENOVATION-TASK.md` — current Phase 0 task and completion criteria.
+* `AI-NATIVE-RENOVATION-ROADMAP.md` — programme phases, deliverables and evidence gates.
+* `AI-NATIVE-RENOVATION-MANDATE.md` — global architecture assignment and non-negotiable rules.
+* `AI-NATIVE-GLOBAL-AUDIT-2026-10.md` — audit findings, evidence limits, and prioritised risks.
+* `VIX-CONCEPT.md` — long-horizon strategic destination (Intent Review, formal verification, Dataflow synthesis, safe evolution). Conceptual reference; not blanket authorization for immediate implementation.
+* `AI-OPERATING-RULES.md` — permanent AI operating, authorization, security and evidence rules.
 
-## Generated (do not hand-edit)
+## Other active product and operational documents
 
-* `generated-route-inventory.json`
-* `generated-env-inventory.json`
-* `generated-migration-inventory.json`
-* `generated-module-map.json`
-* `context-baseline-v80.json` — frozen static pre-P81 baseline (not a generated-current inventory)
+* `../AGENTS.md` — repository entry point, current programme status and authorization boundaries.
+* `OPERATIONS.md` — operational, deployment, rollback and backup guidance.
+* `USER-GUIDE.md` — product usage for Simple, Expert and Project modes.
+* `architecture-guardrails.md` — current architecture map, boundaries and inventory commands.
+* `architecture-boundary-rules.json` / `architecture-known-violations.json` — architecture enforcement policy and ratchet baseline.
+* `typing-and-naming.md` — current coding conventions.
+* `generated-route-inventory.json`, `generated-env-inventory.json`, `generated-migration-inventory.json`, `generated-module-map.json` — generated inventories; do not hand-edit. Regenerate: `npm run docs:generate`.
+* `context-baseline-v80.json` — frozen historical pre-P81 baseline (not a current generated inventory).
 
-Regenerate: `npm run docs:generate`.
+## Historical material and archive policy
 
-## Archive
+Phase-specific reports, superseded roadmaps (P81–P91), the accepted transformation spec, documentation baseline, P103 test audit, Project Mode diagnostics proposal, App Builder TZ, and historical benchmark/verification snapshots are **candidates** for relocation into root `archive/`.
 
-Historical phase-era files (flat names) under `../archive/` — audit CSVs, acceptance record, old roadmaps. Not required for routine changes.
+**No candidate is archived until its exact path and basename have been checked against code, tests, scripts, workflows, package scripts and active documentation.** The root `ARCHIVE-MOVE-LIST.md` is the manual checklist. Preserve original contents and dates; do not delete historical evidence.
 
-- `docs/TASK-CONTEXT-P85.md` — P85 task-context CLI, limitations, and human-effort gate.
-* `CHANGE-IMPACT-P86.md` — P86 change-impact graph, generator lineage, evidence semantics, limitations, and rollback.
-* `VERIFICATION-PLANNER-P87.md` — P87 read-only verification plan, risk-based counterexamples, test-chain guard, command usage, limitations, and rollback.
+Until manual moves are completed, those files may still exist under `docs/` but are **not** active entry points. Prefer the AI-NATIVE-RENOVATION programme documents above.
 
-* `REAL-TASK-BENCHMARK-P88.md` — P88 pilot task dataset, run-capture schema, measured-vs-unavailable semantics and benchmark CLI.
-* `INTENT-CONTRACT-P89.md` — P89 draft-only intent contract, explicit/inferred fields, P85–P87 links, validation, command usage, evidence limits and rollback.
-* `CONTEXT-REFRESH-P90.md` — P90 benchmark-first profiling of P85–P89 planner work; timing and output stability report, no cache or performance claim.
-* `CONTEXT-COMPLETENESS-P91.md` — P91 scoped completeness guard, evidence-file schema, actionable uncertainty states and rollback.
-* `tz-appbuilder.md` — Final English technical specification for the `/appBuilder` core (P93.x): contracts, ports, patch sequence, and acceptance criteria.
+See `../ARCHIVE-MOVE-LIST.md` for the exhaustive grouped list (Groups A–D), hold reasons, and the per-file procedure.
+
+## Generated inventories
+
+Regenerate current inventories with `npm run docs:generate`; validate them with the repository's documentation checks. Do not hand-edit generated files.
