@@ -7,7 +7,6 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import JSZip from 'jszip';
 import { releaseLabel, buildCommit, installLogCapture, diagnosticArchive, verifyDiagnosticArchive, recordDiagnostic, REQUIRED_DIAGNOSTIC_ENTRIES } from '../server/projectDiagnostics.ts';
-import { inspectLogs, renderStageTable } from '../scripts/ci-summary.mjs';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'bf-chain-'));
 
@@ -39,24 +38,20 @@ test('diagnostic ZIP verification rejects empty, truncated, tampered and incompl
   assert.ok((await verifyDiagnosticArchive(await z2.generateAsync({ type: 'nodebuffer' }))).some((p) => /missing entry logs\/application\.jsonl/.test(p)));
 });
 
-test('ci-summary: reports failed stages and states why logs are missing', () => {
+test('ci-summary CLI publishes the current handoff report contract', () => {
   const dir = tmp();
-  fs.writeFileSync(path.join(dir, 'ci-install.log'), 'added 1 package\n');
-  fs.writeFileSync(path.join(dir, 'ci-check.log'), 'not ok 1 - broken thing\n');
-  fs.writeFileSync(path.join(dir, 'ci-live.log'), '');
-  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [{ id: 'test:core', status: 'FAIL', exitCode: 1, log: 'artifacts/ci-checks/test_core.log' }, { id: 'lint', status: 'PASS', log: 'x' }] }));
-  const info = inspectLogs(dir);
-  assert.deepEqual(info.present.map((p) => p.file).sort(), ['ci-check.log', 'ci-install.log']);
-  assert.match(info.missing.find((m) => m.file === 'ci-build.log').reason, /did not run/);
-  assert.match(info.missing.find((m) => m.file === 'ci-live.log').reason, /empty/);
-  const table = renderStageTable(info);
-  assert.match(table, /FAIL test:core \(exit 1\)/); assert.match(table, /missing ci-build\.log/);
-  const r = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], { env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: dir }, encoding: 'utf8' });
-  assert.equal(r.status, 0);
-  assert.match(r.stdout, /::error title=BiForge CI::CI: red\. First failed: broken thing/);
-  assert.match(r.stdout, /FAIL test:core/);
-  const none = inspectLogs(path.join(dir, 'nope'));
-  assert.match(none.stagesError, /results\.json missing/); assert.equal(none.missing.length, 6);
+  const run = () => spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
+    env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: dir },
+    encoding: 'utf8',
+  });
+  const missing = run();
+  assert.equal(missing.status, 0);
+  assert.match(missing.stdout, /NEXT_PATCH\.md missing/);
+  const report = '# BiForge ASSISTANT HANDOFF\\nPATCH_STATUS=FAILED\\nFAILED_STAGES=test:core:FAIL\\n';
+  fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), report);
+  const present = run();
+  assert.equal(present.status, 0);
+  assert.equal(present.stdout, report);
 });
 
 test('diagnostic ZIP carries real captured console output, redacted', async () => {
