@@ -1,3 +1,9 @@
+
+## P95 — Critical-first CI diagnostics and assistant handoff
+
+- Run targeted historically failing router/Gemini/App Builder recovery tests before broad suites, typecheck, or database migrations.
+- Publish the evidence-rich `ASSISTANT HANDOFF` as the main GitHub Actions job summary.
+- Keep the compact artifact contract: `NEXT_PATCH.md` plus `diagnostics.zip` only on failure.
 ## P94 — Compact CI artifacts and evidence-rich diagnostic handoff
 
 * GitHub Actions now publishes one `biforge-ci-report` artifact: `NEXT_PATCH.md` plus `diagnostics.zip` only when the run fails. Successful runs keep only the short report; detailed success logs are not uploaded individually.
