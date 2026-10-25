@@ -42,7 +42,7 @@ export function createStorePort(deps: Pick<AdapterDeps, 'getPoolFn'> = {}): Stor
     async putArtifact(jobId, bytes, meta) {
       const job = await this.loadJob(jobId); if (!job) throw new Error('job not found');
       const artifactId = `app_zip_${Date.now().toString(36)}_${crypto.randomBytes(4).toString('hex')}`;
-      await saveArtifact({ projectId: job.projectId, artifactId, filename: meta.filename, mime: meta.contentType, data: bytes, createdBy: 'app_builder_staged', derivedFrom: [`project:${job.projectId}`, `job:${jobId}`] });
+      await saveArtifact({ projectId: job.projectId, artifactId, filename: meta.filename, mime: meta.contentType, data: new Uint8Array(bytes), createdBy: 'app_builder_staged', derivedFrom: [`project:${job.projectId}`, `job:${jobId}`] });
       return artifactId;
     },
     async taskText(id) { const r = await (await pool()).query('SELECT task_text FROM app_build_jobs WHERE id=$1', [id]); return r.rows[0]?.task_text ?? null; },
@@ -142,6 +142,7 @@ export async function resumeStaleJobs(deps: AdapterDeps): Promise<number> {
 export function publicJob(j: JobState, projectId: string) {
   const units = (j.plan?.units ?? []).map((u) => ({ id: u.id, path: u.path ?? null, status: u.status, attempts: u.attempts }));
   return { jobId: j.id, status: j.status, stage: j.stage, units, callsUsed: j.callsUsed, callsBudget: j.callsBudget, error: j.error, goalImplemented: j.report?.goalImplemented ?? null, report: j.report ? { status: j.report.status, failureReason: j.report.failureReason ?? null, validators: j.report.validators } : null,
+    diagnosticsUrl: `/api/projects/diagnostics/export?jobId=${encodeURIComponent(j.id)}`,
     ...(j.artifactId ? { downloadUrl: `/api/projects/${encodeURIComponent(projectId)}/artifacts/${encodeURIComponent(j.artifactId)}/download` } : {}), updatedAt: j.updatedAt };
 }
 
