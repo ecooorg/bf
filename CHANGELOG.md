@@ -1,3 +1,11 @@
+## P102 — align CI summary unit test with P96 handoff publisher
+
+Apply on top of P101. Changes:
+- `tests/models.test.mjs`: test "CI summary: green is one line…" still expected pre-P96 CLI behaviour of `scripts/ci-summary.mjs` (`::error title=BiForge CI::CI: red. First failed: …` when log paths are passed as argv). P96 made that script publish `NEXT_PATCH.md` (or a missing-report stub); it no longer parses log argv.
+- Keep pure-function checks of `ciSummary()` / `firstFailure()` from `scripts/patch-tools.mjs`.
+- Assert current CLI contract: missing report → stub mentioning `NEXT_PATCH.md missing`; present report → stdout is that file.
+- Single FAIL after P101 cleared the timeouts (153 pass / 1 fail in test-models). No product change.
+
 ## P101 — offline CI suites skip production model start-spacing
 
 Apply on top of P100. Changes:
