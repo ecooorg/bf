@@ -4,13 +4,69 @@ import JSZip from 'jszip';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getPool } from './database.ts';
-import { redactSecrets } from './redact.ts';
+import { redactDeep, redactSecrets } from './redact.ts';
 import { verifyArtifact } from './artifactRepository.ts';
-import { APP_VERSION } from '../src/config.ts';
 
 // Real server console output, redacted, bounded. Without this the export has nothing but operation events.
 const consoleLines: string[] = [];
-const MAX_LINES = 500;
+const MAX_LINES = Math.max(500, Math.min(5000, Number(process.env.DIAGNOSTIC_CONSOLE_LINES) || 2000));
+const applicationLines: Record<string, unknown>[] = [];
+const MAX_APPLICATION_LINES = Math.max(500, Math.min(10000, Number(process.env.DIAGNOSTIC_APPLICATION_LINES) || 3000));
+let dbLogUnavailableUntil = 0;
+let dbLogWriteFailures = 0;
+const REDACTED_DETAIL_KEYS = /prompt|source.?code|authorization|cookie|password|secret|api.?key|token|request.?body|response.?body|content/i;
+function sanitizeLogText(value: unknown, max = 1200): string {
+  return redactSecrets(String(value ?? '')).replace(/(prompt|systemPrompt|sourceCode|requestBody|responseBody|authorization|cookie|api[_-]?key|token|password|privateKey)\s*[:=]\s*(\"[^\"]*\"|'[^']*'|[^,\s}]+)/gi, '$1=[OMITTED]').replace(/AIza[0-9A-Za-z_-]{20,}/g, '[REDACTED_KEY]').replace(/Bearer\s+[^\s,]+/gi, 'Bearer [REDACTED]').slice(0, max);
+}
+function safeDetails(value: unknown, depth = 0): unknown {
+  if (depth > 5) return '[DEPTH_LIMIT]';
+  if (typeof value === 'string') return sanitizeLogText(value, 1200);
+  if (Array.isArray(value)) return value.slice(0, 50).map((x) => safeDetails(x, depth + 1));
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 80)) out[key] = REDACTED_DETAIL_KEYS.test(key) ? '[OMITTED]' : safeDetails(item, depth + 1);
+    return redactDeep(out);
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null) return value;
+  return String(value).slice(0, 200);
+}
+export type ApplicationLogInput = { level?: 'debug' | 'info' | 'warn' | 'error'; component: string; event: string; message?: string; requestId?: string; operationId?: string; details?: unknown; error?: unknown };
+/** Structured privacy-preserving application log. In-memory capture is immediate; DB persistence is best-effort and throttled during DB outages. */
+export async function recordApplicationLog(input: ApplicationLogInput): Promise<void> {
+  const err = input.error as any;
+  const entry: Record<string, unknown> = { timestamp: new Date().toISOString(), level: input.level ?? 'info', component: String(input.component || 'app').slice(0, 80), event: String(input.event || 'event').slice(0, 100), message: sanitizeLogText(input.message ?? err?.message ?? '', 1200), requestId: input.requestId ? String(input.requestId).slice(0, 100) : undefined, operationId: input.operationId ? safe(input.operationId) : undefined, details: safeDetails(input.details ?? {}), ...(err ? { errorName: String(err.name || 'Error').slice(0, 100), errorCode: String(err.code || err.status || '').slice(0, 100), stack: sanitizeLogText(err.stack || '', 5000) } : {}) };
+  applicationLines.push(entry); if (applicationLines.length > MAX_APPLICATION_LINES) applicationLines.splice(0, applicationLines.length - MAX_APPLICATION_LINES);
+  if (Date.now() < dbLogUnavailableUntil) return;
+  try {
+    const pool = await getPool();
+    await pool.query('INSERT INTO application_diagnostic_logs (occurred_at,level,component,event,message,request_id,operation_id,details,error_name,error_code,stack) VALUES (now(),$1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10)', [entry.level, entry.component, entry.event, entry.message, entry.requestId ?? null, entry.operationId ?? null, JSON.stringify(entry.details ?? {}), (entry.errorName as string) ?? null, (entry.errorCode as string) ?? null, (entry.stack as string) ?? null]);
+    dbLogUnavailableUntil = 0;
+  } catch { dbLogWriteFailures++; dbLogUnavailableUntil = Date.now() + Math.min(60_000, 5_000 * Math.max(1, Math.min(12, dbLogWriteFailures))); }
+}
+export function capturedApplicationLogs(limit = 1000): Record<string, unknown>[] { return applicationLines.slice(-Math.max(1, Math.min(3000, Math.trunc(limit)))); }
+export async function recentApplicationLogs(limit = 1000): Promise<{ logs: Record<string, unknown>[]; source: string; dbWriteFailures: number }> {
+  const n = Math.max(1, Math.min(1000, Math.trunc(limit)));
+  try {
+    const pool = await getPool(); const r = await pool.query('SELECT occurred_at AS timestamp, level, component, event, message, request_id AS "requestId", operation_id AS "operationId", details, error_name AS "errorName", error_code AS "errorCode", stack FROM application_diagnostic_logs ORDER BY id DESC LIMIT $1', [n]);
+    const merged = [...r.rows.reverse(), ...capturedApplicationLogs(n)]; const seen = new Set<string>();
+    const logs = merged.filter((row: any) => { const key = `${row.timestamp}|${row.component}|${row.event}|${row.requestId ?? ''}|${row.message ?? ''}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(-n);
+    return { logs, source: 'database+memory', dbWriteFailures: dbLogWriteFailures };
+  } catch { return { logs: capturedApplicationLogs(n), source: 'memory-fallback', dbWriteFailures: dbLogWriteFailures }; }
+}
+/** Express request tracing: never logs query strings, headers, cookies or request/response bodies. */
+export function requestDiagnosticsMiddleware(req: any, res: any, next: () => void): void {
+  const supplied = String(req.headers?.['x-request-id'] ?? '');
+  const requestId = /^[a-zA-Z0-9_.:-]{1,80}$/.test(supplied) ? supplied : crypto.randomUUID();
+  const started = Date.now(); res.setHeader('x-request-id', requestId);
+  res.on('finish', () => {
+    const details = { method: String(req.method || '').slice(0, 12), path: String(req.path || '/').split('?')[0].slice(0, 180), statusCode: Number(res.statusCode) || 0, durationMs: Math.max(0, Date.now() - started), responseBytes: Number(res.getHeader('content-length')) || undefined };
+    const level = details.statusCode >= 500 ? 'error' : details.statusCode >= 400 ? 'warn' : 'info';
+    const entry = { timestamp: new Date().toISOString(), level, component: 'http', event: 'request_complete', requestId, details };
+    applicationLines.push(entry); if (applicationLines.length > MAX_APPLICATION_LINES) applicationLines.splice(0, applicationLines.length - MAX_APPLICATION_LINES);
+    if (details.statusCode >= 500) void recordApplicationLog({ level: 'error', component: 'http', event: 'request_failed', requestId, message: `HTTP ${details.statusCode} ${details.method} ${details.path}`, details });
+  });
+  next();
+}
 let captureInstalled = false;
 export function installLogCapture(): void {
   if (captureInstalled) return; captureInstalled = true;
@@ -19,8 +75,12 @@ export function installLogCapture(): void {
     console[level] = (...args: unknown[]) => {
       try {
         const text = args.map((a) => typeof a === 'string' ? a : (() => { try { return JSON.stringify(a); } catch { return String(a); } })()).join(' ');
-        consoleLines.push(`${new Date().toISOString()} [${level}] ${redactSecrets(text).slice(0, 500)}`);
+        const safeText = sanitizeLogText(text, 1200);
+        consoleLines.push(`${new Date().toISOString()} [${level}] ${safeText}`);
         if (consoleLines.length > MAX_LINES) consoleLines.splice(0, consoleLines.length - MAX_LINES);
+        const structured = { timestamp: new Date().toISOString(), level: level === 'error' || level === 'warn' ? level : 'info', component: 'console', event: 'console_output', message: safeText };
+        applicationLines.push(structured); if (applicationLines.length > MAX_APPLICATION_LINES) applicationLines.splice(0, applicationLines.length - MAX_APPLICATION_LINES);
+        if (level === 'error' || level === 'warn') void recordApplicationLog({ level, component: 'console', event: 'console_output', message: safeText });
       } catch { /* capture must never break logging */ }
       original(...args);
     };
@@ -33,6 +93,7 @@ export function releaseLabel(file = path.resolve(process.cwd(), 'CHANGELOG.md'))
   try { const m = fs.readFileSync(file, 'utf8').match(/^## (P\d+(?:\.\d+)*)\b/m); return m ? m[1] : null; } catch { return null; }
 }
 export const buildCommit = (env: NodeJS.ProcessEnv = process.env): string => (env.RENDER_GIT_COMMIT || env.RAILWAY_GIT_COMMIT_SHA || env.GIT_COMMIT || 'unknown').slice(0, 7);
+function runtimeAppVersion(): string { try { return String(JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')).version || 'unknown'); } catch { return process.env.APP_VERSION || 'unknown'; } }
 
 
 export type DiagnosticEvent = { timestamp: string; operationId: string; event: string; stage: string; status: string; durationMs?: number; bytes?: number; fileCount?: number; errorCode?: string };
@@ -91,10 +152,11 @@ export async function systemDiagnostics() {
       checks[ix] = entry;
     } catch (e) { /* keep NOT RUN with explicit reason below */ const ix = checks.findIndex((c) => c.name === 'artifact-storage'); checks[ix] = { name: 'artifact-storage', status: 'FAIL', evidence: `artifact check errored: ${String((e as Error).message).slice(0, 120)}` }; }
     checks.push({ name: 'diagnostic-event-schema', status: result.rows[0]?.table_name ? 'PASS' : 'FAIL', evidence: 'project_diagnostic_events table lookup' });
+    try { const logs = await pool.query("SELECT to_regclass('public.application_diagnostic_logs') AS table_name"); checks.push({ name: 'application-log-storage', status: logs.rows[0]?.table_name ? 'PASS' : 'FAIL', evidence: `application_diagnostic_logs table ${logs.rows[0]?.table_name ? 'available' : 'missing; apply migration 019_application_diagnostic_logs.sql'}` }); } catch (e) { checks.push({ name: 'application-log-storage', status: 'FAIL', evidence: `application log table check failed: ${String((e as Error).message).slice(0, 120)}` }); }
   } catch { checks.push({ name: 'database-connectivity', status: 'FAIL', evidence: 'Database query failed; operations use process-local fallback.' }); }
-  return { timestamp: new Date().toISOString(), runtime: { appVersion: APP_VERSION, release: releaseLabel(), commit: buildCommit(), node: process.version, uptimeSec: Math.round(process.uptime()), rssMb: Math.round(process.memoryUsage().rss / 1048576), capturedConsoleLines: consoleLines.length }, checks, overall: checks.some(c => c.status === 'FAIL') ? 'FAIL' : checks.some(c => c.status !== 'PASS') ? 'WARN' : 'PASS' };
+  return { timestamp: new Date().toISOString(), runtime: { appVersion: runtimeAppVersion(), release: releaseLabel(), commit: buildCommit(), node: process.version, uptimeSec: Math.round(process.uptime()), rssMb: Math.round(process.memoryUsage().rss / 1048576), capturedConsoleLines: consoleLines.length, capturedApplicationLogs: applicationLines.length, diagnosticDbWriteFailures: dbWriteFailures, applicationLogDbWriteFailures: dbLogWriteFailures }, checks, overall: checks.some(c => c.status === 'FAIL') ? 'FAIL' : checks.some(c => c.status !== 'PASS') ? 'WARN' : 'PASS' };
 }
-export const REQUIRED_DIAGNOSTIC_ENTRIES = ['logs/server-console.log', 'README.txt', 'manifest.json', 'operations/recent-operations.json', 'diagnostics/diagnostic-summary.json', 'logs/application.jsonl'];
+export const REQUIRED_DIAGNOSTIC_ENTRIES = ['logs/server-console.log', 'README.txt', 'manifest.json', 'operations/recent-operations.json', 'diagnostics/diagnostic-summary.json', 'logs/application.jsonl', 'logs/application-detail.jsonl'];
 /** Reads the ZIP back independently (CRC on) and compares every entry with the hash recorded in its manifest. Returns problems; empty = intact. */
 export async function verifyDiagnosticArchive(buf: Buffer): Promise<string[]> {
   const problems: string[] = [];
@@ -116,19 +178,22 @@ export async function verifyDiagnosticArchive(buf: Buffer): Promise<string[]> {
   return problems;
 }
 export async function diagnosticArchive(operationId?: string, extraFiles: { path: string; text: string }[] = []): Promise<Buffer> {
-  const [operations, summary] = await Promise.all([recentDiagnostics(200), systemDiagnostics()]);
+  const [operations, summary, detailed] = await Promise.all([recentDiagnostics(200), systemDiagnostics(), recentApplicationLogs(1000)]);
   const zip = new JSZip(); const entries: { path: string; bytes: number; sha256: string }[] = [];
   function add(path: string, text: string) { const bytes = Buffer.from(text); zip.file(path, bytes); entries.push({ path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') }); }
-  add('README.txt', 'BiForge Project Mode diagnostics. No prompts, source code, credentials or cookies are exported. Operation history is bounded to 200 events; logs/server-console.log holds the last 500 redacted console lines since the last server start. DB events persist until retention cleanup; memory fallback is process-local. HTTP response completion does not prove browser download.\n');
+  add('README.txt', 'BiForge Project Mode diagnostics. No prompts, source code, credentials or cookies are exported. Operation history is bounded to 200 events; logs/server-console.log holds the last configured bounded set of redacted console lines since the last server start; logs/application-detail.jsonl combines recent structured logs from PostgreSQL and the process ring buffer. DB events persist until retention cleanup; memory fallback is process-local. HTTP response completion does not prove browser download.\n');
   add('operations/recent-operations.json', JSON.stringify(operations, null, 2));
   add('diagnostics/diagnostic-summary.json', JSON.stringify(summary, null, 2));
   add('logs/server-console.log', (consoleLines.length ? consoleLines.join('\n') : '(no console output captured since the last server start)') + '\n');
   add('logs/application.jsonl', operations.events.map(e => JSON.stringify(e)).join('\n') + '\n');
+  add('logs/application-detail.jsonl', detailed.logs.map(e => JSON.stringify(e)).join('\n') + '\n');
   for (const f of extraFiles) add(f.path, f.text);
   const skipped = [
     ...(operations.source !== 'database' ? [{ item: 'persistent operation history', reason: 'database unavailable; only process-local events since last restart are included' }] : []),
     ...summary.checks.filter((c) => c.status !== 'PASS').map((c) => ({ item: `check:${c.name}`, reason: `${c.status}: ${c.evidence}` })),
-    { item: 'Render platform logs / CI logs', reason: 'outside the application; CI logs are in the ci-execution-logs workflow artifact' },
+    { item: 'Render platform logs / CI logs', reason: 'outside the application; this archive includes in-app logs and local test reports only' },
+    ...(detailed.source !== 'database' ? [{ item: 'persistent application logs', reason: 'database unavailable; detailed log export contains process-local records only' }] : []),
+    ...(detailed.dbWriteFailures ? [{ item: 'application log persistence', reason: `${detailed.dbWriteFailures} database write failures; in-memory fallback remains bounded` }] : []),
     ...(consoleLines.length === 0 ? [{ item: 'logs/server-console.log', reason: 'server produced no console output since the last start (or capture was not installed)' }] : []),
     ...(operations.events.length === 0 ? [{ item: 'operation events', reason: 'no builds, downloads or exports recorded in the retention window' }] : []),
   ];

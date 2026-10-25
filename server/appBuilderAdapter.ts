@@ -6,7 +6,7 @@ import { registryForGeminiCascade, type RegistryEntry } from './modelRegistry.ts
 import { routeCall, type RouterState } from './router.ts';
 import { getPool } from './database.ts';
 import { saveArtifact } from './artifactRepository.ts';
-import { linkDiagnosticArtifact, recordDiagnostic } from './projectDiagnostics.ts';
+import { linkDiagnosticArtifact, recordApplicationLog, recordDiagnostic } from './projectDiagnostics.ts';
 
 export const stagedEnabled = (env: NodeJS.ProcessEnv = process.env): boolean => env.APP_BUILDER_ENGINE === 'staged';
 export const staleMs = (env: NodeJS.ProcessEnv = process.env): number => Math.max(5_000, Number(env.APP_BUILDER_STALE_MS) || 120_000);
@@ -50,16 +50,21 @@ export function createStorePort(deps: Pick<AdapterDeps, 'getPoolFn'> = {}): Stor
   };
 }
 
+function configuredGeminiModelIds(kind: 'LIGHT' | 'STRONG'): string[] { return registryForGeminiCascade(kind).map((entry) => entry.modelId); }
+
 /** Maps the router outcome onto the typed ModelPort errors. */
 export function createModelPort(deps: AdapterDeps, projectId: string, jobId?: string): ModelPort {
   return {
     async complete(a): Promise<ModelResult> {
+      const modelCallStartedAt = Date.now();
       const json = a.role === 'planner';
       const cascade = a.role === 'coder' ? 'STRONG' : 'LIGHT';
       const configured = registryForGeminiCascade(cascade);
+      void recordApplicationLog({ level: 'info', component: 'app-builder', event: 'model_call_started', operationId: jobId, message: 'App Builder model call started', details: { projectId, role: a.role, cascade, configuredModels: configuredGeminiModelIds(cascade), maxOutputTokens: a.maxOutputTokens } });
       const registry = configured.length ? configured.filter((e) => deps.registry.some((d) => d.providerId === e.providerId && d.modelId === e.modelId)) : [];
       const routed = await routeCall({ requestId: `app-build-${projectId}-${crypto.randomBytes(4).toString('hex')}`, system: a.system, prompt: a.prompt, json, maxOutputTokens: a.maxOutputTokens, metadata: { role: `app_builder_${a.role}`, projectId } },
         { registry, adapters: deps.adapters, state: deps.routerState, required: json ? ['json_output'] : [], maxCalls: Math.max(1, configured.length), retryTransient: false, retryOutput: false, timeoutMs: 90_000, sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 95_000, onWait: async ({ model, waitMs }) => {
+          void recordApplicationLog({ level: 'info', component: 'app-builder', event: waitMs > 0 ? 'model_rate_wait' : 'model_wait_finished', operationId: jobId, message: waitMs > 0 ? 'Waiting for a model request slot' : 'Model request slot is available', details: { projectId, role: a.role, model, waitMs } });
           if (!jobId) return;
           const store = createStorePort(deps); const current = await store.loadJob(jobId);
           if (!current || current.status === 'cancelled' || current.status === 'done') return;
@@ -67,6 +72,7 @@ export function createModelPort(deps: AdapterDeps, projectId: string, jobId?: st
         } });
       const r = routed.response;
       if (routed.status === 'ok' && r) {
+        void recordApplicationLog({ level: 'info', component: 'app-builder', event: 'model_call_succeeded', operationId: jobId, message: 'App Builder model call succeeded', details: { projectId, role: a.role, model: `${r.providerId}/${r.modelId}`, latencyMs: Date.now() - modelCallStartedAt, inputTokens: r.usage.input, outputTokens: r.usage.output, finishReason: r.finishReason } });
         const out = typeof r.output === 'string' ? r.output : JSON.stringify(r.output);
         const length = /length|max_tokens/i.test(r.finishReason ?? '');
         return { text: out, finishReason: length ? 'length' : r.finishReason ?? 'stop', modelId: `${r.providerId}/${r.modelId}`, usage: { promptTokens: r.usage.input, completionTokens: r.usage.output, totalTokens: r.usage.input + r.usage.output } };
@@ -74,6 +80,7 @@ export function createModelPort(deps: AdapterDeps, projectId: string, jobId?: st
       const d = routed.decision; const last = d.attempts[d.attempts.length - 1];
       const why = [`router:${routed.status}`, d.reason, ...d.attempts.map((x) => `${x.model}:${x.errorClass ?? x.status}`), ...d.rejected.slice(0, 3).map((x) => `rejected ${x.model}:${x.reason}`)].filter(Boolean).join('; ').slice(0, 300);
       const cls = r?.errorClass ?? last?.errorClass;
+      void recordApplicationLog({ level: 'warn', component: 'app-builder', event: 'model_call_failed', operationId: jobId, message: why, details: { projectId, role: a.role, routerStatus: routed.status, errorClass: cls ?? null, latencyMs: Date.now() - modelCallStartedAt, attemptedModels: d.attempts.map((x) => ({ model: x.model, status: x.status, errorClass: x.errorClass ?? null })), rejectedModels: d.rejected.slice(0, 10).map((x) => ({ model: x.model, reason: x.reason })) } });
       if (cls === 'PROVIDER_QUOTA' || d.rejected.some((x) => x.reason === 'cooldown' || x.reason.startsWith('quota:'))) {
         const cooldownUntil = configured.reduce((max, e) => Math.max(max, deps.routerState.cooldownUntil.get(`${e.providerId}/${e.modelId}`) ?? 0), 0);
         const cooldownWait = Math.max(0, cooldownUntil - Date.now());
@@ -95,6 +102,7 @@ const DIAG: Record<string, { event: string; status: string }> = {
 /** The job id is the diagnostic operation id, so the diagnostic export can find build-report.json. */
 export function createEventPort(): EventPort {
   return { async emit(e: EventPayload) {
+    void recordApplicationLog({ level: e.type === 'unit_failed' ? 'warn' : 'info', component: 'app-builder', event: `build_event_${String(e.type).slice(0, 70)}`, operationId: e.jobId, message: `App Builder event: ${e.type}`, details: { unitId: e.unitId ?? null, dataKeys: Object.keys(e.data ?? {}).slice(0, 30), goalImplemented: e.data?.goalImplemented ?? null } });
     const m = DIAG[e.type]; if (!m) return;
     const stage = e.type === 'stage_changed' ? String(e.data?.stage ?? 'stage') : e.type === 'job_done' ? 'done' : e.unitId ? `unit_${e.unitId}` : 'build';
     const ok = e.type !== 'job_done' || e.data?.goalImplemented === true;
@@ -109,6 +117,7 @@ export const isRunning = (id: string) => running.has(id);
 
 export async function startStagedBuild(deps: AdapterDeps, input: { projectId: string; userId: string; taskText: string; jobId?: string }): Promise<{ jobId: string }> {
   const store = createStorePort(deps); const jobId = input.jobId ?? crypto.randomUUID(); const now = new Date().toISOString();
+  void recordApplicationLog({ level: 'info', component: 'app-builder', event: 'build_job_queued', operationId: jobId, message: 'Staged build job queued', details: { projectId: input.projectId, hasTaskText: Boolean(input.taskText), taskChars: input.taskText.length } });
   await store.saveJob({ schemaVersion: SCHEMA_VERSION, id: jobId, projectId: input.projectId, userId: input.userId, status: 'queued', stage: 'preflight', spec: null, plan: null, callsUsed: 0, callsBudget: 25, error: null, report: null, artifactId: null, createdAt: now, updatedAt: now, heartbeatAt: now });
   await store.setTaskText(jobId, input.taskText);
   await createEventPort().emit({ jobId, type: 'job_started', level: 'info' });
@@ -131,9 +140,10 @@ export async function executeJob(deps: AdapterDeps, jobId: string): Promise<void
       try {
         const artifactId = await store.putArtifact(jobId, result.archive, { filename: 'app-source.zip', contentType: 'application/zip' });
         result.state.artifactId = artifactId; await store.saveJob(result.state); await linkDiagnosticArtifact(jobId, artifactId);
-      } catch (e) { result.state.error = { code: 'artifact_save_failed', message: String((e as Error)?.message ?? e).slice(0, 200) }; result.state.status = 'failed'; await store.saveJob(result.state); }
+      } catch (e) { void recordApplicationLog({ level: 'error', component: 'app-builder', event: 'artifact_save_failed', operationId: jobId, message: 'Build archive could not be stored', error: e, details: { projectId: result.state.projectId, status: result.state.status } }); result.state.error = { code: 'artifact_save_failed', message: String((e as Error)?.message ?? e).slice(0, 200) }; result.state.status = 'failed'; await store.saveJob(result.state); }
     }
   } catch (e) {
+    void recordApplicationLog({ level: 'error', component: 'app-builder', event: 'build_job_exception', operationId: jobId, message: 'Unhandled App Builder job exception', error: e, details: { jobId } });
     try { const j = await store.loadJob(jobId); if (j && j.status !== 'cancelled') await store.saveJob({ ...j, status: 'failed', error: { code: 'engine_error', message: String((e as Error)?.message ?? e).slice(0, 300) } }); } catch { /* nothing more to do */ }
   } finally { running.delete(jobId); aborts.delete(jobId); }
 }
