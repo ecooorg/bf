@@ -25,7 +25,7 @@ const commands = [
   { id: 'core-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/core.test.mjs'], timeoutMs: 35_000, requiresDeps: true },
   { id: 'project-mode-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/project-mode.test.mjs'], timeoutMs: 35_000, requiresDeps: true },
   { id: 'integration-and-db-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/integrations.test.mjs', 'tests/database.test.mjs'], timeoutMs: 45_000, requiresDeps: true },
-  { id: 'model-cascade-and-rate-tests', args: ['--experimental-strip-types', '--test', 'tests/model-cascade-p93-5.test.mjs'], timeoutMs: 25_000, requiresDeps: true },
+  { id: 'model-cascade-and-rate-tests', args: ['node_modules/tsx/dist/cli.mjs', '--test', 'tests/model-cascade-p93-5.test.mjs'], timeoutMs: 25_000, requiresDeps: true },
 ];
 if (process.env.BIFORGE_RUN_BROWSER_TESTS === 'true') commands.push({ id: 'browser-ui-tests', args: ['node_modules/tsx/dist/cli.mjs', 'tests/ui-check.mjs'], timeoutMs: 60_000, requiresDeps: true });
 function run(command, timeoutMs) {

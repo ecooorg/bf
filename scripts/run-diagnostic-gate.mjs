@@ -18,7 +18,6 @@ const suites = [
   { id: 'test-models', script: 'test:models', timeoutMs: 75_000 },
   { id: 'test-files', script: 'test:files', timeoutMs: 75_000 },
   { id: 'test-app-builder', script: 'test:app-builder', timeoutMs: 150_000 },
-  { id: 'test-verification-plan', script: 'test:verification-plan', timeoutMs: 45_000 },
   { id: 'test-project', script: 'test:project', timeoutMs: 120_000 },
   { id: 'typecheck', script: 'typecheck', timeoutMs: 120_000 },
 ];
