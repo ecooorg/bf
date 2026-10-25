@@ -1,3 +1,15 @@
+## P104 — close Phase 0: delete superseded documents, tests no longer read documentation
+
+- Deleted (history stays in git and the owner's backups): `docs/TASK-CONTEXT-P85.md`, `CHANGE-IMPACT-P86.md`, `VERIFICATION-PLANNER-P87.md`, `REAL-TASK-BENCHMARK-P88.md`, `INTENT-CONTRACT-P89.md`, `CONTEXT-REFRESH-P90.md`, `CONTEXT-COMPLETENESS-P91.md`, `PROJECT-MODE-DIAGNOSTICS-P92.md`, `TEST-HARNESS-P93.7.md`, `AI-NATIVE-ROADMAP-P81-P84.md`, `AI-NATIVE-ROADMAP-P85-P91.md`, `AI-TRANSFORMATION-SPEC.md`, `DOCUMENTATION-BASELINE.md`, `test-audit-p103.md`, `PROJECT-MODE-DIAGNOSTICS-ROADMAP.md`, `tz-appbuilder.md`, `USER-GUIDE.md`; JSON snapshots `context-locality-p82`, `contracts-verification-p83`, `context-benchmark-p84`, `context-benchmark-verification-p84`, `context-baseline-v80`, `generated-acceptance-summary`, `generated-boundary-report`; the whole `archive/` directory; root `ARCHIVE-MOVE-LIST.md`; `tests/context-benchmark.test.mjs` (not run by any script, fixture `tests/context-benchmark-gold-p84.json` absent); `scripts/check-docs.mjs`.
+- Live requirements moved first: test harness and Project Mode diagnostics (including the unfinished P92 production verification) into `docs/OPERATIONS.md`; App Builder invariants into `docs/architecture-guardrails.md`.
+- Removed `check:docs` from `package.json` (script, `check` chain, `docs:check`), `scripts/qa.mjs`, `scripts/acceptanceReport.mjs`, `scripts/architectureVerifyChange.mjs`, `scripts/ai-test-harness-p93-7.mjs`, `scripts/patch-pack.mjs` and `tests/feature-manifest.json` (intentional removal of a guarded script). Suggested-command lists in the P85–P91 tool libraries updated.
+- `tests/security.test.mjs`: the GitHub-write default is now asserted from `server/githubIntegration.ts` and `.env.example`, not from `AGENTS.md`. The assertion is not weakened: it still fails if writes become enabled without `GITHUB_DIFF_UPLOAD=true` or if the `github_write_disabled` guard disappears.
+- `acceptanceReport.mjs` and `architectureCheckBoundaries.mjs` write to `artifacts/qa/` instead of `docs/`.
+- `AGENTS.md`, `docs/DOCUMENTATION-INDEX.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`, `docs/typing-and-naming.md` updated. Version 104.
+- Decisions recorded: Navigator cancelled all pending decisions for the programme; documents the assistant does not need are deleted.
+- Not changed: product behaviour, migrations, CI workflows, security controls, the P85–P91 tools (P106).
+- Known limitations: scripts still name documents that never existed (listed in the task file, P106). Hosted CI for this patch not yet run.
+
 ## P103.3 — drop redundant meta-only tests
 
 - Removes tests that only re-checked process metadata without protecting product behavior or AI handoff quality:

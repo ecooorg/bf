@@ -2,11 +2,11 @@
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** Phase 0 closure → Phase 1 → Phase 2, delivered as patches P104–P108. The current delivery task (per-patch scope, work items, gates) is `docs/AI-NATIVE-RENOVATION-TASK.md`; the phase plan is `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
-* **Owner directive (2026-10-25, details ND-1..ND-6 in the task file):** the Navigator never opens repository files. The repository is written for AI assistants; human readability, naming, layout and style are not goals. The only limits are security and preserved product function, both enforced by tests and evidence, not by review. Source stays mainstream (TypeScript/JavaScript/SQL/JSON/Markdown) and line-oriented, because diff-based patching and verification depend on it. Keep the mandatory reading set small; `archive/` is never context.
+* **Current phase:** Phase 0 is closed by P104. Phase 1 (evidence model) and Phase 2 (verification DAG, bounded repair) follow as patches P105–P108. Scope, work items and gates of each patch: `docs/AI-NATIVE-RENOVATION-TASK.md`; phase plan: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Owner directive (2026-10-25, details ND-1..ND-6 in the task file):** the Navigator never opens repository files. The repository is written for AI assistants; human readability, naming, layout and style are not goals. The only limits are security and preserved product function, both enforced by tests and evidence, not by review. Source stays mainstream (TypeScript/JavaScript/SQL/JSON/Markdown) and line-oriented, because diff-based patching and verification depend on it. Keep the mandatory reading set small.
 * **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
-* **Archive status:** root `ARCHIVE-MOVE-LIST.md` is the manual checklist. Candidate historical documents are **not** considered archived until moved after reference checks. Do not bulk-move files or remove unique active requirements.
+* **No historical documents in the repository:** superseded specs, roadmaps, reports and snapshots were deleted in P104; history lives in git and in the owner's backups. Nothing in tests or CI reads documentation prose. `CHANGELOG.md` keeps the patch history as plain text (document names, no links); read only its top entries.
 * **Evidence rule:** the Navigator reports current CI as green; each patch must still use evidence for its actual commit/run. Historical red runs do not establish current status.
 * **Delivery rule:** continue one bounded patch at a time. Phase transitions require their stated evidence gates; do not advance a phase just because documentation or code exists.
 * **Phase 1 (in progress):** canonical JSON schemas (`docs/schema-*.json`) and read-only validator (`scripts/schemaValidate.mjs`). Handoff generator and CI integration are not part of P1.0.
@@ -15,19 +15,6 @@
 
 * **P93 — bounded verification and internal diagnostics:** `npm run test:ai` runs a deterministic, no-live-provider test sequence under a hard 9.5-minute budget and writes a JSON report plus per-step logs. Adds shared model request-start pacing (PostgreSQL-coordinated when migration 018 is applied), Gemini RPM/RPD metadata and request pacing/daily reservation enforcement, bounded model recovery with visible wait states, shorter recovery prompts, and a live project-build status banner. Staged App Builder (flag-gated). App Builder core contracts:** Flat `appBuilder/` with types, ports, plan validator, marker parser, conservative profile. No engine/adapter/runtime yet. Architecture layer and tsconfig include added.
 * **P92 — Project Mode Diagnostics:** Added system diagnostics, recent operations, diagnostic log export, and initial Google Drive synchronization and operation/artifact correlation support. Build and deployment succeeded, but production verification remains incomplete. Diagnostic checks reported `WARN`; artifact storage was `NOT RUN`, recent operations returned no events, and Google Drive diagnostic files were not observed. Verify deployed changes, database migrations, event persistence, artifact correlation, and Drive synchronization before considering diagnostics complete. See `CHANGELOG.md` for change history.
-* **P91 (prepared patch):** Read-only scoped completeness and material-uncertainty guard combining P85–P89 outputs. Missing sources and unproven PASS claims cannot become COMPLETE; evidence references are retained but not fetched/authenticated. No strict CI gate or runtime changes. Focused tests and full CI must be confirmed after applying.  
-* **P90 (prepared patch):** Benchmark-first read-only profiler for P85/P86/P87/P89 planner work. Reports repeated-run timings, canonical output stability and content fingerprints. Deliberately adds no cache; local profile alone does not prove human-time savings. Focused tests and full CI must be confirmed after applying.
-* **P89 (prepared patch):** Optional read-only intent-contract draft CLI, with explicit/inferred source labels, P85 context and P86 impact summaries when available, P87 verification suggestions, contradiction checks and an unverified-by-default intent diff. It never approves a contract or runs commands. Focused tests/full CI must be confirmed after applying.
-* **P88 (prepared patch):** Read-only real-task benchmark pilot. Four starter tasks remain draft until a maintainer pins revisions and reviews gold dependencies, invariants, acceptance criteria and required checks. Reports keep missing values unavailable; no performance gain or CI threshold is claimed.
-* **P87 (prepared patch):** Read-only verification planner with risk-based counterexample suggestions, script-name validation, P56 test-chain guard, and explicit NOT RUN status. Focused tests must pass; full CI is pending Navigator execution.
-* **P86 (prepared patch):** Read-only change-impact and generator-lineage report, including generated route/env/migration inventory relationships. Focused local tests pass; full CI is pending Navigator execution.
-* **P85:** Navigator reports GitHub CI green. Read-only task-aware context planner is available via `npm run context:task`;
-* **P84:** Documentation-only addition of staged Project Mode.*
-* **P83:** Project Mode pagination contracts and negative tests; Navigator reports GitHub CI green.
-* **P82:** Conversation/brief UI and compatibility-route extractions; Navigator reports GitHub CI green. Local full verification was blocked by an `npm ci` timeout.
-* **P81:** Dependency Intelligence context planner and deterministic pre-P81 v80 baseline.
-* **p80:** CI preflight now permits the approved flat `archive/` directory; regression coverage added. Flat docs/scripts layout — phase folders removed; historical copies in `archive/`; active tools use prefixed script names under `scripts/`.
-* **p79:** CI ui-check Playwright cache (skip apt on cache hit)
 * **p71–p78 (Transformation track): ACCEPTED** (Navigator, 2026-10-23, commit `2232cb9`).
 
 ### Product / runtime (P43 / ADR-06)
@@ -37,29 +24,25 @@
 
 ## Navigation
 
-* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (current Phase 0 task), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (audit).
+* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (read sections 1–2 and the current patch), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (audit; on demand).
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
-* Domain index: `docs/DOCUMENTATION-INDEX.md`.
-* Operations: `docs/OPERATIONS.md`.
-* Architecture guardrails: `docs/architecture-guardrails.md`.
+* Document index with sizes and read triggers: `docs/DOCUMENTATION-INDEX.md`.
+* Operations, diagnostics and the `test:ai` harness: `docs/OPERATIONS.md`.
+* Architecture guardrails and App Builder invariants: `docs/architecture-guardrails.md`.
 * Strategic destination (not near-term implementation authority): `docs/VIX-CONCEPT.md`.
-* Manual archive checklist: `ARCHIVE-MOVE-LIST.md` (root).
-* Historical / superseded phase specs and roadmaps: see `ARCHIVE-MOVE-LIST.md`; until moved they remain under `docs/` but are not active entry points.
 * Typing conventions: `docs/typing-and-naming.md`.
-* Accepted Phase 5 record (archive): `archive/phase5-ACCEPTANCE.md`.
-* Phase 1 schemas (status vocabulary + artifact schemas): `docs/schema-*.json` / `docs/SCHEMA-STATUS-VOCABULARY.md` — validate with `node scripts/schemaValidate.mjs`.
-* Generated inventories: `docs/generated-*-inventory.json`, `docs/generated-module-map.json`.
+* Machine files (do not delete; tools read them): `docs/schema-*.json`, `docs/SCHEMA-STATUS-VOCABULARY.md`, `docs/generated-*-inventory.json`, `docs/generated-module-map.json`, `docs/architecture-boundary-rules.json`, `docs/architecture-known-violations.json`.
 
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run check:docs`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run impact:lineage -- --file scripts/docsGenerateInventories.mjs`; `npm run test:impact-lineage`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run verification:plan -- --task "Fix Project Mode ZIP download" server/projectRoutes.ts`; `npm run test:verification-plan`; `npm run benchmark:real-tasks`; `npm run test:real-task-benchmark`; `npm run intent:contract -- --task "Fix Project Mode ZIP download" --file server/projectRoutes.ts`; `npm run test:intent-contract`; `npm run context:refresh-profile`; `npm run test:context-refresh-profile`; `npm run context:completeness -- --task "Fix Project Mode ZIP download" --file server/projectRoutes.ts`; `npm run test:context-completeness`; `npm run acceptance:report`. Health: `GET /health`.
+`npm ci`; `npm run build`; `npm run check`; `npm run docs:generate`; `npm run docs:check`; `npm run verify:change`; `npm run impact:lineage -- --file scripts/docsGenerateInventories.mjs`; `npm run test:impact-lineage`; `npm run architecture:check`; `npm run context:plan -- --file server/codeTaskService.ts`; `npm run benchmark:context`; `npm run test:context-benchmark`; `npm run verification:plan -- --task "Fix Project Mode ZIP download" server/projectRoutes.ts`; `npm run test:verification-plan`; `npm run benchmark:real-tasks`; `npm run test:real-task-benchmark`; `npm run intent:contract -- --task "Fix Project Mode ZIP download" --file server/projectRoutes.ts`; `npm run test:intent-contract`; `npm run context:refresh-profile`; `npm run test:context-refresh-profile`; `npm run context:completeness -- --task "Fix Project Mode ZIP download" --file server/projectRoutes.ts`; `npm run test:context-completeness`; `npm run acceptance:report`. Health: `GET /health`.
 
 ## Critical rules
 
 Preserve behavior unless change is approved. Never commit secrets. Production deployment, GitHub write, billing, credentials, bypassing security controls and executing generated code on the host require explicit owner authorization. Report passed/failed/blocked/not-run checks separately. Deliver a ZIP containing changed/new files, list deletions separately, and update this status and `CHANGELOG.md` for every patch.
 
-Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not add new directory levels without Navigator approval. Historical material belongs in `archive/`.
+Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not add new directory levels without Navigator approval. Do not keep historical documents in the repository.
 
 ## Delegation of decisions
 
