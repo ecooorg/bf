@@ -1,9 +1,16 @@
 {
-  "generatedAt": "2026-10-25T06:36:30Z",
+  "generatedAt": "2026-10-25T06:56:21Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
-  "count": 55,
+  "count": 59,
   "variables": [
+    {
+      "name": "APP_BUILDER_ENGINE",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
     {
       "name": "APP_BUILDER_MAX_RATE_WAIT_MS",
       "files": [
@@ -33,6 +40,13 @@
       "fileCount": 1
     },
     {
+      "name": "APP_VERSION",
+      "files": [
+        "server/projectDiagnostics.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "CODE_EXECUTOR",
       "files": [
         "server/codeTaskService.ts",
@@ -56,6 +70,20 @@
         "server/projectRoutes.ts"
       ],
       "fileCount": 4
+    },
+    {
+      "name": "DIAGNOSTIC_APPLICATION_LINES",
+      "files": [
+        "server/projectDiagnostics.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "DIAGNOSTIC_CONSOLE_LINES",
+      "files": [
+        "server/projectDiagnostics.ts"
+      ],
+      "fileCount": 1
     },
     {
       "name": "DISABLE_HMR",

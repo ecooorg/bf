@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-25T06:36:30.956Z",
+  "generatedAt": "2026-10-25T06:56:21.189Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "bf-main",
+  "root": "work",
   "summary": {
     "moduleCount": 157,
-    "edgeCount": 392,
+    "edgeCount": 391,
     "cycleCount": 0,
-    "totalLines": 28090
+    "totalLines": 28165
   },
   "cycles": [],
   "layers": {
@@ -145,7 +145,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2294,
+      "lines": 2296,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderIndex.ts",
@@ -224,7 +224,7 @@
     {
       "path": "server/appBuilderAdapter.ts",
       "layer": "server",
-      "lines": 170,
+      "lines": 180,
       "imports": [
         "appBuilder/index.ts",
         "server/adapter.ts",
@@ -599,12 +599,11 @@
     {
       "path": "server/projectDiagnostics.ts",
       "layer": "server",
-      "lines": 146,
+      "lines": 211,
       "imports": [
         "server/artifactRepository.ts",
         "server/database.ts",
-        "server/redact.ts",
-        "src/config.ts"
+        "server/redact.ts"
       ],
       "fanIn": 3
     },
@@ -621,7 +620,7 @@
     {
       "path": "server/projectRoutes.ts",
       "layer": "server",
-      "lines": 839,
+      "lines": 837,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderAdapter.ts",
@@ -1138,7 +1137,7 @@
       "layer": "src",
       "lines": 16,
       "imports": [],
-      "fanIn": 9
+      "fanIn": 8
     },
     {
       "path": "src/decision.ts",
@@ -1613,11 +1612,11 @@
       "count": 9
     },
     {
-      "path": "src/config.ts",
-      "count": 9
+      "path": "src/attachments.ts",
+      "count": 8
     },
     {
-      "path": "src/attachments.ts",
+      "path": "src/config.ts",
       "count": 8
     },
     {
@@ -1700,7 +1699,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2294
+      "lines": 2296
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1712,7 +1711,7 @@
     },
     {
       "path": "server/projectRoutes.ts",
-      "lines": 839
+      "lines": 837
     },
     {
       "path": "server/webSearch.ts",

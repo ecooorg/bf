@@ -180,3 +180,10 @@ Defaults unless the owner changes them:
 - Core has no provider/server dependencies; JSZip is an existing project dependency used for archive assembly.
 
 **Gemini free-tier rate limits and model cascade:** values previously noted for Gemini 3.x models and `MODEL_CASCADE_LIGHT` / `MODEL_CASCADE_STRONG` are provisional operational notes, not core constants. Verify them against current provider limits and observed tests before using them in deployment configuration.
+
+
+## P93.7 — test environment and diagnostic evidence
+
+Use `npm run test:ai` for the bounded local verification pass. The harness never installs packages, never invokes real model APIs, has a hard 570-second total budget, records each command's output separately, and emits a JSON report. `BLOCKED` means required local dependencies are absent; it is not a passing test. Browser UI checks are optional (`BIFORGE_RUN_BROWSER_TESTS=true`) and are still constrained by the same total budget.
+
+Application diagnostics are available in the authenticated Project Mode diagnostics ZIP. `logs/application-detail.jsonl` combines recent structured events from PostgreSQL and the process ring buffer; `logs/server-console.log` contains bounded redacted console output. HTTP request IDs are returned in `X-Request-Id`; request logs intentionally exclude query strings, headers, cookies, and request/response bodies. Migration `019_application_diagnostic_logs.sql` enables seven-day persistent log retention. If PostgreSQL is unavailable, only bounded process-local evidence is available until restart.
