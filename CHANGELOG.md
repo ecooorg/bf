@@ -1,3 +1,14 @@
+## P93.4 — App Builder progress UI and diagnostic result integration
+
+* `src/projectBuildJob.ts` (new): job polling every 3 s with tolerance for short network outages (gives up after 5 consecutive errors; stops on abort), honest summaries. Only a server-reported `goalImplemented === true` is shown as success; partial/failed/cancelled results list the reason and failed validators.
+* `src/ProjectBuildProgress.tsx` (new): stage, per-file status, "limit reached, waiting" message, Cancel, Download (labelled "incomplete" when not fully verified), Save to Google Drive, Download diagnostics, "Check again" after lost contact.
+* `src/ProjectMode.tsx`: both the professional build and the novice wizard handle the staged `202 {jobId}` response by following the job; the existing download/Drive result block and wizard notice reuse the final job result. Legacy responses (no `jobId`) are handled as before.
+* Engine/server: while waiting after a provider limit the job carries `error.code = waiting_rate_limit` (cleared afterwards; the wait is cancellable via the abort signal); `GET …/code/build/:jobId` adds `diagnosticsUrl` (`/api/projects/diagnostics/export?jobId=…`).
+* Tests: `tests/app-builder-ui-p93-4.test.mjs` (polling, outage tolerance, abort, honest summaries) and a rate-limit-wait case in the recovery tests; `test:app-builder` extended. Module map regenerated.
+* Verification: UI-logic and engine tests PASS locally (37/37 for contracts, 2a, 2b, recovery incl. wait case, UI; adapter test and goal test are not in that run), `lint:copy`, `check-version`, `check:docs`, `docs:check` PASS. NOT RUN: `tsc`/build of the React code, browser/Playwright UI check, rendering of the new component, adapter tests, full `npm run check`, live PostgreSQL, real model, Render. The manual Render acceptance for P93.4 (Tetris ZIP, download, Drive flow with a free key) is still to be done by the owner.
+* Fix (CI build:server, TS2322): `server/appBuilderAdapter.ts` passed a `Uint8Array<ArrayBufferLike>` to `saveArtifact`; it is now copied with `new Uint8Array(bytes)`, as the legacy route does. This type error was introduced in P93.3 and was not catchable locally (`tsc` could not run in the sandbox).
+* Known limits: no "Continue" button for failed/partial jobs yet; the progress panel is a single panel shared by both build paths and is not reset when another project is selected; the diagnostics ZIP is bound to the job only when the flag is on; wizard text for the staged path still says "Building your source ZIP…" while the panel shows details. The flag stays off by default.
+
 ## P93.3 — App Builder persistence/recovery, server adapter, routes, diagnostics, feature flag
 
 * Migration `migrations/017_app_build_jobs.sql` (idempotent): `app_build_jobs`, `app_build_unit_results`, status/project indexes. The repository keeps migrations in `migrations/`, so the spec's `server/migrations/` path is corrected in `docs/tz-appbuilder.md`.
