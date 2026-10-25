@@ -1,3 +1,12 @@
+## P103.3 — drop redundant meta-only tests
+
+- Removes tests that only re-checked process metadata without protecting product behavior or AI handoff quality:
+  - CHANGELOG release-label / `check-version` duplicate in `tests/ci-diagnostics-chain.test.mjs` (version gate remains `scripts/check-version.mjs` in `npm run check`)
+  - duplicate `APP_VERSION matches package.json` assertions in `tests/project-mode.test.mjs`
+  - pure file-existence checks: QA1 regression file list in `tests/core.test.mjs`, backup-restore script exists in `tests/project-mode.test.mjs`, optional e01 script exists in `tests/gates.test.mjs`
+- Keeps diagnostic ZIP integrity, `ci-summary` handoff contract, compact CI packaging (P94), preflight/secrets/path policy, and the `check-version` script itself.
+- No product/runtime behavior change.
+
 ## P103.2 — ANR-P1-0 Phase 1 schemas, status vocabulary, read-only validator
 
 - Adds canonical JSON Schema set as flat `docs/schema-*.json` files for Intent/Policy Contract, Change/Impact Plan, Verification Plan, Evidence Record, Artifact Manifest, Handoff Report, and Approval Decision, plus shared `common.schema.json`.
