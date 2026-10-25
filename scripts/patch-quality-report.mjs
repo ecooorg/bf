@@ -24,7 +24,7 @@ const stages = Array.isArray(resultsDoc?.results) ? resultsDoc.results : [];
 const uniqueStages = [...new Map(stages.map((s) => [`${s.id}:${s.status}`, s])).values()];
 const failedStages = uniqueStages.filter((s) => s.status !== 'PASS' && s.status !== 'SKIPPED');
 const workflowLogs = [
-  'ci-install.log', 'ci-migrate.log', 'ci-diagnostic-gate.log', 'ci-secondary-diagnostic.log',
+  'ci-install.log', 'ci-diagnostic-gate.log', 'ci-secondary-diagnostic.log', 'ci-migrate.log',
   'ci-check.log', 'ci-live.log', 'ci-api.log', 'ci-build.log',
 ];
 const presentLogs = fs.readdirSync(dir).filter((f) => f.endsWith('.log')).sort();
@@ -34,11 +34,11 @@ const rootCauseHints = [];
 function extractEvidence(logText, status) {
   const lines = redact(logText).split('\n');
   const evidence = [];
-  const interesting = /(^\s*not ok\s+\d+\s+-|AssertionError|ERR_[A-Z_]+|error TS\d+|Error:|Expected:|Actual:|expected\s|actual\s|operator:|\bcode: 'ERR|timed out|TIMEOUT|ELIFECYCLE|Assertion failed|failed to|uncaught exception|Cancelled|cancelled)/i;
+  const interesting = /(^\s*not ok\s+\d+\s+-|AssertionError|ERR_[A-Z_]+|error TS\d+|Error:|Expected:|Actual:|expected\s|actual\s|operator:|\bcode: 'ERR|timed out|TIMEOUT|ELIFECYCLE|Assertion failed|failed to|uncaught exception|Cancelled|cancelled|\bat\s+.*\([^)]*:\d+:\d+\)|\bexpected:|\bactual:|\+ actual|\- expected|duration_ms|# tests |# pass |# fail |# cancelled )/i;
   for (let i = 0; i < lines.length; i++) {
     if (!interesting.test(lines[i])) continue;
-    const start = Math.max(0, i - (/(not ok|AssertionError|error TS|timed out)/i.test(lines[i]) ? 1 : 0));
-    const end = Math.min(lines.length, i + (/(not ok|AssertionError)/i.test(lines[i]) ? 9 : 3));
+    const start = Math.max(0, i - (/(not ok|AssertionError|error TS|timed out)/i.test(lines[i]) ? 2 : 1));
+    const end = Math.min(lines.length, i + (/(not ok|AssertionError|error TS)/i.test(lines[i]) ? 14 : 4));
     for (let j = start; j < end; j++) if (lines[j].trim()) evidence.push(safe(lines[j]));
   }
   const deduped = [...new Set(evidence)];
@@ -48,7 +48,7 @@ function extractEvidence(logText, status) {
     if (lastOk) deduped.unshift(`LAST_SUCCESSFUL_TEST=${safe(lastOk)}`);
     deduped.push(...lastOutput.map((l) => `TAIL=${l}`));
   }
-  return [...new Set(deduped)].slice(-26);
+  return [...new Set(deduped)].slice(-42);
 }
 
 for (const stage of failedStages) {
@@ -92,6 +92,9 @@ const lines = [
   `- **Generated (UTC):** ${new Date().toISOString()}`,
   `- **Diagnostic results:** ${count('PASS')} PASS / ${count('FAIL')} FAIL / ${count('TIMEOUT')} TIMEOUT / ${count('SKIPPED')} SKIPPED`,
   `- **Phases:** minimum=${stepOutcomes.diagnostic}; secondary=${stepOutcomes.secondary}; remaining-check=${stepOutcomes.check}; live=${stepOutcomes.live}; api=${stepOutcomes.api}; build=${stepOutcomes.build}`,
+  '', '## Execution order',
+  '- Wave 0 runs targeted router-selection, policy/call-limit, Gemini-timeout, and App Builder recovery probes before broad suites, typecheck, or database migrations.',
+  '- If any Wave 0 probe fails, broad minimum suites are skipped; otherwise all minimum suites run independently and collect failures/timeouts.',
   '', '## Failures with evidence'
 ];
 if (failedDetails.length) {
@@ -104,6 +107,9 @@ if (failedDetails.length) {
 } else if (!resultsDoc) lines.push('- `results.json` is missing or unreadable; the runner may not have completed.');
 else lines.push('- No failed diagnostic stage recorded. Check workflow-level outcomes and security scan.');
 
+lines.push('', '## Exact evidence files');
+if (presentLogs.length) for (const name of presentLogs) lines.push(`- \`${name}\``);
+else lines.push('- No .log files were produced.');
 lines.push('', '## Workflow-level evidence');
 if (workflowErrors.length) for (const group of workflowErrors) {
   lines.push(`- **${group.log}**`);
@@ -127,8 +133,10 @@ lines.push('', '---', '', '## ASSISTANT HANDOFF — COPY THIS BLOCK', '```text',
   `COMMIT=${sha}`,
   `FAILED_STAGES=${failedDetails.map((s) => `${safe(s.id)}:${safe(s.status)}`).join('; ') || (resultsDoc ? 'none recorded' : 'results.json missing')}`,
   `TIMEOUTS=${failedDetails.filter((s) => s.status === 'TIMEOUT' || /test timed out after|timed out/i.test(read(s.logName))).map((s) => `${safe(s.id)}:${Math.round((s.durationMs || 0) / 1000)}s`).join('; ') || 'none recorded'}`,
-  `TOP_ERRORS=${failedDetails.flatMap((s) => [`[${safe(s.id)}:${safe(s.status)}]`, ...s.evidence.slice(-8)]).concat(workflowErrors.flatMap((g) => g.evidence.slice(-3).map((e) => `[${safe(g.log)}] ${e}`))).slice(0, 30).join(' | ').slice(0, 5200) || 'No concise error lines extracted; inspect diagnostics.zip.'}`,
-  `LOG_FILES=${failedDetails.map((s) => s.logName).filter((v, i, a) => a.indexOf(v) === i).join(', ') || 'none'}`,
+  `TOP_ERRORS=${failedDetails.flatMap((s) => [`[${safe(s.id)}:${safe(s.status)} duration=${Math.round((s.durationMs || 0) / 1000)}s log=${safe(s.log || s.logName)}]`, ...s.evidence.slice(-12)]).concat(workflowErrors.flatMap((g) => g.evidence.slice(-4).map((e) => `[${safe(g.log)}] ${e}`))).slice(0, 44).join(' | ').slice(0, 7600) || 'No concise error lines extracted; inspect diagnostics.zip.'}`,
+  `LOG_FILES=${[...new Set([...failedDetails.map((s) => s.logName), ...workflowErrors.map((g) => g.log)])].join(', ') || 'none'}`,
+  `SKIPPED_STAGES=${uniqueStages.filter((s) => s.status === 'SKIPPED').map((s) => safe(s.id)).join(', ') || 'none'}`,
+  `ROOT_CAUSE_CONFIDENCE=${rootCauseHints.length ? 'unconfirmed-for-timeouts; inspect evidence per failure' : failedDetails.length ? 'assertion/error evidence captured; confirm before editing product logic' : 'no failures recorded'}`, 
   `DIAGNOSTICS_ARTIFACT=${status === 'FAILED' ? 'diagnostics.zip' : 'none'}`,
   `NEXT_ACTION=${status === 'PASSED' ? 'Review run summary; no corrective patch indicated by this report.' : 'Use assertion details and failed-stage logs in diagnostics.zip to fix confirmed root causes; rerun diagnostic gate.'}`,
   '```', ''
@@ -136,4 +144,4 @@ lines.push('', '---', '', '## ASSISTANT HANDOFF — COPY THIS BLOCK', '```text',
 const report = lines.join('\n');
 fs.writeFileSync(outFile, report);
 console.log(`Wrote ${path.relative(root, outFile)} (${Buffer.byteLength(report)} bytes); status=${status}`);
-if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${report}\n`);
+
