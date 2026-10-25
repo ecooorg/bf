@@ -9,7 +9,7 @@ const dir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/ci-checks')
 fs.mkdirSync(dir, { recursive: true });
 const critical = [
   { id: 'critical-router-selection', file: 'tests/models.test.mjs', pattern: 'router: deterministic selection with recorded rejections', expected: ['router: deterministic selection with recorded rejections'], timeoutMs: 20_000 },
-  { id: 'critical-router-policy-call-limit', file: 'tests/models.test.mjs', pattern: 'router: invalid request and policy stop at once; call limit holds', expected: ['router: invalid request and policy stop at once; call limit holds'], timeoutMs: 20_000 },
+  { id: 'critical-router-policy-call-limit', file: 'tests/critical-router-policy-call-limit.test.mjs', expected: ['router: invalid request stops before fallback', 'router: policy rejection stops before fallback', 'router: call limit stops after maxCalls'], timeoutMs: 20_000 },
   { id: 'critical-gemini-timeout', file: 'tests/models.test.mjs', pattern: 'conformance gemini: timeout', expected: ['conformance gemini: timeout'], timeoutMs: 20_000 },
   { id: 'critical-app-builder-recovery', file: 'tests/app-builder-recovery-p93-3.test.mjs', pattern: 'recovery: interrupted on unit three, resume reuses completed units without regenerating|cancellation stops before the next unit and reports cancelled', expected: ['recovery: interrupted on unit three, resume reuses completed units without regenerating', 'cancellation stops before the next unit and reports cancelled'], timeoutMs: 20_000 },
 ];
@@ -90,7 +90,7 @@ function run(task, args, logName, stage) {
       }
       const result = {
         id: task.id, phase: stage, status,
-        script: task.script || `${process.execPath} --import tsx --test --test-timeout=15000 --test-name-pattern ${JSON.stringify(task.pattern)} ${task.file}`,
+        script: task.script || `${process.execPath} ${args.map((arg) => JSON.stringify(arg)).join(' ')}`,
         command: command, args: childArgs, cwd: root,
         nodeTestTimeoutMs: task.script ? null : 15_000, watchdogTimeoutMs: task.timeoutMs,
         sourceFile: task.file || null, targetPattern: task.pattern || null,
@@ -121,7 +121,9 @@ function run(task, args, logName, stage) {
 console.log(`P96 critical-first diagnostic gate: ${critical.length} targeted probes start before broad suites, typecheck, or database migrations; node=${nodeVersion}; platform=${process.platform}.`);
 persist('critical-probes', { suitesSkipped: false });
 for (const task of critical) {
-  const args = ['--import', 'tsx', '--test', '--test-timeout=15000', '--test-name-pattern', task.pattern, task.file];
+  const args = ['--import', 'tsx', '--test', '--test-timeout=15000'];
+  if (task.pattern) args.push('--test-name-pattern', task.pattern);
+  args.push(task.file);
   await run(task, args, `${task.id}.log`, 'critical');
 }
 const criticalFailed = results.filter((r) => r.phase === 'critical' && r.status !== 'PASS');
