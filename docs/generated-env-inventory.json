@@ -1,16 +1,9 @@
 {
-  "generatedAt": "2026-10-23T15:41:51Z",
+  "generatedAt": "2026-10-25T05:59:52Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
-  "count": 57,
+  "count": 53,
   "variables": [
-    {
-      "name": "APP_BUILDER_ENGINE",
-      "files": [
-        "server/appBuilderAdapter.ts"
-      ],
-      "fileCount": 1
-    },
     {
       "name": "APP_BUILDER_MODEL_ID",
       "files": [
@@ -22,13 +15,6 @@
       "name": "APP_BUILDER_MODEL_SLICE",
       "files": [
         "server/projectRoutes.ts"
-      ],
-      "fileCount": 1
-    },
-    {
-      "name": "APP_BUILDER_STALE_MS",
-      "files": [
-        "server/appBuilderAdapter.ts"
       ],
       "fileCount": 1
     },
@@ -81,9 +67,10 @@
     {
       "name": "ENABLE_PROJECT_MODE",
       "files": [
-        "server.ts"
+        "server.ts",
+        "server/projectDiagnostics.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "EPISTEMIC_VERIFIER_MODEL",
@@ -136,13 +123,6 @@
     },
     {
       "name": "GITHUB_WEBHOOK_SECRET",
-      "files": [
-        "server.ts"
-      ],
-      "fileCount": 1
-    },
-    {
-      "name": "GIT_COMMIT",
       "files": [
         "server.ts"
       ],
@@ -259,14 +239,14 @@
       "fileCount": 2
     },
     {
-      "name": "PGSSLMODE",
+      "name": "PG_POOL_MAX",
       "files": [
         "server/database.ts"
       ],
       "fileCount": 1
     },
     {
-      "name": "PG_POOL_MAX",
+      "name": "PGSSLMODE",
       "files": [
         "server/database.ts"
       ],
@@ -284,13 +264,6 @@
       "name": "PROJECT_RATE_LIMIT_PER_MINUTE",
       "files": [
         "server/projectRoutes.ts"
-      ],
-      "fileCount": 1
-    },
-    {
-      "name": "RAILWAY_GIT_COMMIT_SHA",
-      "files": [
-        "server.ts"
       ],
       "fileCount": 1
     },

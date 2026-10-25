@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-10-25T04:39:23.652Z",
+  "generatedAt": "2026-10-25T05:59:52.191Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 155,
-    "edgeCount": 389,
+    "moduleCount": 156,
+    "edgeCount": 390,
     "cycleCount": 0,
-    "totalLines": 27853
+    "totalLines": 27914
   },
   "cycles": [],
   "layers": {
     "server": 67,
-    "src": 75,
+    "src": 76,
     "other": 13
   },
   "modules": [
@@ -223,7 +223,7 @@
     {
       "path": "server/appBuilderAdapter.ts",
       "layer": "server",
-      "lines": 156,
+      "lines": 160,
       "imports": [
         "appBuilder/index.ts",
         "server/adapter.ts",
@@ -530,7 +530,7 @@
     {
       "path": "server/modelRegistry.ts",
       "layer": "server",
-      "lines": 78,
+      "lines": 93,
       "imports": [],
       "fanIn": 5
     },
@@ -611,7 +611,7 @@
     {
       "path": "server/projectRoutes.ts",
       "layer": "server",
-      "lines": 837,
+      "lines": 839,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderAdapter.ts",
@@ -1007,7 +1007,7 @@
     {
       "path": "src/ProjectMode.tsx",
       "layer": "src",
-      "lines": 606,
+      "lines": 609,
       "imports": [
         "src/ModeMenu.tsx",
         "src/ProjectDelivery.tsx",
@@ -1019,6 +1019,7 @@
         "src/driveClient.ts",
         "src/driveMirror.ts",
         "src/projectAppBuilder.ts",
+        "src/projectBuildJob.ts",
         "src/projectCapabilities.ts",
         "src/projectLabels.ts",
         "src/uiStates.tsx"
@@ -1329,6 +1330,13 @@
       "lines": 176,
       "imports": [],
       "fanIn": 3
+    },
+    {
+      "path": "src/projectBuildJob.ts",
+      "layer": "src",
+      "lines": 37,
+      "imports": [],
+      "fanIn": 1
     },
     {
       "path": "src/projectCapabilities.ts",
@@ -1694,7 +1702,7 @@
     },
     {
       "path": "server/projectRoutes.ts",
-      "lines": 837
+      "lines": 839
     },
     {
       "path": "server/webSearch.ts",
@@ -1710,7 +1718,7 @@
     },
     {
       "path": "src/ProjectMode.tsx",
-      "lines": 606
+      "lines": 609
     },
     {
       "path": "src/WorkspacePanel.tsx",

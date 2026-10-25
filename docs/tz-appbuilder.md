@@ -159,9 +159,9 @@ Each patch is a cumulative ZIP produced with `scripts/pack-simple.mjs`, with a n
 | **P93.2b** | `static_site` stack, static validators, cross-check and machine-checkable acceptance predicates | Validator and golden tests pass; Tetris golden task passes with fake model when combined with P93.2a |
 | **P93.3** | Persistence/recovery, adapter, routes, diagnostics, feature flag | Live recovery tests pass; unset/false flag preserves legacy behavior and does not access `app_build_*` tables |
 | **P93.4** | Progress UI and diagnostic result integration | Manual Render verification with a free key: Tetris ZIP, download, and Drive flow |
-| **P93.5** | Model review, additional stacks one at a time, profile-based parallelism | Separate specification, only after P93.4 acceptance |
+| **P93.5** | Configured Gemini cascades and visible build outcomes | Polling tests pass; cascade test blocked locally by missing dependencies; Render/live-provider acceptance remains owner-run |
 
-P93.1 is the contract foundation. P93.2a and P93.2b deliberately separate the generic execution machinery from the first stack and its validators. P93.3–P93.5 remain out of P93.2a scope.
+P93.1 is the contract foundation. P93.2a and P93.2b deliberately separate the generic execution machinery from the first stack and its validators. P93.3–P93.5 remain separate from P93.2a scope.
 
 ## 11. Execution protocol and defaults
 
