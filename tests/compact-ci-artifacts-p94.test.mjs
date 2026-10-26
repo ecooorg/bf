@@ -6,6 +6,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import JSZip from 'jszip';
 import { fileURLToPath } from 'node:url';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const run = (script, dir, extra = {}) => spawnSync(process.execPath, [script], {
@@ -34,29 +36,32 @@ test('P94 report preserves TAP assertion details and timeout tail', () => {
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('P94 packaging leaves only NEXT_PATCH.md and diagnostics.zip on failure', async () => {
+test('P108.2 packaging always includes complete diagnostics on failure', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-package-'));
   try {
     fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# Report\nPATCH_STATUS=FAILED\n');
     fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [
       { id: 'test:core', status: 'FAIL', log: 'test-core.log' }, { id: 'test:project', status: 'PASS', log: 'test-project.log' },
     ] }));
-    fs.writeFileSync(path.join(dir, 'test-core.log'), 'AssertionError: expected false, actual true\n');
+    fs.writeFileSync(path.join(dir, 'test-core.log'), 'AssertionError: expected false, actual true\nOPENAI_API_KEY=sk-test-secret-value-12345678901234567890\n');
     fs.writeFileSync(path.join(dir, 'test-project.log'), 'all passed\n');
     fs.writeFileSync(path.join(dir, 'ci-install.log'), 'npm ci ok\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['NEXT_PATCH.md', 'diagnostics.zip']);
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['NEXT_PATCH.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']);
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'diagnostics.zip')));
     assert.ok(zip.file('test-core.log'));
+    assert.ok(zip.file('test-project.log'), 'successful-stage log is required for complete cycle diagnostics');
+    assert.ok(zip.file('results.json'));
     assert.ok(zip.file('diagnostics-index.json'));
-    assert.equal(zip.file('test-project.log'), null, 'successful stage log should not be packaged');
     const core = await zip.file('test-core.log').async('string');
     assert.match(core, /AssertionError/);
+    assert.match(core, /OPENAI_API_KEY=\[REDACTED\]/);
+    assert.doesNotMatch(core, /sk-test-secret-value/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('P94 packaging emits only NEXT_PATCH.md after a clean run', () => {
+test('P108.2 packaging emits diagnostics and cycle metrics after a clean run', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-clean-'));
   try {
     fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# Report\nPATCH_STATUS=PASSED\n');
@@ -64,6 +69,73 @@ test('P94 packaging emits only NEXT_PATCH.md after a clean run', () => {
     fs.writeFileSync(path.join(dir, 'typecheck.log'), 'no errors\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir), ['NEXT_PATCH.md']);
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['NEXT_PATCH.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']);
+    assert.ok(fs.statSync(path.join(dir, 'diagnostics.zip')).size > 0);
+    const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'diagnostics.zip')));
+    assert.ok(zip.file('typecheck.log'), 'green-run logs are retained');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+test('P108.2 history collector records current checks even without GitHub API access', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-ci-history-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ profile:'test', wallClockMs:1234, startedAt:'2026-10-26T08:00:00.000Z', results:[
+      {id:'one',status:'PASS',durationMs:100,critical:true,log:'one.log'},
+      {id:'two',status:'FAIL',durationMs:200,critical:false,log:'two.log'},
+      {id:'three',status:'BLOCKED',durationMs:0,critical:true,note:'prerequisite failed'},
+    ] }));
+    const r = run('scripts/ci-run-history.mjs', dir, { GITHUB_RUN_ID:'', GH_TOKEN:'', GITHUB_REPOSITORY:'' });
+    assert.equal(r.status, 0, r.stderr || r.stdout);
+    const history = JSON.parse(fs.readFileSync(path.join(dir, 'ci-history.json'), 'utf8'));
+    assert.equal(history.requestedCycles, 5);
+    assert.equal(history.current.checks.total, 3);
+    assert.equal(history.current.checks.pass, 1);
+    assert.equal(history.current.checks.fail, 1);
+    assert.equal(history.current.checks.blocked, 1);
+    assert.equal(history.historyStatus, 'UNAVAILABLE_NO_GITHUB_TOKEN');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+
+test('P108.2 history collector imports exact durations and check counts from the four-cycle window', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-ci-history-api-'));
+  const artifactZip = await new JSZip().file('ci-metrics.json', JSON.stringify({
+    run: { dagWallClockMs: 1200 },
+    checks: { total: 2, completed: 2, pass: 2, fail: 0, timeout: 0, blocked: 0, skipped: 0, skipped_by_policy: 0, not_run: 0, unknown: 0 },
+    checkResults: [{ id: 'a', status: 'PASS', durationMs: 400 }, { id: 'b', status: 'PASS', durationMs: 500 }],
+  })).generateAsync({ type: 'nodebuffer' });
+  const server = createServer((req, res) => {
+    const send = (value, status = 200, type = 'application/json') => { res.writeHead(status, { 'content-type': type }); res.end(type === 'application/json' ? JSON.stringify(value) : value); };
+    if (req.url === '/repos/test/repo/actions/runs/999/jobs?per_page=100') return send({ jobs: [{ name: 'check-and-build', started_at: '2026-10-26T08:00:00Z', status: 'in_progress', steps: [] }] });
+    if (req.url === '/repos/test/repo/actions/workflows/ci.yml/runs?per_page=30') return send({ workflow_runs: [{ id: 998, status: 'completed', conclusion: 'success', run_started_at: '2026-10-26T07:00:00Z', updated_at: '2026-10-26T07:00:03Z', head_sha: 'prev-sha', head_branch: 'main', event: 'push', html_url: 'https://example.test/run/998' }] });
+    if (req.url === '/repos/test/repo/actions/runs/998/jobs?per_page=100') return send({ jobs: [{ name: 'check-and-build', started_at: '2026-10-26T07:00:00Z', completed_at: '2026-10-26T07:00:02Z', conclusion: 'success', steps: [{ name: 'Verification DAG', number: 5, status: 'completed', conclusion: 'success', started_at: '2026-10-26T07:00:00Z', completed_at: '2026-10-26T07:00:01Z' }] }] });
+    if (req.url === '/repos/test/repo/actions/runs/998/artifacts?per_page=100') return send({ artifacts: [{ id: 7, name: 'biforge-ci-report', expired: false }] });
+    if (req.url === '/repos/test/repo/actions/artifacts/7/zip') return send(artifactZip, 200, 'application/zip');
+    return send({ error: `unexpected ${req.url}` }, 404);
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  try {
+    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ profile: 'test', wallClockMs: 2500, results: [{ id: 'current', status: 'PASS', durationMs: 1000 }] }));
+    const address = server.address();
+    const r = run('scripts/ci-run-history.mjs', dir, {
+      GITHUB_API_URL: `http://127.0.0.1:${address.port}`, GITHUB_REPOSITORY: 'test/repo', GITHUB_RUN_ID: '999',
+      GITHUB_SHA: 'current-sha', GH_TOKEN: 'test-token', GITHUB_SERVER_URL: 'https://example.test',
+    });
+    assert.equal(r.status, 0, r.stderr || r.stdout);
+    const history = JSON.parse(fs.readFileSync(path.join(dir, 'ci-history.json'), 'utf8'));
+    assert.equal(history.includedCycles, 2);
+    assert.equal(history.historyStatus, 'COMPLETE');
+    assert.equal(history.previousRuns[0].workflowDurationMs, 3000);
+    assert.equal(history.previousRuns[0].jobDurationMs, 2000);
+    assert.equal(history.previousRuns[0].dagWallClockMs, 1200);
+    assert.equal(history.previousRuns[0].checks.total, 2);
+    assert.equal(history.previousRuns[0].checks.pass, 2);
+  } finally {
+    const closed = once(server, 'close');
+    server.close();
+    await closed;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
