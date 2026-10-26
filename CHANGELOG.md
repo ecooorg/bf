@@ -1,19 +1,10 @@
-## P108.1 — reconcile active programme status, open questions and patch gates (docs only)
+## P108.2 — always-on assistant CI diagnostics and five-cycle history
 
-- Updated existing canonical documents only: `AGENTS.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`, and `docs/DOCUMENTATION-INDEX.md`. No repository file was added or deleted; no application code, package version, CI workflow or product behavior changed.
-- Resolved contradictory Phase 2 wording: P108 implementation and Navigator-confirmed green CI are recorded, but formal Phase 2 acceptance remains PENDING until an evidence-only P109 audit and explicit Tier 3 Navigator decision.
-- Recorded P108 `check-and-build` baseline 220.879 s and next-patch +15% ceiling 254.011 s. P108-vs-P106 timing comparison remains NOT_RUN because the P106 duration is unavailable.
-- Added a Phase 2 acceptance checklist, explicit patch-by-patch plan from P108.1 through P117+, required Navigator action/authorization before each patch, separate P92-R1 operational track, open-question closure actions, and conditions that block phase transitions.
-- Marked the global audit's detailed code inspection as based on bf-v103 and distinguished it from current P104–P108 implementation status.
-- Verification: documentation diff consistency and archive integrity to be checked for this mini-patch; hosted CI is not run by a documentation-only patch. No acceptance status was upgraded by this patch.
-
-## P108 — Phase 2b: fault injection and bounded repair
-
-- Added deterministic fault-injection contract tests for timeout, cancellation, missing logs, partial artifacts, runner interruption, handoff-generator failure and corrupted evidence records. Every injected fault must produce a non-PASS status and a consistent handoff.
-- Added an opt-in bounded repair runner (`ENABLE_BOUNDED_REPAIR=1`) with a maximum of three attempts, targeted `check`-profile regressions, per-attempt status records, and a mechanical diff guard for protected paths and reduced numeric limits. It does not edit files, push changes, or deploy; the proposed diff must be supplied explicitly.
-- Added tests for handoff contradictions, attempt bounds, protected paths, reduced limits and append-only attempt records. Existing verification thresholds and workflow/security gates were not relaxed.
-- Verification: `node --test tests/fault-injection-p108.test.mjs` PASS (5/5); `node scripts/check-version.mjs` PASS; `npm run docs:check` PASS; `npm run architecture:check` PASS; `node scripts/statusGraph.mjs --check` PASS. `npm run test:compact-ci-artifacts` PARTIAL/FAIL because timed-out `npm ci` left `jszip` unavailable; `npm run typecheck` BLOCKED because `vite/client` types are unavailable. Hosted CI: PASS (Navigator-confirmed green run, 2026-10-26). Job `check-and-build` ran from 2026-10-26T08:05:15.790Z to 2026-10-26T08:08:56.669Z: 220.879 s. The P106 baseline is unavailable, so P108-versus-P106 +15% comparison remains NOT_RUN. This green P108 run is the baseline for the next patch: +15% ceiling = 254.011 s (4m 14.011s).
-- Limitations: fault injection validates fail-closed outcome/handoff contracts using deterministic scenarios; it does not simulate process-level OS signals or hosted artifact transport. Phase 2 formal acceptance remains with the Navigator.
+- Every green/red CI run now packages `NEXT_PATCH.md`, `diagnostics.zip`, `ci-metrics.json`, and `ci-history.json` into `biforge-ci-report`.
+- Synchronised `package.json`, `package-lock.json`, and `src/config.ts` on version 108 so version-consistency cannot fail from the previously observed package/app mismatch.
+- Diagnostics retain all available logs and evidence, including passing-check logs, with secret redaction; current check counts/statuses/durations and up to four prior completed CI cycles are recorded.
+- Prior cycle duration comes from GitHub Actions run/job/step metadata; per-check counts are read from retained artifacts. Legacy/missing metrics remain unknown. API failure does not block the current archive.
+- Tests cover green/red packaging, all-log retention, history fallback and count accuracy. Hosted green/red artifact verification remains NOT_RUN until this patch is applied and CI executes.
 
 ## P107 — Phase 2a: verification DAG, one runner for `check` and CI
 
