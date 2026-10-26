@@ -49,7 +49,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** Phase 2 formally accepted and closed (Navigator Tier-3 decisions 2026-10-26). Phases 0–1 closed by P104–P106. Phase 2 delivered by P107 (verification DAG), P108 (fault injection + opt-in bounded repair), P108.1–P108.3-HF1 (always-on CI diagnostics, five-cycle history, two-artifact handoff `BIForge-NEXT-PATCH.md` + `biforge-ci-logs.zip`). Hosted CI green confirmed; P108.3 artifact contract verified on green runs. Next: Phase 3 foundation (P110+). Active task and forward plan: `docs/AI-NATIVE-RENOVATION-TASK.md`. Phase gates: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** Phase 3 foundation in progress. Phase 2 formally accepted and closed (Navigator Tier-3 decisions 2026-10-26). P110 delivers Intent/Policy Contract foundation (`scripts/intentContractLib.mjs`, semantic no-promotion gate, tests). Phases 0–1 closed by P104–P106; Phase 2 by P107–P108.3-HF1. Hosted CI green. Active task and forward plan: `docs/AI-NATIVE-RENOVATION-TASK.md`. Phase gates: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
 * **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.

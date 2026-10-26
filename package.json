@@ -1,7 +1,7 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "109",
+  "version": "110",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -51,10 +51,12 @@
     "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-adapter-p93-3.test.mjs",
     "test:ai": "node scripts/ai-test-harness-p93-7.mjs",
     "patch:quality-report": "node scripts/patch-quality-report.mjs",
-    "test:compact-ci-artifacts": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs",
+    "test:compact-ci-artifacts": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs",
+    "test:intent-contract": "node --test tests/intent-contract-p110.test.mjs",
     "status:graph": "node scripts/statusGraph.mjs",
     "schema:validate": "node scripts/schemaValidate.mjs"
   },
+
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",

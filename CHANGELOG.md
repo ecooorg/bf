@@ -1,3 +1,12 @@
+## P110 — Intent/Policy Contract foundation and diagnostics clean-up
+
+- Added `scripts/intentContractLib.mjs`: build, semantic gate, and approved-policy claim check for Intent/Policy Contract instances. Requirement/constraint/invariant items may not carry source=assumed|inferred (no silent promotion). Critical items with source unknown/assumed or contract status UNKNOWN/PARTIAL block release-style claims.
+- Added `tests/intent-contract-p110.test.mjs` (7 tests): schema shape, promotion rejection, assumption allowance, policy-block rules, full example contract for this patch validates against `schema-intent-policy-contract.json`.
+- Wired the new tests into `test:compact-ci-artifacts` and added `test:intent-contract`. Also included the existing P108 fault-injection tests in the compact suite for continuous coverage.
+- Diagnostics: removed Vite `__dirname` configLoader warning by switching `vite.config.ts` to `import.meta.url` / `fileURLToPath` (eliminates unsupported-feature noise in every CI build log).
+- No application runtime, DAG, repair, or CI packaging contract change.
+- Version 110.
+
 ## P109 — Phase 2 formal acceptance, audit, and Phase 3 foundation plan
 
 - Recorded Navigator Tier-3 decisions of 2026-10-26: Phase 2 accepted and closed; P108.3 CI-artifact contract confirmed; P92 production diagnostics frozen until full AI-native renovation; authorization topics excluded from the critical path.
