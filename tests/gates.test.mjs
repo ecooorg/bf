@@ -147,7 +147,7 @@ test('Gates: all required steps with records give POSITIVE; a gate is never acce
   }
 });
 
-test('PASS without a record counts as NOT_RUN (docs/NEXT.md rule 2)', () => {
+test('PASS without a record counts as NOT_RUN (gate rule 2)', () => {
   assert.equal(stepVerdict('RM-B4', { status: 'PASS' }).ok, false);
   assert.equal(stepVerdict('RM-B4', { status: 'PASS', record: '  ' }).ok, false);
   assert.equal(stepVerdict('RM-B4', { status: 'PASS', record: REC }).ok, true);

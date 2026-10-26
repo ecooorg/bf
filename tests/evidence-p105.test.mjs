@@ -229,3 +229,53 @@ test('P105 end to end: the independent runner writes records that the generator 
     assert.match(report, /PATCH_STATUS=PASSED/); assert.match(report, /EVIDENCE=complete/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+// ---- P106: fail-closed CI evidence gate ----
+const gate = (dir) => run('scripts/ci-evidence-gate.mjs', dir, {});
+
+test('P106 evidence gate passes on a complete run and fails closed otherwise', () => {
+  let dir = evidenceDir();
+  try {
+    run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'success', GITHUB_SHA: 'abc1234' });
+    const ok = gate(dir);
+    assert.equal(ok.status, 0, ok.stderr || ok.stdout);
+    assert.match(ok.stdout, /evidence gate OK/i);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+
+  // UNVERIFIED report -> red
+  dir = evidenceDir();
+  try {
+    fs.rmSync(path.join(dir, 'evidence-x.json'));
+    run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'success', GITHUB_SHA: 'abc1234' });
+    const bad = gate(dir);
+    assert.equal(bad.status, 1); assert.match(bad.stderr, /UNVERIFIED/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+
+  // missing report -> red
+  dir = tmp('gate-empty');
+  try { const bad = gate(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /NEXT_PATCH\.md is missing/); } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+
+  // report without structured handoff -> red
+  dir = tmp('gate-nojson');
+  try {
+    fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# x\nPATCH_STATUS=PASSED\n');
+    const bad = gate(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /HANDOFF_JSON line is absent/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+
+  // schema-invalid record next to a valid report -> red
+  dir = evidenceDir();
+  try {
+    run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'success', GITHUB_SHA: 'abc1234' });
+    fs.writeFileSync(path.join(dir, 'evidence-bogus.json'), JSON.stringify({ status: 'PASS' }));
+    const bad = gate(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /evidence-bogus\.json violates the schema/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('P106 the fallback handoff produced by ci-summary satisfies the gate', () => {
+  const dir = tmp('gate-fallback');
+  try {
+    run('scripts/ci-summary.mjs', dir, { CI_STATUS: 'failure' });
+    const r = gate(dir);
+    assert.equal(r.status, 0, r.stderr || r.stdout);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
