@@ -25,6 +25,13 @@ const runAsync = (script, dir, extra = {}) => new Promise((resolve, reject) => {
   child.once('close', (status, signal) => resolve({ status, signal, stdout, stderr }));
 });
 
+test('P108.3 workflow publishes exactly the compact handoff and full-log archive, and prints the handoff', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
+  assert.match(workflow, /cat artifacts\/ci-checks\/BIForge-NEXT-PATCH\.md/);
+  assert.match(workflow, /artifacts\/ci-checks\/BIForge-NEXT-PATCH\.md[\s\S]*artifacts\/ci-checks\/biforge-ci-logs\.zip/);
+  assert.doesNotMatch(workflow, /path:\s*artifacts\/ci-checks\/(?:NEXT_PATCH\.md|diagnostics\.zip|ci-history\.json|ci-metrics\.json)/);
+});
+
 test('P94 report preserves TAP assertion details and timeout tail', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-report-'));
   try {
@@ -59,8 +66,8 @@ test('P108.2 packaging always includes complete diagnostics on failure', async (
     fs.writeFileSync(path.join(dir, 'ci-install.log'), 'npm ci ok\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['NEXT_PATCH.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']);
-    const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'diagnostics.zip')));
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-NEXT-PATCH.md', 'biforge-ci-logs.zip']);
+    const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
     assert.ok(zip.file('test-core.log'));
     assert.ok(zip.file('test-project.log'), 'successful-stage log is required for complete cycle diagnostics');
     assert.ok(zip.file('results.json'));
@@ -80,9 +87,10 @@ test('P108.2 packaging emits diagnostics and cycle metrics after a clean run', a
     fs.writeFileSync(path.join(dir, 'typecheck.log'), 'no errors\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['NEXT_PATCH.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']);
-    assert.ok(fs.statSync(path.join(dir, 'diagnostics.zip')).size > 0);
-    const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'diagnostics.zip')));
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-NEXT-PATCH.md', 'biforge-ci-logs.zip']);
+    assert.ok(fs.statSync(path.join(dir, 'biforge-ci-logs.zip')).size > 0);
+    assert.ok(fs.existsSync(path.join(dir, 'BIForge-NEXT-PATCH.md')));
+    const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
     assert.ok(zip.file('typecheck.log'), 'green-run logs are retained');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
