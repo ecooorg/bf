@@ -34,66 +34,17 @@ jobs:
         shell: bash
         run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/ci-install.log
 
-      # Critical probes run before migrations, typecheck, and broad positive-test volume.
-      - name: P95 critical-first minimum diagnostic gate
-        id: diagnostic
+      # One verification DAG (docs/verification-manifest.json, profile ci): critical probes, minimum suites, remaining checks,
+      # migrations, live PostgreSQL and API tests, build. Independent checks finish after an unrelated failure; dependants are BLOCKED with the prerequisite named.
+      - name: Verification DAG
+        id: dag
         if: steps.deps.outcome == 'success'
-        timeout-minutes: 15
+        timeout-minutes: 60
         shell: bash
-        run: set -o pipefail; node scripts/run-diagnostic-gate.mjs 2>&1 | tee artifacts/ci-checks/ci-diagnostic-gate.log
-
-      # Secondary diagnostics always run after install, even if the primary gate fails.
-      - name: P93.9 secondary diagnostic gate
-        id: secondary
-        if: always() && steps.deps.outcome == 'success'
-        timeout-minutes: 8
-        shell: bash
-        run: set -o pipefail; node scripts/run-secondary-diagnostic.mjs 2>&1 | tee artifacts/ci-checks/ci-secondary-diagnostic.log
-
-      # Migrations run after install regardless of diagnostic results, to collect downstream evidence.
-      - name: Apply migrations to clean PostgreSQL
-        id: migrate
-        if: always() && steps.deps.outcome == 'success'
-        shell: bash
-        run: set -o pipefail; npm run db:migrate 2>&1 | tee artifacts/ci-checks/ci-migrate.log
+        run: set -o pipefail; node scripts/run-dag.mjs --profile ci 2>&1 | tee artifacts/ci-checks/ci-dag.log
         env:
-          DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
-          PGSSLMODE: disable
-
-      # Run remaining checks even after failures; the runner records each result and continues. Skip suites already covered in gates.
-      - name: Check (remaining independent stages)
-        id: check
-        if: always() && steps.deps.outcome == 'success'
-        timeout-minutes: 30
-        shell: bash
-        run: set -o pipefail; node scripts/run-independent-checks.mjs 2>&1 | tee artifacts/ci-checks/ci-check.log
-        env:
-          CHECK_SKIP_SCRIPTS: typecheck,test:core,test:models,test:files,test:app-builder,test:project,test:regression,test:pipeline
-
-      - name: Live PostgreSQL contract tests
-        id: live
-        if: always() && steps.deps.outcome == 'success'
-        timeout-minutes: 10
-        shell: bash
-        run: set -o pipefail; npm run test:database:live 2>&1 | tee artifacts/ci-checks/ci-live.log
-        env:
-          DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
-          PGSSLMODE: disable
-      - name: Project Mode API security tests
-        id: api
-        if: always() && steps.deps.outcome == 'success'
-        timeout-minutes: 10
-        shell: bash
-        run: set -o pipefail; npm run test:bx06:api 2>&1 | tee artifacts/ci-checks/ci-api.log
-        env:
-          DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
-          PGSSLMODE: disable
-      - name: Build application
-        id: build
-        if: always() && steps.deps.outcome == 'success'
-        timeout-minutes: 8
-        shell: bash
-        run: set -o pipefail; npm run build 2>&1 | tee artifacts/ci-checks/ci-build.log
+          DAG_ALLOW_UNSAFE: 'true'
+          DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
 
       - name: Scan repository for leaked secrets
         if: always() && steps.deps.outcome == 'success'
@@ -112,12 +63,7 @@ jobs:
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-          DIAGNOSTIC_OUTCOME: ${{ steps.diagnostic.outcome }}
-          SECONDARY_OUTCOME: ${{ steps.secondary.outcome }}
-          CHECK_OUTCOME: ${{ steps.check.outcome }}
-          LIVE_OUTCOME: ${{ steps.live.outcome }}
-          API_OUTCOME: ${{ steps.api.outcome }}
-          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          DAG_OUTCOME: ${{ steps.dag.outcome }}
 
       - name: Evidence gate (fail closed)
         if: always()
