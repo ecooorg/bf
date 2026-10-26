@@ -1,3 +1,10 @@
+## P108.3-HF1 — align artifact test contract and make handoff actions specific
+
+- Updated the compact-artifact regression tests to expect exactly `BIForge-NEXT-PATCH.md` and `biforge-ci-logs.zip`, while asserting that the ZIP retains successful and failed stage logs, result evidence, an index, and redaction.
+- Improved `NEXT_ACTION`: the observed stale packaging assertion now produces a specific repair instruction and exact validation commands; other failures name the failed stages and rerun commands, while timeouts receive separate handling.
+- Added a regression test proving that this failure is translated into an actionable handoff rather than a generic instruction.
+- Validation in this mini-patch: syntax and patch structure checked; full test suite and hosted CI remain NOT_RUN until applied to the current branch.
+
 ## P108.3 — two-artifact CI handoff for assistant repair
 
 - The uploaded `biforge-ci-report` now contains exactly `BIForge-NEXT-PATCH.md` and `biforge-ci-logs.zip`. The compact handoff includes failure evidence, source excerpts, next action, environment, current metrics, and up to five CI cycles; it is printed verbatim in the Actions console after packaging.
