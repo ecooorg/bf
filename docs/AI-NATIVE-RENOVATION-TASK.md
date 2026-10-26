@@ -1,33 +1,21 @@
 # AI-NATIVE-RENOVATION — Task: Phases 0–2 in five patches (P104–P108)
 
 **Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108
-**Status:** P104 delivered (see its section); P105–P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
-**Authority:** Navigator directive of 2026-10-25 (section 1). Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
+**Status:** P104 and P105 delivered (see their sections); P106–P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
+**Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
 
 | Patch | Phase | Outcome |
 |---|---|---|
 | P104 | 0 | Clean documentation set; superseded documents deleted; tests/CI no longer read documentation prose |
-| P105 | 1a | Evidence records written by the check runners; one handoff generator validated against schemas |
+| P105 | 1a | Evidence records written by the check runners; fail-closed assessment; structured handoff and fallback (delivered) |
 | P106 | 1b | Legacy P82–P91 tools resolved; `schema:validate` in CI; Phase 1 gate accepted |
 | P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons |
 | P108 | 2b | Fault-injection suite; bounded repair protocol; Phase 2 gate accepted |
 
-## 1. Navigator directive (owner, 2026-10-25)
+## 1. Navigator directive
 
-The owner never opens or edits repository files and does not care about code style, file names, file layout or implementation language. The only limits are security and that the product keeps doing what it is meant to do.
-
-* **ND-1 Audience.** The repository is operated by AI assistants. Human readability of code, documents, names and layout is not a goal and not an acceptance criterion.
-* **ND-2 Freedom.** Any structure, naming, formatting, layout or language is permitted if ND-3 and ND-4 hold.
-* **ND-3 Hard constraints.** Security (authorization tiers, secrets, no host execution of generated code), preserved product function unless a change is approved, evidence integrity (status vocabulary). No human reviews code, so these are enforced by tests, checks and evidence. "Someone will read it" is never a control.
-* **ND-4 AI-legibility test.** A change is acceptable only if a fresh assistant session with no memory can still locate, change by diff and verify the affected behaviour at least as cheaply as before (cost = files and bytes it must read).
-* **ND-5 Decisions already taken under ND-1..4 (Tier 1, disclosed):**
-  * Implementation stays TypeScript/JavaScript/SQL/JSON/Markdown. `tsc`, `node --test`, Playwright, the Render build, gitleaks and model competence exist for these. Assembly, machine code or invented languages would remove the verification ND-3 depends on. Revisit only with a measured benefit and a verification path (Tier 2).
-  * Source stays line-oriented and unminified. Patches are delivered as diffs and `str_replace` edits and failures are localised by line; single-line blobs break all three.
-  * No style-only rewrites. Structural rewrites (for example splitting files above 50 KB) only with a measured ND-4 gain and only after the Phase 2 gate.
-  * Human-facing material that stays because it is product, not documentation: UI strings (`lint:copy`), the in-app guide `src/UserGuide.tsx`, and the Navigator decision surface (`NEXT_PATCH.md`, chat handoff).
-  * History is git and the owner's backups. Superseded documents are deleted, not archived. Tests and CI never read documentation prose.
-* **ND-6 Context budget.** Mandatory reading for a fresh session: `AGENTS.md`, `docs/AI-OPERATING-RULES.md`, sections 1–2 of this file plus the current patch section. Target ≤ 40 KB in total. Everything else is on demand through `docs/DOCUMENTATION-INDEX.md`, which lists each document with size and trigger.
+The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–C11, reversal table, conflict rule). It replaces the former ND-1..ND-6 list and overrides this file. Mapping for readers of older text: ND-1/ND-2 = C1/C2, ND-3 = C2/C3/C9, ND-4 = C4, ND-5 = C6/C7/C8, ND-6 = C11.
 
 ## 2. Rules for every patch
 
@@ -54,19 +42,18 @@ The owner never opens or edits repository files and does not care about code sty
 
 **Known leftovers handed to P106:** scripts that name documents that never existed (`docs/NEXT.md`, `docs/CURRENT_STATE.md`, `docs/DECISION_CARD_TEMPLATE.md`, `docs/ADR-10-code-executor.md`, `docs/08-Deployment-and-Runbook.md`, `docs/${patch}-REPORT.md` in `gate-eval`, `evidence-collect`, `staging-drills`, `patch-pack`); `scripts/contextBenchmark*.mjs` reads a missing fixture. Machine files stay in `docs/` (schemas, architecture policy, generated inventories); moving all of `docs/` off the repository would break tools that read them.
 
-## 4. P105 — Phase 1a: evidence records and one handoff generator
+## 4. P105 — Phase 1a: evidence records and fail-closed handoff (delivered)
 
-**Objective.** Check runners emit machine-readable evidence; one generator turns it into the handoff.
+**Done**
 
-* **W1 Evidence emission.** `run-diagnostic-gate.mjs`, `run-independent-checks.mjs`, `run-secondary-diagnostic.mjs` write one Evidence Record per check (`docs/schema-evidence-record.json`): revision, command, environment, start/end time, status, log reference, redaction/completeness limits. Records go to `artifacts/ci-checks/`.
-* **W2 Single generator.** New `scripts/handoffGenerate.mjs` builds `NEXT_PATCH.md` and a Handoff Report (`schema-handoff-report.json`) from the records. `ci-summary.mjs` and `patch-quality-report.mjs` become thin callers or are removed. The existing contract stays: zero console output from `ci-summary`, compact `biforge-ci-report` artifact, `diagnostics.zip` only on failure.
-* **W3 Fallback.** If the generator or the records are broken, a minimal handoff (revision, failed stages, log names) is still written. The fallback path is tested.
-* **W4 Rule enforcement.** A critical check whose record is missing, malformed, contradictory or redacted away cannot appear as `PASS`; the report shows `UNKNOWN`.
+* `scripts/evidenceLib.mjs`: builds Evidence Records (schema `evidence-record`) from runner rows with provenance (revision, command, environment, timestamp, status, log reference, completeness limits), redacts secrets, maps runner statuses (a gate-skipped row is `BLOCKED`, an interrupted row `UNKNOWN`), assesses an evidence set, builds and validates Handoff Reports and the fallback handoff.
+* `run-diagnostic-gate.mjs` (rows are critical), `run-secondary-diagnostic.mjs` and `run-independent-checks.mjs` write `evidence-diagnostic-gate.json`, `evidence-secondary.json`, `evidence-independent-checks.json` next to the logs and advertise them in `results.json` (`evidence.records`). The marker is set before the write, so a failed write shows up as `MISSING_RECORD`. Both secondary and independent runners now honour `CI_LOGS_DIR`.
+* `patch-quality-report.mjs` assesses the set. Critical problems: `MISSING_RECORD`, `MALFORMED_RECORD`, `INVALID_RECORD` (schema), `CONTRADICTION` (record vs `results.json`), `MISSING_LOG` (critical PASS without an existing log), `MISSING_ITEM` (result row without evidence), `INVALID_TIMESTAMP`, `MISSING_REVISION`, `EVIDENCE_LIBRARY_UNAVAILABLE`, `ASSESSMENT_CRASH`. A run that would be `PASSED` with any critical problem becomes `PATCH_STATUS=UNVERIFIED`; a real failure stays `FAILED` and lists the problems. `NEXT_PATCH.md` gains `EVIDENCE=`, `EVIDENCE_PROBLEMS=` and a one-line schema-valid `HANDOFF_JSON=`; `handoff-report.json` is written beside it.
+* `ci-summary.mjs` still writes a minimal `NEXT_PATCH.md` when the generator produced nothing and now also a schema-valid fallback `handoff-report.json`; it stays silent on the console. `package-ci-artifacts.mjs` bundles `evidence-*.json` and `handoff-report.json` into `diagnostics.zip` on failure or `UNVERIFIED`; a clean run still uploads only `NEXT_PATCH.md`.
+* Legacy `results.json` without the marker is not enforced (reported `EVIDENCE=minimal`); every P105+ runner writes the marker.
+* Tests: `tests/evidence-p105.test.mjs` (in `test:compact-ci-artifacts`): mapping, schema validity, redaction, each critical problem, generator status matrix, fallback, and an end-to-end run of the independent runner into the generator. Mutation check done: disabling the UNVERIFIED rule or the BLOCKED mapping fails the tests. The schema test no longer asserts that a Markdown file exists.
 
-**Tests.** Missing record, malformed record, contradictory statuses, redacted provenance, generator crash → fallback. Existing P94/P102 handoff tests keep passing unchanged.
-**Gate.** The handoff for a failing run contains the same actionable information as today and validates against the schema. Negative cases never produce `PASS`.
-**Non-goals.** No DAG, no new checks, no change to what gets checked.
-**Rollback.** Revert to the previous `ci-summary`/`patch-quality-report` pair; records are additive files.
+**Not done / limits.** `ci-summary.mjs` and `patch-quality-report.mjs` are kept as a generator plus a fallback; they are not merged into one file. Evidence records prove that a command ended with a status in an environment, not production behaviour. Hosted CI for P105 has not run.
 
 ## 5. P106 — Phase 1b: tool consolidation and Phase 1 acceptance
 
@@ -77,7 +64,7 @@ The owner never opens or edits repository files and does not care about code sty
 * **W5 Generated status graph.** A deterministic status/capability file generated from code plus records (module → checks → last status), replacing hand-written status prose in `AGENTS.md`.
 * **W6 Machine data location.** Decide whether schemas, architecture policy and generated inventories move out of `docs/` (for example flat into `scripts/` with prefixed names) so that `docs/` can be removed without breaking tools; update readers and tests together.
 
-**Gate (Phase 1).** Missing/malformed/contradictory critical evidence cannot yield a success claim; a generator failure still produces a bounded handoff; no tool remains without a schema role or an explicit retirement; evidence of the gate is stored as records.
+**Gate (Phase 1).** (P105 delivers the evidence half.) Missing/malformed/contradictory critical evidence cannot yield a success claim; a generator failure still produces a bounded handoff; no tool remains without a schema role or an explicit retirement; evidence of the gate is stored as records.
 **Rollback.** Retired scripts are recoverable from git; the decision card lists the commit.
 
 ## 6. P107 — Phase 2a: verification DAG

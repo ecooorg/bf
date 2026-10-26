@@ -1,14 +1,14 @@
 # Documentation index
 
-Repository audience: AI assistants (see `AI-NATIVE-RENOVATION-TASK.md`, section 1). Read only what the trigger names. Sizes are approximate.
+Repository audience: AI assistants (Navigator Charter at the top of `../AGENTS.md`). Read only what the trigger names. Sizes are approximate.
 
 ## Mandatory for every session
 
 | File | Size | Content |
 |---|---|---|
-| `../AGENTS.md` | 11 KB | Status, authorization tiers, critical rules, commands, documentation policy |
+| `../AGENTS.md` | 13 KB | **Navigator Charter (C1–C11, overrides everything)**, status, authorization tiers, critical rules, commands, documentation policy |
 | `AI-OPERATING-RULES.md` | 5 KB | Permanent AI operating, authorization, security and evidence rules |
-| `AI-NATIVE-RENOVATION-TASK.md` | sections 1–2 and the current patch | Directive, per-patch scope, gates |
+| `AI-NATIVE-RENOVATION-TASK.md` | section 2 and the current patch | Per-patch scope, work items, gates |
 
 ## On demand
 

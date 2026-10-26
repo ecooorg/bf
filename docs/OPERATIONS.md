@@ -90,3 +90,9 @@ Do not expose operational diagnostics without verifying access controls and data
 * The diagnostic ZIP (`README.txt`, `manifest.json`, `operations/recent-operations.json`, `diagnostics/diagnostic-summary.json`, `logs/application.jsonl`, `logs/application-detail.jsonl`, `logs/server-console.log`) is verified (CRC read-back, manifest hashes) before it is sent; failure returns HTTP 422. It is a snapshot, not a continuous log archive. CI logs live in the CI workflow artifact, not in this ZIP.
 * An HTTP 2xx and a server-side finish event do not prove the browser saved the ZIP. Google Drive synchronisation of diagnostics is not implemented in code.
 * **Open verification (P92):** production diagnostics were reported with `WARN`, artifact storage `NOT RUN`, no recent operations and no Drive files observed. Migrations, event persistence and artifact correlation in production remain unverified.
+
+## 10. CI evidence and handoff
+
+* Each CI runner writes an Evidence Record (`artifacts/ci-checks/evidence-*.json`, schema `docs/schema-evidence-record.json`) and lists it in `results.json` under `evidence.records`. Records carry revision, command, environment, timestamp, status, log reference and limits; critical rows are the diagnostic-gate probes and minimum suites.
+* `scripts/patch-quality-report.mjs` writes `NEXT_PATCH.md` (the only handoff the Navigator-side assistant needs) with `EVIDENCE=`, `EVIDENCE_PROBLEMS=` and `HANDOFF_JSON=` (schema `docs/schema-handoff-report.json`). If a run would be `PASSED` but evidence is missing, malformed, contradictory or lacks a log for a critical PASS, the status is `UNVERIFIED`. Treat `UNVERIFIED` like `UNKNOWN`: not a pass.
+* If the generator produces nothing, `scripts/ci-summary.mjs` writes a minimal `NEXT_PATCH.md` and a fallback `handoff-report.json`. On failure or `UNVERIFIED`, `diagnostics.zip` includes the records and the handoff JSON.
