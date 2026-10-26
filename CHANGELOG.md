@@ -1,3 +1,12 @@
+## P109 — Phase 2 formal acceptance, audit, and Phase 3 foundation plan
+
+- Recorded Navigator Tier-3 decisions of 2026-10-26: Phase 2 accepted and closed; P108.3 CI-artifact contract confirmed; P92 production diagnostics frozen until full AI-native renovation; authorization topics excluded from the critical path.
+- Phase 2 acceptance audit: reviewed existing DAG, fault-injection, bounded-repair, evidence/handoff and CI packaging evidence against the Phase 2 gate; all criteria PASS; remaining risks documented as non-blocking.
+- Updated `AGENTS.md` current-status (phase, freeze, authorization posture) and `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (Phase 2 closed, current phase Phase 3 foundation).
+- Replaced `docs/AI-NATIVE-RENOVATION-TASK.md` with the decision log, audit report, and detailed forward plan (P110 Intent/Policy Contract foundation → capability graph → context selection → verification binding).
+- Bumped product version to 109 (`src/config.ts`, `package.json`).
+- No runtime, DAG, repair or CI packaging behaviour change. Verification: version-consistency and Markdown syntax; full CI post-apply.
+
 ## P108.3-HF1 — align artifact test contract and make handoff actions specific
 
 - Updated the compact-artifact regression tests to expect exactly `BIForge-NEXT-PATCH.md` and `biforge-ci-logs.zip`, while asserting that the ZIP retains successful and failed stage logs, result evidence, an index, and redaction.
