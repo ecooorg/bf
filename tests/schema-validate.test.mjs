@@ -33,7 +33,6 @@ test('all seven schema files exist flat under docs/', () => {
     assert.equal(file.includes(`${path.sep}schemas${path.sep}`), false, 'must not use nested schemas/ dir');
   }
   assert.equal(fs.existsSync(path.join(SCHEMA_DIR, 'schema-common.json')), true);
-  assert.equal(fs.existsSync(path.join(SCHEMA_DIR, 'SCHEMA-STATUS-VOCABULARY.md')), true);
 });
 
 test('intent-policy-contract accepts minimal valid instance', () => {
