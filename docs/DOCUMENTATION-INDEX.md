@@ -27,6 +27,7 @@ Repository audience: AI assistants (Navigator Charter at the top of `../AGENTS.m
 ## Machine files in `docs/` (not prose; tools read them; do not hand-edit generated ones)
 
 * Schemas: `schema-common.json`, `schema-intent-policy-contract.json`, `schema-change-impact-plan.json`, `schema-verification-plan.json`, `schema-evidence-record.json`, `schema-artifact-manifest.json`, `schema-handoff-report.json`, `schema-approval-decision.json`. Validate: `node scripts/schemaValidate.mjs --type <artifact-type> --file <instance.json>`.
+* Verification: `verification-manifest.json` (every check, its prerequisites, limits and profiles; executed by `scripts/run-dag.mjs`, validated by `scripts/dagLib.mjs`; edit it when a check is added, removed or re-ordered).
 * Architecture policy: `architecture-boundary-rules.json`, `architecture-known-violations.json` (consumed by `npm run architecture:check`).
 * Generated: `generated-route-inventory.json`, `generated-env-inventory.json`, `generated-migration-inventory.json`, `generated-module-map.json`, `generated-check-graph.json` (check → files → modules). Regenerate with `npm run docs:generate`.
 

@@ -1,7 +1,7 @@
 # AI-NATIVE-RENOVATION — Task: Phases 0–2 in five patches (P104–P108)
 
 **Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108
-**Status:** P104, P105 and P106 delivered (see their sections); P107–P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
+**Status:** P104, P105, P106 and P107 delivered (see their sections); P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
 
@@ -10,7 +10,7 @@
 | P104 | 0 | Clean documentation set; superseded documents deleted; tests/CI no longer read documentation prose |
 | P105 | 1a | Evidence records written by the check runners; fail-closed assessment; structured handoff and fallback (delivered) |
 | P106 | 1b | Legacy tools retired; fail-closed CI evidence gate; check graph; Phase 1 gate (delivered) |
-| P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons |
+| P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons (delivered) |
 | P108 | 2b | Fault-injection suite; bounded repair protocol; Phase 2 gate accepted |
 
 ## 1. Navigator directive
@@ -67,7 +67,7 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 
 **Phase 1 gate.** Critical missing, malformed or contradictory evidence cannot yield a success claim (P105 generator + P106 gate); a failing generator still produces a bounded handoff (`ci-summary.mjs`); no tool without a schema role remains. Evidence: `tests/evidence-p105.test.mjs`, hosted CI run of P106 (pending).
 
-## 6. P107 — Phase 2a: verification DAG
+## 6. P107 — Phase 2a: verification DAG (delivered)
 
 * **W1 Manifest.** One machine-readable file declares every check: id, command, prerequisites, time and memory limits, `safeToRun`, parallel group. It replaces the order embedded in `ci.yml`, `check` and `CHECK_SKIP_SCRIPTS`.
 * **W2 Runner.** Executes the DAG: independent safe checks always run to completion after an unrelated failure; a check whose prerequisite failed becomes `BLOCKED` with the prerequisite named; policy-skipped checks become `SKIPPED_BY_POLICY` with the rule; each check writes its P105 record.
@@ -77,6 +77,15 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 **Gate.** The above demonstrated in CI; total CI time not worse than today by more than the agreed margin (record the baseline in P107).
 **Non-goals.** No repair logic; no new product checks.
 **Rollback.** Restore the previous `check` chain and `ci.yml`.
+
+**Done**
+
+* W1: `docs/verification-manifest.json` (27 checks; profiles `check` = 23, `ci` = 27). Limits are the CI-proven legacy limits (critical probes 20 s, minimum suites 75–150 s, regression 90 s, pipeline 330 s, others 600 s); nothing was lowered. Memory limit is `--max-old-space-size` via `NODE_OPTIONS` (4096 MB).
+* W2: `scripts/dagLib.mjs` (pure: validation, decisions, scheduling) and `scripts/run-dag.mjs` (executor). Statuses: `PASS`, `FAIL`, `TIMEOUT`, `BLOCKED` (prerequisite failed or required environment missing), `SKIPPED_BY_POLICY` (`safeToRun=false` without `DAG_ALLOW_UNSAFE=true`), `NOT_RUN` (scheduler stalled; defensive). Default concurrency 1; checks overlap only inside the same non-null `parallelGroup` (`static`: version, lint:copy, typecheck). Hosted CI keeps concurrency 1.
+* W3: `npm run check` = profile `check`; CI step "Verification DAG" = profile `ci` (critical probes, minimum suites, remaining checks, `db-migrate`, live PostgreSQL, API, build); gitleaks stays a workflow step. `patch-quality-report.mjs` treats any non-PASS row as `UNVERIFIED`; `statusGraph.mjs` reads the manifest. Deleted: the three former runners. Tests: `tests/dag-p107.test.mjs` (in `test:compact-ci-artifacts`); the P105 end-to-end test now drives the DAG runner.
+* Semantic changes disclosed: `test:database:live` and `test:bx06:api` are `BLOCKED` (not run and failing) when `db-migrate` fails; the minimum suites are `BLOCKED` (was `SKIPPED`) when a critical probe fails; the critical probes also run in the local `check` profile; unsafe database stages need `DAG_ALLOW_UNSAFE=true`.
+
+**Time gate.** Limit agreed by the Navigator: +15 % over the duration of the last green P106 run. Baseline duration of that run: NOT PROVIDED, so the time part of the gate is `NOT_RUN`. Compare `wallClockMs` in `results.json` (DAG step) and the job duration of the first hosted P107 run with the baseline times 1.15. Expected effect: none (same checks, same order class, concurrency 1).
 
 ## 7. P108 — Phase 2b: fault injection and bounded repair
 
