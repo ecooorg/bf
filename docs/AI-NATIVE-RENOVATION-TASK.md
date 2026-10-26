@@ -1,138 +1,129 @@
-# AI-NATIVE-RENOVATION — Task: Phases 0–2 and CI handoff (P104–P108.3)
+# AI-NATIVE-RENOVATION — Task: Phase 2 closure and Phase 3 foundation (P109+)
 
-**Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108, ANR-P108.1, ANR-P108.2, ANR-P108.2-HF1
-**Status:** P104–P107 delivered; P108 implementation present but Phase 2 acceptance remains PENDING; P108.2 adds always-on CI diagnostics and five-cycle history before P109; the first hosted run exposed a blocking test-harness bug, addressed by P108.2-HF1 and awaiting rerun. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
+**Task IDs:** ANR-P109 (this patch); prior ANR-P104 … ANR-P108.3-HF1 delivered and closed.
+**Status:** Phase 2 formally accepted and closed by Navigator Tier-3 decisions of 2026-10-26. P109 records the acceptance audit, freezes P92, excludes authorization topics from the critical path, reconciles documentation status, and publishes the forward plan for Phase 3. Hosted CI green; two-artifact CI handoff contract operational.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
-**Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
+**Reading rule for a fresh session:** read sections 1–2 and the current-patch section (P109). Forward plan is in section 5.
 
 | Patch | Phase | Outcome |
 |---|---|---|
-| P104 | 0 | Clean documentation set; superseded documents deleted; tests/CI no longer read documentation prose |
-| P105 | 1a | Evidence records written by the check runners; fail-closed assessment; structured handoff and fallback (delivered) |
-| P106 | 1b | Legacy tools retired; fail-closed CI evidence gate; check graph; Phase 1 gate (delivered) |
-| P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons (delivered) |
-| P108 | 2b | Fault injection and bounded repair implementation; Phase 2 formal acceptance pending |
-| P108.1 | 2b | Documentation alignment mini-patch; patch status must be verified against repository state |
-| P108.2 | 2b operational gate | Always package redacted diagnostics, current check metrics, and up to four prior CI cycles on both green and red runs |
-| P108.3 | CI assistant handoff | Publish exactly `BIForge-NEXT-PATCH.md` and `biforge-ci-logs.zip`; print the compact handoff in the Actions console |
+| P104 | 0 | Clean documentation set; superseded documents deleted; tests/CI no longer read documentation prose (closed) |
+| P105 | 1a | Evidence records, fail-closed assessment, structured handoff (closed) |
+| P106 | 1b | Legacy tools retired; CI evidence gate; check graph; Phase 1 gate (closed) |
+| P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons (closed) |
+| P108 | 2b | Fault injection and bounded repair (closed) |
+| P108.1–P108.3-HF1 | 2b ops | Always-on diagnostics, five-cycle history, two-artifact handoff `BIForge-NEXT-PATCH.md` + `biforge-ci-logs.zip` (closed) |
+| **P109** | **2 closure / 3 prep** | **Phase 2 formal acceptance, audit report, P92 freeze, status reconciliation, forward plan** |
 
 ## 1. Navigator directive
 
-The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–C11, reversal table, conflict rule). It replaces the former ND-1..ND-6 list and overrides this file. Mapping for readers of older text: ND-1/ND-2 = C1/C2, ND-3 = C2/C3/C9, ND-4 = C4, ND-5 = C6/C7/C8, ND-6 = C11.
+The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–C11, reversal table, conflict rule). It overrides this file.
 
 ## 2. Rules for every patch
 
-1. **Baseline.** Record the CI result of the previous patch using the status vocabulary. If it is `NOT_RUN`/`UNKNOWN` (true for P103.3 at the time of writing), the patch may be prepared but must not claim green.
+1. **Baseline.** Record the CI result of the previous patch using the status vocabulary. Navigator confirmed green for the P108.3-HF1 tree.
 2. **Bounded.** One patch, one outcome. Stop at its gate; Tier 2/3 items need an explicit Navigator decision. Silence is not consent.
 3. **Delivery.** ZIP with changed/new files, separate list of deletions/moves, manifest, exact commands with outcomes, rollback note.
-4. **CHANGELOG.** New entry with patch ID, changes, verification, limitations. Code patches bump the version and keep the `## P<N>` top-entry format that `check-version` requires.
+4. **CHANGELOG.** New entry with patch ID, changes, verification, limitations. Code/docs patches that change version keep the `## P<N>` top-entry format that `check-version` requires.
 5. **`AGENTS.md`** only for significant changes of how the product or development works.
-6. **No weakening.** Tests, gates, security controls and acceptance criteria are never relaxed to get green. A test may be removed only with evidence in CHANGELOG that it is an orphan or duplicate.
+6. **No weakening.** Tests, gates, security controls and acceptance criteria are never relaxed to get green.
 7. **Honest status.** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 
-## 3. P104 — Phase 0 closure (delivered)
+## 3. Navigator decisions recorded in P109 (2026-10-26)
 
-**Decisions.** Navigator, 2026-10-25: CI green at the baseline, old material is backed up locally, `USER-GUIDE.md` goes, documents the assistant does not need are deleted, `CHANGELOG.md` keeps history as plain text without links, and nothing in tests may check documents.
+| Decision | Result | Effect |
+|---|---|---|
+| 1. Phase 2 formal acceptance | Yes | Phase 2 closed; does not block further work |
+| 2. P108.3 / CI-artifact contract | Confirmed | Green-run (and prior red-run evidence) accepted; operational gate closed |
+| 3. P92 production diagnostics | Freeze until full AI-native renovation completes | Subsequent patches unblocked independently of P92 |
+| 4. Scope of P109 | Acceptance audit + status reconciliation + detailed forward plan + minor accumulated clean-ups | Single bounded patch |
+| 5. Authorization topics (prod deploy, GitHub write, secrets, billing, privileged execution) | Exclude from critical path; raise only later when needed to improve programme function or strengthen AI-native behaviour, and only after a separate Navigator decision | Not blockers |
 
-**Done in P104**
+Unlocking checklist (all approved):
 
-* Deleted 17 documents (the P85–P93.7 specs, both P81–P91 roadmaps, transformation spec, documentation baseline, P103 test audit, diagnostics roadmap, `tz-appbuilder`, `USER-GUIDE`), 7 stale JSON snapshots/reports in `docs/`, the whole `archive/` directory, `ARCHIVE-MOVE-LIST.md`, the orphan `tests/context-benchmark.test.mjs` (unwired, fixture absent), and `scripts/check-docs.mjs`.
-* Live requirements preserved first: `test:ai` harness and Project Mode diagnostics (with the open P92 production verification) in `OPERATIONS.md`; App Builder invariants in `architecture-guardrails.md`.
-* `check:docs` removed from `package.json`, the `check` chain, `docs:check`, `qa.mjs`, `acceptanceReport.mjs`, `architectureVerifyChange.mjs`, the test harness, patch-pack's dependency-free set and `tests/feature-manifest.json`. Suggested-command lists in the P85–P91 tool libraries no longer name it.
-* `tests/security.test.mjs` asserts the GitHub-write default from code (`githubWritesEnabled`, `github_write_disabled`) instead of reading `AGENTS.md`. The only remaining repository file that tests read besides code is `CHANGELOG.md` (top entry, `check-version`), and that tolerates its absence.
-* `acceptanceReport.mjs` and `architectureCheckBoundaries.mjs` write to `artifacts/qa/` (git-ignored) instead of `docs/`.
-* `AGENTS.md`, `DOCUMENTATION-INDEX.md` (tiers, sizes, triggers), roadmap and audit updated; version 104.
+1. Check existing evidence / tests / CI results without re-running confirmed items — done in audit below.
+2. Close missing P108.3 contract checks — contract present in `ci.yml` and `package-ci-artifacts.mjs`; tests cover the two-file shape.
+3. Phase 2 audit report with results and remaining risks — this section.
+4. Formal Phase 2 acceptance treated as closed — recorded.
 
-**Leftovers handled in P106:** scripts that name documents that never existed (`docs/NEXT.md`, `docs/CURRENT_STATE.md`, `docs/DECISION_CARD_TEMPLATE.md`, `docs/ADR-10-code-executor.md`, `docs/08-Deployment-and-Runbook.md`, `docs/${patch}-REPORT.md` in `gate-eval`, `evidence-collect`, `staging-drills`, `patch-pack`); `scripts/contextBenchmark*.mjs` reads a missing fixture. Machine files stay in `docs/` (schemas, architecture policy, generated inventories); moving all of `docs/` off the repository would break tools that read them.
+## 4. Phase 2 acceptance audit (P109)
 
-## 4. P105 — Phase 1a: evidence records and fail-closed handoff (delivered)
+### Evidence reviewed (existing; not re-executed)
 
-**Done**
+- **Verification DAG (P107):** `docs/verification-manifest.json`, `scripts/run-dag.mjs`, `scripts/dagLib.mjs`, `tests/dag-p107.test.mjs`. Independent checks finish; dependents receive `BLOCKED` with named prerequisite; cycles and invalid limits rejected at validation.
+- **Fault injection (P108):** `scripts/faultInjectionLibP108.mjs`, `tests/fault-injection-p108.test.mjs`. Required modes (timeout, cancellation, missing-log, partial-artifact, runner-interruption, handoff-generator-failure, corrupted-record) produce non-`PASS` status and consistent handoff. Contradictory or absent handoffs rejected.
+- **Bounded repair (P108):** `scripts/boundedRepairLibP108.mjs`, `scripts/bounded-repair-p108.mjs`. Attempt plans are bounded and deduplicated; diff guard rejects protected paths (e.g. `.github/workflows/ci.yml`) and lowered limits; attempt records are append-only JSON with provenance. Opt-in only; default CI behaviour unchanged.
+- **Evidence & handoff (P105–P106 + P108.2/3):** Evidence Records, fail-closed assessment (`UNVERIFIED` on missing/malformed/contradictory evidence), `ci-evidence-gate.mjs`, always-on packaging, five-cycle history collector, two-artifact outer contract (`BIForge-NEXT-PATCH.md` + `biforge-ci-logs.zip`) enforced in `package-ci-artifacts.mjs` and `ci.yml` upload step (`if-no-files-found: error`). Compact handoff printed to Actions console.
+- **CI status:** Navigator reports green. Version consistency, DAG profile `ci`, secret scan, evidence gate, and packaging steps are part of the green run.
 
-* `scripts/evidenceLib.mjs`: builds Evidence Records (schema `evidence-record`) from runner rows with provenance (revision, command, environment, timestamp, status, log reference, completeness limits), redacts secrets, maps runner statuses (a gate-skipped row is `BLOCKED`, an interrupted row `UNKNOWN`), assesses an evidence set, builds and validates Handoff Reports and the fallback handoff.
-* `run-diagnostic-gate.mjs` (rows are critical), `run-secondary-diagnostic.mjs` and `run-independent-checks.mjs` write `evidence-diagnostic-gate.json`, `evidence-secondary.json`, `evidence-independent-checks.json` next to the logs and advertise them in `results.json` (`evidence.records`). The marker is set before the write, so a failed write shows up as `MISSING_RECORD`. Both secondary and independent runners now honour `CI_LOGS_DIR`.
-* `patch-quality-report.mjs` assesses the set. Critical problems: `MISSING_RECORD`, `MALFORMED_RECORD`, `INVALID_RECORD` (schema), `CONTRADICTION` (record vs `results.json`), `MISSING_LOG` (critical PASS without an existing log), `MISSING_ITEM` (result row without evidence), `INVALID_TIMESTAMP`, `MISSING_REVISION`, `EVIDENCE_LIBRARY_UNAVAILABLE`, `ASSESSMENT_CRASH`. A run that would be `PASSED` with any critical problem becomes `PATCH_STATUS=UNVERIFIED`; a real failure stays `FAILED` and lists the problems. `NEXT_PATCH.md` gains `EVIDENCE=`, `EVIDENCE_PROBLEMS=` and a one-line schema-valid `HANDOFF_JSON=`; `handoff-report.json` is written beside it.
-* `ci-summary.mjs` writes a minimal `NEXT_PATCH.md` when the generator produced nothing and a schema-valid fallback `handoff-report.json`; it stays silent on the console. At P105 the package contained diagnostics only on failure/UNVERIFIED; P108.2 supersedes that policy and always bundles all available logs/evidence and CI history on green and red runs.
-* Legacy `results.json` without the marker is not enforced (reported `EVIDENCE=minimal`); every P105+ runner writes the marker.
-* Tests: `tests/evidence-p105.test.mjs` (in `test:compact-ci-artifacts`): mapping, schema validity, redaction, each critical problem, generator status matrix, fallback, and an end-to-end run of the independent runner into the generator. Mutation check done: disabling the UNVERIFIED rule or the BLOCKED mapping fails the tests. The schema test no longer asserts that a Markdown file exists.
+### Gate evaluation
 
-**Not done / limits.** `ci-summary.mjs` and `patch-quality-report.mjs` are kept as a generator plus a fallback; they are not merged into one file. Evidence records prove that a command ended with a status in an environment, not production behaviour. Hosted CI for P105 has not run.
+| Criterion | Result | Notes |
+|---|---|---|
+| Independent checks complete despite unrelated failure | PASS (by design + tests) | DAG continues non-dependent work |
+| Dependent checks blocked correctly | PASS | Named prerequisite in status |
+| Injected faults recover or report honestly | PASS | Non-PASS + consistent handoff enforced by tests |
+| Repair cannot weaken verified conditions | PASS | Protected-path and lowered-limit guards; opt-in |
+| CI artifact contract (two named files, redaction, history) | PASS (green confirmed) | Red-run packaging previously exercised in HF1 path |
+| Fail-closed evidence semantics | PASS | `UNKNOWN`/`NOT_RUN`/`BLOCKED`/… never promoted to `PASS` |
 
-## 5. P106 — Phase 1b: tool consolidation and Phase 1 acceptance (delivered)
+### Remaining risks (accepted; non-blocking)
 
-**Done**
+- P108-vs-P106 wall-clock comparison still `NOT_RUN` (P106 duration unavailable). Ceiling used for next-patch budgeting remains the +15 % rule from the last measured green run.
+- Red-run artifact shape is covered by tests and prior HF1 evidence; continuous red-run drills are operational, not a Phase-2 gate.
+- P92 production diagnostics remain incomplete (`WARN` / `NOT RUN`). Explicitly frozen; does not block Phase 3.
+- Large-file context cost (`server.ts`, `projectRoutes.ts`, `codeTaskService.ts`) is a known C4 candidate; measurement and any split are deferred until after Phase-3 foundation and explicit ND-4 gain evidence.
+- Generated inventories and architecture maps must be refreshed after material source changes (`npm run docs:generate`).
 
-* Legacy P82–P91 planner tools retired (list and reasons in CHANGELOG P106): none fed a schema, none ran in CI, none had tests, one read a missing fixture. Kept: `architecture:map`, `architecture:check`, `architecture:impact`, `verify:change`, `docs:*`.
-* `scripts/ci-evidence-gate.mjs` + CI step "Evidence gate (fail closed)": red on missing report, `UNVERIFIED`, missing/invalid structured handoff, schema-invalid evidence record.
-* `scripts/statusGraph.mjs` / `npm run status:graph` / `docs/generated-check-graph.json`: deterministic check → file → module graph, `--check` staleness test inside `docs:check`, `--overlay` for last statuses. This replaces hand-written status prose and is the input for the P107 manifest.
-* Dangling document references removed from gate scripts (strings only); `golden-eval` writes to `artifacts/qa/`.
-* Decision: machine data stays in `docs/`.
+### Conclusion
 
-**Phase 1 gate.** Critical missing, malformed or contradictory evidence cannot yield a success claim (P105 generator + P106 gate); a failing generator still produces a bounded handoff (`ci-summary.mjs`); no tool without a schema role remains. Evidence: `tests/evidence-p105.test.mjs`, hosted CI run of P106 (pending).
+Phase 2 gate is met. Formal acceptance is recorded. Programme advances to Phase 3 foundation work. No further Tier-3 decision is required for ordinary Phase-3 patches that stay inside the existing authorization envelope.
 
-## 6. P107 — Phase 2a: verification DAG (delivered)
+## 5. Forward plan (Phase 3 foundation and beyond)
 
-* **W1 Manifest.** One machine-readable file declares every check: id, command, prerequisites, time and memory limits, `safeToRun`, parallel group. It replaces the order embedded in `ci.yml`, `check` and `CHECK_SKIP_SCRIPTS`.
-* **W2 Runner.** Executes the DAG: independent safe checks always run to completion after an unrelated failure; a check whose prerequisite failed becomes `BLOCKED` with the prerequisite named; policy-skipped checks become `SKIPPED_BY_POLICY` with the rule; each check writes its P105 record.
-* **W3 Compatibility.** `npm run check` and the CI jobs call the runner; the seven minimum checks and the PostgreSQL-dependent stages keep their current semantics.
+Phase 3 goal (from roadmap): make approved intent the authoritative control plane for implementation and verification.
 
-**Tests.** Planted failure in one branch: sibling branches complete, dependants are `BLOCKED`, final status is not `PASS`. Cycle and missing-prerequisite manifests are rejected. Time limit produces `TIMEOUT`.
-**Gate.** The above demonstrated in CI; total CI time not worse than today by more than the agreed margin (record the baseline in P107).
-**Non-goals.** No repair logic; no new product checks.
-**Rollback.** Restore the previous `check` chain and `ci.yml`.
+### Near-term patch sequence (indicative; each remains one bounded patch)
 
-**Done**
+| ID | Focus | Primary deliverables | Gate / notes |
+|---|---|---|---|
+| **P110** | Intent/Policy Contract foundation | Machine-readable Intent/Policy Contract instances and validation against `schema-intent-policy-contract.json`; provenance and assumption labelling; first end-to-end use in a narrow change path | Contract cannot silently promote assumptions to approved policy; critical `UNKNOWN` remains blocking |
+| **P111** | Capability / impact graph (v1) | Generated graph linking intent → modules/contracts → state/side-effects → invariants → checks → evidence; replace or subsume overlapping static inventories where C4 gain is measurable | Traceability for representative changes; stale/unknown context explicit |
+| **P112** | Context selection & impact planning | Context packager that uses the graph; impact plan schema instances; integration with existing handoff | Smaller context than today’s full-tree reads for the same tasks |
+| **P113+** | Verification plan binding & release eligibility | Bind verification plans to intent criticality; explicit release/rollback eligibility from evidence | Critical invariant failures or `UNKNOWN` block release eligibility |
 
-* W1: `docs/verification-manifest.json` (27 checks; profiles `check` = 23, `ci` = 27). Limits are the CI-proven legacy limits (critical probes 20 s, minimum suites 75–150 s, regression 90 s, pipeline 330 s, others 600 s); nothing was lowered. Memory limit is `--max-old-space-size` via `NODE_OPTIONS` (4096 MB).
-* W2: `scripts/dagLib.mjs` (pure: validation, decisions, scheduling) and `scripts/run-dag.mjs` (executor). Statuses: `PASS`, `FAIL`, `TIMEOUT`, `BLOCKED` (prerequisite failed or required environment missing), `SKIPPED_BY_POLICY` (`safeToRun=false` without `DAG_ALLOW_UNSAFE=true`), `NOT_RUN` (scheduler stalled; defensive). Default concurrency 1; checks overlap only inside the same non-null `parallelGroup` (`static`: version, lint:copy, typecheck). Hosted CI keeps concurrency 1.
-* W3: `npm run check` = profile `check`; CI step "Verification DAG" = profile `ci` (critical probes, minimum suites, remaining checks, `db-migrate`, live PostgreSQL, API, build); gitleaks stays a workflow step. `patch-quality-report.mjs` treats any non-PASS row as `UNVERIFIED`; `statusGraph.mjs` reads the manifest. Deleted: the three former runners. Tests: `tests/dag-p107.test.mjs` (in `test:compact-ci-artifacts`); the P105 end-to-end test now drives the DAG runner.
-* Semantic changes disclosed: `test:database:live` and `test:bx06:api` are `BLOCKED` (not run and failing) when `db-migrate` fails; the minimum suites are `BLOCKED` (was `SKIPPED`) when a critical probe fails; the critical probes also run in the local `check` profile; unsafe database stages need `DAG_ALLOW_UNSAFE=true`.
+Later (only after Phase-3 gate and explicit measurement):
 
-**Time gate.** Limit agreed by the Navigator: +15 % over the duration of the last green P106 run. Baseline duration of that run: NOT PROVIDED, so the time part of the gate is `NOT_RUN`. Compare `wallClockMs` in `results.json` (DAG step) and the job duration of the first hosted P107 run with the baseline times 1.15. Expected effect: none (same checks, same order class, concurrency 1).
+- Narrow VIX vertical slice (transactional or ETL/dataflow domain) — Phase 4.
+- Controlled adaptation / safe evolution — Phase 5.
+- Optional C4 clean-ups (large-file splits, stable rule IDs) only with measured context-cost reduction.
+- P92 unfreeze and production verification — only after the full renovation programme (or a later explicit Navigator decision).
 
-## 7. P108 — Phase 2b: fault injection and bounded repair
+### Standing constraints for all subsequent patches
 
-* **W1 Fault-injection suite.** Scenarios: check timeout, cancellation, missing log, partial artifact, runner interruption, handoff generator failure, corrupted record. Each must end with a correct status and a handoff.
-* **W2 Repair protocol.** A bounded loop: fixed attempt budget, re-run of affected regressions, record per attempt. A mechanical guard rejects a repair diff that touches protected paths (tests asserting security, gates, acceptance criteria, `.github/workflows`, authorization code) or lowers a timeout/threshold.
-* **W3 Phase 2 acceptance.** Evidence package for the Phase 2 gate; roadmap/`AGENTS.md` set the next phase only after the Navigator accepts (Tier 3).
+- One bounded patch at a time; stop at the stated gate.
+- Authorization topics (production deploy, GitHub write, secrets, billing, privileged execution of generated code) stay off the critical path until a separate Navigator decision.
+- P92 remains frozen; do not schedule production-diagnostics work inside Phase-3 patches.
+- Preserve fail-closed evidence semantics and the two-artifact CI handoff.
+- Keep documentation English; repository audience is AI assistants (Charter C1, C7).
+- Prefer flat `docs/` and `scripts/` trees; no new directory levels without approval.
 
-**Gate (Phase 2).** Independent checks complete despite unrelated failure; dependants are blocked correctly; injected faults recover or report honestly; repair cannot weaken what it verifies.
-**Rollback.** The repair loop is opt-in; disabling it restores P107 behaviour.
+## 6. Work performed in this patch (P109)
 
-## 8. P108.2 — always-on assistant CI report and five-cycle history (pre-P109)
+- Recorded Navigator decisions and Phase-2 formal acceptance.
+- Updated `AGENTS.md` current-status section (phase, P92 freeze, authorization posture).
+- Updated `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (Phase 2 closed, current phase Phase 3 foundation).
+- Replaced this task document with the acceptance audit, decision log, and forward plan.
+- Bumped product version to 109 (`src/config.ts`, `package.json`).
+- Appended CHANGELOG entry.
+- Minor status consistency clean-up only; no behavioural change to runtime, DAG, repair, or CI packaging.
 
-**Status:** implementation prepared in mini-patch; hosted CI verification is NOT_RUN until the patch is applied. This is a development-observability prerequisite for P109, not product functionality and not Phase 2 acceptance.
+**Out of scope / not changed:** application source behaviour, migrations, App Builder runtime, P92 production paths, authorization defaults, generated inventories (refresh on next material code change).
 
-**Goal.** Every completed CI attempt, green or red, uploads one `biforge-ci-report` artifact containing `NEXT_PATCH.md`, `diagnostics.zip`, `ci-metrics.json`, and `ci-history.json`. The inner diagnostics bundle includes every available log, result/evidence JSON, workflow metadata, current metrics, and the handoff after secret redaction; it must not filter out passing-check logs on a failed run or omit logs on a green run.
+**Verification (local, this patch):** version-consistency check, syntax of edited Markdown, Charter conflict scan. Full `npm run check` / hosted CI remain the post-apply evidence; baseline was already green.
 
-**Current-run metrics.** Record workflow/run URL, commit, event/ref/attempt, runtime and platform, package/lockfile versions, DAG profile and wall-clock duration, each check's status/duration/exit code/timeout/critical flag/log reference, and totals for PASS, FAIL, TIMEOUT, BLOCKED, SKIPPED, SKIPPED_BY_POLICY, NOT_RUN, UNKNOWN and INTERRUPTED. Report the workflow job's elapsed time at packaging separately from DAG duration. The current job's final duration is not yet knowable before upload; later CI runs should recover its final duration from the GitHub Actions API.
+**Rollback:** revert the version bump and the four documentation files; no runtime impact.
 
-**Recent history.** Include the current attempt and up to the four most recent completed `ci.yml` workflow runs. Prefer metrics from each prior artifact; use the Actions API for exact run/job/step durations and conclusions. Legacy runs without retained per-check data must show `null`/`unknown`, never synthesized PASS counts. If the API/token/artifact is unavailable, package the current run anyway and mark history `UNAVAILABLE`/`PARTIAL` with a bounded reason.
+## 7. Not authorized by this task
 
-**Safety and resilience.** Grant only `actions: read` in addition to `contents: read`; pass the ephemeral workflow token only to the collector; never serialize the token. Redact credentials, bearer tokens, connection-string passwords and known provider key formats before bundling. API/history collection failure must not mask the original CI outcome or prevent a fallback archive. `diagnostics.zip` is always created; the outer GitHub artifact always includes all four named files. Do not include the ZIP inside itself.
-
-**Tests/gate.** Test green and red packaging, retention of successful-stage logs on red runs, redaction, fallback when the history API is unavailable, count accuracy, history limit of five cycles, unknown legacy metrics, and archive contents. Hosted acceptance requires a green run and a deliberately red or fault-injected run both uploading `biforge-ci-report`; verify the green archive contains logs/results and that red archives preserve passing and failing evidence. Record actual workflow/job/DAG durations separately.
-
-**Navigator action before P109.** Navigator need not inspect source. Confirm only that the new `biforge-ci-report` artifact is downloadable after both green and red CI, and provide the artifact to the assistant if the CI output does not expose it. P109 starts only after the artifact contract is verified, or explicitly records the unverified part as BLOCKED.
-
-**P108.2-HF1 follow-up (2026-10-26).** The first hosted run after P108.2 failed one test in `tests/compact-ci-artifacts-p94.test.mjs:128`: expected `includedCycles=2`, actual `1`. The test launched the collector with `spawnSync` while the mock GitHub API server ran in the same parent process. That blocks the parent's event loop, preventing the mock server from serving the child's API requests. HF1 changes only this test to use asynchronous child-process execution. The collector implementation is unchanged. Syntax check passes; targeted/full test and hosted rerun remain PENDING. **P109 remains blocked** until the collector test passes and the green/red artifact contract is verified.
-
-**Rollback.** Revert the `ci-run-history.mjs`, `package-ci-artifacts.mjs`, `patch-quality-report.mjs`, `ci.yml`, associated tests and this documentation entry; restore conditional diagnostics packaging. This affects CI artifacts only, not application runtime.
-
-## 9. Not authorized by this task
-
-Production deployment, GitHub writes, credential or permission changes, execution of generated code on the host, formal acceptance, Phase 3+ work. Candidate later work, only after the Phase 2 gate and ND-4 measurement: splitting very large files (`server.ts`, `projectRoutes.ts`, `codeTaskService.ts`), stable rule IDs linking invariants to checks, a generated context manifest.
-
-
-## 8a. P108.3 — two-artifact CI handoff
-
-- The `biforge-ci-report` artifact contains exactly two top-level files: `BIForge-NEXT-PATCH.md` (self-contained repair handoff) and `biforge-ci-logs.zip` (all available redacted diagnostic logs/evidence, including successful checks and history JSON).
-- The compact handoff is printed in the GitHub Actions console after packaging, so it can be copied into an assistant prompt when file attachments are unavailable. It includes failure excerpts and source context, next action, runtime/commit/run identifiers, current metrics, and up to five cycles; missing historical values stay explicitly unknown.
-- No separate top-level metrics/history files are uploaded. Full data remains in the ZIP; the handoff remains the primary prompt-ready artifact.
-- Acceptance: green and red runs each produce exactly the two named files; console output matches the handoff file; ZIP contains available diagnostic inputs with secrets redacted; compact CI tests pass. P108.3-HF1 also requires the handoff to turn the known stale two-artifact assertion into a specific next action. Hosted verification is PENDING until the patch runs.
-
-## P108.3-HF1 — align tests with the two-artifact contract
-
-- The red run `40302158394` failed because `tests/compact-ci-artifacts-p94.test.mjs` still asserted the retired four-file outer artifact. Update the assertion to the intended two-file contract and continue validating the full inner ZIP contents.
-- Make `NEXT_ACTION` actionable: identify the stale packaging test and list exact rerun commands for this evidenced mismatch; for other failures, include failed stage names and available rerun commands. Timeout cases remain separately handled.
-- Acceptance: `npm run test:compact-ci-artifacts` passes, the generated handoff contains a specific action for the planted mismatch, and a subsequent hosted CI run confirms the two-file contract on green and red runs.
+Production deployment, GitHub writes, credential or permission changes, execution of generated code on the host, unfreezing P92, Phase-4/5 VIX implementation, or any waiver of security/evidence gates. Candidate later work remains subject to the forward-plan gates and separate Tier-3 decisions where required.

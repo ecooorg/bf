@@ -5,7 +5,7 @@
 **Normative strategic destination:** `VIX-CONCEPT.md`  
 **Audit basis:** `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`  
 **Renovation mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`  
-**Current phase:** Phase 2 — verification as a graph (Phase 0 closed by P104; Phase 1 closed by P105–P106; Phase 2 acceptance PENDING; P108.2 CI archive verification is a prerequisite before P109)  
+**Current phase:** Phase 3 foundation (Phase 0 closed by P104; Phase 1 closed by P105–P106; Phase 2 closed by P109 formal acceptance 2026-10-26). P92 production diagnostics frozen until full renovation completes.  
 **Rule:** one bounded patch at a time; preserve safety; report evidence honestly.
 
 ## 1. North star
@@ -58,20 +58,21 @@ VIX remains the long-term architectural destination: formalisation of business i
 
 **Gate:** missing, malformed, contradictory, or redacted-away critical evidence cannot be reported as a successful claim. Failures in report generation still produce a bounded fallback handoff.
 
-### Phase 2 — Dependency-aware verification and bounded repair
+### Phase 2 — Dependency-aware verification and bounded repair (CLOSED by P109)
 
-**Current status:** implementation P107–P108 exists; formal acceptance is PENDING. P108.2 adds always-on CI diagnostics and five-cycle history. Before P109, verify artifact availability after both green and red CI; do not infer this from a single run.
+**Status:** formally accepted 2026-10-26 (Navigator Tier-3 decisions). Implementation P107–P108 + P108.1–P108.3-HF1. Hosted CI green; two-artifact handoff contract operational.
 
 **Goal:** collect maximum useful evidence without unsafe execution.
 
-**Deliver:**
+**Delivered:**
 - Verification DAG with declared prerequisites, resource/time limits, and safe parallelism.
 - Completion of all independent and safe checks after an unrelated failure.
 - Recorded reasons for every blocked or skipped check.
 - Fault-injection coverage for timeouts, cancellation, missing logs, partial artifacts, runner interruption, and report-generator failure.
 - Bounded repair protocol that preserves gates and re-runs affected regressions.
+- Always-on redacted CI diagnostics, five-cycle history, and two-artifact assistant handoff (`BIForge-NEXT-PATCH.md` + `biforge-ci-logs.zip`).
 
-**Gate:** tests demonstrate that independent checks complete despite unrelated failures; dependent checks are blocked correctly; repair cannot weaken the conditions being verified.
+**Gate (met):** tests demonstrate that independent checks complete despite unrelated failures; dependent checks are blocked correctly; repair cannot weaken the conditions being verified. Formal acceptance recorded in P109; remaining risks do not block Phase 3.
 
 ### Phase 3 — Intent, policy, provenance, and capability graph
 

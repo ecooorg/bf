@@ -89,7 +89,7 @@ Do not expose operational diagnostics without verifying access controls and data
 * PostgreSQL keeps event rows for seven days (opportunistic pruning). If the database is unreachable a bounded in-memory ring (1,000 events) is used and does not survive restart. Lists and exports return at most 200 events.
 * The diagnostic ZIP (`README.txt`, `manifest.json`, `operations/recent-operations.json`, `diagnostics/diagnostic-summary.json`, `logs/application.jsonl`, `logs/application-detail.jsonl`, `logs/server-console.log`) is verified (CRC read-back, manifest hashes) before it is sent; failure returns HTTP 422. It is a snapshot, not a continuous log archive. CI logs live in the CI workflow artifact, not in this ZIP.
 * An HTTP 2xx and a server-side finish event do not prove the browser saved the ZIP. Google Drive synchronisation of diagnostics is not implemented in code.
-* **Open verification (P92):** production diagnostics were reported with `WARN`, artifact storage `NOT RUN`, no recent operations and no Drive files observed. Migrations, event persistence and artifact correlation in production remain unverified.
+* **P92 production diagnostics (frozen):** production diagnostics were reported with `WARN`, artifact storage `NOT RUN`, no recent operations and no Drive files observed. Migrations, event persistence and artifact correlation in production remain unverified. Per Navigator decision 2026-10-26 this track is frozen until the full AI-native renovation completes; it does not block Phase 3 or later patches.
 
 ## 10. CI evidence and handoff
 
