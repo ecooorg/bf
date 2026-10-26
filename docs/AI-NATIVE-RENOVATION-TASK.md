@@ -1,4 +1,4 @@
-# AI-NATIVE-RENOVATION — Task: Phases 0–2 and CI handoff (P104–P108.2)
+# AI-NATIVE-RENOVATION — Task: Phases 0–2 and CI handoff (P104–P108.3)
 
 **Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108, ANR-P108.1, ANR-P108.2, ANR-P108.2-HF1
 **Status:** P104–P107 delivered; P108 implementation present but Phase 2 acceptance remains PENDING; P108.2 adds always-on CI diagnostics and five-cycle history before P109; the first hosted run exposed a blocking test-harness bug, addressed by P108.2-HF1 and awaiting rerun. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
@@ -14,6 +14,7 @@
 | P108 | 2b | Fault injection and bounded repair implementation; Phase 2 formal acceptance pending |
 | P108.1 | 2b | Documentation alignment mini-patch; patch status must be verified against repository state |
 | P108.2 | 2b operational gate | Always package redacted diagnostics, current check metrics, and up to four prior CI cycles on both green and red runs |
+| P108.3 | CI assistant handoff | Publish exactly `BIForge-NEXT-PATCH.md` and `biforge-ci-logs.zip`; print the compact handoff in the Actions console |
 
 ## 1. Navigator directive
 
@@ -121,3 +122,11 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 ## 9. Not authorized by this task
 
 Production deployment, GitHub writes, credential or permission changes, execution of generated code on the host, formal acceptance, Phase 3+ work. Candidate later work, only after the Phase 2 gate and ND-4 measurement: splitting very large files (`server.ts`, `projectRoutes.ts`, `codeTaskService.ts`), stable rule IDs linking invariants to checks, a generated context manifest.
+
+
+## 8a. P108.3 — two-artifact CI handoff
+
+- The `biforge-ci-report` artifact contains exactly two top-level files: `BIForge-NEXT-PATCH.md` (self-contained repair handoff) and `biforge-ci-logs.zip` (all available redacted diagnostic logs/evidence, including successful checks and history JSON).
+- The compact handoff is printed in the GitHub Actions console after packaging, so it can be copied into an assistant prompt when file attachments are unavailable. It includes failure excerpts and source context, next action, runtime/commit/run identifiers, current metrics, and up to five cycles; missing historical values stay explicitly unknown.
+- No separate top-level metrics/history files are uploaded. Full data remains in the ZIP; the handoff remains the primary prompt-ready artifact.
+- Acceptance: green and red runs each produce exactly the two named files; console output matches the handoff file; ZIP contains available diagnostic inputs with secrets redacted; compact CI tests pass. Hosted verification is PENDING until the patch runs.
