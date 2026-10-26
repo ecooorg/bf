@@ -1,7 +1,7 @@
 # AI-NATIVE-RENOVATION — Task: Phases 0–2 and CI handoff (P104–P108.2)
 
-**Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108, ANR-P108.1, ANR-P108.2
-**Status:** P104–P107 delivered; P108 implementation present but Phase 2 acceptance remains PENDING; P108.2 adds always-on CI diagnostics and five-cycle history before P109. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
+**Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108, ANR-P108.1, ANR-P108.2, ANR-P108.2-HF1
+**Status:** P104–P107 delivered; P108 implementation present but Phase 2 acceptance remains PENDING; P108.2 adds always-on CI diagnostics and five-cycle history before P109; the first hosted run exposed a blocking test-harness bug, addressed by P108.2-HF1 and awaiting rerun. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
 
@@ -113,6 +113,8 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 **Tests/gate.** Test green and red packaging, retention of successful-stage logs on red runs, redaction, fallback when the history API is unavailable, count accuracy, history limit of five cycles, unknown legacy metrics, and archive contents. Hosted acceptance requires a green run and a deliberately red or fault-injected run both uploading `biforge-ci-report`; verify the green archive contains logs/results and that red archives preserve passing and failing evidence. Record actual workflow/job/DAG durations separately.
 
 **Navigator action before P109.** Navigator need not inspect source. Confirm only that the new `biforge-ci-report` artifact is downloadable after both green and red CI, and provide the artifact to the assistant if the CI output does not expose it. P109 starts only after the artifact contract is verified, or explicitly records the unverified part as BLOCKED.
+
+**P108.2-HF1 follow-up (2026-10-26).** The first hosted run after P108.2 failed one test in `tests/compact-ci-artifacts-p94.test.mjs:128`: expected `includedCycles=2`, actual `1`. The test launched the collector with `spawnSync` while the mock GitHub API server ran in the same parent process. That blocks the parent's event loop, preventing the mock server from serving the child's API requests. HF1 changes only this test to use asynchronous child-process execution. The collector implementation is unchanged. Syntax check passes; targeted/full test and hosted rerun remain PENDING. **P109 remains blocked** until the collector test passes and the green/red artifact contract is verified.
 
 **Rollback.** Revert the `ci-run-history.mjs`, `package-ci-artifacts.mjs`, `patch-quality-report.mjs`, `ci.yml`, associated tests and this documentation entry; restore conditional diagnostics packaging. This affects CI artifacts only, not application runtime.
 
