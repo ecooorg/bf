@@ -1,3 +1,12 @@
+## P112 — Context selection and impact planning on the capability graph
+
+- Added `scripts/contextSelectLib.mjs` and `scripts/contextSelect.mjs`: seed paths → bounded graph context (maxDepth) → schema-shaped Change/Impact Plan (`schema-change-impact-plan`).
+- Unresolved seeds and unknown/stale graph nodes remain explicit; plan status becomes PARTIAL/BLOCKED rather than silent PASS.
+- CLI: `npm run context:select -- path [path...]` (stdin paths supported); `--json`, `--plan-out`, `--max-depth`.
+- Tests: `tests/context-select-p112.test.mjs` (6) including schema validation of emitted plans; wired into `test:compact-ci-artifacts` and `test:context-select`.
+- Complements existing `architecture:impact` heuristics with graph-native selection; does not replace runtime or CI packaging.
+- Version 112.
+
 ## P111 — Capability / impact graph (v1)
 
 - Added `scripts/capabilityGraphLib.mjs` and `scripts/capabilityGenerateGraph.mjs`: build a directed capability graph from existing machine inventories (module map, routes, env, migrations, verification-manifest, check-graph) plus optional Intent/Policy Contracts.
