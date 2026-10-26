@@ -32,6 +32,28 @@ test('P108.3 workflow publishes exactly the compact handoff and full-log archive
   assert.doesNotMatch(workflow, /path:\s*artifacts\/ci-checks\/(?:NEXT_PATCH\.md|diagnostics\.zip|ci-history\.json|ci-metrics\.json)/);
 });
 
+test('P108.3 handoff turns the two-artifact contract failure into an actionable next step', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p1083-next-action-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [
+      { id: 'test:compact-ci-artifacts', status: 'FAIL', exitCode: 1, durationMs: 7000, log: 'test_compact-ci-artifacts.log' },
+    ] }));
+    fs.writeFileSync(path.join(dir, 'test_compact-ci-artifacts.log'), [
+      'not ok 2 - P108.2 packaging always includes complete diagnostics on failure',
+      'AssertionError: Expected values to be strictly deep-equal:',
+      "expected: ['NEXT_PATCH.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']",
+      "actual: ['BIForge-NEXT-PATCH.md', 'biforge-ci-logs.zip']",
+      'at TestContext.<anonymous> (tests/compact-ci-artifacts-p94.test.mjs:62:12)',
+    ].join('\n'));
+    const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'failure', GITHUB_SHA: 'test-sha' });
+    assert.equal(r.status, 0, r.stderr || r.stdout);
+    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+    assert.match(report, /Update tests\/compact-ci-artifacts-p94\.test\.mjs/);
+    assert.match(report, /BIForge-NEXT-PATCH\.md and biforge-ci-logs\.zip/);
+    assert.match(report, /npm run test:compact-ci-artifacts/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test('P94 report preserves TAP assertion details and timeout tail', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-report-'));
   try {
