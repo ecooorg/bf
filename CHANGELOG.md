@@ -1,3 +1,10 @@
+## P108.2-HF1 — make CI-history API test non-blocking
+
+- Fixed the P108.2 history-collector test harness: the test used `spawnSync` while its mock GitHub API server lived in the same parent process, blocking the event loop and preventing the mock server from answering the child process.
+- The API-backed history test now launches `scripts/ci-run-history.mjs` asynchronously, so the local mock server can respond and the expected previous-cycle metrics can be asserted. Production history-collector logic is unchanged.
+- Evidence: hosted CI failed only `P108.2 history collector imports exact durations and check counts from the four-cycle window` at `includedCycles` (expected 2, actual 1); the test took about 7.2 seconds, consistent with API request timeouts.
+- Verification after this fix: syntax check PASS; targeted/full test and hosted CI rerun PENDING. P108.2 remains unaccepted until the collector test passes and green/red archive behaviour is confirmed.
+
 ## P108.2 — always-on assistant CI diagnostics and five-cycle history
 
 - Every green/red CI run now packages `NEXT_PATCH.md`, `diagnostics.zip`, `ci-metrics.json`, and `ci-history.json` into `biforge-ci-report`.
