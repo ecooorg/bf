@@ -129,4 +129,10 @@ Production deployment, GitHub writes, credential or permission changes, executio
 - The `biforge-ci-report` artifact contains exactly two top-level files: `BIForge-NEXT-PATCH.md` (self-contained repair handoff) and `biforge-ci-logs.zip` (all available redacted diagnostic logs/evidence, including successful checks and history JSON).
 - The compact handoff is printed in the GitHub Actions console after packaging, so it can be copied into an assistant prompt when file attachments are unavailable. It includes failure excerpts and source context, next action, runtime/commit/run identifiers, current metrics, and up to five cycles; missing historical values stay explicitly unknown.
 - No separate top-level metrics/history files are uploaded. Full data remains in the ZIP; the handoff remains the primary prompt-ready artifact.
-- Acceptance: green and red runs each produce exactly the two named files; console output matches the handoff file; ZIP contains available diagnostic inputs with secrets redacted; compact CI tests pass. Hosted verification is PENDING until the patch runs.
+- Acceptance: green and red runs each produce exactly the two named files; console output matches the handoff file; ZIP contains available diagnostic inputs with secrets redacted; compact CI tests pass. P108.3-HF1 also requires the handoff to turn the known stale two-artifact assertion into a specific next action. Hosted verification is PENDING until the patch runs.
+
+## P108.3-HF1 — align tests with the two-artifact contract
+
+- The red run `40302158394` failed because `tests/compact-ci-artifacts-p94.test.mjs` still asserted the retired four-file outer artifact. Update the assertion to the intended two-file contract and continue validating the full inner ZIP contents.
+- Make `NEXT_ACTION` actionable: identify the stale packaging test and list exact rerun commands for this evidenced mismatch; for other failures, include failed stage names and available rerun commands. Timeout cases remain separately handled.
+- Acceptance: `npm run test:compact-ci-artifacts` passes, the generated handoff contains a specific action for the planted mismatch, and a subsequent hosted CI run confirms the two-file contract on green and red runs.
