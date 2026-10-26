@@ -119,6 +119,11 @@ jobs:
           API_OUTCOME: ${{ steps.api.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
 
+      - name: Evidence gate (fail closed)
+        if: always()
+        shell: bash
+        run: node scripts/ci-evidence-gate.mjs
+
       - name: ASSISTANT HANDOFF — GitHub Actions summary
         if: always()
         run: node scripts/ci-summary.mjs
