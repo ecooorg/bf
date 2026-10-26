@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import JSZip from 'jszip';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:http';
@@ -12,6 +12,17 @@ import { once } from 'node:events';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const run = (script, dir, extra = {}) => spawnSync(process.execPath, [script], {
   cwd: root, encoding: 'utf8', env: { ...process.env, CI_LOGS_DIR: dir, ...extra },
+});
+const runAsync = (script, dir, extra = {}) => new Promise((resolve, reject) => {
+  const child = spawn(process.execPath, [script], {
+    cwd: root, env: { ...process.env, CI_LOGS_DIR: dir, ...extra },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let stdout = ''; let stderr = '';
+  child.stdout.setEncoding('utf8').on('data', (chunk) => { stdout += chunk; });
+  child.stderr.setEncoding('utf8').on('data', (chunk) => { stderr += chunk; });
+  child.once('error', reject);
+  child.once('close', (status, signal) => resolve({ status, signal, stdout, stderr }));
 });
 
 test('P94 report preserves TAP assertion details and timeout tail', () => {
@@ -119,7 +130,9 @@ test('P108.2 history collector imports exact durations and check counts from the
   try {
     fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ profile: 'test', wallClockMs: 2500, results: [{ id: 'current', status: 'PASS', durationMs: 1000 }] }));
     const address = server.address();
-    const r = run('scripts/ci-run-history.mjs', dir, {
+    // Keep the parent event loop free so the in-process mock GitHub API can answer
+    // requests while the history collector runs in its child process.
+    const r = await runAsync('scripts/ci-run-history.mjs', dir, {
       GITHUB_API_URL: `http://127.0.0.1:${address.port}`, GITHUB_REPOSITORY: 'test/repo', GITHUB_RUN_ID: '999',
       GITHUB_SHA: 'current-sha', GH_TOKEN: 'test-token', GITHUB_SERVER_URL: 'https://example.test',
     });
