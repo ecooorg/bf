@@ -1,3 +1,9 @@
+## P108.3 — two-artifact CI handoff for assistant repair
+
+- The uploaded `biforge-ci-report` now contains exactly `BIForge-NEXT-PATCH.md` and `biforge-ci-logs.zip`. The compact handoff includes failure evidence, source excerpts, next action, environment, current metrics, and up to five CI cycles; it is printed verbatim in the Actions console after packaging.
+- The ZIP retains all available redacted diagnostic inputs, including successful-check logs and machine evidence. Separate metrics/history files are not published as extra top-level artifacts; they remain inside the ZIP and are summarized in the handoff.
+- Validation in this patch: JavaScript syntax and packaging simulation checked locally; full compact CI test suite and hosted green/red artifact verification remain NOT_RUN until CI executes.
+
 ## P108.2-HF1 — make CI-history API test non-blocking
 
 - Fixed the P108.2 history-collector test harness: the test used `spawnSync` while its mock GitHub API server lived in the same parent process, blocking the event loop and preventing the mock server from answering the child process.
