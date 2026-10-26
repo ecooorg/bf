@@ -9,7 +9,7 @@ export const FEATURES = {
 const envInterval = Number((import.meta as any).env?.VITE_AUTOSAVE_MIN_INTERVAL_MS);
 export const AUTOSAVE_MIN_INTERVAL_MS = Number.isFinite(envInterval) && envInterval >= 0 && (import.meta as any).env?.VITE_AUTOSAVE_MIN_INTERVAL_MS ? envInterval : 30000;
 
-export const APP_VERSION = '106';
+export const APP_VERSION = '107';
 /** classic | builder — this tree is pipeline-first (IR → scaffold → ZIP). */
 export const PRODUCT_LINE = 'builder';
 export const SCHEMA_VERSION = 11;
