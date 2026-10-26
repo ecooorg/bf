@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { makeEvidenceRecord, writeEvidenceRecord, addRecordName } from './evidenceLib.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -20,7 +21,7 @@ for (const name of scriptNames) {
   if (!pkg.scripts[name]) tasks.push([`unknown-${name}`, 'npm', ['run', name]]);
   else tasks.push([name, process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', name]]);
 }
-const logDir = path.join(root, 'artifacts', 'ci-checks');
+const logDir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/ci-checks');
 fs.mkdirSync(logDir, { recursive: true });
 const results = [];
 const startedAt = new Date().toISOString();
@@ -63,7 +64,7 @@ function run(id, command, args) {
       settled = true;
       clearTimeout(timer);
       log.end();
-      const result = { id, status: 'FAIL', durationMs: Date.now() - started, log: path.relative(root, logPath), note: error.message };
+      const result = { id, status: 'FAIL', command: `${command} ${args.join(' ')}`, startedAt: new Date(started).toISOString(), finishedAt: new Date().toISOString(), durationMs: Date.now() - started, log: path.relative(root, logPath), note: error.message };
       results.push(result);
       console.log(`[FAIL] ${id}: ${error.message}`);
       resolve();
@@ -74,7 +75,7 @@ function run(id, command, args) {
       clearTimeout(timer);
       log.end();
       const status = timedOut ? 'TIMEOUT' : code === 0 ? 'PASS' : 'FAIL';
-      const result = { id, status, exitCode: code, signal, durationMs: Date.now() - started, log: path.relative(root, logPath), tail: status === 'PASS' ? '' : tail.trim().split(/\r?\n/).slice(-8).join('\n') };
+      const result = { id, status, command: `${command} ${args.join(' ')}`, startedAt: new Date(started).toISOString(), finishedAt: new Date().toISOString(), exitCode: code, signal, durationMs: Date.now() - started, log: path.relative(root, logPath), tail: status === 'PASS' ? '' : tail.trim().split(/\r?\n/).slice(-8).join('\n') };
       results.push(result);
       console.log(`[${status}] ${id}: ${(result.durationMs / 1000).toFixed(1)}s; log ${result.log}`);
       resolve();
@@ -93,7 +94,11 @@ const summary = {
   skippedScripts: [...skipScripts],
   summary: Object.fromEntries(['PASS', 'FAIL', 'TIMEOUT'].map((s) => [s.toLowerCase(), allResults.filter((r) => r.status === s).length])),
   results: allResults,
+  evidence: addRecordName(previousDoc, 'evidence-independent-checks.json'),
 };
+try {
+  writeEvidenceRecord(logDir, 'evidence-independent-checks.json', makeEvidenceRecord(results.map((r) => ({ id: r.id, status: r.status, command: r.command, startedAt: r.startedAt, finishedAt: r.finishedAt, log: r.log, note: r.note, critical: false })), { revision: process.env.GITHUB_SHA || 'UNKNOWN' }));
+} catch (error) { console.error(`evidence record not written: ${error.message}`); }
 fs.writeFileSync(path.join(logDir, 'results.json'), JSON.stringify(summary, null, 2) + '\n');
 console.log(`\nCI cumulative summary: ${summary.summary.pass} PASS, ${summary.summary.fail} FAIL, ${summary.summary.timeout} TIMEOUT; ran ${results.length} remaining checks, skipped ${skipScripts.size} already-covered scripts.`);
 console.log(`Detailed logs: ${path.relative(root, logDir)}`);

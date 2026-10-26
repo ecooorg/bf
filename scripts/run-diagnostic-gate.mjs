@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { makeEvidenceRecord, writeEvidenceRecord, addRecordName } from './evidenceLib.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/ci-checks');
@@ -150,6 +151,14 @@ const final = {
   summary: Object.fromEntries(['PASS','FAIL','TIMEOUT','SKIPPED'].map((s) => [s.toLowerCase(), results.filter((r) => r.status === s).length])),
   failed: failed.map((r) => r.id), results,
 };
+// P105: every row gets provenance. The marker is set before the write so a failed write is detected downstream (MISSING_RECORD), never ignored.
+final.evidence = addRecordName(null, 'evidence-diagnostic-gate.json');
+try {
+  writeEvidenceRecord(dir, 'evidence-diagnostic-gate.json', makeEvidenceRecord(results.map((r) => ({
+    id: r.id, status: r.status, command: [r.command, ...(r.args || [])].filter(Boolean).join(' ') || r.script,
+    startedAt: r.startedAt, finishedAt: r.finishedAt, log: r.log, note: r.note, critical: true,
+  })), { revision: process.env.GITHUB_SHA || 'UNKNOWN' }));
+} catch (error) { console.error(`evidence record not written: ${error.message}`); }
 fs.writeFileSync(summaryPath, JSON.stringify(final, null, 2) + '\n');
 fs.writeFileSync(path.join(dir, 'diagnostic-results.json'), JSON.stringify(final, null, 2) + '\n');
 fs.writeFileSync(path.join(dir, 'diagnostic-gate.env'), `DIAGNOSTIC_GATE=${failed.length ? 'failed' : 'passed'}\nDIAGNOSTIC_PASSED_SCRIPTS=${results.filter((r) => r.status === 'PASS' && r.script).map((r) => r.script).join(',')}\n`);

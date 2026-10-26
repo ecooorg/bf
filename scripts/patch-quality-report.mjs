@@ -90,7 +90,13 @@ for (const name of workflowLogNames) {
 }
 const envFailed = Object.entries(stepOutcomes).filter(([, value]) => value === 'failure' || value === 'cancelled').map(([key]) => key);
 const workflowFailed = ['failure','cancelled'].includes(process.env.CI_STATUS);
-const status = process.env.CI_STATUS === 'cancelled' ? 'CANCELLED' : (workflowFailed || failedRows.length || activeStage || !resultsDoc ? 'FAILED' : 'PASSED');
+let status = process.env.CI_STATUS === 'cancelled' ? 'CANCELLED' : (workflowFailed || failedRows.length || activeStage || !resultsDoc ? 'FAILED' : 'PASSED');
+// P105: fail-closed evidence assessment. A run that would be PASSED but whose evidence is missing, malformed or contradictory is UNVERIFIED.
+const evidenceLib = await import('./evidenceLib.mjs').catch(() => null);
+const evidenceUnavailable = (code, detail) => ({ required: true, completeness: 'unavailable', problems: [{ severity: 'critical', code, detail }], records: [], refs: [], evidenceOk: false });
+let evidence;
+try { evidence = evidenceLib ? evidenceLib.assessEvidence(dir, resultsDoc) : evidenceUnavailable('EVIDENCE_LIBRARY_UNAVAILABLE', 'evidenceLib.mjs failed to load'); } catch (error) { evidence = evidenceUnavailable('ASSESSMENT_CRASH', String(error && error.message || error)); }
+if (status === 'PASSED' && evidence.required && !evidence.evidenceOk) status = 'UNVERIFIED';
 const sha = oneLine(process.env.GITHUB_SHA || resultsDoc?.commit || 'local/unknown', 80);
 const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : 'unavailable';
 const count = (s) => uniqueRows.filter((r) => r.status === s).length;
@@ -157,8 +163,26 @@ handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacte
 handoff.push('EVIDENCE_BEGIN', ...errorSections, 'EVIDENCE_END');
 const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? ['critical-router-selection.log','critical-router-policy-call-limit.log','critical-gemini-timeout.log','critical-app-builder-recovery.log'] : [];
 handoff.push(`LOG_FILES=${[...new Set([...criticalLogSet, ...failedRows.map((r) => path.basename(r.log || `${r.id}.log`)), ...workflowErrors.map((g) => g.log)])].filter((name) => fs.existsSync(path.join(dir,name))).join(', ') || logs.join(', ') || 'none'}`);
+handoff.push(`EVIDENCE=${evidence.completeness}; records=${evidence.refs.join(', ') || 'none advertised'}; problems=${evidence.problems.length}`);
+handoff.push(`EVIDENCE_PROBLEMS=${evidence.problems.length ? evidence.problems.slice(0, 8).map((x) => `${x.code}: ${oneLine(x.detail, 200)}`).join(' | ') : 'none'}`);
 handoff.push(`ROOT_CAUSE_CONFIDENCE=${failedRows.some((r) => r.status === 'TIMEOUT') ? 'assertion evidence may be confirmed; timeout cause remains unproven unless final active test/operation is identified' : failedRows.length ? 'use assertion and source context; do not infer intent beyond evidence' : status === 'FAILED' ? 'workflow failure recorded but diagnostic stage evidence incomplete' : 'no failure recorded'}`);
-handoff.push(`NEXT_ACTION=${status === 'PASSED' ? 'No corrective patch indicated by these checks; verify required release gates.' : 'Fix only evidenced failures; use source context and exact command. For timeouts, investigate the last active test/output and cleanup before changing product logic.'}`);
+const nextActionText = status === 'UNVERIFIED' ? 'Checks reported success but the evidence is missing, malformed or contradictory. Treat the result as unverified; fix the evidence producer, not product logic.' : (status === 'PASSED' ? 'No corrective patch indicated by these checks; verify required release gates.' : 'Fix only evidenced failures; use source context and exact command. For timeouts, investigate the last active test/output and cleanup before changing product logic.');
+handoff.push(`NEXT_ACTION=${nextActionText}`);
+let handoffJson = 'unavailable';
+try {
+  if (evidenceLib) {
+    const handoffReport = evidenceLib.buildHandoffReport({
+      patchStatus: status,
+      summary: `${status}: ${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('TIMEOUT')} TIMEOUT, ${count('SKIPPED')} SKIPPED; evidence ${evidence.completeness}`,
+      evidence, failedStages: failedStageNames, blockedStages: skipped, nextAction: nextActionText,
+      limitations: evidence.problems.length ? evidence.problems.slice(0, 8).map((x) => `${x.code}: ${x.detail}`).join('; ') : (evidence.required ? 'none recorded' : 'legacy results without evidence records'),
+    });
+    const verdict = evidenceLib.validateHandoffReport(handoffReport);
+    if (verdict.ok) { fs.writeFileSync(path.join(dir, 'handoff-report.json'), JSON.stringify(handoffReport, null, 2) + '\n'); handoffJson = JSON.stringify(handoffReport); }
+    else handoffJson = `invalid: ${oneLine(verdict.errors.slice(0, 2).join(' | '), 300)}`;
+  }
+} catch (error) { handoffJson = `error: ${oneLine(error && error.message || error, 200)}`; }
+handoff.push(`HANDOFF_JSON=${handoffJson}`);
 const report = handoff.join('\n') + '\n';
 fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), report);
 console.log(`Wrote ${path.relative(root, path.join(dir,'NEXT_PATCH.md'))} (${Buffer.byteLength(report)} bytes); status=${status}`);
