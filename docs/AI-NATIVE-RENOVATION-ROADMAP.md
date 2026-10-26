@@ -5,7 +5,7 @@
 **Normative strategic destination:** `VIX-CONCEPT.md`  
 **Audit basis:** `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`  
 **Renovation mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`  
-**Current phase:** Phase 3 foundation (P110 Intent/Policy Contract + P111 capability graph v1 delivered). Phase 0–2 closed. P92 production diagnostics frozen until full renovation completes.  
+**Current phase:** Phase 3 foundation (P110–P112: Intent/Policy Contract, capability graph v1, context selection / impact planning delivered). Phase 0–2 closed. P92 production diagnostics frozen until full renovation completes.  
 **Rule:** one bounded patch at a time; preserve safety; report evidence honestly.
 
 ## 1. North star

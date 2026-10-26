@@ -1,7 +1,7 @@
-# AI-NATIVE-RENOVATION — Task: Phase 3 foundation (P111+)
+# AI-NATIVE-RENOVATION — Task: Phase 3 foundation (P112+)
 
-**Task IDs:** ANR-P111 (current); ANR-P110 closed; ANR-P109 closed; prior ANR-P104 … ANR-P108.3-HF1 closed.
-**Status:** Phase 2 closed. P110 Intent/Policy Contract foundation closed. P111 delivers capability/impact graph v1 (generator, `docs/generated-capability-graph.json`, tests; unknown/stale explicit). Hosted CI green at P110 baseline. Next: P112 context selection.
+**Task IDs:** ANR-P112 (current); ANR-P111 closed; ANR-P110 closed; ANR-P109 closed.
+**Status:** Phase 2 closed. P110–P111 closed. P112 delivers context selection and Change/Impact Plan generation on the capability graph (`contextSelectLib` / `context:select`). Hosted CI green at P111 baseline. Next: P113 verification-plan binding / release eligibility.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1–2 and the current-patch section (P110). Forward plan is in section 5.
 
@@ -11,7 +11,8 @@
 | P107–P108.3-HF1 | 2 | DAG, fault injection, bounded repair, always-on CI diagnostics, two-artifact handoff (closed) |
 | P109 | 2 closure | Formal acceptance, audit, P92 freeze, forward plan (closed) |
 | P110 | 3a | Intent/Policy Contract foundation + diagnostics clean-up (closed)
-| **P111** | **3b** | **Capability / impact graph v1** |
+| P111 | 3b | Capability / impact graph v1 (closed)
+| **P112** | **3c** | **Context selection and impact planning** |
 
 ## 1. Navigator directive
 
@@ -27,7 +28,24 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 6. **No weakening.** Tests, gates, security controls and acceptance criteria are never relaxed to get green.
 7. **Honest status.** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 
-## 3. P111 — Capability / impact graph v1 (current)
+## 3. P112 — Context selection and impact planning (current)
+
+**Goal.** Bounded context packs and schema-valid Change/Impact Plans from seed paths via the capability graph; unknown/stale context stays explicit.
+
+**Delivered**
+
+* `scripts/contextSelectLib.mjs` — load graph, seed resolution, depth-limited selection, `buildImpactPlan` / `planFromPaths`.
+* `scripts/contextSelect.mjs` — CLI (`npm run context:select`); `--json`, `--plan-out`, `--max-depth`; stdin paths.
+* Plans validate against `schema-change-impact-plan.json`; missing graph → BLOCKED; unknown seeds/nodes → PARTIAL + risks.
+* Tests: `tests/context-select-p112.test.mjs` (6).
+
+**Out of scope.** Full workflow binding of plans into every patch handoff (optional later); verification-plan ↔ intent criticality (P113).
+
+**Gate.** Tests pass; CLI produces schema-valid plan for a real module seed; fail-closed on missing graph.
+
+**Rollback.** Remove lib/CLI/tests; revert npm scripts and version.
+
+## 3b. P111 — Capability / impact graph v1 (closed)
 
 **Goal.** One directed graph linking intent → modules/contracts → state/side-effects → checks → evidence, with unknown and stale context explicit.
 
