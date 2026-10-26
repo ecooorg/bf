@@ -1,7 +1,7 @@
 # AI-NATIVE-RENOVATION — Task: Phases 0–2 in five patches (P104–P108)
 
 **Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108
-**Status:** P104 and P105 delivered (see their sections); P106–P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
+**Status:** P104, P105 and P106 delivered (see their sections); P107–P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
 
@@ -9,7 +9,7 @@
 |---|---|---|
 | P104 | 0 | Clean documentation set; superseded documents deleted; tests/CI no longer read documentation prose |
 | P105 | 1a | Evidence records written by the check runners; fail-closed assessment; structured handoff and fallback (delivered) |
-| P106 | 1b | Legacy P82–P91 tools resolved; `schema:validate` in CI; Phase 1 gate accepted |
+| P106 | 1b | Legacy tools retired; fail-closed CI evidence gate; check graph; Phase 1 gate (delivered) |
 | P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons |
 | P108 | 2b | Fault-injection suite; bounded repair protocol; Phase 2 gate accepted |
 
@@ -40,7 +40,7 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 * `acceptanceReport.mjs` and `architectureCheckBoundaries.mjs` write to `artifacts/qa/` (git-ignored) instead of `docs/`.
 * `AGENTS.md`, `DOCUMENTATION-INDEX.md` (tiers, sizes, triggers), roadmap and audit updated; version 104.
 
-**Known leftovers handed to P106:** scripts that name documents that never existed (`docs/NEXT.md`, `docs/CURRENT_STATE.md`, `docs/DECISION_CARD_TEMPLATE.md`, `docs/ADR-10-code-executor.md`, `docs/08-Deployment-and-Runbook.md`, `docs/${patch}-REPORT.md` in `gate-eval`, `evidence-collect`, `staging-drills`, `patch-pack`); `scripts/contextBenchmark*.mjs` reads a missing fixture. Machine files stay in `docs/` (schemas, architecture policy, generated inventories); moving all of `docs/` off the repository would break tools that read them.
+**Leftovers handled in P106:** scripts that name documents that never existed (`docs/NEXT.md`, `docs/CURRENT_STATE.md`, `docs/DECISION_CARD_TEMPLATE.md`, `docs/ADR-10-code-executor.md`, `docs/08-Deployment-and-Runbook.md`, `docs/${patch}-REPORT.md` in `gate-eval`, `evidence-collect`, `staging-drills`, `patch-pack`); `scripts/contextBenchmark*.mjs` reads a missing fixture. Machine files stay in `docs/` (schemas, architecture policy, generated inventories); moving all of `docs/` off the repository would break tools that read them.
 
 ## 4. P105 — Phase 1a: evidence records and fail-closed handoff (delivered)
 
@@ -55,17 +55,17 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 
 **Not done / limits.** `ci-summary.mjs` and `patch-quality-report.mjs` are kept as a generator plus a fallback; they are not merged into one file. Evidence records prove that a command ended with a status in an environment, not production behaviour. Hosted CI for P105 has not run.
 
-## 5. P106 — Phase 1b: tool consolidation and Phase 1 acceptance
+## 5. P106 — Phase 1b: tool consolidation and Phase 1 acceptance (delivered)
 
-* **W1 Decision on the legacy tools** (assistant decides, discloses in CHANGELOG): `context:task`, `context:plan`, `impact:lineage`, `verification:plan`, `benchmark:real-tasks`, `intent:contract`, `context:refresh-profile`, `context:completeness`, `benchmark:context` and their `*Lib.mjs`. For each: adapt to emit a schema artifact (Change/Impact Plan, Verification Plan, Evidence Record), or retire. Evidence for the card: current exit status, whether it runs at all (`benchmark:context` reads a missing fixture), who calls it, ND-4 benefit. Default: retire everything that neither feeds a schema nor runs.
-* **W2 Execute the decision.** Remove retired scripts, package entries, boundary-rule and inventory references; regenerate inventories; update `AGENTS.md` command list.
-* **W3 Dangling references** left from P104-W7: fix or retire `gate-eval`, `evidence-collect`, `staging-drills` strings together with their workflows' expectations; keep `tests/gates.test.mjs` assertions intact.
-* **W4 CI wiring.** `schema:validate` joins `npm run check` and `ci.yml`. A schema check over the generated records of the run itself.
-* **W5 Generated status graph.** A deterministic status/capability file generated from code plus records (module → checks → last status), replacing hand-written status prose in `AGENTS.md`.
-* **W6 Machine data location.** Decide whether schemas, architecture policy and generated inventories move out of `docs/` (for example flat into `scripts/` with prefixed names) so that `docs/` can be removed without breaking tools; update readers and tests together.
+**Done**
 
-**Gate (Phase 1).** (P105 delivers the evidence half.) Missing/malformed/contradictory critical evidence cannot yield a success claim; a generator failure still produces a bounded handoff; no tool remains without a schema role or an explicit retirement; evidence of the gate is stored as records.
-**Rollback.** Retired scripts are recoverable from git; the decision card lists the commit.
+* Legacy P82–P91 planner tools retired (list and reasons in CHANGELOG P106): none fed a schema, none ran in CI, none had tests, one read a missing fixture. Kept: `architecture:map`, `architecture:check`, `architecture:impact`, `verify:change`, `docs:*`.
+* `scripts/ci-evidence-gate.mjs` + CI step "Evidence gate (fail closed)": red on missing report, `UNVERIFIED`, missing/invalid structured handoff, schema-invalid evidence record.
+* `scripts/statusGraph.mjs` / `npm run status:graph` / `docs/generated-check-graph.json`: deterministic check → file → module graph, `--check` staleness test inside `docs:check`, `--overlay` for last statuses. This replaces hand-written status prose and is the input for the P107 manifest.
+* Dangling document references removed from gate scripts (strings only); `golden-eval` writes to `artifacts/qa/`.
+* Decision: machine data stays in `docs/`.
+
+**Phase 1 gate.** Critical missing, malformed or contradictory evidence cannot yield a success claim (P105 generator + P106 gate); a failing generator still produces a bounded handoff (`ci-summary.mjs`); no tool without a schema role remains. Evidence: `tests/evidence-p105.test.mjs`, hosted CI run of P106 (pending).
 
 ## 6. P107 — Phase 2a: verification DAG
 

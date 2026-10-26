@@ -1,0 +1,823 @@
+{
+  "schemaVersion": 1,
+  "kind": "check-graph",
+  "description": "check -> files run by the check -> source modules those files import or read. Deterministic; regenerate with npm run status:graph.",
+  "checks": [
+    {
+      "id": "check-version",
+      "command": "node scripts/check-version.mjs",
+      "files": [
+        "scripts/check-version.mjs"
+      ],
+      "modules": [
+        "scripts/check-version.mjs",
+        "src/config.ts"
+      ]
+    },
+    {
+      "id": "lint:copy",
+      "command": "node scripts/lint-copy.mjs",
+      "files": [
+        "scripts/lint-copy.mjs"
+      ],
+      "modules": [
+        "scripts/lint-copy.mjs"
+      ]
+    },
+    {
+      "id": "test:app-builder",
+      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-adapter-p93-3.test.mjs",
+      "files": [
+        "tests/app-builder-adapter-p93-3.test.mjs",
+        "tests/app-builder-contracts.test.mjs",
+        "tests/app-builder-engine-p93-2a.test.mjs",
+        "tests/app-builder-recovery-p93-3.test.mjs",
+        "tests/app-builder-validators-p93-2b.test.mjs"
+      ],
+      "modules": [
+        "appBuilder/core-markers.ts",
+        "appBuilder/core-plan.ts",
+        "appBuilder/core-types.ts",
+        "appBuilder/index.ts",
+        "scripts/architectureLib.mjs",
+        "server/appBuilderAdapter.ts",
+        "server/modelRegistry.ts",
+        "server/router.ts"
+      ]
+    },
+    {
+      "id": "test:compact-ci-artifacts",
+      "command": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs",
+      "files": [
+        "tests/compact-ci-artifacts-p94.test.mjs",
+        "tests/evidence-p105.test.mjs",
+        "tests/schema-validate.test.mjs",
+        "tests/status-graph-p106.test.mjs"
+      ],
+      "modules": [
+        "scripts/ci-evidence-gate.mjs",
+        "scripts/ci-summary.mjs",
+        "scripts/evidenceLib.mjs",
+        "scripts/package-ci-artifacts.mjs",
+        "scripts/patch-quality-report.mjs",
+        "scripts/run-independent-checks.mjs",
+        "scripts/schemaValidate.mjs",
+        "scripts/statusGraph.mjs",
+        "server/githubIntegration.ts"
+      ]
+    },
+    {
+      "id": "test:core",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs",
+      "files": [
+        "tests/core.test.mjs"
+      ],
+      "modules": [
+        "scripts/check-version.mjs",
+        "scripts/lint-copy.mjs",
+        "server/contextBuilder.ts",
+        "server/contracts.ts",
+        "server/conversationMode.ts",
+        "server/promptCore.ts",
+        "server/promptPacks.ts",
+        "server/reasoningState.ts",
+        "server/statePipeline.ts",
+        "src/brier.ts",
+        "src/config.ts",
+        "src/decision.ts",
+        "src/en.ts",
+        "src/errors.ts",
+        "src/evpi.ts",
+        "src/expertContext.ts",
+        "src/expertHistory.ts",
+        "src/expertNav.ts",
+        "src/icsBuilder.ts",
+        "src/numberValidator.ts",
+        "src/sha256Export.ts",
+        "src/triage.ts",
+        "src/ui.ts",
+        "src/uiTerms.ts",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:database",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/database.test.mjs",
+      "files": [
+        "tests/database.test.mjs"
+      ],
+      "modules": [
+        "server/analysisService.ts",
+        "server/artifactRepository.ts",
+        "server/budget.ts",
+        "server/codeTaskService.ts",
+        "server/contracts.ts",
+        "server/database.ts",
+        "server/fakeProvider.ts",
+        "server/gateEngine.ts",
+        "server/gateService.ts",
+        "server/healthRoutes.ts",
+        "server/ledger.ts",
+        "server/modelHealth.ts",
+        "server/modelRegistry.ts",
+        "server/planMachine.ts",
+        "server/planService.ts",
+        "server/projectRepository.ts",
+        "server/queueMachine.ts",
+        "server/queueService.ts",
+        "server/router.ts",
+        "server/stateService.ts",
+        "server/taskMachine.ts",
+        "server/taskService.ts",
+        "server/worker.ts"
+      ]
+    },
+    {
+      "id": "test:files",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/files.test.mjs",
+      "files": [
+        "tests/files.test.mjs"
+      ],
+      "modules": [
+        "scripts/evidence-to-markdown.mjs",
+        "server/documents.ts",
+        "server/files.ts",
+        "src/config.ts",
+        "src/decision.ts",
+        "src/exportName.ts",
+        "src/exportZip.ts",
+        "src/libraryExport.ts",
+        "src/storage.ts",
+        "src/useDrive.ts"
+      ]
+    },
+    {
+      "id": "test:gates",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/gates.test.mjs",
+      "files": [
+        "tests/gates.test.mjs"
+      ],
+      "modules": [
+        "scripts/e01-harness.mjs",
+        "scripts/e01-notes-merge.mjs",
+        "scripts/evidence-collect.mjs",
+        "scripts/gate-eval.mjs",
+        "scripts/staging-drills.mjs",
+        "server/gateEngine.ts"
+      ]
+    },
+    {
+      "id": "test:integrations",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/integrations.test.mjs",
+      "files": [
+        "tests/integrations.test.mjs"
+      ],
+      "modules": [
+        "scripts/verify-connections.mjs",
+        "server/artifactRepository.ts",
+        "server/fakeProvider.ts",
+        "server/githubIntegration.ts",
+        "server/ledger.ts",
+        "server/modelRegistry.ts",
+        "server/router.ts",
+        "src/autosave.ts",
+        "src/driveClient.ts",
+        "src/driveExport.ts",
+        "src/driveMerge.ts",
+        "src/driveMirror.ts",
+        "src/driveSync.ts"
+      ]
+    },
+    {
+      "id": "test:models",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs",
+      "files": [
+        "tests/model-cascade-p93-5.test.mjs",
+        "tests/models.test.mjs"
+      ],
+      "modules": [
+        "scripts/ci-summary.mjs",
+        "scripts/golden-eval.mjs",
+        "scripts/monitor-connections.mjs",
+        "scripts/patch-pack.mjs",
+        "scripts/patch-tools.mjs",
+        "server/adapter.ts",
+        "server/analysisService.ts",
+        "server/artifactFormat.ts",
+        "server/artifactRepository.ts",
+        "server/budget.ts",
+        "server/fakeProvider.ts",
+        "server/files.ts",
+        "server/geminiAdapter.ts",
+        "server/goldenEval.ts",
+        "server/modelHealth.ts",
+        "server/modelRegistry.ts",
+        "server/openaiCompatAdapter.ts",
+        "server/planMachine.ts",
+        "server/planService.ts",
+        "server/providerMonitor.ts",
+        "server/queueMachine.ts",
+        "server/router.ts",
+        "server/taskMachine.ts",
+        "server/worker.ts",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:pipeline",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=300000 tests/pipeline.test.mjs",
+      "files": [
+        "tests/pipeline.test.mjs"
+      ],
+      "modules": [
+        "server/appBuilderPipeline.ts",
+        "server/contextBuilder.ts",
+        "server/contracts.ts",
+        "server/conversationMode.ts",
+        "server/intentFlags.ts",
+        "server/promptCore.ts",
+        "server/promptPacks.ts",
+        "server/statePipeline.ts",
+        "src/briefView.ts",
+        "src/config.ts",
+        "src/driveClient.ts",
+        "src/driveMirror.ts",
+        "src/support.ts",
+        "src/useDrive.ts",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:project",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/project-build-job-p93-5.test.mjs",
+      "files": [
+        "tests/project-build-job-p93-5.test.mjs",
+        "tests/project-mode.test.mjs"
+      ],
+      "modules": [
+        "scripts/backup-restore-check.mjs",
+        "server/briefWriter.ts",
+        "server/codeExecutor.ts",
+        "server/codeTaskService.ts",
+        "server/database.ts",
+        "server/gateEngine.ts",
+        "server/githubIntegration.ts",
+        "server/healthRoutes.ts",
+        "server/opsMetrics.ts",
+        "server/projectCapabilities.ts",
+        "server/projectRepository.ts",
+        "server/repairLoop.ts",
+        "server/reviewer.ts",
+        "src/ProjectDelivery.tsx",
+        "src/projectBuildJob.ts",
+        "src/projectCapabilities.ts",
+        "src/projectDeliveryModel.ts",
+        "src/projectLabels.ts",
+        "src/uiStates.tsx",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:project-diagnostics",
+      "command": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/content-disposition-p93.test.mjs",
+      "files": [
+        "tests/ci-diagnostics-chain.test.mjs",
+        "tests/content-disposition-p93.test.mjs",
+        "tests/project-diagnostics-p92.test.mjs"
+      ],
+      "modules": [
+        "appBuilder/core-types.ts",
+        "scripts/ci-summary.mjs",
+        "scripts/patch-tools.mjs",
+        "server/projectDiagnostics.ts",
+        "server/projectRoutes.ts"
+      ]
+    },
+    {
+      "id": "test:regression",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/regression.test.mjs",
+      "files": [
+        "tests/regression.test.mjs"
+      ],
+      "modules": []
+    },
+    {
+      "id": "test:security",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
+      "files": [
+        "tests/security.test.mjs"
+      ],
+      "modules": [
+        "server/auditCatalog.ts",
+        "server/codeTaskService.ts",
+        "server/githubIntegration.ts",
+        "server/redact.ts",
+        "server/security.ts",
+        "server/untrustedData.ts"
+      ]
+    },
+    {
+      "id": "test:turn",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-turn.test.mjs",
+      "files": [
+        "tests/conversation-turn.test.mjs"
+      ],
+      "modules": [
+        "server/latencyPolicy.ts",
+        "server/promptPacks.ts",
+        "server/turnFocus.ts"
+      ]
+    },
+    {
+      "id": "test:web",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/web-and-epistemics.test.mjs",
+      "files": [
+        "tests/web-and-epistemics.test.mjs"
+      ],
+      "modules": [
+        "server/epistemicVerifier.ts",
+        "server/webSearch.ts"
+      ]
+    },
+    {
+      "id": "test:workspace",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/workspace.test.mjs",
+      "files": [
+        "tests/workspace.test.mjs"
+      ],
+      "modules": [
+        "src/workspace/changeSetParse.ts",
+        "src/workspace/changeset.ts",
+        "src/workspace/classify.ts",
+        "src/workspace/context.ts",
+        "src/workspace/exportZip.ts",
+        "src/workspace/extract.ts",
+        "src/workspace/hash.ts",
+        "src/workspace/idbStore.ts",
+        "src/workspace/ingest.ts",
+        "src/workspace/memoryStore.ts",
+        "src/workspace/paths.ts",
+        "src/workspace/persistIngest.ts",
+        "src/workspace/types.ts"
+      ]
+    },
+    {
+      "id": "typecheck",
+      "command": "tsc --noEmit",
+      "files": [],
+      "modules": []
+    }
+  ],
+  "modules": {
+    "appBuilder/core-markers.ts": [
+      "test:app-builder"
+    ],
+    "appBuilder/core-plan.ts": [
+      "test:app-builder"
+    ],
+    "appBuilder/core-types.ts": [
+      "test:app-builder",
+      "test:project-diagnostics"
+    ],
+    "appBuilder/index.ts": [
+      "test:app-builder"
+    ],
+    "scripts/architectureLib.mjs": [
+      "test:app-builder"
+    ],
+    "scripts/backup-restore-check.mjs": [
+      "test:project"
+    ],
+    "scripts/check-version.mjs": [
+      "check-version",
+      "test:core"
+    ],
+    "scripts/ci-evidence-gate.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/ci-summary.mjs": [
+      "test:compact-ci-artifacts",
+      "test:models",
+      "test:project-diagnostics"
+    ],
+    "scripts/e01-harness.mjs": [
+      "test:gates"
+    ],
+    "scripts/e01-notes-merge.mjs": [
+      "test:gates"
+    ],
+    "scripts/evidence-collect.mjs": [
+      "test:gates"
+    ],
+    "scripts/evidence-to-markdown.mjs": [
+      "test:files"
+    ],
+    "scripts/evidenceLib.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/gate-eval.mjs": [
+      "test:gates"
+    ],
+    "scripts/golden-eval.mjs": [
+      "test:models"
+    ],
+    "scripts/lint-copy.mjs": [
+      "lint:copy",
+      "test:core"
+    ],
+    "scripts/monitor-connections.mjs": [
+      "test:models"
+    ],
+    "scripts/package-ci-artifacts.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/patch-pack.mjs": [
+      "test:models"
+    ],
+    "scripts/patch-quality-report.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/patch-tools.mjs": [
+      "test:models",
+      "test:project-diagnostics"
+    ],
+    "scripts/run-independent-checks.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/schemaValidate.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/staging-drills.mjs": [
+      "test:gates"
+    ],
+    "scripts/statusGraph.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/verify-connections.mjs": [
+      "test:integrations"
+    ],
+    "server/adapter.ts": [
+      "test:models"
+    ],
+    "server/analysisService.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "server/appBuilderAdapter.ts": [
+      "test:app-builder"
+    ],
+    "server/appBuilderPipeline.ts": [
+      "test:pipeline"
+    ],
+    "server/artifactFormat.ts": [
+      "test:models"
+    ],
+    "server/artifactRepository.ts": [
+      "test:database",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/auditCatalog.ts": [
+      "test:security"
+    ],
+    "server/briefWriter.ts": [
+      "test:project"
+    ],
+    "server/budget.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "server/codeExecutor.ts": [
+      "test:project"
+    ],
+    "server/codeTaskService.ts": [
+      "test:database",
+      "test:project",
+      "test:security"
+    ],
+    "server/contextBuilder.ts": [
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/contracts.ts": [
+      "test:core",
+      "test:database",
+      "test:pipeline"
+    ],
+    "server/conversationMode.ts": [
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/database.ts": [
+      "test:database",
+      "test:project"
+    ],
+    "server/documents.ts": [
+      "test:files"
+    ],
+    "server/epistemicVerifier.ts": [
+      "test:web"
+    ],
+    "server/fakeProvider.ts": [
+      "test:database",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/files.ts": [
+      "test:files",
+      "test:models"
+    ],
+    "server/gateEngine.ts": [
+      "test:database",
+      "test:gates",
+      "test:project"
+    ],
+    "server/gateService.ts": [
+      "test:database"
+    ],
+    "server/geminiAdapter.ts": [
+      "test:models"
+    ],
+    "server/githubIntegration.ts": [
+      "test:compact-ci-artifacts",
+      "test:integrations",
+      "test:project",
+      "test:security"
+    ],
+    "server/goldenEval.ts": [
+      "test:models"
+    ],
+    "server/healthRoutes.ts": [
+      "test:database",
+      "test:project"
+    ],
+    "server/intentFlags.ts": [
+      "test:pipeline"
+    ],
+    "server/latencyPolicy.ts": [
+      "test:turn"
+    ],
+    "server/ledger.ts": [
+      "test:database",
+      "test:integrations"
+    ],
+    "server/modelHealth.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "server/modelRegistry.ts": [
+      "test:app-builder",
+      "test:database",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/openaiCompatAdapter.ts": [
+      "test:models"
+    ],
+    "server/opsMetrics.ts": [
+      "test:project"
+    ],
+    "server/planMachine.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "server/planService.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "server/projectCapabilities.ts": [
+      "test:project"
+    ],
+    "server/projectDiagnostics.ts": [
+      "test:project-diagnostics"
+    ],
+    "server/projectRepository.ts": [
+      "test:database",
+      "test:project"
+    ],
+    "server/projectRoutes.ts": [
+      "test:project-diagnostics"
+    ],
+    "server/promptCore.ts": [
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/promptPacks.ts": [
+      "test:core",
+      "test:pipeline",
+      "test:turn"
+    ],
+    "server/providerMonitor.ts": [
+      "test:models"
+    ],
+    "server/queueMachine.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "server/queueService.ts": [
+      "test:database"
+    ],
+    "server/reasoningState.ts": [
+      "test:core"
+    ],
+    "server/redact.ts": [
+      "test:security"
+    ],
+    "server/repairLoop.ts": [
+      "test:project"
+    ],
+    "server/reviewer.ts": [
+      "test:project"
+    ],
+    "server/router.ts": [
+      "test:app-builder",
+      "test:database",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/security.ts": [
+      "test:security"
+    ],
+    "server/statePipeline.ts": [
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/stateService.ts": [
+      "test:database"
+    ],
+    "server/taskMachine.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "server/taskService.ts": [
+      "test:database"
+    ],
+    "server/turnFocus.ts": [
+      "test:turn"
+    ],
+    "server/untrustedData.ts": [
+      "test:security"
+    ],
+    "server/webSearch.ts": [
+      "test:web"
+    ],
+    "server/worker.ts": [
+      "test:database",
+      "test:models"
+    ],
+    "src/ProjectDelivery.tsx": [
+      "test:project"
+    ],
+    "src/autosave.ts": [
+      "test:integrations"
+    ],
+    "src/briefView.ts": [
+      "test:pipeline"
+    ],
+    "src/brier.ts": [
+      "test:core"
+    ],
+    "src/config.ts": [
+      "check-version",
+      "test:core",
+      "test:files",
+      "test:pipeline"
+    ],
+    "src/decision.ts": [
+      "test:core",
+      "test:files"
+    ],
+    "src/driveClient.ts": [
+      "test:integrations",
+      "test:pipeline"
+    ],
+    "src/driveExport.ts": [
+      "test:integrations"
+    ],
+    "src/driveMerge.ts": [
+      "test:integrations"
+    ],
+    "src/driveMirror.ts": [
+      "test:integrations",
+      "test:pipeline"
+    ],
+    "src/driveSync.ts": [
+      "test:integrations"
+    ],
+    "src/en.ts": [
+      "test:core"
+    ],
+    "src/errors.ts": [
+      "test:core"
+    ],
+    "src/evpi.ts": [
+      "test:core"
+    ],
+    "src/expertContext.ts": [
+      "test:core"
+    ],
+    "src/expertHistory.ts": [
+      "test:core"
+    ],
+    "src/expertNav.ts": [
+      "test:core"
+    ],
+    "src/exportName.ts": [
+      "test:files"
+    ],
+    "src/exportZip.ts": [
+      "test:files"
+    ],
+    "src/icsBuilder.ts": [
+      "test:core"
+    ],
+    "src/libraryExport.ts": [
+      "test:files"
+    ],
+    "src/numberValidator.ts": [
+      "test:core"
+    ],
+    "src/projectBuildJob.ts": [
+      "test:project"
+    ],
+    "src/projectCapabilities.ts": [
+      "test:project"
+    ],
+    "src/projectDeliveryModel.ts": [
+      "test:project"
+    ],
+    "src/projectLabels.ts": [
+      "test:project"
+    ],
+    "src/sha256Export.ts": [
+      "test:core"
+    ],
+    "src/storage.ts": [
+      "test:files"
+    ],
+    "src/support.ts": [
+      "test:pipeline"
+    ],
+    "src/triage.ts": [
+      "test:core"
+    ],
+    "src/ui.ts": [
+      "test:core"
+    ],
+    "src/uiStates.tsx": [
+      "test:project"
+    ],
+    "src/uiTerms.ts": [
+      "test:core"
+    ],
+    "src/useDrive.ts": [
+      "test:files",
+      "test:pipeline"
+    ],
+    "src/workspace/changeSetParse.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/changeset.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/classify.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/context.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/exportZip.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/extract.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/hash.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/idbStore.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/ingest.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/memoryStore.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/paths.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/persistIngest.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/types.ts": [
+      "test:workspace"
+    ],
+    "tests/_sources.mjs": [
+      "test:core",
+      "test:models",
+      "test:pipeline",
+      "test:project"
+    ]
+  }
+}

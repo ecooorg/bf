@@ -5,7 +5,7 @@
 **Normative strategic destination:** `VIX-CONCEPT.md`  
 **Audit basis:** `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`  
 **Renovation mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`  
-**Current phase:** Phase 1 — one evidence model (Phase 0 closed by P104; evidence records and fail-closed handoff delivered by P105)  
+**Current phase:** Phase 2 — verification as a graph (Phase 0 closed by P104; Phase 1 closed by P105–P106)  
 **Rule:** one bounded patch at a time; preserve safety; report evidence honestly.
 
 ## 1. North star

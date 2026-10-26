@@ -28,6 +28,6 @@ Repository audience: AI assistants (Navigator Charter at the top of `../AGENTS.m
 
 * Schemas: `schema-common.json`, `schema-intent-policy-contract.json`, `schema-change-impact-plan.json`, `schema-verification-plan.json`, `schema-evidence-record.json`, `schema-artifact-manifest.json`, `schema-handoff-report.json`, `schema-approval-decision.json`. Validate: `node scripts/schemaValidate.mjs --type <artifact-type> --file <instance.json>`.
 * Architecture policy: `architecture-boundary-rules.json`, `architecture-known-violations.json` (consumed by `npm run architecture:check`).
-* Generated: `generated-route-inventory.json`, `generated-env-inventory.json`, `generated-migration-inventory.json`, `generated-module-map.json`. Regenerate with `npm run docs:generate`.
+* Generated: `generated-route-inventory.json`, `generated-env-inventory.json`, `generated-migration-inventory.json`, `generated-module-map.json`, `generated-check-graph.json` (check → files → modules). Regenerate with `npm run docs:generate`.
 
 Superseded specs, roadmaps, reports, benchmark snapshots and the old archive were deleted in P104. Nothing in tests or CI reads documentation prose.
