@@ -49,14 +49,15 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** Phases 0 and 1 closed (P104–P106). P107–P108 deliver Phase 2 (verification DAG, bounded repair). Scope, work items and gates of each patch: `docs/AI-NATIVE-RENOVATION-TASK.md`; phase plan: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** Phases 0 and 1 closed (P104–P106). Phase 2: P107 delivered the verification DAG (hosted CI for P107 pending); P108 delivers fault injection and bounded repair. Scope, work items and gates of each patch: `docs/AI-NATIVE-RENOVATION-TASK.md`; phase plan: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
 * **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
 * **No historical documents in the repository:** superseded specs, roadmaps, reports and snapshots were deleted in P104; history lives in git and in the owner's backups. Nothing in tests or CI reads documentation prose. `CHANGELOG.md` keeps the patch history as plain text (document names, no links); read only its top entries.
 * **Evidence rule:** the Navigator reports current CI as green; each patch must still use evidence for its actual commit/run. Historical red runs do not establish current status.
 * **Delivery rule:** continue one bounded patch at a time. Phase transitions require their stated evidence gates; do not advance a phase just because documentation or code exists.
-* **Phase 1 (closed by P106):** schemas (`docs/schema-*.json`) and validator (`scripts/schemaValidate.mjs`) exist (P103.2). P105: CI runners write Evidence Records (`scripts/evidenceLib.mjs`, `artifacts/ci-checks/evidence-*.json`); `scripts/patch-quality-report.mjs` assesses them fail-closed (`PATCH_STATUS=UNVERIFIED` when evidence is missing, malformed or contradictory) and embeds a schema-valid `HANDOFF_JSON`; `scripts/ci-summary.mjs` writes a fallback handoff. P106: legacy planner tools retired, CI step `scripts/ci-evidence-gate.mjs` fails the job on UNVERIFIED or schema-invalid evidence, `docs/generated-check-graph.json` (`npm run status:graph`) maps checks to modules. Phase 1 is closed; next P107 (verification DAG).
+* **Phase 1 (closed by P106):** schemas (`docs/schema-*.json`) and validator (`scripts/schemaValidate.mjs`) exist (P103.2). P105: CI runners write Evidence Records (`scripts/evidenceLib.mjs`, `artifacts/ci-checks/evidence-*.json`); `scripts/patch-quality-report.mjs` assesses them fail-closed (`PATCH_STATUS=UNVERIFIED` when evidence is missing, malformed or contradictory) and embeds a schema-valid `HANDOFF_JSON`; `scripts/ci-summary.mjs` writes a fallback handoff. P106: legacy planner tools retired, CI step `scripts/ci-evidence-gate.mjs` fails the job on UNVERIFIED or schema-invalid evidence, `docs/generated-check-graph.json` (`npm run status:graph`) maps checks to modules. Phase 1 is closed.
+* **Phase 2a (P107):** `docs/verification-manifest.json` declares every check (id, argv, prerequisites, time and memory limits, `safeToRun`, parallel group, required environment) in profiles `check` and `ci`; `scripts/run-dag.mjs` executes a profile (`npm run check` = profile `check`, CI step "Verification DAG" = profile `ci`). Independent checks always finish; a check whose prerequisite did not PASS is `BLOCKED` with the prerequisite named; policy refusals are `SKIPPED_BY_POLICY`. `scripts/dagLib.mjs` validates manifests (cycles, missing prerequisites, profile gaps, bad limits are rejected). The three former runners (`run-diagnostic-gate`, `run-secondary-diagnostic`, `run-independent-checks`) were deleted; `CHECK_SKIP_SCRIPTS` no longer exists. Any row that is not `PASS` makes the run `UNVERIFIED` at best. Add or change a check in the manifest, then `npm run docs:generate`.
 
 ### Recent product / patch status (historical track)
 
@@ -78,12 +79,12 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 * Architecture guardrails and App Builder invariants: `docs/architecture-guardrails.md`.
 * Strategic destination (not near-term implementation authority): `docs/VIX-CONCEPT.md`.
 * Typing conventions: `docs/typing-and-naming.md`.
-* Machine files (do not delete; tools read them): `docs/schema-*.json`, `docs/SCHEMA-STATUS-VOCABULARY.md`, `docs/generated-*-inventory.json`, `docs/generated-module-map.json`, `docs/architecture-boundary-rules.json`, `docs/architecture-known-violations.json`.
+* Machine files (do not delete; tools read them): `docs/verification-manifest.json`, `docs/schema-*.json`, `docs/SCHEMA-STATUS-VOCABULARY.md`, `docs/generated-*-inventory.json`, `docs/generated-module-map.json`, `docs/architecture-boundary-rules.json`, `docs/architecture-known-violations.json`.
 
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check`; `npm run typecheck`; `npm run lint:copy`; `npm run docs:generate`; `npm run docs:check`; `npm run status:graph`; `npm run architecture:check`; `npm run architecture:impact`; `npm run verify:change`; `npm run schema:validate -- --type <artifact-type> --file <instance.json>`; `npm run test:ai` (bounded local harness); `npm run acceptance:report`; `npm run patch:pack`; `npm run patch:quality-report`; `node scripts/ci-evidence-gate.mjs` (CI evidence gate). Health: `GET /health`. The P82–P91 context/impact/verification planner tools were retired in P106.
+`npm ci`; `npm run build`; `npm run check` (= `node scripts/run-dag.mjs --profile check`; `--profile ci` is the hosted-CI profile, `--plan` prints the order without running); `npm run typecheck`; `npm run lint:copy`; `npm run docs:generate`; `npm run docs:check`; `npm run status:graph`; `npm run architecture:check`; `npm run architecture:impact`; `npm run verify:change`; `npm run schema:validate -- --type <artifact-type> --file <instance.json>`; `npm run test:ai` (bounded local harness); `npm run acceptance:report`; `npm run patch:pack`; `npm run patch:quality-report`; `node scripts/ci-evidence-gate.mjs` (CI evidence gate). Health: `GET /health`. The P82–P91 context/impact/verification planner tools were retired in P106.
 
 ## Critical rules
 
