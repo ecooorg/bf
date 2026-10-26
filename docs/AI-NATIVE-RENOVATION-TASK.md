@@ -1,19 +1,16 @@
-# AI-NATIVE-RENOVATION — Task: Phase 2 closure and Phase 3 foundation (P109+)
+# AI-NATIVE-RENOVATION — Task: Phase 3 foundation (P110+)
 
-**Task IDs:** ANR-P109 (this patch); prior ANR-P104 … ANR-P108.3-HF1 delivered and closed.
-**Status:** Phase 2 formally accepted and closed by Navigator Tier-3 decisions of 2026-10-26. P109 records the acceptance audit, freezes P92, excludes authorization topics from the critical path, reconciles documentation status, and publishes the forward plan for Phase 3. Hosted CI green; two-artifact CI handoff contract operational.
+**Task IDs:** ANR-P110 (current); ANR-P109 closed; prior ANR-P104 … ANR-P108.3-HF1 closed.
+**Status:** Phase 2 closed. P110 delivers the Intent/Policy Contract foundation (library, semantic no-promotion gate, tests, example contract). Diagnostics: Vite `__dirname` warning removed from CI build logs. Hosted CI green at baseline (P109). Forward plan for P111+ unchanged in substance.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
-**Reading rule for a fresh session:** read sections 1–2 and the current-patch section (P109). Forward plan is in section 5.
+**Reading rule for a fresh session:** read sections 1–2 and the current-patch section (P110). Forward plan is in section 5.
 
 | Patch | Phase | Outcome |
 |---|---|---|
-| P104 | 0 | Clean documentation set; superseded documents deleted; tests/CI no longer read documentation prose (closed) |
-| P105 | 1a | Evidence records, fail-closed assessment, structured handoff (closed) |
-| P106 | 1b | Legacy tools retired; CI evidence gate; check graph; Phase 1 gate (closed) |
-| P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons (closed) |
-| P108 | 2b | Fault injection and bounded repair (closed) |
-| P108.1–P108.3-HF1 | 2b ops | Always-on diagnostics, five-cycle history, two-artifact handoff `BIForge-NEXT-PATCH.md` + `biforge-ci-logs.zip` (closed) |
-| **P109** | **2 closure / 3 prep** | **Phase 2 formal acceptance, audit report, P92 freeze, status reconciliation, forward plan** |
+| P104–P106 | 0–1 | Documentation cleanup, schemas, evidence, CI gate (closed) |
+| P107–P108.3-HF1 | 2 | DAG, fault injection, bounded repair, always-on CI diagnostics, two-artifact handoff (closed) |
+| P109 | 2 closure | Formal acceptance, audit, P92 freeze, forward plan (closed) |
+| **P110** | **3a** | **Intent/Policy Contract foundation + diagnostics clean-up** |
 
 ## 1. Navigator directive
 
@@ -29,7 +26,27 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 6. **No weakening.** Tests, gates, security controls and acceptance criteria are never relaxed to get green.
 7. **Honest status.** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 
-## 3. Navigator decisions recorded in P109 (2026-10-26)
+## 3. P110 — Intent/Policy Contract foundation (current)
+
+**Goal.** Make approved intent machine-readable and prevent silent promotion of assumptions into policy.
+
+**Delivered**
+
+* `scripts/intentContractLib.mjs`: `buildContract`, `semanticProblems`, `blocksApprovedPolicyClaim`, `gateContract`, `validateFileWithSchema`.
+* Semantic rule: items of kind `requirement` / `constraint` / `invariant` must have `source=explicit`. `assumed` or `inferred` on those kinds is a hard problem.
+* Policy claim rule: contract `status` in {UNKNOWN, PARTIAL, NOT_RUN} or any `criticality=critical` item with `source` in {unknown, assumed} blocks an approved-policy / release-style claim.
+* `tests/intent-contract-p110.test.mjs` (7 tests) covering the above and a full example contract for this patch that validates against `docs/schema-intent-policy-contract.json`.
+* `npm run test:intent-contract`; also included in `test:compact-ci-artifacts` together with P108 fault-injection tests.
+* Diagnostics: `vite.config.ts` no longer uses `__dirname` (uses `import.meta.url` + `fileURLToPath`), removing the Vite configLoader unsupported-feature warning from every CI build log.
+
+**Out of scope.** Capability graph, context selection, binding contracts into the main change workflow (P111+). No runtime behaviour change.
+
+**Gate.** Tests pass; example instance is schema-valid; semantic gate rejects promotion cases; version 110 consistent.
+
+**Rollback.** Remove the new lib/tests and revert `vite.config.ts` / version / docs entries.
+
+## 4. Navigator decisions recorded in P109 (2026-10-26)
+
 
 | Decision | Result | Effect |
 |---|---|---|
