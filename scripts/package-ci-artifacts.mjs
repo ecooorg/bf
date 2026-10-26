@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/ci-checks');
 const reportPath = path.join(dir, 'NEXT_PATCH.md');
-const zipPath = path.join(dir, 'diagnostics.zip');
+const finalReportPath = path.join(dir, 'BIForge-NEXT-PATCH.md');
+const zipPath = path.join(dir, 'biforge-ci-logs.zip');
 fs.mkdirSync(dir, { recursive: true });
 if (!fs.existsSync(reportPath)) throw new Error('NEXT_PATCH.md must be generated before packaging artifacts');
 const readJson = (name) => { try { return JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')); } catch { return null; } };
@@ -50,7 +51,7 @@ const finalHistoryLines = [
   `CI_WORKFLOW_JOB_STATUS_AT_PACKAGING=${process.env.CI_STATUS || 'unknown'}`,
   `CI_ARCHIVE_STATUS=${status}`,
   `CI_REPORT_STATUS=${reportStatus}`, 
-  `CI_ARCHIVE_CONTENTS=NEXT_PATCH.md,diagnostics.zip,ci-history.json,ci-metrics.json`,
+  `CI_ARCHIVE_CONTENTS=BIForge-NEXT-PATCH.md,biforge-ci-logs.zip`,
 ];
 let finalReport = fs.readFileSync(reportPath, 'utf8').replace(/\n?CI_ARCHIVE_METADATA_BEGIN[\s\S]*?CI_ARCHIVE_METADATA_END\n?/g, '\n');
 finalReport = `${finalReport.trimEnd()}\nCI_ARCHIVE_METADATA_BEGIN\n${finalHistoryLines.join('\n')}\nCI_ARCHIVE_METADATA_END\n`;
@@ -76,7 +77,7 @@ const files = fs.readdirSync(dir, { withFileTypes: true })
   .filter((entry) => entry.isFile() && entry.name !== 'diagnostics.zip' && !entry.name.endsWith('.zip'))
   .map((entry) => entry.name).sort();
 const index = {
-  schemaVersion: 2, artifactType: 'biforge-ci-diagnostics', status,
+  schemaVersion: 3, artifactType: 'biforge-ci-full-logs', status,
   commit: process.env.GITHUB_SHA || metrics?.run?.sha || 'local/unknown',
   runId: process.env.GITHUB_RUN_ID || metrics?.run?.runId || null,
   runUrl: metrics?.run?.runUrl || null, createdAt: new Date().toISOString(),
@@ -106,7 +107,8 @@ if (zip) {
 // The outer GitHub artifact always contains the primary handoff, diagnostics, metrics and five-cycle history.
 for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
   if (!entry.isFile()) continue;
-  if (!['NEXT_PATCH.md', 'diagnostics.zip', 'ci-history.json', 'ci-metrics.json'].includes(entry.name)) fs.rmSync(path.join(dir, entry.name), { force: true });
+  if (!['NEXT_PATCH.md', 'biforge-ci-logs.zip'].includes(entry.name)) fs.rmSync(path.join(dir, entry.name), { force: true });
 }
-console.log(`Created diagnostics.zip (${index.files.length} available diagnostic files, ${fs.statSync(zipPath).size} bytes); status=${status}; history=${history?.historyStatus || 'unavailable'}.`);
+if (fs.existsSync(reportPath)) fs.renameSync(reportPath, finalReportPath);
+console.log(`Created biforge-ci-logs.zip (${index.files.length} diagnostic files, ${fs.statSync(zipPath).size} bytes); status=${status}; history=${history?.historyStatus || 'unavailable'}.`);
 console.log(`CI report artifact files: ${fs.readdirSync(dir).sort().join(', ')}`);

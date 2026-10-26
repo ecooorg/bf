@@ -159,7 +159,7 @@ for (const stage of failedRows) {
 }
 handoff.push(`REPO_CHECK_COMMAND=${oneLine(packageJson.scripts?.check || 'unavailable', 1800)}`);
 handoff.push(`FAILED_STAGE_RERUN_COMMANDS=${rerunCommands.length ? rerunCommands.map((x) => oneLine(x, 1000)).join(' | ') : 'not recorded; use log/source evidence below'}`);
-handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacted failure evidence/source excerpts plus current and recent CI metrics when available. diagnostics.zip is packaged on green and red runs and contains all available logs/evidence; use it for full context. Treat absent evidence as unknown and never claim unrun checks passed.');
+handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacted failure evidence/source excerpts plus current and recent CI metrics when available. biforge-ci-logs.zip is packaged on green and red runs and contains all available logs/evidence; use it for full context. Treat absent evidence as unknown and never claim unrun checks passed.');
 handoff.push('EVIDENCE_BEGIN', ...errorSections, 'EVIDENCE_END');
 const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? uniqueRows.filter((r) => r.phase === 'critical' && r.log).map((r) => r.log) : [];
 handoff.push(`LOG_FILES=${[...new Set([...criticalLogSet, ...failedRows.map((r) => path.basename(r.log || `${r.id}.log`)), ...workflowErrors.map((g) => g.log)])].filter((name) => fs.existsSync(path.join(dir,name))).join(', ') || logs.join(', ') || 'none'}`);
