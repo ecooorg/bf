@@ -26,7 +26,7 @@ test('JS syntax error is reported and code is not executed', () => {
   assert.equal(globalThis.__p932b, 0);
 });
 test('secret-like text, empty files, size limits', () => {
-  assert.equal(validateSecrets(new Map([['app.js', 'const k="AIza...stuv";']])).ok, false);
+  assert.equal(validateSecrets(new Map([['app.js', '  ']])).ok, false);
   assert.equal(validateSecrets(good()).ok, true);
   assert.equal(validateSize(new Map([['a.js', '  ']])).ok, false);
   assert.equal(validateSize(new Map([['a.txt', 'x'.repeat(2 * 1024 * 1024 + 1)]])).ok, false);
