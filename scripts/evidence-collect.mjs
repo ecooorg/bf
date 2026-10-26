@@ -104,7 +104,7 @@ export async function collect({ env = process.env, fetcher = fetch, verify = run
   add('connection_groq', 'RM-B2', conn.groq);
   add('connection_github', 'RM-D1', conn.github);
 
-  // Step verdicts: PASS only where the collected checks cover the whole PASS criterion of docs/NEXT.md.
+  // Step verdicts: PASS only where the collected checks cover the whole PASS criterion of the gate definition.
   const s = (id) => checks.find((c) => c.id === id)?.status;
   const steps = {};
   const put = (step, status, note) => { steps[step] = { status, record: status === 'PASS' || status === 'PARTIAL' ? record : null, note }; };

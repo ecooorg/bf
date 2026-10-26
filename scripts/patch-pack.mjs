@@ -37,7 +37,7 @@ const agent = opt('agent', 'not stated');
 const ownerSteps = opt('owner-steps') ? opt('owner-steps').split(';').map((s) => s.trim()) : [
   'Загрузить файлы архива в main; дождаться CI и сверить commit в /health.',
   'Открыть сайт и /project, проверить сценарий, затронутый патчем.',
-  `Сверить оставшиеся падения с docs/${patch}-REPORT.md.`
+  `Сверить оставшиеся падения с отчётом патча ${patch}.`
 ];
 
 function writeReport(status) {

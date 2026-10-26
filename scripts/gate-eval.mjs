@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * PA-01 — gate evaluator. Applies the decision rules of TZ 11.9 (E-01 / ADR-10) and TZ 17 (G1a…G4)
- * to evidence rows and prints a decision card (docs/DECISION_CARD_TEMPLATE.md). No network, no secrets, no side effects.
+ * to evidence rows and prints a decision card. No network, no secrets, no side effects.
  *
  * Usage:
  *   node scripts/gate-eval.mjs --card <ADR-10|G1a|G1|G2|G3|G4> --input evidence.json [--json]
@@ -22,7 +22,7 @@ export const ATTEST_ALLOWED = new Set(['RM-A2', 'RM-B1']);
 
 const range = (p, a, b) => Array.from({ length: b - a + 1 }, (_, i) => `RM-${p}${a + i}`);
 
-/** Required evidence steps per gate (docs/NEXT.md; TZ 17). The decision step itself (RM-B7, RM-D6, RM-F8) is not in the list. */
+/** Required evidence steps per gate (TZ 17). The decision step itself (RM-B7, RM-D6, RM-F8) is not in the list. */
 export const GATES = {
   G1a: ['RM-B1'],
   G1: ['RM-B2', 'RM-B3'],
@@ -139,7 +139,7 @@ export function evaluateGate(gate, evidence = {}) {
 // ---------- card ----------
 const ACCEPT_TEXT = {
   'ADR-10': {
-    POSITIVE: 'write docs/ADR-10-code-executor.md status ACCEPTED with the E-01 table; tick RM-B6 in docs/NEXT.md; prepare the P19x SPEC (stage C)',
+    POSITIVE: 'record ADR-10 as ACCEPTED with the E-01 table in CHANGELOG.md; mark RM-B6 done; prepare the P19x SPEC (stage C)',
     NEGATIVE: 'write ADR-10 ACCEPTED with the negative outcome; CODE_EXECUTOR stays manual; skip stage C; go to stage D',
     BOTH_FAILED: 'write ADR-10 ACCEPTED with the outcome "both failed"; narrow S3 to specification and package preparation; owner reviews G3',
   },
@@ -176,7 +176,7 @@ export function buildCard(card, evidence = {}) {
   const [rec, why] = recommendation(card, ev.result, ev);
   return { ...base, evidence: ev.verdicts.map((v) => `${v.id} | ${v.status} | ${v.record || v.why || '-'}`),
     result: ev.result, recommendation: rec, why, deviations: ev.deviations,
-    ifAccepted: `record "${card} accepted" with the date in docs/CURRENT_STATE.md; tick the decision step in docs/NEXT.md`,
+    ifAccepted: `record "${card} accepted" with the date in CHANGELOG.md; mark the decision step done`,
     ifRejected: 'the gate stays open; the missing or failed steps are listed above' };
 }
 

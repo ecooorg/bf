@@ -11,7 +11,7 @@ const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1
 if (!args.includes('--fake')) { console.error('Live mode is not part of P10. Run with --fake.'); process.exit(2); }
 const date = opt('--date') ?? new Date().toISOString().slice(0, 10);
 if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { console.error('--date must be YYYY-MM-DD'); process.exit(2); }
-const out = path.resolve(opt('--out') ?? path.join(root, 'ARCHIVE/GOLDEN-EVAL-REPORT.md'));
+const out = path.resolve(opt('--out') ?? path.join(root, 'artifacts', 'qa', 'golden-eval-report.md'));
 
 const tasks = loadGoldenTasks();
 const entry = (providerId, modelId, extra = {}) => registryEntrySchema.parse({ ...REGISTRY_SEED[0], providerId, modelId, costTier: 'free', ...extra });
