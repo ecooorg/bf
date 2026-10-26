@@ -159,7 +159,7 @@ for (const stage of failedRows) {
 }
 handoff.push(`REPO_CHECK_COMMAND=${oneLine(packageJson.scripts?.check || 'unavailable', 1800)}`);
 handoff.push(`FAILED_STAGE_RERUN_COMMANDS=${rerunCommands.length ? rerunCommands.map((x) => oneLine(x, 1000)).join(' | ') : 'not recorded; use log/source evidence below'}`);
-handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacted failure evidence and source excerpts. Treat absent evidence as unknown; do not claim unrun checks passed. Ask for diagnostics.zip only if this report explicitly says logs/evidence are missing or the failure cannot be resolved from included evidence.');
+handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacted failure evidence/source excerpts plus current and recent CI metrics when available. diagnostics.zip is packaged on green and red runs and contains all available logs/evidence; use it for full context. Treat absent evidence as unknown and never claim unrun checks passed.');
 handoff.push('EVIDENCE_BEGIN', ...errorSections, 'EVIDENCE_END');
 const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? uniqueRows.filter((r) => r.phase === 'critical' && r.log).map((r) => r.log) : [];
 handoff.push(`LOG_FILES=${[...new Set([...criticalLogSet, ...failedRows.map((r) => path.basename(r.log || `${r.id}.log`)), ...workflowErrors.map((g) => g.log)])].filter((name) => fs.existsSync(path.join(dir,name))).join(', ') || logs.join(', ') || 'none'}`);
@@ -182,6 +182,37 @@ try {
     else handoffJson = `invalid: ${oneLine(verdict.errors.slice(0, 2).join(' | '), 300)}`;
   }
 } catch (error) { handoffJson = `error: ${oneLine(error && error.message || error, 200)}`; }
+// P108.2: include green and red CI metrics plus the latest five-cycle history in the primary handoff.
+const history = json('ci-history.json');
+const metrics = json('ci-metrics.json');
+if (history?.current) {
+  history.current.status = status;
+  history.current.reportStatus = status;
+  history.current.checks = metrics?.checks || history.current.checks;
+  history.current.checkResults = metrics?.checkResults || history.current.checkResults;
+  history.updatedAt = new Date().toISOString();
+  fs.writeFileSync(path.join(dir, 'ci-history.json'), JSON.stringify(history, null, 2) + '\n');
+}
+if (metrics?.run) {
+  metrics.run.status = status;
+  metrics.run.reportStatus = status;
+  fs.writeFileSync(path.join(dir, 'ci-metrics.json'), JSON.stringify(metrics, null, 2) + '\n');
+}
+if (history) {
+  const c = history.current?.checks || {};
+  handoff.push(`CI_CYCLES_REQUESTED=${history.requestedCycles || 5}`);
+  handoff.push(`CI_CYCLES_INCLUDED=${history.includedCycles || 1}`);
+  handoff.push(`CI_HISTORY_STATUS=${history.historyStatus || 'UNKNOWN'}`);
+  handoff.push(`CI_CURRENT_DAG_DURATION_MS=${history.current?.dagWallClockMs ?? 'unknown'}`);
+  handoff.push(`CI_CURRENT_JOB_ELAPSED_MS=${history.current?.jobElapsedAtCollectionMs ?? 'unknown; current job start time unavailable'}`);
+  handoff.push(`CI_CURRENT_CHECKS=total:${c.total ?? 0},executed:${c.executed ?? c.completed ?? 0},completed:${c.completed ?? 0},pass:${c.pass ?? 0},fail:${c.fail ?? 0},timeout:${c.timeout ?? 0},blocked:${c.blocked ?? 0},skipped:${c.skipped ?? 0},skipped_by_policy:${c.skipped_by_policy ?? 0},not_run:${c.not_run ?? 0},unknown:${c.unknown ?? 0}`);
+  for (const run of history.previousRuns || []) {
+    const rc = run.checks || {};
+    handoff.push(`CI_RECENT_RUN=${run.runId};conclusion:${run.conclusion || 'UNKNOWN'};workflow_ms:${run.workflowDurationMs ?? 'unknown'};job_ms:${run.jobDurationMs ?? 'unknown'};dag_ms:${run.dagWallClockMs ?? 'unknown'};checks_total:${rc.total ?? 'unknown'};pass:${rc.pass ?? 'unknown'};fail:${rc.fail ?? 'unknown'};timeout:${rc.timeout ?? 'unknown'};blocked:${rc.blocked ?? 'unknown'};metrics:${run.artifactSource || run.metricsSource || 'unavailable'}`);
+  }
+  if (history.historyError) handoff.push(`CI_HISTORY_ERROR=${oneLine(history.historyError, 300)}`);
+  handoff.push('CI_HISTORY_RULE=Historical metrics absent from legacy artifacts remain unknown; workflow duration and DAG/check duration are distinct metrics.');
+}
 handoff.push(`HANDOFF_JSON=${handoffJson}`);
 const report = handoff.join('\n') + '\n';
 fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), report);

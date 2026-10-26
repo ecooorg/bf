@@ -1,10 +1,9 @@
-// P94: publish one compact CI artifact. Keep the report; bundle only failed-stage evidence.
+// P108.2: always publish a complete, redacted diagnostics bundle for green and red CI.
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import JSZip from 'jszip';
+let JSZip = null; try { JSZip = (await import('jszip')).default; } catch {}
 import { fileURLToPath } from 'node:url';
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/ci-checks');
 const reportPath = path.join(dir, 'NEXT_PATCH.md');
@@ -12,48 +11,102 @@ const zipPath = path.join(dir, 'diagnostics.zip');
 fs.mkdirSync(dir, { recursive: true });
 if (!fs.existsSync(reportPath)) throw new Error('NEXT_PATCH.md must be generated before packaging artifacts');
 const readJson = (name) => { try { return JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8')); } catch { return null; } };
-const resultsDoc = readJson('results.json');
-const rows = Array.isArray(resultsDoc?.results) ? resultsDoc.results : [];
-const failedRows = rows.filter((r) => r.status !== 'PASS' && r.status !== 'SKIPPED');
 const report = fs.readFileSync(reportPath, 'utf8');
-const failed = /\*\*Status:\*\* FAILED|PATCH_STATUS=FAILED|\*\*Status:\*\* CANCELLED|PATCH_STATUS=CANCELLED|PATCH_STATUS=UNVERIFIED/.test(report) || failedRows.length > 0;
-const redact = (text) => String(text).replace(/\u001b\[[0-9;]*m/g, '').replace(/(GEMINI_API_KEY|GOOGLE_API_KEY|GROQ_API_KEY|OPENAI_API_KEY|API_KEY|SESSION_SECRET|APP_PASSWORD)\s*[:=]\s*[^\s,;]+/gi, '$1=[REDACTED]').replace(/\bBearer\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [REDACTED]').replace(/\bAIza[0-9A-Za-z_-]{20,}\b/g, '[REDACTED_GOOGLE_KEY]').replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, '[REDACTED_API_KEY]');
-
+const reportStatus = report.match(/^PATCH_STATUS=([^\r\n]+)/m)?.[1] || 'UNKNOWN';
+const jobStatus = process.env.CI_STATUS || 'unknown';
+const status = reportStatus === 'PASSED' && jobStatus === 'failure' ? 'WORKFLOW_FAILED_AFTER_HANDOFF' : (reportStatus === 'PASSED' && jobStatus === 'cancelled' ? 'WORKFLOW_CANCELLED_AFTER_HANDOFF' : reportStatus);
+const resultDoc = readJson('results.json');
+const resultRows = Array.isArray(resultDoc?.results) ? resultDoc.results : [];
+const statuses = ['PASS','FAIL','TIMEOUT','BLOCKED','SKIPPED','SKIPPED_BY_POLICY','NOT_RUN','UNKNOWN','INTERRUPTED'];
+const counts = Object.fromEntries(statuses.map(s => [s.toLowerCase(), resultRows.filter(r => String(r.status || 'UNKNOWN').toUpperCase() === s).length]));
+counts.total = resultRows.length; counts.executed = counts.pass + counts.fail + counts.timeout; counts.completed = counts.executed;
+const fallbackCurrent = { runId:process.env.GITHUB_RUN_ID || null, runUrl:process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : null, sha:process.env.GITHUB_SHA || null, status, collectedAt:new Date().toISOString(), dagWallClockMs:Number.isFinite(resultDoc?.wallClockMs)?resultDoc.wallClockMs:null, checks:counts, checkResults:resultRows.map(r=>({id:r.id,status:r.status||'UNKNOWN',durationMs:r.durationMs??null,critical:Boolean(r.critical),log:r.log||null})) };
+let history = readJson('ci-history.json');
+let metrics = readJson('ci-metrics.json');
+if (!metrics) { metrics = { schemaVersion:1, generatedAt:new Date().toISOString(), run:fallbackCurrent, checks:counts, checkResults:fallbackCurrent.checkResults }; }
+if (!history) { history = { schemaVersion:1, generatedAt:new Date().toISOString(), requestedCycles:5, includedCycles:1, current:fallbackCurrent, previousRuns:[], historyStatus:'UNAVAILABLE_COLLECTOR_MISSING', historyError:'CI history collector did not produce output; current results are still included.', limitations:['Historical data unavailable; missing metrics are unknown, never PASS.'] }; }
+if (history?.current) {
+  history.current.status = status;
+  history.current.reportStatus = reportStatus;
+  history.current.workflowJobStatusAtPackaging = process.env.CI_STATUS || 'unknown';
+  history.current.finalStatusKnownAtPackaging = true;
+  history.current.packagedAt = new Date().toISOString();
+  if (Number.isFinite(history.current.jobElapsedAtCollectionMs)) history.current.jobElapsedMs = history.current.jobElapsedAtCollectionMs;
+  history.generatedAt = new Date().toISOString();
+  history.current.checks = metrics?.checks || history.current.checks;
+  history.current.checkResults = metrics?.checkResults || history.current.checkResults;
+  fs.writeFileSync(path.join(dir, 'ci-history.json'), JSON.stringify(history, null, 2) + '\n');
+}
+if (metrics?.run) {
+  metrics.run.status = status;
+  metrics.run.reportStatus = reportStatus;
+  metrics.run.workflowJobStatusAtPackaging = process.env.CI_STATUS || 'unknown';
+  metrics.run.packagedAt = new Date().toISOString();
+  if (history?.current?.jobElapsedMs != null) metrics.run.jobElapsedMs = history.current.jobElapsedMs;
+  fs.writeFileSync(path.join(dir, 'ci-metrics.json'), JSON.stringify(metrics, null, 2) + '\n');
+}
+// Keep the single handoff self-sufficient even if a report generator fallback was used.
+const finalHistoryLines = [
+  `CI_WORKFLOW_JOB_STATUS_AT_PACKAGING=${process.env.CI_STATUS || 'unknown'}`,
+  `CI_ARCHIVE_STATUS=${status}`,
+  `CI_REPORT_STATUS=${reportStatus}`, 
+  `CI_ARCHIVE_CONTENTS=NEXT_PATCH.md,diagnostics.zip,ci-history.json,ci-metrics.json`,
+];
+let finalReport = fs.readFileSync(reportPath, 'utf8').replace(/\n?CI_ARCHIVE_METADATA_BEGIN[\s\S]*?CI_ARCHIVE_METADATA_END\n?/g, '\n');
+finalReport = `${finalReport.trimEnd()}\nCI_ARCHIVE_METADATA_BEGIN\n${finalHistoryLines.join('\n')}\nCI_ARCHIVE_METADATA_END\n`;
+fs.writeFileSync(reportPath, finalReport);
+const redact = (value) => String(value)
+  .replace(/\u001b\[[0-9;]*m/g, '').replace(/\r/g, '')
+  .replace(/([\"']?[A-Z0-9_]*(?:API_KEY|TOKEN|PASSWORD|SECRET|PRIVATE_KEY|ACCESS_KEY|AUTHORIZATION|DATABASE_URL)[A-Z0-9_]*[\"']?\s*[:=]\s*[\"']?)([^\"'\s,;]+)([\"']?)/gi, '$1[REDACTED]$3')
+  .replace(/\bBearer\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [REDACTED]')
+  .replace(/\bAIza[0-9A-Za-z_-]{20,}\b/g, '[REDACTED_GOOGLE_KEY]')
+  .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/g, '[REDACTED_API_KEY]')
+  .replace(/\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/g, '[REDACTED_GITHUB_TOKEN]')
+  .replace(/\bAKIA[0-9A-Z]{16}\b/g, '[REDACTED_AWS_KEY]')
+  .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[REDACTED_PRIVATE_KEY]')
+  .replace(/(postgres(?:ql)?:\/\/[^:\s/@]+):[^@\s/]+@/gi, '$1:[REDACTED]@');
+// The outer artifact is also consumed directly; sanitize its handoff and JSON, not only the inner ZIP.
+for (const name of ['NEXT_PATCH.md', 'ci-metrics.json', 'ci-history.json']) {
+  const full = path.join(dir, name);
+  if (fs.existsSync(full)) fs.writeFileSync(full, redact(fs.readFileSync(full, 'utf8')));
+}
 if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
-if (failed) {
-  const zip = new JSZip();
-  const selected = new Set(['results.json', 'diagnostic-results.json', 'secondary-results.json', 'ci-diagnostic-gate.log', 'ci-secondary-diagnostic.log']);
-  // On any failure, preserve the complete first-wave comparison set, including passing probes.
-  for (const name of ['critical-router-selection.log', 'critical-router-policy-call-limit.log', 'critical-gemini-timeout.log', 'critical-app-builder-recovery.log']) selected.add(name);
-  for (const row of failedRows) if (row.log) selected.add(path.basename(row.log));
-  // P105: the evidence records and the structured handoff travel with the failure bundle.
-  for (const name of fs.readdirSync(dir)) if (/^evidence-.*\.json$/.test(name) || name === 'handoff-report.json') selected.add(name);
-  // Include workflow-level logs only when they contain failure signals; install/migration logs are kept on failure for setup diagnosis.
-  for (const name of ['ci-install.log', 'ci-migrate.log', 'ci-dag.log']) {
-    const full = path.join(dir, name);
-    if (!fs.existsSync(full)) continue;
-    const text = fs.readFileSync(full, 'utf8');
-    if (/(error|failed|failure|not ok|timeout|timed out|ERR!|ELIFECYCLE|error TS\d+)/i.test(text) || ['ci-install.log', 'ci-migrate.log'].includes(name)) selected.add(name);
-  }
-  const index = { schemaVersion: 1, commit: process.env.GITHUB_SHA || 'local/unknown', runId: process.env.GITHUB_RUN_ID || null, status: 'FAILED', createdAt: new Date().toISOString(), files: [] };
-  for (const name of [...selected].sort()) {
-    const full = path.join(dir, name);
-    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) continue;
-    const data = redact(fs.readFileSync(full, 'utf8'));
-    zip.file(name, data);
-    index.files.push({ name, bytes: Buffer.byteLength(data) });
-  }
+const zip = JSZip ? new JSZip() : null;
+const files = fs.readdirSync(dir, { withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name !== 'diagnostics.zip' && !entry.name.endsWith('.zip'))
+  .map((entry) => entry.name).sort();
+const index = {
+  schemaVersion: 2, artifactType: 'biforge-ci-diagnostics', status,
+  commit: process.env.GITHUB_SHA || metrics?.run?.sha || 'local/unknown',
+  runId: process.env.GITHUB_RUN_ID || metrics?.run?.runId || null,
+  runUrl: metrics?.run?.runUrl || null, createdAt: new Date().toISOString(),
+  workflowJobStatusAtPackaging: process.env.CI_STATUS || 'unknown',
+  completeness: 'all available files in CI_LOGS_DIR; unavailable checks and historical metrics remain explicitly unknown', files: [],
+};
+for (const name of files) {
+  const full = path.join(dir, name);
+  const raw = fs.readFileSync(full);
+  // All CI diagnostic inputs are text/JSON; preserve any unexpected binary file as bytes without attempting text redaction.
+  const isText = /\.(?:log|json|md|txt|ya?ml|xml|csv|mjs|js|ts)$/i.test(name);
+  const data = isText ? Buffer.from(redact(raw.toString('utf8'))) : raw;
+  if (zip) zip.file(name, data);
+  else fs.writeFileSync(path.join(dir, name), data);
+  index.files.push({ name, bytes: data.length, redacted: isText });
+}
+if (zip) {
   zip.file('diagnostics-index.json', JSON.stringify(index, null, 2) + '\n');
   const bytes = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
   fs.writeFileSync(zipPath, bytes);
-  console.log(`Created diagnostics.zip (${index.files.length} evidence files, ${bytes.length} bytes).`);
 } else {
-  console.log('CI passed; no diagnostics.zip needed.');
+  fs.writeFileSync(path.join(dir, 'diagnostics-index.json'), JSON.stringify(index, null, 2) + '\n');
+  const names = [...files, 'diagnostics-index.json'];
+  const packed = spawnSync('zip', ['-q', '-j', zipPath, ...names], { cwd: dir, encoding: 'utf8' });
+  if (packed.status !== 0) throw new Error(`Neither JSZip nor system zip could package diagnostics: ${packed.stderr || packed.error?.message || packed.status}`);
 }
-
-// Only the report and optional diagnostic bundle remain in the upload directory.
+// The outer GitHub artifact always contains the primary handoff, diagnostics, metrics and five-cycle history.
 for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
   if (!entry.isFile()) continue;
-  if (!['NEXT_PATCH.md', 'diagnostics.zip'].includes(entry.name)) fs.rmSync(path.join(dir, entry.name), { force: true });
+  if (!['NEXT_PATCH.md', 'diagnostics.zip', 'ci-history.json', 'ci-metrics.json'].includes(entry.name)) fs.rmSync(path.join(dir, entry.name), { force: true });
 }
-console.log(`Compact artifact ready: ${fs.readdirSync(dir).sort().join(', ')}`);
+console.log(`Created diagnostics.zip (${index.files.length} available diagnostic files, ${fs.statSync(zipPath).size} bytes); status=${status}; history=${history?.historyStatus || 'unavailable'}.`);
+console.log(`CI report artifact files: ${fs.readdirSync(dir).sort().join(', ')}`);
