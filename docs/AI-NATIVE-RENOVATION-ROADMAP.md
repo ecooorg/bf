@@ -5,7 +5,7 @@
 **Normative strategic destination:** `VIX-CONCEPT.md`  
 **Audit basis:** `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`  
 **Renovation mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`  
-**Current phase:** Phase 2 implementation delivered; formal gate pending (Phase 0 documented closed by P104; Phase 1 documented closed by P105–P106; P107/P108 implemented; P108 hosted CI green; P108.1 reconciles documentation)  
+**Current phase:** Phase 2 — verification as a graph (Phase 0 closed by P104; Phase 1 closed by P105–P106; Phase 2 acceptance PENDING; P108.2 CI archive verification is a prerequisite before P109)  
 **Rule:** one bounded patch at a time; preserve safety; report evidence honestly.
 
 ## 1. North star
@@ -59,6 +59,8 @@ VIX remains the long-term architectural destination: formalisation of business i
 **Gate:** missing, malformed, contradictory, or redacted-away critical evidence cannot be reported as a successful claim. Failures in report generation still produce a bounded fallback handoff.
 
 ### Phase 2 — Dependency-aware verification and bounded repair
+
+**Current status:** implementation P107–P108 exists; formal acceptance is PENDING. P108.2 adds always-on CI diagnostics and five-cycle history. Before P109, verify artifact availability after both green and red CI; do not infer this from a single run.
 
 **Goal:** collect maximum useful evidence without unsafe execution.
 
@@ -125,16 +127,7 @@ VIX remains the long-term architectural destination: formalisation of business i
 
 **Gate:** predefined thresholds are met across representative repeated tasks. Otherwise the capability remains experimental.
 
-## 4. Current status and phase-transition rule
-
-- **P104–P106:** documentation/evidence foundations are recorded as closed in the active task.
-- **P107–P108:** verification DAG, fault injection and opt-in bounded repair are implemented. Navigator-confirmed hosted CI for P108 was green on 2026-10-26; `check-and-build` duration 220.879 s.
-- **Timing:** the next-patch ceiling is 254.011 s (+15% of P108). The P108-vs-P106 comparison remains `NOT_RUN` because the P106 duration is unavailable.
-- **Phase 2:** formal acceptance remains `PENDING`; green CI is evidence, not the Tier 3 acceptance decision. The acceptance checklist and patch-specific Navigator actions are in `AI-NATIVE-RENOVATION-TASK.md`.
-- **Next:** P108.1 reconciles canonical docs; P109 builds the Phase 2 evidence handoff; conditional P110 fixes only defects proven by that handoff. Phase 3 begins only with explicit authorization (P111+).
-- **Parallel debt:** P92 production diagnostics remain unverified; track P92-R1 separately and do not infer production correctness from build/CI success.
-
-## 5. Patch cadence
+## 4. Patch cadence
 
 Every phase is delivered as small, reviewable patches. A phase does not advance merely because its documents or code exist. It advances only when its gate has evidence.
 
@@ -150,8 +143,8 @@ For each patch:
 9. provide rollback and compatibility notes;
 10. stop for Navigator approval at Tier 2/3 boundaries.
 
-## 6. Current next action
+## 5. Current next action
 
-Complete P108.1 documentation reconciliation, then run P109 as an evidence-only Phase 2 audit. If a criterion fails, stop and create a bounded fix patch before requesting formal acceptance. Do not start Phase 3 until the Navigator explicitly authorizes it.
+Phase 0 is closed by P104. Continue with P105–P108 as specified in `AI-NATIVE-RENOVATION-TASK.md`.
 
 No source-code rewrite, production action, GitHub write, permission change, or generated-code execution is authorized by this roadmap.

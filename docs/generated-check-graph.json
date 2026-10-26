@@ -218,7 +218,7 @@
     },
     {
       "id": "test:compact-ci-artifacts",
-      "command": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/fault-injection-p108.test.mjs",
+      "command": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs",
       "needs": [],
       "profiles": [
         "check",
@@ -228,17 +228,15 @@
         "tests/compact-ci-artifacts-p94.test.mjs",
         "tests/dag-p107.test.mjs",
         "tests/evidence-p105.test.mjs",
-        "tests/fault-injection-p108.test.mjs",
         "tests/schema-validate.test.mjs",
         "tests/status-graph-p106.test.mjs"
       ],
       "modules": [
-        "scripts/boundedRepairLibP108.mjs",
         "scripts/ci-evidence-gate.mjs",
+        "scripts/ci-run-history.mjs",
         "scripts/ci-summary.mjs",
         "scripts/dagLib.mjs",
         "scripts/evidenceLib.mjs",
-        "scripts/faultInjectionLibP108.mjs",
         "scripts/package-ci-artifacts.mjs",
         "scripts/patch-quality-report.mjs",
         "scripts/run-dag.mjs",
@@ -725,14 +723,14 @@
       "test:bx06:api",
       "test:project"
     ],
-    "scripts/boundedRepairLibP108.mjs": [
-      "test:compact-ci-artifacts"
-    ],
     "scripts/check-version.mjs": [
       "test:core",
       "version-consistency"
     ],
     "scripts/ci-evidence-gate.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/ci-run-history.mjs": [
       "test:compact-ci-artifacts"
     ],
     "scripts/ci-summary.mjs": [
@@ -758,9 +756,6 @@
       "test:files"
     ],
     "scripts/evidenceLib.mjs": [
-      "test:compact-ci-artifacts"
-    ],
-    "scripts/faultInjectionLibP108.mjs": [
       "test:compact-ci-artifacts"
     ],
     "scripts/gate-eval.mjs": [
