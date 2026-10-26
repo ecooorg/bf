@@ -6,6 +6,18 @@
 **Strategic reference:** `docs/VIX-CONCEPT.md`  
 **Companion mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`
 
+## 0. Current implementation delta (updated after P108; source audit remains v103)
+
+This audit's detailed code observations were made against `bf-v103.zip` on 2026-10-25 and are historical findings, not a current source-tree scan. The active status is maintained in `AGENTS.md`, the patch sequence in `AI-NATIVE-RENOVATION-TASK.md`, and phase gates in `AI-NATIVE-RENOVATION-ROADMAP.md`.
+
+- P104–P106 are recorded as the documentation/evidence foundation and Phase 1 closure.
+- P107 added the verification DAG and status-aware dependency behavior.
+- P108 added deterministic fault-injection contracts and an opt-in bounded repair runner. The Navigator confirmed a green hosted CI job `check-and-build` on 2026-10-26, duration 220.879 s. Next-patch ceiling: 254.011 s (+15%).
+- Phase 2 formal acceptance is still `PENDING`; the P108-vs-P106 timing comparison is `NOT_RUN` because the P106 duration is unavailable. P109 must verify all required contracts and produce an evidence handoff; any defect must be fixed in a separate bounded patch before acceptance is requested.
+- P92 Project Mode Diagnostics production verification remains `NOT VERIFIED`: prior notes report WARN/NOT RUN, no recent operation events observed, and no observed Drive diagnostic files. Re-check deployment/migrations, event persistence, artifact correlation and Drive sync under the authority rules.
+- Phase 3 (Intent/Policy Contract as authoritative source plus generated Capability Graph), Phase 4 (VIX vertical slice and critical-invariant check), and measured autonomy are future work, not completed capabilities. Their patch sequence and Navigator gates are defined in `AI-NATIVE-RENOVATION-TASK.md`.
+- Do not use this audit's original phase numbering as the current programme plan; `AI-NATIVE-RENOVATION-ROADMAP.md` is canonical for current phases and gates.
+
 ## 1. Executive conclusion
 
 BiForge already contains meaningful foundations for AI-native software work: explicit operating rules, a task-context planner, change-impact and verification tools, intent-contract experiments, diagnostic evidence collection, security gates, database-backed workflows, and an early App Builder pipeline. This is not a greenfield project.

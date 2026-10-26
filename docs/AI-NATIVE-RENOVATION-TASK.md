@@ -1,7 +1,7 @@
-# AI-NATIVE-RENOVATION — Task: Phases 0–2 in five patches (P104–P108)
+# AI-NATIVE-RENOVATION — Active task and patch sequence
 
-**Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108
-**Status:** P104–P108 implemented; P108 gate evidence and formal acceptance pending. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
+**Task IDs:** ANR-P104–P108; current documentation patch ANR-P108.1; planned follow-ups P109 onward below.
+**Status:** P104–P106 documented closed; P107–P108 implementation delivered; Navigator-confirmed P108 CI green. Phase 2 acceptance remains PENDING. P108-vs-P106 timing comparison is NOT_RUN because the P106 baseline duration is unavailable. P108.1 reconciles status and future patch instructions without changing product code. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled pending programme decisions: the assistant decides within Tier 0/1, discloses material choices in CHANGELOG, and asks only for decisions requiring Tier 2/3 authority.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
 
@@ -11,7 +11,8 @@
 | P105 | 1a | Evidence records written by the check runners; fail-closed assessment; structured handoff and fallback (delivered) |
 | P106 | 1b | Legacy tools retired; fail-closed CI evidence gate; check graph; Phase 1 gate (delivered) |
 | P107 | 2a | Verification DAG: independent checks always finish; blocked checks carry reasons (delivered) |
-| P108 | 2b | Fault-injection suite; bounded repair protocol; Phase 2 gate accepted |
+| P108 | 2b | Fault-injection suite and opt-in bounded repair delivered; hosted CI green; formal Phase 2 acceptance pending |
+| P108.1 | Docs | Reconcile status, open questions, patch sequence and Navigator actions in existing canonical documents |
 
 ## 1. Navigator directive
 
@@ -96,6 +97,62 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 **Gate (Phase 2).** Independent checks complete despite unrelated failure; dependants are blocked correctly; injected faults recover or report honestly; repair cannot weaken what it verifies.
 **Rollback.** The repair loop is opt-in; disabling it restores P107 behaviour.
 
-## 8. Not authorized by this task
+## 8. P108.1 — documentation reconciliation (current patch; docs only)
 
-Production deployment, GitHub writes, credential or permission changes, execution of generated code on the host, formal acceptance, Phase 3+ work. Candidate later work, only after the Phase 2 gate and ND-4 measurement: splitting very large files (`server.ts`, `projectRoutes.ts`, `codeTaskService.ts`), stable rule IDs linking invariants to checks, a generated context manifest.
+**Outcome:** make the current implementation state, remaining acceptance work, future patch order and required Navigator decisions consistent across the existing canonical documents.
+
+**Changed existing files:** `AGENTS.md`, `CHANGELOG.md`, this task, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`, and `DOCUMENTATION-INDEX.md`.
+
+**Non-goals:** no product/source changes, no package-version bump, no CI workflow changes, no new repository files, no phase acceptance, no production verification, and no Phase 3 implementation.
+
+**Verification:** `npm run docs:check` PASS (inventories OK; check graph current). Documentation consistency was reviewed for P108 status and phase gates. Hosted CI is not run by this docs-only patch.
+
+**Gate:** all active documents agree that P108 CI is green, Phase 2 formal acceptance is PENDING, the P106 timing comparison is NOT_RUN, and P109 is the next evidence-only patch. No future work is treated as authorized by this plan alone.
+
+## 9. Phase 2 acceptance checklist — still open
+
+The P108 green CI run is evidence for that run, not formal acceptance of the phase. Close each item with a concrete command/result or artifact reference; do not infer success from implementation or documentation.
+
+1. **Snapshot identity:** record the exact repository revision/snapshot and ensure P108 plus P108.1 are applied. If the working tree differs from the supplied `bf-107.zip` plus P108 patches, use the actual current tree as the source of truth.
+2. **DAG contract:** run the P107 test suite and verify independent safe branches finish after an unrelated failure; dependants become `BLOCKED` with a reason; unsafe checks are policy-skipped; malformed manifests fail closed; timeout is not PASS.
+3. **Fault-injection contract:** run `node --test tests/fault-injection-p108.test.mjs`; confirm timeout, cancellation, missing log, partial artifact, runner interruption, handoff generator failure and corrupted record cannot produce a false PASS and result in a usable handoff.
+4. **Repair guard:** test attempt bound, per-attempt append-only records, targeted regression rerun, protected paths and numeric thresholds. Verify repair is opt-in and does not modify files, push or deploy by itself.
+5. **Evidence chain:** verify every mandatory CI check has an evidence record and log where required; missing, malformed, contradictory or incomplete evidence must fail closed.
+6. **Required checks:** run the complete mandatory local check chain and inspect the hosted CI result. Distinguish `PASS`, `FAIL`, `BLOCKED`, `NOT_RUN`, `TIMEOUT` and `PARTIAL`; list every unavailable check explicitly.
+7. **Timing:** P108 hosted job baseline is 220.879 s; next-patch ceiling is 254.011 s. The original P108-vs-P106 +15% comparison remains `NOT_RUN`; do not retroactively mark it PASS without a P106 source duration.
+8. **Decision surface:** produce a concise acceptance handoff containing criteria, evidence references, unresolved limitations and a proposed `ACCEPT` / `REJECT` decision.
+9. **Formal decision:** Phase 2 is Tier 3. The Navigator must explicitly accept or reject the phase after the evidence handoff. Until then status remains PENDING.
+
+## 10. Patch sequence and required Navigator action
+
+Only one bounded patch is active at a time. The rows after P108.1 are plans, not authorization to perform Tier 2/3 actions. Before each patch, the assistant checks the current snapshot, prior gate, CI baseline and authority boundary; the Navigator is not asked to inspect source, diffs or raw logs.
+
+| Patch | Intended single outcome | Assistant actions before/during patch | Navigator action required before patch | Gate / stop condition |
+|---|---|---|---|---|
+| **P108.1 (current)** | Reconcile existing docs with actual P108 status, unresolved questions, next patches and owner decision points. | Update only existing canonical docs; check cross-document status consistency; package changed files only. | None; documentation-only Tier 0. | No new repository file; Phase 2 stays PENDING. |
+| **P109** | Produce the Phase 2 acceptance evidence handoff from the actual current tree. | Verify DAG/fault/repair/evidence tests; run mandatory checks; inspect hosted CI artifacts; record exact status and timing; repair no code in this evidence-only patch. If a blocker is found, stop and define a separate fix patch. | Provide a newer source ZIP only if the repository has changed since the declared baseline. No source review required. | All criteria above evidenced, or explicit blockers listed. Do not claim acceptance. |
+| **P110** | Apply any narrowly scoped Phase 2 defect fixes found by P109 (conditional; omit if none). | One defect class per patch; add regression test first; preserve all gates; run full relevant checks and stay within 254.011 s CI ceiling. | Before any change requiring Tier 2/3 authority, answer the exact yes/no request. | Re-run affected tests and evidence gate; then refresh P109 handoff. |
+| **P111** | Start Phase 3 with one minimal, versioned Intent/Policy Contract in an existing schema/contract path. | Inspect existing `schema-intent-policy-contract.json` and consumers first; avoid duplicate representations; define provenance, explicit requirements, assumptions, constraints, invariants, non-goals, criticality, acceptance criteria and authority. | Explicit yes/no authorization to begin Phase 3 (this programme task did not authorize Phase 3 implementation). | Schema/contract tests prove unknown assumptions are not silently promoted to policy. |
+| **P112** | Generate a Capability Graph from authoritative existing sources. | Identify authoritative source files and stable IDs; generate intent → modules/contracts → state/data → side effects → invariants → checks → evidence → rollback edges; add deterministic freshness tests. | No action for local reversible work; ask yes/no if the design requires a Tier 2 product/security/integration decision. | Graph is generated, deterministic, stale-detecting and has no dangling critical references. |
+| **P113** | Use the graph for change-impact planning and verification selection; close Phase 3. | Connect graph to existing impact/verification tools; demonstrate at least two representative changes end-to-end; report unknown/stale nodes explicitly. | Explicit Tier 3 acceptance of Phase 3 after evidence handoff. | Traceability from intent to tests/evidence/rollback demonstrated; unknown critical context blocks release. |
+| **P114** | Build a narrow VIX Intent IR and state/invariant model for one selected ETL/dataflow or transactional scenario. | Reuse Phase 3 contract/graph; identify counter-examples; keep scope to one domain; no autonomous deployment. | Navigator chooses/approves the domain if choice changes product direction (Tier 2); otherwise assistant chooses and discloses. | Contradiction/incompleteness detected before execution; provenance and assumptions explicit. |
+| **P115** | Generate a constrained executable candidate and check at least one critical invariant. | Add model-check/formal-method evidence distinct from static and behavioral tests; isolate side effects; include negative cases and rollback. | Explicit authorization before executing generated code outside a sandbox or touching production (Tier 3). | Critical UNKNOWN blocks release; evidence states the model and premises. |
+| **P116** | Establish a repeatable real-task value and reliability benchmark. | Define task corpus, baseline, repetitions and metrics for correctness, interventions, time, false PASS/FAIL, evidence, repair, recovery and cost. | Navigator approves material product success thresholds (Tier 2) and any budget/billing changes (Tier 3). | No autonomy promotion from a single run; thresholds and comparison are reproducible. |
+| **P117+** | Governed synthesis, shadow execution, state-compatible switch-over and measured autonomy, only after prior gates. | Split into bounded patches with explicit side-effect contracts, authority checks, rollback and repeated evidence. | Explicit approval for each production, external side-effect, GitHub-write, host-execution or formal-acceptance boundary. | No phase advances on documentation/code presence alone. |
+| **P92-R1 (parallel operational track)** | Resolve Project Mode Diagnostics production-verification debt. | Verify deployment/migrations, persisted operation events, artifact correlation and Drive sync; separate read-only diagnostics from changes. | Explicit yes/no authorization before production access/change or any Tier 3 operation. | Keep `NOT_RUN`/`WARN` until concrete production evidence exists; do not block Phase 3 design on unrelated read-only preparation. |
+
+## 11. Open questions and closure actions
+
+| Open question | Current status | Closure action | Owner / authority |
+|---|---|---|---|
+| Is Phase 2 formally accepted? | PENDING | Complete P109 evidence handoff, then explicit accept/reject decision. | Assistant prepares evidence; Navigator decides (Tier 3). |
+| Did P108 meet +15% versus P106? | NOT_RUN; P106 duration unavailable. | Find a trustworthy P106 job-duration record; if unavailable, retain NOT_RUN and use P108 baseline for subsequent patches. | Assistant searches available artifacts; Navigator supplies alternate artifact only if one exists outside the current evidence set. |
+| Is bounded repair safe on every required path? | Implementation/tests present; full gate audit pending. | Verify attempt bounds, fail-closed statuses, protected-path and threshold guards, regression reruns, opt-in default. | Assistant, P109/P110. |
+| Is P92 production diagnostics complete? | NOT VERIFIED; prior record has WARN/NOT RUN and no observed recent events/Drive files. | Verify migrations, event persistence, artifact linkage and Drive synchronization with authorized evidence. | Assistant prepares; Navigator authorizes Tier 3 access/action. |
+| What is the first Phase 3 consumer? | Not selected. | Select one narrow change flow and prove end-to-end traceability before generalizing. | Assistant proposes; Navigator decides only if Tier 2 product scope is affected. |
+| Does VIX deliver measurable value? | Not yet established by repeatable benchmark. | Implement one vertical slice, then compare repeated tasks against a recorded baseline. | Assistant measures; Navigator approves success thresholds where material. |
+| When is autonomy allowed? | Not authorized by this task. | Complete Phases 3–4, enforce authority/side-effect boundaries, and pass repeated benchmark gates before proposing Phase 5/6. | Navigator approval at each Tier 2/3 boundary. |
+
+## 12. Not authorized by this task
+
+Production deployment, GitHub writes/merges, credential or permission changes, billing changes, execution of generated code outside an approved sandbox, formal acceptance by the assistant, and Phase 3+ implementation before explicit authorization. Candidate later work must follow the patch sequence above and the authority model in `AGENTS.md` / `AI-OPERATING-RULES.md`.

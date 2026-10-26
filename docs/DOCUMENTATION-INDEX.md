@@ -8,7 +8,7 @@ Repository audience: AI assistants (Navigator Charter at the top of `../AGENTS.m
 |---|---|---|
 | `../AGENTS.md` | 13 KB | **Navigator Charter (C1–C11, overrides everything)**, status, authorization tiers, critical rules, commands, documentation policy |
 | `AI-OPERATING-RULES.md` | 5 KB | Permanent AI operating, authorization, security and evidence rules |
-| `AI-NATIVE-RENOVATION-TASK.md` | section 2 and the current patch | Per-patch scope, work items, gates |
+| `AI-NATIVE-RENOVATION-TASK.md` | section 2, current patch and patch-sequence table | Per-patch scope, gates, Navigator actions, open questions, next-patch order |
 
 ## On demand
 
@@ -16,7 +16,7 @@ Repository audience: AI assistants (Navigator Charter at the top of `../AGENTS.m
 |---|---|
 | `AI-NATIVE-RENOVATION-ROADMAP.md` | Planning a phase transition or a gate |
 | `AI-NATIVE-RENOVATION-MANDATE.md` | Questions about delivery constraints, acceptance rules, evidence semantics |
-| `AI-NATIVE-GLOBAL-AUDIT-2026-10.md` | Need the findings and evidence limits behind the programme |
+| `AI-NATIVE-GLOBAL-AUDIT-2026-10.md` | Need the v103 audit findings and current implementation delta/evidence limits |
 | `VIX-CONCEPT.md` | Phase 3+ design only; not authorization for implementation |
 | `OPERATIONS.md` | Configuration, deployment, rollback, backup, `test:ai`, Project Mode diagnostics |
 | `architecture-guardrails.md` | Touching module boundaries, generators, or `appBuilder/` |
