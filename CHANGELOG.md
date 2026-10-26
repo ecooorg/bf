@@ -1,3 +1,12 @@
+## P108.1 — reconcile active programme status, open questions and patch gates (docs only)
+
+- Updated existing canonical documents only: `AGENTS.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`, and `docs/DOCUMENTATION-INDEX.md`. No repository file was added or deleted; no application code, package version, CI workflow or product behavior changed.
+- Resolved contradictory Phase 2 wording: P108 implementation and Navigator-confirmed green CI are recorded, but formal Phase 2 acceptance remains PENDING until an evidence-only P109 audit and explicit Tier 3 Navigator decision.
+- Recorded P108 `check-and-build` baseline 220.879 s and next-patch +15% ceiling 254.011 s. P108-vs-P106 timing comparison remains NOT_RUN because the P106 duration is unavailable.
+- Added a Phase 2 acceptance checklist, explicit patch-by-patch plan from P108.1 through P117+, required Navigator action/authorization before each patch, separate P92-R1 operational track, open-question closure actions, and conditions that block phase transitions.
+- Marked the global audit's detailed code inspection as based on bf-v103 and distinguished it from current P104–P108 implementation status.
+- Verification: documentation diff consistency and archive integrity to be checked for this mini-patch; hosted CI is not run by a documentation-only patch. No acceptance status was upgraded by this patch.
+
 ## P108 — Phase 2b: fault injection and bounded repair
 
 - Added deterministic fault-injection contract tests for timeout, cancellation, missing logs, partial artifacts, runner interruption, handoff-generator failure and corrupted evidence records. Every injected fault must produce a non-PASS status and a consistent handoff.
