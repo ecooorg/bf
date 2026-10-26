@@ -1,3 +1,11 @@
+## P108 — Phase 2b: fault injection and bounded repair
+
+- Added deterministic fault-injection contract tests for timeout, cancellation, missing logs, partial artifacts, runner interruption, handoff-generator failure and corrupted evidence records. Every injected fault must produce a non-PASS status and a consistent handoff.
+- Added an opt-in bounded repair runner (`ENABLE_BOUNDED_REPAIR=1`) with a maximum of three attempts, targeted `check`-profile regressions, per-attempt status records, and a mechanical diff guard for protected paths and reduced numeric limits. It does not edit files, push changes, or deploy; the proposed diff must be supplied explicitly.
+- Added tests for handoff contradictions, attempt bounds, protected paths, reduced limits and append-only attempt records. Existing verification thresholds and workflow/security gates were not relaxed.
+- Verification: `node --test tests/fault-injection-p108.test.mjs` PASS (5/5); `node scripts/check-version.mjs` PASS; `npm run docs:check` PASS; `npm run architecture:check` PASS; `node scripts/statusGraph.mjs --check` PASS. `npm run test:compact-ci-artifacts` PARTIAL/FAIL because timed-out `npm ci` left `jszip` unavailable; `npm run typecheck` BLOCKED because `vite/client` types are unavailable. Hosted CI and the P107/P108 CI-duration comparison are NOT RUN. The P106 green-run duration was not present in the supplied baseline, so the +15% time gate cannot be evaluated.
+- Limitations: fault injection validates fail-closed outcome/handoff contracts using deterministic scenarios; it does not simulate process-level OS signals or hosted artifact transport. Phase 2 formal acceptance remains with the Navigator.
+
 ## P107 — Phase 2a: verification DAG, one runner for `check` and CI
 
 - New `docs/verification-manifest.json`: 27 checks, each with id, argv, prerequisites (`needs`), `timeoutMs`, `memoryLimitMb` (`--max-old-space-size`), `safeToRun`, `parallelGroup`, `critical`, required environment and profiles `check` (23 checks) and `ci` (27). It replaces the order embedded in `ci.yml`, the `check` chain and `CHECK_SKIP_SCRIPTS`. Time limits are the CI-proven legacy limits; none was lowered.
