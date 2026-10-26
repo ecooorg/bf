@@ -2,6 +2,7 @@ name: ci
 on: [push, pull_request]
 permissions:
   contents: read
+  actions: read
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
@@ -53,6 +54,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Capture CI metrics and recent run history
+        if: always()
+        shell: bash
+        run: node scripts/ci-run-history.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+
       - name: Generate NEXT_PATCH.md
         if: always()
         shell: bash
@@ -70,21 +87,26 @@ jobs:
         shell: bash
         run: node scripts/ci-evidence-gate.mjs
 
+      - name: Package complete CI diagnostics
+        if: always()
+        run: node scripts/package-ci-artifacts.mjs
+        env:
+          CI_STATUS: ${{ job.status }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
       - name: ASSISTANT HANDOFF — GitHub Actions summary
         if: always()
         run: node scripts/ci-summary.mjs
         env:
           CI_STATUS: ${{ job.status }}
 
-      - name: Package compact CI artifact
-        if: always()
-        run: node scripts/package-ci-artifacts.mjs
-
-      - name: Upload compact CI report
+      - name: Upload complete CI report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: biforge-ci-report
           path: artifacts/ci-checks/
           if-no-files-found: error
-          retention-days: 7
+          compression-level: 0
+          retention-days: 30
