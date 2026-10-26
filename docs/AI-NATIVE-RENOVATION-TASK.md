@@ -1,7 +1,7 @@
 # AI-NATIVE-RENOVATION — Task: Phases 0–2 in five patches (P104–P108)
 
 **Task IDs:** ANR-P104, ANR-P105, ANR-P106, ANR-P107, ANR-P108
-**Status:** P104, P105, P106 and P107 delivered (see their sections); P108 active. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
+**Status:** P104–P108 implemented; P108 gate evidence and formal acceptance pending. Supersedes ANR-P0-001. On 2026-10-25 the Navigator cancelled all pending Navigator decisions for this programme: the assistant decides within Tier 0/1, discloses in CHANGELOG, and asks only yes/no questions that touch Tier 3.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1 and 2 and only the section of the current patch.
 
@@ -87,7 +87,7 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 
 **Time gate.** Limit agreed by the Navigator: +15 % over the duration of the last green P106 run. Baseline duration of that run: NOT PROVIDED, so the time part of the gate is `NOT_RUN`. Compare `wallClockMs` in `results.json` (DAG step) and the job duration of the first hosted P107 run with the baseline times 1.15. Expected effect: none (same checks, same order class, concurrency 1).
 
-## 7. P108 — Phase 2b: fault injection and bounded repair
+## 7. P108 — Phase 2b: fault injection and bounded repair\n\n**Implementation status:** code and deterministic contract tests added in P108. Local fault-injection tests (5/5), version check, docs check, architecture check and graph freshness check passed. Compact CI suite is blocked by incomplete dependency installation (`jszip` unavailable); typecheck is blocked by missing `vite/client` types. Hosted CI and duration comparison remain NOT RUN.
 
 * **W1 Fault-injection suite.** Scenarios: check timeout, cancellation, missing log, partial artifact, runner interruption, handoff generator failure, corrupted record. Each must end with a correct status and a handoff.
 * **W2 Repair protocol.** A bounded loop: fixed attempt budget, re-run of affected regressions, record per attempt. A mechanical guard rejects a repair diff that touches protected paths (tests asserting security, gates, acceptance criteria, `.github/workflows`, authorization code) or lowers a timeout/threshold.
