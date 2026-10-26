@@ -209,17 +209,18 @@ test('P105 fallback: an existing report is left untouched', () => {
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('P105 end to end: the independent runner writes records that the generator accepts', () => {
+test('P105 end to end: the DAG runner writes records that the generator accepts', () => {
   const dir = tmp('e2e');
   try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-    const names = [...new Set([...pkg.scripts.check.matchAll(/npm run ([a-zA-Z0-9:_-]+)/g)].map((m) => m[1]))];
-    const skip = names.filter((n) => n !== 'lint:copy').join(',');
-    const r = run('scripts/run-independent-checks.mjs', dir, { CHECK_SKIP_SCRIPTS: skip, GITHUB_SHA: 'abc1234' });
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'docs/verification-manifest.json'), 'utf8'));
+    manifest.checks = manifest.checks.filter((c) => ['version-consistency', 'lint:copy'].includes(c.id));
+    const file = path.join(dir, 'manifest.json');
+    fs.writeFileSync(file, JSON.stringify(manifest));
+    const r = spawnSync(process.execPath, ['scripts/run-dag.mjs', '--profile', 'check', '--manifest', file], { cwd: root, encoding: 'utf8', env: { ...process.env, CI_LOGS_DIR: dir, GITHUB_SHA: 'abc1234' } });
     assert.equal(r.status, 0, r.stderr || r.stdout);
     const results = JSON.parse(fs.readFileSync(path.join(dir, 'results.json'), 'utf8'));
-    assert.deepEqual(results.evidence.records, ['evidence-independent-checks.json']);
-    const record = JSON.parse(fs.readFileSync(path.join(dir, 'evidence-independent-checks.json'), 'utf8'));
+    assert.deepEqual(results.evidence.records, ['evidence-dag.json']);
+    const record = JSON.parse(fs.readFileSync(path.join(dir, 'evidence-dag.json'), 'utf8'));
     assert.equal(validateArtifact(record, 'evidence-record').ok, true);
     assert.deepEqual(record.items.map((i) => i.id).sort(), ['lint:copy', 'version-consistency']);
     assert.equal(record.items[0].provenance.revision, 'abc1234');
