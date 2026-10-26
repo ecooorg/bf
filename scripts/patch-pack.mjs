@@ -129,7 +129,9 @@ function run(cmd, npmArgs, { dropDb = false, key, timeoutSec } = {}) {
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const requestedSteps = opt('steps');
-const checkScripts = [...(pkg.scripts.check?.matchAll(/npm run ([a-zA-Z0-9:_-]+)/g) ?? [])].map((m) => m[1]);
+// P107: the check chain lives in docs/verification-manifest.json (profile check); a tree without it falls back to the `npm run` names inside package.json's check script.
+const manifestChecks = (() => { try { return JSON.parse(fs.readFileSync('docs/verification-manifest.json', 'utf8')).checks.filter((c) => c.profiles.includes('check') && c.argv[0] === 'npm' && c.argv[1] === 'run').map((c) => c.argv[2]); } catch { return null; } })();
+const checkScripts = manifestChecks ?? [...(pkg.scripts.check?.matchAll(/npm run ([a-zA-Z0-9:_-]+)/g) ?? [])].map((m) => m[1]);
 let steps = requestedSteps ? requestedSteps.split(',').map((x) => x.trim()).filter(Boolean).flatMap((step) => step === 'check' ? checkScripts : [step]) : checkScripts;
 // Build is a single dedicated stage at the end, even if the caller lists it in --steps.
 steps = steps.filter((step) => step !== 'build');

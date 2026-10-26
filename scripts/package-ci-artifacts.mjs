@@ -29,7 +29,7 @@ if (failed) {
   // P105: the evidence records and the structured handoff travel with the failure bundle.
   for (const name of fs.readdirSync(dir)) if (/^evidence-.*\.json$/.test(name) || name === 'handoff-report.json') selected.add(name);
   // Include workflow-level logs only when they contain failure signals; install/migration logs are kept on failure for setup diagnosis.
-  for (const name of ['ci-install.log', 'ci-migrate.log', 'ci-check.log', 'ci-live.log', 'ci-api.log', 'ci-build.log']) {
+  for (const name of ['ci-install.log', 'ci-migrate.log', 'ci-dag.log']) {
     const full = path.join(dir, name);
     if (!fs.existsSync(full)) continue;
     const text = fs.readFileSync(full, 'utf8');

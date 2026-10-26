@@ -22,12 +22,8 @@ const logs = fs.readdirSync(dir).filter((f) => f.endsWith('.log')).sort();
 const activeStage = resultsDoc?.active && !uniqueRows.some((r) => r.id === resultsDoc.active.id) ? resultsDoc.active : null;
 const interruptedRow = activeStage ? { ...activeStage, status: /test timed out after|testTimeoutFailure/i.test(read(path.basename(activeStage.log || ''))) ? 'TIMEOUT' : 'INTERRUPTED', durationMs: 0, exitCode: null, signal: null, log: activeStage.log || `${activeStage.id}.log`, note: 'Runner ended before this probe recorded a final result; inspect captured log tail.' } : null;
 const failedRows = [...uniqueRows.filter((r) => ['FAIL','TIMEOUT'].includes(r.status)), ...(interruptedRow ? [interruptedRow] : [])];
-const stepOutcomes = {
-  diagnostic: process.env.DIAGNOSTIC_OUTCOME || 'unknown', secondary: process.env.SECONDARY_OUTCOME || 'unknown',
-  check: process.env.CHECK_OUTCOME || 'unknown', live: process.env.LIVE_OUTCOME || 'unknown',
-  api: process.env.API_OUTCOME || 'unknown', build: process.env.BUILD_OUTCOME || 'unknown',
-};
-const workflowLogNames = ['version-consistency.log','ci-install.log','ci-diagnostic-gate.log','ci-secondary-diagnostic.log','ci-migrate.log','ci-check.log','ci-live.log','ci-api.log','ci-build.log'];
+const stepOutcomes = { dag: process.env.DAG_OUTCOME || 'unknown' };
+const workflowLogNames = ['version-consistency.log','ci-install.log','ci-dag.log'];
 const workflowErrors = [];
 const errorRe = /(^\s*not ok\s+\d+\s+-|AssertionError|ERR_[A-Z_]+|error TS\d+|(?:^|\s)Error:|Expected values|expected:|actual:|operator:|test timed out after|testTimeoutFailure|ELIFECYCLE|uncaught exception|Cannot find name|SyntaxError|TypeError|ReferenceError|failed with exit code|\[FAIL\]|\[TIMEOUT\])/i;
 function excerptForLog(text, status) {
@@ -96,24 +92,28 @@ const evidenceLib = await import('./evidenceLib.mjs').catch(() => null);
 const evidenceUnavailable = (code, detail) => ({ required: true, completeness: 'unavailable', problems: [{ severity: 'critical', code, detail }], records: [], refs: [], evidenceOk: false });
 let evidence;
 try { evidence = evidenceLib ? evidenceLib.assessEvidence(dir, resultsDoc) : evidenceUnavailable('EVIDENCE_LIBRARY_UNAVAILABLE', 'evidenceLib.mjs failed to load'); } catch (error) { evidence = evidenceUnavailable('ASSESSMENT_CRASH', String(error && error.message || error)); }
+// P107: BLOCKED, SKIPPED_BY_POLICY, NOT_RUN, UNKNOWN and PARTIAL rows are never PASS; a run that contains one is not a success.
+const NOT_VERIFIED = ['BLOCKED', 'SKIPPED_BY_POLICY', 'NOT_RUN', 'UNKNOWN', 'PARTIAL'];
+const notVerifiedRows = uniqueRows.filter((r) => NOT_VERIFIED.includes(r.status));
 if (status === 'PASSED' && evidence.required && !evidence.evidenceOk) status = 'UNVERIFIED';
+if (status === 'PASSED' && notVerifiedRows.length) status = 'UNVERIFIED';
 const sha = oneLine(process.env.GITHUB_SHA || resultsDoc?.commit || 'local/unknown', 80);
 const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : 'unavailable';
 const count = (s) => uniqueRows.filter((r) => r.status === s).length;
 const failedStageNames = [...new Set([...failedRows.map((r) => `${r.id}:${r.status}`), ...envFailed.map((s) => `workflow-${s}:FAIL`)])];
-const skipped = uniqueRows.filter((r) => r.status === 'SKIPPED').map((r) => r.id);
+const skipped = uniqueRows.filter((r) => r.status === 'SKIPPED' || NOT_VERIFIED.includes(r.status)).map((r) => (r.status === 'SKIPPED' ? r.id : `${r.id}:${r.status}${r.note ? ` (${oneLine(r.note, 120)})` : ''}`));
 const handoff = [];
 handoff.push('# BiForge ASSISTANT HANDOFF');
 handoff.push(`PATCH_STATUS=${status}`, `COMMIT=${sha}`, `WORKFLOW_RUN=${runUrl}`);
 const lockVersion = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'package-lock.json'), 'utf8')).lockfileVersion; } catch { return 'unknown'; } })();
 handoff.push(`RUNTIME=node ${oneLine(process.version,40)}; platform=${process.platform}; package-lock-version=${lockVersion}`);
-handoff.push(`PHASES=diagnostic:${stepOutcomes.diagnostic}; secondary:${stepOutcomes.secondary}; check:${stepOutcomes.check}; live:${stepOutcomes.live}; api:${stepOutcomes.api}; build:${stepOutcomes.build}`);
-handoff.push(`DIAGNOSTIC_RESULTS=${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('TIMEOUT')} TIMEOUT, ${count('SKIPPED')} SKIPPED`);
+handoff.push(`PHASES=dag:${stepOutcomes.dag}`);
+handoff.push(`DIAGNOSTIC_RESULTS=${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('TIMEOUT')} TIMEOUT, ${count('SKIPPED')} SKIPPED, ${count('BLOCKED')} BLOCKED, ${count('SKIPPED_BY_POLICY')} SKIPPED_BY_POLICY`);
 handoff.push(`FAILED_STAGES=${failedStageNames.join('; ') || 'none recorded'}`);
 handoff.push(`TIMEOUTS=${failedRows.filter((r) => r.status === 'TIMEOUT').map((r) => `${r.id}:${Math.round((r.durationMs||0)/1000)}s; origin=${r.timeoutOrigin||'unknown'}; node-test-limit=${r.nodeTestTimeoutMs ?? 'n/a'}ms; watchdog-limit=${r.watchdogTimeoutMs ?? r.timeoutMs ?? 'unknown'}ms`).join(' | ') || 'none'}`);
 handoff.push(`SKIPPED_STAGES=${skipped.join(', ') || 'none'}`);
 handoff.push(`ACTIVE_AT_RUN_END=${activeStage ? `${activeStage.id}; phase=${activeStage.phase}; log=${activeStage.log}; timeout-limit=${activeStage.timeoutMs}ms` : 'none'}`);
-handoff.push(`MISSING_LOGS=${['critical-router-selection.log','critical-router-policy-call-limit.log','critical-gemini-timeout.log','critical-app-builder-recovery.log'].filter((name) => !fs.existsSync(path.join(dir,name))).join(', ') || 'none'}`);
+handoff.push(`MISSING_LOGS=${uniqueRows.filter((r) => r.log && ['PASS','FAIL','TIMEOUT'].includes(r.status) && !fs.existsSync(path.join(dir, path.basename(r.log)))).map((r) => path.basename(r.log)).join(', ') || 'none'}`);
 const errorSections = [];
 for (const stage of failedRows) {
   const logName = path.basename(stage.log || `${stage.id}.log`);
@@ -138,11 +138,11 @@ for (const stage of failedRows) {
 if (failedStageNames.some((name) => name.startsWith('version-consistency:')) && !workflowErrors.some((group) => group.log === 'version-consistency.log')) {
   const versionLog = read('version-consistency.log');
   errorSections.push('--- WORKFLOW_LOG=version-consistency.log');
-  errorSections.push(...(versionLog.trim() ? excerptForLog(versionLog, 'FAIL') : ['LOG_EVIDENCE=empty or unavailable; inspect ci-check.log for the actual check-version output.']));
+  errorSections.push(...(versionLog.trim() ? excerptForLog(versionLog, 'FAIL') : ['LOG_EVIDENCE=empty or unavailable; inspect ci-dag.log for the actual check-version output.']));
 }
 for (const group of workflowErrors) {
   // Avoid duplicating the diagnostic gate output already represented by per-probe logs unless it has independent evidence.
-  if (group.log === 'ci-diagnostic-gate.log' && failedRows.length) continue;
+  if (group.log === 'ci-dag.log' && failedRows.length) continue;
   errorSections.push(`--- WORKFLOW_LOG=${group.log}`);
   errorSections.push(...group.evidence.slice(0, 10));
 }
@@ -161,19 +161,19 @@ handoff.push(`REPO_CHECK_COMMAND=${oneLine(packageJson.scripts?.check || 'unavai
 handoff.push(`FAILED_STAGE_RERUN_COMMANDS=${rerunCommands.length ? rerunCommands.map((x) => oneLine(x, 1000)).join(' | ') : 'not recorded; use log/source evidence below'}`);
 handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacted failure evidence and source excerpts. Treat absent evidence as unknown; do not claim unrun checks passed. Ask for diagnostics.zip only if this report explicitly says logs/evidence are missing or the failure cannot be resolved from included evidence.');
 handoff.push('EVIDENCE_BEGIN', ...errorSections, 'EVIDENCE_END');
-const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? ['critical-router-selection.log','critical-router-policy-call-limit.log','critical-gemini-timeout.log','critical-app-builder-recovery.log'] : [];
+const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? uniqueRows.filter((r) => r.phase === 'critical' && r.log).map((r) => r.log) : [];
 handoff.push(`LOG_FILES=${[...new Set([...criticalLogSet, ...failedRows.map((r) => path.basename(r.log || `${r.id}.log`)), ...workflowErrors.map((g) => g.log)])].filter((name) => fs.existsSync(path.join(dir,name))).join(', ') || logs.join(', ') || 'none'}`);
 handoff.push(`EVIDENCE=${evidence.completeness}; records=${evidence.refs.join(', ') || 'none advertised'}; problems=${evidence.problems.length}`);
 handoff.push(`EVIDENCE_PROBLEMS=${evidence.problems.length ? evidence.problems.slice(0, 8).map((x) => `${x.code}: ${oneLine(x.detail, 200)}`).join(' | ') : 'none'}`);
 handoff.push(`ROOT_CAUSE_CONFIDENCE=${failedRows.some((r) => r.status === 'TIMEOUT') ? 'assertion evidence may be confirmed; timeout cause remains unproven unless final active test/operation is identified' : failedRows.length ? 'use assertion and source context; do not infer intent beyond evidence' : status === 'FAILED' ? 'workflow failure recorded but diagnostic stage evidence incomplete' : 'no failure recorded'}`);
-const nextActionText = status === 'UNVERIFIED' ? 'Checks reported success but the evidence is missing, malformed or contradictory. Treat the result as unverified; fix the evidence producer, not product logic.' : (status === 'PASSED' ? 'No corrective patch indicated by these checks; verify required release gates.' : 'Fix only evidenced failures; use source context and exact command. For timeouts, investigate the last active test/output and cleanup before changing product logic.');
+const nextActionText = status === 'UNVERIFIED' ? (notVerifiedRows.length ? 'Some checks were BLOCKED, SKIPPED_BY_POLICY, NOT_RUN or UNKNOWN; the run is not a success. Resolve the named prerequisite or policy, not product logic.' : 'Checks reported success but the evidence is missing, malformed or contradictory. Treat the result as unverified; fix the evidence producer, not product logic.') : (status === 'PASSED' ? 'No corrective patch indicated by these checks; verify required release gates.' : 'Fix only evidenced failures; use source context and exact command. For timeouts, investigate the last active test/output and cleanup before changing product logic.');
 handoff.push(`NEXT_ACTION=${nextActionText}`);
 let handoffJson = 'unavailable';
 try {
   if (evidenceLib) {
     const handoffReport = evidenceLib.buildHandoffReport({
       patchStatus: status,
-      summary: `${status}: ${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('TIMEOUT')} TIMEOUT, ${count('SKIPPED')} SKIPPED; evidence ${evidence.completeness}`,
+      summary: `${status}: ${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('TIMEOUT')} TIMEOUT, ${count('SKIPPED')} SKIPPED, ${count('BLOCKED')} BLOCKED, ${count('SKIPPED_BY_POLICY')} SKIPPED_BY_POLICY; evidence ${evidence.completeness}`,
       evidence, failedStages: failedStageNames, blockedStages: skipped, nextAction: nextActionText,
       limitations: evidence.problems.length ? evidence.problems.slice(0, 8).map((x) => `${x.code}: ${x.detail}`).join('; ') : (evidence.required ? 'none recorded' : 'legacy results without evidence records'),
     });

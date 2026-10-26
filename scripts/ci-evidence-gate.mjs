@@ -11,7 +11,7 @@ const problems = [];
 let report = '';
 try { report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8'); } catch { problems.push('NEXT_PATCH.md is missing'); }
 if (report) {
-  if (/^PATCH_STATUS=UNVERIFIED$/m.test(report)) problems.push('PATCH_STATUS=UNVERIFIED (evidence missing, malformed or contradictory)');
+  if (/^PATCH_STATUS=UNVERIFIED$/m.test(report)) problems.push('PATCH_STATUS=UNVERIFIED (evidence missing, malformed or contradictory, or a check is BLOCKED, SKIPPED_BY_POLICY, NOT_RUN or UNKNOWN)');
   const line = report.match(/^HANDOFF_JSON=(.*)$/m);
   if (!line) problems.push('HANDOFF_JSON line is absent');
   else {

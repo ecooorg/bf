@@ -1,4 +1,4 @@
-// P106: deterministic check graph generated from code: check -> test/script files -> source modules.
+// P106/P107: deterministic check graph generated from code and docs/verification-manifest.json: check -> test/script files -> source modules.
 //   node scripts/statusGraph.mjs                 write docs/generated-check-graph.json
 //   node scripts/statusGraph.mjs --check         exit 1 when the committed file is stale
 //   node scripts/statusGraph.mjs --overlay <dir> write artifacts/qa/status-graph-run.json with last statuses from <dir>/results.json
@@ -31,14 +31,15 @@ function importedModules(rel) {
 
 export function buildGraph() {
   const pkg = JSON.parse(readText('package.json'));
-  const chain = String(pkg.scripts?.check || '');
-  const names = ['check-version', ...[...new Set([...chain.matchAll(/npm run ([a-zA-Z0-9:_-]+)/g)].map((m) => m[1]))]];
-  const checks = names.map((id) => {
-    const command = id === 'check-version' ? String(pkg.scripts?.['check-version'] || 'node scripts/check-version.mjs') : String(pkg.scripts?.[id] || '');
+  const manifest = JSON.parse(readText('docs/verification-manifest.json'));
+  const checks = manifest.checks.map((raw) => {
+    const c = { ...manifest.defaults, ...raw };
+    const npmScript = c.argv[0] === 'npm' && c.argv[1] === 'run' ? c.argv[2] : null;
+    const command = npmScript && pkg.scripts?.[npmScript] ? String(pkg.scripts[npmScript]) : c.argv.join(' ');
     const files = [...new Set(command.match(FILE_RE) || [])].filter(exists).sort();
     const modules = new Set();
     for (const f of files) { for (const m of importedModules(f)) modules.add(m); if (/^scripts\//.test(f)) modules.add(f); }
-    return { id, command, files, modules: [...modules].sort() };
+    return { id: c.id, command, needs: c.needs, profiles: c.profiles, files, modules: [...modules].sort() };
   }).sort((a, b) => a.id.localeCompare(b.id));
   const moduleIndex = {};
   for (const c of checks) for (const m of c.modules) (moduleIndex[m] ||= []).push(c.id);
