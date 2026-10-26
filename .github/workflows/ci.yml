@@ -101,12 +101,26 @@ jobs:
         env:
           CI_STATUS: ${{ job.status }}
 
+      - name: Print final assistant handoff
+        if: always()
+        shell: bash
+        run: |
+          if [ -f artifacts/ci-checks/BIForge-NEXT-PATCH.md ]; then
+            cat artifacts/ci-checks/BIForge-NEXT-PATCH.md
+          elif [ -f artifacts/ci-checks/NEXT_PATCH.md ]; then
+            cat artifacts/ci-checks/NEXT_PATCH.md
+          else
+            echo 'BIForge-NEXT-PATCH.md unavailable; inspect CI report-generation errors above.'
+          fi
+
       - name: Upload complete CI report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: biforge-ci-report
-          path: artifacts/ci-checks/
+          path: |
+            artifacts/ci-checks/BIForge-NEXT-PATCH.md
+            artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
