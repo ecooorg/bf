@@ -1,7 +1,7 @@
-# AI-NATIVE-RENOVATION — Task: Phase 3 foundation (P110+)
+# AI-NATIVE-RENOVATION — Task: Phase 3 foundation (P111+)
 
-**Task IDs:** ANR-P110 (current); ANR-P109 closed; prior ANR-P104 … ANR-P108.3-HF1 closed.
-**Status:** Phase 2 closed. P110 delivers the Intent/Policy Contract foundation (library, semantic no-promotion gate, tests, example contract). Diagnostics: Vite `__dirname` warning removed from CI build logs. Hosted CI green at baseline (P109). Forward plan for P111+ unchanged in substance.
+**Task IDs:** ANR-P111 (current); ANR-P110 closed; ANR-P109 closed; prior ANR-P104 … ANR-P108.3-HF1 closed.
+**Status:** Phase 2 closed. P110 Intent/Policy Contract foundation closed. P111 delivers capability/impact graph v1 (generator, `docs/generated-capability-graph.json`, tests; unknown/stale explicit). Hosted CI green at P110 baseline. Next: P112 context selection.
 **Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 **Reading rule for a fresh session:** read sections 1–2 and the current-patch section (P110). Forward plan is in section 5.
 
@@ -10,7 +10,8 @@
 | P104–P106 | 0–1 | Documentation cleanup, schemas, evidence, CI gate (closed) |
 | P107–P108.3-HF1 | 2 | DAG, fault injection, bounded repair, always-on CI diagnostics, two-artifact handoff (closed) |
 | P109 | 2 closure | Formal acceptance, audit, P92 freeze, forward plan (closed) |
-| **P110** | **3a** | **Intent/Policy Contract foundation + diagnostics clean-up** |
+| P110 | 3a | Intent/Policy Contract foundation + diagnostics clean-up (closed)
+| **P111** | **3b** | **Capability / impact graph v1** |
 
 ## 1. Navigator directive
 
@@ -26,7 +27,25 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 6. **No weakening.** Tests, gates, security controls and acceptance criteria are never relaxed to get green.
 7. **Honest status.** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 
-## 3. P110 — Intent/Policy Contract foundation (current)
+## 3. P111 — Capability / impact graph v1 (current)
+
+**Goal.** One directed graph linking intent → modules/contracts → state/side-effects → checks → evidence, with unknown and stale context explicit.
+
+**Delivered**
+
+* `scripts/capabilityGraphLib.mjs` + `scripts/capabilityGenerateGraph.mjs`.
+* Output `docs/generated-capability-graph.json` (421 nodes / 859 edges on current tree).
+* Node statuses: `known` | `unknown` | `stale` (never promoted).
+* Wired into `docs:generate` / `docs:check`; tests in `tests/capability-graph-p111.test.mjs`.
+* Optional `--intent path` to attach Intent/Policy Contract instances (impacts, invariants).
+
+**Out of scope.** Context packager and impact-plan instances (P112). Runtime behaviour unchanged.
+
+**Gate.** Generator runs; `--check` passes; tests pass; unknown/stale counts reported in summary.
+
+**Rollback.** Remove generator/lib/tests/output; revert `docs:generate` chain and version.
+
+## 3a. P110 — Intent/Policy Contract foundation (closed)
 
 **Goal.** Make approved intent machine-readable and prevent silent promotion of assumptions into policy.
 
