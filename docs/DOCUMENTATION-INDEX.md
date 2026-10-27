@@ -8,7 +8,8 @@ Repository audience: AI assistants (Navigator Charter at the top of `../AGENTS.m
 |---|---|---|
 | `../AGENTS.md` | 13 KB | **Navigator Charter (C1–C11, overrides everything)**, status, authorization tiers, critical rules, commands, documentation policy |
 | `AI-OPERATING-RULES.md` | 5 KB | Permanent AI operating, authorization, security and evidence rules |
-| `AI-NATIVE-RENOVATION-TASK.md` | section 2 and the current patch | Per-patch scope, work items, gates |
+| `AI-NATIVE-RENOVATION-TASK.md` | sections 1–2 and current P113 | Active patch, scope, work items, gates |
+| `AI-USER-VALUE-ARCHITECTURE-P113.md` | P113 audit/design or any agent rearchitecture | Canonical three-agent target, user-outcome contracts, audit protocol, acceptance scenarios and P113–P120 sequence |
 
 ## On demand
 

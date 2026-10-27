@@ -5,14 +5,14 @@
 **Normative strategic destination:** `VIX-CONCEPT.md`  
 **Audit basis:** `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`  
 **Renovation mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`  
-**Current phase:** Phase 3 foundation (P110–P112: Intent/Policy Contract, capability graph v1, context selection / impact planning delivered). Phase 0–2 closed. P92 production diagnostics frozen until full renovation completes.  
+**Current phase:** P113 user-outcome rearchitecture contract and audit plan. P110–P112 remain delivered foundations but do not prove the user-facing modes work. Phase 0–2 closed. P92 production diagnostics frozen until full renovation completes. Canonical target: `AI-USER-VALUE-ARCHITECTURE-P113.md`.  
 **Rule:** one bounded patch at a time; preserve safety; report evidence honestly.
 
 ## 1. North star
 
 BiForge is to become a governed, evidence-driven, AI-native system that translates approved intent into safe, verified, recoverable change while keeping the Navigator out of source code, file layout, and raw CI diagnostics.
 
-The target is not “more AI tools.” It is one coherent lifecycle:
+The product acceptance target is user information value and completed work, not internal activity. The target is not “more AI tools.” For repository/code evolution, retain the governed lifecycle:
 
 **intent → policy and context → impact model → verification plan → bounded implementation → independent checks → counter-example analysis → bounded repair → evidence → decision or safe completion.**
 
@@ -144,8 +144,54 @@ For each patch:
 9. provide rollback and compatibility notes;
 10. stop for Navigator approval at Tier 2/3 boundaries.
 
-## 5. Current next action
+## 5. User-outcome rearchitecture (P113–P120)
 
-Phase 0 is closed by P104. Continue with P105–P108 as specified in `AI-NATIVE-RENOVATION-TASK.md`.
+The owner reports that all four current modes are functionally unacceptable from the user's perspective. Treat this as a priority signal and reproduce the failures; do not presume root causes before source/log tracing. P113 defines the target; it does not change runtime behavior.
+
+### P113 — User-outcome contract (current)
+Exactly three target agents: Conversational Agent; Expert Problem-Solving Agent; Complex Software Architect Agent. Each owns its instructions, orchestration/state machine, model cascade, output contract and end-to-end acceptance suite. Shared low-level infrastructure is allowed. See `AI-USER-VALUE-ARCHITECTURE-P113.md`.
+
+**Gate:** target behavior, audit protocol, acceptance scenarios and migration rules defined. Runtime behavior remains NOT_RUN.
+
+### P114 — End-to-end audit and root-cause map
+Reproduce user-reported failure scenarios and trace UI → orchestration → instructions → provider/tools → validation → persistence → UI/artifact delivery. Audit all current modes, shared infrastructure, P110–P112 runtime adoption, dependency risks and known log findings. Rank findings by user harm, recurrence, confidence and leverage.
+
+**Gate:** every current mode has an evidence-linked path; root causes have source/log evidence or remain explicit hypotheses; normal and failure/recovery cases are reproduced or marked NOT_REPRODUCED/NOT_RUN.
+
+### P115 — Conversational Agent recovery
+Create/repair the isolated conversational workflow and instruction/cascade policy. Validate direct answers, current information when required, multi-turn context and truthful provider/tool failure handling.
+
+**Gate:** conversational scenarios and user-quality rubric pass; live-provider evidence clearly distinguished from mocked tests.
+
+### P116 — Expert Problem-Solving Agent
+Implement durable investigation state, hypothesis/evidence distinction, alternatives, synthesis and action plan; ensure every iteration has a meaningful next action and can recover after failure.
+
+**Gate:** six-turn scenario, state continuity, final action plan and injected failure recovery pass; no dead-end state.
+
+### P117 — Complex Software Architect Agent
+Implement requirements → architecture plan → actual files → validation → bounded repair → verified package → user-accessible delivery. Make explicit terminal failures and partial results first-class.
+
+**Gate:** real non-empty artifact is integrity-checked and accessible; declared checks are accurately reported; malformed spec and injected stage failures never become false success.
+
+### P118 — Three-agent separation and migration
+Replace four-mode entry points with exactly three agents after each replacement agent's gate. Migrate compatible state and artifacts with integrity/rollback evidence. Remove old routes only after parity and migration acceptance.
+
+**Gate:** every user entry maps to one target agent; no orphaned state/route; all three end-to-end suites pass; rollback is verified.
+
+### P119 — Cross-agent resilience
+Based on P114 evidence, address model cascades, instruction conflicts, retries/timeouts/cancellation/listener lifecycle, structured output, crypto/ZIP behavior, dependency vulnerabilities and observability.
+
+**Gate:** every confirmed defect has regression evidence; fault injection yields truthful terminal states; dependency findings have a documented disposition; no gate weakened.
+
+### P120 — User-outcome acceptance and programme closure
+Run repeated representative scenarios and measure task completion, answer/problem-solution quality, artifact validity/access, false success, recovery, continuity, freshness, latency/cost and evidence completeness. Set thresholds before the evaluation run.
+
+**Gate:** each agent meets its own acceptance contract; critical NOT_RUN/UNKNOWN cases prevent full acceptance; residual risks and unsupported claims are explicit.
+
+These IDs are a proposed bounded sequence, not automatic authorization. Each patch still requires its own scope, evidence, rollback and approval at the applicable authorization tier.
+
+## 6. Product acceptance principle
+
+Green CI, build success, valid JSON, successful model calls, populated UI panels and internal service health are necessary but insufficient. Acceptance requires evidence that a representative user obtained the intended result. A failure must end in a truthful, actionable user-visible state. Never report a workflow as successful when the intended answer, plan, or artifact was not delivered.
 
 No source-code rewrite, production action, GitHub write, permission change, or generated-code execution is authorized by this roadmap.

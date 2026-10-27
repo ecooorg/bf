@@ -1,18 +1,38 @@
-# AI-NATIVE-RENOVATION — Task: Phase 3 foundation (P112+)
+# AI-NATIVE-RENOVATION — Active task (P113)
 
-**Task IDs:** ANR-P112 (current); ANR-P111 closed; ANR-P110 closed; ANR-P109 closed.
-**Status:** Phase 2 closed. P110–P111 closed. P112 delivers context selection and Change/Impact Plan generation on the capability graph (`contextSelectLib` / `context:select`). Hosted CI green at P111 baseline. Next: P113 verification-plan binding / release eligibility.
-**Authority:** Navigator Charter in `AGENTS.md`. Normative references: `AI-OPERATING-RULES.md`, `AI-NATIVE-RENOVATION-MANDATE.md`, `AI-NATIVE-RENOVATION-ROADMAP.md`, `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
-**Reading rule for a fresh session:** read sections 1–2 and the current-patch section (P110). Forward plan is in section 5.
+**Task IDs:** P113 current; P112, P111, P110 closed as foundation patches.  
+**Status:** P113 defines the user-outcome target and audit sequence. Runtime audit and implementation are NOT_RUN. The owner's product report is the reason for reprioritization; individual root causes remain unconfirmed until P114 evidence.  
+**Authority:** `AGENTS.md` Navigator Charter. Read `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` as the canonical P113 contract.  
+**Fresh-session rule:** read sections 1–2 and current P113 section here, then the P113 contract. Do not infer product acceptance from hosted CI status.
 
-| Patch | Phase | Outcome |
+| Patch | Outcome | Status |
 |---|---|---|
-| P104–P106 | 0–1 | Documentation cleanup, schemas, evidence, CI gate (closed) |
-| P107–P108.3-HF1 | 2 | DAG, fault injection, bounded repair, always-on CI diagnostics, two-artifact handoff (closed) |
-| P109 | 2 closure | Formal acceptance, audit, P92 freeze, forward plan (closed) |
-| P110 | 3a | Intent/Policy Contract foundation + diagnostics clean-up (closed)
-| P111 | 3b | Capability / impact graph v1 (closed)
-| **P112** | **3c** | **Context selection and impact planning** |
+| P104–P106 | Documentation consolidation, schemas, evidence, CI gate | closed |
+| P107–P108.3-HF1 | Verification DAG, bounded repair, diagnostics/handoff | closed |
+| P109 | Phase 2 closure and audit | closed |
+| P110 | Intent/Policy Contract | closed foundation |
+| P111 | Capability/impact graph | closed foundation |
+| P112 | Context selection and impact planning | closed foundation |
+| **P113** | **User-outcome architecture contract, three-agent target, audit and roadmap** | **current; docs/spec only** |
+
+## Current patch — P113: User-outcome architecture and three-agent target
+
+**Goal.** Re-anchor programme decisions in user-visible information value and completed work. Define exactly three target agents: Conversational Agent, Expert Problem-Solving Agent, and Complex Software Architect Agent. Establish an evidence-led audit before runtime changes.
+
+**Canonical contract.** `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` defines target behavior, agent boundaries, end-to-end audit, acceptance scenarios, roadmap P113–P120, metrics, migration and rollback rules. Treat it as normative AI-session instructions, not external-reader documentation.
+
+**Delivered in P113:**
+- clarified C1/C7 so repository documents are AI-facing; normative specs, audits, roadmaps and acceptance contracts are allowed when operationally necessary; external-reader guides/manuals are not;
+- defined separate agent-owned instructions, orchestration/state machines, model cascades, output contracts and acceptance suites, with limited shared infrastructure;
+- specified that CI green and internal component health are necessary but insufficient; user outcome is the acceptance criterion;
+- defined audit work AUD-1–AUD-6 and scenario acceptance for all agents;
+- set P114–P120 sequence, with root-cause audit before implementation.
+
+**Out of scope:** runtime changes, deleting the existing four modes, prompt/provider changes, production actions, or claiming any mode is fixed.
+
+**Gate:** normative target, audit path, acceptance criteria and migration gates are defined; charter language is unambiguous. Runtime audit and all product scenarios remain `NOT_RUN` until subsequent patches.
+
+**Rollback:** revert the P113 documentation/charter/index/roadmap/changelog/handoff changes as one unit. No runtime state or user data changes.
 
 ## 1. Navigator directive
 
@@ -28,7 +48,7 @@ The directive is the **Navigator Charter** at the top of `AGENTS.md` (laws C1–
 6. **No weakening.** Tests, gates, security controls and acceptance criteria are never relaxed to get green.
 7. **Honest status.** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 
-## 3. P112 — Context selection and impact planning (current)
+## 3. P112 — Context selection and impact planning (closed foundation)
 
 **Goal.** Bounded context packs and schema-valid Change/Impact Plans from seed paths via the capability graph; unknown/stale context stays explicit.
 
