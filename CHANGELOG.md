@@ -1,3 +1,11 @@
+## P117.1 — Universal Model Resilience Layer planning contract
+
+- Documentation-only planning patch. Added a bounded future specification for a provider/model registry, health monitor, task-aware router, response validator, and recovery engine, planned for P121 after the current P116–P120 line.
+- Captured the Navigator’s candidate model families and potential access channels without asserting that exact IDs, endpoints, free quotas, current availability, pricing, or quality are verified.
+- Specified layered health checks and quality evaluation, quota-aware/staggered probes, bounded retries, circuit breakers, context preservation, independent provider failure domains, selective critique, and truthful user-facing failure behavior.
+- Recorded open decisions on quota/spend budgets, probe policy, cross-provider data transfer, selective verification, telemetry retention, local inference feasibility, and candidate endpoint validation. These must be resolved before P121 launch.
+- No runtime code, provider configuration, credentials, dependencies, or product version changed. Tests/build/CI/provider checks: NOT_RUN for P117.1. This patch does not resolve the prior P115 CI/version mismatch or accept P117.
+
 ## P117 — Expert problem-solving contract and multi-provider model cascade
 
 - Strengthened Expert-mode instructions to maintain a structured investigation across turns: problem framing, fact/assumption separation, competing hypotheses, decisive unknowns, trade-offs, and actionable next steps; no unexplained stage dead ends.
