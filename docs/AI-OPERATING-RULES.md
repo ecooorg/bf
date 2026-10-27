@@ -80,3 +80,18 @@ Only executed successful checks are PASSED. A missing dependency, unavailable da
 - Never execute generated code on the application host without explicit owner authorization and the required security controls.
 - Validate external input at runtime; TypeScript types alone do not validate external data.
 - Preserve authentication, authorization, project isolation, auditability and budget controls during refactoring.
+
+
+## Canonical project documentation
+
+- `AGENTS.md` is the authority and precedence charter.
+- `docs/AI-OPERATING-RULES.md` contains permanent operating, security, and evidence rules.
+- `docs/AI-NATIVE-RENOVATION-TASK.md` contains the current task and immediate next action.
+- `docs/AI-NATIVE-RENOVATION-ROADMAP.md` is the only roadmap.
+- `docs/AI-USER-VALUE-SPEC.md` is the only current user-outcome/agent architecture specification.
+- `docs/AI-USER-VALUE-REPORT.md` is the only rolling user-outcome evidence report; newest record first.
+- `CHANGELOG.md` is patch history. `NEXT_PATCH.md` is the Navigator handoff for the patch just delivered, not a second roadmap.
+- Before creating a document, search for an existing canonical file to update. Do not create version-suffixed copies of rolling documents.
+- Machine-readable schemas, manifests, generated inventories, guardrails, operations instructions, and the strategic VIX concept remain separate when consumed by tools or serving distinct purposes.
+- The Navigator's local backups are the historical archive. Do not retain obsolete duplicate prose documents merely to preserve old versions.
+- Stop and consult the Navigator if a proposed change is mostly internal organization and its measurable user-outcome benefit is not explicit.
