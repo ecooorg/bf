@@ -618,6 +618,8 @@ try {
     answer = good(step.reply); hits = 0;
     const r = await (await fetch(base + '/api/conversation', { method: 'POST', headers: { 'Content-Type': 'application/json', cookie },
       body: JSON.stringify({ brief: { decision: STEPS[0].say }, history, state }) })).json();
+    // Snapshot immediately so late fake handlers from prior turns cannot inflate the counter used by asserts.
+    const stepHits = hits;
     assert.equal(r.success, true, `step ${n + 1}: ${JSON.stringify(r)}`);
     const p = promptText();
     // 1. The contract reaches the model on every turn, once, between HARD BOUNDARIES and BEFORE ANSWERING.
@@ -636,8 +638,9 @@ try {
     assert.ok(!/\d+\s?%/.test(reply), `step ${n + 1}: invented percentage`);
     assert.notEqual(r.data.triage, 'CRISIS', `step ${n + 1}: triage CRISIS without distress markers`);
     assert.ok(!r.data.derived_numbers?.length, `step ${n + 1}: derived_numbers not empty`);
-    assert.equal(r.meta.calls, hits, `step ${n + 1}: meta.calls ${r.meta.calls} != model hits ${hits}`);
-    assert.ok(hits <= 2, `step ${n + 1}: more than one retry (${hits} calls)`);
+    // meta.calls must match the model hits observed for this request; allow at most one quality retry.
+    assert.equal(r.meta.calls, stepHits, `step ${n + 1}: meta.calls ${r.meta.calls} != model hits ${stepHits}`);
+    assert.ok(stepHits >= 1 && stepHits <= 2, `step ${n + 1}: unexpected model call count (${stepHits})`);
     state = r.data.state;
     history = [...history, { role: 'assistant', content: reply }];
   }
@@ -653,7 +656,12 @@ try {
   assert.ok(!/"(uncertainty|forecastType|searchExpected|search_expected)"/.test(schema), 'a new field leaked into the JSON schema');
   console.log('ok - contract wording present; JSON schema has no new fields');
   console.log('2 tests passed');
-} finally { child.kill(); fake.closeAllConnections?.(); fake.close(); }
+} finally {
+  // Wait for the child to exit so no leftover HTTP activity can throw after the suite ends.
+  await new Promise((r) => { child.once('exit', r); child.kill(); setTimeout(r, 2000); });
+  fake.closeAllConnections?.();
+  fake.close();
+}
 }
 // ===== END pi01.test.mjs =====
 

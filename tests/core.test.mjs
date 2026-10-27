@@ -269,7 +269,8 @@ async function startServer(env = {}) {
   const port = await freePort();
   const child = spawn('tsx', ['server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, DATABASE_URL: '', NODE_ENV: 'production', PORT: String(port),   // hermetic: this test is about a server without a database
     APP_PASSWORD: PASS, SESSION_SECRET: SECRET, GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: FAKE, TRUST_PROXY_HOPS: '1',
-    MODEL_CASCADE_LIGHT: 'm-a,m-b,m-c', LLM_ROUND_PAUSE_MS: '10', ...env } });
+    // Must use real registry primary IDs; normalizePrimaryCascade filters anything outside PRIMARY_GEMINI_ORDER.
+    MODEL_CASCADE_LIGHT: 'gemini-3.5-flash-lite,gemini-3.1-flash-lite', LLM_ROUND_PAUSE_MS: '10', ...env } });
   let log = ''; child.stdout.on('data', (d) => (log += d)); child.stderr.on('data', (d) => (log += d));
   const base = `http://127.0.0.1:${port}`;
   for (let i = 0; i < 120; i++) {
@@ -315,12 +316,12 @@ try {
   });
 
   await t('overloaded main model: moves on to the next model', async () => {
-    behave = (m) => (m === 'm-a' ? { status: 503, text: '' } : { status: 200, text: GOOD });
+    behave = (m) => (m === 'gemini-3.5-flash-lite' ? { status: 503, text: '' } : { status: 200, text: GOOD });
     const r = await s.neutralize();
     assert.equal(r.status, 200);
     const j = await r.json();
-    assert.equal(j.meta.model, 'm-b'); assert.equal(j.meta.fallback, true);
-    assert.deepEqual(calls.map((c) => c.model), ['m-a', 'm-b']);
+    assert.equal(j.meta.model, 'gemini-3.1-flash-lite'); assert.equal(j.meta.fallback, true);
+    assert.deepEqual(calls.map((c) => c.model), ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']);
   });
   await s.stop();
 
