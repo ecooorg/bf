@@ -11,13 +11,13 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ## Laws
 
-* **C1** The repository is written for AI assistants only. Human readability is not a goal and never a reason for a change.
+* **C1** Repository artifacts are authored for AI assistants to execute, maintain, and verify the programme. They are not documentation deliverables for external readers. Product quality is judged by end-user outcomes, not by repository readability or internal activity.
 * **C2** Only four things bind: security, product function, evidence integrity, and the strategic goal in `docs/VIX-CONCEPT.md`. Everything else is a means.
 * **C3** No human reviews code. Correctness is established only by tests, checks and evidence. "Someone will read it" is never a control.
 * **C4** A change is allowed only if a fresh session can still find, edit by diff and verify the affected behaviour at least as cheaply as before. Cost = files and bytes it must read.
 * **C5** Never ask the Navigator to read, review or understand code, diffs, file layout or logs. Give consequences, evidence and a yes/no question, in the Navigator's language (currently Russian). Repository files are English.
 * **C6** Mainstream languages (TypeScript, JavaScript, SQL, JSON, Markdown), line-oriented unminified source and diff patches stay because verification depends on them (`tsc`, `node --test`, Playwright, the Railway/nixpacks build, gitleaks, model competence), not for readability. No rewrites for style or taste; rewrite only for a measured C4 gain and only after the Phase 2 gate.
-* **C7** Do not create human-oriented documentation (guides, tutorials, explanations, reader comments). Keep only normative rules, machine files and the minimum context a fresh session needs. Superseded documents are deleted; history is git and the owner's backups. Tests and CI never read documentation prose.
+* **C7** Do not create repository documents whose intended audience is an external human reader (guides, tutorials, user manuals, explanatory essays, reader comments, or status reports with no operational role). AI-facing normative specifications, architecture contracts, audit plans, acceptance criteria, roadmaps, migration plans, and minimum session context are allowed when they direct implementation, decisions, or verification of C2 outcomes. Such artifacts must be canonical, bounded, actionable, and indexed; they are instructions for future AI sessions, not a substitute for product UI. Product-facing copy belongs in the product (C8). Superseded documents are deleted; history is git and the owner's backups. Tests and CI need not read prose unless a machine contract explicitly requires it.
 * **C8** UI text and the in-app guide are product behaviour for human end users and stay human-oriented (`lint:copy`, `src/UserGuide.tsx`).
 * **C9** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 * **C10** The authorization tiers below stay. Silence is not consent. Production deployment, GitHub write, billing, credentials and formal acceptance remain Tier 3.
@@ -29,7 +29,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 |---|---|---|
 | Add comments or docstrings | not needed | tests and types carry intent |
 | Refactor or rename for clarity | forbidden | only with a measured C4 gain |
-| Write README, onboarding, guides | forbidden | update normative rules only |
+| Write external-reader README, onboarding, guides | forbidden | keep AI-facing normative specs, roadmaps, audits and acceptance contracts when operationally necessary |
 | Ask the Navigator to review a diff | forbidden | show evidence + yes/no question |
 | Style or formatting gates as goals | not goals | keep checks that protect C2 |
 | Split or merge files "for readers" | forbidden | only for lower context cost |
@@ -49,7 +49,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** Phase 3 foundation in progress. P110 Intent/Policy Contract, P111 capability graph v1, and P112 context selection / impact planning delivered. Phase 2 closed (Navigator 2026-10-26). Hosted CI green. Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`. Phase gates: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** P113 user-outcome rearchitecture specification and audit plan. P110 Intent/Policy Contract, P111 capability graph v1, and P112 context selection / impact planning delivered as foundations, not proof that user-facing modes work. Phase 2 closed (Navigator 2026-10-26). Hosted CI was reported green for P112; this is not product acceptance. Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; P113 target contract: `docs/AI-USER-VALUE-ARCHITECTURE-P113.md`; phase gates: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
 * **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
@@ -74,7 +74,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ## Navigation
 
-* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (read sections 1–2 and the current patch), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (audit; on demand).
+* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (read sections 1–2 and current P113), `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` (mandatory for P113 audit/design work), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (historical baseline; on demand).
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
 * Document index with sizes and read triggers: `docs/DOCUMENTATION-INDEX.md`.
 * Operations, diagnostics and the `test:ai` harness: `docs/OPERATIONS.md`.

@@ -1,3 +1,12 @@
+## P113 — User-outcome architecture contract and three-agent roadmap
+
+- Reframed programme acceptance around delivered user value: useful conversational answers, a persistent expert investigation ending in an actionable plan, and a verified software artifact delivered to the user. Green CI remains necessary evidence, not product acceptance.
+- Added `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` as the canonical AI-facing target contract, end-to-end audit procedure, acceptance scenarios, metrics, migration/rollback rules, and proposed P114–P120 sequence.
+- Target product has exactly three agents: Conversational Agent, Expert Problem-Solving Agent, and Complex Software Architect Agent. Each owns its instructions, orchestration/state machine, model cascade, output contract and acceptance suite; low-level infrastructure may be shared.
+- Clarified C1/C7: repository specifications, audit plans, roadmaps and acceptance contracts are permitted when they direct AI implementation/verification; external-reader manuals and guides are not repository deliverables. Product-facing human text remains in the UI.
+- No runtime behavior, prompt, provider, routing, production, or user-data changes. Product version metadata advances to 113. Existing four modes are not removed by P113.
+- Verification: documentation/charter consistency and patch packaging checked locally. Runtime audit, product scenarios, full check suite and hosted CI: NOT_RUN for this docs/spec-only patch. P114 must reproduce and trace the reported failures before root causes are asserted.
+
 ## P112 — Context selection and impact planning on the capability graph
 
 - Added `scripts/contextSelectLib.mjs` and `scripts/contextSelect.mjs`: seed paths → bounded graph context (maxDepth) → schema-shaped Change/Impact Plan (`schema-change-impact-plan`).
