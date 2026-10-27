@@ -194,8 +194,10 @@ test('normalized response schema', () => {
 test('registry seed is valid, matches default cascades, holds no secrets', () => {
   validateRegistry(REGISTRY_SEED);
   const src = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
-  const m = src.match(/MODEL_CASCADE_LIGHT \|\|\s*'([^']+)'/);
-  assert.deepEqual(REGISTRY_SEED.map((e) => e.modelId), m[1].split(','));
+  const m = src.match(/const PRIMARY_GEMINI_ORDER = \[([^\]]+)\]/);
+  assert.ok(m, 'server must declare the canonical primary Gemini order');
+  const primaryOrder = [...m[1].matchAll(/'([^']+)'/g)].map((match) => match[1]);
+  assert.deepEqual(REGISTRY_SEED.map((e) => e.modelId), primaryOrder);
   for (const e of REGISTRY_SEED) assert.match(e.secretEnvRef, /^[A-Z][A-Z0-9_]*$/);
   assert.equal(registryEntrySchema.safeParse({ ...REGISTRY_SEED[0], apiKey: 'x' }).success, false);
   assert.throws(() => validateRegistry([REGISTRY_SEED[0], REGISTRY_SEED[0]]));

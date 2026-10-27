@@ -2,6 +2,9 @@
  * Live PostgreSQL/API tests run only with their dedicated environment flag.
  */
 
+// The server's hourly Gemini candidate probe is tested separately. Keep core integration tests hermetic.
+process.env.ENABLE_GEMINI_CANDIDATE_PROBES = 'false';
+
 // ===== BEGIN context-builder.test.mjs =====
 {
 const test = (await import("node:test")).default;
