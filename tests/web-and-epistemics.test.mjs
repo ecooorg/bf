@@ -132,10 +132,14 @@ const grounded = (text = 'Курс доллара на 17 октября 2026: �
   }],
 });
 
-test('P50 is OFF by default and only ENABLE_WEB_SEARCH=true/1 turns it on', () => {
-  assert.equal(mod.isWebSearchEnabled({}), false);
+test('P116 current-information search is on by default and can be explicitly disabled', () => {
+  assert.equal(mod.isWebSearchEnabled({}), true);
+  assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: '' }), true);
   assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: 'false' }), false);
-  assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: 'yes' }), false);
+  assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: '0' }), false);
+  assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: 'off' }), false);
+  assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: 'no' }), false);
+  assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: 'yes' }), true);
   assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: 'true' }), true);
   assert.equal(mod.isWebSearchEnabled({ ENABLE_WEB_SEARCH: '1' }), true);
   assert.equal(mod.webSearchMode({}), 'auto');
@@ -150,6 +154,11 @@ test('P50 detector: fresh-info questions match, personal decision text does not'
     'Latest news about the Fed decision',
     'What is the current exchange rate EUR USD?',
     'Погода в Цюрихе завтра',
+    'Какая последняя версия Node.js?',
+    'Вышел ли уже новый релиз приложения?',
+    'What is the latest version of Python?',
+    'Is this API still supported?',
+    'What changed this week in AI?',
   ]) assert.equal(mod.needsFreshWebInfo(t), true, t);
   for (const t of [
     'Я не знаю, что мне делать сейчас с работой',
@@ -172,6 +181,17 @@ test('P50 shouldSearchWeb: flag, crisis, distress, documents, attachments, expli
   assert.equal(mod.shouldSearchWeb({ ...base, mode: 'explicit', userAskedSearch: true }), true);
   assert.equal(mod.shouldSearchWeb({ ...base, userText: 'найди в интернете это', userAskedSearch: true, hasAttachments: true }), true);
   assert.equal(mod.shouldSearchWeb({ ...base, userText: 'ok', userAskedSearch: true }), false);
+});
+
+test('P116 freshness disclosure is honest, concise, language-aware and absent when grounded', () => {
+  assert.equal(mod.appendFreshnessDisclosure('Answer.', 'What is the current price?', true, 'used'), 'Answer.');
+  const ru = mod.appendFreshnessDisclosure('Ответ.', 'Какой сегодня курс евро?', true, 'failed', true);
+  assert.match(ru, /не удалось подтвердить веб-поиском/);
+  assert.match(ru, /общий ориентир/);
+  const disabled = mod.appendFreshnessDisclosure('Ответ.', 'Какой сегодня курс евро?', true, 'skipped', false);
+  assert.match(disabled, /Веб-поиск отключён/);
+  assert.equal(mod.appendFreshnessDisclosure('Я не могу проверить актуальные данные.', 'What is the current price?', true, 'failed'), 'Я не могу проверить актуальные данные.');
+  assert.equal(mod.appendFreshnessDisclosure('General answer.', 'Should I change jobs now?', false, 'skipped'), 'General answer.');
 });
 
 test('P50 extractGrounding keeps http(s) sources only, de-duplicates and names untitled ones by host', () => {
