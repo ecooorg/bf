@@ -1,123 +1,114 @@
 # P121 — Browser-based Model Providers
 
-**Интеграция браузерных AI-чатов в универсальную систему каскадов BIForge**
+**Integration of Browser-based AI Chats into the BIForge Universal Cascade System**
 
-* **Статус:** запланировано; исследование и прототипирование не начаты либо не подтверждены.
-* **Приоритет:** после завершения P120 — End-to-End Acceptance.
-* **Тип работы:** исследование готовых решений, прототипирование, интеграция и проверка надёжности.
-* **Область изменений:** архитектура доступа к моделям, браузерная автоматизация, управление сессиями, обработка ответов, контроль качества и устойчивости.
-* **Ограничение:** до завершения текущей линейки патчей эта задача не должна менять существующую реализацию агентов или блокировать текущие работы.
-
----
-
-## 1. Цель
-Расширить универсальную систему доступа к моделям BIForge, чтобы она могла использовать не только API-провайдеры, но и разрешённые веб-интерфейсы AI-чатов.
-
-Сейчас модель обычно представляется как программный сервис, вызываемый через API. Однако некоторые поставщики предоставляют пользователям доступ к моделям и инструментам через браузерные приложения. В отдельных случаях веб-интерфейс может предлагать другие модели, дополнительные инструменты или более подходящие условия использования, чем доступный API.
-
-Необходимо исследовать возможность использования таких интерфейсов в качестве дополнительных источников ответов для трёх самостоятельных агентов BIForge:
-* Conversational Agent.
-* Expert Problem-Solving Agent.
-* Complex Software Architect Agent.
-
-Браузерный доступ не должен превращать агентов в единый монолит. Каждый агент сохраняет собственные рабочие процессы, требования к качеству и правила выбора исполнителей, используя общую инфраструктуру доступа к моделям там, где это оправданно.
-
-### 1.1. Ожидаемый результат
-BIForge получает возможность выбирать между несколькими разрешёнными каналами доступа к моделям:
-* API провайдера;
-* браузерный веб-интерфейс;
-* официальный инструмент или интеграция поставщика;
-* другие программные интерфейсы, которые допускают соответствующее использование.
-
-Выбор должен учитывать не только название модели, но и канал доступа, доступность, ограничения, задержку, стоимость, возможности и качество получаемого результата.
-
-**Главный принцип:** браузерный интерфейс рассматривается как самостоятельный тип исполнителя, а не как гарантированно бесплатная замена API.
+* **Status:** Planned; research and prototyping have not started or are not confirmed.
+* **Priority:** Post-completion of `P120 — End-to-End Acceptance`.
+* **Type of Work:** Research of existing solutions, prototyping, integration, and reliability verification.
+* **Scope of Changes:** Model access architecture, browser automation, session management, response processing, quality control, and resilience.
+* **Constraint:** Until the current patch line is completed, this task must not alter the existing implementation of agents or block current work.
 
 ---
 
-## 2. Анализ существующих решений
-До разработки собственного механизма необходимо изучить существующие проекты браузерной автоматизации и программного доступа к веб-чатам.
+## 1. Objective
 
-Перечисленные ниже проекты являются кандидатами для технического исследования. Их актуальная совместимость, лицензии, поддержка провайдеров и пригодность для промышленного использования должны быть проверены на момент начала P121.
+The primary objective is to **expand the BIForge universal model access system** to allow the utilization of approved AI chat web interfaces in addition to traditional API providers.
+
+Currently, a model is typically represented as a programmatic service invoked via an API. However, certain vendors provide user access to models and tools exclusively through browser applications. In specific scenarios, a web interface may offer different models, advanced tools, or more favorable terms of service than the available API.
+
+It is necessary to explore the possibility of using these web interfaces as secondary response sources for three autonomous BIForge agents:
+* **Conversational Agent**
+* **Expert Problem-Solving Agent**
+* **Complex Software Architect Agent**
+
+Browser access must not transform the agents into a monolithic structure. Each agent retains its individual workflows, quality benchmarks, and executor selection rules, leveraging the shared model access infrastructure only where justified.
+
+### 1.1. Expected Outcome
+BIForge will dynamically select from several permitted model access channels:
+* Provider API
+* Browser web interface
+* Official vendor tools and integrations
+* Other programmatic interfaces that permit corresponding usage
+
+The routing logic must consider not only the model name, but also the access channel, availability, rate limits, latency, cost, capabilities, and the quality of the generated output.
+
+> **Core Principle:** The browser-based interface is treated as an independent executor type, rather than a guaranteed free alternative to the API.
+
+---
+
+## 2. Analysis of Existing Solutions
+
+Prior to developing a custom mechanism, existing open-source browser automation and programmatic web-chat access projects must be thoroughly evaluated.
+
+The projects listed below are candidates for technical research. Their current compatibility, licensing, provider support, and production readiness must be verified at the start of P121.
 
 ### 2.1. Web LLM Bridge
-* **Репозиторий:** https://github.com/Tzufucius/web-llm-bridge
-
-Проект представляет интерес как пример архитектуры, в которой программный агент обращается к локальному посреднику, а тот взаимодействует с авторизованным веб-чатом.
-
-Что необходимо исследовать:
-* использование существующей браузерной сессии;
-* взаимодействие с веб-интерфейсом через браузерное расширение;
-* извлечение ответов из DOM;
-* обработку генерации и потокового вывода;
-* обработку состояния авторизации;
-* предоставление программного интерфейса другим агентам;
-* возможность добавления новых провайдеров.
-
-*Ограничение:* наличие поддержки одного веб-чата не означает автоматической поддержки других. Необходимо проверить текущую реализацию и стоимость добавления Gemini Web и других интересующих BIForge сервисов.
+* **Repository:** [https://github.com/Tzufucius/web-llm-bridge](https://github.com/Tzufucius/web-llm-bridge)
+* **Context:** This project is of interest as an architectural reference where a programmatic agent calls a local proxy, which in turn interacts with an authorized web chat.
+* **Areas to Research:**
+  * Utilizing an existing browser session
+  * Interacting with the web interface via a browser extension
+  * Extracting responses from the DOM
+  * Handling dynamic generation and streaming output
+  * Managing authentication states
+  * Exposing a programmatic interface to other agents
+  * Feasibility of adding new providers
+* **Constraint:** Support for one web chat does not imply out-of-the-box compatibility with others. The current implementation and development cost for adding Gemini Web and other relevant services must be evaluated.
 
 ### 2.2. ChatGPT Web Provider
-* **Репозиторий:** https://github.com/Jisiyong-A/chatgpt-web-provider
-
-Проект представляет интерес как пример локального программного интерфейса, работающего поверх браузерной сессии веб-чата.
-
-Что необходимо исследовать:
-* локальный HTTP-интерфейс;
-* взаимодействие с авторизованной сессией;
-* обработку состояний генерации;
-* потоковую передачу результатов;
-* обработку ограничений и ошибок;
-* защиту от повторной отправки запросов;
-* тестирование изменений состояния страницы.
-
-*Ключевой архитектурный вопрос:* можно ли использовать аналогичный адаптер как отдельный исполнитель BIForge, не связывая бизнес-логику агентов с внутренним устройством конкретного сайта.
+* **Repository:** [https://github.com/Jisiyong-A/chatgpt-web-provider](https://github.com/Jisiyong-A/chatgpt-web-provider)
+* **Context:** This project serves as a reference for a local programmatic interface running directly on top of a web-chat browser session.
+* **Areas to Research:**
+  * Local HTTP interface implementation
+  * Interaction with an authenticated session
+  * Handling generation states
+  * Streaming results back to the client
+  * Exception and rate-limit handling
+  * Idempotency and request replay protection
+  * Testing page-state transitions
+* **Key Architectural Question:** Can a similar adapter be isolated as a standalone BIForge executor, preventing agent business logic from becoming coupled with the internal mechanics of a specific website?
 
 ### 2.3. ChatGPT-Web2API
-* **Репозиторий:** https://github.com/Octo-Lex/ChatGPT-Web2API
-
-Проект интересен как пример предоставления REST API и MCP-интерфейса поверх браузерной сессии.
-
-Необходимо исследовать:
-* управление диалогами;
-* получение информации о доступных моделях;
-* обработку ошибок;
-* возможность работы без видимого браузерного окна;
-* поведение при ограничениях и повторной авторизации;
-* поддержку нескольких независимых запросов;
-* состояние проекта, лицензию и совместимость с текущим интерфейсом.
-
-*Наличие REST API или MCP-интерфейса само по себе не гарантирует надёжность браузерного источника. Эти интерфейсы являются лишь способом интеграции.*
+* **Repository:** [https://github.com/Octo-Lex/ChatGPT-Web2API](https://github.com/Octo-Lex/ChatGPT-Web2API)
+* **Context:** Offers an example of exposing a REST API and an MCP (Model Context Protocol) interface on top of a active browser session.
+* **Areas to Research:**
+  * Conversation/dialogue thread management
+  * Querying available model lists dynamically
+  * Structural error handling
+  * Headless operation capabilities
+  * System behavior during session expiration and re-authentication
+  * Handling multiple concurrent independent requests
+  * Project health, license compliance, and interface compatibility
+* **Note:** The presence of a REST API or MCP interface does not inherently guarantee the reliability of a browser source. These interfaces are strictly integration mechanisms.
 
 ### 2.4. Browser Use
-* **Репозиторий:** https://github.com/browser-use/browser-use
-
-Это более общий инструмент для взаимодействия AI-агентов с веб-страницами. Его следует рассматривать как потенциальную основу для исследовательских задач и автоматизации интерфейсов, а не как готовый универсальный каталог AI-моделей.
-
-Необходимо оценить:
-* управление страницами;
-* взаимодействие с элементами интерфейса;
-* извлечение содержимого;
-* устойчивость сценариев;
-* возможность работы без видимого окна;
-* объём дополнительной логики, необходимой для превращения инструмента в надёжный Model Provider.
+* **Repository:** [https://github.com/browser-use/browser-use](https://github.com/browser-use/browser-use)
+* **Context:** A generalized tool designed for AI agents to interact with web pages. It should be treated as a foundation for research and interface automation rather than an out-of-the-box AI model catalog.
+* **Areas to Evaluate:**
+  * Page and tab lifecycle management
+  * Element interaction and event handling
+  * Content scraping and extraction accuracy
+  * Script resilience against UI changes
+  * Headless compatibility
+  * Overhead logic required to convert this general tool into a reliable Model Provider
 
 ### 2.5. Playwright
-* **Документация:** https://playwright.dev/docs/browsers
+* **Documentation:** [https://playwright.dev/docs/browsers](https://playwright.dev/docs/browsers)
+* **Context:** Playwright is the baseline browser automation library. It enables full programmatic control over browsers, pages, and the DOM (including headless mode).
+* **Note:** Playwright does not provide ready-made integrations with AI chats. A custom adapter must still be engineered for each web service.
 
-Playwright следует рассматривать как базовый инструмент браузерной автоматизации. Он позволяет управлять браузерами, страницами и DOM, в том числе в headless-режиме. Однако Playwright не предоставляет готовую интеграцию со всеми AI-чатами: для каждого веб-сервиса всё равно потребуется соответствующий адаптер.
-
-### Предварительный вывод
-Не следует начинать с разработки собственного браузерного движка. Сначала нужно изучить существующие мосты, проверить лицензии и актуальность проектов, определить, какие части можно безопасно переиспользовать, а какие потребуется реализовать самостоятельно.
+### Preliminary Conclusion
+Do not start by building a custom browser engine from scratch. First, research existing bridges, audit their licenses, and verify project activity. Identify components that can be safely reused versus those requiring custom implementation.
 
 ---
 
-## 3. Архитектура доступа к моделям
+## 3. Model Access Architecture
 
 ### 3.1. Model Access Gateway
-Предлагается создать единый архитектурный слой Model Access Gateway. Он предоставляет агентам общий способ запрашивать выполнение модельной задачи, но не обязан самостоятельно определять всю стратегию рассуждения агента.
+A unified **Model Access Gateway** architectural layer is proposed. It provides agents with a standardized interface to request model task execution without dictating the agent's internal reasoning strategy.
 
-Упрощённая схема:
-```
+#### Conceptual Schema:
+```text
 BIForge Agents
       |
       v
@@ -128,44 +119,40 @@ Model Access Gateway
       |      +-- Gemini API
       |      +-- Groq
       |      +-- Cloudflare Workers AI
-      |      +-- другие провайдеры
+      |      +-- Other Providers
       |
       +-- Browser-based Providers
       |      |
-      |      +-- Gemini Web, если разрешено и реализовано
-      |      +-- другие поддерживаемые веб-чаты
+      |      +-- Gemini Web (if authorized & implemented)
+      |      +-- Other Supported Web Chats
       |
       +-- Official Tools and Integrations
              |
-             +-- инструменты поставщиков
-             +-- другие разрешённые интерфейсы
+             +-- Vendor Tools
+             +-- Other Permitted Interfaces
 ```
-*Это концептуальная схема, а не описание уже существующей реализации.*
+*This is a conceptual blueprint, not a description of the current codebase.*
 
-Model Access Gateway должен отделять стратегию агента от конкретного способа получения ответа. Например, Expert Problem-Solving Agent может решить, что ему требуется независимая проверка гипотезы. Gateway предоставляет подходящего исполнителя, а экспертный агент самостоятельно определяет, как использовать полученный результат.
+The Model Access Gateway decouples agent logic from the specific transport mechanism. For instance, the *Expert Problem-Solving Agent* can independently request a hypothesis cross-check. The Gateway delivers an available executor, while the expert agent determines how to process and validate the outcome.
 
 ### 3.2. Browser Gateway
-Для браузерных источников предусматривается отдельный Browser Gateway.
+A dedicated **Browser Gateway** handles all browser-derived sources. Its core responsibilities include:
+* Spawning, managing, and terminating browser processes
+* Managing authorized user sessions safely
+* Interfacing with specific web service adapters
+* Dispatching prompts to the web UI
+* Polling and waiting for text generation to conclude
+* Scraping and extracting the final response string
+* Standardizing and normalizing outputs
+* Categorizing and mapping errors
+* Concurrency and rate control
+* Reporting health, availability, and latency metrics to the main Gateway
 
-Его ответственность:
-* запуск и контроль браузерных процессов;
-* управление разрешёнными сессиями;
-* взаимодействие с адаптерами веб-сервисов;
-* передача запросов;
-* ожидание завершения генерации;
-* извлечение ответа;
-* нормализация результата;
-* классификация ошибок;
-* контроль параллельности;
-* предоставление сведений о доступности и задержках.
-
-*Browser Gateway не должен самостоятельно подменять экспертную проверку ответа или объявлять его фактически достоверным.*
+The Browser Gateway must not autonomously validate text accuracy or mark an answer as verified.
 
 ### 3.3. Provider Adapters
-Каждый веб-сервис должен иметь отдельный адаптер.
-
-Например:
-```
+Each web service requires a dedicated adapter to isolate site-specific quirks.
+```text
 Browser Gateway
       |
       +-- Gemini Web Adapter
@@ -174,403 +161,413 @@ Browser Gateway
       |
       +-- Other Web Chat Adapter
 ```
-*Это примеры потенциальных адаптеров. Поддержка каждого сервиса должна быть подтверждена отдельно.*
+*These are prospective examples; support for each service must be explicitly qualified.*
 
-Адаптер инкапсулирует особенности интерфейса конкретного сайта. Агенты BIForge не должны зависеть от расположения кнопок, HTML-структуры страницы или способа отображения сообщений. Если сайт изменит интерфейс, в первую очередь должен потребоваться ремонт соответствующего адаптера, а не изменение всех трёх агентов.
+Adapters encapsulate UI specifics. BIForge agents must remain completely agnostic of button positions, HTML selectors, or chat bubble layouts. If a website updates its UI, the fix must be confined to the specific adapter without affecting the core agents.
 
 ---
 
-## 4. Микро-браузер без графического интерфейса
+## 4. Headless Micro-Browser Approach
 
-### 4.1. Предлагаемый подход
-В качестве первого кандидата рекомендуется исследовать Chromium в headless-режиме под управлением Playwright. Такой браузер не требует постоянно отображаемого окна, но сохраняет основные свойства браузерной среды:
-* выполнение JavaScript;
-* загрузку динамических веб-приложений;
-* работу с DOM;
-* управление вкладками и страницами;
-* поддержку браузерных сессий;
-* взаимодействие с элементами интерфейса.
+### 4.1. Proposed Technology Stack
+**Chromium running in headless mode via Playwright** is selected as the primary research candidate. It operates without a visible GUI window while retaining full browser capabilities:
+* JavaScript execution engine
+* Handling of complex Single Page Applications (SPAs)
+* Comprehensive DOM manipulation and tracking
+* Session, cookie, and local storage management
+* Programmatic UI element interaction (clicking, typing)
 
-Это позволяет агенту отправлять запросы в веб-чат и получать ответы без необходимости визуально показывать браузер на экране.
+This enables agents to interact with web chats silently in background environments.
 
-### 4.2. Сравнение вариантов
-| Подход | Видимое окно | Преимущества | Ограничения |
+### 4.2. Approach Comparison Matrix
+
+| Approach | Headless (No UI) | Advantages | Limitations / Risks |
 | :--- | :--- | :--- | :--- |
-| **HTTP-клиент** | Нет | Низкие накладные расходы, удобная обработка структурированных ответов | Может не поддерживать сложный динамический интерфейс |
-| **Headless-браузер** | Нет | Исполняет JavaScript, работает с DOM и сессиями | Некоторые сайты ограничивают или иначе обрабатывают автоматизацию |
-| **Обычный браузер с автоматизацией** | Обычно есть | Удобен для первичной настройки и ручного вмешательства | Требует управления графической сессией |
+| **HTTP Client** | Yes | Minimal overhead; straightforward processing of structured raw payloads. | Fails on complex, dynamic, JS-heavy frontends. |
+| **Headless Browser** | Yes | Full JavaScript execution; seamless DOM tracking and session persistence. | Susceptible to bot-detection and automation blocking by certain platforms. |
+| **Headed Browser (Automation)** | No | Ideal for initial debugging, manual onboarding, and session configuration. | Requires graphical display environment management (Xvfb/GUI), high resource overhead. |
 
-### 4.3. Почему не следует сразу ограничиваться HTTP
-Некоторые веб-приложения зависят от динамической генерации содержимого, клиентского JavaScript, состояния сессии и сложного взаимодействия с интерфейсом. В таких случаях простого HTTP-клиента может оказаться недостаточно.
+### 4.3. Why Pure HTTP is Insufficient
+Many modern web applications depend heavily on client-side state hydration, WebSockets, dynamic token generation, and advanced anti-bot finger-printing. Standard HTTP requests cannot accurately simulate these environments long-term.
 
-При этом не следует строить производственную систему на воспроизведении закрытых внутренних протоколов, извлечении приватных токенов или обходе защитных механизмов. Если существует официальный API или разрешённый программный интерфейс, предпочтительно использовать его.
+However, production applications must **never** be built on reverse-engineering obfuscated internal endpoints, extracting private tokens, or bypassing platform security controls. If an official API or an authorized integration channel exists, it always takes precedence.
 
-### 4.4. Работа с авторизацией
-Первый прототип должен предусматривать безопасную настройку авторизации.
+### 4.4. Session and Authentication Management
+The initial prototype must enforce rigorous credential isolation:
+* Use dedicated test accounts exclusively, strictly within the vendor's terms of service.
+* Never hardcode passwords, API keys, or session tokens into source code.
+* Store persistent session profiles and state files outside standard code configurations.
+* Enforce restrictive file-system access controls on session storage directories.
+* Prevent leakage of session cookies and bearer tokens into logs, diagnostics, or model prompts.
+* Build automated hooks for session revocation and programmatic re-authentication requests.
+* **Hard Stop Rule:** Halt automation immediately if a workflow triggers security validation, CAPTCHAs, or multi-factor authentication (MFA), routing the event to a manual administrator queue.
 
-Предлагается:
-* Использовать отдельный аккаунт, если это допускается правилами сервиса.
-* Не включать пароль и другие секреты в исходный код.
-* Хранить сессионные данные отдельно от обычной конфигурации.
-* Ограничивать доступ к файлам сессии.
-* Не передавать сессионные cookies и токены в журналы, ответы моделей или диагностические отчёты.
-* Предусмотреть возможность отзыва сессии и повторной авторизации.
-* Останавливать автоматизацию при необходимости подтверждения личности, прохождения CAPTCHA или другого действия, требующего вмешательства пользователя.
-
-*Наличие отдельного аккаунта не означает автоматического разрешения на автоматизированное использование веб-сервиса.*
+*An isolated account does not grant implicit permission to automate a proprietary web service.*
 
 ---
 
-## 5. Контракт браузерного исполнителя
-Все адаптеры должны возвращать нормализованный результат.
+## 5. Browser Executor Contract
 
-Пример концептуального объекта:
+All provider adapters must return a standardized, predictable contract payload.
+
+### Conceptual Contract Object:
 ```json
 {
   "provider": "gemini-web",
   "channel": "browser",
   "status": "success",
-  "answer": "Текст ответа модели",
+  "answer": "The model response text goes here...",
   "latency_ms": 4200,
   "verified": false,
   "error": null
 }
 ```
-*Это пример формата, а не действующая схема BIForge.*
+*This represents a design guideline, not a production schema.*
 
-### 5.1. Основные поля
-* **provider** — идентификатор провайдера.
-* **channel** — канал доступа: API, browser или другой поддерживаемый тип.
-* **status** — результат выполнения.
-* **answer** — извлечённый текст, если он доступен.
-* **latency_ms** — измеренная задержка.
-* **verified** — результат проверки качества, если такая проверка выполнена.
-* **error** — нормализованная ошибка, если запрос не завершился успешно.
+### 5.1. Core Properties
+* `provider`: String identifier of the service provider.
+* `channel`: Access vector (e.g., `api`, `browser`).
+* `status`: High-level execution outcome (`success`, `failed`).
+* `answer`: Cleaned, parsed response text if successful.
+* `latency_ms`: Measured round-trip duration in milliseconds.
+* `verified`: Flag indicating if downstream semantic verification passed.
+* `error`: Normalized system error schema if execution fails.
 
-В реальной реализации потребуется также определить формат метаданных, сведения о модели, использовании квоты и диагностике. Секреты, cookies, токены и другая чувствительная информация не должны попадать в результат.
+Production schemas must also incorporate execution metadata, precise sub-model tracking, token/quota indicators, and debug telemetry. Sensitive credentials must never enter this object.
 
-### 5.2. Жизненный цикл запроса
-Адаптер должен реализовывать следующий процесс:
-1. Проверить конфигурацию и разрешённость использования сервиса.
-2. Проверить доступность браузерной сессии.
-3. Проверить известные ограничения и доступность канала.
-4. Подготовить запрос.
-5. Отправить его в веб-интерфейс.
-6. Дождаться завершения генерации.
-7. Извлечь текст ответа.
-8. Проверить, что ответ не пустой и не является сообщением об ошибке интерфейса.
-9. Вернуть нормализованный результат.
-10. Освободить ресурсы и зафиксировать диагностические сведения без секретов.
+### 5.2. Request Lifecycle Execution Flow
+Every adapter must adhere to the following sequence:
+1. Verify configuration parameters and check feature flags.
+2. Confirm local browser session availability and validity.
+3. Check active rate-limits and access channel health.
+4. Format and sanitize the input prompt.
+5. Inject the prompt into the target web interface.
+6. Poll and await completion of the response generation stream.
+7. Extract the inner text payload from the correct DOM structure.
+8. Validate that the text is structurally non-empty and contains no frontend errors.
+9. Construct and return the normalized contract response.
+10. Clean up page resources and commit telemetry data (excluding secrets).
 
-Если интерфейс изменился, сессия истекла или ответ не завершился, адаптер должен вернуть контролируемую ошибку, а не зависать бесконечно.
-
----
-
-## 6. Каскад API и браузерных источников
-
-### 6.1. Выбор канала
-Model Access Gateway должен выбирать исполнителя с учётом:
-* доступности;
-* допустимости автоматизированного использования;
-* известной квоты;
-* задержки;
-* стоимости;
-* возможностей;
-* ожидаемого качества;
-* состояния авторизации;
-* истории ошибок.
-
-Необходимо различать доступность модели и доступность конкретного канала. Например, API может быть недоступен при работающем веб-интерфейсе. Возможна и обратная ситуация.
-
-### 6.2. Резервирование
-Если запрос не может быть выполнен через один канал, Gateway может попробовать другой, если это допускают политика задачи и условия использования сервиса.
-
-Примеры:
-* временная ошибка API $ightarrow$ другой доступный API;
-* временная ошибка API $ightarrow$ разрешённый браузерный адаптер;
-* истёкшая браузерная сессия $ightarrow$ другой доступный исполнитель;
-* достигнутый лимит $ightarrow$ исполнитель с доступной квотой;
-* недостаточное качество результата $ightarrow$ независимая проверка другим источником.
-
-При этом повторные попытки должны быть ограничены. Нельзя бесконечно повторять запросы, создавая дополнительную нагрузку или дублируя операции.
-
-### 6.3. Не считать браузер гарантированно бесплатным
-Веб-интерфейсы могут предоставлять пользователям доступ к моделям на иных условиях, чем API, но это не гарантирует более высокую квоту.
-
-Лимиты могут зависеть от:
-* тарифа;
-* модели;
-* сложности запроса;
-* длины контекста;
-* текущей нагрузки;
-* недельных или дневных ограничений;
-* дополнительных условий сервиса.
-
-BIForge должен измерять фактическую полезность канала, а не предполагать, что браузер всегда выгоднее API.
-
-### 6.4. Разделение отказов
-Необходимо различать как минимум следующие ситуации:
-* сеть недоступна;
-* сервис не отвечает;
-* сессия истекла;
-* требуется авторизация;
-* достигнут лимит;
-* появилась CAPTCHA;
-* интерфейс изменился;
-* ответ не завершён;
-* ответ пустой;
-* ответ получен, но не прошёл проверку качества.
-
-Эти события требуют разных действий. Например, ошибка авторизации не должна бесконечно обрабатываться как обычный сетевой сбой.
+If a UI change breaks parsing, a session expires, or generation stalls, the adapter must raise a **deterministic, handled exception** instead of hanging indefinitely.
 
 ---
 
-## 7. Использование браузерных моделей агентами BIForge
+## 6. API and Browser Cascade Framework
+
+### 6.1. Channel Selection Logic
+The Model Access Gateway selects an executor based on real-time factors:
+* Channel availability and responsiveness
+* Compliance with vendor automation policies
+* Active quota utilization and budget limits
+* Historic and current response latency
+* Operational costs
+* Feature set requirements (e.g., context window, image input)
+* Expected output quality
+* Authentication state health
+* Historical error frequency matrices
+
+The system must clearly distinguish between **model availability** and **channel availability**. An API endpoint might experience an outage while the corresponding web application remains fully operational, or vice versa.
+
+### 6.2. Failover and Redundancy Cascades
+If a request fails on the primary path, the Gateway can route it through an alternative channel, provided it aligns with task-specific security profiles and platform terms.
+
+#### Cascade Scenarios:
+* Transient API Error $ightarrow$ Alternative API Provider
+* Persistent API Outage $ightarrow$ Approved Browser Adapter
+* Expired Browser Session $ightarrow$ Fallback API or Alternative Active Session
+* Quota Depletion $ightarrow$ Provider with Active Remaining Quota
+* Insufficient Output Quality $ightarrow$ Cross-validation via Independent Channel
+
+All retry and failover logic must be strictly bounded. Loops must be throttled to prevent resource exhaustion and cascading traffic spikes.
+
+### 6.3. Financial Fallacy: The Browser is Not "Free"
+While web interfaces may operate under separate financial tiers than standard token-based APIs, they do not offer infinite throughput.
+
+#### Quota and Rate Limit Variables:
+* User subscription tier (Free vs. Premium)
+* Model variations and compute allocation
+* Input prompt complexity and structure
+* Total token context length
+* Platform load and global peak hours
+* Rolling daily/weekly throttling policies
+
+BIForge must measure the **real cost-efficiency and utility** of each channel rather than assuming a browser-based bypass is universally cheaper or more efficient.
+
+### 6.4. Failure Classification
+The cascade layer must granularly differentiate between failure modes to apply the correct recovery strategy:
+* Network infrastructure unreachable
+* Target service gateway timeout
+* Session token expired
+* Security checkpoint / Authentication challenge requested
+* Platform rate-limiting or quota exhaustion
+* CAPTCHA challenge encountered
+* DOM/UI structural change detected (parsing failure)
+* Truncated or interrupted generation stream
+* Empty or null payload returned
+* Output failed downstream data-quality constraints
+
+Authentication and parsing errors must fail fast and trigger alerts rather than being treated as transient network drops.
+
+---
+
+## 7. Downstream Agent Workflows
 
 ### 7.1. Conversational Agent
-Потенциальные сценарии:
-* дополнительный источник ответа;
-* резервный канал при недоступности API;
-* получение результатов через веб-инструменты, если их использование разрешено;
-* проверка доступности подходящего исполнителя.
-
-*Главный критерий — быстрое и предсказуемое получение ответа без ухудшения диалога.*
+* **Scenarios:** Supplemental response source, low-cost fallback during API outages, integration testing, and exploratory queries using approved web-only features.
+* **Core Metric:** Low latency and seamless, continuous dialogue generation.
 
 ### 7.2. Expert Problem-Solving Agent
-Потенциальные сценарии:
-* независимое второе мнение;
-* сопоставление альтернативных гипотез;
-* проверка спорных технических утверждений;
-* исследование проблемы с использованием различных инструментов и источников.
-
-*Нельзя считать несколько ответов независимыми только потому, что они получены через разные интерфейсы. Нужно учитывать возможное совпадение моделей, обучающих данных и исходных предположений.*
+* **Scenarios:** Independent multi-model consensus, cross-checking complex hypotheses, auditing technical assertions, and gathering data across diverse runtime environments.
+* **Precaution:** Do not treat multiple browser-based responses as truly independent if they originate from identical underlying base models, shared pre-training corpora, or identical alignment protocols.
 
 ### 7.3. Complex Software Architect Agent
-Потенциальные сценарии:
-* независимая критика архитектурного решения;
-* поиск пропущенных требований;
-* анализ альтернативных подходов;
-* дополнительная проверка проектного плана.
-
-Результаты браузерных моделей не заменяют реальные тесты, сборку, анализ кода и проверку поведения программы. Если веб-чат предлагает собственные инструменты работы с файлами или кодом, их необходимо оценивать отдельно. Нельзя считать, что браузерный интерфейс автоматически предоставляет все возможности соответствующего API.
+* **Scenarios:** Automated adversarial review of architectural documents, edge-case vulnerability detection, trade-off matrix generation, and project implementation path validation.
+* **Boundary:** Browser-derived text cannot substitute for syntax verification, automated compilation, unit testing, or static code analysis. Web-chat UI file operations must be sandboxed and validated independently.
 
 ---
 
-## 8. Контроль качества ответов
-Получение ответа не означает, что ответ правильный.
+## 8. Quality Assurance & Semantic Verification
 
-Система должна различать:
-1. **Технический успех** — удалось получить текст.
-2. **Структурный успех** — ответ соответствует ожидаемому формату.
-3. **Семантическую пригодность** — ответ относится к заданной задаче.
-4. **Фактическую проверку** — существенные утверждения подтверждены подходящими источниками или независимыми проверками.
+Successfully extracting a text string does not guarantee its correctness. The gateway must enforce a multi-tiered validation pipeline:
+1. **Technical Success:** Text string successfully extracted from the DOM.
+2. **Structural Success:** Data adheres to the expected structural format (e.g., valid JSON, Markdown schemas).
+3. **Semantic Relevance:** Content explicitly addresses the core prompt without halluncinating unrelated contexts.
+4. **Factual Verification:** Core claims are validated against ground-truth sources or verified by an independent model.
 
-### 8.1. Независимая проверка
-Для важных задач допускается направить результат другому исполнителю на критику или проверку.
+### 8.1. Independent Cross-Verification
+Critical automated tasks should route outputs through an independent verification workflow:
 
-Например:
+```text
+Primary Executor
+       |
+       v
+Preliminary Response
+       |
+       v
+Independent Verifier (Adversarial Critique)
+       |
+       v
+Consensus & Conflict Resolution
+       |
+       v
+Final Agent Action
 ```
-Первичный исполнитель
-        |
-        v
-Предварительный ответ
-        |
-        v
-Проверка независимым исполнителем
-        |
-        v
-Сопоставление результатов
-        |
-        v
-Итог агента
-```
-Проверяющий исполнитель не должен автоматически принимать исходный ответ как истину. В зависимости от задачи ему нужно предоставить исходные требования и попросить найти ошибки, альтернативные объяснения или недостающие доказательства.
 
-### 8.2. Источники и доказательства
-Если ответ содержит фактические утверждения, требующие подтверждения, желательно сохранять источники и сведения, необходимые для проверки. Если веб-чат выдаёт ссылки, их необходимо проверять, а не считать доказательством автоматически.
+The validating executor must not ingest the primary answer as absolute truth. It must be provided with the original system prompt and requirements, then explicitly tasked with discovering logical fallacies, edge-case failures, or unsubstantiated claims.
 
-Наличие нескольких согласующихся ответов повышает уверенность только при наличии достаточной независимости и качества проверок.
+### 8.2. Source & Evidence Lineage
+When a model issues factual claims, any references or citations generated by the web application must be scraped, parsed, and verified programmatically. Web-generated hyperlinks must be validated for broken routing or domain spoofing before consumption.
 
 ---
 
-## 9. Устойчивость и управление ресурсами
-Браузерные исполнители должны быть частью общей системы устойчивости, но иметь собственные метрики и ограничения.
+## 9. System Resilience and Resource Management
 
-Необходимо предусмотреть:
-* тайм-ауты;
-* ограниченные повторные попытки;
-* защиту от дублирования запросов;
-* ограничение параллельных сессий;
-* контроль состояния браузерных процессов;
-* очистку временных ресурсов;
-* обнаружение зависших страниц;
-* ограничение частоты запросов;
-* обработку истёкших сессий;
-* контролируемое восстановление после ошибок.
+Browser executors operate with significant compute footprints and must be strictly isolated within the system's global resource pool.
 
-### 9.1. Circuit breaker
-Если адаптер систематически выдаёт ошибки, система должна временно прекратить отправку запросов через него. Повторная проверка должна выполняться с ограниченной частотой. Успешная проверка может вернуть адаптер в рабочее состояние.
+### Core Parameters:
+* Deterministic per-step execution timeouts
+* Strictly bounded retry limits with exponential backoff
+* Global request de-duplication and idempotency keys
+* Concurrency limits on parallel browser context pools
+* Rigorous process lifecycle tracking to prevent zombie processes
+* Ephemeral data and temporary directory cleanup hooks
+* Automated detection of frozen or unresponsive browser tabs
+* Adaptive request throttling (Rate limiting)
+* Graceful session tear-down and recycling
+* Structured error recovery states
 
-### 9.2. Мониторинг доступности
-Следует измерять:
-* долю успешных запросов;
-* время до получения ответа;
-* время полной генерации;
-* долю пустых или неполных ответов;
-* частоту ошибок интерфейса;
-* частоту повторной авторизации;
-* частоту достижения лимитов;
-* долю результатов, прошедших проверку качества.
+### 9.1. Circuit Breaker Patterns
+If an adapter encounters consecutive structural failures (e.g., 5 consecutive UI parsing errors), the Gateway must trip the circuit breaker and route all traffic away from that provider. The Gateway will periodically route low-risk health checks to the adapter. If they succeed repeatedly, it will gracefully step up traffic and restore operational status.
 
-Не следует проверять доступность путём непрерывной отправки полноценных пользовательских запросов. Предпочтительны разрешённые малозатратные проверки, соблюдающие квоты и правила сервиса.
+### 9.2. Availability & Performance Metrics
+The monitoring engine must track the following golden signals:
+* Success vs. Failure ratio per adapter
+* Time-to-First-Token (TTFT) and full execution duration
+* Frequency of truncated, aborted, or empty responses
+* UI structural/DOM exception rates
+* Session degradation and re-authentication frequency
+* Platform rate-limiting events
+* Downstream semantic quality check pass rates
 
----
-
-## 10. Безопасность
-Браузерный доступ добавляет новые риски и должен быть изолирован от основной логики BIForge.
-
-### 10.1. Защита учётных данных
-* Секреты не включаются в исходный код.
-* Токены и cookies не выводятся в журналы.
-* Доступ к сессиям ограничивается.
-* Авторизация не передаётся в другие агенты без необходимости.
-* Предусматривается отзыв сессий.
-* Диагностические данные не должны содержать приватную информацию.
-
-### 10.2. Недоверенное содержимое
-Текст из веб-чатов и сайтов следует считать недоверенными данными. Он может содержать инструкции, пытающиеся заставить агента раскрыть секреты, изменить собственные правила или выполнить посторонние действия.
-
-Полученный текст должен рассматриваться как данные для анализа, а не как полномочия на выполнение команд.
-
-### 10.3. Ограничение полномочий
-Браузерному исполнителю не следует автоматически предоставлять доступ к локальным файлам, секретам проекта или административным действиям. Права должны быть минимально необходимыми для конкретной задачи.
-
-### 10.4. Правила сервисов
-До подключения каждого веб-чата необходимо проверить:
-* разрешает ли поставщик предполагаемую автоматизацию;
-* допускает ли выбранный тариф такой способ использования;
-* какие действуют ограничения частоты;
-* допустимо ли хранение сессии;
-* существуют ли официальные программные интерфейсы;
-* какие требования предъявляются к обработке данных.
-
-Запрещается строить систему на обходе CAPTCHA, защитных механизмов, блокировок или ограничений доступа. Если сервис требует ручного подтверждения, автоматизация должна останавливаться и ожидать пользователя.
+*Never run availability checks by executing heavy synthetic user prompts. Utilize lightweight, vendor-compliant status probes.*
 
 ---
 
-## 11. План прототипирования
-Рекомендуется реализовывать ветку поэтапно, не подключая сразу большое количество сайтов.
+## 10. Security & Threat Modeling
 
-* **Этап 1. Исследование**
-  Изучить перечисленные open-source проекты. Проверить лицензии и актуальность. Выяснить, какие веб-чаты поддерживаются фактически. Определить допустимые способы автоматизации. Сравнить готовые решения с собственной реализацией на Playwright. Выбрать один сервис для первого прототипа.
-  *Результат этапа — обоснованный выбор реализации, а не новый производственный адаптер.*
-* **Этап 2. Proof of Concept**
-  Реализовать минимальный прототип одного веб-чата. Он должен уметь: запускать браузер, работать с разрешённой авторизованной сессией, отправлять тестовый запрос, дожидаться завершения генерации, извлекать ответ, обнаруживать пустой или неполный ответ, обрабатывать тайм-аут, корректно завершать работу при ошибке авторизации или лимите, не записывать секреты в журналы.
-* **Этап 3. Измерение результатов**
-  Сравнить браузерный прототип с доступным API по следующим показателям: время до первого ответа, полное время выполнения, успешность запросов, устойчивость к изменениям состояния страницы, доля неполных ответов, поведение при достижении лимита, качество результатов на одинаковом наборе задач, затраты на поддержку, допустимость использования, стоимость и практическая экономия.
-  *Эксперимент должен включать повторные измерения. Один успешный запрос не подтверждает пригодность канала.*
-* **Этап 4. Интеграция**
-  Если прототип доказал полезность: определить стабильный контракт адаптера, подключить его через Model Access Gateway, реализовать нормализованные ошибки, добавить метрики и тайм-ауты, обеспечить изоляцию сессий, проверить работу каскада при отказах, добавить тесты без реального обращения к внешнему сервису.
-* **Этап 5. Расширение**
-  Только после успешного испытания первого адаптера рассматривать подключение других веб-чатов. Каждый новый адаптер должен проходить собственную проверку совместимости, безопасности, допустимости автоматизации и качества извлечения результатов.
+Browser automation shifts the application attack surface, requiring explicit isolation from the core BIForge orchestrator.
 
----
+### 10.1. Credential and Storage Isolation
+* Secrets must never exist within the codebase or repository branches.
+* Active session cookies, profiles, and bearer tokens must be omitted from all application logs and telemetry.
+* Session data directories must be sandboxed via strict OS-level permissions.
+* Credential scope must be isolated; one agent's compromise must not expose another's session profiles.
 
-## 12. Критерии приёмки
-Ветка Browser-based Model Providers не считается готовой только потому, что браузер смог открыть страницу и получить один ответ.
+### 10.2. Untrusted Payload Defense (Prompt Injection)
+All raw text returned from a browser-managed web chat must be treated as **untrusted user input**.
 
-Минимальные критерии:
-* Есть документированное обоснование выбора технологии.
-* Проверены лицензия и допустимость использования выбранного сервиса.
-* Браузерный адаптер отделён от логики агентов.
-* Реализована контролируемая авторизация.
-* Запросы имеют ограниченные тайм-ауты.
-* Обрабатываются ошибки сессии, интерфейса и лимитов.
-* Ответ извлекается полностью либо явно помечается как неполный.
-* Секреты не попадают в логи.
-* Есть тесты основных состояний адаптера.
-* Подтверждена корректная очистка ресурсов.
-* Есть измерения задержки и успешности.
-* Сравнение с API показывает практическую пользу либо документирует причины отказа от интеграции.
-* Изменения проходят установленный CI.
-* Прикладная логика трёх агентов не становится зависимой от деталей конкретного веб-чата.
+Web responses can contain hidden prompt-injection payloads (e.g., adversarial instructions designed to break the system prompt, leak orchestration keys, or execute unauthorized system commands). Parsed text must be handled purely as data for downstream analysis, never as programmatic execution instructions or system-level privileges.
 
-*Если эксперимент не показывает достаточной пользы, ветку можно оставить исследовательской и не включать браузерный доступ в производственный каскад.*
+### 10.3. Principle of Least Privilege
+The OS process running the headless browser must operate under a low-privilege service account. It must be blocked from accessing local file-system environments, internal network segments, cloud metadata endpoints, or deployment administrative privileges.
+
+### 10.4. Regulatory and Policy Compliance
+Prior to deploying any browser adapter, legal and compliance boundaries must be mapped:
+* Does the service vendor explicitly prohibit headless browser automation in their Terms of Service?
+* Does the active subscription tier cover this specific data ingestion methodology?
+* What are the strict data privacy profiles regarding data storage and training usage by the vendor?
+
+*Building infrastructure designed to bypass CAPTCHAs, intentionally trick anti-bot frameworks, or override security boundaries is strictly prohibited. If a platform demands manual verification, the pipeline must halt and alert an operator.*
 
 ---
 
-## 13. Связь с общей задачей P121
-P121 посвящён универсальной системе устойчивости моделей и каналов доступа. Ветка Browser-based Model Providers дополняет её следующими возможностями:
-* расширение реестра исполнителей;
-* поддержка нескольких каналов одного поставщика;
-* учёт отдельных квот и состояний сессий;
-* резервирование между API и разрешёнными браузерными интерфейсами;
-* измерение качества и задержки;
-* контроль отказов;
-* независимая проверка ответов;
-* безопасная работа с учётными данными.
+## 11. Prototyping Roadmap
 
-*Браузерные адаптеры должны быть частью общей инфраструктуры, а не отдельной системой, конкурирующей с основным каскадом.*
+Implementation must proceed sequentially, focusing on a single target service to validate assumptions before broader scaling.
 
-### Предлагаемая структура P121
-1. Единый реестр моделей и исполнителей.
-2. Мониторинг доступности и квот.
-3. Каскад API-провайдеров.
-4. Browser-based Model Providers.
-5. Проверка качества ответов.
-6. Retry, circuit breaker и восстановление.
-7. Защита данных и учёт ограничений поставщиков.
-8. Метрики, тесты и критерии надёжности.
+### Phase 1: Exploratory Research
+* Review the specified open-source bridge repositories.
+* Audit open-source licensing terms and project vitality.
+* Identify the exact subset of functional web chats currently supported by the ecosystem.
+* Contrast third-party frameworks against a clean, tailored implementation built on raw Playwright.
+* Select a single, high-utility service for the Initial Proof of Concept (PoC).
+* **Deliverable:** Technical trade-off document and selected implementation vector; no production code.
 
----
+### Phase 2: Proof of Concept (PoC)
+* Build a minimal, sandboxed adapter for the chosen web service.
+* **Core Capabilities Required:**
+  * Clean headless browser initialization.
+  * Loading and maintaining a pre-configured authorized session.
+  * Dispatching a baseline test prompt.
+  * Awaiting complete generation stream resolution.
+  * Extracting the final response payload.
+  * Detecting empty outputs, timeouts, or UI errors.
+  * Gracefully terminating on authentication expiration or platform rate limits.
+  * Zero credential leakage to standard output logs.
 
-## 14. Зависимости и порядок выполнения
-P121 начинается только после завершения P120 — End-to-End Acceptance и подтверждения стабильности предыдущих изменений.
+### Phase 3: Empirical Benchmarking
+* Evaluate the browser PoC directly against the official API channel using identical prompt benchmarks across several axes:
+  * Time-to-First-Token (TTFT) and total round-trip time.
+  * Execution success-to-failure distribution.
+  * Resilience against page state changes and asynchronous DOM rendering.
+  * Rate of truncated or malformed payloads.
+  * System behavior under platform throttling.
+  * Output semantic quality comparisons across identical tasks.
+  * Engineering maintenance and support overhead.
+  * Compliance and legal standing.
+  * Financial impact and true net savings.
 
-До этого момента:
-* не изменять текущую линейку патчей ради браузерного прототипа;
-* не добавлять экспериментальный браузерный код в основной каскад;
-* не подключать новые веб-сервисы без отдельной оценки;
-* не считать документационное описание подтверждением работоспособности;
-* не считать успешный запуск прототипа подтверждением производственной надёжности.
+*A single successful execution does not confirm production readiness. Rely on longitudinal testing.*
 
-Перед реализацией P121 необходимо обсудить открытые вопросы всей системы устойчивости моделей и согласовать их с этой веткой.
+### Phase 4: Integration Engineering
+If the PoC demonstrates verifiable business value and meets compliance benchmarks:
+* Finalize a immutable, typed contract interface for the browser adapter.
+* Hook the adapter into the primary `Model Access Gateway`.
+* Implement unified, normalized exception mapping.
+* Embed granular telemetry, circuit breakers, and explicit timeouts.
+* Implement OS-level browser profile isolation.
+* Conduct chaos-engineering tests on cascade failure scenarios.
+* Write comprehensive test suites leveraging mock interfaces (zero live external calling during CI runs).
 
----
-
-## 15. Предварительные решения и открытые вопросы
-
-### Предварительные решения
-* Исследовать готовые решения прежде, чем писать собственный браузерный шлюз.
-* Рассмотреть Playwright и headless Chromium как основные технические кандидаты.
-* Использовать отдельные адаптеры для каждого веб-чата.
-* Не связывать адаптеры с внутренней логикой трёх агентов.
-* Считать ответы браузерных моделей недоверенными до проверки.
-* Не предполагать, что веб-интерфейс всегда имеет более высокие лимиты, чем API.
-* Не обходить ограничения доступа и защитные механизмы.
-* Начать с одного сервиса и измеримого прототипа.
-* Подключить новые веб-чаты только при доказанной практической пользе.
-
-### Открытые вопросы
-Перед началом реализации требуется определить:
-* Какие веб-чаты наиболее важны для BIForge?
-* Какие из них допускают автоматизацию в предполагаемом режиме?
-* Нужно ли использовать один браузерный процесс или изолированные процессы для разных аккаунтов и провайдеров?
-* Какой способ авторизации приемлем для первого прототипа?
-* Какой бюджет задержки допустим для каждого из трёх агентов?
-* Какие задачи требуют независимой проверки ответа?
-* Как учитывать подписки, квоты и фактическую экономию?
-* Какие готовые проекты можно использовать без неприемлемых лицензионных или эксплуатационных рисков?
-
-*Эти вопросы следует согласовать до начала производственной реализации, но не использовать как причину для остановки текущей линейки патчей.*
+### Phase 5: Catalog Expansion
+Only after Phase 4 passes production stability audits should secondary web chat adapters be evaluated. Every additional adapter must undergo an identical compliance, security, and parsing review.
 
 ---
 
-## 16. Итоговый технический вывод
-Браузерные AI-чаты представляют потенциально полезный дополнительный канал доступа к моделям. Существуют открытые проекты, исследующие преобразование веб-интерфейсов в программно вызываемые сервисы, а headless-браузеры позволяют работать без постоянно отображаемого графического окна.
+## 12. Acceptance Criteria
 
-Однако надёжность такого подхода зависит от стабильности интерфейсов, авторизации, условий использования, ограничений сервисов и качества извлечения ответов.
+The browser-based provider subsystem will not be accepted into production merely because a browser successfully extracts an answer string.
 
-**Поэтому BIForge должен рассматривать браузерный доступ как отдельный тип исполнителя в универсальной системе каскадов, а не как гарантированную замену API.**
+### Mandatory Deliverables:
+1. **Architectural Justification:** Documented, reviewed technical reasoning for the chosen technology stack.
+2. **Compliance Validation:** Signed-off review of vendor licensing, compliance limits, and usage permissions.
+3. **Strict Decoupling:** Complete separation of adapter logic from core agent operations.
+4. **Secure Onboarding:** Production-grade, secure session and profile management routines.
+5. **Bounded Execution:** Global and granular execution timeouts enforced on all operations.
+6. **Exception Mapping:** Full coverage of session timeouts, UI changes, and rate limits mapped to handled errors.
+7. **Payload Integrity:** Verification that responses are complete or deterministically flagged as partial.
+8. **Credential Protection:** Comprehensive log-sanitization confirmation across all test suites.
+9. **State Verification:** Unit and integration tests covering core adapter lifecycle transitions.
+10. **Resource Lifecycle Control:** Verified garbage collection of browser contexts, page tabs, and OS processes.
+11. **Telemetry & Visibility:** Production monitoring charts detailing latency distributions and error frequencies.
+12. **Empirical Justification:** Quantitative data proving clear business utility or formal documentation detailing the rationale for canceling production rollout.
+13. **CI Pipeline Pass:** Complete validation through all established linting, security scanning, and testing workflows.
 
-**Рекомендуемое решение:** после P120 исследовать готовые реализации, выбрать один разрешённый веб-чат, создать минимальный прототип на базе существующего инструмента и сравнить его с API. Расширять систему только после измерения практической пользы и прохождения критериев приёмки.
+---
+
+## 13. Integration with the P121 Master Epics
+
+P121 focuses on the global resilience engine of the model infrastructure. The **Browser-based Model Providers** branch integrates into the master architecture as follows:
+
+### Functional Contributions:
+* Expanding the core executor pool registry dynamically.
+* Supporting multi-channel ingestion topologies from a single vendor.
+* Factoring distinct session tracking and quota tracking matrices into routing logic.
+* Providing failover fallback layers between standard REST APIs and authorized browser pathways.
+* Supplying live latency and data quality metrics to the global orchestrator.
+* Integrating with centralized retry, circuit breaking, and failover workflows.
+* Enforcing zero-trust credential safety patterns across the deployment.
+
+#### Proposed P121 Component Hierarchy:
+1. Unified Model & Executor Registry
+2. Global Availability, Health & Quota Monitor
+3. API Transport Provider Cascade
+4. **Browser-based Transport Provider Subsystem**
+5. Semantic Quality & Validation Pipeline
+6. Centralized Retry, Circuit Breaker & Recovery Engine
+7. Security, Isolation & Compliance Layer
+8. Telemetry, Test Harness & Reliability Engineering Metrics
+
+---
+
+## 14. Dependencies & Execution Sequence
+
+Work on P121 will strictly commence **after the successful sign-off and stabilization of P120 — End-to-End Acceptance**.
+
+### Pre-requisite Engineering Principles:
+* Do not inject experimental prototyping dependencies into the active production patch line.
+* Do not merge unvalidated browser automation code into the master API gateway cascade.
+* Do not onboard unvetted web services without standalone risk and compliance briefs.
+* Conceptual documentation does not constitute proof of technical viability.
+* A functional local prototype does not guarantee production-grade system reliability.
+
+Prior to entering the active sprint cycle for P121, open design questions across the global resilience engine must be explicitly aligned and approved.
+
+---
+
+## 15. Architectural Consensus & Open Challenges
+
+### Confirmed Design Decisions:
+* Thoroughly evaluate existing open-source bridges before engineering a custom browser gateway wrapper.
+* Utilize Playwright driving headless Chromium as the baseline technical research candidate.
+* Enforce absolute isolation by utilizing independent adapters for each target web service.
+* Build strict boundaries preventing adapter mechanics from leaking into downstream agent business logic.
+* Enforce a Zero-Trust stance: treat all incoming browser payloads as unverified, untrusted data.
+* Discard the assumption that web chats possess superior or infinite rate limits compared to APIs.
+* Never build bypasses for security controls, structural firewalls, or CAPTCHA elements.
+* Commence development with a single, highly measurable target service prototype.
+* Broaden provider onboarding exclusively upon statistical proof of business value and maintenance viability.
+
+### Open Research Questions:
+1. Which specific web chat platforms deliver the highest operational ROI for BIForge requirements?
+2. Which target platforms officially allow or tolerate headless automation under specific enterprise subscription structures?
+3. Should the architecture maintain a single global browser daemon or enforce process-level sandbox separation for distinct provider accounts?
+4. What is the optimal, secure session-seeding mechanism for initial headless authentication within the CI/CD deployment environment?
+5. What are the strict latency budgets allocated to the *Conversational*, *Expert*, and *Architect* agents respectively?
+6. Which automated agent tasks mandatorily require independent multi-model adversarial validation?
+7. How will the core billing system dynamically track user subscription values, rolling quotas, and real-time cost-efficiency offsets?
+8. Which open-source bridge libraries carry licensing, architectural, or security vulnerabilities that present unacceptable risks to production deployments?
+
+*These questions must be resolved during the initial research phase of P121 and must not delay the completion of the current production patch line.*
+
+---
+
+## 16. Concluding Engineering Assessment
+
+Browser-based AI interfaces offer a compelling, secondary channel for model access and redundancy within the BIForge platform. Extant open-source initiatives demonstrate the technical feasibility of transforming web UIs into programmatically accessible endpoints, while headless runtimes eliminate the need for graphical display overhead.
+
+However, long-term production reliability remains tightly coupled to frontend UI stability, session persistence, vendor compliance profiles, rate-limiting frameworks, and precise DOM scraping mechanics.
+
+Consequently, BIForge must treat browser-based interfaces as a **distinct, opportunistic executor tier** inside the universal cascade infrastructure, rather than a guaranteed or drop-in replacement for enterprise APIs.
+
+**Recommended Strategy:** Upon P120 conclusion, audit the open-source landscape, select a single compliant web service, build an isolated, metric-driven headless PoC, and evaluate it directly against its API counterpart. Scale the subsystem further only if the prototype achieves established stability, financial utility, and strict acceptance criteria.
