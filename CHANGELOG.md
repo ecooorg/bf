@@ -1,12 +1,13 @@
-## P116 — Conversational Agent freshness and truthful search failure
+## P117 — Expert problem-solving contract and multi-provider model cascade
 
-- Current-information lookup is now automatic by default for explicit search asks and detected time-sensitive questions; `ENABLE_WEB_SEARCH=false/0/off/no` is the explicit opt-out.
-- Expanded conservative freshness detection for Russian and English current-version, release, and status questions while retaining the exclusions for personal decision text, crisis turns, document intent and attachment-focused turns.
-- If current lookup was expected but no grounded result was obtained, the conversational reply discloses that current facts were not verified. Successful grounded search retains source links.
-- Added deterministic tests for search configuration, detection and disclosure.
-- Updated the canonical user-outcome contract, active task, rolling evidence report and handoff.
-- Verification: deterministic freshness suite PASS (24/24); conversation-turn regression suite PASS (8/8) using Node built-in TypeScript stripping. Typecheck/build/full CI, live-provider tests and browser E2E are NOT_RUN; `npm ci` timed out. No live search quality or production behavior is claimed accepted.
-- Version 116.
+- Strengthened Expert-mode instructions to maintain a structured investigation across turns: problem framing, fact/assumption separation, competing hypotheses, decisive unknowns, trade-offs, and actionable next steps; no unexplained stage dead ends.
+- Standardized the primary Gemini order in Simple, Expert, and Project cascades: `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`.
+- Added hourly, minimal live probes for `gemini-3.6-flash`, `gemini-3.8-flash`, and `gemma-4`; candidates enter the Gemini cascade only after a successful probe. Probe outcomes are logged; no key means no probe.
+- Added opt-in cross-provider fallback to Groq Cloud and Cloudflare Workers AI using the existing OpenAI-compatible adapter. Disabled by default to prevent unapproved cross-provider data transfer or cost. Project analysis and staged App Builder receive the same explicit opt-in path.
+- Added regression tests for candidate gating, probe failures, and hourly throttling. No manifest included per Navigator instruction.
+- Verification: static source edits and version metadata checked. Runtime tests, typecheck/build, live provider probes, and CI: NOT_RUN in this patch environment. No claim that external providers are reachable or that Expert E2E acceptance has passed.
+- Limitations: `gemma-4` is probed using the exact ID requested; if Google does not expose that exact endpoint to this API key, it remains unavailable. External fallback currently handles JSON/text prompts, not native image/file parts. Hourly probes run per application process/replica, so deployments with multiple replicas can make duplicate probes.
+- Version 117.
 
 ## P115 — Canonical documentation consolidation and roadmap correction
 
