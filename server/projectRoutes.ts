@@ -8,7 +8,7 @@ import JSZip from 'jszip';
 import { z } from 'zod';
 import { createGeminiAdapter } from './geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './openaiCompatAdapter.ts';
-import { REGISTRY_ALL, REGISTRY_SEED, GROQ_BASE_URL, registryForGeminiCascade } from './modelRegistry.ts';
+import { REGISTRY_ALL, REGISTRY_SEED, GEMINI_CANDIDATE_SEED, GROQ_BASE_URL, registryForGeminiCascade } from './modelRegistry.ts';
 import { routeCall } from './router.ts';
 import {
   consumeRateLimit,
@@ -198,7 +198,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     try {
       if (!ai) return res.status(503).json({ success: false, error: 'No Gemini API key is configured on the server (GEMINI_API_KEY)', code: 'MODEL_NOT_CONFIGURED' });
       const input = z.object({ expected_version: z.number().int().min(1), task: z.string().trim().min(1).max(4000), artifact_ids: z.array(z.string().max(128)).max(5).optional() }).parse(req.body);
-      const data = await runAnalysis({ projectId: req.params.projectId, expectedVersion: input.expected_version, task: input.task, artifactIds: input.artifact_ids }, { registry: REGISTRY_ALL, adapters: { gemini: createGeminiAdapter(ai as any), ...(process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}) } });
+      const data = await runAnalysis({ projectId: req.params.projectId, expectedVersion: input.expected_version, task: input.task, artifactIds: input.artifact_ids }, { registry: [...registryForGeminiCascade('STRONG'), ...REGISTRY_ALL.filter((e) => e.providerId !== 'gemini')], adapters: { gemini: createGeminiAdapter(ai as any), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID ? { 'cloudflare-workers-ai': createOpenAICompatibleAdapter({ providerId: 'cloudflare-workers-ai', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, apiKey: process.env.CLOUDFLARE_API_TOKEN }) } : {}) } });
       res.json({ success: true, data });
     } catch (error) { projectError(res, error); }
   });
@@ -377,7 +377,16 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     if (!ai) return null;
     const adapters: AdapterDeps['adapters'] = { gemini: createGeminiAdapter(ai as any) };
     const configured = [...new Set([...registryForGeminiCascade('LIGHT'), ...registryForGeminiCascade('STRONG')].map((e) => e.modelId))];
-    const registry = REGISTRY_SEED.filter((e) => configured.includes(e.modelId));
+    const registry = [...REGISTRY_SEED, ...GEMINI_CANDIDATE_SEED].filter((e) => configured.includes(e.modelId));
+    if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY) {
+      adapters.groq = createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY });
+      registry.push(...REGISTRY_ALL.filter((e) => e.providerId === 'groq' && e.status === 'active' && e.capabilities.includes('json_output')));
+    }
+    if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
+      const modelId = process.env.CLOUDFLARE_WORKERS_AI_MODEL || '@cf/meta/llama-3.1-8b-instruct';
+      adapters['cloudflare-workers-ai'] = createOpenAICompatibleAdapter({ providerId: 'cloudflare-workers-ai', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, apiKey: process.env.CLOUDFLARE_API_TOKEN });
+      registry.push({ providerId: 'cloudflare-workers-ai', modelId, status: 'active', adapter: 'openai-compatible', capabilities: ['json_output'], qualityClass: 'C', qualityProvisional: true, dataPolicy: 'unknown', costTier: 'paid', trainingOptOutConfirmed: false, lastVerifiedAt: new Date().toISOString().slice(0,10), secretEnvRef: 'CLOUDFLARE_API_TOKEN' });
+    }
     return { registry, adapters, routerState: codeRouterState };
   };
   if (stagedEnabled() && ai && process.env.DATABASE_URL) setTimeout(() => { const d = stagedDeps(); if (d) void resumeStaleJobs(d).then((n) => n && console.warn(JSON.stringify({ type: 'app_builder_jobs_resumed', count: n }))).catch(() => undefined); }, 5_000).unref?.();
@@ -506,15 +515,25 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
               ].join('\n');
               if (!ai) return { notes: 'no model' };
               const adapter = createGeminiAdapter(ai as any);
+              const adapters: Record<string, import('./adapter.ts').ProviderAdapter> = { gemini: adapter };
               const registry = registryForGeminiCascade('STRONG').filter((entry) => entry.capabilities.includes('json_output'));
+              if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY) {
+                adapters.groq = createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY });
+                registry.push(...REGISTRY_ALL.filter((e) => e.providerId === 'groq' && e.status === 'active' && e.capabilities.includes('json_output')));
+              }
+              if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
+                const modelId = process.env.CLOUDFLARE_WORKERS_AI_MODEL || '@cf/meta/llama-3.1-8b-instruct';
+                adapters['cloudflare-workers-ai'] = createOpenAICompatibleAdapter({ providerId: 'cloudflare-workers-ai', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, apiKey: process.env.CLOUDFLARE_API_TOKEN });
+                registry.push({ providerId: 'cloudflare-workers-ai', modelId, status: 'active', adapter: 'openai-compatible', capabilities: ['json_output'], qualityClass: 'C', qualityProvisional: true, dataPolicy: 'unknown', costTier: 'paid', trainingOptOutConfirmed: false, lastVerifiedAt: new Date().toISOString().slice(0,10), secretEnvRef: 'CLOUDFLARE_API_TOKEN' });
+              }
               const routed = await routeCall({
                 requestId: `app-builder-slice-${project.id}`,
                 system: 'Return structured JSON only. Untrusted user goal.',
                 prompt, json: true, maxOutputTokens: 8192,
                 metadata: { role: 'app_builder_slice', projectId: project.id },
               }, {
-                registry, adapters: { gemini: adapter }, state: codeRouterState, required: ['json_output'], maxCalls: 1, timeoutMs: 60_000,
-                sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 65_000,
+                registry, adapters, state: codeRouterState, required: ['json_output'], maxCalls: Math.min(7, Math.max(1, registry.length)), timeoutMs: 60_000,
+                sensitivity: 'normal', paidApproved: process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' ? ['groq', 'cloudflare-workers-ai'] : [], deadlineAt: Date.now() + 65_000,
               });
               if (routed.status !== 'ok' || !routed.response) {
                 const d = routed.decision;

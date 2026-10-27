@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { capabilitySchema, type Capability } from './adapter.js';
+import { eligibleGeminiCandidates } from './modelAvailability.ts';
 
 /** Model Registry record (TZ 7.1). Holds env variable NAMES only, never secrets. */
 export const registryEntrySchema = z.object({
@@ -33,6 +34,7 @@ const GEMINI_MODELS = [
   // Keep this seed aligned with the only two models configured for the free-key deployment.
   'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite',
 ];
+export const GEMINI_PROBE_MODELS = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemma-4'] as const;
 export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => registryEntrySchema.parse({
   providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
   capabilities: ['json_output'], qualityClass: 'B', qualityProvisional: true,
@@ -40,20 +42,33 @@ export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => reg
   limits: { rpm: 15, rpd: 1500 },
   lastVerifiedAt: '2026-10-25', secretEnvRef: 'GEMINI_API_KEY',
 }));
+export const GEMINI_CANDIDATE_SEED: RegistryEntry[] = GEMINI_PROBE_MODELS.map((modelId) => registryEntrySchema.parse({
+  providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
+  capabilities: ['json_output'], qualityClass: 'B', qualityProvisional: true,
+  dataPolicy: 'unknown', trainingOptOutConfirmed: false, limits: { rpm: 15, rpd: 1500 },
+  lastVerifiedAt: '2026-10-27', secretEnvRef: 'GEMINI_API_KEY',
+}));
 
-/** Groq (P07, BX-12.a): openai-compatible, Free plan. verify:connections --only groq was OK on 2026-10-10, so the primary model is active (json_output confirmed); the others stay disabled. */
+/** Groq (P07, BX-12.a): OpenAI-compatible. Published model pricing exists; treat as paid unless an operator explicitly opts in. The primary model was previously connection-verified; other entries stay disabled. */
 export const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';
 export const GROQ_SEED: RegistryEntry[] = (['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b'] as const).map((modelId, i) => registryEntrySchema.parse({
   providerId: 'groq', modelId, status: modelId === 'openai/gpt-oss-120b' ? 'active' : 'disabled', adapter: 'openai-compatible',
   capabilities: modelId === 'openai/gpt-oss-120b' ? ['json_output'] : [], roleHint: 'verifier', contextLimit: modelId.startsWith('openai/') ? 131072 : undefined,
-  qualityClass: 'B', qualityProvisional: true, dataPolicy: 'free', costTier: 'free', trainingOptOutConfirmed: false,
+  qualityClass: 'B', qualityProvisional: true, dataPolicy: 'unknown', costTier: 'paid', trainingOptOutConfirmed: false,
   limits: { rpm: 30, rpd: 1000, tpm: 8000, tpd: 200000 },
   ...(modelId === 'openai/gpt-oss-120b' ? { pricing: { inputPerMTok: 0.15, outputPerMTok: 0.6 } } : modelId === 'openai/gpt-oss-20b' ? { pricing: { inputPerMTok: 0.075, outputPerMTok: 0.3 } } : {}),
   inputBudgetTokens: 3500, maxOutputTokens: 1500,
   lastVerifiedAt: '2026-10-10', secretEnvRef: 'GROQ_API_KEY',
 }));
-/** Seed + additional providers; used by verify:connections. */
-export const REGISTRY_ALL: RegistryEntry[] = [...REGISTRY_SEED, ...GROQ_SEED];
+/** Cloudflare Workers AI is optional and only eligible when its token/account are configured. */
+export const CLOUDFLARE_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+export const CLOUDFLARE_SEED: RegistryEntry[] = [registryEntrySchema.parse({
+  providerId: 'cloudflare-workers-ai', modelId: CLOUDFLARE_MODEL, status: 'active', adapter: 'openai-compatible',
+  capabilities: ['json_output'], qualityClass: 'C', qualityProvisional: true, dataPolicy: 'unknown', costTier: 'paid',
+  trainingOptOutConfirmed: false, lastVerifiedAt: '2026-10-27', secretEnvRef: 'CLOUDFLARE_API_TOKEN',
+})];
+/** Seed + optional providers; credentials are required before an adapter can be used. */
+export const REGISTRY_ALL: RegistryEntry[] = [...REGISTRY_SEED, ...GROQ_SEED, ...CLOUDFLARE_SEED];
 
 export function validateRegistry(entries: unknown[]): RegistryEntry[] {
   const parsed = entries.map((e) => registryEntrySchema.parse(e));
@@ -78,16 +93,20 @@ export function staleEntries(entries: RegistryEntry[], now: Date = new Date()): 
 
 /** Parse the Render cascade as an allowlist. Never silently add historical models/providers. */
 export function configuredGeminiCascade(kind: 'LIGHT' | 'STRONG', env: NodeJS.ProcessEnv = process.env): string[] {
-  const raw = env[`MODEL_CASCADE_${kind}`] ?? (kind === 'LIGHT' ? 'gemini-3.1-flash-lite,gemini-3.5-flash-lite' : 'gemini-3.5-flash-lite,gemini-3.1-flash-lite');
+  const raw = env[`MODEL_CASCADE_${kind}`] ?? 'gemini-3.5-flash-lite,gemini-3.1-flash-lite';
   const names = raw.split(',').map((x) => x.trim()).filter(Boolean);
   const allowed = new Set(GEMINI_MODELS);
   const valid = [...new Set(names)].filter((name) => allowed.has(name));
+  // Keep the requested primary order invariant even when an old deployment env var reverses it.
+  const orderedValid = GEMINI_MODELS.filter((name) => valid.includes(name));
   // Fail closed if a configured cascade has no supported entries; no legacy fallback.
-  return valid;
+  return orderedValid;
 }
 
 /** Registry in cascade order. Only explicitly configured Gemini models can be called. */
 export function registryForGeminiCascade(kind: 'LIGHT' | 'STRONG', env: NodeJS.ProcessEnv = process.env): RegistryEntry[] {
   const order = configuredGeminiCascade(kind, env);
-  return order.flatMap((name) => REGISTRY_SEED.filter((entry) => entry.modelId === name));
+  if (!order.length) return []; // explicit empty/unsupported allowlist disables the entire Gemini cascade
+  const candidateOrder = eligibleGeminiCandidates();
+  return [...order.flatMap((name) => REGISTRY_SEED.filter((entry) => entry.modelId === name)), ...candidateOrder.flatMap((name) => GEMINI_CANDIDATE_SEED.filter((entry) => entry.modelId === name))];
 }

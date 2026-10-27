@@ -62,7 +62,7 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
   const sensitivity = 'normal' as const;   // the project-level sensitivity field arrives with the passport extension; open-publication work is `normal` (ADR-07)
   const route = await routeCall({ requestId: runId, system: ctx.system, prompt: ctx.prompt, json: true, metadata: {} }, {
     registry: deps.registry ?? REGISTRY_SEED, adapters: guardedAdapters, state: routerSt, required: ['json_output'], timeoutMs: 90_000,
-    sensitivity, paidApproved: [], budget: { remainingUnits: runBudget(usedToday, { dayCap: DEFAULT_DAILY_UNITS, taskUnits: DEFAULT_TASK_UNITS }) }, quota, deadlineAt: Date.now() + 90_000,
+    sensitivity, paidApproved: process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' ? ['groq', 'cloudflare-workers-ai'] : [], budget: { remainingUnits: runBudget(usedToday, { dayCap: DEFAULT_DAILY_UNITS, taskUnits: DEFAULT_TASK_UNITS }) }, quota, deadlineAt: Date.now() + 90_000,
     onHealth: async (e: HealthEvent) => {
       await saveHealthEvent(e);
       if (e.type === 'provider_disabled') await recordAuditEvent({ eventType: 'provider.disabled', actor: 'system', details: { provider_id: e.providerId, reason: e.reason } });

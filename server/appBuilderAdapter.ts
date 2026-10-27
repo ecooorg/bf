@@ -59,11 +59,12 @@ export function createModelPort(deps: AdapterDeps, projectId: string, jobId?: st
       const modelCallStartedAt = Date.now();
       const json = a.role === 'planner';
       const cascade = a.role === 'coder' ? 'STRONG' : 'LIGHT';
-      const configured = registryForGeminiCascade(cascade);
+      const configuredGemini = registryForGeminiCascade(cascade);
+      const configured = [...configuredGemini, ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' ? deps.registry.filter((e) => ['groq', 'cloudflare-workers-ai'].includes(e.providerId) && Boolean(deps.adapters[e.providerId]) && e.status === 'active') : [])];
       void recordApplicationLog({ level: 'info', component: 'app-builder', event: 'model_call_started', operationId: jobId, message: 'App Builder model call started', details: { projectId, role: a.role, cascade, configuredModels: configuredGeminiModelIds(cascade), maxOutputTokens: a.maxOutputTokens } });
       const registry = configured.length ? configured.filter((e) => deps.registry.some((d) => d.providerId === e.providerId && d.modelId === e.modelId)) : [];
       const routed = await routeCall({ requestId: `app-build-${projectId}-${crypto.randomBytes(4).toString('hex')}`, system: a.system, prompt: a.prompt, json, maxOutputTokens: a.maxOutputTokens, metadata: { role: `app_builder_${a.role}`, projectId } },
-        { registry, adapters: deps.adapters, state: deps.routerState, required: json ? ['json_output'] : [], maxCalls: Math.max(1, configured.length), retryTransient: false, retryOutput: false, timeoutMs: 90_000, sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 95_000, onWait: async ({ model, waitMs }) => {
+        { registry, adapters: deps.adapters, state: deps.routerState, required: json ? ['json_output'] : [], maxCalls: Math.max(1, configured.length), retryTransient: false, retryOutput: false, timeoutMs: 90_000, sensitivity: 'normal', paidApproved: process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' ? ['groq', 'cloudflare-workers-ai'] : [], deadlineAt: Date.now() + 95_000, onWait: async ({ model, waitMs }) => {
           void recordApplicationLog({ level: 'info', component: 'app-builder', event: waitMs > 0 ? 'model_rate_wait' : 'model_wait_finished', operationId: jobId, message: waitMs > 0 ? 'Waiting for a model request slot' : 'Model request slot is available', details: { projectId, role: a.role, model, waitMs } });
           if (!jobId) return;
           const store = createStorePort(deps); const current = await store.loadJob(jobId);
