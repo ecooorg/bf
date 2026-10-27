@@ -218,7 +218,18 @@ interface GenerateOpts { extraParts?: any[]; extraNumberSource?: string; extraCh
 // Stable model IDs only; legacy/latest aliases are not used in the default pool.
 // gemini-3.7-flash / gemini-3.5-flash are deprecated aliases routed by Google to 3.8 / 3.6: same quota, so no real fallback.
 const PRIMARY_GEMINI_ORDER = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
-const normalizePrimaryCascade = (raw: string) => { const configured = new Set(raw.split(',').map((s) => s.trim()).filter(Boolean)); return PRIMARY_GEMINI_ORDER.filter((model) => configured.has(model)); };
+/** Cascade from env. When every configured id is a primary model, keep PRIMARY_GEMINI_ORDER.
+ *  Otherwise preserve the explicit list (hermetic tests use m1/m2/m3; operators may pin a non-primary id).
+ *  Empty input falls back to the primary defaults. */
+const normalizePrimaryCascade = (raw: string): string[] => {
+  const configured = [...new Set(raw.split(',').map((s) => s.trim()).filter(Boolean))];
+  if (!configured.length) return [...PRIMARY_GEMINI_ORDER];
+  const primarySet = new Set<string>(PRIMARY_GEMINI_ORDER);
+  if (configured.every((m) => primarySet.has(m))) {
+    return PRIMARY_GEMINI_ORDER.filter((m) => configured.includes(m));
+  }
+  return configured;
+};
 const LIGHT_MODELS = normalizePrimaryCascade(process.env.MODEL_CASCADE_LIGHT || PRIMARY_GEMINI_ORDER.join(','));
 const STRONG_MODELS = normalizePrimaryCascade(process.env.MODEL_CASCADE_STRONG || PRIMARY_GEMINI_ORDER.join(','));
 
