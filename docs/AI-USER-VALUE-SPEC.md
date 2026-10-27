@@ -23,7 +23,7 @@ The product exposes three modes/agents. No fourth mode and no shared “project 
 **Required behavior:**
 - Answer the actual question directly, at a proportionate level of detail; do not force every turn into an expert workflow or rigid template.
 - Preserve relevant conversation context and handle follow-up references correctly.
-- Use current web/search or other available tools when freshness or external facts matter; distinguish current evidence, stable knowledge, inference, and uncertainty.
+- Use current web/search or other available tools when freshness or external facts matter; distinguish current evidence, stable knowledge, inference, and uncertainty. For the current conversation implementation, freshness lookup is automatic by default for detected time-sensitive questions and explicit search asks, with an explicit operator opt-out. If lookup is unavailable or ungrounded, disclose that current facts were not verified rather than silently presenting remembered knowledge as current.
 - Ask a clarifying question only when ambiguity materially blocks a useful answer; otherwise state reasonable assumptions and proceed.
 - Keep internal verifier/policy machinery from flattening all answers into generic, stale, over-cautious summaries. Controls must protect correctness and safety without becoming the answer's purpose.
 - If a tool/provider fails, recover when bounded and useful; otherwise explain what could not be verified and offer a concrete next step.

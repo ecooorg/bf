@@ -6,11 +6,13 @@
 
 ## Latest record
 
-- **Patch:** P115 — documentation consolidation and control-plan correction.
-- **Runtime changes:** none.
-- **Verification:** documentation consistency and package/version metadata checked locally; runtime tests, browser E2E, live-provider tests, full CI and hosted CI are NOT_RUN for P115.
-- **User outcome:** no runtime repair is claimed. This patch reduces contradictory project instructions and establishes one authoritative specification, roadmap, task, and rolling evidence report.
-- **Limitations:** product workflows remain unrepaired until subsequent implementation patches are verified against user scenarios.
+- **Patch:** P116 — Conversational Agent freshness behavior and truthful lookup failure.
+- **Observed code change:** freshness lookup now defaults on for explicit search asks and detected time-sensitive questions; `ENABLE_WEB_SEARCH=false/0/off/no` is an explicit opt-out. The detector was expanded for common version/release/current-status wording in Russian and English.
+- **Observed code change:** when current lookup was expected but no grounded result was obtained, the response adds a concise disclosure that current facts were not verified. Successful search results continue to provide source links. Response metadata records the expected lookup and its status.
+- **Tests added:** default-on/opt-out policy, expanded detector examples, disclosure for successful/failed/disabled lookup, and no disclosure for non-freshness turns.
+- **Verification:** `node --experimental-strip-types --test tests/web-and-epistemics.test.mjs` — PASS (24/24); `node --experimental-strip-types --test tests/conversation-turn.test.mjs` — PASS (8/8). Typecheck/build/full CI and live-provider/browser E2E remain NOT_RUN. Dependency installation (`npm ci`) timed out in this environment, so the full toolchain could not be installed.
+- **User outcome hypothesis:** current questions should be less likely to receive unqualified stale answers, and failed search should be visible. This remains a hypothesis until representative end-to-end scenarios confirm it.
+- **Limitations:** lookup quality, provider availability, source accuracy, latency, and deployed environment configuration have not been validated against a live provider. This patch does not repair Expert or Project workflows.
 
 ---
 

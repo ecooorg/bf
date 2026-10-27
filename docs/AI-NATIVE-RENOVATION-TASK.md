@@ -1,7 +1,7 @@
 # BIForge — Current Task and Patch Control
 
-**Current patch:** P115 — optimized documentation set and corrected forward plan.
-**Status:** documentation-only patch prepared for Navigator application. No runtime behavior is changed or claimed repaired.
+**Current patch:** P116 — Conversational Agent recovery.
+**Status:** implementation patch prepared for Navigator application. Current-information lookup is automatic by default for detected freshness requests and explicit search asks; provider-backed live quality remains unverified until live scenarios run.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, the canonical roadmap, and the user-outcome specification.
 **Current specification:** `docs/AI-USER-VALUE-SPEC.md`.
 **Current evidence baseline:** `docs/AI-USER-VALUE-REPORT.md`.
@@ -34,7 +34,7 @@ Replace fragmented normative documentation with a small canonical set. Ensure th
 
 ## Current product reality
 
-The Navigator reports that Simple, Expert, and both Project workflows do not deliver acceptable results. The P114 audit observed a production build failure with `invalid_spec`, no files, one model call and approximately 73 seconds elapsed. Web search is optional in current code and logs show some requests skipped it. Simple and Expert share conversation orchestration. Other concerns (verifier errors, AbortSignal listener warnings, browser crypto/ZIP fallback, dependency audit, stale generated inventories) are evidence-limited risks, not established causes of every user symptom.
+The Navigator reports that Simple, Expert, and both Project workflows do not deliver acceptable results. The P114 audit observed a production build failure with `invalid_spec`, no files, one model call and approximately 73 seconds elapsed. Before P116, web search was opt-in; current-information questions could silently receive an ungrounded general answer when search was not configured or failed. Simple and Expert share conversation orchestration. Other concerns (verifier errors, AbortSignal listener warnings, browser crypto/ZIP fallback, dependency audit, stale generated inventories) are evidence-limited risks, not established causes of every user symptom.
 
 End-to-end reproduction of all four legacy workflows was NOT_RUN in P114. Do not infer root causes beyond evidence. See the rolling report for the carried-forward findings.
 

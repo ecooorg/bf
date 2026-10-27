@@ -5,7 +5,9 @@
 
 ## Current priority: recover the three user-facing agents
 
-The Navigator reports that all four current modes fail to provide acceptable outcomes. P114 source/log evidence confirmed one real project-build failure (`invalid_spec`, zero files, one model call, about 73 seconds), opt-in web search with some requests skipped, shared Simple/Expert conversation orchestration, and multiple project build branches. The four end-to-end failures were not all reproduced in a live authenticated session. See `docs/AI-USER-VALUE-REPORT.md`; observed facts and hypotheses must remain distinct.
+**Current patch:** P116 — Conversational Agent freshness and truthful search-failure handling. P117 begins only after P116 is applied and its verification evidence reviewed.
+
+The Navigator reports that all four current modes fail to provide acceptable outcomes. P114 source/log evidence confirmed one real project-build failure (`invalid_spec`, zero files, one model call, about 73 seconds), the then-opt-in web search configuration, shared Simple/Expert conversation orchestration, and multiple project build branches. P116 changes the freshness-search default; live effectiveness remains unverified. The four end-to-end failures were not all reproduced in a live authenticated session. See `docs/AI-USER-VALUE-REPORT.md`; observed facts and hypotheses must remain distinct.
 
 ## Patch sequence
 
@@ -14,7 +16,7 @@ The Navigator reports that all four current modes fail to provide acceptable out
 | P113 | Three-agent user-outcome contract | Accepted; contract maintained in `docs/AI-USER-VALUE-SPEC.md` |
 | P114 | Source/log audit baseline | Delivered; live reproduction incomplete; see rolling report |
 | **P115** | Consolidate documentation, remove competing sources of truth, correct sequencing | One authoritative specification, roadmap, task, and rolling evidence report; no runtime claims |
-| **P116** | Recover Conversational Agent | Representative stable-knowledge, freshness/search, multi-turn context, tool/provider failure and truthful-error scenarios pass; live-provider and mocked evidence separated |
+| **P116** | Recover Conversational Agent | Freshness lookup is automatic by default for current facts and explicit asks; missing grounding is disclosed; deterministic tests pass; live-provider and mocked evidence are separated |
 | **P117** | Implement Expert Problem-Solving Agent | Persistent structured investigation state, evidence/hypothesis separation, meaningful alternatives, coherent synthesis, prioritized actionable plan, no dead-end iteration; representative E2E acceptance |
 | **P118** | Implement Complex Software Architect Agent | Produces actual non-empty files; validates requirements; runs declared checks; packages and verifies archive; exposes downloadable artifact or truthful stage-specific failure and recovery action |
 | **P119** | Migrate product from four legacy modes to three agents | UI exposes exactly three approved agents; old routing/state paths removed or explicitly isolated; no regression in accepted agent scenarios |
