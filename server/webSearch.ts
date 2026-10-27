@@ -2,7 +2,8 @@
  * P50 — optional fresh-web grounding for /api/conversation.
  *
  * Design (kept deliberately small and fail-safe):
- * - OFF unless ENABLE_WEB_SEARCH=true. With the flag off nothing here is called and responses are unchanged.
+ * - Freshness lookup is ON by default for explicit asks and detected time-sensitive questions.
+ *   ENABLE_WEB_SEARCH=false/0/off/no is an explicit opt-out.
  * - Providers: `serper` (Serper.dev Google SERP, free trial key) or `gemini` (Gemini Google Search tool).
  *   WEB_SEARCH_PROVIDER selects the backend; default is serper when SERPER_API_KEY is set, else gemini.
  * - Gemini path: one short call with the Google Search tool (no JSON mode). Serper path: one HTTPS POST.
@@ -42,8 +43,10 @@ const MIN_DIGEST_CHARS = 40;
 const MAX_SOURCES = 6;
 
 export function isWebSearchEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  const v = String(env.ENABLE_WEB_SEARCH || '').trim().toLowerCase();
-  return v === 'true' || v === '1';
+  // Current-information requests should not silently fall back to model memory just
+  // because an optional feature flag was never configured. Operators can opt out.
+  const v = String(env.ENABLE_WEB_SEARCH ?? '').trim().toLowerCase();
+  return !['false', '0', 'off', 'no'].includes(v);
 }
 
 /** 'auto' (default when enabled): explicit asks and clearly time-sensitive questions. 'explicit': only explicit asks. */
@@ -66,11 +69,13 @@ const re = (src: string) => new RegExp(`${L}(?:${src})`, 'iu');
 // Time-sensitive information requests. Deliberately conservative: a personal decision text such as
 // "в последнее время я устал" must not trigger a search that would send private wording to a search engine.
 const FRESH_PATTERNS: RegExp[] = [
-  re(String.raw`новост|свеж(?:ие|их|ую|ее)\s+(?:данные|новости|информац|сводк)|что\s+нового\s+(?:в|у|по|про|на)|последние\s+(?:новости|данные|события|изменения)`),
-  re(String.raw`(?:актуальн\p{L}*|текущ\p{L}*)\s+(?:курс|цен\p{L}*|стоимост\p{L}*|ставк\p{L}*|погод\p{L}*|данн\p{L}*|информац\p{L}*|версия|состояние)`),
+  re(String.raw`новост|свеж(?:ие|их|ую|ее)\s+(?:данные|новости|информац|сводк)|что\s+нового\s+(?:в|у|по|про|на)|последн\p{L}*\s+(?:новости|данные|события|изменения|верси\p{L}*|релиз\p{L}*)|(?:новая|последняя|текущая)\s+верси\p{L}*|выш\p{L}*\s+ли\s+уже`),
+  re(String.raw`(?:актуальн\p{L}*|текущ\p{L}*|сегодняшн\p{L}*|на\s+данный\s+момент)\s+(?:курс|цен\p{L}*|стоимост\p{L}*|ставк\p{L}*|погод\p{L}*|данн\p{L}*|информац\p{L}*|версия|состояние|релиз\p{L}*)`),
   re(String.raw`курс\s+(?:доллар|евро|рубл|юан|биткоин|bitcoin|btc|eth|валют)\p{L}*|котировк\p{L}*|ключев\p{L}*\s+ставк\p{L}*|погод\p{L}*\s+(?:в|на|сегодня|завтра)|(?:цена|стоимость)\s+(?:на|акци|нефти|золота)\p{L}*`),
   re(String.raw`(?:кто|сколько|какой|какая|какие)\s+(?:сейчас|сегодня)\s+(?:президент|премьер|глава|руководит|стоит|стоят|курс|цена|погода|ставка|температура|время|дата)\p{L}*`),
-  re(String.raw`(?:latest|breaking|recent)\s+(?:news|updates?|developments?|version|release)`),
+  re(String.raw`(?:latest|breaking|recent|newest)\s+(?:news|updates?|developments?|version|release|model|feature|pricing)`),
+  re(String.raw`(?:is|are)\s+.{2,100}\s+(?:still\s+(?:available|supported|working|open)|currently\s+(?:available|supported|working))|what\s+(?:is|are)\s+the\s+latest\s+(?:version|release|status)`),
+  re(String.raw`(?:this|last)\s+(?:week|month|year)\s+(?:news|updates?|changes|releases?)|what\s+(?:changed|happened)\s+(?:in|this|over)\s+(?:the\s+)?(?:past\s+|last\s+|this\s+)?(?:week|month|year)|as\s+of\s+20\d{2}`),
   re(String.raw`news\s+(?:about|on|today|this\s+week)|what(?:'|’)?s\s+(?:new|happening|going\s+on)\s+(?:in|with|at|on)|what\s+happened\s+(?:in|with|at|to)`),
   re(String.raw`(?:current|today(?:'|’)?s|live)\s+(?:price|rate|exchange\s+rate|weather|score|status|version)|exchange\s+rate|(?:price|stock\s+price)\s+of|weather\s+(?:in|for|today|tomorrow)`),
   re(String.raw`as\s+of\s+(?:today|now)`),
@@ -676,6 +681,29 @@ export async function fetchSerperDigest(opts: {
   } finally {
     clearTimeout(timer);
   }
+}
+
+
+/** Add an honest, concise caveat when a fresh/current fact was expected but no live grounding was obtained. */
+export function appendFreshnessDisclosure(
+  reply: string,
+  userText: string,
+  lookupExpected: boolean,
+  status: WebSearchStatus,
+  searchEnabled = true,
+): string {
+  const text = String(reply || '').trim();
+  if (!lookupExpected || status === 'used') return text;
+  if (/(не удалось проверить|не могу проверить|не удалось получить актуальн|could not verify|couldn't verify|cannot verify|can't verify|unable to verify)/i.test(text)) return text;
+  const ru = /[\u0400-\u04FF]/.test(userText || '');
+  const note = ru
+    ? (searchEnabled
+      ? 'Актуальные данные не удалось подтвердить веб-поиском в этом ответе; воспринимай приведённое выше как общий ориентир, а не как проверенный факт на текущий момент.'
+      : 'Веб-поиск отключён, поэтому актуальные данные в этом ответе не проверены; воспринимай приведённое выше как общий ориентир, а не как подтверждённый факт на текущий момент.')
+    : (searchEnabled
+      ? 'I could not verify current information through web search in this response; treat the answer above as general guidance, not a live-verified fact.'
+      : 'Web search is disabled, so current information was not verified in this response; treat the answer above as general guidance, not a live-verified fact.');
+  return text ? `${text}\n\n${note}` : note;
 }
 
 /** The block appended to the conversation prompt. Instructions live in the block header, so promptPacks.ts is untouched. */

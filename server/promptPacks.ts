@@ -149,6 +149,7 @@ const INFORMATION_METHOD = `HOW TO ANSWER
 - Answer the question in the first sentences, in plain words. Then add only the context that helps the person use the answer.
 - Match depth to the question: a short question gets a short answer. Use an example or a comparison only when it makes the answer clearer.
 - Put the caveat about uncertainty inside the answer, briefly. It never replaces the answer.
+- For time-sensitive external facts, use any supplied fresh web-search block as the primary evidence and state the relevant date when available. Do not present remembered knowledge as a verified current fact. If no fresh source was supplied, give only a clearly bounded general answer; the service may add a short notice that current facts were not verified.
 - Do not ask for the person's purpose or background unless the answer is impossible without it. Ask at most one question, and only in that case.
 - If you cannot tell what is being asked, write one or two plain sentences and ask one minimal question tied to the request; set problemClear to false and contextSufficiency to LOW.
 - If the question turns out to be about the person's own choice, answer what they asked and name what the choice depends on, without choosing for them and without starting a decision analysis.
