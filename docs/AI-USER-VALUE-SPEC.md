@@ -23,7 +23,7 @@ The product exposes three modes/agents. No fourth mode and no shared “project 
 **Required behavior:**
 - Answer the actual question directly, at a proportionate level of detail; do not force every turn into an expert workflow or rigid template.
 - Preserve relevant conversation context and handle follow-up references correctly.
-- Use current web/search or other available tools when freshness or external facts matter; distinguish current evidence, stable knowledge, inference, and uncertainty. For the current conversation implementation, freshness lookup is automatic by default for detected time-sensitive questions and explicit search asks, with an explicit operator opt-out. If lookup is unavailable or ungrounded, disclose that current facts were not verified rather than silently presenting remembered knowledge as current.
+- Use current web/search or other available tools when freshness or external facts matter; distinguish current evidence, stable knowledge, inference, and uncertainty.
 - Ask a clarifying question only when ambiguity materially blocks a useful answer; otherwise state reasonable assumptions and proceed.
 - Keep internal verifier/policy machinery from flattening all answers into generic, stale, over-cautious summaries. Controls must protect correctness and safety without becoming the answer's purpose.
 - If a tool/provider fails, recover when bounded and useful; otherwise explain what could not be verified and offer a concrete next step.
@@ -93,6 +93,8 @@ Shared provider adapters and generic safety/security primitives are allowed. Age
 Every user operation must have a durable state machine with explicit transitions and terminal outcomes. Minimum shared vocabulary: `QUEUED`, `RUNNING`, `WAITING_FOR_USER`, `RETRYING`, `SUCCESS`, `PARTIAL`, `FAILED`, `CANCELLED`, `TIMED_OUT`, `BLOCKED`. Transitions must be validated; terminal states cannot silently become success. The UI must render state and next action. Logs and telemetry support diagnosis but do not substitute for user-visible outcomes.
 
 ### 3.3 Model cascades
+
+Current P117 implementation baseline (not final quality acceptance): all three current modes use Gemini primary order `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`. The optional candidates `gemini-3.6-flash`, `gemini-3.8-flash`, and `gemma-4` are live-probed hourly and must not enter a cascade before a successful probe. Groq Cloud and Cloudflare Workers AI are opt-in fallbacks only (`ENABLE_EXTERNAL_MODEL_FALLBACK=true`) because they may have separate billing and data-processing terms. Credentials alone do not enable cross-provider transfer. Probes are per process/replica and may duplicate across replicas; this is a known limitation. Exact model IDs and account-level permission must be verified by live API calls.
 
 Each agent defines its own cascade based on task quality, tool support, context needs, latency, and cost. Do not choose a provider solely because it is shared by other agents. For every cascade, specify primary/secondary providers, capability assumptions, routing criteria, timeout/retry limits, fallback behavior, context preservation, structured-output handling, and safe failure semantics. Provider names/availability are configuration facts to verify during implementation, not hard-coded assumptions in this contract.
 

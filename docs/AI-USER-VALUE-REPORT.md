@@ -1,18 +1,32 @@
 # BIForge — Rolling User-Outcome Evidence Report
 
+# P117 — Expert and model cascade implementation record
+
+**Status: PARTIAL — patch prepared; runtime and CI checks NOT_RUN. Navigator has deferred P116; this P117 is built on the corrected P115 baseline and does not contain P116 changes.**
+
+- Implemented: Expert dialogue contract asks for persistent structured investigation, explicit fact/assumption separation, competing hypotheses, decisive unknowns, trade-offs and actionable next steps.
+- Implemented: default primary Gemini order is `gemini-3.5-flash-lite` then `gemini-3.1-flash-lite` for Simple/Expert; project cascades use the same order.
+- Implemented: `gemini-3.6-flash`, `gemini-3.8-flash`, `gemma-4` are only eligible after a successful minimal live probe. Probe state is process-local, hourly, and logged.
+- Implemented: opt-in Groq and Cloudflare Workers AI fallback (`ENABLE_EXTERNAL_MODEL_FALLBACK=true`), with explicit provider approval at the router. The direct conversation fallback is text/JSON-only and is skipped for native file/image parts.
+- Tests added: `tests/model-availability-p117.test.mjs` (probe gating, failure handling, hourly throttle, no-key behavior).
+- NOT_RUN: test suite, typecheck, build, CI, browser E2E, live model probes, end-to-end Expert/project artifact tests. Do not treat this patch as accepted until CI and representative user scenarios pass.
+- Risks: `gemma-4` may not be a valid Gemini API model ID; the probe intentionally verifies the exact requested ID rather than silently substituting another model. Probes can incur small token usage and repeat on multiple replicas. External providers may incur cost and receive user prompts, hence opt-in.
+- Product outcome not yet proven: prompt contract changes are not evidence of a working independent Expert agent; that acceptance remains open.
+
+---
+
+
 **Purpose:** one rolling report for evidence from completed patches affecting user outcomes. Put the newest completed patch record first. Keep older records only when they preserve useful evidence, decisions, unresolved risks, or acceptance history; do not create a new report file per patch.
 
 **Evidence semantics:** `PASS` means the named check actually passed. `NOT_RUN`, `NOT_REPRODUCED`, `UNKNOWN`, `BLOCKED`, `TIMEOUT`, and `PARTIAL` are not PASS. Separate observed facts, user reports, hypotheses, and conclusions.
 
 ## Latest record
 
-- **Patch:** P116 — Conversational Agent freshness behavior and truthful lookup failure.
-- **Observed code change:** freshness lookup now defaults on for explicit search asks and detected time-sensitive questions; `ENABLE_WEB_SEARCH=false/0/off/no` is an explicit opt-out. The detector was expanded for common version/release/current-status wording in Russian and English.
-- **Observed code change:** when current lookup was expected but no grounded result was obtained, the response adds a concise disclosure that current facts were not verified. Successful search results continue to provide source links. Response metadata records the expected lookup and its status.
-- **Tests added:** default-on/opt-out policy, expanded detector examples, disclosure for successful/failed/disabled lookup, and no disclosure for non-freshness turns.
-- **Verification:** `node --experimental-strip-types --test tests/web-and-epistemics.test.mjs` — PASS (24/24); `node --experimental-strip-types --test tests/conversation-turn.test.mjs` — PASS (8/8). Typecheck/build/full CI and live-provider/browser E2E remain NOT_RUN. Dependency installation (`npm ci`) timed out in this environment, so the full toolchain could not be installed.
-- **User outcome hypothesis:** current questions should be less likely to receive unqualified stale answers, and failed search should be visible. This remains a hypothesis until representative end-to-end scenarios confirm it.
-- **Limitations:** lookup quality, provider availability, source accuracy, latency, and deployed environment configuration have not been validated against a live provider. This patch does not repair Expert or Project workflows.
+- **Patch:** P115 — documentation consolidation and control-plan correction.
+- **Runtime changes:** none.
+- **Verification:** documentation consistency and package/version metadata checked locally; runtime tests, browser E2E, live-provider tests, full CI and hosted CI are NOT_RUN for P115.
+- **User outcome:** no runtime repair is claimed. This patch reduces contradictory project instructions and establishes one authoritative specification, roadmap, task, and rolling evidence report.
+- **Limitations:** product workflows remain unrepaired until subsequent implementation patches are verified against user scenarios.
 
 ---
 

@@ -1,7 +1,7 @@
 # BIForge — Current Task and Patch Control
 
-**Current patch:** P116 — Conversational Agent recovery.
-**Status:** implementation patch prepared for Navigator application. Current-information lookup is automatic by default for detected freshness requests and explicit search asks; provider-backed live quality remains unverified until live scenarios run.
+**Current patch:** P117 — Expert problem-solving contract and model cascade foundations.
+**Status:** source patch prepared for Navigator application. CI and runtime acceptance are not yet verified.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, the canonical roadmap, and the user-outcome specification.
 **Current specification:** `docs/AI-USER-VALUE-SPEC.md`.
 **Current evidence baseline:** `docs/AI-USER-VALUE-REPORT.md`.
@@ -11,15 +11,14 @@
 
 Replace fragmented normative documentation with a small canonical set. Ensure the current task, three-agent target, evidence baseline, and next patch are consistent. The Navigator applies the ZIP manually and removes the explicitly listed superseded documents. No manifest is required or included; the Navigator updates repository bookkeeping manually.
 
-## P115 scope
+## P117 scope
 
-- Create/update the canonical three-agent user-outcome specification.
-- Consolidate P114 findings into one rolling evidence report.
-- Correct the roadmap so specification precedes agent implementation and migration follows the three individual agents.
-- Clarify that repository docs are internal AI working material; the Navigator may inspect selected documents to verify direction. Only the application UI is external user-facing.
-- Establish one-source-of-truth documentation policy.
-- Update handoff, index and changelog.
-- No runtime/source implementation changes.
+- Strengthen the Expert conversation contract for structured, persistent investigation and actionable synthesis.
+- Align primary Gemini cascade order to `gemini-3.5-flash-lite` then `gemini-3.1-flash-lite` in Simple, Expert, and Project workflows.
+- Probe `gemini-3.6-flash`, `gemini-3.8-flash`, and `gemma-4` hourly using minimal requests; only a successful probe may promote a candidate into the cascade.
+- Add Groq Cloud and Cloudflare Workers AI as explicit opt-in fallbacks, not silent defaults. Preserve JSON validation and existing safety boundaries.
+- Add mocked regression tests for probe state and throttling.
+- No claim of full independent Expert-agent state-machine completion; that remains part of the subsequent implementation/acceptance work.
 
 ## Acceptance criteria
 
@@ -34,13 +33,13 @@ Replace fragmented normative documentation with a small canonical set. Ensure th
 
 ## Current product reality
 
-The Navigator reports that Simple, Expert, and both Project workflows do not deliver acceptable results. The P114 audit observed a production build failure with `invalid_spec`, no files, one model call and approximately 73 seconds elapsed. Before P116, web search was opt-in; current-information questions could silently receive an ungrounded general answer when search was not configured or failed. Simple and Expert share conversation orchestration. Other concerns (verifier errors, AbortSignal listener warnings, browser crypto/ZIP fallback, dependency audit, stale generated inventories) are evidence-limited risks, not established causes of every user symptom.
+The Navigator reports that Simple, Expert, and both Project workflows do not deliver acceptable results. The P114 audit observed a production build failure with `invalid_spec`, no files, one model call and approximately 73 seconds elapsed. Web search is optional in current code and logs show some requests skipped it. Simple and Expert share conversation orchestration. Other concerns (verifier errors, AbortSignal listener warnings, browser crypto/ZIP fallback, dependency audit, stale generated inventories) are evidence-limited risks, not established causes of every user symptom.
 
 End-to-end reproduction of all four legacy workflows was NOT_RUN in P114. Do not infer root causes beyond evidence. See the rolling report for the carried-forward findings.
 
-## Next action after P115
+## Next action after P117
 
-P116: recover the Conversational Agent against representative scenarios. Inspect runtime paths and capture baseline outputs first; fix only demonstrated causes that materially improve answer relevance, freshness, context retention, and truthful failure handling. If implementation becomes internal architecture work without a testable user-outcome gain, stop and ask the Navigator.
+Run CI. If green, validate the actual Expert conversation and project build flows with external fallback disabled, then enabled only after reviewing provider data/cost settings. P116 conversational-agent recovery remains a prerequisite if it has not been applied and accepted. Do not mark P117 as full Expert E2E acceptance.
 
 ## Delivery and verification protocol
 
