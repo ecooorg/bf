@@ -577,8 +577,10 @@ const fake = http.createServer((req, res) => { let b = ''; req.on('data', (d) =>
   res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify(answer) }] }, finishReason: 'STOP' }] })); }); });
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort(); const base = `http://127.0.0.1:${port}`;
+// ENABLE_WEB_SEARCH=false: this block asserts conversation meta.calls vs fake hits.
+// Web search reuses GEMINI_BASE_URL and would inflate hits without updating conversation meta.
 const child = spawn('tsx', ['server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
-  SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' } });
+  SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10', ENABLE_WEB_SEARCH: 'false' } });
 
 // Text of the prompt actually sent to the model (the request body is JSON; read the user content out of it).
 const strings = (v) => (typeof v === 'string' ? [v] : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : []);
