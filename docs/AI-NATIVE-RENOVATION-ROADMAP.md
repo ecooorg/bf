@@ -5,7 +5,7 @@
 **Normative strategic destination:** `VIX-CONCEPT.md`  
 **Audit basis:** `AI-NATIVE-GLOBAL-AUDIT-2026-10.md`  
 **Renovation mandate:** `AI-NATIVE-RENOVATION-MANDATE.md`  
-**Current phase:** P113 user-outcome rearchitecture contract and audit plan. P110–P112 remain delivered foundations but do not prove the user-facing modes work. Phase 0–2 closed. P92 production diagnostics frozen until full renovation completes. Canonical target: `AI-USER-VALUE-ARCHITECTURE-P113.md`.  
+**Current phase:** P114 user-outcome source/log audit complete; live end-to-end reproduction NOT_RUN. P110–P112 remain delivered foundations but do not prove the user-facing modes work. Phase 0–2 closed. P92 production diagnostics frozen until full renovation completes. Canonical target: `AI-USER-VALUE-ARCHITECTURE-P113.md`.  
 **Rule:** one bounded patch at a time; preserve safety; report evidence honestly.
 
 ## 1. North star
@@ -148,15 +148,15 @@ For each patch:
 
 The owner reports that all four current modes are functionally unacceptable from the user's perspective. Treat this as a priority signal and reproduce the failures; do not presume root causes before source/log tracing. P113 defines the target; it does not change runtime behavior.
 
-### P113 — User-outcome contract (current)
+### P113 — User-outcome contract (accepted; specification only)
 Exactly three target agents: Conversational Agent; Expert Problem-Solving Agent; Complex Software Architect Agent. Each owns its instructions, orchestration/state machine, model cascade, output contract and end-to-end acceptance suite. Shared low-level infrastructure is allowed. See `AI-USER-VALUE-ARCHITECTURE-P113.md`.
 
 **Gate:** target behavior, audit protocol, acceptance scenarios and migration rules defined. Runtime behavior remains NOT_RUN.
 
-### P114 — End-to-end audit and root-cause map
-Reproduce user-reported failure scenarios and trace UI → orchestration → instructions → provider/tools → validation → persistence → UI/artifact delivery. Audit all current modes, shared infrastructure, P110–P112 runtime adoption, dependency risks and known log findings. Rank findings by user harm, recurrence, confidence and leverage.
+### P114 — End-to-end audit and root-cause map (source/log audit delivered; reproduction incomplete)
+`AI-USER-VALUE-AUDIT-P114.md` traces the current workflows, records ranked findings and separates observed evidence from hypotheses. It confirms one production build failure and documents the shared conversational pipeline, opt-in web search, Expert state/stage design and multiple project build branches.
 
-**Gate:** every current mode has an evidence-linked path; root causes have source/log evidence or remain explicit hypotheses; normal and failure/recovery cases are reproduced or marked NOT_REPRODUCED/NOT_RUN.
+**Gate status:** source/log audit delivered. All four live user workflows remain NOT_REPRODUCED in this patch because the supplied archives do not include an authenticated interactive session and all original prompts. This limitation is explicit; no claim of end-to-end acceptance is made. Before claiming a mode fixed, the corresponding live/browser acceptance scenarios must run.
 
 ### P115 — Conversational Agent recovery
 Create/repair the isolated conversational workflow and instruction/cascade policy. Validate direct answers, current information when required, multi-turn context and truthful provider/tool failure handling.
@@ -188,7 +188,7 @@ Run repeated representative scenarios and measure task completion, answer/proble
 
 **Gate:** each agent meets its own acceptance contract; critical NOT_RUN/UNKNOWN cases prevent full acceptance; residual risks and unsupported claims are explicit.
 
-These IDs are a proposed bounded sequence, not automatic authorization. Each patch still requires its own scope, evidence, rollback and approval at the applicable authorization tier.
+These IDs are a proposed bounded sequence, not automatic authorization. Standing Navigator directive: if a future patch appears to improve internal structure without evidence of improved user-facing information value or completed work, stop and ask before proceeding. Each patch still requires its own scope, evidence, rollback and approval at the applicable authorization tier.
 
 ## 6. Product acceptance principle
 

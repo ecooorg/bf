@@ -1,9 +1,9 @@
-# AI-NATIVE-RENOVATION — Active task (P113)
+# AI-NATIVE-RENOVATION — Active task (P114)
 
-**Task IDs:** P113 current; P112, P111, P110 closed as foundation patches.  
-**Status:** P113 defines the user-outcome target and audit sequence. Runtime audit and implementation are NOT_RUN. The owner's product report is the reason for reprioritization; individual root causes remain unconfirmed until P114 evidence.  
-**Authority:** `AGENTS.md` Navigator Charter. Read `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` as the canonical P113 contract.  
-**Fresh-session rule:** read sections 1–2 and current P113 section here, then the P113 contract. Do not infer product acceptance from hosted CI status.
+**Task IDs:** P114 current; P113 accepted target contract; P112, P111, P110 closed as foundation patches.  
+**Status:** source/log audit delivered. Live end-to-end reproduction of all four reported workflows is NOT_RUN / NOT_REPRODUCED; this is not product acceptance.  
+**Authority:** `AGENTS.md` Navigator Charter. Canonical target: `docs/AI-USER-VALUE-ARCHITECTURE-P113.md`; audit: `docs/AI-USER-VALUE-AUDIT-P114.md`.  
+**Fresh-session rule:** read sections 1–2 and current P114 section here, then the P113 target contract and P114 audit. Never infer product acceptance from hosted CI status.
 
 | Patch | Outcome | Status |
 |---|---|---|
@@ -13,26 +13,31 @@
 | P110 | Intent/Policy Contract | closed foundation |
 | P111 | Capability/impact graph | closed foundation |
 | P112 | Context selection and impact planning | closed foundation |
-| **P113** | **User-outcome architecture contract, three-agent target, audit and roadmap** | **current; docs/spec only** |
+| P113 | User-outcome contract and three-agent target | accepted; specification only |
+| **P114** | **User-outcome source/log audit and root-cause map** | **current; audit/control artifacts only** |
 
-## Current patch — P113: User-outcome architecture and three-agent target
+## Current patch — P114: User-outcome audit and root-cause map
 
-**Goal.** Re-anchor programme decisions in user-visible information value and completed work. Define exactly three target agents: Conversational Agent, Expert Problem-Solving Agent, and Complex Software Architect Agent. Establish an evidence-led audit before runtime changes.
+**Goal.** Trace the four current user workflows and shared runtime from user action through final visible answer/artifact. Distinguish observed facts from user-reported symptoms and unproven causal hypotheses. Rank work by user harm, confidence and expected leverage.
 
-**Canonical contract.** `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` defines target behavior, agent boundaries, end-to-end audit, acceptance scenarios, roadmap P113–P120, metrics, migration and rollback rules. Treat it as normative AI-session instructions, not external-reader documentation.
+**Delivered:**
+- `docs/AI-USER-VALUE-AUDIT-P114.md` with source/log evidence and ranked findings;
+- confirmed one production App Builder failure (`invalid_spec`, zero files, ~73 seconds);
+- confirmed web search is opt-in and logged requests sometimes skip it;
+- traced Simple and Expert to shared conversation prompt/orchestration;
+- traced Expert's staged, client-side state design and Project's novice/professional paths and build-engine branches;
+- recorded verifier, cancellation, crypto/ZIP, dependency and prompt/latency risks with appropriately limited claims;
+- recorded the Navigator's stop rule for patches that improve internal structure without demonstrated user-outcome improvement.
 
-**Delivered in P113:**
-- clarified C1/C7 so repository documents are AI-facing; normative specs, audits, roadmaps and acceptance contracts are allowed when operationally necessary; external-reader guides/manuals are not;
-- defined separate agent-owned instructions, orchestration/state machines, model cascades, output contracts and acceptance suites, with limited shared infrastructure;
-- specified that CI green and internal component health are necessary but insufficient; user outcome is the acceptance criterion;
-- defined audit work AUD-1–AUD-6 and scenario acceptance for all agents;
-- set P114–P120 sequence, with root-cause audit before implementation.
+**Limitations:** the supplied archives do not provide an authenticated interactive production session, all original prompts, or credentials for live-provider execution. Therefore the four reported user failures are NOT_REPRODUCED end-to-end in P114. Findings explicitly label what is observed versus hypothesized. No runtime defect has been fixed by this patch.
 
-**Out of scope:** runtime changes, deleting the existing four modes, prompt/provider changes, production actions, or claiming any mode is fixed.
+**Out of scope:** runtime/prompt/provider changes, production actions, mode migration, claiming any mode is repaired, or treating CI green as product acceptance.
 
-**Gate:** normative target, audit path, acceptance criteria and migration gates are defined; charter language is unambiguous. Runtime audit and all product scenarios remain `NOT_RUN` until subsequent patches.
+**Gate status:** source/log audit delivered; live acceptance remains NOT_RUN. Next patch is P115 Conversational Agent recovery, with explicit user-quality scenarios and controlled comparisons. P116/P117 follow only as bounded patches with user-outcome gates.
 
-**Rollback:** revert the P113 documentation/charter/index/roadmap/changelog/handoff changes as one unit. No runtime state or user data changes.
+**Verification:** audit document/source references and patch/version metadata checked locally. Runtime tests, browser E2E, live-provider tests, full CI and hosted CI: NOT_RUN for P114. Navigator reports the preceding CI green; that does not establish P114 verification.
+
+**Rollback:** revert P114 audit/task/roadmap/index/charter status/changelog/handoff and version metadata as one unit. No runtime state or user data changed.
 
 ## 1. Navigator directive
 
