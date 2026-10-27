@@ -1,3 +1,13 @@
+## P115 — Canonical documentation consolidation and roadmap correction
+
+- Replaced per-patch user-outcome documents with one current specification (`docs/AI-USER-VALUE-SPEC.md`) and one rolling evidence report (`docs/AI-USER-VALUE-REPORT.md`), carrying forward the P113 target and P114 evidence/limitations.
+- Updated the charter, operating rules, active task, roadmap, documentation index and handoff to use one authoritative roadmap and one consistent sequence: P116 Conversational Agent, P117 Expert Problem-Solving Agent, P118 Complex Software Architect Agent, P119 migration to three agents, P120 cross-agent acceptance.
+- Clarified that repository documents are internal AI working material; the Navigator may inspect selected control documents; only the application UI is external user-facing.
+- Established the default rule to update ongoing documents in place, retain only useful evidence/history, and delete superseded duplicates using the Navigator's manual workflow.
+- Verification: documentation paths, cross-references, patch order and version metadata checked locally. Runtime tests, browser E2E, live-provider tests and CI: NOT_RUN. No runtime changes; no product repair claimed.
+- Limitations: P114's end-to-end reproduction gaps remain. P115 is documentation/control-plane only.
+- Version 115.
+
 ## P114 — User-outcome audit and root-cause map
 
 - Audited the P112 source tree and supplied production diagnostics across Simple, Expert, Project novice, and Project professional workflows. Added `docs/AI-USER-VALUE-AUDIT-P114.md` with evidence labels, source/log trace, ranked findings, root-cause confidence, acceptance gaps, and per-finding next actions.

@@ -1,29 +1,63 @@
-# P114 — Navigator handoff
+# P115 — Navigator handoff
 
-**Decision requested:** accept the source/log audit as the current evidence baseline and authorize P115 Conversational Agent recovery.  
-**Patch type:** audit / normative control artifacts / version metadata only.  
-**Runtime changes:** none. The existing workflows remain unchanged.
+**Outcome:** optimized canonical documentation set and corrected patch sequence.
+**Patch type:** documentation/control-plane consolidation only.
+**Runtime changes:** none. No agent is claimed repaired.
+**Manifest:** intentionally omitted per Navigator instruction; version/manifest bookkeeping is handled manually by the Navigator.
 
 ## What changed
-- Added `docs/AI-USER-VALUE-AUDIT-P114.md`, a source/log root-cause map across Simple, Expert, Project novice and Project professional.
-- Confirmed one real App Builder failure (`invalid_spec`, zero files, ~73 seconds), opt-in web search with logged skips, shared Simple/Expert conversation orchestration, Expert stage/client-state constraints, and multiple Project build branches.
-- Separated observed facts from user-reported symptoms and causal hypotheses; identified exact user-outcome acceptance gaps and recommended per-component dispositions.
-- Updated active task, roadmap, documentation index, status, changelog and version metadata.
-- Recorded the standing stop rule: if a future patch improves internal structure without demonstrated user-outcome improvement, stop and ask the Navigator before proceeding.
 
-## Evidence status
-- Source baseline: P112 / `b32357d23efceb5d02e193c5175f45a95a5e5316`, with accepted P113 overlay.
-- Production diagnostics timestamp: `2026-10-27T11:55:15.442Z`, app v112, commit `b32357d`.
-- Build report: `invalid_spec`, `goalImplemented=false`, `files=[]`, `units=[]`, one model call, 73,059 ms.
-- Web search: code is opt-in unless `ENABLE_WEB_SEARCH=true`; production logs show both `used` and `skipped`.
-- Verifier: logged `INVALID_OUTPUT` twice and `INVALID_REQUEST` once; impact on final answer is NOT_PROVEN.
-- User reports all four workflows fail, but interactive live/browser reproduction of those failures is NOT_RUN due missing session, prompts and provider credentials in the supplied archives.
-- Local audit/document/source-reference/version checks: PASS. Runtime tests, browser E2E, live-provider tests, full CI and hosted CI: NOT_RUN. Navigator reports prior CI green; this is not product acceptance.
+- Established `docs/AI-USER-VALUE-SPEC.md` as the single current three-agent architecture and user-outcome contract.
+- Consolidated P114 audit findings into `docs/AI-USER-VALUE-REPORT.md`, a single rolling evidence report with newest record first.
+- Corrected the sequence: P115 documentation consolidation; P116 Conversational Agent; P117 Expert Problem-Solving Agent; P118 Complex Software Architect Agent; P119 migration to three agents; P120 cross-agent acceptance.
+- Replaced the active task with current scope, acceptance criteria, product reality and next action.
+- Clarified that repository documents are internal AI working material; the Navigator may inspect selected files for control, while only the app UI is external-user-facing.
+- Established the default to update ongoing documents in place rather than duplicate them per patch.
+- Updated documentation index and changelog.
 
-## Next bounded action
-P115: isolate/repair the Conversational Agent with scenario-based acceptance: direct stable-knowledge answers, freshness/current-events with search, search/provider failure, multi-turn context and truthful error handling. Before changing instruction rules, capture baseline prompts/outputs and use paired evaluations. Do not add internal architecture work unless its user-outcome benefit is explicit and testable.
+## Files in this patch
+
+Updated:
+- `AGENTS.md`
+- `CHANGELOG.md`
+- `NEXT_PATCH.md`
+- `package.json`
+- `package-lock.json`
+- `docs/AI-OPERATING-RULES.md`
+- `docs/AI-NATIVE-RENOVATION-TASK.md`
+- `docs/AI-NATIVE-RENOVATION-ROADMAP.md`
+- `docs/DOCUMENTATION-INDEX.md`
+
+Added:
+- `docs/AI-USER-VALUE-SPEC.md`
+- `docs/AI-USER-VALUE-REPORT.md`
+
+## Files for deletion after applying the patch
+
+Delete these superseded/duplicate prose documents. Useful current content is carried into the canonical files above; old versions remain available in the Navigator's local backups.
+
+- `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` — replaced by `docs/AI-USER-VALUE-SPEC.md`.
+- `docs/AI-USER-VALUE-AUDIT-P114.md` — rolled into `docs/AI-USER-VALUE-REPORT.md`.
+- `docs/AI-NATIVE-RENOVATION-MANDATE.md` — enduring rules and current phase policy consolidated into charter, operating rules and roadmap.
+- `docs/AI-TRANSFORMATION-SPEC.md` — superseded transformation plan; enduring rules are consolidated into current charter, operating rules and roadmap.
+- `docs/AI-NATIVE-ROADMAP-P81-P84.md` — historical duplicate roadmap.
+- `docs/AI-NATIVE-ROADMAP-P85-P91.md` — historical duplicate roadmap.
+
+Do not delete `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`, `docs/VIX-CONCEPT.md`, `docs/OPERATIONS.md`, `docs/architecture-guardrails.md`, `docs/typing-and-naming.md`, schemas, verification manifests, generated inventories, or machine-readable policy files in this patch. They have distinct strategic, operational, or tool-consumed purposes.
+
+## Verification and limitations
+
+- Documentation paths, cross-references, patch order and package version alignment: checked locally.
+- Runtime tests, browser E2E, live-provider tests, full CI and hosted CI: NOT_RUN for this documentation-only patch.
+- P114 end-to-end reproduction gaps remain. The four reported legacy workflow failures were not all reproduced end-to-end.
+- No product behavior is claimed to have improved in P115. The intended benefit is eliminating competing instructions so implementation proceeds against one agreed target and sequence.
+
+## Next action
+
+P116: recover the Conversational Agent against representative scenarios. Inspect runtime paths and capture baseline outputs first; fix only demonstrated causes that materially improve directness, freshness, context continuity and truthful tool/provider failure handling.
 
 ## Rollback
-Revert the P114 audit/control documents, handoff, changelog and version metadata as one unit. No runtime state or user data changed.
+
+Restore updated files from the Navigator's local pre-patch backup and remove the two added canonical files. Deletions are performed manually by the Navigator after applying the patch.
 
 Charter conflicts: none

@@ -49,11 +49,11 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** P114 user-outcome source/log audit complete; live end-to-end reproduction remains NOT_RUN. P110 Intent/Policy Contract, P111 capability graph v1, and P112 context selection / impact planning are foundations, not proof that user-facing modes work. Phase 2 closed (Navigator 2026-10-26). Hosted CI was reported green for P112; this is not product acceptance. Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; P113 target contract: `docs/AI-USER-VALUE-ARCHITECTURE-P113.md`; P114 audit: `docs/AI-USER-VALUE-AUDIT-P114.md`; phase gates: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** P115 documentation consolidation prepared; next implementation is P116 Conversational Agent recovery. P110 Intent/Policy Contract, P111 capability graph v1, and P112 context selection / impact planning are foundations, not proof that user-facing modes work. Phase 2 closed (Navigator 2026-10-26). Hosted CI was reported green for P112; this is not product acceptance. Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md`; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; only roadmap: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
-* **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
+* **Programme authority:** this charter, `docs/AI-OPERATING-RULES.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, and `docs/AI-USER-VALUE-SPEC.md`. `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` is a historical audit baseline, not a current instruction source.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
-* **No historical documents in the repository:** superseded specs, roadmaps, reports and snapshots were deleted in P104; history lives in git and in the owner's backups. Nothing in tests or CI reads documentation prose. `CHANGELOG.md` keeps the patch history as plain text (document names, no links); read only its top entries.
+* **Documentation consolidation:** keep one authoritative file per ongoing purpose. Update the current specification, roadmap, task, and rolling evidence report in place; do not create per-patch copies. Superseded duplicate prose documents are removed after useful current content is transferred. The Navigator's local backups preserve old versions. `CHANGELOG.md` keeps patch history; read only its top entries.
 * **Evidence rule:** the Navigator reports current CI as green; each patch must still use evidence for its actual commit/run. Historical red runs do not establish current status.
 * **Delivery rule:** continue one bounded patch at a time. Phase transitions require their stated evidence gates; do not advance a phase just because documentation or code exists.
 * **Phase 2 closure (P109):** Formal acceptance recorded. Evidence reviewed: DAG independent-check completion, BLOCKED reasons, fault-injection non-PASS outcomes, bounded-repair protected-path and limit guards, CI two-artifact packaging, fail-closed evidence gate. Remaining risks listed in the P109 audit section of the task document; none block further programme work. P92 production-diagnostics verification is frozen until the full AI-native renovation completes; subsequent patches are unblocked independently of P92.
@@ -74,7 +74,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ## Navigation
 
-* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (read sections 1–2 and current P114), `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` (mandatory target contract), `docs/AI-USER-VALUE-AUDIT-P114.md` (mandatory for agent repair/rearchitecture), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (historical baseline; on demand).
+* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (current task), `docs/AI-USER-VALUE-SPEC.md` (target contract), `docs/AI-USER-VALUE-REPORT.md` (evidence when relevant), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (only roadmap), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (historical baseline; on demand).
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
 * Document index with sizes and read triggers: `docs/DOCUMENTATION-INDEX.md`.
 * Operations, diagnostics and the `test:ai` harness: `docs/OPERATIONS.md`.
@@ -92,7 +92,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 Preserve behavior unless change is approved. Never commit secrets. Production deployment, GitHub write, billing, credentials, bypassing security controls and executing generated code on the host require explicit owner authorization. Report passed/failed/blocked/not-run checks separately. Deliver a ZIP containing changed/new files, list deletions separately, and update this status and `CHANGELOG.md` for every patch.
 
-Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not add new directory levels without Navigator approval. Do not keep historical documents in the repository.
+Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not add new directory levels without Navigator approval. Do not keep superseded duplicate specifications, roadmaps, or per-patch reports. Maintain the rolling report only for evidence that remains useful.
 
 ## Delegation of decisions
 
@@ -129,9 +129,15 @@ Silence is never consent in Tiers 2 and 3.
 * Clearly distinguish implemented functionality from functionality that has been tested or verified in production.
 * Never claim that a feature works merely because the build or deployment succeeded.
 
+## P115 — Canonical documentation consolidation
+
+- Established `docs/AI-USER-VALUE-SPEC.md` as the current three-agent contract and `docs/AI-USER-VALUE-REPORT.md` as the rolling evidence report.
+- Corrected patch sequence: P116 Conversational Agent, P117 Expert Problem-Solving Agent, P118 Complex Software Architect Agent, P119 migration to three agents, P120 cross-agent acceptance.
+- Runtime behavior unchanged; no product repair is claimed.
+
 ## P114 — User-outcome audit and root-cause map
 
-- Added `docs/AI-USER-VALUE-AUDIT-P114.md`, tracing the four current workflows across UI, prompt composition, orchestration, model/tools, state, validation and delivery. Findings distinguish observed evidence, user-reported symptoms and unproven causal hypotheses.
+- Added `docs/AI-USER-VALUE-REPORT.md`, tracing the four current workflows across UI, prompt composition, orchestration, model/tools, state, validation and delivery. Findings distinguish observed evidence, user-reported symptoms and unproven causal hypotheses.
 - The production App Builder report proves one failed build with `invalid_spec`, zero files and ~73 seconds duration. Logs prove some conversations skipped optional web search; source confirms Simple and Expert share a conversation pipeline; project build has multiple paths and configuration gates.
 - The supplied archives do not allow authenticated browser/live-provider reproduction of all four failures. Those cases remain `NOT_REPRODUCED` / `NOT_RUN`; no root cause is asserted without evidence.
 - P114 changes audit/control artifacts and version metadata only. No runtime fixes are included.
