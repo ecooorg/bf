@@ -1,63 +1,42 @@
-# P115 — Navigator handoff
+# P116 — Navigator handoff
 
-**Outcome:** optimized canonical documentation set and corrected patch sequence.
-**Patch type:** documentation/control-plane consolidation only.
-**Runtime changes:** none. No agent is claimed repaired.
-**Manifest:** intentionally omitted per Navigator instruction; version/manifest bookkeeping is handled manually by the Navigator.
+**Outcome:** Conversational Agent freshness behavior improved: current-information and explicit-search requests trigger web lookup by default, and failed/unavailable lookup is disclosed instead of silently presenting memory as current fact.
+**Patch type:** bounded runtime behavior and deterministic regression tests.
+**Manifest:** intentionally omitted per Navigator instruction; repository bookkeeping is handled manually by the Navigator.
 
-## What changed
+## Changed files
 
-- Established `docs/AI-USER-VALUE-SPEC.md` as the single current three-agent architecture and user-outcome contract.
-- Consolidated P114 audit findings into `docs/AI-USER-VALUE-REPORT.md`, a single rolling evidence report with newest record first.
-- Corrected the sequence: P115 documentation consolidation; P116 Conversational Agent; P117 Expert Problem-Solving Agent; P118 Complex Software Architect Agent; P119 migration to three agents; P120 cross-agent acceptance.
-- Replaced the active task with current scope, acceptance criteria, product reality and next action.
-- Clarified that repository documents are internal AI working material; the Navigator may inspect selected files for control, while only the app UI is external-user-facing.
-- Established the default to update ongoing documents in place rather than duplicate them per patch.
-- Updated documentation index and changelog.
+- `server/webSearch.ts` — default-on freshness lookup policy with explicit opt-out; broadened Russian/English current-version, release and status detection; truthful fallback disclosure helper.
+- `server.ts` — applies the freshness policy to `/api/conversation`, adds the disclosure when current grounding was expected but not obtained, and records search expectation/status in response metadata.
+- `server/promptPacks.ts` — instructs the conversational information path to prioritize supplied fresh evidence and not present remembered facts as live-verified.
+- `tests/web-and-epistemics.test.mjs` — deterministic tests for default-on/opt-out, freshness detection and disclosure.
+- `.env.example` — documents default-on behavior and explicit opt-out.
+- `docs/AI-USER-VALUE-SPEC.md` — clarifies the freshness and disclosure contract.
+- `docs/AI-NATIVE-RENOVATION-TASK.md` — records P116 scope and P117 next action.
+- `docs/AI-USER-VALUE-REPORT.md` — prepends P116 evidence and limitations.
+- `docs/AI-NATIVE-RENOVATION-ROADMAP.md` — marks the current workstream and gates for P116/P117.
+- `CHANGELOG.md`, `package.json`, `package-lock.json` — patch record and version 116.
 
-## Files in this patch
+## Behavior details
 
-Updated:
-- `AGENTS.md`
-- `CHANGELOG.md`
-- `NEXT_PATCH.md`
-- `package.json`
-- `package-lock.json`
-- `docs/AI-OPERATING-RULES.md`
-- `docs/AI-NATIVE-RENOVATION-TASK.md`
-- `docs/AI-NATIVE-RENOVATION-ROADMAP.md`
-- `docs/DOCUMENTATION-INDEX.md`
+- Web lookup is now enabled by default for explicit search requests and detected time-sensitive questions. Set `ENABLE_WEB_SEARCH=false` (or `0`, `off`, `no`) to opt out.
+- Ordinary personal-decision messages are not freshness triggers. Existing crisis, document-intent and attachment-focused exclusions remain.
+- Only the latest user message is sent to the search path; conversation history, state and attachments are not sent as search text.
+- If current lookup is expected but does not return grounded results, the reply gets a short language-aware note that current facts were not verified. Successful grounded results retain their source footer.
+- This patch does not make every answer use web search and does not claim live-provider reliability or global answer quality has been established.
 
-Added:
-- `docs/AI-USER-VALUE-SPEC.md`
-- `docs/AI-USER-VALUE-REPORT.md`
+## Verification
 
-## Files for deletion after applying the patch
-
-Delete these superseded/duplicate prose documents. Useful current content is carried into the canonical files above; old versions remain available in the Navigator's local backups.
-
-- `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` — replaced by `docs/AI-USER-VALUE-SPEC.md`.
-- `docs/AI-USER-VALUE-AUDIT-P114.md` — rolled into `docs/AI-USER-VALUE-REPORT.md`.
-- `docs/AI-NATIVE-RENOVATION-MANDATE.md` — enduring rules and current phase policy consolidated into charter, operating rules and roadmap.
-- `docs/AI-TRANSFORMATION-SPEC.md` — superseded transformation plan; enduring rules are consolidated into current charter, operating rules and roadmap.
-- `docs/AI-NATIVE-ROADMAP-P81-P84.md` — historical duplicate roadmap.
-- `docs/AI-NATIVE-ROADMAP-P85-P91.md` — historical duplicate roadmap.
-
-Do not delete `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`, `docs/VIX-CONCEPT.md`, `docs/OPERATIONS.md`, `docs/architecture-guardrails.md`, `docs/typing-and-naming.md`, schemas, verification manifests, generated inventories, or machine-readable policy files in this patch. They have distinct strategic, operational, or tool-consumed purposes.
-
-## Verification and limitations
-
-- Documentation paths, cross-references, patch order and package version alignment: checked locally.
-- Runtime tests, browser E2E, live-provider tests, full CI and hosted CI: NOT_RUN for this documentation-only patch.
-- P114 end-to-end reproduction gaps remain. The four reported legacy workflow failures were not all reproduced end-to-end.
-- No product behavior is claimed to have improved in P115. The intended benefit is eliminating competing instructions so implementation proceeds against one agreed target and sequence.
+- `node --experimental-strip-types --test tests/web-and-epistemics.test.mjs`: PASS (24/24).
+- `node --experimental-strip-types --test tests/conversation-turn.test.mjs`: PASS (8/8).
+- Typecheck/build/full CI: NOT_RUN. `npm ci` timed out before dependencies could be installed, so the full toolchain was unavailable.
+- Live-provider and browser end-to-end scenarios: NOT_RUN; no live session or credentials were used to verify search quality, source accuracy, latency or production configuration.
+- Baseline live outputs: NOT_CAPTURED because no authenticated live-provider test was available.
 
 ## Next action
 
-P116: recover the Conversational Agent against representative scenarios. Inspect runtime paths and capture baseline outputs first; fix only demonstrated causes that materially improve directness, freshness, context continuity and truthful tool/provider failure handling.
+P117: implement and accept the Expert Problem-Solving Agent as a separate workflow, only after P116 is applied and its available verification results are reviewed.
 
 ## Rollback
 
-Restore updated files from the Navigator's local pre-patch backup and remove the two added canonical files. Deletions are performed manually by the Navigator after applying the patch.
-
-Charter conflicts: none
+Restore the listed files from the Navigator's local pre-P116 backup. If default-on external lookup is not desired, set `ENABLE_WEB_SEARCH=false` while evaluating or roll back the patch.

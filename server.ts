@@ -32,7 +32,7 @@ import { consumeRateLimit, createProject, deleteProject, getProject, listProject
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, appendFreshnessDisclosure, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -1188,29 +1188,30 @@ app.post('/api/conversation', async (req, res) => {
     const modeBlock = productMode === 'Expert'
       ? `${modeParagraph(conversationMode)}\n\n${expertDialogueParagraph(String(req.body?.expertStage || ''), typeof req.body?.expertContext === 'string' ? req.body.expertContext : '')}`
       : modeParagraph(conversationMode);
-    // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
+    // P116: current-information lookup is automatic for detected fresh facts and explicit search asks.
+    // It is enabled by default; operators can explicitly opt out. Personal/crisis/document turns stay excluded.
+    const freshnessLookupExpected = shouldSearchWeb({
+      enabled: true,
+      mode: webSearchMode(),
+      userText: lastUserText,
+      userAskedSearch: intentFlags.userAskedSearch,
+      distress: distressMarkerDetected,
+      intent: context.intent,
+      hasAttachments: attachItems.length > 0,
+    });
+    const webSearchEnabled = isWebSearchEnabled();
     let webSearch: WebSearchResult = skippedWebSearch();
     let promptAttachmentsBlock = attachmentsBlock;
-    if (isWebSearchEnabled()) {
+    if (webSearchEnabled && freshnessLookupExpected) {
       try {
-        if (shouldSearchWeb({
-          enabled: true,
-          mode: webSearchMode(),
-          userText: lastUserText,
-          userAskedSearch: intentFlags.userAskedSearch,
-          distress: distressMarkerDetected,
-          intent: context.intent,
-          hasAttachments: attachItems.length > 0,
-        })) {
-          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel);
-          if (webSearch.status === 'used') {
-            const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
-            promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;
-            // Numbers from the search digest are sourced; also allow model % in simple chat after search
-            // so live rate/price answers are not blocked when page extracts omit explicit figures.
-            genOpts.extraNumberSource = `${genOpts.extraNumberSource || ''}\n${webSearch.digest}`;
-            genOpts.allowUnsourcedPercentages = true;
-          }
+        webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel);
+        if (webSearch.status === 'used') {
+          const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
+          promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;
+          // Numbers from the search digest are sourced; also allow model % in simple chat after search
+          // so live rate/price answers are not blocked when page extracts omit explicit figures.
+          genOpts.extraNumberSource = `${genOpts.extraNumberSource || ''}\n${webSearch.digest}`;
+          genOpts.allowUnsourcedPercentages = true;
         }
       } catch {
         webSearch = skippedWebSearch('failed', 'exception');
@@ -1352,7 +1353,8 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
     const crisisBlock = crisisNow
       ? `\n\n---\nIf you are in immediate danger, contact local emergency services or a person near you right now.\n${SUPPORT_CONTACTS.map((c) => `${c.label}: ${c.value}`).join('\n')}`
       : '';
-    const visibleReply = buildVisibleReply(cleanReply, cleanQuestion, askAllowed) + crisisBlock;
+    const baseVisibleReply = buildVisibleReply(cleanReply, cleanQuestion, askAllowed) + crisisBlock;
+    const visibleReply = appendFreshnessDisclosure(baseVisibleReply, lastUserText, freshnessLookupExpected, webSearch.status, webSearchEnabled);
     // P48: optional Groq verifier — never blocks primary reply; skip if no key / fail / no trigger.
     let epistemic = skippedEpistemic('skipped');
     try {
@@ -1376,13 +1378,13 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
       epistemic = skippedEpistemic('error');
     }
     phase.mark('verifier');
-    // PI-02: search_expected in meta/logs when the user asked for a web search (no search tool yet).
+    // P116: record whether fresh grounding was expected and what the lookup returned.
     const responseMeta = {
       ...(meta as object),
       conversation_mode: conversationMode,
       product_mode: productMode,
-      ...(intentFlags.userAskedSearch ? { search_expected: true } : {}),
-      ...(webSearch.status !== 'skipped' ? { web_search: webSearch.status } : {}),
+      ...(freshnessLookupExpected ? { search_expected: true } : {}),
+      ...(freshnessLookupExpected || webSearch.status !== 'skipped' ? { web_search: webSearch.status } : {}),
       epistemic_verifier: epistemic.verifier,
     };
     console.info(JSON.stringify({

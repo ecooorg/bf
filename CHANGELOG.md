@@ -1,3 +1,13 @@
+## P116 — Conversational Agent freshness and truthful search failure
+
+- Current-information lookup is now automatic by default for explicit search asks and detected time-sensitive questions; `ENABLE_WEB_SEARCH=false/0/off/no` is the explicit opt-out.
+- Expanded conservative freshness detection for Russian and English current-version, release, and status questions while retaining the exclusions for personal decision text, crisis turns, document intent and attachment-focused turns.
+- If current lookup was expected but no grounded result was obtained, the conversational reply discloses that current facts were not verified. Successful grounded search retains source links.
+- Added deterministic tests for search configuration, detection and disclosure.
+- Updated the canonical user-outcome contract, active task, rolling evidence report and handoff.
+- Verification: deterministic freshness suite PASS (24/24); conversation-turn regression suite PASS (8/8) using Node built-in TypeScript stripping. Typecheck/build/full CI, live-provider tests and browser E2E are NOT_RUN; `npm ci` timed out. No live search quality or production behavior is claimed accepted.
+- Version 116.
+
 ## P115 — Canonical documentation consolidation and roadmap correction
 
 - Replaced per-patch user-outcome documents with one current specification (`docs/AI-USER-VALUE-SPEC.md`) and one rolling evidence report (`docs/AI-USER-VALUE-REPORT.md`), carrying forward the P113 target and P114 evidence/limitations.
