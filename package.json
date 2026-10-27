@@ -1,7 +1,7 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "113",
+  "version": "114",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -59,7 +59,6 @@
     "status:graph": "node scripts/statusGraph.mjs",
     "schema:validate": "node scripts/schemaValidate.mjs"
   },
-
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",

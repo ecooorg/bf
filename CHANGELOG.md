@@ -1,3 +1,12 @@
+## P114 — User-outcome audit and root-cause map
+
+- Audited the P112 source tree and supplied production diagnostics across Simple, Expert, Project novice, and Project professional workflows. Added `docs/AI-USER-VALUE-AUDIT-P114.md` with evidence labels, source/log trace, ranked findings, root-cause confidence, acceptance gaps, and per-finding next actions.
+- Confirmed a production App Builder failure (`invalid_spec`, zero files, ~73 seconds); confirmed web search is opt-in and some logged conversations skipped it; confirmed Simple and Expert share `/api/conversation` orchestration; traced the Expert stage/state design and project build branches.
+- Separated observed facts from hypotheses. Live browser/provider reproduction of the four reported user failures was NOT_RUN because the supplied archives do not contain an authenticated interactive session or all original prompts. Verifier/AbortSignal/crypto/dependency findings remain scoped to what evidence proves.
+- Recorded the mandatory stop rule: if a future patch improves internal structure without demonstrated user-outcome improvement, stop and ask the Navigator before proceeding.
+- No runtime behavior, prompt, routing, provider, database, production or user-data changes. Version metadata advances to 114.
+- Verification: audit consistency, source references, patch contents and version metadata checked locally. Runtime tests, browser E2E, live-provider tests, full CI and hosted CI: NOT_RUN in P114. Navigator reports the preceding CI green; that does not establish P114 verification or product acceptance.
+
 ## P113 — User-outcome architecture contract and three-agent roadmap
 
 - Reframed programme acceptance around delivered user value: useful conversational answers, a persistent expert investigation ending in an actionable plan, and a verified software artifact delivered to the user. Green CI remains necessary evidence, not product acceptance.

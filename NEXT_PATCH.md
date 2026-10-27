@@ -1,26 +1,29 @@
-# P113 — Navigator handoff
+# P114 — Navigator handoff
 
-**Decision requested:** accept the user-outcome architecture contract and authorize P114 end-to-end audit.  
-**Patch type:** normative specification / roadmap / charter clarification only.  
-**Runtime changes:** none. Existing four modes remain unchanged.
+**Decision requested:** accept the source/log audit as the current evidence baseline and authorize P115 Conversational Agent recovery.  
+**Patch type:** audit / normative control artifacts / version metadata only.  
+**Runtime changes:** none. The existing workflows remain unchanged.
 
 ## What changed
-- Defined exactly three target agents: Conversational, Expert Problem-Solving, Complex Software Architect.
-- Made delivered user outcome the primary product acceptance criterion; green CI and internal activity alone do not prove success.
-- Added canonical AI-facing contract, audit path AUD-1–AUD-6, acceptance scenarios, metrics, migration/rollback rules and proposed P114–P120 sequence.
-- Clarified C1/C7 to distinguish AI-facing normative repository artifacts from external-reader documentation.
+- Added `docs/AI-USER-VALUE-AUDIT-P114.md`, a source/log root-cause map across Simple, Expert, Project novice and Project professional.
+- Confirmed one real App Builder failure (`invalid_spec`, zero files, ~73 seconds), opt-in web search with logged skips, shared Simple/Expert conversation orchestration, Expert stage/client-state constraints, and multiple Project build branches.
+- Separated observed facts from user-reported symptoms and causal hypotheses; identified exact user-outcome acceptance gaps and recommended per-component dispositions.
+- Updated active task, roadmap, documentation index, status, changelog and version metadata.
+- Recorded the standing stop rule: if a future patch improves internal structure without demonstrated user-outcome improvement, stop and ask the Navigator before proceeding.
 
 ## Evidence status
-- Source tree baseline: `bf-112.zip`, commit `b32357d23efceb5d02e193c5175f45a95a5e5316`.
-- Owner reports four modes are currently unacceptable; recorded as symptoms requiring reproduction, not proven root causes.
-- Prior logs include App Builder `invalid_spec`, verifier failures, AbortSignal listener warnings, browser `node:crypto` warnings and a high-severity dependency audit warning; detailed disposition belongs to P114.
-- P113 runtime behavior tests: NOT_RUN (no runtime changes; not a claim of product correctness).
-- Full CI/hosted CI for the assembled patch: NOT_RUN in this handoff.
+- Source baseline: P112 / `b32357d23efceb5d02e193c5175f45a95a5e5316`, with accepted P113 overlay.
+- Production diagnostics timestamp: `2026-10-27T11:55:15.442Z`, app v112, commit `b32357d`.
+- Build report: `invalid_spec`, `goalImplemented=false`, `files=[]`, `units=[]`, one model call, 73,059 ms.
+- Web search: code is opt-in unless `ENABLE_WEB_SEARCH=true`; production logs show both `used` and `skipped`.
+- Verifier: logged `INVALID_OUTPUT` twice and `INVALID_REQUEST` once; impact on final answer is NOT_PROVEN.
+- User reports all four workflows fail, but interactive live/browser reproduction of those failures is NOT_RUN due missing session, prompts and provider credentials in the supplied archives.
+- Local audit/document/source-reference/version checks: PASS. Runtime tests, browser E2E, live-provider tests, full CI and hosted CI: NOT_RUN. Navigator reports prior CI green; this is not product acceptance.
 
 ## Next bounded action
-P114: reproduce one normal and one failure/recovery scenario per current mode; trace UI → instructions/orchestration → model cascade/tools → validation → persistence → UI/artifact delivery; audit shared subsystems and P110–P112 runtime adoption; report findings with evidence and confidence. Do not rewrite components before this evidence exists.
+P115: isolate/repair the Conversational Agent with scenario-based acceptance: direct stable-knowledge answers, freshness/current-events with search, search/provider failure, multi-turn context and truthful error handling. Before changing instruction rules, capture baseline prompts/outputs and use paired evaluations. Do not add internal architecture work unless its user-outcome benefit is explicit and testable.
 
 ## Rollback
-Revert the files in this patch as one unit. No runtime state or user data changed.
+Revert the P114 audit/control documents, handoff, changelog and version metadata as one unit. No runtime state or user data changed.
 
 Charter conflicts: none

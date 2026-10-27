@@ -49,7 +49,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** P113 user-outcome rearchitecture specification and audit plan. P110 Intent/Policy Contract, P111 capability graph v1, and P112 context selection / impact planning delivered as foundations, not proof that user-facing modes work. Phase 2 closed (Navigator 2026-10-26). Hosted CI was reported green for P112; this is not product acceptance. Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; P113 target contract: `docs/AI-USER-VALUE-ARCHITECTURE-P113.md`; phase gates: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** P114 user-outcome source/log audit complete; live end-to-end reproduction remains NOT_RUN. P110 Intent/Policy Contract, P111 capability graph v1, and P112 context selection / impact planning are foundations, not proof that user-facing modes work. Phase 2 closed (Navigator 2026-10-26). Hosted CI was reported green for P112; this is not product acceptance. Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; P113 target contract: `docs/AI-USER-VALUE-ARCHITECTURE-P113.md`; P114 audit: `docs/AI-USER-VALUE-AUDIT-P114.md`; phase gates: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
 * **Normative programme documents:** `docs/AI-NATIVE-RENOVATION-MANDATE.md` and `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md`.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
@@ -74,7 +74,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ## Navigation
 
-* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (read sections 1–2 and current P113), `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` (mandatory for P113 audit/design work), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (historical baseline; on demand).
+* **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (read sections 1–2 and current P114), `docs/AI-USER-VALUE-ARCHITECTURE-P113.md` (mandatory target contract), `docs/AI-USER-VALUE-AUDIT-P114.md` (mandatory for agent repair/rearchitecture), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (phases & gates), `docs/AI-NATIVE-RENOVATION-MANDATE.md` (rules), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (historical baseline; on demand).
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
 * Document index with sizes and read triggers: `docs/DOCUMENTATION-INDEX.md`.
 * Operations, diagnostics and the `test:ai` harness: `docs/OPERATIONS.md`.
@@ -128,3 +128,11 @@ Silence is never consent in Tiers 2 and 3.
 
 * Clearly distinguish implemented functionality from functionality that has been tested or verified in production.
 * Never claim that a feature works merely because the build or deployment succeeded.
+
+## P114 — User-outcome audit and root-cause map
+
+- Added `docs/AI-USER-VALUE-AUDIT-P114.md`, tracing the four current workflows across UI, prompt composition, orchestration, model/tools, state, validation and delivery. Findings distinguish observed evidence, user-reported symptoms and unproven causal hypotheses.
+- The production App Builder report proves one failed build with `invalid_spec`, zero files and ~73 seconds duration. Logs prove some conversations skipped optional web search; source confirms Simple and Expert share a conversation pipeline; project build has multiple paths and configuration gates.
+- The supplied archives do not allow authenticated browser/live-provider reproduction of all four failures. Those cases remain `NOT_REPRODUCED` / `NOT_RUN`; no root cause is asserted without evidence.
+- P114 changes audit/control artifacts and version metadata only. No runtime fixes are included.
+- Standing Navigator directive for every later patch: if work drifts toward internal structure improvement without demonstrated improvement in user-facing information value or completed work, stop and ask the Navigator before proceeding.
