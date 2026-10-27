@@ -1,52 +1,42 @@
 # BIForge — Current Task and Patch Control
 
-**Current patch:** P117 — Expert problem-solving contract and model cascade foundations.
-**Status:** source patch prepared for Navigator application. CI and runtime acceptance are not yet verified.
+**Current patch:** P117.1 — document the future Universal Model Resilience Layer.
+**Status:** documentation-only patch prepared; no runtime changes or acceptance claims.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, the canonical roadmap, and the user-outcome specification.
 **Current specification:** `docs/AI-USER-VALUE-SPEC.md`.
 **Current evidence baseline:** `docs/AI-USER-VALUE-REPORT.md`.
 **Only roadmap:** `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 
-## Immediate objective
+## Immediate objective — P117.1
 
-Replace fragmented normative documentation with a small canonical set. Ensure the current task, three-agent target, evidence baseline, and next patch are consistent. The Navigator applies the ZIP manually and removes the explicitly listed superseded documents. No manifest is required or included; the Navigator updates repository bookkeeping manually.
+Record a bounded, user-outcome-oriented specification for a future model reliability system without implementing it now. The current user-facing-agent sequence remains P116–P120. P121 may begin only after that sequence has passed its required gates and the Navigator explicitly authorizes the work.
 
-## P117 scope
+## P117.1 scope
 
-- Strengthen the Expert conversation contract for structured, persistent investigation and actionable synthesis.
-- Align primary Gemini cascade order to `gemini-3.5-flash-lite` then `gemini-3.1-flash-lite` in Simple, Expert, and Project workflows.
-- Probe `gemini-3.6-flash`, `gemini-3.8-flash`, and `gemma-4` hourly using minimal requests; only a successful probe may promote a candidate into the cascade.
-- Add Groq Cloud and Cloudflare Workers AI as explicit opt-in fallbacks, not silent defaults. Preserve JSON validation and existing safety boundaries.
-- Add mocked regression tests for probe state and throttling.
-- No claim of full independent Expert-agent state-machine completion; that remains part of the subsequent implementation/acceptance work.
+- Specify a model/provider registry, health monitor, task-aware router, response validator, and recovery engine.
+- Document health checks versus generation probes, resource budgets, error classes, circuit breakers, provider independence, context preservation, and honest failure behavior.
+- Record model/provider families supplied by the Navigator as candidates, not as verified or enabled integrations.
+- Define safeguards for cross-provider prompt transfer, free-tier quota consumption, unreviewed model discovery, and selective independent critique.
+- Record open decisions for resolution before P121 launch.
+- Change documentation only; do not change application code, provider settings, credentials, dependencies, package version, or runtime behavior.
 
-## Acceptance criteria
+## Current-line guardrails
 
-- Exactly one current user-outcome specification: `docs/AI-USER-VALUE-SPEC.md`.
-- Exactly one roadmap: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
-- Exactly one current task/control file: this file.
-- Exactly one rolling user-outcome evidence report: `docs/AI-USER-VALUE-REPORT.md`, newest record first.
-- Charter, operating rules, index, roadmap, spec, report, and handoff do not prescribe conflicting patch order.
-- Superseded duplicates are listed for deletion in the Navigator handoff, not embedded in a generated manifest.
-- No claims of runtime repair or product acceptance.
-- No unrelated source-code refactoring.
+- P116 Conversational Agent recovery remains in the authoritative roadmap and must be resolved according to the roadmap.
+- P117's prepared implementation has not thereby become accepted: CI and representative runtime scenarios must be reported honestly.
+- Do not start P121 or broad model integrations while P116–P120 are unresolved.
+- The prior reported P115 version-consistency CI failure must not be treated as fixed without a new observed CI result.
 
-## Current product reality
+## Acceptance criteria for P117.1
 
-The Navigator reports that Simple, Expert, and both Project workflows do not deliver acceptable results. The P114 audit observed a production build failure with `invalid_spec`, no files, one model call and approximately 73 seconds elapsed. Web search is optional in current code and logs show some requests skipped it. Simple and Expert share conversation orchestration. Other concerns (verifier errors, AbortSignal listener warnings, browser crypto/ZIP fallback, dependency audit, stale generated inventories) are evidence-limited risks, not established causes of every user symptom.
-
-End-to-end reproduction of all four legacy workflows was NOT_RUN in P114. Do not infer root causes beyond evidence. See the rolling report for the carried-forward findings.
-
-## Next action after P117
-
-Run CI. If green, validate the actual Expert conversation and project build flows with external fallback disabled, then enabled only after reviewing provider data/cost settings. P116 conversational-agent recovery remains a prerequisite if it has not been applied and accepted. Do not mark P117 as full Expert E2E acceptance.
+- Only the canonical specification, roadmap, current task, rolling evidence report, and changelog are updated.
+- The future P121 objective and prerequisite gates are consistent across those files.
+- The proposed system distinguishes reachability from answer quality and independent provider routes from multiple models behind one provider.
+- Quota, billing, privacy, model-ID, probe-cost, and launch questions remain explicit rather than silently decided.
+- No claim is made that any model, provider, test, build, or CI run is verified by this documentation patch.
 
 ## Delivery and verification protocol
 
-- The Navigator keeps full local repository backups and handles deletion/version bookkeeping manually.
-- Do not send a manifest unless explicitly requested.
-- In the chat handoff, state the patch outcome, changed files, deletion list, verification actually performed, limitations, next action, and rollback guidance.
-- Never equate implementation, build success, or green CI with verified user outcome.
-- Keep `CHANGELOG.md` patch entries newest-first; keep the rolling evidence report newest-first.
+The Navigator keeps full local backups and handles repository bookkeeping manually. Do not send a manifest unless explicitly requested. Every handoff states changed files, deletions (if any), verification actually performed, limitations, next action, and rollback guidance. Never equate documentation completeness or green CI with user-outcome acceptance.
 
 Charter conflicts: none

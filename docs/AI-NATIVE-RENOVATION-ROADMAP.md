@@ -19,6 +19,7 @@ The Navigator reports that all four current modes fail to provide acceptable out
 | **P118** | Implement Complex Software Architect Agent | Produces actual non-empty files; validates requirements; runs declared checks; packages and verifies archive; exposes downloadable artifact or truthful stage-specific failure and recovery action |
 | **P119** | Migrate product from four legacy modes to three agents | UI exposes exactly three approved agents; old routing/state paths removed or explicitly isolated; no regression in accepted agent scenarios |
 | **P120** | Cross-agent end-to-end acceptance and stabilization | Representative scenarios for all three agents pass; failures are truthful; artifacts are accessible and valid; remaining limitations explicit; no false-success claims |
+| **P121** | Universal Model Resilience Layer (planned; documented in P117.1) | Only after P116–P120 gates are resolved and Navigator authorizes start; registry, health monitor, task-aware routing, validation and recovery are tested with mock and live-provider evidence, with quota/privacy/cost policy explicitly approved |
 
 ## Programme rules and gates
 
@@ -42,3 +43,10 @@ The longer-horizon VIX phases remain strategic direction, not authorization for 
 ## Status vocabulary
 
 `PASS`, `FAIL`, `BLOCKED`, `TIMEOUT`, `PARTIAL`, `NOT_RUN`, `UNKNOWN`, `NOT_REPRODUCED`. These are not interchangeable. In particular, NOT_RUN and NOT_REPRODUCED never mean success.
+
+
+## P121 planning note (not current authorization)
+
+P117.1 records the future objective: improve user outcomes when models/providers are unavailable or return invalid/low-quality answers. The planned layer comprises a model/provider registry, health monitor, task-aware router, response validator, and recovery engine. It should consider Gemini, Groq, Cloudflare Workers AI, OpenRouter, Hugging Face Inference Providers, and potentially local/open-weight routes, but no model IDs, access, free quotas, prices, or quality claims are presumed verified.
+
+P121 must not begin until the P116–P120 line is accepted or explicitly re-sequenced by the Navigator. Before enabling it, resolve the open decisions in `docs/AI-USER-VALUE-SPEC.md`, including global/per-provider budgets, probe frequency and quota consumption, cross-provider data transfer, selective critique policy, telemetry retention, local inference feasibility, and exact model endpoint validation. Automatic discovery may propose candidates but must not silently enable them.

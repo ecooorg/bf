@@ -1,5 +1,18 @@
 # BIForge — Rolling User-Outcome Evidence Report
 
+# P117.1 — Model resilience layer planning record
+
+**Status: DOCUMENTATION ONLY — no runtime behavior changed.**
+
+- Added a future P121 specification for registry, health monitoring, task-aware routing, response validation, and recovery.
+- Recorded candidate model families and access channels as unverified candidates; exact IDs, live access, current pricing/free quotas, terms, and quality remain to be checked before implementation.
+- Captured required safeguards: budgeted/staggered probes, error classification, bounded retries, circuit breakers, context preservation, selective independent critique, explicit cross-provider data-transfer authorization, and truthful failure states.
+- Deferred launch decisions: global/per-provider budgets and protected reserves; probe cost/frequency; allowed data transfer; critique policy; telemetry retention; local inference feasibility; exact endpoint validation and benchmark thresholds.
+- Verification: documentation edits only. Runtime tests, typecheck/build, provider probes, E2E and CI: NOT_RUN. No product outcome, model availability, or P117 acceptance is claimed. The previously reported P115 CI/version mismatch remains unresolved until new CI evidence is supplied.
+
+---
+
+
 # P117 — Expert and model cascade implementation record
 
 **Status: PARTIAL — patch prepared; runtime and CI checks NOT_RUN. Navigator has deferred P116; this P117 is built on the corrected P115 baseline and does not contain P116 changes.**
