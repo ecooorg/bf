@@ -73,8 +73,16 @@ export function createModelPort(deps: AdapterDeps, projectId: string, jobId?: st
         } });
       const r = routed.response;
       if (routed.status === 'ok' && r) {
-        void recordApplicationLog({ level: 'info', component: 'app-builder', event: 'model_call_succeeded', operationId: jobId, message: 'App Builder model call succeeded', details: { projectId, role: a.role, model: `${r.providerId}/${r.modelId}`, latencyMs: Date.now() - modelCallStartedAt, inputTokens: r.usage.input, outputTokens: r.usage.output, finishReason: r.finishReason } });
         const out = typeof r.output === 'string' ? r.output : JSON.stringify(r.output);
+        const previewMax = 1200;
+        void recordApplicationLog({ level: 'info', component: 'app-builder', event: 'model_call_succeeded', operationId: jobId, message: 'App Builder model call succeeded', details: {
+          projectId, role: a.role, model: `${r.providerId}/${r.modelId}`, latencyMs: Date.now() - modelCallStartedAt,
+          inputTokens: r.usage.input, outputTokens: r.usage.output, finishReason: r.finishReason,
+          responseChars: out.length,
+          responsePreview: out.length <= previewMax ? out : `${out.slice(0, previewMax)}…[+${out.length - previewMax} chars]`,
+          promptChars: a.prompt.length,
+          systemChars: a.system.length,
+        } });
         const length = /length|max_tokens/i.test(r.finishReason ?? '');
         return { text: out, finishReason: length ? 'length' : r.finishReason ?? 'stop', modelId: `${r.providerId}/${r.modelId}`, usage: { promptTokens: r.usage.input, completionTokens: r.usage.output, totalTokens: r.usage.input + r.usage.output } };
       }
@@ -103,11 +111,21 @@ const DIAG: Record<string, { event: string; status: string }> = {
 /** The job id is the diagnostic operation id, so the diagnostic export can find build-report.json. */
 export function createEventPort(): EventPort {
   return { async emit(e: EventPayload) {
-    void recordApplicationLog({ level: e.type === 'unit_failed' ? 'warn' : 'info', component: 'app-builder', event: `build_event_${String(e.type).slice(0, 70)}`, operationId: e.jobId, message: `App Builder event: ${e.type}`, details: { unitId: e.unitId ?? null, dataKeys: Object.keys(e.data ?? {}).slice(0, 30), goalImplemented: e.data?.goalImplemented ?? null } });
+    const level = e.level === 'error' || e.type === 'unit_failed' || e.type === 'spec_failed' ? 'error'
+      : e.level === 'warn' || e.type === 'spec_repair' || e.type === 'plan_validate_failed' || e.type === 'spec_attempt' && e.data && e.data.validateOk === false ? 'warn'
+      : 'info';
+    const data = e.data ?? {};
+    const details: Record<string, unknown> = { unitId: e.unitId ?? null, eventType: e.type };
+    for (const [k, v] of Object.entries(data)) {
+      if (k in details) continue;
+      if (typeof v === 'string' && v.length > 1500) details[k] = `${v.slice(0, 1500)}…[+${v.length - 1500} chars]`;
+      else details[k] = v;
+    }
+    void recordApplicationLog({ level, component: 'app-builder', event: `build_event_${String(e.type).slice(0, 70)}`, operationId: e.jobId, message: `App Builder event: ${e.type}`, details });
     const m = DIAG[e.type]; if (!m) return;
     const stage = e.type === 'stage_changed' ? String(e.data?.stage ?? 'stage') : e.type === 'job_done' ? 'done' : e.unitId ? `unit_${e.unitId}` : 'build';
     const ok = e.type !== 'job_done' || e.data?.goalImplemented === true;
-    await recordDiagnostic({ operationId: e.jobId, event: m.event, stage, status: e.type === 'job_done' ? (ok ? 'PASS' : 'WARN') : m.status, ...(e.type === 'unit_failed' ? { errorCode: 'UNIT_FAILED' } : {}) });
+    await recordDiagnostic({ operationId: e.jobId, event: m.event, stage, status: e.type === 'job_done' ? (ok ? 'PASS' : 'WARN') : m.status, ...(e.type === 'unit_failed' || e.type === 'spec_failed' ? { errorCode: e.type === 'spec_failed' ? 'INVALID_SPEC' : 'UNIT_FAILED' } : {}) });
   } };
 }
 export const realClock: ClockPort = { now: () => Date.now(), sleep: (ms, signal) => new Promise((resolve) => { const t = setTimeout(resolve, ms); signal?.addEventListener('abort', () => { clearTimeout(t); resolve(); }, { once: true }); }) };
