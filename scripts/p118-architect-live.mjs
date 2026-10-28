@@ -29,7 +29,7 @@ const request = async (method, urlPath, body, { binary = false, timeoutMs = CALL
   try {
     const r = await fetch(`${base}${urlPath}`, {
       method,
-      headers: { ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...(cookie ? { cookie } : {}) },
+      headers: { ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...(method !== 'GET' ? { origin: new URL(base).origin } : {}), ...(cookie ? { cookie } : {}) },
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(timeoutMs),
     });
