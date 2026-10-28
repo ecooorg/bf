@@ -88,9 +88,9 @@ export function installLogCapture(): void {
 }
 export const capturedConsole = () => consoleLines.slice();
 /** Commit of the running build. Render sets RENDER_GIT_COMMIT, Railway RAILWAY_GIT_COMMIT_SHA; 'unknown' if none is provided. */
-/** Exact release label = first "## P…" heading of CHANGELOG.md (newest first); null if the file is not deployed. */
-export function releaseLabel(file = path.resolve(process.cwd(), 'CHANGELOG.md')): string | null {
-  try { const m = fs.readFileSync(file, 'utf8').match(/^## (P\d+(?:\.\d+)*)\b/m); return m ? m[1] : null; } catch { return null; }
+/** Last applied patch = package.json "patch" (the only version source); null if package.json is unreadable or has no patch. */
+export function releaseLabel(file = path.resolve(process.cwd(), 'package.json')): string | null {
+  try { const p = JSON.parse(fs.readFileSync(file, 'utf8')).patch; return typeof p === 'string' && p ? p : null; } catch { return null; }
 }
 export const buildCommit = (env: NodeJS.ProcessEnv = process.env): string => (env.RENDER_GIT_COMMIT || env.RAILWAY_GIT_COMMIT_SHA || env.GIT_COMMIT || 'unknown').slice(0, 7);
 function runtimeAppVersion(): string { try { return String(JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')).version || 'unknown'); } catch { return process.env.APP_VERSION || 'unknown'; } }
