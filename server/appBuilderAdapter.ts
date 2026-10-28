@@ -165,7 +165,7 @@ export async function resumeStaleJobs(deps: AdapterDeps): Promise<number> {
 
 export function publicJob(j: JobState, projectId: string) {
   const units = (j.plan?.units ?? []).map((u) => ({ id: u.id, path: u.path ?? null, status: u.status, attempts: u.attempts }));
-  return { jobId: j.id, status: j.status, stage: j.stage, units, callsUsed: j.callsUsed, callsBudget: j.callsBudget, error: j.error, goalImplemented: j.report?.goalImplemented ?? null, report: j.report ? { status: j.report.status, failureReason: j.report.failureReason ?? null, validators: j.report.validators } : null,
+  return { jobId: j.id, status: j.status, stage: j.stage, units, callsUsed: j.callsUsed, callsBudget: j.callsBudget, error: j.error, goalImplemented: j.report?.goalImplemented ?? null, outcome: j.report?.outcome ?? null, report: j.report ? { status: j.report.status, outcome: j.report.outcome, failureReason: j.report.failureReason ?? null, failedStage: j.report.failedStage ?? null, checksDeclared: j.report.checksDeclared, checksRun: j.report.checksRun, checksNotRun: j.report.checksNotRun, validators: j.report.validators } : null,
     diagnosticsUrl: `/api/projects/diagnostics/export?jobId=${encodeURIComponent(j.id)}`,
     ...(j.artifactId ? { downloadUrl: `/api/projects/${encodeURIComponent(projectId)}/artifacts/${encodeURIComponent(j.artifactId)}/download` } : {}), updatedAt: j.updatedAt };
 }
