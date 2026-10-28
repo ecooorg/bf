@@ -49,7 +49,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** P115 documentation consolidation prepared; next implementation is P116 Conversational Agent recovery. P110 Intent/Policy Contract, P111 capability graph v1, and P112 context selection / impact planning are foundations, not proof that user-facing modes work. Phase 2 closed (Navigator 2026-10-26). Hosted CI was reported green for P112; this is not product acceptance. Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md`; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; only roadmap: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** P118 Complex Software Architect Agent (completion contract). P116 Conversational Agent accepted 2026-10-28 with residual B3 (Node LTS version number). P117.3 closed. P110–P112 foundations remain. Phase 2 closed (Navigator 2026-10-26). Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md` §A3; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; only roadmap: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
 * **Programme authority:** this charter, `docs/AI-OPERATING-RULES.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, and `docs/AI-USER-VALUE-SPEC.md`. `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` is a historical audit baseline, not a current instruction source.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.

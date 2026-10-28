@@ -1,3 +1,12 @@
+## P118 — Complex Software Architect Agent: completion contract
+
+- Closed P117.3 with Navigator decision: P116 accepted at 80% live PASS with residual B3 (Node LTS number from SERP).
+- Architect BuildReport gains A3 fields: `outcome` (SUCCESS|PARTIAL|FAILED), `checksDeclared` / `checksRun` / `checksNotRun`, optional `failedStage`.
+- Hard gate: empty file set cannot be SUCCESS; missing archive demotes SUCCESS to FAILED with `archive_missing`.
+- Job status remains `done` only on SUCCESS; otherwise `failed`/`cancelled` with stage-specific failure reason.
+- Residual from P116 (B3 Node LTS extraction) stays backlog; not blocking P118 start.
+- Verification: unit tests for outcome fields and empty-artifact gate; hosted CI required for acceptance evidence.
+
 ## P117.3 — live PASS lift (version SERP + no stock caveat)
 
 - Version/LTS questions expand Serper queries toward official product pages (Node.js, Ubuntu, Python, …) without raising the 5-query cap beyond existing rate-topic behaviour.
