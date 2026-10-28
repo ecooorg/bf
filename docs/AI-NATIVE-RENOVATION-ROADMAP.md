@@ -14,9 +14,9 @@ The Navigator reports that all four current modes fail to provide acceptable out
 | P113 | Three-agent user-outcome contract | Accepted; contract maintained in `docs/AI-USER-VALUE-SPEC.md` |
 | P114 | Source/log audit baseline | Delivered; live reproduction incomplete; see rolling report |
 | **P115** | Consolidate documentation, remove competing sources of truth, correct sequencing | One authoritative specification, roadmap, task, and rolling evidence report; no runtime claims |
-| **P116** | Recover Conversational Agent | Representative stable-knowledge, freshness/search, multi-turn context, tool/provider failure and truthful-error scenarios pass; live-provider and mocked evidence separated |
-| **P117** | Implement Expert Problem-Solving Agent and model cascade foundations | Expert prompt contract strengthened; primary Gemini order aligned across modes; hourly candidate probes and opt-in Groq/Cloudflare fallback covered by tests; full independent state machine and E2E acceptance remain open |
-| **P118** | Implement Complex Software Architect Agent | Produces actual non-empty files; validates requirements; runs declared checks; packages and verifies archive; exposes downloadable artifact or truthful stage-specific failure and recovery action |
+| **P116** | Recover Conversational Agent | **Accepted 2026-10-28** (live 80% PASS, residual B3 Node LTS number) |
+| **P117** | Implement Expert Problem-Solving Agent and model cascade foundations | P117.x line closed for conversation recovery (P117.3); Expert cascade foundations partial; full Expert E2E remains open under later slices |
+| **P118** | Implement Complex Software Architect Agent | **In progress:** completion contract (outcome/checks/empty gate) first; then live non-empty artifact scenario |
 | **P119** | Migrate product from four legacy modes to three agents | UI exposes exactly three approved agents; old routing/state paths removed or explicitly isolated; no regression in accepted agent scenarios |
 | **P120** | Cross-agent end-to-end acceptance and stabilization | Representative scenarios for all three agents pass; failures are truthful; artifacts are accessible and valid; remaining limitations explicit; no false-success claims |
 | **P121** | Universal Model Resilience Layer (planned; documented in P117.1) | Only after P116–P120 gates are resolved and Navigator authorizes start; registry, health monitor, task-aware routing, validation and recovery are tested with mock and live-provider evidence, with quota/privacy/cost policy explicitly approved |

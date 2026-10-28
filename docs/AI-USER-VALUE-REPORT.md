@@ -1,3 +1,20 @@
+## P118 — Architect completion contract (start)
+
+- Navigator accepted P116 with residual B3 (live #2: 80% PASS, 0 hard fail). P117.3 closed.
+- BuildReport now carries A3 `outcome`, check inventory fields, and empty-artifact / missing-archive cannot be SUCCESS.
+- Full A3 live artifact scenario: NOT_RUN in this slice.
+
+---
+
+## P117.3 — LIVE close-out (2026-10-28)
+
+- Live workflow #2: 21/21 HTTP 200; rubric 12 PASS / 3 PARTIAL / 0 FAIL (80%).
+- PASS includes A1–A4, B3b, B3c, B4×3, B6, C1, C2, D1, D2. PARTIAL: B1, B2, B3.
+- Residual B3 accepted by Navigator; does not block P118.
+- P116: **Yes (with residual B3)**.
+
+---
+
 ## P117.3 — implementation evidence (2026-10-28)
 
 - Implemented WI-1 freshness trigger expansion and referral-only retry detection; removed the generic information-mode verification closer; tightened Cyrillic research boundaries; preserved Serper-returned dates in digest lines.
