@@ -1,3 +1,10 @@
+## P118.2.2 — Architect live runner: job evidence + diagnostics download
+
+- Live run #2 produced honest `invalid_spec` at stage `spec` with no ZIP; transcript omitted `error.message`, `callsUsed`/`callsBudget`, `units`, and did not fetch `diagnosticsUrl`.
+- Runner now records those fields in the poll step and `build.jobEvidence`, downloads the diagnostics ZIP when offered, extracts `build-report.json` into the artifact directory.
+- Test: staged-fail fake server covers error/calls/units and diagnostics export.
+- No product runtime change; version stays 118.
+
 ## P118.2.1 — Architect live runner: same-origin Origin header
 
 - Live run #1 of `p118-architect-live` stopped at project creation with 403 `CSRF_ORIGIN`: Project Mode writes require an `Origin` matching the host. Runner now sends it on non-GET requests; fake server in `tests/p118-architect-live.test.mjs` enforces the same guard; added regression test.
