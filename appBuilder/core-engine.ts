@@ -197,11 +197,11 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
         textChars: text.length,
         textPreview: previewText(text, 800),
         parseOk: parsed.ok,
-        parseError: parsed.ok ? null : parsed.error,
+        parseError: 'error' in parsed ? parsed.error : null,
         cleanedChars: parsed.cleaned.length,
         cleanedPreview: previewText(parsed.cleaned, 400),
         validateOk: validated?.ok ?? false,
-        issues: validated && !validated.ok ? validated.issues : [],
+        issues: validated && 'issues' in validated ? validated.issues : [],
         keys: validated ? ('keys' in validated ? validated.keys : Object.keys(validated.spec)) : [],
         coerced: validated?.coerced ?? [],
         callsUsed: state.callsUsed,
@@ -216,9 +216,9 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
 
     // Bounded repair: parseable-but-invalid OR unparseable → one recovery call with concrete issues (A3).
     if (!accepted && state.callsUsed < budget && !cancelled) {
-      const issues = validated && !validated.ok
+      const issues = validated && 'issues' in validated
         ? validated.issues
-        : [parsed.ok ? 'unknown_validation_failure' : `unparseable:${parsed.error}`];
+        : [!('error' in parsed) ? 'unknown_validation_failure' : `unparseable:${parsed.error}`];
       const recoveryPrompt = [
         'Return corrected valid JSON only for a Spec.',
         'Required: schemaVersion must be the number 1 (not a string), title (string), goal (string), language (string), stack (string), features (array of strings), nonGoals (array of strings), acceptance (non-empty array of strings).',
@@ -233,9 +233,9 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     }
 
     if (!accepted) {
-      const issues = validated && !validated.ok
+      const issues = validated && 'issues' in validated
         ? validated.issues
-        : [parsed.ok ? 'unknown_validation_failure' : `unparseable:${parsed.error}`, ...(failureReason ? [failureReason] : [])];
+        : [!('error' in parsed) ? 'unknown_validation_failure' : `unparseable:${parsed.error}`, ...(failureReason ? [failureReason] : [])];
       const detail = {
         stage: 'spec',
         attempts: attempt,
@@ -265,11 +265,11 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       textChars: planResult?.text?.length ?? 0,
       textPreview: previewText(planResult?.text ?? '', 600),
       parseOk: planParsed.ok,
-      parseError: planParsed.ok ? null : planParsed.error,
+      parseError: 'error' in planParsed ? planParsed.error : null,
       callsUsed: state.callsUsed,
     }, planParsed.ok ? 'info' : 'warn');
     let plan = planParsed.ok && planParsed.value != null && typeof planParsed.value === 'object' ? (planParsed.value as Plan) : null;
-    let checked: PlanValidationResult = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? (planParsed.ok ? 'invalid_plan' : `unparseable_plan:${planParsed.error}`) }] };
+    let checked: PlanValidationResult = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? (!('error' in planParsed) ? 'invalid_plan' : `unparseable_plan:${planParsed.error}`) }] };
     if (!checked.ok) {
       event(ports, input.jobId, 'plan_validate_failed', { issues: checked.issues.map((i) => ({ code: i.code, message: i.message })), callsUsed: state.callsUsed }, 'warn');
     }
