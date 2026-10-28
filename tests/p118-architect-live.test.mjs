@@ -116,6 +116,7 @@ async function fakeServer(mode) {
       return json(res, 200, { success: true, authenticated: true }, { 'set-cookie': 'bf_session=SESSIONTOKEN123456; Path=/; HttpOnly' });
     }
     if (!(req.headers.cookie || '').includes('SESSIONTOKEN123456')) return json(res, 401, { success: false, code: 'UNAUTHENTICATED' });
+    if (p.startsWith('/api/projects') && req.method !== 'GET' && req.headers.origin !== `http://${req.headers.host}`) return json(res, 403, { success: false, code: 'CSRF_ORIGIN' });
     if (p === '/api/session') return json(res, 200, { success: true, authenticated: true, projectModeEnabled: true, capabilities: { programZip: false } });
     if (p === '/api/projects' && req.method === 'POST') {
       const id = `proj-${++seq}`; const project = { id, name: body.name, state: { passport: { status: 'proposed', projectType: 'unspecified' } }, state_version: 1 };
@@ -218,4 +219,10 @@ test('P118 live runner: transcript never contains the password or session token'
   assert.equal(r.transcriptText.includes('SESSIONTOKEN123456'), false);
   assert.equal((r.stdout + r.stderr).includes('pw-secret-123'), false);
   assert.equal((r.stdout + r.stderr).includes('SESSIONTOKEN123456'), false);
+});
+
+test('P118 live runner: Project Mode writes carry a same-origin Origin header (server rejects them otherwise)', async () => {
+  const r = await runRunner('partial');
+  assert.equal(r.transcript.steps.some((x) => x.status === 403), false);
+  assert.equal(r.transcript.build.verdict, 'PARTIAL');
 });
