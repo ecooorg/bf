@@ -13,8 +13,107 @@ import { runStaticValidators, REQUIRED_VALIDATORS } from './validator-static-sit
 export interface BuildResult { state: JobState; report: BuildReport; archive: Uint8Array | null }
 export interface EngineOptions { profileId?: string; modelId?: string; maxCallsPerJob?: number; maxAttemptsPerUnit?: number; promptVersion?: string; resumeFrom?: JobState | null; signal?: AbortSignal; isCancelled?: () => boolean | Promise<boolean> }
 
-function asObject<T>(text: string): T | null { try { return JSON.parse(text) as T; } catch { return null; } }
-function event(ports: Ports, jobId: string, type: string, data?: Record<string, unknown>): void { void ports.events.emit({ jobId, type, level: 'info', data }); }
+/** Strip common model wrappers (markdown fences, leading prose) then JSON.parse. */
+export function parseJsonLenient(text: string): { ok: true; value: unknown; cleaned: string } | { ok: false; error: string; cleaned: string } {
+  let cleaned = String(text ?? '').trim();
+  const fence = /^```(?:json|JSON)?\s*\n?([\s\S]*?)\n?```\s*$/;
+  const m = fence.exec(cleaned);
+  if (m) cleaned = m[1].trim();
+  // If still wrapped, try first { ... } or [ ... ] span
+  if (cleaned && cleaned[0] !== '{' && cleaned[0] !== '[') {
+    const startObj = cleaned.indexOf('{');
+    const startArr = cleaned.indexOf('[');
+    let start = -1;
+    if (startObj >= 0 && (startArr < 0 || startObj < startArr)) start = startObj;
+    else if (startArr >= 0) start = startArr;
+    if (start >= 0) {
+      const open = cleaned[start];
+      const close = open === '{' ? '}' : ']';
+      const end = cleaned.lastIndexOf(close);
+      if (end > start) cleaned = cleaned.slice(start, end + 1);
+    }
+  }
+  try {
+    return { ok: true, value: JSON.parse(cleaned), cleaned };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e), cleaned };
+  }
+}
+
+function asObject<T>(text: string): T | null {
+  const r = parseJsonLenient(text);
+  return r.ok && r.value != null && typeof r.value === 'object' ? (r.value as T) : null;
+}
+
+function previewText(text: string, max = 600): string {
+  const t = String(text ?? '');
+  return t.length <= max ? t : `${t.slice(0, max)}…[+${t.length - max} chars]`;
+}
+
+function strList(v: unknown): string[] | null {
+  if (!Array.isArray(v)) return null;
+  return v.map((x) => (typeof x === 'string' ? x : JSON.stringify(x)));
+}
+
+/** Validate and lightly coerce a Spec. Coerces schemaVersion "1" → 1 and missing arrays to []. */
+export function validateSpec(raw: unknown): { ok: true; spec: Spec; coerced: string[] } | { ok: false; issues: string[]; keys: string[]; coerced: string[] } {
+  const coerced: string[] = [];
+  if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ok: false, issues: ['not_an_object'], keys: [], coerced };
+  }
+  const o = raw as Record<string, unknown>;
+  const keys = Object.keys(o);
+  const issues: string[] = [];
+
+  let schemaVersion = o.schemaVersion;
+  if (schemaVersion === '1' || schemaVersion === 1) {
+    if (schemaVersion === '1') coerced.push('schemaVersion:string_1_to_number');
+    schemaVersion = 1;
+  } else {
+    issues.push(`schemaVersion:got_${JSON.stringify(schemaVersion)}_expected_${SCHEMA_VERSION}`);
+  }
+
+  const title = typeof o.title === 'string' ? o.title.trim() : '';
+  if (!title) issues.push('title:missing_or_empty');
+  const goal = typeof o.goal === 'string' ? o.goal.trim() : '';
+  if (!goal) issues.push('goal:missing_or_empty');
+  const language = typeof o.language === 'string' && o.language.trim() ? o.language.trim() : 'en';
+  if (typeof o.language !== 'string' || !o.language.trim()) coerced.push('language:default_en');
+  const stack = typeof o.stack === 'string' && o.stack.trim() ? o.stack.trim() : 'static_site';
+  if (typeof o.stack !== 'string' || !o.stack.trim()) coerced.push('stack:default_static_site');
+
+  let features = strList(o.features);
+  if (features == null) { features = []; coerced.push('features:default_empty_array'); }
+  let nonGoals = strList(o.nonGoals);
+  if (nonGoals == null) { nonGoals = []; coerced.push('nonGoals:default_empty_array'); }
+  let acceptance = strList(o.acceptance);
+  if (acceptance == null) {
+    issues.push('acceptance:not_array');
+    acceptance = [];
+  } else if (acceptance.length === 0) {
+    issues.push('acceptance:empty');
+  }
+
+  if (issues.length) return { ok: false, issues, keys, coerced };
+  return {
+    ok: true,
+    coerced,
+    spec: {
+      schemaVersion: SCHEMA_VERSION,
+      title,
+      goal,
+      language,
+      stack,
+      features,
+      nonGoals,
+      acceptance,
+    },
+  };
+}
+
+function event(ports: Ports, jobId: string, type: string, data?: Record<string, unknown>, level: 'info' | 'warn' | 'error' = 'info'): void {
+  void ports.events.emit({ jobId, type, level, data });
+}
 
 export async function runBuild(input: BuildInput, ports: Ports, options: EngineOptions = {}): Promise<BuildResult> {
   const started = ports.clock.now();
@@ -86,19 +185,94 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     await save();
     if (!state.spec) {
     state.stage = 'spec'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'spec' });
-    let specResult = await call('planner', `Create a concise project specification as JSON with schemaVersion, title, goal, language, stack, features[], nonGoals[], acceptance[]. Task: ${input.taskText}`);
-    let spec = specResult ? asObject<Spec>(specResult.text) : null;
-    if (!spec && state.callsUsed < budget) { specResult = await call('planner', `Return corrected valid JSON only for a Spec with schemaVersion=1. Task: ${input.taskText}`); spec = specResult ? asObject<Spec>(specResult.text) : null; }
-    if (!spec || spec.schemaVersion !== SCHEMA_VERSION || !Array.isArray(spec.acceptance)) throw new Error(failureReason ?? 'invalid_spec');
-    state.spec = spec; await save();
+    const specPrompt = `Create a concise project specification as JSON with schemaVersion:1 (number), title, goal, language, stack, features[], nonGoals[], acceptance[] (non-empty string array of testable criteria). Return only JSON. Task: ${input.taskText}`;
+    let specResult = await call('planner', specPrompt);
+    const diagnoseAttempt = (attempt: number, rawText: string | null | undefined, modelId?: string) => {
+      const text = rawText ?? '';
+      const parsed = text ? parseJsonLenient(text) : { ok: false as const, error: 'empty_model_text', cleaned: '' };
+      const validated = parsed.ok ? validateSpec(parsed.value) : null;
+      event(ports, input.jobId, 'spec_attempt', {
+        attempt,
+        modelId: modelId ?? null,
+        textChars: text.length,
+        textPreview: previewText(text, 800),
+        parseOk: parsed.ok,
+        parseError: parsed.ok ? null : parsed.error,
+        cleanedChars: parsed.cleaned.length,
+        cleanedPreview: previewText(parsed.cleaned, 400),
+        validateOk: validated?.ok ?? false,
+        issues: validated && !validated.ok ? validated.issues : [],
+        keys: validated ? ('keys' in validated ? validated.keys : Object.keys(validated.spec)) : [],
+        coerced: validated?.coerced ?? [],
+        callsUsed: state.callsUsed,
+        callsBudget: budget,
+      }, validated?.ok ? 'info' : 'warn');
+      return { parsed, validated };
+    };
+
+    let attempt = 1;
+    let { parsed, validated } = diagnoseAttempt(attempt, specResult?.text, specResult && 'modelId' in specResult ? (specResult as { modelId?: string }).modelId : undefined);
+    let accepted: Spec | null = validated?.ok ? validated.spec : null;
+
+    // Bounded repair: parseable-but-invalid OR unparseable → one recovery call with concrete issues (A3).
+    if (!accepted && state.callsUsed < budget && !cancelled) {
+      const issues = validated && !validated.ok
+        ? validated.issues
+        : [parsed.ok ? 'unknown_validation_failure' : `unparseable:${parsed.error}`];
+      const recoveryPrompt = [
+        'Return corrected valid JSON only for a Spec.',
+        'Required: schemaVersion must be the number 1 (not a string), title (string), goal (string), language (string), stack (string), features (array of strings), nonGoals (array of strings), acceptance (non-empty array of strings).',
+        `Previous issues: ${issues.join('; ')}.`,
+        `Task: ${input.taskText}`,
+      ].join(' ');
+      event(ports, input.jobId, 'spec_repair', { issues, recoveryPromptChars: recoveryPrompt.length, callsUsed: state.callsUsed, callsBudget: budget }, 'warn');
+      specResult = await call('planner', recoveryPrompt);
+      attempt = 2;
+      ({ parsed, validated } = diagnoseAttempt(attempt, specResult?.text, specResult && 'modelId' in specResult ? (specResult as { modelId?: string }).modelId : undefined));
+      accepted = validated?.ok ? validated.spec : null;
+    }
+
+    if (!accepted) {
+      const issues = validated && !validated.ok
+        ? validated.issues
+        : [parsed.ok ? 'unknown_validation_failure' : `unparseable:${parsed.error}`, ...(failureReason ? [failureReason] : [])];
+      const detail = {
+        stage: 'spec',
+        attempts: attempt,
+        issues,
+        textPreview: previewText(specResult?.text ?? '', 800),
+        parseOk: parsed.ok,
+        callsUsed: state.callsUsed,
+        callsBudget: budget,
+      };
+      state.error = { code: 'invalid_spec', message: `invalid_spec: ${issues.join('; ')}`.slice(0, 300), detail };
+      event(ports, input.jobId, 'spec_failed', detail, 'error');
+      throw new Error(state.error.message);
+    }
+    if (validated && validated.ok && validated.coerced.length) {
+      event(ports, input.jobId, 'spec_coerced', { coerced: validated.coerced });
+    }
+    state.spec = accepted; await save();
+    event(ports, input.jobId, 'spec_accepted', { title: accepted.title, acceptanceCount: accepted.acceptance.length, stack: accepted.stack, coerced: validated && validated.ok ? validated.coerced : [] });
     }
     const spec = state.spec!;
     if (!state.plan?.units.length) {
 
     state.stage = 'plan'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'plan' });
     const planResult = await call('planner', `Create a Plan JSON with schemaVersion=1, specHash="${sha256(JSON.stringify(spec))}", units[], order[]. Each unit requires id, kind="file", path, purpose, dependsOn[], exports[], contract, maxOutputTokens, status="pending", attempts=0. Task spec: ${JSON.stringify(spec)}`);
-    let plan = planResult ? asObject<Plan>(planResult.text) : null;
-    let checked: PlanValidationResult = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? 'invalid_plan' }] };
+    const planParsed = planResult?.text ? parseJsonLenient(planResult.text) : { ok: false as const, error: 'empty_model_text', cleaned: '' };
+    event(ports, input.jobId, 'plan_attempt', {
+      textChars: planResult?.text?.length ?? 0,
+      textPreview: previewText(planResult?.text ?? '', 600),
+      parseOk: planParsed.ok,
+      parseError: planParsed.ok ? null : planParsed.error,
+      callsUsed: state.callsUsed,
+    }, planParsed.ok ? 'info' : 'warn');
+    let plan = planParsed.ok && planParsed.value != null && typeof planParsed.value === 'object' ? (planParsed.value as Plan) : null;
+    let checked: PlanValidationResult = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? (planParsed.ok ? 'invalid_plan' : `unparseable_plan:${planParsed.error}`) }] };
+    if (!checked.ok) {
+      event(ports, input.jobId, 'plan_validate_failed', { issues: checked.issues.map((i) => ({ code: i.code, message: i.message })), callsUsed: state.callsUsed }, 'warn');
+    }
     if (!plan || !checked.ok) {
       // static_site template fallback (P93.2b); the reason stays visible in the report.
       const why = checked.issues.map((i) => i.message).join('; ') || 'invalid_plan';
@@ -137,7 +311,19 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       unitReports.push({ id, status: 'done', attempts: unit.attempts, modelId, cacheHit: Boolean(cached) });
       event(ports, input.jobId, 'unit_done', { unitId: id, cacheHit: Boolean(cached) }); await save();
     }
-  } catch (error) { if (options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; } else { failureReason = error instanceof Error ? error.message : String(error); } }
+  } catch (error) {
+    if (options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; }
+    else {
+      failureReason = error instanceof Error ? error.message : String(error);
+      if (!state.error) {
+        state.error = {
+          code: failureReason.startsWith('invalid_spec') ? 'invalid_spec' : 'engine_error',
+          message: failureReason.slice(0, 300),
+          detail: { stage: state.stage, callsUsed: state.callsUsed, callsBudget: budget },
+        };
+      }
+    }
+  }
 
   const allFilesDone = Boolean(state.plan?.units.length) && state.plan!.units.every((u) => u.status === 'done' || u.status === 'skipped');
   let validators: BuildReport['validators'] = [];
@@ -176,7 +362,8 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   };
   // Hard gate: never mark job done when outcome is not SUCCESS.
   state.status = cancelled ? 'cancelled' : status === 'complete' ? 'done' : 'failed';
-  if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : (files.size === 0 ? 'empty_artifact' : 'build_incomplete'), message: failureReason.slice(0, 300) };
+  if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : (failureReason.startsWith('invalid_spec') ? 'invalid_spec' : (files.size === 0 ? 'empty_artifact' : 'build_incomplete')), message: failureReason.slice(0, 300), detail: { stage: state.stage, callsUsed: state.callsUsed, callsBudget: budget, failedStage: status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage) } };
+  else if (failureReason && state.error && !state.error.message) state.error.message = failureReason.slice(0, 300);
   state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
   await save();
   event(ports, input.jobId, 'job_done', { status, outcome, goalImplemented: report.goalImplemented });
