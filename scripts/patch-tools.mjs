@@ -4,6 +4,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import JSZip from 'jszip';
 
+import { parsePatch, comparePatch, versionErrors } from './check-version.mjs';
+
 export const ALLOWED_TOP = ['server', 'src', 'tests', 'scripts', 'docs', 'migrations', 'public', 'archive', 'ARCHIVE', 'CONCEPTS', 'appBuilder'];
 const IGNORED = [/^node_modules\//, /^dist\//, /^dist-server\//, /^\.git\//, /^artifacts\//, /^perf-report\.json$/, /^[^/]+\.zip$/, /^patch-report\.md$/, /^patch-logs\//, /^ci-[a-z]+\.log$/, /\.tsbuildinfo$/];
 export const isIgnored = (rel) => IGNORED.some((re) => re.test(rel));
@@ -79,6 +81,30 @@ export function preflight({ files, deleted = [], allowlist = [] }) {
     for (const name of scanSecrets(buf.toString('utf8'))) v.push(`${rel}: possible secret (${name})`);
   }
   for (const rel of deleted) if (rel.startsWith('tests/acceptance/')) v.push(`${rel}: protected path tests/acceptance/** is missing from the work tree`);
+  return v;
+}
+
+/**
+ * Version rules of a patch (AGENTS.md, "Version and patch numbering"). package.json is in EVERY patch and carries
+ * "patch" (this patch) and "version" (= first number of "patch"). The patch number never goes down relative to the base.
+ * patchId is the --patch argument (e.g. "P118.3.2" or "118.3.2"); it is compared only when it looks like a patch number.
+ */
+export function versionPreflight({ files, base, patchId }) {
+  const v = [];
+  const raw = files.get('package.json');
+  if (!raw) return ['package.json: must be included in every patch (it carries "patch" and "version")'];
+  let next; try { next = JSON.parse(raw.toString('utf8')); } catch { return ['package.json: not valid JSON']; }
+  for (const e of versionErrors(next)) v.push(e);
+  const nextPatch = parsePatch(next.patch);
+  const wanted = parsePatch(String(patchId ?? '').replace(/^[Pp]/, ''));
+  if (nextPatch && wanted && comparePatch(nextPatch, wanted) !== 0) v.push(`package.json: patch ${next.patch} does not match the delivered patch ${patchId}`);
+  const baseRaw = base?.get('package.json');
+  if (baseRaw && nextPatch) {
+    let prev; try { prev = JSON.parse(baseRaw.toString('utf8')); } catch { prev = null; }
+    const prevPatch = parsePatch(prev?.patch);
+    if (prevPatch && comparePatch(nextPatch, prevPatch) <= 0) v.push(`package.json: patch ${next.patch} must be higher than the base patch ${prev.patch}`);
+    if (!prevPatch && /^\d+$/.test(String(prev?.version ?? '')) && Number(nextPatch.major) < Number(prev.version)) v.push(`package.json: patch ${next.patch} is lower than the base program version ${prev.version}`);
+  }
   return v;
 }
 

@@ -126,11 +126,7 @@ for (const stage of failedRows) {
   errorSections.push(...sourceContext(stage, text));
   if (stage.id === 'version-consistency' && !text.trim()) {
     const pkg = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')); } catch { return {}; } })();
-    const configText = (() => { try { return fs.readFileSync(path.join(root, 'src/config.ts'), 'utf8'); } catch { return ''; } })();
-    const appVersion = (configText.match(/APP_VERSION\s*=\s*'([^']+)'/) || [])[1] || 'unknown';
-    const changelog = (() => { try { return fs.readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8'); } catch { return ''; } })();
-    const release = (changelog.match(/^## (P[0-9]+(?:\.[0-9]+)*)/m) || [])[1] || 'unknown';
-    errorSections.push(`VERSION_CHECK_CONTEXT=package.json version=${pkg.version ?? 'unknown'}; src/config.ts APP_VERSION=${appVersion}; CHANGELOG first release=${release}`);
+    errorSections.push(`VERSION_CHECK_CONTEXT=package.json version=${pkg.version ?? 'unknown'}; patch=${pkg.patch ?? 'unknown'} (the only version source)`);
     errorSections.push('VERSION_CHECK_SOURCE=scripts/check-version.mjs; rerun: node scripts/check-version.mjs');
   }
   if (stage.lastOutput?.length) errorSections.push(`LAST_OUTPUT=${stage.lastOutput.slice(-12).map((x) => oneLine(x,220)).join(' || ')}`);

@@ -1,42 +1,42 @@
 /**
- * Product version: only src/config.ts APP_VERSION and package.json "version".
- * Markdown is not version-gated.
+ * Version gate. The ONLY version source is package.json (AGENTS.md, "Version and patch numbering").
+ *   "patch"   = number of the last applied patch, e.g. "118.3.2" (digits separated by dots).
+ *   "version" = program version = the first number of "patch", e.g. "118".
+ * Nothing else is read or compared: not src/config.ts, server.ts, CHANGELOG.md or any document.
  */
-import { readFileSync, existsSync } from 'node:fs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const read = (f) => (existsSync(f) ? readFileSync(f, 'utf8') : null);
-const errors = [];
-const cfg = read('src/config.ts') || '';
-const V = (cfg.match(/APP_VERSION\s*=\s*'([^']+)'/) || [])[1];
-if (!V) {
-  console.error('APP_VERSION not found in src/config.ts');
-  process.exit(1);
-}
-const pkgRaw = read('package.json');
-if (!pkgRaw) {
-  console.error('package.json missing');
-  process.exit(1);
-}
-const pkg = JSON.parse(pkgRaw);
-if (pkg.version !== V) errors.push(`package.json version ${pkg.version} != APP_VERSION ${V}`);
-
-const server = read('server.ts') || '';
-if (/const\s+APP_VERSION\s*=/.test(server)) errors.push('server.ts defines its own APP_VERSION');
-if (!/import\s*\{[^}]*APP_VERSION[^}]*\}\s*from\s*'\.\/src\/config/.test(server)) {
-  errors.push("server.ts does not import APP_VERSION from './src/config'");
+export function parsePatch(text) {
+  const m = /^(\d+)(?:\.\d+)*$/.exec(String(text ?? ''));
+  return m ? { text: m[0], major: m[1], parts: m[0].split('.').map(Number) } : null;
 }
 
-// CHANGELOG.md is newest-first: its first "## P<major>[.<minor>] — title" heading is the exact release label.
-const changelog = read('CHANGELOG.md'); // optional: trees without markdown (copied subsets) are still valid
-const head = ((changelog || '').match(/^## (P(\d+)(?:\.\d+)*)\b/m) || []);
-if (changelog !== null) {
-  if (!head[1]) errors.push('CHANGELOG.md: first "## P<N>[.<M>]" heading not found');
-  else if (head[2] !== V) errors.push(`CHANGELOG.md top entry ${head[1]} does not match APP_VERSION ${V}; add the new entry at the very top`);
-  else if (changelog.search(/^## /m) !== changelog.search(/^## P\d/m)) errors.push('CHANGELOG.md: the first "## " heading must be the newest release entry');
+/** Negative / zero / positive like a comparator; missing trailing parts count as 0. */
+export function comparePatch(a, b) {
+  const n = Math.max(a.parts.length, b.parts.length);
+  for (let i = 0; i < n; i++) { const d = (a.parts[i] ?? 0) - (b.parts[i] ?? 0); if (d) return d; }
+  return 0;
 }
 
-if (errors.length) {
-  console.error('Version check FAILED:\n- ' + errors.join('\n- '));
-  process.exit(1);
+export function versionErrors(pkg) {
+  const errors = [];
+  if (!pkg || typeof pkg !== 'object') return ['package.json is not a JSON object'];
+  const patch = typeof pkg.patch === 'string' ? parsePatch(pkg.patch) : null;
+  if (!patch) errors.push(`package.json "patch" must be a string of numbers separated by dots (e.g. "118.3.2"), got ${JSON.stringify(pkg.patch)}`);
+  if (typeof pkg.version !== 'string' || !/^\d+$/.test(pkg.version)) errors.push(`package.json "version" must be a string of digits (e.g. "118"), got ${JSON.stringify(pkg.version)}`);
+  if (patch && typeof pkg.version === 'string' && pkg.version !== patch.major) {
+    errors.push(`package.json version ${pkg.version} must equal the first number of patch ${patch.text} (${patch.major}); set version to ${patch.major}`);
+  }
+  return errors;
 }
-console.log(`Version check OK: ${V} (release ${head[1] ?? 'n/a: no CHANGELOG.md'})`);
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  let pkg;
+  try { pkg = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')); }
+  catch (e) { console.error(`package.json unreadable: ${e.message}`); process.exit(1); }
+  const errors = versionErrors(pkg);
+  if (errors.length) { for (const e of errors) console.error(e); process.exit(1); }
+  console.log(`Version check OK: version ${pkg.version}, patch ${pkg.patch}`);
+}

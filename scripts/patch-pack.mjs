@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { readTree, readZipTree, diffTrees, summaryLine, buildZip, preflight, allowlistFromToml, firstFailure, overallStatus, renderReport } from './patch-tools.mjs';
+import { readTree, readZipTree, diffTrees, summaryLine, buildZip, preflight, versionPreflight, allowlistFromToml, firstFailure, overallStatus, renderReport } from './patch-tools.mjs';
 
 const args = process.argv.slice(2);
 const opt = (name, def) => { const i = args.indexOf(`--${name}`); return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : def; };
@@ -31,7 +31,7 @@ const work = readTree(root);
 const diff = diffTrees(base, work);
 const files = new Map([...diff.replace, ...diff.add].map((rel) => [rel, work.get(rel)]));
 const toml = fs.existsSync('.gitleaks.toml') ? fs.readFileSync('.gitleaks.toml', 'utf8') : '';
-const violations = preflight({ files, deleted: diff.del, allowlist: allowlistFromToml(toml) });
+const violations = [...preflight({ files, deleted: diff.del, allowlist: allowlistFromToml(toml) }), ...versionPreflight({ files, base, patchId: patch })];
 const commands = [];
 const agent = opt('agent', 'not stated');
 const ownerSteps = opt('owner-steps') ? opt('owner-steps').split(';').map((s) => s.trim()) : [
