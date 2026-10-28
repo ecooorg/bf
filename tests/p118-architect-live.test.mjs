@@ -133,12 +133,35 @@ async function fakeServer(mode) {
       log.builds++;
       const dl = `/api/projects/${m[1]}/artifacts/art1/download`;
       if (mode === 'staged-success') return json(res, 202, { success: true, data: { jobId: 'job-1', engine: 'staged' } }, { 'x-biforge-operation-id': 'job-1' });
+      if (mode === 'staged-fail') return json(res, 202, { success: true, data: { jobId: 'job-1', engine: 'staged' } }, { 'x-biforge-operation-id': 'job-1' });
       if (mode === 'partial') return json(res, 201, { success: true, data: { engine: 'pipeline', outcome: 'PARTIAL', failedStage: 'slice', failureReason: 'SLICE_SKIPPED', goalImplemented: false, downloadUrl: dl, fileCount: 2 } }, { 'x-biforge-operation-id': 'op-1' });
       if (mode === 'failed') return json(res, 201, { success: true, data: { engine: 'pipeline', outcome: 'FAILED', failedStage: 'generate', failureReason: 'empty_artifact', goalImplemented: false, fileCount: 0 } });
       if (mode === 'false-success') return json(res, 201, { success: true, data: { engine: 'pipeline', outcome: 'SUCCESS', goalImplemented: true, downloadUrl: dl, fileCount: 2 } });
     }
     m = p.match(/^\/api\/projects\/([^/]+)\/code\/build\/job-1$/);
-    if (m) { log.polls++; return json(res, 200, { success: true, data: log.polls < 2 ? { jobId: 'job-1', status: 'running', stage: 'code' } : { jobId: 'job-1', status: 'done', outcome: 'SUCCESS', goalImplemented: true, downloadUrl: `/api/projects/${m[1]}/artifacts/art1/download`, report: { outcome: 'SUCCESS', checksDeclared: ['validate'], checksRun: ['validate'], checksNotRun: [] } } }); }
+    if (m) {
+      log.polls++;
+      if (mode === 'staged-fail') {
+        return json(res, 200, { success: true, data: log.polls < 2
+          ? { jobId: 'job-1', status: 'running', stage: 'spec', callsUsed: 1, callsBudget: 6 }
+          : {
+              jobId: 'job-1', status: 'failed', stage: 'done', outcome: 'FAILED', failedStage: 'spec',
+              failureReason: 'invalid_spec', goalImplemented: false, callsUsed: 2, callsBudget: 6,
+              error: { code: 'invalid_spec', message: 'Spec missing schemaVersion=1 or acceptance array' },
+              units: [], diagnosticsUrl: '/api/projects/diagnostics/export?jobId=job-1',
+              report: { status: 'failed', outcome: 'FAILED', failureReason: 'invalid_spec', failedStage: 'spec', checksDeclared: ['html-structure', 'js-syntax'], checksRun: [], checksNotRun: ['html-structure', 'js-syntax'], callsUsed: 2 },
+            } });
+      }
+      return json(res, 200, { success: true, data: log.polls < 2 ? { jobId: 'job-1', status: 'running', stage: 'code' } : { jobId: 'job-1', status: 'done', outcome: 'SUCCESS', goalImplemented: true, downloadUrl: `/api/projects/${m[1]}/artifacts/art1/download`, report: { outcome: 'SUCCESS', checksDeclared: ['validate'], checksRun: ['validate'], checksNotRun: [] } } });
+    }
+    if (p === '/api/projects/diagnostics/export' && req.method === 'GET') {
+      const report = { jobId: 'job-1', status: 'failed', outcome: 'FAILED', failureReason: 'invalid_spec', failedStage: 'spec', callsUsed: 2, checksDeclared: ['html-structure'], checksRun: [], checksNotRun: ['html-structure'] };
+      const z = new JSZip();
+      z.file('build/build-report.json', JSON.stringify(report, null, 2));
+      const buf = await z.generateAsync({ type: 'nodebuffer' });
+      res.writeHead(200, { 'content-type': 'application/zip', 'content-length': String(buf.length) });
+      return res.end(buf);
+    }
     m = p.match(/^\/api\/projects\/([^/]+)\/artifacts\/([^/]+)\/download$/);
     if (m) {
       if (m[2] !== 'art1') return json(res, 404, { success: false, error: 'Artifact not found', code: 'NOT_FOUND' });
@@ -163,8 +186,12 @@ async function runRunner(mode) {
   fake.server.close();
   const transcriptText = await readFile(path.join(outDir, 'p118-architect-transcript.json'), 'utf8');
   const zipExists = await access(path.join(outDir, 'architect-source.zip')).then(() => true, () => false);
+  const diagnosticsExists = await access(path.join(outDir, 'diagnostics.zip')).then(() => true, () => false);
+  const buildReportExists = await access(path.join(outDir, 'build-report.json')).then(() => true, () => false);
+  let buildReportText = null;
+  if (buildReportExists) buildReportText = await readFile(path.join(outDir, 'build-report.json'), 'utf8');
   await rm(outDir, { recursive: true, force: true });
-  return { code, stdout, stderr, transcriptText, transcript: JSON.parse(transcriptText), zipExists, log: fake.log };
+  return { code, stdout, stderr, transcriptText, transcript: JSON.parse(transcriptText), zipExists, diagnosticsExists, buildReportExists, buildReportText, log: fake.log };
 }
 
 test('P118 live runner: scaffold-only ZIP is HONEST_NON_PASS with PARTIAL, controls refuse, projects cleaned', async () => {
@@ -225,4 +252,29 @@ test('P118 live runner: Project Mode writes carry a same-origin Origin header (s
   const r = await runRunner('partial');
   assert.equal(r.transcript.steps.some((x) => x.status === 403), false);
   assert.equal(r.transcript.build.verdict, 'PARTIAL');
+});
+
+test('P118 live runner: staged fail captures error/callsUsed/units and downloads diagnostics build-report', async () => {
+  const r = await runRunner('staged-fail');
+  assert.equal(r.code, 0, r.stderr + r.stdout);
+  assert.equal(r.transcript.build.verdict, 'TRUTHFUL_FAIL');
+  assert.equal(r.transcript.overall.overall, 'HONEST_NON_PASS');
+  assert.equal(r.transcript.build.engineMode, 'staged');
+  const je = r.transcript.build.jobEvidence;
+  assert.ok(je, 'jobEvidence present');
+  assert.equal(je.failureReason, 'invalid_spec');
+  assert.equal(je.error?.message, 'Spec missing schemaVersion=1 or acceptance array');
+  assert.equal(je.callsUsed, 2);
+  assert.equal(je.callsBudget, 6);
+  assert.deepEqual(je.units, []);
+  const poll = r.transcript.steps.find((s) => s.id === 'build_poll_end');
+  assert.equal(poll.errorMessage, 'Spec missing schemaVersion=1 or acceptance array');
+  assert.equal(poll.callsUsed, 2);
+  assert.equal(r.diagnosticsExists, true);
+  assert.equal(r.buildReportExists, true);
+  assert.equal(r.transcript.build.diagnostics?.hasBuildReport, true);
+  assert.equal(r.transcript.build.diagnostics?.buildReport?.failureReason, 'invalid_spec');
+  const report = JSON.parse(r.buildReportText);
+  assert.equal(report.failureReason, 'invalid_spec');
+  assert.equal(report.callsUsed, 2);
 });
