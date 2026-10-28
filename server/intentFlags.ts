@@ -111,7 +111,7 @@ export function informationSoftFail(out: any, flags: UserIntentFlags): boolean {
 /** Repair hint for information-mode soft retry (kept short; does not switch to decision package). */
 export function informationRetryHint(flags: UserIntentFlags): string {
   let hint = `QUALITY CHECK (information mode). The previous draft was evasive: methodology preamble, limitations-only, or an invented precision requirement. Rewrite the JSON from scratch.
-Open with the substance of the answer in the first sentences. Use relevant general knowledge; label approximate ranges as general knowledge worth verifying. Do not open with methodology, model limits, or why a perfect answer is impossible. Do not invent a stricter question than the person asked. Do not turn a factual question into a decision problem.`;
+Open with the substance of the answer in the first sentences. Use relevant general knowledge. Do not close with empty stock phrases such as "general guidelines" or "общие ориентиры". Do not open with methodology, model limits, or why a perfect answer is impossible. Do not invent a stricter question than the person asked. Do not turn a factual question into a decision problem.`;
   if (flags.userForbadeMethodology || flags.userDemandedDirectAnswer) {
     hint += `\nThe person demanded a direct answer and/or forbade methodology. Obey that constraint.`;
   }

@@ -144,20 +144,50 @@ export const RATE_SEED_URLS: { title: string; url: string }[] = [
   { title: 'Trading Economics interest rates by country', url: 'https://tradingeconomics.com/country-list/interest-rate' },
 ];
 
+/** True when the user is asking for a current/latest/stable/LTS software or OS version number. */
+export function isVersionTopic(text: string): boolean {
+  const t = String(text || '');
+  if (/(?:lts[-‐-–— ]?)?versi(?:on|я|и)|(?:current|latest|newest|stable|актуальн\w*|последн\w*|текущ\w*|стабильн\w*)\s+(?:\w+\s+){0,4}(?:version|release|релиз\w*)/i.test(t)) return true;
+  if (/\b(?:node\.?js|nodejs|ubuntu|debian|python|postgres(?:ql)?|\.net|dotnet|firefox|chrome|linux\s+kernel|kernel)\b/i.test(t) && /(?:lts|stable|version|versi|релиз|release)/i.test(t)) return true;
+  return false;
+}
+
+/** Extra SERP queries that surface concrete version tables for common products. Pure; max 2 extras. */
+export function versionSearchExtras(text: string): string[] {
+  const t = String(text || '').toLowerCase();
+  const extras: string[] = [];
+  if (/node\.?js|nodejs/.test(t)) extras.push('Node.js current LTS version site:nodejs.org', 'Node.js LTS release schedule');
+  else if (/ubuntu/.test(t)) extras.push('Ubuntu current LTS version site:ubuntu.com', 'Ubuntu LTS releases Noble Jammy');
+  else if (/python/.test(t)) extras.push('current stable Python version site:python.org', 'Python release status devguide');
+  else if (/debian/.test(t)) extras.push('Debian current stable version site:debian.org');
+  else if (/postgres/.test(t)) extras.push('PostgreSQL current major version site:postgresql.org');
+  else if (/\.net|dotnet/.test(t)) extras.push('.NET current LTS version site:microsoft.com');
+  else if (/firefox/.test(t)) extras.push('Firefox current stable version site:mozilla.org');
+  else if (/linux|kernel/.test(t)) extras.push('Linux kernel current stable version');
+  else extras.push(`${buildSearchQuery(text)} current LTS OR stable version number`);
+  return extras.slice(0, 2);
+}
+
 export function expandSearchQueries(englishQuery: string, originalUserText?: string): string[] {
   const q = buildSearchQuery(englishQuery);
   if (q.length < 3) return q ? [q] : [];
   const rateLike = isRateTopic(q) || isRateTopic(originalUserText || '');
-  if (!rateLike) return [q];
-  const focused = [
-    q,
-    'current Federal Reserve federal funds target rate',
-    'current ECB deposit facility rate and main refinancing operations rate',
-    'current Bank of England Bank Rate',
-    'current Bank of Japan policy interest rate',
-    'current Bank of Canada target overnight rate',
-    'current Deutsche Bundesbank or ECB policy rates Germany',
-  ];
+  const versionLike = isVersionTopic(q) || isVersionTopic(originalUserText || '');
+  const focused: string[] = [q];
+  if (rateLike) {
+    focused.push(
+      'current Federal Reserve federal funds target rate',
+      'current ECB deposit facility rate and main refinancing operations rate',
+      'current Bank of England Bank Rate',
+      'current Bank of Japan policy interest rate',
+      'current Bank of Canada target overnight rate',
+      'current Deutsche Bundesbank or ECB policy rates Germany',
+    );
+  } else if (versionLike) {
+    focused.push(...versionSearchExtras(originalUserText || englishQuery));
+  } else {
+    return [q];
+  }
   // Dedupe while preserving order; max 5 queries (5 Serper credits).
   const seen = new Set<string>();
   const out: string[] = [];
@@ -721,7 +751,8 @@ Simple-mode rules for using this data:
 1) Prefer numbers that appear in the extracts below; add nothing that is not below when the figure is present there.
 2) If the user asks for a table or list of rates/prices/values, every value cell MUST be a number (or a numeric range like 4.25–4.50%), not the name of the instrument. If a number is missing from the extracts, write "н/д" / "n/a" and "(по данным веб-поиска)" — do not put labels like "Bank Rate" or "deposit facility" in the value column.
 3) When unsure a figure is exact, still give the best supported number and mark it "(по данным веб-поиска)" or "(according to web search)".
-4) Do not refuse to answer only because the extract is incomplete. Answer in the user's language.`;
+4) Do not refuse to answer only because the extract is incomplete. Answer in the user's language.
+5) Version / LTS / stable-release questions: extract the concrete version identifier (for example 22.x, 24.04 LTS, 3.14) from the extracts when it appears. Lead with that number. Do not answer only with "check the official site" when a version is present below. If no number is present, say so in one sentence and point to the best official URL from SOURCES.`;
   const list = r.sources.length ? `\n\nSOURCES:\n${r.sources.map((s, i) => `${i + 1}. ${s.title}`).join('\n')}` : '';
   return `${header}\n\n${asUntrustedDataBlock('web search digest', r.digest + list, MAX_DIGEST_CHARS + 800)}`;
 }
