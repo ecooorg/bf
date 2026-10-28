@@ -1,3 +1,10 @@
+## P117.3 — diagnostics for AI assistants
+
+- In-app diagnostics ZIP: explicit per-stream `provenance` (operations / applicationLogs / console) so `source` no longer contradicts skipped reasons; UTF-8 byte hashing for manifest integrity.
+- Added `assistant/ASSISTANT-BRIEF.md` and `assistant/assistant-context.json` with overall status, last failed operation, non-PASS checks, non-secret env flags, and next-action hints for the next assistant session.
+- CI `biforge-ci-logs.zip`: `diagnostics-index.json` schemaVersion 4 adds failedStages, activeAtEnd, nextAction, failingLogTails; root `ASSISTANT-BRIEF.md` summarizes the red run for assistants.
+- Tests cover assistant files and provenance alignment. No product conversation behaviour change.
+
 ## P117.3 — live-test environment and automation context
 
 - Added canonical AI-facing operational context for the existing Render deployment (`https://biforge.onrender.com/`), owner-managed ZIP patch application, and the absence of a separately provisioned staging service.
