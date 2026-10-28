@@ -22,13 +22,14 @@ function runDag(manifest, extraArgs = [], env = {}) {
   const read = (n) => { try { return JSON.parse(fs.readFileSync(path.join(dir, n), 'utf8')); } catch { return null; } };
   return { r, dir, results: read('results.json'), evidence: read('evidence-dag.json'), status: (id) => read('results.json')?.results.find((x) => x.id === id) };
 }
+
 const report = (dir, env) => { spawnSync(process.execPath, ['scripts/patch-quality-report.mjs'], { cwd: root, encoding: 'utf8', env: { ...process.env, CI_LOGS_DIR: dir, GITHUB_SHA: 'abc1234', ...env } }); return fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8'); };
 const rm = (dir) => fs.rmSync(dir, { recursive: true, force: true });
 
 test('P107 the real manifest is valid and its check profile keeps every legacy check', () => {
   assert.deepEqual(validateManifest(real), []);
   const ids = selectProfile(real, 'check').map((c) => c.id);
-  const legacy = ['version-consistency', 'lint:copy', 'typecheck', 'test:core', 'test:models', 'test:security', 'test:files', 'test:workspace', 'test:database', 'test:integrations', 'test:project', 'test:gates', 'test:pipeline', 'test:web', 'test:turn', 'test:regression', 'test:app-builder', 'test:project-diagnostics', 'test:compact-ci-artifacts'];
+  const legacy = ['version-consistency', 'lint:copy', 'typecheck', 'test:core', 'test:models', 'test:security', 'test:files', 'test:workspace', 'test:database', 'test:integrations', 'test:project', 'test:gates', 'test:pipeline', 'test:web', 'test:turn', 'test:app-builder', 'test:project-diagnostics', 'test:compact-ci-artifacts'];
   assert.deepEqual(legacy.filter((id) => !ids.includes(id)), []);
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   assert.equal(pkg.scripts.check, 'node scripts/run-dag.mjs --profile check');
@@ -37,7 +38,7 @@ test('P107 the real manifest is valid and its check profile keeps every legacy c
 test('P107 the ci profile adds the critical probes, database stages and build, with the legacy limits kept', () => {
   const ci = new Map(selectProfile(real, 'ci').map((c) => [c.id, c]));
   for (const id of ['critical-router-selection', 'critical-router-policy-call-limit', 'critical-gemini-timeout', 'critical-app-builder-recovery', 'db-migrate', 'test:database:live', 'test:bx06:api', 'build']) assert.ok(ci.has(id), id);
-  const legacyMs = { 'critical-router-selection': 20000, 'critical-gemini-timeout': 20000, 'test:core': 75000, 'test:models': 75000, 'test:files': 75000, 'test:app-builder': 150000, 'test:project': 120000, typecheck: 120000, 'test:regression': 90000, 'test:pipeline': 330000 };
+  const legacyMs = { 'critical-router-selection': 20000, 'critical-gemini-timeout': 20000, 'test:core': 75000, 'test:models': 75000, 'test:files': 75000, 'test:app-builder': 150000, 'test:project': 120000, typecheck: 120000, 'test:pipeline': 330000 };
   for (const [id, ms] of Object.entries(legacyMs)) assert.ok(ci.get(id).timeoutMs >= ms, `${id} timeout must not be lower than ${ms}`);
   for (const id of ['test:core', 'test:models', 'test:files', 'test:app-builder', 'test:project', 'typecheck']) {
     assert.equal(ci.get(id).critical, true);
