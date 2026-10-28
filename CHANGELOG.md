@@ -1,3 +1,10 @@
+## P118.1 — Architect outcome on pipeline and client
+
+- Pure `pipelineArchitectOutcome` / `stagedArchitectNote` map deliverable state to A3 SUCCESS|PARTIAL|FAILED.
+- Pipeline `/code/build` response includes `outcome`, `failedStage`, `failureReason`; empty ZIP is FAILED and omits downloadUrl.
+- Client `waitForProjectBuild` and Project Mode status show outcome and missing checks; no SUCCESS wording for scaffold-only ZIPs.
+- Tests: `tests/architect-outcome-p118.test.mjs`.
+
 ## P118 — Complex Software Architect Agent: completion contract
 
 - Closed P117.3 with Navigator decision: P116 accepted at 80% live PASS with residual B3 (Node LTS number from SERP).
