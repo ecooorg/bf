@@ -26,10 +26,10 @@ The owner pasted a partially redacted environment-variable listing in chat. Trea
 
 ## Live test protocol
 
-1. Verify CI/build is green for the exact commit deployed to Render.
+1. Verify CI/build is green for the exact commit deployed to Render, and confirm that `/health` reports that commit (the live runner records `version` and `commit`). Sub-patches share one program version, so the commit is the decisive identity; a live run on a different commit is not evidence for the new patch.
 2. Confirm target URL and authentication mechanism; do not infer a staging environment from the URL.
 3. Store credentials as GitHub Actions repository secrets, never as workflow literals.
 4. Run a bounded, manually dispatched workflow initially; inspect its redacted transcript and provider usage.
 5. Only then consider scheduled/automatic execution.
-6. Live results are evidence, not acceptance by themselves. P116 acceptance remains a Navigator decision; P117 remains unaccepted until its gate passes; P121 must not start without explicit authorization.
+6. Live results are evidence, not acceptance by themselves. P116 was accepted by the Navigator on 2026-10-28 (residual B3); P117.3 is closed; P118 and later phases are accepted only by the Navigator after the exit gate in the roadmap; P121 must not start without explicit authorization.
 7. The P118 Architect workflow mutates the live service: it creates two projects named `p118-evidence-*` and, unless dispatched with cleanup off, deletes exactly the project ids it created. It reuses `STAGING_SERVICE_URL` and `STAGING_APP_PASSWORD`; the generated ZIP is only parsed, never executed or extracted.

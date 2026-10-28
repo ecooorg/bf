@@ -1,6 +1,6 @@
 # Permanent AI Operating Rules
 
-Status: proposed for Navigator approval. Language: English for code and repository documentation; speak to the Navigator in the language of the conversation.
+Status: permanent; binding under `AGENTS.md`. Language: English for code and repository documentation; speak to the Navigator in the language of the conversation.
 
 ## Authority and precedence
 1. Explicit Navigator decisions and non-waivable security constraints.
@@ -36,8 +36,8 @@ Silence never means approval.
 3. Run focused checks, then full `npm run check` when possible; record exact commands and outcomes.
 4. For UI changes inspect 1200px and 390px views where browser tools exist.
 5. Report modified/renamed/deleted paths, compatibility, risk, rollback and blocked verification.
-6. Deliver a changed/new-files ZIP. List deletions explicitly.
-7. Update `AGENTS.md` current status and prepend a `CHANGELOG.md` entry.
+6. Deliver a changed/new-files ZIP that always contains `package.json` with `patch` and `version` set per `AGENTS.md` "Version and patch numbering". List deletions explicitly.
+7. Prepend a `CHANGELOG.md` entry. Update `AGENTS.md` only when its Documentation Policy requires it.
 8. On rename or deletion search all code, tests, scripts and docs for stale references.
 
 ## UI policy preserved from baseline
@@ -49,6 +49,9 @@ Silence never means approval.
 - Inputs require visible labels and boundaries; avoid duplicate explanations.
 - Existing copy-lint allowances must not increase.
 - Check responsive layout and labels at 1200px and 390px before shipping UI changes.
+
+## Version and patch numbering
+`package.json` (`patch`, `version`) is the only version source and is in every patch. `version` = first number of `patch`; a patch number never goes below the program version or the previous patch. Never add another version source or comparison. Full rules: `AGENTS.md`.
 
 ## Verification integrity
 Only executed successful checks are PASSED. A missing dependency, unavailable database or browser, skipped live integration or unrun test is BLOCKED or NOT RUN, never PASSED. Static inspection does not prove runtime equivalence.

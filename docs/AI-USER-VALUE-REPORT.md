@@ -1,3 +1,47 @@
+# BIForge — Rolling User-Outcome Evidence Report
+
+Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, or NOT_RUN.
+
+## P118.3.2 — Single version source and documentation audit (2026-10-28)
+
+- Runtime behavior: none changed. Version handling changed: `package.json` (`patch`, `version`) is the only source; `src/config.ts` derives `APP_VERSION`/`APP_PATCH` from it; `check-version` validates `package.json` alone; `patch:pack` rejects a patch without `package.json`, with a patch number not above the base patch, or a `version` that differs from the first number of `patch`.
+- Why (OBSERVED in source): the old gate also compared `src/config.ts`, `server.ts` and the CHANGELOG heading with `package.json`, and `tests/core.test.mjs` repeated that comparison; each patch that touched one of them could turn CI red. The live diagnostics of the run below also showed two sources disagreeing in one process (console `v118`, diagnostics `appVersion 119` / release `P118.3`).
+- Documentation audit: stale statements corrected (operating-rules status, patch protocol vs AGENTS Documentation Policy, report title and latest-record heading, missing index entries for `AI-ENVIRONMENT-CONTEXT.md` and `P121_Browser_based_Model_Providers.md`, task/roadmap state); P118 exit gate written into the roadmap.
+- Verification: local tests and checks only; hosted CI and live workflow NOT_RUN.
+
+---
+
+## P118.3.1 — CI repair for P118.3 (2026-10-28)
+
+- OBSERVED (CI run 40680247186, attempt 2, commit `1a98a6a`): four DAG nodes red — `version-consistency`, `typecheck`, `build`, `test:compact-ci-artifacts`. Archive handling in that run worked: `biforge-ci-logs.zip` (36 files, 106224 bytes, status FAILED, history PARTIAL) and `biforge-ci-report` (124566 bytes) were produced and uploaded.
+- Root causes: (1) P118.3 raised the version to 119 while its CHANGELOG label was P118.3, which the old gate rejected; `test:compact-ci-artifacts` failed only because its P105 end-to-end test runs `version-consistency`. (2) `appBuilder/core-engine.ts`: with `strict:false`, `!x.ok` does not narrow `{ok:true}|{ok:false}`; failure fields are now read through `'error' in x` / `'issues' in x`.
+- Local result after repair: `tsc` (client and server) clean; `build` OK; `test:compact-ci-artifacts` 71/71; `test:app-builder` 64/64; full `ci` DAG 23 PASS, 3 BLOCKED (`db-migrate`, `test:database:live`, `test:bx06:api`: no Postgres locally). Hosted CI of the repair: NOT_RUN here.
+
+---
+
+## Live Architect run on commit `7c51c5e` (2026-10-28 11:31 UTC): HONEST_NON_PASS
+
+- OBSERVED (workflow artifact): deployed `/health` version 118, commit `7c51c5e`; session OK; engine mode `staged` (HTTP 202); `failedStage=spec`, `failureReason=invalid_spec`, `callsUsed=1` of 25, `durationMs=1511`; all six declared checks NOT_RUN; `files=[]`; no download (`downloadUrl=null`).
+- Archive handling: no project ZIP existed, so sha256/CRC/entry verification of a built ZIP was NOT_RUN. `diagnostics.zip` downloaded (HTTP 200, 20595 bytes, sha256 recorded, `build-report` present). Refusal controls passed: N1 `409 PASSPORT_NOT_CONFIRMED`, N2 `404` for a missing artifact. Both projects deleted.
+- OBSERVED: this deployment did not contain the P118.3 repair (one call, no `spec_attempt`/`spec_repair` events in `application.jsonl`). It is NOT evidence about P118.3.
+- OBSERVED: console banner `v118` while diagnostics summary reported `appVersion 119`, release `P118.3` — two version sources in one process (removed by P118.3.2). Boot-time candidate probe (11:27:25) marked `gemini-3.6-flash` unavailable (timeout) and `gemini-3.8-flash` unavailable (HTTP_429); the third candidate's state was not captured in the excerpt. Whether provider availability affected the spec call is UNKNOWN: the old engine kept no model text.
+
+---
+
+## P118.3 — Spec-stage bounded repair and assistant diagnostics
+
+- Delivered: `parseJsonLenient`, `validateSpec` with concrete issues, `schemaVersion "1"`→1 coercion, one recovery call listing the issues, `spec_*`/`plan_*` diagnostic events with text previews, adapter logging of model response previews; tests `tests/app-builder-spec-repair-p118.test.mjs`.
+- Trigger (as reported in the P118.3 handoff, live #3, commit `6990277`): one planner call succeeded, then `invalid_spec` without recovery; transcript lacked model text and issues.
+- Effect on the live product: NOT_RUN (see the run above: old engine; hosted CI of the commit was red).
+
+---
+
+## Live runs #2 and #3 (before P118.3)
+
+- Recorded in task/handoff only: HONEST_NON_PASS with `invalid_spec`, `callsUsed=1`, no recovery. Artifacts are not retained in the repository; treat as reported, not re-verified.
+
+---
+
 ## P118.2.1 — Live run #1 of the Architect workflow: BLOCKED by runner defect (2026-10-28)
 
 - LIVE evidence (workflow artifact, commit `dc33d59`, version 118): login and session OK (`projectModeEnabled=true`, `programZip=true`); the first Project Mode write `POST /api/projects` returned 403 `CSRF_ORIGIN`. Overall `FAIL / project_setup_failed`; no project, build or ZIP was created, so nothing needed cleanup.
@@ -42,8 +86,6 @@
 - ND-4 conservative choice: no Serper time-range parameter or additional query is added, so no intentional increase in credit consumption. The current patch carries dates but does not filter results strictly to the requested week; B1 acceptance still requires manual scrutiny and may remain PARTIAL.
 - Diagnostic archive review: overall checks PASS and DB write failures are zero, but the export manifest has a byte-count discrepancy for `logs/server-console.log` (manifest 549 vs actual 538) and reports `source=database` while also saying persistent logs were skipped because the database was unavailable. The build report confirms a failed build (`invalid_spec`, zero files, ~73 s). These are useful evidence but need clearer provenance/consistency; no diagnostics-runtime patch was made in this bounded P117.3 patch.
 - Verification: test execution BLOCKED because dependencies are not installed in the extracted workspace; `npm ci --ignore-scripts` timed out. Hosted CI and live staging workflow NOT_RUN. P116/P117 acceptance NOT claimed.
-
-# BIForge — Rolling User-Outcome Evidence Report
 
 # P117.2 — P116 LIVE baseline (model-judged) and Conversational Agent recovery findings
 
@@ -131,7 +173,7 @@
 
 **Evidence semantics:** `PASS` means the named check actually passed. `NOT_RUN`, `NOT_REPRODUCED`, `UNKNOWN`, `BLOCKED`, `TIMEOUT`, and `PARTIAL` are not PASS. Separate observed facts, user reports, hypotheses, and conclusions.
 
-## Latest record
+## P115 — record (superseded as latest)
 
 - **Patch:** P115 — documentation consolidation and control-plan correction.
 - **Runtime changes:** none.

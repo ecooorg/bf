@@ -4,7 +4,7 @@ Repository documents are internal working context for AI assistants. The Navigat
 
 ## Read for every patch
 
-1. `../AGENTS.md` — authority, charter, authorization tiers and stop rule.
+1. `../AGENTS.md` — authority, charter, authorization tiers, stop rule and the version/patch numbering rules (`package.json` in every patch).
 2. `AI-OPERATING-RULES.md` — permanent operating, security and evidence rules.
 3. `AI-NATIVE-RENOVATION-TASK.md` — current task, acceptance criteria and immediate next action.
 4. `AI-USER-VALUE-SPEC.md` — approved three-agent target and user-outcome contracts.
@@ -16,6 +16,8 @@ Read `AI-USER-VALUE-REPORT.md` when diagnosing or changing user-facing behavior;
 
 - `AI-NATIVE-GLOBAL-AUDIT-2026-10.md` — prior broad source audit; historical baseline, not a current task list.
 - `OPERATIONS.md` — configuration, deployment, rollback and diagnostic commands.
+- `AI-ENVIRONMENT-CONTEXT.md` — Render deployment facts, authentication rules, live-test protocol; read before touching deployment or live workflows.
+- `P121_Browser_based_Model_Providers.md` — planned P121 task (browser-based model access); not authorized, read only when P121 is discussed.
 - `architecture-guardrails.md` — module boundaries, generators and App Builder invariants.
 - `VIX-CONCEPT.md` — long-horizon strategy; not immediate implementation authorization.
 - `typing-and-naming.md` — TypeScript conventions.

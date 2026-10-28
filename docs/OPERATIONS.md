@@ -70,7 +70,7 @@ Report these activities as NOT_RUN until separately performed and evidenced.
 
 ## 7. Health endpoints
 
-* `GET /health` reports liveness and version information.
+* `GET /health` reports liveness, `version` (program version from `package.json`) and `commit`. The last applied patch (`package.json` `patch`) is in the diagnostics summary as `release`. `node scripts/check-version.mjs` validates `package.json` only.
 * `GET /ready` reports readiness and database availability.
 * Operational endpoints must remain protected by the application's authentication and authorization rules.
 
