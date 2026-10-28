@@ -1,5 +1,58 @@
 # BIForge — Rolling User-Outcome Evidence Report
 
+# P117.2 — P116 LIVE baseline (model-judged) and Conversational Agent recovery findings
+
+**Status: DOCUMENTATION ONLY — no runtime behavior changed. P116 remains OPEN: the pre-set acceptance threshold was NOT met (7/12 PASS = 58%, 4 PARTIAL, 1 FAIL; threshold: zero hard failures and at least 80% PASS).**
+
+**Evidence type: LIVE, manual, judged by the AI assistant.** Not MOCK, not automated browser E2E, not production telemetry. One run per scenario; run-to-run variance is UNKNOWN.
+
+**Context (OBSERVED).** Stand build v117 (P117.1), commit `ab35ebd`, read from the in-app System diagnostics panel. Run on 2026-10-28, about 03:01–03:08 UTC, Simple mode, via the Android Chrome UI. Configuration as reported by the Navigator (secrets redacted): `ENABLE_WEB_SEARCH=true`, `WEB_SEARCH_PROVIDER=serper`, `WEB_SEARCH_MODE=auto`, `MODEL_CASCADE_STRONG=gemini-3.5-flash-lite,gemini-3.1-flash-lite`, `GROQ_API_KEY` present, no `ENABLE_EXTERNAL_MODEL_FALLBACK` reported.
+
+**Method.** The assistant fixed the rubric before seeing results (see `docs/AI-NATIVE-RENOVATION-TASK.md`, "Live re-test protocol"). The Navigator sent 12 scenarios (16 requests) and returned screenshots plus Render log lines. All 16 requests matched 16 `conversation_timing` entries by order and timestamp. Stable facts were judged from assistant knowledge; current facts and cited events were verified by independent web searches on 2026-10-28.
+
+| ID | Scenario | Verdict | Key evidence |
+|---|---|---|---|
+| A1 | RU stable knowledge with a false premise (conifers) | PASS | Premise corrected; larch named as exception |
+| A2 | EN RAM vs disk | PASS | Short, accurate |
+| A3 | Nonexistent protocol (fabrication probe) | PASS | Did not invent; wording "does not exist" is more categorical than "unknown to me" |
+| A4 | "How many minutes to hard-boil an egg? Briefly." | PASS | One sentence |
+| B1 | Climate news "last week", search on | PARTIAL | 4/4 events real; 2/4 older than 7 days, undated; sources are section/home pages |
+| B2 | Brent price with source | PASS | 115.33–115.45 vs ~114.5–115.2 observed; real sources; no timestamp |
+| B3 | "Current LTS version of Node.js?" | **FAIL** | `web_search:"skipped"`; reply gives no version |
+| B4 | Capital of Australia (search-not-needed control) | PARTIAL | Correct, no search; "Kanberra" in Latin letters inside Russian text |
+| C1 | Berlin/Warsaw → schools → "forget schools; climate, language; which cities?" | PARTIAL | Context kept on 3 turns; stock caveat on every turn; generic content |
+| C2 | Mendeleev, pronoun follow-ups | PASS | Death date 20 Jan (2 Feb N.S.) 1907 correct |
+| D1 | "No questions, no preamble: first language for a schoolchild?" | PARTIAL | No question; impersonal opener, two alternatives, stock closer |
+| D2 | "How much will it cost?" in a clean chat | PASS | Correct clarifying question |
+
+**Log observations (OBSERVED).** 16/16 requests: `product_mode=Simple`, `calls=1`, no retry, no error, model `gemini-3.5-flash-lite`. Non-search latency 1.1–2.8 s; with search 7.0 s (B1) and 12.0 s (B2). `web_search=used` only on B1 and B2; `skipped` on all others, including B3. One request (C1 third message) logged `mode=research`, `promptChars=33012` (typical 15.2–16.4k) and `epistemic_verifier: INVALID_OUTPUT`.
+
+## Findings
+
+**F1 (P1) — hidden-freshness miss and non-answer (B3). OBSERVED; cause HIGH confidence.** `FRESH_PATTERNS` in `server/webSearch.ts` matches "актуальн… версия" only when adjacent; the request contained "актуальная LTS-версия", so the trigger did not fire even though search was enabled. The model then answered only with a referral to official channels. `informationSoftFail` did not flag it (no retry), because its patterns cover limitation/precision phrases, not referral-only replies. A usable answer existed: sources found on 2026-10-28 indicate Node.js 24 moved from Active to Maintenance LTS on 2026-10-20 and Node.js 26 is scheduled to enter LTS in October 2026 (exact promotion date not verified by this record).
+
+**F2 (P2) — stock caveat. OBSERVED; cause HYPOTHESIS.** C1 replies 1–3 and D1 end with a generic "these are general guidelines, verify against current data" sentence; A-series and C2 do not. `modeParagraph('information')` instructs labelling approximate answers as general knowledge worth verifying; whether that sentence causes the footer is not proven. Contradicts the A1 contract ("controls must not become the answer's purpose").
+
+**F3 (P2) — freshness window and traceability (B1). OBSERVED.** The request asked for "the last week" (request date 2026-10-28). The EPA methane item dates from 2026-10-07 and the Slovenia glacier item from 2026-10-15/16; neither is dated in the reply. The sources footer lists section pages (Guardian climate-crisis, Reuters environment, BBC topic, NYT section, Inside Climate News home), so no claim is tied to an article. In code, `digestFromSerperResponse` ignores organic `date`; news `date` is used only as a snippet fallback; the footer is the first five sources in order. The Dolomites and UK items were genuinely within the window. The assistant first suspected the Dolomites item was stale and corrected this after verification.
+
+**F4 (P3) — research-mode misclassification. OBSERVED; effect on reply quality NOT shown.** `RE_RESEARCH` contains `сравни(?:те)?` without a trailing boundary, so "сравниваем" in a recap question selected research mode (≈2.2× prompt size, verifier error). The reply itself was acceptable. Cost/latency risk only; wider effects are HYPOTHESIS.
+
+**F5 (P3) — impersonal recommendation (D1). OBSERVED.** `RE_FORBADE_METHODOLOGY` / `RE_DEMANDED_DIRECT` do not contain "без вступлений" or "посоветуй" forms, so the explicit constraint is only partly operative.
+
+**F6 (UNKNOWN) — "Kanberra" (B4).** Single occurrence, reproducibility not tested.
+
+**Positives (OBSERVED).** No fabricated facts in any reply; search path works and is labelled; Brent within 1% of independent quotes; context retained across 3-turn dialogs; explicit "short"/"two sentences" constraints honoured; no Expert-template leakage; no retries or errors.
+
+## Not run and discrepancies
+
+- NOT_RUN: live failure path (C4: 429/503/bad JSON); mock tests and CI by the assistant; browser automation; repeat runs.
+- Documentation discrepancy: UO-02 below states that search is off unless `ENABLE_WEB_SEARCH=true`; current `isWebSearchEnabled()` returns true unless the variable is `false|0|off|no`. The stand sets it explicitly, so this run is unaffected. The historical P114 text is left unchanged.
+- Contract discrepancy: the P116 acceptance instruction expects an HTTP 4xx/5xx on model failure; the handler returns HTTP 200 with a truthful fallback reply and `meta.fallback=true`, `meta.errorCode`. Decision recorded as ND-2 in the task file.
+- Not claimed: P116 acceptance, P117 acceptance, or any model/provider availability beyond the observed requests.
+
+---
+
+
 # P117.1 — Model resilience layer planning record
 
 **Status: DOCUMENTATION ONLY — no runtime behavior changed.**
