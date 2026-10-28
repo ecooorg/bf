@@ -1066,6 +1066,20 @@ await withSrv({ LOGIN_MAX_FAILS: '3' }, async function A(s) {
 
 // ===== B. chat invariants (fuzz over 10 situations x mutations) =====
 await withSrv({}, async function B(s) {
+  // Ten base situations; each is crossed with the seven mutations below (70 checks).
+  // `model` is the base model payload that mutations corrupt; the server must sanitize.
+  const CASES = [
+    { id: 's1', first: 'Зимой тяжело, стоит ли переезжать?', model: GOOD() },
+    { id: 's2', first: 'Не могу выбрать между городом и учёбой', model: GOOD() },
+    { id: 's3', first: 'Менять ли работу из-за зимы?', second: 'А если остаться ещё на год?', previousAssistant: 'Можно проверить зиму в тёплом месте.', model: GOOD() },
+    { id: 's4', first: 'Стоит ли переезжать в другую страну?', model: GOOD({ reply: 'Переезд — один из способов. Можно проверить на три недели.' }) },
+    { id: 's5', first: 'Что делать с выбором между двумя офферами?', model: GOOD() },
+    { id: 's6', first: 'Тяжело зимой, не знаю что делать', second: 'Про свет и настроение тоже', previousAssistant: 'Сначала про свет.', model: GOOD() },
+    { id: 's7', first: 'Should I move south for the winter?', model: GOOD({ reply: 'A short trial in a warmer place can answer that.', question: 'Which months are hardest?' }) },
+    { id: 's8', first: 'Решаю: остаться или уехать учиться', model: GOOD() },
+    { id: 's9', first: 'Зимняя тяжесть и работа — что важнее?', second: 'И про деньги тоже', previousAssistant: 'Оба фактора связаны.', model: GOOD() },
+    { id: 's10', first: 'Коротко: переезжать или нет?', model: GOOD({ reply: 'Можно проверить зиму в тёплом месте на три недели.', question: '' }) },
+  ];
   const muts = {
     twoQ: (r) => ({ reply: r.reply.replace(/\?/g, '.') + ' Что для вас важнее? А если подумать иначе? Когда решать?', question: 'Какой месяц хуже всего?' }),
     markdown: (r) => ({ reply: '**Ключевое:** тяжело.\n## Заголовок\n* пункт один\n+ пункт два\nОбычный `код` текст. Попробуйте на три недели.' }),
