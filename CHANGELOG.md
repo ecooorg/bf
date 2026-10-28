@@ -1,3 +1,12 @@
+## P117.3 — Conversational Agent freshness and recovery
+
+- Expanded conservative freshness detection for current/latest/stable/LTS versions in Russian and English, including intervening descriptors; added referral-only non-answer detection to the existing information-mode retry.
+- Removed the generic “general knowledge and worth verifying” prompt closer; made research-stem boundaries Unicode-aware and recognized explicit no-preamble/direct phrasing.
+- Preserved Serper-provided publication dates in organic/news digest lines. Deliberately did not add time-range filtering or extra requests, so search credit volume is not increased; strict requested-window exclusion remains open.
+- Added P117.3 regression tests and a manually dispatched GitHub Actions workflow that logs into the configured staging app, sends 15 prompts, and uploads a raw JSON transcript. It does not decide acceptance and does not automate multi-turn C1/C2 or the B4 repeat.
+- Failure-path contract remains HTTP 200 with truthful fallback metadata. No production deployment or credentials changed.
+- Verification: pending local execution in this patch environment; live workflow, hosted CI, and P116 acceptance NOT_RUN.
+
 ## P117.2 — P116 LIVE baseline and Conversational Agent recovery work order
 
 - Documentation-only patch. Recorded the first LIVE, assistant-judged baseline of the Simple-mode Conversational Agent on the v117 stand (commit `ab35ebd`): 12 scenarios, 16 requests, 7 PASS / 4 PARTIAL / 1 FAIL. The pre-set threshold (zero hard failures, at least 80% PASS) was not met; P116 stays open.

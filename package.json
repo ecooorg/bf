@@ -35,7 +35,7 @@
     "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/project-build-job-p93-5.test.mjs",
     "test:gates": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/gates.test.mjs",
     "test:pipeline": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=300000 tests/pipeline.test.mjs",
-    "test:web": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/web-and-epistemics.test.mjs",
+    "test:web": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/web-and-epistemics.test.mjs && npm run test:p117-3",
     "test:turn": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-turn.test.mjs",
     "test:regression": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/regression.test.mjs",
     "test": "npm run test:core && npm run test:models && npm run test:security && npm run test:files && npm run test:workspace && npm run test:database && npm run test:integrations && npm run test:project && npm run test:gates && npm run test:pipeline && npm run test:web && npm run test:turn && npm run test:regression",
@@ -57,7 +57,8 @@
     "test:capability-graph": "node --test tests/capability-graph-p111.test.mjs",
     "test:context-select": "node --test tests/context-select-p112.test.mjs",
     "status:graph": "node scripts/statusGraph.mjs",
-    "schema:validate": "node scripts/schemaValidate.mjs"
+    "schema:validate": "node scripts/schemaValidate.mjs",
+    "test:p117-3": "node --import tsx --test tests/p117-3-conversation.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

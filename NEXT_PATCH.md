@@ -1,41 +1,32 @@
-# P117.2 — Navigator handoff
+# P117.3 — Navigator handoff
 
-**Outcome:** documentation-only patch. Records the first LIVE baseline of the Simple-mode Conversational Agent (assistant-judged) and defines the P116 recovery work order. No runtime behavior or provider integration is changed.
-**Patch type:** documentation/specification only.
-**Product version:** unchanged (117); this patch does not modify package or runtime version metadata.
-**Manifest:** intentionally omitted; Navigator updates repository bookkeeping manually.
-**Sequencing:** the P116 gate is OPEN. The implementation patch (proposed label P117.3) follows after the Navigator answers ND-1..ND-4. P121 is not authorized.
+**Outcome:** bounded Conversational Agent repair plus regression tests and an opt-in live-retest workflow. App version remains 117. P116 acceptance is NOT claimed; P117 remains unaccepted; P121 is not started.
 
-## Changed files
+## Changes
+- `server/webSearch.ts`: broaden conservative RU/EN freshness detection for current/latest/stable/LTS versions; retain Serper-provided dates in digest entries.
+- `server/intentFlags.ts`: short referral-only answers can trigger the existing information retry; explicit no-preamble/direct wording recognized.
+- `server/conversationMode.ts`: removed the generic verification closer and made Cyrillic research matching Unicode-boundary-aware.
+- `tests/p117-3-conversation.test.mjs`, `package.json`: freshness positives/negatives, date propagation, prompt, and mode regressions; included in `npm run test:web`.
+- `.github/workflows/p117-3-live-retest.yml`, `scripts/p117-3-live-retest.mjs`: manual workflow logs into staging, sends the 15 scenarios including C1/C2 turns and B4 three times, and uploads a raw JSON transcript.
+- `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-USER-VALUE-REPORT.md`, `CHANGELOG.md`: decision resolution, evidence/limitations and patch history.
 
-- `docs/AI-USER-VALUE-REPORT.md` — adds the P117.2 evidence record at the top (scenario verdicts, log observations, findings F1–F6, not-run items, discrepancies).
-- `docs/AI-NATIVE-RENOVATION-TASK.md` — replaces the P117.1 task with the P116 recovery work order (WI-1..WI-7), decisions ND-1..ND-4, the live re-test protocol and rubric, and the P116 gate criteria.
-- `CHANGELOG.md` — adds the P117.2 entry at the top (major 117, so `scripts/check-version.mjs` stays consistent).
-- `NEXT_PATCH.md` — this handoff.
+## Navigator secrets needed for workflow
+In GitHub repository **Settings → Secrets and variables → Actions → New repository secret**, create:
+1. `STAGING_SERVICE_URL`: HTTPS base URL of the staging deployment (Render service URL; no trailing path).
+2. `STAGING_APP_PASSWORD`: the same application login password used on the staging login screen, not a database password, API key, or personal GitHub password.
 
-## Result of the LIVE baseline
+Do not send either secret in chat. Enter them directly in GitHub. Then run **Actions → P117.3 live retest → Run workflow**. The workflow is manual-dispatch only and reads these secrets at runtime.
 
-7 PASS, 4 PARTIAL, 1 FAIL of 12 scenarios (58% PASS). Threshold (zero hard failures, at least 80% PASS) NOT met. No fabricated facts were observed; the main defect is that "Какая сейчас актуальная LTS-версия Node.js?" skipped search although search was enabled and the reply contained no version.
+## Verification
+- Regression test execution: BLOCKED (the extracted workspace has no `tsx`; `npm ci --ignore-scripts` timed out).
+- Hosted CI: NOT_RUN; staging workflow: NOT_RUN; production behavior: UNKNOWN.
+- Diagnostics archive review: overall PASS, no diagnostic DB write failures, but manifest byte-count mismatch for `logs/server-console.log` and contradictory database-source/skipped wording. Build report shows `invalid_spec`, zero files, 73,059 ms. No diagnostics runtime change in this patch.
+- Search credits: no new Serper query/time-range parameter; existing volume unchanged. Serper dates are surfaced but strict requested-window filtering remains unresolved.
+- No deployment, credentials, GitHub writes or acceptance performed.
 
-## Verification actually performed
+## Next action
+Run CI on the patch, then dispatch the staging workflow and inspect its transcript against the fixed rubric. Navigator makes the final P116 Да/Нет. P117 acceptance remains separate.
 
-- LIVE, manual: 16 requests on the stand at commit `ab35ebd`; replies from screenshots, request metadata from Render logs; current facts independently checked by web search on 2026-10-28.
-- Source reading of `server.ts`, `server/webSearch.ts`, `server/conversationMode.ts`, `server/intentFlags.ts` to locate causes. Causes are labelled OBSERVED or HYPOTHESIS in the report.
-- On the patched tree: `node scripts/check-version.mjs` PASS (117, release P117.2); `node scripts/docsCheckInventories.mjs` PASS; `node scripts/lint-copy.mjs` PASS.
-- `node scripts/statusGraph.mjs --check` reports `docs/generated-check-graph.json` stale on BOTH the uploaded P117.1 archive and the patched tree, so this result is not caused by P117.2 (inputs untouched). Cause not investigated; it may be an artefact of the extracted copy. Hosted CI remains the authority; status UNKNOWN until a new CI result is observed.
-- NOT_RUN: unit/mock tests, typecheck, build, CI, browser E2E, live failure-path tests, repeat runs.
+Rollback: restore changed runtime/test/workflow files and the updated canonical task/report/changelog/handoff from the pre-patch backup.
 
-## Limitations
-
-- One run per scenario, one judge (the AI assistant); variance UNKNOWN. This is not production evidence and not automated E2E.
-- Prompt-level causes (F2) are hypotheses until a paired comparison is run.
-- The Serper time-range/date options in WI-3 are unverified and may change credit use (ND-4).
-
-## Navigator actions
-
-1. Apply this documentation patch; no files need deleting.
-2. Answer ND-1 (freshness strategy), ND-2 (failure-path contract), ND-3 (label/version), ND-4 (search cost).
-3. Hand the work order in `docs/AI-NATIVE-RENOVATION-TASK.md` to the implementing assistant for P117.3.
-4. After P117.3 and a new observed CI result, run the 15-scenario LIVE re-test and record the final P116 Да/Нет.
-
-Rollback: restore the four changed files from the local pre-patch backup.
+Charter conflicts: none
