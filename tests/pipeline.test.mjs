@@ -1005,6 +1005,8 @@ const net = (await import("node:net")).default;
 const fs = (await import("node:fs")).default;
 const { spawn } = await import("node:child_process");
 const { SUPPORT_CONTACTS, DISTRESS_MARKERS, hasDistressMarker } = await import("../src/support.ts");
+const PASS = 'test-pass-123';
+const BE = process.cwd();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const freePort = () => new Promise((res) => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); });
 // ---------- bridge ----------
@@ -1234,6 +1236,7 @@ await withSrv({ MODEL_CASCADE_STRONG: 'm1,m2', MODEL_CASCADE_LIGHT: 'm1,m2', MAX
 const f = R.filter((x) => !x.ok); console.log(`\nSTAGE 2: ${R.length - f.length}/${R.length} passed, ${f.length} failed`); for (const x of f) console.log('FAIL', x.id, '-', x.note);
 bridge.closeAllConnections?.(); bridge.close(); process.exit(f.length ? 1 : 0);
 } finally {
+  try { bridge.closeAllConnections?.(); bridge.close(); } catch {}
   process.exit = __groupOriginalProcessExit;
 }
 }
