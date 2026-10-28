@@ -1,3 +1,10 @@
+## P117.3 — live PASS lift (version SERP + no stock caveat)
+
+- Version/LTS questions expand Serper queries toward official product pages (Node.js, Ubuntu, Python, …) without raising the 5-query cap beyond existing rate-topic behaviour.
+- Web-search block instructs the model to lead with a concrete version number from extracts when present.
+- Information-mode prompts forbid empty stock closers ("общие ориентиры", "general guidelines", "worth verifying" alone) unless tied to an unverified time-sensitive claim.
+- Regression tests for version topic expansion and the stock-caveat ban. Targets B3 and B6/D1 soft failures from the P117.3 live transcript.
+
 ## P117.3 — diagnostics for AI assistants
 
 - In-app diagnostics ZIP: explicit per-stream `provenance` (operations / applicationLogs / console) so `source` no longer contradicts skipped reasons; UTF-8 byte hashing for manifest integrity.
