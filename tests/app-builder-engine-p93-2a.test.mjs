@@ -21,7 +21,10 @@ test('P93.2a engine creates report and ZIP using fake ModelPort', async () => {
   const h = harness();
   const result = await runBuild({ schemaVersion: SCHEMA_VERSION, jobId: 'job-1', projectId: 'p', userId: 'u', taskText: 'make a demo site' }, h.ports);
   assert.equal(result.report.status, 'complete');
+  assert.equal(result.report.outcome, 'SUCCESS');
   assert.equal(result.report.goalImplemented, true);
+  assert.ok(result.report.checksDeclared.length > 0);
+  assert.deepEqual(result.report.checksNotRun, []);
   assert.equal(result.report.files[0].path, 'index.html');
   assert.ok(result.archive instanceof Uint8Array);
   const zip = await JSZip.loadAsync(result.archive);
@@ -43,4 +46,21 @@ test('one-level nested paths are allowed but deeper paths are rejected', async (
   assert.equal(isSafePath('assets/logo.svg'), true);
   assert.equal(isSafePath('assets/img/logo.svg'), false);
   assert.equal(isSafePath('../secret'), false);
+});
+
+
+test('P118 empty artifact cannot be SUCCESS', async () => {
+  const h = harness();
+  // Force invalid plan generation by returning empty plan units after a valid spec.
+  const orig = h.ports.model.complete.bind(h.ports.model);
+  h.ports.model.complete = async (args) => {
+    if (args.prompt.includes('Create a Plan JSON')) {
+      return { text: JSON.stringify({ schemaVersion: 1, specHash: 'abc', units: [], order: [] }), finishReason: 'stop', modelId: 'fake-v1' };
+    }
+    return orig(args);
+  };
+  const result = await runBuild({ schemaVersion: SCHEMA_VERSION, jobId: 'job-empty', projectId: 'p', userId: 'u', taskText: 'make a demo site' }, h.ports);
+  assert.notEqual(result.report.outcome, 'SUCCESS');
+  assert.equal(result.report.files.length, 0);
+  assert.ok(result.report.failureReason);
 });
