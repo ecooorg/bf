@@ -76,31 +76,96 @@ const zip = JSZip ? new JSZip() : null;
 const files = fs.readdirSync(dir, { withFileTypes: true })
   .filter((entry) => entry.isFile() && entry.name !== 'diagnostics.zip' && !entry.name.endsWith('.zip'))
   .map((entry) => entry.name).sort();
+const failedRows = resultRows.filter((r) => ['FAIL', 'TIMEOUT'].includes(String(r.status || '').toUpperCase()));
+const activeAtEnd = resultDoc?.active || resultDoc?.activeAll?.[0] || null;
+const failedStages = failedRows.map((r) => ({
+  id: r.id,
+  status: r.status,
+  durationMs: r.durationMs ?? null,
+  critical: Boolean(r.critical),
+  log: r.log || null,
+  script: r.script || [r.command, ...(r.args || [])].filter(Boolean).join(' ') || null,
+  note: r.note || null,
+  rerun: r.script || (r.command ? [r.command, ...(r.args || [])].join(' ') : null),
+}));
+const logTail = (name, max = 40) => {
+  try {
+    const lines = fs.readFileSync(path.join(dir, name), 'utf8').split(/\r?\n/);
+    return lines.slice(-max).join('\n');
+  } catch { return null; }
+};
+const failingLogTails = Object.fromEntries(
+  failedStages.filter((s) => s.log).map((s) => [s.log, logTail(s.log)]),
+);
+const nextAction = report.match(/^NEXT_ACTION=([^\r\n]+)/m)?.[1]
+  || (failedStages.length
+    ? `Fix failed stages: ${failedStages.map((s) => s.id + ':' + s.status).join(', ')}. Rerun: ${failedStages.map((s) => s.rerun).filter(Boolean).join(' ; ') || 'npm run test:pipeline'}`
+    : 'No failed stages recorded in results.json');
+const assistantBrief = [
+  '# ASSISTANT BRIEF (CI diagnostics)',
+  '',
+  `status: ${status}`,
+  `commit: ${process.env.GITHUB_SHA || metrics?.run?.sha || 'local/unknown'}`,
+  `runId: ${process.env.GITHUB_RUN_ID || metrics?.run?.runId || 'null'}`,
+  `runUrl: ${metrics?.run?.runUrl || 'null'}`,
+  `workflowJobStatusAtPackaging: ${process.env.CI_STATUS || 'unknown'}`,
+  `checks: total=${counts.total} pass=${counts.pass} fail=${counts.fail} timeout=${counts.timeout} blocked=${counts.blocked} skipped=${counts.skipped}`,
+  `failedStages: ${failedStages.length ? failedStages.map((s) => s.id + ':' + s.status).join(', ') : 'none'}`,
+  `activeAtEnd: ${activeAtEnd ? JSON.stringify(activeAtEnd) : 'none'}`,
+  `nextAction: ${nextAction}`,
+  '',
+  'Rerun commands:',
+  ...(failedStages.length ? failedStages.map((s) => `- ${s.id}: ${s.rerun || '(no command recorded)'}`) : ['- (none)']),
+  '',
+  'Read order: ASSISTANT-BRIEF.md → diagnostics-index.json → BIForge-NEXT-PATCH.md / NEXT_PATCH.md → failing *.log tails → evidence-dag.json.',
+  '',
+].join('\n');
+
 const index = {
-  schemaVersion: 3, artifactType: 'biforge-ci-full-logs', status,
+  schemaVersion: 4,
+  artifactType: 'biforge-ci-full-logs',
+  status,
   commit: process.env.GITHUB_SHA || metrics?.run?.sha || 'local/unknown',
   runId: process.env.GITHUB_RUN_ID || metrics?.run?.runId || null,
-  runUrl: metrics?.run?.runUrl || null, createdAt: new Date().toISOString(),
+  runUrl: metrics?.run?.runUrl || null,
+  createdAt: new Date().toISOString(),
   workflowJobStatusAtPackaging: process.env.CI_STATUS || 'unknown',
-  completeness: 'all available files in CI_LOGS_DIR; unavailable checks and historical metrics remain explicitly unknown', files: [],
+  completeness: 'all available files in CI_LOGS_DIR; unavailable checks and historical metrics remain explicitly unknown',
+  checks: counts,
+  failedStages,
+  activeAtEnd,
+  nextAction,
+  failingLogTails,
+  files: [],
 };
 for (const name of files) {
   const full = path.join(dir, name);
   const raw = fs.readFileSync(full);
   // All CI diagnostic inputs are text/JSON; preserve any unexpected binary file as bytes without attempting text redaction.
   const isText = /\.(?:log|json|md|txt|ya?ml|xml|csv|mjs|js|ts)$/i.test(name);
-  const data = isText ? Buffer.from(redact(raw.toString('utf8'))) : raw;
+  const data = isText ? Buffer.from(redact(raw.toString('utf8')), 'utf8') : raw;
   if (zip) zip.file(name, data);
   else fs.writeFileSync(path.join(dir, name), data);
   index.files.push({ name, bytes: data.length, redacted: isText });
 }
+const briefBytes = Buffer.from(assistantBrief, 'utf8');
+index.files.push({ name: 'ASSISTANT-BRIEF.md', bytes: briefBytes.length, redacted: true });
+// diagnostics-index.json is generated last; its own byte count is recorded after serialization (stable once files list is final).
+let indexJson = Buffer.from(JSON.stringify(index, null, 2) + '\n', 'utf8');
+index.files.push({ name: 'diagnostics-index.json', bytes: indexJson.length, redacted: true });
+indexJson = Buffer.from(JSON.stringify(index, null, 2) + '\n', 'utf8');
+index.files[index.files.length - 1].bytes = indexJson.length;
+indexJson = Buffer.from(JSON.stringify(index, null, 2) + '\n', 'utf8');
+index.files[index.files.length - 1].bytes = indexJson.length;
 if (zip) {
-  zip.file('diagnostics-index.json', JSON.stringify(index, null, 2) + '\n');
+  zip.file('ASSISTANT-BRIEF.md', briefBytes);
+  zip.file('diagnostics-index.json', indexJson);
   const bytes = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
   fs.writeFileSync(zipPath, bytes);
 } else {
-  fs.writeFileSync(path.join(dir, 'diagnostics-index.json'), JSON.stringify(index, null, 2) + '\n');
-  const names = [...files, 'diagnostics-index.json'];
+  fs.writeFileSync(path.join(dir, 'ASSISTANT-BRIEF.md'), briefBytes);
+  fs.writeFileSync(path.join(dir, 'diagnostics-index.json'), indexJson);
+  const names = [...files, 'ASSISTANT-BRIEF.md', 'diagnostics-index.json'];
   const packed = spawnSync('zip', ['-q', '-j', zipPath, ...names], { cwd: dir, encoding: 'utf8' });
   if (packed.status !== 0) throw new Error(`Neither JSZip nor system zip could package diagnostics: ${packed.stderr || packed.error?.message || packed.status}`);
 }
