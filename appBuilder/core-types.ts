@@ -106,19 +106,31 @@ export interface ReportValidator {
   issues: Array<{ path?: string; line?: number; message: string }>;
 }
 
+/** A3 completion contract (Complex Software Architect Agent). Never claim SUCCESS without a non-empty verified artifact. */
+export type ArchitectOutcome = 'SUCCESS' | 'PARTIAL' | 'FAILED';
+
 /** build-report.json inside ZIP and in API responses. */
 export interface BuildReport {
   schemaVersion: SchemaVersion;
   jobId: string;
   status: ReportStatus;
+  /** A3-aligned outcome: SUCCESS only with non-empty files, required validators run and ok, archive produced. */
+  outcome: ArchitectOutcome;
   /** true only when every file unit is done and all required validators ok. */
   goalImplemented: boolean;
   files: ReportFile[];
   units: ReportUnit[];
   validators: ReportValidator[];
+  /** Validator names that were required for this stack. */
+  checksDeclared: string[];
+  /** Validator names that actually ran. */
+  checksRun: string[];
+  /** Required validators that did not run. */
+  checksNotRun: string[];
   callsUsed: number;
   durationMs: number;
   failureReason?: string;
+  failedStage?: string;
 }
 
 /** Input to runBuild (engine will use this later; defined here for contracts). */

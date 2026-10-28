@@ -12,6 +12,7 @@ export {
   type UnitStatus,
   type JobStatus,
   type ReportStatus,
+  type ArchitectOutcome,
   type ModelRole,
   type Spec,
   type Unit,

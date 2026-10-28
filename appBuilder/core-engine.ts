@@ -145,15 +145,51 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     state.stage = 'check'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'check' });
     validators = runStaticValidators(new Map([...files].map(([p, f]) => [p, f.content])), state.spec);
   }
-  const ran = new Set(validators.map((v) => v.name));
-  const validatorsOk = allFilesDone && REQUIRED_VALIDATORS.every((n) => ran.has(n)) && validators.every((v) => v.ok);
-  if (allFilesDone && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || 'not run'}`;
+  const checksDeclared = [...REQUIRED_VALIDATORS];
+  const checksRun = validators.map((v) => v.name);
+  const ran = new Set(checksRun);
+  const checksNotRun = checksDeclared.filter((n) => !ran.has(n));
+  // P118: SUCCESS requires non-empty generated files AND required validators all ran and ok.
+  const validatorsOk = files.size > 0 && allFilesDone && checksNotRun.length === 0 && validators.every((v) => v.ok);
+  if (files.size === 0 && !failureReason) failureReason = cancelled ? 'cancelled' : 'empty_artifact';
+  if (allFilesDone && files.size > 0 && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || checksNotRun.join(', ') || 'not run'}`;
   const status = cancelled ? 'partial' : validatorsOk ? 'complete' : files.size ? 'partial' : 'failed';
+  const outcome = status === 'complete' ? 'SUCCESS' as const : status === 'partial' ? 'PARTIAL' as const : 'FAILED' as const;
+  const failedStage = status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage);
   const note = failureReason ?? (templateUsed ? `plan_fallback_used: ${templateUsed}` : undefined);
-  const report: BuildReport = { schemaVersion: SCHEMA_VERSION, jobId: input.jobId, status, goalImplemented: validatorsOk, files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })), units: unitReports, validators, callsUsed: state.callsUsed, durationMs: Math.max(0, ports.clock.now() - started), ...(note ? { failureReason: note } : {}) };
-  state.status = cancelled ? 'cancelled' : status === 'complete' ? 'done' : 'failed'; if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : 'build_incomplete', message: failureReason.slice(0, 300) }; state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
+  const report: BuildReport = {
+    schemaVersion: SCHEMA_VERSION,
+    jobId: input.jobId,
+    status,
+    outcome,
+    goalImplemented: validatorsOk,
+    files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })),
+    units: unitReports,
+    validators,
+    checksDeclared,
+    checksRun,
+    checksNotRun,
+    callsUsed: state.callsUsed,
+    durationMs: Math.max(0, ports.clock.now() - started),
+    ...(note ? { failureReason: note } : {}),
+    ...(failedStage ? { failedStage } : {}),
+  };
+  // Hard gate: never mark job done when outcome is not SUCCESS.
+  state.status = cancelled ? 'cancelled' : status === 'complete' ? 'done' : 'failed';
+  if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : (files.size === 0 ? 'empty_artifact' : 'build_incomplete'), message: failureReason.slice(0, 300) };
+  state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
   await save();
-  event(ports, input.jobId, 'job_done', { status, goalImplemented: report.goalImplemented });
+  event(ports, input.jobId, 'job_done', { status, outcome, goalImplemented: report.goalImplemented });
   const archive = files.size ? await packZip([...files].map(([path, f]) => ({ path, content: f.content })), report) : null;
+  if (report.outcome === 'SUCCESS' && (!archive || !archive.byteLength)) {
+    report.outcome = 'FAILED';
+    report.status = 'failed';
+    report.goalImplemented = false;
+    report.failureReason = (report.failureReason ? report.failureReason + '; ' : '') + 'archive_missing';
+    state.status = 'failed';
+    state.error = { code: 'archive_missing', message: 'SUCCESS requires a non-empty archive' };
+    state.report = report;
+    await save();
+  }
   return { state, report, archive };
 }
