@@ -1,23 +1,21 @@
-# P118.2.2 — Runner evidence enrichment (invalid_spec diagnosis)
+# P118.3 — Spec-stage bounded repair + assistant diagnostics
 
-**Live run #2 (commit 1f7c07b):** library-app task → staged engine → terminal FAILED in ~3 s, `failedStage=spec`, `failureReason=invalid_spec`, no ZIP, controls N1/N2 truthful. Classifier: `HONEST_NON_PASS`, `deliveryProven=false`. Transcript lacked `error.message`, `callsUsed`/`callsBudget`, `units`, and did not download `diagnosticsUrl` / `build-report.json`.
+**Evidence from live #3 (commit 6990277):** staged library task → one planner call succeeded (STOP) → `invalid_spec` without recovery. Recovery only ran on unparseable JSON; parseable-but-invalid Spec failed immediately. Transcript/`build-report` lacked model text and validation issues.
 
-**This slice:** enrich the live runner only. No product change; version stays 118.
+**This slice (product):** bounded repair of the Spec stage (A3) and maximum diagnostic events for AI assistants. Version bump to 119.
 
 ## Changes
-- `scripts/p118-architect-live.mjs`: write job evidence (`error.message`/`code`, `callsUsed`/`callsBudget`, `units`, `failedStage`/`failureReason`) into the poll step and `result.build.jobEvidence`; when `diagnosticsUrl` is present, download the diagnostics ZIP, extract `build-report.json`, and store both as artifacts under `p118-live/`.
-- `tests/p118-architect-live.test.mjs`: staged-fail mode with error/calls/units and a diagnostics export endpoint; asserts transcript fields and artifact files.
-- Docs: this handoff, `CHANGELOG.md`, task status.
-
-## How to run
-Actions → **P118 architect live** → Run workflow → download artifact `p118-architect-live` (now includes `diagnostics.zip` and `build-report.json` when the job exposes them).
+- `appBuilder/core-engine.ts`: `parseJsonLenient` (fences/prose), `validateSpec` (issues + light coerce `schemaVersion "1"`→1), one recovery call listing concrete issues when Spec is missing or invalid, events `spec_attempt` / `spec_repair` / `spec_failed` / `spec_accepted` / `spec_coerced` / `plan_attempt` / `plan_validate_failed` with text previews and issue lists; `error.detail` carries issues.
+- `server/appBuilderAdapter.ts`: model success logs `responsePreview`/`responseChars`/`promptChars`; event port forwards full (bounded) diagnostic payloads into application logs instead of keys-only.
+- `tests/app-builder-spec-repair-p118.test.mjs`: coerce, fence recovery, malformed→repair→SUCCESS, double-fail with concrete issues.
+- Docs/changelog/status.
 
 ## Verification
-- New/updated tests: to be run locally after apply. Hosted CI: NOT_RUN. Live workflow: NOT_RUN until re-dispatched. Production: UNKNOWN.
+- Unit tests (spec repair + existing app-builder): run via `npm run test:app-builder`.
+- Hosted CI: NOT_RUN until apply.
+- Live workflow: NOT_RUN until after green CI + deploy of version 119.
 
 ## Next action
-Apply, wait for green CI, dispatch the live workflow once. Use the new transcript + build-report to decide whether a bounded product repair of the spec stage is warranted (Navigator decision).
-
-Rollback: restore the two script/test files and docs from the previous commit.
+Apply → green CI → deploy → dispatch **P118 architect live** once. Expect either SUCCESS/PARTIAL with ZIP or FAILED with concrete `invalid_spec: …` issues and response previews in diagnostics.
 
 Charter conflicts: none
