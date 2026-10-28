@@ -1,0 +1,29 @@
+name: P117.3 live retest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-retest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Run 15 staging prompts
+        env:
+          STAGING_SERVICE_URL: ${{ secrets.STAGING_SERVICE_URL }}
+          STAGING_APP_PASSWORD: ${{ secrets.STAGING_APP_PASSWORD }}
+        run: node scripts/p117-3-live-retest.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1173-live-transcript
+          path: p1173-live-transcript.json
+          if-no-files-found: warn
+          retention-days: 14
