@@ -1,3 +1,11 @@
+## P118.2 — Architect live evidence: task → ZIP / truthful fail
+
+- Manual workflow `.github/workflows/p118-architect-live.yml` and `scripts/p118-architect-live.mjs`: authenticated live run of one representative build, ZIP download with CRC/entry/path checks, and two refusal controls (unconfirmed passport → 409 `PASSPORT_NOT_CONFIRMED`; missing artifact → 404 `NOT_FOUND`). Evidence projects it creates are deleted by id unless cleanup is switched off.
+- `scripts/p118-architect-live-lib.mjs`: pure verdicts PASS / PARTIAL / TRUTHFUL_FAIL / FALSE_SUCCESS / INCONSISTENT / TIMEOUT / BLOCKED / UNKNOWN. PASS needs SUCCESS plus a verified non-empty ZIP; scaffold-only PARTIAL is reported as `HONEST_NON_PASS`, never PASS.
+- Tests `tests/p118-architect-live.test.mjs` (added to `test:app-builder`): classifier, real scaffold ZIP, runner against a loopback fake server, password/session-token redaction.
+- No product runtime change; APP_VERSION stays 118.
+- Verification: new tests PASSED locally; hosted CI, live workflow and production behavior NOT_RUN. No acceptance claimed.
+
 ## P118.1 — Architect outcome on pipeline and client
 
 - Pure `pipelineArchitectOutcome` / `stagedArchitectNote` map deliverable state to A3 SUCCESS|PARTIAL|FAILED.
