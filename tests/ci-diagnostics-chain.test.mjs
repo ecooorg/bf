@@ -23,6 +23,17 @@ test('diagnostic ZIP: real content, hashes match extracted bytes, skipped sectio
     assert.equal(bytes.length, e.bytes); assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), e.sha256);
   }
   assert.ok(manifest.skipped.length > 0 && manifest.skipped.every((s) => s.item && s.reason));
+  assert.ok(manifest.provenance && manifest.provenance.operations && manifest.provenance.applicationLogs, 'manifest carries explicit per-stream provenance');
+  assert.equal(manifest.source, manifest.provenance.operations, 'legacy source stays aligned with operations provenance');
+  assert.ok(zip.file('assistant/ASSISTANT-BRIEF.md'), 'assistant brief present');
+  assert.ok(zip.file('assistant/assistant-context.json'), 'assistant context present');
+  const brief = await zip.file('assistant/ASSISTANT-BRIEF.md').async('string');
+  assert.match(brief, /ASSISTANT BRIEF/);
+  assert.match(brief, /overall:/);
+  const ctx = JSON.parse(await zip.file('assistant/assistant-context.json').async('string'));
+  assert.equal(ctx.schemaVersion, 1);
+  assert.ok(ctx.envFlags && typeof ctx.envFlags.hasDatabaseUrl === 'boolean');
+  assert.ok(Array.isArray(ctx.nextActionHints) && ctx.nextActionHints.length > 0);
   const lines = (await zip.file('logs/application.jsonl').async('string')).trim().split('\n').map((l) => JSON.parse(l));
   assert.ok(lines.some((e) => e.operationId === 'chain-op-1' && e.event === 'CHAIN_TEST' && e.bytes === 7), 'recorded event reaches the exported log');
 });
