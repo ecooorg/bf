@@ -1,3 +1,10 @@
+## P117.3 — live-test environment and automation context
+
+- Added canonical AI-facing operational context for the existing Render deployment (`https://biforge.onrender.com/`), owner-managed ZIP patch application, and the absence of a separately provisioned staging service.
+- Recorded the source-enforced invariant that Project Mode cannot start without password authentication; live automation must use GitHub Actions secrets rather than removing auth from the public service.
+- Added live workflow credential hygiene, redacted evidence, cost bounds, and verification sequence. No credential values are stored.
+- Verification: documentation content and archive structure only; hosted CI, deployment, and live workflow remain NOT_RUN.
+
 ## P117.3 — Conversational Agent freshness and recovery
 
 - Expanded conservative freshness detection for current/latest/stable/LTS versions in Russian and English, including intervening descriptors; added referral-only non-answer detection to the existing information-mode retry.

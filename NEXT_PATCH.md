@@ -30,3 +30,11 @@ Run CI on the patch, then dispatch the staging workflow and inspect its transcri
 Rollback: restore changed runtime/test/workflow files and the updated canonical task/report/changelog/handoff from the pre-patch backup.
 
 Charter conflicts: none
+
+
+## Operational context addition
+
+- Current Render URL is `https://biforge.onrender.com/`; owner says it is the only personal test environment, with no separate staging service.
+- Owner applies assistant ZIP patches manually to GitHub. Do not assume direct repository/Render access.
+- Keep app authentication enabled. With `ENABLE_PROJECT_MODE=true`, source requires a non-empty `APP_PASSWORD` and auth enabled. Configure Actions secrets instead of disabling auth.
+- See `docs/AI-ENVIRONMENT-CONTEXT.md` for the canonical persistent details and credential-handling rules.
