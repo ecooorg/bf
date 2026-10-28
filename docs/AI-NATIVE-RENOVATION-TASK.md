@@ -1,7 +1,7 @@
 # BiForge — Current Task and Patch Control
 
-**Current patch:** P118.2 — Live evidence workflow for the Architect task-to-ZIP / truthful-fail scenario.
-**Status:** workflow, runner, classifier and tests delivered; live run NOT_RUN until the Navigator dispatches it. P118.1 outcome mapping delivered earlier.
+**Current patch:** P118.2.2 — Runner evidence enrichment after live run #2 (`invalid_spec`).
+**Status:** runner enrichment delivered; product unchanged. Live re-run NOT_RUN until Navigator dispatches. P118.1 outcome mapping and P118.2/2.1 workflow delivered earlier.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, the canonical roadmap, and the user-outcome specification.
 **Current specification:** `docs/AI-USER-VALUE-SPEC.md` section A3.
 **APP_VERSION:** 118.
@@ -10,7 +10,14 @@
 
 - P116 accepted with residual B3. P117.3 closed.
 
-## This slice (P118.2)
+## This slice (P118.2.2)
+
+1. `scripts/p118-architect-live.mjs`: capture `error.message`/`code`, `callsUsed`/`callsBudget`, `units`, stage/reason into transcript and `build.jobEvidence`; download `diagnosticsUrl` → `diagnostics.zip` + extracted `build-report.json`.
+2. Test coverage for staged-fail + diagnostics export.
+3. No product runtime change.
+
+## Previous slice (P118.2)
+
 
 1. `.github/workflows/p118-architect-live.yml` (manual dispatch) runs `scripts/p118-architect-live.mjs`: login, create + confirm an evidence project, `POST /code/build` (engine `pipeline`), poll if staged, download and integrity-check the ZIP, then two refusal controls (unconfirmed passport → 409, missing artifact → 404), then delete the projects it created.
 2. `scripts/p118-architect-live-lib.mjs` classifies: PASS (SUCCESS + verified non-empty ZIP) / PARTIAL / TRUTHFUL_FAIL / FALSE_SUCCESS / INCONSISTENT / TIMEOUT / BLOCKED / UNKNOWN. Overall PASS only if build PASS and both controls refuse truthfully; PARTIAL or TRUTHFUL_FAIL is `HONEST_NON_PASS` (exit 0, `deliveryProven=false`).
