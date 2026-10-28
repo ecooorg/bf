@@ -15,7 +15,8 @@
 1. `.github/workflows/p118-architect-live.yml` (manual dispatch) runs `scripts/p118-architect-live.mjs`: login, create + confirm an evidence project, `POST /code/build` (engine `pipeline`), poll if staged, download and integrity-check the ZIP, then two refusal controls (unconfirmed passport → 409, missing artifact → 404), then delete the projects it created.
 2. `scripts/p118-architect-live-lib.mjs` classifies: PASS (SUCCESS + verified non-empty ZIP) / PARTIAL / TRUTHFUL_FAIL / FALSE_SUCCESS / INCONSISTENT / TIMEOUT / BLOCKED / UNKNOWN. Overall PASS only if build PASS and both controls refuse truthfully; PARTIAL or TRUTHFUL_FAIL is `HONEST_NON_PASS` (exit 0, `deliveryProven=false`).
 3. Tests: `tests/p118-architect-live.test.mjs` (in `test:app-builder`): classifier cases, real scaffold ZIP → PARTIAL, runner against a loopback fake server, secret-redaction check.
-4. No product runtime change.
+4. P118.2.1: runner sends same-origin `Origin` on writes (live run #1 was blocked by `CSRF_ORIGIN`).
+5. No product runtime change.
 
 ## Previous slice (P118.1)
 

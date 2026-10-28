@@ -1,3 +1,12 @@
+## P118.2.1 — Live run #1 of the Architect workflow: BLOCKED by runner defect (2026-10-28)
+
+- LIVE evidence (workflow artifact, commit `dc33d59`, version 118): login and session OK (`projectModeEnabled=true`, `programZip=true`); the first Project Mode write `POST /api/projects` returned 403 `CSRF_ORIGIN`. Overall `FAIL / project_setup_failed`; no project, build or ZIP was created, so nothing needed cleanup.
+- Root cause (OBSERVED in source): `server/projectRoutes.ts` requires a same-origin `Origin` header on every Project Mode write; the global CSRF check in `server.ts` tolerates a missing one, the Project Mode guard does not. The P118.2 runner sent no `Origin`, and its fake server did not model the guard, so local tests missed it. This is a test-tool defect, not a product defect.
+- Fix: runner sends `Origin` equal to the target origin on non-GET requests; fake server now enforces the guard; a regression test fails without the fix (5 failures) and passes with it (15/15).
+- Task-to-ZIP verdict on the live service: still NOT_RUN. No claim about build behavior.
+
+---
+
 ## P118.2 — Architect live-evidence workflow (delivered, live run NOT_RUN)
 
 - Added manual workflow `p118-architect-live` and runner. Evidence it will produce: deployed version/commit, build engine mode (201 pipeline vs 202 staged), A3 outcome, downloaded ZIP with sha256, per-entry sizes and CRC check, and two refusal controls. Artifact: `p118-architect-transcript.json` + `architect-source.zip`.
