@@ -69,8 +69,9 @@ const re = (src: string) => new RegExp(`${L}(?:${src})`, 'iu');
 // Time-sensitive information requests. Deliberately conservative: a personal decision text such as
 // "в последнее время я устал" must not trigger a search that would send private wording to a search engine.
 const FRESH_PATTERNS: RegExp[] = [
-  // P117.3 WI-1: allow intervening adjectives and hyphenated version labels (e.g. LTS-версия).
-  re(String.raw`(?:какая|какой|какое|какие)\s+(?:сейчас\s+)?(?:(?:самая|наиболее)\s+)?(?:актуальн\p{L}*\s+)?(?:стабильн\p{L}*\s+)?(?:lts[-‐‑–— ]?)?верси\p{L}*|(?:сейчас|текущ\p{L}*|актуальн\p{L}*|последн\p{L}*)\s+(?:\p{L}+\s+){0,3}(?:lts[-‐‑–— ]?)?(?:верси\p{L}*|релиз\p{L}*)|(?:current|latest|newest)\s+(?:(?:stable|long[- ]term support|lts)\s+){0,2}(?:version|release)\b|what\s+is\s+the\s+(?:current|latest|newest)\s+(?:(?:stable|lts)\s+)?(?:version|release)\b`),
+  // P117.3 WI-1: Russian and English freshness triggers, including product names
+  // and hyphenated version labels such as LTS-версия.
+  re(String.raw`(?:какая|какой|какое|какие)\s+(?:сейчас\s+)?(?:(?:самая|наиболее)\s+)?(?:актуальн\p{L}*\s+)?(?:стабильн\p{L}*\s+)?(?:lts[-‐-–— ]?)?верси\p{L}*|(?:сейчас|текущ\p{L}*|актуальн\p{L}*|последн\p{L}*)\s+(?:\p{L}+\s+){0,3}(?:lts[-‐-–— ]?)?(?:верси\p{L}*|релиз\p{L}*)|(?:current|latest|newest)\s+(?:(?:stable|long[- ]term support|lts)\s+){0,2}(?:\p{L}+\s+){0,3}(?:version|release)\b|what\s+is\s+the\s+(?:current|latest|newest)\s+(?:(?:stable|lts)\s+)?(?:\p{L}+\s+){0,3}(?:version|release)\b`),
   re(String.raw`новост|свеж(?:ие|их|ую|ее)\s+(?:данные|новости|информац|сводк)|что\s+нового\s+(?:в|у|по|про|на)|последн\p{L}*\s+(?:новости|данные|события|изменения|верси\p{L}*|релиз\p{L}*)|(?:новая|последняя|текущая)\s+верси\p{L}*|выш\p{L}*\s+ли\s+уже`),
   re(String.raw`(?:актуальн\p{L}*|текущ\p{L}*|сегодняшн\p{L}*|на\s+данный\s+момент)\s+(?:курс|цен\p{L}*|стоимост\p{L}*|ставк\p{L}*|погод\p{L}*|данн\p{L}*|информац\p{L}*|версия|состояние|релиз\p{L}*)`),
   re(String.raw`курс\s+(?:доллар|евро|рубл|юан|биткоин|bitcoin|btc|eth|валют)\p{L}*|котировк\p{L}*|ключев\p{L}*\s+ставк\p{L}*|погод\p{L}*\s+(?:в|на|сегодня|завтра)|(?:цена|стоимость)\s+(?:на|акци|нефти|золота)\p{L}*`),
