@@ -1000,11 +1000,11 @@ process.exit = (code = 0) => { if (code) throw new Error("Grouped test module st
 try {
 // Stage 2: real server.ts against a scripted fake Gemini (v20: 195 earlier checks + ROB-01 section K): auth, preconditions, chat invariants, crisis, model failures,
 // request-wide call budget (S-4), synthesis format (S-5), headers, all 12 extended endpoints. Prints failures only.
-const http = (await import("node:http")).default; const net = (await import("node:net")).default; const fs = (await import("node:fs")).default; const { spawn } = await import("node:child_process");
+const http = (await import("node:http")).default;
+const net = (await import("node:net")).default;
+const fs = (await import("node:fs")).default;
+const { spawn } = await import("node:child_process");
 const { SUPPORT_CONTACTS, DISTRESS_MARKERS, hasDistressMarker } = await import("../src/support.ts");
-const { fileURLToPath } = await import("node:url");
-const BE = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, ''), PASS = 'pw-123456';
-const CASES = JSON.parse(fs.readFileSync(BE + '/tests/regression.json', 'utf8'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const freePort = () => new Promise((res) => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); });
 // ---------- bridge ----------
