@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { needsFreshWebInfo, digestFromSerperResponse } from '../server/webSearch.ts';
+import { needsFreshWebInfo, digestFromSerperResponse, isVersionTopic, expandSearchQueries, versionSearchExtras } from '../server/webSearch.ts';
 import { modeParagraph, detectConversationMode } from '../server/conversationMode.ts';
 
 test('P117.3 freshness triggers include intervening descriptors and version families', () => {
@@ -50,4 +50,21 @@ test('P117.3 explicit research stems use Unicode-aware boundaries', () => {
   assert.equal(detectConversationMode('Сравни Берлин и Варшаву'), 'research');
   assert.notEqual(detectConversationMode('Я сравниваю варианты переезда'), 'research');
   assert.notEqual(detectConversationMode('Напомни, какие города сравниваем'), 'research');
+});
+
+
+test('P117.3 version topic expands SERP queries toward official version pages', () => {
+  assert.equal(isVersionTopic('Какая сейчас актуальная LTS-версия Node.js?'), true);
+  assert.equal(isVersionTopic('What is the current stable Python version?'), true);
+  assert.equal(isVersionTopic('В последнее время я стал хуже спать'), false);
+  const nodeQs = expandSearchQueries('Какая сейчас актуальная LTS-версия Node.js?', 'Какая сейчас актуальная LTS-версия Node.js?');
+  assert.ok(nodeQs.length >= 2, nodeQs);
+  assert.ok(nodeQs.some((q) => /nodejs\.org|Node\.js.*LTS/i.test(q)), nodeQs);
+  const extras = versionSearchExtras('Ubuntu LTS');
+  assert.ok(extras.some((q) => /ubuntu/i.test(q)));
+});
+
+test('P117.3 information mode forbids empty stock caveat closers', () => {
+  const p = modeParagraph('information');
+  assert.match(p, /stock phrases|общие ориентиры|general guidelines/i);
 });
