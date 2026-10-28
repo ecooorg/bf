@@ -38,6 +38,7 @@ import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from '.
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
 import { stagedEnabled, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
+import { pipelineArchitectOutcome } from '../appBuilder/architectOutcome.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, defaultPassport } from './contracts.ts';
 import { projectCapabilities } from './projectCapabilities.ts';
@@ -589,6 +590,13 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       const linked = await linkDiagnosticArtifact(operationId, artifactId);
       await recordDiagnostic({ operationId, event: 'ARTIFACT_LINKED', stage: 'storage', status: linked ? 'PASS' : 'WARN', ...(linked ? {} : { errorCode: 'LINK_FAILED' }) });
       const downloadUrl = `/api/projects/${encodeURIComponent(project.id)}/artifacts/${encodeURIComponent(artifactId)}/download`;
+      const fileCount = Object.keys(result.files).length;
+      const a3 = pipelineArchitectOutcome({
+        fileCount,
+        hasDownload: Boolean(downloadUrl && fileCount > 0),
+        sliceStatus: result.slice.status,
+        sliceReason,
+      });
       res.status(201).json({
         success: true,
         data: {
@@ -598,16 +606,21 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
           ir: result.ir,
           steps: result.steps,
           log: result.log,
-          fileCount: Object.keys(result.files).length,
-          downloadUrl,
-          goalImplemented,
+          fileCount,
+          downloadUrl: a3.outcome === 'FAILED' ? undefined : downloadUrl,
+          goalImplemented: a3.goalImplemented,
+          outcome: a3.outcome,
+          failedStage: a3.failedStage ?? null,
+          failureReason: a3.failureReason ?? null,
           sliceStatus: result.slice.status,
-          note: goalImplemented
-            ? 'IR → scaffold → model-written files → ZIP. Upload to GitHub and connect Render/Railway manually. Generated code was not executed on BiForge.'
-            : `WARNING: this ZIP is only a generic starter. Your goal was NOT implemented: ${sliceReason}. Upload to GitHub and connect Render/Railway manually only if a starter is what you need.`,
+          note: a3.note,
           // shape compatibility with older UI expecting codeTask
           taskId: artifactId,
-          codeTask: { id: artifactId, status: 'DELIVERED', statusReason: 'app_builder_pipeline' },
+          codeTask: {
+            id: artifactId,
+            status: a3.outcome === 'SUCCESS' ? 'DELIVERED' : a3.outcome === 'PARTIAL' ? 'PARTIAL' : 'FAILED',
+            statusReason: a3.failureReason || a3.outcome,
+          },
         },
       });
     } catch (error) { projectError(res, error); }
