@@ -122,7 +122,20 @@ if (started.status === 202 && started.json?.data?.jobId) {
     if (job && ['done', 'failed', 'cancelled'].includes(job.status)) { timedOut = false; break; }
     await sleep(POLL_MS);
   }
-  note('build_poll_end', { status: job?.status ?? null, stage: job?.stage ?? null, outcome: job?.outcome ?? null, timedOut });
+  const errMsg = job?.error?.message ?? (typeof job?.error === 'string' ? job.error : null);
+  note('build_poll_end', {
+    status: job?.status ?? null,
+    stage: job?.stage ?? null,
+    outcome: job?.outcome ?? job?.report?.outcome ?? null,
+    failedStage: job?.failedStage ?? job?.report?.failedStage ?? null,
+    failureReason: job?.failureReason ?? job?.report?.failureReason ?? null,
+    errorMessage: errMsg ? String(errMsg).slice(0, 400) : null,
+    errorCode: job?.error?.code ?? null,
+    callsUsed: job?.callsUsed ?? null,
+    callsBudget: job?.callsBudget ?? null,
+    units: Array.isArray(job?.units) ? job.units.map((u) => ({ id: u.id, path: u.path ?? null, status: u.status, attempts: u.attempts })) : null,
+    timedOut,
+  });
 }
 
 const downloadUrl = (job ?? started.json?.data)?.downloadUrl ?? null;
@@ -145,8 +158,79 @@ if (downloadUrl && /^\/api\/projects\//.test(downloadUrl)) {
   note('download', { status: download.status, bytes: download.bytes, zipOk: download.zip?.ok ?? false, zipError: download.zipError });
 }
 
+const diagnosticsUrl = (job ?? started.json?.data)?.diagnosticsUrl ?? null;
+let diagnostics = null;
+if (diagnosticsUrl && typeof diagnosticsUrl === 'string' && diagnosticsUrl.startsWith('/api/')) {
+  const d = await request('GET', diagnosticsUrl, undefined, { binary: true, timeoutMs: 120_000 });
+  diagnostics = { status: d.status, contentType: d.contentType, bytes: d.buf?.length ?? 0, sha256: null, entries: [], buildReport: null, error: null };
+  if (d.buf) {
+    diagnostics.sha256 = createHash('sha256').update(d.buf).digest('hex');
+    await mkdir(outDir, { recursive: true });
+    await writeFile(path.join(outDir, 'diagnostics.zip'), d.buf);
+    try {
+      const archive = await JSZip.loadAsync(d.buf, { checkCRC32: true });
+      const entries = [];
+      for (const f of Object.values(archive.files)) {
+        if (f.dir) { entries.push({ name: f.name, dir: true, size: 0 }); continue; }
+        const buf = await f.async('nodebuffer');
+        entries.push({ name: f.name, dir: false, size: buf.length });
+        if (/build-report\.json$/i.test(f.name) && !diagnostics.buildReport) {
+          try {
+            const text = buf.toString('utf8');
+            diagnostics.buildReport = JSON.parse(text);
+            await writeFile(path.join(outDir, 'build-report.json'), redact(text));
+          } catch (err) { diagnostics.error = `build-report-parse: ${String(err?.message || err).slice(0, 120)}`; }
+        }
+      }
+      diagnostics.entries = entries.slice(0, 100);
+    } catch (err) { diagnostics.error = String(err?.message || err).slice(0, 200); }
+  } else diagnostics.error = d.json ?? d.error ?? { message: 'empty_diagnostics_body' };
+  note('diagnostics', { status: diagnostics.status, bytes: diagnostics.bytes, hasBuildReport: Boolean(diagnostics.buildReport), error: diagnostics.error ?? null });
+}
+
+const jobEvidence = job ? {
+  status: job.status ?? null,
+  stage: job.stage ?? null,
+  outcome: job.outcome ?? job.report?.outcome ?? null,
+  failedStage: job.failedStage ?? job.report?.failedStage ?? null,
+  failureReason: job.failureReason ?? job.report?.failureReason ?? null,
+  error: job.error && typeof job.error === 'object'
+    ? { code: job.error.code ?? null, message: job.error.message != null ? String(job.error.message).slice(0, 400) : null }
+    : (job.error != null ? { code: null, message: String(job.error).slice(0, 400) } : null),
+  callsUsed: job.callsUsed ?? null,
+  callsBudget: job.callsBudget ?? null,
+  units: Array.isArray(job.units) ? job.units.map((u) => ({ id: u.id, path: u.path ?? null, status: u.status, attempts: u.attempts })) : null,
+  report: job.report ? {
+    status: job.report.status ?? null,
+    outcome: job.report.outcome ?? null,
+    failureReason: job.report.failureReason ?? null,
+    failedStage: job.report.failedStage ?? null,
+    checksDeclared: job.report.checksDeclared ?? null,
+    checksRun: job.report.checksRun ?? null,
+    checksNotRun: job.report.checksNotRun ?? null,
+    callsUsed: job.report.callsUsed ?? null,
+  } : null,
+} : null;
+
 const build = classifyBuild({ buildHttp: started.status, buildBody: started.json, job, timedOut, download });
-result.build = { ...build, operationId: started.operationId, jobId: started.json?.data?.jobId ?? null, diagnosticsUrl: job?.diagnosticsUrl ?? null, engineMode: started.status === 202 ? 'staged' : started.status === 201 ? 'pipeline' : 'unknown', download };
+result.build = {
+  ...build,
+  operationId: started.operationId,
+  jobId: started.json?.data?.jobId ?? job?.jobId ?? null,
+  diagnosticsUrl: diagnosticsUrl ?? null,
+  engineMode: started.status === 202 ? 'staged' : started.status === 201 ? 'pipeline' : 'unknown',
+  download,
+  jobEvidence,
+  diagnostics: diagnostics ? {
+    status: diagnostics.status,
+    bytes: diagnostics.bytes,
+    sha256: diagnostics.sha256,
+    entries: diagnostics.entries,
+    hasBuildReport: Boolean(diagnostics.buildReport),
+    buildReport: diagnostics.buildReport ?? null,
+    error: diagnostics.error ?? null,
+  } : null,
+};
 note('build_verdict', { verdict: build.verdict, reasons: build.reasons });
 
 const unconfirmed = await makeProject('unconfirmed', false);
