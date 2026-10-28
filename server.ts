@@ -1296,19 +1296,18 @@ app.post('/api/conversation', async (req, res) => {
     }
     // P57: a second full model call is not worth the wait once the turn has already been slow; the person keeps the first draft.
     retrySkippedForLatency = needRetry && shouldSkipQualityRetry(Date.now() - requestStartedAt, LATENCY.retryMaxElapsedMs);
-console.info(JSON.stringify({
-  type: 'DEBUG_quality_retry',
-  needRetry,
-  retrySkippedForLatency,
-  elapsedMs: Date.now() - requestStartedAt,
-  retryMaxElapsedMs: LATENCY.retryMaxElapsedMs,
-  strongModels: STRONG_MODELS.length,
-  auditPassed: audit.passed,
-  gain: audit.gain,
-  structuralNew: audit.structuralNew,
-}));
 
-    
+    console.info(JSON.stringify({
+      type: 'DEBUG_quality_retry',
+      needRetry,
+      retrySkippedForLatency,
+      elapsedMs: Date.now() - requestStartedAt,
+      retryMaxElapsedMs: LATENCY.retryMaxElapsedMs,
+      strongModels: STRONG_MODELS.length,
+      auditPassed: audit.passed,
+      gain: audit.gain,
+      structuralNew: audit.structuralNew,
+    }));
     if (retrySkippedForLatency) {
       console.info(JSON.stringify({ type: 'conversation_retry_skipped', reason: 'latency', elapsed_ms: Date.now() - requestStartedAt, user_turns: userTurns }));
     }
