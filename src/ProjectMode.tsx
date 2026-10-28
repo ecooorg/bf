@@ -464,8 +464,9 @@ export default function ProjectMode() {
       const msg = code === 'waiting_rate_limit' ? 'Лимит модели достигнут — ожидаем разрешённого повтора. Сборка не зависла.'
         : code === 'waiting_model' ? 'Ожидаем безопасный интервал перед запросом к модели…'
         : code === 'retrying_model' ? 'Модель не вернула пригодный ответ. Повторяем один раз с более коротким запросом…'
-        : job.status === 'done' ? (job.goalImplemented ? 'Сборка завершена и проверена.' : 'ZIP создан, но часть проверок не подтверждена.')
-        : job.status === 'failed' ? 'Сборка остановлена. Ниже указана причина и дальнейшие действия.'
+        : job.status === 'done' && (job.outcome === 'SUCCESS' || job.goalImplemented) ? 'Сборка завершена и проверена (SUCCESS).'
+        : job.status === 'done' ? 'Сборка частичная (PARTIAL): ZIP есть, но цель не подтверждена проверками.'
+        : job.status === 'failed' ? `Сборка не удалась (FAILED)${job.report?.failedStage || job.failedStage ? ' на этапе ' + (job.report?.failedStage || job.failedStage) : ''}. Ниже причина и что сделать дальше.`
         : job.status === 'cancelled' ? 'Сборка отменена.'
         : ({ spec: 'Уточняем требования…', plan: 'Планируем файлы…', planning: 'Ожидаем ответа модели при планировании…', code: 'Ожидаем ответа модели / создаём файлы…', waiting_model: 'Ожидаем ответа модели. Это может занять некоторое время…', check: 'Проверяем созданные файлы…', preflight: 'Подготавливаем сборку…' } as Record<string, string>)[job.stage || ''] || 'Сборка выполняется…';
       return <div role="status" aria-live="polite" data-testid="project-build-live-status" style={{ margin: '12px 0', padding: '12px 14px', border: '1px solid #3d7fc4', borderRadius: 9, background: '#0b2545', color: '#e6edf7' }}>
@@ -474,6 +475,7 @@ export default function ProjectMode() {
         <small style={{ color: '#a9bfd8' }}>Этап: {job.stage || 'подготовка'} · Прошло {Math.max(0, Math.floor((Date.now() - buildProgress.startedAt) / 1000))} с · Запросов модели: {job.callsUsed ?? 0}/{job.callsBudget ?? '—'}{job.jobId ? ` · Задание ${job.jobId.slice(0, 8)}` : ''}</small>
         {job.units?.length ? <p style={{ margin: '6px 0 0', fontSize: 12, color: '#a9bfd8' }}>Файлы: {job.units.filter((u: any) => u.status === 'done').length}/{job.units.length} готовы.</p> : null}
         {job.note && <p style={{ margin: '6px 0 0', fontSize: 13 }}>{job.note}</p>}
+        {(job.outcome || job.report?.outcome) && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8fa6c2' }} data-testid="project-build-outcome">Итог: {job.outcome || job.report?.outcome}{job.report?.checksNotRun?.length ? ` · не выполнены проверки: ${job.report.checksNotRun.join(', ')}` : ''}{job.report?.failureReason ? ` · ${job.report.failureReason}` : ''}</p>}
       </div>;
     })()}
     {authenticated && enabled && builderPath === null && !selected && (
