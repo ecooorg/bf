@@ -26,8 +26,8 @@ const RE_ASKED_APPROXIMATE = /(?:приблизит(?:ельн(?:ая|о|ый|у
 const RE_ASKED_SEARCH = /(?:найди(?:те)?(?:\s+(?:в\s+(?:сети|интернете)|онлайн|прогноз(?:ы)?))?|поиск(?:ай|ать)?(?:\s+в\s+(?:сети|интернете))?|(?:^|[\s,.;:!?])в\s+сети|(?:^|[\s,.;:!?])в\s+интернете|find\s+(?:(?:it|them|this|that|forecasts?|data|info(?:rmation)?)\s+)?(?:online|on\s+the\s+web|on\s+the\s+internet)|search\s+(?:the\s+)?(?:web|internet|online)|look\s+up\s+(?:online|on\s+the\s+web)|google\b)/i;
 const RE_CRITICIZED_EVASION = /(?:это\s+не\s+решает(?:\s+мою\s+задачу)?|не\s+решает\s+(?:мою\s+)?задачу|не\s+помогает|бесполезн(?:о|ый|ая)|увилива(?:ешь|ние)|ты\s+уклоняешься|this\s+does\s+not\s+solve\s+(?:my\s+)?(?:task|problem)|doesn'?t\s+(?:solve|help)|you(?:'re|\s+are)\s+avoiding|useless\s+answer|not\s+what\s+I\s+(?:asked|need))/i;
 const RE_LIMITATION_ONLY = /(?:невозможн|недоступн|не\s+могу\s+(?:дать|предсказать|спрогнозировать)|точный\s+(?:прогноз|ответ)\s+невозможен|cannot\s+(?:give|provide|predict)|impossible\s+to\s+(?:give|predict)|no\s+(?:exact|precise)\s+(?:forecast|answer)|I\s+(?:cannot|can't)\s+(?:give|provide))/i;
-const RE_FORBADE_METHODOLOGY = /(?:не\s+(?:пиши|рассказывай|говори)(?:\s+мне)?\s+(?:о\s+)?методик|не\s+поучай|без\s+методик|не\s+объясняй\s+(?:метод|методик|как\s+работа)|don'?t\s+(?:lecture|explain\s+(?:the\s+)?(?:method|methodology))|no\s+methodology|stop\s+lecturing)/i;
-const RE_DEMANDED_DIRECT = /(?:ответь\s+на\s+мой\s+вопрос|дай\s+прогноз|просто\s+ответь|только\s+ответ|answer\s+my\s+question|just\s+answer|give\s+(?:me\s+)?(?:the\s+)?(?:forecast|answer)|directly\s+answer)/i;
+const RE_FORBADE_METHODOLOGY = /(?:не\s+(?:пиши|рассказывай|говори)(?:\s+мне)?\s+(?:о\s+)?методик|не\s+поучай|без\s+методик|не\s+объясняй\s+(?:метод|методик|как\s+работа)|don'?t\s+(?:lecture|explain\s+(?:the\s+)?(?:method|methodology))|no\s+methodology|stop\s+lecturing|без\s+(?:вступлени\p{L}*|предислови\p{L}*)|коротко\s+и\s+по\s+делу)/i;
+const RE_DEMANDED_DIRECT = /(?:ответь\s+на\s+мой\s+вопрос|дай\s+прогноз|просто\s+ответь|только\s+ответ|answer\s+my\s+question|just\s+answer|give\s+(?:me\s+)?(?:the\s+)?(?:forecast|answer)|directly\s+answer|без\s+(?:вступлени\p{L}*|предислови\p{L}*)|коротко\s+и\s+по\s+делу)/i;
 
 // MP3: methodology / lecture preamble before substance (opening patterns).
 const RE_METHODOLOGY_PREAMBLE = /^(?:(?:сначала|прежде\s+всего|важно\s+понять|нужно\s+учесть|для\s+начала|прежде\s+чем\s+ответить|перед\s+тем\s+как|в\s+целом|в\s+рамках|с\s+точки\s+зрения\s+методолог|as\s+a\s+(?:language\s+)?model|I\s+(?:am|I'm)\s+(?:an?\s+)?AI|before\s+(?:I\s+)?(?:answer|can\s+answer)|it\s+is\s+important\s+to\s+(?:understand|note)|first(?:ly)?,?\s+(?:it\s+is|we\s+must|one\s+must)|from\s+a\s+methodological)|(?:к\s+сожалению,?\s+)?(?:я\s+)?(?:не\s+могу\s+дать\s+точный|не\s+располагаю\s+актуальн|точный\s+(?:прогноз|ответ)\s+невозможен)|(?:unfortunately,?\s+)?I\s+(?:cannot|can't)\s+(?:give|provide)\s+(?:an?\s+)?(?:exact|precise|current))/i;
@@ -80,6 +80,12 @@ export function informationSoftFail(out: any, flags: UserIntentFlags): boolean {
       return true;
     }
   }
+
+  // P117.3: short referral-only answers to factual questions are evasive even without limitation wording.
+  const referralOnly = reply.length < 420
+    && /(?:поищите|посмотрите|проверьте|обратитесь|узнайте)\s+(?:в\s+)?(?:интернете|официальн\p{L}*\s+сайт|документаци|источник|поисковик)|(?:search|check|look)\s+(?:online|it\s+up|the\s+official\s+website)/iu.test(reply)
+    && !/(?:\b\d{2,4}\b|https?:\/\/|node\.js|ubuntu|python|верси\p{L}*\s+(?:\d|lts)|lts\s+\d)/iu.test(reply);
+  if (referralOnly) return true;
 
   // Methodology / "I am an AI" / precision-impossibility preamble before substance.
   if (RE_METHODOLOGY_PREAMBLE.test(reply)) return true;

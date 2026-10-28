@@ -69,6 +69,8 @@ const re = (src: string) => new RegExp(`${L}(?:${src})`, 'iu');
 // Time-sensitive information requests. Deliberately conservative: a personal decision text such as
 // "в последнее время я устал" must not trigger a search that would send private wording to a search engine.
 const FRESH_PATTERNS: RegExp[] = [
+  // P117.3 WI-1: allow intervening adjectives and hyphenated version labels (e.g. LTS-версия).
+  re(String.raw`(?:какая|какой|какое|какие)\s+(?:сейчас\s+)?(?:(?:самая|наиболее)\s+)?(?:актуальн\p{L}*\s+)?(?:стабильн\p{L}*\s+)?(?:lts[-‐‑–— ]?)?верси\p{L}*|(?:сейчас|текущ\p{L}*|актуальн\p{L}*|последн\p{L}*)\s+(?:\p{L}+\s+){0,3}(?:lts[-‐‑–— ]?)?(?:верси\p{L}*|релиз\p{L}*)|(?:current|latest|newest)\s+(?:(?:stable|long[- ]term support|lts)\s+){0,2}(?:version|release)\b|what\s+is\s+the\s+(?:current|latest|newest)\s+(?:(?:stable|lts)\s+)?(?:version|release)\b`),
   re(String.raw`новост|свеж(?:ие|их|ую|ее)\s+(?:данные|новости|информац|сводк)|что\s+нового\s+(?:в|у|по|про|на)|последн\p{L}*\s+(?:новости|данные|события|изменения|верси\p{L}*|релиз\p{L}*)|(?:новая|последняя|текущая)\s+верси\p{L}*|выш\p{L}*\s+ли\s+уже`),
   re(String.raw`(?:актуальн\p{L}*|текущ\p{L}*|сегодняшн\p{L}*|на\s+данный\s+момент)\s+(?:курс|цен\p{L}*|стоимост\p{L}*|ставк\p{L}*|погод\p{L}*|данн\p{L}*|информац\p{L}*|версия|состояние|релиз\p{L}*)`),
   re(String.raw`курс\s+(?:доллар|евро|рубл|юан|биткоин|bitcoin|btc|eth|валют)\p{L}*|котировк\p{L}*|ключев\p{L}*\s+ставк\p{L}*|погод\p{L}*\s+(?:в|на|сегодня|завтра)|(?:цена|стоимость)\s+(?:на|акци|нефти|золота)\p{L}*`),
@@ -402,17 +404,21 @@ export function digestFromSerperResponse(data: any, query: string): { digest: st
   for (const o of organic) {
     const title = String(o?.title || '').trim();
     const snippet = String(o?.snippet || '').trim();
+    const date = String(o?.date || o?.datePublished || '').trim();
     const link = String(o?.link || '').trim();
-    if (snippet) lines.push((title ? `${title}: ${snippet}` : snippet).slice(0, 350));
-    else if (title) lines.push(title.slice(0, 200));
+    const datedSnippet = date ? `${snippet}${snippet ? ' ' : ''}[date: ${date}]` : snippet;
+    if (datedSnippet) lines.push((title ? `${title}: ${datedSnippet}` : datedSnippet).slice(0, 350));
+    else if (title) lines.push((date ? `${title} [date: ${date}]` : title).slice(0, 200));
     if (link) pushSource(title || link, link);
   }
   const news: any[] = Array.isArray(data?.news) ? data.news : [];
   for (const n of news.slice(0, 3)) {
     const title = String(n?.title || '').trim();
-    const snippet = String(n?.snippet || n?.date || '').trim();
+    const date = String(n?.date || n?.datePublished || '').trim();
+    const snippet = String(n?.snippet || '').trim();
+    const datedSnippet = [snippet, date ? `[date: ${date}]` : ''].filter(Boolean).join(' ');
     const link = String(n?.link || '').trim();
-    if (title || snippet) lines.push((title && snippet ? `${title}: ${snippet}` : title || snippet).slice(0, 350));
+    if (title || datedSnippet) lines.push((title && datedSnippet ? `${title}: ${datedSnippet}` : title || datedSnippet).slice(0, 350));
     if (link) pushSource(title || link, link);
   }
   const digest = lines.join('\n').trim().slice(0, MAX_DIGEST_CHARS);
