@@ -1,21 +1,12 @@
-# P118.3 — Spec-stage bounded repair + assistant diagnostics
+# P118.3.2 — Single version source and documentation audit
 
-**Evidence from live #3 (commit 6990277):** staged library task → one planner call succeeded (STOP) → `invalid_spec` without recovery. Recovery only ran on unparseable JSON; parseable-but-invalid Spec failed immediately. Transcript/`build-report` lacked model text and validation issues.
+**Applied order:** P118.3 → P118.3.1 (CI repair) → P118.3.2 (this patch). Program version stays 118.
 
-**This slice (product):** bounded repair of the Spec stage (A3) and maximum diagnostic events for AI assistants. Version bump to 119.
+**What changed:** the version lives only in `package.json` (`patch`, `version`); every patch must include `package.json`; the version gate checks nothing else, so a version mismatch between files can no longer fail CI. Documentation brought in line with the real state (report, task, roadmap with the P118 exit gate, index, rules).
 
-## Changes
-- `appBuilder/core-engine.ts`: `parseJsonLenient` (fences/prose), `validateSpec` (issues + light coerce `schemaVersion "1"`→1), one recovery call listing concrete issues when Spec is missing or invalid, events `spec_attempt` / `spec_repair` / `spec_failed` / `spec_accepted` / `spec_coerced` / `plan_attempt` / `plan_validate_failed` with text previews and issue lists; `error.detail` carries issues.
-- `server/appBuilderAdapter.ts`: model success logs `responsePreview`/`responseChars`/`promptChars`; event port forwards full (bounded) diagnostic payloads into application logs instead of keys-only.
-- `tests/app-builder-spec-repair-p118.test.mjs`: coerce, fence recovery, malformed→repair→SUCCESS, double-fail with concrete issues.
-- Docs/changelog/status.
-
-## Verification
-- Unit tests (spec repair + existing app-builder): run via `npm run test:app-builder`.
-- Hosted CI: NOT_RUN until apply.
-- Live workflow: NOT_RUN until after green CI + deploy of version 119.
+**Not evaluated:** hosted CI of P118.3.1/P118.3.2 and the live Architect run on the new build (the last live run executed the old engine, commit `7c51c5e`).
 
 ## Next action
-Apply → green CI → deploy → dispatch **P118 architect live** once. Expect either SUCCESS/PARTIAL with ZIP or FAILED with concrete `invalid_spec: …` issues and response previews in diagnostics.
+Apply P118.3.1 then P118.3.2 → green CI → deploy → confirm `/health` commit → dispatch **p118-architect-live** once → record the result; P119 only after the P118 exit gate in `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 
 Charter conflicts: none

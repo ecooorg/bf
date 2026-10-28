@@ -49,12 +49,12 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** P118 Complex Software Architect Agent (completion contract). P118.3 Spec bounded repair + assistant diagnostics (after live #3). P116 Conversational Agent accepted 2026-10-28 with residual B3 (Node LTS version number). P117.3 closed. P110–P112 foundations remain. Phase 2 closed (Navigator 2026-10-26). Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md` §A3; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; only roadmap: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+* **Current phase:** P118 Complex Software Architect Agent (completion contract). Applied line: P118.3 (Spec bounded repair + diagnostics) → P118.3.1 (CI repair) → P118.3.2 (single version source + documentation audit). P118 is NOT closed: no live Architect run has yet delivered a verified ZIP (the 2026-10-28 live run hit the old engine, commit `7c51c5e`). P119 starts only after the P118 exit gate in the roadmap. P116 Conversational Agent accepted 2026-10-28 with residual B3 (Node LTS version number). P117.3 closed. P110–P112 foundations remain. Phase 2 closed (Navigator 2026-10-26). Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md` §A3; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; only roadmap: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
 * **Programme authority:** this charter, `docs/AI-OPERATING-RULES.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, and `docs/AI-USER-VALUE-SPEC.md`. `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` is a historical audit baseline, not a current instruction source.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
 * **Documentation consolidation:** keep one authoritative file per ongoing purpose. Update the current specification, roadmap, task, and rolling evidence report in place; do not create per-patch copies. Superseded duplicate prose documents are removed after useful current content is transferred. The Navigator's local backups preserve old versions. `CHANGELOG.md` keeps patch history; read only its top entries.
-* **Evidence rule:** the Navigator reports current CI as green; each patch must still use evidence for its actual commit/run. Historical red runs do not establish current status.
+* **Evidence rule:** CI status belongs to an exact commit/run: a green run of an earlier commit says nothing about a later one, and a red run is not current once a repair patch is green. Each patch must cite evidence for its own commit/run. The P118.3 commit `1a98a6a` was red (repaired by P118.3.1); hosted CI of the repair is not yet recorded.
 * **Delivery rule:** continue one bounded patch at a time. Phase transitions require their stated evidence gates; do not advance a phase just because documentation or code exists.
 * **Phase 2 closure (P109):** Formal acceptance recorded. Evidence reviewed: DAG independent-check completion, BLOCKED reasons, fault-injection non-PASS outcomes, bounded-repair protected-path and limit guards, CI two-artifact packaging, fail-closed evidence gate. Remaining risks listed in the P109 audit section of the task document; none block further programme work. P92 production-diagnostics verification is frozen until the full AI-native renovation completes; subsequent patches are unblocked independently of P92.
 * **Authorization posture (Navigator 2026-10-26):** Changes to production deployment, GitHub write, billing, credentials, or privileged host execution of generated code remain Tier 3 and are excluded from the critical path. They will be raised only when needed to improve programme function or strengthen AI-native behaviour, and only after a separate Navigator decision. Do not treat them as open blockers.
@@ -76,7 +76,9 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 * **Active programme entry:** `docs/AI-NATIVE-RENOVATION-TASK.md` (current task), `docs/AI-USER-VALUE-SPEC.md` (target contract), `docs/AI-USER-VALUE-REPORT.md` (evidence when relevant), `docs/AI-NATIVE-RENOVATION-ROADMAP.md` (only roadmap), `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` (historical baseline; on demand).
 * Permanent rules: `docs/AI-OPERATING-RULES.md`.
-* Document index with sizes and read triggers: `docs/DOCUMENTATION-INDEX.md`.
+* Document index with read triggers: `docs/DOCUMENTATION-INDEX.md`.
+* Deployment, live-test protocol and runtime facts: `docs/AI-ENVIRONMENT-CONTEXT.md`.
+* Planned P121 task (not authorized): `docs/P121_Browser_based_Model_Providers.md`.
 * Operations, diagnostics and the `test:ai` harness: `docs/OPERATIONS.md`.
 * Architecture guardrails and App Builder invariants: `docs/architecture-guardrails.md`.
 * Strategic destination (not near-term implementation authority): `docs/VIX-CONCEPT.md`.
@@ -86,11 +88,11 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ## Commands
 
-`npm ci`; `npm run build`; `npm run check` (= `node scripts/run-dag.mjs --profile check`; `--profile ci` is the hosted-CI profile, `--plan` prints the order without running); `npm run typecheck`; `npm run lint:copy`; `npm run docs:generate`; `npm run docs:check`; `npm run status:graph`; `npm run architecture:check`; `npm run architecture:impact`; `npm run verify:change`; `npm run context:select`; `npm run schema:validate -- --type <artifact-type> --file <instance.json>`; `npm run test:ai` (bounded local harness); `npm run acceptance:report`; `npm run patch:pack`; `npm run patch:quality-report`; `node scripts/ci-evidence-gate.mjs` (CI evidence gate). Health: `GET /health`. The P82–P91 context/impact/verification planner tools were retired in P106.
+`npm ci`; `npm run build`; `npm run check` (= `node scripts/run-dag.mjs --profile check`; `--profile ci` is the hosted-CI profile, `--plan` prints the order without running); `npm run typecheck`; `node scripts/check-version.mjs` (version gate); `npm run lint:copy`; `npm run docs:generate`; `npm run docs:check`; `npm run status:graph`; `npm run architecture:check`; `npm run architecture:impact`; `npm run verify:change`; `npm run context:select`; `npm run schema:validate -- --type <artifact-type> --file <instance.json>`; `npm run test:ai` (bounded local harness); `npm run acceptance:report`; `npm run patch:pack`; `npm run patch:quality-report`; `node scripts/ci-evidence-gate.mjs` (CI evidence gate). Health: `GET /health`. The P82–P91 context/impact/verification planner tools were retired in P106.
 
 ## Critical rules
 
-Preserve behavior unless change is approved. Never commit secrets. Production deployment, GitHub write, billing, credentials, bypassing security controls and executing generated code on the host require explicit owner authorization. Report passed/failed/blocked/not-run checks separately. Deliver a ZIP containing changed/new files, list deletions separately, and update this status and `CHANGELOG.md` for every patch.
+Preserve behavior unless change is approved. Never commit secrets. Production deployment, GitHub write, billing, credentials, bypassing security controls and executing generated code on the host require explicit owner authorization. Report passed/failed/blocked/not-run checks separately. Deliver a ZIP containing changed/new files, list deletions separately, and for every patch update `package.json` (`patch`, `version`) and prepend a `CHANGELOG.md` entry; update this file only as the Documentation Policy allows.
 
 Prefer a **flat** tree under `docs/` and `scripts/` (prefixed filenames). Do not add new directory levels without Navigator approval. Do not keep superseded duplicate specifications, roadmaps, or per-patch reports. Maintain the rolling report only for evidence that remains useful.
 
@@ -120,6 +122,7 @@ Silence is never consent in Tiers 2 and 3.
 
 **Patch Archive Rules**
 
+* **`package.json` is included in every patch ZIP, always** (see "Version and patch numbering").
 * Do not include `./README.md`, `./AGENTS.md`, or other informational documentation files in patch ZIP archives unless explicitly requested.
 * Include `./CHANGELOG.md` whenever a patch changes project code or functionality.
 * Include `./AGENTS.md` only when a significant product change requires updating it, unless explicitly requested otherwise.
@@ -128,6 +131,16 @@ Silence is never consent in Tiers 2 and 3.
 
 * Clearly distinguish implemented functionality from functionality that has been tested or verified in production.
 * Never claim that a feature works merely because the build or deployment succeeded.
+
+## Version and patch numbering (Navigator decision 2026-10-28; binding, no exceptions)
+
+1. **`package.json` is the only source of the version.** It has two fields: `"patch"` = number of the patch just applied (digits separated by dots, e.g. `"118.3.2"`) and `"version"` = program version = the first number of `patch` (e.g. `"118"`).
+2. **Every patch ZIP contains `package.json`** with both fields set — documentation-only and one-line patches included. A patch without it is invalid (`versionPreflight` in `scripts/patch-tools.mjs` stops `npm run patch:pack`).
+3. **`version` always equals the first number of the patch just applied, even before CI is green.** Patch `P118.3.2` ⇒ `version` `118`; patch `P119` ⇒ `version` `119`. The patch name, the `patch` field and the CHANGELOG heading carry the same number.
+4. **A patch number is never lower than the program version and never lower than or equal to the previously applied patch.** With program version 118 the next patch is `118.x` or `119` or higher — never 116, 85 or 30.
+5. **No other place defines or is compared with the version.** `src/config.ts` derives `APP_VERSION` / `APP_PATCH` from `package.json`; `/health`, the console banner, export file names and diagnostics (`release` = `patch`) read those. CHANGELOG headings, documents, workflows and `server.ts` are never checked against the version and can never cause a version failure.
+6. `scripts/check-version.mjs` (DAG node `version-consistency`) validates `package.json` only: `patch` is dotted digits, `version` equals its first number. If it fails, fix `package.json`. Never add a second version source or a second version comparison.
+7. Sub-patches (`118.1`, `118.3.2`) share one program version, so a deployed build is identified by `patch` (diagnostics `release`) plus the commit from `/health`, not by `version` alone.
 
 ## P115 — Canonical documentation consolidation
 
