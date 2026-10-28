@@ -162,7 +162,6 @@
     "src/config.ts",
     "src/decision.ts",
     "src/decisionDocument.ts",
-    "src/demo-coffee.ts",
     "src/driveClient.ts",
     "src/driveExport.ts",
     "src/driveMerge.ts",
