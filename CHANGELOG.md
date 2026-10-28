@@ -1,3 +1,9 @@
+## P118.2.1 — Architect live runner: same-origin Origin header
+
+- Live run #1 of `p118-architect-live` stopped at project creation with 403 `CSRF_ORIGIN`: Project Mode writes require an `Origin` matching the host. Runner now sends it on non-GET requests; fake server in `tests/p118-architect-live.test.mjs` enforces the same guard; added regression test.
+- No product runtime change; version stays 118.
+- Verification: tests PASSED locally; hosted CI and a successful live run NOT_RUN.
+
 ## P118.2 — Architect live evidence: task → ZIP / truthful fail
 
 - Manual workflow `.github/workflows/p118-architect-live.yml` and `scripts/p118-architect-live.mjs`: authenticated live run of one representative build, ZIP download with CRC/entry/path checks, and two refusal controls (unconfirmed passport → 409 `PASSPORT_NOT_CONFIRMED`; missing artifact → 404 `NOT_FOUND`). Evidence projects it creates are deleted by id unless cleanup is switched off.
