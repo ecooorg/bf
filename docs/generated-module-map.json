@@ -1,20 +1,29 @@
 {
-  "generatedAt": "2026-10-25T12:54:55.369Z",
+  "generatedAt": "2026-10-28T09:15:23.654Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 157,
-    "edgeCount": 391,
+    "moduleCount": 158,
+    "edgeCount": 397,
     "cycleCount": 0,
-    "totalLines": 28172
+    "totalLines": 28626
   },
   "cycles": [],
   "layers": {
-    "server": 68,
-    "src": 76,
-    "other": 13
+    "server": 69,
+    "src": 75,
+    "other": 14
   },
   "modules": [
+    {
+      "path": "appBuilder/architectOutcome.ts",
+      "layer": "appBuilder",
+      "lines": 77,
+      "imports": [
+        "appBuilder/core-types.ts"
+      ],
+      "fanIn": 3
+    },
     {
       "path": "appBuilder/core-cache.ts",
       "layer": "appBuilder",
@@ -25,7 +34,7 @@
     {
       "path": "appBuilder/core-engine.ts",
       "layer": "appBuilder",
-      "lines": 160,
+      "lines": 196,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-markers.ts",
@@ -80,15 +89,16 @@
     {
       "path": "appBuilder/core-types.ts",
       "layer": "appBuilder",
-      "lines": 154,
+      "lines": 166,
       "imports": [],
-      "fanIn": 9
+      "fanIn": 10
     },
     {
       "path": "appBuilder/index.ts",
       "layer": "appBuilder",
-      "lines": 76,
+      "lines": 84,
       "imports": [
+        "appBuilder/architectOutcome.ts",
         "appBuilder/core-cache.ts",
         "appBuilder/core-engine.ts",
         "appBuilder/core-markers.ts",
@@ -145,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2296,
+      "lines": 2351,
       "imports": [
         "server/analysisService.ts",
         "server/appBuilderIndex.ts",
@@ -168,6 +178,7 @@
         "server/intentFlags.ts",
         "server/keepAlive.ts",
         "server/latencyPolicy.ts",
+        "server/modelAvailability.ts",
         "server/modelRateLimit.ts",
         "server/modelRegistry.ts",
         "server/openaiCompatAdapter.ts",
@@ -224,7 +235,7 @@
     {
       "path": "server/appBuilderAdapter.ts",
       "layer": "server",
-      "lines": 180,
+      "lines": 181,
       "imports": [
         "appBuilder/index.ts",
         "server/adapter.ts",
@@ -490,7 +501,7 @@
     {
       "path": "server/intentFlags.ts",
       "layer": "server",
-      "lines": 120,
+      "lines": 126,
       "imports": [],
       "fanIn": 2
     },
@@ -518,6 +529,13 @@
       "fanIn": 1
     },
     {
+      "path": "server/modelAvailability.ts",
+      "layer": "server",
+      "lines": 36,
+      "imports": [],
+      "fanIn": 2
+    },
+    {
       "path": "server/modelHealth.ts",
       "layer": "server",
       "lines": 95,
@@ -540,8 +558,10 @@
     {
       "path": "server/modelRegistry.ts",
       "layer": "server",
-      "lines": 94,
-      "imports": [],
+      "lines": 113,
+      "imports": [
+        "server/modelAvailability.ts"
+      ],
       "fanIn": 5
     },
     {
@@ -599,7 +619,7 @@
     {
       "path": "server/projectDiagnostics.ts",
       "layer": "server",
-      "lines": 211,
+      "lines": 301,
       "imports": [
         "server/artifactRepository.ts",
         "server/database.ts",
@@ -620,8 +640,9 @@
     {
       "path": "server/projectRoutes.ts",
       "layer": "server",
-      "lines": 839,
+      "lines": 871,
       "imports": [
+        "appBuilder/architectOutcome.ts",
         "server/analysisService.ts",
         "server/appBuilderAdapter.ts",
         "server/appBuilderIndex.ts",
@@ -657,7 +678,7 @@
     {
       "path": "server/promptPacks.ts",
       "layer": "server",
-      "lines": 274,
+      "lines": 277,
       "imports": [
         "server/conversationMode.ts",
         "server/promptCore.ts",
@@ -800,7 +821,7 @@
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 701,
+      "lines": 767,
       "imports": [
         "server/untrustedData.ts"
       ],
@@ -1016,7 +1037,7 @@
     {
       "path": "src/ProjectMode.tsx",
       "layer": "src",
-      "lines": 648,
+      "lines": 650,
       "imports": [
         "src/ModeMenu.tsx",
         "src/ProjectDelivery.tsx",
@@ -1158,13 +1179,6 @@
         "src/ui.ts"
       ],
       "fanIn": 4
-    },
-    {
-      "path": "src/demo-coffee.ts",
-      "layer": "src",
-      "lines": 46,
-      "imports": [],
-      "fanIn": 0
     },
     {
       "path": "src/downloadFile.ts",
@@ -1343,8 +1357,10 @@
     {
       "path": "src/projectBuildJob.ts",
       "layer": "src",
-      "lines": 39,
-      "imports": [],
+      "lines": 93,
+      "imports": [
+        "appBuilder/architectOutcome.ts"
+      ],
       "fanIn": 1
     },
     {
@@ -1589,7 +1605,7 @@
     {
       "path": "vite.config.ts",
       "layer": "other",
-      "lines": 21,
+      "lines": 24,
       "imports": [],
       "fanIn": 0
     }
@@ -1609,7 +1625,7 @@
     },
     {
       "path": "appBuilder/core-types.ts",
-      "count": 9
+      "count": 10
     },
     {
       "path": "src/attachments.ts",
@@ -1699,7 +1715,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2296
+      "lines": 2351
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1711,15 +1727,15 @@
     },
     {
       "path": "server/projectRoutes.ts",
-      "lines": 839
+      "lines": 871
     },
     {
       "path": "server/webSearch.ts",
-      "lines": 701
+      "lines": 767
     },
     {
       "path": "src/ProjectMode.tsx",
-      "lines": 648
+      "lines": 650
     },
     {
       "path": "src/App.tsx",
@@ -1794,8 +1810,8 @@
       "lines": 318
     },
     {
-      "path": "server/documents.ts",
-      "lines": 293
+      "path": "server/projectDiagnostics.ts",
+      "lines": 301
     }
   ]
 }

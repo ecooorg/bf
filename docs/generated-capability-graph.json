@@ -1,31 +1,31 @@
 {
  "schemaVersion": 1,
  "kind": "capability-graph",
- "generatedAt": "2026-10-26T15:16:42.554Z",
+ "generatedAt": "2026-10-28T09:15:23.730Z",
  "generator": "scripts/capabilityGenerateGraph.mjs",
  "summary": {
-  "nodeCount": 421,
-  "edgeCount": 859,
+  "nodeCount": 438,
+  "edgeCount": 877,
   "nodeCounts": {
-   "check": 27,
-   "env": 59,
+   "check": 26,
+   "env": 68,
    "evidence": 1,
    "migration": 19,
-   "module": 185,
+   "module": 194,
    "route": 80,
    "side_effect": 49,
    "state": 1
   },
   "edgeCounts": {
    "produces_evidence_under": 10,
-   "covers": 284,
+   "covers": 296,
    "needs": 26,
    "modifies": 19,
-   "depends_on": 391,
+   "depends_on": 397,
    "exposes": 80,
    "produces": 49
   },
-  "unknownNodes": 27,
+  "unknownNodes": 35,
   "staleNodes": 0,
   "inventoriesPresent": {
    "moduleMap": true,
@@ -364,21 +364,6 @@
    "sourceInventory": "verification-manifest.json"
   },
   {
-   "id": "check:test:regression",
-   "type": "check",
-   "label": "test:regression",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
    "id": "check:test:security",
    "type": "check",
    "label": "test:security",
@@ -486,7 +471,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_BUILDER_MAX_RATE_WAIT_MS",
@@ -501,7 +486,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_BUILDER_MODEL_ID",
@@ -516,7 +501,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_BUILDER_MODEL_SLICE",
@@ -531,7 +516,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_PASSWORD",
@@ -541,12 +526,13 @@
    "refs": {
     "name": "APP_PASSWORD",
     "files": [
-     "server.ts"
+     "server.ts",
+     "server/projectDiagnostics.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_VERSION",
@@ -561,7 +547,55 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:CLOUDFLARE_ACCOUNT_ID",
+   "type": "env",
+   "label": "CLOUDFLARE_ACCOUNT_ID",
+   "status": "known",
+   "refs": {
+    "name": "CLOUDFLARE_ACCOUNT_ID",
+    "files": [
+     "server.ts",
+     "server/projectRoutes.ts"
+    ],
+    "fileCount": 2
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:CLOUDFLARE_API_TOKEN",
+   "type": "env",
+   "label": "CLOUDFLARE_API_TOKEN",
+   "status": "known",
+   "refs": {
+    "name": "CLOUDFLARE_API_TOKEN",
+    "files": [
+     "server.ts",
+     "server/projectRoutes.ts"
+    ],
+    "fileCount": 2
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:CLOUDFLARE_WORKERS_AI_MODEL",
+   "type": "env",
+   "label": "CLOUDFLARE_WORKERS_AI_MODEL",
+   "status": "known",
+   "refs": {
+    "name": "CLOUDFLARE_WORKERS_AI_MODEL",
+    "files": [
+     "server.ts",
+     "server/projectRoutes.ts"
+    ],
+    "fileCount": 2
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:CODE_EXECUTOR",
@@ -577,7 +611,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DAILY_CALL_CAP",
@@ -592,7 +626,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DATABASE_URL",
@@ -605,12 +639,13 @@
      "server.ts",
      "server/database.ts",
      "server/opsRoutes.ts",
+     "server/projectDiagnostics.ts",
      "server/projectRoutes.ts"
     ],
-    "fileCount": 4
+    "fileCount": 5
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DIAGNOSTIC_APPLICATION_LINES",
@@ -625,7 +660,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DIAGNOSTIC_CONSOLE_LINES",
@@ -640,7 +675,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DISABLE_HMR",
@@ -655,7 +690,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:ENABLE_APP_AUTH",
@@ -670,7 +705,40 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:ENABLE_EXTERNAL_MODEL_FALLBACK",
+   "type": "env",
+   "label": "ENABLE_EXTERNAL_MODEL_FALLBACK",
+   "status": "known",
+   "refs": {
+    "name": "ENABLE_EXTERNAL_MODEL_FALLBACK",
+    "files": [
+     "server.ts",
+     "server/analysisService.ts",
+     "server/appBuilderAdapter.ts",
+     "server/projectRoutes.ts"
+    ],
+    "fileCount": 4
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:ENABLE_GEMINI_CANDIDATE_PROBES",
+   "type": "env",
+   "label": "ENABLE_GEMINI_CANDIDATE_PROBES",
+   "status": "known",
+   "refs": {
+    "name": "ENABLE_GEMINI_CANDIDATE_PROBES",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:ENABLE_PROJECT_MODE",
@@ -686,7 +754,22 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:ENABLE_WEB_SEARCH",
+   "type": "env",
+   "label": "ENABLE_WEB_SEARCH",
+   "status": "known",
+   "refs": {
+    "name": "ENABLE_WEB_SEARCH",
+    "files": [
+     "server/projectDiagnostics.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:EPISTEMIC_VERIFIER_MODEL",
@@ -701,7 +784,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:EXPERT_ATTACH_TOTAL_CHARS",
@@ -716,7 +799,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GEMINI_API_KEY",
@@ -726,12 +809,13 @@
    "refs": {
     "name": "GEMINI_API_KEY",
     "files": [
-     "server.ts"
+     "server.ts",
+     "server/projectDiagnostics.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GEMINI_BASE_URL",
@@ -746,7 +830,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_DIFF_UPLOAD",
@@ -761,7 +845,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_REPOSITORY_NAME",
@@ -776,7 +860,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_REPOSITORY_OWNER",
@@ -791,7 +875,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_WEBHOOK_SECRET",
@@ -806,7 +890,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GROQ_API_KEY",
@@ -823,7 +907,7 @@
     "fileCount": 3
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GROQ_BASE_URL",
@@ -840,7 +924,22 @@
     "fileCount": 3
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:GROQ_FALLBACK_MODEL",
+   "type": "env",
+   "label": "GROQ_FALLBACK_MODEL",
+   "status": "known",
+   "refs": {
+    "name": "GROQ_FALLBACK_MODEL",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:KEEP_ALIVE",
@@ -855,7 +954,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LLM_CALL_TIMEOUT_MS",
@@ -870,7 +969,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LLM_TOTAL_DEADLINE_MS",
@@ -885,7 +984,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LOGIN_MAX_FAILS",
@@ -900,7 +999,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LOGIN_WINDOW_MIN",
@@ -915,7 +1014,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_ATTACH_TEXT_CHARS",
@@ -930,7 +1029,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_BODY_BYTES",
@@ -945,7 +1044,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_MODEL_CALLS",
@@ -960,7 +1059,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_UPLOAD_BYTES",
@@ -975,7 +1074,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MODEL_CASCADE_LIGHT",
@@ -990,7 +1089,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MODEL_CASCADE_STRONG",
@@ -1005,7 +1104,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MODEL_MIN_INTERVAL_MS",
@@ -1020,7 +1119,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:NODE_ENV",
@@ -1030,12 +1129,13 @@
    "refs": {
     "name": "NODE_ENV",
     "files": [
-     "server.ts"
+     "server.ts",
+     "server/projectDiagnostics.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:OPS_RSS_LIMIT_MB",
@@ -1051,7 +1151,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PG_POOL_MAX",
@@ -1066,7 +1166,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PGSSLMODE",
@@ -1081,7 +1181,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PORT",
@@ -1097,7 +1197,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PROJECT_RATE_LIMIT_PER_MINUTE",
@@ -1112,7 +1212,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:RAILWAY_REPLICA_ID",
@@ -1127,7 +1227,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:RATE_LIMIT_PER_HOUR",
@@ -1142,7 +1242,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:RENDER_EXTERNAL_URL",
@@ -1157,7 +1257,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:SERPER_API_KEY",
@@ -1167,12 +1267,13 @@
    "refs": {
     "name": "SERPER_API_KEY",
     "files": [
-     "server.ts"
+     "server.ts",
+     "server/projectDiagnostics.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:SESSION_SECRET",
@@ -1187,7 +1288,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:SKIP_DIST_HEALTHCHECK",
@@ -1202,7 +1303,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:TRUST_PROXY_HOPS",
@@ -1217,7 +1318,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_FETCH_PAGES",
@@ -1232,7 +1333,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_MAX_PAGES",
@@ -1247,7 +1348,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_MAX_QUERIES",
@@ -1262,7 +1363,22 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:WEB_SEARCH_MODE",
+   "type": "env",
+   "label": "WEB_SEARCH_MODE",
+   "status": "known",
+   "refs": {
+    "name": "WEB_SEARCH_MODE",
+    "files": [
+     "server/projectDiagnostics.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_MODEL",
@@ -1277,7 +1393,22 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "env:WEB_SEARCH_PROVIDER",
+   "type": "env",
+   "label": "WEB_SEARCH_PROVIDER",
+   "status": "known",
+   "refs": {
+    "name": "WEB_SEARCH_PROVIDER",
+    "files": [
+     "server/projectDiagnostics.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_SEED_PAGES",
@@ -1292,7 +1423,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_TIMEOUT_MS",
@@ -1307,7 +1438,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_TRANSLATE_MODEL",
@@ -1322,7 +1453,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WORKER_HEARTBEAT_MS",
@@ -1337,7 +1468,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WORKER_LEASE_MS",
@@ -1352,7 +1483,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WORKER_POLL_MS",
@@ -1367,7 +1498,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "evidence:schema",
@@ -1390,7 +1521,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/002_artifacts_ledger.sql",
@@ -1403,7 +1534,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/003_route_decisions.sql",
@@ -1416,7 +1547,7 @@
     "lines": 18
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/004_model_health.sql",
@@ -1429,7 +1560,7 @@
     "lines": 15
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/005_tasks_runs.sql",
@@ -1442,7 +1573,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/006_jobs.sql",
@@ -1455,7 +1586,7 @@
     "lines": 20
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/007_budgets_plans_approvals.sql",
@@ -1468,7 +1599,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/008_artifact_manifests.sql",
@@ -1481,7 +1612,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/009_gate_evidence.sql",
@@ -1494,7 +1625,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/010_code_tasks.sql",
@@ -1507,7 +1638,7 @@
     "lines": 36
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/011_code_task_package_approval.sql",
@@ -1520,7 +1651,7 @@
     "lines": 5
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/012_code_task_decision.sql",
@@ -1533,7 +1664,7 @@
     "lines": 9
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/013_repair_loop.sql",
@@ -1546,7 +1677,7 @@
     "lines": 13
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/014_provider_snapshots.sql",
@@ -1559,7 +1690,7 @@
     "lines": 33
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/015_project_diagnostics.sql",
@@ -1572,7 +1703,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/016_project_diagnostic_artifacts.sql",
@@ -1585,7 +1716,7 @@
     "lines": 8
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/017_app_build_jobs.sql",
@@ -1598,7 +1729,7 @@
     "lines": 33
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/018_model_request_slots.sql",
@@ -1611,7 +1742,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/019_application_diagnostic_logs.sql",
@@ -1624,7 +1755,20 @@
     "lines": 25
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
+  },
+  {
+   "id": "module:appBuilder/architectOutcome.ts",
+   "type": "module",
+   "label": "appBuilder/architectOutcome.ts",
+   "status": "known",
+   "refs": {
+    "path": "appBuilder/architectOutcome.ts",
+    "layer": "appBuilder",
+    "lines": 77
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/core-cache.ts",
@@ -1637,7 +1781,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/core-engine.ts",
@@ -1647,10 +1791,10 @@
    "refs": {
     "path": "appBuilder/core-engine.ts",
     "layer": "appBuilder",
-    "lines": 160
+    "lines": 196
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/core-markers.ts",
@@ -1663,7 +1807,7 @@
     "lines": 99
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/core-plan.ts",
@@ -1676,7 +1820,7 @@
     "lines": 224
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/core-ports.ts",
@@ -1689,7 +1833,7 @@
     "lines": 100
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/core-prompts.ts",
@@ -1702,7 +1846,7 @@
     "lines": 14
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/core-types.ts",
@@ -1712,10 +1856,10 @@
    "refs": {
     "path": "appBuilder/core-types.ts",
     "layer": "appBuilder",
-    "lines": 154
+    "lines": 166
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/index.ts",
@@ -1725,10 +1869,10 @@
    "refs": {
     "path": "appBuilder/index.ts",
     "layer": "appBuilder",
-    "lines": 76
+    "lines": 84
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/pack-zip.ts",
@@ -1741,7 +1885,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/profile-default.ts",
@@ -1754,7 +1898,7 @@
     "lines": 40
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/stack-static-site.ts",
@@ -1767,7 +1911,7 @@
     "lines": 23
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:appBuilder/validator-static-site.ts",
@@ -1780,7 +1924,7 @@
     "lines": 111
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:scripts/architectureLib.mjs",
@@ -1799,6 +1943,36 @@
    "status": "unknown",
    "refs": {
     "path": "scripts/backup-restore-check.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/boundedRepairLibP108.mjs",
+   "type": "module",
+   "label": "scripts/boundedRepairLibP108.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/boundedRepairLibP108.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/capabilityGenerateGraph.mjs",
+   "type": "module",
+   "label": "scripts/capabilityGenerateGraph.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/capabilityGenerateGraph.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/capabilityGraphLib.mjs",
+   "type": "module",
+   "label": "scripts/capabilityGraphLib.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/capabilityGraphLib.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -1839,6 +2013,16 @@
    "status": "unknown",
    "refs": {
     "path": "scripts/ci-summary.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/contextSelectLib.mjs",
+   "type": "module",
+   "label": "scripts/contextSelectLib.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/contextSelectLib.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -1903,6 +2087,16 @@
    "sourceInventory": "generated-check-graph.json"
   },
   {
+   "id": "module:scripts/faultInjectionLibP108.mjs",
+   "type": "module",
+   "label": "scripts/faultInjectionLibP108.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/faultInjectionLibP108.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
    "id": "module:scripts/gate-eval.mjs",
    "type": "module",
    "label": "scripts/gate-eval.mjs",
@@ -1919,6 +2113,16 @@
    "status": "unknown",
    "refs": {
     "path": "scripts/golden-eval.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/intentContractLib.mjs",
+   "type": "module",
+   "label": "scripts/intentContractLib.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/intentContractLib.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -1949,6 +2153,26 @@
    "status": "unknown",
    "refs": {
     "path": "scripts/monitor-connections.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/p118-architect-live-lib.mjs",
+   "type": "module",
+   "label": "scripts/p118-architect-live-lib.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/p118-architect-live-lib.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/p118-architect-live.mjs",
+   "type": "module",
+   "label": "scripts/p118-architect-live.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/p118-architect-live.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -2050,10 +2274,10 @@
    "refs": {
     "path": "server.ts",
     "layer": "server",
-    "lines": 2296
+    "lines": 2351
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/adapter.ts",
@@ -2066,7 +2290,7 @@
     "lines": 91
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/analysisService.ts",
@@ -2079,7 +2303,7 @@
     "lines": 114
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/appBuilderAdapter.ts",
@@ -2089,10 +2313,10 @@
    "refs": {
     "path": "server/appBuilderAdapter.ts",
     "layer": "server",
-    "lines": 180
+    "lines": 181
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/appBuilderIndex.ts",
@@ -2105,7 +2329,7 @@
     "lines": 4
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/appBuilderIr.ts",
@@ -2118,7 +2342,7 @@
     "lines": 79
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/appBuilderPipeline.ts",
@@ -2131,7 +2355,7 @@
     "lines": 170
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/appBuilderScaffolds.ts",
@@ -2144,7 +2368,7 @@
     "lines": 377
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/artifactFormat.ts",
@@ -2157,7 +2381,7 @@
     "lines": 129
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/artifactRepository.ts",
@@ -2170,7 +2394,7 @@
     "lines": 196
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/auditCatalog.ts",
@@ -2183,7 +2407,7 @@
     "lines": 37
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/authRoutes.ts",
@@ -2196,7 +2420,7 @@
     "lines": 106
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/briefWriter.ts",
@@ -2209,7 +2433,7 @@
     "lines": 101
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/budget.ts",
@@ -2222,7 +2446,7 @@
     "lines": 52
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/codeExecutor.ts",
@@ -2235,7 +2459,7 @@
     "lines": 514
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/codeTaskService.ts",
@@ -2248,7 +2472,7 @@
     "lines": 951
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/compatibilityRoutes.ts",
@@ -2261,7 +2485,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/contextBuilder.ts",
@@ -2274,7 +2498,7 @@
     "lines": 81
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/contracts.ts",
@@ -2287,7 +2511,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/conversationMode.ts",
@@ -2300,7 +2524,7 @@
     "lines": 47
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/database.ts",
@@ -2313,7 +2537,7 @@
     "lines": 47
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/documents.ts",
@@ -2326,7 +2550,7 @@
     "lines": 293
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/domainIds.ts",
@@ -2339,7 +2563,7 @@
     "lines": 54
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/epistemicVerifier.ts",
@@ -2352,7 +2576,7 @@
     "lines": 150
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/fakeProvider.ts",
@@ -2365,7 +2589,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/files.ts",
@@ -2378,7 +2602,7 @@
     "lines": 421
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/gateEngine.ts",
@@ -2391,7 +2615,7 @@
     "lines": 181
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/gateService.ts",
@@ -2404,7 +2628,7 @@
     "lines": 182
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/geminiAdapter.ts",
@@ -2417,7 +2641,7 @@
     "lines": 68
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/githubIntegration.ts",
@@ -2430,7 +2654,7 @@
     "lines": 371
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/goldenEval.ts",
@@ -2443,7 +2667,7 @@
     "lines": 168
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/healthRoutes.ts",
@@ -2456,7 +2680,7 @@
     "lines": 43
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/intentFlags.ts",
@@ -2466,10 +2690,10 @@
    "refs": {
     "path": "server/intentFlags.ts",
     "layer": "server",
-    "lines": 120
+    "lines": 126
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/keepAlive.ts",
@@ -2482,7 +2706,7 @@
     "lines": 130
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/latencyPolicy.ts",
@@ -2495,7 +2719,7 @@
     "lines": 93
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/ledger.ts",
@@ -2508,7 +2732,20 @@
     "lines": 28
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
+  },
+  {
+   "id": "module:server/modelAvailability.ts",
+   "type": "module",
+   "label": "server/modelAvailability.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/modelAvailability.ts",
+    "layer": "server",
+    "lines": 36
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/modelHealth.ts",
@@ -2521,7 +2758,7 @@
     "lines": 95
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/modelRateLimit.ts",
@@ -2534,7 +2771,7 @@
     "lines": 76
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/modelRegistry.ts",
@@ -2544,10 +2781,10 @@
    "refs": {
     "path": "server/modelRegistry.ts",
     "layer": "server",
-    "lines": 94
+    "lines": 113
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/openaiCompatAdapter.ts",
@@ -2560,7 +2797,7 @@
     "lines": 81
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/opsMetrics.ts",
@@ -2573,7 +2810,7 @@
     "lines": 190
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/opsRoutes.ts",
@@ -2586,7 +2823,7 @@
     "lines": 65
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/planMachine.ts",
@@ -2599,7 +2836,7 @@
     "lines": 137
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/planService.ts",
@@ -2612,7 +2849,7 @@
     "lines": 341
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/projectCapabilities.ts",
@@ -2625,7 +2862,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/projectDiagnostics.ts",
@@ -2635,10 +2872,10 @@
    "refs": {
     "path": "server/projectDiagnostics.ts",
     "layer": "server",
-    "lines": 211
+    "lines": 301
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/projectRepository.ts",
@@ -2651,7 +2888,7 @@
     "lines": 169
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/projectRoutes.ts",
@@ -2661,10 +2898,10 @@
    "refs": {
     "path": "server/projectRoutes.ts",
     "layer": "server",
-    "lines": 839
+    "lines": 871
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/promptCore.ts",
@@ -2677,7 +2914,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/promptPacks.ts",
@@ -2687,10 +2924,10 @@
    "refs": {
     "path": "server/promptPacks.ts",
     "layer": "server",
-    "lines": 274
+    "lines": 277
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/providerMonitor.ts",
@@ -2703,7 +2940,7 @@
     "lines": 219
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/queueMachine.ts",
@@ -2716,7 +2953,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/queueService.ts",
@@ -2729,7 +2966,7 @@
     "lines": 127
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/reasoningState.ts",
@@ -2742,7 +2979,7 @@
     "lines": 254
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/redact.ts",
@@ -2755,7 +2992,7 @@
     "lines": 95
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/repairLoop.ts",
@@ -2768,7 +3005,7 @@
     "lines": 138
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/reviewer.ts",
@@ -2781,7 +3018,7 @@
     "lines": 148
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/routeDecisions.ts",
@@ -2794,7 +3031,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/router.ts",
@@ -2807,7 +3044,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/security.ts",
@@ -2820,7 +3057,7 @@
     "lines": 91
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/statePipeline.ts",
@@ -2833,7 +3070,7 @@
     "lines": 145
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/stateService.ts",
@@ -2846,7 +3083,7 @@
     "lines": 35
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/taskMachine.ts",
@@ -2859,7 +3096,7 @@
     "lines": 103
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/taskService.ts",
@@ -2872,7 +3109,7 @@
     "lines": 286
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/turnFocus.ts",
@@ -2885,7 +3122,7 @@
     "lines": 56
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/untrustedData.ts",
@@ -2898,7 +3135,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/webSearch.ts",
@@ -2908,10 +3145,10 @@
    "refs": {
     "path": "server/webSearch.ts",
     "layer": "server",
-    "lines": 701
+    "lines": 767
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:server/worker.ts",
@@ -2924,7 +3161,7 @@
     "lines": 87
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/App.tsx",
@@ -2937,7 +3174,7 @@
     "lines": 643
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/appApi.ts",
@@ -2950,7 +3187,7 @@
     "lines": 42
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/AppHeader.tsx",
@@ -2963,7 +3200,7 @@
     "lines": 195
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/attachments.ts",
@@ -2976,7 +3213,7 @@
     "lines": 224
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/AutoGrow.tsx",
@@ -2989,7 +3226,7 @@
     "lines": 85
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/autosave.ts",
@@ -3002,7 +3239,7 @@
     "lines": 18
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/briefView.ts",
@@ -3015,7 +3252,7 @@
     "lines": 42
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/brier.ts",
@@ -3028,7 +3265,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/config.ts",
@@ -3041,7 +3278,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ConversationFiles.tsx",
@@ -3054,7 +3291,7 @@
     "lines": 624
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ConversationScreens.tsx",
@@ -3067,7 +3304,7 @@
     "lines": 448
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/decision.ts",
@@ -3080,7 +3317,7 @@
     "lines": 522
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/decisionDocument.ts",
@@ -3093,20 +3330,7 @@
     "lines": 43
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
-  },
-  {
-   "id": "module:src/demo-coffee.ts",
-   "type": "module",
-   "label": "src/demo-coffee.ts",
-   "status": "known",
-   "refs": {
-    "path": "src/demo-coffee.ts",
-    "layer": "src",
-    "lines": 46
-   },
-   "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/downloadFile.ts",
@@ -3119,7 +3343,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/driveClient.ts",
@@ -3132,7 +3356,7 @@
     "lines": 185
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/driveExport.ts",
@@ -3145,7 +3369,7 @@
     "lines": 44
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/driveMerge.ts",
@@ -3158,7 +3382,7 @@
     "lines": 142
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/driveMirror.ts",
@@ -3171,7 +3395,7 @@
     "lines": 326
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/driveSync.ts",
@@ -3184,7 +3408,7 @@
     "lines": 90
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/en.ts",
@@ -3197,7 +3421,7 @@
     "lines": 51
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ErrorBoundary.tsx",
@@ -3210,7 +3434,7 @@
     "lines": 34
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/errors.ts",
@@ -3223,7 +3447,7 @@
     "lines": 45
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/evpi.ts",
@@ -3236,7 +3460,7 @@
     "lines": 76
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/expertContext.ts",
@@ -3249,7 +3473,7 @@
     "lines": 42
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/expertHistory.ts",
@@ -3262,7 +3486,7 @@
     "lines": 26
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/expertNav.ts",
@@ -3275,7 +3499,7 @@
     "lines": 52
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ExpertNav.tsx",
@@ -3288,7 +3512,7 @@
     "lines": 87
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ExpertStepScreens.tsx",
@@ -3301,7 +3525,7 @@
     "lines": 1693
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/exportName.ts",
@@ -3314,7 +3538,7 @@
     "lines": 7
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/exportZip.ts",
@@ -3327,7 +3551,7 @@
     "lines": 101
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/HistoryPanel.tsx",
@@ -3340,7 +3564,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/icsBuilder.ts",
@@ -3353,7 +3577,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/index.css",
@@ -3364,7 +3588,7 @@
     "path": "src/index.css"
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/libraryExport.ts",
@@ -3377,7 +3601,7 @@
     "lines": 82
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/main.tsx",
@@ -3390,7 +3614,7 @@
     "lines": 36
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ModeMenu.tsx",
@@ -3403,7 +3627,7 @@
     "lines": 107
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/numberValidator.ts",
@@ -3416,7 +3640,7 @@
     "lines": 239
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/OfflineIndicator.tsx",
@@ -3429,7 +3653,7 @@
     "lines": 31
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/programFiles.ts",
@@ -3442,7 +3666,7 @@
     "lines": 356
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/projectAppBuilder.ts",
@@ -3455,7 +3679,7 @@
     "lines": 176
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/projectBuildJob.ts",
@@ -3465,10 +3689,10 @@
    "refs": {
     "path": "src/projectBuildJob.ts",
     "layer": "src",
-    "lines": 39
+    "lines": 93
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/projectCapabilities.ts",
@@ -3481,7 +3705,7 @@
     "lines": 31
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ProjectDelivery.tsx",
@@ -3494,7 +3718,7 @@
     "lines": 348
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/projectDeliveryModel.ts",
@@ -3507,7 +3731,7 @@
     "lines": 201
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/projectLabels.ts",
@@ -3520,7 +3744,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ProjectMode.tsx",
@@ -3530,10 +3754,10 @@
    "refs": {
     "path": "src/ProjectMode.tsx",
     "layer": "src",
-    "lines": 648
+    "lines": 650
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ProjectNoviceWizard.tsx",
@@ -3546,7 +3770,7 @@
     "lines": 348
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ProjectPathChooser.tsx",
@@ -3559,7 +3783,7 @@
     "lines": 72
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/sha256Export.ts",
@@ -3572,7 +3796,7 @@
     "lines": 36
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/storage.ts",
@@ -3585,7 +3809,7 @@
     "lines": 167
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/support.ts",
@@ -3598,7 +3822,7 @@
     "lines": 64
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/triage.ts",
@@ -3611,7 +3835,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/ui.ts",
@@ -3624,7 +3848,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/uiStates.tsx",
@@ -3637,7 +3861,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/uiTerms.ts",
@@ -3650,7 +3874,7 @@
     "lines": 27
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/useDrive.ts",
@@ -3663,7 +3887,7 @@
     "lines": 133
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/usePWAInstall.ts",
@@ -3676,7 +3900,7 @@
     "lines": 63
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/UserGuide.tsx",
@@ -3689,7 +3913,7 @@
     "lines": 185
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/changeset.ts",
@@ -3702,7 +3926,7 @@
     "lines": 520
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/changeSetParse.ts",
@@ -3715,7 +3939,7 @@
     "lines": 102
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/classify.ts",
@@ -3728,7 +3952,7 @@
     "lines": 318
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/context.ts",
@@ -3741,7 +3965,7 @@
     "lines": 199
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/diff.ts",
@@ -3754,7 +3978,7 @@
     "lines": 115
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/exportZip.ts",
@@ -3767,7 +3991,7 @@
     "lines": 246
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/extract.ts",
@@ -3780,7 +4004,7 @@
     "lines": 557
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/hash.ts",
@@ -3793,7 +4017,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/idbStore.ts",
@@ -3806,7 +4030,7 @@
     "lines": 179
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/index.ts",
@@ -3819,7 +4043,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/ingest.ts",
@@ -3832,7 +4056,7 @@
     "lines": 333
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/memoryStore.ts",
@@ -3845,7 +4069,7 @@
     "lines": 138
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/paths.ts",
@@ -3858,7 +4082,7 @@
     "lines": 136
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/persistIngest.ts",
@@ -3871,7 +4095,7 @@
     "lines": 86
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/tar.ts",
@@ -3884,7 +4108,7 @@
     "lines": 120
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/workspace/types.ts",
@@ -3897,7 +4121,7 @@
     "lines": 152
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/WorkspaceChangeSetCard.tsx",
@@ -3910,7 +4134,7 @@
     "lines": 191
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:src/WorkspacePanel.tsx",
@@ -3923,7 +4147,7 @@
     "lines": 564
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "module:tests/_sources.mjs",
@@ -3943,10 +4167,10 @@
    "refs": {
     "path": "vite.config.ts",
     "layer": "other",
-    "lines": 21
+    "lines": 24
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-10-25T12:54:55.369Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23.654Z"
   },
   {
    "id": "route:DELETE /api/projects/:projectId",
@@ -3959,7 +4183,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET *",
@@ -3972,7 +4196,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/health",
@@ -3985,7 +4209,7 @@
     "file": "server/healthRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/ops",
@@ -3998,7 +4222,7 @@
     "file": "server/opsRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects",
@@ -4011,7 +4235,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId",
@@ -4024,7 +4248,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/approvals",
@@ -4037,7 +4261,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/artifacts",
@@ -4050,7 +4274,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/artifacts/:artifactId",
@@ -4063,7 +4287,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/artifacts/:artifactId/download",
@@ -4076,7 +4300,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/budgets/:scope/:scopeId",
@@ -4089,7 +4313,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/code",
@@ -4102,7 +4326,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/code/build/:jobId",
@@ -4115,7 +4339,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/ledger",
@@ -4128,7 +4352,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/plans",
@@ -4141,7 +4365,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/plans/:planId/tasks",
@@ -4154,7 +4378,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/settings",
@@ -4167,7 +4391,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks",
@@ -4180,7 +4404,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId",
@@ -4193,7 +4417,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code",
@@ -4206,7 +4430,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code/:codeTaskId",
@@ -4219,7 +4443,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/download",
@@ -4232,7 +4456,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/package",
@@ -4245,7 +4469,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/gates",
@@ -4258,7 +4482,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/versions",
@@ -4271,7 +4495,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/diagnostics/export",
@@ -4284,7 +4508,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/diagnostics/operations",
@@ -4297,7 +4521,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/projects/diagnostics/system",
@@ -4310,7 +4534,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /api/session",
@@ -4323,7 +4547,7 @@
     "file": "server/authRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /health",
@@ -4336,7 +4560,7 @@
     "file": "server/healthRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /ops",
@@ -4349,7 +4573,7 @@
     "file": "server/opsRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:GET /ready",
@@ -4362,7 +4586,7 @@
     "file": "server/healthRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/analyze-full",
@@ -4375,7 +4599,7 @@
     "file": "server/compatibilityRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/attach",
@@ -4388,7 +4612,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/conversation",
@@ -4401,7 +4625,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/evpi",
@@ -4414,7 +4638,7 @@
     "file": "server/compatibilityRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/expand",
@@ -4427,7 +4651,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/experiment-draft",
@@ -4440,7 +4664,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/export-document",
@@ -4453,7 +4677,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/forecast-wording",
@@ -4466,7 +4690,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/knowledge-map",
@@ -4479,7 +4703,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/login",
@@ -4492,7 +4716,7 @@
     "file": "server/authRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/logout",
@@ -4505,7 +4729,7 @@
     "file": "server/authRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/neutralize",
@@ -4518,7 +4742,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/premortem",
@@ -4531,7 +4755,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects",
@@ -4544,7 +4768,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/analyze",
@@ -4557,7 +4781,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/approvals/:approvalId/decision",
@@ -4570,7 +4794,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/code/build",
@@ -4583,7 +4807,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/code/build/:jobId/cancel",
@@ -4596,7 +4820,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/code/manual",
@@ -4609,7 +4833,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/decisions",
@@ -4622,7 +4846,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/items/review",
@@ -4635,7 +4859,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/plans",
@@ -4648,7 +4872,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/approve",
@@ -4661,7 +4885,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/cancel",
@@ -4674,7 +4898,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/commit-package",
@@ -4687,7 +4911,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/decide",
@@ -4700,7 +4924,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/refresh",
@@ -4713,7 +4937,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/repair",
@@ -4726,7 +4950,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/result",
@@ -4739,7 +4963,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/review",
@@ -4752,7 +4976,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/brief",
@@ -4765,7 +4989,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/start",
@@ -4778,7 +5002,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/gates/:gate/approve",
@@ -4791,7 +5015,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/gates/:gate/waive",
@@ -4804,7 +5028,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/queue",
@@ -4817,7 +5041,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/validate",
@@ -4830,7 +5054,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/radar",
@@ -4843,7 +5067,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/radar-legacy",
@@ -4856,7 +5080,7 @@
     "file": "server/compatibilityRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/redteam",
@@ -4869,7 +5093,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/redteam-pair",
@@ -4882,7 +5106,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/review",
@@ -4895,7 +5119,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/revise-document",
@@ -4908,7 +5132,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/synthesis",
@@ -4921,7 +5145,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/understand",
@@ -4934,7 +5158,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:POST /api/webhooks/github",
@@ -4947,7 +5171,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:PUT /api/projects/:projectId/budgets/:scope/:scopeId",
@@ -4960,7 +5184,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:PUT /api/projects/:projectId/settings",
@@ -4973,7 +5197,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "route:PUT /api/projects/:projectId/state",
@@ -4986,7 +5210,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-10-25T06:56:21Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "side_effect:DELETE /api/projects/:projectId",
@@ -5910,6 +6134,11 @@
   },
   {
    "from": "check:test:app-builder",
+   "to": "module:appBuilder/architectOutcome.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:app-builder",
    "to": "module:appBuilder/core-markers.ts",
    "relation": "covers"
   },
@@ -5935,7 +6164,22 @@
   },
   {
    "from": "check:test:app-builder",
+   "to": "module:scripts/p118-architect-live-lib.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:app-builder",
+   "to": "module:scripts/p118-architect-live.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:app-builder",
    "to": "module:server/appBuilderAdapter.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:app-builder",
+   "to": "module:server/appBuilderIndex.ts",
    "relation": "covers"
   },
   {
@@ -6050,6 +6294,21 @@
   },
   {
    "from": "check:test:compact-ci-artifacts",
+   "to": "module:scripts/boundedRepairLibP108.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:compact-ci-artifacts",
+   "to": "module:scripts/capabilityGenerateGraph.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:compact-ci-artifacts",
+   "to": "module:scripts/capabilityGraphLib.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:compact-ci-artifacts",
    "to": "module:scripts/ci-evidence-gate.mjs",
    "relation": "covers"
   },
@@ -6065,12 +6324,27 @@
   },
   {
    "from": "check:test:compact-ci-artifacts",
+   "to": "module:scripts/contextSelectLib.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:compact-ci-artifacts",
    "to": "module:scripts/dagLib.mjs",
    "relation": "covers"
   },
   {
    "from": "check:test:compact-ci-artifacts",
    "to": "module:scripts/evidenceLib.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:compact-ci-artifacts",
+   "to": "module:scripts/faultInjectionLibP108.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:compact-ci-artifacts",
+   "to": "module:scripts/intentContractLib.mjs",
    "relation": "covers"
   },
   {
@@ -6101,6 +6375,11 @@
   {
    "from": "check:test:compact-ci-artifacts",
    "to": "module:server/githubIntegration.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:compact-ci-artifacts",
+   "to": "module:src/config.ts",
    "relation": "covers"
   },
   {
@@ -6755,6 +7034,11 @@
   },
   {
    "from": "check:test:models",
+   "to": "module:server/modelAvailability.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:models",
    "to": "module:server/modelHealth.ts",
    "relation": "covers"
   },
@@ -7284,6 +7568,11 @@
    "relation": "modifies"
   },
   {
+   "from": "module:appBuilder/architectOutcome.ts",
+   "to": "module:appBuilder/core-types.ts",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:appBuilder/core-engine.ts",
    "to": "module:appBuilder/core-cache.ts",
    "relation": "depends_on"
@@ -7356,6 +7645,11 @@
   {
    "from": "module:appBuilder/core-prompts.ts",
    "to": "module:appBuilder/core-types.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:appBuilder/index.ts",
+   "to": "module:appBuilder/architectOutcome.ts",
    "relation": "depends_on"
   },
   {
@@ -7551,6 +7845,11 @@
   {
    "from": "module:server.ts",
    "to": "module:server/latencyPolicy.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server.ts",
+   "to": "module:server/modelAvailability.ts",
    "relation": "depends_on"
   },
   {
@@ -8124,6 +8423,11 @@
    "relation": "depends_on"
   },
   {
+   "from": "module:server/modelRegistry.ts",
+   "to": "module:server/modelAvailability.ts",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:server/opsRoutes.ts",
    "to": "module:server/database.ts",
    "relation": "depends_on"
@@ -8191,6 +8495,11 @@
   {
    "from": "module:server/projectRepository.ts",
    "to": "module:server/database.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
+   "to": "module:appBuilder/architectOutcome.ts",
    "relation": "depends_on"
   },
   {
@@ -9326,6 +9635,11 @@
   {
    "from": "module:src/programFiles.ts",
    "to": "module:src/driveMirror.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/projectBuildJob.ts",
+   "to": "module:appBuilder/architectOutcome.ts",
    "relation": "depends_on"
   },
   {

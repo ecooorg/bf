@@ -153,7 +153,7 @@
     },
     {
       "id": "test:app-builder",
-      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-adapter-p93-3.test.mjs",
+      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -169,15 +169,21 @@
         "tests/app-builder-contracts.test.mjs",
         "tests/app-builder-engine-p93-2a.test.mjs",
         "tests/app-builder-recovery-p93-3.test.mjs",
-        "tests/app-builder-validators-p93-2b.test.mjs"
+        "tests/app-builder-validators-p93-2b.test.mjs",
+        "tests/architect-outcome-p118.test.mjs",
+        "tests/p118-architect-live.test.mjs"
       ],
       "modules": [
+        "appBuilder/architectOutcome.ts",
         "appBuilder/core-markers.ts",
         "appBuilder/core-plan.ts",
         "appBuilder/core-types.ts",
         "appBuilder/index.ts",
         "scripts/architectureLib.mjs",
+        "scripts/p118-architect-live-lib.mjs",
+        "scripts/p118-architect-live.mjs",
         "server/appBuilderAdapter.ts",
+        "server/appBuilderIndex.ts",
         "server/modelRegistry.ts",
         "server/router.ts"
       ]
@@ -218,31 +224,42 @@
     },
     {
       "id": "test:compact-ci-artifacts",
-      "command": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs",
+      "command": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs",
       "needs": [],
       "profiles": [
         "check",
         "ci"
       ],
       "files": [
+        "tests/capability-graph-p111.test.mjs",
         "tests/compact-ci-artifacts-p94.test.mjs",
+        "tests/context-select-p112.test.mjs",
         "tests/dag-p107.test.mjs",
         "tests/evidence-p105.test.mjs",
+        "tests/fault-injection-p108.test.mjs",
+        "tests/intent-contract-p110.test.mjs",
         "tests/schema-validate.test.mjs",
         "tests/status-graph-p106.test.mjs"
       ],
       "modules": [
+        "scripts/boundedRepairLibP108.mjs",
+        "scripts/capabilityGenerateGraph.mjs",
+        "scripts/capabilityGraphLib.mjs",
         "scripts/ci-evidence-gate.mjs",
         "scripts/ci-run-history.mjs",
         "scripts/ci-summary.mjs",
+        "scripts/contextSelectLib.mjs",
         "scripts/dagLib.mjs",
         "scripts/evidenceLib.mjs",
+        "scripts/faultInjectionLibP108.mjs",
+        "scripts/intentContractLib.mjs",
         "scripts/package-ci-artifacts.mjs",
         "scripts/patch-quality-report.mjs",
         "scripts/run-dag.mjs",
         "scripts/schemaValidate.mjs",
         "scripts/statusGraph.mjs",
-        "server/githubIntegration.ts"
+        "server/githubIntegration.ts",
+        "src/config.ts"
       ]
     },
     {
@@ -442,7 +459,7 @@
     },
     {
       "id": "test:models",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-availability-p117.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -454,6 +471,7 @@
         "ci"
       ],
       "files": [
+        "tests/model-availability-p117.test.mjs",
         "tests/model-cascade-p93-5.test.mjs",
         "tests/models.test.mjs"
       ],
@@ -472,6 +490,7 @@
         "server/files.ts",
         "server/geminiAdapter.ts",
         "server/goldenEval.ts",
+        "server/modelAvailability.ts",
         "server/modelHealth.ts",
         "server/modelRegistry.ts",
         "server/openaiCompatAdapter.ts",
@@ -576,19 +595,6 @@
       ]
     },
     {
-      "id": "test:regression",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/regression.test.mjs",
-      "needs": [],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "files": [
-        "tests/regression.test.mjs"
-      ],
-      "modules": []
-    },
-    {
       "id": "test:security",
       "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
       "needs": [],
@@ -627,7 +633,7 @@
     },
     {
       "id": "test:web",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/web-and-epistemics.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/web-and-epistemics.test.mjs && npm run test:p117-3",
       "needs": [],
       "profiles": [
         "check",
@@ -702,6 +708,9 @@
     }
   ],
   "modules": {
+    "appBuilder/architectOutcome.ts": [
+      "test:app-builder"
+    ],
     "appBuilder/core-markers.ts": [
       "test:app-builder"
     ],
@@ -723,6 +732,15 @@
       "test:bx06:api",
       "test:project"
     ],
+    "scripts/boundedRepairLibP108.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/capabilityGenerateGraph.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/capabilityGraphLib.mjs": [
+      "test:compact-ci-artifacts"
+    ],
     "scripts/check-version.mjs": [
       "test:core",
       "version-consistency"
@@ -739,6 +757,9 @@
       "test:compact-ci-artifacts",
       "test:models",
       "test:project-diagnostics"
+    ],
+    "scripts/contextSelectLib.mjs": [
+      "test:compact-ci-artifacts"
     ],
     "scripts/dagLib.mjs": [
       "test:compact-ci-artifacts"
@@ -758,6 +779,9 @@
     "scripts/evidenceLib.mjs": [
       "test:compact-ci-artifacts"
     ],
+    "scripts/faultInjectionLibP108.mjs": [
+      "test:compact-ci-artifacts"
+    ],
     "scripts/gate-eval.mjs": [
       "test:gates"
     ],
@@ -765,6 +789,9 @@
       "critical-gemini-timeout",
       "critical-router-selection",
       "test:models"
+    ],
+    "scripts/intentContractLib.mjs": [
+      "test:compact-ci-artifacts"
     ],
     "scripts/lint-copy.mjs": [
       "lint:copy",
@@ -777,6 +804,12 @@
       "critical-gemini-timeout",
       "critical-router-selection",
       "test:models"
+    ],
+    "scripts/p118-architect-live-lib.mjs": [
+      "test:app-builder"
+    ],
+    "scripts/p118-architect-live.mjs": [
+      "test:app-builder"
     ],
     "scripts/package-ci-artifacts.mjs": [
       "test:compact-ci-artifacts"
@@ -823,6 +856,9 @@
       "test:models"
     ],
     "server/appBuilderAdapter.ts": [
+      "test:app-builder"
+    ],
+    "server/appBuilderIndex.ts": [
       "test:app-builder"
     ],
     "server/appBuilderPipeline.ts": [
@@ -951,6 +987,9 @@
       "test:database",
       "test:database:live",
       "test:integrations"
+    ],
+    "server/modelAvailability.ts": [
+      "test:models"
     ],
     "server/modelHealth.ts": [
       "critical-gemini-timeout",
@@ -1108,6 +1147,7 @@
       "test:core"
     ],
     "src/config.ts": [
+      "test:compact-ci-artifacts",
       "test:core",
       "test:files",
       "test:pipeline",

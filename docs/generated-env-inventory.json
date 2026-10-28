@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-25T06:56:21Z",
+  "generatedAt": "2026-10-28T09:15:23Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
-  "count": 59,
+  "count": 68,
   "variables": [
     {
       "name": "APP_BUILDER_ENGINE",
@@ -35,9 +35,10 @@
     {
       "name": "APP_PASSWORD",
       "files": [
-        "server.ts"
+        "server.ts",
+        "server/projectDiagnostics.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "APP_VERSION",
@@ -45,6 +46,30 @@
         "server/projectDiagnostics.ts"
       ],
       "fileCount": 1
+    },
+    {
+      "name": "CLOUDFLARE_ACCOUNT_ID",
+      "files": [
+        "server.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "name": "CLOUDFLARE_API_TOKEN",
+      "files": [
+        "server.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "name": "CLOUDFLARE_WORKERS_AI_MODEL",
+      "files": [
+        "server.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 2
     },
     {
       "name": "CODE_EXECUTOR",
@@ -67,9 +92,10 @@
         "server.ts",
         "server/database.ts",
         "server/opsRoutes.ts",
+        "server/projectDiagnostics.ts",
         "server/projectRoutes.ts"
       ],
-      "fileCount": 4
+      "fileCount": 5
     },
     {
       "name": "DIAGNOSTIC_APPLICATION_LINES",
@@ -100,12 +126,36 @@
       "fileCount": 1
     },
     {
+      "name": "ENABLE_EXTERNAL_MODEL_FALLBACK",
+      "files": [
+        "server.ts",
+        "server/analysisService.ts",
+        "server/appBuilderAdapter.ts",
+        "server/projectRoutes.ts"
+      ],
+      "fileCount": 4
+    },
+    {
+      "name": "ENABLE_GEMINI_CANDIDATE_PROBES",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "ENABLE_PROJECT_MODE",
       "files": [
         "server.ts",
         "server/projectDiagnostics.ts"
       ],
       "fileCount": 2
+    },
+    {
+      "name": "ENABLE_WEB_SEARCH",
+      "files": [
+        "server/projectDiagnostics.ts"
+      ],
+      "fileCount": 1
     },
     {
       "name": "EPISTEMIC_VERIFIER_MODEL",
@@ -124,9 +174,10 @@
     {
       "name": "GEMINI_API_KEY",
       "files": [
-        "server.ts"
+        "server.ts",
+        "server/projectDiagnostics.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "GEMINI_BASE_URL",
@@ -180,6 +231,13 @@
         "server/projectRoutes.ts"
       ],
       "fileCount": 3
+    },
+    {
+      "name": "GROQ_FALLBACK_MODEL",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
     },
     {
       "name": "KEEP_ALIVE",
@@ -268,9 +326,10 @@
     {
       "name": "NODE_ENV",
       "files": [
-        "server.ts"
+        "server.ts",
+        "server/projectDiagnostics.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "OPS_RSS_LIMIT_MB",
@@ -333,9 +392,10 @@
     {
       "name": "SERPER_API_KEY",
       "files": [
-        "server.ts"
+        "server.ts",
+        "server/projectDiagnostics.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "SESSION_SECRET",
@@ -380,9 +440,23 @@
       "fileCount": 1
     },
     {
+      "name": "WEB_SEARCH_MODE",
+      "files": [
+        "server/projectDiagnostics.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "WEB_SEARCH_MODEL",
       "files": [
         "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_PROVIDER",
+      "files": [
+        "server/projectDiagnostics.ts"
       ],
       "fileCount": 1
     },

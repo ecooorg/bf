@@ -32,3 +32,4 @@ The owner pasted a partially redacted environment-variable listing in chat. Trea
 4. Run a bounded, manually dispatched workflow initially; inspect its redacted transcript and provider usage.
 5. Only then consider scheduled/automatic execution.
 6. Live results are evidence, not acceptance by themselves. P116 acceptance remains a Navigator decision; P117 remains unaccepted until its gate passes; P121 must not start without explicit authorization.
+7. The P118 Architect workflow mutates the live service: it creates two projects named `p118-evidence-*` and, unless dispatched with cleanup off, deletes exactly the project ids it created. It reuses `STAGING_SERVICE_URL` and `STAGING_APP_PASSWORD`; the generated ZIP is only parsed, never executed or extracted.

@@ -1,3 +1,13 @@
+## P118.2 — Architect live-evidence workflow (delivered, live run NOT_RUN)
+
+- Added manual workflow `p118-architect-live` and runner. Evidence it will produce: deployed version/commit, build engine mode (201 pipeline vs 202 staged), A3 outcome, downloaded ZIP with sha256, per-entry sizes and CRC check, and two refusal controls. Artifact: `p118-architect-transcript.json` + `architect-source.zip`.
+- OBSERVED locally (no model, real code): `runAppBuilderPipeline` with the model slice off returns an 11-entry generic starter (`node_express_static`), `slice.status=skipped`; `pipelineArchitectOutcome` maps it to PARTIAL (`SLICE_SKIPPED`). The classifier turns that into PARTIAL, never PASS.
+- INFERRED, not proven: on the live service the default config (slice and staged flags unknown) most likely yields PARTIAL. The live run decides.
+- Verification: classifier and runner tests against a loopback fake server PASSED locally (14/14); mutation checks (SUCCESS without ZIP verification, PARTIAL promoted to PASS) are caught. Hosted CI for this patch, the live workflow and production behavior: NOT_RUN / UNKNOWN.
+- A3 scenarios still NOT_RUN live: injected generation/validation/packaging failures, retry/resume idempotency, malformed-spec repair.
+
+---
+
 ## P118 — Architect completion contract (start)
 
 - Navigator accepted P116 with residual B3 (live #2: 80% PASS, 0 hard fail). P117.3 closed.
