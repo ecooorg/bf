@@ -180,24 +180,114 @@ export async function verifyDiagnosticArchive(buf: Buffer): Promise<string[]> {
 export async function diagnosticArchive(operationId?: string, extraFiles: { path: string; text: string }[] = []): Promise<Buffer> {
   const [operations, summary, detailed] = await Promise.all([recentDiagnostics(200), systemDiagnostics(), recentApplicationLogs(1000)]);
   const zip = new JSZip(); const entries: { path: string; bytes: number; sha256: string }[] = [];
-  function add(path: string, text: string) { const bytes = Buffer.from(text); zip.file(path, bytes); entries.push({ path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') }); }
-  add('README.txt', 'BiForge Project Mode diagnostics. No prompts, source code, credentials or cookies are exported. Operation history is bounded to 200 events; logs/server-console.log holds the last configured bounded set of redacted console lines since the last server start; logs/application-detail.jsonl combines recent structured logs from PostgreSQL and the process ring buffer. DB events persist until retention cleanup; memory fallback is process-local. HTTP response completion does not prove browser download.\n');
+  // Always hash the exact UTF-8 bytes that are written into the ZIP so manifest bytes/sha256 match verifyDiagnosticArchive.
+  function add(path: string, text: string) {
+    const bytes = Buffer.from(text, 'utf8');
+    zip.file(path, bytes);
+    entries.push({ path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') });
+  }
+  add('README.txt', [
+    'BiForge diagnostics archive (in-app export).',
+    'Audience: AI assistants recovering context after a user-reported failure.',
+    'No prompts, source code, credentials or cookies are exported.',
+    'Read assistant/ASSISTANT-BRIEF.md and assistant/assistant-context.json first, then diagnostic-summary.json, then logs.',
+    'Operation history is bounded; console and application logs are process-local ring buffers plus optional DB history.',
+    'HTTP response completion does not prove the browser finished the download.',
+    '',
+  ].join('\n'));
   add('operations/recent-operations.json', JSON.stringify(operations, null, 2));
   add('diagnostics/diagnostic-summary.json', JSON.stringify(summary, null, 2));
   add('logs/server-console.log', (consoleLines.length ? consoleLines.join('\n') : '(no console output captured since the last server start)') + '\n');
-  add('logs/application.jsonl', operations.events.map(e => JSON.stringify(e)).join('\n') + '\n');
-  add('logs/application-detail.jsonl', detailed.logs.map(e => JSON.stringify(e)).join('\n') + '\n');
+  add('logs/application.jsonl', operations.events.map(e => JSON.stringify(e)).join('\n') + (operations.events.length ? '\n' : ''));
+  add('logs/application-detail.jsonl', detailed.logs.map(e => JSON.stringify(e)).join('\n') + (detailed.logs.length ? '\n' : ''));
   for (const f of extraFiles) add(f.path, f.text);
+
+  const failedOps = operations.events.filter((e) => /fail|error|timeout|cancel/i.test(String(e.status || e.event || '')));
+  const lastFailed = failedOps[0] || null;
+  const lastAny = operations.events[0] || null;
+  const nonPassChecks = summary.checks.filter((c) => c.status !== 'PASS');
+  const envFlags = {
+    NODE_ENV: process.env.NODE_ENV || null,
+    ENABLE_PROJECT_MODE: process.env.ENABLE_PROJECT_MODE === 'true',
+    ENABLE_WEB_SEARCH: process.env.ENABLE_WEB_SEARCH !== 'false',
+    WEB_SEARCH_PROVIDER: process.env.WEB_SEARCH_PROVIDER || null,
+    WEB_SEARCH_MODE: process.env.WEB_SEARCH_MODE || null,
+    hasGeminiKey: Boolean(String(process.env.GEMINI_API_KEY || '').trim()),
+    hasSerperKey: Boolean(String(process.env.SERPER_API_KEY || '').trim()),
+    hasDatabaseUrl: Boolean(String(process.env.DATABASE_URL || '').trim()),
+    hasAppPassword: Boolean(String(process.env.APP_PASSWORD || '').trim()),
+  };
+  const provenance = {
+    operations: operations.source,
+    applicationLogs: detailed.source,
+    console: consoleLines.length ? 'process-memory' : 'empty',
+  };
+  const assistantContext = {
+    schemaVersion: 1,
+    artifactType: 'in-app-diagnostics-assistant-context',
+    exportedAt: new Date().toISOString(),
+    focusOperationId: operationId ?? null,
+    overall: summary.overall,
+    runtime: summary.runtime,
+    provenance,
+    envFlags,
+    lastOperation: lastAny,
+    lastFailedOperation: lastFailed,
+    recentFailures: failedOps.slice(0, 20),
+    nonPassChecks,
+    dbWriteFailures: {
+      diagnosticEvents: dbWriteFailures,
+      applicationLogs: detailed.dbWriteFailures,
+    },
+    nextActionHints: [
+      lastFailed ? `Inspect last failed operation ${lastFailed.operationId} event=${lastFailed.event} stage=${lastFailed.stage} status=${lastFailed.status}` : 'No failed operations in the retention window',
+      nonPassChecks.length ? `Non-PASS checks: ${nonPassChecks.map((c) => c.name + '=' + c.status).join(', ')}` : 'All system checks PASS or WARN only',
+      provenance.operations !== 'database' ? 'Operation history is process-local only; restart lost older events' : 'Operation history loaded from database',
+      provenance.applicationLogs !== 'database' ? 'Application detail logs are process-local only' : 'Application detail logs loaded from database',
+    ],
+  };
+  const briefLines = [
+    '# ASSISTANT BRIEF (in-app diagnostics)',
+    '',
+    `exportedAt: ${assistantContext.exportedAt}`,
+    `overall: ${summary.overall}`,
+    `appVersion: ${summary.runtime.appVersion} release=${summary.runtime.release || 'null'} commit=${summary.runtime.commit}`,
+    `focusOperationId: ${operationId ?? 'null'}`,
+    `provenance.operations: ${provenance.operations}`,
+    `provenance.applicationLogs: ${provenance.applicationLogs}`,
+    `lastOperation: ${lastAny ? `${lastAny.operationId} ${lastAny.event}/${lastAny.stage}=${lastAny.status}` : 'none'}`,
+    `lastFailedOperation: ${lastFailed ? `${lastFailed.operationId} ${lastFailed.event}/${lastFailed.stage}=${lastFailed.status} err=${lastFailed.errorCode || ''}` : 'none'}`,
+    `nonPassChecks: ${nonPassChecks.length ? nonPassChecks.map((c) => c.name + '=' + c.status).join('; ') : 'none'}`,
+    `envFlags: webSearch=${envFlags.ENABLE_WEB_SEARCH} provider=${envFlags.WEB_SEARCH_PROVIDER || 'auto'} projectMode=${envFlags.ENABLE_PROJECT_MODE} db=${envFlags.hasDatabaseUrl} geminiKey=${envFlags.hasGeminiKey} serperKey=${envFlags.hasSerperKey}`,
+    '',
+    'Next action hints:',
+    ...assistantContext.nextActionHints.map((h) => `- ${h}`),
+    '',
+    'Read order for assistants: this file → assistant/assistant-context.json → diagnostics/diagnostic-summary.json → logs/application-detail.jsonl → logs/server-console.log.',
+    '',
+  ];
+  add('assistant/assistant-context.json', JSON.stringify(assistantContext, null, 2) + '\n');
+  add('assistant/ASSISTANT-BRIEF.md', briefLines.join('\n'));
+
   const skipped = [
-    ...(operations.source !== 'database' ? [{ item: 'persistent operation history', reason: 'database unavailable; only process-local events since last restart are included' }] : []),
+    ...(operations.source !== 'database' ? [{ item: 'persistent operation history', reason: 'operations.source is not database; only process-local events since last restart are included' }] : []),
     ...summary.checks.filter((c) => c.status !== 'PASS').map((c) => ({ item: `check:${c.name}`, reason: `${c.status}: ${c.evidence}` })),
     { item: 'Render platform logs / CI logs', reason: 'outside the application; this archive includes in-app logs and local test reports only' },
-    ...(detailed.source !== 'database' ? [{ item: 'persistent application logs', reason: 'database unavailable; detailed log export contains process-local records only' }] : []),
+    ...(detailed.source !== 'database' ? [{ item: 'persistent application logs', reason: 'applicationLogs source is not database; detailed log export contains process-local records only' }] : []),
     ...(detailed.dbWriteFailures ? [{ item: 'application log persistence', reason: `${detailed.dbWriteFailures} database write failures; in-memory fallback remains bounded` }] : []),
     ...(consoleLines.length === 0 ? [{ item: 'logs/server-console.log', reason: 'server produced no console output since the last start (or capture was not installed)' }] : []),
     ...(operations.events.length === 0 ? [{ item: 'operation events', reason: 'no builds, downloads or exports recorded in the retention window' }] : []),
   ];
-  add('manifest.json', JSON.stringify({ exportedAt: new Date().toISOString(), operationId: operationId ?? null, entries, source: operations.source, skipped }, null, 2));
+  // Provenance is explicit per stream so assistants never see source=database while skipped says database unavailable.
+  add('manifest.json', JSON.stringify({
+    exportedAt: new Date().toISOString(),
+    operationId: operationId ?? null,
+    entries,
+    provenance,
+    // Back-compat single field: prefer operations source (historical consumers).
+    source: operations.source,
+    skipped,
+  }, null, 2));
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 }
 
