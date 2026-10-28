@@ -1,3 +1,11 @@
+## P117.2 — P116 LIVE baseline and Conversational Agent recovery work order
+
+- Documentation-only patch. Recorded the first LIVE, assistant-judged baseline of the Simple-mode Conversational Agent on the v117 stand (commit `ab35ebd`): 12 scenarios, 16 requests, 7 PASS / 4 PARTIAL / 1 FAIL. The pre-set threshold (zero hard failures, at least 80% PASS) was not met; P116 stays open.
+- Findings recorded with evidence labels: hidden-freshness trigger miss and non-answer (Node.js LTS question, search skipped although enabled), stock "general guidelines" caveat, B1 freshness window and source traceability, research-mode misclassification of "сравниваем", impersonal recommendation despite "no preamble", one unreproduced Latin-script glitch.
+- Defined the next implementation work order (WI-1..WI-7), four Navigator decisions (ND-1..ND-4), a reusable tablet-friendly LIVE re-test protocol with a 15-scenario set and a fixed rubric, and acceptance criteria for the P116 gate. Proposed label for the implementation patch: P117.3 at version 117, because `scripts/check-version.mjs` ties the newest CHANGELOG major to `APP_VERSION`.
+- Noted a documentation discrepancy (search default: UO-02 says opt-in, current code is on unless explicitly disabled) and a contract question (HTTP 200 fallback vs 4xx/5xx on model failure).
+- No runtime code, provider configuration, credentials, dependencies or product version changed. Mock tests, CI, typecheck/build and failure-path live tests: NOT_RUN. No P116 or P117 acceptance is claimed.
+
 ## P117.1 — Universal Model Resilience Layer planning contract
 
 - Documentation-only planning patch. Added a bounded future specification for a provider/model registry, health monitor, task-aware router, response validator, and recovery engine, planned for P121 after the current P116–P120 line.

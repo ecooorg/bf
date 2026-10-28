@@ -1,51 +1,41 @@
-# P117.1 — Navigator handoff
+# P117.2 — Navigator handoff
 
-**Outcome:** documentation-only planning patch defining the future Universal Model Resilience Layer for P121. No runtime behavior or provider integration is changed by P117.1.
+**Outcome:** documentation-only patch. Records the first LIVE baseline of the Simple-mode Conversational Agent (assistant-judged) and defines the P116 recovery work order. No runtime behavior or provider integration is changed.
 **Patch type:** documentation/specification only.
-**Product version:** unchanged; this patch does not modify package or runtime version metadata.
+**Product version:** unchanged (117); this patch does not modify package or runtime version metadata.
 **Manifest:** intentionally omitted; Navigator updates repository bookkeeping manually.
-**Sequencing:** P117.1 records a future task after the current P116–P120 user-facing-agent line. P121 is not authorization to begin before P120 acceptance and the unresolved CI baseline are addressed.
+**Sequencing:** the P116 gate is OPEN. The implementation patch (proposed label P117.3) follows after the Navigator answers ND-1..ND-4. P121 is not authorized.
 
 ## Changed files
 
-- `docs/AI-USER-VALUE-SPEC.md` — adds the model resilience system contract, requirements, safety boundaries, and acceptance criteria.
-- `docs/AI-NATIVE-RENOVATION-ROADMAP.md` — adds P121 after P120 with explicit prerequisite gates.
-- `docs/AI-NATIVE-RENOVATION-TASK.md` — records this documentation-only task and its future implementation boundary.
-- `docs/AI-USER-VALUE-REPORT.md` — adds a newest-first record stating that no runtime behavior was changed or tested.
-- `CHANGELOG.md` — records the documentation-only planning decision.
+- `docs/AI-USER-VALUE-REPORT.md` — adds the P117.2 evidence record at the top (scenario verdicts, log observations, findings F1–F6, not-run items, discrepancies).
+- `docs/AI-NATIVE-RENOVATION-TASK.md` — replaces the P117.1 task with the P116 recovery work order (WI-1..WI-7), decisions ND-1..ND-4, the live re-test protocol and rubric, and the P116 gate criteria.
+- `CHANGELOG.md` — adds the P117.2 entry at the top (major 117, so `scripts/check-version.mjs` stays consistent).
+- `NEXT_PATCH.md` — this handoff.
 
-## Included design decisions
+## Result of the LIVE baseline
 
-- A provider/model registry with exact IDs, capabilities, credentials/configuration state, quota/cost notes, health history, and timestamps.
-- Health monitoring that separates provider/model metadata checks from minimal generation probes; probes are staggered, budgeted, throttled, and configurable.
-- Routing based on task capability, health, quota, latency, cost, provider independence, and output quality—not a single flat priority list.
-- Bounded retries, error classification, circuit breakers, recovery probes, context preservation, and truthful failure states.
-- Output validation distinct from API availability; independent model critique is selective and supplemented by deterministic tools where possible.
-- Initial provider candidates include Gemini, Groq, Cloudflare Workers AI, OpenRouter, Hugging Face Inference Providers, and potentially local/open-weight deployment. Exact IDs, live access, pricing, terms, and task quality must be revalidated at implementation time.
-- Automatic discovery may create a candidate list, but must not silently enable an unreviewed model for production traffic.
+7 PASS, 4 PARTIAL, 1 FAIL of 12 scenarios (58% PASS). Threshold (zero hard failures, at least 80% PASS) NOT met. No fabricated facts were observed; the main defect is that "Какая сейчас актуальная LTS-версия Node.js?" skipped search although search was enabled and the reply contained no version.
 
-## Open questions deliberately deferred until before P121 launch
+## Verification actually performed
 
-1. Per-provider and global spend/quota budgets, including protected emergency reserves.
-2. Whether health probes may consume provider quota, and their frequency/budget per provider.
-3. Which providers may receive user prompts and what data-transfer consent/configuration is required.
-4. Which models/tasks require independent critique, and the latency/cost thresholds.
-5. Whether a local inference route is feasible for the deployment environment.
-6. What telemetry may be retained, for how long, and how user data is redacted.
-7. Which candidate models from the Navigator's list have valid IDs, supported endpoints, and acceptable current terms.
+- LIVE, manual: 16 requests on the stand at commit `ab35ebd`; replies from screenshots, request metadata from Render logs; current facts independently checked by web search on 2026-10-28.
+- Source reading of `server.ts`, `server/webSearch.ts`, `server/conversationMode.ts`, `server/intentFlags.ts` to locate causes. Causes are labelled OBSERVED or HYPOTHESIS in the report.
+- On the patched tree: `node scripts/check-version.mjs` PASS (117, release P117.2); `node scripts/docsCheckInventories.mjs` PASS; `node scripts/lint-copy.mjs` PASS.
+- `node scripts/statusGraph.mjs --check` reports `docs/generated-check-graph.json` stale on BOTH the uploaded P117.1 archive and the patched tree, so this result is not caused by P117.2 (inputs untouched). Cause not investigated; it may be an artefact of the extracted copy. Hosted CI remains the authority; status UNKNOWN until a new CI result is observed.
+- NOT_RUN: unit/mock tests, typecheck, build, CI, browser E2E, live failure-path tests, repeat runs.
 
-These questions are intentionally not answered in P117.1. They must be resolved before enabling the system, not used to delay the current P116–P120 line.
+## Limitations
 
-## Verification and limitations
-
-- Documentation-only edits. Runtime tests, typecheck/build, provider probes, E2E, and CI were NOT_RUN for P117.1.
-- No model availability, model quality, free-tier quota, or provider compatibility is asserted as verified by this patch.
-- This patch does not certify P117 or resolve the previously reported P115 CI/version mismatch.
+- One run per scenario, one judge (the AI assistant); variance UNKNOWN. This is not production evidence and not automated E2E.
+- Prompt-level causes (F2) are hypotheses until a paired comparison is run.
+- The Serper time-range/date options in WI-3 are unverified and may change credit use (ND-4).
 
 ## Navigator actions
 
-1. Apply this documentation patch independently; no files need deleting.
-2. Continue resolving the current P116–P120 sequence and the CI baseline before starting P121.
-3. Before P121 implementation or launch, answer the deferred questions and revalidate provider catalogs, exact model IDs, pricing, and terms.
+1. Apply this documentation patch; no files need deleting.
+2. Answer ND-1 (freshness strategy), ND-2 (failure-path contract), ND-3 (label/version), ND-4 (search cost).
+3. Hand the work order in `docs/AI-NATIVE-RENOVATION-TASK.md` to the implementing assistant for P117.3.
+4. After P117.3 and a new observed CI result, run the 15-scenario LIVE re-test and record the final P116 Да/Нет.
 
-Rollback: restore the five changed documentation files from the local pre-patch backup.
+Rollback: restore the four changed files from the local pre-patch backup.
