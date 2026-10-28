@@ -1087,16 +1087,16 @@ test('pack end to end: only changed and new files in the archive, report written
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pack-'));
   const write = (base, rel, text) => { const f = path.join(dir, base, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); };
   for (const rel of ['a.md', 'docs/keep.md', 'docs/gone.md']) write('base', rel, `v1 ${rel}`);
-  const fixturePackage = JSON.stringify({ scripts: { check: 'npm run check:docs', 'check:docs': 'node -e \"console.log(\\\'docs ok\\\')\"', 'fail-check': 'node -e \"process.exit(1)\"' } });
-  write('base', 'package.json', fixturePackage); write('work', 'package.json', fixturePackage);
+  const fixturePackage = (patch) => JSON.stringify({ version: '99', patch, scripts: { check: 'npm run check:docs', 'check:docs': 'node -e \"console.log(\\\'docs ok\\\')\"', 'fail-check': 'node -e \"process.exit(1)\"' } });
+  write('base', 'package.json', fixturePackage('99')); write('work', 'package.json', fixturePackage('99.1'));
   for (const [rel, t] of [['a.md', 'v2'], ['docs/keep.md', 'v1 docs/keep.md'], ['server/new.ts', 'new']]) write('work', rel, t);
-  const run = (extra) => spawnSync('node', [path.join(root, 'scripts/patch-pack.mjs'), '--base', path.join(dir, 'base'), '--patch', 'P99', '--agent', 'test', '--skip', 'ci,typecheck,check,check-version,live,build', ...extra],
+  const run = (extra) => spawnSync('node', [path.join(root, 'scripts/patch-pack.mjs'), '--base', path.join(dir, 'base'), '--patch', 'P99.1', '--agent', 'test', '--skip', 'ci,typecheck,check,check-version,live,build', ...extra],
     { cwd: path.join(dir, 'work'), env: { ...process.env, DATABASE_URL: '1' }, encoding: 'utf8' });
   const ok = run([]);
   assert.equal(ok.status, 0, ok.stderr);
-  assert.match(ok.stdout, /заменить 1, добавить 1, удалить 1/);
-  const zip = await readZipTree(fs.readFileSync(path.join(dir, 'work/bf-P99.zip')));
-  assert.deepEqual([...zip.keys()].sort(), ['a.md', 'server/new.ts']);
+  assert.match(ok.stdout, /заменить 2, добавить 1, удалить 1/);
+  const zip = await readZipTree(fs.readFileSync(path.join(dir, 'work/bf-P99.1.zip')));
+  assert.deepEqual([...zip.keys()].sort(), ['a.md', 'package.json', 'server/new.ts']);
   const report = fs.readFileSync(path.join(dir, 'work/patch-report.md'), 'utf8');
   assert.match(report, /\| `npm run check \(expanded independent steps\)` \| NOT_RUN \| skipped by --skip check \|/);
   assert.doesNotMatch(report, /\| PASS \|/);
@@ -1104,15 +1104,27 @@ test('pack end to end: only changed and new files in the archive, report written
   fs.mkdirSync(path.join(dir, 'work/node_modules'), { recursive: true });
   const partial = run(['--steps', 'fail-check']);
   assert.equal(partial.status, 0, partial.stderr);
-  assert.equal(fs.existsSync(path.join(dir, 'work/bf-P99.zip')), true);
+  assert.equal(fs.existsSync(path.join(dir, 'work/bf-P99.1.zip')), true);
   const partialReport = fs.readFileSync(path.join(dir, 'work/patch-report.md'), 'utf8');
   assert.match(partialReport, /`PARTIAL`/);
   assert.match(partialReport, /fail-check.*FAIL/s);
-  write('work', 'docs/deep/x.md', 'nested'); fs.rmSync(path.join(dir, 'work/bf-P99.zip'));
+  // Version rules: a patch whose package.json is unchanged (or missing), or whose patch number is below the base, gives no archive.
+  fs.rmSync(path.join(dir, 'work/bf-P99.1.zip'), { force: true });
+  write('work', 'package.json', fixturePackage('99'));
+  const same = run([]);
+  assert.equal(same.status, 1);
+  assert.match(same.stderr, /must be included in every patch/);
+  assert.equal(fs.existsSync(path.join(dir, 'work/bf-P99.1.zip')), false);
+  write('work', 'package.json', fixturePackage('98.5'));
+  const lower = run([]);
+  assert.equal(lower.status, 1);
+  assert.match(lower.stderr, /must be higher than the base patch/);
+  write('work', 'package.json', fixturePackage('99.1'));
+  write('work', 'docs/deep/x.md', 'nested'); fs.rmSync(path.join(dir, 'work/bf-P99.1.zip'), { force: true });
   const bad = run([]);
   assert.equal(bad.status, 1);
   assert.match(bad.stderr, /nested folder/);
-  assert.equal(fs.existsSync(path.join(dir, 'work/bf-P99.zip')), false);
+  assert.equal(fs.existsSync(path.join(dir, 'work/bf-P99.1.zip')), false);
 });
 
 

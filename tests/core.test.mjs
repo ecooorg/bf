@@ -445,9 +445,11 @@ const server = read('server.ts');
 const cfg = read('src/config.ts');
 const pkg = JSON.parse(read('package.json'));
 
-const cfgVersion = cfg.match(/APP_VERSION\s*=\s*'(\d+[a-z]?(?:\.\d+\.\d+)?|PI-\d+[a-z]*)'/)?.[1];
-assert.ok(cfgVersion, 'APP_VERSION must be defined in src/config.ts');
-assert.equal(pkg.version, cfgVersion, 'package.json version must equal APP_VERSION');
+assert.doesNotMatch(cfg, /APP_VERSION\s*=\s*['"`]/, 'src/config.ts must not hard-code APP_VERSION; it derives from package.json');
+assert.match(cfg, /from '\.\.\/package\.json'/, 'src/config.ts must import package.json');
+const { APP_VERSION: derivedVersion, APP_PATCH: derivedPatch } = await import('../src/config.ts');
+assert.equal(derivedVersion, pkg.version, 'APP_VERSION must equal package.json version');
+assert.equal(derivedPatch, pkg.patch, 'APP_PATCH must equal package.json patch');
 for (const label of ['Shorter', 'Add table', 'Remove section', 'Choose heading', 'Save…', 'Word (.docx)', 'PDF', 'Google Docs']) assert.match(app, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 assert.match(app, /\/api\/revise-document/);
 assert.match(app, /onDocumentEdit/);
@@ -993,32 +995,47 @@ try {
 const __groupOriginalProcessExit = process.exit;
 process.exit = (code = 0) => { if (code) throw new Error("Grouped test module version-check.test.mjs requested process.exit" + `(${code})`); };
 try {
-// Version gate: only APP_VERSION (src/config.ts) and package.json must match.
-const { mkdtempSync, cpSync, readFileSync, writeFileSync, mkdirSync } = await import("node:fs");
+// Version gate: package.json is the only version source; "version" must equal the first number of "patch".
+const { mkdtempSync, cpSync, readFileSync, writeFileSync } = await import("node:fs");
 const { tmpdir } = await import("node:os");
 const { join } = await import("node:path");
 const { spawnSync } = await import("node:child_process");
 
-const FILES = ['package.json', 'server.ts', 'src/config.ts'];
 const here = process.cwd();
 function run(mutate) {
   const dir = mkdtempSync(join(tmpdir(), 'vcheck-'));
-  for (const f of FILES) { try { mkdirSync(join(dir, f, '..'), { recursive: true }); cpSync(join(here, f), join(dir, f)); } catch {} }
+  cpSync(join(here, 'package.json'), join(dir, 'package.json'));
   mutate?.(dir);
   return spawnSync('node', [join(here, 'scripts/check-version.mjs')], { cwd: dir, encoding: 'utf8' });
 }
-const edit = (f, fn) => (dir) => writeFileSync(join(dir, f), fn(readFileSync(join(dir, f), 'utf8')));
+const editPkg = (fn) => (dir) => { const p = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')); fn(p); writeFileSync(join(dir, 'package.json'), JSON.stringify(p)); };
 let failed = 0;
 const T = (name, ok, note = '') => { if (!ok) { failed++; console.log('FAIL', name, note); } };
 
 const clean = run();
 T('clean tree passes', clean.status === 0, clean.stderr + clean.stdout);
-const rpkg = run(edit('package.json', (t) => t.replace(/"version": "[^"]+"/, '"version": "0.0.0-mismatch"')));
-T('package.json mismatch is caught', rpkg.status === 1 && /package\.json/.test(rpkg.stderr), rpkg.stderr);
-const rcfg = run(edit('src/config.ts', (t) => t.replace(/APP_VERSION\s*=\s*'[^']+'/, "APP_VERSION = '0.0.0-cfg'")));
-T('config mismatch vs package.json is caught', rcfg.status === 1, rcfg.stderr);
-const rmd = run(edit('package.json', (t) => t)); // no-op on package; markdown not copied — ensure README noise not required
-T('markdown is not required for version check', clean.status === 0);
+const r1 = run(editPkg((p) => { p.version = '0.0.0-mismatch'; }));
+T('version that is not digits is caught', r1.status === 1 && /version/.test(r1.stderr), r1.stderr);
+const r2 = run(editPkg((p) => { p.patch = String(Number(p.version) + 1); }));
+T('version different from first number of patch is caught', r2.status === 1 && /must equal the first number of patch/.test(r2.stderr), r2.stderr);
+const r3 = run(editPkg((p) => { delete p.patch; }));
+T('missing patch is caught', r3.status === 1 && /"patch"/.test(r3.stderr), r3.stderr);
+const r4 = run(editPkg((p) => { p.patch = '118.x'; }));
+T('malformed patch is caught', r4.status === 1, r4.stderr);
+const r5 = run(editPkg((p) => { p.patch = `${p.version}.9.9`; }));
+T('any dotted patch with matching first number passes', r5.status === 0, r5.stderr);
+// Nothing but package.json is read: no config.ts, server.ts, CHANGELOG.md or docs are present in the temp tree.
+T('no other file is required', clean.status === 0);
+
+// Delivery rules: package.json in every patch, patch number never below the base.
+const { versionPreflight } = await import('../scripts/patch-tools.mjs');
+const pj = (o) => new Map([['package.json', Buffer.from(JSON.stringify(o))]]);
+T('patch without package.json is rejected', versionPreflight({ files: new Map(), base: pj({ version: '118', patch: '118.3' }), patchId: 'P118.4' }).length === 1);
+T('patch lower than base is rejected', versionPreflight({ files: pj({ version: '118', patch: '118.2' }), base: pj({ version: '118', patch: '118.3' }), patchId: 'P118.2' }).length === 1);
+T('patch below program version is rejected', versionPreflight({ files: pj({ version: '85', patch: '85.1' }), base: pj({ version: '118' }), patchId: 'P85.1' }).length === 1);
+T('patch id must match package.json patch', versionPreflight({ files: pj({ version: '118', patch: '118.4' }), base: pj({ version: '118', patch: '118.3' }), patchId: 'P118.5' }).length === 1);
+T('next phase raises the program version', versionPreflight({ files: pj({ version: '119', patch: '119' }), base: pj({ version: '118', patch: '118.3.2' }), patchId: 'P119' }).length === 0);
+T('next sub-patch passes', versionPreflight({ files: pj({ version: '118', patch: '118.4' }), base: pj({ version: '118', patch: '118.3.2' }), patchId: 'P118.4' }).length === 0);
 
 console.log(failed ? `${failed} failed` : 'version-check tests passed');
 process.exit(failed ? 1 : 0);
