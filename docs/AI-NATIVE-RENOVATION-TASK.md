@@ -1,13 +1,13 @@
 # BiForge — Current Task and Patch Control
 
-**Current patch:** P117.2 — P116 LIVE baseline recorded; Conversational Agent recovery work order defined.
-**Status:** documentation-only patch prepared; no runtime changes; P116 acceptance NOT claimed.
+**Current patch:** P117.3 — Conversational Agent freshness/recovery fixes, regression tests, and opt-in staging transcript workflow.
+**Status:** implementation patch prepared; P116 acceptance NOT claimed; LIVE retest requires configured GitHub Actions secrets and an explicit workflow dispatch.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, the canonical roadmap, and the user-outcome specification.
 **Current specification:** `docs/AI-USER-VALUE-SPEC.md`.
 **Current evidence baseline:** `docs/AI-USER-VALUE-REPORT.md` (newest record: P117.2).
 **Only roadmap:** `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 
-## Immediate objective — P117.2
+## Immediate objective — P117.3
 
 Record the first LIVE baseline of the Simple-mode Conversational Agent (v117, commit `ab35ebd`) and turn the findings into a bounded work order for the next implementation patch. P117.2 changes documentation only. The Future Universal Model Resilience Layer (P121) stays planned-only in `docs/AI-USER-VALUE-SPEC.md` section 8.
 
@@ -16,6 +16,13 @@ Record the first LIVE baseline of the Simple-mode Conversational Agent (v117, co
 **Label (Navigator to confirm, ND-3):** `P117.3`, keeping `APP_VERSION` 117. Reason: `scripts/check-version.mjs` requires the newest `## P<N>` CHANGELOG heading to carry the same major number as `APP_VERSION`; a `## P116.x` entry would fail the version check unless the version is changed.
 
 **Baseline to beat:** 7/12 PASS, 4 PARTIAL, 1 FAIL (see report). One bounded outcome: the Simple agent answers current-state questions with fresh evidence or a concrete best-knowledge answer, drops the stock caveat, and keeps what already works (no fabrication, context retention, brevity).
+
+### Navigator decisions resolved for P117.3
+
+- ND-1: Option A; widen existing conservative regex triggers, no model contract change.
+- ND-2: preserve HTTP 200 truthful fallback with `meta.fallback=true` / `meta.errorCode`; test as the contract.
+- ND-3: label `P117.3`, app version remains 117.
+- ND-4: do not add a Serper time-range parameter or extra request in this patch; preserve search volume/credit use. Preserve dates already returned by Serper in the digest. Strict date-window filtering remains a known limitation.
 
 ### Navigator decisions required before implementation
 
@@ -55,6 +62,15 @@ Each item states observed evidence, required user outcome, minimal change, and t
 **WI-6 (UNKNOWN) "Kanberra" (finding F6).** Re-run B4 three times in the next LIVE cycle. If it recurs, inspect the post-processing chain (`stripMarkdown`, `scrubInternalLabels`) before touching prompts; otherwise close as NOT_REPRODUCED.
 
 **WI-7 (required for the gate) Hermetic mock suite.** `tests/p116-conversational.test.mjs`, included in `npm test` and the DAG, using the existing fake provider. Cover the four P116 acceptance categories: C1 direct answer without Expert template; C2 search called when enabled and honestly skipped when off, including the WI-1 fixtures; C3 history of at least 3 turns carrying key entities; C4 failures (503, 429, bad JSON) asserting the contract chosen in ND-2. Label results MOCK; keep live tests separate and labelled LIVE.
+
+### P117.3 implementation result
+
+- WI-1: freshness triggers now allow intervening descriptors and LTS/version compounds in RU/EN; referral-only short answers participate in the existing single retry.
+- WI-2/WI-5: removed generic verification closer and added direct/no-preamble phrase recognition.
+- WI-3: retain dates supplied by Serper in organic/news digest entries; no time-range request added to avoid unapproved credit changes. Out-of-window results are not yet filtered.
+- WI-4: Cyrillic research stems use Unicode-aware trailing boundaries.
+- WI-7: `tests/p117-3-conversation.test.mjs`, invoked by `npm run test:web`.
+- Added `.github/workflows/p117-3-live-retest.yml` and `scripts/p117-3-live-retest.mjs`. Workflow output is raw evidence, not a verdict; C1/C2 multi-turn continuations and B4 repeat are not automated by this first workflow and remain in the manual protocol. Do not interpret the workflow transcript as full gate coverage.
 
 ### Guardrails for P117.3
 

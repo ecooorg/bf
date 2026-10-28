@@ -1,3 +1,12 @@
+## P117.3 — implementation evidence (2026-10-28)
+
+- Implemented WI-1 freshness trigger expansion and referral-only retry detection; removed the generic information-mode verification closer; tightened Cyrillic research boundaries; preserved Serper-returned dates in digest lines.
+- Added `tests/p117-3-conversation.test.mjs` and wired it into `npm run test:web`.
+- Added a manual-dispatch GitHub Actions workflow and script for the 15-scenario retest, including C1/C2 follow-up turns and three B4 repetitions. Artifact is raw transcript, not an automatic rubric verdict.
+- ND-4 conservative choice: no Serper time-range parameter or additional query is added, so no intentional increase in credit consumption. The current patch carries dates but does not filter results strictly to the requested week; B1 acceptance still requires manual scrutiny and may remain PARTIAL.
+- Diagnostic archive review: overall checks PASS and DB write failures are zero, but the export manifest has a byte-count discrepancy for `logs/server-console.log` (manifest 549 vs actual 538) and reports `source=database` while also saying persistent logs were skipped because the database was unavailable. The build report confirms a failed build (`invalid_spec`, zero files, ~73 s). These are useful evidence but need clearer provenance/consistency; no diagnostics-runtime patch was made in this bounded P117.3 patch.
+- Verification: test execution BLOCKED because dependencies are not installed in the extracted workspace; `npm ci --ignore-scripts` timed out. Hosted CI and live staging workflow NOT_RUN. P116/P117 acceptance NOT claimed.
+
 # BIForge — Rolling User-Outcome Evidence Report
 
 # P117.2 — P116 LIVE baseline (model-judged) and Conversational Agent recovery findings
