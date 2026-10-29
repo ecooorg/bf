@@ -1,3 +1,25 @@
+# P118.5.6 — Bounded dom-wiring repair (current)
+
+**Applied:**
+- Engine bounded repair after `dom-wiring` failure (max 2 scripts, strict accept rule).
+- Tests for validator + repair paths; `test:app-builder` includes them.
+- Patch `118.5.6`.
+
+**Verify after deploy:**
+1. CI green (27 checks + new tests).
+2. Live `p118-architect-live`: prefer SUCCESS with matching ids, or honest PARTIAL if repair cannot improve.
+3. No FALSE_SUCCESS (dom-wiring remains required).
+
+**P118 exit / P119:** Navigator only after CI green on 118.5.6 **and** live run that is either deliveryProven SUCCESS or truthful non-PASS without `INCONSISTENT` download-on-fail if still present.
+
+**Residual (optional):** download policy when outcome is PARTIAL (`failed_but_download_offered`); dependency audit (zod/body-parser/qs).
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not delete)
+
 # P118.5.5 — Dom-wiring + architecture boundaries (partial, applied in tree)
 
 **Applied in this tree:**

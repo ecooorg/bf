@@ -1,3 +1,10 @@
+## P118.5.6 — Bounded dom-wiring repair after check failure
+
+- **Engine:** after static validators run, if `dom-wiring` fails and budget remains, one repair call per broken script (max 2). Prompt lists the real HTML `id`s and the exact mismatch messages. Result accepted only when (1) no previously-passing required validator starts failing and (2) `dom-wiring` issue count strictly decreases. Events: `dom_wiring_repair`, `dom_wiring_repair_accepted`, `dom_wiring_repair_rejected`.
+- **Tests:** `tests/app-builder-dom-wiring-p118-5-6.test.mjs` (validator unit + repair accept/reject/budget/no-op); registered in `test:app-builder`.
+- **Version:** patch `118.5.6`.
+- Live on 118.5.5 was honest PARTIAL (`validators_failed: dom-wiring`) — this patch closes the gap so a single model slip can recover to SUCCESS without a full rebuild.
+
 ## P118.5.5 — Dom-wiring validator + architecture boundaries + DAG
 
 - **False SUCCESS fix (core):** new required static validator `dom-wiring` — every `getElementById` / `querySelector('#id')` literal in JS must exist as an `id` in some HTML file. Catches the live P118 mismatch (kebab-case JS vs camelCase HTML). Added to `REQUIRED_VALIDATORS` (7th) and `runStaticValidators`.
