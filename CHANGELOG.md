@@ -1,3 +1,16 @@
+## P118.5.1 — Archive Delivery Canon (implementation)
+
+- Staged App Builder is the **default** A3 path (`stagedEnabled` true unless APP_BUILDER_ENGINE=legacy|off|pipeline).
+- POST `/code/build` without engine → staged (202 + jobId). Missing DB/adapters → `STAGED_UNAVAILABLE` (not silent legacy).
+- Legacy IR pipeline only with `engine=legacy` (or legacy alias `pipeline`) **and** `ALLOW_LEGACY_APP_BUILDER=true`.
+- Staged SUCCESS without stored artifact is forced to failed (`archive_missing` / `artifact_save_failed`).
+- `publicJob.downloadUrl` only when `artifactId` is set (artifact download route only).
+- UI ProjectMode no longer sends `engine: 'pipeline'` on program build.
+- Tests: `tests/archive-delivery-p118-5-1.test.mjs`.
+- E2E download proof deferred to P118.5.2.
+
+
+
 ## P118.4 — Documentation Order (DOC-ORDER-1)
 
 - Introduced three protected primary documents at repository root:
