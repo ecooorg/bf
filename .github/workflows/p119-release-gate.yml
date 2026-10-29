@@ -1,0 +1,116 @@
+name: P119 Release Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      cleanup:
+        description: Delete projects created by the Architect regression
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: p119-release-gate
+  cancel-in-progress: false
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: biforge
+          POSTGRES_PASSWORD: biforge_test_password
+          POSTGRES_DB: biforge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U biforge -d biforge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        id: install
+        run: npm ci
+      - name: Full CI verification DAG
+        id: ci
+        timeout-minutes: 65
+        env:
+          DAG_ALLOW_UNSAFE: 'true'
+          DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
+        run: node scripts/run-dag.mjs --profile ci
+      - name: Install Playwright Chromium
+        id: browser
+        if: success()
+        run: npx playwright install --with-deps chromium
+      - name: UI smoke tests
+        id: ui
+        if: success()
+        run: npm run test:ui
+      - name: Live Conversational and Expert smoke on this commit
+        id: agents
+        if: success()
+        env:
+          STAGING_SERVICE_URL: ${{ secrets.STAGING_SERVICE_URL }}
+          STAGING_APP_PASSWORD: ${{ secrets.STAGING_APP_PASSWORD }}
+          GITHUB_SHA: ${{ github.sha }}
+          P119_SMOKE_KIND: contracts
+        run: node scripts/p119-live-smoke.mjs
+      - name: Live UI and all three agent entry points on this commit
+        id: live_ui
+        if: success()
+        env:
+          STAGING_SERVICE_URL: ${{ secrets.STAGING_SERVICE_URL }}
+          STAGING_APP_PASSWORD: ${{ secrets.STAGING_APP_PASSWORD }}
+          GITHUB_SHA: ${{ github.sha }}
+          P119_SMOKE_KIND: ui
+        run: node scripts/p119-live-smoke.mjs
+      - name: Verify Architect deployment commit
+        id: architect_preflight
+        if: success()
+        env:
+          STAGING_SERVICE_URL: ${{ secrets.STAGING_SERVICE_URL }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: node scripts/p119-regression-preflight.mjs
+      - name: Live Architect build, validators and verified ZIP download
+        id: architect
+        if: success()
+        env:
+          STAGING_SERVICE_URL: ${{ secrets.STAGING_SERVICE_URL }}
+          STAGING_APP_PASSWORD: ${{ secrets.STAGING_APP_PASSWORD }}
+          P118_CLEANUP: ${{ inputs.cleanup }}
+          P118_OUT_DIR: p119-live/architect
+        run: node scripts/p118-architect-live.mjs
+      - name: Create commit-bound release evidence and enforce gate
+        id: evidence_gate
+        if: always()
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          CI_OUTCOME: ${{ steps.ci.outcome }}
+          UI_OUTCOME: ${{ steps.ui.outcome }}
+          AGENTS_OUTCOME: ${{ steps.agents.outcome }}
+          LIVE_UI_OUTCOME: ${{ steps.live_ui.outcome }}
+          ARCHITECT_PREFLIGHT_OUTCOME: ${{ steps.architect_preflight.outcome }}
+          ARCHITECT_OUTCOME: ${{ steps.architect.outcome }}
+        run: node scripts/p119-release-evidence.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p119-release-gate-${{ github.sha }}
+          path: p119-live/
+          if-no-files-found: warn
+          retention-days: 30
