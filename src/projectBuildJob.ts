@@ -1,5 +1,5 @@
 /** Shared client-side handling for the staged App Builder's HTTP 202 job contract. */
-import { stagedArchitectNote } from '../appBuilder/architectOutcome.ts';
+import { stagedArchitectNote } from './architectNote.ts';
 
 export type BuildJobResult = {
   jobId?: string;
