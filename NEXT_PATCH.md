@@ -1,3 +1,19 @@
+# P119.0.5 — Manual live agent smoke (current)
+
+**Applied:** Two manual-only workflows (`p119-agent-contracts`, `p119-ui-smoke`) run `scripts/p119-live-smoke.mjs` against an HTTPS staging service. They require `STAGING_SERVICE_URL`, `STAGING_APP_PASSWORD`, and a `/health` deployed commit matching the workflow checkout SHA (7-character prefix). No automatic CI duplication; no changes to runtime agents. Evidence JSON and job summaries contain no prompts, responses or credentials.
+
+**Coverage boundary:** Conversational and Expert real response checks; Architect authenticated availability and project-list route; served UI HTML and agent entry endpoints. NOT a browser interaction test and NOT Architect build/ZIP regression (P119.0.6). Full P119 release acceptance remains P119.0.7.
+
+**Verification:** JS syntax PASS; live smoke NOT_RUN (staging secrets/deployment not available in Assistant environment). CI status for this commit UNKNOWN until GitHub runs.
+
+**Next:** Navigator confirms staging secrets exist in GitHub Actions and that the exact patch commit is deployed, then manually dispatches both workflows. P119.0.6 follows only after results and Navigator decision about Advanced tab; retain gated `engine=legacy` until host usage confirmed.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not edit)
+
 # P119.0.4 — Agent-owned prompt text, agent-named chat routes, dead legacy import removed (current)
 
 **Navigator decisions (2026-10-29):** (1) add agent-named routes, keep `POST /api/conversation`; (2) `ALLOW_LEGACY_APP_BUILDER` host usage unknown → remove only the dead import, keep the gated branch.

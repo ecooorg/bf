@@ -1,3 +1,10 @@
+## P119.0.5 — Manual deployed-commit agent smoke workflows
+
+- Added manual `p119-agent-contracts` and `p119-ui-smoke` workflows, using a shared live-smoke runner. Both require staging secrets, authenticated session and `/health` commit equality with the checked-out SHA; they fail closed on missing configuration or mismatched deployment.
+- Contracts smoke checks real Conversational and Expert replies plus Architect session/API availability; UI smoke checks the served HTML and live agent entry endpoints. Neither claims Architect build-to-ZIP or browser interaction (reserved for P119.0.6/0.7). No duplicated CI or Playwright menu tests.
+- Evidence artifacts contain status/verdict only, not response text, passwords or cookies. Live execution NOT_RUN pending staging secrets and matching deployed commit.
+- Version/patch: `119` / `119.0.5`.
+
 ## P119.0.4 — Agent-owned prompt text, agent-named chat routes, dead legacy import removed
 
 - Navigator decisions (2026-10-29): add agent-named routes and keep the old one; legacy `engine=legacy` host usage unknown, so only the dead import is removed.
