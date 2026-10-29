@@ -1,6 +1,8 @@
 /**
  * Parse model output in the <<<FILE path>>> … <<<END>>> marker format.
  * Detects truncation (missing END), multiple files, garbage, and unsafe paths.
+ * With expectedPath it also repairs three known model slips deterministically (reported in `coerced`):
+ * the placeholder header `<<<FILE path>>>index.html`, a decorated header `<<<FILE path=index.html>>>`, and a code fence around the content.
  */
 
 import { isSafePath } from './core-plan.ts';
@@ -14,6 +16,7 @@ export interface MarkerParseResult {
   files: ParsedFile[];
   truncated: boolean;
   issues: string[];
+  coerced?: string[];
 }
 
 const FILE_OPEN = /<<<FILE\s+([^\n>]+)>>>/g;
@@ -25,13 +28,19 @@ const END_MARKER = '<<<END>>>';
  * - Paths that fail isSafePath are skipped and reported in issues.
  * - Content outside markers is ignored (garbage before/after).
  */
-export function parseFileMarkers(text: string): MarkerParseResult {
+function stripFence(content: string): string | null {
+  const m = /^\s*```[A-Za-z0-9_+-]*[ \t]*\r?\n([\s\S]*?)\r?\n```\s*$/.exec(content);
+  return m ? m[1] : null;
+}
+
+export function parseFileMarkers(text: string, expectedPath?: string): MarkerParseResult {
   const files: ParsedFile[] = [];
   const issues: string[] = [];
+  const coerced: string[] = [];
   let truncated = false;
 
   if (typeof text !== 'string' || text.length === 0) {
-    return { files, truncated: false, issues: ['empty_output'] };
+    return { files, truncated: false, issues: ['empty_output'], coerced };
   }
 
   let pos = 0;
@@ -47,7 +56,7 @@ export function parseFileMarkers(text: string): MarkerParseResult {
 
   if (opens.length === 0) {
     issues.push('no_file_markers');
-    return { files, truncated: false, issues };
+    return { files, truncated: false, issues, coerced };
   }
 
   for (let i = 0; i < opens.length; i++) {
@@ -58,36 +67,50 @@ export function parseFileMarkers(text: string): MarkerParseResult {
     const slice = text.slice(contentStart, searchEnd);
     const endIdx = slice.indexOf(END_MARKER);
 
-    if (endIdx < 0) {
-      truncated = true;
-      issues.push(`missing_end_for:${open.path}`);
-      // Still capture partial content for diagnostics
-      const partial = slice.replace(/^\r?\n/, '').replace(/\r?\n$/, '');
-      if (isSafePath(open.path)) {
-        files.push({ path: open.path, content: partial });
-      } else {
-        issues.push(`unsafe_path:${open.path}`);
-      }
-      continue;
-    }
-
-    let content = slice.slice(0, endIdx);
+    const complete = endIdx >= 0;
+    let content = complete ? slice.slice(0, endIdx) : slice;
     // Trim a single leading/trailing newline often produced by models
     if (content.startsWith('\r\n')) content = content.slice(2);
     else if (content.startsWith('\n')) content = content.slice(1);
     if (content.endsWith('\r\n')) content = content.slice(0, -2);
     else if (content.endsWith('\n')) content = content.slice(0, -1);
 
-    if (!isSafePath(open.path)) {
-      issues.push(`unsafe_path:${open.path}`);
-      continue;
+    let path = open.path;
+    if (expectedPath) {
+      const decorated = path.replace(/^path\s*[=:]\s*/i, '').replace(/^["'`]+|["'`]+$/g, '').trim();
+      if (decorated !== path && decorated === expectedPath) { path = decorated; coerced.push('marker_path_decorated'); }
+      if (path.toLowerCase() === 'path') {
+        const nl = content.search(/\r?\n/);
+        const firstLine = (nl < 0 ? content : content.slice(0, nl)).trim();
+        if (firstLine === expectedPath) {
+          path = firstLine;
+          content = nl < 0 ? '' : content.slice(nl).replace(/^\r?\n/, '');
+          coerced.push('marker_path_placeholder');
+        }
+      }
+      if (path === expectedPath) {
+        const unfenced = stripFence(content);
+        if (unfenced !== null) { content = unfenced; coerced.push('code_fence'); }
+      }
     }
 
-    files.push({ path: open.path, content });
+    if (!complete) {
+      truncated = true;
+      issues.push(`missing_end_for:${path}`);
+      // Still capture partial content for diagnostics
+      if (isSafePath(path)) files.push({ path, content });
+      else issues.push(`unsafe_path:${path}`);
+      continue;
+    }
+    if (!isSafePath(path)) {
+      issues.push(`unsafe_path:${path}`);
+      continue;
+    }
+    files.push({ path, content });
     pos = contentStart + endIdx + END_MARKER.length;
   }
 
-  return { files, truncated, issues };
+  return { files, truncated, issues, coerced };
 }
 
 /**

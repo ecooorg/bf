@@ -1,7 +1,7 @@
 /** Stable, content-addressed cache keys. Prompt versions are part of the contract. */
 import { createHash } from 'node:crypto';
 
-export const PROMPT_VERSION = 'static_site.v1' as const;
+export const PROMPT_VERSION = 'static_site.v2' as const;
 
 export function sha256(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex');

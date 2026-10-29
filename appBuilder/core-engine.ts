@@ -128,8 +128,8 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const unitReports: BuildReport['units'] = [];
   let failureReason: string | undefined;
   let templateUsed: string | undefined;
-  const call = async (role: 'planner' | 'coder', context: string, version?: string) => {
-    const p = promptFor(role, context);
+  const call = async (role: 'planner' | 'coder', context: string, version?: string, expectedPath?: string) => {
+    const p = promptFor(role, context, expectedPath);
     const maxAttempts = 2; // bounded: one original call plus at most one recovery call
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) {
@@ -295,15 +295,40 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       let content = cached?.content;
       let modelId: string | undefined = undefined;
       if (!content) {
-        const output = await call('coder', `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.`);
+        const unitContext = `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.`;
+        const output = await call('coder', unitContext, undefined, unit.path);
         if (!output) {
           if (cancelled || options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; unit.status = 'pending'; await save(); break; }
           unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts }); void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason ?? 'model_unavailable' } }); await save(); break;
         }
         modelId = output.modelId;
-        const parsed = parseFileMarkers(output.text);
-        const found = parsed.files.find((f) => f.path === unit.path);
-        if (!found || parsed.truncated) { unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts, modelId }); failureReason = parsed.issues.join(', ') || 'missing_expected_file_or_truncated'; void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason } }); await save(); break; }
+        const evaluate = (text: string, attempt: number, finishReason?: string) => {
+          const parsed = parseFileMarkers(text, unit.path);
+          const found = parsed.files.find((f) => f.path === unit.path);
+          const ok = Boolean(found) && !parsed.truncated;
+          event(ports, input.jobId, 'unit_attempt', {
+            unitId: id, path: unit.path, attempt, modelId: modelId ?? null, finishReason: finishReason ?? null,
+            textChars: text.length, textPreview: previewText(text, 600), foundPaths: parsed.files.map((f) => f.path),
+            truncated: parsed.truncated, issues: parsed.issues, coerced: parsed.coerced ?? [], ok, callsUsed: state.callsUsed,
+          }, ok ? 'info' : 'warn');
+          return { parsed, found, ok };
+        };
+        let ev = evaluate(output.text, 1, output.finishReason);
+        if (!ev.ok && !cancelled && !options.signal?.aborted && state.callsUsed < budget) {
+          // Bounded repair (A3 step 6): one more call that names what was wrong; the same requirements, nothing weakened.
+          const problems = ev.parsed.issues.length ? ev.parsed.issues : [`expected_path_not_found:${unit.path} (found: ${ev.parsed.files.map((f) => f.path).join(', ') || 'none'})`];
+          event(ports, input.jobId, 'unit_repair', { unitId: id, path: unit.path, issues: problems, callsUsed: state.callsUsed, callsBudget: budget }, 'warn');
+          unit.attempts++;
+          const repaired = await call('coder', `${unitContext}\nYour previous reply was rejected: ${problems.join('; ')}. Reply again with the complete file in the required block format.${ev.parsed.truncated ? ' The previous reply was cut off: keep the file compact so it fits in one reply.' : ''}`, undefined, unit.path);
+          if (repaired) { modelId = repaired.modelId; ev = evaluate(repaired.text, 2, repaired.finishReason); }
+          else if (cancelled) { unit.status = 'pending'; failureReason = 'cancelled'; await save(); break; }
+        }
+        const { parsed, found } = ev;
+        if (!ev.ok || !found) {
+          unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts, modelId });
+          failureReason = parsed.issues.length ? parsed.issues.join(', ') : `expected_path_not_found:${unit.path} (found: ${parsed.files.map((f) => f.path).join(', ') || 'none'})`;
+          void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason } }); await save(); break;
+        }
         content = found.content;
         await ports.store.putUnitResult({ jobId: input.jobId, unitId: id, cacheKey: key, content, contentHash: sha256(content), createdAt: new Date(ports.clock.now()).toISOString() });
       }
