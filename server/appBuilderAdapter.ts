@@ -115,7 +115,7 @@ export function createEventPort(): EventPort {
       : e.level === 'warn' || e.type === 'spec_repair' || e.type === 'plan_validate_failed' || e.type === 'spec_attempt' && e.data && e.data.validateOk === false ? 'warn'
       : 'info';
     const data = e.data ?? {};
-    const details: Record<string, unknown> = { unitId: e.unitId ?? null, eventType: e.type };
+    const details: Record<string, unknown> = { unitId: e.unitId ?? (typeof data.unitId === 'string' ? data.unitId : null), eventType: e.type };
     for (const [k, v] of Object.entries(data)) {
       if (k in details) continue;
       if (typeof v === 'string' && v.length > 1500) details[k] = `${v.slice(0, 1500)}…[+${v.length - 1500} chars]`;
