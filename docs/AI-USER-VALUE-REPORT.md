@@ -2,6 +2,22 @@
 
 Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, or NOT_RUN.
 
+## P118.3.3 — Code-stage file marker repair (2026-10-28)
+
+- Runtime change: coder prompt names the real marker; parser repairs three known marker slips for the expected path; one bounded repair call per file; specific failure reason; `unit_attempt` / `unit_repair` diagnostic events.
+- Verification (local only): `test:app-builder` 71/71 including 7 new tests; the live-shape test fails when the parser fix is removed (mutation check). Hosted CI, live run: NOT_RUN. ZIP packing/verification live: NOT_RUN.
+
+---
+
+## Live Architect run on commit `9ff44ac` (2026-10-28): HONEST_NON_PASS, progress
+
+- OBSERVED (workflow artifact): deployed commit `9ff44ac`, `/health` version 118, diagnostics release `P118.3.1`; staged engine; spec accepted and plan accepted on the first attempt; `callsUsed=3`; `failedStage=code`, unit `index.html`, `failureReason=missing_expected_file_or_truncated`; no files, no ZIP; `diagnostics.zip` downloaded; refusal controls passed; projects deleted.
+- OBSERVED (application log + local reproduction): the coder reply was complete (`finishReason=STOP`, 3703 chars) but began `<<<FILE path>>>index.html`; the prompt template contained the literal `<<<FILE path>>>`. With empty parser `issues` the `<<<END>>>` marker was present. The existing tests could not catch it because their fake model always emitted a correct marker.
+- OBSERVED: configured model candidates for planner (`LIGHT`) and coder (`STRONG`) were the same two `flash-lite` models. Whether this contributed is UNKNOWN.
+- Meaning: P118.3 spec/plan stages work live. The ZIP stage was not reached; ZIP integrity checks remain NOT_RUN live.
+
+---
+
 ## P118.3.2 — Single version source and documentation audit (2026-10-28)
 
 - Runtime behavior: none changed. Version handling changed: `package.json` (`patch`, `version`) is the only source; `src/config.ts` derives `APP_VERSION`/`APP_PATCH` from it; `check-version` validates `package.json` alone; `patch:pack` rejects a patch without `package.json`, with a patch number not above the base patch, or a `version` that differs from the first number of `patch`.
