@@ -1,7 +1,7 @@
 # BiForge — Current Task and Patch Control
 
-**Applied patch line:** P118.5.6 accepted by Navigator → P119.0.1 (three-agent entry UI) → P119.0.2 (boundary inventory, contracts, tests) → P119.0.3 (Conversational/Expert planning and prompt entry isolated; legacy names removed from user copy; CI green, Navigator confirmed) → P119.0.4 (agent-owned prompts/routes) → **P119.0.6** (manual Architect ZIP regression; execution pending).
-**Phase:** P119 — migrate to Conversational / Expert / Architect. P119.0.4 moved each agent's intro prompt text into its own file (byte-identical), added `POST /api/agent/conversational` and `POST /api/agent/expert` (compatibility path `POST /api/conversation` kept) and removed the unused legacy IR import from `server.ts`. One HTTP handler and the shared method/contract blocks in `promptPacks.ts` remain until a later slice.
+**Applied patch line:** P118.5.6 accepted by Navigator → P119.0.1 (three-agent entry UI) → P119.0.2 (boundary inventory, contracts, tests) → P119.0.3 (Conversational/Expert planning and prompt entry isolated; legacy names removed from user copy; CI green, Navigator confirmed) → P119.0.4 (agent-owned prompts/routes) → P119.0.5 (live agent smoke workflows) → P119.0.6 (Architect ZIP regression) → **P119.0.7** (commit-bound Release Gate; hosted execution pending).
+**Phase:** P119 — release gate. P119.0.7 adds a manual gate for full CI DAG, UI tests, live Conversational/Expert responses, UI/agent-entry smoke, and Architect build/validator/verified-ZIP regression. Evidence is bound to the full checkout commit and Actions run. Formal P119 acceptance remains pending Navigator decision.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, top of `NEXT_PATCH.md`, `docs/ARCHIVE-DELIVERY-CANON.md`, protected root docs.
 
 ## Single source for “what now”
@@ -17,17 +17,20 @@ This file + **top** entry of `NEXT_PATCH.md`. Do not read phase status from `AGE
 - P119.0.1: start screen and agent menu now expose Conversational, Expert, Architect; stable internal keys (`Simple`, `Expert`, `Project`) are retained as implementation details during migration.
 
 - P119.0.2 (OBSERVED in source): Conversational and Expert share `POST /api/conversation`, one handler and one prompt builder, selected only by `productMode === 'Expert'`; Expert also owns 13 step routes. Architect is isolated (`/project`, `/api/projects/*`, `appBuilder/`, own client modules). Workflows: `ci.yml` + `ui-check.yml` gate push/PR; live workflows are manual; no `p119-*` workflow exists. Locked by `tests/p119-agent-boundaries.test.mjs`.
-- P119.0.4 (OBSERVED in source): `POST /api/agent/conversational` and `POST /api/agent/expert` pin the agent (route beats `body.productMode`); `POST /api/conversation` still selects by `productMode`. Both agents build prompts from their own files; golden hashes prove the model-facing text did not change. `server.ts` no longer imports the legacy IR pipeline; the `engine=legacy` branch remains in `server/projectRoutes.ts` behind `ALLOW_LEGACY_APP_BUILDER=true` (default off; host setting UNKNOWN).
+- P119.0.4 (OBSERVED in source): `POST /api/agent/conversational` and `POST /api/agent/expert` pin the agent (route beats `body.productMode`); `POST /api/conversation` still selects by `productMode`. Both agents build prompts from their own files; golden hashes prove the model-facing text did not change. `server.ts` no longer imports the legacy IR pipeline; the `engine=legacy` branch remains in `server/projectRoutes.ts` behind `ALLOW_LEGACY_APP_BUILDER=true`; Navigator confirmed this setting is not used, so legacy remains disabled by default pending a separately scoped removal patch.
+
+## Current P119.0.7 gate state
+
+- Release gate workflow and evidence writer are implemented.
+- Hosted workflow execution, Playwright UI, and live checks: NOT_RUN until dispatched.
+- `ALLOW_LEGACY_APP_BUILDER` is not used; keep legacy disabled by default.
+- P120 remains blocked until the Navigator explicitly accepts or re-sequences P119.
 
 ## Next
 
-P119.0.5 CI confirmed green by Navigator; both live workflows green. P119.0.6 adds manual `p119-regression` for Architect build, validators and ZIP delivery on a verified deployed commit. Prior manual `p119-agent-contracts` and `p119-ui-smoke` check staging `/health` commit, authenticated agent replies/availability and UI serving; live results NOT_RUN pending secrets and matching deployment. These are not browser UI E2E or Architect ZIP acceptance.
-
-0. Confirm CI green on the P119.0.4 commit (new tests run inside `test:core`; HTTP route checks R1–R10 run inside `test:pipeline`; `ui-check` is NOT_RUN in the Assistant environment). The intermittent `tsc` stack overflow is mitigated (see NEXT_PATCH); its root cause is still unknown.
-1. Verify P119.0.1 source-contract tests, typecheck/build, and the existing regression gates.
-2. **P119.0.5 (proposed, needs Navigator inputs):** manual live smoke workflow only for what CI does not cover (each of the three agents starts and answers honestly on a deployed commit). Needs stand access/secrets from the Navigator and a decision on running it. The gated `engine=legacy` branch in `server/projectRoutes.ts` stays until the Navigator confirms `ALLOW_LEGACY_APP_BUILDER` was never set on any host (P119.0.6).
-3. Later P119 slices (ROADMAP Phase 6 table): workflows only where `ci.yml`/`ui-check.yml` do not cover, removal of remaining user-visible legacy modes, Architect regression, Release Gate.
-4. P120: cross-agent E2E and formal product acceptance. P121 remains optional and requires explicit authorization after P120/open decisions.
+1. Dispatch the manual `P119 Release Gate` workflow on the deployed commit.
+2. Require full CI DAG, `test:ui`, Conversational/Expert live checks, UI/agent-entry checks, and Architect verified-ZIP regression all PASS and bound to the same full commit SHA.
+3. Submit raw evidence for the Navigator's explicit P119 acceptance decision. Do not start P120 before that decision.
 
 ## Not authorized / constraints
 
