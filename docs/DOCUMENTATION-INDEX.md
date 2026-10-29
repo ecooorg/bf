@@ -26,10 +26,8 @@ Read `AI-USER-VALUE-REPORT.md` when diagnosing or changing user-facing behavior;
 - `OPERATIONS.md` — configuration, deployment, rollback and diagnostic commands.
 - `AI-ENVIRONMENT-CONTEXT.md` — Render deployment facts, authentication rules, live-test protocol; read before touching deployment or live workflows.
 - `P121_Browser_based_Model_Providers.md` — planned P121 task (browser-based model access); not authorized, read only when P121 is discussed.
-- `architecture-guardrails.md` — module boundaries, generators and App Builder invariants.
+- `architecture-guardrails.md` — module boundaries, generators, App Builder invariants, and TypeScript/naming conventions (includes former typing-and-naming).
 - `VIX-CONCEPT.md` — long-horizon strategy; not immediate implementation authorization.
-- `typing-and-naming.md` — TypeScript conventions.
-- `SCHEMA-STATUS-VOCABULARY.md` — status and evidence artifact vocabulary.
 - `../CHANGELOG.md` — patch history; newest entry first.
 
 ## Machine-readable files — preserve

@@ -98,3 +98,45 @@ Only executed successful checks are PASSED. A missing dependency, unavailable da
 - Machine-readable schemas, manifests, generated inventories, guardrails, operations instructions, and the strategic VIX concept remain separate when consumed by tools or serving distinct purposes.
 - The Navigator's local backups are the historical archive. Do not retain obsolete duplicate prose documents merely to preserve old versions.
 - Stop and consult the Navigator if a proposed change is mostly internal organization and its measurable user-outcome benefit is not explicit.
+
+
+## Status vocabulary (evidence-bearing artifacts)
+
+Authoritative values for every evidence-bearing artifact (Phase 1 schemas and all later evidence records):
+
+| Status | Meaning |
+|---|---|
+| `PASS` | Check ran and met its acceptance criteria. |
+| `FAIL` | Check ran and did not meet criteria. |
+| `BLOCKED` | Could not run because a declared prerequisite failed or was unavailable. |
+| `SKIPPED_BY_POLICY` | Intentionally not run under an explicit policy or authorization rule. |
+| `TIMEOUT` | Started but did not finish within the allowed time. |
+| `NOT_RUN` | Never started (plan item only, cancelled before start, or outside scope). |
+| `UNKNOWN` | Outcome cannot be determined from available evidence. |
+| `PARTIAL` | Some required evidence exists; material gaps remain. |
+
+### Non-equivalence rule
+
+`UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, and `PARTIAL` are **never** to be treated or summarized as `PASS`.
+
+Critical claims whose provenance is missing, malformed, contradictory, or redacted away must not be reported as successful.
+
+### Related schema files
+
+- `schema-common.json` — shared `$defs` (status, provenance, schemaMeta)
+- `schema-intent-policy-contract.json`
+- `schema-change-impact-plan.json`
+- `schema-verification-plan.json`
+- `schema-evidence-record.json`
+- `schema-artifact-manifest.json`
+- `schema-handoff-report.json`
+- `schema-approval-decision.json`
+
+Validate instances with:
+
+```bash
+node scripts/schemaValidate.mjs --type evidence-record --file path/to/instance.json
+node scripts/schemaValidate.mjs --dir path/to/dir --type handoff-report
+```
+
+(Content formerly in `docs/SCHEMA-STATUS-VOCABULARY.md`; that file is removed.)
