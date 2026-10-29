@@ -412,6 +412,35 @@ Prompts live in `appBuilder/core-prompts.ts`; markers in `core-markers.ts`; engi
 
 ---
 
+
+
+### 7.1 Program archive delivery (canonical — P118.5)
+
+Architect (A3) program delivery uses **exactly one** success path. Normative detail: `docs/ARCHIVE-DELIVERY-CANON.md`.
+
+1. Staged App Builder engine is the only engine that may claim A3 program SUCCESS (P118.5.1 makes this the API default).
+2. Job reaches `outcome=SUCCESS` only if a non-empty ZIP was packed **and** stored as an artifact (`artifactId` set).
+3. Client receives `downloadUrl` → `GET /api/projects/:projectId/artifacts/:artifactId/download`.
+4. User download uses `downloadViaFetch`; HTTP 200 with empty body is failure, not success.
+5. E2E acceptance (P118.5.4) must open the ZIP and assert expected implementation paths with non-empty content.
+
+**Forbidden as A3 SUCCESS (residuals only):**
+
+| Mechanism | Allowed residual use | Must not |
+|-----------|----------------------|----------|
+| Legacy `runAppBuilderPipeline` scaffold ZIP | Explicit `ALLOW_LEGACY_APP_BUILDER` / internal only | Default UI build or silent SUCCESS |
+| Code-task / model_patch download | Manual external coding hand-off | Same button as “Download program” |
+| PACKAGE.md Delivery tab | Task brief for external tools | Substitute for program archive |
+| Client JSON / workspace export | User backup of decisions/workspace | Server Architect artifact |
+| Diagnostics ZIP | Ops / failure diagnosis | Product “program ready” |
+
+**REQ-GEN-002**  
+**Precondition:** Architect job reaches terminal SUCCESS.  
+**Behaviour:** `downloadUrl` is present; GET returns `application/zip` with length > 0; archive opens; required profile files exist and are non-empty.  
+**Error:** Missing artifact, empty body, or failed open → job must not remain SUCCESS; UI must not offer a working download as success.  
+**Acceptance:** P118.5.4 E2E evidence on the evaluated commit (live or fake-model CI).
+
+
 ## 8. User Interface and Backend Interaction
 
 - React 19 + Tailwind (via Vite plugin).
@@ -512,7 +541,9 @@ Each REQ above carries its acceptance. Global product acceptance (from AI-USER-V
 
 ## 12. Open Constraints and Future Gates
 
-- P118 exit gate: live Architect run produces verified ZIP; hosted CI green; Navigator acceptance.
+- P118 exit gate: **P118.5.4** evidence — live or CI E2E download of program ZIP with expected files (see `docs/ARCHIVE-DELIVERY-CANON.md`); marker/spec repair alone is insufficient
+- P118.5.1–P118.5.5: staged-only default, artifact invariants, UI single download button, E2E, residual decommission
+- P118 exit gate (historical wording): live Architect run produces verified ZIP; hosted CI green; Navigator acceptance.
 - P119: UI migration to exactly three agents; removal of legacy mode paths.
 - P120: Cross-agent E2E.
 - P121: Universal Model Resilience Layer (planning only).
