@@ -396,7 +396,7 @@ Prompts live in `appBuilder/core-prompts.ts`; markers in `core-markers.ts`; engi
 
 ### 6.4 Agent boundary map and contracts (P119.0.2, OBSERVED in source; regression-locked)
 
-Status: the three agents are separate **entry points and UI names**; they are **not yet** three separate pipelines. Conversational and Expert still share one server handler and one prompt builder, selected by a client field. Architect is already a separate route family, client surface and engine. Locked by `tests/p119-agent-boundaries.test.mjs` (in `test:core`).
+Status (updated P119.0.3): the three agents are separate **entry points and UI names**. Conversational and Expert now own their **turn planning and prompt entry** (`server/conversationalAgent.ts`, `server/expertAgent.ts`, selected only by `server/agentRouting.ts`), but still share the HTTP route/handler `POST /api/conversation` and the prompt pack text in `promptPacks.ts`; they are **not yet** fully separate pipelines. Architect is a separate route family, client surface and engine. Locked by `tests/p119-agent-boundaries.test.mjs` and `tests/p119-agent-isolation.test.mjs` (in `test:core`).
 
 | Aspect | A1 Conversational | A2 Expert | A3 Architect |
 |---|---|---|---|
@@ -405,19 +405,19 @@ Status: the three agents are separate **entry points and UI names**; they are **
 | Entry | `/` chat shell, start card / agent menu | `/` chat shell, start card / agent menu | `/project` (full navigation; `main.tsx` lazy-loads `ProjectMode`) |
 | Client modules | `ConversationScreens.tsx` | `ExpertStepScreens.tsx`, `ExpertNav.tsx`, `expertContext.ts`, `expertHistory.ts` | `ProjectMode.tsx`, `ProjectDelivery.tsx`, `ProjectNoviceWizard.tsx`, `ProjectPathChooser.tsx`, `projectBuildJob.ts`, `projectAppBuilder.ts` |
 | Server routes | `POST /api/conversation` | `POST /api/conversation` (+ `productMode: "Expert"`) and step routes `/api/neutralize`, `/radar`, `/understand`, `/knowledge-map`, `/expand`, `/redteam-pair`, `/redteam`, `/premortem`, `/experiment-draft`, `/forecast-wording`, `/synthesis`, `/review`, `/revise-document` | `/api/projects/*` (`server/projectRoutes.ts`), incl. `POST …/code/build`, `GET …/code/build/:jobId`, `GET …/artifacts/:artifactId/download` |
-| Orchestration / prompt | `buildSimpleConversationPrompt` + `conversationMode` paragraph | same builder with `productMode=Expert` + `expertDialogueParagraph`; step prompts per route | `appBuilder/` staged engine (Spec → Plan → Units → Validators → Pack) |
+| Orchestration / prompt | `conversationalAgent.ts` (plan + prompt entry; pack text from `promptPacks.ts`) | `expertAgent.ts` (information→decision promotion, stage/method-state paragraph; pack text from `promptPacks.ts`); step prompts per route | `appBuilder/` staged engine (Spec → Plan → Units → Validators → Pack) |
 | State | browser-local conversation state | browser-local Expert `Decision` (stage `EXPERT_STAGES`) | server persistence: projects, jobs, artifacts (PostgreSQL) |
 | Availability | always | always | only when `ENABLE_PROJECT_MODE=true` (else 404 `PROJECT_MODE_DISABLED`; menu entry disabled) |
 | Output contract | streaming/answer text, honest limits | structured stage output + final answer with explicit uncertainty | verified program ZIP or truthful non-success (§7.1) |
-| Pipeline isolation | **shared with A2** (debt) | **shared with A1** (debt) | **isolated** |
+| Pipeline isolation | planning/prompt entry **isolated**; route handler and pack text **shared with A2** (debt) | planning/prompt entry **isolated**; route handler and pack text **shared with A1** (debt) | **isolated** |
 
 Shared, non-agent infrastructure (allowed to stay shared): auth/session, provider adapters and router, model registry/availability, rate limiting, `/api/attach`, `/api/export-document`, health/ops routes, UI shell, telemetry.
 
 **REQ-AGENT-001 — Agent selection is explicit.**  
 **Precondition:** a request reaches `POST /api/conversation`.  
-**Behaviour:** the request is Expert if and only if `body.productMode === 'Expert'`; any other value (absent, unknown, malformed) is Conversational. The client adds `productMode` / `expertStage` / `expertContext` only for Expert (`expertConversationFields`), so Conversational request bodies are unchanged. Expert never receives the light Conversational "information" contract (information-detected turns are promoted to `decision`). Method state sent as `expertContext` is quoted as data, never as instructions; unknown stages become `UNKNOWN`.  
+**Behaviour:** the request is Expert if and only if `body.productMode === 'Expert'` (decided only in `server/agentRouting.ts`); any other value (absent, unknown, malformed) is Conversational. The client adds `productMode` / `expertStage` / `expertContext` only for Expert (`expertConversationFields`), so Conversational request bodies are unchanged. Expert never receives the light Conversational "information" contract (information-detected turns are promoted to `decision`). Method state sent as `expertContext` is quoted as data, never as instructions; unknown stages become `UNKNOWN`.  
 **Error:** none silent — an unknown value falls to Conversational by definition, never to Expert or Architect.  
-**Acceptance:** `tests/p119-agent-boundaries.test.mjs` (selection and prompt-label tests; mutation-checked).
+**Acceptance:** `tests/p119-agent-boundaries.test.mjs` and `tests/p119-agent-isolation.test.mjs` (selection, byte-identical prompts versus the pre-split logic; mutation-checked).
 
 **REQ-AGENT-002 — Architect boundary.**  
 **Precondition:** Architect is requested.  
@@ -425,11 +425,15 @@ Shared, non-agent infrastructure (allowed to stay shared): auth/session, provide
 **Error:** a boundary violation fails `test:core` in CI.  
 **Acceptance:** `tests/p119-agent-boundaries.test.mjs`.
 
+**REQ-AGENT-004 — Agent modules are isolated (P119.0.3).**  
+**Behaviour:** `conversationalAgent.ts` and `expertAgent.ts` do not import each other, `agentRouting.ts`, `server.ts` or Architect modules; `server.ts` neither builds conversation prompts nor Expert paragraphs. Their output is byte-identical to the pre-split logic for every request body and detected mode. User-visible text (in-app guide, Architect confirmation) names only Conversational, Expert and Architect.  
+**Acceptance:** `tests/p119-agent-isolation.test.mjs`.
+
 **REQ-AGENT-003 — Known shared paths are explicit.**  
-**Behaviour:** the shared A1/A2 handler (`/api/conversation` → `buildConversationPrompt` → `buildSimpleConversationPrompt`), the internal keys `Simple` / `Expert` / `Project`, and the still-imported legacy IR pipeline (`runAppBuilderPipeline`, reachable only with `engine=legacy` and `ALLOW_LEGACY_APP_BUILDER=true`) are documented debt locked by `KNOWN_SHARED_PATH` tests. P119.0.3+ splits or removes them; the same patch must update the matching test. No document may claim separate pipelines for A1/A2 before that.  
+**Behaviour:** the shared A1/A2 HTTP handler (`/api/conversation`) and prompt pack text (`promptPacks.ts` → `buildSimpleConversationPrompt`, called from each agent module), the internal keys `Simple` / `Expert` / `Project`, and the still-imported legacy IR pipeline (`runAppBuilderPipeline`, reachable only with `engine=legacy` and `ALLOW_LEGACY_APP_BUILDER=true`) are documented debt locked by `KNOWN_SHARED_PATH` tests. P119.0.4+ splits or removes them; the same patch must update the matching test. No document may claim separate pipelines for A1/A2 before that.  
 **Acceptance:** `KNOWN_SHARED_PATH` tests; docs-integrity on protected files.
 
-**Workflow inventory (P119.0.2, OBSERVED).** Push/PR: `ci.yml` (DAG profile `ci`, runs `test:core` and `test:app-builder`) and `ui-check.yml` (`npm run test:ui`). Manual (`workflow_dispatch`): `p118-architect-live` (Architect live ZIP evidence; never drives chat routes), `p117-3-live-retest` (Conversational live), `staging-drills`, `evidence`, `verify-groq`; scheduled: `monitor-connections`. No `p119-*` workflow exists; P119.0.4 must reuse `ci.yml` coverage and add only what is not already covered.
+**Workflow inventory (P119.0.2, OBSERVED).** Push/PR: `ci.yml` (DAG profile `ci`, runs `test:core` and `test:app-builder`) and `ui-check.yml` (`npm run test:ui`). Manual (`workflow_dispatch`): `p118-architect-live` (Architect live ZIP evidence; never drives chat routes), `p117-3-live-retest` (Conversational live), `staging-drills`, `evidence`, `verify-groq`; scheduled: `monitor-connections`. No `p119-*` workflow exists; P119.0.5 must reuse `ci.yml` coverage and add only what is not already covered.
 
 ---
 
@@ -541,7 +545,7 @@ Architect (A3) program delivery uses **exactly one** success path. Normative det
 
 - `test:core`, `test:models`, `test:security`, `test:files`, `test:database`, `test:app-builder`, `test:ai`, `test:compact-ci-artifacts`, architecture and schema tests.
 - Golden evaluation harness.
-- P119 agent contracts: `tests/p119-agent-ui-contract.test.mjs` and `tests/p119-agent-boundaries.test.mjs` (in `test:core`; also `npm run test:p119-agents`).
+- P119 agent contracts: `tests/p119-agent-ui-contract.test.mjs`, `tests/p119-agent-boundaries.test.mjs`, `tests/p119-agent-isolation.test.mjs` (in `test:core`; also `npm run test:p119-agents`).
 - Live workflows: `p118-architect-live` (and predecessors).
 
 ### 10.2 Acceptance per Component

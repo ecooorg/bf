@@ -1,3 +1,12 @@
+## P119.0.3 — Conversational/Expert isolation (first bounded step), legacy names removed from user copy
+
+- Added `server/agentRouting.ts`, `server/conversationalAgent.ts`, `server/expertAgent.ts`: agent selection, turn planning and prompt entry are agent-owned; `server.ts` handler delegates. Output byte-identical to the pre-split logic (verified against a reference copy). Route `POST /api/conversation`, wire key `productMode`, internal `AppMode` keys and `promptPacks.ts` text intentionally unchanged.
+- User-visible copy: `UserGuide.tsx` and the Architect confirmation dialog use only Conversational / Expert / Architect.
+- Tests: new `tests/p119-agent-isolation.test.mjs`; `tests/p119-agent-boundaries.test.mjs` updated; both in `test:core`; new script `test:p119-agents` includes them.
+- Docs: ROADMAP Phase 6 table updated, Phase 7 gets the P120 slice plan, gates and sequence carried over from `docs/p119-p121.md`; TECHNICAL_SPECIFICATION §6.4 updated (REQ-AGENT-004); `docs/p119-p121.md` got a pointer note.
+- `package.json`: `typecheck`, `lint`, `build:server` run tsc with `--stack-size=4000` — `tsc` failed intermittently with `RangeError: Maximum call stack size exceeded` (also on the unmodified P119.0.2 tree); 6/6 local runs clean afterwards; guarded by a test.
+- Version/patch: `119` / `119.0.3`.
+
 ## P119.0.2 — Agent boundaries: inventory, contracts, regression tests
 
 - Inventoried routes, internal modes, workflows and shared orchestration. Result recorded once in `TECHNICAL_SPECIFICATION.md` §6.4 (boundary map, REQ-AGENT-001..003): Conversational and Expert share `POST /api/conversation` and one prompt builder selected by `productMode`; Architect is isolated (`/project`, `/api/projects/*`, `appBuilder/`, own client modules).

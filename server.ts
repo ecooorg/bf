@@ -16,7 +16,8 @@ import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
-import { buildSimpleConversationPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, type ProductMode } from './server/promptPacks.ts';
+import { EXPERT_STEP_PREFIX } from './server/promptPacks.ts';
+import { buildConversationTurnPrompt, planConversationTurn } from './server/agentRouting.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
@@ -1058,7 +1059,7 @@ function conversationGainAudit(out: any, contextSufficiency: string) {
 
 import { detectUserIntentFlags, isLimitationOnlyReply, informationSoftFail, informationRetryHint } from './server/intentFlags.ts';
 import { shouldRunVerifier, runEpistemicVerifier, skippedEpistemic } from './server/epistemicVerifier.ts';
-import { detectConversationMode, modeParagraph, type ConversationMode } from './server/conversationMode.ts';
+import { detectConversationMode } from './server/conversationMode.ts';
 import { retryDriftedToOpening } from './server/turnFocus.ts';
 
 // Token Economy v1.6: the conversation state already carries durable facts, assumptions,
@@ -1161,11 +1162,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
 }
 
 // --- POST /api/conversation ---
-// Simple Mode conversation prompt lives in server/promptPacks.ts (mode packs).
-function buildConversationPrompt(input: string, attachmentsBlock = '', modeBlock = '', today = new Date().toISOString().slice(0, 10), mode: ConversationMode = 'decision', productMode: ProductMode = 'Simple'): string {
-  return buildSimpleConversationPrompt(input, attachmentsBlock, modeBlock, today, mode, productMode);
-}
-
+// Agent selection, turn planning and prompt entry: server/agentRouting.ts → conversationalAgent.ts | expertAgent.ts (P119.0.3).
 
 app.post('/api/conversation', async (req, res) => {
   const phase = createPhaseTimer();   // P57: per-phase timing, logged as conversation_timing
@@ -1224,13 +1221,10 @@ app.post('/api/conversation', async (req, res) => {
     // PI-03: thin mode paragraph (Decision / Research / Engineering) on the shared prompt.
     const recentUserText = fullHistory.filter((m: any) => m.role === 'user').slice(-3).map((m: any) => String(m.content || '')).join('\n');
     const detectedMode = detectConversationMode(lastUserText, { userAskedSearch: intentFlags.userAskedSearch, recentUserText });
-    // P52: the Expert open dialogue keeps the Expert contract. Only an explicit client field switches it;
-    // nothing here changes the mode by itself. Expert never gets the light information contract.
-    const productMode: ProductMode = req.body?.productMode === 'Expert' ? 'Expert' : 'Simple';
-    const conversationMode: ConversationMode = productMode === 'Expert' && detectedMode === 'information' ? 'decision' : detectedMode;
-    const modeBlock = productMode === 'Expert'
-      ? `${modeParagraph(conversationMode)}\n\n${expertDialogueParagraph(String(req.body?.expertStage || ''), typeof req.body?.expertContext === 'string' ? req.body.expertContext : '')}`
-      : modeParagraph(conversationMode);
+    // P52/P119.0.3: agent selection is explicit (see agentRouting.ts); everything else is Conversational.
+    // Planning (mode focus, Expert stage context) is owned by the selected agent module, not by this handler.
+    const turnPlan = planConversationTurn(req.body, detectedMode);
+    const { productMode, conversationMode, modeBlock } = turnPlan;
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
     let webSearch: WebSearchResult = skippedWebSearch();
     let promptAttachmentsBlock = attachmentsBlock;
@@ -1261,7 +1255,7 @@ app.post('/api/conversation', async (req, res) => {
       }
     }
     phase.mark('prepare_search');
-    const prompt = buildConversationPrompt(input, promptAttachmentsBlock, modeBlock, new Date().toISOString().slice(0, 10), conversationMode, productMode);
+    const prompt = buildConversationTurnPrompt(input, promptAttachmentsBlock, turnPlan, new Date().toISOString().slice(0, 10));
     const callBudget = { used: 0 };   // S-4: the quality retry shares the request's model-call budget
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     phase.mark('main_call');

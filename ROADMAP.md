@@ -313,10 +313,15 @@ npm run check   # full DAG
 |---|---|---|
 | P119.0.1 | Three agent names in start screen and menu; P118 status reconciliation | Delivered; CI result pending Navigator report |
 | P119.0.2 | Inventory of routes, workflows and shared orchestration; boundary map and per-agent contracts (TECHNICAL_SPECIFICATION §6.4, REQ-AGENT-001..003); regression tests `tests/p119-agent-boundaries.test.mjs`; documentation sync; no runtime behaviour change | Delivered in this slice |
-| P119.0.3 | Legacy isolation: split the shared Conversational/Expert handler and prompt builder into agent-owned paths; remove legacy user-facing remnants after compatibility is confirmed; update the `KNOWN_SHARED_PATH` tests in the same patch | Next |
-| P119.0.4 | Workflows `p119-agent-contracts` / `p119-ui-smoke` only for what `ci.yml` + `ui-check.yml` do not already cover | Proposed; Navigator to confirm |
-| P119.0.5–0.6 | Remove remaining user-visible legacy modes (e.g. raw "Advanced" project data tab if judged a fourth mode); Architect regression (build, validators, ZIP download) | Proposed; Navigator to confirm |
-| P119.0.7 | P119 Release Gate: full CI + live scenarios for all three agents; Navigator decision | Proposed; Navigator to confirm |
+| P119.0.3 | Legacy isolation (first bounded step): agent selection, turn planning and prompt entry for Conversational and Expert moved into `server/agentRouting.ts`, `conversationalAgent.ts`, `expertAgent.ts` with byte-identical prompts; user-visible legacy names (Simple chat, Project mode/workspace, Expert method) removed from the in-app guide and the Architect confirmation dialog; tests `tests/p119-agent-isolation.test.mjs`. The HTTP route `POST /api/conversation`, wire key `productMode`, internal `AppMode` keys and `promptPacks.ts` text remain shared (compatibility) | Delivered in this slice |
+| P119.0.4 | Next isolation step, only if the Navigator confirms compatibility: agent-specific prompt packs split out of `promptPacks.ts`; decide whether the Expert step routes and `/api/conversation` get agent-named aliases; remove the still-imported legacy IR pipeline from `server.ts` if no deployment uses `engine=legacy` | Proposed |
+| P119.0.5 | Workflows `p119-agent-contracts` and `p119-ui-smoke` **only for gaps** that `ci.yml` (DAG `ci`, includes the P119 contract tests via `test:core`) and `ui-check.yml` (Playwright agent-menu check) do not already cover — e.g. a manual live smoke that each of the three agents starts and answers truthfully against a deployed commit. Do not duplicate CI | Proposed; Navigator to confirm |
+| P119.0.6 | Remove remaining user-visible legacy modes (raw "Advanced" project data tab if judged a fourth mode); Architect regression: build, validators, ZIP download (workflow `p119-regression`, reusing `p118-architect-live`) | Proposed; Navigator to confirm |
+| P119.0.7 | P119 Release Gate: full CI + `test:ui` + live scenarios for all three agents; evidence bound to the commit; Navigator decision | Proposed; Navigator to confirm |
+
+**Gate P119:** required checks green; three agents work; no user-visible legacy modes; no regression of accepted P116/P117/P118 behaviour. **Transition:** P120 starts only after the Navigator's explicit decision on P119.
+
+**Per-patch rule (from the Navigator's plan):** every patch carries code/doc changes, tests, `CHANGELOG.md`, `NEXT_PATCH.md` and the related documents; the next patch starts only after the required checks of the previous one pass.
 
 **Dependencies:** P118 closed.
 
@@ -349,6 +354,23 @@ npm run check   # full DAG
 **Verification:** Cross-agent live runs + CI.
 
 **Acceptance:** Navigator formal acceptance of product-level outcomes.
+
+**P120 slice plan (carried over from the Navigator's plan in `docs/p119-p121.md`):**
+
+| Patch | Content | Result |
+|---|---|---|
+| P120.0.1 | E2E Conversational | Full user scenario verified |
+| P120.0.2 | E2E Expert | Expert scenarios and error paths verified |
+| P120.0.3 | E2E Architect | Build, validators, download and ZIP integrity verified |
+| P120.0.4 | Cross-agent E2E: switching between agents and context preservation | Agents verified together |
+| P120.0.5 | Stabilisation; fix regressions found | Stable integration suite |
+| P120.0.6 | Workflows `p120-acceptance` and `p120-evidence` | Final CI and one evidence report |
+| P120.0.7 | Final acceptance and closing documentation | Formal completion of the programme |
+| P120.0.8 (conditional) | P118 residuals: download policy for `PARTIAL` (`failed_but_download_offered`) and dependency audit (`zod`, `body-parser`, `qs`); included only if the inventory confirms they still need closing before release | Optional |
+
+**Gate P120:** required E2E pass; no false `SUCCESS`; results bound to the verified commit; acceptance criteria met. After P120 the programme is closed; P121 is optional, not an obligatory end.
+
+**Sequence:** P119.0.1 → P119.0.2–0.7 → Navigator decision on P119 → P120.0.1–0.4 → P120.0.5–0.7 → programme closed → P121 (optional, only after an explicit Navigator yes and closed open decisions).
 
 ---
 

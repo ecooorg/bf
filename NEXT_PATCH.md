@@ -1,3 +1,26 @@
+# P119.0.3 — Conversational/Expert isolation (first bounded step) + legacy names removed from user copy (current)
+
+**Applied:**
+- New `server/agentRouting.ts` (only place that selects the agent: Expert iff `body.productMode === 'Expert'`), `server/conversationalAgent.ts`, `server/expertAgent.ts` (turn planning + prompt entry each). `server.ts` handler now calls `planConversationTurn` / `buildConversationTurnPrompt`; it no longer builds prompts or Expert paragraphs. Prompts and plans are byte-identical to the pre-split logic (tested against a reference copy of the old code).
+- User-visible legacy names removed: in-app guide (`src/UserGuide.tsx`: "Simple chat", "Simple mode", "Project mode/workspace", "Expert method") and the Architect confirmation dialog in `src/App.tsx` now say Conversational / Expert / Architect. "Simple words" (Architect beginner path name) is intentionally kept.
+- New `tests/p119-agent-isolation.test.mjs` (in `test:core`; `npm run test:p119-agents`). `tests/p119-agent-boundaries.test.mjs` updated: selection/Expert-promotion checks point at the new modules; `KNOWN_SHARED_PATH` now describes what is still shared.
+- Compared with `docs/p119-p121.md`: P119 table, P120 slice plan (0.1–0.7, conditional 0.8), gates and transition rules carried into `ROADMAP.md` Phase 6/7; the file got a pointer note.
+- Patch `119.0.3`.
+
+**Still shared on purpose (compatibility, not claimed as separated):** HTTP route `POST /api/conversation` and handler, wire key `productMode`, internal `AppMode` keys (`Simple`/`Expert`/`Project`), `promptPacks.ts` text, Expert step routes' names, legacy IR pipeline import in `server.ts` (gated by `engine=legacy` + `ALLOW_LEGACY_APP_BUILDER=true`).
+
+**Verify:** CI green on this commit (DAG `ci`, `ui-check`). Locally `npm run test:p119-agents`.
+
+**Finding and mitigation (Tier 1, disclosed):** `tsc --noEmit` failed intermittently (~1 of 2 runs here, also on the unmodified P119.0.2 tree) with `RangeError: Maximum call stack size exceeded`; hosted CI could hit it at random. Root cause not isolated (no long operator chains found; likely deep JSX/conditional nesting near the default Node stack). Mitigation: `typecheck`, `lint` and `build:server` now run `node --stack-size=4000 node_modules/typescript/bin/tsc …` (below the 8192 KB OS stack limit); 6/6 consecutive local runs clean. Guarded by a test. Underlying nesting is still UNKNOWN.
+
+**Next:** P119.0.4 (proposed, needs Navigator yes): split agent-specific prompt packs out of `promptPacks.ts`, decide on route aliases, remove the legacy IR pipeline import if no deployment uses it. Then P119.0.5 workflows only for CI gaps. Do not start P120/P121.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not delete)
+
 # P119.0.2 — Agent boundaries: inventory, contracts, regression tests (current)
 
 **Applied (no runtime behaviour change):**
