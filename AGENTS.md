@@ -22,6 +22,10 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 * **C9** `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, `PARTIAL` are never `PASS`. Implemented ≠ verified in production.
 * **C10** The authorization tiers below stay. Silence is not consent. Production deployment, GitHub write, billing, credentials and formal acceptance remain Tier 3.
 * **C11** Context budget: a fresh session must be able to work after reading `AGENTS.md`, `docs/AI-OPERATING-RULES.md` and the current patch section of `docs/AI-NATIVE-RENOVATION-TASK.md` (target ≤ 40 KB). Everything else is on demand through `docs/DOCUMENTATION-INDEX.md`.
+* **D1** The three files `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md` and `TECHNICAL_REPORT.md` (repository root) are protected primary documents. They may only be extended or refined. Deletion of sections, removal of REQ-IDs, acceptance criteria, stage descriptions or evidence requirements, or any other reduction of semantic content is forbidden without an explicit Navigator yes.
+* **D2** Creating new parallel normative prose documents (`Pxx-SPEC.md`, `Pxx-REPORT.md`, `*-NOTES.md`, or any other competing specification/report) is forbidden. All new normative content goes into one of the three protected files or into the existing rolling files listed in `docs/DOCUMENTATION-INDEX.md`.
+* **D3** Any patch that changes runtime behaviour, contracts or acceptance must update the corresponding sections of `TECHNICAL_SPECIFICATION.md` (requirements) and, when evidence is produced, `TECHNICAL_REPORT.md`. `ROADMAP.md` is updated only on phase or gate changes.
+* **D4** Machine guard: every patch that touches documentation must leave `docs:integrity` (or the equivalent DAG node) PASS. The guard verifies existence of the three protected files, presence of required sections, and that the count of REQ-IDs and critical headings has not decreased.
 
 ## Reversal table — human-era habits and their rulings
 
@@ -34,14 +38,16 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 | Style or formatting gates as goals | not goals | keep checks that protect C2 |
 | Split or merge files "for readers" | forbidden | only for lower context cost |
 | Tests, types, security, evidence | **not** atavism | keep and strengthen |
+| Create per-patch SPEC/REPORT files | forbidden (D2) | update the three protected primary documents in place |
+| Shorten protected docs to "save context" | forbidden (D1) | keep full semantic content; load on demand via index |
 
 ## When in doubt
 
-1. Does it touch C2? Then it needs evidence. 2. Does it pass C4? 3. Otherwise skip it.
+1. Does it touch C2? Then it needs evidence. 2. Does it pass C4? 3. Does it respect D1–D4? 4. Otherwise skip it.
 
 **Conflict rule.** If a request or document contradicts this charter, stop, state the conflict in one sentence and ask the Navigator a yes/no question about amending the charter. Never reinterpret silently, never "balance" it away, never return to human-oriented practice because it feels conventional.
 
-**Reporting.** Every patch report to the Navigator ends with the line `Charter conflicts: none` or one sentence naming the conflict.
+**Reporting.** Every patch report to the Navigator ends with the line `Charter conflicts: none` or one sentence naming the conflict. When documentation is touched, also report: `docs:integrity PASS` (or FAIL with reason) and whether any protected file lost semantic content (must be "no").
 
 ---
 
@@ -49,17 +55,27 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** P118 Complex Software Architect Agent (completion contract). Applied line: P118.3 (Spec bounded repair + diagnostics) → P118.3.1 (CI repair) → P118.3.2 (single version source + documentation audit). P118 is NOT closed: no live Architect run has yet delivered a verified ZIP (the 2026-10-28 live run hit the old engine, commit `7c51c5e`). P119 starts only after the P118 exit gate in the roadmap. P116 Conversational Agent accepted 2026-10-28 with residual B3 (Node LTS version number). P117.3 closed. P110–P112 foundations remain. Phase 2 closed (Navigator 2026-10-26). Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md` §A3; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; only roadmap: `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
-* **Owner directive:** see the Navigator Charter above (C1–C11). It overrides every other document.
-* **Programme authority:** this charter, `docs/AI-OPERATING-RULES.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, and `docs/AI-USER-VALUE-SPEC.md`. `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` is a historical audit baseline, not a current instruction source.
+* **Current phase:** P118 Complex Software Architect Agent (completion contract). Applied line: P118.3 → P118.3.1 → P118.3.2 → P118.3.3. **P118.4 (Documentation Order)** adds the three protected primary documents and D1–D4. P118 is NOT closed: no live Architect run has yet delivered a verified ZIP. P119 starts only after the P118 exit gate in the roadmap. P116 Conversational Agent accepted 2026-10-28 with residual B3 (Node LTS version number). P117.3 closed. P110–P112 foundations remain. Phase 2 closed (Navigator 2026-10-26). Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md` §A3; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; detailed roadmap + reconstruction: `ROADMAP.md` + `TECHNICAL_REPORT.md`; full engineering specification: `TECHNICAL_SPECIFICATION.md`.
+* **Owner directive:** see the Navigator Charter above (C1–C11 + D1–D4). It overrides every other document.
+* **Programme authority:** this charter, `docs/AI-OPERATING-RULES.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, `docs/AI-USER-VALUE-SPEC.md`, and the three protected primary documents. `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` is a historical audit baseline, not a current instruction source.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
-* **Documentation consolidation:** keep one authoritative file per ongoing purpose. Update the current specification, roadmap, task, and rolling evidence report in place; do not create per-patch copies. Superseded duplicate prose documents are removed after useful current content is transferred. The Navigator's local backups preserve old versions. `CHANGELOG.md` keeps patch history; read only its top entries.
-* **Evidence rule:** CI status belongs to an exact commit/run: a green run of an earlier commit says nothing about a later one, and a red run is not current once a repair patch is green. Each patch must cite evidence for its own commit/run. The P118.3 commit `1a98a6a` was red (repaired by P118.3.1); hosted CI of the repair is not yet recorded.
+* **Documentation consolidation:** the three protected primary documents (`TECHNICAL_SPECIFICATION.md`, `ROADMAP.md`, `TECHNICAL_REPORT.md`) are the engineering backbone. Keep one authoritative file per ongoing purpose for the rolling set. Update in place; do not create per-patch copies. Superseded duplicate prose documents are removed after useful current content is transferred. The Navigator's local backups preserve old versions. `CHANGELOG.md` keeps patch history; read only its top entries.
+* **Evidence rule:** CI status belongs to an exact commit/run: a green run of an earlier commit says nothing about a later one, and a red run is not current once a repair patch is green. Each patch must cite evidence for its own commit/run.
 * **Delivery rule:** continue one bounded patch at a time. Phase transitions require their stated evidence gates; do not advance a phase just because documentation or code exists.
 * **Phase 2 closure (P109):** Formal acceptance recorded. Evidence reviewed: DAG independent-check completion, BLOCKED reasons, fault-injection non-PASS outcomes, bounded-repair protected-path and limit guards, CI two-artifact packaging, fail-closed evidence gate. Remaining risks listed in the P109 audit section of the task document; none block further programme work. P92 production-diagnostics verification is frozen until the full AI-native renovation completes; subsequent patches are unblocked independently of P92.
 * **Authorization posture (Navigator 2026-10-26):** Changes to production deployment, GitHub write, billing, credentials, or privileged host execution of generated code remain Tier 3 and are excluded from the critical path. They will be raised only when needed to improve programme function or strengthen AI-native behaviour, and only after a separate Navigator decision. Do not treat them as open blockers.
 * **Phase 1 (closed by P106):** schemas (`docs/schema-*.json`) and validator (`scripts/schemaValidate.mjs`) exist. Evidence Records, fail-closed assessment, structured handoff, CI evidence gate, and check graph are in place.
 * **Phase 2 (closed by P109):** `docs/verification-manifest.json` + `scripts/run-dag.mjs` (independent checks always finish; dependents `BLOCKED` with named prerequisite). Fault injection and opt-in bounded repair present and tested. Always-on redacted CI diagnostics + five-cycle history + two-artifact assistant handoff operational. CI green.
+
+### Recent product / patch status (historical track)
+
+* **P118.4 — Documentation Order (this patch):** Introduces the three protected primary documents, D1–D4, documentation integrity guard, and updated index. No runtime behaviour change.
+* **P118.3.3 — Code-stage file marker repair:** Prompt, parser coercion, bounded unit repair, diagnostics. Live evaluation of full ZIP path still outstanding.
+* **P118.3.2 — Single version source + documentation audit.**
+* **P118.3.1 — CI repair for P118.3.**
+* **P118.3 — Spec bounded repair + assistant diagnostics.**
+* **P116 — Conversational Agent:** accepted 2026-10-28 with residual B3.
+* **P117.3 — closed for conversation recovery; Expert cascade foundations partial.**
 
 ### Recent product / patch status (historical track)
 
@@ -127,6 +143,22 @@ Silence is never consent in Tiers 2 and 3.
 * Include `./CHANGELOG.md` whenever a patch changes project code or functionality.
 * Include `./AGENTS.md` only when a significant product change requires updating it, unless explicitly requested otherwise.
 
+**Verification**
+
+* Clearly distinguish implemented functionality from functionality that has been tested or verified in production.
+* Never claim that a feature works merely because the build or deployment succeeded.
+
+## Version and patch numbering (Navigator decision 2026-10-28; binding, no exceptions)
+
+1. **`package.json` is the only source of the version.** It has two fields: `"patch"` = number of the patch just applied (digits separated by dots, e.g. `"118.3.2"`) and `"version"` = program version = the first number of `patch` (e.g. `"118"`).
+2. **Every patch ZIP contains `package.json`** with both fields set — documentation-only and one-line patches included. A patch without it is invalid (`versionPreflight` in `scripts/patch-tools.mjs` stops `npm run patch:pack`).
+3. **`version` always equals the first number of the patch just applied, even before CI is green.** Patch `P118.3.2` ⇒ `version` `118`; patch `P119` ⇒ `version` `119`. The patch name, the `patch` field and the CHANGELOG heading carry the same number.
+4. **A patch number is never lower than the program version and never lower than or equal to the previously applied patch.** With program version 118 the next patch is `118.x` or `119` or higher — never 116, 85 or 30.
+5. **No other place defines or is compared with the version.** `src/config.ts` derives `APP_VERSION` / `APP_PATCH` from `package.json`; `/health`, the console banner, export file names and diagnostics (`release` = `patch`) read those. CHANGELOG headings, documents, workflows and `server.ts` are never checked against the version and can never cause a version failure.
+6. `scripts/check-version.mjs` (DAG node `version-consistency`) validates `package.json` only: `patch` is dotted digits, `version` equals its first number. If it fails, fix `package.json`. Never add a second version source or a second version comparison.
+7. Sub-patches (`118.1`, `118.3.2`) share one program version, so a deployed build is identified by `patch` (diagnostics `release`) plus the commit from `/health`, not by `version` alone.
+
+## Version and patch numbering
 **Verification**
 
 * Clearly distinguish implemented functionality from functionality that has been tested or verified in production.
