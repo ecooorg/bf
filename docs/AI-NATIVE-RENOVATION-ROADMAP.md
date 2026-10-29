@@ -54,6 +54,21 @@ The longer-horizon VIX phases remain strategic direction, not authorization for 
 `PASS`, `FAIL`, `BLOCKED`, `TIMEOUT`, `PARTIAL`, `NOT_RUN`, `UNKNOWN`, `NOT_REPRODUCED`. These are not interchangeable. In particular, NOT_RUN and NOT_REPRODUCED never mean success.
 
 
+
+
+## P118.5 — Archive Delivery Canon (mandatory before P118 exit)
+
+See `docs/ARCHIVE-DELIVERY-CANON.md`.
+
+P118 is not closed by marker/spec repair alone. Exit requires a single staged path:
+
+build job → SUCCESS → downloadUrl → non-empty ZIP → expected files present.
+
+Implementation slices: **P118.5.1** (API default staged), **P118.5.2** (artifact invariants), **P118.5.3** (UI), **P118.5.4** (E2E evidence), **P118.5.5** (decommission residuals).
+
+Legacy scaffold pipeline, PACKAGE.md, code-task download, and client export remain as **non-A3** residuals only; they must not present as “program ready”.
+
+
 ## P121 planning note (not current authorization)
 
 P117.1 records the future objective: improve user outcomes when models/providers are unavailable or return invalid/low-quality answers. The planned layer comprises a model/provider registry, health monitor, task-aware router, response validator, and recovery engine. It should consider Gemini, Groq, Cloudflare Workers AI, OpenRouter, Hugging Face Inference Providers, and potentially local/open-weight routes, but no model IDs, access, free quotas, prices, or quality claims are presumed verified.
