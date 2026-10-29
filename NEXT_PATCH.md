@@ -1,4 +1,31 @@
-# P118.5.4 — Live staged path + documentation/audit alignment (current)
+# P118.5.5 — Dom-wiring + architecture boundaries (partial, applied in tree)
+
+**Applied in this tree:**
+- New required validator `dom-wiring` (catches live ID mismatch that produced FALSE_SUCCESS).
+- Architecture boundary fixes (`src/architectNote.ts`, exception for package.json); `architecture:check` PASS.
+- `architecture:check` added to verification-manifest (27 checks).
+- Version/patch `118` / `118.5.5`.
+
+**Not yet in this patch (continue next session):**
+1. Bounded unit repair in `core-engine.ts` after `dom-wiring` failure (one model call per broken script, real HTML ids in prompt; accept only if prior validators stay green and issue count drops).
+2. Tests for `dom-wiring` + repair (register in `test:app-builder`).
+3. Dependency audit clean (`body-parser`, `qs`, careful `zod` 4).
+4. `docs:generate` / guardrails / AI-NATIVE-RENOVATION-TASK touch-ups.
+5. Full local `npm run check` and live re-run after deploy.
+
+**Verify after apply + deploy:**
+1. CI green (27/27 including architecture:check).
+2. Offline: validators reject the known live mismatch; correct apps still PASS.
+3. Live `p118-architect-live`: either honest non-PASS / repair path, or SUCCESS with a working page (IDs match).
+
+**P118 exit / P119 start:** only after CI green on 118.5.5 **and** a live run that produces a working downloadable app (not FALSE_SUCCESS).
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not delete)
+
 
 **Applied:** Live architect client no longer forces legacy pipeline; task/canon/index updated; full audit report added under `docs/AUDIT-2026-10-29.md`.
 

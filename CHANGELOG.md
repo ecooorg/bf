@@ -1,4 +1,11 @@
-#
+## P118.5.5 — Dom-wiring validator + architecture boundaries + DAG
+
+- **False SUCCESS fix (core):** new required static validator `dom-wiring` — every `getElementById` / `querySelector('#id')` literal in JS must exist as an `id` in some HTML file. Catches the live P118 mismatch (kebab-case JS vs camelCase HTML). Added to `REQUIRED_VALIDATORS` (7th) and `runStaticValidators`.
+- **Architecture boundaries:** `stagedArchitectNote` moved to client-safe `src/architectNote.ts`; `src/projectBuildJob.ts` no longer imports from `appBuilder/`. Explicit `allowedExceptions` entry for intentional `src/config.ts → package.json` (single version source). `architecture:check` now PASS.
+- **CI-DAG:** `architecture:check` added to `docs/verification-manifest.json` (profiles `check` + `ci`); 26 → 27 checks.
+- **Version:** patch `118.5.5`.
+- **Still open (follow-up):** bounded repair after `dom-wiring` failure in the engine, full test suite for the new validator, zod/body-parser/qs audit clean, docs regeneration, live re-run after deploy. Do not start P119 until CI green + working live artifact.
+
 ## P118.5.4 — Live script staged default + audit alignment
 
 - `scripts/p118-architect-live.mjs`: stop sending `engine: 'pipeline'` (mapped to legacy and returned `LEGACY_DISABLED` on live commit `bd0e95d`). Build requests now use the staged default so exit evidence measures the Archive Delivery Canon path.
