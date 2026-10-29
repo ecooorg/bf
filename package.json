@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "118",
-  "patch": "118.3.3",
+  "patch": "118.5.1",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -48,7 +48,7 @@
     "docs:check": "node scripts/docsCheckInventories.mjs && node scripts/statusGraph.mjs --check && node scripts/capabilityGenerateGraph.mjs --check",
     "acceptance:report": "node scripts/acceptanceReport.mjs",
     "test:project-diagnostics": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/content-disposition-p93.test.mjs",
-    "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs",
+    "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs",
     "test:ai": "node scripts/ai-test-harness-p93-7.mjs",
     "patch:quality-report": "node scripts/patch-quality-report.mjs",
     "test:compact-ci-artifacts": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs",
