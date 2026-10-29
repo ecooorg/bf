@@ -1,7 +1,7 @@
 # BiForge — Current Task and Patch Control
 
-**Applied patch line:** P118.5.6 accepted by Navigator → P119.0.1 (three-agent entry UI) → P119.0.2 (boundary inventory, contracts, tests) → P119.0.3 (Conversational/Expert planning and prompt entry isolated; legacy names removed from user copy; CI green, Navigator confirmed) → P119.0.4 (agent-owned prompts/routes) → P119.0.5 (live agent smoke workflows) → P119.0.6 (Architect ZIP regression) → **P119.0.7** (commit-bound Release Gate; hosted execution pending).
-**Phase:** P119 — release gate. P119.0.7 adds a manual gate for full CI DAG, UI tests, live Conversational/Expert responses, UI/agent-entry smoke, and Architect build/validator/verified-ZIP regression. Evidence is bound to the full checkout commit and Actions run. Formal P119 acceptance remains pending Navigator decision.
+**Applied patch line:** P118.5.6 accepted by Navigator → P119.0.1 (three-agent entry UI) → P119.0.2 (boundary inventory, contracts, tests) → P119.0.3 (Conversational/Expert planning and prompt entry isolated; legacy names removed from user copy; CI green, Navigator confirmed) → P119.0.4 (agent-owned prompts/routes) → P119.0.5 (live agent smoke workflows) → P119.0.6 (Architect ZIP regression) → **P119.0.7** (commit-bound Release Gate; accepted by Navigator) → **P120.0.1** (Conversational two-turn browser E2E).
+**Phase:** P120 — cross-agent E2E and formal acceptance. P119 was explicitly closed by the Navigator after P119.0.7 Release Gate PASS on commit `d755db1a9944446c9b062eccb8294cd06c0327b8`. P120.0.1 adds deterministic two-turn Conversational browser E2E through the real local app server; the model endpoint is mocked, so live-provider behavior is not claimed.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, top of `NEXT_PATCH.md`, `docs/ARCHIVE-DELIVERY-CANON.md`, protected root docs.
 
 ## Single source for “what now”
@@ -19,29 +19,31 @@ This file + **top** entry of `NEXT_PATCH.md`. Do not read phase status from `AGE
 - P119.0.2 (OBSERVED in source): Conversational and Expert share `POST /api/conversation`, one handler and one prompt builder, selected only by `productMode === 'Expert'`; Expert also owns 13 step routes. Architect is isolated (`/project`, `/api/projects/*`, `appBuilder/`, own client modules). Workflows: `ci.yml` + `ui-check.yml` gate push/PR; live workflows are manual; no `p119-*` workflow exists. Locked by `tests/p119-agent-boundaries.test.mjs`.
 - P119.0.4 (OBSERVED in source): `POST /api/agent/conversational` and `POST /api/agent/expert` pin the agent (route beats `body.productMode`); `POST /api/conversation` still selects by `productMode`. Both agents build prompts from their own files; golden hashes prove the model-facing text did not change. `server.ts` no longer imports the legacy IR pipeline; the `engine=legacy` branch remains in `server/projectRoutes.ts` behind `ALLOW_LEGACY_APP_BUILDER=true`; Navigator confirmed this setting is not used, so legacy remains disabled by default pending a separately scoped removal patch.
 
-## Current P119.0.7 gate state
+# P120.0.1 — Conversational E2E (current)
 
-- Release gate workflow and evidence writer are implemented.
-- Hosted workflow execution, Playwright UI, and live checks: NOT_RUN until dispatched.
-- `ALLOW_LEGACY_APP_BUILDER` is not used; keep legacy disabled by default.
-- P120 remains blocked until the Navigator explicitly accepts or re-sequences P119.
+**Applied:** Added `tests/p120-conversational-e2e.test.mjs` for a two-turn browser journey through the real local app server: authenticate, choose Conversational, start a conversation, submit a request, receive a deterministic fixture reply, submit a follow-up, and verify history continuity. The test intercepts only `/api/agent/conversational`; it does not claim live provider coverage. `npm run test:ui` includes this scenario, and `npm run test:p120-conversational` runs it alone. Version/patch is `120` / `120.0.1`.
 
-## Next
+**Verification:** `node --check tests/p120-conversational-e2e.test.mjs` PASS. Browser E2E, `npm run test:ui`, full CI, and live model checks NOT_RUN in this environment because dependencies/Chromium are unavailable.
 
-1. Dispatch the manual `P119 Release Gate` workflow on the deployed commit.
-2. Require full CI DAG, `test:ui`, Conversational/Expert live checks, UI/agent-entry checks, and Architect verified-ZIP regression all PASS and bound to the same full commit SHA.
-3. Submit raw evidence for the Navigator's explicit P119 acceptance decision. Do not start P120 before that decision.
+**Next:** P120.0.2 — Expert E2E scenarios and error paths, per `docs/p119-p121.md`. Keep live provider acceptance separate from deterministic local UI coverage. P119 is accepted by Navigator; do not start P121.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not edit)
+
 
 ## Not authorized / constraints
 
 - Do not claim that the three agents already have fully separate pipelines: this slice updates the entry UI only.
 - Do not expose legacy `Simple` or `Project` labels as user-facing agent names.
 - Do not treat the optional P118 dependency audit or PARTIAL-download policy as completed.
-- Do not start P120 or P121 as part of this patch.
+- Do not start P121 without explicit Navigator authorization after P120 acceptance.
 - P119.0.3/P119.0.4 changed structure and route names only (byte-identical prompts); do not describe Conversational and Expert as fully separate pipelines while they share one HTTP handler and the method/contract blocks in `promptPacks.ts`.
 
 ## Residual
 
-- Dedicated Conversational/Expert orchestration separation and legacy-path isolation remain P119 work.
-- Cross-agent live acceptance remains P120.
-- Optional dependency audit and PARTIAL download policy remain open residuals.
+- P120 cross-agent E2E and formal acceptance remain in progress.
+- `engine=legacy` remains disabled by default; any removal is a separate patch and must preserve the confirmed host-configuration decision.
+- Optional P118 dependency audit and PARTIAL-download policy remain open residuals; they are not claimed as resolved.
