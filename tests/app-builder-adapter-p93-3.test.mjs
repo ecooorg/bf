@@ -8,9 +8,15 @@ const resp = (over) => ({ status: 'error', usage: { input: 0, cached: 0, output:
 const deps = (call) => ({ registry: REGISTRY_ALL.filter((e) => e.providerId === 'gemini' && e.capabilities.includes('json_output')), adapters: { gemini: { id: 'gemini', capabilities: () => ['json_output'], call } }, routerState: newRouterState() });
 const args = { role: 'coder', system: 's', prompt: 'p', maxOutputTokens: 100 };
 
-test('flag: staged engine is off unless APP_BUILDER_ENGINE=staged', () => {
-  assert.equal(stagedEnabled({}), false); assert.equal(stagedEnabled({ APP_BUILDER_ENGINE: 'false' }), false);
+test('flag: staged engine is on by default; opt out with legacy|off|pipeline|0|false', () => {
+  // P118.5.1 Archive Delivery Canon: staged is the default A3 path
+  assert.equal(stagedEnabled({}), true);
   assert.equal(stagedEnabled({ APP_BUILDER_ENGINE: 'staged' }), true);
+  assert.equal(stagedEnabled({ APP_BUILDER_ENGINE: 'false' }), false);
+  assert.equal(stagedEnabled({ APP_BUILDER_ENGINE: '0' }), false);
+  assert.equal(stagedEnabled({ APP_BUILDER_ENGINE: 'off' }), false);
+  assert.equal(stagedEnabled({ APP_BUILDER_ENGINE: 'legacy' }), false);
+  assert.equal(stagedEnabled({ APP_BUILDER_ENGINE: 'pipeline' }), false);
   assert.equal(staleMs({}), 120000); assert.equal(staleMs({ APP_BUILDER_STALE_MS: '30000' }), 30000);
 });
 test('model port: success, length finish, quota, invalid request', async () => {
