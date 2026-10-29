@@ -22,7 +22,6 @@
     "eval:golden": "tsx scripts/golden-eval.mjs --fake",
     "build:server": "tsc -p tsconfig.server.json",
     "monitor:connections": "tsx scripts/monitor-connections.mjs",
-    "e01:harness": "node scripts/e01-harness.mjs",
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
