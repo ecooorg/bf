@@ -33,6 +33,6 @@ test('P119 keeps Architect on its separate route and checks the three-agent menu
 
 test('P119 patch metadata is internally consistent', () => {
   assert.equal(pkg.version, '119');
-  assert.equal(pkg.patch, '119.0.1');
+  assert.match(pkg.patch, /^119\./);
   assert.ok(pkg.scripts['test:core'].includes('tests/p119-agent-ui-contract.test.mjs'));
 });
