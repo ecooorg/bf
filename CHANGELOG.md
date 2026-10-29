@@ -1,3 +1,17 @@
+## P118.4 — Documentation Order (DOC-ORDER-1)
+
+- Introduced three protected primary documents at repository root:
+  - `TECHNICAL_SPECIFICATION.md` — complete engineering specification (architecture, data model, API, three agents, REQ-IDs, acceptance).
+  - `ROADMAP.md` — sequential implementation plan from empty repository through P118 and forward phases P119–P121.
+  - `TECHNICAL_REPORT.md` — historical reconstruction and evidence record with confidence levels.
+- Updated `AGENTS.md`: new laws **D1–D4** (protection against semantic reduction and fragmentation), status, reversal table, reporting requirements.
+- Updated `docs/DOCUMENTATION-INDEX.md`: protected documents listed first; binding rules restated.
+- Added `scripts/docs-integrity.mjs` — machine guard for existence, required sections and REQ-ID baseline.
+- No runtime behaviour change. Version stays 118; patch field becomes `118.4`.
+
+**Verification:** `node scripts/docs-integrity.mjs` must report PASS.  
+**Not evaluated:** any product live run (this is a pure documentation + guard patch).
+
 ## P118.3.3 — Code-stage file marker repair (live run on 9ff44ac)
 
 - Live evidence (OBSERVED, commit `9ff44ac`): spec and plan passed; unit `index.html` failed with `missing_expected_file_or_truncated`. The model returned a complete file (`finishReason=STOP`, 3703 chars) under the header `<<<FILE path>>>index.html`: it copied the placeholder `path` from the prompt. The parser read `path` as the file name. Reproduced locally with the same output shape.
