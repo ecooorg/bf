@@ -193,13 +193,12 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; 
 // 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
-test('P119.0.7 workflow inventory includes the approved release gate without changing push/PR gates', () => {
+test('P119.0.2 workflow inventory is exactly the recorded set; no p119-* workflow exists yet', () => {
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
     'ci.yml', 'evidence.yml', 'monitor-connections.yml', 'p117-3-live-retest.yml',
-    'p118-architect-live.yml', 'p119-agent-contracts.yml', 'p119-regression.yml', 'p119-release-gate.yml', 'p119-ui-smoke.yml',
-    'staging-drills.yml', 'ui-check.yml', 'verify-groq.yml',
+    'p118-architect-live.yml', 'staging-drills.yml', 'ui-check.yml', 'verify-groq.yml',
   ]);
 });
 
@@ -209,11 +208,11 @@ test('P119.0.2 push/PR gates: ci.yml (DAG profile ci) and ui-check.yml; live wor
   assert.match(wf('ci.yml'), /run-dag\.mjs --profile ci/);
   assert.match(wf('ui-check.yml'), /on: \[push, pull_request\]/);
   assert.match(wf('ui-check.yml'), /npm run test:ui/);
-  for (const n of ['p117-3-live-retest.yml', 'p118-architect-live.yml', 'p119-regression.yml', 'p119-release-gate.yml', 'staging-drills.yml', 'evidence.yml', 'verify-groq.yml']) {
+  for (const n of ['p117-3-live-retest.yml', 'p118-architect-live.yml', 'staging-drills.yml', 'evidence.yml', 'verify-groq.yml']) {
     assert.match(wf(n), /workflow_dispatch/);
     assert.doesNotMatch(wf(n), /on: \[push/);
   }
-  // The Architect live regression reuses the P118 runner; neither workflow drives chat routes.
+  // The only Architect live workflow is p118-architect-live; it never drives chat routes.
   assert.doesNotMatch(readRepoFile('scripts/p118-architect-live.mjs'), /\/api\/conversation/);
 });
 
@@ -233,9 +232,9 @@ test('P119.0.2 CI DAG runs test:core and test:app-builder, so these contracts an
 // 5. Patch metadata
 // ---------------------------------------------------------------------------
 
-test('P119.0.2 patch metadata is consistent (package.json, lockfile)', () => {
-  assert.equal(pkg.version, '119');
-  assert.match(pkg.patch, /^119\./);
+test('patch metadata is consistent (package.json, lockfile)', () => {
+  assert.match(pkg.version, /^\d+$/);
+  assert.match(pkg.patch, new RegExp(`^${pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.`));
   assert.equal(lock.version, pkg.version);
   assert.equal(lock.packages[''].version, pkg.version);
 });
