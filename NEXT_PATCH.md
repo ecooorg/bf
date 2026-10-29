@@ -1,3 +1,30 @@
+# P119.0.4 — Agent-owned prompt text, agent-named chat routes, dead legacy import removed (current)
+
+**Navigator decisions (2026-10-29):** (1) add agent-named routes, keep `POST /api/conversation`; (2) `ALLOW_LEGACY_APP_BUILDER` host usage unknown → remove only the dead import, keep the gated branch.
+
+**Applied:**
+- Agent prompt text now lives in `server/conversationalAgent.ts` and `server/expertAgent.ts` (intro paragraphs; Expert also owns `expertDialogueParagraph`, `EXPERT_STAGES`, `EXPERT_STEP_PREFIX`). `server/promptPacks.ts` = shared method/boundary/contract blocks + `assembleConversationPrompt(intros, …)`. `server.ts` imports `EXPERT_STEP_PREFIX` from `expertAgent.ts`.
+- Byte identity: golden SHA-256 values (captured from the P119.0.3 code before the move) in `tests/p119-agent-prompts-routes.test.mjs`. If a golden test fails, the prompt text changed — that is a regression, not a hash to refresh.
+- Routes: `server/agentRouting.ts` exports `CONVERSATION_ROUTES` and `pinConversationAgent`; `server.ts` registers the three paths as string literals on purpose (the generated route inventory reads literals; a test ties them to `CONVERSATION_ROUTES`). Client: `src/conversationRoutes.ts` (`chatRoute`, `isChatRoute`); `App.tsx` uses `isChatRoute` where it used to compare with `/api/conversation` (decision-file attachment rule unchanged).
+- `server.ts`: unused import of `runAppBuilderPipeline` / `irFromPlainAnswers` removed. `server/projectRoutes.ts` untouched.
+- Test helper `tests/_prompts.mjs` (`buildAgentPrompt`) for tests that need a prompt by legacy `productMode`.
+- Regenerated: `docs/generated-route-inventory.json`, `generated-module-map.json`, `generated-check-graph.json`, `generated-capability-graph.json` (env/migration inventories differed only by timestamp and were not shipped).
+- Patch `119.0.4`.
+
+**Verification (Assistant environment, Node 22.22.2):** `npm run check` PASS 23/23 (includes `test:core`, `test:pipeline` with R1–R10, `typecheck`, `architecture:check`); `npm run test:p119-agents` 40/40; `npm run build` PASS; `node scripts/docs-integrity.mjs` PASS; `npm run docs:check` OK. NOT_RUN: `npm run test:ui` (Playwright Chromium not installed, download blocked), DAG profile `ci` (needs `DATABASE_URL`), live scenarios, hosted CI on the commit.
+
+**Still shared on purpose:** one HTTP handler (`conversationHandler`), method/contract blocks in `promptPacks.ts`, wire key `productMode` (still sent by the client for Expert; harmless, the route wins), internal `AppMode` keys, Expert step route names, the gated `engine=legacy` branch in `server/projectRoutes.ts`. The legacy compatibility path `/api/conversation` is still used by `scripts/evidence-collect.mjs`, `scripts/p117-3-live-retest.mjs` and many tests; retire it only after P120 and a Navigator decision.
+
+**Open (Navigator):** was `ALLOW_LEGACY_APP_BUILDER=true` ever set on any host? If never → a later slice may delete `engine=legacy`, `runAppBuilderPipeline` and its tests. UNKNOWN until answered.
+
+**Next:** P119.0.5 — a manual live-smoke workflow only for what CI does not cover; needs stand access/secrets from the Navigator before starting (ask first, with a recommendation). Do not start P120/P121.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not delete)
+
 # P119.0.3 — Conversational/Expert isolation (first bounded step) + legacy names removed from user copy (current)
 
 **Applied:**

@@ -16,8 +16,8 @@ import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
-import { EXPERT_STEP_PREFIX } from './server/promptPacks.ts';
-import { buildConversationTurnPrompt, planConversationTurn } from './server/agentRouting.ts';
+import { EXPERT_STEP_PREFIX } from './server/expertAgent.ts';
+import { buildConversationTurnPrompt, planConversationTurn, pinConversationAgent } from './server/agentRouting.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
@@ -41,7 +41,6 @@ import { createPlan, decideApproval, getBudget, getProjectSettings, listApproval
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './server/taskService.ts';
 import { createWorker } from './server/worker.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './server/artifactRepository.ts';
-import { runAppBuilderPipeline, irFromPlainAnswers } from './server/appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, defaultPassport } from './server/contracts.ts';
 import { verifyGitHubWebhookSignature, githubConfigFromEnv } from './server/githubIntegration.ts';
 import { projectCapabilities } from './server/projectCapabilities.ts';
@@ -1161,10 +1160,10 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
   }
 }
 
-// --- POST /api/conversation ---
-// Agent selection, turn planning and prompt entry: server/agentRouting.ts → conversationalAgent.ts | expertAgent.ts (P119.0.3).
+// --- POST /api/conversation (legacy, compatible) | /api/agent/conversational | /api/agent/expert ---
+// Route table and agent pinning: server/agentRouting.ts. Turn planning and prompt entry: conversationalAgent.ts | expertAgent.ts (P119.0.3).
 
-app.post('/api/conversation', async (req, res) => {
+const conversationHandler = async (req: express.Request, res: express.Response) => {
   const phase = createPhaseTimer();   // P57: per-phase timing, logged as conversation_timing
   const requestStartedAt = Date.now();
   let retryRan = false;
@@ -1499,7 +1498,13 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
       }),
     }, { model: 'fallback', fallback: true, durationMs: 0, stage: 'conversation-fallback', calls: 0, lightFallback: false, promptChars: 0, errorCode: reason });
   }
-});
+};
+
+// Same handler, three entrances (P119.0.4). The agent-named routes pin the agent; the legacy path keeps selecting by body.productMode.
+// Path literals stay here on purpose: the generated route inventory reads them. tests/p119-agent-prompts-routes.test.mjs ties them to CONVERSATION_ROUTES.
+app.post('/api/conversation', conversationHandler);
+app.post('/api/agent/conversational', pinConversationAgent('conversational'), conversationHandler);
+app.post('/api/agent/expert', pinConversationAgent('expert'), conversationHandler);
 
 // --- POST /api/neutralize ---
 app.post('/api/neutralize', async (req, res) => {

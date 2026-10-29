@@ -1,3 +1,14 @@
+## P119.0.4 — Agent-owned prompt text, agent-named chat routes, dead legacy import removed
+
+- Navigator decisions (2026-10-29): add agent-named routes and keep the old one; legacy `engine=legacy` host usage unknown, so only the dead import is removed.
+- Prompt text: intro paragraphs, `expertDialogueParagraph`, `EXPERT_STAGES` and `EXPERT_STEP_PREFIX` moved from `server/promptPacks.ts` into `server/conversationalAgent.ts` / `server/expertAgent.ts`. `promptPacks.ts` keeps the shared method/boundary/contract blocks plus `assembleConversationPrompt`; `buildSimpleConversationPrompt` and `ProductMode` removed. Model-facing bytes unchanged: SHA-256 of 8 prompts (2 agents × 4 modes), the Expert paragraph and the step prefix were captured from the P119.0.3 implementation before the move and now locked in tests.
+- Routes: new `POST /api/agent/conversational` and `POST /api/agent/expert` pin the agent (`pinConversationAgent`; the route overrides `body.productMode`). `POST /api/conversation` stays and still selects by `productMode`. One shared handler (`conversationHandler`). The client (`src/conversationRoutes.ts`, `ConversationScreens.tsx`, `App.tsx`) calls the named routes.
+- `server.ts` no longer imports `runAppBuilderPipeline` / `irFromPlainAnswers` (the import was unused). The gated `engine=legacy` branch in `server/projectRoutes.ts` is unchanged.
+- Tests: new `tests/p119-agent-prompts-routes.test.mjs` (in `test:core` and `test:p119-agents`); HTTP checks R1–R10 added to `tests/pipeline.test.mjs`; new helper `tests/_prompts.mjs`; `KNOWN_SHARED_PATH` tests in `tests/p119-agent-boundaries.test.mjs` updated; `core`, `conversation-turn`, `pipeline` and `p119-agent-isolation` tests now import from the agent modules.
+- Generated inventories regenerated (`docs/generated-route-inventory.json`, `-module-map`, `-check-graph`, `-capability-graph`); `tests/feature-manifest.json` lists the new routes.
+- Docs: `TECHNICAL_SPECIFICATION.md` §6.4 (status, route table, REQ-AGENT-001/003/004), `ROADMAP.md` Phase 6 table, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-USER-VALUE-REPORT.md`.
+- Version/patch: `119` / `119.0.4`.
+
 ## P119.0.3 — Conversational/Expert isolation (first bounded step), legacy names removed from user copy
 
 - Added `server/agentRouting.ts`, `server/conversationalAgent.ts`, `server/expertAgent.ts`: agent selection, turn planning and prompt entry are agent-owned; `server.ts` handler delegates. Output byte-identical to the pre-split logic (verified against a reference copy). Route `POST /api/conversation`, wire key `productMode`, internal `AppMode` keys and `promptPacks.ts` text intentionally unchanged.
