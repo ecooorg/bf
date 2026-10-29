@@ -35,12 +35,12 @@ try {
     page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.(googleapis|gstatic)\.com/.test(m.location().url || '')) bad(w, `console error: ${m.text().slice(0, 120)}`); });
     await page.goto(base + '/');
     // Welcome / privacy screen: the header exists only after the Start button is pressed.
-    // UI1: explicit Simple / Expert / Project start screen (after sign-in).
-    const modeSimple = page.locator('[data-testid="start-mode-simple"], .mode-start-grid button.panel', { hasText: /Simple/i });
+    // P119: explicit Conversational / Expert / Architect agent selection (after sign-in).
+    const modeSimple = page.locator('[data-testid="start-mode-simple"], .mode-start-grid button.panel', { hasText: /Conversational/i });
     try { await modeSimple.first().waitFor({ timeout: 8000 }); } catch {}
     if (await modeSimple.count()) {
       const mb = await modeSimple.first().boundingBox();
-      mb && mb.height < MIN_TAP - 0.5 ? bad(w, `Simple mode card height ${Math.round(mb.height)}px < ${MIN_TAP}px`) : good(w, 'Simple mode card >= 44px');
+      mb && mb.height < MIN_TAP - 0.5 ? bad(w, `Conversational agent card height ${Math.round(mb.height)}px < ${MIN_TAP}px`) : good(w, 'Conversational agent card >= 44px');
       await page.screenshot({ path: `ui-mode-start-${w}.png` });
       await modeSimple.first().click();
     } else {
@@ -133,29 +133,29 @@ try {
       await page.locator('.hdr-secondary.open').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
       return (await page.locator('.hdr-secondary.open').count()) > 0;
     };
-    // P51: one Mode button in the top bar; its list has the three modes and a way back to the start screen.
+    // P119: one agent button in the top bar; its list has three agents and a way back to agent selection.
     const modeBtn = page.locator('[data-testid="mode-menu-button"]').first();
     if (await modeBtn.count()) {
       await modeBtn.click();
       const modeItems = page.getByRole('menuitemradio');
-      (await modeItems.count()) === 3 ? good(w, 'Mode menu lists three modes') : bad(w, 'Mode menu does not list three modes');
-      (await page.locator('[data-testid="change-mode"]').count()) ? good(w, 'Mode menu has Back to mode selection') : bad(w, 'Mode menu missing Back to mode selection');
+      (await modeItems.count()) === 3 ? good(w, 'Agent menu lists three agents') : bad(w, 'Agent menu does not list three agents');
+      (await page.locator('[data-testid="change-mode"]').count()) ? good(w, 'Agent menu has Back to agent selection') : bad(w, 'Mode menu missing Back to agent selection');
       await noHScroll('(Mode menu open)'); await taps('(Mode menu open)');
-      await page.getByRole('menuitemradio', { name: /Expert method/i }).click();
+      await page.getByRole('menuitemradio', { name: /^Expert/i }).click();
       await page.waitForTimeout(300);
-      /Expert/i.test(await modeBtn.innerText()) ? good(w, 'mode switched to Expert via Mode button') : bad(w, 'Mode button does not show Expert after switching');
+      /Expert/i.test(await modeBtn.innerText()) ? good(w, 'mode switched to Expert via Mode button') : bad(w, 'Agent button does not show Expert after switching');
       await modeBtn.click();
-      await page.getByRole('menuitemradio', { name: /Simple chat/i }).click();
+      await page.getByRole('menuitemradio', { name: /Conversational/i }).click();
       await page.waitForTimeout(300);
-      /Simple/i.test(await modeBtn.innerText()) ? good(w, 'mode restored to Simple via Mode button') : bad(w, 'Mode button does not show Simple after switching back');
+      /Conversational/i.test(await modeBtn.innerText()) ? good(w, 'mode restored to Conversational via Agent button') : bad(w, 'Agent button does not show Conversational after switching back');
       // The old overlapping items must not come back inside More
       if (await openMore()) {
-        (await page.getByRole('menuitem', { name: /Switch to (Expert method|Simple chat)|Mode selection \(/i }).count()) === 0
+        (await page.getByRole('menuitem', { name: /Switch to (Expert|Conversational)|Agent selection \(/i }).count()) === 0
           ? good(w, 'More has no duplicate mode items') : bad(w, 'More still has duplicate mode items');
       }
       await noHScroll('(mode via Mode button)'); await taps('(mode via Mode button)');
     } else {
-      bad(w, 'Mode button missing in the top bar');
+      bad(w, 'Agent button missing in the top bar');
     }
     } catch (e) { bad(w, `test error: ${String(e.message).slice(0, 150)}`); } finally { await ctx?.close().catch(() => {}); }
   }
