@@ -356,6 +356,80 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     state.stage = 'check'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'check' });
     validators = runStaticValidators(new Map([...files].map(([p, f]) => [p, f.content])), state.spec);
   }
+
+  // P118.5.6: bounded repair when dom-wiring fails — one model call per broken script (max 2), with real HTML ids.
+  // Accept only if (a) no previously-passing required validator starts failing and (b) dom-wiring issue count drops.
+  const domIssues = () => validators.find((v) => v.name === 'dom-wiring')?.issues ?? [];
+  if (
+    files.size > 0 &&
+    allFilesDone &&
+    !cancelled &&
+    !options.signal?.aborted &&
+    validators.some((v) => v.name === 'dom-wiring' && !v.ok) &&
+    state.callsUsed < budget
+  ) {
+    const htmlIds: string[] = [];
+    for (const [path, f] of files) {
+      if (!/\.html?$/i.test(path)) continue;
+      for (const m of f.content.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)) htmlIds.push(m[1]);
+    }
+    const uniqueIds = [...new Set(htmlIds)];
+    const brokenScripts = [...new Set(domIssues().map((i) => i.path).filter((p): p is string => Boolean(p) && /\.js$/i.test(p)))].slice(0, 2);
+    for (const scriptPath of brokenScripts) {
+      if (state.callsUsed >= budget || cancelled || options.signal?.aborted) break;
+      const entry = files.get(scriptPath);
+      if (!entry) continue;
+      const issuesForScript = domIssues().filter((i) => i.path === scriptPath).map((i) => i.message);
+      if (!issuesForScript.length) continue;
+      const beforeCount = domIssues().length;
+      const previouslyOk = new Set(validators.filter((v) => v.ok).map((v) => v.name));
+      event(ports, input.jobId, 'dom_wiring_repair', {
+        path: scriptPath,
+        issues: issuesForScript,
+        htmlIds: uniqueIds,
+        callsUsed: state.callsUsed,
+        callsBudget: budget,
+      }, 'warn');
+      const repairPrompt =
+        `Fix DOM id mismatches in ${scriptPath} only. The HTML in this project defines these element ids (use them exactly, do not invent new ones): ${uniqueIds.length ? uniqueIds.map((id) => JSON.stringify(id)).join(', ') : '(none)'}.\n` +
+        `Current problems:\n- ${issuesForScript.join('\n- ')}\n` +
+        `Reply with the COMPLETE corrected file for path ${scriptPath} in the required marker block. Keep behaviour; only change the id strings so they match the HTML. Do not add new files.`;
+      const repaired = await call('coder', repairPrompt, undefined, scriptPath);
+      if (!repaired) continue;
+      const parsed = parseFileMarkers(repaired.text, scriptPath);
+      const found = parsed.files.find((f) => f.path === scriptPath);
+      if (!found || parsed.truncated) {
+        event(ports, input.jobId, 'dom_wiring_repair_rejected', { path: scriptPath, reason: parsed.truncated ? 'truncated' : 'path_missing', issues: parsed.issues }, 'warn');
+        continue;
+      }
+      // Trial: temporarily apply, re-validate, accept only if strict improvement rule holds.
+      const trial = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+      trial.set(scriptPath, found.content);
+      const trialValidators = runStaticValidators(trial, state.spec);
+      const trialDom = trialValidators.find((v) => v.name === 'dom-wiring');
+      const trialDomCount = trialDom?.issues.length ?? 0;
+      const newlyBroken = trialValidators.filter((v) => !v.ok && previouslyOk.has(v.name)).map((v) => v.name);
+      if (newlyBroken.length || trialDomCount >= beforeCount) {
+        event(ports, input.jobId, 'dom_wiring_repair_rejected', {
+          path: scriptPath,
+          reason: newlyBroken.length ? `broke_validators:${newlyBroken.join(',')}` : 'no_improvement',
+          beforeCount,
+          afterCount: trialDomCount,
+        }, 'warn');
+        continue;
+      }
+      files.set(scriptPath, { content: found.content, unitId: entry.unitId });
+      validators = trialValidators;
+      event(ports, input.jobId, 'dom_wiring_repair_accepted', {
+        path: scriptPath,
+        beforeCount,
+        afterCount: trialDomCount,
+        callsUsed: state.callsUsed,
+      });
+      // Refresh unit report content is already via files; unitReports keep status done.
+    }
+  }
+
   const checksDeclared = [...REQUIRED_VALIDATORS];
   const checksRun = validators.map((v) => v.name);
   const ran = new Set(checksRun);
