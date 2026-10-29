@@ -37,7 +37,7 @@ import {
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './taskService.ts';
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
-import { stagedEnabled, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
+import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
 import { pipelineArchitectOutcome } from '../appBuilder/architectOutcome.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, defaultPassport } from './contracts.ts';
@@ -411,9 +411,10 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
   });
 
   /**
-   * Product-facing App Builder (P59): IR → verified scaffold → optional narrow model slice → ZIP.
-   * Scaffold materialization does not require CODE_EXECUTOR; model slice is optional.
-   * Legacy model_patch-only path remains available via body.engine = "model_patch".
+   * Product-facing App Builder (P118.5.1 Archive Delivery Canon).
+   * Default A3 path: staged engine → job → artifact ZIP → downloadUrl.
+   * Residuals: engine=model_patch (manual hand-off); engine=legacy only if ALLOW_LEGACY_APP_BUILDER=true.
+   * Legacy pipeline must never be the silent default SUCCESS path for Architect.
    */
   app.post('/api/projects/:projectId/code/build', async (req, res) => {
     const operationId = newOperationId(); const startedAt = Date.now();
@@ -425,7 +426,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
         goal: z.string().trim().min(1).max(8000),
         constraints: z.string().trim().max(4000).optional(),
         idempotency_key: z.string().trim().min(1).max(200).optional(),
-        engine: z.enum(['pipeline', 'model_patch']).optional(),
+        engine: z.enum(['staged', 'pipeline', 'legacy', 'model_patch']).optional(),
         ir: z.record(z.unknown()).optional(),
         kind: z.string().optional(),
         needsAuth: z.string().optional(),
@@ -440,7 +441,10 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       const passport = (project.state as any)?.passport;
       if (passport?.status !== 'confirmed') return res.status(409).json({ success: false, error: 'Confirm the project passport before creating software.', code: 'PASSPORT_NOT_CONFIRMED' });
 
-      const engine = input.engine || 'pipeline';
+      // P118.5.1: default product path is staged (A3). Residuals are explicit.
+      const engineRaw = input.engine || 'staged';
+      const engine = engineRaw === 'pipeline' ? 'legacy' : engineRaw; // old clients sending pipeline → legacy residual
+
       if (engine === 'model_patch') {
         if (passport?.executor !== 'model_patch' || process.env.CODE_EXECUTOR !== 'model_patch') {
           return res.status(409).json({ success: false, error: 'model_patch is not enabled on this server.', code: 'EXECUTOR_UNAVAILABLE' });
@@ -468,18 +472,32 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
         } });
       }
 
-      // --- P93.3: staged engine (flag-gated; default stays legacy) ---
-      if (stagedEnabled() && engine === 'pipeline' && !input.ir) {
-        const deps = stagedDeps();
-        if (deps) {
-          const taskText = [input.goal, input.constraints ? `Constraints: ${input.constraints}` : ''].filter(Boolean).join('\n');
-          const started = await startStagedBuild(deps, { projectId: project.id, userId: 'owner', taskText });
-          res.setHeader('X-BiForge-Operation-Id', started.jobId);
-          return res.status(202).json({ success: true, data: { jobId: started.jobId, engine: 'staged', operationId: started.jobId, statusUrl: `/api/projects/${encodeURIComponent(project.id)}/code/build/${started.jobId}` } });
+
+      // --- P118.5.1: staged is the default A3 path ---
+      if (engine === 'staged' && !input.ir) {
+        if (!stagedEnabled()) {
+          return res.status(409).json({ success: false, error: 'Staged App Builder is disabled on this server (APP_BUILDER_ENGINE).', code: 'STAGED_DISABLED' });
         }
+        if (!process.env.DATABASE_URL) {
+          return res.status(503).json({ success: false, error: 'Staged App Builder requires DATABASE_URL.', code: 'STAGED_UNAVAILABLE' });
+        }
+        const deps = stagedDeps();
+        if (!deps || !ai) {
+          return res.status(503).json({ success: false, error: 'Staged App Builder has no model adapters configured.', code: 'STAGED_UNAVAILABLE' });
+        }
+        const taskText = [input.goal, input.constraints ? `Constraints: ${input.constraints}` : ''].filter(Boolean).join('\n');
+        const started = await startStagedBuild(deps, { projectId: project.id, userId: 'owner', taskText });
+        res.setHeader('X-BiForge-Operation-Id', started.jobId);
+        return res.status(202).json({ success: true, data: { jobId: started.jobId, engine: 'staged', operationId: started.jobId, statusUrl: `/api/projects/${encodeURIComponent(project.id)}/code/build/${started.jobId}` } });
       }
 
-      // --- Default: IR pipeline (scaffold; model optional) ---
+      // --- Legacy IR pipeline (residual only) ---
+      if (engine !== 'legacy') {
+        return res.status(400).json({ success: false, error: 'Unsupported engine. Use staged (default), legacy (ALLOW_LEGACY_APP_BUILDER), or model_patch.', code: 'ENGINE_UNSUPPORTED' });
+      }
+      if (!legacyAppBuilderAllowed()) {
+        return res.status(409).json({ success: false, error: 'Legacy App Builder pipeline is disabled. Set ALLOW_LEGACY_APP_BUILDER=true only for explicit residual use.', code: 'LEGACY_DISABLED' });
+      }
       const stateBuilder = (project.state as any)?.appBuilder;
       const ir = input.ir
         ? { ...input.ir, goal: input.goal, constraints: input.constraints || (input.ir as any).constraints }

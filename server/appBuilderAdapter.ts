@@ -8,7 +8,16 @@ import { getPool } from './database.ts';
 import { saveArtifact } from './artifactRepository.ts';
 import { linkDiagnosticArtifact, recordApplicationLog, recordDiagnostic } from './projectDiagnostics.ts';
 
-export const stagedEnabled = (env: NodeJS.ProcessEnv = process.env): boolean => env.APP_BUILDER_ENGINE === 'staged';
+/** P118.5.1: staged is the default A3 engine. Opt out with APP_BUILDER_ENGINE=legacy|off|pipeline|0|false. */
+export const stagedEnabled = (env: NodeJS.ProcessEnv = process.env): boolean => {
+  const v = String(env.APP_BUILDER_ENGINE ?? 'staged').trim().toLowerCase();
+  if (v === 'legacy' || v === 'off' || v === 'pipeline' || v === '0' || v === 'false') return false;
+  return true;
+};
+
+/** Legacy scaffold pipeline may run only when explicitly allowed (never silent A3 SUCCESS default). */
+export const legacyAppBuilderAllowed = (env: NodeJS.ProcessEnv = process.env): boolean =>
+  String(env.ALLOW_LEGACY_APP_BUILDER || '').trim().toLowerCase() === 'true';
 export const staleMs = (env: NodeJS.ProcessEnv = process.env): number => Math.max(5_000, Number(env.APP_BUILDER_STALE_MS) || 120_000);
 
 export interface AdapterDeps { registry: RegistryEntry[]; adapters: Record<string, ProviderAdapter>; routerState: RouterState; modelId?: string; getPoolFn?: () => Promise<any> }
@@ -159,7 +168,23 @@ export async function executeJob(deps: AdapterDeps, jobId: string): Promise<void
       try {
         const artifactId = await store.putArtifact(jobId, result.archive, { filename: 'app-source.zip', contentType: 'application/zip' });
         result.state.artifactId = artifactId; await store.saveJob(result.state); await linkDiagnosticArtifact(jobId, artifactId);
-      } catch (e) { void recordApplicationLog({ level: 'error', component: 'app-builder', event: 'artifact_save_failed', operationId: jobId, message: 'Build archive could not be stored', error: e, details: { projectId: result.state.projectId, status: result.state.status } }); result.state.error = { code: 'artifact_save_failed', message: String((e as Error)?.message ?? e).slice(0, 200) }; result.state.status = 'failed'; await store.saveJob(result.state); }
+      } catch (e) {
+        void recordApplicationLog({ level: 'error', component: 'app-builder', event: 'artifact_save_failed', operationId: jobId, message: 'Build archive could not be stored', error: e, details: { projectId: result.state.projectId, status: result.state.status } });
+        result.state.error = { code: 'artifact_save_failed', message: String((e as Error)?.message ?? e).slice(0, 200) };
+        result.state.status = 'failed';
+        if (result.state.report) {
+          result.state.report = { ...result.state.report, outcome: 'FAILED', goalImplemented: false, failureReason: 'artifact_save_failed', status: 'failed' };
+        }
+        await store.saveJob(result.state);
+      }
+    } else if (result.state.status === 'done' && result.state.report?.outcome === 'SUCCESS' && !result.state.artifactId) {
+      // P118.5.1: SUCCESS is impossible without a stored downloadable artifact
+      result.state.status = 'failed';
+      result.state.error = { code: 'archive_missing', message: 'SUCCESS requires a stored program ZIP artifact' };
+      if (result.state.report) {
+        result.state.report = { ...result.state.report, outcome: 'FAILED', goalImplemented: false, failureReason: 'archive_missing', status: 'failed' };
+      }
+      await store.saveJob(result.state);
     }
   } catch (e) {
     void recordApplicationLog({ level: 'error', component: 'app-builder', event: 'build_job_exception', operationId: jobId, message: 'Unhandled App Builder job exception', error: e, details: { jobId } });
@@ -183,9 +208,38 @@ export async function resumeStaleJobs(deps: AdapterDeps): Promise<number> {
 
 export function publicJob(j: JobState, projectId: string) {
   const units = (j.plan?.units ?? []).map((u) => ({ id: u.id, path: u.path ?? null, status: u.status, attempts: u.attempts }));
-  return { jobId: j.id, status: j.status, stage: j.stage, units, callsUsed: j.callsUsed, callsBudget: j.callsBudget, error: j.error, goalImplemented: j.report?.goalImplemented ?? null, outcome: j.report?.outcome ?? null, report: j.report ? { status: j.report.status, outcome: j.report.outcome, failureReason: j.report.failureReason ?? null, failedStage: j.report.failedStage ?? null, checksDeclared: j.report.checksDeclared, checksRun: j.report.checksRun, checksNotRun: j.report.checksNotRun, validators: j.report.validators } : null,
+  const outcome = j.report?.outcome ?? null;
+  // P118.5.1: downloadUrl only when an artifact exists (never point at PACKAGE.md / diagnostics)
+  const downloadUrl =
+    j.artifactId && (outcome === 'SUCCESS' || outcome === 'PARTIAL' || j.status === 'done')
+      ? `/api/projects/${encodeURIComponent(projectId)}/artifacts/${encodeURIComponent(j.artifactId)}/download`
+      : undefined;
+  return {
+    jobId: j.id,
+    status: j.status,
+    stage: j.stage,
+    units,
+    callsUsed: j.callsUsed,
+    callsBudget: j.callsBudget,
+    error: j.error,
+    goalImplemented: j.report?.goalImplemented ?? null,
+    outcome,
+    report: j.report
+      ? {
+          status: j.report.status,
+          outcome: j.report.outcome,
+          failureReason: j.report.failureReason ?? null,
+          failedStage: j.report.failedStage ?? null,
+          checksDeclared: j.report.checksDeclared,
+          checksRun: j.report.checksRun,
+          checksNotRun: j.report.checksNotRun,
+          validators: j.report.validators,
+        }
+      : null,
     diagnosticsUrl: `/api/projects/diagnostics/export?jobId=${encodeURIComponent(j.id)}`,
-    ...(j.artifactId ? { downloadUrl: `/api/projects/${encodeURIComponent(projectId)}/artifacts/${encodeURIComponent(j.artifactId)}/download` } : {}), updatedAt: j.updatedAt };
+    ...(downloadUrl ? { downloadUrl } : {}),
+    updatedAt: j.updatedAt,
+  };
 }
 
 /** build-report.json for the diagnostic ZIP: the given job, else the most recently updated job with a report. */
