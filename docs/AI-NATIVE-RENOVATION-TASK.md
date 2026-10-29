@@ -1,6 +1,6 @@
 # BiForge — Current Task and Patch Control
 
-**Applied patch line:** P118.5.6 accepted by Navigator → P119.0.1 (three-agent entry UI) → P119.0.2 (boundary inventory, contracts, tests) → P119.0.3 (Conversational/Expert planning and prompt entry isolated; legacy names removed from user copy; CI green, Navigator confirmed) → P119.0.4 (agent-owned prompts/routes) → **P119.0.5** (manual live-smoke workflows; execution pending).
+**Applied patch line:** P118.5.6 accepted by Navigator → P119.0.1 (three-agent entry UI) → P119.0.2 (boundary inventory, contracts, tests) → P119.0.3 (Conversational/Expert planning and prompt entry isolated; legacy names removed from user copy; CI green, Navigator confirmed) → P119.0.4 (agent-owned prompts/routes) → **P119.0.6** (manual Architect ZIP regression; execution pending).
 **Phase:** P119 — migrate to Conversational / Expert / Architect. P119.0.4 moved each agent's intro prompt text into its own file (byte-identical), added `POST /api/agent/conversational` and `POST /api/agent/expert` (compatibility path `POST /api/conversation` kept) and removed the unused legacy IR import from `server.ts`. One HTTP handler and the shared method/contract blocks in `promptPacks.ts` remain until a later slice.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, top of `NEXT_PATCH.md`, `docs/ARCHIVE-DELIVERY-CANON.md`, protected root docs.
 
@@ -21,7 +21,7 @@ This file + **top** entry of `NEXT_PATCH.md`. Do not read phase status from `AGE
 
 ## Next
 
-P119.0.5 source delivered: manual `p119-agent-contracts` and `p119-ui-smoke` check staging `/health` commit, authenticated agent replies/availability and UI serving; live results NOT_RUN pending secrets and matching deployment. These are not browser UI E2E or Architect ZIP acceptance.
+P119.0.5 CI confirmed green by Navigator; both live workflows green. P119.0.6 adds manual `p119-regression` for Architect build, validators and ZIP delivery on a verified deployed commit. Prior manual `p119-agent-contracts` and `p119-ui-smoke` check staging `/health` commit, authenticated agent replies/availability and UI serving; live results NOT_RUN pending secrets and matching deployment. These are not browser UI E2E or Architect ZIP acceptance.
 
 0. Confirm CI green on the P119.0.4 commit (new tests run inside `test:core`; HTTP route checks R1–R10 run inside `test:pipeline`; `ui-check` is NOT_RUN in the Assistant environment). The intermittent `tsc` stack overflow is mitigated (see NEXT_PATCH); its root cause is still unknown.
 1. Verify P119.0.1 source-contract tests, typecheck/build, and the existing regression gates.
