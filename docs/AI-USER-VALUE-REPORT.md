@@ -1,3 +1,13 @@
+## P119.0.2 — Agent boundary inventory and regression contracts (2026-10-29)
+
+- **Runtime change:** none. Documentation, tests and version metadata only.
+- **OBSERVED (source):** Conversational and Expert share `POST /api/conversation`, one handler and `buildSimpleConversationPrompt`; the agent is chosen by `body.productMode === 'Expert'` (anything else = Conversational). Expert additionally owns 13 step routes (`/api/understand`, `/expand`, `/synthesis`, …). Architect is isolated: `/project`, `/api/projects/*`, `appBuilder/`, separate client modules, gated by `ENABLE_PROJECT_MODE`. This matches the owner-reported/audit hypothesis that Simple/Expert orchestration is shared; it is a structural fact, not a measured quality defect.
+- **Tests:** `tests/p119-agent-boundaries.test.mjs` (21) locks route ownership, import isolation, selection and gating, plus `KNOWN_SHARED_PATH` locks for the shared path. Mutation-checked: four deliberate boundary breaks each failed a test; files restored.
+- **Local verification (Assistant environment, Node 22.22.2, `npm ci`):** `npm run check` (DAG profile `check`) PASS 23/23; `node scripts/docs-integrity.mjs` PASS; `node scripts/check-version.mjs` OK for 119 / 119.0.2. DAG profile `ci`: 24 PASS, 0 FAIL, 0 TIMEOUT, 2 BLOCKED (`test:database:live`, `test:bx06:api`) and 1 SKIPPED_BY_POLICY (`db-migrate`) because no `DATABASE_URL` exists in this environment — not PASS; hosted CI must confirm. Not run: `npm run test:ui` (Playwright/Chromium), live scenarios, hosted CI on the commit — status NOT_RUN, not PASS.
+- **Not claimed:** separate Conversational/Expert pipelines; removal of legacy paths; P118 residuals resolved.
+
+---
+
 ## P119.0.1 — Three-agent entry UI and P118 evidence reconciliation (2026-10-29)
 
 - **Runtime change:** start screen and in-app selector now present exactly three approved agent names: Conversational, Expert, Architect. Existing internal keys remain `Simple`, `Expert`, and `Project` for this first migration slice; fully dedicated pipelines and legacy-path removal are not claimed here.

@@ -5,7 +5,7 @@
 
 ## Current priority: recover the three user-facing agents
 
-Historical audit context: P114 identified user-outcome gaps, shared Simple/Expert conversation orchestration, and multiple project-build branches; not all reported failures were reproduced in an authenticated live session. P118 was accepted on 2026-10-29. P119 now migrates the visible product to the three approved agents and then isolates legacy orchestration in bounded, tested slices. See `docs/AI-USER-VALUE-REPORT.md`; observed facts and hypotheses must remain distinct.
+Historical audit context: P114 identified user-outcome gaps, shared Simple/Expert conversation orchestration, and multiple project-build branches; not all reported failures were reproduced in an authenticated live session. P118 was accepted on 2026-10-29. P119 now migrates the visible product to the three approved agents and then isolates legacy orchestration in bounded, tested slices. See `docs/AI-USER-VALUE-REPORT.md`; observed facts and hypotheses must remain distinct. P119 slice numbering is kept in `ROADMAP.md` Phase 6 (P119.0.2 = boundary contracts and tests; P119.0.3 = legacy isolation).
 
 ## Patch sequence
 

@@ -1,7 +1,7 @@
 # BiForge — Current Task and Patch Control
 
-**Applied patch line:** P118.5.6 accepted by Navigator → **P119.0.1** (three-agent entry UI + status/documentation alignment).
-**Phase:** P119 — migrate user-facing entry points to Conversational / Expert / Architect. This first slice changes the product-facing names and descriptions while preserving proven internal route keys; dedicated pipeline separation and legacy-path removal remain later P119 slices.
+**Applied patch line:** P118.5.6 accepted by Navigator → P119.0.1 (three-agent entry UI) → **P119.0.2** (agent boundary inventory, contracts, regression tests; no runtime change).
+**Phase:** P119 — migrate to Conversational / Expert / Architect. P119.0.1 changed product-facing names; P119.0.2 recorded and locked the boundaries (TECHNICAL_SPECIFICATION §6.4). Pipeline separation of Conversational/Expert and legacy-path removal are P119.0.3.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, top of `NEXT_PATCH.md`, `docs/ARCHIVE-DELIVERY-CANON.md`, protected root docs.
 
 ## Single source for “what now”
@@ -16,11 +16,14 @@ This file + **top** entry of `NEXT_PATCH.md`. Do not read phase status from `AGE
 - Remaining P118 residuals (download policy for PARTIAL; dependency audit for `zod` / `body-parser` / `qs`) are optional follow-ups, not blockers to the accepted P118 exit. They are not claimed as audited or resolved.
 - P119.0.1: start screen and agent menu now expose Conversational, Expert, Architect; stable internal keys (`Simple`, `Expert`, `Project`) are retained as implementation details during migration.
 
+- P119.0.2 (OBSERVED in source): Conversational and Expert share `POST /api/conversation`, one handler and one prompt builder, selected only by `productMode === 'Expert'`; Expert also owns 13 step routes. Architect is isolated (`/project`, `/api/projects/*`, `appBuilder/`, own client modules). Workflows: `ci.yml` + `ui-check.yml` gate push/PR; live workflows are manual; no `p119-*` workflow exists. Locked by `tests/p119-agent-boundaries.test.mjs`.
+
 ## Next
 
+0. Confirm CI green on the P119.0.2 commit (new tests run inside `test:core`).
 1. Verify P119.0.1 source-contract tests, typecheck/build, and the existing regression gates.
-2. Next bounded slice: inventory current conversation and project orchestration boundaries; add agent-specific route/UI contracts without changing accepted outcomes.
-3. Later P119 slice: isolate/remove legacy selectors and shared paths only after replacement behavior has regression coverage.
+2. **P119.0.3 (next):** split the shared Conversational/Expert handler and prompt builder into agent-owned paths behind the unchanged request contract; update the `KNOWN_SHARED_PATH` tests in the same patch.
+3. Later P119 slices (ROADMAP Phase 6 table): workflows only where `ci.yml`/`ui-check.yml` do not cover, removal of remaining user-visible legacy modes, Architect regression, Release Gate.
 4. P120: cross-agent E2E and formal product acceptance. P121 remains optional and requires explicit authorization after P120/open decisions.
 
 ## Not authorized / constraints
@@ -29,6 +32,7 @@ This file + **top** entry of `NEXT_PATCH.md`. Do not read phase status from `AGE
 - Do not expose legacy `Simple` or `Project` labels as user-facing agent names.
 - Do not treat the optional P118 dependency audit or PARTIAL-download policy as completed.
 - Do not start P120 or P121 as part of this patch.
+- P119.0.2 changed no runtime behaviour; do not describe the agents as separate pipelines until P119.0.3 lands.
 
 ## Residual
 
