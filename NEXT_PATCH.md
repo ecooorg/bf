@@ -1,3 +1,15 @@
+# P119.0.6 — Architect regression workflow (current)
+
+**Applied:** Manual `p119-regression` reuses P118 Architect task-to-ZIP runner and its validators/refusal controls. A strict `/health` commit preflight prevents evidence from being attributed to an unverified deployment. Advanced project JSON is a diagnostic panel, not a fourth agent; keep it gated. `engine=legacy` remains explicitly gated and default-disabled because host usage is UNKNOWN.
+
+**Verification:** JavaScript syntax and boundary tests to be checked locally; live regression NOT_RUN without staging. CI for this commit UNKNOWN until GitHub runs.
+
+**Next:** Navigator deploys the matching commit, runs `p119-regression`, reports results and confirms whether `ALLOW_LEGACY_APP_BUILDER=true` is configured on any host. Do not remove legacy branch until confirmed safe. P119.0.7 release gate follows successful regression and Navigator approval.
+
+Charter conflicts: none
+
+---
+
 # P119.0.5 — Manual live agent smoke (current)
 
 **Applied:** Two manual-only workflows (`p119-agent-contracts`, `p119-ui-smoke`) run `scripts/p119-live-smoke.mjs` against an HTTPS staging service. They require `STAGING_SERVICE_URL`, `STAGING_APP_PASSWORD`, and a `/health` deployed commit matching the workflow checkout SHA (7-character prefix). No automatic CI duplication; no changes to runtime agents. Evidence JSON and job summaries contain no prompts, responses or credentials.

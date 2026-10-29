@@ -1,3 +1,9 @@
+## P119.0.6 — Architect live ZIP regression and legacy decision boundary
+
+- Added manual `p119-regression` workflow: fail-closed deployed commit preflight followed by the existing P118 live Architect build, validators, ZIP inspection/download and refusal controls. Artifacts stored under `p119-regression/`; no automatic CI duplication.
+- Advanced raw JSON remains a gated project diagnostic view, not a fourth agent. Legacy `engine=legacy` remains disabled by default and gated until host configuration is confirmed; removing it without deployment evidence risks regression.
+- Workflow inventory tests updated; patch metadata advanced to 119.0.6. Live staging execution NOT_RUN locally.
+
 ## P119.0.5 — Manual deployed-commit agent smoke workflows
 
 - Added manual `p119-agent-contracts` and `p119-ui-smoke` workflows, using a shared live-smoke runner. Both require staging secrets, authenticated session and `/health` commit equality with the checked-out SHA; they fail closed on missing configuration or mismatched deployment.
