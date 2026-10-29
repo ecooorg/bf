@@ -28,6 +28,8 @@
     "GET /health",
     "GET /ops",
     "GET /ready",
+    "POST /api/agent/conversational",
+    "POST /api/agent/expert",
     "POST /api/analyze-full",
     "POST /api/attach",
     "POST /api/conversation",

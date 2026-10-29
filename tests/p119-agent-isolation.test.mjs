@@ -7,10 +7,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readRepoFile } from './_sources.mjs';
 import { detectConversationMode, modeParagraph } from '../server/conversationMode.ts';
-import { buildSimpleConversationPrompt, expertDialogueParagraph } from '../server/promptPacks.ts';
 import { resolveConversationAgent, planConversationTurn, buildConversationTurnPrompt } from '../server/agentRouting.ts';
 import { planConversationalTurn, buildConversationalPrompt } from '../server/conversationalAgent.ts';
-import { planExpertTurn, buildExpertPrompt } from '../server/expertAgent.ts';
+import { planExpertTurn, buildExpertPrompt, expertDialogueParagraph } from '../server/expertAgent.ts';
 
 /** Reference = exact logic of the removed server.ts block (P52). */
 function legacyPlan(body, detectedMode) {
@@ -50,14 +49,14 @@ test('P119.0.3 planner output equals the pre-split logic for every body × detec
   }
 });
 
-test('P119.0.3 prompt text is byte-identical to the pre-split builder', () => {
+test('P119.0.3 router entry builds exactly what the owning agent builds, for every body x detected mode', () => {
   const input = 'User brief and conversation: hello';
   for (const b of BODIES) for (const m of MODES) {
     const plan = planConversationTurn(b, m);
-    const want = legacyPlan(b, m);
-    const ref = buildSimpleConversationPrompt(input, 'ATT', want.modeBlock, '2026-10-29', want.conversationMode, want.productMode);
-    assert.equal(buildConversationTurnPrompt(input, 'ATT', plan, '2026-10-29'), ref);
+    const want = plan.agent === 'expert' ? buildExpertPrompt(input, 'ATT', plan, '2026-10-29') : buildConversationalPrompt(input, 'ATT', plan, '2026-10-29');
+    assert.equal(buildConversationTurnPrompt(input, 'ATT', plan, '2026-10-29'), want);
   }
+  // Byte identity against the pre-split text is locked by golden hashes in tests/p119-agent-prompts-routes.test.mjs.
 });
 
 test('P119.0.3 Expert never gets the information contract; Conversational keeps it', () => {
@@ -100,7 +99,7 @@ test('P119.0.3 import isolation: agents do not import each other, the router, se
 
 test('P119.0.3 server.ts no longer builds conversation prompts or Expert paragraphs itself', () => {
   const s = readRepoFile('server.ts');
-  assert.doesNotMatch(s, /buildSimpleConversationPrompt|expertDialogueParagraph|function buildConversationPrompt/);
+  assert.doesNotMatch(s, /buildSimpleConversationPrompt|assembleConversationPrompt|expertDialogueParagraph|function buildConversationPrompt/);
   assert.match(s, /from '\.\/server\/agentRouting\.ts'/);
 });
 

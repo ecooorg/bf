@@ -365,7 +365,8 @@ const projectUi = readFileSync(new URL('../src/ProjectMode.tsx', import.meta.url
 const test = (await import("node:test")).default;
 const assert = (await import("node:assert/strict")).default;
 const { readFileSync } = await import("node:fs");
-const { buildSimpleConversationPrompt, expertDialogueParagraph } = await import("../server/promptPacks.ts");
+const { expertDialogueParagraph } = await import("../server/expertAgent.ts");
+const { buildAgentPrompt } = await import("./_prompts.mjs");
 const { modeParagraph } = await import("../server/conversationMode.ts");
 const { buildExpertStageContext, expertConversationFields, EXPERT_CONTEXT_MAX_CHARS } = await import("../src/expertContext.ts");
 
@@ -403,9 +404,9 @@ test('P52 unknown stage is dropped; method state is quoted as data and bounded',
 
 test('P52 Expert prompt uses the full method body and the Expert label; Simple prompt is unchanged', () => {
   const block = `${modeParagraph('decision')}\n\n${expertDialogueParagraph('TEST', 'Facts: a')}`;
-  const expert = buildSimpleConversationPrompt('{}', '', block, '2026-10-17', 'decision', 'Expert');
-  const simple = buildSimpleConversationPrompt('{}', '', modeParagraph('decision'), '2026-10-17', 'decision');
-  const simpleExplicit = buildSimpleConversationPrompt('{}', '', modeParagraph('decision'), '2026-10-17', 'decision', 'Simple');
+  const expert = buildAgentPrompt('Expert', '{}', '', block, '2026-10-17', 'decision');
+  const simple = buildAgentPrompt('Simple', '{}', '', modeParagraph('decision'), '2026-10-17', 'decision');
+  const simpleExplicit = buildAgentPrompt('Simple', '{}', '', modeParagraph('decision'), '2026-10-17', 'decision');
   assert.match(expert, /BiForge in Expert Mode/);
   assert.doesNotMatch(expert, /BiForge in Simple Mode/);
   assert.match(expert, /PRODUCT MODE: Expert/);

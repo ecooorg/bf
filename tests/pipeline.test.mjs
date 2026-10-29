@@ -16,7 +16,8 @@ const net = (await import("node:net")).default;
 const { readFileSync } = await import("node:fs");
 const { spawn } = await import("node:child_process");
 const { detectConversationMode, modeParagraph } = await import("../server/conversationMode.ts");
-const { buildSimpleConversationPrompt, EXPERT_STEP_PREFIX } = await import("../server/promptPacks.ts");
+const { EXPERT_STEP_PREFIX } = await import("../server/expertAgent.ts");
+const { buildAgentPrompt } = await import("./_prompts.mjs");
 const { buildPromptCore } = await import("../server/promptCore.ts");
 const { ANALYST_INSTRUCTION } = await import("../server/contextBuilder.ts");
 
@@ -51,7 +52,7 @@ const RITUALS = ['STEP 0 - TRIAGE', 'STEP 1 - FIND THE REAL QUESTION', 'STEP 2 -
 const UNIVERSAL = ['CURRENT DATE (server-provided): 2026-10-14', 'LANGUAGE', 'HONESTY ABOUT FACTS AND SEARCH', 'SAFETY', 'WHEN THE IDEAL ANSWER IS UNAVAILABLE',
   'Never claim to have searched', 'FILES THE PERSON ATTACHES', 'DOCUMENTS AND FILES YOU HAND OVER', 'HARD BOUNDARIES', 'Return JSON only', 'User brief and conversation:\nQ-INPUT'];
 {
-  const build = (mode, withMode = true) => buildSimpleConversationPrompt('Q-INPUT', '', modeParagraph(mode), '2026-10-14', ...(withMode ? [mode] : []));
+  const build = (mode, withMode = true) => buildAgentPrompt('Simple', 'Q-INPUT', '', modeParagraph(mode), '2026-10-14', mode);
   const info = build('information');
   const heavy = { decision: build('decision'), research: build('research'), engineering: build('engineering'), noMode: build('decision', false) };
   for (const k of UNIVERSAL) assert.ok(info.includes(k), `information prompt keeps: ${k}`);
@@ -245,7 +246,7 @@ const approxFlags = detectUserIntentFlags('Дай приблизительную
   assert.ok(serverSrc.includes('EXPERT_STEP_PREFIX + prompt'), 'Expert path still prefixes its steps');
 
   // Expert / Project string contracts (read from source files without loading full module graphs).
-  const packs = readFileSync(new URL('../server/promptPacks.ts', import.meta.url), 'utf8');
+  const packs = readFileSync(new URL('../server/expertAgent.ts', import.meta.url), 'utf8');
   assert.ok(packs.includes('Do not choose or rank options for the person') && packs.includes('explicit assumptions'));
   const ctx = readFileSync(new URL('../server/contextBuilder.ts', import.meta.url), 'utf8');
   assert.ok(ctx.includes('Prefer operational precision') && ctx.includes('Do not chat or coach'));
@@ -1062,6 +1063,30 @@ await withSrv({ LOGIN_MAX_FAILS: '3' }, async function A(s) {
   const sess = await fetch(s.base + '/api/session', { headers: { cookie: s.cookie } }); T('A6 session', sess.status === 200, sess.status);
   const bad = []; for (let i = 0; i < 4; i++) bad.push((await fetch(s.base + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'wrong' + i }) })).status);
   T('A7 login: wrong=401, then lockout 429', bad[0] === 401 && bad[3] === 429, bad.join(','));
+});
+
+// ===== P119.0.4 agent-named routes: the route pins the agent; the legacy path still selects by body.productMode =====
+await withSrv({}, async function P1190_4(s) {
+  script = () => ({ json: GOOD() });
+  const ask = async (path, extra = {}) => { recs = []; const r = await s.post(path, { brief: { decision: 'Should I move to a cooler city?' }, history: [{ role: 'user', content: 'Should I move to a cooler city?' }], ...extra }); return { r, prompt: recs[0]?.prompt || '' }; };
+  const nl = await s.post('/api/agent/conversational', { brief: { decision: 'x' } }, {}, ''); T('R1 401 without login /api/agent/conversational', nl.s === 401, nl.s);
+  const ne = await s.post('/api/agent/expert', { brief: { decision: 'x' } }, {}, ''); T('R1b 401 without login /api/agent/expert', ne.s === 401, ne.s);
+  for (const p of ['/api/agent/conversational', '/api/agent/expert', '/api/conversation']) { const r = await s.post(p, {}); T('R2 400 empty body ' + p, r.s === 400 && r.j?.success === false && recs.length === 0, `${r.s} ${r.j?.code}`); }
+  const c = await ask('/api/agent/conversational');
+  T('R3 conversational route -> Conversational prompt', c.r.s === 200 && c.r.j?.success === true && c.prompt.includes('BiForge in Simple Mode') && !c.prompt.includes('PRODUCT MODE: Expert'), c.r.s);
+  const cx = await ask('/api/agent/conversational', { productMode: 'Expert', expertStage: 'EXPAND', expertContext: 'SECRET-METHOD-STATE' });
+  T('R4 conversational route ignores body productMode=Expert', cx.r.s === 200 && cx.prompt.includes('BiForge in Simple Mode') && !cx.prompt.includes('SECRET-METHOD-STATE') && !cx.prompt.includes('PRODUCT MODE: Expert'), cx.r.s);
+  const e = await ask('/api/agent/expert', { expertStage: 'EXPAND', expertContext: 'SECRET-METHOD-STATE' });
+  T('R5 expert route -> Expert prompt without any productMode in body', e.r.s === 200 && e.prompt.includes('BiForge in Expert Mode') && e.prompt.includes('PRODUCT MODE: Expert') && e.prompt.includes('SECRET-METHOD-STATE') && !e.prompt.includes('BiForge in Simple Mode'), e.r.s);
+  const ep = await ask('/api/agent/expert', { productMode: 'Simple', expertStage: 'EXPAND' });
+  T('R6 expert route ignores body productMode=Simple', ep.r.s === 200 && ep.prompt.includes('BiForge in Expert Mode') && !ep.prompt.includes('BiForge in Simple Mode'), ep.r.s);
+  const l1 = await ask('/api/conversation');
+  T('R7 legacy route without productMode -> Conversational', l1.r.s === 200 && l1.prompt.includes('BiForge in Simple Mode'), l1.r.s);
+  const l2 = await ask('/api/conversation', { productMode: 'Expert', expertStage: 'EXPAND', expertContext: 'SECRET-METHOD-STATE' });
+  T('R8 legacy route productMode=Expert -> Expert prompt (old clients keep working)', l2.r.s === 200 && l2.prompt.includes('BiForge in Expert Mode') && l2.prompt.includes('SECRET-METHOD-STATE'), l2.r.s);
+  T('R9 same prompt bytes on the new Expert route and the legacy Expert call', e.prompt.length > 0 && e.prompt === l2.prompt, `${e.prompt.length} vs ${l2.prompt.length}`);
+  const l3 = await ask('/api/conversation'); const c3 = await ask('/api/agent/conversational');
+  T('R10 same prompt bytes on the new Conversational route and the legacy default call', c3.prompt.length > 0 && c3.prompt === l3.prompt, `${c3.prompt.length} vs ${l3.prompt.length}`);
 });
 
 // ===== B. chat invariants (fuzz over 10 situations x mutations) =====

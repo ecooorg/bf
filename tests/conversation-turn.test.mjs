@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { ANSWER_TARGET_RULE, relevance, openingDrift, retryDriftedToOpening } from '../server/turnFocus.ts';
-import { buildSimpleConversationPrompt } from '../server/promptPacks.ts';
+import { buildAgentPrompt } from './_prompts.mjs';
 
 const OPENING = 'На каких языках должны быть написаны программы чтобы из них можно было сделать apk для android?';
 const LATEST = 'Я понимаю просто ты сказал что я должен контролировать стабильность работы хостинга но какие могут быть проблемы со стабильностью railway?';
@@ -37,7 +37,7 @@ test('every conversation prompt names the latest message as the answer target', 
   const input = JSON.stringify({ brief: { decision: OPENING }, history: [{ role: 'user', content: LATEST }] });
   for (const mode of ['information', 'decision']) {
     for (const productMode of ['Simple', 'Expert']) {
-      const p = buildSimpleConversationPrompt(input, '', '', '2026-10-19', mode, productMode);
+      const p = buildAgentPrompt(productMode, input, '', '', '2026-10-19', mode);
       assert.ok(p.includes(ANSWER_TARGET_RULE), `${mode}/${productMode}`);
       assert.ok(p.indexOf(ANSWER_TARGET_RULE) < p.indexOf('User brief and conversation:'));
     }

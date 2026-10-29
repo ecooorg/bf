@@ -28,7 +28,7 @@ function handlerSlice(startMarker, endMarker) {
   return server.slice(a, b);
 }
 
-const CONVERSATION_HANDLER = () => handlerSlice("app.post('/api/conversation'", "app.post('/api/neutralize'");
+const CONVERSATION_HANDLER = () => handlerSlice('const conversationHandler = async', "app.post('/api/neutralize'");
 
 /** Expert step routes (A2). Conversational never calls these. */
 const EXPERT_STEP_ROUTES = [
@@ -41,9 +41,11 @@ const EXPERT_STEP_ROUTES = [
 // 1. Route ownership
 // ---------------------------------------------------------------------------
 
-test('P119.0.2 Conversational + Expert dialogue share exactly one chat route: POST /api/conversation', () => {
-  const regs = server.match(/app\.post\('\/api\/conversation'/g) || [];
-  assert.equal(regs.length, 1);
+test('P119.0.4 Conversational + Expert dialogue: one shared handler, three entrances (legacy path + one named route per agent)', () => {
+  assert.equal((server.match(/const conversationHandler = /g) || []).length, 1);
+  assert.equal((server.match(/app\.post\('\/api\/conversation', conversationHandler\);/g) || []).length, 1);
+  assert.equal((server.match(/app\.post\('\/api\/agent\/conversational', pinConversationAgent\('conversational'\), conversationHandler\);/g) || []).length, 1);
+  assert.equal((server.match(/app\.post\('\/api\/agent\/expert', pinConversationAgent\('expert'\), conversationHandler\);/g) || []).length, 1);
   // Not registered by any extracted route module.
   for (const f of ['server/projectRoutes.ts', 'server/compatibilityRoutes.ts', 'server/opsRoutes.ts', 'server/authRoutes.ts', 'server/healthRoutes.ts']) {
     assert.doesNotMatch(readRepoFile(f), /\/api\/conversation/, `${f} must not own the chat route`);
@@ -145,9 +147,10 @@ test('P119.0.2 client adds Expert fields only for Expert (Conversational request
 });
 
 test('P119.0.2 prompt labels follow productMode; Expert dialogue paragraph rejects unknown stages and treats method state as data', async () => {
-  const { buildSimpleConversationPrompt, expertDialogueParagraph, EXPERT_STAGES } = await import('../server/promptPacks.ts');
-  const simple = buildSimpleConversationPrompt('hi', '', '', '2026-10-29', 'information', 'Simple');
-  const expert = buildSimpleConversationPrompt('hi', '', '', '2026-10-29', 'decision', 'Expert');
+  const { expertDialogueParagraph, EXPERT_STAGES } = await import('../server/expertAgent.ts');
+  const { buildAgentPrompt } = await import('./_prompts.mjs');
+  const simple = buildAgentPrompt('Simple', 'hi', '', '', '2026-10-29', 'information');
+  const expert = buildAgentPrompt('Expert', 'hi', '', '', '2026-10-29', 'decision');
   assert.match(simple, /BiForge in Simple Mode/);
   assert.doesNotMatch(expert, /BiForge in Simple Mode/);
   assert.match(expert, /BiForge in Expert Mode/);
@@ -165,12 +168,12 @@ test('P119.0.2 Architect gating: project routes answer 404 PROJECT_MODE_DISABLED
 // 3. KNOWN_SHARED_PATH — documented debt, split deliberately in P119.0.3+
 // ---------------------------------------------------------------------------
 
-test('KNOWN_SHARED_PATH: Conversational and Expert still share one route/handler and the prompt pack text (split further after P119.0.3)', () => {
+test('KNOWN_SHARED_PATH: Conversational and Expert still share one HTTP handler and the method/contract blocks of promptPacks.ts (intro text is agent-owned since P119.0.4)', () => {
   const h = CONVERSATION_HANDLER();
-  // P119.0.3: planning and prompt entry are agent-owned, but the HTTP handler and promptPacks.ts text remain shared.
   assert.match(h, /buildConversationTurnPrompt\(/);
-  assert.match(readRepoFile('server/conversationalAgent.ts'), /buildSimpleConversationPrompt/);
-  assert.match(readRepoFile('server/expertAgent.ts'), /buildSimpleConversationPrompt/);
+  assert.match(readRepoFile('server/conversationalAgent.ts'), /assembleConversationPrompt\(CONVERSATIONAL_INTROS/);
+  assert.match(readRepoFile('server/expertAgent.ts'), /assembleConversationPrompt\(EXPERT_INTROS/);
+  assert.match(readRepoFile('server/promptPacks.ts'), /export function assembleConversationPrompt\(/);
   assert.doesNotMatch(server, /buildSimpleConversationPrompt|expertDialogueParagraph/);
 });
 
@@ -179,10 +182,11 @@ test('KNOWN_SHARED_PATH: internal mode keys stay Simple/Expert/Project; user-fac
   assert.match(menu, /Simple: 'Conversational', Expert: 'Expert', Project: 'Architect'/);
 });
 
-test('KNOWN_SHARED_PATH: legacy IR pipeline is still imported by server.ts but must stay gated off the default Architect path', () => {
-  assert.match(server, /runAppBuilderPipeline/);
+test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; it stays reachable only through the gated Architect route', () => {
+  assert.doesNotMatch(server, /runAppBuilderPipeline|irFromPlainAnswers|appBuilderIndex/);
   const pr = readRepoFile('server/projectRoutes.ts');
   assert.match(pr, /ALLOW_LEGACY_APP_BUILDER/);
+  assert.match(pr, /legacyAppBuilderAllowed\(\)/);
 });
 
 // ---------------------------------------------------------------------------
