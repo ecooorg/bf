@@ -1,3 +1,28 @@
+# P119.0.1 — Three-agent entry UI + status reconciliation (current)
+
+**Applied:**
+- User-facing start cards and in-app selector expose exactly Conversational, Expert, Architect.
+- Internal route keys (`Simple`, `Expert`, `Project`) intentionally remain for this first bounded slice; no claim of fully separate agent pipelines or completed legacy removal.
+- Corrected stale P118.5.4 / live NOT_RUN documentation to reflect Navigator acceptance on 2026-10-29, CI 27/27 on commit `75418945e5d3138bf208704c7f19ab8ea17369fa`, and supplied live staged ZIP evidence.
+- Optional residuals (PARTIAL-download policy; `zod` / `body-parser` / `qs` audit) remain open.
+- Patch `119.0.1`; lockfile root version aligned to package version.
+
+**Verify:**
+1. `npm ci` (Node 22.12+), then `npm run test:core` (includes `tests/p119-agent-ui-contract.test.mjs`).
+2. `npm run typecheck` and `npm run build`.
+3. `npm run check` and `npm run test:ui` where Playwright Chromium is available.
+4. Review the UI start screen and agent menu; only Conversational, Expert, Architect should be visible. Confirm Architect still opens `/project`, and Conversational/Expert still switch within the chat shell.
+
+**Next bounded P119 slice:** inventory orchestration and route boundaries; introduce explicit per-agent entry contracts and regression tests before deleting/isolating legacy internals. Do not combine this with P120 E2E or P121 resilience work.
+
+**Verification status in this workspace:** not run yet; dependency directory is absent. P118 archive evidence is historical evidence for P118, not verification of this P119 patch.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not delete)
+
 # P118.5.6 — Bounded dom-wiring repair (current)
 
 **Applied:**

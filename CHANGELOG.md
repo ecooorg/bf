@@ -1,3 +1,11 @@
+## P119.0.1 — Three-agent entry UI and P118 status reconciliation
+
+- Start screen and agent menu now expose Conversational, Expert, and Architect instead of the legacy-facing Simple / Project names.
+- Preserved internal mode keys during this first migration slice to avoid changing accepted conversation and Architect flows before dedicated replacement pipelines are covered.
+- Corrected stale P118 status in the current task, rolling user-outcome report, renovation roadmap, and protected roadmap: P118 was accepted by Navigator on 2026-10-29 after CI 27/27 and the supplied live staged ZIP evidence.
+- Explicitly retain optional P118 residuals (PARTIAL download policy and dependency audit) as open, not completed.
+- Version/patch: `119` / `119.0.1`. Local runtime verification is pending in this environment.
+
 ## P118.5.6 — Bounded dom-wiring repair after check failure
 
 - **Engine:** after static validators run, if `dom-wiring` fails and budget remains, one repair call per broken script (max 2). Prompt lists the real HTML `id`s and the exact mismatch messages. Result accepted only when (1) no previously-passing required validator starts failing and (2) `dom-wiring` issue count strictly decreases. Events: `dom_wiring_repair`, `dom_wiring_repair_accepted`, `dom_wiring_repair_rejected`.

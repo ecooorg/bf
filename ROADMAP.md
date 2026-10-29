@@ -3,7 +3,7 @@
 **Document ID:** BF-ROADMAP-001  
 **Status:** Authoritative sequential plan from empty repository to P118 and onward  
 **Authority:** Derived from CHANGELOG.md, AI-NATIVE-RENOVATION-ROADMAP.md, AI-NATIVE-RENOVATION-TASK.md, AGENTS.md and observed snapshots  
-**Distinction:** Stages up to and including P118.3.3 reconstruct the historical state present in the analysed repository snapshots. Stages P119–P121 are forward plans required by the current programme contracts; they are not claimed as already implemented.
+**Distinction:** P118 history records the implementation sequence; the Navigator accepted P118 on 2026-10-29 based on CI 27/27 for P118.5.6 and the supplied live Architect artifact evidence. P119 is now in progress. P120–P121 remain forward phases.
 
 The plan follows the engineering loop:
 
@@ -174,7 +174,7 @@ npm run check
 
 ---
 
-## Phase 5 — Complex Software Architect Agent (P118 historical, in progress at 118.3.3)
+## Phase 5 — Complex Software Architect Agent (P118 — accepted 2026-10-29)
 
 **Goal:** Deliver a working Architect pipeline that can produce a verified ZIP from a brief, with bounded repair at Spec and Unit stages.
 
@@ -290,16 +290,16 @@ npm run check   # full DAG
 
 **Stop conditions:** Production cannot run staged → ask Navigator; do not redefine scaffold ZIP as success.
 
-**P118 exit gate (supersedes marker-only exit):** P118.5.4 evidence on the evaluated commit + prior P118 repairs + Navigator yes.
+**P118 exit gate (historical, satisfied):** P118.5.6 CI 27/27 + live staged build with verified ZIP and truthful refusal controls + Navigator acceptance on 2026-10-29.
 
 
-## Phase 6 — Migrate to Three Agents (P119 — forward plan)
+## Phase 6 — Migrate to Three Agents (P119 — in progress)
 
 **Goal:** UI and routing expose exactly three approved agents; legacy four-mode paths removed or explicitly isolated; no regression of accepted scenarios.
 
-**Preconditions:** P118 exit gate passed and Navigator acceptance recorded.
+**Preconditions:** satisfied — Navigator accepted P118 on 2026-10-29.
 
-**Concrete changes (planned, not historical):**
+**Concrete changes:** P119.0.1 starts the migration by exposing the approved names Conversational, Expert, and Architect in the start screen and agent menu. Internal legacy keys are retained temporarily to avoid breaking existing behavior; later P119 slices must isolate or remove them behind regression coverage.
 
 - Replace mode selector with three agent entry points.
 - Isolate or delete legacy Project Mode shared state machines that collapse behaviour.

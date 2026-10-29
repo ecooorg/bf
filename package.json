@@ -1,8 +1,8 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "118",
-  "patch": "118.5.6",
+  "version": "119",
+  "patch": "119.0.1",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -25,7 +25,7 @@
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
-    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs",
+    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs",
     "test:models": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-availability-p117.test.mjs",
     "test:security": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
     "test:files": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/files.test.mjs",
