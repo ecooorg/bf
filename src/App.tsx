@@ -69,6 +69,7 @@ import {
   isBriefWorthShowing,
 } from './ExpertStepScreens.tsx';
 import { BriefScreen, ConversationScreen, SharedConversationContext } from './ConversationScreens.tsx';
+import { isChatRoute } from './conversationRoutes.ts';
 
 export default function App() {
   const [decisions, setDecisions] = useState<Decision[]>(() => getStoredDecisions());
@@ -315,7 +316,7 @@ export default function App() {
       if (body && typeof body === 'object') {
         const cur = decisions.find((x) => x.id === activeId) || decisions[0];
         const existing = Array.isArray((body as any).attachments) ? (body as any).attachments : [];
-        const decisionFiles = path !== '/api/conversation' && !existing.length && cur
+        const decisionFiles = !isChatRoute(path) && !existing.length && cur
           ? collectDecisionAttachments(cur, undefined, true)
           : [];
         const combined = [...existing, ...workspaceAttachments, ...decisionFiles];

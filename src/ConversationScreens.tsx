@@ -16,6 +16,7 @@ import { expertConversationFields } from './expertContext.ts';
 import { questionLine } from './expertHistory.ts';
 import { buildIcs } from './icsBuilder.ts';
 import { parseChangeSetFromText } from './workspace/changeSetParse.ts';
+import { chatRoute } from './conversationRoutes.ts';
 
 // --- CONVERSATION HELPERS ---
 const INTENT_CHIPS: { id: string; label: string; hint: string }[] = [
@@ -92,7 +93,7 @@ export function BriefScreen({
       step: 'UNDERSTAND',
       interactionState: 'UNDERSTANDING',
     });
-    runApi('/api/conversation', fitRequest({ brief: { ...b, decision: text }, history: historyForRequest([userMessage]), attachments: collectDecisionAttachments(d, [userMessage]), intent, ...expertConversationFields(d, expert) }), (data, meta) => {
+    runApi(chatRoute(expert), fitRequest({ brief: { ...b, decision: text }, history: historyForRequest([userMessage]), attachments: collectDecisionAttachments(d, [userMessage]), intent, ...expertConversationFields(d, expert) }), (data, meta) => {
       const assistant: any = { role: 'assistant', content: data.reply, at: Date.now(), ...(data.document ? { document: data.document } : {}) };
       if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) onProposedChangeSet?.(data.reply);
       setFiles([]);
@@ -295,7 +296,7 @@ export function ConversationScreen({
       interactionState: 'UNDERSTANDING',
     });
     runApi(
-      '/api/conversation',
+      chatRoute(expert),
       fitRequest({ brief: d.brief, history: historyForRequest(nextHistory), attachments: collectDecisionAttachments(d, nextHistory), state: ms.conversationState, intent, returningAfterDays: days >= 1 ? days : undefined, ...expertConversationFields(d, expert) }),
       (data, meta) => {
         pendingRef.current = null;
