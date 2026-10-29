@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "119",
-  "patch": "119.0.1",
+  "patch": "119.0.2",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -25,7 +25,7 @@
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
-    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs",
+    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs",
     "test:models": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-availability-p117.test.mjs",
     "test:security": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
     "test:files": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/files.test.mjs",
@@ -58,6 +58,7 @@
     "status:graph": "node scripts/statusGraph.mjs",
     "schema:validate": "node scripts/schemaValidate.mjs",
     "test:p117-3": "node --import tsx --test tests/p117-3-conversation.test.mjs",
+    "test:p119-agents": "node --import tsx --test tests/p119-agent-ui-contract.test.mjs tests/p119-agent-boundaries.test.mjs",
     "test:archive-delivery": "node --import tsx --test tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs"
   },
   "dependencies": {

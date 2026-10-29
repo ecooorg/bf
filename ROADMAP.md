@@ -307,6 +307,17 @@ npm run check   # full DAG
 - Update client components (App.tsx, ProjectMode → agent-specific panels).
 - Update acceptance suites.
 
+**P119 slice plan (reconciled in P119.0.2; this table is the authoritative numbering — it supersedes the older numbering in `docs/p119-p121.md`):**
+
+| Patch | Content | Status |
+|---|---|---|
+| P119.0.1 | Three agent names in start screen and menu; P118 status reconciliation | Delivered; CI result pending Navigator report |
+| P119.0.2 | Inventory of routes, workflows and shared orchestration; boundary map and per-agent contracts (TECHNICAL_SPECIFICATION §6.4, REQ-AGENT-001..003); regression tests `tests/p119-agent-boundaries.test.mjs`; documentation sync; no runtime behaviour change | Delivered in this slice |
+| P119.0.3 | Legacy isolation: split the shared Conversational/Expert handler and prompt builder into agent-owned paths; remove legacy user-facing remnants after compatibility is confirmed; update the `KNOWN_SHARED_PATH` tests in the same patch | Next |
+| P119.0.4 | Workflows `p119-agent-contracts` / `p119-ui-smoke` only for what `ci.yml` + `ui-check.yml` do not already cover | Proposed; Navigator to confirm |
+| P119.0.5–0.6 | Remove remaining user-visible legacy modes (e.g. raw "Advanced" project data tab if judged a fourth mode); Architect regression (build, validators, ZIP download) | Proposed; Navigator to confirm |
+| P119.0.7 | P119 Release Gate: full CI + live scenarios for all three agents; Navigator decision | Proposed; Navigator to confirm |
+
 **Dependencies:** P118 closed.
 
 **Step-by-step algorithm:**

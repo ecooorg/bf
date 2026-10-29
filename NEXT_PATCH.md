@@ -1,3 +1,27 @@
+# P119.0.2 — Agent boundaries: inventory, contracts, regression tests (current)
+
+**Applied (no runtime behaviour change):**
+- Inventory of routes, internal modes, workflows and shared orchestration → `TECHNICAL_SPECIFICATION.md` §6.4 (boundary map) with REQ-AGENT-001..003.
+- Finding (OBSERVED): Conversational and Expert still share `POST /api/conversation`, one handler and one prompt builder, selected only by `body.productMode === 'Expert'`. Expert additionally owns 13 step routes. Architect is already isolated (`/project`, `/api/projects/*`, `appBuilder/`, own client modules).
+- New `tests/p119-agent-boundaries.test.mjs` (21 tests; in `test:core`, also `npm run test:p119-agents`): route ownership, client↔route isolation, import isolation, explicit agent selection, Architect gating, workflow inventory, `KNOWN_SHARED_PATH` debt locks. Mutation-checked: each deliberate boundary break fails a test.
+- `tests/p119-agent-ui-contract.test.mjs`: patch assertion relaxed from the exact `119.0.1` to `119.*` so later P119 slices do not need to edit it.
+- ROADMAP P119 slice plan reconciled (see ROADMAP Phase 6 table); it supersedes the numbering in `docs/p119-p121.md` (Navigator-authored plan: 0.2 inventory, 0.3 contracts, 0.5 removal). Per the Navigator's latest plan: 0.2 = boundaries (this patch), 0.3 = legacy isolation.
+- Patch `119.0.2` (`package-lock.json` carries only the major `119`; unchanged by design).
+
+**Verify:**
+1. CI green on this commit (DAG `ci`, `ui-check`), including `test:core` with the new file.
+2. Locally: `npm run test:p119-agents`.
+
+**Next bounded slice — P119.0.3 (legacy isolation):** split the shared A1/A2 handler/prompt path into agent-owned modules behind the existing request contract; update the `KNOWN_SHARED_PATH` tests in the same patch; remove user-facing legacy remnants only after compatibility is confirmed. Do not add `p119-*` workflows before P119.0.4 and do not start P120/P121.
+
+**Residual (open, not claimed):** PARTIAL-download policy; `zod` / `body-parser` / `qs` audit; live scenarios for all three agents (P119 gate / P120).
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not delete)
+
 # P119.0.1 — Three-agent entry UI + status reconciliation (current)
 
 **Applied:**

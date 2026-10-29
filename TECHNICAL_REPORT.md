@@ -273,6 +273,7 @@ This report recovers the implementation history. For each material change it rec
 - Contract fully specified in AI-USER-VALUE-SPEC.md.
 - Implementation reaches Conversational (accepted), Expert foundations, Architect pipeline with repair but without confirmed live ZIP SUCCESS.
 - UI still transitional (four modes) until P119.
+- P119.0.1–0.2 (post-archive tip, OBSERVED in source): UI names are Conversational / Expert / Architect. Architect is a separate route family, client surface and engine; Conversational and Expert still share `POST /api/conversation` and one prompt builder selected by `productMode`. Boundaries are documented in TECHNICAL_SPECIFICATION §6.4 and locked by `tests/p119-agent-boundaries.test.mjs`. Local and CI results for these tests are recorded in `docs/AI-USER-VALUE-REPORT.md`.
 
 ### 7.4 Security and Tier 3
 

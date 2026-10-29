@@ -1,3 +1,11 @@
+## P119.0.2 — Agent boundaries: inventory, contracts, regression tests
+
+- Inventoried routes, internal modes, workflows and shared orchestration. Result recorded once in `TECHNICAL_SPECIFICATION.md` §6.4 (boundary map, REQ-AGENT-001..003): Conversational and Expert share `POST /api/conversation` and one prompt builder selected by `productMode`; Architect is isolated (`/project`, `/api/projects/*`, `appBuilder/`, own client modules).
+- Added `tests/p119-agent-boundaries.test.mjs` (21 tests) to `test:core`; new script `test:p119-agents`. Covers route ownership, client/route/import isolation, explicit agent selection (Expert only on `productMode === 'Expert'`), Architect gating, workflow inventory (no `p119-*` workflow yet), and `KNOWN_SHARED_PATH` locks for the documented shared paths.
+- `tests/p119-agent-ui-contract.test.mjs`: patch assertion relaxed to `119.*`.
+- `ROADMAP.md` Phase 6: P119 slice plan reconciled (0.2 boundaries, 0.3 legacy isolation; 0.4–0.7 proposed). `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-USER-VALUE-REPORT.md`, `TECHNICAL_REPORT.md` §7.3 synchronized.
+- No runtime behaviour change. Version/patch: `119` / `119.0.2`.
+
 ## P119.0.1 — Three-agent entry UI and P118 status reconciliation
 
 - Start screen and agent menu now expose Conversational, Expert, and Architect instead of the legacy-facing Simple / Project names.
