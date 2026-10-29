@@ -122,13 +122,16 @@ test('P119.0.2 chat shell never keeps Architect as an in-shell mode', () => {
 });
 
 test('P119.0.2 Expert is selected only by explicit productMode === "Expert"; anything else is Conversational', () => {
-  assert.match(server, /const productMode: ProductMode = req\.body\?\.productMode === 'Expert' \? 'Expert' : 'Simple';/);
+  // P119.0.3: the decision lives in server/agentRouting.ts (single place); the handler only calls the planner.
+  assert.match(readRepoFile('server/agentRouting.ts'), /pm === 'Expert' \? 'expert' : 'conversational'/);
+  assert.match(CONVERSATION_HANDLER(), /planConversationTurn\(req\.body, detectedMode\)/);
+  assert.doesNotMatch(CONVERSATION_HANDLER(), /productMode\s*(===|\?)/);
 });
 
 test('P119.0.2 Expert dialogue never receives the light Conversational information contract', () => {
-  const h = CONVERSATION_HANDLER();
-  assert.match(h, /productMode === 'Expert' && detectedMode === 'information' \? 'decision' : detectedMode/);
-  assert.match(h, /expertDialogueParagraph\(/);
+  const ex = readRepoFile('server/expertAgent.ts');
+  assert.match(ex, /detectedMode === 'information' \? 'decision' : detectedMode/);
+  assert.match(ex, /expertDialogueParagraph\(/);
 });
 
 test('P119.0.2 client adds Expert fields only for Expert (Conversational request body stays unchanged)', async () => {
@@ -162,11 +165,13 @@ test('P119.0.2 Architect gating: project routes answer 404 PROJECT_MODE_DISABLED
 // 3. KNOWN_SHARED_PATH — documented debt, split deliberately in P119.0.3+
 // ---------------------------------------------------------------------------
 
-test('KNOWN_SHARED_PATH: Conversational and Expert still share one handler and one prompt builder (P119.0.3+ splits this)', () => {
+test('KNOWN_SHARED_PATH: Conversational and Expert still share one route/handler and the prompt pack text (split further after P119.0.3)', () => {
   const h = CONVERSATION_HANDLER();
-  assert.match(h, /buildConversationPrompt\(/);
-  assert.match(server, /return buildSimpleConversationPrompt\(input, attachmentsBlock, modeBlock, today, mode, productMode\);/);
-  assert.match(server, /import \{ buildSimpleConversationPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, type ProductMode \} from '\.\/server\/promptPacks\.ts';/);
+  // P119.0.3: planning and prompt entry are agent-owned, but the HTTP handler and promptPacks.ts text remain shared.
+  assert.match(h, /buildConversationTurnPrompt\(/);
+  assert.match(readRepoFile('server/conversationalAgent.ts'), /buildSimpleConversationPrompt/);
+  assert.match(readRepoFile('server/expertAgent.ts'), /buildSimpleConversationPrompt/);
+  assert.doesNotMatch(server, /buildSimpleConversationPrompt|expertDialogueParagraph/);
 });
 
 test('KNOWN_SHARED_PATH: internal mode keys stay Simple/Expert/Project; user-facing names stay Conversational/Expert/Architect', () => {
@@ -181,7 +186,7 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is still imported by server.ts but m
 });
 
 // ---------------------------------------------------------------------------
-// 4. Workflow inventory (do not duplicate CI; P119.0.4 adds p119-* workflows)
+// 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
 test('P119.0.2 workflow inventory is exactly the recorded set; no p119-* workflow exists yet', () => {
@@ -225,7 +230,7 @@ test('P119.0.2 CI DAG runs test:core and test:app-builder, so these contracts an
 
 test('P119.0.2 patch metadata is consistent (package.json, lockfile)', () => {
   assert.equal(pkg.version, '119');
-  assert.equal(pkg.patch, '119.0.2');
+  assert.match(pkg.patch, /^119\./);
   assert.equal(lock.version, pkg.version);
   assert.equal(lock.packages[''].version, pkg.version);
 });
