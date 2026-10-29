@@ -109,7 +109,7 @@ const okProject = await makeProject('build', true);
 if (!okProject) await finish('project_setup_failed');
 const pid = encodeURIComponent(okProject.id);
 
-const started = await request('POST', `/api/projects/${pid}/code/build`, { goal, engine: 'pipeline' }, { timeoutMs: 120_000 });
+const started = await request('POST', `/api/projects/${pid}/code/build`, { goal }, { timeoutMs: 120_000 }); // P118.5.4: default staged (no engine=pipeline/legacy)
 note('build_request', { status: started.status, operationId: started.operationId, jobId: started.json?.data?.jobId ?? null, error: started.error ?? null });
 let job = null;
 let timedOut = Boolean(started.error?.timeout);
@@ -235,7 +235,7 @@ note('build_verdict', { verdict: build.verdict, reasons: build.reasons });
 
 const unconfirmed = await makeProject('unconfirmed', false);
 if (unconfirmed) {
-  const r = await request('POST', `/api/projects/${encodeURIComponent(unconfirmed.id)}/code/build`, { goal, engine: 'pipeline' });
+  const r = await request('POST', `/api/projects/${encodeURIComponent(unconfirmed.id)}/code/build`, { goal }); // staged default; passport control only
   result.controls.push({ id: 'N1_unconfirmed_passport_build_refused', httpStatus: r.status, code: r.json?.code ?? null, ...classifyRefusal({ status: r.status, body: r.json, expectStatus: 409, expectCode: 'PASSPORT_NOT_CONFIRMED', contentType: r.contentType }) });
 } else result.controls.push({ id: 'N1_unconfirmed_passport_build_refused', verdict: 'BLOCKED', reasons: ['control_project_not_created'] });
 
