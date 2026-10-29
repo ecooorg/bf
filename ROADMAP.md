@@ -261,6 +261,38 @@ npm run check   # full DAG
 
 ---
 
+
+
+## Phase 5B — Archive Delivery Canon (P118.5) — required before P118 exit
+
+**Goal:** One real path from user goal to a downloadable program ZIP. Eliminate competing success paths.
+
+**Authority:** `docs/ARCHIVE-DELIVERY-CANON.md` (normative detail).
+
+**Why before P118 exit:** Marker/spec repairs do not prove the user received a program. Historical failure mode is fragmented delivery (staged vs legacy vs PACKAGE.md vs code-task vs client export).
+
+### Sub-stages
+
+| Patch | Goal | Preconditions | Acceptance |
+|-------|------|---------------|------------|
+| P118.5.0 | Doc lock | Current tree | Canon + roadmaps/task updated |
+| P118.5.1 | Staged-only A3 API default; legacy explicit flag only | 5.0 | Default build never silent-legacy SUCCESS |
+| P118.5.2 | Artifact + download invariants | 5.1 | SUCCESS ⇒ stored ZIP; empty download impossible as 200 success |
+| P118.5.3 | UI one button → downloadUrl | 5.2 | Manual/scripted click downloads openable ZIP |
+| P118.5.4 | E2E gate | 5.3 | Evidence: GET ZIP, JSZip open, expected paths |
+| P118.5.5 | Decommission noise | 5.4 green + Navigator | Residuals flagged; UI not ambiguous |
+
+**Canonical path (only A3 SUCCESS path):**
+
+`POST code/build (staged) → poll job → SUCCESS + downloadUrl → GET artifact download → ZIP with implementation files`
+
+**Residuals allowed:** legacy behind `ALLOW_LEGACY_APP_BUILDER`; code-task ZIP; PACKAGE.md; client JSON export — none may claim Architect program SUCCESS.
+
+**Stop conditions:** Production cannot run staged → ask Navigator; do not redefine scaffold ZIP as success.
+
+**P118 exit gate (supersedes marker-only exit):** P118.5.4 evidence on the evaluated commit + prior P118 repairs + Navigator yes.
+
+
 ## Phase 6 — Migrate to Three Agents (P119 — forward plan)
 
 **Goal:** UI and routing expose exactly three approved agents; legacy four-mode paths removed or explicitly isolated; no regression of accepted scenarios.

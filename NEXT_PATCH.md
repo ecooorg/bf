@@ -1,39 +1,27 @@
-# P118.4 — Documentation Order (DOC-ORDER-1)
+# P118.5.0 — Archive Delivery Canon (documentation lock)
 
-**Applied order:** after P118.3.3. Program version stays 118; set `"patch": "118.4"` in `package.json`.
+**Applied order:** after P118.4 / gates CI fix. Program version stays 118; set `"patch": "118.5.0"` when applying runtime follow-ups (this package is docs-only: keep patch at current or bump to `118.5.0` if you version doc locks).
 
-**Why:** Documentation had fragmented into many competing SPEC/REPORT files and risked semantic erosion under context-budget pressure. This patch establishes three protected primary documents and machine-enforceable rules that prevent future fragmentation and content loss.
+**Why:** Program ZIP creation and user download never had a single end-to-end path. Five mechanisms (staged builder, legacy scaffold pipeline, code-task ZIP, PACKAGE.md, client export) competed. Marker/spec patches cannot close P118 without download proof.
 
-**What changed (documentation only, no runtime behaviour):**
+**What this package does (documentation only):**
 
-- Added root-level protected files:
-  - `TECHNICAL_SPECIFICATION.md` — full engineering specification
-  - `ROADMAP.md` — sequential implementation plan + forward phases
-  - `TECHNICAL_REPORT.md` — historical reconstruction and evidence
-- Updated `AGENTS.md`: new laws D1–D4, status, reversal table, reporting requirements.
-- Updated `docs/DOCUMENTATION-INDEX.md`: protected documents listed first; binding rules restated.
-- Added `scripts/docs-integrity.mjs` (guard for existence, required sections, REQ-ID count).
-- `NEXT_PATCH.md` (this file) records the change.
+- Adds `docs/ARCHIVE-DELIVERY-CANON.md` — normative single-path plan and patch sequence P118.5.1–P118.5.5.
+- Updates `ROADMAP.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, `docs/DOCUMENTATION-INDEX.md`.
+- Updates P118 exit gate: requires archive download evidence, not only spec/plan/markers.
 
-**Not changed:** any TypeScript, React, server logic, migrations, tests, or model behaviour.
+**Not changed:** TypeScript/runtime (implementation starts at P118.5.1).
 
-**Verification after manual apply:**
+**Next action (implementation order):**
 
-```bash
-# 1. Files present
-test -f TECHNICAL_SPECIFICATION.md && test -f ROADMAP.md && test -f TECHNICAL_REPORT.md
+1. Apply this documentation package.
+2. Implement **P118.5.1** (staged-only A3 API default; legacy behind explicit flag).
+3. **P118.5.2** (artifact + download invariants).
+4. **P118.5.3** (UI one button → downloadUrl).
+5. **P118.5.4** (E2E live/CI: SUCCESS → GET ZIP → open → expected files).
+6. Only then Navigator P118 exit decision.
+7. **P118.5.5** decommission noise after 5.4 green.
 
-# 2. Integrity guard (after adding the script and optional npm script)
-node scripts/docs-integrity.mjs
-
-# 3. Version (manual)
-# edit package.json: "patch": "118.4"  (version stays "118")
-```
-
-**Next action after this patch is applied and accepted:**
-
-1. Confirm docs:integrity PASS.
-2. Resume P118 exit gate: deploy → confirm `/health` commit → dispatch `p118-architect-live` once → record result in `docs/AI-USER-VALUE-REPORT.md` and summarise in `TECHNICAL_REPORT.md`.
-3. Only after Navigator acceptance of P118 proceed to P119.
+Do not run “P118 exit” live solely to re-check markers.
 
 Charter conflicts: none
