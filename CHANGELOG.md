@@ -1,3 +1,8 @@
+## P118.5.3 — CI: align stagedEnabled adapter test with P118.5.1 default
+
+- `tests/app-builder-adapter-p93-3.test.mjs` expected `stagedEnabled({}) === false` (pre-canon). After P118.5.1 staged is default-on; test now asserts default true and opt-out values (`legacy|off|pipeline|0|false`).
+- No product runtime change; fixes red `test:app-builder` on DAG.
+
 ## P118.5.2 — Archive delivery E2E proof
 
 - Added `tests/archive-delivery-e2e-p118-5-2.test.mjs`: fake-model multi-file static_site build → JSZip open → required paths (`index.html`, `style.css`, `app.js`, `README.md`) + `build-report.json`.

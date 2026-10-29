@@ -1,3 +1,17 @@
+# P118.5.3 — CI fix: stagedEnabled default test (current)
+
+**Applied:** Updated `tests/app-builder-adapter-p93-3.test.mjs` so `stagedEnabled({})` expects `true` (P118.5.1 canon). Opt-out flags still expect `false`.
+
+**Verify:** `npm run test:app-builder` (or full `npm run check`).
+
+**Next:** After green CI — Navigator may review P118 exit evidence (archive-delivery tests + preferred live). Do not start P119 until Navigator accepts P118 exit.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not delete)
+
 # P118.5.2 — Archive delivery E2E proof (current)
 
 **Applied:** Offline E2E proves SUCCESS → openable program ZIP with required files; SUCCESS without verified download is FALSE_SUCCESS.
