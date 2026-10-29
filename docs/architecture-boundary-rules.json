@@ -1,18 +1,54 @@
 {
   "_about": "Import boundary rules for architecture:check. Layers: server, src, test, script, appBuilder, other. Edges not listed are denied unless allowedExceptions match.",
   "allowedEdges": [
-    { "from": "server", "to": "server" },
-    { "from": "server", "to": "appBuilder" },
-    { "from": "src", "to": "src" },
-    { "from": "test", "to": "server" },
-    { "from": "test", "to": "src" },
-    { "from": "test", "to": "test" },
-    { "from": "test", "to": "appBuilder" },
-    { "from": "script", "to": "server" },
-    { "from": "script", "to": "src" },
-    { "from": "script", "to": "script" },
-    { "from": "script", "to": "appBuilder" },
-    { "from": "appBuilder", "to": "appBuilder" }
+    {
+      "from": "server",
+      "to": "server"
+    },
+    {
+      "from": "server",
+      "to": "appBuilder"
+    },
+    {
+      "from": "src",
+      "to": "src"
+    },
+    {
+      "from": "test",
+      "to": "server"
+    },
+    {
+      "from": "test",
+      "to": "src"
+    },
+    {
+      "from": "test",
+      "to": "test"
+    },
+    {
+      "from": "test",
+      "to": "appBuilder"
+    },
+    {
+      "from": "script",
+      "to": "server"
+    },
+    {
+      "from": "script",
+      "to": "src"
+    },
+    {
+      "from": "script",
+      "to": "script"
+    },
+    {
+      "from": "script",
+      "to": "appBuilder"
+    },
+    {
+      "from": "appBuilder",
+      "to": "appBuilder"
+    }
   ],
   "allowedExceptions": [
     {
@@ -29,6 +65,11 @@
       "from": "server.ts",
       "to": "src/support.ts",
       "reason": "Support contacts / distress markers; listed in tsconfig.server.json include"
+    },
+    {
+      "from": "src/config.ts",
+      "to": "package.json",
+      "reason": "Single source of truth for APP_VERSION and APP_PATCH per AGENTS.md; Vite plugin injects only these fields into the client bundle"
     }
   ],
   "notes": [

@@ -177,6 +177,20 @@
    "parallelGroup": "static"
   },
   {
+   "id": "architecture:check",
+   "argv": [
+    "npm",
+    "run",
+    "architecture:check"
+   ],
+   "profiles": [
+    "check",
+    "ci"
+   ],
+   "timeoutMs": 60000,
+   "parallelGroup": "static"
+  },
+  {
    "id": "test:core",
    "argv": [
     "npm",
