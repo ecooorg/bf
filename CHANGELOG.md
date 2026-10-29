@@ -1,3 +1,10 @@
+## P119.0.7 — Commit-bound Release Gate
+
+- Added manual `.github/workflows/p119-release-gate.yml`: runs the full CI verification DAG with PostgreSQL, Playwright UI checks, live Conversational/Expert checks, live UI/agent-entry checks, and the Architect build/validator/verified-ZIP regression.
+- Added `scripts/p119-release-evidence.mjs`: records the full checkout SHA, workflow run identity, and each required check outcome; fails closed unless every required check succeeded. Evidence explicitly remains pending Navigator formal acceptance.
+- Reuses the existing live smoke and Architect regression scripts; does not alter agent prompts, routing, legacy behavior, or product runtime. `ALLOW_LEGACY_APP_BUILDER` remains unused and legacy remains disabled by default.
+- Version/patch: `119` / `119.0.7`. Hosted execution and live evidence are NOT_RUN until the manual workflow is dispatched.
+
 ## P119.0.6 — Architect live ZIP regression and legacy decision boundary
 
 - Added manual `p119-regression` workflow: fail-closed deployed commit preflight followed by the existing P118 live Architect build, validators, ZIP inspection/download and refusal controls. Artifacts stored under `p119-regression/`; no automatic CI duplication.

@@ -1,3 +1,23 @@
+# P119.0.7 — Commit-bound Release Gate (current)
+
+**Navigator decisions:** P118 formally accepted; `ALLOW_LEGACY_APP_BUILDER` is not used. CI is green; the P119 Architect ZIP regression was previously red on a false deployment-mismatch comparison and the preflight hotfix was supplied. P119.0.7 now consolidates the release gate; this patch itself is not accepted until hosted execution evidence is reviewed.
+
+**Applied:**
+- Added manual `.github/workflows/p119-release-gate.yml` to run the complete CI DAG, Playwright UI checks, live Conversational and Expert responses, UI and agent-entry smoke, and Architect build/validators/verified ZIP download.
+- Added `scripts/p119-release-evidence.mjs`, which writes `p119-live/release-gate.json` bound to full `GITHUB_SHA` and Actions run identity. Any skipped or failed required check makes the gate FAIL.
+- `package.json` patch is `119.0.7`; full `CHANGELOG.md` and current task/roadmap handoff updated.
+- Legacy remains disabled by default; no runtime or prompt behavior changed.
+
+**Verification status:** JavaScript syntax and archive integrity are checked locally. Full hosted CI, Playwright UI, and live release-gate workflow are NOT_RUN in the Assistant environment. Evidence from the workflow is still raw evidence; only Navigator can formally accept P119.
+
+**Next:** dispatch `P119 Release Gate` on the deployed commit. If any check fails or is skipped, repair that check and rerun. If all pass, present the commit-bound artifact to Navigator for the explicit P119 close decision. Do not begin P120 before that decision.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not edit)
+
 # P119.0.6 — Architect regression workflow (current)
 
 **Applied:** Manual `p119-regression` reuses P118 Architect task-to-ZIP runner and its validators/refusal controls. A strict `/health` commit preflight prevents evidence from being attributed to an unverified deployment. Advanced project JSON is a diagnostic panel, not a fourth agent; keep it gated. `engine=legacy` remains explicitly gated and default-disabled because host usage is UNKNOWN.
