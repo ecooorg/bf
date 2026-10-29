@@ -422,7 +422,7 @@ Architect (A3) program delivery uses **exactly one** success path. Normative det
 2. Job reaches `outcome=SUCCESS` only if a non-empty ZIP was packed **and** stored as an artifact (`artifactId` set).
 3. Client receives `downloadUrl` → `GET /api/projects/:projectId/artifacts/:artifactId/download`.
 4. User download uses `downloadViaFetch`; HTTP 200 with empty body is failure, not success.
-5. E2E acceptance (P118.5.4) must open the ZIP and assert expected implementation paths with non-empty content.
+5. Offline E2E (P118.5.2) must open the ZIP and assert expected implementation paths with non-empty content; live staged path must not force legacy (P118.5.4 client).
 
 **Forbidden as A3 SUCCESS (residuals only):**
 
@@ -438,7 +438,7 @@ Architect (A3) program delivery uses **exactly one** success path. Normative det
 **Precondition:** Architect job reaches terminal SUCCESS.  
 **Behaviour:** `downloadUrl` is present; GET returns `application/zip` with length > 0; archive opens; required profile files exist and are non-empty.  
 **Error:** Missing artifact, empty body, or failed open → job must not remain SUCCESS; UI must not offer a working download as success.  
-**Acceptance:** P118.5.4 E2E evidence on the evaluated commit (live or fake-model CI).
+**Acceptance:** P118.5.2 offline E2E on the evaluated commit; P118 exit prefers live staged run after P118.5.4 client fix (not `engine=pipeline`).
 
 
 ## 8. User Interface and Backend Interaction
@@ -541,7 +541,9 @@ Each REQ above carries its acceptance. Global product acceptance (from AI-USER-V
 
 ## 12. Open Constraints and Future Gates
 
-- P118 exit gate: **P118.5.4** evidence — live or CI E2E download of program ZIP with expected files (see `docs/ARCHIVE-DELIVERY-CANON.md`); marker/spec repair alone is insufficient
+- Live client (`scripts/p118-architect-live.mjs`) must not send `engine=pipeline`; staged is default (P118.5.4).
+
+- P118 exit gate: offline archive-delivery PASS (P118.5.2) plus preferred **live staged** run after P118.5.4 (no `LEGACY_DISABLED` from forced pipeline); see `docs/ARCHIVE-DELIVERY-CANON.md`. Marker/spec repair alone is insufficient.
 - P118.5.1–P118.5.5: staged-only default, artifact invariants, UI single download button, E2E, residual decommission
 - P118 exit gate (historical wording): live Architect run produces verified ZIP; hosted CI green; Navigator acceptance.
 - P119: UI migration to exactly three agents; removal of legacy mode paths.

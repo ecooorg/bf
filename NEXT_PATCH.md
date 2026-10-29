@@ -1,10 +1,14 @@
-# P118.5.3 — CI fix: stagedEnabled default test (current)
+# P118.5.4 — Live staged path + documentation/audit alignment (current)
 
-**Applied:** Updated `tests/app-builder-adapter-p93-3.test.mjs` so `stagedEnabled({})` expects `true` (P118.5.1 canon). Opt-out flags still expect `false`.
+**Applied:** Live architect client no longer forces legacy pipeline; task/canon/index updated; full audit report added under `docs/AUDIT-2026-10-29.md`.
 
-**Verify:** `npm run test:app-builder` (or full `npm run check`).
+**Verify after deploy:**
+1. CI green on this commit (DAG check).
+2. Re-run `p118-architect-live` — must not report `LEGACY_DISABLED`; prefer staged 202 + poll (SUCCESS with ZIP or honest non-PASS).
 
-**Next:** After green CI — Navigator may review P118 exit evidence (archive-delivery tests + preferred live). Do not start P119 until Navigator accepts P118 exit.
+**P118 exit:** Navigator decision after (1) CI PASS, (2) offline `test:archive-delivery` PASS, (3) live run that exercises **staged** path (deliveryProven or truthful HONEST_NON_PASS with diagnostics).
+
+**Next:** Navigator P118 exit yes/no → only then P119.
 
 Charter conflicts: none
 
