@@ -1,12 +1,14 @@
-# P118.3.2 — Single version source and documentation audit
+# P118.3.3 — Code-stage file marker repair
 
-**Applied order:** P118.3 → P118.3.1 (CI repair) → P118.3.2 (this patch). Program version stays 118.
+**Applied order:** P118.3 → P118.3.1 → P118.3.2 → P118.3.3 (this patch). Program version stays 118.
 
-**What changed:** the version lives only in `package.json` (`patch`, `version`); every patch must include `package.json`; the version gate checks nothing else, so a version mismatch between files can no longer fail CI. Documentation brought in line with the real state (report, task, roadmap with the P118 exit gate, index, rules).
+**Why:** the live run on `9ff44ac` passed spec and plan, then failed on the first file: the model returned a complete `index.html` under the header `<<<FILE path>>>index.html` (it copied the placeholder from the prompt) and the parser rejected it.
 
-**Not evaluated:** hosted CI of P118.3.1/P118.3.2 and the live Architect run on the new build (the last live run executed the old engine, commit `7c51c5e`).
+**What changed:** the coder prompt names the real marker (`PROMPT_VERSION` → `static_site.v2`); the parser accepts three known slips for the expected path and reports them; one bounded repair call per file; precise failure reason; `unit_attempt` / `unit_repair` diagnostics.
+
+**Not evaluated:** hosted CI, the next live run, the remaining units and validators, and ZIP packing/verification.
 
 ## Next action
-Apply P118.3.1 then P118.3.2 → green CI → deploy → confirm `/health` commit → dispatch **p118-architect-live** once → record the result; P119 only after the P118 exit gate in `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
+Apply P118.3.3 → green CI → deploy → confirm `/health` commit → dispatch **p118-architect-live** once → record the result. P119 only after the P118 exit gate in `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
 
 Charter conflicts: none
