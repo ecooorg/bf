@@ -1,33 +1,38 @@
 # BiForge — Current Task and Patch Control
 
-**Applied patch line:** P118.3.3 → docs P118.4 → gates cleanup; **next authority:** P118.5 Archive Delivery Canon.
-**Phase:** P118 Complex Software Architect Agent — NOT closed.
-**Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, `docs/ARCHIVE-DELIVERY-CANON.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, protected root docs.
+**Applied patch line:** P118.5.1 (staged default) → P118.5.2 (offline archive E2E) → P118.5.3 (CI adapter test) → **P118.5.4** (live script + docs/audit alignment).
+**Phase:** P118 Complex Software Architect Agent — NOT closed until Navigator exit.
+**Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, top of `NEXT_PATCH.md`, `docs/ARCHIVE-DELIVERY-CANON.md`, protected root docs.
 
-## State
+## Single source for “what now”
 
-- Spec/plan/marker repairs exist; live Architect runs have **not** produced a verified user-downloadable program ZIP.
-- Root cause of “archives never really worked”: multiple parallel delivery mechanisms and no single E2E contract (see `docs/ARCHIVE-DELIVERY-CANON.md`).
-- P118 exit is **blocked** until P118.5.1–P118.5.4 evidence exists for one commit: SUCCESS → downloadUrl → ZIP bytes → expected files.
+This file + **top** entry of `NEXT_PATCH.md`. Do not read phase status from `AGENTS.md`.
 
-## Next (mandatory order)
+## State (OBSERVED)
 
-1. **P118.5.0** — this documentation lock (no runtime).
-2. **P118.5.1** — staged-only default for A3 build; legacy not silent success.
-3. **P118.5.2** — artifact save + download invariants.
-4. **P118.5.3** — UI: one “Download program” → downloadUrl only.
-5. **P118.5.4** — E2E acceptance (live or fake-model CI) with ZIP proof.
-6. Navigator accepts P118 exit or orders another 5.x fix.
-7. **P118.5.5** — decommission / flag residuals (after exit evidence).
+- Staged App Builder is the default A3 API path; legacy requires `ALLOW_LEGACY_APP_BUILDER=true`.
+- Offline proof: `npm run test:archive-delivery` (5.1 unit + 5.2 E2E).
+- CI on commit `bd0e95d` (patch 118.5.3 line): **PASS** 26/26 (OBSERVED from CI handoff).
+- Live run before 5.4 (`p118-architect-transcript.json`): build **BLOCKED** with `http_409:LEGACY_DISABLED` because the live script sent `engine: 'pipeline'`. That client bug is fixed in **P118.5.4**; staged live evidence is still **NOT_RUN** until re-deploy + re-run.
+- Full static audit: `docs/AUDIT-2026-10-29.md`.
+
+## Next
+
+1. Deploy commit containing P118.5.4.
+2. Confirm CI PASS.
+3. Re-run architect live against staged default; record outcome in `docs/AI-USER-VALUE-REPORT.md` (newest first).
+4. Navigator: P118 exit yes/no.
 
 ## Not authorized
 
-- P119 UI migration before P118 exit with archive proof.
-- Treating PACKAGE.md, diagnostics ZIP, or scaffold-only legacy ZIP as Architect SUCCESS.
-- Marker-only patches as P118 completion.
+- P119 before Navigator accepts P118 exit.
+- Treating PACKAGE.md, diagnostics ZIP, or legacy scaffold ZIP as Architect SUCCESS.
+- Forcing `engine: 'pipeline'` / legacy on the product A3 path.
 
-## Residual
+## Residual (from audit)
 
-- B3 Node LTS number (P116).
-- P92 diagnostics production verification frozen.
+- Regenerate `docs/generated-*.json` when convenient (stale e01 references).
+- Package name `bifurcation-engine` vs product name BiForge (cosmetic).
+- `tsconfig.server.json` `strict: false` (known progressive debt).
+- Node engines pinned to 22.x major; do not assume Node 24 in CI.
 

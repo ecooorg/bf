@@ -223,3 +223,16 @@ P119                   — three-agent UI migration
 ```
 
 Do **not** dispatch “P118 exit live” solely to re-test markers. Next live after 5.1–5.3 must target **downloadable ZIP proof**.
+
+
+## Shipped patch mapping (authoritative numbering)
+
+| Patch | What shipped |
+|-------|----------------|
+| P118.5.0 | Documentation lock (canon) |
+| P118.5.1 | Staged default API; legacy gated; artifact required for SUCCESS; UI stop forcing pipeline |
+| P118.5.2 | Offline E2E archive-delivery tests |
+| P118.5.3 | CI: `stagedEnabled` default test aligned |
+| P118.5.4 | Live script uses staged default; task/audit/docs alignment |
+
+Older drafts that numbered UI/E2E as 5.3/5.4 are superseded by this table. Exit still requires staged **live** evidence after 5.4 deploy.

@@ -13,6 +13,7 @@ These three files are the authoritative engineering system. They may only be ext
 ## Read for every patch
 
 **P118.5 active:** `ARCHIVE-DELIVERY-CANON.md` is mandatory reading for any App Builder / ZIP / download work.
+- `AUDIT-2026-10-29.md` — full static audit (2026-10-29); findings and priorities; not a second roadmap.
 
 1. `../AGENTS.md` — authority, charter (including D1–D4 documentation protection), authorization tiers, stop rule and the version/patch numbering rules (`package.json` in every patch).
 2. `AI-OPERATING-RULES.md` — permanent operating, security and evidence rules.
