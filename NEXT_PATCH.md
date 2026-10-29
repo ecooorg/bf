@@ -1,3 +1,17 @@
+# P120.0.1 — Conversational E2E (current)
+
+**Applied:** Added `tests/p120-conversational-e2e.test.mjs` for a two-turn browser journey through the real local app server: authenticate, choose Conversational, start a conversation, submit a request, receive a deterministic fixture reply, submit a follow-up, and verify history continuity. The test intercepts only `/api/agent/conversational`; it does not claim live provider coverage. `npm run test:ui` includes this scenario, and `npm run test:p120-conversational` runs it alone. Version/patch is `120` / `120.0.1`.
+
+**Verification:** `node --check tests/p120-conversational-e2e.test.mjs` PASS. Browser E2E, `npm run test:ui`, full CI, and live model checks NOT_RUN in this environment because dependencies/Chromium are unavailable.
+
+**Next:** P120.0.2 — Expert E2E scenarios and error paths, per `docs/p119-p121.md`. Keep live provider acceptance separate from deterministic local UI coverage. P119 is accepted by Navigator; do not start P121.
+
+Charter conflicts: none
+
+---
+
+# History (previous NEXT_PATCH entries — do not edit)
+
 # P119.0.7 — Commit-bound Release Gate (current)
 
 **Navigator decisions:** P118 formally accepted; `ALLOW_LEGACY_APP_BUILDER` is not used. CI is green; the P119 Architect ZIP regression was previously red on a false deployment-mismatch comparison and the preflight hotfix was supplied. P119.0.7 now consolidates the release gate; this patch itself is not accepted until hosted execution evidence is reviewed.

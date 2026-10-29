@@ -1,3 +1,10 @@
+## P120.0.1 — Conversational end-to-end user journey
+
+- Added `tests/p120-conversational-e2e.test.mjs`: authenticates in a real local app server, enters Conversational, starts a conversation, sends a first request, receives a deterministic assistant response, sends a follow-up, and asserts that the original brief plus prior assistant/user turns are preserved.
+- The browser test intercepts only `/api/agent/conversational` and returns deterministic fixture responses; it verifies UI-to-route wiring and conversation continuity, not live model/provider behavior.
+- `npm run test:ui` now runs the existing responsive UI check and this Conversational E2E scenario; `npm run test:p120-conversational` runs the focused scenario.
+- Version/patch: `120` / `120.0.1`. Browser test and full CI status are NOT_RUN in this environment (project dependencies / Chromium are not installed here).
+
 ## P119.0.7 — Commit-bound Release Gate
 
 - Added manual `.github/workflows/p119-release-gate.yml`: runs the full CI verification DAG with PostgreSQL, Playwright UI checks, live Conversational/Expert checks, live UI/agent-entry checks, and the Architect build/validator/verified-ZIP regression.
