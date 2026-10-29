@@ -355,30 +355,30 @@ export default function App() {
       <div className="shell">
         <div className="empty" style={{ maxWidth: 1040, margin: '0 auto', padding: '48px 20px' }}>
           <h1>{en.app}</h1>
-          <p>Choose how you want to work. You can change modes later with the <strong>Mode</strong> button.</p>
+          <p>Choose an agent. You can switch agents later with the <strong>Agent</strong> button.</p>
           <div className="mode-start-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 28, textAlign: 'left' }}>
             <button type="button" className="panel" data-testid="start-mode-simple" onClick={() => chooseStartMode('Simple')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
-              <h2>Simple</h2>
-              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Open conversation — no required steps</p>
-              <p>Get an explanation, practical advice, or a clear answer. Optional detail fields when you want them.</p>
-              <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> everyday questions and light structure.</p>
+              <h2>Conversational</h2>
+              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Natural conversation, clear answers, and practical help</p>
+              <p>Ask questions, explore ideas, get explanations, and work through everyday tasks in a flexible conversation.</p>
+              <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> open-ended questions and everyday work.</p>
             </button>
             <button type="button" className="panel" data-testid="start-mode-expert" onClick={() => chooseStartMode('Expert')} style={{ cursor: 'pointer', color: 'inherit', textAlign: 'left', padding: 24 }}>
               <h2>Expert</h2>
-              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Step-by-step decision method</p>
-              <p>Understand → Explore → Challenge → Check → Learn. You confirm suggestions; open chat stays available for clarifications.</p>
+              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Structured expert problem-solving</p>
+              <p>Understand → Explore → Challenge → Check → Learn. Work through difficult decisions with explicit stages and review points.</p>
               <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> hard choices where a careful process helps.</p>
             </button>
             <button type="button" className="panel" data-testid="start-mode-project" onClick={() => chooseStartMode('Project')} disabled={!projectModeEnabled} aria-disabled={!projectModeEnabled} style={{ cursor: projectModeEnabled ? 'pointer' : 'not-allowed', color: 'inherit', textAlign: 'left', padding: 24, opacity: projectModeEnabled ? 1 : 0.65 }}>
-              <h2>Project</h2>
-              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Managed project workspace</p>
-              <p>Describe a project, analyse it, and get a plan and a ZIP.</p>
+              <h2>Architect</h2>
+              <p style={{ color: '#9fd8ff', marginBottom: 8 }}>Software creation and delivery</p>
+              <p>Describe the software you need, review the project requirements, and build a validated downloadable ZIP.</p>
               {!projectModeEnabled
-                ? <StateNotice kind="unavailable"><strong>Currently unavailable</strong> — Project mode is turned off for this site. Your browser is working normally.</StateNotice>
-                : <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> multi-step work with confirmations and deliverables.</p>}
+                ? <StateNotice kind="unavailable"><strong>Currently unavailable</strong> — Architect workspace is turned off for this site. Your browser is working normally.</StateNotice>
+                : <p style={{ fontSize: 13, color: '#8fa6c2', marginBottom: 0 }}><em>Best for:</em> building software with a verifiable artifact.</p>}
             </button>
           </div>
-          <p style={{ marginTop: 20, fontSize: 13, color: '#8fa6c2' }}>Tip: open <strong>More → User guide</strong> anytime for the full manual.</p>
+          <p style={{ marginTop: 20, fontSize: 13, color: '#8fa6c2' }}>Tip: open <strong>More → User guide</strong> anytime for help.</p>
         </div>
       </div>
     );

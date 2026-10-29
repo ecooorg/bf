@@ -2,9 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Layers, RotateCcw } from 'lucide-react';
 
 /**
- * P51 — one "Mode" control for every screen (Simple, Expert, Project).
- * Shows the current mode and opens a list of the three modes plus a way back to the start screen.
- * The caller decides what each choice does (the chat shell switches in place, Project navigates).
+ * P119.0.1 — expose the three approved agent names while retaining stable internal route keys.
+ * Conversational and Expert switch within the chat shell; Architect navigates to its dedicated workspace.
  */
 export type AppMode = 'Simple' | 'Expert' | 'Project';
 
@@ -12,14 +11,16 @@ export type AppMode = 'Simple' | 'Expert' | 'Project';
 export const START_MODE_KEY = 'biforge-start-mode';
 
 const ITEMS: { mode: AppMode; label: string; hint: string }[] = [
-  { mode: 'Simple', label: 'Simple chat', hint: 'Open conversation — no required steps' },
-  { mode: 'Expert', label: 'Expert method', hint: 'Step-by-step decision method with stages' },
-  { mode: 'Project', label: 'Project workspace', hint: 'Separate page: plans, tasks, confirmations' },
+  { mode: 'Simple', label: 'Conversational', hint: 'Open conversation — no required steps' },
+  { mode: 'Expert', label: 'Expert', hint: 'Step-by-step problem-solving with stages' },
+  { mode: 'Project', label: 'Architect', hint: 'Build and download validated software ZIPs' },
 ];
+
+const AGENT_LABEL: Record<AppMode, string> = { Simple: 'Conversational', Expert: 'Expert', Project: 'Architect' };
 
 export function ModeMenu(props: {
   current: AppMode;
-  /** When false the Project entry is shown but disabled (deployment without Project mode). */
+  /** When false the Architect entry is shown but disabled (deployment without Architect workspace). */
   projectEnabled: boolean;
   onSelect: (mode: AppMode) => void;
   /** Return to the start screen with the three mode cards. */
@@ -56,15 +57,15 @@ export function ModeMenu(props: {
         data-testid="mode-menu-button"
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Mode: switch between Simple, Expert and Project"
+        title="Switch between Conversational, Expert and Architect"
         onClick={() => setOpen((v) => !v)}
       >
         <Layers size={14} className="mode-btn-icon" />
-        <span className="lbl">{props.current}</span>
+        <span className="lbl">{AGENT_LABEL[props.current]}</span>
         <ChevronDown size={12} />
       </button>
       {open && (
-        <div className="mode-menu-list" role="menu" aria-label="Mode">
+        <div className="mode-menu-list" role="menu" aria-label="Agents">
           {ITEMS.map((it) => {
             const disabled = it.mode === 'Project' && !props.projectEnabled;
             const selected = it.mode === props.current;
@@ -82,7 +83,7 @@ export function ModeMenu(props: {
                 <span className="mode-item-check">{selected ? <Check size={14} /> : null}</span>
                 <span className="mode-item-text">
                   <strong>{it.label}</strong>
-                  <small>{disabled ? 'Unavailable: Project mode is disabled for this deployment' : it.hint}</small>
+                  <small>{disabled ? 'Unavailable: Architect workspace is disabled for this deployment' : it.hint}</small>
                 </span>
               </button>
             );
@@ -93,11 +94,11 @@ export function ModeMenu(props: {
             role="menuitem"
             className="ghost mode-item"
             data-testid="change-mode"
-            title="Return to the screen where you choose Simple, Expert or Project"
+            title="Return to the screen where you choose an agent"
             onClick={() => { setOpen(false); props.onOverview(); }}
           >
             <span className="mode-item-check"><RotateCcw size={14} /></span>
-            <span className="mode-item-text"><strong>Back to mode selection</strong></span>
+            <span className="mode-item-text"><strong>Back to agent selection</strong></span>
           </button>
         </div>
       )}
