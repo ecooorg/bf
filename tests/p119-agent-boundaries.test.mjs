@@ -193,12 +193,12 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; 
 // 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
-test('P119.0.5 workflow inventory includes the two approved live smoke workflows', () => {
+test('P119.0.7 workflow inventory includes the approved release gate without changing push/PR gates', () => {
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
     'ci.yml', 'evidence.yml', 'monitor-connections.yml', 'p117-3-live-retest.yml',
-    'p118-architect-live.yml', 'p119-agent-contracts.yml', 'p119-regression.yml', 'p119-ui-smoke.yml',
+    'p118-architect-live.yml', 'p119-agent-contracts.yml', 'p119-regression.yml', 'p119-release-gate.yml', 'p119-ui-smoke.yml',
     'staging-drills.yml', 'ui-check.yml', 'verify-groq.yml',
   ]);
 });
@@ -209,7 +209,7 @@ test('P119.0.2 push/PR gates: ci.yml (DAG profile ci) and ui-check.yml; live wor
   assert.match(wf('ci.yml'), /run-dag\.mjs --profile ci/);
   assert.match(wf('ui-check.yml'), /on: \[push, pull_request\]/);
   assert.match(wf('ui-check.yml'), /npm run test:ui/);
-  for (const n of ['p117-3-live-retest.yml', 'p118-architect-live.yml', 'p119-regression.yml', 'staging-drills.yml', 'evidence.yml', 'verify-groq.yml']) {
+  for (const n of ['p117-3-live-retest.yml', 'p118-architect-live.yml', 'p119-regression.yml', 'p119-release-gate.yml', 'staging-drills.yml', 'evidence.yml', 'verify-groq.yml']) {
     assert.match(wf(n), /workflow_dispatch/);
     assert.doesNotMatch(wf(n), /on: \[push/);
   }
