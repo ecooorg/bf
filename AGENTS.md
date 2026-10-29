@@ -55,7 +55,7 @@ Source: owner statements of 2026-10-25. Precedence: this charter > every other r
 
 ### Active programme — AI-NATIVE-RENOVATION
 
-* **Current phase:** P118 Complex Software Architect Agent (completion contract). Applied line: P118.3 → P118.3.1 → P118.3.2 → P118.3.3. **P118.4 (Documentation Order)** adds the three protected primary documents and D1–D4. P118 is NOT closed: no live Architect run has yet delivered a verified ZIP. P119 starts only after the P118 exit gate in the roadmap. P116 Conversational Agent accepted 2026-10-28 with residual B3 (Node LTS version number). P117.3 closed. P110–P112 foundations remain. Phase 2 closed (Navigator 2026-10-26). Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md` §A3; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; detailed roadmap + reconstruction: `ROADMAP.md` + `TECHNICAL_REPORT.md`; full engineering specification: `TECHNICAL_SPECIFICATION.md`.
+* **Current phase:** P118 Complex Software Architect Agent (completion contract). Applied line: P118.3 → P118.3.1 → P118.3.2 → P118.3.3. **P118.4** documentation order; **P118.5.1** staged default + artifact invariants; **P118.5.2** offline archive E2E. P118 is NOT closed until Navigator accepts exit evidence (tests + preferred live deliveryProven). P119 starts only after the P118 exit gate in the roadmap. P116 Conversational Agent accepted 2026-10-28 with residual B3 (Node LTS version number). P117.3 closed. P110–P112 foundations remain. Phase 2 closed (Navigator 2026-10-26). Active task: `docs/AI-NATIVE-RENOVATION-TASK.md`; current target contract: `docs/AI-USER-VALUE-SPEC.md` §A3; rolling evidence: `docs/AI-USER-VALUE-REPORT.md`; detailed roadmap + reconstruction: `ROADMAP.md` + `TECHNICAL_REPORT.md`; full engineering specification: `TECHNICAL_SPECIFICATION.md`.
 * **Owner directive:** see the Navigator Charter above (C1–C11 + D1–D4). It overrides every other document.
 * **Programme authority:** this charter, `docs/AI-OPERATING-RULES.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, `docs/AI-USER-VALUE-SPEC.md`, and the three protected primary documents. `docs/AI-NATIVE-GLOBAL-AUDIT-2026-10.md` is a historical audit baseline, not a current instruction source.
 * **Strategic destination:** `docs/VIX-CONCEPT.md` remains the long-horizon VIX target. It informs direction but does not authorize every VIX subsystem for immediate implementation.
@@ -123,11 +123,48 @@ Silence is never consent in Tiers 2 and 3.
 
 ## Documentation Policy
 
+
+## Patch delivery format (Navigator copy workflow) — NON-NEGOTIABLE
+
+The Navigator applies patches by **copying complete files into the repository**. Assistants must not create work for the Navigator.
+
+### What a patch ZIP may contain
+
+1. **Only complete files** whose paths match the repository layout (e.g. `CHANGELOG.md`, `NEXT_PATCH.md`, `server/foo.ts`, `tests/bar.test.mjs`).
+2. Every file in the ZIP is a **ready-to-overwrite** target: after unzip, the Navigator copies paths as-is. No merge step, no “prepend this snippet”, no “paste into section X”.
+3. **`package.json` is always included** when the patch changes code, tests, scripts, or version/patch fields.
+4. **`CHANGELOG.md` is always the full file** with the new patch entry already at the top and all prior entries preserved below. Never ship `CHANGELOG_ENTRY.md`, `changelog-snippet.md`, or any fragment that requires manual insertion.
+5. **`NEXT_PATCH.md` is always the full file**. The new current handoff goes at the **top**. All previous handoff entries remain **below** under a clear history separator (e.g. `# History (previous NEXT_PATCH entries)`). Never replace the file with only the new step. Never delete prior steps.
+6. **Do not include** instructional sidecar files unless the Navigator explicitly asked for them: no `APPLY.md`, no `README-for-patch.md`, no `*_AMENDMENT.md`, no `*_ENTRY.md`, no “merge these lines into …” documents.
+7. **Deletions:** list paths to delete in the chat message (or in `NEXT_PATCH.md` body), not as empty placeholder files. Do not invent delete-list-only files that the Navigator must interpret as content.
+8. **`AGENTS.md`:** include the full updated file only when this charter or product rules change (as in this rule set). When included, ship the complete file, not a diff fragment.
+
+### Forbidden delivery patterns (always wrong)
+
+* Shipping `CHANGELOG_ENTRY.md` / “prepend this block to CHANGELOG”.
+* Shipping `TECHNICAL_SPECIFICATION_AMENDMENT.md` instead of the full `TECHNICAL_SPECIFICATION.md`.
+* Shipping `APPLY.md` as the primary way to explain copy paths (use chat summary; ZIP files are self-describing by path).
+* Overwriting `NEXT_PATCH.md` with a single new entry and discarding previous handoffs.
+* Nested archive-only paths that do not match repo layout (`bf-main/...` wrappers are allowed only if every path still maps 1:1 after stripping one root folder — prefer **repo-root-relative paths** with no wrapper).
+
+### Assistant checklist before attaching a patch ZIP
+
+* [ ] Every file is complete and overwrite-safe.
+* [ ] `CHANGELOG.md` full, newest entry first, history intact.
+* [ ] `NEXT_PATCH.md` full, current step first, previous steps retained below.
+* [ ] No `APPLY.md` / `*_ENTRY.md` / `*_AMENDMENT.md` in the ZIP.
+* [ ] Deletions listed in chat if any.
+* [ ] `package.json` present when patch/version or scripts changed.
+
+Violation of this section is a process defect: regenerate the ZIP before the Navigator applies anything.
+
+
+
 **`CHANGELOG.md` — Patch History**
 
 * MUST be updated in every patch.
 * Record the patch ID, important changes, verification results, and known limitations.
-* Preserve previous entries and append the new entry using the existing format.
+* Preserve previous entries. The delivered file is always the **complete** `CHANGELOG.md` with the new entry already prepended at the top. Never deliver a separate entry-only file for the Navigator to merge.
 
 **`AGENTS.md` — Major Product Changes**
 
@@ -140,7 +177,7 @@ Silence is never consent in Tiers 2 and 3.
 
 * **`package.json` is included in every patch ZIP, always** (see "Version and patch numbering").
 * Do not include `./README.md`, `./AGENTS.md`, or other informational documentation files in patch ZIP archives unless explicitly requested.
-* Include `./CHANGELOG.md` whenever a patch changes project code or functionality.
+* Include the **complete** `./CHANGELOG.md` whenever a patch changes project code or functionality (newest entry already prepended). Never include entry-only sidecars.
 * Include `./AGENTS.md` only when a significant product change requires updating it, unless explicitly requested otherwise.
 
 **Verification**

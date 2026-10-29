@@ -1,22 +1,22 @@
+## P118.5.2 — Archive delivery E2E proof
+
+- Added `tests/archive-delivery-e2e-p118-5-2.test.mjs`: fake-model multi-file static_site build → JSZip open → required paths (`index.html`, `style.css`, `app.js`, `README.md`) + `build-report.json`.
+- Delivery contract checks via `publicJob` + `classifyBuild` / `zipVerified` from `scripts/p118-architect-live-lib.mjs`.
+- SUCCESS without `downloadUrl` or without a verified ZIP classifies as **FALSE_SUCCESS**.
+- `package.json` patch field `118.5.2`; script `test:archive-delivery` runs archive-delivery unit + E2E tests.
+- Live architect workflow already enforces ZIP verification; no live-script change required in this patch.
+- P118 exit still requires Navigator review of evidence (offline tests + preferred live run).
+
 ## P118.5.1 — Archive Delivery Canon (implementation)
 
-- Staged App Builder is the **default** A3 path (`stagedEnabled` true unless APP_BUILDER_ENGINE=legacy|off|pipeline).
-- POST `/code/build` without engine → staged (202 + jobId). Missing DB/adapters → `STAGED_UNAVAILABLE` (not silent legacy).
-- Legacy IR pipeline only with `engine=legacy` (or legacy alias `pipeline`) **and** `ALLOW_LEGACY_APP_BUILDER=true`.
-- Staged SUCCESS without stored artifact is forced to failed (`archive_missing` / `artifact_save_failed`).
+- Staged App Builder is the **default** A3 path (`stagedEnabled` true unless `APP_BUILDER_ENGINE=legacy|off|pipeline`).
+- `POST /code/build` without `engine` → staged (202 + jobId). Missing DB/adapters → `STAGED_UNAVAILABLE` (not silent legacy).
+- Legacy IR pipeline only with `engine=legacy` (or alias `pipeline`) **and** `ALLOW_LEGACY_APP_BUILDER=true`.
+- Staged SUCCESS without a stored artifact is forced to failed (`archive_missing` / `artifact_save_failed`).
 - `publicJob.downloadUrl` only when `artifactId` is set (artifact download route only).
 - UI ProjectMode no longer sends `engine: 'pipeline'` on program build.
 - Tests: `tests/archive-delivery-p118-5-1.test.mjs`.
-- E2E download proof deferred to P118.5.2.
-
-## P118.5.0 — Archive Delivery Canon (documentation lock)
-
-- Added `docs/ARCHIVE-DELIVERY-CANON.md`: single end-to-end path for Architect program ZIP (staged build → artifact → downloadUrl → user download).
-- Five prior mechanisms classified: only staged A3 path may claim program SUCCESS; legacy / PACKAGE.md / code-task / client export are residuals.
-- Patch sequence P118.5.1–P118.5.5 defined (API default, artifact invariants, UI, E2E, decommission).
-- P118 exit gate updated: requires downloadable ZIP evidence, not marker/spec repair alone.
-- Updated ROADMAP, AI-NATIVE-RENOVATION-TASK, AI-NATIVE-RENOVATION-ROADMAP, DOCUMENTATION-INDEX, NEXT_PATCH.
-- No runtime behaviour change in 5.0.
+- E2E download proof follows in P118.5.2.
 
 ## P118.4 — Documentation Order (DOC-ORDER-1)
 
