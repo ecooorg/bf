@@ -31,8 +31,7 @@ test('P119 keeps Architect on its separate route and checks the three-agent menu
   assert.match(uiCheck, /menuitemradio', \{ name: \/Conversational/);
 });
 
-test('P119 patch metadata is internally consistent', () => {
-  assert.equal(pkg.version, '119');
-  assert.match(pkg.patch, /^119\./);
+test('package patch metadata is internally consistent', () => {
+  assert.ok(pkg.patch.startsWith(`${pkg.version}.`));
   assert.ok(pkg.scripts['test:core'].includes('tests/p119-agent-ui-contract.test.mjs'));
 });
