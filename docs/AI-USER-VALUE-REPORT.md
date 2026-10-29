@@ -1,3 +1,13 @@
+## P119.0.3 — Conversational/Expert isolation, legacy names removed from user copy (2026-10-29)
+
+- **Runtime change:** structural only. Agent selection/planning/prompt entry moved to `server/agentRouting.ts`, `conversationalAgent.ts`, `expertAgent.ts`; prompts and plans are byte-identical to the pre-split logic for all tested request bodies × detected modes. User-visible text no longer says Simple chat / Project mode / Project workspace / Expert method.
+- **Tests:** `tests/p119-agent-isolation.test.mjs` (equivalence to a reference copy of the old logic, Expert never gets the information contract, import isolation, copy). Mutation-checked: five deliberate breaks (Expert information contract, loosened routing, cross-import, prompt drift, legacy copy) each failed at least one test; files restored.
+- **Local verification (Node 22.22.2):** __VERIFY__
+- **Not claimed:** fully separate Conversational/Expert pipelines (route, wire key and prompt pack text still shared); live behaviour unchanged-ness (live scenarios NOT_RUN); `test:ui` NOT_RUN (no Chromium).
+- **Observed defect (OBSERVED):** `tsc --noEmit` failed intermittently with a stack overflow, also on unmodified P119.0.2 code (root cause UNKNOWN); mitigated with `--stack-size=4000` in `typecheck`/`lint`/`build:server`.
+
+---
+
 ## P119.0.2 — Agent boundary inventory and regression contracts (2026-10-29)
 
 - **Runtime change:** none. Documentation, tests and version metadata only.
