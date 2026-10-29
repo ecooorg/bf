@@ -104,7 +104,7 @@ export default function App() {
     if (mode === 'Project') {
       // Project is a separate workspace and is never emulated by the chat UI.
       const ok = window.confirm(
-        'Open Project?\n\nProjects are separate from your Simple and Expert conversations, which stay on this device.',
+        'Open Architect?\n\nArchitect projects are separate from your Conversational and Expert conversations, which stay on this device.',
       );
       if (!ok) return;
       try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
