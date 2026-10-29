@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T09:15:23Z",
+  "generatedAt": "2026-10-29T20:25:59Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "sourceFiles": [
     "server.ts",
@@ -9,11 +9,21 @@
     "server/opsRoutes.ts",
     "server/projectRoutes.ts"
   ],
-  "count": 80,
+  "count": 82,
   "routes": [
     {
       "method": "GET",
       "path": "*",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/conversational",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/agent/expert",
       "file": "server.ts"
     },
     {

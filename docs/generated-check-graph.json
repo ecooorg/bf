@@ -4,6 +4,22 @@
   "description": "check -> files run by the check -> source modules those files import or read. Deterministic; regenerate with npm run status:graph.",
   "checks": [
     {
+      "id": "architecture:check",
+      "command": "node scripts/architectureCheckBoundaries.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "scripts/architectureCheckBoundaries.mjs"
+      ],
+      "modules": [
+        "scripts/architectureCheckBoundaries.mjs",
+        "scripts/architectureLib.mjs"
+      ]
+    },
+    {
       "id": "build",
       "command": "vite build && npm run build:server",
       "needs": [],
@@ -153,7 +169,7 @@
     },
     {
       "id": "test:app-builder",
-      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs",
+      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs tests/app-builder-dom-wiring-p118-5-6.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -167,10 +183,15 @@
       "files": [
         "tests/app-builder-adapter-p93-3.test.mjs",
         "tests/app-builder-contracts.test.mjs",
+        "tests/app-builder-dom-wiring-p118-5-6.test.mjs",
         "tests/app-builder-engine-p93-2a.test.mjs",
         "tests/app-builder-recovery-p93-3.test.mjs",
+        "tests/app-builder-spec-repair-p118.test.mjs",
+        "tests/app-builder-unit-repair-p118.test.mjs",
         "tests/app-builder-validators-p93-2b.test.mjs",
         "tests/architect-outcome-p118.test.mjs",
+        "tests/archive-delivery-e2e-p118-5-2.test.mjs",
+        "tests/archive-delivery-p118-5-1.test.mjs",
         "tests/p118-architect-live.test.mjs"
       ],
       "modules": [
@@ -264,7 +285,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -276,20 +297,35 @@
         "ci"
       ],
       "files": [
-        "tests/core.test.mjs"
+        "tests/core.test.mjs",
+        "tests/p119-agent-boundaries.test.mjs",
+        "tests/p119-agent-isolation.test.mjs",
+        "tests/p119-agent-prompts-routes.test.mjs",
+        "tests/p119-agent-ui-contract.test.mjs"
       ],
       "modules": [
         "scripts/check-version.mjs",
         "scripts/lint-copy.mjs",
+        "scripts/p118-architect-live.mjs",
+        "scripts/patch-tools.mjs",
+        "server/agentRouting.ts",
+        "server/authRoutes.ts",
+        "server/compatibilityRoutes.ts",
         "server/contextBuilder.ts",
         "server/contracts.ts",
         "server/conversationMode.ts",
+        "server/conversationalAgent.ts",
+        "server/expertAgent.ts",
+        "server/healthRoutes.ts",
+        "server/opsRoutes.ts",
+        "server/projectRoutes.ts",
         "server/promptCore.ts",
         "server/promptPacks.ts",
         "server/reasoningState.ts",
         "server/statePipeline.ts",
         "src/brier.ts",
         "src/config.ts",
+        "src/conversationRoutes.ts",
         "src/decision.ts",
         "src/en.ts",
         "src/errors.ts",
@@ -299,10 +335,13 @@
         "src/expertNav.ts",
         "src/icsBuilder.ts",
         "src/numberValidator.ts",
+        "src/projectAppBuilder.ts",
+        "src/projectBuildJob.ts",
         "src/sha256Export.ts",
         "src/triage.ts",
         "src/ui.ts",
         "src/uiTerms.ts",
+        "tests/_prompts.mjs",
         "tests/_sources.mjs"
       ]
     },
@@ -422,10 +461,6 @@
         "tests/gates.test.mjs"
       ],
       "modules": [
-        "scripts/e01-harness.mjs",
-        "scripts/e01-notes-merge.mjs",
-        "scripts/evidence-collect.mjs",
-        "scripts/gate-eval.mjs",
         "scripts/staging-drills.mjs",
         "server/gateEngine.ts"
       ]
@@ -520,9 +555,9 @@
         "server/contextBuilder.ts",
         "server/contracts.ts",
         "server/conversationMode.ts",
+        "server/expertAgent.ts",
         "server/intentFlags.ts",
         "server/promptCore.ts",
-        "server/promptPacks.ts",
         "server/statePipeline.ts",
         "src/briefView.ts",
         "src/config.ts",
@@ -530,6 +565,7 @@
         "src/driveMirror.ts",
         "src/support.ts",
         "src/useDrive.ts",
+        "tests/_prompts.mjs",
         "tests/_sources.mjs"
       ]
     },
@@ -627,8 +663,8 @@
       ],
       "modules": [
         "server/latencyPolicy.ts",
-        "server/promptPacks.ts",
-        "server/turnFocus.ts"
+        "server/turnFocus.ts",
+        "tests/_prompts.mjs"
       ]
     },
     {
@@ -676,7 +712,7 @@
     },
     {
       "id": "typecheck",
-      "command": "tsc --noEmit",
+      "command": "node --stack-size=4000 node_modules/typescript/bin/tsc --noEmit",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -725,7 +761,11 @@
       "critical-app-builder-recovery",
       "test:app-builder"
     ],
+    "scripts/architectureCheckBoundaries.mjs": [
+      "architecture:check"
+    ],
     "scripts/architectureLib.mjs": [
+      "architecture:check",
       "test:app-builder"
     ],
     "scripts/backup-restore-check.mjs": [
@@ -764,15 +804,6 @@
     "scripts/dagLib.mjs": [
       "test:compact-ci-artifacts"
     ],
-    "scripts/e01-harness.mjs": [
-      "test:gates"
-    ],
-    "scripts/e01-notes-merge.mjs": [
-      "test:gates"
-    ],
-    "scripts/evidence-collect.mjs": [
-      "test:gates"
-    ],
     "scripts/evidence-to-markdown.mjs": [
       "test:files"
     ],
@@ -781,9 +812,6 @@
     ],
     "scripts/faultInjectionLibP108.mjs": [
       "test:compact-ci-artifacts"
-    ],
-    "scripts/gate-eval.mjs": [
-      "test:gates"
     ],
     "scripts/golden-eval.mjs": [
       "critical-gemini-timeout",
@@ -809,7 +837,8 @@
       "test:app-builder"
     ],
     "scripts/p118-architect-live.mjs": [
-      "test:app-builder"
+      "test:app-builder",
+      "test:core"
     ],
     "scripts/package-ci-artifacts.mjs": [
       "test:compact-ci-artifacts"
@@ -825,6 +854,7 @@
     "scripts/patch-tools.mjs": [
       "critical-gemini-timeout",
       "critical-router-selection",
+      "test:core",
       "test:models",
       "test:project-diagnostics"
     ],
@@ -847,6 +877,9 @@
       "critical-gemini-timeout",
       "critical-router-selection",
       "test:models"
+    ],
+    "server/agentRouting.ts": [
+      "test:core"
     ],
     "server/analysisService.ts": [
       "critical-gemini-timeout",
@@ -880,6 +913,9 @@
     "server/auditCatalog.ts": [
       "test:security"
     ],
+    "server/authRoutes.ts": [
+      "test:core"
+    ],
     "server/briefWriter.ts": [
       "test:bx06:api",
       "test:project"
@@ -902,6 +938,9 @@
       "test:project",
       "test:security"
     ],
+    "server/compatibilityRoutes.ts": [
+      "test:core"
+    ],
     "server/contextBuilder.ts": [
       "test:core",
       "test:pipeline"
@@ -916,6 +955,9 @@
       "test:core",
       "test:pipeline"
     ],
+    "server/conversationalAgent.ts": [
+      "test:core"
+    ],
     "server/database.ts": [
       "test:bx06:api",
       "test:database",
@@ -927,6 +969,10 @@
     ],
     "server/epistemicVerifier.ts": [
       "test:web"
+    ],
+    "server/expertAgent.ts": [
+      "test:core",
+      "test:pipeline"
     ],
     "server/fakeProvider.ts": [
       "critical-gemini-timeout",
@@ -973,6 +1019,7 @@
     ],
     "server/healthRoutes.ts": [
       "test:bx06:api",
+      "test:core",
       "test:database",
       "test:database:live",
       "test:project"
@@ -1016,6 +1063,9 @@
       "test:bx06:api",
       "test:project"
     ],
+    "server/opsRoutes.ts": [
+      "test:core"
+    ],
     "server/planMachine.ts": [
       "critical-gemini-timeout",
       "critical-router-selection",
@@ -1044,6 +1094,7 @@
       "test:project"
     ],
     "server/projectRoutes.ts": [
+      "test:core",
       "test:project-diagnostics"
     ],
     "server/promptCore.ts": [
@@ -1051,9 +1102,7 @@
       "test:pipeline"
     ],
     "server/promptPacks.ts": [
-      "test:core",
-      "test:pipeline",
-      "test:turn"
+      "test:core"
     ],
     "server/providerMonitor.ts": [
       "critical-gemini-timeout",
@@ -1153,6 +1202,9 @@
       "test:pipeline",
       "version-consistency"
     ],
+    "src/conversationRoutes.ts": [
+      "test:core"
+    ],
     "src/decision.ts": [
       "test:core",
       "test:files"
@@ -1207,7 +1259,11 @@
     "src/numberValidator.ts": [
       "test:core"
     ],
+    "src/projectAppBuilder.ts": [
+      "test:core"
+    ],
     "src/projectBuildJob.ts": [
+      "test:core",
       "test:project"
     ],
     "src/projectCapabilities.ts": [
@@ -1286,6 +1342,11 @@
     ],
     "src/workspace/types.ts": [
       "test:workspace"
+    ],
+    "tests/_prompts.mjs": [
+      "test:core",
+      "test:pipeline",
+      "test:turn"
     ],
     "tests/_sources.mjs": [
       "critical-gemini-timeout",

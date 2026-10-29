@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-10-28T09:15:23.654Z",
+  "generatedAt": "2026-10-29T20:25:59.078Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 158,
-    "edgeCount": 397,
+    "moduleCount": 163,
+    "edgeCount": 407,
     "cycleCount": 0,
-    "totalLines": 28626
+    "totalLines": 29287
   },
   "cycles": [],
   "layers": {
-    "server": 69,
-    "src": 75,
+    "server": 72,
+    "src": 77,
     "other": 14
   },
   "modules": [
@@ -22,7 +22,7 @@
       "imports": [
         "appBuilder/core-types.ts"
       ],
-      "fanIn": 3
+      "fanIn": 2
     },
     {
       "path": "appBuilder/core-cache.ts",
@@ -34,7 +34,7 @@
     {
       "path": "appBuilder/core-engine.ts",
       "layer": "appBuilder",
-      "lines": 196,
+      "lines": 482,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-markers.ts",
@@ -52,7 +52,7 @@
     {
       "path": "appBuilder/core-markers.ts",
       "layer": "appBuilder",
-      "lines": 99,
+      "lines": 122,
       "imports": [
         "appBuilder/core-plan.ts"
       ],
@@ -79,7 +79,7 @@
     {
       "path": "appBuilder/core-prompts.ts",
       "layer": "appBuilder",
-      "lines": 14,
+      "lines": 15,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-types.ts"
@@ -144,7 +144,7 @@
     {
       "path": "appBuilder/validator-static-site.ts",
       "layer": "appBuilder",
-      "lines": 111,
+      "lines": 139,
       "imports": [
         "appBuilder/core-plan.ts",
         "appBuilder/core-types.ts",
@@ -155,10 +155,10 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2351,
+      "lines": 2350,
       "imports": [
+        "server/agentRouting.ts",
         "server/analysisService.ts",
-        "server/appBuilderIndex.ts",
         "server/artifactRepository.ts",
         "server/authRoutes.ts",
         "server/briefWriter.ts",
@@ -169,6 +169,7 @@
         "server/database.ts",
         "server/documents.ts",
         "server/epistemicVerifier.ts",
+        "server/expertAgent.ts",
         "server/files.ts",
         "server/gateEngine.ts",
         "server/gateService.ts",
@@ -189,7 +190,6 @@
         "server/projectDiagnostics.ts",
         "server/projectRepository.ts",
         "server/projectRoutes.ts",
-        "server/promptPacks.ts",
         "server/reasoningState.ts",
         "server/router.ts",
         "server/security.ts",
@@ -209,6 +209,17 @@
       "lines": 91,
       "imports": [],
       "fanIn": 4
+    },
+    {
+      "path": "server/agentRouting.ts",
+      "layer": "server",
+      "lines": 54,
+      "imports": [
+        "server/conversationMode.ts",
+        "server/conversationalAgent.ts",
+        "server/expertAgent.ts"
+      ],
+      "fanIn": 1
     },
     {
       "path": "server/analysisService.ts",
@@ -235,7 +246,7 @@
     {
       "path": "server/appBuilderAdapter.ts",
       "layer": "server",
-      "lines": 181,
+      "lines": 253,
       "imports": [
         "appBuilder/index.ts",
         "server/adapter.ts",
@@ -256,7 +267,7 @@
         "server/appBuilderPipeline.ts",
         "server/appBuilderScaffolds.ts"
       ],
-      "fanIn": 2
+      "fanIn": 1
     },
     {
       "path": "server/appBuilderIr.ts",
@@ -395,7 +406,17 @@
       "layer": "server",
       "lines": 47,
       "imports": [],
-      "fanIn": 3
+      "fanIn": 6
+    },
+    {
+      "path": "server/conversationalAgent.ts",
+      "layer": "server",
+      "lines": 55,
+      "imports": [
+        "server/conversationMode.ts",
+        "server/promptPacks.ts"
+      ],
+      "fanIn": 1
     },
     {
       "path": "server/database.ts",
@@ -430,6 +451,16 @@
         "server/intentFlags.ts"
       ],
       "fanIn": 1
+    },
+    {
+      "path": "server/expertAgent.ts",
+      "layer": "server",
+      "lines": 89,
+      "imports": [
+        "server/conversationMode.ts",
+        "server/promptPacks.ts"
+      ],
+      "fanIn": 2
     },
     {
       "path": "server/fakeProvider.ts",
@@ -640,7 +671,7 @@
     {
       "path": "server/projectRoutes.ts",
       "layer": "server",
-      "lines": 871,
+      "lines": 889,
       "imports": [
         "appBuilder/architectOutcome.ts",
         "server/analysisService.ts",
@@ -678,14 +709,14 @@
     {
       "path": "server/promptPacks.ts",
       "layer": "server",
-      "lines": 277,
+      "lines": 244,
       "imports": [
         "server/conversationMode.ts",
         "server/promptCore.ts",
         "server/reasoningState.ts",
         "server/turnFocus.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/providerMonitor.ts",
@@ -841,7 +872,7 @@
     {
       "path": "src/App.tsx",
       "layer": "src",
-      "lines": 643,
+      "lines": 644,
       "imports": [
         "src/AppHeader.tsx",
         "src/AutoGrow.tsx",
@@ -859,6 +890,7 @@
         "src/briefView.ts",
         "src/brier.ts",
         "src/config.ts",
+        "src/conversationRoutes.ts",
         "src/decision.ts",
         "src/decisionDocument.ts",
         "src/driveClient.ts",
@@ -925,11 +957,12 @@
     {
       "path": "src/ConversationScreens.tsx",
       "layer": "src",
-      "lines": 448,
+      "lines": 449,
       "imports": [
         "src/AutoGrow.tsx",
         "src/ConversationFiles.tsx",
         "src/attachments.ts",
+        "src/conversationRoutes.ts",
         "src/decision.ts",
         "src/decisionDocument.ts",
         "src/expertContext.ts",
@@ -1012,7 +1045,7 @@
     {
       "path": "src/ModeMenu.tsx",
       "layer": "src",
-      "lines": 107,
+      "lines": 108,
       "imports": [],
       "fanIn": 4
     },
@@ -1037,7 +1070,7 @@
     {
       "path": "src/ProjectMode.tsx",
       "layer": "src",
-      "lines": 650,
+      "lines": 649,
       "imports": [
         "src/ModeMenu.tsx",
         "src/ProjectDelivery.tsx",
@@ -1122,6 +1155,13 @@
       "fanIn": 1
     },
     {
+      "path": "src/architectNote.ts",
+      "layer": "src",
+      "lines": 28,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "src/attachments.ts",
       "layer": "src",
       "lines": 224,
@@ -1156,9 +1196,18 @@
     {
       "path": "src/config.ts",
       "layer": "src",
+      "lines": 20,
+      "imports": [
+        "package.json"
+      ],
+      "fanIn": 8
+    },
+    {
+      "path": "src/conversationRoutes.ts",
+      "layer": "src",
       "lines": 16,
       "imports": [],
-      "fanIn": 8
+      "fanIn": 2
     },
     {
       "path": "src/decision.ts",
@@ -1359,7 +1408,7 @@
       "layer": "src",
       "lines": 93,
       "imports": [
-        "appBuilder/architectOutcome.ts"
+        "src/architectNote.ts"
       ],
       "fanIn": 1
     },
@@ -1605,7 +1654,7 @@
     {
       "path": "vite.config.ts",
       "layer": "other",
-      "lines": 24,
+      "lines": 43,
       "imports": [],
       "fanIn": 0
     }
@@ -1653,6 +1702,10 @@
     },
     {
       "path": "server/contracts.ts",
+      "count": 6
+    },
+    {
+      "path": "server/conversationMode.ts",
       "count": 6
     },
     {
@@ -1706,16 +1759,12 @@
     {
       "path": "server/codeExecutor.ts",
       "count": 4
-    },
-    {
-      "path": "server/gateService.ts",
-      "count": 4
     }
   ],
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2351
+      "lines": 2350
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1727,7 +1776,7 @@
     },
     {
       "path": "server/projectRoutes.ts",
-      "lines": 871
+      "lines": 889
     },
     {
       "path": "server/webSearch.ts",
@@ -1735,11 +1784,11 @@
     },
     {
       "path": "src/ProjectMode.tsx",
-      "lines": 650
+      "lines": 649
     },
     {
       "path": "src/App.tsx",
-      "lines": 643
+      "lines": 644
     },
     {
       "path": "src/ConversationFiles.tsx",
@@ -1766,8 +1815,12 @@
       "lines": 514
     },
     {
+      "path": "appBuilder/core-engine.ts",
+      "lines": 482
+    },
+    {
       "path": "src/ConversationScreens.tsx",
-      "lines": 448
+      "lines": 449
     },
     {
       "path": "server/files.ts",
@@ -1808,10 +1861,6 @@
     {
       "path": "src/workspace/classify.ts",
       "lines": 318
-    },
-    {
-      "path": "server/projectDiagnostics.ts",
-      "lines": 301
     }
   ]
 }
