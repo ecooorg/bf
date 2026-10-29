@@ -5,7 +5,7 @@ import type { ReportValidator, Spec } from './core-types.ts';
 import { MAX_FILES, MAX_TOTAL_BYTES } from './stack-static-site.ts';
 
 export type FileMap = Map<string, string>;
-export const REQUIRED_VALIDATORS = ['html-structure', 'js-syntax', 'refs', 'size', 'secrets', 'acceptance'] as const;
+export const REQUIRED_VALIDATORS = ['html-structure', 'js-syntax', 'refs', 'size', 'secrets', 'acceptance', 'dom-wiring'] as const;
 type Issue = ReportValidator['issues'][number];
 const result = (name: string, issues: Issue[]): ReportValidator => ({ name, ok: issues.length === 0, issues });
 const VOID = new Set(['meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area', 'base', 'col', 'embed', 'param', 'track', 'wbr']);
@@ -105,6 +105,34 @@ export function checkAcceptance(files: FileMap, acceptance: string[]): ReportVal
   return result('acceptance', issues);
 }
 
+
+/** IDs referenced via getElementById / querySelector('#id') / querySelectorAll('#id') must exist in some HTML file. Static literals only; dynamic or class selectors are ignored. */
+export function validateDomWiring(files: FileMap): ReportValidator {
+  const issues: Issue[] = [];
+  const htmlIds = new Set<string>();
+  for (const [path, src] of files) {
+    if (!/\.html?$/i.test(path)) continue;
+    for (const m of src.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)) htmlIds.add(m[1]);
+  }
+  const idFromSelector = (sel: string): string | null => {
+    const s = sel.trim();
+    if (/^#[\w-]+$/.test(s)) return s.slice(1);
+    return null;
+  };
+  for (const [path, src] of files) {
+    if (!/\.js$/i.test(path)) continue;
+    for (const m of src.matchAll(/\.getElementById\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+      const id = m[1];
+      if (!htmlIds.has(id)) issues.push({ path, message: `getElementById('${id}'): no element with this id in HTML` });
+    }
+    for (const m of src.matchAll(/\.querySelector(?:All)?\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+      const id = idFromSelector(m[1]);
+      if (id && !htmlIds.has(id)) issues.push({ path, message: `querySelector('${m[1]}'): no element with id '${id}' in HTML` });
+    }
+  }
+  return result('dom-wiring', issues);
+}
+
 export function runStaticValidators(files: FileMap, spec: Spec | null): ReportValidator[] {
-  return [validateHtml(files), validateJs(files), validateRefs(files), validateSize(files), validateSecrets(files), checkAcceptance(files, spec?.acceptance ?? [])];
+  return [validateHtml(files), validateJs(files), validateRefs(files), validateSize(files), validateSecrets(files), checkAcceptance(files, spec?.acceptance ?? []), validateDomWiring(files)];
 }

@@ -73,7 +73,7 @@ export { makeCacheKey, sha256, PROMPT_VERSION } from './core-cache.ts';
 export { packZip, type PackFile } from './pack-zip.ts';
 export { promptFor, PROMPT_VERSIONS } from './core-prompts.ts';
 export { templatePlan, MAX_FILES, MAX_TOTAL_BYTES, STATIC_SITE_ID } from './stack-static-site.ts';
-export { runStaticValidators, checkAcceptance, validateHtml, validateJs, validateRefs, validateSize, validateSecrets, validateGoalKeywords, REQUIRED_VALIDATORS } from './validator-static-site.ts';
+export { runStaticValidators, checkAcceptance, validateHtml, validateJs, validateRefs, validateSize, validateSecrets, validateGoalKeywords, validateDomWiring, REQUIRED_VALIDATORS } from './validator-static-site.ts';
 export {
   pipelineArchitectOutcome,
   stagedArchitectNote,
