@@ -323,7 +323,7 @@ export default function ProjectMode() {
       if (goal.trim()) {
         setNotice('Project created. Building the program ZIP…');
         try {
-          const started = await api<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim(), engine: 'pipeline' }) });
+          const started = await api<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim() }) });
           const result = started.jobId ? await waitForProjectBuild(project.id, started) : started;
           setProgramResult({ ...result, taskId: result.taskId || result.jobId || 'build', codeTask: result.codeTask || { status: result.status || 'unknown', statusReason: result.note } } as any);
           setNotice(result.downloadUrl ? (result.goalImplemented === true ? 'Project created; program ZIP is ready below.' : `Project created; ZIP is available but validation is incomplete. ${result.note || ''}`) : `Project created, but no ZIP was produced. ${result.note || 'Open the project and retry the build or check diagnostics.'}`);
@@ -427,7 +427,7 @@ export default function ProjectMode() {
               )}
               <button type="button" className="ghost" role="menuitem" onClick={() => void openDiagnostics('system')}>Run system diagnostics</button>
               <button type="button" className="ghost" role="menuitem" onClick={() => void openDiagnostics('operations')}>View recent operations</button>
-              <button type="button" className="ghost" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic logs</button>
+              <button type="button" className="ghost" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic logs (not the program)</button>
               {authenticated && (
                 <button type="button" className="ghost" role="menuitem" disabled={busy} onClick={() => { setMoreOpen(false); void logout(); }}>
                   Sign out
@@ -512,7 +512,6 @@ export default function ProjectMode() {
               `/api/projects/${encodeURIComponent(projectId)}/code/build`,
               { method: 'POST', body: JSON.stringify({
                 goal,
-                engine: 'pipeline',
                 kind: answers?.kind,
                 needsAuth: answers?.needsAuth,
                 needsDb: answers?.needsDb,
