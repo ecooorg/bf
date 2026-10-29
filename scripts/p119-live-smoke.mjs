@@ -2,9 +2,9 @@ import { mkdir, writeFile, appendFile } from 'node:fs/promises';
 
 const base = String(process.env.STAGING_SERVICE_URL || '').replace(/\/+$/, '');
 const password = process.env.STAGING_APP_PASSWORD || '';
-const expected = String(process.env.GITHUB_SHA || '').slice(0, 7);
+const expected = String(process.env.GITHUB_SHA || '').toLowerCase();
 const kind = process.env.P119_SMOKE_KIND || 'contracts';
-if (!/^https:\/\//i.test(base) || !password || !expected || !['contracts', 'ui'].includes(kind)) {
+if (!/^https:\/\//i.test(base) || !password || !/^[0-9a-f]{40}$/.test(expected) || !['contracts', 'ui'].includes(kind)) {
   throw new Error('HTTPS staging URL, staging password, GITHUB_SHA and valid P119_SMOKE_KIND are required');
 }
 const steps = [];
@@ -29,8 +29,10 @@ const request = async (method, route, body) => {
 const record = (id, pass, details = {}) => { steps.push({ id, verdict: pass ? 'PASS' : 'FAIL', ...details }); };
 try {
   const health = await request('GET', '/health');
-  record('deployed_commit', health.status === 200 && health.json?.status === 'ok' && health.json?.commit === expected,
-    { http: health.status, expectedCommit: expected, deployedCommit: health.json?.commit || 'unknown', deployedVersion: health.json?.version || 'unknown' });
+  const deployedCommit = String(health.json?.commit || '').trim().toLowerCase();
+  const commitMatches = /^[0-9a-f]{7,40}$/.test(deployedCommit) && expected.startsWith(deployedCommit);
+  record('deployed_commit', health.status === 200 && health.json?.status === 'ok' && commitMatches,
+    { http: health.status, expectedCommit: expected, deployedCommit: deployedCommit || 'unknown', deployedVersion: health.json?.version || 'unknown' });
   if (steps.at(-1).verdict === 'PASS') {
     const login = await request('POST', '/api/login', { password });
     record('authenticated_session', login.status >= 200 && login.status < 300 && login.json?.success !== false && login.json?.authenticated !== false && Boolean(cookie), { http: login.status });
