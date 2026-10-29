@@ -1,7 +1,7 @@
 # BiForge — Current Task and Patch Control
 
-**Applied patch line:** P118.5.1 (staged default) → P118.5.2 (offline archive E2E) → P118.5.3 (CI adapter test) → **P118.5.4** (live script + docs/audit alignment).
-**Phase:** P118 Complex Software Architect Agent — NOT closed until Navigator exit.
+**Applied patch line:** P118.5.6 accepted by Navigator → **P119.0.1** (three-agent entry UI + status/documentation alignment).
+**Phase:** P119 — migrate user-facing entry points to Conversational / Expert / Architect. This first slice changes the product-facing names and descriptions while preserving proven internal route keys; dedicated pipeline separation and legacy-path removal remain later P119 slices.
 **Authority:** `AGENTS.md` > `docs/AI-OPERATING-RULES.md` > this task, top of `NEXT_PATCH.md`, `docs/ARCHIVE-DELIVERY-CANON.md`, protected root docs.
 
 ## Single source for “what now”
@@ -10,29 +10,28 @@ This file + **top** entry of `NEXT_PATCH.md`. Do not read phase status from `AGE
 
 ## State (OBSERVED)
 
-- Staged App Builder is the default A3 API path; legacy requires `ALLOW_LEGACY_APP_BUILDER=true`.
-- Offline proof: `npm run test:archive-delivery` (5.1 unit + 5.2 E2E).
-- CI on commit `bd0e95d` (patch 118.5.3 line): **PASS** 26/26 (OBSERVED from CI handoff).
-- Live run before 5.4 (`p118-architect-transcript.json`): build **BLOCKED** with `http_409:LEGACY_DISABLED` because the live script sent `engine: 'pipeline'`. That client bug is fixed in **P118.5.4**; staged live evidence is still **NOT_RUN** until re-deploy + re-run.
-- Full static audit: `docs/AUDIT-2026-10-29.md`.
+- Navigator explicitly accepted P118 on 2026-10-29.
+- CI handoff for commit `75418945e5d3138bf208704c7f19ab8ea17369fa`, patch `118.5.6`: **PASS 27/27**, no failed, timed-out, blocked, skipped, or policy-skipped checks; evidence marked complete.
+- `p118-architect-live` evidence: staged build `SUCCESS`; seven validators passed; three expected source files present; downloaded ZIP returned HTTP 200 and `zipOk: true`; operation/build identifiers match; refusal controls for unconfirmed passport and missing artifact returned truthful failures.
+- Remaining P118 residuals (download policy for PARTIAL; dependency audit for `zod` / `body-parser` / `qs`) are optional follow-ups, not blockers to the accepted P118 exit. They are not claimed as audited or resolved.
+- P119.0.1: start screen and agent menu now expose Conversational, Expert, Architect; stable internal keys (`Simple`, `Expert`, `Project`) are retained as implementation details during migration.
 
 ## Next
 
-1. Deploy commit containing P118.5.4.
-2. Confirm CI PASS.
-3. Re-run architect live against staged default; record outcome in `docs/AI-USER-VALUE-REPORT.md` (newest first).
-4. Navigator: P118 exit yes/no.
+1. Verify P119.0.1 source-contract tests, typecheck/build, and the existing regression gates.
+2. Next bounded slice: inventory current conversation and project orchestration boundaries; add agent-specific route/UI contracts without changing accepted outcomes.
+3. Later P119 slice: isolate/remove legacy selectors and shared paths only after replacement behavior has regression coverage.
+4. P120: cross-agent E2E and formal product acceptance. P121 remains optional and requires explicit authorization after P120/open decisions.
 
-## Not authorized
+## Not authorized / constraints
 
-- P119 before Navigator accepts P118 exit.
-- Treating PACKAGE.md, diagnostics ZIP, or legacy scaffold ZIP as Architect SUCCESS.
-- Forcing `engine: 'pipeline'` / legacy on the product A3 path.
+- Do not claim that the three agents already have fully separate pipelines: this slice updates the entry UI only.
+- Do not expose legacy `Simple` or `Project` labels as user-facing agent names.
+- Do not treat the optional P118 dependency audit or PARTIAL-download policy as completed.
+- Do not start P120 or P121 as part of this patch.
 
-## Residual (from audit)
+## Residual
 
-- Regenerate `docs/generated-*.json` when convenient (stale e01 references).
-- Package name `bifurcation-engine` vs product name BiForge (cosmetic).
-- `tsconfig.server.json` `strict: false` (known progressive debt).
-- Node engines pinned to 22.x major; do not assume Node 24 in CI.
-
+- Dedicated Conversational/Expert orchestration separation and legacy-path isolation remain P119 work.
+- Cross-agent live acceptance remains P120.
+- Optional dependency audit and PARTIAL download policy remain open residuals.

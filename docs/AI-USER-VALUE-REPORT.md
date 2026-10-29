@@ -1,3 +1,13 @@
+## P119.0.1 — Three-agent entry UI and P118 evidence reconciliation (2026-10-29)
+
+- **Runtime change:** start screen and in-app selector now present exactly three approved agent names: Conversational, Expert, Architect. Existing internal keys remain `Simple`, `Expert`, and `Project` for this first migration slice; fully dedicated pipelines and legacy-path removal are not claimed here.
+- **P118 acceptance evidence (OBSERVED in supplied archive):** CI report for commit `75418945e5d3138bf208704c7f19ab8ea17369fa`, patch `118.5.6`, reports 27/27 PASS and complete evidence. The `p118-architect-live` artifact records staged `SUCCESS`, seven passing validators, three output files, a downloaded ZIP with `zipOk: true`, matching operation/build identifiers, and truthful refusal controls (`PASSPORT_NOT_CONFIRMED`, `NOT_FOUND`). Navigator accepted P118 on 2026-10-29.
+- **Documentation correction:** the task file and this report previously described P118.5.4 as current and the staged live run as `NOT_RUN`; those statements were stale relative to the supplied P118.5.6 CI/live artifacts. `ROADMAP.md` and the renovation roadmap now record the accepted P118 gate and P119 as in progress.
+- **Residuals not claimed as resolved:** PARTIAL-download policy and dependency audit (`zod`, `body-parser`, `qs`) remain optional follow-ups.
+- **Verification for this P119 patch:** source-contract test, typecheck/build, full local CI, and browser UI test are pending until dependencies/environment are available; do not infer local PASS from the P118 archive.
+
+---
+
 # BIForge — Rolling User-Outcome Evidence Report
 
 Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, or NOT_RUN.
