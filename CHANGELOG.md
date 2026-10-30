@@ -1,3 +1,10 @@
+## P121.0.9 — Fix Architect e2e unmount and lint:copy UserGuide
+
+- Keep guided wizard mounted after create/build (`showGuidedStart` no longer clears on `onFinished`; selection no longer hides the done step). Restores `novice-done` visibility for P120 Architect browser e2e.
+- Shorten UserGuide §6.2 copy to satisfy `lint:copy` 24-word visible-string limit (root cause of DAG `lint:copy` FAIL).
+- Soften done-step helper text in ProjectNoviceWizard.
+- Verification in authoring workspace: `node scripts/lint-copy.mjs` PASS. Full e2e / hosted CI NOT_RUN here.
+
 ## P121.0.8 — Navigator channel rules (tablet GitHub web), clean patch ZIP, automate-first
 
 - Strengthened `AGENTS.md` §7: three categorical rules — (1) patch ZIP contains only new/changed repository paths, no PATCH_SUMMARY/README/helpers; (2) Navigator instructions assume Android tablet + GitHub web/Actions only, never local terminal; (3) assistants must add tests and/or GitHub workflows when checks can be automated.

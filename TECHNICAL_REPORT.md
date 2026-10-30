@@ -1,3 +1,19 @@
+# CURRENT EVIDENCE NOTE — P121.0.9 e2e and lint:copy fixes, 2026-10-30
+
+> Additive. Prior notes retained.
+
+## Failures addressed (from CI evidence)
+
+1. **lint:copy** — UserGuide §6.2 one long paragraph exceeded 24 words; split into short paragraphs. Local `node scripts/lint-copy.mjs` → OK.
+2. **p120-architect-e2e** — `novice-done` never appeared because `onFinished` set `showGuidedStart=false` and `loadProjects(id)` set `selected`, unmounting the wizard (`!selected && showGuidedStart`). Original P58 behavior kept the novice path mounted after finish. Fixed: render wizard while `showGuidedStart`; `onFinished` only refreshes/selects project; dismiss via Back.
+
+## Checks
+
+- lint:copy: PASS (local)
+- Architect browser e2e / full DAG / hosted CI: NOT_RUN in this workspace; expect CI re-run after apply
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.8 Navigator protocol rules, 2026-10-30
 
 > Additive record. Historical notes below retained.
