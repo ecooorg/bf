@@ -1,3 +1,10 @@
+## P121.0.26 — Make Quick Diagnostics live install logging explicit
+
+- Reworked dependency and both Chromium installation steps into explicit multiline Bash blocks that stream combined stdout/stderr through `tee` while preserving the installer exit status with `pipefail`.
+- Strengthened the workflow contract test to inspect the dependency step and each browser-install step independently, requiring live `tee` streaming rather than merely checking that log paths exist.
+- No product runtime, API, database, Neon, or Architectural Test Lab behavior changed. Owner evidence for commit `d8f74020a215fb5b8015b3185b142842e519dc0d` showed typecheck, Lab contract, browser installation, and Lab browser/UI passing; only the Quick Diagnostics workflow contract failed.
+- Local workflow contract and dependency-free metadata/docs checks: pending. Hosted Actions after applying this patch: NOT_RUN.
+
 ## P121.0.25 — Add explicit Architectural Test Lab passport confirmation
 
 - Changed the Lab entry flow to create a proposed project passport from the submitted project name and goal, then present its scope, users, inputs/outputs, constraints, security guidance, and success criteria for review.

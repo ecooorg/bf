@@ -1,3 +1,16 @@
+# Technical Report
+
+## P121.0.27 — Primary Architect entry and Lab diagnostics
+User-confirmed Lab generation, ZIP export, and app launch, followed by a generated Expense Tracker add-expense interaction that reset without creating a visible row. This patch makes the existing Architectural Test Lab the destination of the standard Architect selection and `/architect` route, keeps `/project` available as a legacy comparison/rollback route, and adds a Lab top-menu for existing system/operations/session-log/export diagnostics endpoints. This does not fix or claim to fix the generated Expense Tracker persistence defect; it provides direct diagnostic access to investigate it. Automated source contract checks cover routing and diagnostics affordances; the Lab browser E2E fixture now opens the diagnostics menu, reads a mocked compact session log, then continues through passport confirmation, completion, and ZIP download. Local targeted contracts (Lab + Quick Diagnostics): PASS 9/9; test syntax, version metadata, and docs integrity: PASS. Dependency-backed TypeScript build and browser E2E: NOT_RUN because `node_modules` is absent. Full hosted CI, deployed UI, and actual diagnostics endpoint behavior remain unverified until the user applies and tests this patch.
+
+
+- Owner-provided Quick Diagnostics report for commit `d8f74020a215fb5b8015b3185b142842e519dc0d` shows `TYPECHECK`, `ARCHITECTURAL TEST LAB CONTRACT`, `BROWSER INSTALL`, and `ARCHITECTURAL TEST LAB BROWSER / UI` passing. The only failing section is the workflow contract assertion that dependency installation output must stream through `tee`.
+- Made dependency and Chromium installation shell blocks explicit multiline Bash with `set -o pipefail` and combined stdout/stderr piped through `tee` to the existing runner-temp logs. Updated the contract test to isolate the dependency step and independently inspect every browser installation step.
+- No product UI/runtime, API, database, Neon, or Lab generation flow changed.
+- Local targeted contract, version metadata, and docs integrity checks: pending. Hosted GitHub Actions and deployed user outcome after this patch: NOT_RUN.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.25 Architectural Test Lab passport gate, 2026-10-30
 
 - Owner-reported live Lab attempt reached `/architect-lab`, but `/api/projects/:id/code/build` rejected the new project with `PASSPORT_NOT_CONFIRMED` / “Confirm the project passport before creating software.” Source inspection confirms the Lab previously created a project and immediately called the build endpoint without persisting a confirmed passport. The shared API requires a confirmed passport.
