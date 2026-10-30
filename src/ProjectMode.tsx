@@ -89,6 +89,8 @@ export default function ProjectMode() {
   const [diagnosticsTitle, setDiagnosticsTitle] = useState('');
   const [diagnosticsData, setDiagnosticsData] = useState<unknown>(null);
   const [diagnosticsBusy, setDiagnosticsBusy] = useState(false);
+  const [sessionLog, setSessionLog] = useState('');
+  const [sessionLogCopied, setSessionLogCopied] = useState(false);
   const openDiagnostics = async (kind: 'system' | 'operations') => {
     setMoreOpen(false); setDiagnosticsOpen(true); setDiagnosticsBusy(true);
     setDiagnosticsTitle(kind === 'system' ? 'System diagnostics' : 'Recent operations'); setDiagnosticsData(null);
@@ -96,6 +98,13 @@ export default function ProjectMode() {
     catch (e) { setDiagnosticsData({ error: String((e as Error).message || e) }); }
     finally { setDiagnosticsBusy(false); }
   };
+  const loadSessionLog = async () => {
+    setMoreOpen(false); setDiagnosticsOpen(true); setDiagnosticsTitle('Compact session log'); setDiagnosticsBusy(true); setSessionLog(''); setSessionLogCopied(false);
+    try { const response = await fetch('/api/projects/diagnostics/session-log', { credentials: 'same-origin' }); if (!response.ok) throw new Error(`Log export failed (${response.status})`); setSessionLog(await response.text()); }
+    catch (e) { setSessionLog(`ERROR: ${String((e as Error).message || e)}`); }
+    finally { setDiagnosticsBusy(false); }
+  };
+  const copySessionLog = async () => { try { await navigator.clipboard.writeText(sessionLog); setSessionLogCopied(true); } catch { setSessionLogCopied(false); } };
   const downloadDiagnostics = async () => {
     setMoreOpen(false);
     try {
@@ -426,6 +435,7 @@ export default function ProjectMode() {
               )}
               <button type="button" className="ghost" role="menuitem" onClick={() => void openDiagnostics('system')}>Run system diagnostics</button>
               <button type="button" className="ghost" role="menuitem" onClick={() => void openDiagnostics('operations')}>View recent operations</button>
+              <button type="button" className="ghost" role="menuitem" onClick={() => void loadSessionLog()}>Copy compact session log</button>
               <button type="button" className="ghost" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic logs (not the program)</button>
               {authenticated && (
                 <button type="button" className="ghost" role="menuitem" disabled={busy} onClick={() => { setMoreOpen(false); void logout(); }}>
@@ -440,7 +450,7 @@ export default function ProjectMode() {
     {diagnosticsOpen && <div role="dialog" aria-modal="true" aria-label={diagnosticsTitle} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 20 }}>
       <div style={{ background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20, width: 'min(800px,95vw)', maxHeight: '80vh', overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><h2>{diagnosticsTitle}</h2><button type="button" onClick={() => setDiagnosticsOpen(false)} aria-label="Close diagnostics">Close</button></div>
-        {diagnosticsBusy ? <p>Checking…</p> : <DiagnosticsView data={diagnosticsData} />}
+        {diagnosticsBusy ? <p>Checking…</p> : diagnosticsTitle === 'Compact session log' ? <div><p>Copy this text and paste it into the support chat. No ZIP is created.</p><button type="button" onClick={() => void copySessionLog()} disabled={!sessionLog}> {sessionLogCopied ? 'Copied' : 'Copy log'} </button><textarea aria-label="Compact session log text" readOnly value={sessionLog} style={{ width: '100%', minHeight: 320, marginTop: 10, background: '#07182a', color: '#dce9f7', fontSize: 12, whiteSpace: 'pre', overflow: 'auto' }} /></div> : <DiagnosticsView data={diagnosticsData} />}
       </div>
     </div>}
     <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
