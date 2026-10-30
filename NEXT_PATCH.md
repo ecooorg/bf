@@ -1,3 +1,19 @@
+# P120.0.8 — Documentation aligned to user-value completion (current handoff)
+
+**Applied intent:** one consistent product contract across `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md`, `TECHNICAL_REPORT.md`, and the canonical user-value documents. The project ends only when the three agents deliver useful, truthful user outcomes and the Navigator accepts the evidence. Tests and CI are supporting gates, not the final product outcome.
+
+**Key current finding:** the inspected source still exposes Architect submodes through `ProjectPathChooser`, `builderPath`, `ProjectNoviceWizard`, and a separate professional workspace. The single-mode requirement is specified but NOT implemented by this documentation patch. P120 Architect E2E uses deterministic API fixtures; it does not prove live model-generated project quality. Conversational and Expert current live outcome quality also remains incompletely assessed.
+
+**Documentation patch scope:** aligned the three protected root documents and current user-value contract, removed the superseded P119/P121 parallel plan files, and advanced `package.json` patch metadata to `120.0.8`. No runtime behavior changed.
+
+**Verification in this patch workspace:** `node scripts/docs-integrity.mjs` PASS; `npm run docs:check` PASS; `node scripts/check-version.mjs` PASS (`120` / `120.0.8`); JSON and cross-document target-consistency assertions PASS. Hosted CI, build, browser E2E, live providers and live product scenarios are NOT_RUN. The Navigator-supplied P120 technical evidence remains tied to commit `d411b982186276708d31173f62b574aed19ebd63` and is not evidence for this patch or for product-value completion.
+
+**Next — P120.0.9, product implementation:** implement one Architect mode and one workflow under `TECHNICAL_SPECIFICATION.md` §6.3 / REQ-A3-002 and `ROADMAP.md` Phase 7. Remove the chooser and independent `builderPath` branching; preserve useful capabilities within one workflow; add regression coverage; verify a real generation attempt through artifact validation and download, or capture a truthful stage-specific failure. Do not begin unrelated provider expansion or code-only restructuring without a demonstrated user-value reason.
+
+---
+
+# History (previous NEXT_PATCH entries — do not edit)
+
 # P120.0.7 — Final acceptance candidate and closure decision (current)
 
 **Technical evidence:** Navigator supplied `P120 Acceptance Evidence` and `P120 Commit-Bound Evidence`, both PASS for commit `d411b982186276708d31173f62b574aed19ebd63`. Dependencies, verification DAG, Playwright install, P120 UI suite and acceptance workflow conclusion all report `success`; `problems: none`.

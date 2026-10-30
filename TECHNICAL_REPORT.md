@@ -1,22 +1,50 @@
 # BiForge Technical Report
 
 **Document ID:** BF-TECH-REPORT-001  
-**Status:** Historical reconstruction from available repository snapshots and documentation  
-**Authority:** Evidence from analis.zip snapshots (bf-01 … bf-118), CHANGELOG.md entries, AI-USER-VALUE-REPORT.md, task documents, live-run notes and test artefacts  
-**Principle:** Distinguish source-code presence, CI success, local test results and confirmed production/live behaviour. Do not equate any of them.
+**Status:** Current user-outcome audit plus historical implementation reconstruction  
+**Current audit date:** 2026-10-30  
+**Authority:** Current source tree and available patch/evidence records; owner-supplied CI outcomes are identified as owner-supplied  
+**Principle:** Product value is established by useful, truthful user-visible outcomes. Source presence, green CI, deterministic browser fixtures, and live production behavior are distinct evidence classes.
 
-This report recovers the implementation history. For each material change it records:
+## Current product-value assessment (authoritative current section)
 
-- First appearance in a snapshot / version label
-- Problem addressed
-- Specified behaviour
-- Affected components / files
-- What was actually implemented
-- Documented tests and checks
-- Recorded results
-- Defects found and fixed
-- Open questions
-- Confidence level and supporting artefacts
+This section supersedes any older forward-looking recommendation elsewhere in the historical record where the two conflict. Sections 1–6 below preserve observations from earlier archive tips; they are not a description of today's complete implementation unless explicitly rechecked in this section.
+
+### Current target product
+
+BiForge has exactly three user-facing agents:
+
+- **Conversational:** answers the user's actual question, preserves relevant context, uses current evidence when freshness matters, and states uncertainty or tool failure honestly.
+- **Expert:** investigates complex problems, distinguishes facts from hypotheses, compares meaningful alternatives, synthesizes a reasoned recommendation, and leaves an actionable plan.
+- **Architect:** uses one user-facing mode and one workflow to turn a software goal into a real project, validate it, and provide an accessible verified ZIP—or give a truthful stage-specific failure and recovery action.
+
+A simplified explanation or advanced control may exist inside Architect's one workflow. Separate novice/professional paths, a mode chooser, and different completion contracts are not part of the target product.
+
+### Current evidence matrix
+
+| Area | Current evidence available | What that evidence proves | What it does not prove | Status |
+|---|---|---|---|---|
+| Conversational | Historical P117.3 live retest recorded 12 PASS, 3 PARTIAL, 0 FAIL across 15 scored cases (80% PASS); P120 two-turn browser test uses a deterministic fixture | Earlier response baseline existed; browser flow and context wiring can be exercised | Current deployed answer quality, freshness, and tool-recovery quality | **PARTIAL — retest current deployment** |
+| Expert | P120 browser test covers deterministic provider failure, retry, answer, and follow-up; owner reports CI green | Tested retry/UI path works for the tested fixture on the reported commit | Full multi-turn investigation quality, alternatives, synthesis, plan quality, or current live-provider behavior | **PARTIAL — real task evaluation required** |
+| Architect artifact delivery | Historical P118 live evidence recorded SUCCESS, seven validators, three expected files, HTTP 200 ZIP, `zipOk: true`; P120 browser E2E downloads and inspects a deterministic fixture ZIP | A staged live run previously produced a verified ZIP; browser download/validation path can be exercised with a fixture | Arbitrary task quality, current deployed generation, generated program build/runtime, or a unified single-mode workflow | **PARTIAL — target workflow not implemented** |
+| Architect mode contract | Checked source contains `ProjectPathChooser`, “Simple words” and “Professional” cards, `builderPath`, and separate novice/professional branches | Two selectable Architect paths remain in the inspected tree | Whether a newer remote branch has removed them; no remote tree was independently inspected | **FAIL in inspected tree** |
+| P120 CI/evidence | Navigator supplied both P120 evidence reports as PASS for `d411b982186276708d31173f62b574aed19ebd63`; required listed checks reported success | Those named technical checks passed for that exact commit according to supplied evidence | Product-level value, current documentation patch checks, or real generation quality not covered by those checks | **PASS for supplied technical gate only** |
+
+### Audit findings and decisions
+
+1. **The primary programme-completion criterion was misapplied.** P120 primarily strengthened deterministic E2E, CI and commit-bound evidence. Those are necessary engineering controls, not proof that users consistently receive the intended value.
+2. **Architect's target contract is not implemented in the inspected tree.** The source has a mode chooser and distinct novice/professional branches. Removing only the visible cards is insufficient; the target requires one workflow state machine and one completion contract.
+3. **The existing Architect browser E2E is narrower than a real product test.** Its API/build result is fixture-driven. It proves browser delivery of the fixture archive and validator behavior, not model-generated software quality.
+4. **Conversational and Expert remain incompletely evaluated as user outcomes.** Existing test evidence covers selected UI and retry behavior; it does not replace a current live-task quality evaluation against their contracts.
+5. **Documentation drift contributed to the miss.** Older records explicitly retained simplified/professional interaction profiles, while the normative product target requires one Architect mode. Those older statements are now historical only and must not direct implementation.
+6. **The current work order is therefore:** (a) align all normative documents; (b) implement one Architect workflow; (c) evaluate real Conversational and Expert tasks; (d) close the programme only against the final user-value gate in `ROADMAP.md`.
+
+### Limits of this audit
+
+- The code inspection used `/mnt/data/work120/bf-main`, reconstructed from available archives, with the P120.0.7 handoff files overlaid. It is not a direct inspection of the current remote branch or deployed app.
+- The PASS evidence for P120 was supplied by the Navigator and is not independently re-run here.
+- No live model/provider call, deployed UI session, real user-generated artifact, or full CI run was performed as part of this documentation audit.
+- Therefore this patch makes no claim that the target Architect has already been implemented or that the three agents pass the final product-value gate.
 
 ---
 
@@ -268,13 +296,12 @@ This report recovers the implementation history. For each material change it rec
 - Transition from many competing SPECs/REPORTs (ARCHIVE/) to single rolling files (task, roadmap, report, operating rules) is complete in bf-118.
 - Charter (AGENTS.md) is treated as immutable except by explicit Navigator instruction.
 
-### 7.3 Three-agent target
+### 7.3 Three-agent target (historical archive view; superseded as current status by the audit at the top)
 
-- Contract fully specified in AI-USER-VALUE-SPEC.md.
-- Implementation reaches Conversational (accepted), Expert foundations, Architect pipeline with repair but without confirmed live ZIP SUCCESS.
-- UI still transitional (four modes) until P119.
-- P119.0.3 (OBSERVED in source): Conversational and Expert planning and prompt entry moved to `server/conversationalAgent.ts` / `server/expertAgent.ts` selected by `server/agentRouting.ts`; route, wire key and prompt pack text remain shared; user copy uses the three approved names.
-- P119.0.1–0.2 (post-archive tip, OBSERVED in source): UI names are Conversational / Expert / Architect. Architect is a separate route family, client surface and engine; Conversational and Expert still share `POST /api/conversation` and one prompt builder selected by `productMode`. Boundaries are documented in TECHNICAL_SPECIFICATION §6.4 and locked by `tests/p119-agent-boundaries.test.mjs`. Local and CI results for these tests are recorded in `docs/AI-USER-VALUE-REPORT.md`.
+- The target contract is explicitly restated at the top of this report and in `docs/AI-USER-VALUE-SPEC.md`.
+- The earlier archive view predates later P119/P120 work and must not be used as the current status.
+- The checked P120-era source exposes three top-level agent names, but Architect still has two selectable submodes. That is a current target-contract violation, not an acceptable transitional target.
+- P120 deterministic UI/E2E coverage and supplied CI evidence do not prove current live response quality or model-generated software quality. See the current evidence matrix above.
 
 ### 7.4 Security and Tier 3
 
@@ -283,19 +310,19 @@ This report recovers the implementation history. For each material change it rec
 
 ---
 
-## 8. Summary of Confidence by Programme Phase
+## 8. Summary of Confidence by Historical Archive Phase (not current product acceptance)
 
 | Phase              | Code presence | Local tests | Hosted CI | Live product outcome | Overall confidence |
 |--------------------|---------------|-------------|-----------|----------------------|--------------------|
 | Foundations P106–P109 | High         | High        | High (at closure) | N/A                 | High              |
 | P116 Conversational | High         | High        | Medium    | High (accepted)     | High              |
 | P117 Expert        | High         | High        | Medium    | Medium (foundations)| Medium-High       |
-| P118 Architect     | High         | High (unit) | Partial   | Low (no verified ZIP)| Medium            |
-| P119–P121          | N/A (plan)   | N/A         | N/A       | N/A                 | N/A               |
+| P118 Architect     | High         | High (unit) | Partial   | Low at the P118.3.3 archive tip | Medium |
+| Later P119/P120 work | Not represented in this archive tip | N/A | N/A | N/A | This historical table does not assess current product value |
 
 ---
 
-## 9. Remaining Open Items at Archive Tip (P118.3.3)
+## 9. Remaining Open Items at Historical Archive Tip (P118.3.3; superseded by current audit for present-day status)
 
 1. Hosted CI green confirmation for the 118.3.3 commit.
 2. Deploy + `/health` commit match.
@@ -305,4 +332,4 @@ This report recovers the implementation history. For each material change it rec
 6. Residual B3 (Node LTS) still open.
 7. P92 production diagnostics verification still frozen.
 
-This report is reconstructed solely from artefacts present in the analysed archive. Claims of live SUCCESS beyond the documented acceptance of P116 are not supported by the available evidence.
+This historical subsection is reconstructed solely from artefacts present in the old archive. Its statements about what was not yet run are true only for that archive tip. Current evidence and open product-value gaps are stated in the authoritative audit at the top of this file.

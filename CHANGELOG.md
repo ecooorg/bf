@@ -1,3 +1,14 @@
+## P120.0.8 — User-value contract and documentation reconciliation
+
+- Reconciled the protected root specification, roadmap and technical report with the product's actual acceptance objective: useful, truthful user outcomes, not test completion.
+- Made the Architect target explicit: exactly one user-facing mode and one workflow; simplified guidance and advanced controls may exist within it, but no selectable novice/professional submodes or independent completion paths.
+- Recorded the inspected source gap without claiming runtime implementation: `ProjectPathChooser`, `builderPath`, `ProjectNoviceWizard` and the separate professional workspace remain in the inspected tree.
+- Distinguished deterministic P120 UI fixtures and supplied commit-bound CI evidence from real model-generated project quality and current live Conversational/Expert quality.
+- Replaced the forward roadmap with the product-value sequence: document contract → implement one Architect workflow → evaluate real Conversational and Expert tasks → final user-value release gate.
+- Removed superseded parallel planning documents `docs/p119-p121.md` and `docs/P121_Browser_based_Model_Providers.md`; provider-expansion planning is not part of the committed product scope.
+- Updated canonical task, value specification/report, programme rules, index, environment context, README, and version metadata to patch `120.0.8`.
+- Verification in this workspace: `node scripts/docs-integrity.mjs` PASS; `npm run docs:check` PASS; `node scripts/check-version.mjs` PASS (`120` / `120.0.8`); JSON and cross-document target-consistency assertions PASS. Hosted CI, build, browser E2E, live providers and live product scenarios were NOT_RUN. No product runtime behavior changed and no live product outcome is claimed.
+
 ## P120.0.7 — Final acceptance candidate and programme closure record
 
 - Recorded the Navigator-supplied P120 Acceptance and P120 Commit-Bound Evidence as PASS for commit `d411b982186276708d31173f62b574aed19ebd63`: dependencies, verification DAG, Playwright installation, P120 UI suite, and acceptance workflow conclusion all `success`; `problems: none`.
