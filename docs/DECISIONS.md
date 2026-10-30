@@ -10,6 +10,14 @@
 
 This file contains only current cross-cutting decisions. Historical proposals and rejected alternatives belong in `TECHNICAL_REPORT.md` or `CHANGELOG.md`; they must not be mistaken for current authorization. New decisions are added at the top. Do not silently erase a prior decision—mark it superseded with the date and replacement.
 
+## D-2026-10-30-06 — Preserve historical records, retire obsolete test payloads independently
+
+**Clarification / supersedes any broader reading of D-2026-10-30-05:** Repository minimalism targets obsolete active artifacts, not useful historical records. Preserve completed roadmap stages, changelog entries, factual technical reports, decision history, and concise summaries of tests/experiments that ran and the conclusions supported by their evidence. Do not delete or rewrite these records merely to reduce repository size.
+
+**Test lifecycle:** Once a test or experiment has served its purpose, remove its executable test implementation, obsolete fixtures/prompts, temporary outputs, and one-off scripts when they no longer protect a current requirement and have no active dependency. Keep a concise record of its execution/result where historically relevant. Retain or recreate a focused regression test only when it protects a current contract or meaningful recurrence risk. Preserve raw historical payloads outside the repository only for a concrete reproducibility or audit need.
+
+**Effect:** Every audit must classify historical records separately from active test code and temporary payloads. The former are preserved; the latter may be retired after dependency, CI, compatibility, and unique-coverage checks.
+
 ## D-2026-10-30-05 — Keep the repository minimal and current
 
 **Decision:** Repository contents must earn their place by serving a current product, engineering, verification, operational, security, or documentation need. Historical origin or prior usefulness alone is not a retention reason.
