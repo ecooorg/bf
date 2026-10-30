@@ -477,12 +477,12 @@ export default function ProjectMode() {
         {(job.outcome || job.report?.outcome) && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8fa6c2' }} data-testid="project-build-outcome">Итог: {job.outcome || job.report?.outcome}{job.report?.checksNotRun?.length ? ` · не выполнены проверки: ${job.report.checksNotRun.join(', ')}` : ''}{job.report?.failureReason ? ` · ${job.report.failureReason}` : ''}</p>}
       </div>;
     })()}
-    {authenticated && enabled && !selected && showGuidedStart && (
+    {authenticated && enabled && showGuidedStart && (
       <ProjectNoviceWizard
         busy={busy}
         programZipAvailable={Boolean(capabilities?.programZip)}
-        onBack={() => setShowGuidedStart(false)}
-        onFinished={(id) => { setShowGuidedStart(false); void loadProjects(id); }}
+        onBack={() => { setShowGuidedStart(false); }}
+        onFinished={(id) => { void loadProjects(id); }}
         createProject={async (n, g) => {
           setBusy(true); setError(''); setNotice('');
           try {

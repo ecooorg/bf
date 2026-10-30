@@ -330,7 +330,7 @@ export function ProjectNoviceWizard({
             {deployText}
           </pre>
           <p style={S.muted}>
-            You can open the project in the list below for more analysis, another build, or Professional tools.
+            Open the project in the list below for more analysis or another build.
           </p>
         </div>
       )}
