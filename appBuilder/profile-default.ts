@@ -6,12 +6,12 @@
 
 import { SCHEMA_VERSION, type Profile } from './core-types.ts';
 
-/** Safe defaults when model limits are unknown. */
+/** Output headroom for complete source files; provider-specific hard caps still apply. */
 export function conservativeProfile(id = 'conservative'): Profile {
   return {
     schemaVersion: SCHEMA_VERSION,
     id,
-    maxOutputTokens: 2048,
+    maxOutputTokens: 8192,
     requestsPerMinute: 5,
     tokensPerMinute: 32_000,
     maxParallel: 1,
