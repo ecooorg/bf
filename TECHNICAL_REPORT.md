@@ -1,3 +1,33 @@
+# CURRENT EVIDENCE NOTE — P121.0.12 Architect truncation and partial-delivery correction, 2026-10-30
+
+> Additive. Based on user-supplied P121.0.11 diagnostics and `P118 architect live` workflow artifact for commit `1bc5e81`.
+
+## Observed failure evidence
+
+- User-reported outcome: project creation did not result in a received ZIP; a black/unresponsive screen was also reported.
+- In-app build `2aede0f4-2567-48f4-8613-72c3ffbc1419` generated only `index.html`; the planned `style.css` unit failed after two truncated model responses (`MAX_TOKENS`). The report recorded `PARTIAL`, `goalImplemented=false`, `failedStage=check`, and unresolved references to `style.css` / `tetris.js`.
+- The same runtime diagnostics showed prior `HTTP_409` build attempts and `HTTP_404` download attempts. System health checks being green did not validate the generated project.
+- The live workflow on the same deployed commit generated four files and downloaded a non-empty ZIP (HTTP 200), but validators failed (`storage.js` module syntax and `style.css`/`styles.css` reference mismatch). Its verdict was `INCONSISTENT` because the staged engine represents PARTIAL as an internally failed terminal job while retaining an optional starter ZIP.
+- The screenshots show the diagnostics/operations modal over a dimmed workspace; they do not capture a browser exception or independently establish the reported black-screen cause.
+
+## Change
+
+- Raised the conservative App Builder output budget from 2,048 to 8,192 tokens to reduce the specifically observed file truncation failure mode.
+- Adjusted the live evidence classifier to recognize `status=failed` + explicit `outcome=PARTIAL` as PARTIAL only when a failure stage/reason and a verified ZIP are both present. `deliveryProven` remains false for PARTIAL; this is not PASS.
+- Added regression tests for both contracts.
+
+## Checks
+
+- `node --check scripts/p118-architect-live-lib.mjs` → PASS.
+- Focused runtime assertions for `status=failed` + `outcome=PARTIAL` + verified ZIP → PARTIAL; aggregate verdict remains `HONEST_NON_PASS`, `deliveryProven=false` → PASS.
+- Direct import/assertion of `conservativeProfile().maxOutputTokens === 8192` using Node type stripping → PASS.
+- `node scripts/docs-integrity.mjs` → PASS.
+- `node --test tests/p121-cycle-governance.test.mjs tests/p121-navigator-protocol.test.mjs` → 14/14 PASS.
+- `tests/app-builder-unit-repair-p118.test.mjs` and `tests/p118-architect-live.test.mjs` → NOT_RUN to completion: dependencies were unavailable; `npm ci --ignore-scripts --no-audit --no-fund` timed out and the focused test entry points could not resolve `jszip` / `tsx`.
+- Hosted CI: NOT_RUN.
+- New deployed/live generation: NOT_RUN.
+- Browser black-screen root cause: NOT_VERIFIED; current screenshots do not include browser console/runtime diagnostics.
+
 # CURRENT EVIDENCE NOTE — P121.0.11 docs-integrity AGENTS marker, 2026-10-30
 
 > Additive.

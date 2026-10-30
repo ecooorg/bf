@@ -11,6 +11,7 @@
 - Initial audit of the available reconstructed tree found a documentation-integrity failure (15 retired documents still present), a stale P120-specific version gate in the E2E preflight, and a missing-dependency blocker for the full verification DAG. The actual remote repository and hosted CI are not available in this workspace.
 - C121 acceptance requires: canonical docs checks pass; version/patch/lock metadata agree; previous P120 regression checks remain runnable; no mandatory user obligation is silently dropped; runtime/live checks are separately evidenced or marked `NOT_RUN`.
 - P121.0.7 unified Architect client entry (no path chooser). Live/browser/user-value validation of the one-flow contract remains required before closing BIO-004.
+- P121.0.12 addresses an observed P0 Architect generation failure mode (2,048-token model-output truncation) and corrects PARTIAL workflow classification. BIO-005 remains NOT_VERIFIED until a new deployed run produces a useful validated artifact and the user receives it; the reported black-screen cause remains NOT_VERIFIED.
 
 
 The end goal is useful, reliable user outcomes in the running product—not a green repository by itself. A patch is not accepted solely because tests pass. For user-facing work, state the user problem, observable outcome, quality criteria, failure/recovery behavior, and evaluation evidence. Keep local tests, hosted CI, deployed/live checks, and actual user-outcome evidence separate.
