@@ -26,6 +26,13 @@ Use `PASS`, `FAIL`, `BLOCKED`, `NOT_RUN`, and `SKIPPED_BY_POLICY` consistently w
 
 Check actual package scripts before running; command names can evolve only through a documented patch.
 
+
+## Navigator verification channel
+
+The Navigator has no local terminal. Automated checks must be visible in **GitHub Actions**. Prefer new or updated workflow files and tests that CI already runs (`test:core`, release gates, UI smoke) over checklists that require `npm` on a computer. Manual Navigator work is limited to reading files, committing uploaded replacements, opening Actions runs, reading logs, and optional mobile-browser UI smoke against a deployed or preview URL.
+
+Assistant/CI machines may still use the commands in “Useful commands”; those commands are **not** Navigator steps.
+
 ## Architect acceptance scenario
 
 Use a realistic software request from initial entry to download. The user must not choose between Architect modes. Verify the single flow captures the goal, clarifies missing constraints, produces/validates a plan, generates files, runs validators, presents an honest SUCCESS/PARTIAL/FAILED state, and offers a downloadable ZIP only under the delivery policy. Inspect the downloaded archive and try to use the result. Record task input, commit/build, provider/model where safely observable, validators, output files, ZIP integrity, user-visible explanation, and any manual follow-up. Stubbed browser tests may prove wiring only; they do not replace this scenario.

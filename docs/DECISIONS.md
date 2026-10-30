@@ -1,5 +1,17 @@
 # Active Decisions
 
+## D-2026-10-30-07 — Navigator channel, clean patch ZIP, automate verification
+
+**Decision:**
+1. **Patch ZIP purity:** Archives delivered for Navigator application contain only new or changed repository files at exact repository-relative paths. No `PATCH_SUMMARY`, README, apply guides, manifests, checksums, scripts, reports, logs, or other auxiliary files may appear in the ZIP. Apply instructions and deletion lists belong in chat only.
+2. **Navigator environment:** The Navigator operates on an Android tablet via GitHub web UI (and web render). Instructions for the Navigator must never assume a computer, local terminal, or local `npm`/`node`. Navigator verification is file view, commit, Actions tab, workflow logs, and mobile browser UI.
+3. **Automate first:** Where a check can be automated, assistants add or update `tests/` and/or `.github/workflows/` so the Navigator can rely on GitHub Actions instead of manual technical steps on the tablet.
+
+**Authority:** Binding assistant protocol in `AGENTS.md` §7. Supersedes informal habits that put helper files in patch ZIPs or wrote terminal-based Navigator runbooks.
+
+**Effect:** Every session that delivers a patch or Navigator plan must comply. CI may assert presence of these rules in `AGENTS.md`.
+
+
 ## D-2026-10-30-04 — English-only repository, language-neutral intent handling
 
 **Decision:** Maintained repository artifacts (source, comments, identifiers, tests, fixtures, prompts, scripts, technical documentation, and developer-facing messages) use English only. Intent/routing logic should not depend on isolated natural-language marker lists tied to particular languages when stable structured contracts or robust classification are feasible.
