@@ -1,3 +1,11 @@
+## P121.0.18 — Fix focused CI and Architectural Test Lab browser diagnostics
+
+- Kept emergency resource-error handling type-safe by narrowing `event.target` to `Element` and reading only supported image, script, and link resource URLs; this removes the invalid `HTMLElement` versus `window` comparison reported by TypeScript.
+- Changed the Lab browser smoke server launcher to use the current Node executable with `--import tsx`, avoiding reliance on `node_modules/.bin` being present in the child process PATH.
+- Added the manually triggered `quick-diagnostics.yml` workflow to the explicit workflow inventory allowlist so the Core boundary test accepts this approved diagnostic workflow.
+- Scope: diagnostics, Lab browser-test harness, and workflow inventory only; legacy Architect runtime and generation behavior unchanged.
+- Verification: source syntax, workflow YAML, version metadata, and docs integrity PASS; dependency-backed typecheck/Core/browser tests BLOCKED because local `npm ci` timed out; hosted Actions and Android live UI: NOT_RUN.
+
 ## P121.0.17 — On-demand quick diagnostics workflow
 
 - Added a manually triggered GitHub Actions workflow that skips the full verification DAG and runs focused typecheck, Architectural Test Lab contract tests, and an optional isolated Lab browser smoke test.

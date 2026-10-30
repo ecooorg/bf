@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P121.0.18 focused CI/UI diagnostic fixes, 2026-10-30
+
+- Addressed the P121.0.17 evidence: TypeScript's invalid `HTMLElement`/`window` comparison is replaced by an `Element` runtime narrowing; the Architectural Test Lab browser test starts its server through `process.execPath --import tsx`; Core's exact workflow inventory now explicitly permits `quick-diagnostics.yml`.
+- These changes target the recorded `typecheck`, `spawn tsx ENOENT`, and workflow-inventory failures. The `workflow-dag` failure is expected to clear only if it was downstream of the recorded Core/typecheck failures; hosted rerun is required to establish that.
+- Local checks: `node --check` for both edited test files PASS; Quick Diagnostics workflow YAML parse PASS; `node scripts/version-metadata.mjs` PASS; `node scripts/docs-integrity.mjs` PASS. The exact TypeScript/Core/browser tests could not run because dependency installation (`npm ci --ignore-scripts --prefer-offline --no-audit --no-fund`) timed out and left `tsx` unavailable in this workspace; the attempted `node --import tsx` run was therefore BLOCKED by `ERR_MODULE_NOT_FOUND`.
+- Full DAG, hosted CI, and Android live UI: NOT_RUN. The CI evidence must be rerun on the resulting commit to confirm all three reported failures are resolved.
+
 # CURRENT EVIDENCE NOTE — P121.0.17 on-demand quick diagnostics, 2026-10-30
 
 - Added `.github/workflows/quick-diagnostics.yml`, manually started from Actions. It deliberately bypasses the full CI verification DAG.
