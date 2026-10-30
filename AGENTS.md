@@ -76,9 +76,25 @@ If a session discovers an obligation that is absent from the normative specifica
 9. Re-check important claims from prior sessions against available source and evidence. Reuse verified evidence; do not accept a previous assistant’s conclusion merely because it is documented. Do not repeat expensive or live checks without need or authorization.
 10. Preserve uncertainty explicitly. A missing result is `NOT_RUN`/`NOT_VERIFIED`, never PASS. Separate local checks, hosted CI, deployed/live behavior, and user-outcome evidence.
 
+### Mandatory descending priority cascade
+
+When choosing independent development work, apply this order (highest first):
+
+| Priority | Category | Selection rule |
+|---|---|---|
+| **P0** | Critical defects | Restore a broken product, primary agent, essential user outcome, data integrity, or security. |
+| **P1** | Mandatory functionality | Complete missing, unfinished, or nonfunctional approved product features. |
+| **P2** | Major functional defects | Correct materially wrong, unreliable, or incomplete behavior of existing features. |
+| **P3** | Real user-value validation | Verify actual tasks, model behavior, outputs, and generated artifacts beyond mocked tests. |
+| **P4** | Additional tests and reliability | Improve regression coverage, CI, diagnostics, and resilience beyond checks required for the current change. |
+| **P5** | Usability and interface | Improve UX, clarity, accessibility, and remove unnecessary interactions. |
+| **P6** | Technical refinement | Refactor, optimize, tidy documentation, and reduce nonblocking technical debt. |
+
+Apply the cascade strictly: do not choose lower-priority polishing, documentation, or test-only work while actionable higher-priority product defects or required features remain. Within the same level, prefer greater user impact, severity, breadth, and dependency-unblocking value. A lower-level prerequisite may be done first **only** when demonstrably necessary to deliver a higher-priority obligation; state that dependency and keep the scope minimal. If higher-priority work is blocked, record why and select the highest available unblocked task without marking the blocked work complete. Mandatory tests, security checks, and acceptance evidence accompany **every** change regardless of priority; P4 concerns *additional standalone* test/reliability initiatives, not permission to skip verification. A green CI never substitutes for a working feature or a real user outcome. These priority labels are task-severity levels, **not** BiForge patch identifiers (`P121.0.3`, etc.).
+
 ### Phase C — Choose and define this session’s task
 
-11. Decide the most important next work from the actual findings, mandatory obligations, dependencies, user impact, risk, and cost of delay. `ROADMAP.md` informs this decision but is not a substitute for re-evaluation. Do not select work merely because it is easy, test-focused, or mentioned by the previous assistant.
+11. Decide the most important next work using the mandatory descending priority cascade above, actual findings, mandatory obligations, dependencies, user impact, risk, and cost of delay. `ROADMAP.md` informs this decision but is not a substitute for re-evaluation. Do not select work merely because it is easy, test-focused, or mentioned by the previous assistant.
 12. Prefer work that closes a concrete user-outcome gap or unblocks such work. If prerequisite engineering is necessary, state which approved user requirement it enables and how completion will be demonstrated.
 13. Before editing, formulate a session task for the current work (it may be a temporary plan in the response or working notes; do not create or commit a permanent next-session assignment). It must state:
     - observed problem and evidence/provenance;
