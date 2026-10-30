@@ -2,6 +2,10 @@ import React, { Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { ErrorBoundary } from './ErrorBoundary.tsx';
+import { installEmergencyDiagnostics } from './emergencyDiagnostics.ts';
+
+installEmergencyDiagnostics();
 
 const isProject =
   window.location.pathname === '/project' || window.location.pathname.startsWith('/project/');
@@ -30,6 +34,6 @@ const Root = isProject ? ProjectRoot : App;
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Root />
+    <ErrorBoundary label={isProject ? 'Project Mode' : 'BiForge'}><Root /></ErrorBoundary>
   </React.StrictMode>
 );
