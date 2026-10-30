@@ -1,3 +1,10 @@
+## P120.0.6 — Commit-bound acceptance and evidence workflows
+
+- Added manual `.github/workflows/p120-acceptance.yml`: runs the full CI verification DAG with PostgreSQL, acceptance-evidence regression tests, Playwright Chromium, and all P120 UI/E2E scenarios.
+- Added `.github/workflows/p120-evidence.yml`, triggered after the acceptance workflow completes. It validates the downloaded report against the triggering run's full commit SHA, run ID/attempt, workflow conclusion, and each required check before creating a second evidence artifact.
+- Added `scripts/p120-acceptance-evidence.mjs` and regression tests. Missing, skipped, failed, stale-commit, or mismatched-run evidence fails closed. Reports contain check metadata only and do not claim Navigator acceptance.
+- Patch metadata: `120.0.6`. Local script tests and syntax checks are run separately; hosted workflow and browser suite remain NOT_RUN until dispatched.
+
 ## P120.0.5 — E2E suite stabilization preflight
 
 - Added `scripts/p120-e2e-preflight.mjs` to fail fast on stale patch metadata, missing P120 browser test files, focused npm script mismatches, missing `test:ui` registrations, or syntax errors.

@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "120",
-  "patch": "120.0.5",
+  "patch": "120.0.6",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -64,7 +64,8 @@
     "test:p120-expert": "node --test tests/p120-expert-e2e.test.mjs",
     "test:p120-architect": "node --import tsx --test tests/p120-architect-e2e.test.mjs",
     "test:p120-transitions": "node --test tests/p120-agent-transitions-e2e.test.mjs",
-    "test:p120-preflight": "node scripts/p120-e2e-preflight.mjs"
+    "test:p120-preflight": "node scripts/p120-e2e-preflight.mjs",
+    "test:p120-evidence-check": "node --test tests/p120-acceptance-evidence.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -1,12 +1,10 @@
-# P120.0.5 — E2E suite stabilization preflight (current)
+# P120.0.6 — Commit-bound acceptance and evidence workflows (current)
 
-**Applied:** Added `scripts/p120-e2e-preflight.mjs`, a dependency-free fail-fast guard that checks package/patch metadata, presence of all four P120 browser scenarios, focused npm script mappings, `test:ui` inventory, and JavaScript syntax before Playwright/UI checks begin. `npm run test:ui` now runs this guard first; `npm run test:p120-preflight` runs it independently. Patch metadata is `120.0.5`; product runtime behavior is unchanged.
+**Applied:** Added manual `P120 Acceptance` workflow to run the CI verification DAG with PostgreSQL, evidence-script regression tests, Playwright Chromium installation, and the complete P120 UI/E2E suite. It emits an acceptance JSON artifact even after a failed/skipped check. Added `P120 Evidence`, triggered when the acceptance workflow completes, to verify the source artifact's full commit SHA, run ID/attempt, workflow conclusion, and every required check; it emits a separate commit-bound report. Evidence is fail-closed and explicitly remains `PENDING_NAVIGATOR` even when technical checks pass.
 
-**Why:** Catch stale package metadata, missing test registrations, mismatched focused commands, and syntax regressions before spending CI time on browser startup. This is a preflight, not a replacement for browser E2E or hosted CI.
+**Verification in this environment:** Script syntax, acceptance-evidence regression tests, workflow inventory, and ZIP integrity are checked locally. Hosted Actions execution and browser suite are NOT_RUN here; Navigator reports previous P120.0.1–P120.0.5 CI green.
 
-**Verification in this environment:** Preflight execution, `node --check` for the preflight, and ZIP integrity are checked locally. Full browser E2E/build/hosted CI are NOT_RUN locally; prior P120.0.1–P120.0.4 green status is per Navigator.
-
-**Next:** Run `npm run test:p120-preflight`, then the complete `npm run test:ui` and hosted CI. If green, request Navigator's formal P120 acceptance. Do not start P121 without explicit authorization.
+**Next:** Apply patch and dispatch `P120 Acceptance` on the intended commit. Review both `p120-acceptance-evidence` and `p120-evidence-<sha>` artifacts; confirm the evidence workflow reports PASS and all source checks match the same full SHA. Then proceed to P120.0.7 final acceptance/closing documentation. Do not begin P121 without explicit authorization.
 
 ---
 

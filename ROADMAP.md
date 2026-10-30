@@ -364,7 +364,7 @@ npm run check   # full DAG
 | P120.0.3 | E2E Architect | Build, validators, download and ZIP integrity verified |
 | P120.0.4 | Cross-agent E2E: switching between agents and context preservation | Agents verified together |
 | P120.0.5 | Stabilisation; fix regressions found | Stable integration suite |
-| P120.0.6 | Workflows `p120-acceptance` and `p120-evidence` | Final CI and one evidence report |
+| P120.0.6 | Workflows `p120-acceptance` and `p120-evidence` | Commit-bound acceptance and independently verified evidence report |
 | P120.0.7 | Final acceptance and closing documentation | Formal completion of the programme |
 | P120.0.8 (conditional) | P118 residuals: download policy for `PARTIAL` (`failed_but_download_offered`) and dependency audit (`zod`, `body-parser`, `qs`); included only if the inventory confirms they still need closing before release | Optional |
 
