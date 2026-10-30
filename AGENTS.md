@@ -153,10 +153,48 @@ Apply the cascade strictly: do not choose lower-priority polishing, documentatio
 - Do not disable safety gates or weaken acceptance checks merely to turn CI green.
 - Mocked/stubbed tests prove only the mocked contract. Source inspection proves only source structure. Hosted CI proves only the checks actually run on its commit. A real user outcome requires appropriate user-level evidence.
 
-## 7. Patch delivery and reporting
+## 7. Patch delivery, Navigator channel, and automated verification (mandatory)
 
-**Strict patch-archive rule (mandatory):** a delivered patch ZIP contains only complete repository files that are new or changed, stored at their exact repository-relative paths. No auxiliary files are allowed in the ZIP: no README or application instructions, manifests, checksums, patch/apply scripts, reports, summaries, test logs, screenshots, or other delivery helpers. All instructions for applying the patch, deleting paths, and interpreting verification results must be written in the chat, never added to the archive. Do not include unchanged repository files. If a patch requires deleting repository files, list those paths in chat; do not add deletion lists or placeholder files to the ZIP. Before delivery, inspect the ZIP listing and verify every entry is an intended repository file that must be added or replaced.
+These three rules are **categorical and binding** for every assistant session. They override convenience, prior habit, and informal handoff notes.
 
-When a patch is requested, deliver complete replacement files in a ZIP and list deleted paths in the chat. State exactly which checks ran and their outcomes. For documentation-only changes, run documentation integrity checks and relevant focused tests. Mark product tests, browser tests, live runs, and hosted CI as `NOT_RUN` when not performed. Never infer remote repository state from a reconstructed local archive.
+### 7.1 Patch archive contents (Navigator delivery)
 
-When a patch is requested, deliver complete replacement files in a ZIP and list deleted paths in the chat. State exactly which checks ran and their outcomes. For documentation-only changes, run documentation integrity checks and relevant focused tests. Mark product tests, browser tests, live runs, and hosted CI as `NOT_RUN` when not performed. Never infer remote repository state from a reconstructed local archive.
+A delivered patch ZIP for the Navigator contains **only** complete repository files that are **new or changed**, each at its **exact repository-relative path** (for example `src/ProjectMode.tsx`, `package.json`, `.github/workflows/….yml`).
+
+**Forbidden inside the ZIP (never add):**
+- `PATCH_SUMMARY.md`, `README`, apply instructions, manifests, checksum lists, patch/apply scripts
+- reports, evidence notes meant only for chat, test logs, screenshots, screenshots folders
+- unchanged repository files, deletion-list files, placeholder stubs, “how to apply” documents
+
+**Required outside the ZIP (chat only):**
+- how to apply (which paths to replace)
+- paths that must be **deleted** from the repository (list in chat only; no deletion file in the ZIP)
+- which checks ran, outcomes, and what remains `NOT_RUN`
+
+Before delivery, list the ZIP entries and confirm every entry is an intended repository path to add or replace. If an auxiliary file appears in the listing, remove it and rebuild the archive.
+
+### 7.2 Navigator environment (Android tablet, GitHub web, render)
+
+The **Navigator** works on an **Android tablet** using the **GitHub website** (and related web/render UI). The Navigator has **no** desktop computer, **no** local terminal, **no** `npm`/`node` shell, and **no** ability to run repository scripts locally.
+
+Therefore every instruction written for the Navigator must:
+- use only GitHub web actions: open file, edit/replace file contents, upload file, commit, open Actions, open a workflow run, read logs in the browser, open a deployed/preview URL if one exists
+- never require Terminal, PowerShell, bash, `npm install`, `npm test`, or local IDE steps as Navigator actions
+- put technical command lines only in sections explicitly labeled for **assistant/CI machines**, not for the Navigator
+- describe pass/fail by what the Navigator can **see**: file content on GitHub, Actions check marks, workflow log text, UI in a mobile browser
+
+Assistants may still run terminals in their own sandbox; that does not change what the Navigator can do.
+
+### 7.3 Automatic tests and workflows (prefer CI over manual tablet steps)
+
+Wherever a check can be automated, the assistant **must** add or update:
+- a focused test under `tests/`, and/or
+- a GitHub Actions workflow under `.github/workflows/`
+
+so the Navigator can trigger or observe verification via the **Actions** tab instead of performing multi-step manual technical procedures on the tablet.
+
+Manual Navigator steps are limited to what only a human can do on the tablet (for example: visual UI smoke on a phone/tablet browser, reading a log, confirming a commit message). Do not leave “run test:core locally” as a Navigator obligation.
+
+### 7.4 Reporting
+
+When a patch is requested, deliver the clean ZIP (rule 7.1), list deletions in chat, and state exactly which checks ran. For documentation-only changes, run documentation integrity checks and relevant focused tests when available in the assistant environment. Mark product tests, browser tests, live runs, and hosted CI as `NOT_RUN` when not performed. Never infer remote repository state from a reconstructed local archive alone.

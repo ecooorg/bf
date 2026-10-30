@@ -1,3 +1,11 @@
+## P121.0.8 — Navigator channel rules (tablet GitHub web), clean patch ZIP, automate-first
+
+- Strengthened `AGENTS.md` §7: three categorical rules — (1) patch ZIP contains only new/changed repository paths, no PATCH_SUMMARY/README/helpers; (2) Navigator instructions assume Android tablet + GitHub web/Actions only, never local terminal; (3) assistants must add tests and/or GitHub workflows when checks can be automated.
+- Recorded `D-2026-10-30-07` in `docs/DECISIONS.md`; Navigator verification channel in `docs/TESTING_AND_ACCEPTANCE.md`.
+- Added `tests/p121-navigator-protocol.test.mjs` and wired it into `test:core`.
+- Includes prior P121.0.7 one-Architect client unification files when applied as a combined delivery.
+- Verification: governance test is source-level; full suite / hosted CI NOT_RUN in authoring workspace.
+
 ## P121.0.7 — One Architect flow (remove novice/professional path choice)
 
 - Removed the user-visible dual entry for Architect: no more mandatory “Simple words” vs “Professional” path chooser.

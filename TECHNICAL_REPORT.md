@@ -1,3 +1,27 @@
+# CURRENT EVIDENCE NOTE — P121.0.8 Navigator protocol rules, 2026-10-30
+
+> Additive record. Historical notes below retained.
+
+## Change
+
+Binding assistant protocol in `AGENTS.md` §7 and decision D-2026-10-30-07:
+1. Patch ZIP purity for Navigator delivery.
+2. Navigator = Android tablet, GitHub web UI / Actions / mobile browser only.
+3. Automate tests and workflows instead of terminal runbooks for the Navigator.
+
+Governance regression: `tests/p121-navigator-protocol.test.mjs` in `test:core`.
+
+## Checks
+
+- Source inspection of AGENTS/DECISIONS/TESTING: rules present.
+- Hosted CI and full `test:core` execution: NOT_RUN in this workspace.
+
+## Boundary
+
+Does not by itself close BIO-004 live user-value. P121.0.7 UI unification still requires Actions/browser evidence after apply.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.7 One Architect flow, 2026-10-30
 
 > Additive top-level record. Prior notes below are historical and retained.
