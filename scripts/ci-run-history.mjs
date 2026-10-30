@@ -63,7 +63,7 @@ async function artifactMetrics(artifactId) {
   if(metric){const doc=JSON.parse(await metric.async('string'));return {checks:doc.checks||doc.run?.checks||null,checkResults:doc.checkResults||doc.run?.checkResults||null,dagWallClockMs:doc.run?.dagWallClockMs??null,source:'ci-metrics.json'};}
   const diagnostic=Object.values(zip.files).find(f=>!f.dir&&f.name.endsWith('diagnostics.zip'));
   if(diagnostic){const inner=await JSZip.loadAsync(await diagnostic.async('nodebuffer'));const file=inner.file('results.json');if(file){const doc=JSON.parse(await file.async('string'));return {checks:countsFor(doc.results||[]),checkResults:(doc.results||[]).map(r=>({id:r.id,status:r.status,durationMs:r.durationMs??null,critical:Boolean(r.critical),log:r.log||null})),dagWallClockMs:doc.wallClockMs??null,source:'legacy diagnostics.zip'};}}
-  const report=Object.values(zip.files).find(f=>!f.dir&&f.name.endsWith('NEXT_PATCH.md'));
+  const report=Object.values(zip.files).find(f=>!f.dir&&f.name.endsWith('PATCH_EVIDENCE.md'));
   if(report){const text=await report.async('string');const m=text.match(/DIAGNOSTIC_RESULTS=([^\r\n]+)/);if(m){const c={};for(const x of m[1].matchAll(/(\d+)\s+(PASS|FAIL|TIMEOUT|SKIPPED|BLOCKED|SKIPPED_BY_POLICY|NOT_RUN|UNKNOWN)/g))c[x[2].toLowerCase()]=Number(x[1]);c.total=Object.values(c).reduce((a,b)=>a+b,0);c.executed=(c.pass||0)+(c.fail||0)+(c.timeout||0);c.completed=c.executed;return {checks:c,checkResults:null,source:'legacy handoff summary'};}}
   return {checks:null,checkResults:null,source:'artifact has no check metrics'};
 }

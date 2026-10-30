@@ -1,4 +1,4 @@
-// P96: the same compact, evidence-complete handoff is written to NEXT_PATCH.md and GitHub Actions Summary.
+// P96: the same compact, evidence-complete handoff is written to PATCH_EVIDENCE.md and GitHub Actions Summary.
 // No AI/API calls. Secrets are redacted before any evidence is published.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -103,7 +103,7 @@ const count = (s) => uniqueRows.filter((r) => r.status === s).length;
 const failedStageNames = [...new Set([...failedRows.map((r) => `${r.id}:${r.status}`), ...envFailed.map((s) => `workflow-${s}:FAIL`)])];
 const skipped = uniqueRows.filter((r) => r.status === 'SKIPPED' || NOT_VERIFIED.includes(r.status)).map((r) => (r.status === 'SKIPPED' ? r.id : `${r.id}:${r.status}${r.note ? ` (${oneLine(r.note, 120)})` : ''}`));
 const handoff = [];
-handoff.push('# BiForge ASSISTANT HANDOFF');
+handoff.push('# BiForge CI PATCH EVIDENCE');
 handoff.push(`PATCH_STATUS=${status}`, `COMMIT=${sha}`, `WORKFLOW_RUN=${runUrl}`);
 const lockVersion = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'package-lock.json'), 'utf8')).lockfileVersion; } catch { return 'unknown'; } })();
 handoff.push(`RUNTIME=node ${oneLine(process.version,40)}; platform=${process.platform}; package-lock-version=${lockVersion}`);
@@ -155,7 +155,7 @@ for (const stage of failedRows) {
 }
 handoff.push(`REPO_CHECK_COMMAND=${oneLine(packageJson.scripts?.check || 'unavailable', 1800)}`);
 handoff.push(`FAILED_STAGE_RERUN_COMMANDS=${rerunCommands.length ? rerunCommands.map((x) => oneLine(x, 1000)).join(' | ') : 'not recorded; use log/source evidence below'}`);
-handoff.push('HANDOFF_RULE=This file is the primary handoff. It includes redacted failure evidence/source excerpts plus current and recent CI metrics when available. biforge-ci-logs.zip is packaged on green and red runs and contains all available logs/evidence; use it for full context. Treat absent evidence as unknown and never claim unrun checks passed.');
+handoff.push('CI_EVIDENCE_RULE=This run-scoped report contains redacted failure evidence/source excerpts plus current and recent CI metrics when available. biforge-ci-logs.zip contains available logs/evidence; use it for context. This report may suggest a CI rerun/fix for a recorded failure, but it is not a persistent assignment for the next assistant session. Treat absent evidence as unknown and never claim unrun checks passed.');
 handoff.push('EVIDENCE_BEGIN', ...errorSections, 'EVIDENCE_END');
 const criticalLogSet = failedRows.some((r) => r.phase === 'critical') ? uniqueRows.filter((r) => r.phase === 'critical' && r.log).map((r) => r.log) : [];
 handoff.push(`LOG_FILES=${[...new Set([...criticalLogSet, ...failedRows.map((r) => path.basename(r.log || `${r.id}.log`)), ...workflowErrors.map((g) => g.log)])].filter((name) => fs.existsSync(path.join(dir,name))).join(', ') || logs.join(', ') || 'none'}`);
@@ -164,10 +164,10 @@ handoff.push(`EVIDENCE_PROBLEMS=${evidence.problems.length ? evidence.problems.s
 handoff.push(`ROOT_CAUSE_CONFIDENCE=${failedRows.some((r) => r.status === 'TIMEOUT') ? 'assertion evidence may be confirmed; timeout cause remains unproven unless final active test/operation is identified' : failedRows.length ? 'use assertion and source context; do not infer intent beyond evidence' : status === 'FAILED' ? 'workflow failure recorded but diagnostic stage evidence incomplete' : 'no failure recorded'}`);
 const packagingContractMismatch = failedRows.some((stage) => /compact-ci-artifacts/i.test(String(stage.id || ''))) && failedRows.some((stage) => {
   const logText = read(path.basename(stage.log || `${stage.id}.log`));
-  return /BIForge-NEXT-PATCH\.md/i.test(logText) && /biforge-ci-logs\.zip/i.test(logText) && /diagnostics\.zip/i.test(logText) && /deepStrictEqual|Expected values to be strictly deep-equal/i.test(logText);
+  return /BIForge-PATCH-EVIDENCE\.md/i.test(logText) && /biforge-ci-logs\.zip/i.test(logText) && /diagnostics\.zip/i.test(logText) && /deepStrictEqual|Expected values to be strictly deep-equal/i.test(logText);
 });
 const specificFailureAction = packagingContractMismatch
-  ? 'Update tests/compact-ci-artifacts-p94.test.mjs to assert the two-file contract (BIForge-NEXT-PATCH.md and biforge-ci-logs.zip); verify the ZIP contains all available logs, results/evidence, metrics/history and redacted secrets; run npm run test:compact-ci-artifacts, then node scripts/run-dag.mjs --profile check.'
+  ? 'Update tests/compact-ci-artifacts-p94.test.mjs to assert the two-file contract (BIForge-PATCH-EVIDENCE.md and biforge-ci-logs.zip); verify the ZIP contains all available logs, results/evidence, metrics/history and redacted secrets; run npm run test:compact-ci-artifacts, then node scripts/run-dag.mjs --profile check.'
   : failedRows.length
     ? `Fix the evidenced failure(s): ${failedStageNames.join(', ')}. Reproduce with ${rerunCommands.length ? rerunCommands.map((x) => x.split(': ').slice(1).join(': ')).join('; ') : 'the failed-stage command(s) recorded above'}; use the EVIDENCE and SOURCE excerpts, then rerun node scripts/run-dag.mjs --profile check. Do not change unrelated product logic.`
     : 'Workflow failed without a recorded failed probe; inspect workflow step outcomes and the named workflow log before changing code.';
@@ -220,5 +220,5 @@ if (history) {
 }
 handoff.push(`HANDOFF_JSON=${handoffJson}`);
 const report = handoff.join('\n') + '\n';
-fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), report);
-console.log(`Wrote ${path.relative(root, path.join(dir,'NEXT_PATCH.md'))} (${Buffer.byteLength(report)} bytes); status=${status}`);
+fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), report);
+console.log(`Wrote ${path.relative(root, path.join(dir,'PATCH_EVIDENCE.md'))} (${Buffer.byteLength(report)} bytes); status=${status}`);

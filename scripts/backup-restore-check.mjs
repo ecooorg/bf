@@ -34,8 +34,8 @@ const report = {
       '4. Hit GET /ready and GET /api/ops on an app pointed at that DB.',
       '5. Destroy the disposable instance.',
     ],
-    rpo_rto: 'Targets in docs/OPERATIONS.md section 5 (RPO ≤ 24h, RTO ≤ 4h); actual recovery performance must be verified.',
-    rollback: 'See docs/OPERATIONS.md section 4 — redeploy the previous known-good build; database rollback is separate.',
+    rpo_rto: 'Targets in docs/OPERATIONS_AND_RELEASES.md (Backup and restore) (RPO ≤ 24h, RTO ≤ 4h); actual recovery performance must be verified.',
+    rollback: 'See docs/OPERATIONS_AND_RELEASES.md (Operational safety) — redeploy the previous known-good build; database rollback is separate.',
   },
   live: null,
 };
@@ -77,7 +77,7 @@ if (asJson) {
 } else {
   console.log(`ops:backup-check migrations_on_disk=${report.migrations_on_disk} ok=${report.ok}`);
   if (report.live) console.log(`live: ${JSON.stringify(report.live)}`);
-  console.log('Restore drill steps are listed in the JSON report (--json) and docs/OPERATIONS.md section 5');
+  console.log('Restore drill steps are listed in the JSON report (--json) and docs/OPERATIONS_AND_RELEASES.md (Backup and restore)');
 }
 
 process.exitCode = report.ok ? 0 : 2;
