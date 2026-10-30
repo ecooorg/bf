@@ -38,6 +38,10 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     page.on('console', message => { if (message.type() === 'error') browserErrors.push(`console error: ${message.text()}`); });
     page.on('requestfailed', request => browserErrors.push(`requestfailed: ${request.url()} — ${request.failure()?.errorText || 'unknown'}`));
     await page.route('**/api/session', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ authenticated: true, projectModeEnabled: true }) }));
+    await page.route('**/api/projects/diagnostics/session-log', route => route.fulfill({ status: 200, contentType: 'text/plain', body: 'LAB_DIAGNOSTIC_FIXTURE: ready' }));
+    await page.route('**/api/projects/diagnostics/system', route => route.fulfill(envelope({ status: 'ok' })));
+    await page.route('**/api/projects/diagnostics/operations', route => route.fulfill(envelope([])));
+    await page.route('**/api/projects/diagnostics/export', route => route.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from('diagnostic-fixture') }));
     await page.route('**/api/projects', route => route.request().method() === 'POST'
       ? route.fulfill(envelope({ id: 'p122-lab-project', name: 'Lab fixture', state_version: 1, state: { passport: { status: 'proposed' } } }))
       : route.fulfill(envelope([])));
@@ -54,6 +58,11 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     await page.route('**/test-lab.zip', route => route.fulfill({ status: 200, contentType: 'application/zip', headers: { 'content-disposition': 'attachment; filename="architectural-lab.zip"' }, body: Buffer.from('fixture-zip') }));
     await page.goto(`${base}/architect-lab`);
     await page.getByTestId('architect-lab-build-form').waitFor();
+    await page.getByTestId('architect-lab-diagnostics-menu').click();
+    await page.getByRole('menuitem', { name: 'Compact session log' }).click();
+    await page.getByLabel('Diagnostic report').waitFor();
+    assert.equal(await page.getByLabel('Diagnostic report').inputValue(), 'LAB_DIAGNOSTIC_FIXTURE: ready');
+    await page.getByRole('button', { name: 'Close' }).click();
     await page.getByLabel('What should be built?').fill('Create a small task tracker with a working add-task button.');
     await page.getByTestId('architect-lab-build').click();
     await page.getByTestId('architect-lab-passport').waitFor();
