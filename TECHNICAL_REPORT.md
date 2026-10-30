@@ -1,3 +1,22 @@
+# CURRENT EVIDENCE NOTE — Historical record preservation clarification, 2026-10-30
+
+## Scope and provenance
+
+Documentation-only clarification prepared against the reconstructed local tree assembled from available archives. The current remote repository was not available for comparison.
+
+## Changes
+
+- Distinguished historical records (completed roadmap entries, changelog, factual reports, decisions, and concise test/experiment outcome summaries) from obsolete active test implementations and temporary payloads.
+- Clarified that completed tests may be retired without deleting the factual record that they ran or the conclusions supported by their evidence.
+- Required reference, CI, compatibility, and unique-coverage checks before retiring executable tests or fixtures.
+- No tests, source files, fixtures, or historical records were removed.
+
+## Verification boundary
+
+Documentation and version checks are run locally where possible and their exact results are reported in the delivery message. Hosted CI, remote checkout comparison, and live product checks are NOT_RUN. This patch does not claim that a full repository retirement audit is complete.
+
+---
+
 # CURRENT EVIDENCE NOTE — Repository minimalism and test lifecycle policy, 2026-10-30
 
 ## Scope and provenance

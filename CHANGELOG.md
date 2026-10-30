@@ -1,3 +1,11 @@
+## P121.0.6 — Clarify history preservation vs. test retirement
+
+- Clarified that repository minimalism removes obsolete active test implementations, fixtures, temporary experiment payloads, and one-off tools—not useful historical records.
+- Required preservation of completed roadmap history, changelog entries, factual reports, decisions, and concise records of test/experiment outcomes.
+- Distinguished concise historical evidence from old test code and raw test inputs/outputs; archive raw payloads only for concrete reproducibility or audit needs.
+- Documentation/governance only; no tests or historical records were removed. Prepared against a reconstructed local tree, not the current remote checkout.
+- Verification: see the current evidence note in `TECHNICAL_REPORT.md`; hosted CI and remote checkout validation are NOT_RUN.
+
 ## P121.0.5 — Repository minimalism and test lifecycle policy
 
 - Defined a current-purpose requirement for maintained repository files and a test-retention rule tied to current product obligations, meaningful scenarios, contracts, and material regression risk.

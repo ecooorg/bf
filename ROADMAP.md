@@ -30,14 +30,14 @@ Required work sequence:
 
 ## Standing cross-cutting stage — Repository minimalism and test lifecycle
 
-Reassess repository contents during each session. Keep the active tree focused on files needed for current product behavior, development, verification, release, security, operations, and actionable documentation. Do not preserve tests or artifacts merely because they belong to a completed cycle.
+Reassess repository contents during each session. Keep the active tree focused on files needed for current product behavior, development, verification, release, security, operations, and actionable documentation. Do not preserve obsolete test implementations or temporary artifacts merely because they belong to a completed cycle. This does not authorize deleting useful historical records: completed roadmap entries, changelog history, factual reports, decisions, and concise records of test/experiment outcomes remain intact unless separately corrected for factual error.
 
 Required work sequence:
-1. Inventory candidate stale tests, duplicate tests, old golden prompts/fixtures, one-off diagnostic scripts, completed experiment reports, superseded plans, and inactive generated artifacts.
+1. Inventory candidate stale test implementations, duplicate tests, old golden prompts/fixtures, one-off diagnostic scripts, temporary experiment payloads, superseded plans, and inactive generated artifacts. Keep historical records (completed stages, changelog entries, factual reports, decisions, and concise test outcome summaries) in a separate inventory category; do not treat them as disposable test payload.
 2. Trace each candidate to current requirements, source imports/references, package scripts, CI/workflows, compatibility promises, and unique coverage.
 3. Choose **keep, update, merge, archive outside the repository, or delete** and record the rationale for consequential decisions.
 4. Keep regression tests only where they protect current obligations or material recurrence risks; replace broad historical experiments with smaller tests of current contracts where appropriate.
-5. Remove retired items only after confirming no required coverage, active reference, or mandatory audit evidence is lost. Preserve necessary evidence separately and do not turn archives into required runtime/build inputs.
+5. Remove retired implementations and payloads only after confirming no required coverage, active reference, or mandatory audit evidence is lost. Preserve historical records of what ran and what was concluded; do not delete a test implementation as a reason to erase its factual result. Archive raw inputs/outputs only when reproducibility or an explicit audit obligation requires them, and never make an archive a runtime/build dependency.
 
 **Acceptance gate:** no identified repository item is retained solely because it is old or was once useful; retained tests have a current purpose; duplicate/obsolete material is removed where safe; required compatibility and regression coverage remains; and actual checks and unverified dependencies are reported honestly.
 
