@@ -1,3 +1,20 @@
+# CURRENT EVIDENCE NOTE — P121.0.21 legacy Architect result-shape crash guard, 2026-10-30
+
+- Source evidence: `publicJob()` in `server/appBuilderAdapter.ts` returns staged-build fields (`jobId`, `status`, `stage`, `units`, `report`, `downloadUrl`) and does not return the legacy `codeTask` object. `src/ProjectMode.tsx` stored that response directly in one guided-build path, then dereferenced `programResult.codeTask.statusReason` during render.
+- Change: made `codeTask` optional in the legacy result state and guarded `statusReason`, `prUrl`, and `id` reads. Removed fabricated `codeTask` placeholders from guided-start, create-project, and standard build result paths. Added a regression test for a completed staged result without `codeTask`.
+- User-visible flow affected: `/project` build result panel (heading, optional pull-request link, ZIP download, Drive save). Existing browser E2E completion surface is not structurally changed; whether it reaches completion after this change is NOT_RUN locally.
+- Neon: no live connection was attempted; migration application, schema state, and Render-to-Neon data transfer remain NOT_VERIFIED. No database migration or data mutation was included.
+- Local syntax, focused test, typecheck, production build, hosted Actions, and deployed Android reproduction: NOT_RUN pending available dependencies/runtime.
+
+# CURRENT EVIDENCE NOTE — P121.0.20 live workflow output and isolated Lab test startup, 2026-10-30
+
+- The verification DAG previously forwarded child output only when concurrency was exactly 1; parallel checks were written to files but not streamed into the Actions console. Child output is now always streamed, with check-ID prefixes in parallel mode.
+- Quick Diagnostics previously redirected dependency/browser installation output to temporary files and used `spawnSync`, hiding check output until each process completed. It now uses `tee` for install phases and streams spawned check output while retaining bounded failure evidence for the one-file report.
+- The P122 browser test previously set `ENABLE_PROJECT_MODE=true` with an empty database URL, causing `server.ts` to abort before the browser scenario. The fixture mocks project/session/build requests, so the test server now keeps legacy Project Mode disabled.
+- Regression assertions added for streaming and the isolated server environment. Source syntax and static checks: pending. Typecheck, full browser test, hosted Actions, and Android UI: NOT_RUN in this reconstructed workspace.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.19 single-file Quick Diagnostics, 2026-10-30
 
 - Quick Diagnostics now produces exactly one downloadable file: `ERROR_SUMMARY.txt`, with bounded sections for dependency installation, typecheck, Architectural Test Lab contract, browser/UI, and overall status.

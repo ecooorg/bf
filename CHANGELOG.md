@@ -1,3 +1,18 @@
+# P121.0.21 — Legacy Architect staged-result render guard (2026-10-30)
+
+- Fixed the `/project` React crash when staged App Builder responses omit the legacy `codeTask` object. The result state now treats that legacy-only field as optional, and all render-time reads are guarded.
+- Removed synthetic `codeTask` placeholders from the three build-result paths; staged result fields (`status`, `note`, `downloadUrl`, `jobId`) remain the source of truth.
+- Added a regression test covering a completed staged build response with no `codeTask`.
+- Neon migration/data state was not changed: no live database connection or migration evidence was available, and no Neon-specific failure was established.
+
+## P121.0.20 — Restore live workflow logs and isolate Lab browser server
+
+- Restored live child-process output in the verification DAG for both serial and parallel checks; parallel lines are prefixed with the check ID while full logs continue to be written to per-check files.
+- Quick Diagnostics now streams dependency installation, Chromium installation, typecheck, Lab contract, and browser/UI test output directly into the GitHub Actions console while retaining the single compact `ERROR_SUMMARY.txt` artifact.
+- The isolated Lab browser test no longer enables legacy Project Mode during server startup; its project/session/build API calls are intercepted by the browser fixture, so the test does not require a database URL or start the legacy project worker.
+- Added regression assertions for live output and isolated server configuration. Legacy Architect runtime and the three core user-facing modes are unchanged.
+- Local syntax/contract checks: pending; full dependency-backed tests and hosted Actions: NOT_RUN.
+
 ## P121.0.19 — Consolidate Quick Diagnostics into one error report
 
 - Replaced separate CI/UI summaries and uploaded per-check logs with one `ERROR_SUMMARY.txt`, containing bounded sections for dependency installation, typecheck, Architectural Test Lab contract, browser/UI, and overall status.
