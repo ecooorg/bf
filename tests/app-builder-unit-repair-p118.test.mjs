@@ -95,3 +95,12 @@ test('P118.3.3: the coder prompt names the real path and no longer contains the 
   assert.ok(!prompt.includes('<<<FILE path>>>'));
   assert.equal(version, 'static_site.v2');
 });
+
+
+test('P121.0.12: generated file calls have enough output headroom to avoid the observed 2048-token truncation', async () => {
+  const h = harness(() => reply(formatFileMarker('index.html', HTML)));
+  const result = await run(h, 'job-output-budget');
+  assert.equal(result.report.outcome, 'SUCCESS');
+  assert.ok(coderCalls(h).length > 0);
+  assert.ok(coderCalls(h).every((call) => call.maxOutputTokens === 8192));
+});

@@ -34,6 +34,8 @@ test('P118 live: SUCCESS is PASS only with a verified ZIP', () => {
 test('P118 live: PARTIAL is never PASS and needs reason plus verified ZIP', () => {
   const data = { outcome: 'PARTIAL', failedStage: 'slice', failureReason: 'SLICE_SKIPPED', downloadUrl: '/d' };
   assert.equal(classifyBuild({ buildHttp: 201, buildBody: { data }, download: goodZip }).verdict, 'PARTIAL');
+  assert.equal(classifyBuild({ buildHttp: 202, buildBody: { data: {} }, job: { ...data, status: 'failed', goalImplemented: false }, download: goodZip }).verdict, 'PARTIAL', 'staged engine records PARTIAL as a failed terminal job while preserving its optional starter ZIP');
+  assert.equal(classifyBuild({ buildHttp: 202, buildBody: { data: {} }, job: { ...data, outcome: 'SUCCESS', status: 'failed', goalImplemented: true }, download: goodZip }).verdict, 'INCONSISTENT', 'a failed terminal job must never be promoted to SUCCESS');
   assert.equal(classifyBuild({ buildHttp: 201, buildBody: { data: { ...data, failedStage: null, failureReason: null } }, download: goodZip }).verdict, 'INCONSISTENT');
   assert.equal(classifyBuild({ buildHttp: 201, buildBody: { data }, download: null }).verdict, 'INCONSISTENT');
 });
