@@ -1,3 +1,11 @@
+# CURRENT EVIDENCE NOTE — P121.0.17 on-demand quick diagnostics, 2026-10-30
+
+- Added `.github/workflows/quick-diagnostics.yml`, manually started from Actions. It deliberately bypasses the full CI verification DAG.
+- Checks: TypeScript typecheck, Architectural Test Lab contract tests, and (by default) the isolated Lab Playwright flow including build/completion/download.
+- Output artifact: `biforge-quick-diagnostics`, containing copy-friendly `CI_ERROR_SUMMARY.txt` and `UI_ERROR_SUMMARY.txt` plus bounded individual check logs.
+- The workflow runs checks independently and uploads evidence even when a check fails. Browser run can be disabled at dispatch; Chromium cache reduces repeat setup time.
+- Workflow syntax/runtime, actual duration, hosted Actions result, and Android live UI behavior: NOT_RUN in this workspace. This workflow is diagnostic, not a replacement for full CI or proof of user value.
+
 # CURRENT EVIDENCE NOTE — P121.0.16 Architectural Test Lab development direction, 2026-10-30
 
 ## Owner-approved direction

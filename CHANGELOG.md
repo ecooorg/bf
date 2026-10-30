@@ -1,3 +1,10 @@
+## P121.0.17 — On-demand quick diagnostics workflow
+
+- Added a manually triggered GitHub Actions workflow that skips the full verification DAG and runs focused typecheck, Architectural Test Lab contract tests, and an optional isolated Lab browser smoke test.
+- Uploads small `CI_ERROR_SUMMARY.txt` and `UI_ERROR_SUMMARY.txt` files plus bounded per-check logs as a single short-lived artifact, including failures rather than stopping at the first failed check.
+- Browser smoke can be disabled at dispatch when only fast static diagnostics are needed; Chromium is cached between runs.
+- Hosted execution and elapsed time: NOT_RUN; expected duration depends on dependency/browser cache state.
+
 ## P121.0.16 — Prioritize Architectural Test Lab development
 
 - Recorded the owner-approved strategy: focus new development on the separate `/architect-lab` experimental fourth mode; pause routine legacy Architect repairs and use legacy defects as diagnostic/regression input.
