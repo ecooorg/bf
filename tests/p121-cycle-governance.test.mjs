@@ -18,10 +18,11 @@ test('C121 product version, patch identifier, and lockfile metadata agree', () =
   assert.equal(pkg.patch.split('.')[0], pkg.version);
 });
 
-test('Architect opens without a browser confirmation dialog', () => {
+test('Architect opens Lab without a browser confirmation dialog', () => {
   const app = readFileSync('src/App.tsx', 'utf8');
   assert.doesNotMatch(app, /Open Architect\?/);
-  assert.match(app, /window\.location\.href = '\/project'/);
+  assert.match(app, /window\.location\.href = '\/architect-lab'/);
+  assert.match(app, /Project mode is a separate route \(\/project\)/);
 });
 
 test('retired task and competing prose files are absent', () => {
