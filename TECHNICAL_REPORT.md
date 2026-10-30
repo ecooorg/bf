@@ -1,5 +1,11 @@
 # CURRENT EVIDENCE NOTE — P121.0.12 compact paste-ready session log, 2026-10-30
 
+## P121.0.13 — Browser black-screen diagnostics (2026-10-30)
+
+- Runtime additions: bounded privacy-safe browser events (`window.error`, `unhandledrejection`, visibility, mount, DOM mutations, page hide), root element dimensions/style/child/text-length snapshots, and authenticated server ingestion. The paste-ready report includes recent browser events and HTTP request metadata alongside build operation evidence.
+- Security boundary: no DOM text, prompts, generated source, request/response bodies, cookies, or credentials are transmitted; only text length and structural root metrics are recorded.
+- Evidence status: source changes inspected; typecheck/build/tests/hosted CI/deployed Android reproduction NOT_RUN. The patch does not claim the black screen is fixed.
+
 ## Change
 
 Added `GET /api/projects/diagnostics/session-log` and a Diagnostics action that displays a bounded plain-text report with a copy button. It correlates recent operation events and application logs to the latest non-diagnostic operation, includes runtime/system-check provenance, and explicitly states missing evidence and browser-download observability limits. Sensitive/user-content fields are excluded.

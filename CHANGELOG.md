@@ -1,3 +1,9 @@
+## P121.0.13 — Browser black-screen evidence capture
+
+- Added bounded client-side error/rejection, visibility, mount, DOM-root geometry and post-mount snapshots; events are sent to the authenticated diagnostics endpoint without page content, prompts, request bodies or credentials.
+- Expanded the paste-ready session log with recent browser events and HTTP request metadata so a blank-screen state can be correlated with the completed build.
+- Verification in this reconstructed workspace: source inspection only; typecheck, build, tests, hosted CI and Android live black-screen capture NOT_RUN.
+
 ## P121.0.12 — Paste-ready compact session diagnostics
 
 - Added an authenticated plain-text endpoint and Diagnostics menu action that produces one bounded report for the latest operation, with runtime/check status, correlated operation timeline, matching application errors, provenance and explicit evidence limits.

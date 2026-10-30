@@ -4,9 +4,9 @@
 
 ## P121.0.12 — Paste-ready compact session diagnostics (current delivery)
 
-- Added a plain-text, bounded report for the latest retained non-diagnostic operation, with correlated operation events/application logs, runtime identity, system checks, provenance, and explicit missing-evidence limits.
-- Added an in-app copy action and selectable text area; ZIP export remains separate.
-- Local source-level test and docs-integrity pass; typecheck/build, hosted CI, and live Android copy/paste are NOT_RUN.
+- Added privacy-safe browser error/rejection, visibility, mount, DOM-root structure/geometry, and page-hide telemetry with authenticated ingestion.
+- Extended the paste-ready log with recent browser events and HTTP request metadata to diagnose the post-build black-screen state.
+- Source inspection only; typecheck/build/tests, hosted CI, and live Android reproduction are NOT_RUN.
 
 ## Programme objective
 
