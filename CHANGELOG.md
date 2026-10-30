@@ -1,3 +1,10 @@
+## P121.0.32 — Update remaining cycle-governance Architect route assertion
+
+- Updated `tests/p121-cycle-governance.test.mjs`, the remaining core test that still expected the Architect menu to navigate to `/project`.
+- The test now verifies that Architect opens `/architect-lab` without a browser confirmation dialog and that `/project` remains a separate legacy route.
+- This addresses the sole direct failure reported for commit `d45e05f4332a3d0365b013fca8387174ea4c96cb`; `workflow-dag` was downstream of `test:core`. No application runtime or generated Expense Tracker behavior changed.
+- Targeted test, lint, version metadata, and documentation integrity are recorded only after execution; full Core/DAG, hosted Actions, and deployed UI are not claimed.
+
 ## P121.0.31 — Align legacy agent-boundary route contract with Architect Lab entry
 
 - Updated the remaining P119 agent-boundary test that still required the Architect menu to navigate to `/project`.
