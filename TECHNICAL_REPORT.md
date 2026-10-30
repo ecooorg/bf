@@ -1,3 +1,23 @@
+# CURRENT EVIDENCE NOTE — Repository minimalism and test lifecycle policy, 2026-10-30
+
+## Scope and provenance
+
+Documentation-only governance update prepared in the locally reconstructed project tree assembled from available archives. The current remote repository was not available for comparison.
+
+## Changes
+
+- Added a requirement that every maintained file serve a current purpose.
+- Defined test retention around current requirements, user scenarios, supported contracts, and material regression risks rather than age or historical origin.
+- Added safe-retirement checks for references, CI/workflows, compatibility commitments, and unique coverage.
+- Defined recurring classification outcomes: keep, update, merge, archive outside the repository, or delete.
+- No source files, tests, fixtures, or historical records were removed by this patch.
+
+## Verification boundary
+
+Local checks are to be recorded after execution. Hosted CI, remote repository comparison, and live product checks are NOT_RUN. This note does not claim that a repository-wide retirement audit has been completed.
+
+---
+
 # CURRENT EVIDENCE NOTE — Repository language policy, 2026-10-30
 
 ## Scope and provenance

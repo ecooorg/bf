@@ -125,7 +125,17 @@ Apply the cascade strictly: do not choose lower-priority polishing, documentatio
 - When a document is retired, transfer its still-current rules and requirements to their canonical owners, repair active code/test/workflow references, and then remove the obsolete document. Historical mentions can remain if clearly historical and not treated as instructions.
 - Make the smallest change that closes an identified user-value gap or improves correctness, safety, or evidence integrity. If the repository state is insufficient to choose responsibly, explain the uncertainty and ask for the missing input.
 
-## 6. Language policy and language-neutral implementation
+## 6. Repository minimalism and test lifecycle
+
+- Every maintained repository file must serve a current development, build, verification, security, operational, or product-documentation purpose. Historical existence is not a reason to retain it.
+- Every test must protect a current requirement, a meaningful user scenario, a supported data/API contract, or a material regression risk that is not adequately covered elsewhere. A test does not earn permanent retention merely because it once found a bug or belongs to an old cycle.
+- At each relevant audit, classify stale tests, fixtures, experimental prompts, one-off diagnostics, completed-task reports, superseded plans, and duplicate coverage as **keep, update, merge, archive outside the repository, or delete**.
+- Before deleting, check current references, package scripts, CI/workflow usage, unique coverage, compatibility obligations, and whether the behavior remains required. Remove redundant tests only after confirming that their meaningful coverage is preserved or no longer required.
+- Keep a regression test when it protects an important behavior or plausible recurrence that is not otherwise covered; prefer a small test of the current contract over preserving an entire historical experiment.
+- Do not keep historical reports, experiment data, or one-off tools in the active repository by default. Move material to an external/local archive only when it has a concrete future use; do not create an archive obligation for every removed file. Git history is available for repository changes but is not a substitute for required product-data backups.
+- Keep canonical current documentation concise and actionable. Preserve historical evidence only where it is needed for auditability or an explicit obligation; clearly separate it from current instructions. Do not delete binding requirements or user-value evidence merely to reduce file count.
+
+## 7. Language policy and language-neutral implementation
 
 - Repository-maintained code, comments, identifiers, tests, fixtures, prompts, technical documentation, scripts, and developer-facing messages use English only. Historical records may be translated only when doing so preserves their evidentiary meaning; do not rewrite history silently.
 - Do not implement language detection or intent recognition by depending on a small list of natural-language marker words in one or two languages when a language-neutral structured contract, explicit schema, or model-based classification can meet the requirement.
@@ -133,7 +143,7 @@ Apply the cascade strictly: do not choose lower-priority polishing, documentatio
 - Any language cleanup must classify findings as (a) documentation/comment residue, (b) test data, (c) runtime behavior, or (d) generated/historical content. Translate tests to semantically equivalent English cases where appropriate, and replace brittle runtime heuristics only with behaviorally equivalent logic plus regression tests. Do not claim multilingual support or language neutrality without representative behavioral evidence.
 - Treat repository-wide language cleanup as a recurring cross-cutting stage in the roadmap. Re-scan after substantive changes and report residuals, exclusions, and verification limits.
 
-## 6. Security, authorization, and evidence integrity
+## 8. Security, authorization, and evidence integrity
 
 - Never commit credentials, tokens, cookies, private keys, or secret environment values.
 - Keep authentication enabled unless the owner explicitly authorizes a security change. A public URL is not private even if intended for one user.

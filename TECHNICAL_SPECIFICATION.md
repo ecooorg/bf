@@ -25,6 +25,16 @@ Architect is one user-facing agent and one end-to-end workflow. Do not expose a 
 
 A green test suite does not compensate for a missing, confusing, low-quality, or unusable user result. A passing UI stub does not prove live model quality or deployed behavior.
 
+## Repository minimalism and test lifecycle
+
+**REQ-REPO-001 — Current purpose for maintained files.** Every maintained repository file must support a current product, development, build, verification, security, operational, or documentation need. Historical origin alone is not sufficient justification for retention.
+
+**REQ-REPO-002 — Tests protect current obligations.** Each retained test must trace to a current product requirement, meaningful user scenario, supported compatibility/data/API contract, or material regression risk not adequately covered elsewhere. Tests for completed experiments and old cycle-specific behavior must be removed or rewritten when they no longer protect a current obligation.
+
+**REQ-REPO-003 — Safe retirement.** Before removing tests, fixtures, scripts, reports, plans, or documentation, inspect repository references, package scripts, CI/workflow usage, unique coverage, compatibility commitments, and current requirements. Preserve needed coverage with smaller current-contract tests; archive externally only when historical material has a concrete future use. Do not retain material solely for historical completeness.
+
+**Acceptance criteria:** a repository-minimalism review records keep/update/merge/archive/delete decisions for in-scope findings; each retained test has a current rationale; duplicate coverage is consolidated where safe; removed tests do not silently drop unique required coverage; and required historical/audit evidence is preserved without being presented as current instructions.
+
 ## Repository language and language-neutral behavior
 
 **REQ-LANG-001 — English-only repository artifacts.** All maintained source code, comments, identifiers, tests, fixtures, prompt templates, developer-facing messages, scripts, and technical documentation must be written in English. File and directory names must use English/ASCII naming. Historical evidence must not be silently rewritten; any retained non-English historical content must be explicitly classified and justified.

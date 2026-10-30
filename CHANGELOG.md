@@ -1,3 +1,11 @@
+## P121.0.5 — Repository minimalism and test lifecycle policy
+
+- Defined a current-purpose requirement for maintained repository files and a test-retention rule tied to current product obligations, meaningful scenarios, contracts, and material regression risk.
+- Added a recurring review process to classify candidates as keep, update, merge, archive outside the repository, or delete after checking references, CI usage, compatibility commitments, and unique coverage.
+- Clarified that historical origin alone is not a reason to retain artifacts, while required audit evidence and meaningful regression coverage must not be discarded.
+- Documentation/governance only; no runtime code or existing tests were removed. This patch was prepared against an available reconstructed archive, not the current remote checkout.
+- Verification: pending local documentation and version checks; hosted CI and remote checkout validation are NOT_RUN.
+
 ## P121.0.4 — Repository language policy and recurring language-neutrality audit
 
 - Added a normative English-only policy for maintained repository artifacts while explicitly separating repository language from end-user language support.

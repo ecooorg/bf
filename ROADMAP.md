@@ -28,6 +28,19 @@ Required work sequence:
 
 **Acceptance gate:** no unexplained non-English repository residue; no behavior changes hidden inside text cleanup; no loss of supported user input behavior without owner approval; and evidence clearly separates static scan results from runtime language-neutrality tests.
 
+## Standing cross-cutting stage — Repository minimalism and test lifecycle
+
+Reassess repository contents during each session. Keep the active tree focused on files needed for current product behavior, development, verification, release, security, operations, and actionable documentation. Do not preserve tests or artifacts merely because they belong to a completed cycle.
+
+Required work sequence:
+1. Inventory candidate stale tests, duplicate tests, old golden prompts/fixtures, one-off diagnostic scripts, completed experiment reports, superseded plans, and inactive generated artifacts.
+2. Trace each candidate to current requirements, source imports/references, package scripts, CI/workflows, compatibility promises, and unique coverage.
+3. Choose **keep, update, merge, archive outside the repository, or delete** and record the rationale for consequential decisions.
+4. Keep regression tests only where they protect current obligations or material recurrence risks; replace broad historical experiments with smaller tests of current contracts where appropriate.
+5. Remove retired items only after confirming no required coverage, active reference, or mandatory audit evidence is lost. Preserve necessary evidence separately and do not turn archives into required runtime/build inputs.
+
+**Acceptance gate:** no identified repository item is retained solely because it is old or was once useful; retained tests have a current purpose; duplicate/obsolete material is removed where safe; required compatibility and regression coverage remains; and actual checks and unverified dependencies are reported honestly.
+
 ## Current documentation and session model
 
 Canonical governance and the mandatory session-start protocol live in `AGENTS.md`. Product requirements live in `TECHNICAL_SPECIFICATION.md`; this file owns the ordered programme plan, dependencies, completed stages, and current priorities; `TECHNICAL_REPORT.md` records factual state and evidence. `CHANGELOG.md` records patch history.
