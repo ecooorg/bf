@@ -1,3 +1,11 @@
+## P121.0.25 — Add explicit Architectural Test Lab passport confirmation
+
+- Changed the Lab entry flow to create a proposed project passport from the submitted project name and goal, then present its scope, users, inputs/outputs, constraints, security guidance, and success criteria for review.
+- Generation is now gated behind an explicit user action that persists the passport with `status: confirmed` using the project's expected state version before calling `/code/build`.
+- Updated Lab browser E2E to assert that the confirmed passport is saved before the build endpoint is called, then verify completion and download. Added a focused source-contract regression check.
+- No legacy Architect UI, Neon schema, migration, or production data changes.
+- Local dependency-backed browser E2E, hosted Actions, and deployed user outcome after this patch: NOT_RUN.
+
 ## P121.0.24 — Align Lab download assertion and harden diagnostics contract
 
 - Corrected the Architectural Test Lab browser test to expect the filename the UI actually assigns to downloaded Blob results: `architectural-lab-result.zip`.

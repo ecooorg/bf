@@ -1,3 +1,13 @@
+# CURRENT EVIDENCE NOTE — P121.0.25 Architectural Test Lab passport gate, 2026-10-30
+
+- Owner-reported live Lab attempt reached `/architect-lab`, but `/api/projects/:id/code/build` rejected the new project with `PASSPORT_NOT_CONFIRMED` / “Confirm the project passport before creating software.” Source inspection confirms the Lab previously created a project and immediately called the build endpoint without persisting a confirmed passport. The shared API requires a confirmed passport.
+- Implemented a two-step Lab flow: create project with a proposed passport derived from the entered goal; render a review panel; on explicit confirmation, persist the complete passport with `status: confirmed` and `expected_version`; only then submit the build request. No automatic confirmation and no API guard bypass.
+- Affected user-visible steps/test IDs: `architect-lab-build-form` and `architect-lab-build` (create proposed passport), `architect-lab-passport` (review), `architect-lab-confirm-passport` (explicit confirmation and build), `architect-lab-completion` (persistent result surface), `architect-lab-download` (ZIP download). The existing browser E2E is updated to exercise the new confirmation step and still proceeds to the completion surface and download in its mocked fixture.
+- Local syntax and dependency-free contract checks: pending. Dependency-backed browser E2E, full CI, hosted Actions, and live model/provider build: NOT_RUN. A mocked browser E2E cannot establish real generated artifact quality.
+- No Neon database changes, schema changes, migration execution, or legacy Architect UI changes.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.24 Lab UI and Quick Diagnostics test repair, 2026-10-30
 
 - Owner-provided run for commit `85583fc938ad507dffbe7544a886133fa7de8bc9` reports CI green, while Quick Diagnostics workflow contract and Architectural Test Lab browser/UI checks fail. The browser assertion expected `architectural-lab.zip`; `src/ArchitectLab.tsx` creates the download anchor with the explicit filename `architectural-lab-result.zip`. This is a test expectation mismatch, not evidence of a runtime download failure.
