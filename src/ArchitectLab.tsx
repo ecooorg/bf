@@ -30,6 +30,10 @@ function LabWorkspace() {
   const [project, setProject] = useState<Project | null>(null);
   const [passport, setPassport] = useState<Passport | null>(null);
   const [result, setResult] = useState<BuildJobResult | null>(null);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
+  const [diagnosticsBusy, setDiagnosticsBusy] = useState(false);
+  const [diagnosticsText, setDiagnosticsText] = useState('');
+  const [diagnosticsMenuOpen, setDiagnosticsMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/session', { credentials: 'same-origin' }).then(r => r.json()).then(s => {
@@ -87,6 +91,28 @@ function LabWorkspace() {
     finally { setBusy(false); }
   }
 
+  async function loadDiagnostics(kind: 'session' | 'system' | 'operations') {
+    setDiagnosticsMenuOpen(false); setDiagnosticsOpen(true); setDiagnosticsBusy(true); setDiagnosticsText('Loading diagnostics…');
+    try {
+      const path = kind === 'session' ? '/api/projects/diagnostics/session-log' : `/api/projects/diagnostics/${kind}`;
+      const response = await fetch(path, { credentials: 'same-origin' });
+      if (!response.ok) throw new Error(`Diagnostics request failed (${response.status})`);
+      setDiagnosticsText(kind === 'session' ? await response.text() : JSON.stringify(await response.json(), null, 2));
+    } catch (e) { setDiagnosticsText(`DIAGNOSTICS ERROR: ${String((e as Error).message || e)}`); }
+    finally { setDiagnosticsBusy(false); }
+  }
+
+  async function downloadDiagnostics() {
+    setDiagnosticsMenuOpen(false);
+    try {
+      const response = await fetch('/api/projects/diagnostics/export', { credentials: 'same-origin' });
+      if (!response.ok) throw new Error(`Diagnostic export failed (${response.status})`);
+      const blob = await response.blob(); const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'biforge-diagnostics.zip'; document.body.appendChild(anchor); anchor.click(); anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (e) { setDiagnosticsText(`DIAGNOSTIC EXPORT ERROR: ${String((e as Error).message || e)}`); setDiagnosticsOpen(true); }
+  }
+
   async function download() {
     if (!project?.id || !result?.downloadUrl) return;
     try {
@@ -105,7 +131,8 @@ function LabWorkspace() {
   if (!authenticated) return <main className="architect-lab"><form style={panel} onSubmit={login}><h1>Architectural Test Lab</h1><p>Sign in to continue.</p><input aria-label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" /><button disabled={busy}>Sign in</button>{error && <p role="alert">{error}</p>}</form></main>;
 
   return <main className="architect-lab">
-    <header className="architect-lab-header"><div><span className="architect-lab-kicker">EXPERIMENTAL WORKSPACE · P121.0.25</span><h1>Architectural Test Lab</h1><p>A separate workspace for testing a cleaner project-building experience.</p></div><a href="/" className="architect-lab-back">← BiForge</a></header>
+    <header className="architect-lab-header"><div><span className="architect-lab-kicker">PRIMARY ARCHITECT WORKSPACE · P121.0.27</span><h1>Architectural Test Lab</h1><p>Build software, review its passport, and inspect diagnostics when something fails.</p></div><div className="architect-lab-toolbar"><div className="architect-lab-menu-wrap"><button type="button" className="architect-lab-back" data-testid="architect-lab-diagnostics-menu" aria-expanded={diagnosticsMenuOpen} onClick={() => setDiagnosticsMenuOpen(v => !v)}>Diagnostics ▾</button>{diagnosticsMenuOpen && <div className="architect-lab-menu" role="menu"><button type="button" role="menuitem" onClick={() => void loadDiagnostics('session')}>Compact session log</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('system')}>System diagnostics</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('operations')}>Recent operations</button><button type="button" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic ZIP</button></div>}</div><a href="/" className="architect-lab-back">← BiForge</a><a href="/project" className="architect-lab-legacy">Legacy Architect</a></div></header>
+    {diagnosticsOpen && <div className="architect-lab-diagnostics-overlay" role="dialog" aria-modal="true" aria-label="Architectural Lab diagnostics"><section className="architect-lab-diagnostics"><div className="architect-lab-diagnostics-head"><h2>Diagnostics</h2><button type="button" onClick={() => setDiagnosticsOpen(false)}>Close</button></div><p>Copy this report and paste it into the support chat. Secrets and passwords should not be included.</p><button type="button" onClick={() => void navigator.clipboard?.writeText(diagnosticsText)}>Copy report</button><textarea aria-label="Diagnostic report" readOnly value={diagnosticsBusy ? 'Loading diagnostics…' : diagnosticsText} /></section></div>}
     <div className="architect-lab-grid">
       <form style={panel} onSubmit={createPassport} data-testid="architect-lab-build-form">
         <h2>Start an experiment</h2><label>Project name<input value={name} onChange={e => setName(e.target.value)} placeholder="My test project" /></label>
@@ -118,7 +145,7 @@ function LabWorkspace() {
         {result && <><div className="architect-lab-status">{result.outcome || result.status || 'Result received'}</div><p>{result.note || result.report?.failureReason || 'Build process returned.'}</p><dl><dt>Project</dt><dd>{project?.name}</dd><dt>Job</dt><dd>{result.jobId || '—'}</dd><dt>Validation</dt><dd>{result.goalImplemented === true ? 'Implemented' : result.goalImplemented === false ? 'Not fully implemented' : 'Not confirmed'}</dd></dl>{result.downloadUrl && <button data-testid="architect-lab-download" className="architect-lab-primary" type="button" onClick={() => void download()}>Download project ZIP</button>}</>}
       </section>
     </div>
-    <footer>Experimental UI is isolated at <code>/architect-lab</code>. Shared services: authenticated project API, model orchestration, and artifact storage. Legacy Architect UI is not mounted here.</footer>
+    <footer>Primary Architect workspace: <code>/architect-lab</code>. The former workspace remains available at <code>/project</code> for rollback and comparison. Both use shared authenticated project APIs, model orchestration, and artifact storage.</footer>
   </main>;
 }
 

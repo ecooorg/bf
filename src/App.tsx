@@ -105,7 +105,7 @@ export default function App() {
     if (mode === 'Project') {
       // Open Architect directly; the browser confirmation interrupted a normal mode transition.
       try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
-      window.location.href = '/project';
+      window.location.href = '/architect-lab';
       return;
     }
     setExpertMode(mode === 'Expert');

@@ -7,7 +7,7 @@ import { installEmergencyDiagnostics } from './emergencyDiagnostics.ts';
 
 installEmergencyDiagnostics();
 
-const isArchitectLab = window.location.pathname === '/architect-lab' || window.location.pathname.startsWith('/architect-lab/');
+const isArchitectLab = window.location.pathname === '/architect-lab' || window.location.pathname.startsWith('/architect-lab/') || window.location.pathname === '/architect' || window.location.pathname.startsWith('/architect/');
 const isProject =
   window.location.pathname === '/project' || window.location.pathname.startsWith('/project/');
 
