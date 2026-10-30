@@ -10,6 +10,16 @@
 
 This file contains only current cross-cutting decisions. Historical proposals and rejected alternatives belong in `TECHNICAL_REPORT.md` or `CHANGELOG.md`; they must not be mistaken for current authorization. New decisions are added at the top. Do not silently erase a prior decision—mark it superseded with the date and replacement.
 
+## D-2026-10-30-05 — Keep the repository minimal and current
+
+**Decision:** Repository contents must earn their place by serving a current product, engineering, verification, operational, security, or documentation need. Historical origin or prior usefulness alone is not a retention reason.
+
+**Test policy:** Retain tests that protect current requirements, meaningful user scenarios, supported contracts, or material regression risks not adequately covered elsewhere. Retire tests for completed experiments and obsolete behavior; consolidate duplicates; prefer small current-contract regression tests over permanent historical test suites.
+
+**Safety boundary:** Before removal, check references, CI/workflow usage, compatibility commitments, and unique coverage. Preserve required audit evidence, but move historical reports and experimental artifacts outside the active repository when they have a concrete future use. Do not archive everything by default, and do not delete binding requirements or evidence needed for an explicit obligation.
+
+**Effect:** Repository-minimalism and test-lifecycle review becomes a recurring roadmap stage. Git history remains the record of repository changes, not a justification for keeping obsolete files in the working tree.
+
 ## D-2026-10-30-01 — User value is the acceptance target
 
 **Decision:** A green test suite is not sufficient for product acceptance. Realistic user tasks and useful outputs are the primary acceptance criterion; tests, CI, and live evidence are distinct supporting layers.
