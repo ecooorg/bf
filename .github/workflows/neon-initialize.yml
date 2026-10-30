@@ -1,0 +1,67 @@
+name: Neon database initialization
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_confirmation:
+        description: 'Type BACKUP_CREATED after creating a Neon branch copy of production'
+        required: true
+        type: string
+      target_confirmation:
+        description: 'Type biforge-production to confirm the target database'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: biforge-neon-production-migrations
+  cancel-in-progress: false
+
+jobs:
+  initialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require explicit backup and target confirmation
+        env:
+          BACKUP_CONFIRMATION: ${{ inputs.backup_confirmation }}
+          TARGET_CONFIRMATION: ${{ inputs.target_confirmation }}
+        run: |
+          test "$BACKUP_CONFIRMATION" = "BACKUP_CREATED" || { echo "Refusing: create a Neon backup branch first."; exit 1; }
+          test "$TARGET_CONFIRMATION" = "biforge-production" || { echo "Refusing: target confirmation did not match."; exit 1; }
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Read-only database preflight
+        run: node scripts/neon-migration-preflight.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Apply repository migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Verify migration ledger and required tables
+        run: node scripts/neon-migration-verify.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Publish concise result
+        if: always()
+        run: |
+          {
+            echo '## Neon database initialization'
+            echo "- Commit: \\`${GITHUB_SHA}\\`"
+            echo "- Workflow result: \\`${{ job.status }}\\`"
+            echo '- Database credentials are not printed.'
+          } >> "$GITHUB_STEP_SUMMARY"
