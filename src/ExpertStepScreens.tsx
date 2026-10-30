@@ -234,6 +234,7 @@ export function UnderstandScreen({
 }) {
   const [answer, setAnswer] = useState('');
   const [analysisPendingRetry, setAnalysisPendingRetry] = useState(false);
+  const [analysisRetryAttempt, setAnalysisRetryAttempt] = useState(0);
   const understandStarted = useRef(false);
   const preview: any = d.modelSuggestions?.preview;
   const unknowns = d.radar?.unknowns || [];
@@ -278,7 +279,7 @@ export function UnderstandScreen({
         interactionState: 'UNDERSTANDING',
       });
     });
-  }, [d.radar, busy, d.brief.decision]);
+  }, [d.radar, busy, d.brief.decision, analysisRetryAttempt]);
 
   const resolveCurrent = (status: 'ANSWER' | 'UNKNOWN' | 'ACCEPT') => {
     if (!current) return;
@@ -389,7 +390,8 @@ export function UnderstandScreen({
           <p>Analysis could not be completed. Your original request is preserved.</p>
           <button type="button" onClick={() => {
             understandStarted.current = false;
-            setAnalysisPendingRetry(false);
+            setAnalysisPendingRetry(true);
+            setAnalysisRetryAttempt((attempt) => attempt + 1);
           }}>Retry analysis</button>
         </div>
       )}
