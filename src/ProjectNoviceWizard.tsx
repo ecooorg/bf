@@ -130,10 +130,10 @@ export function ProjectNoviceWizard({
   return (
     <div data-testid="project-novice-wizard">
       <button type="button" style={{ ...S.button, marginBottom: 8 }} disabled={busy} onClick={onBack}>
-        ← Back to path choice
+        ← Back to projects
       </button>
-      <h2 style={{ margin: '4px 0 8px' }}>Simple words</h2>
-      <p style={S.muted}>Step {Math.min(step + 1, 5)} of 5 · You stay in control; nothing is published automatically.</p>
+      <h2 style={{ margin: '4px 0 8px' }}>Describe what you want to build</h2>
+      <p style={S.muted}>Step {Math.min(step + 1, 5)} of 5 · One Architect flow · You stay in control; nothing is published automatically.</p>
 
       {step === 0 && (
         <div style={S.box}>

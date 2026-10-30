@@ -9,10 +9,9 @@ import { DRIVE_STATUS_EVENT, connectDriveFiles, isMirrorConnected, mirrorBlobDet
 import { isDriveConfigured } from './driveClient.ts';
 import { ModeMenu } from './ModeMenu.tsx';
 import { UserGuideModal } from './UserGuide.tsx';
-import { ProjectPathChooser } from './ProjectPathChooser.tsx';
 import { ProjectNoviceWizard } from './ProjectNoviceWizard.tsx';
 import { downloadViaFetch } from './downloadFile.ts';
-import { manualDeployInstructions, type BuilderPath } from './projectAppBuilder.ts';
+import { manualDeployInstructions } from './projectAppBuilder.ts';
 import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
@@ -115,8 +114,8 @@ export default function ProjectMode() {
   const [codeTaskIds, setCodeTaskIds] = useState<string[]>([]);
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
   const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
-  /** P58: null = show path chooser; novice = wizard; professional = existing workspace tools. */
-  const [builderPath, setBuilderPath] = useState<BuilderPath | null>(null);
+  /** One Architect flow: guided start when no project selected; full tools after selection. No novice/professional mode choice. */
+  const [showGuidedStart, setShowGuidedStart] = useState(true);
 
   const loadProjects = useCallback(async (selectProjectId?: string) => {
     const list = await api<Project[]>('/api/projects');
@@ -478,15 +477,12 @@ export default function ProjectMode() {
         {(job.outcome || job.report?.outcome) && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8fa6c2' }} data-testid="project-build-outcome">Итог: {job.outcome || job.report?.outcome}{job.report?.checksNotRun?.length ? ` · не выполнены проверки: ${job.report.checksNotRun.join(', ')}` : ''}{job.report?.failureReason ? ` · ${job.report.failureReason}` : ''}</p>}
       </div>;
     })()}
-    {authenticated && enabled && builderPath === null && !selected && (
-      <ProjectPathChooser disabled={busy} onChoose={(p) => setBuilderPath(p)} />
-    )}
-    {authenticated && enabled && builderPath === 'novice' && (
+    {authenticated && enabled && !selected && showGuidedStart && (
       <ProjectNoviceWizard
         busy={busy}
         programZipAvailable={Boolean(capabilities?.programZip)}
-        onBack={() => setBuilderPath(null)}
-        onFinished={(id) => { void loadProjects(id); }}
+        onBack={() => setShowGuidedStart(false)}
+        onFinished={(id) => { setShowGuidedStart(false); void loadProjects(id); }}
         createProject={async (n, g) => {
           setBusy(true); setError(''); setNotice('');
           try {
@@ -531,13 +527,7 @@ export default function ProjectMode() {
         }}
       />
     )}
-    {authenticated && enabled && builderPath === 'professional' && !selected && (
-      <p style={{ fontSize: 13, color: '#8fa6c2', margin: '8px 0' }}>
-        Professional path: create a project below, confirm the description, then use analysis, plan, and code package.
-        <button type="button" style={{ ...styles.button, marginLeft: 8, minHeight: 32, padding: '4px 10px' }} onClick={() => setBuilderPath(null)}>Change path</button>
-      </p>
-    )}
-    {authenticated && enabled && (selected || builderPath !== null) && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
+    {authenticated && enabled && (selected || !showGuidedStart) && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
         {isFolderPickerSupported() && <details style={{ position: 'relative' }}><summary aria-label="More workspace actions" title="More actions" style={{ ...styles.button, padding: '6px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 40, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8, whiteSpace: 'nowrap' }}><button type="button" style={styles.button} disabled={busy} title="Load a whole project folder from this computer (desktop browsers only)" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); window.dispatchEvent(new CustomEvent(PICK_FOLDER_EVENT)); }}>Import project folder…</button></div></details>}
@@ -551,9 +541,20 @@ export default function ProjectMode() {
         <button type="button" aria-label="Close message" onClick={() => { setError(''); setNotice(''); }} style={{ background: 'none', border: 0, color: 'inherit', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
       </div></div>}
     {enabled === null || authenticated === null ? <StateNotice kind="loading">Checking session…</StateNotice> : !enabled ? <StateNotice kind="unavailable">Project Mode is disabled in the server configuration. <a href="/" style={styles.link}>Back to Simple Mode</a>.</StateNotice> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Sign in</h2><label htmlFor="project-password">App password</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Sign in</button></form> : <>
-      {!selected && builderPath === 'professional' && (
-      <form onSubmit={(e) => { if (builderPath === null) setBuilderPath('professional'); return create(e); }} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '12px 0 24px' }}><input aria-label="Project name" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="New project name" required maxLength={200} /><input aria-label="Project goal" style={{ ...styles.input, flex: '1 1 240px' }} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Goal (optional)" maxLength={2000} /><button style={styles.button} disabled={busy || !name.trim()}>Create project</button></form>
+            {!selected && !showGuidedStart && (
+      <div style={{ margin: '12px 0 24px' }}>
+        <p style={{ fontSize: 13, color: '#8fa6c2', margin: '0 0 8px' }}>
+          Create a project by name, or use the guided start for a short questionnaire and optional ZIP build.
+          <button type="button" style={{ ...styles.button, marginLeft: 8, minHeight: 32, padding: '4px 10px' }} onClick={() => setShowGuidedStart(true)}>Guided start</button>
+        </p>
+        <form onSubmit={(e) => create(e)} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <input aria-label="Project name" style={{ ...styles.input, flex: '1 1 240px' }} value={name} onChange={e => setName(e.target.value)} placeholder="New project name" required maxLength={200} />
+          <input aria-label="Project goal" style={{ ...styles.input, flex: '1 1 240px' }} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Goal (optional)" maxLength={2000} />
+          <button style={styles.button} disabled={busy || !name.trim()}>Create project</button>
+        </form>
+      </div>
       )}
+
       <div className={selected ? 'project-workspace-layout is-open' : 'project-workspace-layout'} style={{ display: 'grid', gridTemplateColumns: selected ? 'minmax(220px, 0.72fr) minmax(0, 2fr)' : 'minmax(0, 1fr)', gap: 24, alignItems: 'start' }}>
         <section className="project-list-panel"><h2>Projects</h2>{projects.length === 0 ? <div style={{ padding: 16, border: '1px dashed #25405e', borderRadius: 8 }}><strong>Create your first project</strong><p style={{ color: '#8fa6c2', fontSize: 13 }}>Describe it, run an analysis, then review the results.</p></div> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0', display: 'flex', gap: 8 }}><button style={{ ...styles.button, flex: 1, textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · version {p.state_version}</small></button><details style={{ position: 'relative' }}><summary aria-label={`More actions for ${p.name}`} title="More actions" style={{ ...styles.button, padding: '10px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 46, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8 }}><button type="button" style={{ ...styles.button, borderColor: '#a33', color: '#ffb4b4' }} disabled={busy} onClick={() => void removeProject(p)}>Delete project</button></div></details></li>)}</ul>}</section>
         <section className="project-detail-panel">{selected ? <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><div><h2 style={{ margin: 0, fontSize: 20 }}>{selected.name}</h2></div><button type="button" style={{ ...styles.button, minHeight: 36 }} onClick={() => { setSelected(null); setActiveTab('results'); }}>All projects</button></div>{driveBar}{passport && <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Project description <small style={{ color: passport.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>({passport.status === 'confirmed' ? 'confirmed' : 'not confirmed yet'})</small></h3><div style={{ display: 'grid', gap: 8 }}>
