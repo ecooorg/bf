@@ -1,3 +1,9 @@
+## P120.0.5 — E2E suite stabilization preflight
+
+- Added `scripts/p120-e2e-preflight.mjs` to fail fast on stale patch metadata, missing P120 browser test files, focused npm script mismatches, missing `test:ui` registrations, or syntax errors.
+- `npm run test:ui` now invokes the preflight before the existing UI check and four browser scenarios; `npm run test:p120-preflight` runs the guard alone. No product runtime behavior changed.
+- Patch metadata: `120.0.5`. Local preflight and ZIP integrity are checked; browser E2E, build, and hosted CI remain NOT_RUN locally.
+
 ## P120.0.4 — Cross-agent transition and context E2E
 
 - Added `tests/p120-agent-transitions-e2e.test.mjs`: authenticated browser flow switches Conversational → Expert → Conversational, verifies the active conversation remains available, and checks the next turn carries the original goal and prior assistant answer without duplicate API requests.

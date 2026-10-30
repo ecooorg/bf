@@ -1,14 +1,25 @@
-# P120.0.4 — Cross-agent transitions and context preservation (current)
+# P120.0.5 — E2E suite stabilization preflight (current)
+
+**Applied:** Added `scripts/p120-e2e-preflight.mjs`, a dependency-free fail-fast guard that checks package/patch metadata, presence of all four P120 browser scenarios, focused npm script mappings, `test:ui` inventory, and JavaScript syntax before Playwright/UI checks begin. `npm run test:ui` now runs this guard first; `npm run test:p120-preflight` runs it independently. Patch metadata is `120.0.5`; product runtime behavior is unchanged.
+
+**Why:** Catch stale package metadata, missing test registrations, mismatched focused commands, and syntax regressions before spending CI time on browser startup. This is a preflight, not a replacement for browser E2E or hosted CI.
+
+**Verification in this environment:** Preflight execution, `node --check` for the preflight, and ZIP integrity are checked locally. Full browser E2E/build/hosted CI are NOT_RUN locally; prior P120.0.1–P120.0.4 green status is per Navigator.
+
+**Next:** Run `npm run test:p120-preflight`, then the complete `npm run test:ui` and hosted CI. If green, request Navigator's formal P120 acceptance. Do not start P121 without explicit authorization.
+
+---
+
+# P120.0.4 — Cross-agent transitions and context preservation (history)
 
 **Applied:** Added `tests/p120-agent-transitions-e2e.test.mjs`: browser switches Conversational → Expert → Conversational and checks that the same active conversation's original goal and prior assistant turn remain available to the follow-up, with no duplicate request on mode switch. Also checks that Architect remains unavailable in this test deployment when its feature flag is off. Added `test:p120-transitions` and included the scenario in `test:ui`; product runtime unchanged.
 
 **Coverage boundary:** Responses are deterministic and mocked at `/api/agent/conversational`. This tests UI mode switching and chat context continuity, not live model behavior or context sharing with Architect, which is a separate workspace.
 
-**Verification:** `node --check tests/p120-agent-transitions-e2e.test.mjs` and ZIP integrity PASS. Browser E2E, app build, and hosted CI NOT_RUN locally because dependencies/Chromium are unavailable. P120.0.1–P120.0.3 are green per Navigator.
-
-**Next:** P120.0.5 — stabilization and regression fixes from CI findings. Do not start P121.
+**Verification:** Navigator reports hosted CI green. Browser E2E/build are not independently run in this environment.
 
 ---
+
 
 # P120.0.2 — Expert E2E (history)
 
