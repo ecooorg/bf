@@ -65,7 +65,7 @@ import { buildTaskPackageFromBrief } from './briefWriter.ts';
 import { isSameOrigin } from './security.ts';
 import { parseProjectId, parseTaskId } from './domainIds.ts';
 import type { TaskPackage } from './codeExecutor.ts';
-import { contentDisposition, installLogCapture, diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive, compactSessionLog } from './projectDiagnostics.ts';
+import { contentDisposition, installLogCapture, diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive, compactSessionLog, recordApplicationLog } from './projectDiagnostics.ts';
 
 export type CodeAuthorCaller = (input: {
   packageMd: string;
@@ -129,6 +129,19 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
   });
   app.get('/api/projects/diagnostics/session-log', async (_req, res) => {
     try { res.type('text/plain; charset=utf-8').send(await compactSessionLog()); } catch (error) { projectError(res, error); }
+  });
+  app.post('/api/projects/diagnostics/client-events', async (req, res) => {
+    try {
+      const body = req.body && typeof req.body === 'object' ? req.body : {};
+      const events = Array.isArray(body.events) ? body.events.slice(-40) : [];
+      for (const item of events) {
+        if (!item || typeof item !== 'object') continue;
+        const event = String(item.event || 'client_event').replace(/[^a-zA-Z0-9_.:-]/g, '_').slice(0, 80);
+        const level = item.level === 'error' || item.level === 'warn' ? item.level : 'info';
+        await recordApplicationLog({ level, component: 'browser', event, message: String(item.message || '').slice(0, 500), details: { hrefPath: String(item.hrefPath || '').split('?')[0].slice(0, 160), visibility: String(item.visibility || '').slice(0, 20), viewport: String(item.viewport || '').slice(0, 40), root: String(item.root || '').slice(0, 160), timestamp: String(item.timestamp || '').slice(0, 40) } });
+      }
+      res.json({ success: true, accepted: events.length });
+    } catch (error) { projectError(res, error); }
   });
   app.get('/api/projects/diagnostics/system', async (_req, res) => {
     try { const data = await systemDiagnostics(); await recordDiagnostic({ operationId: newOperationId(), event: 'SYSTEM_DIAGNOSTICS_RUN', stage: 'diagnostics', status: data.overall === 'FAIL' ? 'FAIL' : data.overall === 'PASS' ? 'PASS' : 'WARN' }); res.json({ success: true, data }); } catch (error) { projectError(res, error); }

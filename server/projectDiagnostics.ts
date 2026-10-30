@@ -135,6 +135,8 @@ export async function compactSessionLog(): Promise<string> {
   const operationId = latest?.operationId;
   const detailed = await recentApplicationLogs(500);
   const matching = detailed.logs.filter((row: any) => operationId && row.operationId === operationId);
+  const browser = detailed.logs.filter((row: any) => row.component === 'browser').slice(-100);
+  const http = detailed.logs.filter((row: any) => row.component === 'http').slice(-100);
   const events = operationId ? operations.events.filter((e) => e.operationId === operationId).reverse() : [];
   const runtime = await systemDiagnostics();
   const lines = [
@@ -149,9 +151,13 @@ export async function compactSessionLog(): Promise<string> {
     ...runtime.checks.map((c) => `${c.status} ${c.name}: ${sanitizeLogText(c.evidence, 240)}`),
     'OPERATION_TIMELINE:',
     ...(events.length ? events.map((e) => `${e.timestamp} ${e.status} ${e.event} stage=${e.stage} durationMs=${e.durationMs ?? '-'} bytes=${e.bytes ?? '-'} files=${e.fileCount ?? '-'} error=${e.errorCode ?? '-'}`) : ['NO_MATCHING_OPERATION_EVENTS']),
-    'APPLICATION_LOGS:',
+    'CORRELATED_APPLICATION_LOGS:',
     ...(matching.length ? matching.slice(-100).map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.component}/${row.event} request=${row.requestId ?? '-'} message=${sanitizeLogText(row.message, 300)} code=${row.errorCode ?? '-'}${row.stack ? ` stack=${sanitizeLogText(row.stack, 700)}` : ''}`) : ['NO_APPLICATION_LOGS_MATCHED_OPERATION']),
-    'LIMITS: request/response bodies, prompts, generated source, credentials and cookies are intentionally excluded; browser-side download completion is not observable from server logs.',
+    'BROWSER_AFTER_SCREEN_STATE:',
+    ...(browser.length ? browser.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} message=${sanitizeLogText(row.message, 400)} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 500)}`) : ['NO_BROWSER_EVENTS_CAPTURED; likely old client, page left before flush, or client telemetry endpoint unavailable']),
+    'RECENT_HTTP_REQUESTS:',
+    ...(http.length ? http.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 500)}`) : ['NO_HTTP_REQUEST_TRACE_AVAILABLE']),
+    'LIMITS: request/response bodies, prompts, generated source, credentials and cookies are intentionally excluded. Browser trace is bounded and starts when ProjectMode mounts; a crash before mount cannot be captured by this hook. Browser download completion is inferred only from browser events when available, never from server response alone.'
   ];
   return lines.join('\n').slice(0, 28000) + '\n';
 }
