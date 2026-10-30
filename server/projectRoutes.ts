@@ -65,7 +65,7 @@ import { buildTaskPackageFromBrief } from './briefWriter.ts';
 import { isSameOrigin } from './security.ts';
 import { parseProjectId, parseTaskId } from './domainIds.ts';
 import type { TaskPackage } from './codeExecutor.ts';
-import { contentDisposition, installLogCapture, diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive } from './projectDiagnostics.ts';
+import { contentDisposition, installLogCapture, diagnosticArchive, linkDiagnosticArtifact, newOperationId, recentDiagnostics, recordDiagnostic, systemDiagnostics, verifyDiagnosticArchive, compactSessionLog } from './projectDiagnostics.ts';
 
 export type CodeAuthorCaller = (input: {
   packageMd: string;
@@ -126,6 +126,9 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
   // P92: all routes remain behind the mandatory Project Mode auth/rate-limit boundary.
   app.get('/api/projects/diagnostics/operations', async (_req, res) => {
     try { res.json({ success: true, data: await recentDiagnostics() }); } catch (error) { projectError(res, error); }
+  });
+  app.get('/api/projects/diagnostics/session-log', async (_req, res) => {
+    try { res.type('text/plain; charset=utf-8').send(await compactSessionLog()); } catch (error) { projectError(res, error); }
   });
   app.get('/api/projects/diagnostics/system', async (_req, res) => {
     try { const data = await systemDiagnostics(); await recordDiagnostic({ operationId: newOperationId(), event: 'SYSTEM_DIAGNOSTICS_RUN', stage: 'diagnostics', status: data.overall === 'FAIL' ? 'FAIL' : data.overall === 'PASS' ? 'PASS' : 'WARN' }); res.json({ success: true, data }); } catch (error) { projectError(res, error); }

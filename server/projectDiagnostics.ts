@@ -128,6 +128,34 @@ export async function recentDiagnostics(limit = 100): Promise<{ events: Diagnost
     return { events: result.rows.map((r: any) => ({ ...r, timestamp: new Date(r.timestamp).toISOString() })), source: 'database' };
   } catch { return { events: memory.slice(-n).reverse(), source: 'memory-fallback' }; }
 }
+/** Compact, paste-ready report for the latest build session. User prompts and generated source are never included. */
+export async function compactSessionLog(): Promise<string> {
+  const operations = await recentDiagnostics(200);
+  const latest = operations.events.find((e) => !/DIAGNOSTIC_EXPORT|SYSTEM_DIAGNOSTICS/.test(e.event));
+  const operationId = latest?.operationId;
+  const detailed = await recentApplicationLogs(500);
+  const matching = detailed.logs.filter((row: any) => operationId && row.operationId === operationId);
+  const events = operationId ? operations.events.filter((e) => e.operationId === operationId).reverse() : [];
+  const runtime = await systemDiagnostics();
+  const lines = [
+    'BIFORGE COMPACT SESSION LOG',
+    `exportedAt=${new Date().toISOString()}`,
+    `appVersion=${runtime.runtime.appVersion} release=${runtime.runtime.release ?? 'unknown'} commit=${runtime.runtime.commit}`,
+    `focusOperationId=${operationId ?? 'NOT_FOUND'}`,
+    `operationSource=${operations.source} applicationLogSource=${detailed.source}`,
+    `databaseLogWriteFailures=${detailed.dbWriteFailures}`,
+    `overallSystemStatus=${runtime.overall}`,
+    'SYSTEM_CHECKS:',
+    ...runtime.checks.map((c) => `${c.status} ${c.name}: ${sanitizeLogText(c.evidence, 240)}`),
+    'OPERATION_TIMELINE:',
+    ...(events.length ? events.map((e) => `${e.timestamp} ${e.status} ${e.event} stage=${e.stage} durationMs=${e.durationMs ?? '-'} bytes=${e.bytes ?? '-'} files=${e.fileCount ?? '-'} error=${e.errorCode ?? '-'}`) : ['NO_MATCHING_OPERATION_EVENTS']),
+    'APPLICATION_LOGS:',
+    ...(matching.length ? matching.slice(-100).map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.component}/${row.event} request=${row.requestId ?? '-'} message=${sanitizeLogText(row.message, 300)} code=${row.errorCode ?? '-'}${row.stack ? ` stack=${sanitizeLogText(row.stack, 700)}` : ''}`) : ['NO_APPLICATION_LOGS_MATCHED_OPERATION']),
+    'LIMITS: request/response bodies, prompts, generated source, credentials and cookies are intentionally excluded; browser-side download completion is not observable from server logs.',
+  ];
+  return lines.join('\n').slice(0, 28000) + '\n';
+}
+
 export async function systemDiagnostics() {
   const checks: { name: string; status: string; evidence: string }[] = [];
   checks.push({ name: 'project-mode', status: process.env.ENABLE_PROJECT_MODE === 'true' ? 'PASS' : 'WARN', evidence: 'ENABLE_PROJECT_MODE configuration' });
