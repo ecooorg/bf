@@ -1,3 +1,10 @@
+## P121.0.31 — Align legacy agent-boundary route contract with Architect Lab entry
+
+- Updated the remaining P119 agent-boundary test that still required the Architect menu to navigate to `/project`.
+- The contract now verifies `/architect-lab` and `/architect` mount Architectural Test Lab, `/project` remains the separate legacy ProjectMode route, and the standard Architect menu navigates to `/architect-lab`.
+- This directly addresses the sole failing core test reported for commit `64aab1dc566936313a8c97cb2e476d3ba989ca3e`; the workflow-DAG failure was downstream of `test:core`.
+- No application runtime, routing, generated-app, database, or Neon behavior changed. Local targeted test, full core suite, DAG, hosted CI, and deployed UI status are recorded only after execution; no hosted result is claimed here.
+
 ## P121.0.30 — Repair Lab CI contracts and diagnostics readiness check
 
 - Reworded user-facing Lab copy to remove internal terminology while retaining the proposed/confirmed project review flow; `lint:copy` now passes without changing its allowance.
