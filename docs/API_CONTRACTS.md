@@ -18,3 +18,8 @@ The current route inventory is generated at `generated-route-inventory.json`. Ro
 ## API change acceptance
 
 For a changed endpoint, provide: contract tests for success and failure, authorization tests where applicable, a compatibility decision for existing clients, and realistic user-flow evidence if the endpoint affects user-visible outcomes. Test stubs do not establish deployed/live behavior.
+
+
+## Compact session diagnostics (P121.0.12)
+
+`GET /api/projects/diagnostics/session-log` is available behind the existing Project Mode authentication and rate-limit boundary. It returns `text/plain; charset=utf-8`, selecting the latest retained non-diagnostic operation and correlating its retained operation events and application logs. The bounded report includes runtime identity, system-check results, event chronology, error metadata, log provenance, and explicit limits. It excludes prompts, generated source, request/response bodies, credentials, and cookies. Missing or expired evidence is labelled rather than inferred. The endpoint does not create or download an archive.
