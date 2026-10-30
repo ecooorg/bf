@@ -193,12 +193,14 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; 
 // 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
-test('P119.0.2 workflow inventory is exactly the recorded set; no p119-* workflow exists yet', () => {
+test('workflow inventory includes the accepted P119 workflows and no unexpected files', () => {
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
     'ci.yml', 'evidence.yml', 'monitor-connections.yml', 'p117-3-live-retest.yml',
-    'p118-architect-live.yml', 'staging-drills.yml', 'ui-check.yml', 'verify-groq.yml',
+    'p118-architect-live.yml', 'p119-agent-contracts.yml', 'p119-regression.yml',
+    'p119-release-gate.yml', 'p119-ui-smoke.yml', 'staging-drills.yml',
+    'ui-check.yml', 'verify-groq.yml',
   ]);
 });
 
