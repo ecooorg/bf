@@ -103,11 +103,7 @@ export default function App() {
   function chooseStartMode(mode: 'Simple' | 'Expert' | 'Project') {
     if (mode === 'Project' && !projectModeEnabled) return;
     if (mode === 'Project') {
-      // Project is a separate workspace and is never emulated by the chat UI.
-      const ok = window.confirm(
-        'Open Architect?\n\nArchitect projects are separate from your Conversational and Expert conversations, which stay on this device.',
-      );
-      if (!ok) return;
+      // Open Architect directly; the browser confirmation interrupted a normal mode transition.
       try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
       window.location.href = '/project';
       return;
