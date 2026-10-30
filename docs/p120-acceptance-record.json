@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "recordType": "p120-final-acceptance-candidate",
+  "programme": "P120",
+  "patch": "120.0.7",
+  "technicalGate": {
+    "verdict": "PASS",
+    "evidenceCommit": "d411b982186276708d31173f62b574aed19ebd63",
+    "acceptanceWorkflowConclusion": "success",
+    "checks": {
+      "dependencies": "success",
+      "verificationDag": "success",
+      "playwrightInstall": "success",
+      "p120UiSuite": "success"
+    },
+    "commitBoundEvidence": "PASS",
+    "problems": []
+  },
+  "formalProgrammeClosure": "PENDING_NAVIGATOR_DECISION",
+  "residuals": {
+    "partialDownloadPolicy": "OPEN_OPTIONAL_FOLLOW_UP; NOT CLAIMED RESOLVED",
+    "dependencyAuditZodBodyParserQs": "OPEN_OPTIONAL_FOLLOW_UP; NOT CLAIMED RESOLVED",
+    "legacyEngineRemoval": "NOT PART OF P120 CLOSURE; remains separately scoped and default-disabled"
+  },
+  "p121": "NOT_AUTHORIZED; requires separate explicit Navigator approval",
+  "evidenceSource": "Navigator-provided P120 Acceptance Evidence and P120 Commit-Bound Evidence",
+  "recordedAt": "2026-10-30"
+}
