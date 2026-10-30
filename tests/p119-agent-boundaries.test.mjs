@@ -197,7 +197,7 @@ test('workflow inventory includes the accepted P119 workflows and no unexpected 
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
-    'ci.yml', 'evidence.yml', 'monitor-connections.yml', 'p117-3-live-retest.yml',
+    'ci.yml', 'evidence.yml', 'monitor-connections.yml', 'neon-initialize.yml', 'p117-3-live-retest.yml',
     'p118-architect-live.yml', 'p119-agent-contracts.yml', 'p119-regression.yml',
     'p119-release-gate.yml', 'p119-ui-smoke.yml', 'p120-acceptance.yml',
     'p120-evidence.yml', 'quick-diagnostics.yml', 'staging-drills.yml',

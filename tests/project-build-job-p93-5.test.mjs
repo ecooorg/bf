@@ -41,6 +41,6 @@ test('staged build result without legacy codeTask remains a valid Architect resu
     assert.equal(result.status, 'done');
     assert.equal(result.downloadUrl, '/artifact.zip');
     assert.equal(result.codeTask, undefined);
-    assert.equal(result.note, 'Build completed.');
+    assert.equal(result.note, 'Build complete and validated. Download the source ZIP.');
   } finally { globalThis.fetch = originalFetch; globalThis.setTimeout = originalTimeout; }
 });

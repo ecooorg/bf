@@ -21,7 +21,10 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
   const server = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: {
     ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: 'p122-lab-password',
     SESSION_SECRET: 'p122-lab-session-secret-'.padEnd(40, 'x'), GEMINI_API_KEY: 'not-used-fixture-key',
-    DATABASE_URL: '', ENABLE_PROJECT_MODE: 'true',
+    // The browser test mocks every Project API; do not boot the legacy Project Mode/DB worker.
+    // Set this explicitly after spreading the parent environment so a runner-level setting cannot enable it.
+    ENABLE_PROJECT_MODE: 'false',
+    DATABASE_URL: '',
   }});
   let output = ''; server.stdout.on('data', c => output += c); server.stderr.on('data', c => output += c);
   let browser;
