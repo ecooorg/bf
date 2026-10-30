@@ -1,6 +1,5 @@
 /**
- * C121 — Governance: Navigator channel, clean patch ZIP rules, automate-first
- * Asserts binding protocol text remains in AGENTS.md (and decision pointer).
+ * C121 — Governance: hard gates in AGENTS.md (ZIP purity, Navigator channel, automate-first, UI/e2e gate)
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,46 +10,51 @@ const decisions = readFileSync(new URL('../docs/DECISIONS.md', import.meta.url),
 const testing = readFileSync(new URL('../docs/TESTING_AND_ACCEPTANCE.md', import.meta.url), 'utf8');
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
-test('AGENTS.md defines mandatory clean patch-ZIP rule (no auxiliary files)', () => {
-  assert.match(agents, /Patch archive contents/);
-  assert.match(agents, /Forbidden inside the ZIP/);
-  assert.match(agents, /PATCH_SUMMARY/);
-  assert.match(agents, /never added to the archive|chat only/i);
-  assert.match(agents, /exact repository-relative path/);
+test('AGENTS.md opens with hard gates before delivery narrative', () => {
+  const hard = agents.indexOf('## 0. Hard gates');
+  const delivery = agents.indexOf('## 7. Delivery checklist');
+  assert.ok(hard >= 0, 'section 0 Hard gates required');
+  assert.ok(delivery > hard, 'delivery checklist must follow hard gates');
+  assert.match(agents, /fail closed/);
+  assert.match(agents, /Invalid excuses/);
 });
 
-test('AGENTS.md defines Navigator as Android tablet / GitHub web only', () => {
+test('G1 patch ZIP purity is mandatory and forbids helpers', () => {
+  assert.match(agents, /G1 — Patch ZIP purity/);
+  assert.match(agents, /MUST NOT[\s\S]{0,200}PATCH_SUMMARY/);
+  assert.match(agents, /session diff only|content-changed in this delivery/i);
+  assert.match(agents, /unzip -l/);
+});
+
+test('G2 Navigator is Android tablet / GitHub web only', () => {
+  assert.match(agents, /G2 — Navigator channel/);
   assert.match(agents, /Android tablet/);
-  assert.match(agents, /GitHub website|GitHub web/i);
-  assert.match(agents, /no.*local terminal|no local terminal/i);
-  assert.doesNotMatch(
-    agents.slice(agents.indexOf('### 7.2'), agents.indexOf('### 7.3')),
-    /Navigator must run npm /i,
-  );
+  assert.match(agents, /FOR_NAVIGATOR/);
+  assert.match(agents, /MUST NOT[\s\S]{0,120}local terminal/);
 });
 
-test('AGENTS.md requires automatic tests and workflows where possible', () => {
-  assert.match(agents, /Automatic tests and workflows/);
+test('G3 automate tests and workflows', () => {
+  assert.match(agents, /G3 — Automate when possible/);
   assert.match(agents, /\.github\/workflows/);
-  assert.match(agents, /tests\//);
 });
 
-test('Active decision D-2026-10-30-07 records the three Navigator rules', () => {
+test('G4 UI flow and browser tests same delivery', () => {
+  assert.match(agents, /G4 — UI flow and browser tests/);
+  assert.match(agents, /same delivery/);
+  assert.match(agents, /data-testid/);
+});
+
+test('G5 evidence honesty', () => {
+  assert.match(agents, /G5 — Evidence honesty/);
+  assert.match(agents, /NOT_RUN/);
+});
+
+test('Active decision D-2026-10-30-07 still records Navigator rules', () => {
   assert.match(decisions, /D-2026-10-30-07/);
   assert.match(decisions, /Patch ZIP purity/);
-  assert.match(decisions, /Navigator environment/);
-  assert.match(decisions, /Automate first/);
-});
-
-test('TESTING_AND_ACCEPTANCE documents Navigator verification channel', () => {
   assert.match(testing, /Navigator verification channel/);
-  assert.match(testing, /GitHub Actions/);
 });
 
-test('governance test is wired into test:core for C121', () => {
-  assert.ok(
-    pkg.scripts['test:core'].includes('p121-navigator-protocol.test.mjs') ||
-      pkg.scripts['test:core'].includes('p121-cycle-governance.test.mjs'),
-    'test:core should include C121 governance tests',
-  );
+test('governance test remains on test:core', () => {
+  assert.ok(pkg.scripts['test:core'].includes('p121-navigator-protocol.test.mjs'));
 });
