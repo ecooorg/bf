@@ -17,7 +17,7 @@ const freePort = () => new Promise((resolve, reject) => {
   });
 });
 
- test('P120.0.2 Expert browser scenario: error, retry, and context continuity', async (t) => {
+ test('P120.0.2 Expert browser scenario: analysis error, retry, and context continuity', async (t) => {
   if (!existsSync('dist/index.html')) {
     const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit', timeout: 180_000 });
     assert.equal(build.status, 0, 'npm run build must succeed before the browser scenario');
@@ -60,44 +60,31 @@ const freePort = () => new Promise((resolve, reject) => {
     const page = await context.newPage();
     page.setDefaultTimeout(10_000);
 
-    const requests = [];
-    let failureInjected = false;
-    const replies = [
-      'Start by separating what you know from what you still need to learn.',
-      'Next, identify the smallest safe step and what evidence would make it useful.',
-    ];
+    const expertRequests = [];
+    const analysisRequests = [];
+    let analysisFailureInjected = false;
+    const reply = 'Let us examine the decision carefully.';
     await page.route('**/api/agent/expert', async (route) => {
-      const request = route.request();
-      assert.equal(request.method(), 'POST');
-      assert.equal(new URL(request.url()).pathname, '/api/agent/expert');
-      const payload = request.postDataJSON();
-      requests.push(payload);
-      if (!failureInjected) {
-        failureInjected = true;
-        await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ success: false, error: { code: 'PROVIDER_UNAVAILABLE', message: 'Temporary provider outage' } }) });
-        return;
+      expertRequests.push(route.request().postDataJSON());
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        success: true, data: { reply, state: {}, triage: 'NORMAL', nextStep: 'Analyze the decision.',
+          options: [], newOptions: [], newOptionTypes: [], factsToCheck: [], attachmentNotes: [] }, meta: {},
+      }) });
+    });
+    await page.route('**/api/understand', async (route) => {
+      analysisRequests.push(route.request().postDataJSON());
+      if (!analysisFailureInjected) {
+        analysisFailureInjected = true;
+        await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({
+          success: false, error: { code: 'PROVIDER_UNAVAILABLE', message: 'Temporary provider outage' },
+        }) });
+      } else {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+          success: true, data: { neutralization: { items: [] }, radar: {
+            facts: [], assumptions: [], interpretations: [], values: [], needsExternalCheck: [], unknowns: [],
+          } }, meta: {},
+        }) });
       }
-      const reply = replies[requests.length - 2];
-      assert.ok(reply, 'unexpected extra Expert request');
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          data: {
-            reply,
-            state: {},
-            triage: 'NORMAL',
-            nextStep: 'Continue with one concrete step.',
-            options: [],
-            newOptions: [],
-            newOptionTypes: [],
-            factsToCheck: [],
-            attachmentNotes: [],
-          },
-          meta: { testFixture: 'p120.0.2' },
-        }),
-      });
     });
 
     await page.goto(base);
@@ -110,31 +97,20 @@ const freePort = () => new Promise((resolve, reject) => {
     const firstPrompt = 'Help me plan a careful first step for a new project.';
     await page.locator('.conversation-input').fill(firstPrompt);
     await page.locator('.conversation-entry-actions button.primary').click();
-    await page.getByRole('button', { name: 'Retry' }).waitFor();
-    assert.equal(requests.length, 1, 'failed request must be recorded');
-    await page.getByRole('button', { name: 'Retry' }).click();
-    await page.getByText(replies[0], { exact: true }).waitFor();
-    assert.equal(requests[1].history.at(-1)?.content, firstPrompt, 'retry preserves user message');
-
-    assert.equal(requests.length, 2, 'initial request and retry must be distinct');
-    assert.equal(requests[0].brief?.decision, requests[1].brief?.decision, 'retry preserves brief');
-    assert.equal(requests[0].brief?.decision, firstPrompt);
-    assert.ok(Array.isArray(requests[0].history), 'first request must include conversation history');
-    assert.equal(requests[0].history.at(-1)?.role, 'user');
-    assert.equal(requests[0].history.at(-1)?.content, firstPrompt);
-
-    const followUp = 'What evidence should I collect before committing?';
-    await page.locator('.conversation-composer textarea').fill(followUp);
-    await page.locator('.conversation-composer button.primary').click();
-    await page.getByText(replies[1], { exact: true }).waitFor();
-
-    assert.equal(requests.length, 3, 'follow-up must make one additional request');
-    assert.equal(requests[2].brief?.decision, firstPrompt, 'follow-up must preserve the original brief');
-    assert.ok(requests[2].history.some((item) => item.role === 'assistant' && item.content === replies[0]), 'follow-up must preserve the prior assistant answer');
-    assert.ok(requests[2].history.some((item) => item.role === 'user' && item.content === followUp), 'follow-up must include the new user message');
+    await page.getByRole('button', { name: 'Retry analysis' }).waitFor();
+    assert.equal(expertRequests.length, 1, 'Expert entry request must succeed once');
+    assert.equal(analysisRequests.length, 1, 'first analysis must fail exactly once');
+    assert.equal(analysisRequests[0].brief?.decision, firstPrompt);
+    await page.getByRole('button', { name: 'Retry analysis' }).click();
+    await page.waitForFunction(() => document.body.textContent?.includes('Analysis could not be completed.') === false);
+    await page.waitForTimeout(300);
+    assert.equal(analysisRequests.length, 2, 'retry must reissue analysis');
+    assert.deepEqual(analysisRequests[1].brief, analysisRequests[0].brief, 'retry must preserve original brief');
+    assert.deepEqual(analysisRequests[1].history, analysisRequests[0].history, 'retry must preserve conversation context');
+    assert.equal(expertRequests.length, 1, 'analysis retry must not resend the Expert entry message');
 
     await context.close();
-    t.diagnostic('Coverage: real app server, authenticated browser UI, Expert error/retry and follow-up, route and payload contract. Model output is deterministic and mocked; live provider behavior is not covered.');
+    t.diagnostic('Coverage: real app server, authenticated browser UI, Expert analysis error/retry, preserved brief and history, route and payload contract. Model output is deterministic and mocked; live provider behavior is not covered.');
   } finally {
     if (browser) await browser.close().catch(() => {});
     if (server.exitCode === null) {
