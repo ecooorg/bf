@@ -1,0 +1,102 @@
+name: BiForge Quick Diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_browser:
+        description: 'Run the isolated Architectural Test Lab browser smoke test'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  quick-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Cache Playwright Chromium
+        if: inputs.include_browser
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: quick-diagnostics-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Chromium when needed
+        if: inputs.include_browser && steps.browser-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Ensure cached Chromium is usable
+        if: inputs.include_browser && steps.browser-cache.outputs.cache-hit == 'true'
+        run: npx playwright install chromium
+
+      - name: Run focused diagnostics and write compact summaries
+        id: diagnostics
+        shell: bash
+        run: |
+          mkdir -p artifacts/quick-diagnostics
+          SUMMARY=artifacts/quick-diagnostics/CI_ERROR_SUMMARY.txt
+          : > "$SUMMARY"
+          echo "BIFORGE QUICK DIAGNOSTICS" >> "$SUMMARY"
+          echo "commit=$GITHUB_SHA" >> "$SUMMARY"
+          echo "run=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> "$SUMMARY"
+          failures=0
+          run_check() {
+            name="$1"; shift
+            log="artifacts/quick-diagnostics/${name}.log"
+            echo "--- $name ---" | tee -a "$SUMMARY"
+            set +e
+            "$@" >"$log" 2>&1
+            code=$?
+            set -e
+            if [ "$code" -eq 0 ]; then
+              echo "${name}=PASS" >> "$SUMMARY"
+            else
+              failures=$((failures + 1))
+              echo "${name}=FAIL exit=$code" >> "$SUMMARY"
+              grep -E -i '(^|[[:space:]])(error|failed|failure|exception|timeout)|TS[0-9]{4}|AssertionError|not ok ' "$log" | tail -n 8 | sed 's/^[[:space:]]*/  /' >> "$SUMMARY" || true
+              if ! grep -E -i 'error|failed|failure|exception|timeout|TS[0-9]{4}|AssertionError|not ok ' "$log" >/dev/null; then
+                tail -n 3 "$log" | sed 's/^[[:space:]]*/  /' >> "$SUMMARY"
+              fi
+            fi
+          }
+          run_check typecheck npm run typecheck
+          run_check architect_lab_contract npm run test:architect-lab
+          if [ "${{ inputs.include_browser }}" = "true" ]; then
+            run_check architect_lab_browser node --test tests/p122-architect-lab-e2e.test.mjs
+          else
+            echo "architect_lab_browser=SKIPPED_BY_INPUT" >> "$SUMMARY"
+          fi
+          echo "failed_checks=$failures" >> "$SUMMARY"
+          UI=artifacts/quick-diagnostics/UI_ERROR_SUMMARY.txt
+          {
+            echo "BIFORGE UI ERROR SUMMARY"
+            echo "commit=$GITHUB_SHA"
+            if [ -f artifacts/quick-diagnostics/architect_lab_browser.log ]; then
+              grep -E -i 'console error|page error|pageerror|uncaught|exception|failed|failure|not ok |AssertionError|TimeoutError|Error:' artifacts/quick-diagnostics/architect_lab_browser.log | tail -n 12 || echo "ui_errors=none_detected_by_lab_browser_smoke"
+            else
+              echo "ui_browser=SKIPPED_BY_INPUT"
+            fi
+          } > "$UI"
+          if [ "$failures" -gt 0 ]; then exit 1; fi
+
+      - name: Upload compact diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biforge-quick-diagnostics
+          path: artifacts/quick-diagnostics/
+          if-no-files-found: error
+          retention-days: 14
