@@ -1,5 +1,13 @@
 # Active Decisions
 
+## D-2026-10-30-04 — English-only repository, language-neutral intent handling
+
+**Decision:** Maintained repository artifacts (source, comments, identifiers, tests, fixtures, prompts, scripts, technical documentation, and developer-facing messages) use English only. Intent/routing logic should not depend on isolated natural-language marker lists tied to particular languages when stable structured contracts or robust classification are feasible.
+
+**Boundary:** This is not a decision to restrict end-user input/output to English. Product language support remains a separate contract and must not be narrowed by repository cleanup. Historical evidence is preserved unless an explicit, meaning-preserving migration is recorded.
+
+**Effect:** Repository-wide language auditing is a standing roadmap stage. Findings are classified before changes; runtime changes require behaviorally equivalent regression coverage. A static no-Cyrillic scan alone is not sufficient acceptance evidence.
+
 This file contains only current cross-cutting decisions. Historical proposals and rejected alternatives belong in `TECHNICAL_REPORT.md` or `CHANGELOG.md`; they must not be mistaken for current authorization. New decisions are added at the top. Do not silently erase a prior decision—mark it superseded with the date and replacement.
 
 ## D-2026-10-30-01 — User value is the acceptance target
