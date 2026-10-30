@@ -37,7 +37,10 @@ test('diagnostic and DAG child processes stream live output to GitHub Actions', 
   assert.match(workflow, /quick-browser-install\.log/, 'browser installation output must be captured');
   assert.match(workflow, /\|\s*tee\s+"\$RUNNER_TEMP\/quick-browser-install\.log"/, 'browser output must stream through tee');
   assert.match(collector, /import \{ spawn \} from 'node:child_process'/);
-  assert.match(collector, /process\.stdout\.write\(text\)/);
+  assert.match(collector, /process\.stdout/);
+  assert.match(collector, /process\.stderr/);
+  assert.match(collector, /child\.stdout\.on\('data'/);
+  assert.match(collector, /child\.stderr\.on\('data'/);
   assert.doesNotMatch(collector, /spawnSync/);
   assert.match(dagRunner, /process\.stdout\.write\(concurrency === 1 \?/);
   assert.doesNotMatch(dagRunner, /if \(concurrency === 1\) process\.stdout\.write/);

@@ -38,7 +38,7 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     page.on('console', message => { if (message.type() === 'error') browserErrors.push(`console error: ${message.text()}`); });
     page.on('requestfailed', request => browserErrors.push(`requestfailed: ${request.url()} — ${request.failure()?.errorText || 'unknown'}`));
     await page.route('**/api/session', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ authenticated: true, projectModeEnabled: true }) }));
-    await page.route('**/api/projects/diagnostics/session-log', route => route.fulfill({ status: 200, contentType: 'text/plain', body: 'LAB_DIAGNOSTIC_FIXTURE: ready' }));
+    await page.route('**/api/projects/diagnostics/session-log**', route => route.fulfill({ status: 200, contentType: 'text/plain', body: 'LAB_DIAGNOSTIC_FIXTURE: ready' }));
     await page.route('**/api/projects/diagnostics/system', route => route.fulfill(envelope({ status: 'ok' })));
     await page.route('**/api/projects/diagnostics/operations', route => route.fulfill(envelope([])));
     await page.route('**/api/projects/diagnostics/export', route => route.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from('diagnostic-fixture') }));
@@ -59,9 +59,16 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     await page.goto(`${base}/architect-lab`);
     await page.getByTestId('architect-lab-build-form').waitFor();
     await page.getByTestId('architect-lab-diagnostics-menu').click();
+    const diagnosticResponse = page.waitForResponse(response => response.url().includes('/api/projects/diagnostics/session-log') && response.status() === 200, { timeout: 10_000 });
     await page.getByRole('menuitem', { name: 'Compact session log' }).click();
-    await page.getByLabel('Diagnostic report').waitFor();
-    assert.equal(await page.getByLabel('Diagnostic report').inputValue(), 'LAB_DIAGNOSTIC_FIXTURE: ready');
+    await diagnosticResponse;
+    const diagnosticReport = page.getByLabel('Diagnostic report');
+    await diagnosticReport.waitFor();
+    await page.waitForFunction(() => {
+      const report = document.querySelector('textarea[aria-label=\"Diagnostic report\"]');
+      return report instanceof HTMLTextAreaElement && report.value === 'LAB_DIAGNOSTIC_FIXTURE: ready';
+    }, { timeout: 10_000 });
+    assert.equal(await diagnosticReport.inputValue(), 'LAB_DIAGNOSTIC_FIXTURE: ready');
     await page.getByRole('button', { name: 'Close' }).click();
     await page.getByLabel('What should be built?').fill('Create a small task tracker with a working add-task button.');
     await page.getByTestId('architect-lab-build').click();
