@@ -1,3 +1,11 @@
+## P121.0.7 — One Architect flow (remove novice/professional path choice)
+
+- Removed the user-visible dual entry for Architect: no more mandatory “Simple words” vs “Professional” path chooser.
+- Guided start (former novice wizard) is the default single entry when no project is selected; full analysis/plan/delivery tools remain available after a project is selected or created.
+- Updated ProjectMode, ProjectNoviceWizard labels, UserGuide, capabilities note, and P120 Architect browser e2e to match the one-flow contract (BIO-004 / D-2026-10-30-02).
+- ProjectPathChooser.tsx remains in the tree but is unused by the primary flow; can be retired in a later minimalism pass.
+- Verification: source inspection confirms no path chooser in ProjectMode; e2e no longer clicks path-novice. Full typecheck/build/test suite, hosted CI, and live generation remain NOT_RUN in this reconstructed workspace.
+
 ## P121.0.6 — Clarify history preservation vs. test retirement
 
 - Clarified that repository minimalism removes obsolete active test implementations, fixtures, temporary experiment payloads, and one-off tools—not useful historical records.

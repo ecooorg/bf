@@ -10,7 +10,7 @@
 - Cycle/patch numbering is governed by `AGENTS.md` and `package.json`; historical P120 evidence remains unchanged.
 - Initial audit of the available reconstructed tree found a documentation-integrity failure (15 retired documents still present), a stale P120-specific version gate in the E2E preflight, and a missing-dependency blocker for the full verification DAG. The actual remote repository and hosted CI are not available in this workspace.
 - C121 acceptance requires: canonical docs checks pass; version/patch/lock metadata agree; previous P120 regression checks remain runnable; no mandatory user obligation is silently dropped; runtime/live checks are separately evidenced or marked `NOT_RUN`.
-- Known product gap remains: Architect source still appears to expose separate simplified/professional paths despite the normative one-flow requirement. This audit does not claim that runtime gap is fixed.
+- P121.0.7 unified Architect client entry (no path chooser). Live/browser/user-value validation of the one-flow contract remains required before closing BIO-004.
 
 
 The end goal is useful, reliable user outcomes in the running product—not a green repository by itself. A patch is not accepted solely because tests pass. For user-facing work, state the user problem, observable outcome, quality criteria, failure/recovery behavior, and evaluation evidence. Keep local tests, hosted CI, deployed/live checks, and actual user-outcome evidence separate.
@@ -61,7 +61,9 @@ Historical phase text below may retain the names of documents that existed when 
 
 ## Current known high-priority product gap (revalidate every session)
 
-The available reconstructed source indicates that Architect still exposes separate simplified and professional paths, while the normative contract requires one Architect agent, one user-facing flow, one state machine, and one completion contract. Treat this as a known candidate priority, not an instruction to skip the session-start audit: re-check current source, tests, actual user behavior, blockers, and any newer evidence before choosing work.
+**P121.0.7 status:** Client entry for Architect was unified — `ProjectMode` no longer presents a novice/professional path chooser; guided start is the default single entry and full tools remain after project selection. Re-validate with live/browser runs and real artifact generation before treating BIO-004 as fully closed. Residual: unused `ProjectPathChooser.tsx`, live user-value evidence still OPEN, language residue in some runtime strings.
+
+Older note (superseded for the dual-path UI claim): reconstructed sources previously indicated separate simplified/professional paths. Treat remaining work as validation and residual cleanup, not a blank dual-mode design.
 
 ## Roadmap and history rules
 

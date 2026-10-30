@@ -1,3 +1,30 @@
+# CURRENT EVIDENCE NOTE — P121.0.7 One Architect flow, 2026-10-30
+
+> Additive top-level record. Prior notes below are historical and retained.
+
+## Scope and provenance
+
+Implemented against the reconstructed archive `bf-121-0-6.zip` (patch 121.0.6). This is not a live remote checkout; hosted CI and deployment were not run.
+
+## Change
+
+- **BIO-004 / one Architect experience:** `ProjectMode.tsx` no longer renders `ProjectPathChooser` or branches on `builderPath === 'novice' | 'professional'`. Default entry is the guided wizard (`ProjectNoviceWizard`); dismissing it shows the project list and optional name/goal create form with a “Guided start” return control. After a project is selected, existing workspace tools remain unchanged.
+- Client strings and `UserGuide` / capability notes updated to stop advertising two paths.
+- `tests/p120-architect-e2e.test.mjs` waits for `project-novice-wizard` instead of clicking `path-novice`.
+
+## Checks run
+
+- Static inspection: no remaining `builderPath` / `ProjectPathChooser` usage in `ProjectMode.tsx`.
+- Full `npm test` / typecheck / browser e2e / hosted CI: **NOT_RUN** (incomplete dependency install in this workspace).
+
+## Remaining gaps
+
+- Live end-to-end Architect generation with real models and download validation still NOT_VERIFIED.
+- `ProjectPathChooser.tsx` file still present (unused); language residue (e.g. Cyrillic in build-progress messages) not addressed in this patch.
+- User-value evaluation of the unified flow against real tasks remains OPEN.
+
+---
+
 # CURRENT EVIDENCE NOTE — Historical record preservation clarification, 2026-10-30
 
 ## Scope and provenance
