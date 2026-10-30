@@ -1,3 +1,10 @@
+## P121.0.28 — Reapply live Quick Diagnostics streaming workflow
+
+- Reapply the verified Quick Diagnostics workflow and its matching contract test together, because the owner-reported commit still contains the older redirected-output command (`> log 2>&1`) rather than a `tee` pipeline.
+- Dependency installation and both Chromium installation paths stream combined output through `tee` with `set -o pipefail`, preserving live Actions logs and the real command exit status.
+- No application runtime, Architect routing, Lab UI, API, database, Neon, or generated-app behavior changed. Owner evidence for commit `db1f2800463d92c12535b3aa08d4e8de422ea486` shows typecheck and Lab contract passing; browser/UI was disabled; the sole failure was the dependency tee contract.
+- Local targeted checks: pending. Hosted Actions after applying this patch: NOT_RUN.
+
 ## P121.0.26 — Make Quick Diagnostics live install logging explicit
 
 - Reworked dependency and both Chromium installation steps into explicit multiline Bash blocks that stream combined stdout/stderr through `tee` while preserving the installer exit status with `pipefail`.

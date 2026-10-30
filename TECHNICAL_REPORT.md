@@ -1,3 +1,6 @@
+## P121.0.28 — Reapply live Quick Diagnostics streaming workflow
+Owner-provided report for commit `db1f2800463d92c12535b3aa08d4e8de422ea486` shows TYPECHECK and ARCHITECTURAL TEST LAB CONTRACT passing, browser/UI explicitly disabled, and only QUICK DIAGNOSTICS WORKFLOW CONTRACT failing because the dependency output did not match the required `tee` streaming contract. The report's captured workflow excerpt contains the older redirected command (`npx playwright install chromium > ... 2>&1`), proving that the earlier streaming workflow was not present in the tested commit. This patch deliberately re-applies the workflow and matching contract test as a pair. Dependency and Chromium install commands stream combined output to runner-temp logs with `set -o pipefail`. No product code or generated Expense Tracker behavior changes. Local contract/version/docs checks: pending; hosted Actions and deployed behavior after this patch: NOT_RUN.
+
 # Technical Report
 
 ## P121.0.27 — Primary Architect entry and Lab diagnostics
