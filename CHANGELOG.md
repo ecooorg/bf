@@ -1,3 +1,9 @@
+## P121.0.3 — CI regression repair and single-source version metadata
+
+- Fix C121 regression test that hardcoded P121.0.1 after patch P121.0.2.
+- Introduce `version:check` / `version:sync`: `package.json` is authoritative; only npm lockfile root version metadata is synchronized. Historical version records are not rewritten.
+- Governance tests derive the current patch from package metadata instead of hardcoding a prior patch.
+
 # C121 / P121.0.2 — Remove Architect launch confirmation
 
 - Removed the browser-native “Open Architect?” confirmation when the user selects Architect. Selection now records the start mode and navigates directly to `/project`.

@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "121",
-  "patch": "121.0.2",
+  "patch": "121.0.3",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -67,7 +67,9 @@
     "test:p120-preflight": "node scripts/p120-e2e-preflight.mjs",
     "test:p120-evidence-check": "node --test tests/p120-acceptance-evidence.test.mjs",
     "docs:integrity": "node scripts/docs-integrity.mjs",
-    "test:p121-governance": "node --test tests/p121-cycle-governance.test.mjs"
+    "test:p121-governance": "node --test tests/p121-cycle-governance.test.mjs",
+    "version:check": "node scripts/version-metadata.mjs",
+    "version:sync": "node scripts/version-metadata.mjs --write"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
