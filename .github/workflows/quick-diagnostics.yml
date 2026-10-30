@@ -31,7 +31,9 @@ jobs:
         id: dependencies
         continue-on-error: true
         shell: bash
-        run: npm ci --prefer-offline --no-audit --no-fund > "$RUNNER_TEMP/quick-npm-ci.log" 2>&1
+        run: |
+          set -o pipefail
+          npm ci --prefer-offline --no-audit --no-fund 2>&1 | tee "$RUNNER_TEMP/quick-npm-ci.log"
 
       - name: Cache Playwright Chromium
         if: inputs.include_browser && steps.dependencies.outcome == 'success'
@@ -46,14 +48,18 @@ jobs:
         id: browser-install
         continue-on-error: true
         shell: bash
-        run: npx playwright install --with-deps chromium > "$RUNNER_TEMP/quick-browser-install.log" 2>&1
+        run: |
+          set -o pipefail
+          npx playwright install --with-deps chromium 2>&1 | tee "$RUNNER_TEMP/quick-browser-install.log"
 
       - name: Ensure cached Chromium is usable
         if: inputs.include_browser && steps.dependencies.outcome == 'success' && steps.browser-cache.outputs.cache-hit == 'true'
         id: browser-install-cached
         continue-on-error: true
         shell: bash
-        run: npx playwright install chromium > "$RUNNER_TEMP/quick-browser-install.log" 2>&1
+        run: |
+          set -o pipefail
+          npx playwright install chromium 2>&1 | tee "$RUNNER_TEMP/quick-browser-install.log"
 
       - name: Run focused diagnostics and compose one error report
         if: always()
