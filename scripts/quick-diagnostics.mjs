@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
@@ -30,23 +30,48 @@ function extractEvidence(text) {
 function addSection(name, status, detail, evidence = []) {
   sections.push({ name, status, detail, evidence });
 }
-function runCheck(name, command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    encoding: 'utf8', timeout: options.timeout ?? 180_000,
-    env: { ...process.env, ...options.env }, maxBuffer: 8 * 1024 * 1024,
+async function runCheck(name, command, args, options = {}) {
+  console.log(`\n[RUN] ${name}: ${command} ${args.join(' ')} (live output enabled)`);
+  const child = spawn(command, args, {
+    cwd: process.cwd(),
+    env: { ...process.env, ...options.env },
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
+  let captured = '';
+  let timedOut = false;
+  const append = (chunk, target) => {
+    const text = chunk.toString();
+    captured += text;
+    if (captured.length > 8 * 1024 * 1024) captured = captured.slice(-8 * 1024 * 1024);
+    // Preserve the child's stream channel while mirroring output immediately to Actions.
+    target.write(text);
+  };
+  child.stdout.on('data', chunk => append(chunk, process.stdout));
+  child.stderr.on('data', chunk => append(chunk, process.stderr));
+  const timer = setTimeout(() => {
+    timedOut = true;
+    child.kill('SIGTERM');
+    setTimeout(() => { if (child.exitCode === null) child.kill('SIGKILL'); }, 5000).unref();
+  }, options.timeout ?? 180_000);
+  const result = await new Promise(resolve => {
+    child.once('error', error => resolve({ error }));
+    child.once('close', (code, signal) => resolve({ code, signal }));
+  });
+  clearTimeout(timer);
   if (result.error) {
-    const code = result.error.code || result.error.name || 'SPAWN_ERROR';
-    addSection(name, 'FAIL', `process_error=${code}: ${result.error.message}`, extractEvidence(`${result.stdout || ''}\n${result.stderr || ''}`));
+    addSection(name, 'FAIL', `process_error=${result.error.code || result.error.name}: ${result.error.message}`, extractEvidence(captured));
+    console.log(`[FAIL] ${name}: ${result.error.message}`);
     return false;
   }
-  const outputText = `${result.stdout || ''}\n${result.stderr || ''}`;
-  if (result.status === 0) {
-    addSection(name, 'PASS', 'errors=none');
-    return true;
+  if (timedOut || result.code !== 0) {
+    const detail = timedOut ? `timeout=${options.timeout ?? 180_000}ms` : result.signal ? `signal=${result.signal}` : `exit=${result.code}`;
+    addSection(name, timedOut ? 'TIMEOUT' : 'FAIL', detail, extractEvidence(captured));
+    console.log(`[${timedOut ? 'TIMEOUT' : 'FAIL'}] ${name}: ${detail}`);
+    return false;
   }
-  addSection(name, 'FAIL', result.signal ? `signal=${result.signal}` : `exit=${result.status}`, extractEvidence(outputText));
-  return false;
+  addSection(name, 'PASS', 'errors=none');
+  console.log(`[PASS] ${name}`);
+  return true;
 }
 
 const dependencyOutcome = process.env.DEPENDENCY_OUTCOME || 'success';
@@ -54,7 +79,7 @@ const browserInstallOutcome = process.env.BROWSER_INSTALL_OUTCOME || 'success';
 const includeBrowser = process.env.INCLUDE_BROWSER !== 'false';
 const failures = [];
 
-if (!runCheck('QUICK DIAGNOSTICS WORKFLOW CONTRACT', process.execPath, ['--test', 'tests/quick-diagnostics-workflow.test.mjs'])) failures.push('QUICK DIAGNOSTICS WORKFLOW CONTRACT');
+if (!await runCheck('QUICK DIAGNOSTICS WORKFLOW CONTRACT', process.execPath, ['--test', 'tests/quick-diagnostics-workflow.test.mjs'])) failures.push('QUICK DIAGNOSTICS WORKFLOW CONTRACT');
 
 if (dependencyOutcome !== 'success') {
   let evidence = [];
@@ -66,8 +91,8 @@ if (dependencyOutcome !== 'success') {
   addSection('ARCHITECTURAL TEST LAB BROWSER / UI', includeBrowser ? 'BLOCKED' : 'SKIPPED', includeBrowser ? 'dependencies were not installed' : 'browser check disabled');
   failures.push('DEPENDENCY INSTALL');
 } else {
-  if (!runCheck('TYPECHECK', 'npm', ['run', 'typecheck'])) failures.push('TYPECHECK');
-  if (!runCheck('ARCHITECTURAL TEST LAB CONTRACT', 'npm', ['run', 'test:architect-lab'])) failures.push('ARCHITECTURAL TEST LAB CONTRACT');
+  if (!await runCheck('TYPECHECK', 'npm', ['run', 'typecheck'])) failures.push('TYPECHECK');
+  if (!await runCheck('ARCHITECTURAL TEST LAB CONTRACT', 'npm', ['run', 'test:architect-lab'])) failures.push('ARCHITECTURAL TEST LAB CONTRACT');
   if (!includeBrowser) {
     addSection('ARCHITECTURAL TEST LAB BROWSER / UI', 'SKIPPED', 'disabled when workflow was started');
   } else if (browserInstallOutcome !== 'success') {
@@ -78,7 +103,7 @@ if (dependencyOutcome !== 'success') {
     failures.push('BROWSER INSTALL');
   } else {
     addSection('BROWSER INSTALL', 'PASS', 'Chromium is available.');
-    if (!runCheck('ARCHITECTURAL TEST LAB BROWSER / UI', process.execPath, ['--test', 'tests/p122-architect-lab-e2e.test.mjs'], { timeout: 240_000 })) failures.push('ARCHITECTURAL TEST LAB BROWSER / UI');
+    if (!await runCheck('ARCHITECTURAL TEST LAB BROWSER / UI', process.execPath, ['--test', 'tests/p122-architect-lab-e2e.test.mjs'], { timeout: 240_000 })) failures.push('ARCHITECTURAL TEST LAB BROWSER / UI');
   }
 }
 
