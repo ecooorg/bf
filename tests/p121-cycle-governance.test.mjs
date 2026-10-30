@@ -12,10 +12,16 @@ function run(args) {
 
 test('C121 product version, patch identifier, and lockfile metadata agree', () => {
   assert.equal(pkg.version, '121');
-  assert.equal(pkg.patch, '121.0.1');
+  assert.equal(pkg.patch, '121.0.2');
   assert.equal(lock.version, pkg.version);
   assert.equal(lock.packages?.['']?.version, pkg.version);
   assert.equal(pkg.patch.split('.')[0], pkg.version);
+});
+
+test('Architect opens without a browser confirmation dialog', () => {
+  const app = readFileSync('src/App.tsx', 'utf8');
+  assert.doesNotMatch(app, /Open Architect\?/);
+  assert.match(app, /window\.location\.href = '\/project'/);
 });
 
 test('retired task and competing prose files are absent', () => {
