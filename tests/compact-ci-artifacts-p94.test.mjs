@@ -27,9 +27,9 @@ const runAsync = (script, dir, extra = {}) => new Promise((resolve, reject) => {
 
 test('P108.3 workflow publishes exactly the compact handoff and full-log archive, and prints the handoff', () => {
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  assert.match(workflow, /cat artifacts\/ci-checks\/BIForge-NEXT-PATCH\.md/);
-  assert.match(workflow, /artifacts\/ci-checks\/BIForge-NEXT-PATCH\.md[\s\S]*artifacts\/ci-checks\/biforge-ci-logs\.zip/);
-  assert.doesNotMatch(workflow, /path:\s*artifacts\/ci-checks\/(?:NEXT_PATCH\.md|diagnostics\.zip|ci-history\.json|ci-metrics\.json)/);
+  assert.match(workflow, /cat artifacts\/ci-checks\/BIForge-PATCH-EVIDENCE\.md/);
+  assert.match(workflow, /artifacts\/ci-checks\/BIForge-PATCH-EVIDENCE\.md[\s\S]*artifacts\/ci-checks\/biforge-ci-logs\.zip/);
+  assert.doesNotMatch(workflow, /path:\s*artifacts\/ci-checks\/(?:PATCH_EVIDENCE\.md|diagnostics\.zip|ci-history\.json|ci-metrics\.json)/);
 });
 
 test('P108.3 handoff turns the two-artifact contract failure into an actionable next step', () => {
@@ -41,15 +41,15 @@ test('P108.3 handoff turns the two-artifact contract failure into an actionable 
     fs.writeFileSync(path.join(dir, 'test_compact-ci-artifacts.log'), [
       'not ok 2 - P108.2 packaging always includes complete diagnostics on failure',
       'AssertionError: Expected values to be strictly deep-equal:',
-      "expected: ['NEXT_PATCH.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']",
-      "actual: ['BIForge-NEXT-PATCH.md', 'biforge-ci-logs.zip']",
+      "expected: ['PATCH_EVIDENCE.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']",
+      "actual: ['BIForge-PATCH-EVIDENCE.md', 'biforge-ci-logs.zip']",
       'at TestContext.<anonymous> (tests/compact-ci-artifacts-p94.test.mjs:62:12)',
     ].join('\n'));
     const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'failure', GITHUB_SHA: 'test-sha' });
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
     assert.match(report, /Update tests\/compact-ci-artifacts-p94\.test\.mjs/);
-    assert.match(report, /BIForge-NEXT-PATCH\.md and biforge-ci-logs\.zip/);
+    assert.match(report, /BIForge-PATCH-EVIDENCE\.md and biforge-ci-logs\.zip/);
     assert.match(report, /npm run test:compact-ci-artifacts/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -68,18 +68,18 @@ test('P94 report preserves TAP assertion details and timeout tail', () => {
     fs.writeFileSync(path.join(dir, 'test-files.log'), 'ok - last completed file test\nwaiting for server close\nError: test timed out after 60000ms\n');
     const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'failure', GITHUB_SHA: 'test-sha' });
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
     assert.match(report, /expected 2, actual 1/);
     assert.match(report, /Expected: 2/);
     assert.match(report, /Actual: 1/);
-    assert.match(report, /ASSISTANT HANDOFF/);
+    assert.match(report, /CI PATCH EVIDENCE/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('P108.2 packaging always includes complete diagnostics on failure', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-package-'));
   try {
-    fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# Report\nPATCH_STATUS=FAILED\n');
+    fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), '# Report\nPATCH_STATUS=FAILED\n');
     fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [
       { id: 'test:core', status: 'FAIL', log: 'test-core.log' }, { id: 'test:project', status: 'PASS', log: 'test-project.log' },
     ] }));
@@ -88,7 +88,7 @@ test('P108.2 packaging always includes complete diagnostics on failure', async (
     fs.writeFileSync(path.join(dir, 'ci-install.log'), 'npm ci ok\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-NEXT-PATCH.md', 'biforge-ci-logs.zip']);
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-PATCH-EVIDENCE.md', 'biforge-ci-logs.zip']);
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
     assert.ok(zip.file('test-core.log'));
     assert.ok(zip.file('test-project.log'), 'successful-stage log is required for complete cycle diagnostics');
@@ -104,14 +104,14 @@ test('P108.2 packaging always includes complete diagnostics on failure', async (
 test('P108.2 packaging emits diagnostics and cycle metrics after a clean run', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-clean-'));
   try {
-    fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# Report\nPATCH_STATUS=PASSED\n');
+    fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), '# Report\nPATCH_STATUS=PASSED\n');
     fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [{ id: 'typecheck', status: 'PASS' }] }));
     fs.writeFileSync(path.join(dir, 'typecheck.log'), 'no errors\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-NEXT-PATCH.md', 'biforge-ci-logs.zip']);
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-PATCH-EVIDENCE.md', 'biforge-ci-logs.zip']);
     assert.ok(fs.statSync(path.join(dir, 'biforge-ci-logs.zip')).size > 0);
-    assert.ok(fs.existsSync(path.join(dir, 'BIForge-NEXT-PATCH.md')));
+    assert.ok(fs.existsSync(path.join(dir, 'BIForge-PATCH-EVIDENCE.md')));
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
     assert.ok(zip.file('typecheck.log'), 'green-run logs are retained');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }

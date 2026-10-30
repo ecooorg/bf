@@ -23,7 +23,7 @@ function runDag(manifest, extraArgs = [], env = {}) {
   return { r, dir, results: read('results.json'), evidence: read('evidence-dag.json'), status: (id) => read('results.json')?.results.find((x) => x.id === id) };
 }
 
-const report = (dir, env) => { spawnSync(process.execPath, ['scripts/patch-quality-report.mjs'], { cwd: root, encoding: 'utf8', env: { ...process.env, CI_LOGS_DIR: dir, GITHUB_SHA: 'abc1234', ...env } }); return fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8'); };
+const report = (dir, env) => { spawnSync(process.execPath, ['scripts/patch-quality-report.mjs'], { cwd: root, encoding: 'utf8', env: { ...process.env, CI_LOGS_DIR: dir, GITHUB_SHA: 'abc1234', ...env } }); return fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8'); };
 const rm = (dir) => fs.rmSync(dir, { recursive: true, force: true });
 
 test('P107 the real manifest is valid and its check profile keeps every legacy check', () => {

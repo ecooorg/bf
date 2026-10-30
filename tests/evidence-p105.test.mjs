@@ -135,7 +135,7 @@ test('P105 generator: complete evidence keeps PASSED and embeds a valid structur
   try {
     const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'success', GITHUB_SHA: 'abc1234' });
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
     assert.match(report, /PATCH_STATUS=PASSED/); assert.match(report, /EVIDENCE=complete/); assert.match(report, /EVIDENCE_PROBLEMS=none/);
     const json = JSON.parse(report.match(/^HANDOFF_JSON=(.*)$/m)[1]);
     assert.equal(validateHandoffReport(json).ok, true); assert.equal(json.status, 'PASS'); assert.equal(json.evidenceCompleteness, 'complete');
@@ -156,7 +156,7 @@ test('P105 generator: missing, malformed or contradictory evidence can never pro
       break_(dir);
       const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'success', GITHUB_SHA: 'abc1234' });
       assert.equal(r.status, 0, r.stderr || r.stdout);
-      const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+      const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
       assert.match(report, /PATCH_STATUS=UNVERIFIED/, name);
       assert.doesNotMatch(report, /PATCH_STATUS=PASSED/, name);
       assert.doesNotMatch(report, /EVIDENCE_PROBLEMS=none/, name);
@@ -172,7 +172,7 @@ test('P105 generator: a real failure stays FAILED and still lists the evidence p
     fs.rmSync(path.join(dir, 'evidence-x.json'));
     const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'failure', GITHUB_SHA: 'abc1234' });
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
     assert.match(report, /PATCH_STATUS=FAILED/); assert.match(report, /MISSING_RECORD/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -182,7 +182,7 @@ test('P105 generator: legacy results without records keep their previous behavio
   try {
     const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'success' });
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
     assert.match(report, /PATCH_STATUS=PASSED/); assert.match(report, /EVIDENCE=minimal/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -192,8 +192,8 @@ test('P105 fallback: ci-summary writes a schema-valid minimal handoff when the g
   try {
     const r = run('scripts/ci-summary.mjs', dir, { CI_STATUS: 'failure' });
     assert.equal(r.status, 0, r.stderr); assert.equal(r.stdout, '', 'ci-summary must stay silent');
-    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
-    assert.match(report, /NEXT_PATCH\.md missing/);
+    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
+    assert.match(report, /PATCH_EVIDENCE\.md missing/);
     const fb = JSON.parse(fs.readFileSync(path.join(dir, 'handoff-report.json'), 'utf8'));
     assert.equal(validateHandoffReport(fb).ok, true); assert.equal(fb.status, 'UNKNOWN');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
@@ -202,9 +202,9 @@ test('P105 fallback: ci-summary writes a schema-valid minimal handoff when the g
 test('P105 fallback: an existing report is left untouched', () => {
   const dir = tmp('keep');
   try {
-    fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# kept\nPATCH_STATUS=PASSED\n');
+    fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), '# kept\nPATCH_STATUS=PASSED\n');
     run('scripts/ci-summary.mjs', dir, {});
-    assert.equal(fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8'), '# kept\nPATCH_STATUS=PASSED\n');
+    assert.equal(fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8'), '# kept\nPATCH_STATUS=PASSED\n');
     assert.equal(fs.existsSync(path.join(dir, 'handoff-report.json')), false);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -226,7 +226,7 @@ test('P105 end to end: the DAG runner writes records that the generator accepts'
     assert.equal(record.items[0].provenance.revision, 'abc1234');
     const g = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'success', GITHUB_SHA: 'abc1234' });
     assert.equal(g.status, 0, g.stderr || g.stdout);
-    const report = fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8');
+    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
     assert.match(report, /PATCH_STATUS=PASSED/); assert.match(report, /EVIDENCE=complete/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -254,12 +254,12 @@ test('P106 evidence gate passes on a complete run and fails closed otherwise', (
 
   // missing report -> red
   dir = tmp('gate-empty');
-  try { const bad = gate(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /NEXT_PATCH\.md is missing/); } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  try { const bad = gate(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /PATCH_EVIDENCE\.md is missing/); } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 
   // report without structured handoff -> red
   dir = tmp('gate-nojson');
   try {
-    fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# x\nPATCH_STATUS=PASSED\n');
+    fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), '# x\nPATCH_STATUS=PASSED\n');
     const bad = gate(dir); assert.equal(bad.status, 1); assert.match(bad.stderr, /HANDOFF_JSON line is absent/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 

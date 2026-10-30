@@ -49,9 +49,9 @@ test('diagnostic ZIP verification rejects empty, truncated, tampered and incompl
   assert.ok((await verifyDiagnosticArchive(await z2.generateAsync({ type: 'nodebuffer' }))).some((p) => /missing entry logs\/application\.jsonl/.test(p)));
 });
 
-test('ci-summary publishes NEXT_PATCH.md without writing the handoff to console', () => {
+test('ci-summary publishes PATCH_EVIDENCE.md without writing the handoff to console', () => {
   const dir = tmp();
-  fs.writeFileSync(path.join(dir, 'NEXT_PATCH.md'), '# BiForge ASSISTANT HANDOFF\nPATCH_STATUS=FAILED\nNEXT_ACTION=fix only\n');
+  fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), '# BiForge CI PATCH EVIDENCE\nPATCH_STATUS=FAILED\nNEXT_ACTION=fix only\n');
   const summaryPath = path.join(dir, 'github-summary.md');
   fs.writeFileSync(summaryPath, '');
   const r = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
@@ -64,7 +64,7 @@ test('ci-summary publishes NEXT_PATCH.md without writing the handoff to console'
   assert.equal(fs.readFileSync(summaryPath, 'utf8'), '', 'GitHub Actions summary must remain completely empty');
 });
 
-test('ci-summary creates a useful NEXT_PATCH.md stub when the report is missing without console output', () => {
+test('ci-summary creates a useful PATCH_EVIDENCE.md stub when the report is missing without console output', () => {
   const dir = tmp();
   const r = spawnSync('node', [path.join(root, 'scripts/ci-summary.mjs')], {
     env: { ...process.env, CI_STATUS: 'failure', CI_LOGS_DIR: dir },
@@ -72,7 +72,7 @@ test('ci-summary creates a useful NEXT_PATCH.md stub when the report is missing 
   });
   assert.equal(r.status, 0);
   assert.equal(r.stdout, '');
-  assert.match(fs.readFileSync(path.join(dir, 'NEXT_PATCH.md'), 'utf8'), /NEXT_PATCH\.md missing/);
+  assert.match(fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8'), /PATCH_EVIDENCE\.md missing/);
 });
 
 test('diagnostic ZIP carries real captured console output, redacted', async () => {
