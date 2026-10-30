@@ -18,7 +18,7 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     assert.equal(build.status, 0, 'production build must succeed before lab browser test');
   }
   const port = await freePort(); const base = `http://127.0.0.1:${port}`;
-  const server = spawn('tsx', ['server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: {
+  const server = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: {
     ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: 'p122-lab-password',
     SESSION_SECRET: 'p122-lab-session-secret-'.padEnd(40, 'x'), GEMINI_API_KEY: 'not-used-fixture-key',
     DATABASE_URL: '', ENABLE_PROJECT_MODE: 'true',
