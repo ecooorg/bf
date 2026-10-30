@@ -1,80 +1,23 @@
-## P120.0.8 — User-value contract and documentation reconciliation
+# Session governance and documentation consolidation — 2026-10-30
 
-- Reconciled the protected root specification, roadmap and technical report with the product's actual acceptance objective: useful, truthful user outcomes, not test completion.
-- Made the Architect target explicit: exactly one user-facing mode and one workflow; simplified guidance and advanced controls may exist within it, but no selectable novice/professional submodes or independent completion paths.
-- Recorded the inspected source gap without claiming runtime implementation: `ProjectPathChooser`, `builderPath`, `ProjectNoviceWizard` and the separate professional workspace remain in the inspected tree.
-- Distinguished deterministic P120 UI fixtures and supplied commit-bound CI evidence from real model-generated project quality and current live Conversational/Expert quality.
-- Replaced the forward roadmap with the product-value sequence: document contract → implement one Architect workflow → evaluate real Conversational and Expert tasks → final user-value release gate.
-- Removed superseded parallel planning documents `docs/p119-p121.md` and `docs/P121_Browser_based_Model_Providers.md`; provider-expansion planning is not part of the committed product scope.
-- Updated canonical task, value specification/report, programme rules, index, environment context, README, and version metadata to patch `120.0.8`.
-- Verification in this workspace: `node scripts/docs-integrity.mjs` PASS; `npm run docs:check` PASS; `node scripts/check-version.mjs` PASS (`120` / `120.0.8`); JSON and cross-document target-consistency assertions PASS. Hosted CI, build, browser E2E, live providers and live product scenarios were NOT_RUN. No product runtime behavior changed and no live product outcome is claimed.
+- Added a mandatory session-start protocol and top-level obligation map to `AGENTS.md`. Each session must reconstruct and verify the actual state before selecting its own task; assistants must not inherit a pre-written next-step assignment as binding.
+- Removed the persistent root `NEXT_PATCH.md` planning/handoff concept. CI-generated run reports are named `PATCH_EVIDENCE.md` and `BIForge-PATCH-EVIDENCE.md`, and workflow scripts/tests are aligned with those names.
+- Updated current roadmap controls and root navigation while preserving completed roadmap phases and prior report/changelog history.
+- This patch changes governance/documentation and CI diagnostic naming only. It does not implement the Architect single-flow runtime requirement or claim live user-value acceptance.
+- Verification in the reconstructed tree: `npm run docs:check` PASS; modified `.mjs` files pass `node --check`; `node --test tests/dag-p107.test.mjs tests/evidence-p105.test.mjs` PASS 27/27; a temporary-directory packaging smoke check produced exactly `BIForge-PATCH-EVIDENCE.md` and `biforge-ci-logs.zip`. `tests/ci-diagnostics-chain.test.mjs` and `tests/compact-ci-artifacts-p94.test.mjs` could not run because `jszip` is not installed in this reconstructed tree. Full DAG, full suite, hosted CI, browser tests, deployment and live user scenarios: NOT_RUN.
 
-## P120.0.7 — Final acceptance candidate and programme closure record
+---
 
-- Recorded the Navigator-supplied P120 Acceptance and P120 Commit-Bound Evidence as PASS for commit `d411b982186276708d31173f62b574aed19ebd63`: dependencies, verification DAG, Playwright installation, P120 UI suite, and acceptance workflow conclusion all `success`; `problems: none`.
-- Added `docs/p120-acceptance-record.json`. It records the technical gate result, keeps formal programme closure explicitly `PENDING_NAVIGATOR_DECISION`, and preserves known optional P118 residuals as open rather than claiming they are resolved.
-- Advanced package patch metadata to `120.0.7`; updated the E2E preflight and evidence-workflow contract test to distinguish the current closure-candidate patch from the P120.0.6 workflow that produced the supplied evidence.
-- No product runtime behavior changed. P121 remains unauthorized without a separate explicit decision.
+# Documentation reconciliation — 2026-10-30
 
-## P120.0.6 — Commit-bound acceptance and evidence workflows
+- Consolidated normative authority into `AGENTS.md`, `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md`, and `TECHNICAL_REPORT.md`; added eight specialist docs and kept `docs/VIX-CONCEPT.md` as strategy-only context.
+- Explicitly set product acceptance to real user outcomes rather than test/CI completion, and defined Architect as one user-facing agent, one flow, and one completion contract with no novice/professional mode choice.
+- Preserved all existing roadmap phases and historical report/changelog entries; added current notes at the top rather than rewriting prior history.
+- Replaced the documentation-integrity guard's old document topology with the new canonical set and updated operational-script references.
+- Superseded prose documents are listed for deletion in the patch handoff. Machine schemas and generated inventories remain.
+- Verification status: pending execution in the reconstructed archive; this entry does not claim product/runtime changes.
 
-- Added manual `.github/workflows/p120-acceptance.yml`: runs the full CI verification DAG with PostgreSQL, acceptance-evidence regression tests, Playwright Chromium, and all P120 UI/E2E scenarios.
-- Added `.github/workflows/p120-evidence.yml`, triggered after the acceptance workflow completes. It validates the downloaded report against the triggering run's full commit SHA, run ID/attempt, workflow conclusion, and each required check before creating a second evidence artifact.
-- Added `scripts/p120-acceptance-evidence.mjs` and regression tests. Missing, skipped, failed, stale-commit, or mismatched-run evidence fails closed. Reports contain check metadata only and do not claim Navigator acceptance.
-- Patch metadata: `120.0.6`. Local script tests and syntax checks are run separately; hosted workflow and browser suite remain NOT_RUN until dispatched.
-
-## P120.0.5 — E2E suite stabilization preflight
-
-- Added `scripts/p120-e2e-preflight.mjs` to fail fast on stale patch metadata, missing P120 browser test files, focused npm script mismatches, missing `test:ui` registrations, or syntax errors.
-- `npm run test:ui` now invokes the preflight before the existing UI check and four browser scenarios; `npm run test:p120-preflight` runs the guard alone. No product runtime behavior changed.
-- Patch metadata: `120.0.5`. Local preflight and ZIP integrity are checked; browser E2E, build, and hosted CI remain NOT_RUN locally.
-
-## P120.0.4 — Cross-agent transition and context E2E
-
-- Added `tests/p120-agent-transitions-e2e.test.mjs`: authenticated browser flow switches Conversational → Expert → Conversational, verifies the active conversation remains available, and checks the next turn carries the original goal and prior assistant answer without duplicate API requests.
-- Confirms the Architect entry remains disabled when the deployment disables the Architect workspace; does not claim enabled Architect navigation or context sharing across its separate workspace.
-- Added `test:p120-transitions` and included the scenario in `test:ui`. No product runtime behavior changed. Version/patch: `120` / `120.0.4`.
-- Local verification: syntax and ZIP integrity checked. Browser E2E, build, and hosted CI are NOT_RUN in this environment; earlier P120.0.1–P120.0.3 green status is per Navigator.
-
-## P120.0.3 — Architect browser build-to-ZIP E2E
-
-- Added `tests/p120-architect-e2e.test.mjs`: authenticated Project/Architect workspace browser journey through the novice wizard, explicit passport confirmation, one build request, source ZIP download, archive path/content checks, and all seven real static validators against the downloaded fixture files.
-- The project/build API and archive response are deterministic browser fixtures; the test does not claim live model/build-service coverage. ZIP bytes are downloaded through the UI and inspected with JSZip; validators run locally against the extracted files.
-- Added `test:p120-architect` and included it in `test:ui`. Product runtime behavior unchanged. Version/patch: `120` / `120.0.3`.
-- Verification in this environment: JavaScript syntax and ZIP integrity checked; browser E2E, build, and CI NOT_RUN because dependencies/Chromium are unavailable.
-
-## P120.0.2 — Expert browser E2E and recoverable failure
-
-- Added deterministic authenticated Expert browser scenario for a 503 API failure, Retry, follow-up, and preserved conversation context.
-- Included Expert E2E in `test:ui`; no product runtime changes.
-- Verification: JavaScript syntax and archive integrity checked locally; full UI/CI not run locally.
-
-## P120.0.1 — Conversational end-to-end user journey
-
-- Added `tests/p120-conversational-e2e.test.mjs`: authenticates in a real local app server, enters Conversational, starts a conversation, sends a first request, receives a deterministic assistant response, sends a follow-up, and asserts that the original brief plus prior assistant/user turns are preserved.
-- The browser test intercepts only `/api/agent/conversational` and returns deterministic fixture responses; it verifies UI-to-route wiring and conversation continuity, not live model/provider behavior.
-- `npm run test:ui` now runs the existing responsive UI check and this Conversational E2E scenario; `npm run test:p120-conversational` runs the focused scenario.
-- Version/patch: `120` / `120.0.1`. Browser test and full CI status are NOT_RUN in this environment (project dependencies / Chromium are not installed here).
-
-## P119.0.7 — Commit-bound Release Gate
-
-- Added manual `.github/workflows/p119-release-gate.yml`: runs the full CI verification DAG with PostgreSQL, Playwright UI checks, live Conversational/Expert checks, live UI/agent-entry checks, and the Architect build/validator/verified-ZIP regression.
-- Added `scripts/p119-release-evidence.mjs`: records the full checkout SHA, workflow run identity, and each required check outcome; fails closed unless every required check succeeded. Evidence explicitly remains pending Navigator formal acceptance.
-- Reuses the existing live smoke and Architect regression scripts; does not alter agent prompts, routing, legacy behavior, or product runtime. `ALLOW_LEGACY_APP_BUILDER` remains unused and legacy remains disabled by default.
-- Version/patch: `119` / `119.0.7`. Hosted execution and live evidence are NOT_RUN until the manual workflow is dispatched.
-
-## P119.0.6 — Architect live ZIP regression and legacy decision boundary
-
-- Added manual `p119-regression` workflow: fail-closed deployed commit preflight followed by the existing P118 live Architect build, validators, ZIP inspection/download and refusal controls. Artifacts stored under `p119-regression/`; no automatic CI duplication.
-- Advanced raw JSON remains a gated project diagnostic view, not a fourth agent. Legacy `engine=legacy` remains disabled by default and gated until host configuration is confirmed; removing it without deployment evidence risks regression.
-- Workflow inventory tests updated; patch metadata advanced to 119.0.6. Live staging execution NOT_RUN locally.
-
-## P119.0.5 — Manual deployed-commit agent smoke workflows
-
-- Added manual `p119-agent-contracts` and `p119-ui-smoke` workflows, using a shared live-smoke runner. Both require staging secrets, authenticated session and `/health` commit equality with the checked-out SHA; they fail closed on missing configuration or mismatched deployment.
-- Contracts smoke checks real Conversational and Expert replies plus Architect session/API availability; UI smoke checks the served HTML and live agent entry endpoints. Neither claims Architect build-to-ZIP or browser interaction (reserved for P119.0.6/0.7). No duplicated CI or Playwright menu tests.
-- Evidence artifacts contain status/verdict only, not response text, passwords or cookies. Live execution NOT_RUN pending staging secrets and matching deployed commit.
-- Version/patch: `119` / `119.0.5`.
+---
 
 ## P119.0.4 — Agent-owned prompt text, agent-named chat routes, dead legacy import removed
 

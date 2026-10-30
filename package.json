@@ -1,8 +1,8 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "120",
-  "patch": "120.0.8",
+  "version": "119",
+  "patch": "119.0.4",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -41,11 +41,11 @@
     "test:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs tests/integrations.test.mjs tests/project-mode.test.mjs tests/gates.test.mjs",
     "test:database:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs",
     "test:bx06:api": "RUN_BX06_API=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/project-mode.test.mjs",
-    "test:ui": "node scripts/p120-e2e-preflight.mjs && node --import tsx tests/ui-check.mjs && node --test tests/p120-conversational-e2e.test.mjs && node --test tests/p120-expert-e2e.test.mjs && node --import tsx --test tests/p120-architect-e2e.test.mjs && node --test tests/p120-agent-transitions-e2e.test.mjs",
+    "test:ui": "node --import tsx tests/ui-check.mjs",
     "check": "node scripts/run-dag.mjs --profile check",
     "docs:generate": "node scripts/docsGenerateInventories.mjs && node scripts/architectureGenerateModuleMap.mjs && node scripts/statusGraph.mjs && node scripts/capabilityGenerateGraph.mjs",
     "context:select": "node scripts/contextSelect.mjs",
-    "docs:check": "node scripts/docsCheckInventories.mjs && node scripts/statusGraph.mjs --check && node scripts/capabilityGenerateGraph.mjs --check",
+    "docs:check": "node scripts/docs-integrity.mjs && node scripts/docsCheckInventories.mjs && node scripts/statusGraph.mjs --check && node scripts/capabilityGenerateGraph.mjs --check",
     "acceptance:report": "node scripts/acceptanceReport.mjs",
     "test:project-diagnostics": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/content-disposition-p93.test.mjs",
     "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs tests/app-builder-dom-wiring-p118-5-6.test.mjs",
@@ -60,12 +60,7 @@
     "test:p117-3": "node --import tsx --test tests/p117-3-conversation.test.mjs",
     "test:p119-agents": "node --import tsx --test tests/p119-agent-ui-contract.test.mjs tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs",
     "test:archive-delivery": "node --import tsx --test tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs",
-    "test:p120-conversational": "node --test tests/p120-conversational-e2e.test.mjs",
-    "test:p120-expert": "node --test tests/p120-expert-e2e.test.mjs",
-    "test:p120-architect": "node --import tsx --test tests/p120-architect-e2e.test.mjs",
-    "test:p120-transitions": "node --test tests/p120-agent-transitions-e2e.test.mjs",
-    "test:p120-preflight": "node scripts/p120-e2e-preflight.mjs",
-    "test:p120-evidence-check": "node --test tests/p120-acceptance-evidence.test.mjs"
+    "docs:integrity": "node scripts/docs-integrity.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -1,11 +1,45 @@
+# CURRENT ROADMAP CONTROL — 2026-10-30
+
+> This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
+
+## Programme objective
+
+The end goal is useful, reliable user outcomes in the running product—not a green repository by itself. A patch is not accepted solely because tests pass. For user-facing work, state the user problem, observable outcome, quality criteria, failure/recovery behavior, and evaluation evidence. Keep local tests, hosted CI, deployed/live checks, and actual user-outcome evidence separate.
+
+## Current documentation and session model
+
+Canonical governance and the mandatory session-start protocol live in `AGENTS.md`. Product requirements live in `TECHNICAL_SPECIFICATION.md`; this file owns the ordered programme plan, dependencies, completed stages, and current priorities; `TECHNICAL_REPORT.md` records factual state and evidence. `CHANGELOG.md` records patch history.
+
+There is no persistent `NEXT_PATCH.md` and no pre-written assignment that the next session should blindly execute. At the beginning of every session, the assistant must reconstruct current state, verify material prior claims, trace open mandatory obligations, and independently formulate a task for that session according to `AGENTS.md`. This roadmap informs that choice but does not replace it.
+
+### Retired-document reference map
+
+Historical phase text below may retain the names of documents that existed when the phase was written. Their current responsibilities are consolidated as follows; do not recreate the retired files to satisfy an old link:
+
+- `docs/AI-USER-VALUE-SPEC.md` → `TECHNICAL_SPECIFICATION.md`.
+- `docs/AI-USER-VALUE-REPORT.md` → `docs/USER_VALUE_EVALUATION.md`.
+- `docs/AI-NATIVE-RENOVATION-ROADMAP.md`, `docs/AI-NATIVE-RENOVATION-TASK.md`, and `docs/p119-p121.md` → `ROADMAP.md` plus the session-start protocol in `AGENTS.md`.
+- `docs/AI-OPERATING-RULES.md` and `docs/AI-ENVIRONMENT-CONTEXT.md` → `AGENTS.md` and `docs/OPERATIONS_AND_RELEASES.md`.
+- `docs/ARCHIVE-DELIVERY-CANON.md` → `docs/DATA_AND_ARTIFACTS.md`, `docs/API_CONTRACTS.md`, and the normative delivery contract in `TECHNICAL_SPECIFICATION.md`.
+- `docs/OPERATIONS.md` → `docs/OPERATIONS_AND_RELEASES.md`.
+- `docs/architecture-guardrails.md` → `docs/ARCHITECTURE.md` plus executable boundary checks.
+
+## Current known high-priority product gap (revalidate every session)
+
+The available reconstructed source indicates that Architect still exposes separate simplified and professional paths, while the normative contract requires one Architect agent, one user-facing flow, one state machine, and one completion contract. Treat this as a known candidate priority, not an instruction to skip the session-start audit: re-check current source, tests, actual user behavior, blockers, and any newer evidence before choosing work.
+
+## Roadmap and history rules
+
+Keep completed phases and their historical descriptions. Add new status at the top or in the relevant current section; add new historical events at the top of `CHANGELOG.md` and `TECHNICAL_REPORT.md`. Never erase prior milestones or rewrite historical evidence to make the current plan look cleaner. Older phase text may mention retired task/handoff documents; those mentions are historical, not a request to recreate them.
+
+---
+
 # BiForge Implementation Roadmap
 
 **Document ID:** BF-ROADMAP-001  
-**Status:** Authoritative implementation sequence for delivering and proving user value in the running product  
+**Status:** Authoritative sequential plan from empty repository to P118 and onward  
 **Authority:** Derived from CHANGELOG.md, AI-NATIVE-RENOVATION-ROADMAP.md, AI-NATIVE-RENOVATION-TASK.md, AGENTS.md and observed snapshots  
-**Current status (2026-10-30):** P119 and the P120 technical verification workflow have been reported green. That proves the listed checks ran successfully on their stated commits; it does not establish final product-value acceptance. The current source still exposes two Architect submodes, contrary to the target contract. This roadmap supersedes prior forward plans that treated E2E completion as programme completion. The programme ends only when the three agents deliver their specified user outcomes with reproducible evidence.
-
-Phases 0–5 below are retained as historical implementation context, not as active work directions. Phases 6–9 define the current product-value work and its acceptance gates.
+**Distinction:** P118 history records the implementation sequence; the Navigator accepted P118 on 2026-10-29 based on CI 27/27 for P118.5.6 and the supplied live Architect artifact evidence. P119 is now in progress. P120–P121 remain forward phases.
 
 The plan follows the engineering loop:
 
@@ -295,62 +329,100 @@ npm run check   # full DAG
 **P118 exit gate (historical, satisfied):** P118.5.6 CI 27/27 + live staged build with verified ZIP and truthful refusal controls + Navigator acceptance on 2026-10-29.
 
 
-## Phase 6 — Product contract reconciliation (P120.0.8 documentation patch)
+## Phase 6 — Migrate to Three Agents (P119 — in progress)
 
-**Goal:** make every current normative document describe the same product: three agents, one Architect workflow, and acceptance by useful user outcomes rather than test completion.
+**Goal:** UI and routing expose exactly three approved agents; legacy four-mode paths removed or explicitly isolated; no regression of accepted scenarios.
 
-**Known facts:**
-- The user-outcome specification already defines Conversational, Expert and Architect and says green CI alone is insufficient.
-- The checked source still contains `ProjectPathChooser`, `ProjectNoviceWizard`, `builderPath`, and a separate professional workspace branch.
-- P120 E2E and acceptance workflows provide valuable technical evidence, but Architect E2E uses deterministic API fixtures for the generated project; it does not prove live generation quality.
-- The Navigator reported P120 acceptance evidence as PASS for commit `d411b982186276708d31173f62b574aed19ebd63`. This is evidence for that commit's listed checks, not for this documentation patch or for the missing product contract.
+**Preconditions:** satisfied — Navigator accepted P118 on 2026-10-29.
 
-**Deliverable:** aligned specification, roadmap, current task, and rolling evidence report. The patch does not change runtime behavior and must not claim to have implemented the unified Architect.
+**Concrete changes:** P119.0.1 starts the migration by exposing the approved names Conversational, Expert, and Architect in the start screen and agent menu. Internal legacy keys are retained temporarily to avoid breaking existing behavior; later P119 slices must isolate or remove them behind regression coverage.
 
-**Acceptance:** all normative docs agree on the target; abandoned alternative Architect paths are not presented as a target; every product requirement has an outcome-based acceptance criterion; mocked checks are clearly distinguished from live product evidence.
+- Replace mode selector with three agent entry points.
+- Isolate or delete legacy Project Mode shared state machines that collapse behaviour.
+- Ensure each agent owns its orchestration, prompts, cascade, tools and output contract.
+- Update client components (App.tsx, ProjectMode → agent-specific panels).
+- Update acceptance suites.
 
-## Phase 7 — Implement the single Architect workflow (next product patch: P120.0.9)
+**P119 slice plan (reconciled in P119.0.2; this table is the authoritative numbering — it supersedes the older numbering in `docs/p119-p121.md`):**
 
-**Goal:** replace the two existing Architect submodes with one coherent user-facing workflow that takes a software goal to a real deliverable or a truthful, actionable failure.
+| Patch | Content | Status |
+|---|---|---|
+| P119.0.1 | Three agent names in start screen and menu; P118 status reconciliation | Delivered; CI green (Navigator confirmed) |
+| P119.0.2 | Inventory of routes, workflows and shared orchestration; boundary map and per-agent contracts (TECHNICAL_SPECIFICATION §6.4, REQ-AGENT-001..003); regression tests `tests/p119-agent-boundaries.test.mjs`; documentation sync; no runtime behaviour change | Delivered; CI green (Navigator confirmed) |
+| P119.0.3 | Legacy isolation (first bounded step): agent selection, turn planning and prompt entry for Conversational and Expert moved into `server/agentRouting.ts`, `conversationalAgent.ts`, `expertAgent.ts` with byte-identical prompts; user-visible legacy names (Simple chat, Project mode/workspace, Expert method) removed from the in-app guide and the Architect confirmation dialog; tests `tests/p119-agent-isolation.test.mjs`. The HTTP route `POST /api/conversation`, wire key `productMode`, internal `AppMode` keys and `promptPacks.ts` text remain shared (compatibility) | Delivered; CI green (Navigator confirmed) |
+| P119.0.4 | Agent-owned prompt text: intro paragraphs, `expertDialogueParagraph`, `EXPERT_STAGES`, `EXPERT_STEP_PREFIX` moved from `promptPacks.ts` into `conversationalAgent.ts` / `expertAgent.ts` (golden-hash byte identity); agent-named routes `POST /api/agent/conversational` and `POST /api/agent/expert` added (route pins the agent; client uses them), `POST /api/conversation` kept for compatibility; dead legacy IR import removed from `server.ts` (the gated `engine=legacy` branch in `server/projectRoutes.ts` stays: deployment use UNKNOWN). Navigator decisions recorded 2026-10-29. Tests `tests/p119-agent-prompts-routes.test.mjs`, HTTP checks R1–R10 in `tests/pipeline.test.mjs` | Delivered in this slice; CI result pending Navigator report |
+| P119.0.5 | Workflows `p119-agent-contracts` and `p119-ui-smoke` **only for gaps** that `ci.yml` (DAG `ci`, includes the P119 contract tests via `test:core`) and `ui-check.yml` (Playwright agent-menu check) do not already cover — e.g. a manual live smoke that each of the three agents starts and answers truthfully against a deployed commit. Do not duplicate CI | Proposed; Navigator to confirm |
+| P119.0.6 | Remove remaining user-visible legacy modes (raw "Advanced" project data tab if judged a fourth mode); Architect regression: build, validators, ZIP download (workflow `p119-regression`, reusing `p118-architect-live`) | Proposed; Navigator to confirm |
+| P119.0.7 | P119 Release Gate: full CI + `test:ui` + live scenarios for all three agents; evidence bound to the commit; Navigator decision | Proposed; Navigator to confirm |
 
-**Scope:**
-1. Remove the `ProjectPathChooser` as a user-facing mode selector.
-2. Remove `builderPath` as a selector between independent novice/professional workflows.
-3. Implement one workflow/state machine for goal capture, requirement confirmation, planning, file generation, validation/build, bounded repair, packaging, delivery, and recovery.
-4. Reuse existing components only where they serve this single workflow; redesign or delete components that exist solely to preserve the old split.
-5. Preserve needed professional capabilities as tools/actions within the same workflow, not as a second mode.
-6. Add regression coverage asserting that the user cannot enter a second Architect mode and that all steps use one completion contract.
-7. Do not modify unrelated agent internals or provider architecture unless a demonstrated dependency makes it necessary.
+**Gate P119:** required checks green; three agents work; no user-visible legacy modes; no regression of accepted P116/P117/P118 behaviour. **Transition:** P120 starts only after the Navigator's explicit decision on P119.
 
-**User-value gate:** on the deployed application, start from a natural-language software goal and reach either (a) a real generated project whose requirements, files, applicable build/tests, ZIP integrity and download are verified, or (b) a truthful stage-specific failure with recovery instructions. The acceptance run must use real generation; mocked API tests remain supplementary.
+**Per-patch rule (from the Navigator's plan):** every patch carries code/doc changes, tests, `CHANGELOG.md`, `NEXT_PATCH.md` and the related documents; the next patch starts only after the required checks of the previous one pass.
 
-**Required evidence:** commit-bound CI; browser test for absence of chooser; a redacted transcript of a real Architect task; actual artifact and integrity evidence if successful; exact failed stage and next action if not. Report `PASS`, `PARTIAL`, `FAIL`, `BLOCKED`, `TIMEOUT`, or `NOT_RUN` without upgrading uncertainty to success.
+> **Supersession note (2026-10-30):** the per-patch instruction immediately above is preserved as historical text from the earlier workflow. It is no longer active. There is no `NEXT_PATCH.md`; each new session must follow the independent state-reconstruction and task-selection protocol in `AGENTS.md`.
 
-## Phase 8 — Measure and close Conversational and Expert user outcomes
+**Dependencies:** P118 closed.
 
-**Goal:** establish a current baseline for the two dialogue agents and fix demonstrated failures rather than expanding internal infrastructure by default.
+**Step-by-step algorithm:**
 
-**Representative Conversational tasks:** direct stable-knowledge answer; current-events question requiring fresh sources; follow-up that depends on prior context; material ambiguity; search/provider unavailable; recovery after verifier/tool error.
+1. Inventory all mode flags and shared conversation paths.
+2. Introduce agent-specific route and UI surfaces.
+3. Migrate Conversational and Expert to dedicated pipelines if still shared.
+4. Wire Architect as third agent.
+5. Remove or feature-flag legacy selectors.
+6. Run full regression + new three-agent scenarios.
+7. Update documentation and report.
 
-**Representative Expert tasks:** multi-turn investigation; separation of facts, hypotheses and unknowns; materially different options; evidence-linked trade-offs; synthesis and prioritized plan; continuation/recovery after a failed step.
+**Verification:** Full CI + live scenarios for all three agents.
 
-**Method:** capture the exact user input, deployed commit, relevant configuration/model path where available, actual visible response, evidence/source quality, context continuity, latency, cost signals where available, and human/task-based rubric outcome. Mocked scenarios may validate UI and error handling but do not substitute for real response quality.
+**Acceptance:** Representative user can start each agent and receive truthful outcomes; no fourth mode visible.
 
-**Acceptance:** each agent's contract in `docs/AI-USER-VALUE-SPEC.md` is assessed against representative scenarios; every failing or partial case has a concrete corrective action or an explicit accepted limitation. Do not claim 100% reliability or exhaustive research.
+**Stop:** Any regression of P116/P117 accepted behaviour → stop and ask.
 
-## Phase 9 — Final user-value release gate
+---
 
-The project is complete for this programme only when all of the following are true:
+## Phase 7 — Cross-Agent E2E and Stabilisation (P120 — forward)
 
-1. **Conversational:** representative tasks produce relevant, correct, appropriately fresh answers; context and uncertainty are handled honestly; failures have useful next actions.
-2. **Expert:** representative complex problems progress through investigation, alternatives, synthesis and an actionable plan without dead ends or loss of working state.
-3. **Architect:** one user-facing mode and one workflow produce a real validated downloadable software artifact, or a truthful actionable failure. There is no novice/professional chooser or separate completion contract.
-4. **Cross-agent:** navigation and shared infrastructure do not leak one agent's behavior into another; relevant state and artifacts remain accessible.
-5. **Evidence:** results are tied to the exact deployed commit and clearly label mock, source-level, CI, live-provider and live-product evidence.
-6. **Safety and honesty:** no false success, no claim that unrun checks passed, no hidden partial result, and no weakening of security or evidence controls to pass a gate.
-7. **Limitations:** unresolved gaps, unsupported tasks and known constraints are listed with impact and disposition.
+**Goal:** Representative scenarios for all three agents pass; failures are truthful; artefacts accessible; limitations explicit.
 
-A green CI run is required where applicable, but never sufficient by itself. Formal closure requires the user-outcome evidence above and the Navigator's explicit acceptance.
+**Preconditions:** P119 complete.
+
+**Concrete changes:** Expand acceptance suite, harden recovery paths, surface residual limitations in UI and report.
+
+**Verification:** Cross-agent live runs + CI.
+
+**Acceptance:** Navigator formal acceptance of product-level outcomes.
+
+**P120 slice plan (carried over from the Navigator's plan in `docs/p119-p121.md`):**
+
+| Patch | Content | Result |
+|---|---|---|
+| P120.0.1 | E2E Conversational | Full user scenario verified |
+| P120.0.2 | E2E Expert | Expert scenarios and error paths verified |
+| P120.0.3 | E2E Architect | Build, validators, download and ZIP integrity verified |
+| P120.0.4 | Cross-agent E2E: switching between agents and context preservation | Agents verified together |
+| P120.0.5 | Stabilisation; fix regressions found | Stable integration suite |
+| P120.0.6 | Workflows `p120-acceptance` and `p120-evidence` | Final CI and one evidence report |
+| P120.0.7 | Final acceptance and closing documentation | Formal completion of the programme |
+| P120.0.8 (conditional) | P118 residuals: download policy for `PARTIAL` (`failed_but_download_offered`) and dependency audit (`zod`, `body-parser`, `qs`); included only if the inventory confirms they still need closing before release | Optional |
+
+**Gate P120:** required E2E pass; no false `SUCCESS`; results bound to the verified commit; acceptance criteria met. After P120 the programme is closed; P121 is optional, not an obligatory end.
+
+**Sequence:** P119.0.1 → P119.0.2–0.7 → Navigator decision on P119 → P120.0.1–0.4 → P120.0.5–0.7 → programme closed → P121 (optional, only after an explicit Navigator yes and closed open decisions).
+
+---
+
+## Phase 8 — Universal Model Resilience Layer (P121 — planned only)
+
+**Goal:** Improve outcomes when models/providers are unavailable or return low-quality answers (registry, health monitor, task-aware router, response validator, recovery engine).
+
+**Preconditions:** P116–P120 line accepted or explicitly re-sequenced by Navigator.
+
+**Open decisions (must be resolved before start):** budgets, probe frequency, cross-provider data transfer, selective critique, telemetry retention, local inference feasibility, exact endpoint validation.
+
+**Stop:** Do not begin implementation until Navigator authorises and open decisions are closed.
+
+---
 
 ## Global Rules for Every Stage
 
@@ -362,4 +434,4 @@ A green CI run is required where applicable, but never sufficient by itself. For
 6. Charter conflicts must be reported; never silently reinterpret.
 7. Security, evidence integrity and product function bind above all other considerations.
 
-This roadmap is the sole authoritative implementation sequence. Update it in place only when the target user outcomes or their accepted status change. Do not resurrect superseded patch branches or speculative provider-expansion plans as active work.
+This roadmap is the sole authoritative sequence. Update it in place when the Navigator accepts a phase transition.

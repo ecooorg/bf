@@ -1,12 +1,45 @@
+# CURRENT NORMATIVE CONTRACT — 2026-10-30
+
+> This block is the current binding product contract. It takes precedence over any older statement below that conflicts with it. The remainder of this file is retained as the technical and historical record; do not silently rewrite past entries to make them look current.
+
+## Product success is user value, not test completion
+
+BiForge succeeds when a real user can complete a meaningful task and receive a correct, useful, understandable result. Tests, CI, architecture boundaries, documentation, and evidence are necessary controls; none alone proves user value. Every feature change must name the user problem, expected user-visible result, failure/recovery behavior, and how that result will be evaluated. Report code presence, local tests, hosted CI, deployed behavior, and user-outcome evidence as distinct facts. Never label an unobserved outcome PASS.
+
+## Exactly three user-facing agents
+
+1. **Conversational** — answer real questions naturally, preserve relevant context, distinguish known facts from uncertainty, and use current information when the task requires it.
+2. **Expert** — investigate complex questions, compare alternatives against stated constraints, explain trade-offs, and produce a justified decision or actionable plan.
+3. **Architect** — turn a user's software goal into a working, validated, downloadable software artifact; explain what was built, what passed, what remains incomplete, and how to use it.
+
+## Architect has one mode and one completion contract
+
+Architect is one user-facing agent and one end-to-end workflow. Do not expose a choice between “Simple words”/beginner/novice and “Professional” modes, a mode switch, or two independently selected Architect flows. The single flow may adapt wording, progressive disclosure, and optional advanced controls to user needs, but those are presentation adaptations inside one state machine—not modes or separate workflows. All paths must converge on one completion contract: explicit task/specification, validated plan, generated artifact, applicable validators, honest SUCCESS/PARTIAL/FAILED status, and a downloadable result only when the delivery policy permits it.
+
+## Acceptance hierarchy
+
+- **User outcome:** the intended user task is completed with a useful result. This is the primary product criterion.
+- **Behavioral acceptance:** visible workflow, outputs, errors, recovery, and downloads match this contract.
+- **Technical controls:** tests, typecheck, build, security checks, and CI are supporting evidence.
+- **Release evidence:** must be tied to the exact commit/build and distinguish local, hosted, and live checks.
+
+A green test suite does not compensate for a missing, confusing, low-quality, or unusable user result. A passing UI stub does not prove live model quality or deployed behavior.
+
+## Documentation authority
+
+`AGENTS.md` defines working rules, the obligation map, the mandatory session-start protocol, and the authority hierarchy. This file defines product and technical requirements. `ROADMAP.md` owns the ordered programme plan while preserving completed phases. `TECHNICAL_REPORT.md` owns historical facts and evidence. The eight specialist documents under `docs/` cover architecture, API contracts, testing/acceptance, user-value evidence, security/privacy, operations/releases, data/artifacts, and active decisions. No old side document is an independent source of truth. There is no persistent next-patch assignment file: each session reconstructs state and selects its own task under `AGENTS.md`.
+
+---
+
 # BiForge Technical Specification
 
 **Document ID:** BF-TECH-SPEC-001  
-**Status:** Normative engineering specification for the current product and its target behavior  
-**Authority:** Current product contract; observed implementation facts are explicitly distinguished from requirements not yet satisfied  
+**Status:** Normative engineering specification for implementation from clean repository  
+**Authority:** Derived from repository evidence through P118.3.3 (commit lineage ending at live run evidence on 9ff44ac and related patches)  
 **Language:** Technical English  
-**Audience:** AI assistants implementing or verifying the system  
+**Audience:** Developers and AI assistants implementing or verifying the system  
 
-This specification defines BiForge as a product whose completion is measured by user outcomes. Historical patch numbers and test results are evidence about particular changes, not the product target. An implementation is not compliant merely because it builds, passes CI, or reproduces an older flow.
+This specification enables full re-implementation of BiForge from an empty repository to the state of programme version 118 (patch 118.3.3) and defines the contracts required for the three user-facing agents.
 
 All requirements carry unique identifiers of the form `REQ-XXX-NNN`. Each requirement states preconditions, expected behaviour, error handling, and verifiable acceptance criteria.
 
@@ -16,13 +49,13 @@ All requirements carry unique identifiers of the form `REQ-XXX-NNN`. Each requir
 
 ### 1.1 Purpose
 
-BiForge delivers information value and completed work through exactly three user-facing agents:
+BiForge is an evidence-driven engineering platform that turns complex user workflows into verifiable, reproducible results. The product exposes exactly three autonomous user-facing agents:
 
-- **A1 Conversational** — answers the user’s actual question, preserves relevant context, uses current sources when freshness matters, and communicates uncertainty or tool failure honestly.
-- **A2 Expert** — investigates a complex problem, tracks facts and hypotheses, compares materially different options, synthesizes a reasoned recommendation, and produces an actionable plan.
-- **A3 Architect** — turns a software goal into a real project with requirements, architecture, generated files, relevant validation, bounded repair, and an accessible verified ZIP or a truthful actionable failure.
+- **A1 Conversational Agent** — natural, context-aware conversation.
+- **A2 Expert Problem-Solving Agent** — multi-step problem solving with progressive reasoning, tools, and evidence.
+- **A3 Complex Software Architect Agent** (App Builder) — specification-driven generation of software artefacts (currently static-site profile), producing a verified ZIP archive.
 
-These are the only user-facing agents. Architect is one mode and one coherent workflow: there is no user choice between simplified/novice and professional submodes. A sequence of stages inside the one workflow is allowed; alternative independent Architect entry paths are not.
+Legacy four-mode UI (Simple / Expert / Project / Project-Advanced) is transitional and must be replaced under P119.
 
 ### 1.2 High-Level Architecture
 
@@ -58,7 +91,7 @@ These are the only user-facing agents. Architect is one mode and one coherent wo
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Component boundaries (architecture-guardrails.md):**
+**Component boundaries (`docs/ARCHITECTURE.md`):**
 
 - `appBuilder/` is a pure core: no Express, no React, no direct database. Ports defined in `core-ports.ts`.
 - Server adapters (`appBuilderAdapter.ts`, `appBuilderPipeline.ts`) implement ports and surface events.
@@ -69,9 +102,8 @@ These are the only user-facing agents. Architect is one mode and one coherent wo
 
 ```
 .
-├── AGENTS.md                          # Navigator charter (immutable)
+├── AGENTS.md                          # Governance, obligation map, session-start protocol
 ├── CHANGELOG.md                       # Patch history (newest first)
-├── NEXT_PATCH.md                      # Immediate next action surface
 ├── package.json                       # Single version source (version + patch)
 ├── server.ts                          # Express entry + route mounting
 ├── appBuilder/                        # Pure App Builder core
@@ -377,13 +409,14 @@ Jobs and code_tasks persist status, attempts, artefacts, decisions. Repair loop 
 **Error:** Stagnation after N turns → user-visible BLOCKED / PARTIAL.  
 **Acceptance:** P117.x tests + future E2E suite.
 
-### 6.3 A3 Complex Software Architect Agent (target contract; current compliance gap is recorded in §6.4)
+### 6.3 A3 Complex Software Architect Agent (P118 in progress)
 
-- Input: high-level software goal, clarified only where needed to establish requirements and definition of done.
-- User experience: exactly one Architect entry and one workflow state machine. The system may guide novices with clear explanations and expose advanced controls when useful, but these are capabilities within the same workflow—not selectable modes, separate branches, or separate completion contracts.
-- Output: a real software project artifact with a manifest, validation evidence, integrity checks, and an accessible ZIP download; unsupported target types must be stated rather than represented as completed.
-- Workflow: Understand goal → Confirm requirements → Plan solution → Generate files → Validate/build/test as applicable → bounded repair → package and verify → deliver result or truthful failure.
-- Every stage emits durable status and actionable recovery information. The current static-site implementation is an implementation profile, not permission to claim support for arbitrary software stacks.
+- Input: high-level product description.
+- Output: verified ZIP of generated static site (current profile) containing expected files, passing validators.
+- Internal: Spec → Plan → Units → Validators → Pack.
+- Prompt versioning, marker parser with coercion, bounded repair.
+- Events and diagnostics for every stage.
+- Integrity: SHA / size checks on ZIP contents.
 
 **REQ-A3-001**  
 **Precondition:** Architect job with valid brief.  
@@ -391,20 +424,18 @@ Jobs and code_tasks persist status, attempts, artefacts, decisions. Repair loop 
 **Error:** Marker mismatch → repair attempt then specific `expected_path_not_found:…`; budget exhausted → FAILED with diagnostics.  
 **Acceptance:** `tests/app-builder-unit-repair-p118.test.mjs` (7 tests), live workflow `p118-architect-live` records SUCCESS with downloadable artefact.
 
-Prompts live in `appBuilder/core-prompts.ts`; markers in `core-markers.ts`; engine in `core-engine.ts`. These implementation details do not weaken the single-workflow user contract.
+Prompts live in `appBuilder/core-prompts.ts`; markers in `core-markers.ts`; engine in `core-engine.ts`.
 
-### 6.4 Agent boundary map and contracts (OBSERVED implementation; compare with target contracts above)
+### 6.4 Agent boundary map and contracts (P119.0.2, OBSERVED in source; regression-locked)
 
-**Current compliance finding:** the checked source still exposes a `ProjectPathChooser` with “Simple words” and “Professional” cards and routes into `ProjectNoviceWizard` or the professional workspace through `builderPath`. This is a direct violation of the A3 target contract in §6.3. E2E tests that exercise either existing path do not satisfy the requirement to have one Architect workflow. The next product implementation must remove the chooser and branch-based mode selection, deliver one coherent workflow, and preserve only those capabilities needed by the user in that workflow. Do not treat this observed legacy structure as a target design.
-
-Status (updated P120.0.8 documentation audit): the three agents are separate **entry points and UI names**. Conversational and Expert now own their **turn planning and prompt entry** (`server/conversationalAgent.ts`, `server/expertAgent.ts`, selected only by `server/agentRouting.ts`), and each owns its intro prompt text (P119.0.4) and its own named route (`POST /api/agent/conversational`, `POST /api/agent/expert`); they still share **one HTTP handler** (behind three entrances, including the compatibility path `POST /api/conversation`) and the method/boundary/contract text blocks in `promptPacks.ts`; they are **not yet** fully separate pipelines. Architect is a separate route family, client surface and engine. Locked by `tests/p119-agent-boundaries.test.mjs` and `tests/p119-agent-isolation.test.mjs` (in `test:core`).
+Status (updated P119.0.4): the three agents are separate **entry points and UI names**. Conversational and Expert now own their **turn planning and prompt entry** (`server/conversationalAgent.ts`, `server/expertAgent.ts`, selected only by `server/agentRouting.ts`), and each owns its intro prompt text (P119.0.4) and its own named route (`POST /api/agent/conversational`, `POST /api/agent/expert`); they still share **one HTTP handler** (behind three entrances, including the compatibility path `POST /api/conversation`) and the method/boundary/contract text blocks in `promptPacks.ts`; they are **not yet** fully separate pipelines. Architect is a separate route family, client surface and engine. Locked by `tests/p119-agent-boundaries.test.mjs` and `tests/p119-agent-isolation.test.mjs` (in `test:core`).
 
 | Aspect | A1 Conversational | A2 Expert | A3 Architect |
 |---|---|---|---|
 | User-facing name | Conversational | Expert | Architect |
 | Internal key (`AppMode`) | `Simple` | `Expert` | `Project` |
 | Entry | `/` chat shell, start card / agent menu | `/` chat shell, start card / agent menu | `/project` (full navigation; `main.tsx` lazy-loads `ProjectMode`) |
-| Client modules | `ConversationScreens.tsx` | `ExpertStepScreens.tsx`, `ExpertNav.tsx`, `expertContext.ts`, `expertHistory.ts` | Current implementation: `ProjectMode.tsx`, `ProjectDelivery.tsx`, `ProjectNoviceWizard.tsx`, `ProjectPathChooser.tsx`, `projectBuildJob.ts`, `projectAppBuilder.ts`; target removes `ProjectPathChooser` and independent novice/professional branching |
+| Client modules | `ConversationScreens.tsx` | `ExpertStepScreens.tsx`, `ExpertNav.tsx`, `expertContext.ts`, `expertHistory.ts` | `ProjectMode.tsx`, `ProjectDelivery.tsx`, `ProjectNoviceWizard.tsx`, `ProjectPathChooser.tsx`, `projectBuildJob.ts`, `projectAppBuilder.ts` |
 | Server routes | `POST /api/agent/conversational` (compatibility: `POST /api/conversation`) | `POST /api/agent/expert` (compatibility: `POST /api/conversation` + `productMode: "Expert"`) and step routes `/api/neutralize`, `/radar`, `/understand`, `/knowledge-map`, `/expand`, `/redteam-pair`, `/redteam`, `/premortem`, `/experiment-draft`, `/forecast-wording`, `/synthesis`, `/review`, `/revise-document` | `/api/projects/*` (`server/projectRoutes.ts`), incl. `POST …/code/build`, `GET …/code/build/:jobId`, `GET …/artifacts/:artifactId/download` |
 | Orchestration / prompt | `conversationalAgent.ts` (plan, prompt entry and intro text; shared method/contract blocks from `promptPacks.ts`) | `expertAgent.ts` (information→decision promotion, stage/method-state paragraph, intro text, step prefix; shared method/contract blocks from `promptPacks.ts`); step prompts per route | `appBuilder/` staged engine (Spec → Plan → Units → Validators → Pack) |
 | State | browser-local conversation state | browser-local Expert `Decision` (stage `EXPERT_STAGES`) | server persistence: projects, jobs, artifacts (PostgreSQL) |
@@ -420,19 +451,13 @@ Shared, non-agent infrastructure (allowed to stay shared): auth/session, provide
 **Error:** none silent — an unknown value falls to Conversational by definition, never to Expert or Architect.  
 **Acceptance:** `tests/p119-agent-boundaries.test.mjs` and `tests/p119-agent-isolation.test.mjs` (selection, planner equality versus the pre-split logic; mutation-checked), `tests/p119-agent-prompts-routes.test.mjs` (golden prompt hashes, route table, pinning, client route choice) and the HTTP checks R1–R10 in `tests/pipeline.test.mjs` (route pins the agent; legacy and named routes produce the same prompt bytes).
 
-**REQ-A3-002 — One Architect mode and one workflow.**  
-**Precondition:** User selects Architect.  
-**Behaviour:** The application opens one Architect workflow without presenting “Simple words”, “Professional”, “novice”, “advanced”, or equivalent alternative Architect modes. One state machine governs requirement capture, plan, generation, validation, repair, packaging, delivery, and failure recovery. Guidance level and advanced controls may adapt within that workflow, but must not fork into separate independent workflows or completion contracts.  
-**Error:** Missing required capability or unsupported target is disclosed in the same workflow with a concrete next action; the UI must not route the user to an alternate mode to continue.  
-**Acceptance:** A browser test asserts no Architect submode chooser is present; a live user scenario enters Architect once and completes the unified path to a real artifact or truthful stage-specific failure; tests cover requirement confirmation, build, validation, ZIP integrity, download and recovery. Mocked API tests are supplementary and do not prove live generation quality.
-
 **REQ-AGENT-002 — Architect boundary.**  
 **Precondition:** Architect is requested.  
 **Behaviour:** Architect is reachable only by navigating to `/project`; the chat shell never hosts it and clears a leftover `Project` mode. Architect client modules call only `/api/projects/*` (plus shared auth/session) and do not import Conversational/Expert modules or call `/api/conversation` or Expert step routes. The chat handler and Expert/Conversational client modules do not reference Architect routes or machinery (`runAppBuilderPipeline`, `code/build`, artifact storage, project/plan/task services). `appBuilder/` and `server/projectRoutes.ts` do not import chat prompt modules (`promptPacks`, `conversationMode`, `intentFlags`, `epistemicVerifier`). When Project Mode is disabled, Architect routes answer 404 `PROJECT_MODE_DISABLED` and the UI entry is disabled.  
 **Error:** a boundary violation fails `test:core` in CI.  
 **Acceptance:** `tests/p119-agent-boundaries.test.mjs`.
 
-**REQ-AGENT-004 — Agent-specific behavior is explicit (current implementation baseline P119).**  
+**REQ-AGENT-004 — Agent modules are isolated (P119.0.3).**  
 **Behaviour:** `conversationalAgent.ts` and `expertAgent.ts` do not import each other, `agentRouting.ts`, `server.ts` or Architect modules; `server.ts` neither builds conversation prompts nor Expert paragraphs. Their output is byte-identical to the pre-split logic for every request body and detected mode. User-visible text (in-app guide, Architect confirmation) names only Conversational, Expert and Architect. **(P119.0.4)** The intro prompt text of each agent, `expertDialogueParagraph`, `EXPERT_STAGES` and `EXPERT_STEP_PREFIX` live in that agent's own file; `promptPacks.ts` keeps only the method, boundary and contract blocks both dialogue agents share plus `assembleConversationPrompt`. Prompt bytes are locked by golden SHA-256 hashes captured from the pre-move implementation.  
 **Acceptance:** `tests/p119-agent-isolation.test.mjs`, `tests/p119-agent-prompts-routes.test.mjs`.
 
@@ -440,7 +465,7 @@ Shared, non-agent infrastructure (allowed to stay shared): auth/session, provide
 **Behaviour:** the shared A1/A2 HTTP handler (one handler behind `/api/agent/conversational`, `/api/agent/expert` and the compatibility path `/api/conversation`), the method/boundary/contract text blocks in `promptPacks.ts` (`assembleConversationPrompt`, called from each agent module), the internal keys `Simple` / `Expert` / `Project`, and the legacy IR pipeline (`runAppBuilderPipeline`; since P119.0.4 no longer imported by `server.ts`, reachable only through `engine=legacy` with `ALLOW_LEGACY_APP_BUILDER=true` in `server/projectRoutes.ts`, default off; whether any deployment sets that flag is UNKNOWN) are documented debt locked by `KNOWN_SHARED_PATH` tests. Later slices split or remove them; the same patch must update the matching test. No document may claim separate pipelines for A1/A2 before that.  
 **Acceptance:** `KNOWN_SHARED_PATH` tests; docs-integrity on protected files.
 
-**Workflow inventory (observed in the P119 baseline; inventory is not a product roadmap).** Push/PR workflows include `ci.yml` and `ui-check.yml`. Manual workflows include `p118-architect-live`, `p117-3-live-retest`, `staging-drills`, `evidence`, and `verify-groq`; `monitor-connections` is scheduled. Treat workflow names as implementation evidence, not as the definition of product completion. Any future workflow change must be justified by a missing outcome/evidence gate, not by patch-number history.
+**Workflow inventory (P119.0.2, OBSERVED).** Push/PR: `ci.yml` (DAG profile `ci`, runs `test:core` and `test:app-builder`) and `ui-check.yml` (`npm run test:ui`). Manual (`workflow_dispatch`): `p118-architect-live` (Architect live ZIP evidence; never drives chat routes), `p117-3-live-retest` (Conversational live), `staging-drills`, `evidence`, `verify-groq`; scheduled: `monitor-connections`. No `p119-*` workflow exists; P119.0.5 must reuse `ci.yml` coverage and add only what is not already covered.
 
 ---
 
@@ -464,7 +489,7 @@ Shared, non-agent infrastructure (allowed to stay shared): auth/session, provide
 
 ### 7.1 Program archive delivery (canonical — P118.5)
 
-Architect (A3) program delivery uses **exactly one** success path. Normative detail: `docs/ARCHIVE-DELIVERY-CANON.md`.
+Architect (A3) program delivery uses **exactly one** success path. Normative detail: `docs/DATA_AND_ARTIFACTS.md` and `docs/OPERATIONS_AND_RELEASES.md`.
 
 1. Staged App Builder engine is the only engine that may claim A3 program SUCCESS (P118.5.1 makes this the API default).
 2. Job reaches `outcome=SUCCESS` only if a non-empty ZIP was packed **and** stored as an artifact (`artifactId` set).
@@ -492,7 +517,7 @@ Architect (A3) program delivery uses **exactly one** success path. Normative det
 ## 8. User Interface and Backend Interaction
 
 - React 19 + Tailwind (via Vite plugin).
-- Entry selection exposes exactly three agents; Architect itself has one mode and one workflow under REQ-A3-002.
+- Mode selection (transitional four modes → three agents under P119).
 - Streaming responses, progress banners, file download UI.
 - Offline indicator, autosave, Drive export/sync (optional).
 - Copy linting (`lint:copy`) for product-facing strings.
@@ -557,7 +582,7 @@ Architect (A3) program delivery uses **exactly one** success path. Normative det
 
 ### 10.2 Acceptance per Component
 
-Each REQ above carries its acceptance. Global product acceptance (from AI-USER-VALUE-SPEC):
+Each REQ above carries its acceptance. Global product acceptance (current normative contract at the top of this file; rolling observations in `docs/USER_VALUE_EVALUATION.md`):
 
 - A feature succeeds only when a representative user completes the intended task and receives useful, truthful, accessible output.
 - Green CI and internal component success are necessary but insufficient.
@@ -565,23 +590,17 @@ Each REQ above carries its acceptance. Global product acceptance (from AI-USER-V
 
 **REQ-TEST-001**  
 **Precondition:** Any code change.  
-**Behaviour:** Relevant tests/checks are executed and bound to the exact commit; the evidence states whether responses/artifacts are mocked, source-level, live-provider, or deployed-product results.  
-**Error:** Red CI → no promotion; unrun or mocked checks must not be presented as live outcome evidence.  
-**Acceptance:** Hosted CI green on the commit under evaluation where CI applies, plus the relevant user-outcome evidence below. CI is never the sole product acceptance gate.
-
-**REQ-OUTCOME-001 — User-value acceptance.**  
-**Precondition:** A product capability or agent workflow is claimed complete.  
-**Behaviour:** Evaluate representative tasks using the actual user-visible output and, where relevant, real provider-generated responses and real artifacts. Score task completion, correctness/usefulness, evidence and uncertainty, context continuity, accessibility, recovery, and latency/cost as constraints. Record actual outputs and limitations.  
-**Error:** If evidence covers only mocked APIs, UI wiring, file presence, or internal status, acceptance is `PARTIAL` for product value and must state what remains unverified.  
-**Acceptance:** A reviewer can trace each claimed outcome to a reproducible scenario and its actual output/artifact. A green CI run, successful HTTP call, non-empty response, or test fixture ZIP alone cannot close a user-value requirement.
+**Behaviour:** Relevant test suite(s) executed; evidence recorded for the exact commit.  
+**Error:** Red CI → no promotion.  
+**Acceptance:** Hosted CI green on the commit under evaluation; live run evidence attached when required by exit gate.
 
 ---
 
 ## 11. Versioning and Patch Discipline
 
 - `package.json` is the sole version source.
-- `"version"` = major programme number (currently `120`).
-- `"patch"` = full applied patch identifier (currently advanced by each patch; never hardcode an old patch number in the normative contract).
+- `"version"` = major programme number (118).
+- `"patch"` = full applied patch (118.3.3).
 - Every patch includes `package.json`; version never decreases.
 - `src/config.ts` derives APP_VERSION / APP_PATCH via Vite plugin.
 - `scripts/check-version.mjs` enforces consistency.
@@ -598,9 +617,13 @@ Each REQ above carries its acceptance. Global product acceptance (from AI-USER-V
 
 - Live client (`scripts/p118-architect-live.mjs`) must not send `engine=pipeline`; staged is default (P118.5.4).
 
-- The archive-delivery contract in `docs/ARCHIVE-DELIVERY-CANON.md` remains normative for A3: `SUCCESS` requires a real, non-empty, verified artifact and a user-accessible download. Historical P118 acceptance proves that one staged run succeeded; it does not prove arbitrary user tasks or the current unified workflow are complete.
-- **Open product gap:** the checked UI still offers two Architect submodes. The single-workflow requirement in §6.3 / REQ-A3-002 is not satisfied until the chooser and separate route selection are removed and a real unified scenario is accepted.
-- The P120 acceptance/evidence workflows are supporting verification infrastructure. Their green result is not the final programme outcome; product acceptance requires representative real user outcomes for all three agents.
-- External model fallback remains opt-in and is not a committed user-facing deliverable in this roadmap. Do not start a separate resilience/provider expansion unless a measured user-value gap requires it and the Navigator explicitly authorizes the scope.
+- P118 exit gate: offline archive-delivery PASS (P118.5.2) plus preferred **live staged** run after P118.5.4 (no `LEGACY_DISABLED` from forced pipeline); see `docs/OPERATIONS_AND_RELEASES.md` and `docs/DATA_AND_ARTIFACTS.md`. Marker/spec repair alone is insufficient.
+- P118.5.1–P118.5.5: staged-only default, artifact invariants, UI single download button, E2E, residual decommission
+- P118 exit gate (historical wording): live Architect run produces verified ZIP; hosted CI green; Navigator acceptance.
+- P119: UI migration to exactly three agents; removal of legacy mode paths.
+- P120: Cross-agent E2E.
+- P121: Universal Model Resilience Layer (planning only).
+- Production verification of P92 diagnostics remains frozen.
+- External model fallbacks remain opt-in.
 
 This specification is the single source of truth for re-implementation. Subsequent patches update it in place under the Navigator charter.

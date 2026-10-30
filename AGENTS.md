@@ -1,173 +1,113 @@
-# NAVIGATOR CHARTER — immutable rules; changed only by explicit Navigator instruction
+# AGENTS.md — Repository Governance, Obligation Map, and Session Protocol
 
-Source: owner statements of 2026-10-25 and later clarifications. Precedence: this charter > every other repository document > training-time habits. It binds every model in every session. Sessions have no memory of prior chats; **rules** live here; **current programme state** lives only in the files named under “Single sources of truth” below.
+This file defines mandatory working rules for every AI assistant and contributor. Follow it at the beginning of every session and whenever scope, status, or authority is unclear. Do not invent an alternate hierarchy or change a document’s role for convenience.
 
-## Product (one sentence)
+## 1. Product principle
 
-**BiForge** is an AI-native engineering application: humans use it to converse, solve expert problems, and obtain downloadable software artifacts (program ZIPs) produced by bounded agent workflows — not to read this repository.
+BiForge succeeds when a real user completes a meaningful task and receives a correct, useful, understandable result. Tests, CI, architecture, documentation, and evidence are controls that support product value; none is a substitute for it. A green test suite does not prove that the deployed product works or that its output is useful.
 
-## Definitions
+## 2. Single-source-of-truth map
 
-* **Navigator** — the owner. Works from an Android tablet via chat, GitHub web UI, and the hosted app (e.g. Render). Has **no terminal** and does not run npm/git commands by hand.
-* **Assistant** — any AI model working in this repository (implementation, tests, patches, evidence).
-* **Atavism** — a practice whose only purpose is human reading of the repo, human memory of code, or a human social review process.
-* **Product** — the running BiForge application. Its end users are humans. **Repository ≠ product.**
+| Topic | Sole authority | Boundaries |
+|---|---|---|
+| Assistant rules, session-start protocol, obligation map, change permissions | `AGENTS.md` | Does not replace product requirements or claim implementation status. |
+| Normative product outcomes, agent behavior, technical requirements, acceptance criteria | `TECHNICAL_SPECIFICATION.md` | Changes to mandatory user outcomes or normative contracts require explicit owner approval. |
+| Ordered programme plan, dependencies, completed and future phases | `ROADMAP.md` | Preserve completed phases and history. Each new session re-evaluates what to do next; the roadmap is not an instruction to blindly execute a stale next task. |
+| Factual implementation state, known gaps, verification results and provenance | `TECHNICAL_REPORT.md` | Report only what evidence supports; append new records at the top. |
+| Patch history | `CHANGELOG.md` | Add new entries at the top; do not rewrite prior entries. |
+| Architecture | `docs/ARCHITECTURE.md` | Supporting detail; must agree with the normative spec and source. |
+| API behavior | `docs/API_CONTRACTS.md` | Supporting detail; verify against actual routes and tests. |
+| Test strategy and acceptance evidence | `docs/TESTING_AND_ACCEPTANCE.md` | Tests are evidence, not the product outcome itself. |
+| Observed user-value evidence | `docs/USER_VALUE_EVALUATION.md` | Preserve historical records; distinguish OBSERVED, INFERRED, and NOT_RUN. |
+| Security and privacy | `docs/SECURITY_AND_PRIVACY.md` | Binding safety/security constraints. |
+| Operations and releases | `docs/OPERATIONS_AND_RELEASES.md` | Live/destructive actions require authorization. |
+| Data, schemas, artifacts | `docs/DATA_AND_ARTIFACTS.md` | Respect schemas, generators, and delivery contract. |
+| Current cross-cutting decisions | `docs/DECISIONS.md` | Supersede decisions explicitly; do not silently erase history. |
+| Long-horizon strategy | `docs/VIX-CONCEPT.md` | Context only; not implementation authorization. |
+| Version and patch identity | `package.json` (`version`, `patch`) | No duplicate version authority. |
 
-### What the Navigator does and does not do
+If sources conflict, the authority in this table wins. Historical statements in roadmap, report, changelog, and evaluation records describe the state or plan at the time; they are not current instructions if superseded by the current normative sections above them.
 
-* **Normal path:** the Navigator reads the **chat** only. The Assistant delivers a patch ZIP; the Navigator **copies complete files** from that ZIP into the repository (and deletes paths the Assistant listed in chat, if any). The Navigator does not merge snippets, edit by hand, or interpret “how to apply” side documents.
-* **Critical control only:** if the Navigator suspects the programme is off-track or stuck, they may **read** the three protected root documents — `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md`, `TECHNICAL_REPORT.md` — solely to judge direction and truthfulness. They do **not** use those files to perform repository work or to replace chat decisions.
-* **Never required of the Navigator:** reading code, diffs, logs, `NEXT_PATCH.md`, task files, or CI transcripts. Do not ask them to.
-* **`NEXT_PATCH.md` is for Assistants only.** It is session handoff between models. The Navigator is not an audience for that file.
+`PATCH_EVIDENCE.md` / `BIForge-PATCH-EVIDENCE.md` are generated CI diagnostic reports for a particular run only. They are not planning documents, not persistent session handoffs, and not sources of product requirements. The repository must not contain a root `NEXT_PATCH.md` or any equivalent pre-written assignment for the next session.
 
-## Single sources of truth (never duplicate)
+## 3. Obligation map — outcomes that must never be silently lost
 
-| Kind of truth | Only authoritative file(s) | Must not also live in |
-|---------------|----------------------------|------------------------|
-| Immutable process rules | **This charter (`AGENTS.md`)** | Status paragraphs that go stale |
-| Current phase / next action | `docs/AI-NATIVE-RENOVATION-TASK.md` and **top** entry of `NEXT_PATCH.md` | `AGENTS.md`, random reports |
-| Patch history | `CHANGELOG.md` (newest entry at top) | Side “entry” files |
-| Engineering specification | `TECHNICAL_SPECIFICATION.md` | Parallel SPEC-* copies |
-| Implementation sequence | `ROADMAP.md` | Parallel roadmap copies |
-| Historical evidence reconstruction | `TECHNICAL_REPORT.md` | Parallel REPORT-* copies |
-| Rolling user-outcome evidence | `docs/AI-USER-VALUE-REPORT.md` | — |
-| User-outcome / agent contract | `docs/AI-USER-VALUE-SPEC.md` | — |
-| Version identity of a build | `package.json` fields `version` and `patch` only | Hardcoded second sources |
+This is the top-level obligation map. Detailed, testable normative requirements and their stable `REQ-*` identifiers live in `TECHNICAL_SPECIFICATION.md`; this map does not duplicate their detailed acceptance criteria.
 
-If two files disagree on phase or next step, **task + top of NEXT_PATCH win**; fix the other file. If two files disagree on rules, **this charter wins**.
+| Obligation ID | Mandatory obligation | Canonical detail | Evidence needed before claiming completion |
+|---|---|---|---|
+| `BIO-001` | Exactly three user-facing agents: Conversational, Expert, Architect. | `TECHNICAL_SPECIFICATION.md` §§6.1–6.4; `REQ-AGENT-001` | Actual user-facing entry points and representative scenarios. |
+| `BIO-002` | Conversational answers the user’s real question, preserves relevant context, and uses current information when required. | `TECHNICAL_SPECIFICATION.md` §6.1 | Realistic conversation scenarios; current-information claims checked when applicable. |
+| `BIO-003` | Expert investigates complex questions, compares alternatives against constraints, explains trade-offs, and provides a justified decision or actionable plan. | `TECHNICAL_SPECIFICATION.md` §6.2 | Multi-turn realistic problem-solving scenario and evaluation of its final answer. |
+| `BIO-004` | Architect is one agent, one state machine, one user flow, and one completion contract; no novice/professional mode choice or switch. | Current normative contract; `TECHNICAL_SPECIFICATION.md` §§6.3–6.4; `REQ-AGENT-002`; `docs/DECISIONS.md` | UI/state/API inspection plus an end-to-end user scenario; stubs alone are insufficient. |
+| `BIO-005` | Architect produces a useful, validated downloadable artifact when successful and truthful SUCCESS/PARTIAL/FAILED outcomes otherwise. | `TECHNICAL_SPECIFICATION.md` §§7.1, 10.2; `REQ-GEN-001`, `REQ-GEN-002`, `REQ-UI-001`; `docs/DATA_AND_ARTIFACTS.md` | Inspect the real artifact, validators, download path, status semantics, and failure/recovery behavior. |
+| `BIO-006` | User outcomes are the primary acceptance target; code presence, unit tests, CI, deployment health, and user value are reported separately. | Current normative acceptance hierarchy; `REQ-TEST-001`; `docs/TESTING_AND_ACCEPTANCE.md` | Evidence tied to the exact commit/build and clearly labeled by evidence type. |
+| `BIO-007` | Every mandatory requirement remains traceable through plan, implementation status, acceptance criteria, and evidence; no requirement is silently dropped. | Normative requirements in `TECHNICAL_SPECIFICATION.md`; stages/dependencies in `ROADMAP.md` | Session audit finds no unexplained orphan requirement, stage, or missing acceptance/evidence link. |
+| `BIO-008` | Completed stages and historical evidence are preserved; new status is added without rewriting the past. | `ROADMAP.md`, `TECHNICAL_REPORT.md`, `CHANGELOG.md`, `docs/USER_VALUE_EVALUATION.md` | Diff confirms old historical records remain; new records are additive. |
+| `BIO-009` | Every session independently reconstructs project state and chooses its own justified task; no prior assistant can bind the next session to an unverified plan. | This protocol in `AGENTS.md`; priorities and dependencies in `ROADMAP.md` | Session task is explicitly derived from current findings and current obligation gaps. |
 
-## Laws
+If a session discovers an obligation that is absent from the normative specification, do not silently add or discard it. Determine whether it is already implied by an approved requirement; otherwise present the proposed change to the owner for approval. Once approved, add it to the normative spec with a stable identifier and connect it to the roadmap and acceptance evidence.
 
-* **C1** Repository artifacts are for AI assistants to execute, maintain, and verify the programme. They are not documentation deliverables for external readers. Product quality is judged by end-user outcomes, not by repository readability.
-* **C2** Only four things bind: security, product function, evidence integrity, and the strategic goal in `docs/VIX-CONCEPT.md`. Everything else is a means.
-* **C3** No human reviews code. Correctness is established only by tests, checks, and evidence. “Someone will read it” is never a control.
-* **C4** A change is allowed only if a fresh session can still find, edit by diff, and verify the affected behaviour at least as cheaply as before. Cost = files and bytes an Assistant must read.
-* **C5** Never ask the Navigator to read, review, or understand code, diffs, file layout, or logs. Give consequences, evidence, and a yes/no question, in the Navigator’s language (currently **Russian**). Repository files are **English**.
-* **C6** Mainstream languages (TypeScript, JavaScript, SQL, JSON, Markdown), line-oriented unminified source, and diff patches stay because verification depends on them — not for human readability. No rewrites for style; rewrite only for a measured C4 gain and only when authorized.
-* **C7** Do not create repository documents whose intended audience is an external human reader (guides, tutorials, user manuals, essays). AI-facing normative specifications, contracts, roadmaps, acceptance criteria, and minimum session context are allowed when they direct implementation or verification.
+## 4. Mandatory protocol for the beginning of every session
 
-### Protected engineering documents (D1–D4)
+**Do not start by executing an assignment left by the previous assistant. Start by understanding the current repository and then formulate a task for this session.** A prior task description or summary is a clue, not an authority.
 
-* **D1** `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md`, and `TECHNICAL_REPORT.md` at the repository root are **protected**. They are the engineering backbone for Assistants (and for rare Navigator control reads).
-* **D2** **Never reduce** their semantic content or structural completeness to save context, to “simplify,” or to satisfy C4. C4 constrains *new* sprawl and *unnecessary* reads — it does **not** authorize shrinking these three files.
-* **D3** Change them only to fix **clear factual or logical errors**, to add required new normative content, or when the Navigator explicitly orders an edit. No silent compression, no “summary replacement” of a full section.
-* **D4** Do not create parallel `*SPEC*`, `*REPORT*`, or competing root roadmaps. One file per purpose; update in place.
+### Phase A — Establish the actual working state
 
-## Patch delivery format — NON-NEGOTIABLE
+1. Read this file completely.
+2. Read the current normative contract at the top of `TECHNICAL_SPECIFICATION.md`.
+3. Read the current control section at the top of `ROADMAP.md`, then inspect relevant completed and active phases without deleting history.
+4. Read the current evidence note at the top of `TECHNICAL_REPORT.md`, the latest `CHANGELOG.md` entry, and relevant sections of `docs/USER_VALUE_EVALUATION.md`.
+5. Read relevant specialist documents, schemas, tests, workflows, and implementation code. Use repository search to find active references to any document or contract being changed.
+6. Inspect actual repository state (`git status`, current commit/log where available, changed files, dependency/install state). If Git metadata, remote state, hosted CI results, deployment access, or previous evidence is unavailable, state that limitation; do not infer it.
 
-The Navigator applies patches by **copying complete files** from the handoff ZIP into the repository. The Assistant must not create merge work.
+### Phase B — Reconstruct obligations and evidence
 
-### Allowed in the patch ZIP
+7. Identify the mandatory requirements relevant to the area of work and keep their stable IDs. For each, distinguish: `IMPLEMENTED`, `PARTIAL`, `OPEN`, `BLOCKED`, or `NOT_VERIFIED`.
+8. Trace each relevant requirement to its roadmap stage/dependencies, implementation, tests, and required real-user evidence. Look for orphaned obligations, plan items with no user outcome, untested acceptance criteria, and claims that rely only on mocks or green CI.
+9. Re-check important claims from prior sessions against available source and evidence. Reuse verified evidence; do not accept a previous assistant’s conclusion merely because it is documented. Do not repeat expensive or live checks without need or authorization.
+10. Preserve uncertainty explicitly. A missing result is `NOT_RUN`/`NOT_VERIFIED`, never PASS. Separate local checks, hosted CI, deployed/live behavior, and user-outcome evidence.
 
-1. **Complete files only**, paths relative to the repository root (e.g. `CHANGELOG.md`, `server/foo.ts`, `tests/bar.test.mjs`).
-2. Each file is **overwrite-ready**: after copy, no manual merge, no “paste into section X”.
-3. **`package.json` always** when the patch changes code, tests, scripts, or `version` / `patch`.
-4. **`CHANGELOG.md` always as the full file** when the patch changes code, tests, behaviour, or version metadata: **new entry strictly at the top**, all previous entries unchanged below. **Never** ship `CHANGELOG_ENTRY.md` or any fragment.
-5. **`NEXT_PATCH.md` always as the full file** when the handoff changes: **new current handoff strictly at the top**; every previous handoff block moves down **verbatim** (no rewriting history). Prefer a visible separator (e.g. `# History (previous NEXT_PATCH entries — do not edit)`). **Never** replace the file with only the new step.
-6. **`AGENTS.md` full file** only when this charter itself changes (as ordered by the Navigator).
+### Phase C — Choose and define this session’s task
 
-### Forbidden in the patch ZIP
+11. Decide the most important next work from the actual findings, mandatory obligations, dependencies, user impact, risk, and cost of delay. `ROADMAP.md` informs this decision but is not a substitute for re-evaluation. Do not select work merely because it is easy, test-focused, or mentioned by the previous assistant.
+12. Prefer work that closes a concrete user-outcome gap or unblocks such work. If prerequisite engineering is necessary, state which approved user requirement it enables and how completion will be demonstrated.
+13. Before editing, formulate a session task for the current work (it may be a temporary plan in the response or working notes; do not create or commit a permanent next-session assignment). It must state:
+    - observed problem and evidence/provenance;
+    - linked obligation and requirement IDs;
+    - expected observable user outcome;
+    - scope and explicit non-goals;
+    - dependencies and risks;
+    - acceptance criteria and realistic evaluation scenario;
+    - technical checks and separate live/user-value evidence required;
+    - what will remain incomplete if this task succeeds.
+14. If the best task requires changing product goals, mandatory requirements, security posture, public data behavior, production state, or another owner-controlled decision, stop and ask for explicit approval before making that change. You may propose the change but must not smuggle it in as implementation detail.
 
-* `APPLY.md`, `README-for-patch.md`, `*_ENTRY.md`, `*_AMENDMENT.md`, “merge instructions”, or any sidecar that exists so the Navigator must edit by hand.
-* A partial `CHANGELOG` or partial `NEXT_PATCH`.
-* A second copy of rules or phase status that duplicates this charter or the task file.
+### Phase D — Implement, verify, and leave the repository ready for a fresh analysis
 
-### Deletions
+15. Implement only the approved/current-session scope. If new evidence materially changes priorities, pause, explain the change, and re-scope rather than silently drifting.
+16. Run relevant checks that are actually available. Record exact commands and results. Do not claim tests, browser checks, live generation, deployment, or hosted CI that were not run.
+17. Evaluate the user-visible result against the accepted criteria. When live evaluation is unavailable, mark it NOT_RUN and do not promote technical success into user-value success.
+18. Update `ROADMAP.md` with additive status changes while retaining completed phases and their original history. Add a factual record at the top of `TECHNICAL_REPORT.md`, a patch entry at the top of `CHANGELOG.md`, and user-outcome evidence only when such evidence was actually collected.
+19. Update specifications or decisions only when a requirement/decision is approved to change. Do not rewrite normative meaning to make the implementation or current tests look compliant. Keep one active authority per topic and repair active references/tests/scripts when documents are retired.
+20. Do **not** choose or prescribe the next session’s task. Leave a truthful status of completed work, checks, unresolved obligations, blockers, and evidence gaps. The next session must repeat this protocol and independently select its task.
 
-* List paths to delete **only in the chat message** to the Navigator (clear bullet list).
-* Do **not** put a delete-list file in the ZIP unless the Navigator explicitly asked for that format.
-* Do not use empty placeholder files to mean “delete me”.
+## 5. Change control and history
 
-### Assistant checklist (before attaching the ZIP)
+- No assistant may silently change the purpose or authority of a canonical document. Proposed changes to this governance protocol or normative product contract require explicit owner approval.
+- Do not create a replacement “next step”, “next patch”, or handoff document to be followed blindly by the next session. A concise factual report of current state is appropriate; a directive about what the next session must do is not.
+- Preserve completed roadmap stages and prior evidence. Add current status at the top or in the relevant current section; do not delete completed stages or rewrite historical records for tidiness.
+- When a document is retired, transfer its still-current rules and requirements to their canonical owners, repair active code/test/workflow references, and then remove the obsolete document. Historical mentions can remain if clearly historical and not treated as instructions.
+- Make the smallest change that closes an identified user-value gap or improves correctness, safety, or evidence integrity. If the repository state is insufficient to choose responsibly, explain the uncertainty and ask for the missing input.
 
-* [ ] Every path is complete and overwrite-safe at repo root layout.
-* [ ] `CHANGELOG.md` full; newest entry on top; history intact.
-* [ ] `NEXT_PATCH.md` full; new step on top; older steps unchanged below.
-* [ ] No APPLY / ENTRY / AMENDMENT sidecars.
-* [ ] Deletions listed in chat, if any.
-* [ ] `package.json` present when patch/version/scripts changed.
-* [ ] Chat summary in Russian for the Navigator: what changed, how to verify in product/CI, yes/no if needed — **not** a copy-paste of this charter.
+## 6. Security, authorization, and evidence integrity
 
-## Documentation map (Assistants)
+- Never commit credentials, tokens, cookies, private keys, or secret environment values.
+- Keep authentication enabled unless the owner explicitly authorizes a security change. A public URL is not private even if intended for one user.
+- Production deployment, repository writes, billing actions, destructive data operations, and execution of generated code require explicit owner authorization.
+- Do not disable safety gates or weaken acceptance checks merely to turn CI green.
+- Mocked/stubbed tests prove only the mocked contract. Source inspection proves only source structure. Hosted CI proves only the checks actually run on its commit. A real user outcome requires appropriate user-level evidence.
 
-**Read for rules:** this file.
+## 7. Patch delivery and reporting
 
-**Read for current work:** `docs/AI-NATIVE-RENOVATION-TASK.md`, top of `NEXT_PATCH.md`, `docs/DOCUMENTATION-INDEX.md` if unsure where a topic lives.
-
-**Protected backbone:** `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md`, `TECHNICAL_REPORT.md`.
-
-**Contracts and evidence:** `docs/AI-USER-VALUE-SPEC.md`, `docs/AI-USER-VALUE-REPORT.md`, `docs/AI-OPERATING-RULES.md` (includes status vocabulary), `docs/AI-NATIVE-RENOVATION-ROADMAP.md`.
-
-**Architecture / typing:** `docs/architecture-guardrails.md` (includes TypeScript and naming conventions).
-
-**Ops (Assistants / deploy automation, not Navigator):** `docs/OPERATIONS.md`, `docs/AI-ENVIRONMENT-CONTEXT.md`.
-
-**Machine-only (do not hand-edit):** `docs/verification-manifest.json`, `docs/schema-*.json`, `docs/generated-*.json`, `docs/architecture-boundary-rules.json`, `docs/architecture-known-violations.json`.
-
-**Strategic (not implementation authorization):** `docs/VIX-CONCEPT.md`.
-
-**Archive delivery (A3 program ZIP):** `docs/ARCHIVE-DELIVERY-CANON.md` when working on build/download paths.
-
-Do not resurrect removed prose files (`docs/typing-and-naming.md`, `docs/SCHEMA-STATUS-VOCABULARY.md`) — their content was merged into `architecture-guardrails.md` and `AI-OPERATING-RULES.md`.
-
-## Delegation tiers
-
-* **Tier 0:** Act (routine work inside authorized scope).
-* **Tier 1:** Decide and disclose (local design that does not change the product contract).
-* **Tier 2:** Prepare a decision for the Navigator (product scope, security gates, external integrations).
-* **Tier 3:** Never decide alone — production deploy authorization, GitHub write policy changes, billing, secrets handling policy, formal acceptance.
-
-Silence from the Navigator is not approval for Tier 2/3.
-
-## Evidence and honesty
-
-* Report **PASS / FAIL / BLOCKED / TIMEOUT / PARTIAL / NOT_RUN / UNKNOWN** honestly. Never treat NOT_RUN or UNKNOWN as PASS.
-* Distinguish: code exists ≠ tests passed ≠ CI green ≠ verified in the live product.
-* Do not claim a feature works only because build or deploy succeeded.
-
-## Version and patch numbering
-
-1. **`package.json` is the only version source.** Fields: `version` (program major line as string, e.g. `"118"`) and `patch` (full patch id, e.g. `"118.5.2"`).
-2. **`version` equals the first number of `patch`.** Example: patch `118.5.2` → version `118`.
-3. Every patch that changes the repo updates `patch` (and `version` when the major line changes) inside the delivered `package.json`.
-4. `scripts/check-version.mjs` validates only `package.json`. Do not add a second version source.
-5. Deployed builds are identified by `patch` plus commit from `/health`, not by `version` alone.
-
-## Commands (Assistants only — Navigator has no terminal)
-
-Use these in the Assistant environment or CI — **never** instruct the Navigator to run them.
-
-| Intent | Command |
-|--------|---------|
-| Install | `npm ci` |
-| Full local verification gate | `npm run check` (DAG profile `check`) |
-| Typecheck | `npm run typecheck` |
-| Version gate | `node scripts/check-version.mjs` |
-| App Builder / archive tests | `npm run test:app-builder` or `npm run test:archive-delivery` |
-| Gates unit tests | `npm run test:gates` |
-| Docs integrity (if present) | `node scripts/docs-integrity.mjs` |
-| Architecture | `npm run architecture:check` |
-| Health (deployed) | `GET /health` |
-
-Before handoff of a **code** patch: run the smallest set that proves the change (targeted tests + `npm run check` when feasible). Record outcomes in chat honestly (PASS/FAIL/NOT_RUN).
-
-**Docs-only** charter/changelog/task patches: no full DAG required; still deliver complete files and truthful “not run” for product tests.
-
-## Critical standing rules
-
-* Preserve product behaviour unless the change is in scope and covered by evidence.
-* Never commit secrets. Never put secrets in generated ZIPs or chat.
-* Production deployment, GitHub write access, billing, and host execution of generated code require explicit Navigator authorization (Tier 3).
-* Prefer a flat tree under `docs/` and `scripts/`. No new directory levels without Navigator approval.
-* Standing directive: if work drifts into internal restructuring without a concrete user-outcome benefit, **stop and ask the Navigator**.
-
-## Memory model (sessions)
-
-* **Rules:** `AGENTS.md` (this file).
-* **What to do now:** `docs/AI-NATIVE-RENOVATION-TASK.md` + **top** of `NEXT_PATCH.md`.
-* **What was done:** `CHANGELOG.md` (top first).
-* **Whether users got outcomes:** `docs/AI-USER-VALUE-REPORT.md`.
-* **How the system must behave:** `TECHNICAL_SPECIFICATION.md` + `docs/AI-USER-VALUE-SPEC.md`.
-
-Do not paste phase status into this charter. Do not paste charter rules into `NEXT_PATCH.md` beyond the minimum needed for the next step.
-
+When a patch is requested, deliver complete replacement files in a ZIP and list deleted paths in the chat. State exactly which checks ran and their outcomes. For documentation-only changes, run documentation integrity checks and relevant focused tests. Mark product tests, browser tests, live runs, and hosted CI as `NOT_RUN` when not performed. Never infer remote repository state from a reconstructed local archive.
