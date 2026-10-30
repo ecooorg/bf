@@ -199,7 +199,8 @@ test('workflow inventory includes the accepted P119 workflows and no unexpected 
   assert.deepEqual(names, [
     'ci.yml', 'evidence.yml', 'monitor-connections.yml', 'p117-3-live-retest.yml',
     'p118-architect-live.yml', 'p119-agent-contracts.yml', 'p119-regression.yml',
-    'p119-release-gate.yml', 'p119-ui-smoke.yml', 'staging-drills.yml',
+    'p119-release-gate.yml', 'p119-ui-smoke.yml', 'p120-acceptance.yml',
+    'p120-evidence.yml', 'staging-drills.yml',
     'ui-check.yml', 'verify-groq.yml',
   ]);
 });
