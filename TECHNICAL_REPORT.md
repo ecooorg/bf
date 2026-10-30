@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P121.0.19 single-file Quick Diagnostics, 2026-10-30
+
+- Quick Diagnostics now produces exactly one downloadable file: `ERROR_SUMMARY.txt`, with bounded sections for dependency installation, typecheck, Architectural Test Lab contract, browser/UI, and overall status.
+- Raw command output stays in the ephemeral Actions runner temp directory and is not uploaded. No separate CI/UI summary or per-check log files are included in the artifact. The Lab browser smoke test captures page errors, console errors, and failed requests and fails with those details so they are included in the same report.
+- Dependency or Chromium installation failures are captured; dependent checks are marked BLOCKED. Report generation and artifact upload use `always()` so failures still produce the single report.
+- Local checks: workflow contract tests 2/2 PASS; Node syntax checks PASS; YAML parse PASS; version metadata check PASS; synthetic dependency-failure run produced one report with dependent checks marked BLOCKED. Full typecheck/Core/browser execution BLOCKED because this reconstructed workspace has no installed TypeScript/tsx/Playwright binaries. Hosted Actions execution, artifact contents/size, and Android live UI: NOT_RUN.
+
 # CURRENT EVIDENCE NOTE — P121.0.18 focused CI/UI diagnostic fixes, 2026-10-30
 
 - Addressed the P121.0.17 evidence: TypeScript's invalid `HTMLElement`/`window` comparison is replaced by an `Element` runtime narrowing; the Architectural Test Lab browser test starts its server through `process.execPath --import tsx`; Core's exact workflow inventory now explicitly permits `quick-diagnostics.yml`.

@@ -1,3 +1,11 @@
+## P121.0.19 — Consolidate Quick Diagnostics into one error report
+
+- Replaced separate CI/UI summaries and uploaded per-check logs with one `ERROR_SUMMARY.txt`, containing bounded sections for dependency installation, typecheck, Architectural Test Lab contract, browser/UI, and overall status.
+- Detailed command output remains only in the ephemeral Actions runner directory; the downloadable artifact contains exactly one compact text file.
+- Dependency and Chromium installation failures are recorded; dependent checks are marked BLOCKED, and report generation/upload run after failures.
+- Added a focused workflow contract test for the single-file artifact and required report sections; the Lab browser smoke test now captures page errors, console errors, and failed requests so UI failures enter the same report.
+- Legacy Architect runtime and generation behavior unchanged. Hosted workflow execution and actual artifact size/duration: NOT_RUN.
+
 ## P121.0.18 — Fix focused CI and Architectural Test Lab browser diagnostics
 
 - Kept emergency resource-error handling type-safe by narrowing `event.target` to `Element` and reading only supported image, script, and link resource URLs; this removes the invalid `HTMLElement` versus `window` comparison reported by TypeScript.
