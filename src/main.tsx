@@ -7,11 +7,13 @@ import { installEmergencyDiagnostics } from './emergencyDiagnostics.ts';
 
 installEmergencyDiagnostics();
 
+const isArchitectLab = window.location.pathname === '/architect-lab' || window.location.pathname.startsWith('/architect-lab/');
 const isProject =
   window.location.pathname === '/project' || window.location.pathname.startsWith('/project/');
 
 /** Project Mode is a separate chunk — Simple Mode (/) must not wait for it to parse. */
 const ProjectMode = lazy(() => import('./ProjectMode.tsx'));
+const ArchitectLab = lazy(() => import('./ArchitectLab.tsx'));
 
 function ProjectRoot() {
   return (
@@ -30,10 +32,14 @@ function ProjectRoot() {
   );
 }
 
-const Root = isProject ? ProjectRoot : App;
+function ArchitectLabRoot() {
+  return <Suspense fallback={<div className="architect-lab">Loading Architectural Test Lab…</div>}><ArchitectLab /></Suspense>;
+}
+
+const Root = isArchitectLab ? ArchitectLabRoot : isProject ? ProjectRoot : App;
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ErrorBoundary label={isProject ? 'Project Mode' : 'BiForge'}><Root /></ErrorBoundary>
+    <ErrorBoundary label={isArchitectLab ? 'Architectural Test Lab' : isProject ? 'Project Mode' : 'BiForge'}><Root /></ErrorBoundary>
   </React.StrictMode>
 );
