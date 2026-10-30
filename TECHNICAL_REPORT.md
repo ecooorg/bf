@@ -1,3 +1,12 @@
+# CURRENT EVIDENCE NOTE — P121.0.23 CI regression repair, 2026-10-30
+
+- Owner-provided CI evidence for commit `896046f2552458bde0da3d693c02290cf831adb1` showed `test:core` failing because the approved `neon-initialize.yml` workflow was absent from the exact workflow inventory allowlist; `test:project` failing because its test expected a stale note string; and the Lab browser test failing at server startup because legacy Project Mode was enabled without `DATABASE_URL`. The workflow DAG failure was downstream of these failed stages.
+- Changes: added `neon-initialize.yml` to the exact workflow inventory; aligned the staged-build test with the actual `stagedArchitectNote` success message; explicitly disabled `ENABLE_PROJECT_MODE` and blanked inherited `DATABASE_URL` in the mocked Lab browser server environment. Added/updated static regression assertions. No product runtime or Neon schema behavior changed.
+- Affected UI test flow: `/architect-lab` fixture boot → build form → mocked completion surface (`data-testid=architect-lab-completion`) → mocked ZIP download (`data-testid=architect-lab-download`). The fixture uses mocked project/session/build APIs and is not intended to test live Neon.
+- Local syntax/static contract checks: pending. Dependency-backed Core/Project/browser tests, hosted CI, and deployed Android UI: NOT_RUN.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.22 guarded Neon initialization, 2026-10-30
 
 ## User evidence

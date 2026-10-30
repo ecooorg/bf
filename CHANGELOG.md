@@ -1,3 +1,10 @@
+## P121.0.23 — Restore CI and Lab browser checks
+
+- Added the approved `neon-initialize.yml` workflow to the exact Core workflow inventory, resolving the evidenced `test:core` deep-equality failure.
+- Updated the staged-build regression expectation to the actual user-facing terminal note produced by `stagedArchitectNote`, resolving the evidenced `test:project` assertion mismatch without changing product behavior.
+- Hardened the Architectural Test Lab browser fixture by explicitly disabling legacy Project Mode and clearing inherited `DATABASE_URL`; strengthened its contract test. The browser fixture continues to mock its project/session/build APIs and does not connect to Neon.
+- The supplied CI evidence is from commit `896046f2552458bde0da3d693c02290cf831adb1`. Local dependency-backed Core, Project, and browser runs plus hosted Actions after this patch: NOT_RUN.
+
 ## P121.0.22 — Guarded Neon schema initialization
 
 - Added a manual GitHub Actions workflow to run the repository's existing 19 SQL migrations against `DATABASE_URL`, after explicit backup-branch and production-target confirmations.
