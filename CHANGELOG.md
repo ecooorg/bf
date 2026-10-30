@@ -1,3 +1,10 @@
+## P121.0.24 — Align Lab download assertion and harden diagnostics contract
+
+- Corrected the Architectural Test Lab browser test to expect the filename the UI actually assigns to downloaded Blob results: `architectural-lab-result.zip`.
+- Made the Quick Diagnostics workflow contract verify the `npm ci`/Playwright commands, their dedicated log paths, and `tee` streaming independently, avoiding a brittle single-line command-shape assertion.
+- No product runtime, API, database, or Neon migration behavior changed. Owner evidence for commit `85583fc938ad507dffbe7544a886133fa7de8bc9` showed CI green, the workflow contract test failing on its text matcher, and the browser test failing only at the expected download filename assertion.
+- Local checks and hosted Actions after this patch: NOT_RUN until the patch is applied and the workflow is rerun.
+
 ## P121.0.23 — Restore CI and Lab browser checks
 
 - Added the approved `neon-initialize.yml` workflow to the exact Core workflow inventory, resolving the evidenced `test:core` deep-equality failure.

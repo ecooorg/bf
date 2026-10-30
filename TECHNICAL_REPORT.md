@@ -1,3 +1,13 @@
+# CURRENT EVIDENCE NOTE — P121.0.24 Lab UI and Quick Diagnostics test repair, 2026-10-30
+
+- Owner-provided run for commit `85583fc938ad507dffbe7544a886133fa7de8bc9` reports CI green, while Quick Diagnostics workflow contract and Architectural Test Lab browser/UI checks fail. The browser assertion expected `architectural-lab.zip`; `src/ArchitectLab.tsx` creates the download anchor with the explicit filename `architectural-lab-result.zip`. This is a test expectation mismatch, not evidence of a runtime download failure.
+- The workflow contract test used one brittle regex to match the entire `npm ci ... | tee ...` line. It is replaced by separate assertions for the install command, log path, and tee streaming for both dependency and browser installation.
+- Scope is limited to two tests plus patch metadata and this report/changelog. No product UI/runtime, API, database, Neon schema, or existing migrations changed.
+- Affected UI path: `/architect-lab` form → mocked successful completion → download button → browser download event. The assertion now checks the filename assigned by the actual UI code. End-to-end browser execution after this patch: NOT_RUN; hosted Actions and Android deployed UI: NOT_RUN.
+- Local static/contract checks: pending.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.23 CI regression repair, 2026-10-30
 
 - Owner-provided CI evidence for commit `896046f2552458bde0da3d693c02290cf831adb1` showed `test:core` failing because the approved `neon-initialize.yml` workflow was absent from the exact workflow inventory allowlist; `test:project` failing because its test expected a stale note string; and the Lab browser test failing at server startup because legacy Project Mode was enabled without `DATABASE_URL`. The workflow DAG failure was downstream of these failed stages.
