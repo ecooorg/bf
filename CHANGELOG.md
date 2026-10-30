@@ -1,3 +1,11 @@
+## P121.0.14 — Critical-screen emergency recovery
+
+- Install global browser error and unhandled-rejection capture before React mounts.
+- Wrap the application root in an ErrorBoundary; record React component stack and render a visible recovery screen with a downloadable plain-text emergency log.
+- On uncaught window/resource errors or unhandled promise rejections, replace the app root with a DOM-only emergency screen so a React render failure cannot leave a blank interface.
+- Persist a bounded, redacted-by-design event list in localStorage; report URL path, browser, viewport, timestamps, messages, source locations, and component stacks. No request bodies, prompts, source files, cookies, or credentials are collected.
+- Checks: source-level regression test added; typecheck, production build, hosted CI, and Android runtime: NOT_RUN in this workspace.
+
 ## P121.0.13 — Browser black-screen evidence capture
 
 - Added bounded client-side error/rejection, visibility, mount, DOM-root geometry and post-mount snapshots; events are sent to the authenticated diagnostics endpoint without page content, prompts, request bodies or credentials.

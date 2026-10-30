@@ -1,3 +1,18 @@
+# CURRENT EVIDENCE NOTE — P121.0.14 emergency screen capture, 2026-10-30
+
+## Change
+
+Global `error` / `unhandledrejection` capture is installed before React mount. The application root is protected by an ErrorBoundary that records React component stacks. Both paths provide a visible emergency screen and download of `biforge-emergency.log`; events are retained in a bounded localStorage ring for reload recovery. Resource-load errors are recorded with element/source metadata.
+
+## Evidence and limits
+
+- Source-level implementation and regression assertions added.
+- Typecheck: NOT_RUN. Production build: NOT_RUN. Hosted CI: NOT_RUN. Android/browser runtime: NOT_RUN.
+- This captures uncaught browser errors, unhandled rejections, resource errors, and React render errors. It cannot guarantee recovery from browser process termination, device power loss, out-of-memory kill, or errors occurring before the bootstrap module executes.
+- User outcome: NOT_VERIFIED until tested on the deployed BiForge build with a reproduced failure.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.12 compact paste-ready session log, 2026-10-30
 
 ## P121.0.13 — Browser black-screen diagnostics (2026-10-30)
