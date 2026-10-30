@@ -70,7 +70,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
 
-      - name: Generate NEXT_PATCH.md
+      - name: Generate CI patch evidence report
         if: always()
         shell: bash
         run: node scripts/patch-quality-report.mjs
@@ -95,22 +95,22 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_RUN_ID: ${{ github.run_id }}
 
-      - name: ASSISTANT HANDOFF — GitHub Actions summary
+      - name: CI PATCH EVIDENCE — GitHub Actions summary
         if: always()
         run: node scripts/ci-summary.mjs
         env:
           CI_STATUS: ${{ job.status }}
 
-      - name: Print final assistant handoff
+      - name: Print final CI patch evidence report
         if: always()
         shell: bash
         run: |
-          if [ -f artifacts/ci-checks/BIForge-NEXT-PATCH.md ]; then
-            cat artifacts/ci-checks/BIForge-NEXT-PATCH.md
-          elif [ -f artifacts/ci-checks/NEXT_PATCH.md ]; then
-            cat artifacts/ci-checks/NEXT_PATCH.md
+          if [ -f artifacts/ci-checks/BIForge-PATCH-EVIDENCE.md ]; then
+            cat artifacts/ci-checks/BIForge-PATCH-EVIDENCE.md
+          elif [ -f artifacts/ci-checks/PATCH_EVIDENCE.md ]; then
+            cat artifacts/ci-checks/PATCH_EVIDENCE.md
           else
-            echo 'BIForge-NEXT-PATCH.md unavailable; inspect CI report-generation errors above.'
+            echo 'BIForge-PATCH-EVIDENCE.md unavailable; inspect CI report-generation errors above.'
           fi
 
       - name: Upload complete CI report
@@ -119,7 +119,7 @@ jobs:
         with:
           name: biforge-ci-report
           path: |
-            artifacts/ci-checks/BIForge-NEXT-PATCH.md
+            artifacts/ci-checks/BIForge-PATCH-EVIDENCE.md
             artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: error
           compression-level: 0
