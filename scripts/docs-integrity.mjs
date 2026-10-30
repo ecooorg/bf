@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * docs-integrity.mjs — P118.4 documentation guard
+ * docs-integrity.mjs — current user-value documentation guard
  *
  * Verifies the three protected primary documents exist, contain required
  * sections, and that the count of REQ-IDs / critical headings has not
@@ -34,7 +34,9 @@ const PROTECTED = [
     requiredHeadings: [
       '## Phase 0 — Empty Repository Bootstrap',
       '## Phase 5 — Complex Software Architect Agent',
-      '## Phase 6 — Migrate to Three Agents',
+      '## Phase 6 — Product contract reconciliation',
+      '## Phase 7 — Implement the single Architect workflow',
+      '## Phase 9 — Final user-value release gate',
       '## Global Rules for Every Stage',
     ],
     minReqIds: 0,
@@ -44,7 +46,8 @@ const PROTECTED = [
     requiredHeadings: [
       '## 1. Early Foundation Snapshots',
       '## 6. Complex Software Architect Agent',
-      '## 8. Summary of Confidence by Programme Phase',
+      '## Current product-value assessment (authoritative current section)',
+      '## 8. Summary of Confidence by Historical Archive Phase (not current product acceptance)',
       '## 9. Remaining Open Items',
     ],
     minReqIds: 0,
