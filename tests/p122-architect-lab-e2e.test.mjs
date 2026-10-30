@@ -39,14 +39,26 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     page.on('requestfailed', request => browserErrors.push(`requestfailed: ${request.url()} — ${request.failure()?.errorText || 'unknown'}`));
     await page.route('**/api/session', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ authenticated: true, projectModeEnabled: true }) }));
     await page.route('**/api/projects', route => route.request().method() === 'POST'
-      ? route.fulfill(envelope({ id: 'p122-lab-project', name: 'Lab fixture' }))
+      ? route.fulfill(envelope({ id: 'p122-lab-project', name: 'Lab fixture', state_version: 1, state: { passport: { status: 'proposed' } } }))
       : route.fulfill(envelope([])));
-    await page.route('**/api/projects/p122-lab-project/code/build', route => route.fulfill(envelope({ status: 'done', outcome: 'SUCCESS', goalImplemented: true, downloadUrl: '/test-lab.zip', note: 'Fixture build completed.' })));
+    let passportConfirmed = false;
+    await page.route('**/api/projects/p122-lab-project/state', async route => {
+      const payload = route.request().postDataJSON();
+      passportConfirmed = payload.state?.passport?.status === 'confirmed';
+      await route.fulfill(envelope({ project_id: 'p122-lab-project', state_version: 2, state: payload.state }));
+    });
+    await page.route('**/api/projects/p122-lab-project/code/build', route => {
+      assert.equal(passportConfirmed, true, 'build must not start before passport confirmation');
+      return route.fulfill(envelope({ status: 'done', outcome: 'SUCCESS', goalImplemented: true, downloadUrl: '/test-lab.zip', note: 'Fixture build completed.' }));
+    });
     await page.route('**/test-lab.zip', route => route.fulfill({ status: 200, contentType: 'application/zip', headers: { 'content-disposition': 'attachment; filename="architectural-lab.zip"' }, body: Buffer.from('fixture-zip') }));
     await page.goto(`${base}/architect-lab`);
     await page.getByTestId('architect-lab-build-form').waitFor();
     await page.getByLabel('What should be built?').fill('Create a small task tracker with a working add-task button.');
     await page.getByTestId('architect-lab-build').click();
+    await page.getByTestId('architect-lab-passport').waitFor();
+    assert.match(await page.getByTestId('architect-lab-passport').innerText(), /personal expenses|expense/i);
+    await page.getByTestId('architect-lab-confirm-passport').click();
     await page.getByTestId('architect-lab-completion').getByText('SUCCESS').waitFor();
     const downloadPromise = page.waitForEvent('download');
     await page.getByTestId('architect-lab-download').click();
