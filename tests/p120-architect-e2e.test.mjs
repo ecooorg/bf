@@ -149,8 +149,8 @@ test('P120.0.3 Architect browser scenario: create, validate evidence, download a
     });
 
     await page.goto(`${base}/project`);
-    await page.getByTestId('path-novice').waitFor();
-    await page.getByTestId('path-novice').click();
+    // One Architect flow: guided start is the default entry (no novice/professional path chooser).
+    await page.getByTestId('project-novice-wizard').waitFor();
     const idea = 'Build a community notice board where people can post short updates.';
     await page.getByLabel('What do you want to build? (ordinary language)').fill(idea);
     await page.getByRole('button', { name: 'Next' }).click();
