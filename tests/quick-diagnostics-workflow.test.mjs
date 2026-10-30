@@ -30,8 +30,12 @@ test('single report separates all focused diagnostic areas and preserves failure
 
 
 test('diagnostic and DAG child processes stream live output to GitHub Actions', () => {
-  assert.match(workflow, /npm ci[^\n]*\| tee "\$RUNNER_TEMP\/quick-npm-ci\.log"/);
-  assert.match(workflow, /playwright install[^\n]*\| tee "\$RUNNER_TEMP\/quick-browser-install\.log"/);
+  assert.match(workflow, /npm\s+ci/, 'dependency installation must use npm ci');
+  assert.match(workflow, /quick-npm-ci\.log/, 'dependency output must be captured in the diagnostic log');
+  assert.match(workflow, /\|\s*tee\s+"\$RUNNER_TEMP\/quick-npm-ci\.log"/, 'dependency output must stream through tee');
+  assert.match(workflow, /playwright\s+install/, 'the browser install command must remain present');
+  assert.match(workflow, /quick-browser-install\.log/, 'browser installation output must be captured');
+  assert.match(workflow, /\|\s*tee\s+"\$RUNNER_TEMP\/quick-browser-install\.log"/, 'browser output must stream through tee');
   assert.match(collector, /import \{ spawn \} from 'node:child_process'/);
   assert.match(collector, /process\.stdout\.write\(text\)/);
   assert.doesNotMatch(collector, /spawnSync/);

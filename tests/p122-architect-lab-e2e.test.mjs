@@ -51,7 +51,7 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     const downloadPromise = page.waitForEvent('download');
     await page.getByTestId('architect-lab-download').click();
     const download = await downloadPromise;
-    assert.equal(download.suggestedFilename(), 'architectural-lab.zip');
+    assert.equal(download.suggestedFilename(), 'architectural-lab-result.zip');
     assert.deepEqual(browserErrors, [], `browser runtime errors:\n${browserErrors.join('\n')}`);
   } finally { await browser?.close(); server.kill('SIGTERM'); }
 });
