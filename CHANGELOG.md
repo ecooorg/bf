@@ -1,3 +1,19 @@
+## P121.0.30 — Repair Lab CI contracts and diagnostics readiness check
+
+- Reworded user-facing Lab copy to remove internal terminology while retaining the proposed/confirmed project review flow; `lint:copy` now passes without changing its allowance.
+- Updated the legacy P119 route contract to assert that the standard Architect entry opens `/architect-lab` and that `/project` remains available as the fallback workspace.
+- Hardened the Lab browser fixture by matching the diagnostics endpoint with optional query strings and waiting for the successful diagnostics response before asserting the loaded report.
+- Made Quick Diagnostics preserve stdout/stderr channels while streaming child-process output live; its contract now verifies both streams rather than relying on a single implementation-specific output call.
+- Owner evidence for commit `231e7b4034e449af66f95a7da02d5dfcc03467ff` identified these stale contracts and the diagnostics loading race. No generated Expense Tracker runtime, Neon schema, database, or build API behavior changed.
+- Local targeted contracts: PASS 13/13; copy lint: PASS; syntax/version/docs checks: PASS. Full Core/DAG and browser E2E: NOT_RUN. Hosted Actions and deployed UI: NOT_RUN.
+
+## P121.0.29 — Wait for Lab diagnostics to finish loading in browser test
+
+- Fix the Lab browser E2E race: after opening Compact session log, wait up to 10 seconds for the textarea value to equal the mocked diagnostic fixture before asserting it.
+- The test still verifies the diagnostics request result and then continues through passport confirmation, build completion, and ZIP download.
+- No application runtime, routing, API, generated-app behavior, database, or Neon behavior changed. Owner evidence for commit `db1f2800463d92c12535b3aa08d4e8de422ea486` shows the diagnostics textarea was still at its initial loading value at assertion time.
+- Local test syntax and version/docs checks: pending. Hosted Actions, browser E2E after applying this patch, and deployed UI: NOT_RUN.
+
 ## P121.0.28 — Reapply live Quick Diagnostics streaming workflow
 
 - Reapply the verified Quick Diagnostics workflow and its matching contract test together, because the owner-reported commit still contains the older redirected-output command (`> log 2>&1`) rather than a `tee` pipeline.
