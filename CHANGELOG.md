@@ -1,3 +1,10 @@
+## P120.0.4 — Cross-agent transition and context E2E
+
+- Added `tests/p120-agent-transitions-e2e.test.mjs`: authenticated browser flow switches Conversational → Expert → Conversational, verifies the active conversation remains available, and checks the next turn carries the original goal and prior assistant answer without duplicate API requests.
+- Confirms the Architect entry remains disabled when the deployment disables the Architect workspace; does not claim enabled Architect navigation or context sharing across its separate workspace.
+- Added `test:p120-transitions` and included the scenario in `test:ui`. No product runtime behavior changed. Version/patch: `120` / `120.0.4`.
+- Local verification: syntax and ZIP integrity checked. Browser E2E, build, and hosted CI are NOT_RUN in this environment; earlier P120.0.1–P120.0.3 green status is per Navigator.
+
 ## P120.0.3 — Architect browser build-to-ZIP E2E
 
 - Added `tests/p120-architect-e2e.test.mjs`: authenticated Project/Architect workspace browser journey through the novice wizard, explicit passport confirmation, one build request, source ZIP download, archive path/content checks, and all seven real static validators against the downloaded fixture files.

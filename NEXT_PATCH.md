@@ -1,12 +1,12 @@
-# P120.0.3 — Architect E2E (current)
+# P120.0.4 — Cross-agent transitions and context preservation (current)
 
-**Applied:** Added a deterministic Architect browser journey covering the novice wizard, confirmed project passport, one build request, source ZIP download, archive integrity/path checks, and all seven real static validators against the downloaded fixture files. Added `test:p120-architect` and included it in `test:ui`. Build API/provider behavior is mocked; live Architect generation is not claimed.
+**Applied:** Added `tests/p120-agent-transitions-e2e.test.mjs`: browser switches Conversational → Expert → Conversational and checks that the same active conversation's original goal and prior assistant turn remain available to the follow-up, with no duplicate request on mode switch. Also checks that Architect remains unavailable in this test deployment when its feature flag is off. Added `test:p120-transitions` and included the scenario in `test:ui`; product runtime unchanged.
 
-**Verification:** `node --check tests/p120-architect-e2e.test.mjs` and archive integrity PASS. Browser E2E, app build, and CI NOT_RUN locally because dependencies/Chromium are unavailable. P120.0.1 and P120.0.2 are green per Navigator.
+**Coverage boundary:** Responses are deterministic and mocked at `/api/agent/conversational`. This tests UI mode switching and chat context continuity, not live model behavior or context sharing with Architect, which is a separate workspace.
 
-**Next:** P120.0.4 — cross-agent transitions and context preservation, per `docs/p119-p121.md`. Do not start P121.
+**Verification:** `node --check tests/p120-agent-transitions-e2e.test.mjs` and ZIP integrity PASS. Browser E2E, app build, and hosted CI NOT_RUN locally because dependencies/Chromium are unavailable. P120.0.1–P120.0.3 are green per Navigator.
 
-Charter conflicts: none
+**Next:** P120.0.5 — stabilization and regression fixes from CI findings. Do not start P121.
 
 ---
 
