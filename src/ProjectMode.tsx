@@ -67,7 +67,7 @@ export default function ProjectMode() {
   const [programGoal, setProgramGoal] = useState('');
   const [driveConnected, setDriveConnected] = useState(() => isMirrorConnected());
   const [driveBusy, setDriveBusy] = useState(false);
-  const [programResult, setProgramResult] = useState<{ taskId: string; codeTask: any; downloadUrl?: string; note?: string } | null>(null);
+  const [programResult, setProgramResult] = useState<{ taskId: string; codeTask?: { id?: string; status?: string; statusReason?: string; prUrl?: string; [key: string]: unknown }; downloadUrl?: string; note?: string; status?: string } | null>(null);
   const [buildProgress, setBuildProgress] = useState<{ job: BuildJobResult; startedAt: number } | null>(null);
   const buildStartedAtRef = useRef<number | null>(null);
   const updateBuildProgress = (job: BuildJobResult) => {
@@ -225,7 +225,7 @@ export default function ProjectMode() {
     if (started.jobId) updateBuildProgress(started);
     const r = started.jobId ? await waitForProjectBuild(selected!.id, started, updateBuildProgress) : started;
     if (started.jobId) updateBuildProgress(r);
-    setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build', codeTask: r.codeTask || { status: r.status || 'unknown', statusReason: r.note } } as any); setProgramGoal('');
+    setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build' }); setProgramGoal('');
     return r.downloadUrl ? (r.note?.startsWith('WARNING') ? r.note : 'Program source generated; download is ready.') : (r.note || 'No downloadable source was produced. Check project settings and try again.');
   });
   const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
@@ -369,7 +369,7 @@ export default function ProjectMode() {
         try {
           const started = await api<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim() }) });
           const result = started.jobId ? await waitForProjectBuild(project.id, started) : started;
-          setProgramResult({ ...result, taskId: result.taskId || result.jobId || 'build', codeTask: result.codeTask || { status: result.status || 'unknown', statusReason: result.note } } as any);
+          setProgramResult({ ...result, taskId: result.taskId || result.jobId || 'build' });
           setNotice(result.downloadUrl ? (result.goalImplemented === true ? 'Project created; program ZIP is ready below.' : `Project created; ZIP is available but validation is incomplete. ${result.note || ''}`) : `Project created, but no ZIP was produced. ${result.note || 'Open the project and retry the build or check diagnostics.'}`);
         } catch (buildError) {
           setNotice(`Project created, but automatic build did not finish: ${String((buildError as Error).message || buildError)}. Select the project and use “Create a small program” to retry.`);
@@ -567,7 +567,7 @@ export default function ProjectMode() {
             if (started.jobId) updateBuildProgress(started);
             const r = started.jobId ? await waitForProjectBuild(projectId, started, updateBuildProgress) : started;
             if (started.jobId) updateBuildProgress(r);
-            setProgramResult(r as any);
+            setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build' });
             return { downloadUrl: r.downloadUrl, goalImplemented: r.goalImplemented ?? undefined, note: r.note || r.codeTask?.statusReason || (r.status ? `Build status: ${r.status}` : 'Build finished without a downloadable ZIP.'), status: r.status || r.codeTask?.status, stack: r.stack };
           } finally { setBusy(false); }
         }}
@@ -625,7 +625,7 @@ export default function ProjectMode() {
               <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || (capabilities !== null && !capabilities.programZip)} onClick={() => void buildProgram()}>Create program</button>
               {!programGoal.trim() && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program to enable this button. The source pipeline can generate a ZIP without changing project permissions.</p>}
               <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>
-              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask.prUrl && <p><a href={programResult.codeTask.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open the pull request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }} onClick={(e) => { e.preventDefault(); void downloadViaFetch(programResult.downloadUrl!, `${selected?.name || 'program'}-source.zip`).catch((err) => setError(String(err.message || err))); }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
+              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask?.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask?.prUrl && <p><a href={programResult.codeTask?.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open the pull request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }} onClick={(e) => { e.preventDefault(); void downloadViaFetch(programResult.downloadUrl!, `${selected?.name || 'program'}-source.zip`).catch((err) => setError(String(err.message || err))); }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
             </div></details>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([
               ['results', 'Results'],
