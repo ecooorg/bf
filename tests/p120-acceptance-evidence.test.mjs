@@ -72,12 +72,14 @@ test('verify mode binds evidence to commit, source run, attempt and workflow con
 });
 
 
-test('P120.0.6 evidence workflow remains commit-bound while the current patch is P120.0.7', () => {
+test('P120 acceptance evidence remains commit-bound after the C121 version bump', () => {
   const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
   const acceptance = readFileSync('.github/workflows/p120-acceptance.yml', 'utf8');
   const evidence = readFileSync('.github/workflows/p120-evidence.yml', 'utf8');
-  assert.equal(packageJson.version, '120');
-  assert.equal(packageJson.patch, '120.0.7');
+  assert.equal(packageJson.version, '121');
+  assert.equal(packageJson.patch, '121.0.1');
+  const historicalRecord = JSON.parse(readFileSync('docs/p120-acceptance-record.json', 'utf8'));
+  assert.equal(historicalRecord.patch, '120.0.7');
   assert.match(packageJson.scripts['test:p120-evidence-check'], /p120-acceptance-evidence\.test\.mjs/);
   assert.match(acceptance, /name: P120 Acceptance/);
   assert.match(acceptance, /--mode collect/);
