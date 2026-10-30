@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "121",
-  "patch": "121.0.14",
+  "patch": "121.0.15",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -25,7 +25,7 @@
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
-    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs",
+    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab",
     "test:models": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-availability-p117.test.mjs",
     "test:security": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
     "test:files": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/files.test.mjs",
@@ -41,7 +41,7 @@
     "test:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs tests/integrations.test.mjs tests/project-mode.test.mjs tests/gates.test.mjs",
     "test:database:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs",
     "test:bx06:api": "RUN_BX06_API=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/project-mode.test.mjs",
-    "test:ui": "node scripts/p120-e2e-preflight.mjs && node --import tsx tests/ui-check.mjs && node --test tests/p120-conversational-e2e.test.mjs && node --test tests/p120-expert-e2e.test.mjs && node --import tsx --test tests/p120-architect-e2e.test.mjs && node --test tests/p120-agent-transitions-e2e.test.mjs",
+    "test:ui": "node scripts/p120-e2e-preflight.mjs && node --import tsx tests/ui-check.mjs && node --test tests/p120-conversational-e2e.test.mjs && node --test tests/p120-expert-e2e.test.mjs && node --import tsx --test tests/p120-architect-e2e.test.mjs && node --test tests/p120-agent-transitions-e2e.test.mjs && node --test tests/p122-architect-lab-e2e.test.mjs",
     "check": "node scripts/run-dag.mjs --profile check",
     "docs:generate": "node scripts/docsGenerateInventories.mjs && node scripts/architectureGenerateModuleMap.mjs && node scripts/statusGraph.mjs && node scripts/capabilityGenerateGraph.mjs",
     "context:select": "node scripts/contextSelect.mjs",
@@ -69,7 +69,8 @@
     "docs:integrity": "node scripts/docs-integrity.mjs",
     "test:p121-governance": "node --test tests/p121-cycle-governance.test.mjs",
     "version:check": "node scripts/version-metadata.mjs",
-    "version:sync": "node scripts/version-metadata.mjs --write"
+    "version:sync": "node scripts/version-metadata.mjs --write",
+    "test:architect-lab": "node --test tests/p122-architect-lab-contract.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

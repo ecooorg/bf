@@ -251,3 +251,11 @@
 - Tests: `tests/app-builder-spec-repair-p118.test.mjs`.
 - APP_VERSION stays 118 (version = phase number; sub-patches P118.x do not bump it).
 
+
+## P121.0.15 — Architectural Test Lab isolated entry
+
+- Added a separately lazy-loaded `/architect-lab` experimental workspace with its own responsive presentation, form, progress surface, completion panel, and error boundary.
+- The lab creates a separately named project and uses the authenticated project-build API and shared staged-job polling; it does not mount `ProjectMode.tsx` or the legacy result UI.
+- This is an isolated UI/workflow experiment, **not yet an independent backend generation engine**. Provider orchestration, validation, and artifact persistence remain shared with the existing backend.
+- Added route/mount/completion contract tests. Existing three-agent entry points remain unchanged; the lab is available only by direct route.
+- Local source-contract tests and ZIP validation are reported in the delivery note; typecheck/build and live Android tests remain separate evidence.

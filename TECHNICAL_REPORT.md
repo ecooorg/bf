@@ -1,3 +1,12 @@
+# P121.0.15 — Architectural Test Lab (source implementation)
+
+- Status: IMPLEMENTED (experimental frontend route); independent backend engine: OPEN.
+- Added lazy `/architect-lab` route. The route does not mount legacy `ProjectMode.tsx`; it owns its form, progress state, completion panel, and ErrorBoundary.
+- Reuses authenticated `/api/projects` and `/code/build` APIs plus shared job polling, provider orchestration, validators, and artifact storage. This deliberately reuses proven backend services and does not claim a new generation engine.
+- Affected user-visible steps: direct navigation to `/architect-lab`; session check/login; project description; create/build; progress; completion/outcome; ZIP download; return to `/`. Test IDs: `architect-lab-build-form`, `architect-lab-build`, `architect-lab-completion`, `architect-lab-download`.
+- Added a dedicated Playwright browser scenario for the lab route, completion surface, and ZIP download; it is wired into `test:ui`. Existing three-agent browser E2E scenarios remain unchanged. Local browser E2E execution, hosted CI, and live Android behavior: NOT_RUN.
+- Legacy Architect remains enabled and unchanged. No promotion/deactivation decision is made by this experimental patch.
+
 # CURRENT EVIDENCE NOTE — P121.0.14 emergency screen capture, 2026-10-30
 
 ## Change
