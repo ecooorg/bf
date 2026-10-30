@@ -233,6 +233,7 @@ export function UnderstandScreen({
   busy: boolean;
 }) {
   const [answer, setAnswer] = useState('');
+  const [analysisPendingRetry, setAnalysisPendingRetry] = useState(false);
   const understandStarted = useRef(false);
   const preview: any = d.modelSuggestions?.preview;
   const unknowns = d.radar?.unknowns || [];
@@ -244,6 +245,7 @@ export function UnderstandScreen({
     const analysisIsCurrent = analysisVersion === 'v4';
     if (analysisIsCurrent || busy || understandStarted.current || !d.brief.decision) return;
     understandStarted.current = true;
+    setAnalysisPendingRetry(true);
     runApi('/api/understand', { brief: d.brief, history: d.modelSuggestions?.conversation || [] }, (data, meta) => {
       const neutralItems = data?.neutralization?.items || [];
       const radarData = data?.radar || {};
@@ -268,6 +270,7 @@ export function UnderstandScreen({
         })),
         meta: { ...meta, expertAnalysisVersion: 'v4' },
       };
+      setAnalysisPendingRetry(false);
       update({
         neutralization: neutralItems.map((it: any) => ({ id: it.id || uid('n'), original: it.original || '', kind: it.kind || 'KEEP', neutralQuestion: it.neutralQuestion, userChoice: 'ACCEPT' as const })),
         neutralizationConfirmed: true,
@@ -381,6 +384,15 @@ export function UnderstandScreen({
 
   return (
     <div className="friendly-flow">
+      {!d.radar && !busy && analysisPendingRetry && (
+        <div className="panel" role="status">
+          <p>Analysis could not be completed. Your original request is preserved.</p>
+          <button type="button" onClick={() => {
+            understandStarted.current = false;
+            setAnalysisPendingRetry(false);
+          }}>Retry analysis</button>
+        </div>
+      )}
       {!d.radar && busy && (
         <AssistantMessage>
           <p style={{ marginTop: 0 }}>Looking at the specific facts and unknowns in your situation…</p>
