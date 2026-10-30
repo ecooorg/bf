@@ -2,6 +2,12 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
+## P121.0.12 — Paste-ready compact session diagnostics (current delivery)
+
+- Added a plain-text, bounded report for the latest retained non-diagnostic operation, with correlated operation events/application logs, runtime identity, system checks, provenance, and explicit missing-evidence limits.
+- Added an in-app copy action and selectable text area; ZIP export remains separate.
+- Local source-level test and docs-integrity pass; typecheck/build, hosted CI, and live Android copy/paste are NOT_RUN.
+
 ## Programme objective
 
 ## C121 — Verification cycle (current)
@@ -11,7 +17,6 @@
 - Initial audit of the available reconstructed tree found a documentation-integrity failure (15 retired documents still present), a stale P120-specific version gate in the E2E preflight, and a missing-dependency blocker for the full verification DAG. The actual remote repository and hosted CI are not available in this workspace.
 - C121 acceptance requires: canonical docs checks pass; version/patch/lock metadata agree; previous P120 regression checks remain runnable; no mandatory user obligation is silently dropped; runtime/live checks are separately evidenced or marked `NOT_RUN`.
 - P121.0.7 unified Architect client entry (no path chooser). Live/browser/user-value validation of the one-flow contract remains required before closing BIO-004.
-- P121.0.12 addresses an observed P0 Architect generation failure mode (2,048-token model-output truncation) and corrects PARTIAL workflow classification. BIO-005 remains NOT_VERIFIED until a new deployed run produces a useful validated artifact and the user receives it; the reported black-screen cause remains NOT_VERIFIED.
 
 
 The end goal is useful, reliable user outcomes in the running product—not a green repository by itself. A patch is not accepted solely because tests pass. For user-facing work, state the user problem, observable outcome, quality criteria, failure/recovery behavior, and evaluation evidence. Keep local tests, hosted CI, deployed/live checks, and actual user-outcome evidence separate.

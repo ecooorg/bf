@@ -1,9 +1,9 @@
-## P121.0.12 — Prevent observed Architect file truncation; classify partial delivery honestly
+## P121.0.12 — Paste-ready compact session diagnostics
 
-- Increased the staged builder's conservative per-response output budget from 2,048 to 8,192 tokens after the 2026-10-30 live diagnostics showed repeated `MAX_TOKENS` truncation of generated HTML/CSS files.
-- Corrected the live workflow classifier: a staged job can have internal terminal `status=failed` while its explicit `outcome=PARTIAL` still carries an optional starter ZIP. This is reported as PARTIAL only when stage/reason and a verified ZIP are present; it is never promoted to PASS.
-- Added regressions for the output-token budget and the real staged PARTIAL lifecycle.
-- Verification: recorded in the current evidence note. Hosted deployment and a new live model run remain NOT_RUN.
+- Added an authenticated plain-text endpoint and Diagnostics menu action that produces one bounded report for the latest operation, with runtime/check status, correlated operation timeline, matching application errors, provenance and explicit evidence limits.
+- Added an in-dialog copy button and read-only text area for mobile browsers; no ZIP or file attachment is required.
+- Report excludes prompts, generated source, request/response bodies, credentials and cookies; HTTP completion is not represented as proof of browser download completion.
+- Verification: source-level regression added; runtime/build and hosted CI status pending.
 
 ## P121.0.11 — Restore docs-integrity marker in AGENTS.md
 
