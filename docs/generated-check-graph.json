@@ -153,6 +153,21 @@
       ]
     },
     {
+      "id": "docs-integrity",
+      "command": "node scripts/docs-integrity.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "scripts/docs-integrity.mjs"
+      ],
+      "modules": [
+        "scripts/docs-integrity.mjs"
+      ]
+    },
+    {
       "id": "lint:copy",
       "command": "node scripts/lint-copy.mjs",
       "needs": [],
@@ -803,6 +818,9 @@
     ],
     "scripts/dagLib.mjs": [
       "test:compact-ci-artifacts"
+    ],
+    "scripts/docs-integrity.mjs": [
+      "docs-integrity"
     ],
     "scripts/evidence-to-markdown.mjs": [
       "test:files"

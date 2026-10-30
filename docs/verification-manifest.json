@@ -37,6 +37,24 @@
    "parallelGroup": "static"
   },
   {
+   "id": "docs-integrity",
+   "argv": [
+    "node",
+    "scripts/docs-integrity.mjs"
+   ],
+   "profiles": [
+    "check",
+    "ci"
+   ],
+   "timeoutMs": 60000,
+   "parallelGroup": "static",
+   "critical": true,
+   "phase": "critical",
+   "expectOutput": [
+    "docs:integrity PASS"
+   ]
+  },
+  {
    "id": "lint:copy",
    "argv": [
     "npm",

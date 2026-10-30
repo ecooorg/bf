@@ -1,31 +1,31 @@
 {
  "schemaVersion": 1,
  "kind": "capability-graph",
- "generatedAt": "2026-10-29T20:25:59.178Z",
+ "generatedAt": "2026-10-30T06:57:13.090Z",
  "generator": "scripts/capabilityGenerateGraph.mjs",
  "summary": {
-  "nodeCount": 447,
-  "edgeCount": 904,
+  "nodeCount": 449,
+  "edgeCount": 906,
   "nodeCounts": {
-   "check": 27,
+   "check": 28,
    "env": 68,
    "evidence": 1,
    "migration": 19,
-   "module": 198,
+   "module": 199,
    "route": 82,
    "side_effect": 51,
    "state": 1
   },
   "edgeCounts": {
-   "covers": 309,
-   "produces_evidence_under": 10,
+   "covers": 310,
+   "produces_evidence_under": 11,
    "needs": 26,
    "modifies": 19,
    "depends_on": 407,
    "exposes": 82,
    "produces": 51
   },
-  "unknownNodes": 33,
+  "unknownNodes": 34,
   "staleNodes": 0,
   "inventoriesPresent": {
    "moduleMap": true,
@@ -137,6 +137,21 @@
      "ci"
     ],
     "critical": false,
+    "needs": []
+   },
+   "sourceInventory": "verification-manifest.json"
+  },
+  {
+   "id": "check:docs-integrity",
+   "type": "check",
+   "label": "docs-integrity",
+   "status": "known",
+   "refs": {
+    "profiles": [
+     "check",
+     "ci"
+    ],
+    "critical": true,
     "needs": []
    },
    "sourceInventory": "verification-manifest.json"
@@ -486,7 +501,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_BUILDER_MAX_RATE_WAIT_MS",
@@ -501,7 +516,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_BUILDER_MODEL_ID",
@@ -516,7 +531,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_BUILDER_MODEL_SLICE",
@@ -531,7 +546,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_PASSWORD",
@@ -547,7 +562,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:APP_VERSION",
@@ -562,7 +577,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:CLOUDFLARE_ACCOUNT_ID",
@@ -578,7 +593,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:CLOUDFLARE_API_TOKEN",
@@ -594,7 +609,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:CLOUDFLARE_WORKERS_AI_MODEL",
@@ -610,7 +625,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:CODE_EXECUTOR",
@@ -626,7 +641,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DAILY_CALL_CAP",
@@ -641,7 +656,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DATABASE_URL",
@@ -660,7 +675,7 @@
     "fileCount": 5
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DIAGNOSTIC_APPLICATION_LINES",
@@ -675,7 +690,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DIAGNOSTIC_CONSOLE_LINES",
@@ -690,7 +705,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:DISABLE_HMR",
@@ -705,7 +720,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:ENABLE_APP_AUTH",
@@ -720,7 +735,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:ENABLE_EXTERNAL_MODEL_FALLBACK",
@@ -738,7 +753,7 @@
     "fileCount": 4
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:ENABLE_GEMINI_CANDIDATE_PROBES",
@@ -753,7 +768,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:ENABLE_PROJECT_MODE",
@@ -769,7 +784,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:ENABLE_WEB_SEARCH",
@@ -784,7 +799,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:EPISTEMIC_VERIFIER_MODEL",
@@ -799,7 +814,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:EXPERT_ATTACH_TOTAL_CHARS",
@@ -814,7 +829,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GEMINI_API_KEY",
@@ -830,7 +845,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GEMINI_BASE_URL",
@@ -845,7 +860,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_DIFF_UPLOAD",
@@ -860,7 +875,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_REPOSITORY_NAME",
@@ -875,7 +890,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_REPOSITORY_OWNER",
@@ -890,7 +905,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GITHUB_WEBHOOK_SECRET",
@@ -905,7 +920,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GROQ_API_KEY",
@@ -922,7 +937,7 @@
     "fileCount": 3
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GROQ_BASE_URL",
@@ -939,7 +954,7 @@
     "fileCount": 3
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:GROQ_FALLBACK_MODEL",
@@ -954,7 +969,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:KEEP_ALIVE",
@@ -969,7 +984,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LLM_CALL_TIMEOUT_MS",
@@ -984,7 +999,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LLM_TOTAL_DEADLINE_MS",
@@ -999,7 +1014,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LOGIN_MAX_FAILS",
@@ -1014,7 +1029,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:LOGIN_WINDOW_MIN",
@@ -1029,7 +1044,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_ATTACH_TEXT_CHARS",
@@ -1044,7 +1059,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_BODY_BYTES",
@@ -1059,7 +1074,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_MODEL_CALLS",
@@ -1074,7 +1089,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MAX_UPLOAD_BYTES",
@@ -1089,7 +1104,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MODEL_CASCADE_LIGHT",
@@ -1104,7 +1119,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MODEL_CASCADE_STRONG",
@@ -1119,7 +1134,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:MODEL_MIN_INTERVAL_MS",
@@ -1134,7 +1149,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:NODE_ENV",
@@ -1150,7 +1165,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:OPS_RSS_LIMIT_MB",
@@ -1166,7 +1181,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PG_POOL_MAX",
@@ -1181,7 +1196,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PGSSLMODE",
@@ -1196,7 +1211,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PORT",
@@ -1212,7 +1227,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:PROJECT_RATE_LIMIT_PER_MINUTE",
@@ -1227,7 +1242,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:RAILWAY_REPLICA_ID",
@@ -1242,7 +1257,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:RATE_LIMIT_PER_HOUR",
@@ -1257,7 +1272,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:RENDER_EXTERNAL_URL",
@@ -1272,7 +1287,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:SERPER_API_KEY",
@@ -1288,7 +1303,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:SESSION_SECRET",
@@ -1303,7 +1318,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:SKIP_DIST_HEALTHCHECK",
@@ -1318,7 +1333,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:TRUST_PROXY_HOPS",
@@ -1333,7 +1348,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_FETCH_PAGES",
@@ -1348,7 +1363,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_MAX_PAGES",
@@ -1363,7 +1378,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_MAX_QUERIES",
@@ -1378,7 +1393,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_MODE",
@@ -1393,7 +1408,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_MODEL",
@@ -1408,7 +1423,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_PROVIDER",
@@ -1423,7 +1438,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_SEED_PAGES",
@@ -1438,7 +1453,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_TIMEOUT_MS",
@@ -1453,7 +1468,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WEB_SEARCH_TRANSLATE_MODEL",
@@ -1468,7 +1483,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WORKER_HEARTBEAT_MS",
@@ -1483,7 +1498,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WORKER_LEASE_MS",
@@ -1498,7 +1513,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "env:WORKER_POLL_MS",
@@ -1513,7 +1528,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "evidence:schema",
@@ -1536,7 +1551,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/002_artifacts_ledger.sql",
@@ -1549,7 +1564,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/003_route_decisions.sql",
@@ -1562,7 +1577,7 @@
     "lines": 18
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/004_model_health.sql",
@@ -1575,7 +1590,7 @@
     "lines": 15
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/005_tasks_runs.sql",
@@ -1588,7 +1603,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/006_jobs.sql",
@@ -1601,7 +1616,7 @@
     "lines": 20
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/007_budgets_plans_approvals.sql",
@@ -1614,7 +1629,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/008_artifact_manifests.sql",
@@ -1627,7 +1642,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/009_gate_evidence.sql",
@@ -1640,7 +1655,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/010_code_tasks.sql",
@@ -1653,7 +1668,7 @@
     "lines": 36
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/011_code_task_package_approval.sql",
@@ -1666,7 +1681,7 @@
     "lines": 5
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/012_code_task_decision.sql",
@@ -1679,7 +1694,7 @@
     "lines": 9
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/013_repair_loop.sql",
@@ -1692,7 +1707,7 @@
     "lines": 13
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/014_provider_snapshots.sql",
@@ -1705,7 +1720,7 @@
     "lines": 33
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/015_project_diagnostics.sql",
@@ -1718,7 +1733,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/016_project_diagnostic_artifacts.sql",
@@ -1731,7 +1746,7 @@
     "lines": 8
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/017_app_build_jobs.sql",
@@ -1744,7 +1759,7 @@
     "lines": 33
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/018_model_request_slots.sql",
@@ -1757,7 +1772,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "migration:migrations/019_application_diagnostic_logs.sql",
@@ -1770,7 +1785,7 @@
     "lines": 25
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-10-29T20:25:59Z"
+   "inventoryGeneratedAt": "2026-10-28T09:15:23Z"
   },
   {
    "id": "module:appBuilder/architectOutcome.ts",
@@ -2069,6 +2084,16 @@
    "status": "unknown",
    "refs": {
     "path": "scripts/dagLib.mjs"
+   },
+   "sourceInventory": "generated-check-graph.json"
+  },
+  {
+   "id": "module:scripts/docs-integrity.mjs",
+   "type": "module",
+   "label": "scripts/docs-integrity.mjs",
+   "status": "unknown",
+   "refs": {
+    "path": "scripts/docs-integrity.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -6231,6 +6256,16 @@
   {
    "from": "check:db-migrate",
    "to": "module:scripts/migrate.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:docs-integrity",
+   "to": "evidence:schema",
+   "relation": "produces_evidence_under"
+  },
+  {
+   "from": "check:docs-integrity",
+   "to": "module:scripts/docs-integrity.mjs",
    "relation": "covers"
   },
   {
