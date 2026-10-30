@@ -26,6 +26,10 @@ BiForge succeeds when a real user completes a meaningful task and receives a cor
 | Long-horizon strategy | `docs/VIX-CONCEPT.md` | Context only; not implementation authorization. |
 | Version and patch identity | `package.json` (`version`, `patch`) | No duplicate version authority. |
 
+### Cycle, product version, and patch identity
+
+A development cycle is named `C<major>` and uses product version `<major>`. Every patch in that cycle uses the same major prefix: `P<major>.<minor>.<fix>`; `package.json` must carry `"version": "<major>"` and `"patch": "<major>.<minor>.<fix>"`. The first patch in a new cycle starts at `.0.1`; each subsequent patch in that cycle increments the final component (`.0.2`, `.0.3`, …). Do not create a different sub-series unless the owner explicitly approves it. Keep `package-lock.json` root version metadata synchronized. Existing historical patch names remain historical; do not rename old evidence. A roadmap feature label must not be confused with a patch-series identifier. The current cycle/patch is taken from `package.json`, never from a stale task note or generated report.
+
 If sources conflict, the authority in this table wins. Historical statements in roadmap, report, changelog, and evaluation records describe the state or plan at the time; they are not current instructions if superseded by the current normative sections above them.
 
 `PATCH_EVIDENCE.md` / `BIForge-PATCH-EVIDENCE.md` are generated CI diagnostic reports for a particular run only. They are not planning documents, not persistent session handoffs, and not sources of product requirements. The repository must not contain a root `NEXT_PATCH.md` or any equivalent pre-written assignment for the next session.

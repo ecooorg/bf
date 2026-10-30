@@ -1,3 +1,42 @@
+# CURRENT EVIDENCE NOTE — C121 verification cycle bootstrap, 2026-10-30
+
+## Scope and provenance
+
+The cycle was checked against a local reconstruction assembled from the available `bf-119-0-4.zip` archive and the available P119/P120/documentation patches. The directory has no `.git` metadata; remote HEAD, hosted CI, deployed application, and live behavior cannot be independently verified here.
+
+## Initial observations before repair
+
+- `node scripts/docs-integrity.mjs`: FAIL — `NEXT_PATCH.md` plus 14 retired prose documents were still present despite the canonical governance and docs-integrity check requiring their removal.
+- `node scripts/docsCheckInventories.mjs`: PASS.
+- `node scripts/statusGraph.mjs --check`: PASS.
+- `node scripts/capabilityGenerateGraph.mjs --check`: PASS (449 nodes, 906 edges).
+- `node scripts/p120-e2e-preflight.mjs`: PASS against historical P120.0.7 before the cycle bump; its hard-coded version check would prevent moving to v121.
+- `node scripts/run-dag.mjs --profile check`: FAIL; only 3 checks passed, 15 failed, 6 blocked. Several failures were caused by missing `tsx` after `npm ci --ignore-scripts --no-audit --no-fund` timed out. The docs-integrity failure was independent and reproducible.
+
+## C121/P121.0.1 repair scope
+
+- Set package version/patch to `121` / `121.0.1` and synchronized the root lockfile metadata.
+- Generalized the P120 E2E preflight so it checks current version/patch consistency while retaining P120 browser tests as regression coverage.
+- Updated the P120 acceptance-evidence test to distinguish the historical P120.0.7 acceptance record from current C121 package metadata.
+- Removed the retired handoff and obsolete side-document files listed in the patch delivery summary.
+
+## Post-repair verification results
+
+- `node scripts/check-version.mjs` — PASS (`121` / `121.0.1`).
+- `npm run docs:check` — PASS after regenerating the check/capability graphs; canonical docs, inventories, status graph, and capability graph are current.
+- `node scripts/p120-e2e-preflight.mjs` — PASS; four historical P120 browser scenarios remain wired as regression coverage under C121. This is a preflight only, not a browser run.
+- `node --test tests/p121-cycle-governance.test.mjs tests/p120-acceptance-evidence.test.mjs` — PASS, 8/8.
+- `node --test tests/dag-p107.test.mjs tests/evidence-p105.test.mjs` — PASS, 27/27.
+- `node --test tests/p119-agent-boundaries.test.mjs` — 19 PASS, 2 FAIL because the missing `tsx` package prevents loading TypeScript modules; the failures are environment/dependency blockers, not evidence of a product regression.
+- `npm run check` — FAIL in this environment: 4 PASS, 14 FAIL, 6 BLOCKED. The failing runtime-dependent checks could not import `tsx`; `test:compact-ci-artifacts` could not import `jszip`. `npm ci --ignore-scripts --no-audit --no-fund` timed out, leaving dependencies incomplete.
+- `node scripts/schemaValidate.mjs` without the required `--type` argument — invocation error, not a schema validation result; schema validation is NOT_VERIFIED by that command.
+
+## Evidence boundary
+
+Typecheck, build, full core/model/security/application tests, browser E2E, hosted CI, deployment, and live user-value scenarios remain NOT_RUN / NOT_VERIFIED. The P120 Architect browser test uses a mocked project/build API and explicitly exercises `path-novice`; it does not establish live model generation quality or compliance with the current one-flow Architect requirement. Source inspection confirms `ProjectPathChooser` still presents separate “Simple words” and “Professional” choices and `ProjectMode.tsx` renders separate branches. Therefore `BIO-004` is OPEN, not PASS. This patch repairs cycle identity and documentation governance; it does not change runtime product behavior.
+
+---
+
 # CURRENT EVIDENCE NOTE — Session governance and documentation consolidation, 2026-10-30
 
 > Additive record. The previous evidence notes and all older implementation history below are retained. This patch updates governance and CI report naming; it does not claim any runtime product function has changed.

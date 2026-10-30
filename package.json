@@ -1,8 +1,8 @@
 {
   "name": "bifurcation-engine",
   "private": true,
-  "version": "120",
-  "patch": "120.0.7",
+  "version": "121",
+  "patch": "121.0.1",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -25,7 +25,7 @@
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
-    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs",
+    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs",
     "test:models": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-availability-p117.test.mjs",
     "test:security": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
     "test:files": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/files.test.mjs",
@@ -66,7 +66,8 @@
     "test:p120-transitions": "node --test tests/p120-agent-transitions-e2e.test.mjs",
     "test:p120-preflight": "node scripts/p120-e2e-preflight.mjs",
     "test:p120-evidence-check": "node --test tests/p120-acceptance-evidence.test.mjs",
-    "docs:integrity": "node scripts/docs-integrity.mjs"
+    "docs:integrity": "node scripts/docs-integrity.mjs",
+    "test:p121-governance": "node --test tests/p121-cycle-governance.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

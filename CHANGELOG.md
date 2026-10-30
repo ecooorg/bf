@@ -1,3 +1,13 @@
+# C121 / P121.0.1 — Verification cycle bootstrap and documentation integrity repair
+
+- Introduced cycle-based identity: cycle C121, product version 121, patch P121.0.1. Synchronized `package.json` and root `package-lock.json` version metadata.
+- Removed the retired `NEXT_PATCH.md` handoff and 14 superseded prose documents whose current responsibilities were consolidated into canonical documentation. Historical references in retained history remain historical.
+- Changed the P120 E2E preflight from a hard-coded current-version gate into a regression-suite preflight that validates the current version/patch relationship. Updated the P120 evidence regression test to preserve the historical P120.0.7 record while asserting current C121 metadata.
+- Verification: `npm run docs:check` PASS; version check PASS; P120 regression preflight PASS; focused C121/P120 acceptance tests 8/8 PASS; DAG/evidence tests 27/27 PASS. `npm ci --ignore-scripts --no-audit --no-fund` timed out, so the full DAG remains FAIL (4 PASS, 14 FAIL, 6 BLOCKED) due missing `tsx`/`jszip`; typecheck, build, browser E2E, hosted CI, deployed app, and live model/artifact quality are NOT_RUN. The Architect one-flow obligation remains open.
+- No runtime product behavior change is claimed. The Architect one-flow obligation remains an open implementation gap, not a passed acceptance item.
+
+---
+
 # Session governance and documentation consolidation — 2026-10-30
 
 - Added a mandatory session-start protocol and top-level obligation map to `AGENTS.md`. Each session must reconstruct and verify the actual state before selecting its own task; assistants must not inherit a pre-written next-step assignment as binding.

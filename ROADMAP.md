@@ -4,6 +4,15 @@
 
 ## Programme objective
 
+## C121 — Verification cycle (current)
+
+- Product version: `121`; first patch: `P121.0.1`. The cycle is a verification and repair cycle, not an automatic authorization to start the previously proposed browser-provider feature.
+- Cycle/patch numbering is governed by `AGENTS.md` and `package.json`; historical P120 evidence remains unchanged.
+- Initial audit of the available reconstructed tree found a documentation-integrity failure (15 retired documents still present), a stale P120-specific version gate in the E2E preflight, and a missing-dependency blocker for the full verification DAG. The actual remote repository and hosted CI are not available in this workspace.
+- C121 acceptance requires: canonical docs checks pass; version/patch/lock metadata agree; previous P120 regression checks remain runnable; no mandatory user obligation is silently dropped; runtime/live checks are separately evidenced or marked `NOT_RUN`.
+- Known product gap remains: Architect source still appears to expose separate simplified/professional paths despite the normative one-flow requirement. This audit does not claim that runtime gap is fixed.
+
+
 The end goal is useful, reliable user outcomes in the running product—not a green repository by itself. A patch is not accepted solely because tests pass. For user-facing work, state the user problem, observable outcome, quality criteria, failure/recovery behavior, and evaluation evidence. Keep local tests, hosted CI, deployed/live checks, and actual user-outcome evidence separate.
 
 ## Current documentation and session model
@@ -408,11 +417,11 @@ npm run check   # full DAG
 
 **Gate P120:** required E2E pass; no false `SUCCESS`; results bound to the verified commit; acceptance criteria met. After P120 the programme is closed; P121 is optional, not an obligatory end.
 
-**Sequence:** P119.0.1 → P119.0.2–0.7 → Navigator decision on P119 → P120.0.1–0.4 → P120.0.5–0.7 → programme closed → P121 (optional, only after an explicit Navigator yes and closed open decisions).
+**Historical sequence (recorded before cycle-based numbering):** P119.0.1 → P119.0.2–0.7 → Navigator decision on P119 → P120.0.1–0.4 → P120.0.5–0.7 → programme closed → proposed browser-provider/resilience work (optional, only after an explicit Navigator yes and closed open decisions). Current patch identifiers follow the cycle/version convention in `AGENTS.md`; do not treat the old P121 feature label as the current patch number.
 
 ---
 
-## Phase 8 — Universal Model Resilience Layer (P121 — planned only)
+## Phase 8 — Universal Model Resilience Layer (previously described as the P121 feature — planned only)
 
 **Goal:** Improve outcomes when models/providers are unavailable or return low-quality answers (registry, health monitor, task-aware router, response validator, recovery engine).
 
