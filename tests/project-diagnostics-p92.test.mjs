@@ -24,3 +24,16 @@ test('paste-ready session log is exposed without creating an archive and omits u
   assert.match(ui, /Compact session log text/);
   assert.match(diagnostics, /request\/response bodies, prompts, generated source/);
 });
+
+test('black-screen diagnostics capture bounded browser state without page content', () => {
+  const diagnostics = readFileSync(new URL('../server/projectDiagnostics.ts', import.meta.url), 'utf8');
+  assert.match(route, /diagnostics\/client-events/);
+  assert.match(route, /events\.slice\(-40\)/);
+  assert.match(diagnostics, /BROWSER_AFTER_SCREEN_STATE/);
+  assert.match(diagnostics, /RECENT_HTTP_REQUESTS/);
+  assert.match(ui, /window_error/);
+  assert.match(ui, /unhandled_rejection/);
+  assert.match(ui, /post_mount_5s/);
+  assert.match(ui, /textLength=/);
+  assert.doesNotMatch(ui, /textContent\s*\}\s*,\s*html/);
+});
