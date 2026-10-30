@@ -1,3 +1,9 @@
+## P121.0.10 — AGENTS.md hard gates (fail closed)
+
+- Rewrote `AGENTS.md`: §0 hard gates G1–G5 first (ZIP purity, Navigator tablet/GitHub-only, automate-first, UI/e2e same delivery, evidence honesty); invalid excuses listed; audience labels FOR_NAVIGATOR / FOR_ASSISTANT / FOR_CI; delivery checklist; preserved obligations, SoT map, session protocol, minimalism, security.
+- Updated `tests/p121-navigator-protocol.test.mjs` to assert the new gate structure.
+- Verification: governance test is source-level; full suite / hosted CI NOT_RUN in authoring workspace.
+
 ## P121.0.9 — Fix Architect e2e unmount and lint:copy UserGuide
 
 - Keep guided wizard mounted after create/build (`showGuidedStart` no longer clears on `onFinished`; selection no longer hides the done step). Restores `novice-done` visibility for P120 Architect browser e2e.

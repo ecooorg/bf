@@ -1,3 +1,19 @@
+# CURRENT EVIDENCE NOTE — P121.0.10 AGENTS hard gates, 2026-10-30
+
+> Additive. Prior notes retained.
+
+## Change
+
+`AGENTS.md` restructured so delivery and Navigator rules are **fail-closed hard gates at the top**, not late narrative. Explicit bans on combined re-ship, helper files in ZIP, shell steps for Navigator, and shipping UI flow changes without e2e/completion surface in the same delivery.
+
+## Checks
+
+- Source structure of AGENTS.md reviewed against session failure modes.
+- `p121-navigator-protocol.test.mjs` updated for G1–G5 headings.
+- Hosted CI / full test:core: NOT_RUN here.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.9 e2e and lint:copy fixes, 2026-10-30
 
 > Additive. Prior notes retained.
