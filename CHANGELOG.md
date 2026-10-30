@@ -1,3 +1,11 @@
+# C121 / P121.0.2 — Remove Architect launch confirmation
+
+- Removed the browser-native “Open Architect?” confirmation when the user selects Architect. Selection now records the start mode and navigates directly to `/project`.
+- Added regression coverage for direct Architect launch and updated current patch assertions. Confirmations for destructive actions are unchanged.
+- Version/patch: 121 / 121.0.2.
+
+---
+
 # C121 / P121.0.1 — Verification cycle bootstrap and documentation integrity repair
 
 - Introduced cycle-based identity: cycle C121, product version 121, patch P121.0.1. Synchronized `package.json` and root `package-lock.json` version metadata.
