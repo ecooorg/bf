@@ -300,7 +300,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -316,12 +316,15 @@
         "tests/p119-agent-boundaries.test.mjs",
         "tests/p119-agent-isolation.test.mjs",
         "tests/p119-agent-prompts-routes.test.mjs",
-        "tests/p119-agent-ui-contract.test.mjs"
+        "tests/p119-agent-ui-contract.test.mjs",
+        "tests/p121-cycle-governance.test.mjs"
       ],
       "modules": [
         "scripts/check-version.mjs",
+        "scripts/docs-integrity.mjs",
         "scripts/lint-copy.mjs",
         "scripts/p118-architect-live.mjs",
+        "scripts/p120-e2e-preflight.mjs",
         "scripts/patch-tools.mjs",
         "server/agentRouting.ts",
         "server/authRoutes.ts",
@@ -820,7 +823,8 @@
       "test:compact-ci-artifacts"
     ],
     "scripts/docs-integrity.mjs": [
-      "docs-integrity"
+      "docs-integrity",
+      "test:core"
     ],
     "scripts/evidence-to-markdown.mjs": [
       "test:files"
@@ -856,6 +860,9 @@
     ],
     "scripts/p118-architect-live.mjs": [
       "test:app-builder",
+      "test:core"
+    ],
+    "scripts/p120-e2e-preflight.mjs": [
       "test:core"
     ],
     "scripts/package-ci-artifacts.mjs": [
