@@ -1,3 +1,34 @@
+# Current user-value audit — documentation baseline (2026-10-30)
+
+**Status:** DOCUMENTATION AUDIT COMPLETE; product implementation NOT_COMPLETE. This is the current summary and supersedes older recommendations below where they conflict. Older entries remain evidence records, not active plans.
+
+## Product outcome status
+
+| Agent / requirement | Current evidence | Assessment |
+|---|---|---|
+| Conversational | Historical P117.3 live retest recorded 12 PASS, 3 PARTIAL, 0 FAIL across 15 scored cases (80% PASS); current P120 browser test uses deterministic fixture responses | **PARTIAL** — re-evaluate current live answer quality, freshness, context, and tool-failure recovery |
+| Expert | Deterministic browser test covers provider failure, Retry, answer and follow-up; CI reported green by Navigator | **PARTIAL** — real multi-turn investigation, alternatives, synthesis and action-plan quality not established |
+| Architect delivery | Historical P118 live run produced verified ZIP; P120 browser E2E uses a deterministic project/build API fixture | **PARTIAL** — live arbitrary-task generation quality and current deployed end-to-end behavior not established |
+| Architect single-mode contract | Checked source contains `ProjectPathChooser`, “Simple words” / “Professional”, `builderPath`, `ProjectNoviceWizard` and separate professional workspace branch | **FAIL in inspected tree** — target single workflow is not implemented |
+| P120 technical evidence | Navigator supplied PASS evidence for commit `d411b982186276708d31173f62b574aed19ebd63` | **PASS for the listed technical checks only**; not product-value acceptance and not evidence for later commits |
+
+## Required product decision
+
+Architect is one user-facing mode and one workflow. Do not retain simplified/novice and professional/advanced as selectable modes or independent flows. Guidance and advanced controls may exist inside the same workflow. Do not merely hide the two cards: remove the mode-selection state and branch-based independent completion paths, while preserving useful capabilities needed in the single workflow.
+
+## Required next work
+
+1. Implement the single Architect workflow against `TECHNICAL_SPECIFICATION.md` §6.3 / REQ-A3-002 and `ROADMAP.md` Phase 7.
+2. Verify a real software goal through actual generation, applicable build/validation, ZIP integrity and download; if it fails, capture the exact stage, cause and recovery action. Mocked E2E remains supplementary.
+3. Evaluate representative live Conversational and Expert tasks against their user contracts.
+4. Close the programme only after all three agents meet the user-value release gate. CI is necessary supporting evidence, never the terminal product objective.
+
+## Audit limits
+
+The code review used the reconstructed local working tree and P120.0.7 handoff files, not a direct remote branch or live deployment. P120 evidence is owner-supplied and was not rerun during this documentation patch. No live model call, deployed UI session, or real generated artifact was performed in this audit. No product runtime change is claimed.
+
+---
+
 ## P119.0.3 — Conversational/Expert isolation, legacy names removed from user copy (2026-10-29)
 
 - **Runtime change:** structural only. Agent selection/planning/prompt entry moved to `server/agentRouting.ts`, `conversationalAgent.ts`, `expertAgent.ts`; prompts and plans are byte-identical to the pre-split logic for all tested request bodies × detected modes. User-visible text no longer says Simple chat / Project mode / Project workspace / Expert method.
@@ -187,18 +218,11 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 ---
 
 
-# P117.1 — Model resilience layer planning record
+## Superseded planning note
 
-**Status: DOCUMENTATION ONLY — no runtime behavior changed.**
-
-- Added a future P121 specification for registry, health monitoring, task-aware routing, response validation, and recovery.
-- Recorded candidate model families and access channels as unverified candidates; exact IDs, live access, current pricing/free quotas, terms, and quality remain to be checked before implementation.
-- Captured required safeguards: budgeted/staggered probes, error classification, bounded retries, circuit breakers, context preservation, selective independent critique, explicit cross-provider data-transfer authorization, and truthful failure states.
-- Deferred launch decisions: global/per-provider budgets and protected reserves; probe cost/frequency; allowed data transfer; critique policy; telemetry retention; local inference feasibility; exact endpoint validation and benchmark thresholds.
-- Verification: documentation edits only. Runtime tests, typecheck/build, provider probes, E2E and CI: NOT_RUN. No product outcome, model availability, or P117 acceptance is claimed. The previously reported P115 CI/version mismatch remains unresolved until new CI evidence is supplied.
+The former P117.1/P121 provider-resilience proposal is not part of the committed product scope or current roadmap. Do not use its candidate provider/model list or open-decision list as implementation instructions. Any future provider work requires a measured user-outcome gap and explicit authorization.
 
 ---
-
 
 # P117 — Expert and model cascade implementation record
 
@@ -250,7 +274,7 @@ The supplied diagnostic export explicitly omits external platform logs/CI logs a
 
 ## 2. User-workflow inventory: current implementation versus target
 
-The UI has three top-level choices (`Simple`, `Expert`, `Project`) in `src/App.tsx:353-379`; the reported four workflows are Simple, Expert, and the two paths inside Project (`novice` wizard and professional workspace/path chooser). Project is a separate `/project` route, not a fourth peer mode in the current top-level selector. P113 target remains exactly three agents: Conversational, Expert Problem-Solving, Complex Software Architect. The novice/professional distinction becomes interaction profiles within the third agent, not separate agents.
+Historical baseline observation: the UI had three top-level choices (`Simple`, `Expert`, `Project`) and two paths inside Project (novice wizard and professional workspace/path chooser). This older record incorrectly proposed retaining those as interaction profiles. That proposal is superseded: the current target is one Architect mode and one workflow, with no chooser or independent submode paths.
 
 | Current workflow | Observed implementation path | User-reported result | Audit disposition |
 |---|---|---|---|
@@ -328,7 +352,7 @@ This means a user can encounter configuration-dependent availability, passport p
 **What is established:** the project workflow branches across UI paths and backend engines; not all paths guarantee model-customized implementation.  
 **What remains open:** which path was used in the user's failures, the production flag values, whether the visible final state communicates the true engine/result, and whether a non-empty archive is consistently delivered.
 
-**P117 requirement:** converge the user-facing flow on one software-architect state machine. Interaction profiles (simplified/professional) may vary questions and controls, but must share a single completion contract. Clearly distinguish scaffold/template output from model-implemented output; no ambiguous “project ready” success without a verified artifact.
+**Historical finding, superseded by the current contract above:** converge the user-facing flow on one software-architect state machine. The earlier suggestion to retain simplified/professional interaction profiles is rejected. The target has one Architect mode and one workflow; guidance and advanced controls may vary inside that workflow. Clearly distinguish scaffold/template output from model-implemented output; no ambiguous “project ready” success without a verified artifact.
 
 ### UO-06 — Expert output and project deliverables have different success vocabularies and no single user-facing completion contract
 
@@ -388,11 +412,11 @@ P110–P112 provide intent/policy contracts, capability graph and context select
 
 | Component | Current role | Risk to user outcome | Decision for future patch |
 |---|---|---|---|
-| `server/promptPacks.ts` | Shared Simple/Expert prompt builder; large information/decision contracts | Mode-specific behavior is mostly instruction/flag composition; potential constraint accumulation | **ISOLATE** per P113; preserve useful rules only when paired scenarios prove value |
+| `server/promptPacks.ts` | Shared method/boundary/contract blocks used by Conversational and Expert | Shared instructions may affect agent-specific output quality | **MEASURE behavior first; refactor only if a demonstrated user-outcome defect requires it** |
 | `server/conversationMode.ts` | Regex mode classifier; unknown intent defaults to information; Expert information is coerced to decision | Classification can steer prompt policy without user-visible state | **REPAIR/REPLACE** inside Conversational/Expert split; evaluate with multilingual scenarios |
-| `server.ts` `/api/conversation` | Shared input normalization, search, generation, quality retry, verifier and response shaping | One path owns both conversational and Expert open dialogue | **ISOLATE** agent orchestration; retain proven low-level utilities |
+| `server.ts` `/api/conversation` | Shared compatibility handler and common transport logic | Shared path may couple behavior if policies leak between agents | **Verify separate agent contracts on real tasks; do not split transport solely for code organization** |
 | `src/decision.ts`, `src/ExpertStepScreens.tsx`, `src/ExpertNav.tsx` | Client-side staged decision method and views | Stage-specific state can be sparse/inconsistent; transition depends on each screen | **REPLACE/RETAIN by evidence**; do not carry stage UX forward automatically |
-| `src/ProjectNoviceWizard.tsx`, `src/ProjectMode.tsx`, `server/projectRoutes.ts` | Novice wizard and professional workspace; several build engines | Fragmented status and completion surfaces | **ISOLATE** interaction profiles over one software-architect workflow |
+| `src/ProjectNoviceWizard.tsx`, `src/ProjectMode.tsx`, `server/projectRoutes.ts` | Two Architect paths and several build engines in the inspected baseline | Fragmented status and completion surfaces | **REPLACE with one workflow and one completion contract; retain only user-value capabilities** |
 | `appBuilder/core-engine.ts` | Spec → plan → files → validators → ZIP | Invalid spec can terminate with no files; current recorded failure proves this path matters | **REPAIR** with stage-specific failure/recovery and end-to-end artifact gate |
 | `server/epistemicVerifier.ts` | Optional claim classification; errors become skipped/error | Error impact is opaque; verifier may add latency without demonstrated benefit | **MEASURE** before keeping, changing or removing |
 | `server/webSearch.ts` | Optional current web lookup, opt-in by env | Freshness is not guaranteed when disabled/skipped | **REPAIR** to agent-owned freshness policy |
@@ -405,22 +429,14 @@ The current tests and build checks may protect contracts, but the audit did not 
 
 - **Conversational:** direct stable-knowledge answer; current-events answer with search; search unavailable; follow-up retaining context; answer after verifier error; bounded latency.
 - **Expert:** at least six meaningful turns; explicit facts versus hypotheses; multiple materially different alternatives; synthesis/action plan; refresh/reopen continuity; stage endpoint failure and resume; no empty/inert panel without next action.
-- **Software architect — simplified profile:** minimal questions/defaults → actual non-empty project → validation → ZIP integrity → downloadable artifact.
-- **Software architect — professional profile:** requirements/specification → architecture/build → tests/validation → bounded repair → package → accessible delivery; every failed stage has truthful recovery.
+- **Software architect — one target workflow:** goal and requirements → architecture/plan → generated files → applicable tests/validation → bounded repair → package/integrity checks → accessible delivery; every failed stage has truthful recovery. The two former profiles are implementation history, not target acceptance paths.
 - **Cross-cutting:** cancellation, timeout, provider exhaustion, invalid structured output, missing search, partial files, corrupt ZIP, unavailable project flag and lost browser state.
 
 For every scenario record input, environment/flags, provider/model path, expected user outcome, actual visible output, artifact hashes where relevant, stage statuses, latency, and pass/fail. Do not use model-call success or non-empty JSON as the outcome assertion.
 
-## 6. Priority and patch sequencing recommendation
+## 6. Historical priority recommendation (superseded by the current audit at the top)
 
-1. **P115 Conversational Agent:** restore direct, context-aware, appropriately fresh answers; isolate the prompt/orchestration and measure answer quality before/after.
-2. **P116 Expert Problem-Solving Agent:** replace dead-end stage progression with durable investigation state and a guaranteed next action.
-3. **P117 Complex Software Architect Agent:** make real, validated, downloadable software artifacts and honest failure/recovery the central completion contract; retain simplified/professional interaction profiles only.
-4. **P118 Three-agent migration:** switch the product entry points only after each replacement agent independently passes its gate; preserve/migrate state and artifacts with rollback evidence.
-5. **P119 Resilience and cross-cutting defects:** verifier disposition, cancellation/listener lifecycle, ZIP/crypto, dependency findings, retry/latency and telemetry, based on demonstrated effect.
-6. **P120 final user-outcome evaluation:** repeat representative tasks and report task completion, answer quality/freshness, expert continuity, artifact integrity/access, truthful failure and recovery, latency/cost.
-
-This order follows user impact, not dependency graph aesthetics. If a proposed patch improves internal structure, test count, graph coverage, prompt neatness or CI status without a demonstrated improvement to user outcomes, **STOP and ask the Navigator whether to proceed**. Do not silently continue such work.
+The numbered sequence in this older audit has been superseded. Follow `ROADMAP.md` only: documentation reconciliation → one Architect workflow → real Conversational and Expert outcome evaluation → final user-value release gate. The standing rule remains: if a proposed patch improves internal structure, test count, graph coverage, prompt neatness or CI status without a demonstrated improvement to user outcomes, stop and reassess its priority.
 
 ## 7. Root-cause status summary
 
@@ -430,7 +446,7 @@ This order follows user impact, not dependency graph aesthetics. If a proposed p
 | Current web search is opt-in and some production requests skipped it | OBSERVED | Verify deployed flags and test freshness intent across languages |
 | Simple and Expert share `/api/conversation` and prompt construction | OBSERVED | Compare actual prompt/output on paired user scenarios |
 | Expert state is client-side and context sent to chat is bounded/clipped | OBSERVED | Reproduce refresh/resume and multi-turn dead-end |
-| Project has novice/professional UI paths and several engine gates | OBSERVED | Run both flows in controlled environment and record visible result |
+| Project has novice/professional UI paths and several engine gates | OBSERVED in inspected tree | Remove independent paths; verify one workflow and one completion contract against real user tasks |
 | Verifier errors cause bad answers | NOT_PROVEN | Correlate verifier outcomes with final answers; compare controlled cases |
 | AbortSignal warnings cause the reported UX failures | NOT_PROVEN | Trace listener lifecycle and run cancellation/retry stress case |
 | Large prompts cause generic answers | NOT_PROVEN | Paired quality evaluation with controlled prompt variants |

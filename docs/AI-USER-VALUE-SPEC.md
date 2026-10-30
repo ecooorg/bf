@@ -1,20 +1,20 @@
 # BIForge — User-Outcome Architecture Specification
 
 **Status:** current normative target contract. Update this file in place; do not create a new versioned copy for each patch.  
-**Approved target:** replace the four current user-facing modes with exactly three autonomous agents.  
+**Approved target:** exactly three user-facing agents, with Architect implemented as one mode and one workflow.  
 **Primary acceptance rule:** a feature is not successful because internal components execute or CI is green; it is successful only when a representative user completes the intended task and receives useful, truthful, accessible output.
 
 ## 1. Purpose and failure model
 
 BiForge's product purpose is to deliver information value and completed work to its user. Internal health, tests, model-call success, schema validity, and green CI are necessary evidence, but none alone proves product success. A workflow that ends in empty panels, generic stale answers, silent failure, or no downloadable artifact is a product failure even when its internal checks pass.
 
-The current four modes are reported by the owner as functionally unacceptable: Simple mode tends toward generic/dated answers under accumulated controls; Expert mode loses useful progression after a few turns; both Project modes can end without a usable archive/files or an actionable explanation. Treat these as user-reported symptoms to reproduce during audit, not as proven root causes. Prior log findings (App Builder `invalid_spec`, verifier errors, AbortSignal listener warnings, browser `node:crypto` warnings, dependency audit warning) remain supporting evidence, not a substitute for end-to-end diagnosis.
+Historical user reports from the legacy interface describe generic or dated Simple answers, Expert progression that stalls after a few turns, and Project paths that may end without a usable archive or actionable explanation. Treat these as symptoms to reproduce against the current product, not as proven root causes. The old labels and path split are not part of the target product. Prior log findings (App Builder `invalid_spec`, verifier errors, AbortSignal listener warnings, browser `node:crypto` warnings, dependency audit warning) remain supporting evidence, not a substitute for end-to-end diagnosis.
 
 P113 changes the programme's control question from “did the implementation pass its checks?” to “did the user receive the intended outcome, with evidence and a clear recovery path if not?”
 
 ## 2. Target product: exactly three agents
 
-The product exposes three modes/agents. No fourth mode and no shared “project mode” selector remains in the target UX. The three agents own separate workflows, prompt/instruction sets, orchestration policies, model cascades, state machines, output contracts, and acceptance suites. They may use low-level shared infrastructure (provider adapters, authentication, persistence primitives, telemetry, cancellation, safe file storage, common UI shell), but shared infrastructure must not collapse their behavior into one prompt pipeline with mode flags.
+The product exposes exactly three user-facing agents. No fourth agent and no shared “project mode” selector remains in the target UX. The three agents own separate workflows, prompt/instruction sets, orchestration policies, model cascades, state machines, output contracts, and acceptance suites. They may use low-level shared infrastructure (provider adapters, authentication, persistence primitives, telemetry, cancellation, safe file storage, common UI shell), but shared infrastructure must not collapse their behavior into one prompt pipeline with mode flags.
 
 ### A1. Conversational Agent
 
@@ -66,6 +66,8 @@ The product exposes three modes/agents. No fourth mode and no shared “project 
 7. Package the result and verify archive integrity, expected files, and manifest.
 8. Persist a durable operation state and deliver the artifact through a visible download/access affordance.
 9. If any stage fails, show a user-facing failure state with the failed stage, concise cause, whether partial artifacts exist, safe recovery/retry action, and operation identifier. Never leave only empty panels or silently report success without a deliverable.
+
+**Single-mode rule:** Architect has one user-facing mode and one coherent workflow/state machine. It must not present a chooser between “Simple words”/novice and “Professional”/advanced paths, and it must not route the user into independent Architect workflows with different state or completion semantics. Clear guidance, sensible defaults, and advanced controls may be offered within the same workflow. This is a product requirement, not a style preference.
 
 **Completion contract:** `SUCCESS` requires an artifact manifest, verified non-empty expected output, archive/file integrity checks where applicable, truthful check results, and a user-accessible delivery reference. `PARTIAL` requires explicit partial-artifact status and access if safe. `FAILED` requires a specific stage/reason and next action. `UNKNOWN`, `NOT_RUN`, `BLOCKED`, `TIMEOUT`, or `PARTIAL` must never be represented as successful completion.
 
@@ -135,14 +137,14 @@ For each agent, maintain a concise inventory of instruction composition, orchest
 
 Before changing prompts, instructions, verifiers, or model cascades, capture representative baseline inputs/outputs where feasible and compare results using a consistent rubric. Set evaluation thresholds before reviewing candidate results. Do not invent numeric baselines where none exist.
 
-## 6. Migration and rollback
+## 6. Implementation migration and rollback
 
-- Do not remove legacy modes until their replacement agents have passed their own acceptance gates.
-- Keep new agent entry points and state machines separate from legacy mode-specific conditionals.
-- Migrate persisted conversations/projects only after mapping and rollback behavior are defined.
-- Keep user artifacts safe and accessible during routing migration.
-- Remove old paths only after acceptance and migration integrity are evidenced.
-- Roll back routing independently from data migration where possible; rollback must restore a usable user path, not merely a green build.
+- Treat existing modes and branches as legacy implementation, not as architectural constraints.
+- Replace the Architect chooser and separate submode branches with the target single workflow in a bounded patch; do not ship an interim product that merely hides the chooser while retaining two independent user flows.
+- Reuse a component only when it supports the target workflow and shared completion contract. Delete or refactor components whose sole purpose is preserving a rejected mode split.
+- Migrate persisted projects/artifacts only when required; define mapping and rollback before any data-shape change.
+- Keep user artifacts safe and accessible during routing/workflow migration.
+- Roll back implementation changes if needed, but do not redefine the product target to fit legacy code.
 
 ## 7. Scope boundaries
 
@@ -163,65 +165,14 @@ Before changing prompts, instructions, verifiers, or model cascades, capture rep
 - Stop and ask the Navigator if a proposed patch is primarily internal restructuring and no explicit, testable user-outcome benefit can be stated.
 - The Navigator maintains local backups. Do not retain duplicate historical specification files just to preserve old versions.
 
-## 8. Future Universal Model Resilience Layer (P121; planning only)
+## 8. Product completion and scope control
 
-**Status:** planned only. P117.1 records this specification; it does not authorize implementation, provider activation, prompt transfer, or quota consumption. P121 may start only after the current P116–P120 user-facing-agent sequence is accepted or explicitly re-sequenced by the Navigator.
+The only committed product scope is the three user-facing agents and the user outcomes specified in sections 2–4. A provider-resilience layer, additional agent, browser-based model-provider branch, or broad VIX implementation is not an automatic next phase and is not a substitute for closing current user-value gaps. Such work may be proposed only when a measured user-outcome failure establishes the need, with a bounded hypothesis, privacy/cost constraints, and explicit authorization where required.
 
-### 8.1 User outcome
+The implementation sequence is maintained only in `../ROADMAP.md`; do not create or revive competing patch roadmaps. The next product implementation is the single Architect workflow. After it is implemented, evaluate real Conversational and Expert tasks and close the programme only when the final user-value release gate in `../ROADMAP.md` is satisfied.
 
-BIForge should make a best-effort attempt to complete a user task when a model endpoint is unavailable, rate-limited, overloaded, or produces an invalid or demonstrably inadequate result. It must preserve relevant task context, report uncertainty and failures honestly, and never promise uninterrupted service or hallucination-free output. Availability recovery and answer-quality recovery are separate capabilities.
+## 9. Final acceptance rule
 
-### 8.2 Components
+For each claimed complete agent, evidence must show a representative user task, actual visible output, task-based evaluation, and a clear disposition for limitations. For Architect, evidence must include a real generation attempt and either a verified user-accessible artifact or a truthful stage-specific failure with recovery. For Conversational and Expert, deterministic UI fixtures alone are insufficient; actual response quality and context continuity must be evaluated. Mocked tests, source checks, CI, live-provider tests, and deployed-product evidence must be labelled separately.
 
-- **Model/provider registry:** exact provider and model IDs, endpoint/adapter, capabilities (text, structured output, tools, vision/files), configuration status, health state, quota/cost information when exposed, observed latency/error history, last-checked timestamp, and provenance of each fact. Unknown must remain distinct from available/unavailable. A missing credential means “not configured,” not “model down.”
-- **Health monitor:** metadata/status checks where available plus minimal generation probes where necessary. Checks must be staggered, rate-limited, configurable, and budget-aware; per-process probing must not accidentally multiply load across replicas. Separate probe failures from user-request failures.
-- **Task-aware router:** select among eligible routes using task capabilities, agent-specific cascade policy, health, provider independence, quota/budget, latency, cost, and measured task performance. A flat list is insufficient. Several models behind one provider or shared quota are not fully independent failure domains.
-- **Response validator:** distinguish a successful HTTP/API call from successful task completion. Validate required structure, completeness, constraints, citations/evidence where applicable, and objective artifacts with deterministic tools where possible. Do not let a model’s self-reported confidence count as proof.
-- **Recovery engine:** classify errors; use bounded retries and timeouts; respect `Retry-After` when supplied; apply circuit breakers and controlled recovery probes; preserve user context and prior progress; and return a truthful actionable failure state when no safe route remains.
-
-### 8.3 Candidate model/provider families
-
-The Navigator’s initial candidate list includes Gemini (`gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-3.8-flash`, `gemini-3.6-flash`, Gemini 2.5 and 1.5 variants), Gemma (`gemma-4`, `gemma-3`, `gemma-2-9b-it`), Llama variants, DeepSeek, Qwen variants, Mixtral, Command-R, Mistral/Mistral Small, `gpt-oss-120b`, `gpt-oss-20b`, MiniMax, Kimi, GLM, Clef-Flash and Clairic. This is a candidate inventory, not a statement that each exact ID exists, is supported, is currently available, is free, or is suitable. Clef-Flash and Clairic remain unresolved names until the Navigator supplies reliable source/provider details.
-
-Potential access channels include direct provider APIs, Groq, Cloudflare Workers AI, OpenRouter, Hugging Face Inference Providers, and local/open-weight inference where deployment resources allow. The implementation must verify exact endpoint IDs, current catalogs, supported input/output capabilities, credentials, current terms, data handling, pricing and account-specific limits at implementation time. Open-weight does not imply free hosted inference. A provider aggregator is one route, not the only route, to avoid introducing a single point of failure.
-
-### 8.4 Monitoring and probe policy
-
-Use a layered approach: (1) provider/API/model metadata checks without generation when supported; (2) minimal generation probes only when necessary; (3) a small quality benchmark on a slower cadence or after a model/provider change; (4) real operational outcome metrics. An `OK` response proves only basic generation, not reasoning quality. Quality checks should include instruction following, structured output, simple reasoning, evidence/uncertainty handling, and code/other task-specific tests where applicable. Probe frequency, cost, concurrency, and per-replica behavior must be bounded and observable. Do not spend all of a scarce free quota on health checks.
-
-### 8.5 Error recovery and answer quality
-
-Classify at least transient server/time-out errors, rate limits/quota exhaustion, invalid credentials/configuration, missing/retired model IDs, unsupported input capabilities, malformed output, and content that fails task acceptance. Retry only transient failures within explicit bounds; avoid repeating quota/configuration failures blindly. Circuit breakers should temporarily suppress failing routes and permit controlled recovery checks. Preserve relevant prompt/context and artifacts across a route switch, while respecting context-window and data-transfer constraints.
-
-For quality failures, route through agent-specific validators. Ordinary low-risk tasks may use one model. Higher-risk tasks may receive deterministic validation and/or selective independent critique by a second model. Critical software tasks should run available build/tests and inspect produced artifacts. Research tasks should verify evidence and distinguish sourced facts from hypotheses. Independent model agreement alone is not proof, especially when models/providers share training or infrastructure.
-
-### 8.6 Quota, privacy and governance safeguards
-
-External-provider fallback must be explicitly configured/authorized; credentials alone must not silently permit sending user prompts to a new provider. Never log secrets or unnecessary raw user content. Define telemetry minimization/retention and disclose/handle provider-specific data terms as required. Automatic catalog discovery may produce a candidate report, but must not automatically route production traffic to an unreviewed model. Keep a way to disable each provider/route and roll back routing without losing user data or task state.
-
-### 8.7 Open decisions required before P121 launch
-
-1. What global and per-provider request/token/spend budgets apply, and which reserves must be protected for emergency or complex tasks?
-2. May probes consume quota; what frequency, concurrency, and monthly/daily budget are acceptable per provider?
-3. Which categories of user data may be sent to which external providers, and how is that choice configured and communicated?
-4. Which tasks require independent critique, and what latency/cost budget applies?
-5. What telemetry may be stored, how long, and with what redaction?
-6. Is local inference feasible for the actual deployment hardware, operational budget, and maintenance capacity?
-7. Which candidate model IDs and provider routes are valid and currently supported, and what are their current terms, free limits, and capabilities?
-8. What benchmark cases and acceptance thresholds will rank task quality without treating a short health probe as a quality guarantee?
-
-These decisions are intentionally deferred until before P121 implementation/launch. They must not delay or silently alter the current P116–P120 line.
-
-### 8.8 P121 acceptance gates
-
-- Provider/model inventory records provenance and distinguishes unknown, not configured, healthy, degraded, rate-limited, and unavailable states.
-- Mock tests cover each error class, bounded retry, circuit breaker, recovery, context preservation, and no-eligible-route behavior.
-- Probe scheduling is staggered, budgeted, configurable, and tested against duplicate/multiple-replica behavior.
-- Tests prove external-provider routes remain disabled without explicit authorization and respect model capability constraints.
-- Representative user tasks demonstrate successful failover and distinguish API success from task acceptance; mocked and live-provider evidence are reported separately.
-- Quota/cost, privacy/data-transfer, telemetry, model selection, rollback and launch questions are resolved and explicitly approved before production activation.
-- No claim of universal availability or hallucination elimination; residual limitations and failure paths are visible and actionable.
-
-## Current sequencing
-
-The authoritative patch sequence is maintained only in `docs/AI-NATIVE-RENOVATION-ROADMAP.md`. Do not duplicate a roadmap here. The active implementation sequence remains P116–P120 as defined in the authoritative roadmap. P121 is a later planned resilience-layer task documented in section 8; it is not authorized until the current sequence is accepted or explicitly re-sequenced.
+The programme is not complete because a patch sequence ends or tests pass. It is complete only when the three agents deliver their specified user outcomes and the Navigator explicitly accepts the evidence.

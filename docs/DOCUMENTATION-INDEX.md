@@ -12,14 +12,14 @@ These three files are the authoritative engineering system. They may only be ext
 
 ## Read for every patch
 
-**P118.5 active:** `ARCHIVE-DELIVERY-CANON.md` is mandatory reading for any App Builder / ZIP / download work.
+**Archive delivery:** `ARCHIVE-DELIVERY-CANON.md` is mandatory reading for any Architect / ZIP / download work.
 - `AUDIT-2026-10-29.md` — full static audit (2026-10-29); findings and priorities; not a second roadmap.
 
 1. `../AGENTS.md` — authority, charter (including D1–D4 documentation protection), authorization tiers, stop rule and the version/patch numbering rules (`package.json` in every patch).
 2. `AI-OPERATING-RULES.md` — permanent operating, security and evidence rules.
 3. `AI-NATIVE-RENOVATION-TASK.md` — current task, acceptance criteria and immediate next action.
 4. `AI-USER-VALUE-SPEC.md` — approved three-agent target and user-outcome contracts (complements TECHNICAL_SPECIFICATION §6).
-5. `AI-NATIVE-RENOVATION-ROADMAP.md` — programme gates (must stay consistent with `../ROADMAP.md`; the latter is the detailed reconstruction + forward plan).
+5. `AI-NATIVE-RENOVATION-ROADMAP.md` — programme-wide user-value and acceptance rules; it must not contain a competing patch sequence.
 
 Read `AI-USER-VALUE-REPORT.md` when diagnosing or changing user-facing behavior; newest record is at the top. New evidence of substance must also be summarised in `../TECHNICAL_REPORT.md`.
 
@@ -28,7 +28,6 @@ Read `AI-USER-VALUE-REPORT.md` when diagnosing or changing user-facing behavior;
 - `AI-NATIVE-GLOBAL-AUDIT-2026-10.md` — prior broad source audit; historical baseline, not a current task list.
 - `OPERATIONS.md` — configuration, deployment, rollback and diagnostic commands.
 - `AI-ENVIRONMENT-CONTEXT.md` — Render deployment facts, authentication rules, live-test protocol; read before touching deployment or live workflows.
-- `P121_Browser_based_Model_Providers.md` — planned P121 task (browser-based model access); not authorized, read only when P121 is discussed.
 - `architecture-guardrails.md` — module boundaries, generators, App Builder invariants, and TypeScript/naming conventions (includes former typing-and-naming).
 - `VIX-CONCEPT.md` — long-horizon strategy; not immediate implementation authorization.
 - `../CHANGELOG.md` — patch history; newest entry first.

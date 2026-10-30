@@ -31,5 +31,5 @@ The owner pasted a partially redacted environment-variable listing in chat. Trea
 3. Store credentials as GitHub Actions repository secrets, never as workflow literals.
 4. Run a bounded, manually dispatched workflow initially; inspect its redacted transcript and provider usage.
 5. Only then consider scheduled/automatic execution.
-6. Live results are evidence, not acceptance by themselves. P116 was accepted by the Navigator on 2026-10-28 (residual B3); P117.3 is closed; P118 and later phases are accepted only by the Navigator after the exit gate in the roadmap; P121 must not start without explicit authorization.
+6. Live results are evidence, not acceptance by themselves. P116 was accepted by the Navigator on 2026-10-28 (residual B3); P117.3 is closed; P118 and later phases are accepted only by the Navigator after the exit gate in the roadmap; No provider-expansion branch is part of the current committed sequence; any such work requires a measured user-value case and explicit authorization.
 7. The P118 Architect workflow mutates the live service: it creates two projects named `p118-evidence-*` and, unless dispatched with cleanup off, deletes exactly the project ids it created. It reuses `STAGING_SERVICE_URL` and `STAGING_APP_PASSWORD`; the generated ZIP is only parsed, never executed or extracted.
