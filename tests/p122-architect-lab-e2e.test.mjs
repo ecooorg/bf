@@ -30,6 +30,10 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     for (let i = 0; i < 120; i++) { if (server.exitCode !== null) throw new Error(output); try { if ((await fetch(`${base}/api/health`)).ok) { ready = true; break; } } catch {} await sleep(250); }
     assert.equal(ready, true, `server did not start: ${output}`);
     browser = await chromium.launch(); const context = await browser.newContext({ acceptDownloads: true }); const page = await context.newPage();
+    const browserErrors = [];
+    page.on('pageerror', error => browserErrors.push(`pageerror: ${error.message}`));
+    page.on('console', message => { if (message.type() === 'error') browserErrors.push(`console error: ${message.text()}`); });
+    page.on('requestfailed', request => browserErrors.push(`requestfailed: ${request.url()} — ${request.failure()?.errorText || 'unknown'}`));
     await page.route('**/api/session', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ authenticated: true, projectModeEnabled: true }) }));
     await page.route('**/api/projects', route => route.request().method() === 'POST'
       ? route.fulfill(envelope({ id: 'p122-lab-project', name: 'Lab fixture' }))
@@ -45,5 +49,6 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     await page.getByTestId('architect-lab-download').click();
     const download = await downloadPromise;
     assert.equal(download.suggestedFilename(), 'architectural-lab.zip');
+    assert.deepEqual(browserErrors, [], `browser runtime errors:\n${browserErrors.join('\n')}`);
   } finally { await browser?.close(); server.kill('SIGTERM'); }
 });
