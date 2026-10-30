@@ -109,12 +109,14 @@ test('P119.0.2 appBuilder/ (Architect engine) does not import chat prompts or co
 // 2. Agent selection (client → route → server)
 // ---------------------------------------------------------------------------
 
-test('P119.0.2 /project is the only Architect entry URL and main.tsx lazy-loads ProjectMode for it', () => {
+test('P119 route boundary: Architect opens Architectural Test Lab and /project remains the legacy ProjectMode route', () => {
+  assert.match(main, /pathname === '\/architect-lab'/);
+  assert.match(main, /pathname === '\/architect'/);
   assert.match(main, /pathname === '\/project'/);
-  assert.match(main, /startsWith\('\/project\/'\)/);
   assert.match(main, /lazy\(\(\) => import\('\.\/ProjectMode\.tsx'\)\)/);
-  assert.match(app, /window\.location\.href = '\/project'/);
-  assert.equal((app.match(/window\.location\.href = '/g) || []).length, 1, 'App.tsx may navigate only to /project');
+  assert.match(main, /lazy\(\(\) => import\('\.\/ArchitectLab\.tsx'\)\)/);
+  assert.match(app, /window\.location\.href = '\/architect-lab'/);
+  assert.equal((app.match(/window\.location\.href = '/g) || []).length, 1, 'App.tsx may navigate only to the Architectural Test Lab entry route');
 });
 
 test('P119.0.2 chat shell never keeps Architect as an in-shell mode', () => {
