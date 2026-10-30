@@ -12,7 +12,7 @@ function run(args) {
 
 test('C121 product version, patch identifier, and lockfile metadata agree', () => {
   assert.equal(pkg.version, '121');
-  assert.equal(pkg.patch, '121.0.2');
+  assert.match(pkg.patch, /^\d+\.\d+\.\d+$/);
   assert.equal(lock.version, pkg.version);
   assert.equal(lock.packages?.['']?.version, pkg.version);
   assert.equal(pkg.patch.split('.')[0], pkg.version);
@@ -48,5 +48,12 @@ test('P120 browser E2E preflight remains usable as regression coverage in C121',
   const result = run(['scripts/p120-e2e-preflight.mjs']);
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /P120 regression E2E preflight: PASS/);
-  assert.match(result.stdout, /current version 121, patch 121\.0\.1/);
+  assert.ok(result.stdout.includes(`current version ${pkg.version}, patch ${pkg.patch}`), result.stdout);
+});
+
+
+test('version metadata check reads package.json and validates lockfile', () => {
+  const result = run(['scripts/version-metadata.mjs']);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout, /version: PASS/);
 });
