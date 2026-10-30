@@ -139,6 +139,42 @@ export default function ProjectMode() {
   }, []);
 
   useEffect(() => {
+    // P121.0.13: retain a small privacy-safe browser trace so a blank-screen report
+    // includes client failures and layout state, not only successful server builds.
+    const queue: Array<Record<string, string>> = [];
+    let flushTimer: number | undefined;
+    const snapshot = (event: string, level = 'info', message = '') => {
+      const root = document.querySelector('#root') || document.querySelector('[data-reactroot]');
+      const rect = root?.getBoundingClientRect();
+      queue.push({ event, level, message: String(message).slice(0, 400), timestamp: new Date().toISOString(),
+        hrefPath: location.pathname, visibility: document.visibilityState,
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        root: root ? `tag=${root.tagName};children=${root.childElementCount};textLength=${(root.textContent || '').length};rect=${Math.round(rect?.width || 0)}x${Math.round(rect?.height || 0)};display=${getComputedStyle(root).display};visibility=${getComputedStyle(root).visibility}` : 'ROOT_NOT_FOUND' });
+      if (queue.length > 80) queue.shift();
+    };
+    const flush = () => {
+      if (!queue.length) return;
+      const batch = queue.splice(0, 40);
+      void fetch('/api/projects/diagnostics/client-events', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events: batch }), keepalive: true })
+        .catch(() => { queue.unshift(...batch); if (queue.length > 80) queue.splice(0, queue.length - 80); });
+    };
+    const onError = (event: ErrorEvent) => { snapshot('window_error', 'error', `${event.message || 'Script error'} at ${event.filename ? event.filename.split('?')[0].slice(-120) : 'unknown'}:${event.lineno || 0}:${event.colno || 0}`); flush(); };
+    const onReject = (event: PromiseRejectionEvent) => { const reason = event.reason; snapshot('unhandled_rejection', 'error', reason instanceof Error ? `${reason.name}: ${reason.message}` : String(reason)); flush(); };
+    const onVisibility = () => { snapshot('visibility_change', 'info', document.visibilityState); flush(); };
+    const onPageHide = () => { snapshot('page_hide'); flush(); };
+    snapshot('project_mode_mounted');
+    window.addEventListener('error', onError); window.addEventListener('unhandledrejection', onReject);
+    document.addEventListener('visibilitychange', onVisibility); window.addEventListener('pagehide', onPageHide);
+    const observer = new MutationObserver(() => { if (queue.length < 75) snapshot('dom_mutation'); });
+    const root = document.querySelector('#root'); if (root) observer.observe(root, { childList: true, subtree: true });
+    flushTimer = window.setInterval(flush, 5000);
+    const initialTimer = window.setTimeout(() => { snapshot('post_mount_5s'); flush(); }, 5000);
+    return () => { window.clearInterval(flushTimer); window.clearTimeout(initialTimer); observer.disconnect();
+      window.removeEventListener('error', onError); window.removeEventListener('unhandledrejection', onReject);
+      document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('pagehide', onPageHide); flush(); };
+  }, []);
+
+  useEffect(() => {
     let active = true;
     fetch('/api/session', { credentials: 'same-origin' }).then(r => r.json()).then(s => {
       if (active) { setAuthenticated(Boolean(s.authenticated)); setEnabled(Boolean(s.projectModeEnabled)); setCapabilities(s.capabilities && typeof s.capabilities === 'object' ? s.capabilities as Capabilities : null); }
