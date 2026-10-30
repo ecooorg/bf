@@ -30,7 +30,7 @@ const required = [
 
 const errors = [];
 if (packageJson.version !== '120') errors.push(`expected package version 120, found ${packageJson.version}`);
-if (packageJson.patch !== '120.0.5') errors.push(`expected package patch 120.0.5, found ${packageJson.patch}`);
+if (packageJson.patch !== '120.0.6') errors.push(`expected package patch 120.0.5, found ${packageJson.patch}`);
 const uiCommand = packageJson.scripts?.['test:ui'] ?? '';
 if (!uiCommand.includes('node scripts/p120-e2e-preflight.mjs')) {
   errors.push('test:ui must run the P120 preflight before browser checks');
