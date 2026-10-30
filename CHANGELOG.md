@@ -1,3 +1,10 @@
+## P120.0.3 — Architect browser build-to-ZIP E2E
+
+- Added `tests/p120-architect-e2e.test.mjs`: authenticated Project/Architect workspace browser journey through the novice wizard, explicit passport confirmation, one build request, source ZIP download, archive path/content checks, and all seven real static validators against the downloaded fixture files.
+- The project/build API and archive response are deterministic browser fixtures; the test does not claim live model/build-service coverage. ZIP bytes are downloaded through the UI and inspected with JSZip; validators run locally against the extracted files.
+- Added `test:p120-architect` and included it in `test:ui`. Product runtime behavior unchanged. Version/patch: `120` / `120.0.3`.
+- Verification in this environment: JavaScript syntax and ZIP integrity checked; browser E2E, build, and CI NOT_RUN because dependencies/Chromium are unavailable.
+
 ## P120.0.2 — Expert browser E2E and recoverable failure
 
 - Added deterministic authenticated Expert browser scenario for a 503 API failure, Retry, follow-up, and preserved conversation context.

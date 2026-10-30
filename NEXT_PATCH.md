@@ -1,20 +1,28 @@
-# P120.0.2 — Expert E2E (current)
+# P120.0.3 — Architect E2E (current)
 
-**Applied:** Added authenticated Expert browser E2E with deterministic 503 provider failure, retry, successful answer and follow-up history checks. Added to `test:ui`; product code unchanged. P120.0.1 CI green per Navigator.
+**Applied:** Added a deterministic Architect browser journey covering the novice wizard, confirmed project passport, one build request, source ZIP download, archive integrity/path checks, and all seven real static validators against the downloaded fixture files. Added `test:p120-architect` and included it in `test:ui`. Build API/provider behavior is mocked; live Architect generation is not claimed.
 
-**Verification:** JavaScript syntax and ZIP integrity PASS locally. Browser test and full CI NOT_RUN locally. Next P120.0.3: Architect E2E ZIP integrity. Do not start P121.
+**Verification:** `node --check tests/p120-architect-e2e.test.mjs` and archive integrity PASS. Browser E2E, app build, and CI NOT_RUN locally because dependencies/Chromium are unavailable. P120.0.1 and P120.0.2 are green per Navigator.
+
+**Next:** P120.0.4 — cross-agent transitions and context preservation, per `docs/p119-p121.md`. Do not start P121.
 
 Charter conflicts: none
 
 ---
 
-# P120.0.1 — Conversational E2E (current)
+# P120.0.2 — Expert E2E (history)
 
-**Applied:** Added `tests/p120-conversational-e2e.test.mjs` for a two-turn browser journey through the real local app server: authenticate, choose Conversational, start a conversation, submit a request, receive a deterministic fixture reply, submit a follow-up, and verify history continuity. The test intercepts only `/api/agent/conversational`; it does not claim live provider coverage. `npm run test:ui` includes this scenario, and `npm run test:p120-conversational` runs it alone. Version/patch is `120` / `120.0.1`.
+**Applied:** Added authenticated Expert browser E2E with deterministic 503 provider failure, retry, successful answer and follow-up history checks. Added to `test:ui`; product code unchanged.
 
-**Verification:** `node --check tests/p120-conversational-e2e.test.mjs` PASS. Browser E2E, `npm run test:ui`, full CI, and live model checks NOT_RUN in this environment because dependencies/Chromium are unavailable.
+**Verification:** JavaScript syntax and ZIP integrity checked locally. Browser E2E and hosted CI are green per Navigator.
 
-**Next:** P120.0.2 — Expert E2E scenarios and error paths, per `docs/p119-p121.md`. Keep live provider acceptance separate from deterministic local UI coverage. P119 is accepted by Navigator; do not start P121.
+---
+
+# P120.0.1 — Conversational E2E (history)
+
+**Applied:** Added `tests/p120-conversational-e2e.test.mjs` for a two-turn browser journey through the real local app server: authenticate, choose Conversational, start a conversation, submit a request, receive a deterministic fixture reply, submit a follow-up, and verify history continuity. The test intercepts only `/api/agent/conversational`; it does not claim live provider coverage. `npm run test:ui` includes this scenario, and `npm run test:p120-conversational` runs it alone. Version/patch was `120` / `120.0.1`.
+
+**Verification:** JavaScript syntax PASS; browser E2E and hosted CI are green per Navigator. Live model checks are not part of this deterministic UI test.
 
 Charter conflicts: none
 
