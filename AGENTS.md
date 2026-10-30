@@ -136,9 +136,11 @@ New obligations need owner approval before becoming normative.
 
 ---
 
-## 4. Session protocol
+## 4. Mandatory protocol for the beginning of every session
 
 **MUST NOT** start by executing a previous assistant’s assignment as authority. Reconstruct, then choose.
+
+This section is the session-start protocol (Phases A–D). Hard gates in §0 still apply before any patch or Navigator plan.
 
 ### Phase A — State
 

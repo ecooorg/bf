@@ -1,3 +1,23 @@
+# CURRENT EVIDENCE NOTE — P121.0.11 docs-integrity AGENTS marker, 2026-10-30
+
+> Additive.
+
+## Failure
+
+`docs-integrity` / `test:core`: `AGENTS.md missing required text: Mandatory protocol for the beginning of every session` after P121.0.10 rewrite renamed the section to "Session protocol".
+
+## Fix
+
+Section §4 title restored to the required contract string; hard gates §0 unchanged.
+
+## Checks (local)
+
+- `node scripts/docs-integrity.mjs` → PASS
+- `p121-cycle-governance` + `p121-navigator-protocol` → PASS
+- Hosted CI: NOT_RUN
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.10 AGENTS hard gates, 2026-10-30
 
 > Additive. Prior notes retained.

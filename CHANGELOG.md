@@ -1,3 +1,8 @@
+## P121.0.11 — Restore docs-integrity marker in AGENTS.md
+
+- Restored required heading text `Mandatory protocol for the beginning of every session` (docs-integrity / p121-cycle-governance) while keeping §0 hard gates.
+- Local: `docs:integrity PASS`; p121-cycle-governance + p121-navigator-protocol PASS. Hosted CI NOT_RUN here.
+
 ## P121.0.10 — AGENTS.md hard gates (fail closed)
 
 - Rewrote `AGENTS.md`: §0 hard gates G1–G5 first (ZIP purity, Navigator tablet/GitHub-only, automate-first, UI/e2e same delivery, evidence honesty); invalid excuses listed; audience labels FOR_NAVIGATOR / FOR_ASSISTANT / FOR_CI; delivery checklist; preserved obligations, SoT map, session protocol, minimalism, security.
