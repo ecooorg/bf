@@ -1,5 +1,20 @@
 # Active Decisions
 
+## D-2026-10-30-08 — Prioritize Architectural Test Lab; legacy Architect becomes diagnostic reference
+
+**Decision (owner-approved):**
+1. Concentrate new product development, fixes, and validation on the experimental Architectural Test Lab at `/architect-lab`.
+2. Stop routine repair work on the legacy Architect workflow. Keep it available and unchanged during the experiment unless the owner explicitly authorizes a change or a shared critical security/data-integrity defect requires intervention.
+3. Use legacy defects and diagnostic logs to identify failure classes and derive Lab-specific prevention, observability, timeout, cancellation, and recovery requirements. Do not copy the legacy UI, state machine, or workflow implementation into the Lab.
+4. The Lab is a distinct experimental fourth mode; the three core-agent taxonomy (Conversational, Expert, Architect) remains intact. The Lab does not silently replace or deactivate the legacy Architect.
+5. The Lab currently has a separate frontend route and completion surface but still reuses backend project/build orchestration and services. Documentation and reports must preserve this distinction; an independent engine remains a target, not a completed fact.
+6. Any future promotion of the Lab to the primary Architect experience, or deactivation/retirement of the legacy route, requires a separate explicit owner decision based on user-outcome evidence.
+
+**Rationale:** Repeated legacy-mode failures are useful diagnostic evidence, but continued repair of the old workflow competes with building a clean, independently controlled experience. The experiment should learn from those failures without inheriting their coupling or lifecycle weaknesses.
+
+**Authority:** Explicit owner direction in the 2026-10-30 conversation; normative development strategy in `TECHNICAL_SPECIFICATION.md`.
+
+
 ## D-2026-10-30-07 — Navigator channel, clean patch ZIP, automate verification
 
 **Decision:**

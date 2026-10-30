@@ -13,6 +13,14 @@
 
 Architect is one user-facing agent and one state machine. Any beginner-friendly wording or advanced controls are adaptive presentation within that same flow, not a choice between modes. All paths must converge on the same task/specification, plan validation, artifact generation, validation, status, and delivery contract.
 
+## Architectural Test Lab — independent development track
+
+`/architect-lab` is the experimental fourth user-facing mode, separate from the three core agents and from the legacy Architect route. The Lab owns its instructions, UI, state machine, progress/error/recovery handling, and completion contract. Do not mount `ProjectMode` or route Lab interactions through legacy UI state.
+
+The current Lab is an isolated frontend surface, not yet an independent generation engine: it still reuses authenticated project/build APIs and shared backend orchestration, polling, validators, and artifact storage. Keep that limitation explicit in reports and acceptance claims. The target is a separately owned Lab workflow/engine with explicit, tested interfaces to shared infrastructure (auth, model/provider connectivity, persistence, and artifact delivery where appropriate).
+
+Legacy Architect is retained during the experiment as a diagnostic reference. Do not make routine legacy repairs or copy its workflow implementation into the Lab. Translate observed legacy failures into Lab-specific prevention and recovery requirements, especially bounded model-call stages, observable lifecycle transitions, timeout/cancellation, progress/heartbeat, idempotent recovery, and a persistent completion/error surface. Changes to the legacy route's status require an explicit owner decision and user-outcome evidence.
+
 ## Guardrails
 
 - Client never calls model providers directly.
