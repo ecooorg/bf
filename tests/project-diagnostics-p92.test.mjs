@@ -13,3 +13,14 @@ test('database persists sanitized operation events with retention', () => {
   const diagnostics = readFileSync(new URL('../server/projectDiagnostics.ts', import.meta.url), 'utf8');
   assert.ok(!diagnostics.includes('prompt:')); assert.ok(!diagnostics.includes('authorization:'));
 });
+
+test('paste-ready session log is exposed without creating an archive and omits user content', () => {
+  const diagnostics = readFileSync(new URL('../server/projectDiagnostics.ts', import.meta.url), 'utf8');
+  assert.match(route, /diagnostics\/session-log/);
+  assert.match(diagnostics, /BIFORGE COMPACT SESSION LOG/);
+  assert.match(diagnostics, /NO_MATCHING_OPERATION_EVENTS/);
+  assert.match(ui, /Copy compact session log/);
+  assert.match(ui, /Copy log/);
+  assert.match(ui, /Compact session log text/);
+  assert.match(diagnostics, /request\/response bodies, prompts, generated source/);
+});
