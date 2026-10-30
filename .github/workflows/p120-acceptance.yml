@@ -1,0 +1,77 @@
+name: P120 Acceptance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p120-acceptance-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: biforge
+          POSTGRES_PASSWORD: biforge_test_password
+          POSTGRES_DB: biforge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U biforge -d biforge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        id: dependencies
+        run: npm ci
+      - name: Test acceptance evidence fail-closed behavior
+        if: success()
+        run: npm run test:p120-evidence-check
+      - name: Full verification DAG
+        id: dag
+        if: success()
+        timeout-minutes: 65
+        run: node scripts/run-dag.mjs --profile ci
+        env:
+          DAG_ALLOW_UNSAFE: 'true'
+          DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
+      - name: Install Playwright Chromium
+        id: browser
+        if: success()
+        run: npx playwright install --with-deps chromium
+      - name: P120 browser acceptance suite
+        id: ui
+        if: success()
+        run: npm run test:ui
+      - name: Create commit-bound acceptance report
+        if: always()
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
+          DAG_OUTCOME: ${{ steps.dag.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+          UI_OUTCOME: ${{ steps.ui.outcome }}
+        run: node scripts/p120-acceptance-evidence.mjs --mode collect --out artifacts/p120-acceptance.json
+      - name: Upload acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p120-acceptance-evidence
+          path: artifacts/p120-acceptance.json
+          if-no-files-found: error
+          retention-days: 30

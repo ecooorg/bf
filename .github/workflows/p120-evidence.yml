@@ -1,0 +1,46 @@
+name: P120 Evidence
+
+on:
+  workflow_run:
+    workflows: ["P120 Acceptance"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Download acceptance evidence from triggering run
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: p120-acceptance-evidence
+          path: artifacts/input
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Verify source report and create commit-bound evidence
+        id: verify
+        if: always()
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          EXPECTED_ACCEPTANCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          EXPECTED_ACCEPTANCE_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          EXPECTED_ACCEPTANCE_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: node scripts/p120-acceptance-evidence.mjs --mode verify --input artifacts/input/p120-acceptance.json --out artifacts/p120-evidence.json
+      - name: Upload final evidence report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p120-evidence-${{ github.event.workflow_run.head_sha }}
+          path: artifacts/p120-evidence.json
+          if-no-files-found: error
+          retention-days: 90
