@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Fail-fast inventory/syntax preflight for the P120 browser E2E suite. */
+/** Fail-fast inventory/syntax preflight for the P120 regression E2E suite. */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -29,8 +29,10 @@ const required = [
 ];
 
 const errors = [];
-if (packageJson.version !== '120') errors.push(`expected package version 120, found ${packageJson.version}`);
-if (packageJson.patch !== '120.0.7') errors.push(`expected package patch 120.0.7, found ${packageJson.patch}`);
+const patchMatch = typeof packageJson.patch === 'string' ? /^(\d+)\.\d+\.\d+$/.exec(packageJson.patch) : null;
+if (!/^\d+$/.test(String(packageJson.version ?? ''))) errors.push(`expected package version to be numeric, found ${packageJson.version}`);
+if (!patchMatch) errors.push(`expected package patch in MAJOR.MINOR.PATCH form, found ${packageJson.patch}`);
+else if (patchMatch[1] !== packageJson.version) errors.push(`package version ${packageJson.version} must match the major of patch ${packageJson.patch}`);
 const uiCommand = packageJson.scripts?.['test:ui'] ?? '';
 if (!uiCommand.includes('node scripts/p120-e2e-preflight.mjs')) {
   errors.push('test:ui must run the P120 preflight before browser checks');
@@ -52,9 +54,9 @@ for (const item of required) {
 }
 
 if (errors.length) {
-  console.error('P120 E2E preflight: FAIL');
+  console.error('P120 regression E2E preflight: FAIL');
   for (const error of errors) console.error(`- ${error}`);
   process.exitCode = 1;
 } else {
-  console.log(`P120 E2E preflight: PASS (${required.length} browser scenarios; patch ${packageJson.patch})`);
+  console.log(`P120 regression E2E preflight: PASS (${required.length} browser scenarios; current version ${packageJson.version}, patch ${packageJson.patch})`);
 }
