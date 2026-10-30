@@ -1,3 +1,16 @@
+# CURRENT EVIDENCE NOTE — P121.0.16 Architectural Test Lab development direction, 2026-10-30
+
+## Owner-approved direction
+
+New development is prioritized on the experimental fourth mode, Architectural Test Lab (`/architect-lab`). Routine repair of the legacy Architect is paused; its failures and diagnostic logs are retained as inputs for Lab-specific regression prevention and recovery design. The legacy route remains available and unchanged unless separately authorized.
+
+## Verified implementation boundary from the available source tree
+
+- Lab frontend route, form, progress, completion/download surface, and error boundary are separate from legacy `ProjectMode` (source contract and existing P122 tests are present in the tree).
+- Lab still reuses authenticated project/build APIs and shared backend orchestration, polling, validators, and artifact storage.
+- Independent Lab backend engine: OPEN. No claim is made that the new engine has been implemented or that live user outcomes have been verified.
+- This documentation patch does not alter runtime behavior. Hosted CI and deployed Android behavior: NOT_RUN in this workspace.
+
 # P121.0.15 — Architectural Test Lab (source implementation)
 
 - Status: IMPLEMENTED (experimental frontend route); independent backend engine: OPEN.

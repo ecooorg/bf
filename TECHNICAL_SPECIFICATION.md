@@ -6,11 +6,29 @@
 
 BiForge succeeds when a real user can complete a meaningful task and receive a correct, useful, understandable result. Tests, CI, architecture boundaries, documentation, and evidence are necessary controls; none alone proves user value. Every feature change must name the user problem, expected user-visible result, failure/recovery behavior, and how that result will be evaluated. Report code presence, local tests, hosted CI, deployed behavior, and user-outcome evidence as distinct facts. Never label an unobserved outcome PASS.
 
-## Exactly three user-facing agents
+## Three core agents and one experimental development mode
+
+The product continues to define exactly three user-facing agents in its core agent taxonomy. The three core user-facing agents remain:
 
 1. **Conversational** — answer real questions naturally, preserve relevant context, distinguish known facts from uncertainty, and use current information when the task requires it.
 2. **Expert** — investigate complex questions, compare alternatives against stated constraints, explain trade-offs, and produce a justified decision or actionable plan.
-3. **Architect** — turn a user's software goal into a working, validated, downloadable software artifact; explain what was built, what passed, what remains incomplete, and how to use it.
+3. **Architect** — the established software-generation workflow, retained for compatibility and as a source of diagnostic evidence during the experiment described below.
+
+BiForge also has a separately entered experimental fourth mode: **Architectural Test Lab** (`/architect-lab`). It is a development track for a new software-architecture/generation experience, not a renaming or replacement of the legacy Architect route and not a fourth core agent in the three-agent taxonomy above. The owner has explicitly approved concentrating new development on this mode.
+
+The development strategy is:
+
+- Prioritize the Architectural Test Lab for new product behavior, fixes, validation, and iteration.
+- Do not spend implementation effort repairing the legacy Architect workflow unless the owner explicitly changes this direction or a shared critical security/data-integrity issue requires it.
+- Use legacy-mode defects and diagnostic logs as regression intelligence: identify the underlying failure class, then design and test a prevention or controlled-recovery contract in the Lab. Do not blindly copy legacy implementation or UI.
+- Keep the legacy route available and unchanged during the experiment unless a separate owner-approved decision changes its status.
+- Treat the Lab's current isolated frontend as a starting boundary, not proof of an independent engine. Its backend orchestration is still shared until source, tests, and evidence establish otherwise.
+
+## Architectural Test Lab isolation and completion direction
+
+The Lab must own its user-facing instructions, interaction flow, state model, progress/error/recovery behavior, and completion surface. Its generation engine and workflow contracts should be developed as an independent path rather than inheriting the legacy Architect state machine or result UI. Shared infrastructure may be reused deliberately (for example authentication, provider connectivity, persistence, and artifact delivery), but shared services must have explicit contracts and must not reintroduce legacy workflow coupling.
+
+The Lab's completion contract must make task/specification, plan, execution, validation, artifact availability, and final SUCCESS/PARTIAL/FAILED outcome observable. Every potentially waiting stage must have bounded execution, heartbeat/progress evidence, timeout/cancellation behavior, and a user-visible recoverable failure; a green CI run alone is not acceptance. Promote, replace, or retire the legacy route only through a later explicit owner decision backed by user-outcome evidence.
 
 ## Architect has one mode and one completion contract
 

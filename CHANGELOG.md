@@ -1,3 +1,10 @@
+## P121.0.16 — Prioritize Architectural Test Lab development
+
+- Recorded the owner-approved strategy: focus new development on the separate `/architect-lab` experimental fourth mode; pause routine legacy Architect repairs and use legacy defects as diagnostic/regression input.
+- Clarified the boundary between the three core agents and the separate experimental mode, and documented that the Lab currently has an isolated frontend but still shares backend project/build orchestration.
+- Defined the target for independent Lab instructions, workflow/state machine, generation engine, progress, timeout/cancellation, recovery, and completion behavior. Legacy promotion or retirement requires a separate owner decision and user-outcome evidence.
+- Documentation/governance only; no runtime behavior changed. Local documentation/version checks: pending. Hosted CI and live Android behavior: NOT_RUN.
+
 ## P121.0.14 — Critical-screen emergency recovery
 
 - Install global browser error and unhandled-rejection capture before React mounts.

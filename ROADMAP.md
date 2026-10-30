@@ -2,11 +2,15 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-## P121.0.15 — Architectural Test Lab (experimental UI route)
+## Current development direction — Architectural Test Lab (owner-approved, 2026-10-30)
 
-- Added an isolated, lazy-loaded `/architect-lab` route with its own responsive workspace, form, progress, completion surface, download action, and error boundary.
-- Reuses existing authenticated project/build APIs and shared backend orchestration; this is not yet an independent backend engine.
-- Existing Architect remains enabled. Lab promotion, replacement, and retirement of the legacy route are not authorized by this patch.
+- Primary development focus is the experimental fourth mode, **Architectural Test Lab** at `/architect-lab`.
+- The legacy Architect route remains available as a diagnostic reference. Routine repairs to it are paused; observed defects should be converted into Lab-specific prevention and recovery requirements rather than patched in the old workflow.
+- Keep the Lab's UI, instructions, state machine, progress, errors, recovery, and completion contract independent of legacy ProjectMode. Build toward an independent generation workflow/engine; reuse shared infrastructure only behind explicit contracts.
+- Current implementation boundary: P121.0.15 established a separate lazy-loaded frontend route and its own form/progress/completion/download/error surface, but still reuses authenticated project/build APIs and shared backend orchestration. Independent backend engine: OPEN, not implemented by that patch.
+- Preserve the three core-agent taxonomy. The Lab is a separate experimental fourth mode, not an implicit replacement for the legacy Architect.
+- Do not promote, replace, or retire the legacy route without a separate owner decision supported by user-outcome evidence.
+
 - Source-contract tests and docs integrity run locally; typecheck/build, browser E2E, hosted CI, and live Android user outcome are NOT_RUN.
 
 
