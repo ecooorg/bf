@@ -50,7 +50,7 @@ export function classifyBuild(ev) {
     reasons.push(`http_${http ?? 'none'}${has(code) ? `:${code}` : ''}`);
     return out('BLOCKED');
   }
-  const failedTerminal = n.outcome === 'FAILED' || n.status === 'failed' || n.status === 'cancelled';
+  const failedTerminal = n.outcome === 'FAILED' || n.status === 'cancelled' || (n.status === 'failed' && n.outcome !== 'PARTIAL');
   if (failedTerminal) {
     if (n.downloadUrl) { reasons.push('failed_but_download_offered'); return out('INCONSISTENT'); }
     if (!(has(n.failedStage) || has(n.failureReason) || n.hasErrorDetail)) { reasons.push('failed_without_stage_or_reason'); return out('INCONSISTENT'); }
