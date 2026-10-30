@@ -1,3 +1,26 @@
+# CURRENT EVIDENCE NOTE — P121.0.22 guarded Neon initialization, 2026-10-30
+
+## User evidence
+
+- Neon SQL connection succeeded against database `neondb` on the `production` branch.
+- `public_table_count` returned `0`; catalog queries showed no user relations. The owner confirmed the Neon endpoint host matches GitHub Actions `DATABASE_URL` (secret value not exposed here).
+- This establishes an accessible apparently uninitialized database endpoint, not that historical application data is absent from every Neon branch or external store.
+
+## Change
+
+- Added manual workflow `.github/workflows/neon-initialize.yml`. It requires typed confirmation that a Neon backup branch was created and that the target is `biforge-production`.
+- Workflow runs read-only preflight, existing `npm run db:migrate` (19 repository migrations), then read-only checks for migration ledger and required tables.
+- Preflight refuses a non-empty `public` schema without a migration ledger. Workflow has concurrency serialization and performs no DROP/TRUNCATE/DELETE.
+
+## Verification
+
+- Workflow contract tests: 3/3 PASS locally.
+- Version metadata and docs integrity: PASS locally.
+- Live Neon migration, hosted Actions, and application CRUD after migration: NOT_RUN.
+- Do not report Neon initialized until the workflow finishes green and the app successfully creates/reads a project.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.21 legacy Architect result-shape crash guard, 2026-10-30
 
 - Source evidence: `publicJob()` in `server/appBuilderAdapter.ts` returns staged-build fields (`jobId`, `status`, `stage`, `units`, `report`, `downloadUrl`) and does not return the legacy `codeTask` object. `src/ProjectMode.tsx` stored that response directly in one guided-build path, then dereferenced `programResult.codeTask.statusReason` during render.

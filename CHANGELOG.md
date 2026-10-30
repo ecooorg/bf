@@ -1,3 +1,10 @@
+## P121.0.22 — Guarded Neon schema initialization
+
+- Added a manual GitHub Actions workflow to run the repository's existing 19 SQL migrations against `DATABASE_URL`, after explicit backup-branch and production-target confirmations.
+- Added a read-only preflight that refuses an untracked, non-empty `public` schema; added post-migration verification of the migration ledger and required BiForge tables.
+- No SQL schema was hand-written, no data deletion/reset is performed, and no live Neon migration was run while preparing this patch.
+- Local workflow-contract tests and static checks only; hosted Actions and Neon mutation remain NOT_RUN until the owner dispatches the workflow.
+
 # P121.0.21 — Legacy Architect staged-result render guard (2026-10-30)
 
 - Fixed the `/project` React crash when staged App Builder responses omit the legacy `codeTask` object. The result state now treats that legacy-only field as optional, and all render-time reads are guarded.
