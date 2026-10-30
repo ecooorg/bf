@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
 import { ErrorBoundary } from './ErrorBoundary.tsx';
 
-type Project = { id: string; name: string };
+type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
+type Project = { id: string; name: string; state: Record<string, unknown>; state_version: number };
 type ApiEnvelope<T> = { success?: boolean; data?: T; error?: string };
 
 async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
@@ -27,6 +28,7 @@ function LabWorkspace() {
   const [stage, setStage] = useState('Ready');
   const [error, setError] = useState('');
   const [project, setProject] = useState<Project | null>(null);
+  const [passport, setPassport] = useState<Passport | null>(null);
   const [result, setResult] = useState<BuildJobResult | null>(null);
 
   useEffect(() => {
@@ -45,20 +47,42 @@ function LabWorkspace() {
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
 
-  async function build(event: React.FormEvent) {
-    event.preventDefault(); setBusy(true); setError(''); setResult(null); setProject(null);
+  function proposedPassport(description: string): Passport {
+    return {
+      status: 'proposed', projectType: 'Web application', goal: description.trim(),
+      users: 'Individual users managing their personal expenses',
+      inputsOutputs: 'Inputs: expense amount, date, category, description. Outputs: expense list, totals, and summaries.',
+      constraints: 'Start with a responsive browser-based application. Keep the implementation small and understandable.',
+      securityData: 'Do not include secrets or real financial data in generated fixtures. Validate user-entered amounts.',
+      successCriteria: 'A user can add, view, edit, and delete expenses and see totals by category; the source ZIP includes setup instructions.',
+      budget: { calls: 40, tokens: 200000, executorRuns: 8 }, executor: 'model_patch', humanLevel: 'supervised',
+    };
+  }
+
+  async function createPassport(event: React.FormEvent) {
+    event.preventDefault(); setBusy(true); setError(''); setResult(null); setProject(null); setPassport(null);
     try {
-      setStage('Creating isolated lab project');
-      const created = await request<Project>('/api/projects', { method: 'POST', body: JSON.stringify({ name: name.trim() || 'Architectural Lab experiment', goal: goal.trim() }) });
-      setProject(created);
+      setStage('Creating project and preparing its passport');
+      const proposed = proposedPassport(goal);
+      const created = await request<Project>('/api/projects', { method: 'POST', body: JSON.stringify({ name: name.trim() || 'Architectural Lab experiment', goal: goal.trim(), state: { passport: proposed, architecturalLab: { createdAt: new Date().toISOString() } } }) });
+      setProject(created); setPassport(proposed); setStage('Review and confirm the project passport');
+    } catch (e) { setError((e as Error).message || String(e)); setStage('Stopped with error'); }
+    finally { setBusy(false); }
+  }
+
+  async function confirmAndBuild() {
+    if (!project || !passport) return;
+    setBusy(true); setError(''); setResult(null);
+    try {
+      const confirmed = { ...passport, status: 'confirmed' as const };
+      setStage('Saving confirmed project passport');
+      const updated = await request<{ project_id: string; state_version: number; state: Record<string, unknown> }>(`/api/projects/${encodeURIComponent(project.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: project.state_version, state: { ...project.state, passport: confirmed } }) });
+      setProject({ ...project, state_version: updated.state_version, state: updated.state }); setPassport(confirmed);
       setStage('Submitting build');
-      const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(created.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim() }) });
+      const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim() }) });
       setStage('Generating and validating');
-      const finished = initial.jobId
-        ? await waitForProjectBuild(created.id, initial, job => setStage(`Build: ${job.stage || job.status || 'working'}`))
-        : initial;
-      setResult(finished);
-      setStage(finished.outcome || finished.status || 'Finished');
+      const finished = initial.jobId ? await waitForProjectBuild(project.id, initial, job => setStage(`Build: ${job.stage || job.status || 'working'}`)) : initial;
+      setResult(finished); setStage(finished.outcome || finished.status || 'Finished');
     } catch (e) { setError((e as Error).message || String(e)); setStage('Stopped with error'); }
     finally { setBusy(false); }
   }
@@ -81,14 +105,15 @@ function LabWorkspace() {
   if (!authenticated) return <main className="architect-lab"><form style={panel} onSubmit={login}><h1>Architectural Test Lab</h1><p>Sign in to continue.</p><input aria-label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" /><button disabled={busy}>Sign in</button>{error && <p role="alert">{error}</p>}</form></main>;
 
   return <main className="architect-lab">
-    <header className="architect-lab-header"><div><span className="architect-lab-kicker">EXPERIMENTAL WORKSPACE · P122</span><h1>Architectural Test Lab</h1><p>A separate workspace for testing a cleaner project-building experience.</p></div><a href="/" className="architect-lab-back">← BiForge</a></header>
+    <header className="architect-lab-header"><div><span className="architect-lab-kicker">EXPERIMENTAL WORKSPACE · P121.0.25</span><h1>Architectural Test Lab</h1><p>A separate workspace for testing a cleaner project-building experience.</p></div><a href="/" className="architect-lab-back">← BiForge</a></header>
     <div className="architect-lab-grid">
-      <form style={panel} onSubmit={build} data-testid="architect-lab-build-form">
+      <form style={panel} onSubmit={createPassport} data-testid="architect-lab-build-form">
         <h2>Start an experiment</h2><label>Project name<input value={name} onChange={e => setName(e.target.value)} placeholder="My test project" /></label>
         <label>What should be built?<textarea required minLength={8} rows={7} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Describe the application, its users, and the expected behavior…" /></label>
-        <button data-testid="architect-lab-build" className="architect-lab-primary" disabled={busy || goal.trim().length < 8}>{busy ? 'Working…' : 'Create and build'}</button>
+        <button data-testid="architect-lab-build" className="architect-lab-primary" disabled={busy || Boolean(project) || goal.trim().length < 8}>{busy ? 'Working…' : 'Create project passport'}</button>
         <p className="architect-lab-stage" aria-live="polite">{stage}</p>{error && <div className="architect-lab-error" role="alert"><strong>Could not complete this step</strong><p>{error}</p></div>}
       </form>
+      {project && passport && <section style={panel} data-testid="architect-lab-passport"><h2>Project passport</h2><p>Review the proposed scope before authorizing generation.</p><dl><dt>Type</dt><dd>{passport.projectType}</dd><dt>Goal</dt><dd>{passport.goal}</dd><dt>Users</dt><dd>{passport.users}</dd><dt>Inputs / outputs</dt><dd>{passport.inputsOutputs}</dd><dt>Constraints</dt><dd>{passport.constraints}</dd><dt>Security</dt><dd>{passport.securityData}</dd><dt>Success criteria</dt><dd>{passport.successCriteria}</dd><dt>Status</dt><dd>{passport.status}</dd></dl><button data-testid="architect-lab-confirm-passport" className="architect-lab-primary" type="button" disabled={busy || passport.status === 'confirmed'} onClick={() => void confirmAndBuild()}>{busy ? 'Working…' : 'Confirm passport and build'}</button></section>}
       <section style={panel} aria-live="polite" data-testid="architect-lab-completion"><h2>Build result</h2>{!result && <p className="architect-lab-muted">The result and validation summary will appear here. This panel remains mounted while a build runs.</p>}
         {result && <><div className="architect-lab-status">{result.outcome || result.status || 'Result received'}</div><p>{result.note || result.report?.failureReason || 'Build process returned.'}</p><dl><dt>Project</dt><dd>{project?.name}</dd><dt>Job</dt><dd>{result.jobId || '—'}</dd><dt>Validation</dt><dd>{result.goalImplemented === true ? 'Implemented' : result.goalImplemented === false ? 'Not fully implemented' : 'Not confirmed'}</dd></dl>{result.downloadUrl && <button data-testid="architect-lab-download" className="architect-lab-primary" type="button" onClick={() => void download()}>Download project ZIP</button>}</>}
       </section>
