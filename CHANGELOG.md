@@ -1,3 +1,9 @@
+## P120.0.2 — Expert browser E2E and recoverable failure
+
+- Added deterministic authenticated Expert browser scenario for a 503 API failure, Retry, follow-up, and preserved conversation context.
+- Included Expert E2E in `test:ui`; no product runtime changes.
+- Verification: JavaScript syntax and archive integrity checked locally; full UI/CI not run locally.
+
 ## P120.0.1 — Conversational end-to-end user journey
 
 - Added `tests/p120-conversational-e2e.test.mjs`: authenticates in a real local app server, enters Conversational, starts a conversation, sends a first request, receives a deterministic assistant response, sends a follow-up, and asserts that the original brief plus prior assistant/user turns are preserved.

@@ -1,3 +1,13 @@
+# P120.0.2 — Expert E2E (current)
+
+**Applied:** Added authenticated Expert browser E2E with deterministic 503 provider failure, retry, successful answer and follow-up history checks. Added to `test:ui`; product code unchanged. P120.0.1 CI green per Navigator.
+
+**Verification:** JavaScript syntax and ZIP integrity PASS locally. Browser test and full CI NOT_RUN locally. Next P120.0.3: Architect E2E ZIP integrity. Do not start P121.
+
+Charter conflicts: none
+
+---
+
 # P120.0.1 — Conversational E2E (current)
 
 **Applied:** Added `tests/p120-conversational-e2e.test.mjs` for a two-turn browser journey through the real local app server: authenticate, choose Conversational, start a conversation, submit a request, receive a deterministic fixture reply, submit a follow-up, and verify history continuity. The test intercepts only `/api/agent/conversational`; it does not claim live provider coverage. `npm run test:ui` includes this scenario, and `npm run test:p120-conversational` runs it alone. Version/patch is `120` / `120.0.1`.
