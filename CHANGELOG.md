@@ -1,3 +1,10 @@
+## P120.0.7 — Final acceptance candidate and programme closure record
+
+- Recorded the Navigator-supplied P120 Acceptance and P120 Commit-Bound Evidence as PASS for commit `d411b982186276708d31173f62b574aed19ebd63`: dependencies, verification DAG, Playwright installation, P120 UI suite, and acceptance workflow conclusion all `success`; `problems: none`.
+- Added `docs/p120-acceptance-record.json`. It records the technical gate result, keeps formal programme closure explicitly `PENDING_NAVIGATOR_DECISION`, and preserves known optional P118 residuals as open rather than claiming they are resolved.
+- Advanced package patch metadata to `120.0.7`; updated the E2E preflight and evidence-workflow contract test to distinguish the current closure-candidate patch from the P120.0.6 workflow that produced the supplied evidence.
+- No product runtime behavior changed. P121 remains unauthorized without a separate explicit decision.
+
 ## P120.0.6 — Commit-bound acceptance and evidence workflows
 
 - Added manual `.github/workflows/p120-acceptance.yml`: runs the full CI verification DAG with PostgreSQL, acceptance-evidence regression tests, Playwright Chromium, and all P120 UI/E2E scenarios.

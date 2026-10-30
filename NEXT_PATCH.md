@@ -1,3 +1,17 @@
+# P120.0.7 — Final acceptance candidate and closure decision (current)
+
+**Technical evidence:** Navigator supplied `P120 Acceptance Evidence` and `P120 Commit-Bound Evidence`, both PASS for commit `d411b982186276708d31173f62b574aed19ebd63`. Dependencies, verification DAG, Playwright install, P120 UI suite and acceptance workflow conclusion all report `success`; `problems: none`.
+
+**Applied:** Added `docs/p120-acceptance-record.json` with the supplied evidence and explicit status `PENDING_NAVIGATOR_DECISION`; advanced `package.json` patch to `120.0.7`; updated E2E preflight and the evidence workflow contract test to expect the current patch while preserving the P120.0.6 evidence-gate schema. No product runtime behavior changed.
+
+**Known residuals:** The optional P118 `PARTIAL` download policy and dependency audit for `zod`, `body-parser`, and `qs` remain open and are not claimed resolved. They were recorded as optional follow-ups, not blockers to the previously accepted P118 exit. P121 is not authorized.
+
+**Verification in this environment:** Static consistency checks and syntax/JSON/ZIP validation are run for this patch. The hosted PASS above is Navigator-supplied evidence for commit `d411b982186276708d31173f62b574aed19ebd63`; it is not evidence for the new P120.0.7 commit.
+
+**Next:** Run CI for P120.0.7. Then the Navigator must explicitly answer whether to formally close P120 with the recorded optional residuals left open. Do not start P121 without separate explicit authorization.
+
+---
+
 # P120.0.6 — Commit-bound acceptance and evidence workflows (current)
 
 **Applied:** Added manual `P120 Acceptance` workflow to run the CI verification DAG with PostgreSQL, evidence-script regression tests, Playwright Chromium installation, and the complete P120 UI/E2E suite. It emits an acceptance JSON artifact even after a failed/skipped check. Added `P120 Evidence`, triggered when the acceptance workflow completes, to verify the source artifact's full commit SHA, run ID/attempt, workflow conclusion, and every required check; it emits a separate commit-bound report. Evidence is fail-closed and explicitly remains `PENDING_NAVIGATOR` even when technical checks pass.

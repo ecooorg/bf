@@ -3,7 +3,7 @@
 **Document ID:** BF-ROADMAP-001  
 **Status:** Authoritative sequential plan from empty repository to P118 and onward  
 **Authority:** Derived from CHANGELOG.md, AI-NATIVE-RENOVATION-ROADMAP.md, AI-NATIVE-RENOVATION-TASK.md, AGENTS.md and observed snapshots  
-**Distinction:** P118 history records the implementation sequence; the Navigator accepted P118 on 2026-10-29 based on CI 27/27 for P118.5.6 and the supplied live Architect artifact evidence. P119 is now in progress. P120–P121 remain forward phases.
+**Distinction:** P118 history records the implementation sequence; the Navigator accepted P118 on 2026-10-29 based on CI 27/27 for P118.5.6 and the supplied live Architect artifact evidence. P119 is closed. P120 is in final acceptance: the Navigator-supplied commit-bound technical evidence is PASS, while formal programme closure still requires an explicit Navigator decision. P121 remains planned and unauthorized.
 
 The plan follows the engineering loop:
 
@@ -365,10 +365,12 @@ npm run check   # full DAG
 | P120.0.4 | Cross-agent E2E: switching between agents and context preservation | Agents verified together |
 | P120.0.5 | Stabilisation; fix regressions found | Stable integration suite |
 | P120.0.6 | Workflows `p120-acceptance` and `p120-evidence` | Commit-bound acceptance and independently verified evidence report |
-| P120.0.7 | Final acceptance and closing documentation | Formal completion of the programme |
+| P120.0.7 | Final acceptance and closing documentation | Technical gate PASS; formal closure pending explicit Navigator decision |
 | P120.0.8 (conditional) | P118 residuals: download policy for `PARTIAL` (`failed_but_download_offered`) and dependency audit (`zod`, `body-parser`, `qs`); included only if the inventory confirms they still need closing before release | Optional |
 
 **Gate P120:** required E2E pass; no false `SUCCESS`; results bound to the verified commit; acceptance criteria met. After P120 the programme is closed; P121 is optional, not an obligatory end.
+
+**Current evidence (2026-10-30):** Navigator supplied `P120 Acceptance Evidence` and `P120 Commit-Bound Evidence`, both PASS for commit `d411b982186276708d31173f62b574aed19ebd63`; dependencies, verification DAG, Playwright installation, P120 UI suite and acceptance workflow conclusion all succeeded, with no reported problems. P120.0.7 records this evidence but does not self-authorize formal closure. The optional P118 `PARTIAL` download policy and `zod` / `body-parser` / `qs` dependency audit remain open and are not claimed resolved. P121 requires separate explicit approval.
 
 **Sequence:** P119.0.1 → P119.0.2–0.7 → Navigator decision on P119 → P120.0.1–0.4 → P120.0.5–0.7 → programme closed → P121 (optional, only after an explicit Navigator yes and closed open decisions).
 
