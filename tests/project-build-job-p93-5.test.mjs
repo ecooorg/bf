@@ -26,3 +26,21 @@ test('failed staged build returns an actionable message instead of a blank resul
     assert.match(result.note, /diagnostics/i);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+
+test('staged build result without legacy codeTask remains a valid Architect result', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalTimeout = globalThis.setTimeout;
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({ success: true, data: {
+    jobId: 'job-without-code-task', status: 'done', outcome: 'SUCCESS',
+    goalImplemented: true, downloadUrl: '/artifact.zip', note: 'Build completed.'
+  } }) });
+  globalThis.setTimeout = (fn) => { fn(); return 0; };
+  try {
+    const result = await waitForProjectBuild('project-1', { jobId: 'job-without-code-task' });
+    assert.equal(result.status, 'done');
+    assert.equal(result.downloadUrl, '/artifact.zip');
+    assert.equal(result.codeTask, undefined);
+    assert.equal(result.note, 'Build completed.');
+  } finally { globalThis.fetch = originalFetch; globalThis.setTimeout = originalTimeout; }
+});
