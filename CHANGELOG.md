@@ -1,3 +1,10 @@
+## P121.0.4 — Repository language policy and recurring language-neutrality audit
+
+- Added a normative English-only policy for maintained repository artifacts while explicitly separating repository language from end-user language support.
+- Added requirements against brittle language-specific marker-word routing and defined a recurring roadmap stage for classifying, correcting, and verifying language residue.
+- No runtime source behavior was changed in this documentation-only patch. Previously identified Cyrillic in runtime logic and tests remains to be audited against the actual repository; this reconstructed workspace is not the current remote checkout.
+- Verification: pending local documentation integrity and version checks; hosted CI and runtime language-neutrality tests are NOT_RUN.
+
 ## P121.0.3 — CI regression repair and single-source version metadata
 
 - Fix C121 regression test that hardcoded P121.0.1 after patch P121.0.2.

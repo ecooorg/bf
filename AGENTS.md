@@ -23,6 +23,7 @@ BiForge succeeds when a real user completes a meaningful task and receives a cor
 | Operations and releases | `docs/OPERATIONS_AND_RELEASES.md` | Live/destructive actions require authorization. |
 | Data, schemas, artifacts | `docs/DATA_AND_ARTIFACTS.md` | Respect schemas, generators, and delivery contract. |
 | Current cross-cutting decisions | `docs/DECISIONS.md` | Supersede decisions explicitly; do not silently erase history. |
+| Language policy and language-neutral behavior | `TECHNICAL_SPECIFICATION.md` and `docs/DECISIONS.md` | English-only repository artifacts; user-input language support is a separate product contract. |
 | Long-horizon strategy | `docs/VIX-CONCEPT.md` | Context only; not implementation authorization. |
 | Version and patch identity | `package.json` (`version`, `patch`) | No duplicate version authority. |
 
@@ -123,6 +124,14 @@ Apply the cascade strictly: do not choose lower-priority polishing, documentatio
 - Preserve completed roadmap stages and prior evidence. Add current status at the top or in the relevant current section; do not delete completed stages or rewrite historical records for tidiness.
 - When a document is retired, transfer its still-current rules and requirements to their canonical owners, repair active code/test/workflow references, and then remove the obsolete document. Historical mentions can remain if clearly historical and not treated as instructions.
 - Make the smallest change that closes an identified user-value gap or improves correctness, safety, or evidence integrity. If the repository state is insufficient to choose responsibly, explain the uncertainty and ask for the missing input.
+
+## 6. Language policy and language-neutral implementation
+
+- Repository-maintained code, comments, identifiers, tests, fixtures, prompts, technical documentation, scripts, and developer-facing messages use English only. Historical records may be translated only when doing so preserves their evidentiary meaning; do not rewrite history silently.
+- Do not implement language detection or intent recognition by depending on a small list of natural-language marker words in one or two languages when a language-neutral structured contract, explicit schema, or model-based classification can meet the requirement.
+- The repository language policy does not itself define which languages end users may submit or receive. Preserve existing supported input/output behavior unless the owner explicitly changes the product language contract.
+- Any language cleanup must classify findings as (a) documentation/comment residue, (b) test data, (c) runtime behavior, or (d) generated/historical content. Translate tests to semantically equivalent English cases where appropriate, and replace brittle runtime heuristics only with behaviorally equivalent logic plus regression tests. Do not claim multilingual support or language neutrality without representative behavioral evidence.
+- Treat repository-wide language cleanup as a recurring cross-cutting stage in the roadmap. Re-scan after substantive changes and report residuals, exclusions, and verification limits.
 
 ## 6. Security, authorization, and evidence integrity
 

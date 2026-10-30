@@ -15,6 +15,19 @@
 
 The end goal is useful, reliable user outcomes in the running product—not a green repository by itself. A patch is not accepted solely because tests pass. For user-facing work, state the user problem, observable outcome, quality criteria, failure/recovery behavior, and evaluation evidence. Keep local tests, hosted CI, deployed/live checks, and actual user-outcome evidence separate.
 
+## Standing cross-cutting stage — Repository language audit and language-neutral behavior
+
+This is a recurring stage, not a one-time cleanup task. Reassess it during each session and execute a bounded slice when findings justify the work, without displacing higher-priority product blockers. The target is an English-only maintained repository and intent/routing logic that does not depend on isolated marker words from selected natural languages. This does not automatically restrict the languages accepted or returned by the product.
+
+Required work sequence:
+1. Inventory non-English text and non-English filenames across maintained source, tests, fixtures, snapshots, scripts, prompts, docs, generated artifacts, and developer-facing messages.
+2. Classify each finding as safe text residue, test data, runtime behavior, historical evidence, or generated content.
+3. Translate or remove safe residue; preserve historical meaning and record any justified exclusions.
+4. Replace language-specific runtime keyword heuristics only when an equivalent structured/model-based contract is available; add regression tests for intent, routing, errors, and supported input behavior.
+5. Run focused tests and repository-wide language scans, then report remaining findings and what was not tested.
+
+**Acceptance gate:** no unexplained non-English repository residue; no behavior changes hidden inside text cleanup; no loss of supported user input behavior without owner approval; and evidence clearly separates static scan results from runtime language-neutrality tests.
+
 ## Current documentation and session model
 
 Canonical governance and the mandatory session-start protocol live in `AGENTS.md`. Product requirements live in `TECHNICAL_SPECIFICATION.md`; this file owns the ordered programme plan, dependencies, completed stages, and current priorities; `TECHNICAL_REPORT.md` records factual state and evidence. `CHANGELOG.md` records patch history.
@@ -442,5 +455,6 @@ npm run check   # full DAG
 5. Never ask Navigator to read code; present consequences + yes/no question.
 6. Charter conflicts must be reported; never silently reinterpret.
 7. Security, evidence integrity and product function bind above all other considerations.
+8. Reassess the standing repository language audit; English-only source text must not be achieved by silently narrowing product language support.
 
 This roadmap is the sole authoritative sequence. Update it in place when the Navigator accepts a phase transition.

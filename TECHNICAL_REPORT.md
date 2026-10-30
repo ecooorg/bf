@@ -1,3 +1,22 @@
+# CURRENT EVIDENCE NOTE — Repository language policy, 2026-10-30
+
+## Scope and provenance
+
+This record describes a documentation-only policy patch created against a reconstructed local tree assembled from available historical archives. It is not evidence about the current remote checkout.
+
+## Decision and follow-up scope
+
+- Established English as the sole language for maintained repository artifacts.
+- Explicitly separated repository language from end-user input/output language support.
+- Added a recurring roadmap stage to scan, classify, correct, and verify language residue, including runtime heuristics and test fixtures.
+- No runtime heuristics or test prompts were changed because their behavior and intent cannot be safely inferred from a static scan alone.
+
+## Verification boundary
+
+Documentation integrity and version metadata checks are to be run against this reconstructed tree. Hosted CI, remote checkout comparison, runtime behavior tests, and live model tests are NOT_RUN.
+
+---
+
 # CURRENT EVIDENCE NOTE — C121 verification cycle bootstrap, 2026-10-30
 
 ## Scope and provenance

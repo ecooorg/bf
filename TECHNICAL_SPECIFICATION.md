@@ -25,6 +25,16 @@ Architect is one user-facing agent and one end-to-end workflow. Do not expose a 
 
 A green test suite does not compensate for a missing, confusing, low-quality, or unusable user result. A passing UI stub does not prove live model quality or deployed behavior.
 
+## Repository language and language-neutral behavior
+
+**REQ-LANG-001 — English-only repository artifacts.** All maintained source code, comments, identifiers, tests, fixtures, prompt templates, developer-facing messages, scripts, and technical documentation must be written in English. File and directory names must use English/ASCII naming. Historical evidence must not be silently rewritten; any retained non-English historical content must be explicitly classified and justified.
+
+**REQ-LANG-002 — Do not couple intent recognition to selected natural languages.** Internal routing, intent classification, and state transitions must use stable structured values or language-neutral contracts wherever feasible, not isolated keyword lists tied to particular natural languages. Natural-language text may remain an input to a model or a user-facing output where required by product behavior.
+
+**REQ-LANG-003 — Separate repository language from product language support.** The English-only repository rule does not, by itself, restrict the languages users may enter or receive. Existing user-facing language behavior must be preserved unless the owner explicitly approves a product-language change.
+
+**Acceptance criteria:** repository-wide scans cover text files, filenames, fixtures, snapshots, scripts, prompts, docs, and generated content; every non-English finding is classified; safe text-only residue is corrected; runtime changes include focused regression tests; test cases preserve semantic intent; excluded historical/generated content is documented; and results state exactly which checks ran. A clean text scan alone is not proof of language-neutral runtime behavior.
+
 ## Documentation authority
 
 `AGENTS.md` defines working rules, the obligation map, the mandatory session-start protocol, and the authority hierarchy. This file defines product and technical requirements. `ROADMAP.md` owns the ordered programme plan while preserving completed phases. `TECHNICAL_REPORT.md` owns historical facts and evidence. The eight specialist documents under `docs/` cover architecture, API contracts, testing/acceptance, user-value evidence, security/privacy, operations/releases, data/artifacts, and active decisions. No old side document is an independent source of truth. There is no persistent next-patch assignment file: each session reconstructs state and selects its own task under `AGENTS.md`.
