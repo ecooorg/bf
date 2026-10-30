@@ -2,6 +2,14 @@
 
 **Purpose:** Record observations of actual user-visible outcomes, newest first. This is evidence, not a second product specification; normative requirements are in `../TECHNICAL_SPECIFICATION.md`. Do not treat an old result as current runtime state without checking its commit/date. Preserve historical entries as written and prepend new evidence rather than retroactively editing prior records. Distinguish OBSERVED, INFERRED, and NOT_RUN. Tests and CI alone do not prove user value.
 
+## P121.0.12 — Architect generation failure evidence, 2026-10-30
+
+- **OBSERVED (user report):** On deployed P121.0.11, the user attempted to create a project and did not receive a ZIP; the user also reported a black/unresponsive screen.
+- **OBSERVED (diagnostics):** Build `2aede0f4-2567-48f4-8613-72c3ffbc1419` failed its second file unit after repeated `MAX_TOKENS` responses. The build report contained one file and unresolved references; `goalImplemented=false`.
+- **OBSERVED (hosted workflow artifact):** A separate real-model run on commit `1bc5e81` produced a non-empty ZIP but failed JavaScript/reference validation. This proves ZIP transport for that run, not a useful application or successful user delivery.
+- **INFERRED:** The 2,048-token output cap contributed directly to truncated generated files. P121.0.12 raises this limit and corrects the workflow's PARTIAL classification.
+- **NOT_RUN:** New deployed generation after the patch, actual user receipt/opening of the ZIP, and root cause of the reported black screen. Supplied screenshots show diagnostics/operations dialogs over a dimmed workspace, not browser runtime errors.
+
 ## Current-documentation clarification — 2026-10-30
 
 This report contains preserved historical records. Any links or instructions inside older records that name retired documents (including the former renovation task/roadmap/spec/report files) describe the documentation state at the time and are not current directions. Current product requirements are in `../TECHNICAL_SPECIFICATION.md`; current priorities and completed phases are in `../ROADMAP.md`; assistant procedure is in `../AGENTS.md`. This governance change is not itself user-outcome evidence and does not alter any prior evaluation verdict.
