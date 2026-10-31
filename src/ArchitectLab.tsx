@@ -3,7 +3,8 @@ import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
 import { ErrorBoundary } from './ErrorBoundary.tsx';
 
 type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
-type Project = { id: string; name: string; state: Record<string, unknown>; state_version: number };
+type Project = { id: string; name: string; state: Record<string, unknown>; state_version: number; status?: string; updated_at?: string; created_at?: string };
+type SavedProject = { id: string; name: string; status?: string; updated_at?: string; created_at?: string; state_version: number };
 type ApiEnvelope<T> = { success?: boolean; data?: T; error?: string };
 
 async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
@@ -28,6 +29,8 @@ function LabWorkspace() {
   const [stage, setStage] = useState('Ready');
   const [error, setError] = useState('');
   const [project, setProject] = useState<Project | null>(null);
+  const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
+  const [savedBusy, setSavedBusy] = useState(false);
   const [passport, setPassport] = useState<Passport | null>(null);
   const [result, setResult] = useState<BuildJobResult | null>(null);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
@@ -40,6 +43,27 @@ function LabWorkspace() {
       setAuthenticated(Boolean(s.authenticated)); setEnabled(Boolean(s.projectModeEnabled));
     }).catch(() => { setAuthenticated(false); });
   }, []);
+
+  async function loadSavedProjects() {
+    setSavedBusy(true);
+    try { setSavedProjects(await request<SavedProject[]>('/api/projects?limit=100')); }
+    catch (e) { setError((e as Error).message || String(e)); }
+    finally { setSavedBusy(false); }
+  }
+
+  async function openSavedProject(id: string) {
+    setBusy(true); setError(''); setResult(null);
+    try {
+      const saved = await request<Project>(`/api/projects/${encodeURIComponent(id)}`);
+      const savedPassport = saved.state?.passport as Passport | undefined;
+      if (!savedPassport) throw new Error('This project has no saved project brief.');
+      setProject(saved); setPassport(savedPassport); setName(saved.name); setGoal(String(savedPassport.goal || ''));
+      setStage(savedPassport.status === 'confirmed' ? 'Saved project reopened. Its previous build result is not stored in this view.' : 'Saved project reopened. Review and confirm its project brief.');
+    } catch (e) { setError((e as Error).message || String(e)); }
+    finally { setBusy(false); }
+  }
+
+  useEffect(() => { if (authenticated && enabled) void loadSavedProjects(); }, [authenticated, enabled]);
 
   async function login(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError('');
@@ -54,11 +78,11 @@ function LabWorkspace() {
   function proposedPassport(description: string): Passport {
     return {
       status: 'proposed', projectType: 'Web application', goal: description.trim(),
-      users: 'Individual users managing their personal expenses',
-      inputsOutputs: 'Inputs: expense amount, date, category, description. Outputs: expense list, totals, and summaries.',
-      constraints: 'Start with a responsive browser-based application. Keep the implementation small and understandable.',
-      securityData: 'Do not include secrets or real financial data in generated fixtures. Validate user-entered amounts.',
-      successCriteria: 'A user can add, view, edit, and delete expenses and see totals by category; the source ZIP includes setup instructions.',
+      users: 'The people described in the project goal.',
+      inputsOutputs: 'Inputs and outputs are defined by the requested workflow and must be usable through the browser interface.',
+      constraints: 'Browser-first responsive web application. Prefer self-contained HTML, CSS, and JavaScript with no build step or external runtime dependency when suitable.',
+      securityData: 'Do not include secrets or real personal data in generated fixtures. Validate user input and avoid unsafe dynamic code execution.',
+      successCriteria: 'The primary user workflow described in the goal works in a browser; controls provide visible feedback; the source ZIP includes clear setup and launch instructions.',
       budget: { calls: 40, tokens: 200000, executorRuns: 8 }, executor: 'model_patch', humanLevel: 'supervised',
     };
   }
@@ -69,7 +93,7 @@ function LabWorkspace() {
       setStage('Creating project brief');
       const proposed = proposedPassport(goal);
       const created = await request<Project>('/api/projects', { method: 'POST', body: JSON.stringify({ name: name.trim() || 'Architectural Lab experiment', goal: goal.trim(), state: { passport: proposed, architecturalLab: { createdAt: new Date().toISOString() } } }) });
-      setProject(created); setPassport(proposed); setStage('Review and confirm project brief');
+      setProject(created); setPassport(proposed); setStage('Review and confirm project brief'); void loadSavedProjects();
     } catch (e) { setError((e as Error).message || String(e)); setStage('Stopped with error'); }
     finally { setBusy(false); }
   }
@@ -83,10 +107,11 @@ function LabWorkspace() {
       const updated = await request<{ project_id: string; state_version: number; state: Record<string, unknown> }>(`/api/projects/${encodeURIComponent(project.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: project.state_version, state: { ...project.state, passport: confirmed } }) });
       setProject({ ...project, state_version: updated.state_version, state: updated.state }); setPassport(confirmed);
       setStage('Submitting build');
-      const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim() }) });
+      const browserGoal = `${goal.trim()}\n\nDELIVERY TARGET: Build a browser-first web application. The primary user experience must run in a standard modern browser at the generated app's entry page. Prefer plain HTML, CSS, and JavaScript with no build step or external runtime dependency when suitable. Include responsive layouts, accessible high-contrast controls, and working client-side interactions. Do not substitute a Python script or command-line-only program. If a backend is genuinely required, provide a browser UI and explicit run instructions.`;
+      const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: browserGoal }) });
       setStage('Generating and validating');
       const finished = initial.jobId ? await waitForProjectBuild(project.id, initial, job => setStage(`Build: ${job.stage || job.status || 'working'}`)) : initial;
-      setResult(finished); setStage(finished.outcome || finished.status || 'Finished');
+      setResult(finished); setStage(finished.outcome || finished.status || 'Finished'); void loadSavedProjects();
     } catch (e) { setError((e as Error).message || String(e)); setStage('Stopped with error'); }
     finally { setBusy(false); }
   }
@@ -131,9 +156,10 @@ function LabWorkspace() {
   if (!authenticated) return <main className="architect-lab"><form style={panel} onSubmit={login}><h1>Architectural Test Lab</h1><p>Sign in to continue.</p><input aria-label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" /><button disabled={busy}>Sign in</button>{error && <p role="alert">{error}</p>}</form></main>;
 
   return <main className="architect-lab">
-    <header className="architect-lab-header"><div><span className="architect-lab-kicker">PRIMARY ARCHITECT WORKSPACE · P121.0.30</span><h1>Architectural Test Lab</h1><p>Build software, review its scope, and inspect diagnostics when something fails.</p></div><div className="architect-lab-toolbar"><div className="architect-lab-menu-wrap"><button type="button" className="architect-lab-back" data-testid="architect-lab-diagnostics-menu" aria-expanded={diagnosticsMenuOpen} onClick={() => setDiagnosticsMenuOpen(v => !v)}>Diagnostics ▾</button>{diagnosticsMenuOpen && <div className="architect-lab-menu" role="menu"><button type="button" role="menuitem" onClick={() => void loadDiagnostics('session')}>Compact session log</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('system')}>System diagnostics</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('operations')}>Recent operations</button><button type="button" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic ZIP</button></div>}</div><a href="/" className="architect-lab-back">← BiForge</a><a href="/project" className="architect-lab-legacy">Legacy Architect</a></div></header>
+    <header className="architect-lab-header"><div><span className="architect-lab-kicker">PRIMARY ARCHITECT WORKSPACE · P121.0.33</span><h1>Architectural Test Lab</h1><p>Build software, review its scope, and inspect diagnostics when something fails.</p></div><div className="architect-lab-toolbar"><div className="architect-lab-menu-wrap"><button type="button" className="architect-lab-back" data-testid="architect-lab-diagnostics-menu" aria-expanded={diagnosticsMenuOpen} onClick={() => setDiagnosticsMenuOpen(v => !v)}>Diagnostics ▾</button>{diagnosticsMenuOpen && <div className="architect-lab-menu" role="menu"><button type="button" role="menuitem" onClick={() => void loadDiagnostics('session')}>Compact session log</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('system')}>System diagnostics</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('operations')}>Recent operations</button><button type="button" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic ZIP</button></div>}</div><a href="/" className="architect-lab-back">← BiForge</a><a href="/project" className="architect-lab-legacy">Legacy Architect</a></div></header>
     {diagnosticsOpen && <div className="architect-lab-diagnostics-overlay" role="dialog" aria-modal="true" aria-label="Architectural Lab diagnostics"><section className="architect-lab-diagnostics"><div className="architect-lab-diagnostics-head"><h2>Diagnostics</h2><button type="button" onClick={() => setDiagnosticsOpen(false)}>Close</button></div><p>Copy this report and paste it into the support chat. Secrets and passwords should not be included.</p><button type="button" onClick={() => void navigator.clipboard?.writeText(diagnosticsText)}>Copy report</button><textarea aria-label="Diagnostic report" readOnly value={diagnosticsBusy ? 'Loading diagnostics…' : diagnosticsText} /></section></div>}
     <div className="architect-lab-grid">
+      <section style={panel} className="architect-lab-saved" data-testid="architect-lab-saved-projects"><div className="architect-lab-section-head"><div><h2>Saved projects</h2><p>Projects are stored in your authenticated workspace. Reopen one to continue reviewing its saved brief.</p></div><button type="button" className="architect-lab-secondary" onClick={() => void loadSavedProjects()} disabled={savedBusy}>{savedBusy ? 'Refreshing…' : 'Refresh'}</button></div>{savedProjects.length === 0 ? <p className="architect-lab-muted">{savedBusy ? 'Loading saved projects…' : 'No saved projects found yet.'}</p> : <ul className="architect-lab-saved-list">{savedProjects.map(item => <li key={item.id}><div><strong>{item.name}</strong><small>{item.status || 'saved'} · Updated {item.updated_at ? new Date(item.updated_at).toLocaleString() : 'date unavailable'}</small></div><button type="button" className="architect-lab-secondary" onClick={() => void openSavedProject(item.id)} disabled={busy}>Open</button></li>)}</ul>}</section>
       <form style={panel} onSubmit={createPassport} data-testid="architect-lab-build-form">
         <h2>Start an experiment</h2><label>Project name<input value={name} onChange={e => setName(e.target.value)} placeholder="My test project" /></label>
         <label>What should be built?<textarea required minLength={8} rows={7} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Describe the application, its users, and the expected behavior…" /></label>
