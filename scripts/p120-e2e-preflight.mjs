@@ -29,9 +29,9 @@ const required = [
 ];
 
 const errors = [];
-const patchMatch = typeof packageJson.patch === 'string' ? /^(\d+)\.\d+\.\d+$/.exec(packageJson.patch) : null;
+const patchMatch = typeof packageJson.patch === 'string' ? /^(\d+)(?:\.\d+)*$/.exec(packageJson.patch) : null;
 if (!/^\d+$/.test(String(packageJson.version ?? ''))) errors.push(`expected package version to be numeric, found ${packageJson.version}`);
-if (!patchMatch) errors.push(`expected package patch in MAJOR.MINOR.PATCH form, found ${packageJson.patch}`);
+if (!patchMatch) errors.push(`expected package patch as numbers separated by dots (e.g. 122.4), found ${packageJson.patch}`);
 else if (patchMatch[1] !== packageJson.version) errors.push(`package version ${packageJson.version} must match the major of patch ${packageJson.patch}`);
 const uiCommand = packageJson.scripts?.['test:ui'] ?? '';
 if (!uiCommand.includes('node scripts/p120-e2e-preflight.mjs')) {

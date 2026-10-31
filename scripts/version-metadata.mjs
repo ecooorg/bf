@@ -17,7 +17,7 @@ const lockPath = join(root, 'package-lock.json');
 const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
 const version = String(pkg.version ?? '');
 const patch = String(pkg.patch ?? '');
-if (!/^\d+$/.test(version) || !/^\d+\.\d+\.\d+$/.test(patch) || patch.split('.')[0] !== version) {
+if (!/^\d+$/.test(version) || !/^\d+(?:\.\d+)*$/.test(patch) || patch.split('.')[0] !== version) {
   console.error(`version: FAIL: invalid version/patch pair (${version}, ${patch})`);
   process.exit(1);
 }
