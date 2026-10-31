@@ -25,10 +25,14 @@ export function createGeminiAdapter(client: GeminiClientLike, providerId = 'gemi
       const t0 = Date.now();
       const ctrl = new AbortController();
       const timer = opts.timeoutMs ? setTimeout(() => ctrl.abort(), opts.timeoutMs) : undefined;
-      opts.signal?.addEventListener('abort', () => ctrl.abort(), { once: true });
+      // The caller's signal can outlive this call (a build job shares one signal across many calls): link it for the
+      // duration of the call only, honour an already-aborted signal, and unlink in `finally` so listeners never accumulate.
+      const onExternalAbort = () => ctrl.abort();
+      if (opts.signal?.aborted) ctrl.abort(); else opts.signal?.addEventListener('abort', onExternalAbort, { once: true });
       const fail = (cls: ProviderErrorClass, msg: string) =>
         errorResponse(new ProviderError(cls, msg), { providerId, modelId: req.modelId, latencyMs: Date.now() - t0 });
       try {
+        if (ctrl.signal.aborted) return fail(classifyGeminiError(null, true), 'Aborted before the provider call');
         const r = await client.models.generateContent({
           model: req.modelId,
           contents: req.prompt,
@@ -61,6 +65,7 @@ export function createGeminiAdapter(client: GeminiClientLike, providerId = 'gemi
         return fail(classifyGeminiError(e, ctrl.signal.aborted), String((e as any)?.message || e).slice(0, 300));
       } finally {
         if (timer) clearTimeout(timer);
+        opts.signal?.removeEventListener('abort', onExternalAbort);
       }
     },
   };

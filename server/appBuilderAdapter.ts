@@ -137,7 +137,16 @@ export function createEventPort(): EventPort {
     await recordDiagnostic({ operationId: e.jobId, event: m.event, stage, status: e.type === 'job_done' ? (ok ? 'PASS' : 'WARN') : m.status, ...(e.type === 'unit_failed' || e.type === 'spec_failed' ? { errorCode: e.type === 'spec_failed' ? 'INVALID_SPEC' : 'UNIT_FAILED' } : {}) });
   } };
 }
-export const realClock: ClockPort = { now: () => Date.now(), sleep: (ms, signal) => new Promise((resolve) => { const t = setTimeout(resolve, ms); signal?.addEventListener('abort', () => { clearTimeout(t); resolve(); }, { once: true }); }) };
+export const realClock: ClockPort = {
+  now: () => Date.now(),
+  // The job-wide signal outlives each sleep: remove the abort listener when the timer fires, and return at once if already aborted.
+  sleep: (ms, signal) => new Promise((resolve) => {
+    if (signal?.aborted) { resolve(); return; }
+    const onAbort = () => { clearTimeout(t); resolve(); };
+    const t = setTimeout(() => { signal?.removeEventListener('abort', onAbort); resolve(); }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  }),
+};
 
 const running = new Set<string>();
 const aborts = new Map<string, AbortController>();

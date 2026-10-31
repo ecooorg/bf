@@ -31,10 +31,14 @@ export function createOpenAICompatibleAdapter(cfg: OpenAICompatConfig): Provider
       const t0 = Date.now();
       const ctrl = new AbortController();
       const timer = opts.timeoutMs ? setTimeout(() => ctrl.abort(), opts.timeoutMs) : undefined;
-      opts.signal?.addEventListener('abort', () => ctrl.abort(), { once: true });
+      // The caller's signal can outlive this call (a build job shares one signal across many calls): link it for the
+      // duration of the call only, honour an already-aborted signal, and unlink in `finally` so listeners never accumulate.
+      const onExternalAbort = () => ctrl.abort();
+      if (opts.signal?.aborted) ctrl.abort(); else opts.signal?.addEventListener('abort', onExternalAbort, { once: true });
       const fail = (cls: ProviderErrorClass, msg: string, retryAfterMs?: number) =>
         errorResponse(new ProviderError(cls, msg), { providerId, modelId: req.modelId, latencyMs: Date.now() - t0, ...(retryAfterMs !== undefined ? { retryAfterMs } : {}) });
       try {
+        if (ctrl.signal.aborted) return fail(classifyOpenAICompatError(0, 'aborted', true), 'Aborted before the provider call');
         const messages = [...(req.system ? [{ role: 'system', content: req.system }] : []), { role: 'user', content: req.prompt }];
         const res = await doFetch(url, {
           method: 'POST',
@@ -74,6 +78,7 @@ export function createOpenAICompatibleAdapter(cfg: OpenAICompatConfig): Provider
         return fail(classifyOpenAICompatError(0, String((e as any)?.message || e), ctrl.signal.aborted), String((e as any)?.message || e).slice(0, 300));
       } finally {
         if (timer) clearTimeout(timer);
+        opts.signal?.removeEventListener('abort', onExternalAbort);
       }
     },
   };
