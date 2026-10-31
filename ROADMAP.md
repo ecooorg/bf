@@ -2,6 +2,10 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
+## P121.0.33 — Abort listener lifecycle (status)
+
+- Model adapters and the job clock no longer leak `abort` listeners on the shared build-job signal; an already-aborted signal now stops work before a provider request. Shared infrastructure fix; the Lab and legacy Architect both use it. Local `test:models` only; hosted CI and live build behavior NOT_RUN.
+
 ## Current development direction — Architectural Test Lab (owner-approved, 2026-10-30)
 
 - Primary development focus is the experimental fourth mode, **Architectural Test Lab** at `/architect-lab`.

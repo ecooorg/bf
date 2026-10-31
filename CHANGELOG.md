@@ -1,3 +1,10 @@
+## P121.0.33 — Release abort listeners on the shared build-job signal
+
+- Model adapters (`geminiAdapter.ts`, `openaiCompatAdapter.ts`) and `realClock.sleep` attached an `abort` listener to the caller's signal on every call and never removed it. A staged build shares one job signal across all model calls, so listeners accumulated (production console showed `MaxListenersExceededWarning`, 11 listeners, 2026-10-30 23:14:44).
+- Listeners are now removed when the call or sleep ends. A signal that is already aborted now stops the call before any provider request is sent (`PROVIDER_TRANSIENT`, the same class as in-flight cancellation) and ends a sleep immediately.
+- Added four regression tests to `tests/models.test.mjs` (run by `test:models`): no listener accumulation on success and on provider error, in-flight cancellation still works, pre-aborted signal sends no request, `realClock.sleep` lifecycle.
+- No UI, routing, API, database, or Neon behavior changed. Local `test:models` 150/150; the new tests fail on the previous code (3 of 4; the in-flight test guards unchanged behavior). Hosted CI and live build behavior: NOT_RUN.
+
 ## P121.0.32 — Update remaining cycle-governance Architect route assertion
 
 - Updated `tests/p121-cycle-governance.test.mjs`, the remaining core test that still expected the Architect menu to navigate to `/project`.
