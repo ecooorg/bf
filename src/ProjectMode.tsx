@@ -506,21 +506,22 @@ export default function ProjectMode() {
     {buildProgress && (() => {
       const job = buildProgress.job;
       const code = typeof job.error === 'object' && job.error ? (job.error as any).code : '';
-      const msg = code === 'waiting_rate_limit' ? 'Лимит модели достигнут — ожидаем разрешённого повтора. Сборка не зависла.'
-        : code === 'waiting_model' ? 'Ожидаем безопасный интервал перед запросом к модели…'
-        : code === 'retrying_model' ? 'Модель не вернула пригодный ответ. Повторяем один раз с более коротким запросом…'
-        : job.status === 'done' && (job.outcome === 'SUCCESS' || job.goalImplemented) ? 'Сборка завершена и проверена (SUCCESS).'
-        : job.status === 'done' ? 'Сборка частичная (PARTIAL): ZIP есть, но цель не подтверждена проверками.'
-        : job.status === 'failed' ? `Сборка не удалась (FAILED)${job.report?.failedStage || job.failedStage ? ' на этапе ' + (job.report?.failedStage || job.failedStage) : ''}. Ниже причина и что сделать дальше.`
-        : job.status === 'cancelled' ? 'Сборка отменена.'
-        : ({ spec: 'Уточняем требования…', plan: 'Планируем файлы…', planning: 'Ожидаем ответа модели при планировании…', code: 'Ожидаем ответа модели / создаём файлы…', waiting_model: 'Ожидаем ответа модели. Это может занять некоторое время…', check: 'Проверяем созданные файлы…', preflight: 'Подготавливаем сборку…' } as Record<string, string>)[job.stage || ''] || 'Сборка выполняется…';
+      const msg = code === 'waiting_rate_limit' ? 'Model rate limit reached — waiting for an allowed retry. The build is not stuck.'
+        : code === 'waiting_model' ? 'Waiting for a safe interval before the next model request…'
+        : code === 'retrying_model' ? 'The model did not return a usable response. Retrying once with a shorter request…'
+        : job.status === 'done' && (job.outcome === 'SUCCESS' || job.goalImplemented) ? 'Build complete and validated (SUCCESS).'
+        : job.status === 'done' ? 'Build partial (PARTIAL): ZIP is available, but the goal was not confirmed by checks.'
+        : job.status === 'failed' ? `Build failed (FAILED)${job.report?.failedStage || job.failedStage ? ' at stage ' + (job.report?.failedStage || job.failedStage) : ''}. See the reason below.`
+        : job.status === 'cancelled' ? 'Build cancelled.'
+        : ({ spec: 'Clarifying requirements…', plan: 'Planning files…', planning: 'Waiting for the model while planning…', code: 'Waiting for the model / creating files…', waiting_model: 'Waiting for the model. This can take a while…', check: 'Checking generated files…', preflight: 'Preparing the build…' } as Record<string, string>)[job.stage || ''] || 'Build in progress…';
       return <div role="status" aria-live="polite" data-testid="project-build-live-status" style={{ margin: '12px 0', padding: '12px 14px', border: '1px solid #3d7fc4', borderRadius: 9, background: '#0b2545', color: '#e6edf7' }}>
-        <strong>{['done', 'failed', 'cancelled'].includes(String(job.status)) ? 'Статус сборки' : 'Сборка проекта'}</strong>
+        <strong>{['done', 'failed', 'cancelled'].includes(String(job.status)) ? 'Build status' : 'Project build'}</strong>
         <p style={{ margin: '6px 0' }}>{msg}</p>
-        <small style={{ color: '#a9bfd8' }}>Этап: {job.stage || 'подготовка'} · Прошло {Math.max(0, Math.floor((Date.now() - buildProgress.startedAt) / 1000))} с · Запросов модели: {job.callsUsed ?? 0}/{job.callsBudget ?? '—'}{job.jobId ? ` · Задание ${job.jobId.slice(0, 8)}` : ''}</small>
-        {job.units?.length ? <p style={{ margin: '6px 0 0', fontSize: 12, color: '#a9bfd8' }}>Файлы: {job.units.filter((u: any) => u.status === 'done').length}/{job.units.length} готовы.</p> : null}
+        <small style={{ color: '#a9bfd8' }}>Stage: {job.stage || 'preparing'} · Elapsed {Math.max(0, Math.floor((Date.now() - buildProgress.startedAt) / 1000))} s · Model calls: {job.callsUsed ?? 0}/{job.callsBudget ?? '—'}{job.jobId ? ` · Job ${job.jobId.slice(0, 8)}` : ''}</small>
+        {job.units?.length ? <p style={{ margin: '6px 0 0', fontSize: 12, color: '#a9bfd8' }}>Files: {job.units.filter((u: any) => u.status === 'done').length}/{job.units.length} ready.</p> : null}
         {job.note && <p style={{ margin: '6px 0 0', fontSize: 13 }}>{job.note}</p>}
-        {(job.outcome || job.report?.outcome) && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8fa6c2' }} data-testid="project-build-outcome">Итог: {job.outcome || job.report?.outcome}{job.report?.checksNotRun?.length ? ` · не выполнены проверки: ${job.report.checksNotRun.join(', ')}` : ''}{job.report?.failureReason ? ` · ${job.report.failureReason}` : ''}</p>}
+        {(job.outcome || job.report?.outcome) && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8fa6c2' }} data-testid="project-build-outcome">Outcome: {job.outcome || job.report?.outcome}{job.report?.checksNotRun?.length ? ` · checks not run: ${job.report.checksNotRun.join(', ')}` : ''}{job.report?.failureReason ? ` · ${job.report.failureReason}` : ''}</p>}
+
       </div>;
     })()}
     {authenticated && enabled && showGuidedStart && (

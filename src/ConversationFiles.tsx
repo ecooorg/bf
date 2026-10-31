@@ -256,10 +256,7 @@ export function ConversationExport({ title, history }: { title: string; history:
   const { busy, error, run } = useDownload();
   const doc = (): DocumentSpec => {
     const sample = history.map((m) => String(m.content || '')).join(' ').slice(0, 2000);
-    const ru = detectUiLanguage(sample) === 'ru';
-    return conversationToDocument(title, history, ru
-      ? { user: 'Вы', assistant: 'Агент', attached: 'Вложения' }
-      : { user: 'You', assistant: 'Agent', attached: 'Attached' });
+    return conversationToDocument(title, history, { user: 'You', assistant: 'Agent', attached: 'Attached' });
   };
   return (
     <>
@@ -348,10 +345,7 @@ export function FilesPanel({
 
   const dialogueDoc = (): DocumentSpec => {
     const sample = history.map((m) => String(m.content || '')).join(' ').slice(0, 2000);
-    const ru = detectUiLanguage(sample) === 'ru';
-    return conversationToDocument(title, history, ru
-      ? { user: 'Вы', assistant: 'Агент', attached: 'Вложения' }
-      : { user: 'You', assistant: 'Agent', attached: 'Attached' });
+    return conversationToDocument(title, history, { user: 'You', assistant: 'Agent', attached: 'Attached' });
   };
 
   const pickDevice = async (fileList: FileList | null) => {

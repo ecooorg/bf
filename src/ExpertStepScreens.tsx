@@ -214,7 +214,7 @@ export function sanitizeDisplayExample(text: unknown, userText: string): string 
 
   // Keep the action, remove only the unsupported illustrative figure.
   return value
-    .replace(/(?:например|допустим|условно|к примеру|скажем)\s+(?:около\s+|примерно\s+)?-?\d+(?:[.,]\d+)?(?:\s*(?:евро|€|доллар(?:ов|а)?|\$|%|процентов?))?/gi, 'небольшой тестовый бюджет')
+    .replace(/(?:например|допустим|условно|к примеру|скажем)\s+(?:около\s+|примерно\s+)?-?\d+(?:[.,]\d+)?(?:\s*(?:евро|€|доллар(?:ов|а)?|\$|%|процентов?))?/gi, 'a small test budget')
     .replace(/(?:for example|e\.g\.|suppose|let'?s say)\s+(?:about\s+|around\s+)?-?\d+(?:[.,]\d+)?(?:\s*(?:eur|euro|€|usd|\$|%|percent))?/gi, 'a small test budget')
     .replace(/\s{2,}/g, ' ')
     .trim();

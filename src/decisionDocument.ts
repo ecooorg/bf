@@ -7,14 +7,11 @@ const L = {
   en: { brief: 'Decision', goal: 'Goal', deadline: 'Deadline', facts: 'Facts', unknowns: 'Unknowns', assumptions: 'Assumptions', values: 'Values', constraints: 'Constraints',
     options: 'Options', hypotheses: 'Hypotheses to check', experiments: 'Experiments', test: 'Test', metric: 'Metric', until: 'Until', success: 'Success if', stop: 'Stop if',
     decided: 'My decision', onValues: 'On which values', underData: 'Under which data', accepted: 'Uncertainties I accept', synthesis: 'Summary', journal: 'Journal', forecast: 'Forecast', result: 'Result' },
-  ru: { brief: 'Решение', goal: 'Цель', deadline: 'Срок', facts: 'Факты', unknowns: 'Что неизвестно', assumptions: 'Допущения', values: 'Ценности', constraints: 'Ограничения',
-    options: 'Варианты', hypotheses: 'Гипотезы для проверки', experiments: 'Эксперименты', test: 'Проверка', metric: 'Метрика', until: 'Срок', success: 'Успех, если', stop: 'Остановка, если',
-    decided: 'Моё решение', onValues: 'На каких ценностях', underData: 'При каких данных', accepted: 'Неопределённости, которые я принимаю', synthesis: 'Резюме', journal: 'Журнал', forecast: 'Прогноз', result: 'Результат' },
 };
 
 export function decisionToDocument(d: Decision): DocumentSpec {
   const sample = [d.title, d.brief?.decision, d.brief?.goal, ...(d.brief?.facts || [])].join(' ').slice(0, 1500);
-  const t = detectUiLanguage(sample) === 'ru' ? L.ru : L.en;
+  const t = L.en; // Product UI is English-only (AGENTS.md language policy).
   const blocks: DocBlock[] = [];
   const clean = (v: unknown) => String(v ?? '').trim();
   const para = (head: string, text: unknown) => { const s = clean(text); if (s) blocks.push({ type: 'heading', text: head }, { type: 'paragraph', text: s }); };
