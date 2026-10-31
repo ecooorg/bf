@@ -1,4 +1,4 @@
-# Ops / diagnostics. Optional staging probes. Always emits ASSISTANT_PASTE.txt.
+# Ops / diagnostics. Outer artifact: ASSISTANT_PASTE.txt + logs zip only.
 name: ops
 on:
   workflow_dispatch:
@@ -39,14 +39,15 @@ jobs:
       - name: Dual-compare dry-run
         if: inputs.mode == 'dual-dry-run'
         shell: bash
-        run: set -o pipefail; DUAL_DRY_RUN=true DUAL_OUT_DIR=architect-dual-compare node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/ops-dual-dry.log
-      - name: Assistant paste summary
+        run: set -o pipefail; DUAL_DRY_RUN=true DUAL_OUT_DIR=artifacts/ci-checks/dual-compare node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/ops-dual-dry.log
+      - name: Assistant paste + pack outer artifact
         if: always()
         shell: bash
         run: node scripts/assistant-run-summary.mjs
         env:
           CI_LOGS_DIR: artifacts/ci-checks
-          DUAL_OUT_DIR: architect-dual-compare
+          DUAL_OUT_DIR: artifacts/ci-checks/dual-compare
+          PACK_OUTER_ARTIFACT: 'true'
           CI_STATUS: ${{ job.status }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
@@ -55,13 +56,13 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-      - name: Upload ops artifact
+      - name: Upload ops report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: biforge-ops-report
           path: |
-            artifacts/ci-checks/
-            architect-dual-compare/
+            artifacts/ci-checks/ASSISTANT_PASTE.txt
+            artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: warn
           retention-days: 14

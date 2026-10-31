@@ -78,6 +78,7 @@ jobs:
         with:
           name: biforge-acceptance-report
           path: |
-            artifacts/ci-checks/
+            artifacts/ci-checks/ASSISTANT_PASTE.txt
+            artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: warn
           retention-days: 30

@@ -47,6 +47,32 @@ jobs:
           DAG_ALLOW_UNSAFE: 'true'
           DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
 
+
+      - name: Cache Playwright Chromium
+        if: steps.dag.outcome == 'success'
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-chromium-${{ runner.os }}-
+
+      - name: Install Playwright Chromium (with OS deps)
+        if: steps.dag.outcome == 'success' && steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Ensure Playwright Chromium binary
+        if: steps.dag.outcome == 'success' && steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install chromium
+
+      - name: UI smoke (viewport + shell)
+        id: ui_smoke
+        if: steps.dag.outcome == 'success'
+        timeout-minutes: 15
+        shell: bash
+        run: set -o pipefail; npm run test:ui-smoke 2>&1 | tee artifacts/ci-checks/ui-smoke.log
+
       - name: Scan repository for leaked secrets
         if: always() && steps.deps.outcome == 'success'
         uses: gitleaks/gitleaks-action@v2
@@ -135,9 +161,7 @@ jobs:
         with:
           name: biforge-ci-report
           path: |
-            artifacts/ci-checks/BIForge-PATCH-EVIDENCE.md
             artifacts/ci-checks/ASSISTANT_PASTE.txt
-            artifacts/ci-checks/ASSISTANT_SUMMARY.json
             artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: error
           compression-level: 0

@@ -1,4 +1,4 @@
-# Lab vs Legacy live compare on staging. Report + ASSISTANT_PASTE.txt for chat paste.
+# Lab vs Legacy live compare on staging. Outer artifact: ASSISTANT_PASTE.txt + logs zip only.
 name: architect-compare
 on:
   workflow_dispatch:
@@ -42,15 +42,16 @@ jobs:
           STAGING_APP_PASSWORD: ${{ secrets.STAGING_APP_PASSWORD }}
           DUAL_GOAL: ${{ inputs.goal }}
           DUAL_CLEANUP: ${{ inputs.cleanup }}
-          DUAL_OUT_DIR: architect-dual-compare
+          DUAL_OUT_DIR: artifacts/ci-checks/dual-compare
           DUAL_BUILD_WAIT_MS: '600000'
-      - name: Assistant paste summary
+      - name: Assistant paste + pack outer artifact
         if: always()
         shell: bash
         run: node scripts/assistant-run-summary.mjs
         env:
           CI_LOGS_DIR: artifacts/ci-checks
-          DUAL_OUT_DIR: architect-dual-compare
+          DUAL_OUT_DIR: artifacts/ci-checks/dual-compare
+          PACK_OUTER_ARTIFACT: 'true'
           CI_STATUS: ${{ job.status }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
@@ -59,13 +60,13 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-      - name: Upload compare + paste
+      - name: Upload compare report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: biforge-architect-compare
           path: |
-            artifacts/ci-checks/
-            architect-dual-compare/
+            artifacts/ci-checks/ASSISTANT_PASTE.txt
+            artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: warn
           retention-days: 30
