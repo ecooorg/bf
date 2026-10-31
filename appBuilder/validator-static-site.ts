@@ -121,9 +121,27 @@ export function validateDomWiring(files: FileMap): ReportValidator {
   };
   for (const [path, src] of files) {
     if (!/\.js$/i.test(path)) continue;
+    const propertyBindings = new Map<string, Set<string>>();
+    for (const m of src.matchAll(/\bthis\.([A-Za-z_$][\w$]*)\s*=\s*(?:document\.)?getElementById\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+      const [, property, id] = m;
+      if (!htmlIds.has(id)) issues.push({ path, message: `getElementById('${id}'): no element with this id in HTML` });
+      const properties = propertyBindings.get(id) ?? new Set<string>();
+      properties.add(property);
+      propertyBindings.set(id, properties);
+    }
+    // Distinct controller roles must not be silently collapsed onto one DOM node by a repair.
+    // Reusing a node is sometimes intentional, so only flag multiple explicit `this.*` bindings
+    // when their property names differ; the generated app should use semantically matching ids.
+    for (const [id, properties] of propertyBindings) {
+      if (properties.size > 1) {
+        issues.push({ path, message: `DOM id '${id}' is bound to multiple controller properties: ${[...properties].join(', ')}` });
+      }
+    }
     for (const m of src.matchAll(/\.getElementById\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
       const id = m[1];
-      if (!htmlIds.has(id)) issues.push({ path, message: `getElementById('${id}'): no element with this id in HTML` });
+      if (!htmlIds.has(id) && !issues.some((issue) => issue.path === path && issue.message.includes(`getElementById('${id}')`))) {
+        issues.push({ path, message: `getElementById('${id}'): no element with this id in HTML` });
+      }
     }
     for (const m of src.matchAll(/\.querySelector(?:All)?\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
       const id = idFromSelector(m[1]);

@@ -507,10 +507,10 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
         callsBudget: budget,
       }, 'warn');
       const repairPrompt =
-        `Fix DOM id mismatches in ${scriptPath} only. The HTML in this project defines these element ids (use them exactly, do not invent new ones): ${uniqueIds.length ? uniqueIds.map((id) => JSON.stringify(id)).join(', ') : '(none)'}.\n` +
+        `Fix DOM wiring defects in ${scriptPath} only. The HTML in this project defines these element ids: ${uniqueIds.length ? uniqueIds.map((id) => JSON.stringify(id)).join(', ') : '(none)'}. Use an id only when it represents the property's actual semantic role. Do not map distinct controller properties to the same id merely to clear a validator. If the HTML has no semantically correct element, leave that issue unresolved rather than wiring to an unrelated element.\n` +
         `Current problems:\n- ${issuesForScript.join('\n- ')}\n` +
         repairSourceBlock(scriptPath, entry.content) +
-        `Reply with the COMPLETE corrected file for path ${scriptPath} in the required marker block. Keep behaviour; only change the id strings so they match the HTML. Return every function and line of the current source; do not shorten, summarize or rewrite it. Do not add new files.`;
+        `Reply with the COMPLETE corrected file for path ${scriptPath} in the required marker block. Preserve behavior and distinct UI roles; correct mismatched ids only when a semantically corresponding HTML element exists. Return every function and line of the current source; do not shorten, summarize or rewrite it. Do not add new files.`;
       const repaired = await call('coder', repairPrompt, undefined, scriptPath);
       if (!repaired) continue;
       const parsed = parseFileMarkers(repaired.text, scriptPath);
