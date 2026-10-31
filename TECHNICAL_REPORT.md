@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P122.0 C122 governance launch, 2026-10-31
+
+- **Changed:** Product version set to 122. CURRENT NORMATIVE CONTRACT in TECHNICAL_SPECIFICATION.md rewritten for C122 (Expert primary, Architect frozen, Conversational out of scope, four-patch plan). ROADMAP.md CURRENT ROADMAP CONTROL updated with C122 sequence and priorities. docs/DECISIONS.md records D-2026-10-31-03. CHANGELOG.md and this evidence note added. package.json version/patch updated.
+- **Scope of this delivery:** Documentation and governance only. No Expert code, persistence, API, or test changes. Establishes the normative baseline required before P122.1 implementation.
+- **NOT_RUN:** typecheck, unit/integration/e2e tests, hosted CI, live Expert sessions, real-model evaluation. Governance change does not alter runtime behaviour.
+- **Next required work:** P122.1 — State Integrity & Persistence (inspect actual Expert persistence implementation, then implement durable session state, recovery, versioning, export/import integrity).
+
 # CURRENT EVIDENCE NOTE — P121.0.48 single Architect selection + semantic DOM validation, 2026-10-31
 
 - **OBSERVED (new owner-supplied artifacts):** Legacy generated Expense Tracker report `2c0ae028-1ec8-4f06-951b-fd4d382f5751` is `SUCCESS`, `goalImplemented=true`, and all seven declared validators pass (6 model calls, 42,403 ms). Architectural Test Lab report `385c4835-9aa8-407f-9f52-281021126974` is `PARTIAL`, `goalImplemented=false`, with `js-syntax` (`import` outside module) and `refs` (`style.css` missing; generated file is `styles.css`) failing (10 calls, 52,815 ms).

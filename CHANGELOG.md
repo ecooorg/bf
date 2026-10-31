@@ -1,3 +1,14 @@
+## P122.0 — C122 launch: Expert Mode reliability cycle governance and documentation integration
+
+- Product version advanced to 122; cycle C122 (Expert Mode Reliability, Intelligence Quality & Decision Engineering) is now the active programme.
+- Integrated the full C122 technical mandate into existing documentation:
+  - `TECHNICAL_SPECIFICATION.md`: new CURRENT NORMATIVE CONTRACT prioritising Expert Mode, four-patch structure, scope, exclusions, Architect freeze, Conversational protection.
+  - `ROADMAP.md`: new CURRENT ROADMAP CONTROL with C122 patch sequence, priority matrix, expected results, and frozen/out-of-scope statements.
+  - `docs/DECISIONS.md`: D-2026-10-31-03 recording the owner-approved launch of C122 and the freeze of Architect development.
+- Architect remains the selected primary implementation but is frozen for feature work during C122; Conversational Mode remains out of scope.
+- No product code, API, or test behaviour changed in this patch. This delivery establishes the normative baseline for P122.1–P122.4.
+- Verification: documentation consistency inspection only; typecheck/build/tests/hosted CI/live: NOT_RUN (governance-only change).
+
 ## P121.0.49 — Fix primary Architect route and align stale boundary contract
 
 - Fixed the route regression: `/project`, `/project-legacy`, and `/architect` render the selected `ProjectMode` Architect; only `/architect-lab` renders the frozen diagnostic Lab.

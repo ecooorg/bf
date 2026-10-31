@@ -1,46 +1,64 @@
-# CURRENT ROADMAP CONTROL — 2026-10-30
+# CURRENT ROADMAP CONTROL — 2026-10-31 (C122)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-## P121.0.48 — Select one primary Architect and strengthen DOM validation (status)
+## C122 — Expert Mode Reliability, Intelligence Quality & Decision Engineering (ACTIVE)
 
-- The latest comparable supplied generation evidence selects legacy `ProjectMode` as the sole active Architect workflow: its generated Expense Tracker report is `SUCCESS` with all seven declared validators passing; the Lab report is `PARTIAL` with JavaScript syntax and file-reference failures.
-- `/project`, `/project-legacy`, and `/architect` now mount the selected legacy workflow. `/architect-lab` remains available only as a frozen diagnostic experiment; no parallel Lab feature work is planned.
-- Shared DOM validation now detects distinct controller properties silently bound to the same element ID. Repair prompts explicitly prohibit mapping unrelated UI roles to the same element just to clear validation.
-- Added a regression test for the semantic DOM-alias defect and updated route/governance contracts.
-- Generated artifact browser/mobile behavior, production build, full test suite, hosted CI, and live generation after this patch: NOT_RUN.
+**Product version:** 122  
+**Status:** APPROVED — implementation in progress  
+**Primary target:** Expert Mode  
+**Architect:** FROZEN  
+**Conversational:** OUT OF SCOPE  
 
-## P121.0.47 — Evidence-based Architect promotion (historical status)
+### Patch sequence
 
-- Primary `/project` opened Architectural Test Lab; legacy Project Mode remained reachable at `/project-legacy`. Existing `/architect` and `/architect-lab` aliases remained available.
-- That earlier selection used older supplied reports and was superseded by P121.0.48 after newer comparable evidence. The older reports remain historical evidence.
-- Both build interfaces showed model-call/file progress while the build job was being polled.
-- Local contract/governance tests passed at that time; production build, browser E2E, hosted CI, fresh live generation, and Android outcome were NOT_RUN.
+| Patch | Title | Objective | Status |
+|-------|-------|-----------|--------|
+| P122.1 | STATE INTEGRITY & PERSISTENCE | Make Expert sessions durable, recoverable, consistent, and resistant to accidental information loss | PLANNED |
+| P122.2 | ANALYTICAL RELIABILITY & EVIDENCE INTEGRITY | Ensure Expert reasoning is traceable, logically consistent, evidence-aware, and resistant to unsupported conclusions | PLANNED |
+| P122.3 | EXECUTION RELIABILITY & WORKFLOW CONTINUITY | Make the Expert execution pipeline resilient to model errors, invalid responses, interrupted operations, repeated requests, and long-running analytical sessions | PLANNED |
+| P122.4 | DECISION QUALITY, USER EXPERIENCE & FINAL VALIDATION | Ensure Expert produces genuinely useful decisions; complete transition to reliable decision-support product | PLANNED |
 
-## P121.0.46 — Repair integrity (status)
+### Priority matrix (from C122 mandate)
 
-- Shared App Builder engine (Lab and Legacy): model repairs of `.js` files now receive the file and cannot replace it with a fraction of itself. An observed placeholder-as-SUCCESS defect (BIO-005 honesty) is closed at the engine level; local tests only, hosted CI and live build NOT_RUN.
-- Factual open items observed in the same evidence: Lab unit failure on model cooldown without a wait (build `6dc4fc12`); planned files that the generated `index.html` never references are not detected by validators; `docs/generated-check-graph.json` is stale against `package.json`.
+| Priority | Area | Patch |
+|----------|------|-------|
+| P0 | Decision state persistence | P122.1 |
+| P0 | State integrity and recovery | P122.1 |
+| P0 | Evidence provenance | P122.2 |
+| P0 | Fact/assumption separation | P122.2 |
+| P1 | Contradiction detection | P122.2 |
+| P1 | Hypothesis lifecycle | P122.2 |
+| P1 | Numerical auditability | P122.2 |
+| P0 | API reliability | P122.3 |
+| P0 | Model response validation | P122.3 |
+| P1 | Safe retries and recovery | P122.3 |
+| P1 | Long-session continuity | P122.3 |
+| P1 | Final decision synthesis | P122.4 |
+| P1 | User workflow clarity | P122.4 |
+| P0 | Real-model evaluation | P122.4 |
+| P0 | Global acceptance | P122.4 |
 
-## P121.0.33 — Abort listener lifecycle (status)
+### Expected results
 
-- Model adapters and the job clock no longer leak `abort` listeners on the shared build-job signal; an already-aborted signal now stops work before a provider request. Shared infrastructure fix; the Lab and legacy Architect both use it. Local `test:models` only; hosted CI and live build behavior NOT_RUN.
+- After P122.1: Expert decisions become persistent, recoverable, and protected against accidental loss.
+- After P122.2: Expert reasoning becomes more transparent, evidence-based, logically consistent, and auditable.
+- After P122.3: Expert becomes technically resilient and capable of handling long, complex, interrupted analytical workflows.
+- After P122.4: Expert becomes a validated decision-support system capable of producing complete, defensible, practical recommendations.
 
-## Current development direction — Legacy Architect selected (owner-directed, 2026-10-31)
+### Frozen / out of scope during C122
 
-- Primary development focus is the legacy Architect / `ProjectMode` at `/project`, based on the newest comparable generated-artifact reports supplied by the owner.
-- Architectural Test Lab at `/architect-lab` is frozen for diagnostic reproducibility; no parallel feature development or routine repair work is planned there.
-- Shared generation-engine reliability fixes are in scope when they protect the selected primary, including validation that detects semantic DOM aliasing and repair prompts that avoid unsafe substitutions.
-- The latest static reports do not prove deployed or mobile user outcome. Browser E2E, hosted CI, and live generation after this patch remain NOT_RUN.
+- Architect development and Architectural Test Lab feature work remain frozen.
+- Conversational Mode improvements remain outside C122.
+- No general visual redesign, unrelated infrastructure refactoring, or new features unrelated to Expert reliability.
 
+### Global C122 completion criteria (summary)
 
-> This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
+State reliability, analytical integrity, execution reliability, decision quality, and validation (deterministic tests + real-model evaluation scenarios) must all be demonstrated. A successful CI run alone does not establish completion. Critical defects must be documented if unresolved.
 
-## P121.0.12 — Paste-ready compact session diagnostics (current delivery)
+## Historical: P121 series (Architect selection and verification)
 
-- Added privacy-safe browser error/rejection, visibility, mount, DOM-root structure/geometry, and page-hide telemetry with authenticated ingestion.
-- Extended the paste-ready log with recent browser events and HTTP request metadata to diagnose the post-build black-screen state.
-- Source inspection only; typecheck/build/tests, hosted CI, and live Android reproduction are NOT_RUN.
+The P121 cycle selected the legacy Architect as the sole active implementation and strengthened related validation. Those records remain historical. Architect is now frozen for the duration of C122.
 
 ## Programme objective
 

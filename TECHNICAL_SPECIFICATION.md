@@ -1,4 +1,4 @@
-# CURRENT NORMATIVE CONTRACT — 2026-10-31
+# CURRENT NORMATIVE CONTRACT — 2026-10-31 (C122)
 
 > This block is the current binding product contract. It takes precedence over any older statement below that conflicts with it. The remainder of this file is retained as the technical and historical record; do not silently rewrite past entries to make them look current.
 
@@ -6,31 +6,129 @@
 
 BiForge succeeds when a real user can complete a meaningful task and receive a correct, useful, understandable result. Tests, CI, architecture boundaries, documentation, and evidence are necessary controls; none alone proves user value. Every feature change must name the user problem, expected user-visible result, failure/recovery behavior, and how that result will be evaluated. Report code presence, local tests, hosted CI, deployed behavior, and user-outcome evidence as distinct facts. Never label an unobserved outcome PASS.
 
-## Three core agents and one experimental development mode
+## Current development cycle: C122 — Expert Mode Reliability, Intelligence Quality & Decision Engineering
 
-The product continues to define exactly three user-facing agents in its core agent taxonomy. The three core user-facing agents remain:
+**Primary target:** Expert Mode  
+**Product version:** 122  
+**Patch sequence:** P122.1, P122.2, P122.3, P122.4  
+**Development status:** APPROVED  
+**Scope:** Reliability, correctness, analytical quality, decision quality of Expert Mode  
+**Architecture policy:** Preserve existing architecture unless a demonstrated defect requires change  
+**Architectural mode:** Frozen (Architect)  
+**Conversational mode:** Out of scope for C122  
+
+The purpose of development cycle C122 is to transform the existing BiForge Expert Mode from a functional but insufficiently validated analytical prototype into a reliable, persistent, evidence-based decision-support system.
+
+The work must focus on the reliability and quality of the complete expert decision-making process. The objective is not to add more features for the sake of feature count. The objective is to ensure that Expert Mode can:
+
+1. Understand complex user problems accurately.
+2. Distinguish verified facts from assumptions, interpretations, opinions, and unknowns.
+3. Preserve all important information throughout a long analytical session.
+4. Generate genuinely different and meaningful alternatives.
+5. Critically examine its own conclusions.
+6. Identify contradictions, missing evidence, and unsupported claims.
+7. Evaluate uncertainty and risks.
+8. Design meaningful experiments and verification procedures.
+9. Produce logically consistent and evidence-supported recommendations.
+10. Recover from technical failures without losing previously completed work.
+11. Produce a complete, useful, and actionable final decision document.
+12. Maintain continuity between analytical stages, including when the user introduces new information or changes the original problem.
+
+The final product must help a person make better decisions, not merely generate sophisticated-looking analytical text.
+
+### Fundamental development principle
+
+Every C122 patch must satisfy at least one of the following conditions:
+
+- Eliminate a demonstrated defect.
+- Improve a measurable capability of Expert Mode.
+- Improve the reliability or integrity of expert data.
+- Improve the quality or verifiability of analytical conclusions.
+- Improve the user's ability to complete a decision-making process.
+- Provide evidence that an existing capability works correctly under realistic conditions.
+
+Adding functionality without demonstrating its contribution to decision quality is not sufficient.
+
+### Product objective at end of C122
+
+At the end of C122, Expert Mode must be capable of conducting a complete decision-making process with reliable state preservation, traceable reasoning, controlled uncertainty, recoverable execution, and a defensible final recommendation.
+
+The final result must be understandable and useful to a person who has not followed the internal analytical process.
+
+## Four-patch implementation plan
+
+### P122.1 — STATE INTEGRITY & PERSISTENCE
+Primary objective: Make Expert sessions durable, recoverable, consistent, and resistant to accidental information loss. This patch establishes the technical foundation for all subsequent improvements.
+
+### P122.2 — ANALYTICAL RELIABILITY & EVIDENCE INTEGRITY
+Primary objective: Ensure that Expert reasoning is traceable, logically consistent, evidence-aware, and resistant to unsupported conclusions.
+
+### P122.3 — EXECUTION RELIABILITY & WORKFLOW CONTINUITY
+Primary objective: Make the Expert execution pipeline resilient to model errors, invalid responses, interrupted operations, repeated requests, and long-running analytical sessions.
+
+### P122.4 — DECISION QUALITY, USER EXPERIENCE & FINAL VALIDATION
+Primary objective: Ensure that Expert produces genuinely useful decisions, not merely technically correct intermediate outputs. This patch completes the transition from an analytical prototype to a reliable decision-support product.
+
+## Scope of Work (C122)
+
+C122 concerns exclusively the Expert Mode and the shared infrastructure strictly necessary to make Expert Mode reliable.
+
+Included:
+- Expert analytical workflow.
+- Expert session state.
+- Decision data integrity.
+- Evidence and claim management.
+- Expert API operations.
+- Expert-specific validation.
+- Error handling and recovery.
+- Long-session continuity.
+- Analytical consistency.
+- Final decision synthesis.
+- Expert user experience.
+- Expert-specific automated testing.
+- Realistic evaluation of decision quality.
+
+### Explicitly excluded work
+
+The following work must NOT be included in C122 unless a direct dependency makes a minimal change unavoidable:
+
+1. Architectural Test Lab development.
+2. Further improvement of the selected Architect.
+3. Parallel development of alternative Architect implementations.
+4. General Conversational Mode improvements.
+5. General visual redesign of BiForge.
+6. Unrelated database optimization.
+7. Unrelated infrastructure refactoring.
+8. New product features unrelated to Expert reliability.
+9. Cosmetic changes without a demonstrated Expert-specific benefit.
+
+### Architect Mode freeze
+
+Architect Mode is considered operationally sufficient for the current development stage. Its further improvement is postponed until the final product-wide optimization phase, together with the other product modes.
+
+During C122:
+- Do not develop the Architect.
+- Do not refactor Architect-specific logic.
+- Do not modify its prompts or generation workflow.
+- Do not modify Architect routing unless strictly necessary to prevent a regression caused by an Expert-specific change.
+- Do not remove existing Architect functionality.
+- Do not reopen the competition between Architect implementations.
+
+The existing Architect must remain operational. Any unavoidable changes affecting Architect must be minimal, justified, isolated, and covered by regression tests.
+
+### Conversational Mode protection
+
+Conversational Mode is also outside the scope of C122. Expert improvements must not accidentally change Conversational routing, prompts, information contracts, response formatting, context handling, or user experience. Shared components may be modified only when necessary and when backward compatibility is demonstrated.
+
+## Three core agents (unchanged taxonomy)
+
+The product continues to define exactly three user-facing agents:
 
 1. **Conversational** — answer real questions naturally, preserve relevant context, distinguish known facts from uncertainty, and use current information when the task requires it.
-2. **Expert** — investigate complex questions, compare alternatives against stated constraints, explain trade-offs, and produce a justified decision or actionable plan.
-3. **Architect** — the selected primary software-generation workflow, entered at `/project`; it is the only active Architect development target.
+2. **Expert** — investigate complex questions, compare alternatives against stated constraints, explain trade-offs, and produce a justified decision or actionable plan. **Current primary development target for C122.**
+3. **Architect** — the selected primary software-generation workflow, entered at `/project`; it is the only active Architect development target. **Frozen during C122.**
 
-BiForge retains the legacy Architect workflow as the selected primary Architect implementation. Architectural Test Lab (`/architect-lab`) remains available only as a frozen diagnostic experiment; it is not the primary user-facing Architect and receives no parallel feature development. This updates the owner-approved direction recorded on 2026-10-30 based on newer comparable generation evidence supplied on 2026-10-31.
-
-The development strategy is:
-
-- Prioritize the legacy Architect workflow at `/project` for new product behavior, fixes, validation, and iteration.
-- Repair the shared generation engine where evidence shows a defect affecting the selected Architect, including validator blind spots and unsafe automatic repairs.
-- Keep Architectural Test Lab source and its route only for reproducibility/diagnostic comparison; do not build new product behavior there.
-- Re-evaluate the primary selection only when the owner supplies or requests a newer comparable check.
-- The selected Architect uses shared App Builder orchestration, validators, model/provider connectivity, persistence, and artifact delivery; do not claim these subsystems are independent.
-
-## Frozen Architectural Test Lab and selected Architect completion direction
-
-The selected legacy Architect completion contract must make task/specification, plan, execution, validation, artifact availability, and final SUCCESS/PARTIAL/FAILED outcome observable. Every potentially waiting stage must have bounded execution, heartbeat/progress evidence, timeout/cancellation behavior, and a user-visible recoverable failure; a green CI run alone is not acceptance. The frozen Lab may remain available for diagnostics, but must not receive parallel feature work. Any future change of the selected primary requires a new explicit owner decision backed by newer comparable evidence.
-
-## Architect has one mode and one completion contract
-
-Architect is one user-facing agent and one end-to-end workflow. Do not expose a choice between “Simple words”/beginner/novice and “Professional” modes, a mode switch, or two independently selected Architect flows. The single flow may adapt wording, progressive disclosure, and optional advanced controls to user needs, but those are presentation adaptations inside one state machine—not modes or separate workflows. All paths must converge on one completion contract: explicit task/specification, validated plan, generated artifact, applicable validators, honest SUCCESS/PARTIAL/FAILED status, and a downloadable result only when the delivery policy permits it.
+BiForge retains the legacy Architect workflow as the selected primary Architect implementation. Architectural Test Lab (`/architect-lab`) remains available only as a frozen diagnostic experiment.
 
 ## Acceptance hierarchy
 
@@ -40,28 +138,6 @@ Architect is one user-facing agent and one end-to-end workflow. Do not expose a 
 - **Release evidence:** must be tied to the exact commit/build and distinguish local, hosted, and live checks.
 
 A green test suite does not compensate for a missing, confusing, low-quality, or unusable user result. A passing UI stub does not prove live model quality or deployed behavior.
-
-## Repository minimalism and test lifecycle
-
-**REQ-REPO-001 — Current purpose for maintained files.** Every maintained repository file must support a current product, development, build, verification, security, operational, or documentation need. Historical origin alone is not sufficient justification for retention.
-
-**REQ-REPO-002 — Tests protect current obligations.** Each retained test must trace to a current product requirement, meaningful user scenario, supported compatibility/data/API contract, or material regression risk not adequately covered elsewhere. Tests for completed experiments and old cycle-specific behavior must be removed or rewritten when they no longer protect a current obligation.
-
-**REQ-REPO-003 — Safe retirement.** Before removing tests, fixtures, scripts, reports, plans, or documentation, inspect repository references, package scripts, CI/workflow usage, unique coverage, compatibility commitments, and current requirements. Preserve needed coverage with smaller current-contract tests; archive payloads externally only when they have a concrete future use. Do not retain obsolete implementations solely for historical completeness.
-
-**REQ-REPO-004 — Separate historical record from obsolete test payload.** Preserve useful historical information: completed roadmap entries, changelog entries, factual reports, decision records, and concise evidence summaries of tests or experiments that were run. This does not require retaining the old test implementation, test-only fixtures, experimental prompts, temporary outputs, or one-off scripts after they have served their purpose and no longer protect a current requirement. When retiring such material, retain a concise historical result where relevant; do not silently erase the fact that work occurred or rewrite its recorded outcome.
-
-**Acceptance criteria:** a repository-minimalism review records keep/update/merge/archive/delete decisions for in-scope findings; each retained test has a current rationale; duplicate coverage is consolidated where safe; removed tests do not silently drop unique required coverage; and historical records remain intact while obsolete executable/test payloads can be retired independently.
-
-## Repository language and language-neutral behavior
-
-**REQ-LANG-001 — English-only repository artifacts.** All maintained source code, comments, identifiers, tests, fixtures, prompt templates, developer-facing messages, scripts, and technical documentation must be written in English. File and directory names must use English/ASCII naming. Historical evidence must not be silently rewritten; any retained non-English historical content must be explicitly classified and justified.
-
-**REQ-LANG-002 — Do not couple intent recognition to selected natural languages.** Internal routing, intent classification, and state transitions must use stable structured values or language-neutral contracts wherever feasible, not isolated keyword lists tied to particular natural languages. Natural-language text may remain an input to a model or a user-facing output where required by product behavior.
-
-**REQ-LANG-003 — Separate repository language from product language support.** The English-only repository rule does not, by itself, restrict the languages users may enter or receive. Existing user-facing language behavior must be preserved unless the owner explicitly approves a product-language change.
-
-**Acceptance criteria:** repository-wide scans cover text files, filenames, fixtures, snapshots, scripts, prompts, docs, and generated content; every non-English finding is classified; safe text-only residue is corrected; runtime changes include focused regression tests; test cases preserve semantic intent; excluded historical/generated content is documented; and results state exactly which checks ran. A clean text scan alone is not proof of language-neutral runtime behavior.
 
 ## Documentation authority
 
