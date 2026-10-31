@@ -110,14 +110,20 @@ function LabWorkspace() {
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
 
+  /** API passportText fields are max 2000 chars (server contracts). */
+  function clipPassportText(value: string): string {
+    return value.trim().slice(0, 2000);
+  }
+
   function proposedPassport(description: string): Passport {
+    const goal = clipPassportText(description);
     return {
-      status: 'proposed', projectType: 'Web application', goal: description.trim(),
-      users: 'Individual users managing their personal expenses',
-      inputsOutputs: 'Inputs: expense amount, date, category, description. Outputs: expense list, totals, and summaries.',
-      constraints: 'Start with a responsive browser-based application. Keep the implementation small and understandable.',
-      securityData: 'Do not include secrets or real financial data in generated fixtures. Validate user-entered amounts.',
-      successCriteria: 'A user can add, view, edit, and delete expenses and see totals by category; the source ZIP includes setup instructions.',
+      status: 'proposed', projectType: 'Web application', goal,
+      users: clipPassportText('Individual users managing their personal expenses'),
+      inputsOutputs: clipPassportText('Inputs: expense amount, date, category, description. Outputs: expense list, totals, and summaries.'),
+      constraints: clipPassportText('Start with a responsive browser-based application. Keep the implementation small and understandable.'),
+      securityData: clipPassportText('Do not include secrets or real financial data in generated fixtures. Validate user-entered amounts.'),
+      successCriteria: clipPassportText('A user can add, view, edit, and delete expenses and see totals by category; the source ZIP includes setup instructions.'),
       budget: { calls: 40, tokens: 200000, executorRuns: 8 }, executor: 'model_patch', humanLevel: 'supervised',
     };
   }
@@ -127,9 +133,21 @@ function LabWorkspace() {
     try {
       setStage('Creating project brief');
       const proposed = proposedPassport(goal);
-      const created = await request<Project>('/api/projects', { method: 'POST', body: JSON.stringify({ name: name.trim() || 'Architectural Lab experiment', goal: goal.trim(), state: { passport: proposed, architecturalLab: { createdAt: new Date().toISOString() } } }) });
+      // Match legacy create shape for the shared API: name + goal (≤2000). Attach proposed passport in state.
+      const payload = {
+        name: (name.trim() || 'Architectural Lab experiment').slice(0, 200),
+        goal: proposed.goal,
+        state: { passport: proposed, architecturalLab: { createdAt: new Date().toISOString() } },
+      };
+      const created = await request<Project>('/api/projects', { method: 'POST', body: JSON.stringify(payload) });
       setProject(created); setPassport(proposed); setStage('Review and confirm project brief');
-    } catch (e) { setError((e as Error).message || String(e)); setStage('Stopped with error'); }
+    } catch (e) {
+      const msg = (e as Error).message || String(e);
+      setError(msg === 'Invalid project data'
+        ? 'Invalid project data: name (1–200 chars) or goal (max 2000 chars) did not pass API validation. Shorten the description and try again.'
+        : msg);
+      setStage('Stopped with error');
+    }
     finally { setBusy(false); }
   }
 
@@ -142,7 +160,7 @@ function LabWorkspace() {
       const updated = await request<{ project_id: string; state_version: number; state: Record<string, unknown> }>(`/api/projects/${encodeURIComponent(project.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: project.state_version, state: { ...project.state, passport: confirmed } }) });
       setProject({ ...project, state_version: updated.state_version, state: updated.state }); setPassport(confirmed);
       setStage('Submitting build');
-      const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim() }) });
+      const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: clipPassportText(goal) }) });
       setStage('Generating and validating');
       const finished = await waitForProjectBuild(project.id, initial);
       setResult(finished); setStage(finished.outcome === 'SUCCESS' || finished.status === 'done' ? 'Complete' : 'Finished with issues');
