@@ -210,7 +210,8 @@ export function validateModelShape(
   data: unknown
 ): { ok: true } | { ok: false; code: ExpertErrorCategory; error: string; missing: string[] } {
   const objCheck = validateModelObject(data);
-  if (!objCheck.ok) return { ok: false, code: objCheck.code, error: objCheck.error, missing: [] };
+  // `=== false` (not `!objCheck.ok`): without strictNullChecks only an explicit comparison narrows the union.
+  if (objCheck.ok === false) return { ok: false, code: objCheck.code, error: objCheck.error, missing: [] };
   const required = SHAPE_REQUIREMENTS[endpoint] || [];
   const missing = required.filter((k) => !(k in objCheck.data));
   if (missing.length) {
