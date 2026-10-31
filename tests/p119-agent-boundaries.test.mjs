@@ -195,13 +195,14 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; 
 // 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
-test('workflow inventory is the four canonical workflows only', () => {
+test('workflow inventory includes the canonical CI and Expert verification workflows', () => {
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
     'acceptance.yml',
     'architect-compare.yml',
     'ci.yml',
+    'expert-verify.yml',
     'ops.yml',
   ]);
 });
@@ -217,6 +218,10 @@ test('P119.0.2 push/PR gate is ci.yml (DAG + UI smoke); other workflows are manu
   for (const n of ['acceptance.yml', 'architect-compare.yml', 'ops.yml']) {
     assert.doesNotMatch(wf(n), /on: \[push/);
   }
+  const expertWorkflow = wf('expert-verify.yml');
+  assert.match(expertWorkflow, /workflow_dispatch:/);
+  assert.match(expertWorkflow, /pull_request:/);
+  assert.doesNotMatch(expertWorkflow, /on: \[push/);
   // Architect dual-compare script must not drive chat routes.
   assert.doesNotMatch(readRepoFile('scripts/architect-dual-compare.mjs'), /\/api\/conversation/);
 });
