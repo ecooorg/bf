@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P121.0.42 workflow consolidation + ASSISTANT_PASTE, 2026-10-31
+
+- Owner: reduce ~17 workflows to a few; every run must yield a paste-friendly summary for the assistant when attachments are blocked. Delivered four canonical workflows and a shared summary generator that scans logs for not-ok/FAIL/AssertionError tails.
+- Local: synthetic fail log → ASSISTANT_PASTE.txt contains STATUS and failure snippet. Hosted CI after apply: NOT_RUN.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.41 flat fixture path, 2026-10-31
 
 - Owner rejected new nested `scripts/fixtures/` as forbidden project layout complexity. Corrective delivery flattens the dual-compare goal file under `scripts/` and documents deletion of the nested path for Navigator.

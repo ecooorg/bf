@@ -1,3 +1,14 @@
+## P121.0.42 — Four canonical workflows + ASSISTANT_PASTE summary
+
+- **`scripts/assistant-run-summary.mjs`**: after each run, writes `ASSISTANT_PASTE.txt` (chat-sized failure extract) and `ASSISTANT_SUMMARY.json` under the log dir. Navigator can paste the text file when ZIP attach is unavailable.
+- **Canonical workflows (4):**
+  - `ci.yml` — push/PR DAG (existing pipeline + assistant paste before package/upload)
+  - `acceptance.yml` — full DAG + Playwright UI, dispatch
+  - `architect-compare.yml` — Lab vs Legacy dual-compare on staging, dispatch
+  - `ops.yml` — fast diagnostics / dual dry-run, dispatch
+- Contract test `tests/assistant-run-summary-contract.test.mjs`.
+- Obsolete workflow **deletion paths listed in chat only** (not in ZIP).
+
 ## P121.0.41 — Dual-compare fixture flat path (no scripts/fixtures/)
 
 - Moves the dual-compare goal text to `scripts/architect-dual-expense-goal.txt` (same level as other scripts).
