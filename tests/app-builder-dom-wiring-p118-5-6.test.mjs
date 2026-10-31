@@ -130,6 +130,16 @@ test('dom-wiring: passes when ids match', () => {
   assert.equal(r.issues.length, 0);
 });
 
+test('dom-wiring: rejects distinct controller roles silently mapped to the same DOM node', () => {
+  const files = new Map([
+    ['index.html', '<!doctype html><html><body><div id=\"expense-list\"></div></body></html>'],
+    ['app.js', `class View { constructor() { this.expenseList = document.getElementById('expense-list'); this.emptyState = document.getElementById('expense-list'); } }`],
+  ]);
+  const r = validateDomWiring(files);
+  assert.equal(r.ok, false);
+  assert.ok(r.issues.some((issue) => issue.message.includes('bound to multiple controller properties')));
+});
+
 test('dom-wiring: ignores class selectors and dynamic expressions', () => {
   const js = `const el = document.querySelector('.book-card');
 const id = 'x' + 'y';

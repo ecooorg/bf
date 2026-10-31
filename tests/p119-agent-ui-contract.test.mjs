@@ -26,12 +26,13 @@ test('P119 agent menu maps stable internal keys to approved display names', () =
 });
 
 test('P119 keeps Architect on its separate route and checks the three-agent menu', () => {
-  assert.match(app, /window\.location\.href = '\/architect-lab'/);
+  assert.match(app, /window\.location\.href = '\/project'/);
+  const entry = readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
   const lab = readFileSync(new URL('../src/ArchitectLab.tsx', import.meta.url), 'utf8');
-  const shell = readFileSync(new URL('../src/ArchitectShellHeader.tsx', import.meta.url), 'utf8');
-  // Legacy fallback: visible link lives in shared shell (More menu); Lab footer still documents /project.
-  assert.match(shell, /href="\/project"/, 'legacy Architect remains available as a fallback route');
-  assert.match(lab, /\/project/, 'Lab documents the legacy /project workspace');
+  // The Lab is frozen for diagnostics; all core Architect entry points use ProjectMode.
+  assert.match(entry, /const isProject = \[.*'\/project'.*'\/project-legacy'.*'\/architect'/);
+  assert.match(entry, /const isArchitectLab = window\.location\.pathname === '\/architect-lab'/);
+  assert.match(lab, /\/project/, 'Lab keeps a path back to the selected primary workspace');
   assert.match(uiCheck, /Agent menu lists three agents/);
   assert.match(uiCheck, /menuitemradio', \{ name: \/Conversational/);
 });

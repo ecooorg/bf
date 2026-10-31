@@ -11,11 +11,11 @@ const engine = readFileSync(new URL('../appBuilder/core-engine.ts', import.meta.
 test('Architectural Test Lab is a separately lazy-loaded route', () => {
   assert.match(main, /pathname === '\/architect-lab'/);
   assert.match(main, /lazy\(\(\) => import\('\.\/ArchitectLab\.tsx'\)\)/);
-  assert.match(main, /isArchitectLab \|\| isArchitectEntry \? ArchitectLabRoot/);
-  assert.match(main, /pathname === '\/project-legacy'/);
-  assert.match(main, /pathname === '\/project'/);
-  assert.doesNotMatch(main, /isArchitectLab[^;]*ProjectMode/);
-  assert.match(main, /pathname === '\/architect'/);
+  assert.match(main, /const Root = isArchitectLab \? ArchitectLabRoot : isProject \? ProjectRoot : App/);
+  assert.match(main, /'\/project-legacy'/);
+  assert.match(main, /'\/project'/);
+  assert.doesNotMatch(main, /const isArchitectLab = .*'\/architect'\/\//);
+  assert.match(main, /'\/architect'/);
 });
 
 test('lab owns its form, progress, completion surface and download action', () => {
@@ -48,10 +48,11 @@ test('lab persists a confirmed passport before requesting a build', () => {
   assert.ok(lab.indexOf('async function confirmAndBuild') < lab.indexOf('/code/build'));
 });
 
-test('the standard Architect entry opens Lab while the legacy workspace remains available', () => {
+test('the standard Architect entry opens ProjectMode and the Lab remains frozen for diagnostics', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
-  assert.match(app, /window\.location\.href = '\/architect-lab'/);
+  assert.match(app, /window\.location\.href = '\/project'/);
   assert.match(shell, /href="\/project"/);
+  assert.match(main, /ErrorBoundary label=\{isArchitectLab \? 'Architectural Test Lab \(frozen\)'/);
 });
 
 test('engine repairs js-syntax failures with deterministic fix and bounded model call', () => {
