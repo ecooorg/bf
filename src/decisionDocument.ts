@@ -1,7 +1,7 @@
 /** "Whole decision review" as a document: everything the person entered and decided, in plain words. Empty parts are skipped. */
 import type { Decision } from './decision.ts';
 import type { DocBlock, DocumentSpec } from './attachments.ts';
-import { detectUiLanguage } from './ui.ts';
+import { buildFinalDecisionDocument, finalDocumentToText } from './finalDecisionDocument.ts';
 
 const L = {
   en: { brief: 'Decision', goal: 'Goal', deadline: 'Deadline', facts: 'Facts', unknowns: 'Unknowns', assumptions: 'Assumptions', values: 'Values', constraints: 'Constraints',
@@ -10,8 +10,7 @@ const L = {
 };
 
 export function decisionToDocument(d: Decision): DocumentSpec {
-  const sample = [d.title, d.brief?.decision, d.brief?.goal, ...(d.brief?.facts || [])].join(' ').slice(0, 1500);
-  const t = L.en; // Product UI is English-only (AGENTS.md language policy).
+  const t = L.en;
   const blocks: DocBlock[] = [];
   const clean = (v: unknown) => String(v ?? '').trim();
   const para = (head: string, text: unknown) => { const s = clean(text); if (s) blocks.push({ type: 'heading', text: head }, { type: 'paragraph', text: s }); };
@@ -35,5 +34,29 @@ export function decisionToDocument(d: Decision): DocumentSpec {
   }
   if (d.synthesis) para(t.synthesis, d.synthesis.editedByUser || (d.synthesis.paragraphs || []).map(clean).filter(Boolean).join('\n\n'));
   list(t.journal, (d.journal || []).map((j) => [clean(j.hypothesis), j.forecastWording && `${t.forecast}: ${clean(j.forecastWording)}`, (j as any).fact && `${t.result}: ${clean((j as any).fact)}`].filter(Boolean).join('. ')));
+
+  // P122.4: append structured final decision sections when analysis exists
+  if (d.radar || d.options?.length || d.decision || d.synthesis) {
+    try {
+      const finalDoc = buildFinalDecisionDocument(d);
+      para('Executive summary', finalDoc.executiveSummary);
+      list('Verified facts', finalDoc.verifiedFacts);
+      list('User-provided (unverified)', finalDoc.userProvidedUnverified);
+      list('Critical uncertainties', finalDoc.criticalUncertainties);
+      para('Recommended option', finalDoc.recommendedOption);
+      para('Justification', finalDoc.justification);
+      list('Conditions that would change the recommendation', finalDoc.conditionsForChange);
+      para('Confidence and limitations', finalDoc.confidenceAndLimitations);
+      para('User control', 'This is decision support. You retain final authority over the decision.');
+    } catch {
+      /* structured appendix is best-effort */
+    }
+  }
+
   return { title: clean(d.title) || clean(b?.decision).slice(0, 80) || 'Decision', fileName: 'decision-review', blocks: blocks.length ? blocks : [{ type: 'paragraph', text: ' ' }] };
+}
+
+/** Full structured export text (P122.4). */
+export function decisionToFinalText(d: Decision): string {
+  return finalDocumentToText(buildFinalDecisionDocument(d));
 }

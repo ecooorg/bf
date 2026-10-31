@@ -30,6 +30,7 @@ import { en } from './en.ts';
 import { triage, TRIAGE_OUTCOME_TEXT, TRIAGE_OUTCOME_LABEL } from './triage.ts';
 import { evpi, evpiRange, evpiVerdict, validateEvpiInput } from './evpi.ts';
 import { auditEvpi } from './analyticalIntegrity.ts';
+import { buildFinalDecisionDocument, finalDocumentToText, evaluateStageCompletion } from './finalDecisionDocument.ts';
 import { brierScore } from './brier.ts';
 import { cardChecksum } from './sha256Export.ts';
 import { detectUiLanguage, installUiLanguage, getStoredUiLanguage } from './ui.ts';
@@ -1361,6 +1362,18 @@ export function SynthesisScreen({
             rows={4}
             style={{ width: '100%', marginTop: 12 }}
           />
+          <button
+            className="ghost"
+            style={{ marginTop: 8 }}
+            type="button"
+            onClick={() => {
+              const doc = buildFinalDecisionDocument(d);
+              const text = finalDocumentToText(doc);
+              downloadBlob(new Blob([text], { type: 'text/plain;charset=utf-8' }), 'final-decision.txt');
+            }}
+          >
+            Download structured decision document
+          </button>
           <div className="actions" style={{ marginTop: 12 }}>
             <button
               className="ghost"
