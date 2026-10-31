@@ -357,6 +357,102 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     validators = runStaticValidators(new Map([...files].map(([p, f]) => [p, f.content])), state.spec);
   }
 
+  // P121.0.36: bounded repair when js-syntax fails — deterministic fixes first, then one model call per broken script (max 2).
+  const jsSyntaxIssues = () => validators.find((v) => v.name === 'js-syntax')?.issues ?? [];
+  /** Common model typo: Math.random().toString(36.substr(...)) → .toString(36).substr(...) */
+  function applyDeterministicJsFixes(src: string): string {
+    let out = src;
+    // Math.random().toString(36.substr(2, 9)) → Math.random().toString(36).substr(2, 9)
+    out = out.replace(/\.toString\(\s*(\d+)\s*\.\s*(substr|substring|slice)\s*\(([^)]*)\)\s*\)/g, '.toString($1).$2($3)');
+    out = out.replace(/\.toString\(\s*(['"\`][^'"\`]*['"\`])\s*\.\s*(substr|substring|slice)\s*\(([^)]*)\)\s*\)/g, '.toString($1).$2($3)');
+    return out;
+  }
+  if (
+    files.size > 0 &&
+    allFilesDone &&
+    !cancelled &&
+    !options.signal?.aborted &&
+    validators.some((v) => v.name === 'js-syntax' && !v.ok)
+  ) {
+    const brokenJs = [...new Set(jsSyntaxIssues().map((i) => i.path).filter((p): p is string => Boolean(p) && /\.js$/i.test(p)))].slice(0, 2);
+    for (const scriptPath of brokenJs) {
+      if (cancelled || options.signal?.aborted) break;
+      const entry = files.get(scriptPath);
+      if (!entry) continue;
+      const issuesForScript = jsSyntaxIssues().filter((i) => i.path === scriptPath).map((i) => i.message);
+      if (!issuesForScript.length) continue;
+      const beforeCount = jsSyntaxIssues().length;
+      const previouslyOk = new Set(validators.filter((v) => v.ok).map((v) => v.name));
+      // 1) Deterministic fix pass (no model call).
+      const det = applyDeterministicJsFixes(entry.content);
+      if (det !== entry.content) {
+        const trial = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+        trial.set(scriptPath, det);
+        const trialValidators = runStaticValidators(trial, state.spec);
+        const trialJs = trialValidators.find((v) => v.name === 'js-syntax');
+        const trialCount = trialJs?.issues.length ?? 0;
+        const newlyBroken = trialValidators.filter((v) => !v.ok && previouslyOk.has(v.name)).map((v) => v.name);
+        if (!newlyBroken.length && trialCount < beforeCount) {
+          files.set(scriptPath, { content: det, unitId: entry.unitId });
+          validators = trialValidators;
+          event(ports, input.jobId, 'js_syntax_repair_accepted', {
+            path: scriptPath,
+            method: 'deterministic',
+            beforeCount,
+            afterCount: trialCount,
+            callsUsed: state.callsUsed,
+          });
+          continue;
+        }
+      }
+      // 2) Bounded model repair (one call) if budget remains.
+      if (state.callsUsed >= budget) continue;
+      event(ports, input.jobId, 'js_syntax_repair', {
+        path: scriptPath,
+        issues: issuesForScript,
+        callsUsed: state.callsUsed,
+        callsBudget: budget,
+      }, 'warn');
+      const repairPrompt =
+        `Fix JavaScript syntax errors in ${scriptPath} only. The file must parse with node:vm Script (compile only).\n` +
+        `Current problems:\n- ${issuesForScript.join('\n- ')}\n` +
+        `Common model mistake to avoid: write Math.random().toString(36).substr(2, 9) NOT Math.random().toString(36.substr(2, 9)).\n` +
+        `Reply with the COMPLETE corrected file for path ${scriptPath} in the required marker block. Keep behaviour; only fix syntax. Do not add new files.`;
+      const repaired = await call('coder', repairPrompt, undefined, scriptPath);
+      if (!repaired) continue;
+      const parsed = parseFileMarkers(repaired.text, scriptPath);
+      const found = parsed.files.find((f) => f.path === scriptPath);
+      if (!found || parsed.truncated) {
+        event(ports, input.jobId, 'js_syntax_repair_rejected', { path: scriptPath, reason: parsed.truncated ? 'truncated' : 'path_missing', issues: parsed.issues }, 'warn');
+        continue;
+      }
+      const trial = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+      trial.set(scriptPath, found.content);
+      const trialValidators = runStaticValidators(trial, state.spec);
+      const trialJs = trialValidators.find((v) => v.name === 'js-syntax');
+      const trialCount = trialJs?.issues.length ?? 0;
+      const newlyBroken = trialValidators.filter((v) => !v.ok && previouslyOk.has(v.name)).map((v) => v.name);
+      if (newlyBroken.length || trialCount >= beforeCount) {
+        event(ports, input.jobId, 'js_syntax_repair_rejected', {
+          path: scriptPath,
+          reason: newlyBroken.length ? `broke_validators:${newlyBroken.join(',')}` : 'no_improvement',
+          beforeCount,
+          afterCount: trialCount,
+        }, 'warn');
+        continue;
+      }
+      files.set(scriptPath, { content: found.content, unitId: entry.unitId });
+      validators = trialValidators;
+      event(ports, input.jobId, 'js_syntax_repair_accepted', {
+        path: scriptPath,
+        method: 'model',
+        beforeCount,
+        afterCount: trialCount,
+        callsUsed: state.callsUsed,
+      });
+    }
+  }
+
   // P118.5.6: bounded repair when dom-wiring fails — one model call per broken script (max 2), with real HTML ids.
   // Accept only if (a) no previously-passing required validator starts failing and (b) dom-wiring issue count drops.
   const domIssues = () => validators.find((v) => v.name === 'dom-wiring')?.issues ?? [];
