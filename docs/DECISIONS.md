@@ -1,15 +1,21 @@
 # Active Decisions
 
+## D-2026-10-31-02 — Select legacy Architect as the single active implementation
+
+**Decision (owner-directed, supersedes D-2026-10-30-08):**
+1. The legacy Architect / ProjectMode is the primary Architect at `/project`; `/architect` is an alias to the same workflow.
+2. Architectural Test Lab (`/architect-lab`) is frozen for diagnostic reproducibility. Do not develop or repair it in parallel with the selected primary.
+3. Compare generated artifacts and reliability evidence, not model names or completion claims alone. Prefer a valid, usable artifact; weigh syntax/runtime validity, reference/DOM wiring, acceptance checks, completeness, and recovery behavior.
+4. Shared engine fixes that improve the selected primary are in scope, especially validators and repair logic that can incorrectly report SUCCESS.
+5. Re-evaluate only when newer comparable evidence is available; preserve previous decisions and evidence.
+
+**Evidence (2026-10-31 supplied build reports):** the legacy Expense Tracker reports `SUCCESS`, `goalImplemented=true`, and all seven declared validators passing (6 model calls, 42.4 s). The Lab reports `PARTIAL`, `goalImplemented=false`, with JavaScript syntax and file-reference failures (10 calls, 52.8 s). Diagnostics corroborate a prior Lab failure due to provider cooldown. Static inspection of the legacy artifact found a validator blind spot: multiple distinct controller properties were repaired to reuse the same DOM id. This patch adds detection for that defect class. Browser/mobile user outcome remains NOT_RUN; selection is final as the development direction, not a claim that every generated artifact is proven correct.
+
 ## D-2026-10-31-01 — Promote the best verified architect
 
-**Decision (owner-directed):**
-1. The primary Architect entry must route to the tested architect (or other tested implementation) with the strongest result in the latest comparable verification.
-2. Compare generated artifacts and reliability evidence, not model names or completion claims alone. Prefer a valid, usable artifact; weigh syntax/runtime validity, reference/DOM wiring, acceptance checks, completeness, and recovery behavior.
-3. If no candidate passes all critical checks, select the least risky candidate only as a provisional primary, disclose unresolved failures, and keep the comparison evidence. Do not label it fully successful.
-4. Both candidate build flows must show live progress while working, including model-call count, generated/ready-file count, current stage, and elapsed time where available.
-5. Re-evaluate the primary selection whenever a newer comparable check is available; preserve prior records.
+**Decision:** The primary Architect entry must route to the tested architect (or other tested implementation) with the strongest result in the latest comparable verification. Compare generated artifacts and reliability evidence, not model names or completion claims alone. If no candidate passes all critical checks, select the least risky candidate, disclose unresolved failures, and keep the comparison evidence. Preserve prior records and reconsider the selection when newer comparable evidence is available.
 
-**Current selection (2026-10-31 supplied evidence):** Architectural Test Lab is the provisional primary. Its report has passing HTML structure, JavaScript syntax, references, size, secrets, and acceptance validators, with seven DOM-wiring failures. The legacy generated project has two JS validator findings (ES-module syntax interpreted outside module context) and three DOM-wiring failures. Neither build is a clean SUCCESS; mobile/live usability remains unverified.
+**Historical selection (2026-10-31 earlier evidence):** Architectural Test Lab was selected provisionally based on an older comparison. Superseded by D-2026-10-31-02 after newer supplied results.
 
 
 ## D-2026-10-30-08 — Prioritize Architectural Test Lab; legacy Architect becomes diagnostic reference

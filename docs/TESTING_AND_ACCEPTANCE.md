@@ -1,5 +1,11 @@
 # Testing and Acceptance
 
+## Current Architect selection regression coverage (P121.0.48)
+
+- `tests/app-builder-dom-wiring-p118-5-6.test.mjs` also guards against distinct `this.*` controller properties being silently mapped to one DOM id during repair. This protects against a validator-green artifact with collapsed UI roles.
+- Route contract tests assert that `/project`, `/project-legacy`, and `/architect` use the selected `ProjectMode`, while `/architect-lab` remains a frozen diagnostic route.
+- These source/contract checks do not prove a generated app works in a real browser; generated-artifact browser/mobile outcome remains separately required.
+
 ## Acceptance hierarchy
 
 1. **User outcome:** realistic user task completed with useful, correct, understandable output.

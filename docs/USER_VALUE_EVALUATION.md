@@ -1,3 +1,13 @@
+# CURRENT USER-VALUE EVIDENCE — P121.0.48, 2026-10-31
+
+- **OBSERVED:** Latest supplied legacy artifact report is `SUCCESS` with all seven declared validators passing; latest Lab report is `PARTIAL` with JavaScript syntax and file-reference failures. The legacy artifact's source nevertheless contained multiple distinct UI properties bound to the same DOM ids, exposing a validator blind spot.
+- **DECISION:** Legacy Architect / `ProjectMode` is the single active development target. Architectural Test Lab is frozen for diagnostics and no longer receives parallel feature work.
+- **CHANGED:** Primary entry routing and shared semantic DOM-wiring validation; repair prompt now forbids role-collapsing substitutions.
+- **INFERRED:** Stronger declared-validator results make legacy the better current candidate, but do not prove browser-level behavior.
+- **NOT_RUN:** Browser/mobile interaction on the supplied archive, live post-patch generation, production build, hosted CI, and real user task completion.
+
+---
+
 # User-Value Evaluation — Rolling Evidence
 
 **Purpose:** Record observations of actual user-visible outcomes, newest first. This is evidence, not a second product specification; normative requirements are in `../TECHNICAL_SPECIFICATION.md`. Do not treat an old result as current runtime state without checking its commit/date. Preserve historical entries as written and prepend new evidence rather than retroactively editing prior records. Distinguish OBSERVED, INFERRED, and NOT_RUN. Tests and CI alone do not prove user value.
