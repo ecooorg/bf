@@ -2,6 +2,11 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
+## P121.0.46 — Repair integrity (status)
+
+- Shared App Builder engine (Lab and Legacy): model repairs of `.js` files now receive the file and cannot replace it with a fraction of itself. An observed placeholder-as-SUCCESS defect (BIO-005 honesty) is closed at the engine level; local tests only, hosted CI and live build NOT_RUN.
+- Factual open items observed in the same evidence: Lab unit failure on model cooldown without a wait (build `6dc4fc12`); planned files that the generated `index.html` never references are not detected by validators; `docs/generated-check-graph.json` is stale against `package.json`.
+
 ## P121.0.33 — Abort listener lifecycle (status)
 
 - Model adapters and the job clock no longer leak `abort` listeners on the shared build-job signal; an already-aborted signal now stops work before a provider request. Shared infrastructure fix; the Lab and legacy Architect both use it. Local `test:models` only; hosted CI and live build behavior NOT_RUN.

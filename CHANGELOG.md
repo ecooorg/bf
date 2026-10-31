@@ -1,3 +1,11 @@
+## P121.0.46 — Model repair must see and preserve the file
+
+- **Observed defect (Legacy Architect build `63e74598`, Expense Tracker):** `app.js` was generated at 26,540 characters with one syntax error. The js-syntax model repair returned a 492-character placeholder (`SyntaxErrorFixerApp`, 464 bytes in the ZIP) and it was accepted because the issue count dropped 1 → 0. The build was reported `SUCCESS` / `goalImplemented: true`.
+- **Root cause:** the js-syntax and dom-wiring repair prompts named the file and the errors but did not contain the file, so the model could only invent a replacement; acceptance compared validator issue counts only.
+- **`appBuilder/core-engine.ts`:** both model-repair prompts now include the current source of the file as data. A repair that keeps less than half of a file of at least 400 characters is rejected with reason `destructive_shrink` (`js_syntax_repair_rejected` / `dom_wiring_repair_rejected`, with `beforeChars` / `afterChars`) and the original file is kept, so the real validator failure stays visible and the outcome stays `PARTIAL`.
+- **`tests/app-builder-repair-integrity-p121.test.mjs`** (registered in `test:app-builder`, part of the `check` DAG profile): prompt carries the source (js-syntax and dom-wiring); placeholder replacement rejected with original bytes preserved and outcome not `SUCCESS`; a faithful small repair is still accepted. On the previous code 4 of the 5 tests fail.
+- No UI, route, API, database, or workflow change. Deterministic js-syntax fixes and unit-level regeneration are unchanged. Hosted CI, live builds, and device checks: NOT_RUN.
+
 ## P121.0.45 — Align tests with single outer PASTE + no neon workflow
 
 - **test:core:** `neon-initialize-workflow.test.mjs` no longer requires deleted `.github/workflows/neon-initialize.yml`; asserts scripts only and that the workflow file is absent.
