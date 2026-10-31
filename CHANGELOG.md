@@ -1,3 +1,11 @@
+## P121.0.48 — Select one primary Architect and detect semantic DOM aliasing
+
+- Selected legacy Architect / `ProjectMode` as the sole active development target after newer comparable reports: legacy artifact `SUCCESS` with all declared validators passing; Lab artifact `PARTIAL` with JS syntax and missing-reference failures.
+- `/project`, `/project-legacy`, and `/architect` route to the selected legacy workflow. `/architect-lab` remains frozen for diagnostic comparison; no parallel Lab feature development.
+- Strengthened `dom-wiring` validation to reject distinct controller properties bound to the same DOM id, a defect found by inspecting the latest selected artifact despite its previous all-green report.
+- Updated DOM repair instructions to avoid mapping unrelated roles onto an existing id just to clear validator findings; added regression coverage.
+- Browser/mobile user outcome, production build, full suite, hosted CI, and fresh live generation: NOT_RUN.
+
 ## P121.0.47 — Evidence-based Architect selection and visible build progress
 
 - Promoted Architectural Test Lab to the primary `/project` entry based on the supplied comparable build reports: Lab passes syntax validation while legacy has two JS syntax-validator findings; both remain PARTIAL and neither is represented as fully successful.

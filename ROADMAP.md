@@ -2,12 +2,20 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-## P121.0.47 — Evidence-based Architect promotion (status)
+## P121.0.48 — Select one primary Architect and strengthen DOM validation (status)
 
-- Primary `/project` now opens Architectural Test Lab; legacy Project Mode remains reachable at `/project-legacy`. Existing `/architect` and `/architect-lab` aliases remain available.
-- Selection is provisional based on the supplied build reports: Lab passes JS syntax and has 7 DOM-wiring issues; legacy has 2 JS syntax-validator findings and 3 DOM-wiring issues. Neither is a clean SUCCESS.
-- Both build interfaces show model-call/file progress while the build job is being polled.
-- Local contract/governance tests and documentation integrity PASS. Production build, browser E2E, hosted CI, fresh live generation, and Android outcome NOT_RUN.
+- The latest comparable supplied generation evidence selects legacy `ProjectMode` as the sole active Architect workflow: its generated Expense Tracker report is `SUCCESS` with all seven declared validators passing; the Lab report is `PARTIAL` with JavaScript syntax and file-reference failures.
+- `/project`, `/project-legacy`, and `/architect` now mount the selected legacy workflow. `/architect-lab` remains available only as a frozen diagnostic experiment; no parallel Lab feature work is planned.
+- Shared DOM validation now detects distinct controller properties silently bound to the same element ID. Repair prompts explicitly prohibit mapping unrelated UI roles to the same element just to clear validation.
+- Added a regression test for the semantic DOM-alias defect and updated route/governance contracts.
+- Generated artifact browser/mobile behavior, production build, full test suite, hosted CI, and live generation after this patch: NOT_RUN.
+
+## P121.0.47 — Evidence-based Architect promotion (historical status)
+
+- Primary `/project` opened Architectural Test Lab; legacy Project Mode remained reachable at `/project-legacy`. Existing `/architect` and `/architect-lab` aliases remained available.
+- That earlier selection used older supplied reports and was superseded by P121.0.48 after newer comparable evidence. The older reports remain historical evidence.
+- Both build interfaces showed model-call/file progress while the build job was being polled.
+- Local contract/governance tests passed at that time; production build, browser E2E, hosted CI, fresh live generation, and Android outcome were NOT_RUN.
 
 ## P121.0.46 — Repair integrity (status)
 
@@ -18,16 +26,12 @@
 
 - Model adapters and the job clock no longer leak `abort` listeners on the shared build-job signal; an already-aborted signal now stops work before a provider request. Shared infrastructure fix; the Lab and legacy Architect both use it. Local `test:models` only; hosted CI and live build behavior NOT_RUN.
 
-## Current development direction — Architectural Test Lab (owner-approved, 2026-10-30)
+## Current development direction — Legacy Architect selected (owner-directed, 2026-10-31)
 
-- Primary development focus is the experimental fourth mode, **Architectural Test Lab** at `/architect-lab`.
-- The legacy Architect route remains available as a diagnostic reference. Routine repairs to it are paused; observed defects should be converted into Lab-specific prevention and recovery requirements rather than patched in the old workflow.
-- Keep the Lab's UI, instructions, state machine, progress, errors, recovery, and completion contract independent of legacy ProjectMode. Build toward an independent generation workflow/engine; reuse shared infrastructure only behind explicit contracts.
-- Current implementation boundary: P121.0.15 established a separate lazy-loaded frontend route and its own form/progress/completion/download/error surface, but still reuses authenticated project/build APIs and shared backend orchestration. Independent backend engine: OPEN, not implemented by that patch.
-- Preserve the three core-agent taxonomy. The Lab is a separate experimental fourth mode, not an implicit replacement for the legacy Architect.
-- Do not promote, replace, or retire the legacy route without a separate owner decision supported by user-outcome evidence.
-
-- Source-contract tests and docs integrity run locally; typecheck/build, browser E2E, hosted CI, and live Android user outcome are NOT_RUN.
+- Primary development focus is the legacy Architect / `ProjectMode` at `/project`, based on the newest comparable generated-artifact reports supplied by the owner.
+- Architectural Test Lab at `/architect-lab` is frozen for diagnostic reproducibility; no parallel feature development or routine repair work is planned there.
+- Shared generation-engine reliability fixes are in scope when they protect the selected primary, including validation that detects semantic DOM aliasing and repair prompts that avoid unsafe substitutions.
+- The latest static reports do not prove deployed or mobile user outcome. Browser E2E, hosted CI, and live generation after this patch remain NOT_RUN.
 
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.

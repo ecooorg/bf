@@ -1,3 +1,11 @@
+# CURRENT EVIDENCE NOTE — P121.0.48 single Architect selection + semantic DOM validation, 2026-10-31
+
+- **OBSERVED (new owner-supplied artifacts):** Legacy generated Expense Tracker report `2c0ae028-1ec8-4f06-951b-fd4d382f5751` is `SUCCESS`, `goalImplemented=true`, and all seven declared validators pass (6 model calls, 42,403 ms). Architectural Test Lab report `385c4835-9aa8-407f-9f52-281021126974` is `PARTIAL`, `goalImplemented=false`, with `js-syntax` (`import` outside module) and `refs` (`style.css` missing; generated file is `styles.css`) failing (10 calls, 52,815 ms).
+- **OBSERVED (source inspection of the selected legacy artifact):** DOM repair had mapped distinct properties (`emptyState` / `expenseList`, `categoryTotalsContainer` / `categoryTotalsList`, `diagStatus` / `diagTime`) onto the same existing ids, allowing the old validator to pass while semantic wiring remained suspect.
+- **Changed:** `/project`, `/project-legacy`, and `/architect` now use `ProjectMode`; `/architect-lab` is retained as a frozen diagnostic route. The shared DOM validator detects duplicate explicit `this.*` property-to-id bindings; repair instructions forbid aliasing unrelated UI roles to clear checks. Added a regression test and updated current decision/spec/roadmap/evidence.
+- **Decision:** Legacy Architect is the single active development target, superseding the earlier Lab selection. This is a development-direction decision based on the latest comparable evidence, not a claim that browser/mobile usability has been proven.
+- **NOT_RUN:** Browser execution of the supplied generated app, Android/mobile checks, live generation after this patch, production build, full test suite, hosted CI. Supplied diagnostic system checks PASS but do not prove generated-app behavior.
+
 # CURRENT EVIDENCE NOTE — P121.0.47 architect selection + progress, 2026-10-31
 
 - **OBSERVED (supplied build reports):** Architectural Test Lab (`1dbb04aa-5e51-48a4-9d26-55296db1f816`) is PARTIAL; HTML structure, JS syntax, references, size, secrets, and acceptance pass, while DOM wiring reports 7 missing HTML IDs. Legacy generated app (`6b22df2a-9008-4ee5-8bf5-1a90212979e1`) is PARTIAL; its JS validator reports 2 `import`-outside-module findings and DOM wiring reports 3 missing IDs. These validator reports are not proof of actual browser behavior; both apps remain imperfect.

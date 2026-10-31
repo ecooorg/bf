@@ -1,4 +1,4 @@
-# CURRENT NORMATIVE CONTRACT — 2026-10-30
+# CURRENT NORMATIVE CONTRACT — 2026-10-31
 
 > This block is the current binding product contract. It takes precedence over any older statement below that conflicts with it. The remainder of this file is retained as the technical and historical record; do not silently rewrite past entries to make them look current.
 
@@ -12,23 +12,21 @@ The product continues to define exactly three user-facing agents in its core age
 
 1. **Conversational** — answer real questions naturally, preserve relevant context, distinguish known facts from uncertainty, and use current information when the task requires it.
 2. **Expert** — investigate complex questions, compare alternatives against stated constraints, explain trade-offs, and produce a justified decision or actionable plan.
-3. **Architect** — the established software-generation workflow, retained for compatibility and as a source of diagnostic evidence during the experiment described below.
+3. **Architect** — the selected primary software-generation workflow, entered at `/project`; it is the only active Architect development target.
 
-BiForge also has a separately entered experimental fourth mode: **Architectural Test Lab** (`/architect-lab`). It is a development track for a new software-architecture/generation experience, not a renaming or replacement of the legacy Architect route and not a fourth core agent in the three-agent taxonomy above. The owner has explicitly approved concentrating new development on this mode.
+BiForge retains the legacy Architect workflow as the selected primary Architect implementation. Architectural Test Lab (`/architect-lab`) remains available only as a frozen diagnostic experiment; it is not the primary user-facing Architect and receives no parallel feature development. This updates the owner-approved direction recorded on 2026-10-30 based on newer comparable generation evidence supplied on 2026-10-31.
 
 The development strategy is:
 
-- Prioritize the Architectural Test Lab for new product behavior, fixes, validation, and iteration.
-- Do not spend implementation effort repairing the legacy Architect workflow unless the owner explicitly changes this direction or a shared critical security/data-integrity issue requires it.
-- Use legacy-mode defects and diagnostic logs as regression intelligence: identify the underlying failure class, then design and test a prevention or controlled-recovery contract in the Lab. Do not blindly copy legacy implementation or UI.
-- Keep the legacy route available and unchanged during the experiment unless a separate owner-approved decision changes its status.
-- Treat the Lab's current isolated frontend as a starting boundary, not proof of an independent engine. Its backend orchestration is still shared until source, tests, and evidence establish otherwise.
+- Prioritize the legacy Architect workflow at `/project` for new product behavior, fixes, validation, and iteration.
+- Repair the shared generation engine where evidence shows a defect affecting the selected Architect, including validator blind spots and unsafe automatic repairs.
+- Keep Architectural Test Lab source and its route only for reproducibility/diagnostic comparison; do not build new product behavior there.
+- Re-evaluate the primary selection only when the owner supplies or requests a newer comparable check.
+- The selected Architect uses shared App Builder orchestration, validators, model/provider connectivity, persistence, and artifact delivery; do not claim these subsystems are independent.
 
-## Architectural Test Lab isolation and completion direction
+## Frozen Architectural Test Lab and selected Architect completion direction
 
-The Lab must own its user-facing instructions, interaction flow, state model, progress/error/recovery behavior, and completion surface. Its generation engine and workflow contracts should be developed as an independent path rather than inheriting the legacy Architect state machine or result UI. Shared infrastructure may be reused deliberately (for example authentication, provider connectivity, persistence, and artifact delivery), but shared services must have explicit contracts and must not reintroduce legacy workflow coupling.
-
-The Lab's completion contract must make task/specification, plan, execution, validation, artifact availability, and final SUCCESS/PARTIAL/FAILED outcome observable. Every potentially waiting stage must have bounded execution, heartbeat/progress evidence, timeout/cancellation behavior, and a user-visible recoverable failure; a green CI run alone is not acceptance. Promote, replace, or retire the legacy route only through a later explicit owner decision backed by user-outcome evidence.
+The selected legacy Architect completion contract must make task/specification, plan, execution, validation, artifact availability, and final SUCCESS/PARTIAL/FAILED outcome observable. Every potentially waiting stage must have bounded execution, heartbeat/progress evidence, timeout/cancellation behavior, and a user-visible recoverable failure; a green CI run alone is not acceptance. The frozen Lab may remain available for diagnostics, but must not receive parallel feature work. Any future change of the selected primary requires a new explicit owner decision backed by newer comparable evidence.
 
 ## Architect has one mode and one completion contract
 
