@@ -1428,3 +1428,83 @@ test('CLI monitor exits 0 without keys (NOT_RUN path)', async () => {
 });
 }
 // ===== END p15a-acceptance.test.mjs =====
+
+// ===== BEGIN abort-signal-lifecycle.test (job-wide signal shared by many calls) =====
+{
+const test = (await import("node:test")).default;
+const assert = (await import("node:assert/strict")).default;
+const { getEventListeners } = await import("node:events");
+const { createGeminiAdapter } = await import("../server/geminiAdapter.ts");
+const { createOpenAICompatibleAdapter } = await import("../server/openaiCompatAdapter.ts");
+const { realClock } = await import("../server/appBuilderAdapter.ts");
+
+const req = { requestId: 'r-abort', modelId: 'm', prompt: 'hi', json: false, metadata: {} };
+const listeners = (signal) => getEventListeners(signal, 'abort').length;
+const okGemini = async () => ({ text: 'ok', candidates: [{ finishReason: 'STOP' }], usageMetadata: {} });
+const okCompat = async () => new Response(JSON.stringify({ choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }], usage: {} }), { status: 200 });
+const compat = (fetchImpl) => createOpenAICompatibleAdapter({ providerId: 'g', baseUrl: 'http://x/v1', apiKey: 'k', fetchImpl });
+
+test('adapters leave no abort listeners on a shared signal after success or provider error', async () => {
+  const cases = [
+    ['gemini ok', () => createGeminiAdapter({ models: { generateContent: okGemini } })],
+    ['gemini throws', () => createGeminiAdapter({ models: { generateContent: async () => { throw Object.assign(new Error('Service Unavailable'), { status: 503 }); } } })],
+    ['compat ok', () => compat(okCompat)],
+    ['compat http error', () => compat(async () => new Response(JSON.stringify({ error: { message: 'boom' } }), { status: 500 }))],
+  ];
+  for (const [label, make] of cases) {
+    const adapter = make();
+    const job = new AbortController();
+    for (let i = 0; i < 12; i++) await adapter.call(req, { signal: job.signal, timeoutMs: 5000 });
+    assert.equal(listeners(job.signal), 0, `${label}: listeners must not accumulate on the job signal`);
+  }
+});
+
+test('adapters still cancel an in-flight call when the shared signal aborts, and then unlink', async () => {
+  const job = new AbortController();
+  const gemini = createGeminiAdapter({ models: { generateContent: (a) => new Promise((_, reject) => a.config.abortSignal.addEventListener('abort', () => reject(new Error('This operation was aborted')))) } });
+  const pending = gemini.call(req, { signal: job.signal });
+  job.abort();
+  const g = await pending;
+  assert.equal(g.status, 'error');
+  assert.equal(g.errorClass, 'PROVIDER_TRANSIENT');
+  assert.equal(listeners(job.signal), 0);
+
+  const job2 = new AbortController();
+  const c = compat((_u, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(new Error('The operation was aborted')))));
+  const pending2 = c.call(req, { signal: job2.signal });
+  job2.abort();
+  const r = await pending2;
+  assert.equal(r.status, 'error');
+  assert.equal(r.errorClass, 'PROVIDER_TRANSIENT');
+  assert.equal(listeners(job2.signal), 0);
+});
+
+test('an already-aborted signal stops the call before any provider request is made', async () => {
+  const pre = new AbortController(); pre.abort();
+  let providerCalls = 0;
+  const gemini = createGeminiAdapter({ models: { generateContent: async () => { providerCalls++; return okGemini(); } } });
+  const g = await gemini.call(req, { signal: pre.signal });
+  const c = await compat(async () => { providerCalls++; return okCompat(); }).call(req, { signal: pre.signal });
+  assert.equal(providerCalls, 0, 'no model request may be sent after cancellation');
+  for (const r of [g, c]) { assert.equal(r.status, 'error'); assert.equal(r.errorClass, 'PROVIDER_TRANSIENT'); }
+});
+
+test('realClock.sleep unlinks from the shared signal on timeout, resolves on abort, and honours a pre-aborted signal', async () => {
+  const job = new AbortController();
+  for (let i = 0; i < 12; i++) await realClock.sleep(1, job.signal);
+  assert.equal(listeners(job.signal), 0, 'timer completion must remove its abort listener');
+
+  const started = Date.now();
+  const sleeping = realClock.sleep(60_000, job.signal);
+  assert.equal(listeners(job.signal), 1);
+  job.abort();
+  await sleeping;
+  assert.ok(Date.now() - started < 5000, 'abort must end the sleep promptly');
+  assert.equal(listeners(job.signal), 0);
+
+  const t0 = Date.now();
+  await realClock.sleep(60_000, job.signal);
+  assert.ok(Date.now() - t0 < 1000, 'a pre-aborted signal must not start a long sleep');
+});
+}
+// ===== END abort-signal-lifecycle.test =====
