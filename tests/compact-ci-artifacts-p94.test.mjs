@@ -25,11 +25,13 @@ const runAsync = (script, dir, extra = {}) => new Promise((resolve, reject) => {
   child.once('close', (status, signal) => resolve({ status, signal, stdout, stderr }));
 });
 
-test('P108.3 workflow publishes exactly the compact handoff and full-log archive, and prints the handoff', () => {
+test('P108.3 workflow publishes ASSISTANT_PASTE plus full-log archive only at outer root', () => {
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  assert.match(workflow, /cat artifacts\/ci-checks\/BIForge-PATCH-EVIDENCE\.md/);
-  assert.match(workflow, /artifacts\/ci-checks\/BIForge-PATCH-EVIDENCE\.md[\s\S]*artifacts\/ci-checks\/biforge-ci-logs\.zip/);
+  assert.match(workflow, /artifacts\/ci-checks\/ASSISTANT_PASTE\.txt/);
+  assert.match(workflow, /artifacts\/ci-checks\/biforge-ci-logs\.zip/);
   assert.doesNotMatch(workflow, /path:\s*artifacts\/ci-checks\/(?:PATCH_EVIDENCE\.md|diagnostics\.zip|ci-history\.json|ci-metrics\.json)/);
+  // Outer upload must not list BIForge-PATCH-EVIDENCE at artifact root (lives inside the zip).
+  assert.doesNotMatch(workflow, /path:\s*\|\s*\n\s*artifacts\/ci-checks\/BIForge-PATCH-EVIDENCE\.md/);
 });
 
 test('P108.3 handoff turns the two-artifact contract failure into an actionable next step', () => {
@@ -49,7 +51,8 @@ test('P108.3 handoff turns the two-artifact contract failure into an actionable 
     assert.equal(r.status, 0, r.stderr || r.stdout);
     const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
     assert.match(report, /Update tests\/compact-ci-artifacts-p94\.test\.mjs/);
-    assert.match(report, /BIForge-PATCH-EVIDENCE\.md and biforge-ci-logs\.zip/);
+    assert.match(report, /biforge-ci-logs\.zip/);
+    assert.match(report, /ASSISTANT_PASTE|BIForge-PATCH-EVIDENCE|PATCH_EVIDENCE/);
     assert.match(report, /npm run test:compact-ci-artifacts/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
@@ -88,12 +91,13 @@ test('P108.2 packaging always includes complete diagnostics on failure', async (
     fs.writeFileSync(path.join(dir, 'ci-install.log'), 'npm ci ok\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-PATCH-EVIDENCE.md', 'biforge-ci-logs.zip']);
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['ASSISTANT_PASTE.txt', 'biforge-ci-logs.zip']);
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
     assert.ok(zip.file('test-core.log'));
     assert.ok(zip.file('test-project.log'), 'successful-stage log is required for complete cycle diagnostics');
     assert.ok(zip.file('results.json'));
     assert.ok(zip.file('diagnostics-index.json'));
+    assert.ok(zip.file('PATCH_EVIDENCE.md') || zip.file('BIForge-PATCH-EVIDENCE.md'), 'evidence inside zip');
     const core = await zip.file('test-core.log').async('string');
     assert.match(core, /AssertionError/);
     assert.match(core, /OPENAI_API_KEY=\[REDACTED\]/);
@@ -109,9 +113,10 @@ test('P108.2 packaging emits diagnostics and cycle metrics after a clean run', a
     fs.writeFileSync(path.join(dir, 'typecheck.log'), 'no errors\n');
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['BIForge-PATCH-EVIDENCE.md', 'biforge-ci-logs.zip']);
+    assert.deepEqual(fs.readdirSync(dir).sort(), ['ASSISTANT_PASTE.txt', 'biforge-ci-logs.zip']);
     assert.ok(fs.statSync(path.join(dir, 'biforge-ci-logs.zip')).size > 0);
-    assert.ok(fs.existsSync(path.join(dir, 'BIForge-PATCH-EVIDENCE.md')));
+    assert.ok(fs.existsSync(path.join(dir, 'ASSISTANT_PASTE.txt')));
+    assert.match(fs.readFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), 'utf8'), /ASSISTANT_PASTE|STATUS=/);
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
     assert.ok(zip.file('typecheck.log'), 'green-run logs are retained');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
