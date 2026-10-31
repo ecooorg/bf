@@ -1,3 +1,12 @@
+## P121.0.34 — Lab shell: header and diagnostics reachable in every state
+
+- `ArchitectLab` rendered its toolbar (`Diagnostics ▾`, BiForge, Legacy Architect) only on the authenticated main screen. The three early returns (session check, Project Mode disabled, sign-in) had no header and no diagnostics access.
+- Extracted a persistent `LabHeader` rendered in loading, disabled, sign-in, and main states. Diagnostics menu stays visible when signed out or Project Mode is off; choosing an item shows an honest “Sign in to load diagnostics” message instead of a silent failure. Auth is not weakened.
+- Narrow-viewport CSS (≤720px) keeps the menu inside the viewport and touch targets usable.
+- Extended `tests/p122-architect-lab-e2e.test.mjs`: header/menu asserted on the main flow; new test covers sign-in and disabled states at phone width (390×844) and the sign-in hint path. Existing `architect-lab-completion` path is unchanged.
+- data-testid additions: `architect-lab-header`, `architect-lab-diagnostics-panel`, `architect-lab-diagnostics-signin-hint`, `architect-lab-nav-biforge`, `architect-lab-nav-legacy`, `architect-lab-loading`, `architect-lab-disabled`, `architect-lab-disabled-panel`, `architect-lab-signin`, `architect-lab-signin-form`, `architect-lab-main`. Existing testids retained.
+- No change to generation engine, validators, passport flow, or `/project`. Hosted CI and device verification: NOT_RUN.
+
 ## P121.0.33 — Release abort listeners on the shared build-job signal
 
 - Model adapters (`geminiAdapter.ts`, `openaiCompatAdapter.ts`) and `realClock.sleep` attached an `abort` listener to the caller's signal on every call and never removed it. A staged build shares one job signal across all model calls, so listeners accumulated (production console showed `MaxListenersExceededWarning`, 11 listeners, 2026-10-30 23:14:44).
