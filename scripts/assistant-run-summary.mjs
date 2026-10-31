@@ -10,6 +10,7 @@
  * Env: CI_LOGS_DIR, CI_STATUS, GITHUB_* (run metadata)
  */
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -179,3 +180,19 @@ if (paste.length > MAX_PASTE) {
 fs.writeFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), paste, 'utf8');
 fs.writeFileSync(path.join(dir, 'ASSISTANT_SUMMARY.json'), JSON.stringify(summary, null, 2) + '\n', 'utf8');
 console.log(`assistant-run-summary → ${path.relative(root, path.join(dir, 'ASSISTANT_PASTE.txt'))} (${paste.length} chars)`);
+
+// Optional: collapse directory to outer ASSISTANT_PASTE.txt + biforge-ci-logs.zip (for workflows without package-ci-artifacts).
+if (String(process.env.PACK_OUTER_ARTIFACT || '').toLowerCase() === 'true') {
+  const names = fs.readdirSync(dir).filter((n) => n !== 'biforge-ci-logs.zip' && n !== 'ASSISTANT_PASTE.txt');
+  if (names.length) {
+    const packed = spawnSync('zip', ['-q', '-r', 'biforge-ci-logs.zip', ...names], { cwd: dir, encoding: 'utf8' });
+    if (packed.status === 0) {
+      for (const n of names) fs.rmSync(path.join(dir, n), { recursive: true, force: true });
+    } else {
+      console.warn('PACK_OUTER_ARTIFACT zip failed:', packed.stderr || packed.status);
+    }
+  }
+  if (!fs.existsSync(path.join(dir, 'ASSISTANT_PASTE.txt'))) fs.writeFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), paste, 'utf8');
+  console.log(`outer artifact files: ${fs.readdirSync(dir).sort().join(', ')}`);
+}
+
