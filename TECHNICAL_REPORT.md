@@ -1,3 +1,11 @@
+# CURRENT EVIDENCE NOTE — P121.0.36 Lab chrome parity + js-syntax repair, 2026-10-31
+
+- Owner chose option A (Lab primary) conditional on quality; repeatedly required **identical top menu** across modes (no Lab-only stubs). OBSERVED: Lab used a custom toolbar; Conversational/Expert/Project use ModeMenu + Drive + More.
+- Live Lab build job `592b832c…` PARTIAL: `js-syntax` fail on `app.js` line with `Math.random().toString(36.substr(2, 9))` (OBSERVED artifact). Engine had dom-wiring repair only; no js-syntax post-check repair.
+- Delivered: shared `ArchitectShellHeader` on Lab; engine js-syntax deterministic + bounded model repair. Local: deterministic fix verified on the failed `app.js` (`node --check` PASS after fix). Full build/E2E/hosted CI: NOT_RUN.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.35 Lab create validation, 2026-10-31
 
 - Device screenshots (08:39): Lab at `/architect-lab` (P121.0.34) after Create project brief → stage "Stopped with error", alert "Invalid project data". Same session Legacy `/project` built Expense Tracker SUCCESS and offered source ZIP (08:42). Diagnostics overall PASS; lastFailedOperation still historical HTTP_409, not this create failure.

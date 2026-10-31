@@ -1,3 +1,11 @@
+## P121.0.36 — Lab primary chrome parity + js-syntax repair
+
+- **Chrome parity (option A):** `/architect-lab` no longer uses a custom Diagnostics-only toolbar. It mounts the same top pattern as legacy Project Mode: `ModeMenu` (Conversational / Expert / Architect), Drive, and More (User guide, system diagnostics, operations, session log, diagnostic ZIP, legacy workspace link, sign out). Shared component: `src/ArchitectShellHeader.tsx`.
+- **js-syntax repair:** After static validators, `appBuilder/core-engine.ts` now repairs failing `.js` files: (1) deterministic fix for the common model typo `toString(36.substr(...))` → `toString(36).substr(...)`; (2) if still failing and budget remains, one bounded coder repair call per script (max 2), accepted only when js-syntax improves and no previously-passing required validator breaks. Addresses live PARTIAL on Expense Tracker (`Invalid or unexpected token` in `app.js`).
+- Goal-length clip from 0.35 retained. Long-TЗ agent densification remains OPEN (not this patch).
+- Tests: Lab contract + browser E2E updated for shell testids; contract asserts engine repair markers.
+- Hosted CI / device: NOT_RUN until applied.
+
 ## P121.0.35 — Lab create: honor API goal length (fix "Invalid project data")
 
 - Live device (tablet): Architectural Test Lab showed **Stopped with error / Invalid project data** on Create project brief while Legacy Architect completed the same Expense Tracker goal and produced a downloadable ZIP (OBSERVED screenshots + app-source).
