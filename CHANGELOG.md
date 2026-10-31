@@ -1,3 +1,17 @@
+## P122.1 — State Integrity & Persistence
+
+- Strengthened Expert decision persistence (primary store remains browser localStorage, using existing infrastructure):
+  - `validateDecision()` — required fields, valid stage, array/object shapes, dangling preferred/opposite option refs, best-effort evidence reference checks.
+  - Atomic-ish save with last-good backup key; failed writes leave previous committed state intact.
+  - Corrupt primary recovered from backup on load; invalid records dropped without destroying valid ones.
+  - Monotonic `revision` on Decision; `bumpRevision()` on every user update; `detectRevisionConflicts` / `mergeByRevision` for concurrent-tab / import safety.
+  - Save status meta (`saved` / `saving` / `failed`) recorded after each persist attempt.
+- Import path now runs full integrity validation and rejects invalid data without mutating existing storage.
+- Export/import round-trip preserves structured fields including revision.
+- Added `tests/p122.1-state-integrity.test.mjs` (19 deterministic cases; all pass under `node --experimental-strip-types --test`).
+- Files: `src/storage.ts`, `src/decision.ts`, `src/exportZip.ts`, `src/App.tsx`, tests, docs.
+- Known limits: still browser-local (no server-side Expert decision table); concurrent multi-device sync beyond revision merge is not claimed; full browser E2E reload/recovery NOT_RUN in this environment.
+
 ## P122.0 — C122 launch: Expert Mode reliability cycle governance and documentation integration
 
 - Product version advanced to 122; cycle C122 (Expert Mode Reliability, Intelligence Quality & Decision Engineering) is now the active programme.

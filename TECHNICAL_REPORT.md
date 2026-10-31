@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P122.1 State Integrity & Persistence, 2026-10-31
+
+- **Changed:** Expert decision persistence layer (`src/storage.ts`) now validates structure and references, maintains a last-good backup, recovers from corrupt primary, records save status, and uses monotonic `revision` for conflict detection/merge. Updates bump revision. Import rejects invalid data. `Decision` gains optional `revision`. Unit suite `tests/p122.1-state-integrity.test.mjs`: 19/19 pass.
+- **Observed (local):** create/save/reload, failed-save preserves prior state, corrupt primary recovery, invalid item isolation, revision conflicts, export/import round-trip, save meta.
+- **NOT_RUN:** Browser page-reload UX, multi-tab live conflict UI, Google Drive path, hosted CI, real long-session interruption, server-side Expert persistence (not introduced — existing localStorage infrastructure strengthened).
+- **Acceptance vs P122.1 criteria:** Durable local persistence + recovery + integrity validation + export/import safety demonstrated in deterministic tests. Multi-device durability and full E2E recovery remain open for later evidence.
+
 # CURRENT EVIDENCE NOTE — P122.0 C122 governance launch, 2026-10-31
 
 - **Changed:** Product version set to 122. CURRENT NORMATIVE CONTRACT in TECHNICAL_SPECIFICATION.md rewritten for C122 (Expert primary, Architect frozen, Conversational out of scope, four-patch plan). ROADMAP.md CURRENT ROADMAP CONTROL updated with C122 sequence and priorities. docs/DECISIONS.md records D-2026-10-31-03. CHANGELOG.md and this evidence note added. package.json version/patch updated.
