@@ -1,3 +1,10 @@
+## P121.0.47 — Evidence-based Architect selection and visible build progress
+
+- Promoted Architectural Test Lab to the primary `/project` entry based on the supplied comparable build reports: Lab passes syntax validation while legacy has two JS syntax-validator findings; both remain PARTIAL and neither is represented as fully successful.
+- Preserved legacy Project Mode at `/project-legacy`; `/architect` and `/architect-lab` remain Lab aliases.
+- Both build interfaces expose model-call counts and ready-file counts while work is in progress; Lab also displays stage and elapsed time.
+- Added the selection rule to `docs/DECISIONS.md`. Supplied artifact comparison is static evidence only; browser/device user outcome and a fresh live generation remain NOT_RUN.
+
 ## P121.0.46 — Model repair must see and preserve the file
 
 - **Observed defect (Legacy Architect build `63e74598`, Expense Tracker):** `app.js` was generated at 26,540 characters with one syntax error. The js-syntax model repair returned a 492-character placeholder (`SyntaxErrorFixerApp`, 464 bytes in the ZIP) and it was accepted because the issue count dropped 1 → 0. The build was reported `SUCCESS` / `goalImplemented: true`.

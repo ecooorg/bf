@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P121.0.47 architect selection + progress, 2026-10-31
+
+- **OBSERVED (supplied build reports):** Architectural Test Lab (`1dbb04aa-5e51-48a4-9d26-55296db1f816`) is PARTIAL; HTML structure, JS syntax, references, size, secrets, and acceptance pass, while DOM wiring reports 7 missing HTML IDs. Legacy generated app (`6b22df2a-9008-4ee5-8bf5-1a90212979e1`) is PARTIAL; its JS validator reports 2 `import`-outside-module findings and DOM wiring reports 3 missing IDs. These validator reports are not proof of actual browser behavior; both apps remain imperfect.
+- **Decision:** Lab is the provisional primary because the legacy report has JS syntax-validator failures in addition to wiring failures. Legacy remains available at `/project-legacy`.
+- **Changed:** primary entry routing; build progress label in both Architect UIs; active decision and changelog.
+- **NOT_RUN:** fresh model generation, browser E2E, Android/mobile behavior, hosted CI, deployed user outcome. Local checks are recorded separately in chat.
+
 # CURRENT EVIDENCE NOTE — P121.0.46 model repair integrity, 2026-10-31
 
 - **OBSERVED (owner diagnostics + both generated archives, release 121.0.45):** Legacy build `63e74598` shipped `app.js` of 464 bytes (a placeholder) with `outcome=SUCCESS`. Logs show the original `app.js` at 26,540 characters, `js_syntax_repair` (issue `Unexpected token '('`), a repair reply of 492 characters in 865 ms, `js_syntax_repair_accepted` (1 → 0), `job_done SUCCESS`. Source inspection: the repair prompts in `appBuilder/core-engine.ts` did not include the file, and acceptance compared only issue counts. The same acceptance rule exists in the dom-wiring repair (P118.5.6).

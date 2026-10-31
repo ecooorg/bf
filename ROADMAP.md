@@ -2,6 +2,13 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
+## P121.0.47 — Evidence-based Architect promotion (status)
+
+- Primary `/project` now opens Architectural Test Lab; legacy Project Mode remains reachable at `/project-legacy`. Existing `/architect` and `/architect-lab` aliases remain available.
+- Selection is provisional based on the supplied build reports: Lab passes JS syntax and has 7 DOM-wiring issues; legacy has 2 JS syntax-validator findings and 3 DOM-wiring issues. Neither is a clean SUCCESS.
+- Both build interfaces show model-call/file progress while the build job is being polled.
+- Local contract/governance tests and documentation integrity PASS. Production build, browser E2E, hosted CI, fresh live generation, and Android outcome NOT_RUN.
+
 ## P121.0.46 — Repair integrity (status)
 
 - Shared App Builder engine (Lab and Legacy): model repairs of `.js` files now receive the file and cannot replace it with a fraction of itself. An observed placeholder-as-SUCCESS defect (BIO-005 honesty) is closed at the engine level; local tests only, hosted CI and live build NOT_RUN.
