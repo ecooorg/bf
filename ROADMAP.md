@@ -17,7 +17,7 @@
 | P122.1 | STATE INTEGRITY & PERSISTENCE | Make Expert sessions durable, recoverable, consistent, and resistant to accidental information loss | DONE (local integrity) |
 | P122.2 | ANALYTICAL RELIABILITY & EVIDENCE INTEGRITY | Ensure Expert reasoning is traceable, logically consistent, evidence-aware, and resistant to unsupported conclusions | DONE (core helpers) |
 | P122.3 | EXECUTION RELIABILITY & WORKFLOW CONTINUITY | Make the Expert execution pipeline resilient to model errors, invalid responses, interrupted operations, repeated requests, and long-running analytical sessions | DONE (core) |
-| P122.4 | DECISION QUALITY, USER EXPERIENCE & FINAL VALIDATION | Ensure Expert produces genuinely useful decisions; complete transition to reliable decision-support product | PLANNED |
+| P122.4 | DECISION QUALITY, USER EXPERIENCE & FINAL VALIDATION | Ensure Expert produces genuinely useful decisions; complete transition to reliable decision-support product | DONE (deterministic) |
 
 ### Priority matrix (from C122 mandate)
 

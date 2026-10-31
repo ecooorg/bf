@@ -1,3 +1,13 @@
+## P122.4 — Decision Quality, User Experience & Final Validation
+
+- `src/finalDecisionDocument.ts`: structured final decision document (executive summary through confidence/limitations); recommendation quality checklist; confidence calibration (no invented precision); stage completion criteria; decision-quality rubric (10 dimensions, critical failures).
+- `src/decisionDocument.ts`: appends structured final sections to export; `decisionToFinalText()`.
+- Synthesis UI: download structured decision document.
+- Layer A tests: `tests/p122.4-decision-quality.test.mjs` — five scenarios (complex decision, changed information, questionable assumption, model failure, complete cycle) + document/rubric/stage checks — 12/12 pass.
+- Layer B harness: `tests/p122.4-real-model-eval.mjs` — five scenarios documented; live runs only when `REAL_MODEL_EVAL=1` (skipped in normal CI).
+- Full C122 deterministic suite: 80 pass, 1 skip (Layer B).
+- Limits: live real-model scoring report NOT_RUN; browser UX polish beyond structured download NOT_RUN; hosted CI NOT_RUN.
+
 ## P122.3 — Execution Reliability & Workflow Continuity
 
 - `server/expertContracts.ts`: endpoint registry for all Expert APIs; request validation (required fields, size); model object/shape validation; error taxonomy (`VALIDATION`, `INVALID_MODEL_JSON`, `MODEL_TIMEOUT`, …); in-process idempotency cache (TTL, bounded).

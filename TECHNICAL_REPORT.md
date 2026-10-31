@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P122.4 Decision Quality & Final Validation, 2026-10-31
+
+- **Changed:** Final decision document builder, recommendation quality evaluation, confidence calibration, stage completion gates, quality rubric, Synthesis download, Layer A scenario tests, Layer B real-model harness (opt-in).
+- **Deterministic results:** p122.4 12/12 pass; full C122 unit suites 80 pass + 1 skip (real-model).
+- **NOT_RUN:** REAL_MODEL_EVAL live runs, hosted CI, browser E2E of full Expert journey, comparative before/after model fluency study.
+- **Acceptance vs P122.4 / global C122:** Deterministic evidence for final document structure, fact/assumption separation, invalidation on change, failure recovery messaging, recommendation checklist, rubric. Real-model analytical quality remains explicitly opt-in and unfinished until Layer B is executed with credentials.
+
 # CURRENT EVIDENCE NOTE — P122.3 Execution Reliability & Workflow Continuity, 2026-10-31
 
 - **Changed:** Expert contracts, request/model validation, idempotency, workflow state machine, context reconstruction, client operation tracking and safer failure messaging. Deterministic tests 25/25; prior C122 suites 42/42.
