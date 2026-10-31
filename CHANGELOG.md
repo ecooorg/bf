@@ -1,3 +1,8 @@
+## P121.0.45 — Align tests with single outer PASTE + no neon workflow
+
+- **test:core:** `neon-initialize-workflow.test.mjs` no longer requires deleted `.github/workflows/neon-initialize.yml`; asserts scripts only and that the workflow file is absent.
+- **test:compact-ci-artifacts:** outer dir expectation is `ASSISTANT_PASTE.txt` + `biforge-ci-logs.zip` (evidence remains inside the zip).
+
 ## P121.0.44 — Single outer ASSISTANT_PASTE + cumulative CI fixes
 
 - **Artifact layout:** GitHub artifact root is only `ASSISTANT_PASTE.txt` + `biforge-ci-logs.zip`. Full logs, `PATCH_EVIDENCE` / `BIForge-PATCH-EVIDENCE`, metrics, and `ASSISTANT-BRIEF.md` live **inside** the zip (no triplicate summaries at outer root).

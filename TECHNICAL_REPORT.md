@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P121.0.45 neon + compact packaging tests, 2026-10-31
+
+- ASSISTANT_PASTE from run 41188491629 / d23344fa: test:core ENOENT neon-initialize.yml; test:compact-ci-artifacts expected outer BIForge-PATCH-EVIDENCE.md after single-PASTE layout. Tests updated to match canonical four workflows and outer PASTE+zip contract.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.44 single ASSISTANT_PASTE outer artifact, 2026-10-31
 
 - Owner: ASSISTANT_PASTE, BIForge-PATCH-EVIDENCE, and PATCH_EVIDENCE duplicated; wants one chat summary at archive root and all logs nested. Implemented in package-ci-artifacts outer cleanup and PACK_OUTER_ARTIFACT for non-DAG workflows. Includes prior 0.43 inventory + UI smoke fixes (unapplied). Hosted CI: NOT_RUN.
