@@ -29,6 +29,7 @@ import { migrateAttachmentsFromDecisions, exportProgramFilesPayload, importProgr
 import { en } from './en.ts';
 import { triage, TRIAGE_OUTCOME_TEXT, TRIAGE_OUTCOME_LABEL } from './triage.ts';
 import { evpi, evpiRange, evpiVerdict, validateEvpiInput } from './evpi.ts';
+import { auditEvpi } from './analyticalIntegrity.ts';
 import { brierScore } from './brier.ts';
 import { cardChecksum } from './sha256Export.ts';
 import { detectUiLanguage, installUiLanguage, getStoredUiLanguage } from './ui.ts';
@@ -252,7 +253,8 @@ export function UnderstandScreen({
       const radarData = data?.radar || {};
       const mapClaim = (c: any, kind: string) => ({
         id: c.id || uid('c'), kind: kind as any, text: c.text || '', source: c.source || 'USER_DATA',
-        sourceType: 'MODEL' as const, status: 'UNRESOLVED' as const, evidenceIds: [],
+        // Model output is never silently promoted to EXTERNALLY_VERIFIED (P122.2)
+        sourceType: 'MODEL' as const, status: 'UNRESOLVED' as const, evidenceIds: [] as string[],
         createdAt: Date.now(), updatedAt: Date.now(), userImportance: c.userImportance,
       });
       const radar = {
@@ -1046,11 +1048,23 @@ export function ExperimentCardEditor({
               <button
                 className="ghost"
                 style={{ marginTop: 6 }}
-                onClick={() =>
+                onClick={() => {
+                  const audited = auditEvpi({
+                    p: pNorm,
+                    gain: G,
+                    loss: L,
+                    testCost: c,
+                    unit: 'USD',
+                  });
                   patch({
                     evpi: { p: pNorm, gain: G, loss: L, testCost: c, unit: 'USD' },
-                  })
-                }
+                  });
+                  if (audited.ok) {
+                    update({
+                      calculations: [...(d.calculations || []), audited.record],
+                    });
+                  }
+                }}
               >
                 Save this estimate
               </button>

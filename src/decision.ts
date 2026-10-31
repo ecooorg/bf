@@ -47,6 +47,23 @@ export type ExperimentStatus =
   | 'COMPLETED'
   | 'CANCELLED';
 
+/** Controlled hypothesis lifecycle (P122.2). */
+export type HypothesisStatus =
+  | 'PROPOSED'
+  | 'UNDER_INVESTIGATION'
+  | 'SUPPORTED'
+  | 'WEAKENED'
+  | 'CONTRADICTED'
+  | 'REJECTED'
+  | 'UNRESOLVED';
+
+/** How a claim relates to evidence (P122.2). */
+export type EvidenceRelation =
+  | 'SUPPORTS'
+  | 'CONTRADICTS'
+  | 'INSUFFICIENT'
+  | 'NONE';
+
 export interface StepMeta {
   model: string;
   fallback: boolean;
@@ -158,6 +175,14 @@ export interface Evidence {
   sourceType: 'USER_DOCUMENT' | 'EXTERNAL_SOURCE' | 'CALCULATION' | 'MODEL';
   sourceLabel: string;
   sourceLocator?: string;
+  /** Provenance (P122.2) */
+  sourceDate?: string;
+  accessedAt?: number;
+  quotation?: string;
+  reliabilityNote?: string;
+  limitations?: string;
+  relatedClaimIds?: string[];
+  relation?: EvidenceRelation;
   verified: boolean;
   verifiedAt?: number;
   notes?: string;
@@ -215,6 +240,12 @@ export interface Hypothesis {
   rewrittenByUser?: string;
   priority?: 1 | 2 | 3;
   selectedByUser?: boolean;
+  /** Lifecycle status (P122.2). Defaults to PROPOSED when absent. */
+  status?: HypothesisStatus;
+  statusReason?: string;
+  statusChangedAt?: number;
+  supportingEvidenceIds?: string[];
+  contradictingEvidenceIds?: string[];
 }
 
 export interface ChangeRecord {
@@ -323,6 +354,34 @@ export type InteractionState =
   | 'SYNTHESIS_READY'
   | 'USER_SATISFIED';
 
+/** Explicit contradiction between statements (P122.2). */
+export interface Contradiction {
+  id: string;
+  statementA: string;
+  statementB: string;
+  sourceA?: string;
+  sourceB?: string;
+  explanation: string;
+  resolvable: boolean;
+  resolution?: string;
+  affectsConclusionIds?: string[];
+  detectedAt: number;
+}
+
+/** Auditable numerical calculation trail (P122.2). */
+export interface CalculationRecord {
+  id: string;
+  kind: 'EVPI' | 'PROBABILITY' | 'EXPECTED_VALUE' | 'RISK_SCORE' | 'FORECAST' | 'WEIGHTED_COMPARE' | 'OTHER';
+  inputs: Record<string, number | string>;
+  units?: string;
+  assumptions: string[];
+  formula: string;
+  result: number | string;
+  interpretation: string;
+  limitations: string;
+  createdAt: number;
+}
+
 export interface Decision {
   id: string;
   title: string;
@@ -357,6 +416,12 @@ export interface Decision {
   modelSuggestions: Record<string, unknown>;
   stepHistory: Record<string, unknown[]>;
   thirdPersonMode?: boolean;
+  /** Detected contradictions retained across stages (P122.2). */
+  contradictions?: Contradiction[];
+  /** Auditable numerical calculations (P122.2). */
+  calculations?: CalculationRecord[];
+  /** Explicit invalidation markers when user changes affect prior analysis (P122.2). */
+  invalidated?: { at: number; reason: string; affectedPaths: string[] }[];
 }
 
 /**
