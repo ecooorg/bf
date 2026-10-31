@@ -58,6 +58,7 @@ type Step = 0 | 1 | 2 | 3 | 4;
 
 export function ProjectNoviceWizard({
   busy,
+  busyLabel,
   onBack,
   onFinished,
   createProject,
@@ -66,6 +67,7 @@ export function ProjectNoviceWizard({
   programZipAvailable,
 }: {
   busy: boolean;
+  busyLabel?: string;
   onBack: () => void;
   onFinished: (projectId: string) => void;
   createProject: (name: string, goal: string) => Promise<{ id: string; state_version: number; state: Record<string, unknown> }>;
@@ -291,7 +293,7 @@ export function ProjectNoviceWizard({
               Back
             </button>
             <button type="button" style={{ ...S.button, ...S.primary }} disabled={busy} onClick={() => void runCreateAndBuild()}>
-              {busy ? 'Working…' : 'Create project & build ZIP'}
+              {busy ? (busyLabel || 'Working…') : 'Create project & build ZIP'}
             </button>
           </div>
         </div>

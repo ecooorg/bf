@@ -527,6 +527,7 @@ export default function ProjectMode() {
     {authenticated && enabled && showGuidedStart && (
       <ProjectNoviceWizard
         busy={busy}
+        busyLabel={buildProgress ? `Working… · ${buildProgress.job.callsUsed ?? 0} model calls · ${buildProgress.job.units?.filter((u: any) => u.status === 'done').length ?? 0}/${buildProgress.job.units?.length ?? 0} files` : undefined}
         programZipAvailable={Boolean(capabilities?.programZip)}
         onBack={() => { setShowGuidedStart(false); }}
         onFinished={(id) => { void loadProjects(id); }}

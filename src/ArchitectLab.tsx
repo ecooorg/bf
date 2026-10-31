@@ -27,6 +27,8 @@ function LabWorkspace() {
   const [goal, setGoal] = useState('');
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState('Ready');
+  const [buildProgress, setBuildProgress] = useState<BuildJobResult | null>(null);
+  const [buildStartedAt, setBuildStartedAt] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [project, setProject] = useState<Project | null>(null);
   const [passport, setPassport] = useState<Passport | null>(null);
@@ -101,9 +103,11 @@ function LabWorkspace() {
       const updated = await request<{ project_id: string; state_version: number; state: Record<string, unknown> }>(`/api/projects/${encodeURIComponent(project.id)}/state`, { method: 'PUT', body: JSON.stringify({ expected_version: project.state_version, state: { ...project.state, passport: confirmed } }) });
       setProject({ ...project, state_version: updated.state_version, state: updated.state }); setPassport(confirmed);
       setStage('Submitting build');
+      setBuildStartedAt(Date.now()); setBuildProgress(null);
       const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: clipPassportText(goal) }) });
+      setBuildProgress(initial);
       setStage('Generating and validating');
-      const finished = await waitForProjectBuild(project.id, initial);
+      const finished = await waitForProjectBuild(project.id, initial, job => setBuildProgress(job));
       setResult(finished); setStage(finished.outcome === 'SUCCESS' || finished.status === 'done' ? 'Complete' : 'Finished with issues');
     } catch (e) { setError((e as Error).message || String(e)); setStage('Stopped with error'); }
     finally { setBusy(false); }
@@ -245,6 +249,9 @@ function LabWorkspace() {
           <label>What should be built?<textarea required minLength={8} rows={7} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Describe the application, its users, and the expected behavior…" /></label>
           <button data-testid="architect-lab-build" className="architect-lab-primary" disabled={busy || Boolean(project) || goal.trim().length < 8}>{busy ? 'Working…' : 'Create project brief'}</button>
           <p className="architect-lab-stage" aria-live="polite">{stage}</p>
+          {busy && buildStartedAt !== null && <p role="status" aria-live="polite" data-testid="architect-lab-build-progress">
+            Stage: {buildProgress?.stage || stage} · Elapsed {Math.max(0, Math.floor((Date.now() - buildStartedAt) / 1000))} s · Model calls: {buildProgress?.callsUsed ?? 0}/{buildProgress?.callsBudget ?? '—'} · Files ready: {buildProgress?.units?.filter(u => u.status === 'done').length ?? 0}/{buildProgress?.units?.length ?? '—'}
+          </p>}
           {error && <div className="architect-lab-error" role="alert"><strong>Could not complete this step</strong><p>{error}</p></div>}
         </form>
         {project && passport && (
@@ -261,7 +268,7 @@ function LabWorkspace() {
               <dt>Success criteria</dt><dd>{passport.successCriteria}</dd>
               <dt>Status</dt><dd>{passport.status}</dd>
             </dl>
-            <button data-testid="architect-lab-confirm-passport" className="architect-lab-primary" type="button" disabled={busy || passport.status === 'confirmed'} onClick={() => void confirmAndBuild()}>{busy ? 'Working…' : 'Confirm brief and build'}</button>
+            <button data-testid="architect-lab-confirm-passport" className="architect-lab-primary" type="button" disabled={busy || passport.status === 'confirmed'} onClick={() => void confirmAndBuild()}>{busy ? `Working…${buildProgress ? ` · ${buildProgress.callsUsed ?? 0} model calls · ${buildProgress.units?.filter(u => u.status === 'done').length ?? 0}/${buildProgress.units?.length ?? 0} files` : ''}` : 'Confirm brief and build'}</button>
           </section>
         )}
         <section style={panel} aria-live="polite" data-testid="architect-lab-completion">
