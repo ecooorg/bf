@@ -732,14 +732,10 @@ export function appendFreshnessDisclosure(
   const text = String(reply || '').trim();
   if (!lookupExpected || status === 'used') return text;
   if (/(не удалось проверить|не могу проверить|не удалось получить актуальн|could not verify|couldn't verify|cannot verify|can't verify|unable to verify)/i.test(text)) return text;
-  const ru = /[\u0400-\u04FF]/.test(userText || '');
-  const note = ru
-    ? (searchEnabled
-      ? 'Live figures could not be confirmed via web search in this reply; treat the above as a general orientation, not a verified current fact.'
-      : 'Web search is disabled, so live figures in this reply were not verified; treat the above as a general orientation, not a confirmed current fact.')
-    : (searchEnabled
-      ? 'I could not verify current information through web search in this response; treat the answer above as general guidance, not a live-verified fact.'
-      : 'Web search is disabled, so current information was not verified in this response; treat the answer above as general guidance, not a live-verified fact.');
+  // Product UI/disclosures are English-only (chrome language policy).
+  const note = searchEnabled
+    ? 'Live figures could not be confirmed via web search in this reply; treat the above as a general orientation, not a verified current fact.'
+    : 'Web search is disabled, so live figures in this reply were not verified; treat the above as a general orientation, not a confirmed current fact.';
   return text ? `${text}\n\n${note}` : note;
 }
 
@@ -760,7 +756,6 @@ Simple-mode rules for using this data:
 /** Plain-text source list appended to the visible reply (the client shows only `reply`). */
 export function formatSourcesFooter(sources: WebSource[], userText: string): string {
   if (!sources.length) return '';
-  const ru = /[\u0400-\u04FF]/.test(userText || '');
   const lines = sources.slice(0, 5).map((s, i) => `${i + 1}. ${s.title} — ${s.url}`);
   return `\n\nSources (web search):\n${lines.join('\n')}`;
 }
