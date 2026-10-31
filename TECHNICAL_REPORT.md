@@ -1,3 +1,18 @@
+# CURRENT EVIDENCE NOTE — P121.0.38 English UI + p119 contract, 2026-10-31
+
+- CI evidence (run 41183878999, commit 89744ae): `test:core` FAIL — `assert.match(lab, /href="\/project"/)` after Lab chrome moved the anchor into `ArchitectShellHeader.tsx`. Assertion updated to shell + Lab footer path mention.
+- Bundles unapplied English-UI copy fixes so owner can apply one ZIP. Local syntax of the updated contract test: checked. Full `test:core` / DAG on this environment: NOT_RUN.
+
+---
+
+# CURRENT EVIDENCE NOTE — P121.0.37 English-only UI, 2026-10-31
+
+- Owner report: Russian labels still appear in working modes. Source scan of `src/` found user-visible Cyrillic concentrated in `ProjectMode.tsx` build-status block, `ConversationFiles.tsx` export role labels, `decisionDocument.ts` `L.ru` headings, one Expert display string, and web-search footers/prompt markers in `server/webSearch.ts`.
+- Change is UI/copy only for those surfaces; does not alter model language policy for *replies* (models may still answer in the user’s language when appropriate). Product chrome and status banners are English.
+- Side patch while P121.0.36 is under owner test; no Lab chrome/engine changes in this ZIP.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.36 Lab chrome parity + js-syntax repair, 2026-10-31
 
 - Owner chose option A (Lab primary) conditional on quality; repeatedly required **identical top menu** across modes (no Lab-only stubs). OBSERVED: Lab used a custom toolbar; Conversational/Expert/Project use ModeMenu + Drive + More.

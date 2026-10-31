@@ -1,3 +1,20 @@
+## P121.0.38 — English UI + Lab contract CI fix (cumulative)
+
+- **CI (commit 89744ae / test:core):** `p119-agent-ui-contract` expected `href="/project"` inside `ArchitectLab.tsx`. After P121.0.36 the link lives in `ArchitectShellHeader.tsx` (More → Legacy Architect). Contract now asserts the shell link and that Lab still documents `/project`.
+- **English-only UI (was prepared as 0.37, applied here):** ProjectMode build-status strings; ConversationFiles export labels; decisionDocument headings; Expert display sanitizer; webSearch source footer/prompt markers. Multilingual *input* detection unchanged.
+- No Lab engine/chrome changes beyond the contract alignment. Hosted CI after this patch: NOT_RUN until applied.
+
+## P121.0.37 — English-only product UI (Cyrillic chrome removed)
+
+- User-visible Russian remained in working modes, notably Architect/Project **build live status** (`Статус сборки`, stage lines, outcome) and export labels that switched to «Вы / Агент» when conversation text was detected as Russian.
+- **ProjectMode:** build progress strings translated to English (status, stages, elapsed, files, outcome).
+- **ConversationFiles:** Word/PDF/Drive export labels always English (`You` / `Agent` / `Attached`).
+- **decisionDocument:** decision export headings always English (`L.en`); removed auto-switch to `L.ru`.
+- **ExpertStepScreens:** display sanitizer replacement text English-only.
+- **webSearch:** source footer and prompt markers English-only (`Sources (web search)`, `(according to web search)`). Detection regexes that *understand* Russian user input are unchanged (not UI chrome).
+- Crisis/support phrase lists and NLP token tables intentionally keep multilingual user-input matching — not product labels.
+- Hosted CI / device: NOT_RUN.
+
 ## P121.0.36 — Lab primary chrome parity + js-syntax repair
 
 - **Chrome parity (option A):** `/architect-lab` no longer uses a custom Diagnostics-only toolbar. It mounts the same top pattern as legacy Project Mode: `ModeMenu` (Conversational / Expert / Architect), Drive, and More (User guide, system diagnostics, operations, session log, diagnostic ZIP, legacy workspace link, sign out). Shared component: `src/ArchitectShellHeader.tsx`.
