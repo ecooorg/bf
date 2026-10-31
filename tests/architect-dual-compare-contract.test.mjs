@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const script = path.join(root, 'scripts/architect-dual-compare.mjs');
 const workflow = path.join(root, '.github/workflows/architect-dual-compare.yml');
-const fixture = path.join(root, 'scripts/fixtures/architect-dual-expense-goal.txt');
+const fixture = path.join(root, 'scripts/architect-dual-expense-goal.txt');
 
 test('architect dual-compare script and workflow exist', () => {
   assert.ok(existsSync(script), 'scripts/architect-dual-compare.mjs');
