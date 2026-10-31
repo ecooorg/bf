@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P122.2 Analytical Reliability & Evidence Integrity, 2026-10-31
+
+- **Changed:** analytical integrity helpers and domain extensions for claims, evidence provenance, hypothesis lifecycle, contradictions, invalidation, EVPI audit trail. Deterministic tests 23/23 pass; P122.1 regression 19/19 pass.
+- **NOT_RUN:** real-model EXPAND/Red Team quality, browser E2E, hosted CI, full synthesis integration of contradictions into final document (P122.4).
+- **Acceptance vs P122.2 criteria:** Fact/assumption separation, evidence refs, hypothesis lifecycle, contradiction detection, numerical auditability, invalidation markers demonstrated in unit tests. Critical analysis affecting subsequent decisions and real-model proof remain for later patches.
+
 # CURRENT EVIDENCE NOTE — P122.1 State Integrity & Persistence, 2026-10-31
 
 - **Changed:** Expert decision persistence layer (`src/storage.ts`) now validates structure and references, maintains a last-good backup, recovers from corrupt primary, records save status, and uses monotonic `revision` for conflict detection/merge. Updates bump revision. Import rejects invalid data. `Decision` gains optional `revision`. Unit suite `tests/p122.1-state-integrity.test.mjs`: 19/19 pass.

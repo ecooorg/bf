@@ -1,3 +1,18 @@
+## P122.2 — Analytical Reliability & Evidence Integrity
+
+- Domain model (`src/decision.ts`): `HypothesisStatus` lifecycle; richer `Evidence` provenance; `Contradiction` and `CalculationRecord`; optional `contradictions`, `calculations`, `invalidated` on Decision; hypothesis status fields.
+- New pure module `src/analyticalIntegrity.ts`:
+  - Fact/assumption labelling; block silent promotion of assumptions to verified facts.
+  - Controlled hypothesis status transitions; purge rejected hypotheses from active assumptions.
+  - Evidence provenance factory and reference validation.
+  - Contradiction detection (fact/assumption dual listing, preferred=opposite, support+contradict).
+  - Open-unknown visibility; dependency invalidation on user changes.
+  - Auditable EVPI calculation records (inputs, formula, result, limitations).
+  - Alternative distinctness check; integrity summary.
+- Expert UI: model-mapped claims never marked EXTERNALLY_VERIFIED; saving EVPI estimate appends `CalculationRecord`.
+- Tests: `tests/p122.2-analytical-integrity.test.mjs` — 23/23 pass. P122.1 suite still 19/19.
+- Limits: full Red Team / Pre-Mortem prompt rewrites and EXPAND distinctness enforcement in model prompts deferred; real-model evaluation is P122.4.
+
 ## P122.1 — State Integrity & Persistence
 
 - Strengthened Expert decision persistence (primary store remains browser localStorage, using existing infrastructure):
