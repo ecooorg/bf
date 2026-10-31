@@ -42,13 +42,16 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     await page.route('**/api/projects/diagnostics/system', route => route.fulfill(envelope({ status: 'ok' })));
     await page.route('**/api/projects/diagnostics/operations', route => route.fulfill(envelope([])));
     await page.route('**/api/projects/diagnostics/export', route => route.fulfill({ status: 200, contentType: 'application/zip', body: Buffer.from('diagnostic-fixture') }));
+    let projectState = { passport: { status: 'proposed', projectType: 'Web application', goal: 'Create a small task tracker with a working add-task button.', users: 'Task tracker users', inputsOutputs: 'Tasks in and task list out', constraints: 'Browser-first responsive web application.', securityData: 'No secrets or real personal data.', successCriteria: 'Users can add and view tasks.' } };
     await page.route('**/api/projects', route => route.request().method() === 'POST'
-      ? route.fulfill(envelope({ id: 'p122-lab-project', name: 'Lab fixture', state_version: 1, state: { passport: { status: 'proposed' } } }))
-      : route.fulfill(envelope([])));
+      ? route.fulfill(envelope({ id: 'p122-lab-project', name: 'Lab fixture', state_version: 1, state: projectState }))
+      : route.fulfill(envelope([{ id: 'p122-lab-project', name: 'Lab fixture', status: 'active', state_version: 1, updated_at: '2026-10-30T12:00:00.000Z' }])));
+    await page.route('**/api/projects/p122-lab-project', route => route.fulfill(envelope({ id: 'p122-lab-project', name: 'Lab fixture', state_version: 1, state: projectState })));
     let passportConfirmed = false;
     await page.route('**/api/projects/p122-lab-project/state', async route => {
       const payload = route.request().postDataJSON();
       passportConfirmed = payload.state?.passport?.status === 'confirmed';
+      projectState = payload.state;
       await route.fulfill(envelope({ project_id: 'p122-lab-project', state_version: 2, state: payload.state }));
     });
     await page.route('**/api/projects/p122-lab-project/code/build', route => {
@@ -73,7 +76,9 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     await page.getByLabel('What should be built?').fill('Create a small task tracker with a working add-task button.');
     await page.getByTestId('architect-lab-build').click();
     await page.getByTestId('architect-lab-passport').waitFor();
-    assert.match(await page.getByTestId('architect-lab-passport').innerText(), /personal expenses|expense/i);
+    assert.match(await page.getByTestId('architect-lab-passport').innerText(), /Browser-first responsive web application/i);
+    await page.getByTestId('architect-lab-saved-projects').getByRole('button', { name: 'Open' }).click();
+    await page.getByTestId('architect-lab-passport').waitFor();
     await page.getByTestId('architect-lab-confirm-passport').click();
     await page.getByTestId('architect-lab-completion').getByText('SUCCESS').waitFor();
     const downloadPromise = page.waitForEvent('download');
