@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
 import { ErrorBoundary } from './ErrorBoundary.tsx';
+import { ArchitectShellHeader } from './ArchitectShellHeader.tsx';
 
 type Passport = { status: 'proposed' | 'confirmed'; projectType: string; goal: string; users: string; inputsOutputs: string; constraints: string; securityData: string; successCriteria: string; budget: { calls: number; tokens: number; executorRuns: number }; executor: 'manual' | 'model_patch'; humanLevel: 'supervised' | 'manual' };
 type Project = { id: string; name: string; state: Record<string, unknown>; state_version: number };
@@ -18,65 +19,6 @@ async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
   return body.data;
 }
 
-type LabHeaderProps = {
-  diagnosticsMenuOpen: boolean;
-  setDiagnosticsMenuOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
-  canUseDiagnostics: boolean;
-  onLoadDiagnostics: (kind: 'session' | 'system' | 'operations') => void;
-  onDownloadDiagnostics: () => void;
-  onRequireSignIn: () => void;
-};
-
-function LabHeader({
-  diagnosticsMenuOpen,
-  setDiagnosticsMenuOpen,
-  canUseDiagnostics,
-  onLoadDiagnostics,
-  onDownloadDiagnostics,
-  onRequireSignIn,
-}: LabHeaderProps) {
-  return (
-    <header className="architect-lab-header" data-testid="architect-lab-header">
-      <div>
-        <span className="architect-lab-kicker">PRIMARY ARCHITECT WORKSPACE · P121.0.34</span>
-        <h1>Architectural Test Lab</h1>
-        <p>Build software, review its scope, and inspect diagnostics when something fails.</p>
-      </div>
-      <div className="architect-lab-toolbar">
-        <div className="architect-lab-menu-wrap">
-          <button
-            type="button"
-            className="architect-lab-back"
-            data-testid="architect-lab-diagnostics-menu"
-            aria-expanded={diagnosticsMenuOpen}
-            onClick={() => setDiagnosticsMenuOpen(v => !v)}
-          >
-            Diagnostics ▾
-          </button>
-          {diagnosticsMenuOpen && (
-            <div className="architect-lab-menu" role="menu" data-testid="architect-lab-diagnostics-panel">
-              {canUseDiagnostics ? (
-                <>
-                  <button type="button" role="menuitem" onClick={() => onLoadDiagnostics('session')}>Compact session log</button>
-                  <button type="button" role="menuitem" onClick={() => onLoadDiagnostics('system')}>System diagnostics</button>
-                  <button type="button" role="menuitem" onClick={() => onLoadDiagnostics('operations')}>Recent operations</button>
-                  <button type="button" role="menuitem" onClick={() => onDownloadDiagnostics()}>Download diagnostic ZIP</button>
-                </>
-              ) : (
-                <button type="button" role="menuitem" data-testid="architect-lab-diagnostics-signin-hint" onClick={() => { setDiagnosticsMenuOpen(false); onRequireSignIn(); }}>
-                  Sign in to load diagnostics
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-        <a href="/" className="architect-lab-back" data-testid="architect-lab-nav-biforge">← BiForge</a>
-        <a href="/project" className="architect-lab-legacy" data-testid="architect-lab-nav-legacy">Legacy Architect</a>
-      </div>
-    </header>
-  );
-}
-
 function LabWorkspace() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [enabled, setEnabled] = useState(false);
@@ -92,7 +34,6 @@ function LabWorkspace() {
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [diagnosticsBusy, setDiagnosticsBusy] = useState(false);
   const [diagnosticsText, setDiagnosticsText] = useState('');
-  const [diagnosticsMenuOpen, setDiagnosticsMenuOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/session', { credentials: 'same-origin' }).then(r => r.json()).then(s => {
@@ -169,7 +110,7 @@ function LabWorkspace() {
   }
 
   async function loadDiagnostics(kind: 'session' | 'system' | 'operations') {
-    setDiagnosticsMenuOpen(false); setDiagnosticsOpen(true); setDiagnosticsBusy(true); setDiagnosticsText('Loading diagnostics…');
+    setDiagnosticsOpen(true); setDiagnosticsBusy(true); setDiagnosticsText('Loading diagnostics…');
     try {
       const path = kind === 'session' ? '/api/projects/diagnostics/session-log' : `/api/projects/diagnostics/${kind}`;
       const response = await fetch(path, { credentials: 'same-origin' });
@@ -180,7 +121,7 @@ function LabWorkspace() {
   }
 
   async function downloadDiagnostics() {
-    setDiagnosticsMenuOpen(false);
+    
     try {
       const response = await fetch('/api/projects/diagnostics/export', { credentials: 'same-origin' });
       if (!response.ok) throw new Error(`Diagnostic export failed (${response.status})`);
@@ -203,20 +144,37 @@ function LabWorkspace() {
   }
 
   const panel: React.CSSProperties = { background: '#111d2c', border: '1px solid #29445c', borderRadius: 18, padding: 20 };
-  const canUseDiagnostics = Boolean(authenticated && enabled);
   const requireSignIn = () => {
     setDiagnosticsText('Sign in to load diagnostics. Diagnostics endpoints require an authenticated session.');
     setDiagnosticsOpen(true);
   };
 
+  async function signOut() {
+    try {
+      await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch { /* ignore */ }
+    setAuthenticated(false);
+  }
+
   const header = (
-    <LabHeader
-      diagnosticsMenuOpen={diagnosticsMenuOpen}
-      setDiagnosticsMenuOpen={setDiagnosticsMenuOpen}
-      canUseDiagnostics={canUseDiagnostics}
-      onLoadDiagnostics={loadDiagnostics}
-      onDownloadDiagnostics={downloadDiagnostics}
-      onRequireSignIn={requireSignIn}
+    <ArchitectShellHeader
+      projectEnabled={Boolean(enabled)}
+      authenticated={Boolean(authenticated)}
+      onDiagnostics={(kind) => {
+        if (!(authenticated && enabled)) {
+          requireSignIn();
+          return;
+        }
+        void loadDiagnostics(kind);
+      }}
+      onDownloadDiagnostics={() => {
+        if (!(authenticated && enabled)) {
+          requireSignIn();
+          return;
+        }
+        void downloadDiagnostics();
+      }}
+      onSignOut={() => void signOut()}
     />
   );
 
