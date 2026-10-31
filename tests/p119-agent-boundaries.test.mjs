@@ -109,14 +109,14 @@ test('P119.0.2 appBuilder/ (Architect engine) does not import chat prompts or co
 // 2. Agent selection (client → route → server)
 // ---------------------------------------------------------------------------
 
-test('P119 route boundary: Architect opens Architectural Test Lab and /project remains the legacy ProjectMode route', () => {
-  assert.match(main, /pathname === '\/architect-lab'/);
-  assert.match(main, /pathname === '\/architect'/);
-  assert.match(main, /pathname === '\/project'/);
+test('P121.0.49 selected Architect uses ProjectMode; Architectural Test Lab remains diagnostic-only', () => {
+  assert.match(main, /const isArchitectLab = window\.location\.pathname === '\/architect-lab'/);
+  assert.match(main, /const isProject = \[.*'\/project'.*'\/project-legacy'.*'\/architect'/);
+  assert.doesNotMatch(main, /isArchitectLab \|\| isArchitectEntry/);
   assert.match(main, /lazy\(\(\) => import\('\.\/ProjectMode\.tsx'\)\)/);
   assert.match(main, /lazy\(\(\) => import\('\.\/ArchitectLab\.tsx'\)\)/);
-  assert.match(app, /window\.location\.href = '\/architect-lab'/);
-  assert.equal((app.match(/window\.location\.href = '/g) || []).length, 1, 'App.tsx may navigate only to the Architectural Test Lab entry route');
+  assert.match(app, /window\.location\.href = '\/project'/);
+  assert.equal((app.match(/window\.location\.href = '/g) || []).length, 1, 'App.tsx navigates only to the selected primary Architect route');
 });
 
 test('P119.0.2 chat shell never keeps Architect as an in-shell mode', () => {
