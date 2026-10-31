@@ -1,0 +1,83 @@
+# Full acceptance: CI-profile DAG + browser UI. Artifact includes ASSISTANT_PASTE.txt.
+name: acceptance
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: biforge
+          POSTGRES_PASSWORD: biforge_test_password
+          POSTGRES_DB: biforge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U biforge -d biforge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Prepare logs
+        run: mkdir -p artifacts/ci-checks
+      - name: Install
+        id: deps
+        shell: bash
+        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/accept-install.log
+      - name: Full DAG (ci profile)
+        id: dag
+        if: success()
+        timeout-minutes: 65
+        shell: bash
+        run: set -o pipefail; node scripts/run-dag.mjs --profile ci 2>&1 | tee artifacts/ci-checks/accept-dag.log
+        env:
+          DAG_ALLOW_UNSAFE: 'true'
+          DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
+      - name: Install Playwright Chromium
+        if: success()
+        run: npx playwright install --with-deps chromium
+      - name: Browser UI suite
+        id: ui
+        if: success()
+        shell: bash
+        run: set -o pipefail; npm run test:ui 2>&1 | tee artifacts/ci-checks/accept-ui.log
+      - name: Patch evidence + package
+        if: always()
+        shell: bash
+        run: |
+          node scripts/patch-quality-report.mjs || true
+          node scripts/ci-evidence-gate.mjs || true
+          node scripts/assistant-run-summary.mjs || true
+          node scripts/package-ci-artifacts.mjs || true
+          node scripts/ci-summary.mjs || true
+        env:
+          CI_STATUS: ${{ job.status }}
+          CI_LOGS_DIR: artifacts/ci-checks
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          DAG_OUTCOME: ${{ steps.dag.outcome }}
+      - name: Upload acceptance artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biforge-acceptance-report
+          path: |
+            artifacts/ci-checks/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,71 @@
+# Lab vs Legacy live compare on staging. Report + ASSISTANT_PASTE.txt for chat paste.
+name: architect-compare
+on:
+  workflow_dispatch:
+    inputs:
+      goal:
+        description: Optional goal (empty = expense fixture)
+        required: false
+        default: ''
+        type: string
+      cleanup:
+        description: Delete temporary projects after run
+        required: false
+        default: true
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: architect-compare
+  cancel-in-progress: false
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Prepare logs
+        run: mkdir -p artifacts/ci-checks
+      - name: Install
+        shell: bash
+        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/compare-install.log
+      - name: Dual compare Lab vs Legacy
+        id: dual
+        shell: bash
+        run: set -o pipefail; node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/compare-dual.log
+        env:
+          STAGING_SERVICE_URL: ${{ secrets.STAGING_SERVICE_URL }}
+          STAGING_APP_PASSWORD: ${{ secrets.STAGING_APP_PASSWORD }}
+          DUAL_GOAL: ${{ inputs.goal }}
+          DUAL_CLEANUP: ${{ inputs.cleanup }}
+          DUAL_OUT_DIR: architect-dual-compare
+          DUAL_BUILD_WAIT_MS: '600000'
+      - name: Assistant paste summary
+        if: always()
+        shell: bash
+        run: node scripts/assistant-run-summary.mjs
+        env:
+          CI_LOGS_DIR: artifacts/ci-checks
+          DUAL_OUT_DIR: architect-dual-compare
+          CI_STATUS: ${{ job.status }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+      - name: Upload compare + paste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biforge-architect-compare
+          path: |
+            artifacts/ci-checks/
+            architect-dual-compare/
+          if-no-files-found: warn
+          retention-days: 30

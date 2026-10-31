@@ -1,0 +1,67 @@
+# Ops / diagnostics. Optional staging probes. Always emits ASSISTANT_PASTE.txt.
+name: ops
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: diagnostics | dual-dry-run
+        required: false
+        default: diagnostics
+        type: choice
+        options:
+          - diagnostics
+          - dual-dry-run
+permissions:
+  contents: read
+jobs:
+  ops:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Prepare logs
+        run: mkdir -p artifacts/ci-checks
+      - name: Install
+        shell: bash
+        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/ops-install.log
+      - name: Package version / docs integrity (fast)
+        if: inputs.mode == 'diagnostics'
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/version-metadata.mjs 2>&1 | tee artifacts/ci-checks/ops-version.log || true
+          node scripts/docs-integrity.mjs 2>&1 | tee artifacts/ci-checks/ops-docs.log || true
+          npm run test:architect-dual-compare 2>&1 | tee artifacts/ci-checks/ops-dual-contract.log || true
+      - name: Dual-compare dry-run
+        if: inputs.mode == 'dual-dry-run'
+        shell: bash
+        run: set -o pipefail; DUAL_DRY_RUN=true DUAL_OUT_DIR=architect-dual-compare node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/ops-dual-dry.log
+      - name: Assistant paste summary
+        if: always()
+        shell: bash
+        run: node scripts/assistant-run-summary.mjs
+        env:
+          CI_LOGS_DIR: artifacts/ci-checks
+          DUAL_OUT_DIR: architect-dual-compare
+          CI_STATUS: ${{ job.status }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+      - name: Upload ops artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: biforge-ops-report
+          path: |
+            artifacts/ci-checks/
+            architect-dual-compare/
+          if-no-files-found: warn
+          retention-days: 14

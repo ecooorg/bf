@@ -87,6 +87,22 @@ jobs:
         shell: bash
         run: node scripts/ci-evidence-gate.mjs
 
+
+      - name: Assistant paste summary
+        if: always()
+        shell: bash
+        run: node scripts/assistant-run-summary.mjs
+        env:
+          CI_LOGS_DIR: artifacts/ci-checks
+          CI_STATUS: ${{ job.status }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
       - name: Package complete CI diagnostics
         if: always()
         run: node scripts/package-ci-artifacts.mjs
@@ -120,6 +136,8 @@ jobs:
           name: biforge-ci-report
           path: |
             artifacts/ci-checks/BIForge-PATCH-EVIDENCE.md
+            artifacts/ci-checks/ASSISTANT_PASTE.txt
+            artifacts/ci-checks/ASSISTANT_SUMMARY.json
             artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: error
           compression-level: 0
