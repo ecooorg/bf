@@ -1,3 +1,13 @@
+## P121.0.33 — Browser-first Lab generation, saved projects, and accessible controls
+
+- Architectural Test Lab now loads the authenticated saved-project list from the existing `GET /api/projects` endpoint and can reopen a project through `GET /api/projects/:projectId`, restoring its saved brief without silently starting another build.
+- Project briefs no longer assume every request is an expense tracker; the brief describes the user, workflow, and acceptance criteria generically.
+- Lab build requests include a browser-first delivery instruction: browser UI is primary, static HTML/CSS/JavaScript is preferred when suitable, controls must work, and a Python/CLI-only result is not an acceptable substitute. This is a generation instruction, not evidence of a successful real build.
+- Lab controls now use explicit high-contrast foreground/background pairs and visible keyboard focus; saved-project list is responsive.
+- Added contract and browser E2E coverage for saved-project loading/reopen, browser-first brief, and contrast styles. Existing browser E2E continues to exercise the completion surface and ZIP download after reopening a project.
+- No database schema, migration, or backend route changes. Generated Expense Tracker data-persistence behavior remains unverified and is not claimed fixed.
+- Local tests/build, hosted Actions, deployed UI, and real model-generated browser output: NOT_RUN for this patch.
+
 ## P121.0.32 — Update remaining cycle-governance Architect route assertion
 
 - Updated `tests/p121-cycle-governance.test.mjs`, the remaining core test that still expected the Architect menu to navigate to `/project`.
