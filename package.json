@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "121",
-  "patch": "121.0.42",
+  "patch": "121.0.44",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -41,6 +41,7 @@
     "test:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs tests/integrations.test.mjs tests/project-mode.test.mjs tests/gates.test.mjs",
     "test:database:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs",
     "test:bx06:api": "RUN_BX06_API=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/project-mode.test.mjs",
+    "test:ui-smoke": "node scripts/p120-e2e-preflight.mjs && node --import tsx tests/ui-check.mjs",
     "test:ui": "node scripts/p120-e2e-preflight.mjs && node --import tsx tests/ui-check.mjs && node --test tests/p120-conversational-e2e.test.mjs && node --test tests/p120-expert-e2e.test.mjs && node --import tsx --test tests/p120-architect-e2e.test.mjs && node --test tests/p120-agent-transitions-e2e.test.mjs && node --test tests/p122-architect-lab-e2e.test.mjs",
     "check": "node scripts/run-dag.mjs --profile check",
     "docs:generate": "node scripts/docsGenerateInventories.mjs && node scripts/architectureGenerateModuleMap.mjs && node scripts/statusGraph.mjs && node scripts/capabilityGenerateGraph.mjs",

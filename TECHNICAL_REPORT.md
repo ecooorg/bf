@@ -1,3 +1,16 @@
+# CURRENT EVIDENCE NOTE — P121.0.44 single ASSISTANT_PASTE outer artifact, 2026-10-31
+
+- Owner: ASSISTANT_PASTE, BIForge-PATCH-EVIDENCE, and PATCH_EVIDENCE duplicated; wants one chat summary at archive root and all logs nested. Implemented in package-ci-artifacts outer cleanup and PACK_OUTER_ARTIFACT for non-DAG workflows. Includes prior 0.43 inventory + UI smoke fixes (unapplied). Hosted CI: NOT_RUN.
+
+---
+
+# CURRENT EVIDENCE NOTE — P121.0.43 inventory + UI smoke, 2026-10-31
+
+- ASSISTANT_PASTE from run 41187334506 / sha cfcdb1d: `test:core` FAIL — workflow inventory deepEqual expected old P119 file list; actual included `acceptance.yml` / `architect-compare.yml`. Second failure in same file was the ui-check.yml push gate assertion (34 pass / 2 fail).
+- Fix: canonical four-workflow inventory + move short Playwright smoke onto `ci` after DAG. Hosted re-run: NOT_RUN.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.42 workflow consolidation + ASSISTANT_PASTE, 2026-10-31
 
 - Owner: reduce ~17 workflows to a few; every run must yield a paste-friendly summary for the assistant when attachments are blocked. Delivered four canonical workflows and a shared summary generator that scans logs for not-ok/FAIL/AssertionError tails.

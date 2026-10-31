@@ -1,3 +1,17 @@
+## P121.0.44 — Single outer ASSISTANT_PASTE + cumulative CI fixes
+
+- **Artifact layout:** GitHub artifact root is only `ASSISTANT_PASTE.txt` + `biforge-ci-logs.zip`. Full logs, `PATCH_EVIDENCE` / `BIForge-PATCH-EVIDENCE`, metrics, and `ASSISTANT-BRIEF.md` live **inside** the zip (no triplicate summaries at outer root).
+- **`package-ci-artifacts.mjs`:** builds the rich outer paste (status, failed stages, log tails, truncated evidence) then strips the dir to those two files.
+- **Manual workflows** (`architect-compare`, `ops`): `PACK_OUTER_ARTIFACT=true` on `assistant-run-summary.mjs` packs the same outer layout.
+- **Cumulative from 0.43:** four-workflow inventory test; `test:ui-smoke` + Playwright smoke on `ci` after DAG; canonical four workflows.
+
+## P121.0.43 — Workflow inventory fix + Playwright UI smoke on ci
+
+- **test:core:** `p119-agent-boundaries` still expected 16 legacy workflow YAMLs. Updated to the four canonical files: `acceptance.yml`, `architect-compare.yml`, `ci.yml`, `ops.yml`. Push/PR gate assertions now require UI smoke on `ci.yml`; manual workflows stay `workflow_dispatch` only.
+- **`npm run test:ui-smoke`:** preflight + `tests/ui-check.mjs` (viewport/shell smoke, not full p120 suite).
+- **`ci.yml`:** after successful DAG, Playwright Chromium (cached) + `test:ui-smoke`, log `artifacts/ci-checks/ui-smoke.log`.
+- Re-ships the three manual canonical workflows if missing. Delete leftover `architect-dual-compare.yml` if present (chat list).
+
 ## P121.0.42 — Four canonical workflows + ASSISTANT_PASTE summary
 
 - **`scripts/assistant-run-summary.mjs`**: after each run, writes `ASSISTANT_PASTE.txt` (chat-sized failure extract) and `ASSISTANT_SUMMARY.json` under the log dir. Navigator can paste the text file when ZIP attach is unavailable.
