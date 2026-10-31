@@ -12,7 +12,8 @@ import {
 } from './decision.ts';
 import {
   getStoredDecisions, saveDecisions, getActiveDecisionId, setActiveDecisionId,
-  getMigrationReport, getArchived,
+  getMigrationReport, getArchived, bumpRevision, getLastSaveMeta,
+  type SaveStatus,
 } from './storage.ts';
 import { exportDecisionJson, exportAllJson, downloadBlob, parseImportedJson, parseImportedBackup } from './exportZip.ts';
 import { DISTRESS_MARKERS, SUPPORT_CONTACTS, hasDistressMarker, findDistressInTexts } from './support.ts';
@@ -180,8 +181,11 @@ export default function App() {
     return () => window.removeEventListener('be:user-language', onUserLanguage);
   }, []);
 
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>(() => getLastSaveMeta()?.status || 'saved');
+
   useEffect(() => {
-    saveDecisions(decisions);
+    const result = saveDecisions(decisions);
+    setSaveStatus(result.status);
   }, [decisions]);
 
   // Stage 3: one-shot migration of attachment texts into IndexedDB program files
@@ -199,7 +203,7 @@ export default function App() {
         prev.map((d) => {
           if (d.id !== (active?.id || '')) return d;
           const next = typeof patch === 'function' ? patch(d) : { ...d, ...patch };
-          return { ...next, updatedAt: Date.now() };
+          return bumpRevision({ ...next, updatedAt: Date.now() });
         })
       );
     },

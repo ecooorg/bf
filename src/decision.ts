@@ -329,6 +329,8 @@ export interface Decision {
   createdAt: number;
   updatedAt: number;
   schemaVersion: number;
+  /** Monotonic revision for concurrency detection (P122.1). Optional for older records. */
+  revision?: number;
   step: Step;
   interactionState?: InteractionState;
   cycleCount: number;
@@ -491,6 +493,7 @@ export function emptyDecision(): Decision {
     createdAt: Date.now(),
     updatedAt: Date.now(),
     schemaVersion: SCHEMA_VERSION,
+    revision: 1,
     step: 'BRIEF',
     interactionState: 'NEED_CONTEXT',
     cycleCount: 1,

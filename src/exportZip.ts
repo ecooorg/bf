@@ -1,6 +1,7 @@
 /** JSON export/import — TZ A-06, I-11 (no zip/docx endpoints) */
 
-import { Decision } from './decision.ts';
+import type { Decision } from './decision.ts';
+import { validateDecision } from './storage.ts';
 
 export function exportDecisionJson(d: Decision): Blob {
   const payload = {
@@ -63,9 +64,21 @@ function isDecisionLike(value: unknown): value is Decision {
 function validateImportedDecisions(value: unknown): Decision[] {
   if (!Array.isArray(value)) throw new Error('Import contains no decisions');
   if (!value.length) throw new Error('Import contains no decisions');
-  const bad = value.findIndex((item) => !isDecisionLike(item));
-  if (bad !== -1) throw new Error(`Invalid decision at position ${bad + 1}`);
-  return value as Decision[];
+  const out: Decision[] = [];
+  for (let i = 0; i < value.length; i++) {
+    const item = value[i];
+    // Structural gate first (fast)
+    if (!isDecisionLike(item)) {
+      throw new Error(`Invalid decision at position ${i + 1}`);
+    }
+    // Full integrity validation (references, stage, etc.)
+    const v = validateDecision(item);
+    if (!v.ok || !v.decision) {
+      throw new Error(`Invalid decision at position ${i + 1}: ${(v.errors || []).join(', ') || 'integrity'}`);
+    }
+    out.push(v.decision);
+  }
+  return out;
 }
 
 export function parseImportedJson(text: string): Decision[] {
