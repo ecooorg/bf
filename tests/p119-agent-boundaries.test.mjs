@@ -195,30 +195,30 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; 
 // 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
-test('workflow inventory includes the accepted P119 workflows and no unexpected files', () => {
+test('workflow inventory is the four canonical workflows only', () => {
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
-    'ci.yml', 'evidence.yml', 'monitor-connections.yml', 'neon-initialize.yml', 'p117-3-live-retest.yml',
-    'p118-architect-live.yml', 'p119-agent-contracts.yml', 'p119-regression.yml',
-    'p119-release-gate.yml', 'p119-ui-smoke.yml', 'p120-acceptance.yml',
-    'p120-evidence.yml', 'quick-diagnostics.yml', 'staging-drills.yml',
-    'ui-check.yml', 'verify-groq.yml',
+    'acceptance.yml',
+    'architect-compare.yml',
+    'ci.yml',
+    'ops.yml',
   ]);
 });
 
-test('P119.0.2 push/PR gates: ci.yml (DAG profile ci) and ui-check.yml; live workflows are manual only', () => {
+test('P119.0.2 push/PR gate is ci.yml (DAG + UI smoke); other workflows are manual only', () => {
   const wf = (n) => readFileSync(new URL(`../.github/workflows/${n}`, import.meta.url), 'utf8');
   assert.match(wf('ci.yml'), /on: \[push, pull_request\]/);
   assert.match(wf('ci.yml'), /run-dag\.mjs --profile ci/);
-  assert.match(wf('ui-check.yml'), /on: \[push, pull_request\]/);
-  assert.match(wf('ui-check.yml'), /npm run test:ui/);
-  for (const n of ['p117-3-live-retest.yml', 'p118-architect-live.yml', 'staging-drills.yml', 'evidence.yml', 'verify-groq.yml']) {
-    assert.match(wf(n), /workflow_dispatch/);
+  assert.match(wf('ci.yml'), /test:ui-smoke|UI smoke/);
+  assert.match(wf('acceptance.yml'), /workflow_dispatch/);
+  assert.match(wf('architect-compare.yml'), /workflow_dispatch/);
+  assert.match(wf('ops.yml'), /workflow_dispatch/);
+  for (const n of ['acceptance.yml', 'architect-compare.yml', 'ops.yml']) {
     assert.doesNotMatch(wf(n), /on: \[push/);
   }
-  // The only Architect live workflow is p118-architect-live; it never drives chat routes.
-  assert.doesNotMatch(readRepoFile('scripts/p118-architect-live.mjs'), /\/api\/conversation/);
+  // Architect dual-compare script must not drive chat routes.
+  assert.doesNotMatch(readRepoFile('scripts/architect-dual-compare.mjs'), /\/api\/conversation/);
 });
 
 test('P119.0.2 CI DAG runs test:core and test:app-builder, so these contracts and Architect tests gate every push', () => {
