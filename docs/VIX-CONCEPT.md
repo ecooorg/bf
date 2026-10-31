@@ -2,9 +2,7 @@
 
 **Governed autonomous synthesis and formal verification of computational systems from business goals**
 
-- **Author:** Volodymyr Kotegov
 - **Source edition date:** 22 October 2026
-- **Original source:** <https://ecooorg.github.io/vix.html>
 - **Licence:** Creative Commons Attribution 4.0 International (CC BY 4.0)
 - **Document status in BiForge:** Long-term conceptual target; not a commitment to implement every component or to implement it on the P85–P91 schedule.
 
