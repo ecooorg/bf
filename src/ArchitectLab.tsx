@@ -18,6 +18,65 @@ async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
   return body.data;
 }
 
+type LabHeaderProps = {
+  diagnosticsMenuOpen: boolean;
+  setDiagnosticsMenuOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
+  canUseDiagnostics: boolean;
+  onLoadDiagnostics: (kind: 'session' | 'system' | 'operations') => void;
+  onDownloadDiagnostics: () => void;
+  onRequireSignIn: () => void;
+};
+
+function LabHeader({
+  diagnosticsMenuOpen,
+  setDiagnosticsMenuOpen,
+  canUseDiagnostics,
+  onLoadDiagnostics,
+  onDownloadDiagnostics,
+  onRequireSignIn,
+}: LabHeaderProps) {
+  return (
+    <header className="architect-lab-header" data-testid="architect-lab-header">
+      <div>
+        <span className="architect-lab-kicker">PRIMARY ARCHITECT WORKSPACE · P121.0.34</span>
+        <h1>Architectural Test Lab</h1>
+        <p>Build software, review its scope, and inspect diagnostics when something fails.</p>
+      </div>
+      <div className="architect-lab-toolbar">
+        <div className="architect-lab-menu-wrap">
+          <button
+            type="button"
+            className="architect-lab-back"
+            data-testid="architect-lab-diagnostics-menu"
+            aria-expanded={diagnosticsMenuOpen}
+            onClick={() => setDiagnosticsMenuOpen(v => !v)}
+          >
+            Diagnostics ▾
+          </button>
+          {diagnosticsMenuOpen && (
+            <div className="architect-lab-menu" role="menu" data-testid="architect-lab-diagnostics-panel">
+              {canUseDiagnostics ? (
+                <>
+                  <button type="button" role="menuitem" onClick={() => onLoadDiagnostics('session')}>Compact session log</button>
+                  <button type="button" role="menuitem" onClick={() => onLoadDiagnostics('system')}>System diagnostics</button>
+                  <button type="button" role="menuitem" onClick={() => onLoadDiagnostics('operations')}>Recent operations</button>
+                  <button type="button" role="menuitem" onClick={() => onDownloadDiagnostics()}>Download diagnostic ZIP</button>
+                </>
+              ) : (
+                <button type="button" role="menuitem" data-testid="architect-lab-diagnostics-signin-hint" onClick={() => { setDiagnosticsMenuOpen(false); onRequireSignIn(); }}>
+                  Sign in to load diagnostics
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        <a href="/" className="architect-lab-back" data-testid="architect-lab-nav-biforge">← BiForge</a>
+        <a href="/project" className="architect-lab-legacy" data-testid="architect-lab-nav-legacy">Legacy Architect</a>
+      </div>
+    </header>
+  );
+}
+
 function LabWorkspace() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [enabled, setEnabled] = useState(false);
@@ -85,8 +144,8 @@ function LabWorkspace() {
       setStage('Submitting build');
       const initial = await request<BuildJobResult>(`/api/projects/${encodeURIComponent(project.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: goal.trim() }) });
       setStage('Generating and validating');
-      const finished = initial.jobId ? await waitForProjectBuild(project.id, initial, job => setStage(`Build: ${job.stage || job.status || 'working'}`)) : initial;
-      setResult(finished); setStage(finished.outcome || finished.status || 'Finished');
+      const finished = await waitForProjectBuild(project.id, initial);
+      setResult(finished); setStage(finished.outcome === 'SUCCESS' || finished.status === 'done' ? 'Complete' : 'Finished with issues');
     } catch (e) { setError((e as Error).message || String(e)); setStage('Stopped with error'); }
     finally { setBusy(false); }
   }
@@ -126,27 +185,129 @@ function LabWorkspace() {
   }
 
   const panel: React.CSSProperties = { background: '#111d2c', border: '1px solid #29445c', borderRadius: 18, padding: 20 };
-  if (authenticated === null) return <main className="architect-lab"><p>Checking secure session…</p></main>;
-  if (!enabled) return <main className="architect-lab"><section style={panel}><h1>Architectural Test Lab</h1><p>Project Mode is not enabled for this deployment.</p><a href="/">Return to BiForge</a></section></main>;
-  if (!authenticated) return <main className="architect-lab"><form style={panel} onSubmit={login}><h1>Architectural Test Lab</h1><p>Sign in to continue.</p><input aria-label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" /><button disabled={busy}>Sign in</button>{error && <p role="alert">{error}</p>}</form></main>;
+  const canUseDiagnostics = Boolean(authenticated && enabled);
+  const requireSignIn = () => {
+    setDiagnosticsText('Sign in to load diagnostics. Diagnostics endpoints require an authenticated session.');
+    setDiagnosticsOpen(true);
+  };
 
-  return <main className="architect-lab">
-    <header className="architect-lab-header"><div><span className="architect-lab-kicker">PRIMARY ARCHITECT WORKSPACE · P121.0.30</span><h1>Architectural Test Lab</h1><p>Build software, review its scope, and inspect diagnostics when something fails.</p></div><div className="architect-lab-toolbar"><div className="architect-lab-menu-wrap"><button type="button" className="architect-lab-back" data-testid="architect-lab-diagnostics-menu" aria-expanded={diagnosticsMenuOpen} onClick={() => setDiagnosticsMenuOpen(v => !v)}>Diagnostics ▾</button>{diagnosticsMenuOpen && <div className="architect-lab-menu" role="menu"><button type="button" role="menuitem" onClick={() => void loadDiagnostics('session')}>Compact session log</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('system')}>System diagnostics</button><button type="button" role="menuitem" onClick={() => void loadDiagnostics('operations')}>Recent operations</button><button type="button" role="menuitem" onClick={() => void downloadDiagnostics()}>Download diagnostic ZIP</button></div>}</div><a href="/" className="architect-lab-back">← BiForge</a><a href="/project" className="architect-lab-legacy">Legacy Architect</a></div></header>
-    {diagnosticsOpen && <div className="architect-lab-diagnostics-overlay" role="dialog" aria-modal="true" aria-label="Architectural Lab diagnostics"><section className="architect-lab-diagnostics"><div className="architect-lab-diagnostics-head"><h2>Diagnostics</h2><button type="button" onClick={() => setDiagnosticsOpen(false)}>Close</button></div><p>Copy this report and paste it into the support chat. Secrets and passwords should not be included.</p><button type="button" onClick={() => void navigator.clipboard?.writeText(diagnosticsText)}>Copy report</button><textarea aria-label="Diagnostic report" readOnly value={diagnosticsBusy ? 'Loading diagnostics…' : diagnosticsText} /></section></div>}
-    <div className="architect-lab-grid">
-      <form style={panel} onSubmit={createPassport} data-testid="architect-lab-build-form">
-        <h2>Start an experiment</h2><label>Project name<input value={name} onChange={e => setName(e.target.value)} placeholder="My test project" /></label>
-        <label>What should be built?<textarea required minLength={8} rows={7} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Describe the application, its users, and the expected behavior…" /></label>
-        <button data-testid="architect-lab-build" className="architect-lab-primary" disabled={busy || Boolean(project) || goal.trim().length < 8}>{busy ? 'Working…' : 'Create project brief'}</button>
-        <p className="architect-lab-stage" aria-live="polite">{stage}</p>{error && <div className="architect-lab-error" role="alert"><strong>Could not complete this step</strong><p>{error}</p></div>}
-      </form>
-      {project && passport && <section style={panel} data-testid="architect-lab-passport"><h2>Project brief</h2><p>Review the proposed scope before authorizing generation.</p><dl><dt>Type</dt><dd>{passport.projectType}</dd><dt>Goal</dt><dd>{passport.goal}</dd><dt>Users</dt><dd>{passport.users}</dd><dt>Inputs / outputs</dt><dd>{passport.inputsOutputs}</dd><dt>Constraints</dt><dd>{passport.constraints}</dd><dt>Security</dt><dd>{passport.securityData}</dd><dt>Success criteria</dt><dd>{passport.successCriteria}</dd><dt>Status</dt><dd>{passport.status}</dd></dl><button data-testid="architect-lab-confirm-passport" className="architect-lab-primary" type="button" disabled={busy || passport.status === 'confirmed'} onClick={() => void confirmAndBuild()}>{busy ? 'Working…' : 'Confirm brief and build'}</button></section>}
-      <section style={panel} aria-live="polite" data-testid="architect-lab-completion"><h2>Build result</h2>{!result && <p className="architect-lab-muted">The result and validation summary will appear here. This panel remains mounted while a build runs.</p>}
-        {result && <><div className="architect-lab-status">{result.outcome || result.status || 'Result received'}</div><p>{result.note || result.report?.failureReason || 'Build process returned.'}</p><dl><dt>Project</dt><dd>{project?.name}</dd><dt>Job</dt><dd>{result.jobId || '—'}</dd><dt>Validation</dt><dd>{result.goalImplemented === true ? 'Implemented' : result.goalImplemented === false ? 'Not fully implemented' : 'Not confirmed'}</dd></dl>{result.downloadUrl && <button data-testid="architect-lab-download" className="architect-lab-primary" type="button" onClick={() => void download()}>Download project ZIP</button>}</>}
+  const header = (
+    <LabHeader
+      diagnosticsMenuOpen={diagnosticsMenuOpen}
+      setDiagnosticsMenuOpen={setDiagnosticsMenuOpen}
+      canUseDiagnostics={canUseDiagnostics}
+      onLoadDiagnostics={loadDiagnostics}
+      onDownloadDiagnostics={downloadDiagnostics}
+      onRequireSignIn={requireSignIn}
+    />
+  );
+
+  const diagnosticsOverlay = diagnosticsOpen && (
+    <div className="architect-lab-diagnostics-overlay" role="dialog" aria-modal="true" aria-label="Architectural Lab diagnostics">
+      <section className="architect-lab-diagnostics">
+        <div className="architect-lab-diagnostics-head">
+          <h2>Diagnostics</h2>
+          <button type="button" onClick={() => setDiagnosticsOpen(false)}>Close</button>
+        </div>
+        <p>Copy this report and paste it into the support chat. Secrets and passwords should not be included.</p>
+        <button type="button" onClick={() => void navigator.clipboard?.writeText(diagnosticsText)}>Copy report</button>
+        <textarea aria-label="Diagnostic report" readOnly value={diagnosticsBusy ? 'Loading diagnostics…' : diagnosticsText} />
       </section>
     </div>
-    <footer>Primary Architect workspace: <code>/architect-lab</code>. The former workspace remains available at <code>/project</code> for rollback and comparison. Both use shared authenticated project APIs, model orchestration, and artifact storage.</footer>
-  </main>;
+  );
+
+  if (authenticated === null) {
+    return (
+      <main className="architect-lab" data-testid="architect-lab-loading">
+        {header}
+        {diagnosticsOverlay}
+        <p className="architect-lab-muted" style={{ maxWidth: 1100, margin: '24px auto' }}>Checking secure session…</p>
+      </main>
+    );
+  }
+
+  if (!enabled) {
+    return (
+      <main className="architect-lab" data-testid="architect-lab-disabled">
+        {header}
+        {diagnosticsOverlay}
+        <section style={panel} data-testid="architect-lab-disabled-panel">
+          <h2>Project Mode is not enabled</h2>
+          <p>Project Mode is not enabled for this deployment. Diagnostics remain available after sign-in when Project Mode is on.</p>
+          <a href="/">Return to BiForge</a>
+        </section>
+      </main>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <main className="architect-lab" data-testid="architect-lab-signin">
+        {header}
+        {diagnosticsOverlay}
+        <form style={panel} onSubmit={login} data-testid="architect-lab-signin-form">
+          <h2>Sign in to continue</h2>
+          <p>Architectural Test Lab requires an authenticated session.</p>
+          <label>Password
+            <input aria-label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
+          </label>
+          <button disabled={busy} className="architect-lab-primary">{busy ? 'Working…' : 'Sign in'}</button>
+          {error && <p role="alert">{error}</p>}
+        </form>
+      </main>
+    );
+  }
+
+  return (
+    <main className="architect-lab" data-testid="architect-lab-main">
+      {header}
+      {diagnosticsOverlay}
+      <div className="architect-lab-grid">
+        <form style={panel} onSubmit={createPassport} data-testid="architect-lab-build-form">
+          <h2>Start an experiment</h2>
+          <label>Project name<input value={name} onChange={e => setName(e.target.value)} placeholder="My test project" /></label>
+          <label>What should be built?<textarea required minLength={8} rows={7} value={goal} onChange={e => setGoal(e.target.value)} placeholder="Describe the application, its users, and the expected behavior…" /></label>
+          <button data-testid="architect-lab-build" className="architect-lab-primary" disabled={busy || Boolean(project) || goal.trim().length < 8}>{busy ? 'Working…' : 'Create project brief'}</button>
+          <p className="architect-lab-stage" aria-live="polite">{stage}</p>
+          {error && <div className="architect-lab-error" role="alert"><strong>Could not complete this step</strong><p>{error}</p></div>}
+        </form>
+        {project && passport && (
+          <section style={panel} data-testid="architect-lab-passport">
+            <h2>Project brief</h2>
+            <p>Review the proposed scope before authorizing generation.</p>
+            <dl>
+              <dt>Type</dt><dd>{passport.projectType}</dd>
+              <dt>Goal</dt><dd>{passport.goal}</dd>
+              <dt>Users</dt><dd>{passport.users}</dd>
+              <dt>Inputs / outputs</dt><dd>{passport.inputsOutputs}</dd>
+              <dt>Constraints</dt><dd>{passport.constraints}</dd>
+              <dt>Security</dt><dd>{passport.securityData}</dd>
+              <dt>Success criteria</dt><dd>{passport.successCriteria}</dd>
+              <dt>Status</dt><dd>{passport.status}</dd>
+            </dl>
+            <button data-testid="architect-lab-confirm-passport" className="architect-lab-primary" type="button" disabled={busy || passport.status === 'confirmed'} onClick={() => void confirmAndBuild()}>{busy ? 'Working…' : 'Confirm brief and build'}</button>
+          </section>
+        )}
+        <section style={panel} aria-live="polite" data-testid="architect-lab-completion">
+          <h2>Build result</h2>
+          {!result && <p className="architect-lab-muted">The result and validation summary will appear here. This panel remains mounted while a build runs.</p>}
+          {result && (
+            <>
+              <div className="architect-lab-status">{result.outcome || result.status || 'Result received'}</div>
+              <p>{result.note || result.report?.failureReason || 'Build process returned.'}</p>
+              <dl>
+                <dt>Project</dt><dd>{project?.name}</dd>
+                <dt>Job</dt><dd>{result.jobId || '—'}</dd>
+                <dt>Validation</dt><dd>{result.goalImplemented === true ? 'Implemented' : result.goalImplemented === false ? 'Not fully implemented' : 'Not confirmed'}</dd>
+              </dl>
+              {result.downloadUrl && <button data-testid="architect-lab-download" className="architect-lab-primary" type="button" onClick={() => void download()}>Download project ZIP</button>}
+            </>
+          )}
+        </section>
+      </div>
+      <footer>Primary Architect workspace: <code>/architect-lab</code>. The former workspace remains available at <code>/project</code> for rollback and comparison. Both use shared authenticated project APIs, model orchestration, and artifact storage.</footer>
+    </main>
+  );
 }
 
 export default function ArchitectLab() {
