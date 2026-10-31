@@ -1,3 +1,11 @@
+# CURRENT EVIDENCE NOTE — P121.0.35 Lab create validation, 2026-10-31
+
+- Device screenshots (08:39): Lab at `/architect-lab` (P121.0.34) after Create project brief → stage "Stopped with error", alert "Invalid project data". Same session Legacy `/project` built Expense Tracker SUCCESS and offered source ZIP (08:42). Diagnostics overall PASS; lastFailedOperation still historical HTTP_409, not this create failure.
+- Server mapping (OBSERVED source): ZodError on create → HTTP 400 "Invalid project data". `createProjectRequestSchema.goal` is max 2000 chars. Lab client did not clip.
+- Fix in Lab client only. Product decision (Lab vs legacy as primary Architect entry) left open for owner; this patch only removes the create blocker.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.34 Lab shell always reachable, 2026-10-31
 
 - Source (OBSERVED): `ArchitectLab.tsx` early returns for session check, Project Mode disabled, and sign-in rendered bare `<main>` with no header and no diagnostics menu. Owner report of “no menu, no diagnostics access” is consistent with landing on one of those states (or a clipped toolbar); menu existence on the main authenticated screen was never in dispute.

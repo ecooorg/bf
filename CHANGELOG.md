@@ -1,3 +1,10 @@
+## P121.0.35 — Lab create: honor API goal length (fix "Invalid project data")
+
+- Live device (tablet): Architectural Test Lab showed **Stopped with error / Invalid project data** on Create project brief while Legacy Architect completed the same Expense Tracker goal and produced a downloadable ZIP (OBSERVED screenshots + app-source).
+- Root cause: shared `POST /api/projects` validates `goal` with `passportText` (max 2000). Lab sent the full textarea value without clipping; long briefs fail Zod → `projectError` maps to "Invalid project data".
+- Lab now clips name (200), goal and passport text fields (2000) before create/build; maps the opaque API error to an actionable message. Create payload shape unchanged otherwise.
+- No server schema change, no legacy `/project` change. Hosted CI / device re-try: NOT_RUN until applied.
+
 ## P121.0.34 — Lab shell: header and diagnostics reachable in every state
 
 - `ArchitectLab` rendered its toolbar (`Diagnostics ▾`, BiForge, Legacy Architect) only on the authenticated main screen. The three early returns (session check, Project Mode disabled, sign-in) had no header and no diagnostics access.
