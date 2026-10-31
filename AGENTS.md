@@ -9,7 +9,16 @@ If any other note, chat summary, or prior assistant message conflicts with this 
 
 ## 0. Hard gates (fail closed)
 
-A gate is **failed** if any MUST/MUST NOT below is violated.  
+### HIGHEST-LEVEL PRIORITY — NAVIGATOR DIRECTIVE
+
+If the Navigator provides a specific and clearly defined task, the Assistant MUST execute that task as the primary objective of the session.
+
+All standard session-start procedures, including full project analysis and autonomous task selection, apply ONLY when the Navigator has not provided a specific and clearly defined task.
+
+The Assistant MUST NOT override, replace, or independently reinterpret the Navigator's explicit task based on its own assessment of project priorities.
+
+### A gate is **failed** if any MUST/MUST NOT below is violated. 
+
 **MUST NOT** deliver a patch ZIP, claim a task complete, or give Navigator procedures until failed gates are fixed.
 
 ### Audience labels (required on procedure blocks)
