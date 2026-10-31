@@ -17,6 +17,15 @@ import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
 import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
 import { EXPERT_STEP_PREFIX } from './server/expertAgent.ts';
+import {
+  validateExpertRequest,
+  validateModelShape,
+  classifyExpertError,
+  idempotencyKeyFromRequest,
+  getIdempotentResponse,
+  storeIdempotentResponse,
+  type ExpertEndpoint,
+} from './server/expertContracts.ts';
 import { buildConversationTurnPrompt, planConversationTurn, pinConversationAgent } from './server/agentRouting.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
@@ -1506,12 +1515,38 @@ app.post('/api/conversation', conversationHandler);
 app.post('/api/agent/conversational', pinConversationAgent('conversational'), conversationHandler);
 app.post('/api/agent/expert', pinConversationAgent('expert'), conversationHandler);
 
+
+/** P122.3: validate Expert request; on failure write controlled error and return false. */
+function guardExpertRequest(endpoint: ExpertEndpoint, req: express.Request, res: express.Response): boolean {
+  const v = validateExpertRequest(endpoint, req.body);
+  if (!v.ok) {
+    fail(res, v.code === 'PRECONDITION' ? 400 : 400, v.error, v.code, v.details);
+    return false;
+  }
+  const key = idempotencyKeyFromRequest(req.headers as any, req.body);
+  if (key) {
+    const cached = getIdempotentResponse(key);
+    if (cached) {
+      res.status(cached.status).json(cached.body);
+      return false;
+    }
+    (req as any)._expertIdempotencyKey = key;
+  }
+  return true;
+}
+
+function rememberExpertResponse(req: express.Request, status: number, body: unknown) {
+  const key = (req as any)._expertIdempotencyKey as string | undefined;
+  if (key) storeIdempotentResponse(key, status, body);
+}
+
 // --- POST /api/neutralize ---
 app.post('/api/neutralize', async (req, res) => {
   try {
     const requestByokKey = byokFromRequest(req);
     const requestPreferredModel = preferredModelFromRequest(req);
     if (!aiGate(req, res)) return;
+    if (!guardExpertRequest('neutralize', req, res)) return;
     const { brief, thirdPerson } = req.body || {};
     if (!brief?.decision) return fail(res, 400, 'Fill the Decision field', 'PRECONDITION');
     const input = JSON.stringify(brief);
@@ -1537,6 +1572,7 @@ app.post('/api/radar', async (req, res) => {
     const requestByokKey = byokFromRequest(req);
     const requestPreferredModel = preferredModelFromRequest(req);
     if (!aiGate(req, res)) return;
+    if (!guardExpertRequest('radar', req, res)) return;
     const { brief, neutralization } = req.body || {};
     if (!brief?.decision) return fail(res, 400, 'No Brief', 'PRECONDITION');
     if (!neutralization?.length) return fail(res, 400, 'Neutralization not confirmed', 'PRECONDITION');
@@ -1700,6 +1736,7 @@ app.post('/api/understand', async (req, res) => {
     const requestByokKey = byokFromRequest(req);
     const requestPreferredModel = preferredModelFromRequest(req);
     if (!aiGate(req, res)) return;
+    if (!guardExpertRequest('understand', req, res)) return;
     const { brief, history = [] } = req.body || {};
     if (!brief?.decision) return fail(res, 400, 'No decision text', 'PRECONDITION');
 
@@ -1890,6 +1927,7 @@ app.post('/api/expand', async (req, res) => {
     const requestByokKey = byokFromRequest(req);
     const requestPreferredModel = preferredModelFromRequest(req);
     if (!aiGate(req, res)) return;
+    if (!guardExpertRequest('expand', req, res)) return;
     const { brief, radar, myOptions } = req.body || {};
     if (!brief?.decision) return fail(res, 400, 'No decision text', 'PRECONDITION');
     if (!radar) return fail(res, 400, 'Radar not confirmed', 'PRECONDITION');
@@ -2103,6 +2141,7 @@ app.post('/api/synthesis', async (req, res) => {
     const requestByokKey = byokFromRequest(req);
     const requestPreferredModel = preferredModelFromRequest(req);
     if (!aiGate(req, res)) return;
+    if (!guardExpertRequest('synthesis', req, res)) return;
     const { attachments: _files, ...body } = req.body || {};   // files go in their own block, not into the JSON input
     const input = JSON.stringify(body);
     const prompt = `Step synthesis. Full decision context:

@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P122.3 Execution Reliability & Workflow Continuity, 2026-10-31
+
+- **Changed:** Expert contracts, request/model validation, idempotency, workflow state machine, context reconstruction, client operation tracking and safer failure messaging. Deterministic tests 25/25; prior C122 suites 42/42.
+- **NOT_RUN:** live provider failure injection, browser interruption E2E, hosted CI, full endpoint-by-endpoint contract docs beyond code registry.
+- **Acceptance vs P122.3 criteria:** Documented contracts (code registry), input validation, model shape validation, recoverable failures with preserved state, safe retries via idempotency keys, partial progress via workflow states, context reconstruction — demonstrated in unit tests. Live long-session and provider chaos evidence remains open.
+
 # CURRENT EVIDENCE NOTE — P122.2 Analytical Reliability & Evidence Integrity, 2026-10-31
 
 - **Changed:** analytical integrity helpers and domain extensions for claims, evidence provenance, hypothesis lifecycle, contradictions, invalidation, EVPI audit trail. Deterministic tests 23/23 pass; P122.1 regression 19/19 pass.

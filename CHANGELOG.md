@@ -1,3 +1,12 @@
+## P122.3 — Execution Reliability & Workflow Continuity
+
+- `server/expertContracts.ts`: endpoint registry for all Expert APIs; request validation (required fields, size); model object/shape validation; error taxonomy (`VALIDATION`, `INVALID_MODEL_JSON`, `MODEL_TIMEOUT`, …); in-process idempotency cache (TTL, bounded).
+- `src/expertWorkflow.ts`: workflow state machine with invalid-transition rejection; context reconstruction from Decision (no invented history); operation tracker; progress snapshot without fake percentages; user-facing failure messages that state prior work is preserved; idempotency key helper.
+- Wired `guardExpertRequest` into neutralize, radar, understand, expand, synthesis in `server.ts`.
+- Client `api()` sends `x-idempotency-key`; `runApi` tracks operations and reports recoverable failures without destroying local decision state.
+- Tests: `tests/p122.3-execution-reliability.test.mjs` — 25/25 pass. Regression P122.1+P122.2: 42/42 pass.
+- Limits: full cancellation of in-flight Gemini calls, durable server-side Expert session store, and hosted CI — NOT_RUN / deferred.
+
 ## P122.2 — Analytical Reliability & Evidence Integrity
 
 - Domain model (`src/decision.ts`): `HypothesisStatus` lifecycle; richer `Evidence` provenance; `Contradiction` and `CalculationRecord`; optional `contradictions`, `calculations`, `invalidated` on Decision; hypothesis status fields.
