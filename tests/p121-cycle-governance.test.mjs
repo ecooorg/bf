@@ -10,9 +10,10 @@ function run(args) {
   return spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 30_000 });
 }
 
-test('C121 product version, patch identifier, and lockfile metadata agree', () => {
-  assert.equal(pkg.version, '121');
-  assert.match(pkg.patch, /^\d+\.\d+\.\d+$/);
+test('product version, patch identifier, and lockfile metadata agree', () => {
+  // Version-agnostic: same rule as scripts/check-version.mjs (patch = numbers separated by dots, first number = version).
+  assert.match(pkg.version, /^\d+$/);
+  assert.match(pkg.patch, /^\d+(?:\.\d+)*$/);
   assert.equal(lock.version, pkg.version);
   assert.equal(lock.packages?.['']?.version, pkg.version);
   assert.equal(pkg.patch.split('.')[0], pkg.version);
