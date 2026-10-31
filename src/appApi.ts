@@ -3,7 +3,7 @@ import { errorFromResponse } from './errors.ts';
 import { getStoredUiLanguage } from './ui.ts';
 import { STAGES, type Step } from './decision.ts';
 
-export async function api(path: string, body: unknown) {
+export async function api(path: string, body: unknown, opts?: { idempotencyKey?: string }) {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   try {
     const key = localStorage.getItem('bifurcation_gemini_key_v15') || '';
@@ -11,6 +11,9 @@ export async function api(path: string, body: unknown) {
     if (key) headers['x-byok-key'] = key;
     if (model) headers['x-model-preference'] = model;
   } catch {}
+  if (opts?.idempotencyKey) {
+    headers['x-idempotency-key'] = opts.idempotencyKey;
+  }
   const r = await fetch(path, { method: 'POST', headers, body: JSON.stringify(body) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.success) {
@@ -20,6 +23,7 @@ export async function api(path: string, body: unknown) {
     const err = errorFromResponse({ ...j, error: `${j.error || `API error ${r.status}`}${detail}` }, getStoredUiLanguage(), `API error ${r.status}`);
     (err as any).code = j.code;
     (err as any).status = r.status;
+    (err as any).retryable = j.retryable;
     throw err;
   }
   return j;
@@ -38,4 +42,3 @@ export async function loginWithPassword(password: string) {
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.success) throw new Error(j.error || 'Invalid password');
 }
-

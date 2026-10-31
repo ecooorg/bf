@@ -54,6 +54,7 @@ import { StateNotice, driveLabel as sharedDriveLabel, driveTitle, historyLabel, 
 import { briefSections, BRIEF_EMPTY_TEXT } from './briefView.ts';
 
 import { api, stageIndex, sessionStatus, loginWithPassword } from './appApi.ts';
+import { makeIdempotencyKey, formatExpertFailure, createOperationTracker } from './expertWorkflow.ts';
 import { ErrorBoundary } from './ErrorBoundary.tsx';
 import { Header } from './AppHeader.tsx';
 import {
@@ -306,15 +307,24 @@ export default function App() {
     if (activeId === id) setActiveId('');
   };
 
+  const opTrackerRef = useRef(createOperationTracker());
   const runApi = async (path: string, body: unknown, onOk: (data: any, meta: any) => void) => {
     setBusy(true);
     setError('');
     setMessage('');
+    const cur = decisions.find((x) => x.id === activeId) || decisions[0];
+    const endpoint = String(path || '').replace(/^\/api\//, '');
+    const idem = cur?.id ? makeIdempotencyKey(cur.id, endpoint) : undefined;
+    const op = opTrackerRef.current.start({
+      id: idem || `op_${Date.now()}`,
+      endpoint,
+      decisionId: cur?.id || '',
+      idempotencyKey: idem,
+    });
     try {
       // B1: every expert request carries the decision's files (both sources, images as their saved description only).
       let sendBody = body;
       if (body && typeof body === 'object') {
-        const cur = decisions.find((x) => x.id === activeId) || decisions[0];
         const existing = Array.isArray((body as any).attachments) ? (body as any).attachments : [];
         const decisionFiles = !isChatRoute(path) && !existing.length && cur
           ? collectDecisionAttachments(cur, undefined, true)
@@ -322,12 +332,21 @@ export default function App() {
         const combined = [...existing, ...workspaceAttachments, ...decisionFiles];
         if (combined.length) sendBody = fitRequest({ ...(body as any), attachments: combined });
       }
-      const j = await api(path, sendBody);
+      const j = await api(path, sendBody, idem ? { idempotencyKey: idem } : undefined);
+      opTrackerRef.current.finish(op.id, 'succeeded');
       onOk(j.data, j.meta);
     } catch (e: any) {
       // Provider/API failures are operational states, not application crashes.
-      // Keep the user informed without showing the red error banner.
-      setMessage(e.message || 'The AI service is temporarily unavailable. Your text is safe.');
+      // Keep the user informed without showing the red error banner. Prior work remains in state.
+      opTrackerRef.current.finish(op.id, 'failed', { category: e?.code, message: e?.message });
+      setMessage(
+        formatExpertFailure({
+          operation: endpoint || 'request',
+          category: e?.code,
+          message: e?.message || 'The AI service is temporarily unavailable.',
+          previousWorkPreserved: true,
+        })
+      );
     } finally {
       setBusy(false);
     }
