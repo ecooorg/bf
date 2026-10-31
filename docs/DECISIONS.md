@@ -1,5 +1,17 @@
 # Active Decisions
 
+## D-2026-10-31-01 — Promote the best verified architect
+
+**Decision (owner-directed):**
+1. The primary Architect entry must route to the tested architect (or other tested implementation) with the strongest result in the latest comparable verification.
+2. Compare generated artifacts and reliability evidence, not model names or completion claims alone. Prefer a valid, usable artifact; weigh syntax/runtime validity, reference/DOM wiring, acceptance checks, completeness, and recovery behavior.
+3. If no candidate passes all critical checks, select the least risky candidate only as a provisional primary, disclose unresolved failures, and keep the comparison evidence. Do not label it fully successful.
+4. Both candidate build flows must show live progress while working, including model-call count, generated/ready-file count, current stage, and elapsed time where available.
+5. Re-evaluate the primary selection whenever a newer comparable check is available; preserve prior records.
+
+**Current selection (2026-10-31 supplied evidence):** Architectural Test Lab is the provisional primary. Its report has passing HTML structure, JavaScript syntax, references, size, secrets, and acceptance validators, with seven DOM-wiring failures. The legacy generated project has two JS validator findings (ES-module syntax interpreted outside module context) and three DOM-wiring failures. Neither build is a clean SUCCESS; mobile/live usability remains unverified.
+
+
 ## D-2026-10-30-08 — Prioritize Architectural Test Lab; legacy Architect becomes diagnostic reference
 
 **Decision (owner-approved):**
