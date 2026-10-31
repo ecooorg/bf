@@ -11,6 +11,12 @@ const freePort = () => new Promise((resolve, reject) => {
   server.listen(0, '127.0.0.1', () => { const port = server.address().port; server.close(error => error ? reject(error) : resolve(port)); });
 });
 const envelope = data => ({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data }) });
+/** Lab reads session as a flat object (not { success, data }). */
+const sessionBody = (authenticated, projectModeEnabled) => ({
+  status: 200,
+  contentType: 'application/json',
+  body: JSON.stringify({ authenticated, projectModeEnabled }),
+});
 
 async function startLabServer() {
   const port = await freePort(); const base = `http://127.0.0.1:${port}`;
@@ -45,7 +51,7 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     page.on('console', message => { if (message.type() === 'error') browserErrors.push(`console error: ${message.text()}`); });
 
     let passportConfirmed = false;
-    await page.route('**/api/session', route => route.fulfill(envelope({ authenticated: true, projectModeEnabled: true })));
+    await page.route('**/api/session', route => route.fulfill(sessionBody(true, true)));
     await page.route('**/api/projects', async route => {
       if (route.request().method() === 'POST') {
         return route.fulfill(envelope({ id: 'p122-lab-project', name: 'Architectural Lab experiment', state: {}, state_version: 1 }));
@@ -109,8 +115,8 @@ test('P122 lab shell exposes header and diagnostics menu on sign-in and disabled
     browser = await chromium.launch();
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 
-    // Signed-out state: session reports not authenticated, project mode on.
-    await page.route('**/api/session', route => route.fulfill(envelope({ authenticated: false, projectModeEnabled: true })));
+    // Signed-out state: flat session body, project mode on.
+    await page.route('**/api/session', route => route.fulfill(sessionBody(false, true)));
     await page.goto(`${base}/architect-lab`);
     await page.getByTestId('architect-lab-header').waitFor();
     await page.getByTestId('architect-lab-diagnostics-menu').waitFor();
@@ -124,7 +130,7 @@ test('P122 lab shell exposes header and diagnostics menu on sign-in and disabled
     await page.getByRole('button', { name: 'Close' }).click();
 
     // Disabled Project Mode state.
-    await page.route('**/api/session', route => route.fulfill(envelope({ authenticated: true, projectModeEnabled: false })));
+    await page.route('**/api/session', route => route.fulfill(sessionBody(true, false)));
     await page.goto(`${base}/architect-lab`);
     await page.getByTestId('architect-lab-header').waitFor();
     await page.getByTestId('architect-lab-diagnostics-menu').waitFor();
