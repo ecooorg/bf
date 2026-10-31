@@ -1,3 +1,17 @@
+# CURRENT EVIDENCE NOTE — P121.0.40 web test + dual-compare cumulative, 2026-10-31
+
+- CI run 41184514766 / commit 06863dac: `test:web` FAIL — P116 expected `/не удалось подтвердить веб-поиском/` while runtime returned English disclosure from prior English-UI change. Tests and disclosure helpers aligned to English-only product chrome.
+- Cumulative ZIP also ships architect dual-compare workflow for navigator automation. Live dual-compare staging run: NOT_RUN.
+
+---
+
+# CURRENT EVIDENCE NOTE — P121.0.39 Architect dual-compare, 2026-10-31
+
+- Owner requested an automated workflow to compare both Architect modes so the navigator only takes key decisions. Implemented dual API-path compare (not browser UI) against staging, reusing P118 classify/zip helpers.
+- Local: dry-run produces report.md/json; contract test covers presence + dry-run. Live staging compare: NOT_RUN until workflow_dispatch with secrets.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.38 English UI + p119 contract, 2026-10-31
 
 - CI evidence (run 41183878999, commit 89744ae): `test:core` FAIL — `assert.match(lab, /href="\/project"/)` after Lab chrome moved the anchor into `ArchitectShellHeader.tsx`. Assertion updated to shell + Lab footer path mention.

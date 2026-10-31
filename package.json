@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "121",
-  "patch": "121.0.38",
+  "patch": "121.0.40",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -70,7 +70,9 @@
     "test:p121-governance": "node --test tests/p121-cycle-governance.test.mjs",
     "version:check": "node scripts/version-metadata.mjs",
     "version:sync": "node scripts/version-metadata.mjs --write",
-    "test:architect-lab": "node --test tests/p122-architect-lab-contract.test.mjs"
+    "test:architect-lab": "node --test tests/p122-architect-lab-contract.test.mjs",
+    "architect:dual-compare": "node scripts/architect-dual-compare.mjs",
+    "test:architect-dual-compare": "node --test tests/architect-dual-compare-contract.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

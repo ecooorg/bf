@@ -1,3 +1,17 @@
+## P121.0.40 — test:web English disclosure + dual-compare (cumulative)
+
+- **CI (test:web):** After English-only product disclosures, `web-and-epistemics` still expected Russian freshness/footer strings. Updated assertions to English (`Live figures could not be confirmed…`, `Web search is disabled…`, `Sources (web search)`). `appendFreshnessDisclosure` / `formatSourcesFooter` are English-only (no language-switched chrome).
+- **Includes Architect dual-compare automation** (from 0.39): script, workflow, fixture, contract test, npm scripts — so one apply covers red CI and the compare workflow.
+
+## P121.0.39 — Architect dual-compare workflow (Lab vs Legacy automation)
+
+- Adds `scripts/architect-dual-compare.mjs`: same goal through **Lab-shaped** API path (create with proposed passport) and **Legacy-shaped** path (create name+goal, then confirm passport), then poll build, download ZIP, classify via shared P118 helpers, write `report.md` + `report.json` with a **recommendation** (LAB / LEGACY / TIE / …).
+- Fixture goal: `scripts/fixtures/architect-dual-expense-goal.txt`.
+- GitHub Action `architect-dual-compare` (`workflow_dispatch`): navigator runs one workflow; secrets `STAGING_SERVICE_URL` + `STAGING_APP_PASSWORD`; artifact `architect-dual-compare-report`.
+- Dry-run mode (`DUAL_DRY_RUN=true`) for contract checks without staging.
+- npm: `architect:dual-compare`, `test:architect-dual-compare`.
+- Aligns with product goal: navigator makes the mode-choice decision from the report; routine dual builds are automated.
+
 ## P121.0.38 — English UI + Lab contract CI fix (cumulative)
 
 - **CI (commit 89744ae / test:core):** `p119-agent-ui-contract` expected `href="/project"` inside `ArchitectLab.tsx`. After P121.0.36 the link lives in `ArchitectShellHeader.tsx` (More → Legacy Architect). Contract now asserts the shell link and that Lab still documents `/project`.
