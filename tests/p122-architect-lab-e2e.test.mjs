@@ -75,12 +75,12 @@ test('P122 lab browser flow reaches its own completion surface and downloads res
     await page.route('**/test-lab.zip', route => route.fulfill({ status: 200, contentType: 'application/zip', headers: { 'content-disposition': 'attachment; filename="architectural-lab.zip"' }, body: Buffer.from('fixture-zip') }));
 
     await page.goto(`${base}/architect-lab`);
-    await page.getByTestId('architect-lab-header').waitFor();
-    await page.getByTestId('architect-lab-diagnostics-menu').waitFor();
+    await page.getByTestId('architect-shell-header').waitFor();
+    await page.getByTestId('mode-menu-button').waitFor();
     await page.getByTestId('architect-lab-build-form').waitFor();
-    await page.getByTestId('architect-lab-diagnostics-menu').click();
+    await page.getByTestId('architect-shell-more').click();
     const diagnosticResponse = page.waitForResponse(response => response.url().includes('/api/projects/diagnostics/session-log') && response.status() === 200, { timeout: 10_000 });
-    await page.getByRole('menuitem', { name: 'Compact session log' }).click();
+    await page.getByRole('menuitem', { name: 'Copy compact session log' }).click();
     await diagnosticResponse;
     const diagnosticReport = page.getByLabel('Diagnostic report');
     await diagnosticReport.waitFor();
@@ -118,13 +118,11 @@ test('P122 lab shell exposes header and diagnostics menu on sign-in and disabled
     // Signed-out state: flat session body, project mode on.
     await page.route('**/api/session', route => route.fulfill(sessionBody(false, true)));
     await page.goto(`${base}/architect-lab`);
-    await page.getByTestId('architect-lab-header').waitFor();
-    await page.getByTestId('architect-lab-diagnostics-menu').waitFor();
+    await page.getByTestId('architect-shell-header').waitFor();
+    await page.getByTestId('mode-menu-button').waitFor();
     await page.getByTestId('architect-lab-signin-form').waitFor();
-    await page.getByTestId('architect-lab-diagnostics-menu').click();
-    await page.getByTestId('architect-lab-diagnostics-signin-hint').waitFor();
-    assert.match(await page.getByTestId('architect-lab-diagnostics-signin-hint').innerText(), /sign in/i);
-    await page.getByTestId('architect-lab-diagnostics-signin-hint').click();
+    await page.getByTestId('architect-shell-more').click();
+    await page.getByRole('menuitem', { name: 'Copy compact session log' }).click();
     await page.getByLabel('Diagnostic report').waitFor();
     assert.match(await page.getByLabel('Diagnostic report').inputValue(), /sign in to load diagnostics/i);
     await page.getByRole('button', { name: 'Close' }).click();
@@ -132,10 +130,10 @@ test('P122 lab shell exposes header and diagnostics menu on sign-in and disabled
     // Disabled Project Mode state.
     await page.route('**/api/session', route => route.fulfill(sessionBody(true, false)));
     await page.goto(`${base}/architect-lab`);
-    await page.getByTestId('architect-lab-header').waitFor();
-    await page.getByTestId('architect-lab-diagnostics-menu').waitFor();
+    await page.getByTestId('architect-shell-header').waitFor();
+    await page.getByTestId('mode-menu-button').waitFor();
     await page.getByTestId('architect-lab-disabled-panel').waitFor();
-    await page.getByTestId('architect-lab-diagnostics-menu').click();
-    await page.getByTestId('architect-lab-diagnostics-signin-hint').waitFor();
+    await page.getByTestId('architect-shell-more').click();
+    await page.getByRole('menuitem', { name: 'Run system diagnostics' }).waitFor();
   } finally { await browser?.close(); server.kill('SIGTERM'); }
 });

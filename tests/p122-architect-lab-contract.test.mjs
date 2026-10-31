@@ -4,7 +4,9 @@ import { readFileSync } from 'node:fs';
 
 const main = readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
 const lab = readFileSync(new URL('../src/ArchitectLab.tsx', import.meta.url), 'utf8');
+const shell = readFileSync(new URL('../src/ArchitectShellHeader.tsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
+const engine = readFileSync(new URL('../appBuilder/core-engine.ts', import.meta.url), 'utf8');
 
 test('Architectural Test Lab is a separately lazy-loaded route', () => {
   assert.match(main, /pathname === '\/architect-lab'/);
@@ -21,15 +23,18 @@ test('lab owns its form, progress, completion surface and download action', () =
   assert.match(lab, /credentials: 'same-origin'/);
 });
 
-test('lab presentation is responsive and separate from legacy ProjectMode styles', () => {
+test('lab uses the shared Architect shell header (ModeMenu + Drive + More)', () => {
+  assert.match(lab, /ArchitectShellHeader/);
+  assert.match(shell, /ModeMenu/);
+  assert.match(shell, /mode-menu-button|data-testid="architect-shell-header"/);
+  assert.match(shell, /architect-shell-drive/);
+  assert.match(shell, /architect-shell-more/);
+  assert.match(shell, /User guide/);
   assert.match(css, /\.architect-lab-grid/);
   assert.match(css, /@media\(max-width:720px\)/);
-  assert.match(lab, /Legacy Architect/);
-  assert.match(lab, /architect-lab-diagnostics-menu/);
   assert.match(lab, /api\/projects\/diagnostics\/session-log/);
   assert.match(lab, /api\/projects\/diagnostics\/export/);
 });
-
 
 test('lab persists a confirmed passport before requesting a build', () => {
   assert.match(lab, /status: 'proposed'/);
@@ -41,5 +46,11 @@ test('lab persists a confirmed passport before requesting a build', () => {
 test('the standard Architect entry opens Lab while the legacy workspace remains available', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   assert.match(app, /window\.location\.href = '\/architect-lab'/);
-  assert.match(lab, /href="\/project"/);
+  assert.match(shell, /href="\/project"/);
+});
+
+test('engine repairs js-syntax failures with deterministic fix and bounded model call', () => {
+  assert.match(engine, /js_syntax_repair/);
+  assert.match(engine, /applyDeterministicJsFixes/);
+  assert.match(engine, /toString\(36\)\.substr/);
 });
