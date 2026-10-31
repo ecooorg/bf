@@ -29,7 +29,7 @@ const outDir = path.resolve(process.env.DUAL_OUT_DIR || path.join(root, 'archite
 const stamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
 const startedAt = new Date().toISOString();
 
-const FIXTURE = path.join(__dirname, 'fixtures', 'architect-dual-expense-goal.txt');
+const FIXTURE = path.join(__dirname, 'architect-dual-expense-goal.txt');
 
 async function loadGoal() {
   const fromEnv = String(process.env.DUAL_GOAL || '').trim();
