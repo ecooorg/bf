@@ -7,10 +7,10 @@ import { installEmergencyDiagnostics } from './emergencyDiagnostics.ts';
 
 installEmergencyDiagnostics();
 
-const isArchitectLab = window.location.pathname === '/architect-lab' || window.location.pathname.startsWith('/architect-lab/') || window.location.pathname === '/architect' || window.location.pathname.startsWith('/architect/');
-const isProject =
-  window.location.pathname === '/project-legacy' || window.location.pathname.startsWith('/project-legacy/');
-const isArchitectEntry = window.location.pathname === '/project' || window.location.pathname.startsWith('/project/');
+const isArchitectLab = window.location.pathname === '/architect-lab' || window.location.pathname.startsWith('/architect-lab/');
+const isProject = ['/project', '/project-legacy', '/architect'].some((path) =>
+  window.location.pathname === path || window.location.pathname.startsWith(`${path}/`),
+);
 
 /** Project Mode is a separate chunk — Simple Mode (/) must not wait for it to parse. */
 const ProjectMode = lazy(() => import('./ProjectMode.tsx'));
@@ -37,10 +37,10 @@ function ArchitectLabRoot() {
   return <Suspense fallback={<div className="architect-lab">Loading Architectural Test Lab…</div>}><ArchitectLab /></Suspense>;
 }
 
-const Root = isArchitectLab || isArchitectEntry ? ArchitectLabRoot : isProject ? ProjectRoot : App;
+const Root = isArchitectLab ? ArchitectLabRoot : isProject ? ProjectRoot : App;
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ErrorBoundary label={isArchitectLab || isArchitectEntry ? 'Architectural Test Lab' : isProject ? 'Legacy Project Mode' : 'BiForge'}><Root /></ErrorBoundary>
+    <ErrorBoundary label={isArchitectLab ? 'Architectural Test Lab (frozen)' : isProject ? 'Architect' : 'BiForge'}><Root /></ErrorBoundary>
   </React.StrictMode>
 );

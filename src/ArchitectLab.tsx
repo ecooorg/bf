@@ -288,7 +288,7 @@ function LabWorkspace() {
           )}
         </section>
       </div>
-      <footer>Primary Architect workspace: <code>/architect-lab</code>. The former workspace remains available at <code>/project</code> for rollback and comparison. Both use shared authenticated project APIs, model orchestration, and artifact storage.</footer>
+      <footer>Frozen diagnostic workspace: <code>/architect-lab</code>. The selected primary Architect is <code>/project</code>. This Lab remains available for reproducibility only; both paths use shared authenticated project APIs, model orchestration, and artifact storage.</footer>
     </main>
   );
 }
