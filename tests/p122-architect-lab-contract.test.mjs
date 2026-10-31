@@ -43,3 +43,18 @@ test('the standard Architect entry opens Lab while the legacy workspace remains 
   assert.match(app, /window\.location\.href = '\/architect-lab'/);
   assert.match(lab, /href="\/project"/);
 });
+
+
+test('Lab exposes saved project loading and browser-first generation requirements', () => {
+  assert.match(lab, /architect-lab-saved-projects/);
+  assert.match(lab, /\/api\/projects\?limit=100/);
+  assert.match(lab, /openSavedProject/);
+  assert.match(lab, /DELIVERY TARGET: Build a browser-first web application/);
+  assert.match(lab, /no build step or external runtime dependency/);
+});
+
+test('Lab button labels have explicit high-contrast, focus-visible states', () => {
+  assert.match(css, /\.architect-lab button\{color:#08202a;background:#68d6c2/);
+  assert.match(css, /\.architect-lab button:focus-visible/);
+  assert.match(css, /\.architect-lab \.architect-lab-secondary\{background:#18364b;color:#f3f8ff/);
+});
