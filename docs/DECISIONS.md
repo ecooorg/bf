@@ -32,3 +32,36 @@
 
 **Note:** During C122 this decision remains in force for the identity of the selected Architect, but further development of that Architect is frozen (see D-2026-10-31-03).
 
+## D-2026-10-30-07 — Navigator protocol: Patch ZIP purity, tablet-only channel, automate first
+
+**Decision (owner-directed):**
+1. Patch ZIP purity: a delivery ZIP contains only repository files that are new or content-changed in that delivery, each at its exact repository-relative path. No PATCH_SUMMARY, README, apply guides, manifests, scripts, reports, logs, or other helpers. Apply notes, deletion lists, and verification limits go in chat only.
+2. Navigator channel: every `FOR_NAVIGATOR` procedure assumes an Android tablet with the GitHub web UI, Actions, workflow logs, and an optional mobile browser. It never requires a local terminal, `npm`, or `node`.
+3. Automate when possible: checks that can run in CI are added to `tests/` and/or `.github/workflows/` so the Navigator relies on Actions rather than manual technical steps.
+
+**Effect:** Binding rules live in `AGENTS.md` (G1–G3) and `docs/TESTING_AND_ACCEPTANCE.md` (Navigator verification channel). Regression: `tests/p121-navigator-protocol.test.mjs` in `test:core`.
+
+## D-2026-10-30-03 — Product acceptance is user outcome; evidence is labeled
+
+**Decision (owner-directed):**
+1. User outcomes are the primary product criterion. Tests, CI, deployment, and architecture checks are supporting evidence and are reported separately from user outcomes (`BIO-006`).
+2. Evidence is labeled as OBSERVED, INFERRED, or NOT_RUN and tied to a commit. Absent evidence is unknown and is never reported as passing (`docs/USER_VALUE_EVALUATION.md`).
+
+## D-2026-10-30-02 — Architect is one agent, one flow, one completion contract
+
+**Decision (owner-directed):**
+1. Architect is one user-facing agent with one state machine, one user flow, and one completion contract (`BIO-004`, `REQ-AGENT-002`).
+2. There is no novice/professional mode choice. Beginner-friendly wording and advanced controls are adaptive presentation inside the same flow, not a mode switch.
+3. All paths converge on the same task/specification, plan validation, artifact generation, validation, status, and delivery contract.
+
+**Effect:** Implemented in the client by P121.0.7 (guided start is the single entry; the path chooser is unused). The C122 Architect freeze does not relax this decision.
+
+## D-2026-10-30-01 — Canonical documentation topology and session governance
+
+**Decision (owner-directed):**
+1. Normative authority is consolidated into `AGENTS.md`, `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md`, and `TECHNICAL_REPORT.md`, with specialist documents under `docs/`. `docs/VIX-CONCEPT.md` is strategy-only context.
+2. There is no persistent `NEXT_PATCH.md` or other next-patch assignment file. CI evidence may suggest a fix but never assigns the next session's task.
+3. Superseded prose documents are deleted once their current rules are consolidated. History in `CHANGELOG.md` and `TECHNICAL_REPORT.md` is preserved, not rewritten.
+4. `scripts/docs-integrity.mjs` enforces this topology and the markers above.
+
+**Provenance note:** The original texts of D-2026-10-30-01 through -03 were dropped from this file during the C122 rewrite (P122.x), which broke `docs:integrity`. They were restored in P122.4 from the content recorded in `AGENTS.md`, `CHANGELOG.md`, `TECHNICAL_REPORT.md`, and `scripts/docs-integrity.mjs`. If the original wording is needed verbatim, take it from the repository history of this file.
