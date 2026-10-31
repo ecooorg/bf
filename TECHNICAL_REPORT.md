@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P121.0.41 flat fixture path, 2026-10-31
+
+- Owner rejected new nested `scripts/fixtures/` as forbidden project layout complexity. Corrective delivery flattens the dual-compare goal file under `scripts/` and documents deletion of the nested path for Navigator.
+
+---
+
 # CURRENT EVIDENCE NOTE — P121.0.40 web test + dual-compare cumulative, 2026-10-31
 
 - CI run 41184514766 / commit 06863dac: `test:web` FAIL — P116 expected `/не удалось подтвердить веб-поиском/` while runtime returned English disclosure from prior English-UI change. Tests and disclosure helpers aligned to English-only product chrome.

@@ -1,3 +1,9 @@
+## P121.0.41 — Dual-compare fixture flat path (no scripts/fixtures/)
+
+- Moves the dual-compare goal text to `scripts/architect-dual-expense-goal.txt` (same level as other scripts).
+- Updates `architect-dual-compare.mjs` and contract test paths.
+- **Delete on apply:** `scripts/fixtures/architect-dual-expense-goal.txt` and empty `scripts/fixtures/` if present (listed in chat only, not in ZIP).
+
 ## P121.0.40 — test:web English disclosure + dual-compare (cumulative)
 
 - **CI (test:web):** After English-only product disclosures, `web-and-epistemics` still expected Russian freshness/footer strings. Updated assertions to English (`Live figures could not be confirmed…`, `Web search is disabled…`, `Sources (web search)`). `appendFreshnessDisclosure` / `formatSourcesFooter` are English-only (no language-switched chrome).
