@@ -1,0 +1,212 @@
+name: expert-verify
+# Automated verification of Expert mode. Run from Actions -> expert-verify -> Run workflow, or automatically on PRs touching Expert code.
+# Covers what ci.yml does NOT: P122.1-P122.4 suites, Expert browser e2e, coverage gate, flake detection, optional live-model evaluation.
+# Everything here is machine-checkable; user-value judgement of real answers stays manual (see the summary job).
+on:
+  workflow_dispatch:
+    inputs:
+      repeat:
+        description: 'Flake detection: how many times to repeat the deterministic suites'
+        default: '3'
+      real_model:
+        description: 'Also run live-model evaluation (needs the GEMINI_API_KEY repository secret)'
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - 'server.ts'
+      - 'server/**'
+      - 'src/**'
+      - 'tests/p122*'
+      - 'tests/p120-expert*'
+      - '.github/workflows/expert-verify.yml'
+permissions:
+  contents: read
+concurrency:
+  group: expert-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MODEL_MIN_INTERVAL_MS: '0'
+  CI: 'true'
+
+jobs:
+  static:
+    name: static (types, docs, copy, architecture, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: node scripts/check-version.mjs && node scripts/version-metadata.mjs
+      - run: node scripts/docs-integrity.mjs
+      - run: node scripts/lint-copy.mjs
+      - run: npm run architecture:check
+      - run: npm run build
+
+  unit:
+    name: unit (${{ matrix.suite }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { suite: P122.1 state integrity & persistence,       file: tests/p122.1-state-integrity.test.mjs }
+          - { suite: P122.2 analytical & evidence integrity,     file: tests/p122.2-analytical-integrity.test.mjs }
+          - { suite: P122.3 execution reliability & contracts,   file: tests/p122.3-execution-reliability.test.mjs }
+          - { suite: P122.4 decision quality,                    file: tests/p122.4-decision-quality.test.mjs }
+          - { suite: agent isolation (Expert vs other agents),   file: 'tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs' }
+          - { suite: pipeline / epistemic state,                 file: tests/pipeline.test.mjs }
+          - { suite: web & epistemics,                           file: tests/web-and-epistemics.test.mjs }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci
+      - name: Run suite (TAP log kept)
+        shell: bash
+        run: |
+          set -o pipefail; mkdir -p artifacts/expert
+          node --import tsx --test --test-timeout=120000 ${{ matrix.file }} 2>&1 | tee artifacts/expert/unit.tap
+      - name: Fail on skipped/todo tests (a skipped check proves nothing)
+        shell: bash
+        run: |
+          s=$(grep -E '^# (skipped|todo) ' artifacts/expert/unit.tap | awk '{n+=$3} END{print n+0}')
+          echo "skipped+todo=$s"; [ "$s" = "0" ] || { echo "::error::$s skipped/todo tests"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-tap-${{ strategy.job-index }}
+          path: artifacts/expert/
+          retention-days: 14
+
+  coverage:
+    name: coverage gate (Expert modules)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci
+      - name: Measure coverage and enforce thresholds
+        shell: bash
+        run: |
+          set -o pipefail; mkdir -p artifacts/expert
+          node --import tsx --test --experimental-test-coverage \
+            --test-coverage-include='server/expert*.ts' --test-coverage-include='src/expert*.ts' \
+            --test-coverage-include='src/decision*.ts' --test-coverage-include='src/finalDecisionDocument.ts' \
+            --test-coverage-include='src/analyticalIntegrity.ts' --test-coverage-include='src/storage.ts' \
+            tests/p122.*.test.mjs 2>&1 | tee artifacts/expert/coverage.txt
+          line=$(grep 'all files' artifacts/expert/coverage.txt | awk -F'|' '{gsub(/ /,"",$2); print $2}')
+          func=$(grep 'all files' artifacts/expert/coverage.txt | awk -F'|' '{gsub(/ /,"",$4); print $4}')
+          { echo "### Expert coverage"; echo "lines: ${line}%  functions: ${func}%  (gate: lines >= 85, functions >= 80)"; } | tee -a "$GITHUB_STEP_SUMMARY"
+          awk -v l="$line" -v f="$func" 'BEGIN{exit !(l>=85 && f>=80)}' || { echo "::error::coverage below gate"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: expert-coverage, path: artifacts/expert/, retention-days: 14 }
+
+  flake:
+    name: flake detection (repeat deterministic suites)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci
+      - name: Repeat suites
+        shell: bash
+        run: |
+          n="${{ github.event.inputs.repeat || '3' }}"; fails=0
+          for i in $(seq 1 "$n"); do
+            echo "::group::run $i/$n"
+            node --import tsx --test tests/p122.*.test.mjs > "/tmp/run$i.log" 2>&1 || { fails=$((fails+1)); tail -40 "/tmp/run$i.log"; }
+            echo "::endgroup::"
+          done
+          echo "### Flake detection: $fails failing run(s) of $n" >> "$GITHUB_STEP_SUMMARY"
+          [ "$fails" = "0" ]
+
+  e2e:
+    name: browser e2e (Expert + agent transitions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: node scripts/p120-e2e-preflight.mjs
+      - name: UI smoke
+        run: node --import tsx tests/ui-check.mjs
+      - name: Expert end-to-end
+        run: node --test --test-timeout=300000 tests/p120-expert-e2e.test.mjs
+      - name: Agent transitions (Expert <-> Conversational/Architect keep state)
+        run: node --test --test-timeout=300000 tests/p120-agent-transitions-e2e.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-artifacts
+          path: |
+            artifacts/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  real-model:
+    name: live-model evaluation (optional)
+    if: ${{ github.event.inputs.real_model == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc, cache: npm }
+      - run: npm ci
+      - name: Check secret exists (value is never printed)
+        env: { GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}' }
+        run: test -n "$GEMINI_API_KEY" || { echo "::error::GEMINI_API_KEY secret is not set"; exit 1; }
+      - name: Run live evaluation harness
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          REAL_MODEL_EVAL: '1'
+        run: node --import tsx --test tests/p122.4-real-model-eval.mjs 2>&1 | tee real-model.tap
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: real-model-eval, path: real-model.tap, retention-days: 14 }
+
+  summary:
+    name: summary
+    needs: [static, unit, coverage, flake, e2e, real-model]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verdict
+        shell: bash
+        run: |
+          {
+            echo "## Expert verification"
+            echo "| job | result |"; echo "|---|---|"
+            echo "| static | ${{ needs.static.result }} |"
+            echo "| unit | ${{ needs.unit.result }} |"
+            echo "| coverage | ${{ needs.coverage.result }} |"
+            echo "| flake | ${{ needs.flake.result }} |"
+            echo "| e2e | ${{ needs.e2e.result }} |"
+            echo "| real-model | ${{ needs.real-model.result }} (skipped unless requested) |"
+            echo
+            echo "**Automated PASS does not prove user value.** Still manual: quality of real answers, wording, usability on the tablet, long-session feel."
+          } >> "$GITHUB_STEP_SUMMARY"
+          for r in "${{ needs.static.result }}" "${{ needs.unit.result }}" "${{ needs.coverage.result }}" "${{ needs.flake.result }}" "${{ needs.e2e.result }}"; do
+            [ "$r" = "success" ] || { echo "::error::a required job is $r"; exit 1; }
+          done
+          r="${{ needs.real-model.result }}"; [ "$r" = "success" ] || [ "$r" = "skipped" ]
