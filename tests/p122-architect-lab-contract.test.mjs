@@ -11,7 +11,9 @@ const engine = readFileSync(new URL('../appBuilder/core-engine.ts', import.meta.
 test('Architectural Test Lab is a separately lazy-loaded route', () => {
   assert.match(main, /pathname === '\/architect-lab'/);
   assert.match(main, /lazy\(\(\) => import\('\.\/ArchitectLab\.tsx'\)\)/);
-  assert.match(main, /isArchitectLab \? ArchitectLabRoot/);
+  assert.match(main, /isArchitectLab \|\| isArchitectEntry \? ArchitectLabRoot/);
+  assert.match(main, /pathname === '\/project-legacy'/);
+  assert.match(main, /pathname === '\/project'/);
   assert.doesNotMatch(main, /isArchitectLab[^;]*ProjectMode/);
   assert.match(main, /pathname === '\/architect'/);
 });
@@ -19,6 +21,9 @@ test('Architectural Test Lab is a separately lazy-loaded route', () => {
 test('lab owns its form, progress, completion surface and download action', () => {
   for (const marker of ['architect-lab-build-form', 'architect-lab-build', 'architect-lab-passport', 'architect-lab-confirm-passport', 'architect-lab-completion', 'architect-lab-download']) assert.ok(lab.includes(marker), `missing ${marker}`);
   assert.match(lab, /waitForProjectBuild/);
+  assert.match(lab, /architect-lab-build-progress/);
+  assert.match(lab, /callsUsed/);
+  assert.match(lab, /Elapsed/);
   assert.match(lab, /ErrorBoundary label="Architectural Test Lab"/);
   assert.match(lab, /credentials: 'same-origin'/);
 });
@@ -53,4 +58,13 @@ test('engine repairs js-syntax failures with deterministic fix and bounded model
   assert.match(engine, /js_syntax_repair/);
   assert.match(engine, /applyDeterministicJsFixes/);
   assert.match(engine, /toString\(36\)\.substr/);
+});
+
+test('legacy build entry keeps visible model-call and file progress', () => {
+  const projectMode = readFileSync(new URL('../src/ProjectMode.tsx', import.meta.url), 'utf8');
+  const wizard = readFileSync(new URL('../src/ProjectNoviceWizard.tsx', import.meta.url), 'utf8');
+  assert.match(projectMode, /busyLabel=\{buildProgress/);
+  assert.match(projectMode, /callsUsed/);
+  assert.match(projectMode, /units\?\.filter/);
+  assert.match(wizard, /busyLabel \|\| 'Working…'/);
 });
