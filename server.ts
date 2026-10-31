@@ -1519,7 +1519,8 @@ app.post('/api/agent/expert', pinConversationAgent('expert'), conversationHandle
 /** P122.3: validate Expert request; on failure write controlled error and return false. */
 function guardExpertRequest(endpoint: ExpertEndpoint, req: express.Request, res: express.Response): boolean {
   const v = validateExpertRequest(endpoint, req.body);
-  if (!v.ok) {
+  // `=== false` (not `!v.ok`): tsconfig has no strictNullChecks, so only an explicit comparison narrows the union.
+  if (v.ok === false) {
     fail(res, v.code === 'PRECONDITION' ? 400 : 400, v.error, v.code, v.details);
     return false;
   }

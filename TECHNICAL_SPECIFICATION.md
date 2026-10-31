@@ -130,6 +130,10 @@ The product continues to define exactly three user-facing agents:
 
 BiForge retains the legacy Architect workflow as the selected primary Architect implementation. Architectural Test Lab (`/architect-lab`) remains available only as a frozen diagnostic experiment.
 
+## Architect product invariant (unchanged by C122)
+
+Architect has one mode and one completion contract. It is one user-facing agent and one end-to-end workflow: one state machine, one user flow, and one definition of done. Beginner-friendly wording and advanced controls are adaptive presentation inside that same flow; they are never a mode switch or a choice between novice and professional paths. Every path converges on the same task/specification, plan validation, artifact generation, validation, status, and delivery contract (`BIO-004`, `REQ-AGENT-002`, `docs/DECISIONS.md` D-2026-10-30-02). The C122 Architect freeze does not relax this invariant.
+
 ## Acceptance hierarchy
 
 - **User outcome:** the intended user task is completed with a useful result. This is the primary product criterion.
