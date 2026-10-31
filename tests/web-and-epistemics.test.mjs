@@ -183,13 +183,13 @@ test('P50 shouldSearchWeb: flag, crisis, distress, documents, attachments, expli
   assert.equal(mod.shouldSearchWeb({ ...base, userText: 'ok', userAskedSearch: true }), false);
 });
 
-test('P116 freshness disclosure is honest, concise, language-aware and absent when grounded', () => {
+test('P116 freshness disclosure is honest, concise, English-only and absent when grounded', () => {
   assert.equal(mod.appendFreshnessDisclosure('Answer.', 'What is the current price?', true, 'used'), 'Answer.');
-  const ru = mod.appendFreshnessDisclosure('Ответ.', 'Какой сегодня курс евро?', true, 'failed', true);
-  assert.match(ru, /не удалось подтвердить веб-поиском/);
-  assert.match(ru, /общий ориентир/);
+  const failed = mod.appendFreshnessDisclosure('Ответ.', 'Какой сегодня курс евро?', true, 'failed', true);
+  assert.match(failed, /Live figures could not be confirmed via web search/);
+  assert.match(failed, /general orientation/);
   const disabled = mod.appendFreshnessDisclosure('Ответ.', 'Какой сегодня курс евро?', true, 'skipped', false);
-  assert.match(disabled, /Веб-поиск отключён/);
+  assert.match(disabled, /Web search is disabled/);
   assert.equal(mod.appendFreshnessDisclosure('Я не могу проверить актуальные данные.', 'What is the current price?', true, 'failed'), 'Я не могу проверить актуальные данные.');
   assert.equal(mod.appendFreshnessDisclosure('General answer.', 'Should I change jobs now?', false, 'skipped'), 'General answer.');
 });
@@ -273,10 +273,10 @@ test('P50 prompt block: untrusted data wrapper, dated header, figures allowed on
   assert.match(block, /по данным веб-поиска|according to web search/);
 });
 
-test('P50 sources footer follows the language of the question and is empty without sources', () => {
+test('P50 sources footer is English-only and empty without sources', () => {
   assert.equal(mod.formatSourcesFooter([], 'привет'), '');
-  const ru = mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Какие новости?');
-  assert.match(ru, /Источники \(веб-поиск\):\n1\. A — https:\/\/a\.example/);
+  const ruUser = mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Какие новости?');
+  assert.match(ruUser, /Sources \(web search\):\n1\. A — https:\/\/a\.example/);
   const en = mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Any news?');
   assert.match(en, /Sources \(web search\):/);
 });
