@@ -1,3 +1,9 @@
+## P121.0.49 — Fix primary Architect route and align stale boundary contract
+
+- Fixed the route regression: `/project`, `/project-legacy`, and `/architect` render the selected `ProjectMode` Architect; only `/architect-lab` renders the frozen diagnostic Lab.
+- Updated the P119 route-boundary test to assert the current single-Architect decision rather than the superseded Lab-primary behavior.
+- CI `test:core` and DAG rerun attempted locally; execution is blocked by absent installed dependency `tsx`. No unrelated product logic changed.
+
 ## P121.0.48 — Select one primary Architect and detect semantic DOM aliasing
 
 - Selected legacy Architect / `ProjectMode` as the sole active development target after newer comparable reports: legacy artifact `SUCCESS` with all declared validators passing; Lab artifact `PARTIAL` with JS syntax and missing-reference failures.
