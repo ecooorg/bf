@@ -71,6 +71,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail; mkdir -p artifacts/expert
+          # Tests may spawn the local tsx executable; direct `node` invocations do not
+          # inherit npm's node_modules/.bin PATH setup.
+          export PATH="$PWD/node_modules/.bin:$PATH"
           node --import tsx --test --test-timeout=120000 ${{ matrix.file }} 2>&1 | tee artifacts/expert/unit.tap
       - name: Fail on skipped/todo tests (a skipped check proves nothing)
         shell: bash
