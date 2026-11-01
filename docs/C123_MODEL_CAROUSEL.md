@@ -152,7 +152,7 @@ MVP may use **static priority** in the catalog file.
 | **P2** | Key pool | 1..N slots for Gemini (N≤10), rotation on 429/quota | **DONE P123.2** — `server/keyPool.ts` + carousel rotation |
 | **P3** | Multi-source catalog | YAML/JSON catalog + second API source adapter (Navigator picks which) | Failover integration test |
 | **P4** | Health + cooldown + breaker | Per source and per key_slot | Simulated 429/503 |
-| **P5** | Ops | Probe workflow, dashboard-friendly logs, Render/GitHub secret naming convention | Ops doc + optional workflow |
+| **P5** | Ops | Probe workflow, dashboard-friendly logs, Render/GitHub secret naming convention | **DONE P123.5** — `carousel:probe` + `docs/C123_OPS.md` |
 | **P6** | Optional browser channel | Only if Navigator enables | Explicit opt-in |
 
 Phases may be merged or split; order P1→P2→P3 is normative.
