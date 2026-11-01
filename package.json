@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "123",
-  "patch": "123.9",
+  "patch": "123.10",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -37,7 +37,7 @@
     "test:pipeline": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=300000 tests/pipeline.test.mjs",
     "test:web": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/web-and-epistemics.test.mjs && npm run test:p117-3",
     "test:turn": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-turn.test.mjs",
-    "test": "npm run test:core && npm run test:models && npm run test:security && npm run test:files && npm run test:workspace && npm run test:database && npm run test:integrations && npm run test:project && npm run test:gates && npm run test:pipeline && npm run test:web && npm run test:turn",
+    "test": "npm run test:core && npm run test:models && npm run test:security && npm run test:files && npm run test:workspace && npm run test:database && npm run test:integrations && npm run test:project && npm run test:gates && npm run test:pipeline && npm run test:web && npm run test:turn && npm run test:information-quality",
     "test:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs tests/integrations.test.mjs tests/project-mode.test.mjs tests/gates.test.mjs",
     "test:database:live": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs",
     "test:bx06:api": "RUN_BX06_API=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/project-mode.test.mjs",
@@ -49,7 +49,7 @@
     "docs:check": "node scripts/docs-integrity.mjs && node scripts/docsCheckInventories.mjs && node scripts/statusGraph.mjs --check && node scripts/capabilityGenerateGraph.mjs --check",
     "acceptance:report": "node scripts/acceptanceReport.mjs",
     "test:project-diagnostics": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/content-disposition-p93.test.mjs",
-    "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs tests/app-builder-dom-wiring-p118-5-6.test.mjs tests/app-builder-repair-integrity-p121.test.mjs",
+    "test:app-builder": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs tests/app-builder-dom-wiring-p118-5-6.test.mjs tests/app-builder-repair-integrity-p121.test.mjs tests/app-builder-information-quality.test.mjs tests/information-quality-eval.test.mjs",
     "test:ai": "node scripts/ai-test-harness-p93-7.mjs",
     "patch:quality-report": "node scripts/patch-quality-report.mjs",
     "test:compact-ci-artifacts": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs",
@@ -77,7 +77,8 @@
     "test:assistant-run-summary": "node --test tests/assistant-run-summary-contract.test.mjs",
     "carousel:probe": "node scripts/carousel-ops-probe.mjs",
     "test:carousel": "node scripts/carousel-verify.mjs",
-    "carousel:live": "node scripts/carousel-live-smoke.mjs"
+    "carousel:live": "node scripts/carousel-live-smoke.mjs",
+    "test:information-quality": "node --test tests/information-quality-eval.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

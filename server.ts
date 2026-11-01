@@ -45,7 +45,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -1102,8 +1102,10 @@ function compactConversationHistory(history: any[]): any[] {
 // Providers: serper (Serper.dev HTTP SERP — free trial key, no Gemini quota) or gemini (Google Search tool).
 // Never throws: any problem returns a non-"used" result and the conversation continues exactly as before.
 // It does not touch the model-health table of the main cascade (a search-tool failure must not park a model).
-async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string): Promise<WebSearchResult> {
+async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string, recentUserText = ''): Promise<WebSearchResult> {
+  // Preserve referents in elliptical follow-ups before chat history is omitted from SERP.
   try {
+    const searchText = contextualizeSearchText(userText, recentUserText);
     const provider = webSearchProvider();
     const today = new Date().toISOString().slice(0, 10);
     const timeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 28000;
@@ -1112,20 +1114,20 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
       const serperKey = (process.env.SERPER_API_KEY || '').trim();
       if (!serperKey) return skippedWebSearch('skipped', 'no_serper_key');
       // External search is always English + international SERP (hl=en, gl=us). User language only affects the reply.
-      let englishQuery = userText;
+      let englishQuery = searchText;
       try {
         const gemKey = byokKey || apiKey;
         if (gemKey) {
           const client = new GoogleGenAI({ apiKey: gemKey, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
           englishQuery = await toEnglishSearchQuery({
-            userText,
+            userText: searchText,
             client: client as any,
             model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
             timeoutMs: Math.min(8000, timeoutMs),
           });
         }
       } catch { /* keep original; locale still en/us */ }
-      const r = await fetchSerperDigestMulti({ apiKey: serperKey, userText, englishQuery, today, timeoutMs });
+      const r = await fetchSerperDigestMulti({ apiKey: serperKey, userText: searchText, englishQuery, today, timeoutMs });
       const dig = String(r.digest || '');
       console.info(JSON.stringify({
         type: 'web_search', status: r.status, provider: 'serper', model: r.model,
@@ -1152,10 +1154,10 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
     if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
     const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
-    let geminiSearchText = userText;
+    let geminiSearchText = searchText;
     try {
       geminiSearchText = await toEnglishSearchQuery({
-        userText,
+        userText: searchText,
         client: client as any,
         model: pool[0],
         timeoutMs: Math.min(8000, timeoutMs),
@@ -1256,7 +1258,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           intent: context.intent,
           hasAttachments: attachItems.length > 0,
         })) {
-          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel);
+          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel, recentUserText);
           if (webSearch.status === 'used') {
             const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
             promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;

@@ -702,3 +702,11 @@ Documentation-only delivery.
 - This is an isolated UI/workflow experiment, **not yet an independent backend generation engine**. Provider orchestration, validation, and artifact persistence remain shared with the existing backend.
 - Added route/mount/completion contract tests. Existing three-agent entry points remain unchanged; the lab is available only by direct route.
 - Local source-contract tests and ZIP validation are reported in the delivery note; typecheck/build and live Android tests remain separate evidence.
+
+## 123.10 — information integrity and architecture contracts
+
+- Contextualize elliptical follow-up web searches with the recent user-turn context so entity/place referents are retained.\n- Stop number-audit false positives on ISO dates and mathematically validated Fahrenheit/Celsius conversions; invalid conversion pairs remain flagged.\n- Add a runnable cross-mode information-quality evaluator with source provenance checks, Architect runtime gates, hard-failure flags and human-score aggregation.
+- Parse generated JavaScript as ES modules and statically verify local module paths plus named/default import-export contracts.
+- Resolve Expert prompt contradictions: factual questions stay proportionate; explicit recommendation requests receive conditional, criteria-based recommendations.\n- Strengthen Architect planner/coder/reviewer instructions around interface contracts, runtime evidence, and fail-closed data handling.
+- Treat WARN/PARTIAL latest build outcomes as non-pass diagnostic health; expose latest artifact outcome separately from infrastructure health.
+- Add a cross-mode information-quality workflow, scoring rubric, hard release gates, and regression tests.
