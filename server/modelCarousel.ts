@@ -186,8 +186,15 @@ export async function executeModelCall(
 
   for (const slot of available) {
     const gemini = build(slot.key);
+    // Quota/cooldown on key A must not block key B: per-slot state keeps disabledProviders
+    // but clears model cooldowns for this attempt.
+    const slotState = {
+      cooldownUntil: new Map<string, number>(),
+      disabledProviders: new Set(ctx.state.disabledProviders),
+    };
     const result = await routeCall(req, {
       ...ctx,
+      state: slotState,
       adapters: { ...ctx.adapters, gemini },
     });
     last = result;
