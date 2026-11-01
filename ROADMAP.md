@@ -69,10 +69,18 @@
 - [ ] Validate browser rendering of formatted replies and documents.
 - [ ] Compare raw provider output with user-visible output in live Simple and Expert sessions.
 
+## P124.4 — Architect and App Builder prompt cleanup
+- [x] Remove the default single-file architecture bias; let the plan fit the requested goal while retaining file/interface validation.
+- [x] Remove recovery prompt clipping and the instruction to omit optional features; retries retain the complete task and context.
+- [x] Clarify that internal interfaces may be completed consistently while unspecified external APIs/data must not be invented.
+- [x] Allow Architect project analysis to use general domain knowledge without misrepresenting it as project-specific fact.
+- [x] Version the changed prompts and add regression coverage.
+- [ ] Run hosted CI and a live Architect/App Builder comparison against representative user goals.
+
 ## C124 — Instruction Optimization (ACTIVE)
 
 **Product version:** 124  
-**Status:** ACTIVE — P124.1 inventory completed; P124.2 Simple/Expert dialogue cleanup and P124.3 response-path fidelity cleanup implemented; hosted CI and model-backed evaluation NOT_RUN  
+**Status:** ACTIVE — P124.1 inventory, P124.2 Simple/Expert dialogue cleanup, P124.3 response-path fidelity cleanup, and P124.4 Architect/App Builder prompt refinement implemented; hosted CI and model-backed evaluation NOT_RUN  
 **Primary target:** Instruction sources and response-processing paths across Conversational, Expert, Architect, and shared infrastructure  
 **Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
 
@@ -95,9 +103,11 @@
 | P124.0.2 | Cumulative baseline, CI regression closure, generic weather-search cleanup | Targeted suites pass; city allowlist/example removed; full instruction inventory remains NOT_RUN |
 | P124.1 | Static instruction and transformation source inventory | `docs/C124_INSTRUCTION_INVENTORY.md`; source/line references checked by `tests/c124-instruction-inventory.test.mjs`; live behavior remains NOT_RUN |
 | P124.2 | Minimal, evidence-based Simple/Expert dialogue cleanup | Mandatory reasoning recipes and novelty retry removed; prompt/output-preservation regressions pass locally; hosted CI/live model comparison pending |
-| P124.3 | Remaining instruction and output-transformation review | Staged Expert/Architect/App Builder prompt dependencies reviewed; output fidelity and live model comparisons where available |
+| P124.3 | Expert staged prompts and response-path fidelity | Arbitrary quotas removed; model-authored output preserved; browser/live comparisons remain open |
+| P124.4 | Architect and App Builder prompt refinement | Task-fit planning, complete-context recovery, preserved requested features, and project-fact provenance protected by deterministic tests |
+| P124.5 | Cross-agent live quality evaluation | Compare raw provider results with final Simple, Expert and Architect outputs; investigate any unexplained omissions or additions |
 
-P124.0.2 closes the known P123.23 CI regressions and removes the evidenced weather-location special case. P124.1 inventories prompt owners and output transformations. P124.2 removes the highest-risk duplicated reasoning choreography and novelty-only rewrite from the Simple/Expert dialogue path while preserving schemas, safety, state integrity and technical recovery. Remaining staged Expert, Architect, App Builder and output-transformation items are still open. Hosted CI and model-backed quality evidence are NOT_RUN.
+P124.0.2 closes the known P123.23 CI regressions and removes the evidenced weather-location special case. P124.1 inventories prompt owners and output transformations. P124.2 removes the highest-risk duplicated reasoning choreography and novelty-only rewrite from the Simple/Expert dialogue path while preserving schemas, safety, state integrity and technical recovery. P124.3 covers the remaining Expert staged prompts and response-path fidelity. P124.4 refines Architect project analysis and App Builder planner/coder/reviewer communication without changing routes, UI flow, schemas, validators, or the completion contract. Hosted CI and model-backed quality evidence remain NOT_RUN.
 
 ### Explicit non-goals
 

@@ -1,3 +1,35 @@
+## CURRENT EVIDENCE NOTE — P124.4 Architect and App Builder prompt refinement (2026-11-01)
+
+**Patch identity:** product version `124`, patch `124.0.6`. **Scope:** Architect project-analysis framing and App Builder planner/coder/reviewer prompts, recovery preservation, and prompt-cache versioning. No routing, UI, API schema, validator, or completion-contract changes.
+
+### Implemented changes
+
+- Planner no longer prefers a single-file `index.html` by default. It selects the simplest architecture that fits the requested functionality and retains multi-file interface/import-export consistency requirements.
+- Reviewer now separates defects from optional improvements and must not demand unrequested features or treat style preferences as blockers. Static inspection is explicitly distinguished from runtime execution.
+- Coder guidance permits completing missing internal interfaces consistently while prohibiting invented external APIs, credentials, measurements, or source results. Requested features must not be omitted merely to shorten a file.
+- Provider-retry recovery now retains the complete original prompt/context instead of clipping it to 6,500 characters, and no longer tells the model to omit optional features.
+- Spec framing explicitly asks the planner to capture every user-requested capability and avoid unrelated additions.
+- Architect project analysis may use general domain knowledge to explain implications and identify gaps, while project-specific facts still require provenance and decisions remain human-owned.
+- App Builder prompt versions/cache namespace were advanced to `static_site.v4`; planner/spec/reviewer versions were advanced to v3.
+- Added static regression tests for prompt contracts, cache versioning, and recovery-context preservation. Updated the App Builder cache-version test to avoid a stale hard-coded v2 expectation.
+
+### Verification
+
+- `node --test tests/c124-architect-appbuilder-prompt.test.mjs` — **PASS, 7/7**.
+- `node --experimental-strip-types --test tests/c124-instruction-inventory.test.mjs tests/c124-architect-appbuilder-prompt.test.mjs` — **PASS, 9/9**.
+- `node --experimental-strip-types --test tests/c124-prompt-quality.test.mjs` — **PASS, 6/6**.
+- Runtime smoke of `promptFor('planner'|'coder'|'reviewer')` — **PASS**; returned the expected prompt versions and file marker.
+- Changed TypeScript/JavaScript syntax checks — **PASS**.
+- `npm run docs:check` — **PASS** (documentation integrity, inventories, check graph and capability graph).
+- `npm run version:check` — **PASS** (`124`, patch `124.0.6`).
+- `npm run test:compact-ci-artifacts` — **BLOCKED** at 71/72 subtests: the existing `compact-ci-artifacts-p94.test.mjs` file cannot load because `jszip` is not installed; the new C124.4 suite and all other loaded subtests passed.
+- `node --experimental-strip-types --test tests/app-builder-engine-p93-2a.test.mjs` — **BLOCKED** before test execution for the same missing `jszip` dependency.
+- Full `test:app-builder`, `test:core`, full CI DAG, TypeScript build/typecheck, hosted GitHub Actions, generated-app browser tests, live provider comparisons and user outcomes — **NOT_RUN**.
+
+### Acceptance boundary
+
+These changes reduce prescriptive prompt behavior and prevent recovery from silently dropping prompt context or requested features. They do not prove improved generated-app quality, runtime correctness, or user outcomes. Hosted CI and model-backed evaluation remain separate.
+
 ## CURRENT EVIDENCE NOTE — P124.3 response-path fidelity cleanup (2026-11-01)
 
 **Patch identity:** product version `124`, patch `124.0.5`. **Scope:** Conversational/Expert visible-reply transport, explicit link-intent handling, and C124 regression tests.

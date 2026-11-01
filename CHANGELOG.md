@@ -1,3 +1,14 @@
+## P124.0.6 — P124.4 Architect and App Builder prompt refinement
+
+- Removed the App Builder planner's default preference for a single `index.html`; architecture is selected to fit the requested goal while interface and import/export contracts remain enforced.
+- Reframed reviewer guidance around user requirements and evidenced functional defects, distinguishing blockers from optional/style suggestions.
+- Updated coder guidance so incomplete internal contracts can be completed consistently without inventing external APIs, credentials, measurements, or source results.
+- Removed the 6,500-character recovery prompt clipping and the instruction to omit optional features. Recovery retains the complete task/context and requested functionality.
+- Clarified App Builder specification coverage so explicitly requested capabilities are not silently omitted.
+- Allowed Architect project analysis to use general domain knowledge for implications and gap detection while preserving provenance boundaries for project-specific facts.
+- Bumped App Builder prompt/cache versions and added prompt/recovery regression coverage. No Architect routes, UI flow, validators, JSON schemas, or completion rules were changed.
+- Hosted CI, live provider comparisons and generated-artifact browser evaluation remain NOT_RUN.
+
 ## P124.0.5 — P124.3 response-path fidelity cleanup
 
 - Removed broad Markdown stripping from the model-authored conversation reply and generated document at the server transport boundary; preserve the original formatting/text for the client.
