@@ -1,3 +1,16 @@
+## D-2026-11-01-01 — Isolate Conversational and Expert user sessions
+
+**Decision (owner-directed):**
+1. Conversational and Expert must use independent saved `Decision` sessions.
+2. Switching agents starts a blank session for the selected agent; the previous session remains preserved in the library.
+3. Briefs, transcripts, attachments, pending sends, and Expert method state must not cross the mode boundary.
+4. Expert initialization may use only its own session input/history and must not reconstruct a prior Conversational exchange.
+5. Shared provider infrastructure and a shared HTTP handler remain implementation details; they do not authorize sharing user conversation state.
+
+**Rationale:** The previous transition deliberately carried the Conversational transcript into Expert initialization, contrary to the owner's required independent-agent experience.
+
+**Effect:** P123.18 implements client session isolation and changes the `/api/understand` prompt contract. Full separation of the A1/A2 backend handler and shared prompt assembly remains documented architecture debt; this decision does not claim those pipelines are fully split.
+
 # Active Decisions
 
 ## D-2026-10-31-03 — Launch C122: Expert Mode Reliability, Intelligence Quality & Decision Engineering

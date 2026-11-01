@@ -1,3 +1,12 @@
+
+## P123.18 — Independent Conversational and Expert sessions
+
+- Switching Conversational → Expert must create a blank Expert Decision; no prior Simple brief, transcript, attachments, or method state may appear in Expert context.
+- Switching Expert → Conversational must create a blank Conversational Decision; no Expert transcript or method state may appear in Conversational context.
+- The prior Decision must remain available in the library/history.
+- The first `/api/understand` request must contain only the new Expert brief/history and must not instruct the model to reconstruct a Simple conversation.
+- Existing mode-selection and Expert completion UI surfaces must remain reachable.
+- Automated static regression coverage does not replace browser e2e or live user acceptance.
 ## P123.17 — Retrieved evidence and source-link acceptance
 
 - Deterministic: `tests/web-and-epistemics.test.mjs` asserts that the compatibility source-footer formatter emits no user-visible URLs and that shared/Expert/V17 prompts explicitly preserve retrieved facts and values.
