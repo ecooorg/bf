@@ -1,3 +1,49 @@
+## P124.0.2 — Cumulative C124 baseline and CI regression closure
+
+**Status:** Targeted deterministic regression fixes and the un-applied P124.0.1 documentation mandate are consolidated. C124 remains active. Full instruction inventory, full CI, live model evaluation, deployment checks, and user-outcome validation are NOT_RUN.
+
+### CI failures reproduced and addressed
+
+- `test:core`: the P123.17 evidence-preservation prompt changes made six dialogue golden hashes stale. The complete current prompt set was recomputed from the reconstructed P123.23 source using Node's TypeScript type stripping; all affected Conversational/Expert decision, research, and engineering hashes were updated. The unchanged information prompts, Expert step prefix, and dialogue paragraphs remain locked to their matching hashes. The snapshot test now describes the current reviewed golden contract rather than claiming byte identity with the pre-change implementation.
+- `test:web` (25/28): all three failing tests were reproduced locally. One asserted obsolete prompt wording (`add nothing that is not below`) instead of the current evidence-preservation invariant. One expected source URLs to be appended to replies, contrary to P123.17's intentional suppression policy. One expected a fixed MeteoSwiss/city expansion that did not exist. Tests now assert the current contracts; weather search adds a generic current-observation query without inserting a location or provider.
+- Weather special case: removed the hard-coded city fallback list from `contextualizeSearchText` and removed the Zurich translation-prompt example. Elliptical weather follow-ups reuse only a place parsed from the preceding user text. Added generic-place follow-up coverage.
+- `test:compact-ci-artifacts` (70/71): reproduced the failure. The workflow correctly uploads `ASSISTANT_PASTE*.txt` so numbered continuation parts are retained, while the test expected only the unsuffixed filename. Updated the assertion to enforce the current wildcard upload contract; all 71 tests pass.
+- `workflow-dag`: `docs/generated-check-graph.json` was stale. Regenerated the graph from the current verification manifest and source paths; `node scripts/statusGraph.mjs --check` passes. The capability graph was also stale after the C124 documentation inventory changed; regenerated `docs/generated-capability-graph.json` and verified it.
+
+### Local verification evidence
+
+- `node --experimental-strip-types --test tests/p119-agent-prompts-routes.test.mjs` — PASS, 5/5.
+- `node --experimental-strip-types --test --test-timeout=60000 tests/web-and-epistemics.test.mjs` — PASS, 29/29.
+- `npm run test:compact-ci-artifacts` — PASS, 71/71.
+- `node --test tests/p12318-agent-session-isolation.test.mjs tests/p119-agent-ui-contract.test.mjs` — PASS, 7/7; updated the stale cycle-123 package assertion for product version 124.
+- `node --test tests/information-quality-eval.test.mjs` — PASS, 3/3.
+- `NODE_OPTIONS=--experimental-strip-types node --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs` — PASS, 36/36.
+- `node scripts/statusGraph.mjs --check` — PASS.
+- `node scripts/capabilityGenerateGraph.mjs --check` — PASS.
+- `node scripts/docs-integrity.mjs` — PASS.
+- `node scripts/docsCheckInventories.mjs` — PASS.
+- `node scripts/version-metadata.mjs` — PASS after package/lock synchronization.
+- `node --check` on modified JavaScript test files — PASS.
+- ZIP integrity check — PASS.
+
+The TypeScript-importing targeted tests used Node 22.16 experimental TypeScript type stripping because `npm ci` did not complete in this environment. The full `npm run test:core` was attempted but BLOCKED before test execution by missing dependency `zod` (`ERR_MODULE_NOT_FOUND` in `tests/core.test.mjs`). The full `npm run test:web` wrapper passed using the temporary type-stripping compatibility setup. The browser transition E2E test was NOT_RUN because Playwright is unavailable. This is not a claim that the full CI DAG, TypeScript compiler, build, hosted GitHub Actions, or live provider calls passed. Those remain NOT_RUN and must be verified by the next hosted Actions run.
+
+### C124 scope boundary
+
+The cumulative patch includes the P124.0.1 documentation mandate, C124 decision record, acceptance criteria, and product-version transition. The only instruction/special-case cleanup performed is the removal of the weather city allowlist and Zurich example. The complete prompt and response-transformation audit remains NOT_RUN; no other prompt pack was removed or rewritten in this patch.
+
+## P124.0.1 — C124 documentation baseline
+
+**Status:** Documentation mandate integrated. Repository-wide instruction inventory and implementation are NOT_RUN; this patch does not claim that existing prompts or transformations have been audited or cleaned.
+
+- Added the C124 normative mandate: BiForge is an engineering intermediary; external LLMs perform substantive reasoning and answer composition.
+- Defined audit scope across static/dynamic prompt sources, agent/mode instructions, tool/search instructions, and every response-processing transformation.
+- Added categories A–E and required inventory fields so removals are dependency-aware rather than based on prompt length or intuition.
+- Defined preservation requirements for model-provided facts, numbers, units, dates, caveats, uncertainty, links, and multilingual content; prohibited fabricated additions and silent loss.
+- Added deterministic source-to-output, pipeline/session, and representative model-backed acceptance criteria.
+- **Changed:** documentation and package/lock version metadata only.
+- **NOT_RUN:** prompt inventory, source-wide audit, instruction removal, deterministic tests, full CI, live provider comparisons, deployed checks, and user-outcome evaluation.
+
 ## P123.23 — CI regression follow-up
 Status: targeted fixes prepared from P123.22 handoff evidence; hosted Actions and full test suites NOT_RUN.
 

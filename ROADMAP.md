@@ -1,8 +1,11 @@
-## P123.23
-- [x] Synchronize the Expert step-prefix golden hash with the observed P123.22 CI digest without changing prompt text.
-- [x] Repair Russian weather follow-up normalization identified by the P123.22 web-test stack.
-- [x] Align compact archive test expectations with failure-first logging (omit successful-stage logs).
-- [ ] Re-run `test:core`, `test:web`, `test:compact-ci-artifacts`, then the verification DAG in hosted Actions; inspect remaining web failures from full log.
+## P123.23 — follow-up regressions closed by P124.0.2
+- [x] Synchronize the Expert step-prefix golden hash with the observed P123.22 CI digest.
+- [x] Repair Russian weather follow-up normalization and generic place extraction.
+- [x] Align compact archive expectations with the failure-first policy and numbered paste artifact uploads.
+- [x] Reproduce and repair the three P123.23 `test:web` failures: stale prompt assertion, obsolete source-footer expectation, and missing generic current-observation query expansion.
+- [x] Update all stale dialogue prompt snapshots affected by P123.17 evidence-preservation changes.
+- [x] Regenerate the stale verification check graph.
+- [ ] Full `test:core`, full CI-profile DAG, typecheck/build, and hosted GitHub Actions remain to be verified.
 
 ## P123.22
 - [x] Restore prompt snapshot matrix in the primary CI paste report.
@@ -53,47 +56,52 @@
 - [x] Stop appending source URLs to user-visible conversation replies.
 - [ ] Validate live Simple and Expert weather answers against MeteoSwiss observations.
 
-# CURRENT ROADMAP CONTROL — 2026-11-01 (C123)
+# CURRENT ROADMAP CONTROL — 2026-11-01 (C124)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-## C123 — Model Carousel / «Карусель» (ACTIVE)
+## C124 — Instruction Optimization (ACTIVE)
 
-**Product version:** 123  
-**Status:** CLOSING — P123.1–P123.5 delivered; remaining polish optional  
-**Primary target:** Shared model access layer (all agents)  
-**Informal name:** Карусель  
-**Architect product features:** remain FROZEN (Architect may consume the carousel)  
-**Conversational / Expert UX polish:** DEFERRED until carousel capacity exists  
+**Product version:** 124  
+**Status:** ACTIVE — C124 mandate integrated; one narrow weather-search special-case cleanup completed; repository-wide instruction inventory and cleanup remain NOT_RUN  
+**Primary target:** Instruction sources and response-processing paths across Conversational, Expert, Architect, and shared infrastructure  
+**Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
 
-### Mandate (Navigator-approved)
+### Mandate
 
-1. Catalog-driven API sources with automatic failover (carousel).
-2. Lineage on every model call (`source_id`, `model`, `channel`, `key_slot`, time).
-3. Up to **10 organisational API key slots** per provider (organisation participants (up to 10 keys per vendor) — legitimate key sets).
-4. Project rule: *what is not forbidden is permitted* — no written-vendor-permission gate blocks engineering.
-5. Official APIs first; browser channel optional later.
-6. Gemini free-key ids remain allowlisted (`3.5` / `3.1` flash-lite) until catalog owns validation.
+1. Treat external large language models as the source of substantive intelligence and substantive answer composition.
+2. Keep BiForge in the role of engineering intermediary: request/context transport, model/tool routing, session isolation, execution/retry/error handling, integrity checks, deterministic validation, and faithful presentation.
+3. Inventory every prompt, instruction, template, hard-coded special case, and post-processing transformation before changing it.
+4. Remove or redesign instructions that attempt to reproduce model reasoning through fixed recipes, canned content, exhaustive special-case lists, or agent-authored substantive answers.
+5. Preserve necessary task framing, model/tool constraints, safety boundaries, structured output contracts, and instructions required to communicate the user's intent accurately.
+6. Preserve model-provided facts, numbers, qualifications, uncertainty, and useful details through the pipeline; do not invent, silently discard, or rewrite content without a user request or objective engineering/safety reason.
+7. Keep deterministic checks in code where practical; do not use prompt prose as a substitute for enforceable program logic.
+8. Prove changes with source-to-output tests and realistic model-backed evaluations; distinguish local tests, hosted CI, live model evidence, and user outcomes.
 
-**Normative docs:** `docs/C123_MODEL_CAROUSEL.md`, `docs/MODEL_SOURCES_CATALOG.md`, `docs/MODEL_ALLOWLIST.md`, ADR-C123-001 in `docs/DECISIONS.md`.
+### C124 work sequence (planned; not a next-session assignment)
 
-### Patch sequence
+| Stage | Objective | Exit evidence |
+|---|---|---|
+| P124.0.1 | Documentation mandate and acceptance baseline | Canonical docs agree; version metadata synchronized |
+| P124.0.2 | Cumulative baseline, CI regression closure, generic weather-search cleanup | Targeted suites pass; city allowlist/example removed; full instruction inventory remains NOT_RUN |
+| P124.1 | Full instruction and transformation inventory | File/line inventory, category, dependency, risk, proposed disposition |
+| P124.2 | Minimal, evidence-based instruction cleanup | Reviewed removals/rewrites; no silent loss of required behavior |
+| P124.3 | Integrity and behavior validation | Regression suite, prompt-path checks, live model comparisons where available |
 
-| Patch | Title | Objective | Status |
-|-------|-------|-----------|--------|
-| P123.0.1 | DOCUMENTATION BASELINE | Close C122 in records; publish C123 mandate, catalog schema, org key-pool policy | DONE (this delivery) |
-| P123.1 | GATEWAY + LINEAGE | Unified `executeModelCall`; single-source Gemini behaviour preserved | DONE |
-| P123.2 | KEY POOL | Rotate up to 10 key slots on quota/429 | DONE |
-| P123.3 | MULTI-SOURCE CATALOG | Load JSON catalog; inventory 20+ candidates; second API when keys exist | DONE |
-| P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience; key pool max 10 | DONE |
-| P123.5 | OPS PROBES | Probe script, ops doc, auto-enable opt-in; CI preflight config/; health isolation | DONE |
+P124.0.2 closes the known P123.23 CI regressions and removes only the evidenced weather-location special case. It does not claim the full C124 audit is complete. The sequence is a planning outline, not authorization to delete instructions without dependency analysis. Each implementation patch must be scoped to observed evidence and current `AGENTS.md` gates.
 
-### Frozen / out of scope during C123 MVP
+### Explicit non-goals
 
-- Browser-chat automation as primary access.
-- Unbounded free-model web discovery.
-- Idealising three agent UIs.
-- Local large-model hosting.
+- Building a second in-repository reasoning engine.
+- Replacing model intelligence with hundreds of hard-coded phrases or answer templates.
+- Blindly minimizing prompt length or deleting all model instructions.
+- Changing provider selection, agent product roles, security posture, or user-facing workflows unless a demonstrated dependency requires it and the owner approves.
+
+---
+
+## Previous cycle: C123 — Model Carousel / «Карусель»
+
+C123 is superseded as the active development cycle. Its implementation history and specialist documentation remain intact. This transition does not assert that every historical follow-up, CI issue, or live user outcome has been independently revalidated.
 
 ---
 

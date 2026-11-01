@@ -1,3 +1,25 @@
+## P124.0.2 — Cumulative C124 baseline and CI regression closure
+
+- Consolidated the un-applied P124.0.1 documentation mandate with the latest P123.23 source baseline into one cumulative patch; product version remains 124 and patch identity advances to 124.0.2.
+- Reproduced and repaired the three P123.23 `test:web` failures: replaced the obsolete grounding-prompt phrase assertion with the current evidence-preservation contract; aligned source-footer tests with the no-automatic-URL policy; and added generic current-observation weather query expansion.
+- Removed the weather follow-up city allowlist and the Zurich example from the search translation prompt. Follow-up place extraction now relies on the actual preceding user text.
+- Recomputed the reviewed prompt golden hashes after the P123.17 evidence-preservation prompt changes; updated all stale snapshots, not only the first failure reported by CI.
+- Repaired the compact-artifact workflow contract test to accept the numbered `ASSISTANT_PASTE*.txt` upload pattern introduced by P123.20.
+- Removed a stale cycle-123 assertion from the session-isolation contract test so it validates patch metadata against the active product cycle 124.
+- Regenerated the stale `docs/generated-check-graph.json` and `docs/generated-capability-graph.json` after the cumulative source/documentation changes.
+- **Verified locally:** prompt-route contract 5/5; web/epistemics suite 29/29; compact CI/evidence/DAG contract suite 71/71; status graph check; documentation integrity and inventories; capability graph check; version metadata; ZIP integrity.
+- **NOT_RUN:** full `npm run test:core`, full `npm run test:web` wrapper, full hosted `npm run check` / CI profile, typecheck/build, live Gemini/Serper comparisons, deployed behavior, and user-outcome evaluation. The targeted deterministic suites were run with Node 22.16 experimental TypeScript type stripping because dependency installation was unavailable in this environment.
+- C124 remains active. The repository-wide prompt/instruction audit is NOT_RUN; this patch only removes the evidenced weather city special-case and its example.
+
+## P124.0.1 — C124 instruction-optimization documentation baseline
+
+- Approved C124, “Instruction Optimization,” and advanced product version metadata to 124.
+- Added `docs/C124_INSTRUCTION_OPTIMIZATION.md` defining BiForge as an engineering intermediary around external LLMs, not a competing reasoning/answer-generation system.
+- Integrated the mandate into the current normative contract, roadmap control, active decisions, and testing/acceptance documentation.
+- Established an audit-first approach: inventory prompt sources and output transformations, classify each item, trace dependencies, then make evidence-based KEEP/REWRITE/MOVE_TO_CODE/REMOVE decisions.
+- Defined acceptance around faithful request transfer, preservation of model output, deterministic integrity tests, session isolation, and representative model-backed comparisons.
+- Documentation-only patch. No repository-wide instruction audit, prompt cleanup, test execution, live model evaluation, or user-outcome validation is claimed.
+
 ## 123.23
 - Updated the Expert step-prefix golden hash to the observed CI value from P123.22; no prompt text was changed by this repair.
 - Corrected contextual weather follow-up normalization for Russian prefatory wording and fixed newline splitting of prior user turns.

@@ -1,4 +1,4 @@
-# CURRENT NORMATIVE CONTRACT — 2026-10-31 (C122)
+# CURRENT NORMATIVE CONTRACT — 2026-11-01 (C124)
 
 > This block is the current binding product contract. It takes precedence over any older statement below that conflicts with it. The remainder of this file is retained as the technical and historical record; do not silently rewrite past entries to make them look current.
 
@@ -6,20 +6,25 @@
 
 BiForge succeeds when a real user can complete a meaningful task and receive a correct, useful, understandable result. Tests, CI, architecture boundaries, documentation, and evidence are necessary controls; none alone proves user value. Every feature change must name the user problem, expected user-visible result, failure/recovery behavior, and how that result will be evaluated. Report code presence, local tests, hosted CI, deployed behavior, and user-outcome evidence as distinct facts. Never label an unobserved outcome PASS.
 
-## Current development cycle: C123 — Model Carousel (API source rotation)
+## Current development cycle: C124 — Instruction Optimization
 
-**Primary target:** Shared model access (carousel) for all agents  
-**Product version:** 123  
-**Patch sequence:** P123.0.1 (docs), then P123.1+ implementation  
-**Development status:** APPROVED  
-**Scope:** Catalog-driven sources, key pool (≤13), failover, lineage  
-**Architecture policy:** Prefer extending router/registry/adapters; agents stay behind one gateway  
-**Expert / Conversational polish:** Deferred  
-**Architect features:** Frozen (may consume carousel)
+**Primary target:** Audit and simplify the instruction system across BiForge agents.  
+**Product version:** 124  
+**Documentation baseline:** P124.0.1  
+**Latest cumulative patch:** P124.0.2  
+**Development status:** ACTIVE  
+**Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
+**Core architecture:** External LLMs provide substantive intelligence and compose substantive answers; BiForge is the engineering intermediary responsible for request routing, context/session integrity, tool orchestration, transport, deterministic validation, and faithful result delivery.
 
-Normative detail: `docs/C123_MODEL_CAROUSEL.md`.
+C124 audits all instruction sources and downstream transformations. It removes or redesigns instructions that make BiForge imitate an LLM's reasoning or answer-generation capabilities through hard-coded scripts, exhaustive prompt recipes, canned answers, or special-case substitutions. It preserves task framing genuinely needed to convey the user's intent, model/tool constraints, safety requirements, output contracts, and deterministic engineering controls.
 
-### Previous cycle (closed)
+**Non-goal:** blindly deleting prompts, removing necessary model instructions, changing agent product roles, or reducing answer quality. Every proposed removal must be traced to its effect and dependencies before implementation.
+
+Normative detail and acceptance criteria: `docs/C124_INSTRUCTION_OPTIMIZATION.md`.
+
+### Previous cycle (C123 — Model Carousel)
+
+C123 implementation history is retained below and in its specialist documentation. C124 supersedes C123 as the active development cycle; this transition does not claim that every historical C123 follow-up or live user outcome was independently revalidated.
 
 ## Current development cycle: C122 — Expert Mode Reliability, Intelligence Quality & Decision Engineering
 
@@ -571,14 +576,12 @@ Status (updated P119.0.4): the three agents are separate **entry points and UI n
 | Client modules | `ConversationScreens.tsx` | `ExpertStepScreens.tsx`, `ExpertNav.tsx`, `expertContext.ts`, `expertHistory.ts` | `ProjectMode.tsx`, `ProjectDelivery.tsx`, `ProjectNoviceWizard.tsx`, `ProjectPathChooser.tsx`, `projectBuildJob.ts`, `projectAppBuilder.ts` |
 | Server routes | `POST /api/agent/conversational` (compatibility: `POST /api/conversation`) | `POST /api/agent/expert` (compatibility: `POST /api/conversation` + `productMode: "Expert"`) and step routes `/api/neutralize`, `/radar`, `/understand`, `/knowledge-map`, `/expand`, `/redteam-pair`, `/redteam`, `/premortem`, `/experiment-draft`, `/forecast-wording`, `/synthesis`, `/review`, `/revise-document` | `/api/projects/*` (`server/projectRoutes.ts`), incl. `POST …/code/build`, `GET …/code/build/:jobId`, `GET …/artifacts/:artifactId/download` |
 | Orchestration / prompt | `conversationalAgent.ts` (plan, prompt entry and intro text; shared method/contract blocks from `promptPacks.ts`) | `expertAgent.ts` (information→decision promotion, stage/method-state paragraph, intro text, step prefix; shared method/contract blocks from `promptPacks.ts`); step prompts per route | `appBuilder/` staged engine (Spec → Plan → Units → Validators → Pack) |
-| State | browser-local Conversational `Decision` and transcript | browser-local Expert `Decision` (stage `EXPERT_STAGES`) and transcript | server persistence: projects, jobs, artifacts (PostgreSQL) |
+| State | browser-local conversation state | browser-local Expert `Decision` (stage `EXPERT_STAGES`) | server persistence: projects, jobs, artifacts (PostgreSQL) |
 | Availability | always | always | only when `ENABLE_PROJECT_MODE=true` (else 404 `PROJECT_MODE_DISABLED`; menu entry disabled) |
 | Output contract | streaming/answer text, honest limits | structured stage output + final answer with explicit uncertainty | verified program ZIP or truthful non-success (§7.1) |
 | Pipeline isolation | planning, prompt entry, intro text and named route **isolated**; HTTP handler and method/contract blocks **shared with A2** (debt) | planning, prompt entry, intro text and named route **isolated**; HTTP handler and method/contract blocks **shared with A1** (debt) | **isolated** |
 
 Shared, non-agent infrastructure (allowed to stay shared): auth/session, provider adapters and router, model registry/availability, rate limiting, `/api/attach`, `/api/export-document`, health/ops routes, UI shell, telemetry.
-
-**Session isolation requirement (P123.18):** Conversational and Expert use separate saved `Decision` sessions. Switching between them starts a blank session for the selected agent; the previous session remains in the library but its brief, transcript, attachments and method state MUST NOT be copied into the other agent. Expert `/api/understand` may consume only the current Expert session input/history and MUST NOT reconstruct a Conversational exchange. Shared provider infrastructure or HTTP handler code does not imply shared user conversation state.
 
 **REQ-AGENT-001 — Agent selection is explicit.**  
 **Precondition:** a request reaches a chat route: `POST /api/agent/conversational`, `POST /api/agent/expert`, or the compatibility path `POST /api/conversation`.  
