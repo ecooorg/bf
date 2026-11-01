@@ -46,3 +46,9 @@ Use a realistic software request from initial entry to download. The user must n
 ## Patch reporting
 
 Report exact commands run and outcomes. For a docs-only patch, product E2E, live generation, hosted CI, and deployment remain NOT_RUN unless actually executed.
+
+## Prompt snapshot and cache-version contract
+
+- Agent prompt golden hashes are reviewed snapshots of the current prompt output, not permanent assertions that prompt bytes must remain identical to a historical pre-refactor implementation. When an intentional prompt change is accepted, update only the affected golden hash and record why; keep all other mode/agent snapshots unchanged.
+- App Builder coder prompt changes must increment `PROMPT_VERSION` so cached generations cannot be reused across materially different instructions. Tests must compare the exported version against the active version and verify cache-key sensitivity; do not leave tests pinned to an obsolete version string.
+- A snapshot/version assertion failure is not repaired by weakening or removing the assertion. Recompute the actual prompt hash or inspect the exported version, review the source change, then update the narrow expected value.
