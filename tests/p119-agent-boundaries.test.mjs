@@ -204,6 +204,7 @@ test('workflow inventory includes the canonical CI and Expert verification workf
     'carousel-verify.yml',
     'ci.yml',
     'expert-verify.yml',
+    'information-quality.yml',
     'ops.yml',
   ]);
 });

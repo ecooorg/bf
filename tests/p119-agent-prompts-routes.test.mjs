@@ -1,7 +1,8 @@
 /**
  * P119.0.4 — agent-owned prompt text, agent-named routes, client route choice.
  * GOLDEN hashes lock agent-owned prompt text. STEP_PREFIX was intentionally updated in P122.5 (anti-invention +
- * claim labeling). Remaining dialogue hashes still prove the P119.0.4 split did not alter conversational bytes.
+ * claim labeling) and P123.10 (recommendation only when explicitly requested). Remaining dialogue hashes still
+ * prove the P119.0.4 split did not alter conversational bytes.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ import { buildExpertPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, EXPERT_
 import { CONVERSATION_ROUTES, pinConversationAgent, resolveConversationAgent } from '../server/agentRouting.ts';
 
 const sha = (s) => createHash('sha256').update(s).digest('hex');
-const GOLDEN_STEP_PREFIX = '4e6b660f8e72b8318ea1821a28eb6fe85ef34b4cafe44b8e3f24b86e5fe6e68f';
+const GOLDEN_STEP_PREFIX = '0dc8cdce3d35235c6e596af93b3988caa9cd576be44fe9923d382ff8f251e368';
 const GOLDEN = {
   "conversational:information": "ac17f16bd0b0ef3b31dfd8b27d0e4532066a419e2a3ca0237b362cd625b5d4da",
   "expert:information": "6b35eb0154015eca8aa2ce762ce7d36e4bad613b40eafd21f85464b6978fdcee",
