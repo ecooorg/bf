@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P123.12 Expert decision prompt snapshot alignment, 2026-11-01
+
+- **Observed CI failure:** run `41329292124` had one failing check in `test:core`; `expert:decision` expected `cdca660e…` but the generated prompt hash was `1ef4e62e…`. All other recorded checks passed (27/28). `workflow-dag` failed as a consequence of `test:core`.
+- **Source review:** current `server/expertAgent.ts` intentionally changed Expert decision behavior: factual/orienting questions receive proportionate direct answers; explicit recommendation requests receive a conditional recommendation tied to stated criteria with decisive trade-offs explained. This is consistent with the product goal of useful expert analysis while preserving user decision authority.
+- **Change in P123.12:** update only the reviewed `expert:decision` golden hash and its rationale; strict snapshot comparison remains. No runtime behavior or unrelated product logic changed. Patch metadata advanced to `123.12`.
+- **Verification:** the exact actual hash is taken from the run-scoped CI evidence. `npm run test:core` attempted locally but **BLOCKED** before tests because Node could not resolve the `tsx` package entrypoint (`ERR_MODULE_NOT_FOUND`). Hosted rerun and DAG rerun: **NOT_RUN**. No PASS is claimed.
+
 # CURRENT EVIDENCE NOTE — P123.11 CI regression repair, 2026-11-01
 
 - **Observed (hosted CI evidence, commit `dc7f331f518e8156311e69a917afe9179faa502f`):** `test:core` failed because the Expert information prompt snapshot expected the pre-P123.10 hash (`6b35eb…8fdcee`) while current prompt bytes hash to `90525c…881ac`; `test:app-builder` failed because one coder-prompt test still expected `static_site.v2` although the implementation exports `static_site.v3`. The DAG failure is downstream of these failed stages.

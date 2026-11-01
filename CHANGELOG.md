@@ -1,3 +1,10 @@
+## P123.12 — Expert decision prompt snapshot alignment
+
+- Updated the reviewed `expert:decision` prompt SHA-256 to match the current, intentional Expert prompt contract: proportional answers for factual questions and conditional, criteria-based recommendations when explicitly requested.
+- Kept the snapshot assertion strict; no test was disabled or weakened and no runtime product logic changed.
+- Bumped patch metadata to `123.12`; product version remains `123`.
+- **Verification:** CI evidence from run `41329292124` records the actual prompt hash as `1ef4e62e9c1f0d94bf87d613a810c8b201f8dad396f5cbc440392541126d8b66`. Local `test:core` is **BLOCKED** in this environment because the installed `tsx` package entrypoint is unavailable. Hosted CI rerun: **NOT_RUN**.
+
 ## P123.11 — CI regression repair: prompt snapshots and App Builder version contract
 
 - Updated the Expert information-prompt golden SHA-256 to the reviewed P123.10 prompt output (`90525c…881ac`); retained exact snapshot checking for all eight agent/mode prompt combinations and both Expert dialogue paragraphs.
