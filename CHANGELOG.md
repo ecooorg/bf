@@ -1,3 +1,15 @@
+## P123.6 — Carousel verification workflow (full automated check)
+
+- **Workflow** `.github/workflows/carousel-verify.yml`:
+  - deterministic job: catalog, key pool 1..10, source health, gateway rotation/lineage, ops probe, allowlist if present;
+  - optional **live** job (`workflow_dispatch` + `live=true`) using `GEMINI_API_KEY` (+ optional `_1`…`_3`);
+  - summary requires deterministic success; live failure only counts when the live job ran.
+- **Orchestrator** `scripts/carousel-verify.mjs` → `artifacts/carousel-verify/summary.json`.
+- **Live smoke** `scripts/carousel-live-smoke.mjs` — one real Gemini JSON call via `executeModelCall` + key pool.
+- **Suite** `tests/p123-carousel-workflow.test.mjs` — end-to-end deterministic matrix.
+- Scripts: `npm run test:carousel`, `npm run carousel:live`.
+- package.json patch → `123.6`.
+
 ## P123.5 — Carousel ops + CI fixes (close C123 implementation)
 
 - **CI fix:** `config/` added to `ALLOWED_TOP` in `scripts/patch-tools.mjs` (preflight no longer rejects `config/model-sources.*`).

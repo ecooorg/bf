@@ -1,3 +1,8 @@
+# CURRENT EVIDENCE NOTE — P123.6 carousel-verify workflow, 2026-11-01
+
+- Automated coverage: deterministic catalog/pool/health/gateway + optional live smoke.
+- Does not replace Expert user-value judgement; does machine-check carousel mechanics as far as free-tier allows.
+
 # CURRENT EVIDENCE NOTE — P123.5 ops + CI fixes, 2026-11-01
 
 - **test:models** red: preflight forbidden top-level `config/` → ALLOWED_TOP includes `config`.
