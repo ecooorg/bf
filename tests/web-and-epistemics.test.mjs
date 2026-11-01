@@ -360,25 +360,36 @@ test('P50 isRateTopic detects RU and EN rate questions', () => {
 // ===== END p50-web-search.test.mjs =====
 
 
-// ===== BEGIN contextual-search-regression.test.mjs =====
-{
-const test = (await import('node:test')).default;
-const assert = (await import('node:assert/strict')).default;
-const { contextualizeSearchText } = await import('../server/webSearch.ts');
-
-test('elliptical weather follow-up carries the prior city into search', () => {
-  assert.match(
-    contextualizeSearchText('интересует погода в градусах Цельсия', 'погода в Цюрихе сегодня'),
-    /weather in Цюрихе temperature in Celsius/i,
-  );
+test('P123.16 weather search expands to current observations and official MeteoSwiss', () => {
+  const queries = mod.expandSearchQueries('current weather in Zurich', 'Какая прямо сейчас погода в Цюрихе?');
+  assert.ok(queries.some((q) => /meteoswiss\.admin\.ch/i.test(q)));
+  assert.ok(queries.some((q) => /temperature|current conditions/i.test(q)));
 });
 
-test('ordinary complete query is not polluted by unrelated history', () => {
-  assert.equal(contextualizeSearchText('weather in Tokyo today', 'weather in Zurich'), 'weather in Tokyo today');
+test('P123.16 search digest never treats source titles as factual grounding', () => {
+  const parsed = mod.digestFromSerperResponse({ organic: [{ title: 'Zurich weather today', link: 'https://example.com/weather' }] }, 'Zurich weather');
+  assert.equal(parsed.digest, '');
+  assert.equal(parsed.sources.length, 1);
 });
 
-test('unit follow-up without a recoverable place stays unresolved, never guesses', () => {
-  assert.equal(contextualizeSearchText('in Celsius?', 'hello there'), 'in Celsius?');
+test('P123.16 weather prompt requires an observed numeric value and forbids user-facing URLs', () => {
+  const block = mod.formatSearchBlock({ status: 'used', digest: 'Zurich: 8 C, cloudy, updated 19:00', sources: [], queries: ['current weather in Zurich'] }, '2026-11-01');
+  assert.match(block, /actual current temperature/i);
+  assert.match(block, /Do not output source URLs/i);
 });
-}
-// ===== END contextual-search-regression.test.mjs =====
+
+
+test('P123.17 preserves retrieved evidence for Expert answers and suppresses user-facing source URLs', async () => {
+  const fs = await import('node:fs');
+  const expert = fs.readFileSync(new URL('../server/expertAgent.ts', import.meta.url), 'utf8');
+  const reasoning = fs.readFileSync(new URL('../server/reasoningState.ts', import.meta.url), 'utf8');
+  const server = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
+  const webSearch = fs.readFileSync(new URL('../server/webSearch.ts', import.meta.url), 'utf8');
+  assert.match(expert, /MUST use relevant retrieved evidence and its concrete values/);
+  assert.match(reasoning, /EVIDENCE PRESERVATION/);
+  assert.match(reasoning, /export function stripUserFacingUrls/);
+  assert.match(webSearch, /preserve all supported facts and numbers/);
+  assert.doesNotMatch(server, /formatSourcesFooter\(webSearch\.sources/);
+  assert.match(server, /stripUserFacingUrls\(stripMarkdown\(scrubInternalLabels\(out\.reply\)/);
+  assert.match(webSearch, /formatSourcesFooter\(_sources: WebSource\[\], _userText: string\): string \{\s*return '';/);
+});
