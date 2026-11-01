@@ -138,3 +138,22 @@ npm run gate:eval
 ```
 
 The commands above are necessary but not sufficient for information quality: the frozen scenario suite and blind review in sections 2–5 are mandatory. Do not interpret a green CI badge as a factual-accuracy result.
+
+
+## 8. GitHub Actions automation
+
+The repository workflow is `.github/workflows/information-quality.yml` (GitHub Actions name: **information-quality**). It runs on pull requests that touch mode logic, on a weekly schedule, and on demand from **Actions → information-quality → Run workflow**.
+
+The workflow builds the application and runs three independent browser acceptance jobs:
+
+- Simple: `tests/p120-conversational-e2e.test.mjs`
+- Expert: `tests/p120-expert-e2e.test.mjs`
+- Architect: `tests/p120-architect-e2e.test.mjs`
+
+A separate job runs the evaluator contract tests, Architect information-quality tests, and web/evidence regression tests. Each mode uploads its TAP output as a GitHub Actions artifact.
+
+### Blind-review scoring
+
+Browser acceptance and deterministic contracts do **not** establish that every generated factual answer is true or useful. For a release-candidate review, prepare a JSON or JSONL file using the record schema consumed by `scripts/information-quality-eval.mjs`, score all seven dimensions independently (0–4), and supply its repository-relative path in the manual workflow's `evaluation_file` input. The evaluator fails the job for contract violations, hard failures, an average below 3.4, or any dimension below 3. The input file must be committed to the branch being tested. Do not fill human scores with defaults or generated guesses.
+
+To inspect results, open the workflow run and download `information-quality-Simple`, `information-quality-Expert`, `information-quality-Architect`, and `information-quality-evaluator` artifacts. A green deterministic workflow means the tested paths and contracts passed; it is not a substitute for the blind-review report.
