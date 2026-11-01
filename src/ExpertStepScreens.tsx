@@ -30,7 +30,7 @@ import { en } from './en.ts';
 import { triage, TRIAGE_OUTCOME_TEXT, TRIAGE_OUTCOME_LABEL } from './triage.ts';
 import { evpi, evpiRange, evpiVerdict, validateEvpiInput } from './evpi.ts';
 import { auditEvpi } from './analyticalIntegrity.ts';
-import { buildFinalDecisionDocument, finalDocumentToText, evaluateStageCompletion } from './finalDecisionDocument.ts';
+import { buildFinalDecisionDocument, finalDocumentToText, evaluateStageCompletion, evaluateRecommendationQuality } from './finalDecisionDocument.ts';
 import { brierScore } from './brier.ts';
 import { cardChecksum } from './sha256Export.ts';
 import { detectUiLanguage, installUiLanguage, getStoredUiLanguage } from './ui.ts';
@@ -1362,10 +1362,32 @@ export function SynthesisScreen({
             rows={4}
             style={{ width: '100%', marginTop: 12 }}
           />
-          <button
+          
+          {(() => {
+            const stage = evaluateStageCompletion(d, 'SYNTHESIS');
+            const rec = evaluateRecommendationQuality(d);
+            return (
+              <div data-testid="synthesis-quality-panel" className="panel" style={{ marginTop: 12, padding: 12, background: 'rgba(127,180,255,0.06)' }}>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>Decision quality check</div>
+                <div data-testid="synthesis-stage-status">
+                  Stage SYNTHESIS: {stage.complete ? 'ready' : 'incomplete'}
+                  {stage.reasons.length ? ` — ${stage.reasons.join('; ')}` : ''}
+                </div>
+                <div data-testid="synthesis-rec-score" style={{ marginTop: 4 }}>
+                  Recommendation checklist: {rec.score}/10
+                  {rec.gaps.length ? ` — gaps: ${rec.gaps.slice(0, 4).join('; ')}` : ' — core items present'}
+                </div>
+                <div style={{ marginTop: 6, opacity: 0.85, fontSize: '0.92em' }}>
+                  This is decision support. You retain final authority. Download the structured document when ready.
+                </div>
+              </div>
+            );
+          })()}
+<button
             className="ghost"
             style={{ marginTop: 8 }}
             type="button"
+            data-testid="download-final-decision"
             onClick={() => {
               const doc = buildFinalDecisionDocument(d);
               const text = finalDocumentToText(doc);
