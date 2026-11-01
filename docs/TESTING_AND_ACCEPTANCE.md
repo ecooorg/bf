@@ -52,3 +52,16 @@ Report exact commands run and outcomes. For a docs-only patch, product E2E, live
 - Agent prompt golden hashes are reviewed snapshots of the current prompt output, not permanent assertions that prompt bytes must remain identical to a historical pre-refactor implementation. When an intentional prompt change is accepted, update only the affected golden hash and record why; keep all other mode/agent snapshots unchanged.
 - App Builder coder prompt changes must increment `PROMPT_VERSION` so cached generations cannot be reused across materially different instructions. Tests must compare the exported version against the active version and verify cache-key sensitivity; do not leave tests pinned to an obsolete version string.
 - A snapshot/version assertion failure is not repaired by weakening or removing the assertion. Recompute the actual prompt hash or inspect the exported version, review the source change, then update the narrow expected value.
+
+
+### Prompt snapshot maintenance (P123.12)
+
+Prompt golden hashes are intentional review gates, not values to update mechanically after a failure. When a snapshot fails:
+
+1. Compare the current prompt builder and its source instructions with the last reviewed behavior.
+2. Confirm that the wording change is intentional and consistent with the normative product contract.
+3. Record the user-visible behavior change and rationale in the patch evidence and changelog.
+4. Update only the affected golden hash; retain strict equality assertions for all other snapshots.
+5. Run `npm run test:core` and `node scripts/run-dag.mjs --profile check`; report unavailable dependencies or unrun hosted checks as `BLOCKED` / `NOT_RUN`.
+
+Never update a golden hash solely to make CI green, and never weaken or remove the snapshot assertion to bypass a mismatch.
