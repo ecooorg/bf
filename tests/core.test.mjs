@@ -613,40 +613,27 @@ t('one question only; service labels are scrubbed', () => {
   assert.ok(!/USER FACT|HYPOTHESIS|problemClear/.test(c));
 });
 const qs = (x) => (x.match(/[?？]/g) || []).length;
-t('FIX-02: two questions in reply -> one', () => {
+t('C124: preserve all questions already written in the model answer', () => {
   const r = buildVisibleReply('Fact one. What is the budget? And when is the deadline?', '', true);
-  assert.equal(qs(r), 1); assert.ok(r.includes('budget'));
+  assert.equal(qs(r), 2); assert.ok(r.includes('budget') && r.includes('deadline'));
 });
-t('FIX-02: question in reply and another in question field -> only the field one', () => {
+t('C124: append the optional follow-up without deleting answer content', () => {
   const r = buildVisibleReply('Fact one. What is the budget? Fact two.', 'Who decides?', true);
-  assert.equal(qs(r), 1); assert.ok(r.includes('Who decides?') && !r.includes('budget'));
+  assert.equal(qs(r), 2); assert.ok(r.includes('Who decides?') && r.includes('budget'));
   assert.ok(r.includes('Fact one.') && r.includes('Fact two.'));
 });
-t('FIX-02: verbatim question already in reply is not repeated', () => {
+t('C124: a follow-up already present is not repeated', () => {
   const r = buildVisibleReply('Fact one. Who decides?', 'Who decides?', true);
   assert.equal(r, 'Fact one. Who decides?');
 });
-t('FIX-02: single question in field is appended as before', () => {
+t('C124: optional follow-up is appended only when allowed', () => {
   assert.equal(buildVisibleReply('Fact.', 'Who decides?', true), 'Fact.\n\nWho decides?');
+  assert.equal(buildVisibleReply('Fact.', 'Who decides?', false), 'Fact.');
   assert.equal(buildVisibleReply('Fact.', '', true), 'Fact.');
 });
-t('FIX-02: no questions when not allowed (HIGH context / crisis)', () => {
-  const r = buildVisibleReply('Fact one. What is the budget? Fact two.', 'Who decides?', false);
-  assert.equal(qs(r), 0); assert.ok(r.includes('Fact one.') && r.includes('Fact two.'));
-  assert.equal(qs(buildVisibleReply('Is this right?', 'Why?', false)), 0);
-});
 console.log(n + ' tests passed');
+}
 
-// v19 / S-1: removing a question sentence must not glue the neighbours together
-{
-  const a = buildVisibleReply('Первая часть. Что вы думаете? Это важно.', '', false);
-  assert.ok(!/\.[А-ЯA-Z]/.test(a), `glued sentences: ${a}`);
-  assert.ok(a.includes('часть. Это'));
-  const b = buildVisibleReply('Esto es una parte. ¿Qué piensas? Esto importa.', '', false);
-  assert.ok(!/\.[A-ZÁÉÍÓÚ]/.test(b), `glued sentences: ${b}`);
-  console.log('ok v19 S-1 no glued sentences');
-}
-}
 // ===== END reasoning.test.mjs =====
 
 // ===== BEGIN server.test.mjs =====

@@ -12,18 +12,18 @@ import { buildExpertPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, EXPERT_
 import { CONVERSATION_ROUTES, pinConversationAgent, resolveConversationAgent } from '../server/agentRouting.ts';
 
 const sha = (s) => createHash('sha256').update(s).digest('hex');
-const GOLDEN_STEP_PREFIX = '30fdcd3569a5ee1f2d8c4df7c091fe64b0958f70ae4a4afa790668b817e0e49b';
+const GOLDEN_STEP_PREFIX = 'ddf3dee253485ce076127abf347bff2e8477a41e2fff87e645ecb03ef71516a2';
 const GOLDEN = {
-  "conversational:information": "ac17f16bd0b0ef3b31dfd8b27d0e4532066a419e2a3ca0237b362cd625b5d4da",
-  "expert:information": "6b35eb0154015eca8aa2ce762ce7d36e4bad613b40eafd21f85464b6978fdcee",
-  "conversational:decision": "6546223a87080a7b3a0ce541085eaa3c6aca4461a03c2a808357ab13da559b19",
-  "expert:decision": "c00c8d514240fbc4cafafa8653c26400f48d52b274773584e80542a575b60c48",
-  "conversational:research": "45d7e16b419f105614ae4190c0607910132d29f63f85e04b764583c45e1452cb",
-  "expert:research": "0e20164babcce7a79b6414145b90fdbeb9df56686f5b320961feddbf25711430",
-  "conversational:engineering": "6f8a83dee535827e3337b770f35483e323f509113abcc10961dca64bfff15801",
-  "expert:engineering": "0039bb85c31fe89b39fa101503f9d88a799af14b9984cf7fbfe6580cdd3a43e5",
-  "expertParagraph:unknown": "dee81076621e1bbaf42986a0a9b3dd9f7890196e373cfc473a28ab09c012089b",
-  "expertParagraph:expand": "0e852e141bfa4feae2dd1239a965fa7f8ce15a6f02253999259a6cd6fca3763c"
+  "conversational:information": "5c3340389cdd55914c83281398fea387f44e27c502127086a0a62f8f6ba8a078",
+  "expert:information": "be1dd3ec66ebd908f2b5b96a1d42493651b141454a342a2d77759258bb6ed92f",
+  "conversational:decision": "ba1e8d072eb0ea8b9818369819e3a4f2565216bf1691fcbf081bccfcf1624415",
+  "expert:decision": "2544fc34d3289c7558c2ccf7d1e30fdc32623216edc1efb3db7d8cca73d34423",
+  "conversational:research": "f70855218aa6b4b30ad7142b3b912b5cb69b7f1edf95b034421ee1efffde65a5",
+  "expert:research": "e14934aefde44024edb7d4c086cf6486f0e5ae75687d937766f71c1759d49fb6",
+  "conversational:engineering": "629ef8771a9a0d6cf15a0da9c8d9325534adc4a591d39df6a800756d8bf6f12d",
+  "expert:engineering": "c52a69fed1bb36d8725e09a0e86253daa3468c3ddd96a38cec8d7b8b6c26cb9e",
+  "expertParagraph:unknown": "f0109360cbb7dcf550e183440caf1a015fe878fc1d2be2557f44421977424324",
+  "expertParagraph:expand": "7b012347f3a4325ffcd23557946ecc16583284671511aafdfae5f1f0eb94fcb5"
 };
 const MODES = ['information', 'decision', 'research', 'engineering'];
 

@@ -14,7 +14,7 @@ import { planExpertTurn, buildExpertPrompt, expertDialogueParagraph } from '../s
 /** Reference = exact logic of the removed server.ts block (P52). */
 function legacyPlan(body, detectedMode) {
   const productMode = body?.productMode === 'Expert' ? 'Expert' : 'Simple';
-  const conversationMode = productMode === 'Expert' && detectedMode === 'information' ? 'decision' : detectedMode;
+  const conversationMode = detectedMode;
   const modeBlock = productMode === 'Expert'
     ? `${modeParagraph(conversationMode)}\n\n${expertDialogueParagraph(String(body?.expertStage || ''), typeof body?.expertContext === 'string' ? body.expertContext : '')}`
     : modeParagraph(conversationMode);
@@ -39,7 +39,7 @@ test('P119.0.3 agent resolution: Expert iff productMode === "Expert"', () => {
   assert.equal(resolveConversationAgent(7), 'conversational');
 });
 
-test('P119.0.3 planner output equals the pre-split logic for every body × detected mode', () => {
+test('C124 planner output keeps the detected task mode for both agents', () => {
   for (const b of BODIES) for (const m of MODES) {
     const got = planConversationTurn(b, m);
     const want = legacyPlan(b, m);
@@ -59,8 +59,8 @@ test('P119.0.3 router entry builds exactly what the owning agent builds, for eve
   // Byte identity against the pre-split text is locked by golden hashes in tests/p119-agent-prompts-routes.test.mjs.
 });
 
-test('P119.0.3 Expert never gets the information contract; Conversational keeps it', () => {
-  assert.equal(planExpertTurn('information').conversationMode, 'decision');
+test('C124 Expert and Conversational both preserve factual information mode', () => {
+  assert.equal(planExpertTurn('information').conversationMode, 'information');
   assert.equal(planConversationalTurn('information').conversationMode, 'information');
   for (const m of ['decision', 'research', 'engineering']) {
     assert.equal(planExpertTurn(m).conversationMode, m);

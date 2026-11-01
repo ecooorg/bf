@@ -50,7 +50,7 @@ const freePort = () => new Promise((res) => { const s = net.createServer().liste
 const RITUALS = ['STEP 0 - TRIAGE', 'STEP 1 - FIND THE REAL QUESTION', 'STEP 2 - LABEL THE CONTEXT', 'STEP 3 - CHANGE THE SHAPE', 'STEP 4 - FIND THE DECISIVE UNKNOWN', 'STEP 5 - CRITIQUE SYMMETRICALLY', 'STEP 6 - COMPUTE WHEN NUMBERS EXIST',
   'SECOND TEST:', 'NO HOMEWORK:', 'WHAT THE PERSON SHOULD EXPERIENCE', 'BEFORE ANSWERING (silent)', 'V17 LAYER'];
 const UNIVERSAL = ['CURRENT DATE (server-provided): 2026-10-14', 'LANGUAGE', 'HONESTY ABOUT FACTS AND SEARCH', 'SAFETY', 'WHEN THE IDEAL ANSWER IS UNAVAILABLE',
-  'Never claim to have searched', 'FILES THE PERSON ATTACHES', 'DOCUMENTS AND FILES YOU HAND OVER', 'HARD BOUNDARIES', 'Return JSON only', 'User brief and conversation:\nQ-INPUT'];
+  'Never claim to have searched', 'FILES THE PERSON ATTACHES', 'DOCUMENTS AND FILES YOU HAND OVER', 'RELIABILITY', 'Return JSON only', 'User brief and conversation:\nQ-INPUT'];
 {
   const build = (mode, withMode = true) => buildAgentPrompt('Simple', 'Q-INPUT', '', modeParagraph(mode), '2026-10-14', mode);
   const info = build('information');
@@ -61,18 +61,19 @@ const UNIVERSAL = ['CURRENT DATE (server-provided): 2026-10-14', 'LANGUAGE', 'HO
   assert.ok(info.includes('CRISIS'), 'crisis triage kept for information');
   assert.ok(info.startsWith(buildPromptCore('2026-10-14')), 'shared core first');
   for (const [name, p] of Object.entries(heavy)) {
-    for (const k of [...RITUALS, ...UNIVERSAL.filter((x) => !x.startsWith('User brief'))]) assert.ok(p.includes(k), `${name} prompt keeps: ${k}`);
-    assert.ok(p.includes('Never choose, rank, recommend'), `${name}: decision boundary kept`);
+    for (const k of RITUALS) assert.ok(!p.includes(k), `${name} prompt drops: ${k}`);
+    for (const k of UNIVERSAL.filter((x) => !x.startsWith('User brief'))) assert.ok(p.includes(k), `${name} prompt keeps: ${k}`);
+    assert.ok(p.includes('When asked for a recommendation') || p.includes('If the user asks for a recommendation'), `${name}: requested recommendations remain allowed`);
     assert.ok(p.startsWith(buildPromptCore('2026-10-14')), `${name}: shared core first`);
   }
-  assert.ok(heavy.decision.includes('CURRENT FOCUS: Decision support') && heavy.research.includes('CURRENT FOCUS: Research') && heavy.engineering.includes('CURRENT FOCUS: Engineering'));
+  assert.ok(heavy.decision.includes('CURRENT FOCUS: Decision-related request') && heavy.research.includes('CURRENT FOCUS: Research') && heavy.engineering.includes('CURRENT FOCUS: Engineering'));
   assert.equal(heavy.noMode, heavy.decision, 'omitting mode keeps the full decision body');
   // Size: the information prompt must be clearly lighter than the full one.
   const sizes = { information: info.length, decision: heavy.decision.length, research: heavy.research.length, engineering: heavy.engineering.length };
-  assert.ok(sizes.information < sizes.decision * 0.6, `information prompt is much smaller: ${JSON.stringify(sizes)}`);
+  assert.ok(sizes.information < sizes.decision, `information prompt remains lighter: ${JSON.stringify(sizes)}`);
   console.log('mp2 prompt size (chars):', JSON.stringify(sizes));
-  // Expert and Project instructions are untouched.
-  assert.ok(EXPERT_STEP_PREFIX.includes('Do not choose or rank options for the person') && EXPERT_STEP_PREFIX.includes('explicit assumptions'));
+  // Expert framing remains agent-owned; Project instructions remain isolated.
+  assert.ok(EXPERT_STEP_PREFIX.includes('appropriate depth and precision') && EXPERT_STEP_PREFIX.includes('recommendation is allowed'));
   assert.ok(ANALYST_INSTRUCTION.includes('Prefer operational precision') && ANALYST_INSTRUCTION.includes('Do not chat or coach'));
   const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   assert.ok(server.includes('EXPERT_STEP_PREFIX + prompt'), 'Expert path still prefixes its steps');
@@ -141,12 +142,12 @@ try {
   assert.equal(info2.meta.calls, 1);
   assert.deepEqual(info2.data.factsToCheck, ['Свежий прогноз']);
 
-  // 3. Decision request: full method in the prompt; a weak draft is still retried (decision contract not weakened).
+  // 3. Decision request: no mandatory reasoning method and no novelty-only rewrite.
   answer = light('Ветки решения.', { gain: [], newOptions: [] });
   const dec = await conv(cookie, 'Стоит ли мне переезжать в другую страну?');
   assert.equal(dec.meta.conversation_mode, 'decision');
-  assert.ok(/STEP 0 - TRIAGE/.test(promptText()) && /SECOND TEST/.test(promptText()), 'decision prompt keeps the full method');
-  assert.equal(dec.meta.calls, 2, 'decision: quality retry preserved');
+  assert.ok(/TASK-FIT RESPONSE/.test(promptText()) && !/STEP 0 - TRIAGE|SECOND TEST|NO HOMEWORK|BEFORE ANSWERING/.test(promptText()), 'decision prompt has task-fit guidance without rituals');
+  assert.equal(dec.meta.calls, 1, 'decision: a valid answer is not retried for missing novelty');
 
   // 4. Crisis path still works for an information-shaped message.
   answer = light('Мне важно, чтобы рядом был живой человек.', { triage: 'CRISIS' });
@@ -241,13 +242,14 @@ const approxFlags = detectUserIntentFlags('Дай приблизительную
   const serverSrc = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   assert.ok(serverSrc.includes('informationSoftFail'), 'server wires informationSoftFail');
   assert.ok(serverSrc.includes('informationRetryHint'), 'server wires informationRetryHint');
-  assert.ok(/infoRetry/.test(serverSrc), 'server has information retry branch');
-  assert.ok(serverSrc.includes('conversationGainAudit'), 'gain-audit retained for non-information');
+  assert.ok(/conversationMode === 'information' && informationSoftFail/.test(serverSrc), 'only the narrow information-mode repair can trigger a retry');
+  assert.ok(!serverSrc.includes('conversationGainAudit'), 'novelty gain-audit removed from the response path');
+  assert.ok(serverSrc.includes('conversationAudit'), 'triage metadata remains available');
   assert.ok(serverSrc.includes('EXPERT_STEP_PREFIX + prompt'), 'Expert path still prefixes its steps');
 
   // Expert / Project string contracts (read from source files without loading full module graphs).
   const packs = readFileSync(new URL('../server/expertAgent.ts', import.meta.url), 'utf8');
-  assert.ok(packs.includes('Do not choose or rank options for the person') && packs.includes('explicit assumptions'));
+  assert.ok(packs.includes('appropriate depth and precision') && packs.includes('recommendation is allowed'));
   const ctx = readFileSync(new URL('../server/contextBuilder.ts', import.meta.url), 'utf8');
   assert.ok(ctx.includes('Prefer operational precision') && ctx.includes('Do not chat or coach'));
   console.log('mp3 mode fixtures OK');
@@ -625,12 +627,12 @@ try {
     const stepHits = hits;
     assert.equal(r.success, true, `step ${n + 1}: ${JSON.stringify(r)}`);
     const p = promptText();
-    // 1. The contract reaches the model on every turn, once, between HARD BOUNDARIES and BEFORE ANSWERING.
+    // 1. The unavailable-answer contract reaches the model exactly once, before attachment instructions.
     const c = p.indexOf('WHEN THE IDEAL ANSWER IS UNAVAILABLE');
     assert.ok(c > 0, `step ${n + 1}: contract missing from the prompt`);
     assert.equal(p.split('WHEN THE IDEAL ANSWER IS UNAVAILABLE').length - 1, 1, `step ${n + 1}: contract duplicated`);
-    // MP2: the light information prompt has no BEFORE ANSWERING ritual; the contract must then precede the files section.
-    const upper = [p.indexOf('BEFORE ANSWERING (silent)'), p.indexOf('FILES THE PERSON ATTACHES')].filter((i) => i > 0).reduce((a, b) => Math.min(a, b), Infinity);
+    // C124: no mandatory analysis ritual sits between reliability rules and file instructions.
+    const upper = p.indexOf('FILES THE PERSON ATTACHES');
     assert.ok(p.indexOf('HARD BOUNDARIES') < c && c < upper, `step ${n + 1}: contract misplaced`);
     assert.ok(p.includes(step.say), `step ${n + 1}: the user's text is not in the prompt`);
     // 2. Server path: no markup, no service labels, honest numbers, no crisis, no model-call surprises.
@@ -1176,8 +1178,8 @@ await withSrv({}, async function G(s) {
 const okc = (r) => r.s === 200 && r.j?.success;
 await withSrv({}, async function H1(s) { script = (q) => q.n === 1 ? { raw: 'not json {{' } : { json: GOOD() }; const r = await conv(s, 'Менять ли работу');
   T('H1 bad JSON -> retry on next model', okc(r) && r.j.meta.calls === 2 && recs[0].model === 'm1' && recs[1].model === 'm2' && r.j.meta.model === 'm2', `${r.s} calls=${r.j?.meta?.calls} ${recs.map((x) => x.model)}`); });
-await withSrv({}, async function H2(s) { script = (q) => q.n === 1 ? { json: GOOD({ reply: 'Шанс успеха около 73%. Стоит подумать.' }) } : { json: GOOD() }; const r = await conv(s, 'Менять ли работу');
-  T('H2 invented % -> retry on next model', okc(r) && r.j.meta.calls === 2 && recs[1].model === 'm2' && !/73/.test(r.j.data.reply), `${r.s} calls=${r.j?.meta?.calls} ${r.j?.data?.reply?.slice(0, 60)}`); });
+await withSrv({}, async function H2(s) { script = () => ({ json: GOOD({ reply: 'Переезд меняет расходы, работу и окружение. Важность каждого фактора зависит от ваших приоритетов.' }) }); const r = await conv(s, 'Менять ли работу');
+  T('H2 valid answer without gain metadata is not rewritten by a novelty retry', okc(r) && r.j.meta.calls === 1 && recs.length === 1 && /Переезд меняет расходы/.test(r.j.data.reply), `${r.s} calls=${r.j?.meta?.calls} ${r.j?.data?.reply?.slice(0, 60)}`); });
 await withSrv({}, async function H2b(s) { script = () => ({ json: GOOD({ reply: 'Вы назвали 73%. Это важная цифра для решения.' }) }); const r = await conv(s, 'Шанс получить повышение 73%, менять ли работу');
   T('H2b % from user input accepted w/o retry', okc(r) && r.j.meta.calls === 1, `${r.s} calls=${r.j?.meta?.calls}`); });
 await withSrv({}, async function H3(s) { script = () => ({ raw: 'broken' }); const r = await conv(s, 'Менять ли работу'); T('H3 two bad answers -> clean error, no walk through the chain', r.s === 200 && r.j?.meta?.stage === 'conversation-fallback' && recs.length === 2, `${r.s} hits=${recs.length} ${r.j?.meta?.stage}`); });
@@ -1191,12 +1193,12 @@ await withSrv({}, async function H6c(s) { // quota on one model must not stop th
   script = (q) => q.model === 'm1' ? { status: 429, message: 'Quota exceeded for metric generate_content_free_tier_requests, limit: 20' } : { json: GOOD() };
   const r = await conv(s, 'Менять ли работу'); T('H6c quota on m1 -> answered by m2', okc(r) && r.j.meta.model === 'm2', `${r.s} ${r.j?.meta?.model} ${r.j?.meta?.errorCode}`);
   recs = []; await conv(s, 'ещё раз'); T('H6d quota: m1 skipped on next request', recs.length >= 1 && recs[0]?.model === 'm2', recs.map((x) => x.model).join(',')); });
-await withSrv({}, async function H7(s) { // quality retry
+await withSrv({}, async function H7(s) { // no novelty-only retry
   const weak = GOOD({ gain: [], newOptions: [] }); script = (q) => q.n === 1 ? { json: weak, usage: { promptTokenCount: 100, candidatesTokenCount: 10 } } : { json: GOOD(), usage: { promptTokenCount: 120, candidatesTokenCount: 20 } };
   const r = await conv(s, 'Стоит ли менять работу'); const m = r.j?.meta || {}; const chars = recs.reduce((a, x) => a + x.system.length + x.prompt.length, 0);
-  T('H7 quality fail -> retry on reserve model', okc(r) && recs.length === 2 && recs[1].model === 'm2' && m.model === 'm2', `${r.s} ${recs.map((x) => x.model)}`);
-  T('H7b meta sums calls', m.calls === 2, m.calls); T('H7c meta sums promptChars', m.promptChars === chars, `${m.promptChars} vs ${chars}`); T('H7d meta sums tokens 220/30', m.inputTokens === 220 && m.outputTokens === 30, `${m.inputTokens}/${m.outputTokens}`); });
-await withSrv({}, async function H8(s) { script = (q) => q.n === 1 ? { json: GOOD({ gain: [] }) } : { status: 503, message: 'UNAVAILABLE' }; const r = await conv(s, 'Стоит ли менять работу'); T('H8 retry fails -> first draft returned', okc(r) && !!r.j.data.reply, `${r.s} calls=${r.j?.meta?.calls}`); });
+  T('H7 empty gain metadata does not trigger a rewrite', okc(r) && recs.length === 1 && m.model === 'm1', `${r.s} ${recs.map((x) => x.model)}`);
+  T('H7b meta calls remain one', m.calls === 1, m.calls); T('H7c promptChars describe the single call', m.promptChars === chars, `${m.promptChars} vs ${chars}`); });
+await withSrv({}, async function H8(s) { script = () => ({ json: GOOD({ gain: [] }) }); const r = await conv(s, 'Стоит ли менять работу'); T('H8 empty gain metadata leaves first answer untouched', okc(r) && !!r.j.data.reply && r.j.meta.calls === 1, `${r.s} calls=${r.j?.meta?.calls}`); });
 await withSrv({ MAX_MODEL_CALLS: '2' }, async function H9(s) { script = (q) => q.n === 1 ? { raw: 'bad' } : q.n === 2 ? { json: GOOD({ gain: [] }) } : { json: GOOD() }; const r = await conv(s, 'Менять ли работу');
   T('H9 [S-4 probe] request-wide model budget (MAX_MODEL_CALLS=2)', recs.length <= 2, `real model hits=${recs.length}, meta.calls=${r.j?.meta?.calls}`); });
 await withSrv({}, async function H10(s) { script = () => ({ json: { paragraphs: ['один два три', 'четыре', 'пять', 'шесть', 'семь'], derived_numbers: [], open_gaps: [], needs_external_check: [] } }); const r = await s.post('/api/synthesis', { brief: { decision: 'x' } });
