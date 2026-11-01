@@ -1,12 +1,14 @@
-/** Low-cost, hourly probes for optional Gemini candidates. A model is eligible only after a real API call succeeds. */
-export const GEMINI_PROBE_CANDIDATES = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemma-4'] as const;
+/** Gemini models that free-key deployments may call. No probe of unavailable flash/pro ids. */
+export const GEMINI_ALLOWED_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'] as const;
+/** @deprecated alias — same as GEMINI_ALLOWED_MODELS. */
+export const GEMINI_PROBE_CANDIDATES = GEMINI_ALLOWED_MODELS;
 export type ProbeState = { status: 'unknown' | 'available' | 'unavailable'; checkedAt: number | null; reason?: string };
-const states = new Map<string, ProbeState>(GEMINI_PROBE_CANDIDATES.map((id) => [id, { status: 'unknown', checkedAt: null }]));
+const states = new Map<string, ProbeState>(GEMINI_ALLOWED_MODELS.map((id) => [id, { status: 'unknown', checkedAt: null }]));
 const HOUR = 60 * 60 * 1000;
 let lastRun = 0;
 let inFlight: Promise<Record<string, ProbeState>> | null = null;
 export function getProbeStates(): Record<string, ProbeState> { return Object.fromEntries([...states].map(([k, v]) => [k, { ...v }])); }
-export function eligibleGeminiCandidates(): string[] { return GEMINI_PROBE_CANDIDATES.filter((id) => states.get(id)?.status === 'available'); }
+export function eligibleGeminiCandidates(): string[] { return GEMINI_ALLOWED_MODELS.filter((id) => states.get(id)?.status === 'available'); }
 export async function probeGeminiCandidates(opts: { apiKey?: string; baseUrl?: string; fetchImpl?: typeof fetch; now?: number } = {}): Promise<Record<string, ProbeState>> {
   const now = opts.now ?? Date.now();
   if (inFlight) return inFlight;
@@ -15,7 +17,7 @@ export async function probeGeminiCandidates(opts: { apiKey?: string; baseUrl?: s
   lastRun = now;
   const fetcher = opts.fetchImpl ?? fetch;
   inFlight = (async () => {
-    await Promise.all(GEMINI_PROBE_CANDIDATES.map(async (model) => {
+    await Promise.all(GEMINI_ALLOWED_MODELS.map(async (model) => {
       const base = (opts.baseUrl || 'https://generativelanguage.googleapis.com').replace(/\/v1beta\/?$/, '').replace(/\/$/, '');
       const endpoint = `${base}/v1beta/models/${encodeURIComponent(model)}:generateContent`;
       const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 8000);
@@ -28,8 +30,7 @@ export async function probeGeminiCandidates(opts: { apiKey?: string; baseUrl?: s
       finally { clearTimeout(timer); }
     }));
     return getProbeStates();
-  })().finally(() => { inFlight = null; });
-  return inFlight;
+  })();
+  try { return await inFlight; } finally { inFlight = null; }
 }
-/** Test seam; not used by application runtime. */
-export function resetProbeStateForTests(): void { lastRun = 0; inFlight = null; for (const id of GEMINI_PROBE_CANDIDATES) states.set(id, { status: 'unknown', checkedAt: null }); }
+export function resetProbeStateForTests(): void { lastRun = 0; inFlight = null; for (const id of GEMINI_ALLOWED_MODELS) states.set(id, { status: 'unknown', checkedAt: null }); }

@@ -34,7 +34,8 @@ const GEMINI_MODELS = [
   // Keep this seed aligned with the only two models configured for the free-key deployment.
   'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite',
 ];
-export const GEMINI_PROBE_MODELS = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemma-4'] as const;
+/** Only free-key models. Do not add 2.x / 3.6 / 3.8 / pro — they do not answer on the deployment key. */
+export const GEMINI_PROBE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'] as const;
 export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => registryEntrySchema.parse({
   providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
   capabilities: ['json_output'], qualityClass: 'B', qualityProvisional: true,
@@ -42,12 +43,8 @@ export const REGISTRY_SEED: RegistryEntry[] = GEMINI_MODELS.map((modelId) => reg
   limits: { rpm: 15, rpd: 1500 },
   lastVerifiedAt: '2026-10-25', secretEnvRef: 'GEMINI_API_KEY',
 }));
-export const GEMINI_CANDIDATE_SEED: RegistryEntry[] = GEMINI_PROBE_MODELS.map((modelId) => registryEntrySchema.parse({
-  providerId: 'gemini', modelId, status: 'active', adapter: 'gemini', costTier: 'free',
-  capabilities: ['json_output'], qualityClass: 'B', qualityProvisional: true,
-  dataPolicy: 'unknown', trainingOptOutConfirmed: false, limits: { rpm: 15, rpd: 1500 },
-  lastVerifiedAt: '2026-10-27', secretEnvRef: 'GEMINI_API_KEY',
-}));
+/** Extra probe-promoted models. Empty: free-key allowlist is only REGISTRY_SEED (3.5/3.1 flash-lite). */
+export const GEMINI_CANDIDATE_SEED: RegistryEntry[] = [];
 
 /** Groq (P07, BX-12.a): OpenAI-compatible. Published model pricing exists; treat as paid unless an operator explicitly opts in. The primary model was previously connection-verified; other entries stay disabled. */
 export const GROQ_BASE_URL = 'https://api.groq.com/openai/v1';

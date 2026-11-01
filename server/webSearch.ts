@@ -236,7 +236,7 @@ export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: s
   };
 }
 
-/** Gemini 2.x uses the legacy Search Grounding tool name; Gemini 3+ uses googleSearch. */
+/** Production uses Gemini 3.x flash-lite → googleSearch. Legacy 2.x branch kept only for defensive env. */
 export function googleSearchToolForModel(model: string): Record<string, unknown> {
   const id = String(model || '').trim().toLowerCase();
   return /^gemini-2(?:\.0|\.5)?(?:-|$)/.test(id)
