@@ -124,10 +124,11 @@ export function shouldSearchWeb(o: SearchTriggerInput): boolean {
  */
 export function contextualizeSearchText(userText: string, recentUserText = ''): string {
   const latest = buildSearchQuery(userText);
-  const history = String(recentUserText || '').split(/\\n+/).map((x) => x.trim()).filter(Boolean).slice(-3);
+  const history = String(recentUserText || '').split(/\n+/).map((x) => x.trim()).filter(Boolean).slice(-3);
   if (!latest || !history.length) return latest;
   const topic = history.join(' ');
-  const unitFollowup = /цельси|celsius|фаренгейт|fahrenheit/iu.test(latest) && /weather|погод\p{L}*|temperature|температур\p{L}*/iu.test(topic);
+  const normalizedLatest = latest.replace(/^(?:меня\s+)?интересует\s+/iu, '').trim();
+  const unitFollowup = /цельси|celsius|фаренгейт|fahrenheit/iu.test(normalizedLatest) && /weather|погод\p{L}*|temperature|температур\p{L}*/iu.test(topic);
   const continuation = unitFollowup
     || /^(?:(?:а\s+)?(?:в|по)\s+)?(?:градус(?:ах|ы)?\s+)?(?:цельси(?:я|ю)|фаренгейт(?:а|у)?|celsius|fahrenheit|в\s+цельсиях|в\s+фаренгейтах)[?!.,\s]*$/iu.test(latest)
     || /^(?:а\s+)?(?:сейчас|сегодня|завтра|там|а\s+там|what about (?:today|now|there)|and in (?:celsius|fahrenheit))[?!.,\s]*$/iu.test(latest);
@@ -138,7 +139,7 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
   if (!place) return latest;
   const weatherContext = /weather|погод\p{L}*|temperature|температур\p{L}*/iu.test(topic);
   if (!weatherContext) return latest;
-  const unit = /цельси|celsius/iu.test(latest) ? 'temperature in Celsius' : /фаренгейт|fahrenheit/iu.test(latest) ? 'temperature in Fahrenheit' : 'weather';
+  const unit = /цельси|celsius/iu.test(normalizedLatest) ? 'temperature in Celsius' : /фаренгейт|fahrenheit/iu.test(normalizedLatest) ? 'temperature in Fahrenheit' : 'weather';
   return `${weatherContext ? 'weather' : 'information'} in ${place} ${unit}`.slice(0, MAX_QUERY_CHARS);
 }
 
