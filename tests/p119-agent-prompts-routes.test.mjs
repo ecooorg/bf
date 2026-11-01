@@ -1,8 +1,8 @@
 /**
  * P119.0.4 — agent-owned prompt text, agent-named routes, client route choice.
  * GOLDEN hashes lock the reviewed prompt contracts. Expert information wording changed in P123.10; Expert decision wording changed in P123.12; Expert research wording
- * was also updated in the current source contract (P123.13 evidence: CI run 41330687334). Keep these reviewed
- * snapshots exact so subsequent unreviewed prompt drift remains detectable.
+ * was aligned in P123.13. P123.15 aligns the remaining engineering and dialogue-paragraph snapshots with the same reviewed source contract.
+ * Keep these snapshots exact so subsequent unreviewed prompt drift remains detectable.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,9 +25,9 @@ const GOLDEN = {
   "conversational:research": "2b01ca9d770c470cd02c7b2279a870a29ca5a1991bdbceb791c69e2db36df2d4",
   "expert:research": "21cac76f09f4541d462a1845b7b7f40b0a76a2482334728424cb9d28fbbe79cb",
   "conversational:engineering": "def3f9ef2ab36c1e6eb488989f8978dd24d9877c3fc60c9ba74799eae4abe206",
-  "expert:engineering": "95b4691f26acc9f3659c66face4ec31eba84af47d503fd311ae48c5ec7347f32",
-  "expertParagraph:unknown": "dee81076621e1bbaf42986a0a9b3dd9f7890196e373cfc473a28ab09c012089b",
-  "expertParagraph:expand": "0e852e141bfa4feae2dd1239a965fa7f8ce15a6f02253999259a6cd6fca3763c"
+  "expert:engineering": "1121c970bf371e008c84d4dbe893af3129a64716efadd62b2ea6054af84cdcd9",
+  "expertParagraph:unknown": "c9a7f250de5a96db6a49913d9ef107c630781ca8c859919e33e5a18c2c745c09",
+  "expertParagraph:expand": "1ae85e750dac09cd3b856cd8ee4b29c5df9d55fc2e2d61776bcfe00721574912"
 };
 const MODES = ['information', 'decision', 'research', 'engineering'];
 
