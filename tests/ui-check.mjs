@@ -14,7 +14,7 @@ if (!existsSync('dist/index.html')) {
   if (b.status !== 0) { console.error('build failed'); process.exit(1); }
 }
 const port = await freePort(), base = `http://127.0.0.1:${port}`;
-const server = spawn('tsx', ['server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port),
+const server = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port),
   APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k' } });
 const problems = [];
 const bad = (w, msg) => { problems.push(`${w}px: ${msg}`); console.log(`FAIL ${w}px - ${msg}`); };

@@ -39,7 +39,7 @@ test('P120.0.3 Architect browser scenario: create, validate evidence, download a
 
   const port = await freePort();
   const base = `http://127.0.0.1:${port}`;
-  const server = spawn('tsx', ['server.ts'], {
+  const server = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
