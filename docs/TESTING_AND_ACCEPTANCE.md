@@ -1,3 +1,9 @@
+## P123.23 regression checks
+- `npm run test:core` — verify prompt golden hash and agent route contracts.
+- `npm run test:web` — verify Russian/English contextual follow-up resolution; inspect full log for any failures beyond the reported stack location.
+- `npm run test:compact-ci-artifacts` — verify failed logs retained and successful-stage logs omitted.
+- `node scripts/run-dag.mjs --profile check` — run after the targeted suites pass.
+
 ## P123.22 CI logging policy
 The primary `ASSISTANT_PASTE` handoff is failure-first: report failed stages, timeouts, blocked/not-run checks, concise failure tails, and next actions. Do not enumerate successful checks. The diagnostic ZIP retains reports, structured result/metrics/history files, prompt snapshot diagnostics, and logs belonging to failed or timed-out checks; successful-stage logs and incidental files are omitted. Validate both failure and green runs in GitHub Actions.
 
