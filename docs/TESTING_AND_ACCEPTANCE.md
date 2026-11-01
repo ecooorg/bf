@@ -1,3 +1,10 @@
+## Prompt snapshot evidence (P123.13)
+
+- Agent prompt snapshots remain strict SHA-256 equality checks over the complete generated prompt bytes. Never weaken or skip an assertion to obtain a green CI run.
+- When CI reports a mismatch, update only the evidenced mode/hash after checking the current prompt source and intended behavior. Record the run, commit, expected hash, actual hash, and whether semantic source review was performed in `TECHNICAL_REPORT.md` and `CHANGELOG.md`.
+- A CI-provided actual hash is sufficient to identify the byte-level mismatch, but not sufficient by itself to claim that the prompt's semantic change is correct. If the source diff is unavailable, mark semantic review `NOT_VERIFIED`.
+- Re-run `npm run test:core` and `node scripts/run-dag.mjs --profile check`; hosted CI remains `NOT_RUN` until the resulting commit has completed Actions.
+
 # Testing and Acceptance
 
 ## Current Architect selection regression coverage (P121.0.48)
