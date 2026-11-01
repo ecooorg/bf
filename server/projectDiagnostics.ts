@@ -236,7 +236,16 @@ export async function diagnosticArchive(operationId?: string, extraFiles: { path
   add('logs/application-detail.jsonl', detailed.logs.map(e => JSON.stringify(e)).join('\n') + (detailed.logs.length ? '\n' : ''));
   for (const f of extraFiles) add(f.path, f.text);
 
-  const failedOps = operations.events.filter((e) => /fail|error|timeout|cancel/i.test(String(e.status || e.event || '')));
+  // WARN/PARTIAL build outcomes are operational failures for the delivered artifact even
+  // when no low-level event says FAIL. Do not let a clean infrastructure check mask them.
+  const failedOps = operations.events.filter((e) =>
+    /fail|error|timeout|cancel|partial|warn/i.test(String(e.status || '')) ||
+    (/BUILD_FINISHED|BUILD_COMPLETED/i.test(e.event) && !/^PASS$/i.test(e.status))
+  );
+  const latestBuild = operations.events.find((e) => /BUILD_FINISHED|BUILD_COMPLETED/i.test(e.event)) || null;
+  const artifactOutcome = latestBuild && !/^PASS$/i.test(latestBuild.status) ? 'WARN' : 'PASS';
+  const combinedOverall = summary.overall === 'FAIL' || artifactOutcome === 'FAIL' ? 'FAIL'
+    : summary.overall !== 'PASS' || artifactOutcome !== 'PASS' ? 'WARN' : 'PASS';
   const lastFailed = failedOps[0] || null;
   const lastAny = operations.events[0] || null;
   const nonPassChecks = summary.checks.filter((c) => c.status !== 'PASS');
@@ -275,7 +284,7 @@ export async function diagnosticArchive(operationId?: string, extraFiles: { path
     },
     nextActionHints: [
       lastFailed ? `Inspect last failed operation ${lastFailed.operationId} event=${lastFailed.event} stage=${lastFailed.stage} status=${lastFailed.status}` : 'No failed operations in the retention window',
-      nonPassChecks.length ? `Non-PASS checks: ${nonPassChecks.map((c) => c.name + '=' + c.status).join(', ')}` : 'All system checks PASS or WARN only',
+      nonPassChecks.length ? `Non-PASS checks: ${nonPassChecks.map((c) => c.name + '=' + c.status).join(', ')}` : 'System checks PASS/WARN; inspect latest build outcome separately',
       provenance.operations !== 'database' ? 'Operation history is process-local only; restart lost older events' : 'Operation history loaded from database',
       provenance.applicationLogs !== 'database' ? 'Application detail logs are process-local only' : 'Application detail logs loaded from database',
     ],
@@ -284,7 +293,7 @@ export async function diagnosticArchive(operationId?: string, extraFiles: { path
     '# ASSISTANT BRIEF (in-app diagnostics)',
     '',
     `exportedAt: ${assistantContext.exportedAt}`,
-    `overall: ${summary.overall}`,
+    `overall: ${combinedOverall} (system=${summary.overall}, latestBuild=${latestBuild?.status ?? 'unknown'})`,
     `appVersion: ${summary.runtime.appVersion} release=${summary.runtime.release || 'null'} commit=${summary.runtime.commit}`,
     `focusOperationId: ${operationId ?? 'null'}`,
     `provenance.operations: ${provenance.operations}`,
