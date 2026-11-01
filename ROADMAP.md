@@ -1,3 +1,9 @@
+## P123.22
+- [x] Restore prompt snapshot matrix in the primary CI paste report.
+- [x] Make main CI handoff failure-first and suppress positive check noise.
+- [x] Curate CI archive to retain failure-relevant logs and authoritative evidence.
+- [ ] Verify all workflow artifact layouts and failure paths in hosted GitHub Actions.
+
 ## P123.21 — CI repair follow-up
 
 - Repair only the three evidenced P123.20 contract mismatches.

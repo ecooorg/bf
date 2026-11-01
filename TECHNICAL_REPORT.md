@@ -1,3 +1,10 @@
+## P123.22 — CI evidence and logging compaction
+Status: implementation prepared; hosted Actions and full test suites NOT_RUN in this environment.
+
+Restored the prompt snapshot matrix from the earlier diagnostics implementation. The main handoff now prioritizes failure signatures and omits lists of successful checks and successful-stage log tails. The inner ZIP is curated to authoritative reports, results/metrics/history, prompt diagnostics, and logs attached to FAIL/TIMEOUT rows. This reduces incidental files and duplicated evidence while preserving the evidence needed to investigate failures.
+
+Known limitation: workflow-step logs without a recognizable failure signature and without a corresponding FAIL/TIMEOUT row are intentionally omitted from the compact archive. Confirm this policy against real hosted Actions failure output, especially cancellation and infrastructure failures.
+
 # P123.21 evidence note
 
 Status: targeted source/test corrections prepared from P123.20 CI evidence. The P123.20 run proves three concrete contract failures: stale patch assertion (expected 123.18 while package metadata is 123.20), Expert prompt wording assertion, and weather search-block wording assertion. P123.20 also reports test:compact-ci-artifacts failure, but the supplied handoff contains no failing test name, assertion, or source excerpt for that stage; it is intentionally not guessed or claimed fixed. Typecheck, complete test suites, build, and hosted Actions remain NOT_RUN for this patch.

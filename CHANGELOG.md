@@ -1,3 +1,8 @@
+## 123.22
+- Restored the complete prompt snapshot matrix in the primary CI handoff.
+- Reduced CI handoffs to failures, timeouts, blocked/not-run states and concise next actions; positive check output and successful-stage logs are omitted.
+- Curated the diagnostic ZIP to retain authoritative reports, structured evidence, prompt diagnostics and failed-check logs only.
+
 ## 123.21 — CI regression repair
 
 - Replaced the P123.18 hard-coded patch assertion with a cycle-123 patch-format contract.
