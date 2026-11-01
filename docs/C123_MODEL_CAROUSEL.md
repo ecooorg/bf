@@ -148,7 +148,7 @@ MVP may use **static priority** in the catalog file.
 | Phase | Patch theme (indicative) | Deliverable | Acceptance sketch |
 |-------|--------------------------|-------------|-------------------|
 | **D0** | P123.0.1 Documentation | This mandate + catalog schema + C122 closure | Docs only; version 123 |
-| **P1** | Gateway + lineage | `executeModelCall`, lineage on responses, single-source behaviour = today’s Gemini | Unit tests; no behaviour regression for Expert |
+| **P1** | Gateway + lineage | `executeModelCall`, lineage on responses, single-source behaviour = today’s Gemini | **DONE P123.1** — `server/modelCarousel.ts`; analysisService wired |
 | **P2** | Key pool | 1..N slots for Gemini (N≤13), rotation on 429/quota | Tests with fake adapters; manual multi-key optional |
 | **P3** | Multi-source catalog | YAML/JSON catalog + second API source adapter (Navigator picks which) | Failover integration test |
 | **P4** | Health + cooldown + breaker | Per source and per key_slot | Simulated 429/503 |
