@@ -66,7 +66,7 @@ jobs:
         with:
           name: biforge-architect-compare
           path: |
-            artifacts/ci-checks/ASSISTANT_PASTE.txt
+            artifacts/ci-checks/ASSISTANT_PASTE*.txt
             artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: warn
           retention-days: 30
