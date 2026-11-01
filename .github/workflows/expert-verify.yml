@@ -154,6 +154,8 @@ jobs:
         run: node --import tsx tests/ui-check.mjs
       - name: Expert end-to-end
         run: node --test --test-timeout=300000 tests/p120-expert-e2e.test.mjs
+      - name: Expert full journey (stages, quality panel, download, persistence)
+        run: node --test --test-timeout=300000 tests/p122.5-expert-journey-e2e.test.mjs
       - name: Agent transitions (Expert <-> Conversational/Architect keep state)
         run: node --test --test-timeout=300000 tests/p120-agent-transitions-e2e.test.mjs
       - uses: actions/upload-artifact@v4
@@ -183,6 +185,9 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           REAL_MODEL_EVAL: '1'
+          # Same cascade as Render production — do not use probe models (3.8-flash etc.)
+          MODEL_CASCADE_STRONG: gemini-3.5-flash-lite,gemini-3.1-flash-lite
+          MODEL_CASCADE_LIGHT: gemini-3.1-flash-lite,gemini-3.5-flash-lite
         run: node --import tsx --test tests/p122.4-real-model-eval.mjs 2>&1 | tee real-model.tap
       - uses: actions/upload-artifact@v4
         if: always()
