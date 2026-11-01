@@ -1,0 +1,147 @@
+name: carousel-verify
+# C123 — automated carousel verification (catalog, key pool ≤10, source health, gateway lineage).
+# Deterministic layers always run. Live Gemini smoke is opt-in (needs GEMINI_API_KEY secret).
+on:
+  workflow_dispatch:
+    inputs:
+      live:
+        description: 'Run live Gemini smoke (repository secret GEMINI_API_KEY; optional GEMINI_API_KEY_1..10)'
+        type: boolean
+        default: false
+      auto_enable:
+        description: 'Set CAROUSEL_AUTO_ENABLE=true during probe (does not call paid providers without keys)'
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - 'server/modelCarousel.ts'
+      - 'server/keyPool.ts'
+      - 'server/sourceHealth.ts'
+      - 'server/modelSourcesCatalog.ts'
+      - 'server/geminiAdapter.ts'
+      - 'server/router.ts'
+      - 'config/model-sources.json'
+      - 'config/model-sources.yaml'
+      - 'tests/p123*'
+      - 'tests/p123-carousel-workflow.test.mjs'
+      - 'scripts/carousel-*.mjs'
+      - '.github/workflows/carousel-verify.yml'
+  push:
+    branches: [main, master]
+    paths:
+      - 'server/modelCarousel.ts'
+      - 'server/keyPool.ts'
+      - 'server/sourceHealth.ts'
+      - 'server/modelSourcesCatalog.ts'
+      - 'config/model-sources.json'
+      - 'tests/p123*'
+      - 'scripts/carousel-*.mjs'
+      - '.github/workflows/carousel-verify.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: carousel-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MODEL_MIN_INTERVAL_MS: '0'
+  CI: 'true'
+
+jobs:
+  deterministic:
+    name: deterministic (catalog · pool · health · gateway)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Typecheck carousel modules
+        run: npx tsc --noEmit -p tsconfig.server.json 2>/dev/null || npm run typecheck
+      - name: Carousel verify (deterministic)
+        run: node scripts/carousel-verify.mjs
+        env:
+          CAROUSEL_LIVE: 'false'
+          CAROUSEL_AUTO_ENABLE: ${{ github.event.inputs.auto_enable == 'true' && 'true' || 'false' }}
+      - name: Upload carousel-verify artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: carousel-verify-deterministic
+          path: artifacts/carousel-verify/
+          if-no-files-found: warn
+
+  live:
+    name: live Gemini smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # workflow_dispatch only when live checked; never block PR on missing secrets
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.live == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Require GEMINI_API_KEY secret
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::GEMINI_API_KEY repository secret is not set"
+            exit 1
+          fi
+      - name: Live carousel smoke
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          MODEL_CASCADE_LIGHT: gemini-3.5-flash-lite,gemini-3.1-flash-lite
+          MODEL_CASCADE_STRONG: gemini-3.5-flash-lite,gemini-3.1-flash-lite
+          MODEL_MIN_INTERVAL_MS: '0'
+        run: node scripts/carousel-live-smoke.mjs
+      - name: Ops probe with real env (no secret output)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: node scripts/carousel-ops-probe.mjs | tee artifacts/carousel-live-probe.json
+      - name: Upload live artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: carousel-verify-live
+          path: |
+            artifacts/carousel-live-probe.json
+          if-no-files-found: warn
+
+  summary:
+    name: summary
+    runs-on: ubuntu-latest
+    needs: [deterministic, live]
+    if: always()
+    steps:
+      - name: Compose result
+        run: |
+          det="${{ needs.deterministic.result }}"
+          live="${{ needs.live.result }}"
+          echo "deterministic=$det"
+          echo "live=$live"
+          if [ "$det" != "success" ]; then
+            echo "::error::Deterministic carousel verification failed"
+            exit 1
+          fi
+          # live skipped (PR) or success is OK; failure only when job ran and failed
+          if [ "$live" = "failure" ]; then
+            echo "::error::Live carousel smoke failed"
+            exit 1
+          fi
+          echo "Carousel verification acceptable (deterministic green; live=$live)"
