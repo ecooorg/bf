@@ -1,8 +1,7 @@
 /**
  * P119.0.4 — agent-owned prompt text, agent-named routes, client route choice.
- * GOLDEN hashes lock agent-owned prompt text. STEP_PREFIX was intentionally updated in P122.5 (anti-invention +
- * claim labeling) and P123.10 (recommendation only when explicitly requested). Remaining dialogue hashes still
- * prove the P119.0.4 split did not alter conversational bytes.
+ * GOLDEN hashes lock the current prompt snapshots. Expert information prompt was intentionally changed in P123.10;
+ * its snapshot is updated here so future unreviewed prompt drift remains detectable.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,7 +16,7 @@ const sha = (s) => createHash('sha256').update(s).digest('hex');
 const GOLDEN_STEP_PREFIX = '0dc8cdce3d35235c6e596af93b3988caa9cd576be44fe9923d382ff8f251e368';
 const GOLDEN = {
   "conversational:information": "ac17f16bd0b0ef3b31dfd8b27d0e4532066a419e2a3ca0237b362cd625b5d4da",
-  "expert:information": "6b35eb0154015eca8aa2ce762ce7d36e4bad613b40eafd21f85464b6978fdcee",
+  "expert:information": "90525cfce9a2010fdbd73e201de50b5f3414d5ba9296467aa117af20793881ac",
   "conversational:decision": "2dcdfba3d4edddc8be63471362c99e1969406d58557538aae8c431460bc20d92",
   "expert:decision": "cdca660e6fc2a15b912d8b0c72829aa3d197e3382d92163b65f3c8593f71ebd7",
   "conversational:research": "2b01ca9d770c470cd02c7b2279a870a29ca5a1991bdbceb791c69e2db36df2d4",
@@ -29,7 +28,7 @@ const GOLDEN = {
 };
 const MODES = ['information', 'decision', 'research', 'engineering'];
 
-test('P119.0.4 prompt bytes are identical to the pre-move implementation (8 prompts, 2 paragraphs, step prefix)', () => {
+test('agent prompt snapshots match the reviewed current prompt contracts (8 prompts, 2 paragraphs, step prefix)', () => {
   assert.equal(sha(EXPERT_STEP_PREFIX), GOLDEN_STEP_PREFIX);
   for (const m of MODES) {
     const cp = { agent: 'conversational', productMode: 'Simple', conversationMode: m, modeBlock: modeParagraph(m) };
