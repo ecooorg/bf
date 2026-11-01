@@ -155,7 +155,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       if (state.callsUsed >= budget) return null;
       const concise = attempt > 0;
       const prompt = concise
-        ? `${p.prompt.slice(0, 6500)}\n\nRECOVERY: keep the answer minimal and valid. Return only the requested JSON/file marker; omit explanations and optional features.`
+        ? `${p.prompt}\n\nRECOVERY: the previous provider attempt did not complete. Return the same requested deliverable in the required format. Preserve the full task, context, interfaces, and every requested feature. Reduce explanation outside the deliverable if needed; do not drop functionality or truncate supplied source/context.`
         : p.prompt;
       state.callsUsed++;
       const result = await ports.model.complete({ role, system: p.system, prompt, maxOutputTokens: profile.maxOutputTokens, signal: options.signal });
@@ -200,7 +200,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     await save();
     if (!state.spec) {
     state.stage = 'spec'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'spec' });
-    const specPrompt = `Create a concise project specification as JSON with schemaVersion:1 (number), title, goal, language, stack, features[], nonGoals[], acceptance[] (non-empty string array of testable criteria). Return only JSON. Task: ${input.taskText}`;
+    const specPrompt = `Create a focused but complete project specification as JSON with schemaVersion:1 (number), title, goal, language, stack, features[], nonGoals[], acceptance[] (non-empty string array of testable criteria). Capture all capabilities explicitly requested by the user in features[]. Do not add unrelated features or invent constraints; use nonGoals[] only for clear exclusions. Acceptance criteria must describe observable behavior. Return only JSON. Task: ${input.taskText}`;
     let specResult = await call('planner', specPrompt);
     const diagnoseAttempt = (attempt: number, rawText: string | null | undefined, modelId?: string) => {
       const text = rawText ?? '';

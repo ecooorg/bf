@@ -3,26 +3,27 @@ import type { ModelRole } from './core-types.ts';
 import { PROMPT_VERSION } from './core-cache.ts';
 
 export { PROMPT_VERSION };
-export const PROMPT_VERSIONS = { spec: 'app_builder.spec.v2', plan: 'app_builder.plan.v2', code: PROMPT_VERSION } as const;
+export const PROMPT_VERSIONS = { spec: 'app_builder.spec.v3', plan: 'app_builder.plan.v3', code: PROMPT_VERSION, review: 'app_builder.review.v3' } as const;
 
 export function promptFor(role: ModelRole, context: string, expectedPath?: string): { system: string; prompt: string; version: string } {
-  const system = 'You are a careful software construction component. Follow the requested output format exactly. Do not claim tests ran unless they did.';
-  if (role === 'planner') return { system, prompt: `Return only valid JSON.
+  const system = 'Follow the user goal, supplied specification, validated plan, and output contract. Do not claim that code was executed or tested unless execution evidence is supplied.';
+  if (role === 'planner') return { system, prompt: `Return only valid JSON matching the plan schema expected by the caller.
 
-ARCHITECTURAL CONTRACT REQUIREMENTS
-- Prefer one self-contained index.html for small browser applications unless the request clearly benefits from multiple modules.
-- If multiple files are necessary, define the complete file map and an explicit interface contract BEFORE coding: each module's exact exports, import paths, function signatures, argument/return shapes, shared data schema, and browser loading strategy (ES modules with type="module").
-- Every import must resolve to a generated file and every named/default import must exist in that file's exports. Do not mix ES modules and classic scripts.
-- Define acceptance checks that exercise user-visible behavior and data flow, not merely keyword presence or DOM identifiers.
-- Never use fabricated fallback measurements or silently convert failed sources into successful data. Represent unavailable values as null/unknown and exclude them from aggregates.
+Create an implementation plan that fits the user's actual goal and requested functionality. Choose the simplest architecture that can satisfy the requirements; do not force a single-file or multi-file structure. Avoid adding features that the user did not request unless they are necessary for the stated goal.
+
+When the plan uses multiple files, define the file map and the contracts needed to integrate them: paths, exports, imports, function signatures, data shapes, and loading strategy. Keep those contracts consistent across units. Every planned import must resolve to a planned file and every named/default import must be exported. Use one compatible module system.
+
+Define acceptance checks for observable user behavior and data flow. Do not treat keyword presence or DOM identifiers alone as proof of functionality. Do not invent measurements, source results, or successful states; represent genuinely unavailable external data honestly.
+
 Stage: ${context}`, version: PROMPT_VERSIONS.plan };
-  if (role === 'reviewer') return { system, prompt: `Review the supplied result without executing it. Inspect the whole artifact as a connected system:
-- Verify every referenced file, import/export, function name, argument and return shape against the actual files.
-- Trace each core user action from UI event to computation to rendered result.
-- Reject fabricated data, silent defaults, swallowed errors, stale placeholders and misleading success states.
-- Distinguish static evidence from runtime behavior; never claim runtime validation without an execution test.
-- Report concrete file/line-level defects and prioritize blockers over style.
-Stage: ${context}`, version: 'app_builder.review.v2' };
+  if (role === 'reviewer') return { system, prompt: `Review the supplied result against the user's goal, specification, plan, and actual files. Do not execute the artifact.
+- Check referenced files, imports/exports, function names, arguments, return shapes, and shared data contracts against the supplied files.
+- Trace the main user actions from UI event through computation to rendered result where the source makes that trace possible.
+- Identify fabricated data, misleading defaults, swallowed errors, stale placeholders, broken links, and false success states when evidenced.
+- Separate defects from optional improvements. Do not demand features absent from the user's request or report style preferences as blockers.
+- Distinguish static inspection from runtime behavior; do not claim runtime validation without execution evidence.
+- Report concrete file/line-level findings and prioritize functional blockers.
+Stage: ${context}`, version: PROMPT_VERSIONS.review };
   const header = expectedPath ? `<<<FILE ${expectedPath}>>>` : '<<<FILE index.html>>> (use the real file path in place of index.html)';
-  return { system, prompt: `${context}\nUse only the interfaces, paths and schemas explicitly defined in the plan. Do not invent imports, exports, functions, properties or fallback data. If a dependency contract is missing or contradictory, return a minimal valid file and explicitly surface the blocker in the file content as a TODO rather than guessing. For source failures use null/unknown, show a clear unavailable state, and exclude failed sources from calculations. Reply with exactly one file block and nothing else. First line: ${header} exactly, with nothing after it. Then the complete file content. Last line: <<<END>>>. Do not add code fences or text outside the block.`, version: PROMPT_VERSION };
+  return { system, prompt: `${context}\nImplement the assigned unit to satisfy the user's goal and specification. Treat the validated plan's paths and contracts as the integration baseline. Do not invent external APIs, credentials, measurements, or source results. If an internal interface needed by the specification is missing from the plan, define the smallest coherent interface and keep its imports/exports consistent with the other supplied contracts. If an external dependency is genuinely unspecified or unavailable, do not pretend it works: provide a clear unavailable state and a concise code comment identifying the unresolved dependency. Preserve every requested feature relevant to this unit; do not omit functionality merely to make the file shorter.\n\nReturn exactly one complete file block and nothing else. First line: ${header} exactly, with nothing after it. Then the complete file content. Last line: <<<END>>>. Do not add code fences or text outside the block.`, version: PROMPT_VERSION };
 }
