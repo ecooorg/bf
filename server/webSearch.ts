@@ -230,7 +230,7 @@ export function expandSearchQueries(englishQuery: string, originalUserText?: str
 
 /** Merge several WebSearchResult digests/sources into one. Pure. */
 export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: string): WebSearchResult {
-  const used = parts.filter((p) => p.status === 'used' && p.digest.trim().length >= MIN_DIGEST_CHARS);
+  const used = parts.filter((p) => p.status === 'used' && p.digest.trim().length > 0);
   if (!used.length) {
     const last = parts[parts.length - 1];
     return last || skippedWebSearch('failed', 'no_results');
