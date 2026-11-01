@@ -80,3 +80,8 @@ Report exact commands run and outcomes. For a docs-only patch, product E2E, live
 - Hosted acceptance must compare Simple and Expert answers with timestamped MeteoSwiss observations.
 - User-facing replies must not append a raw `Sources (web search)` URL footer.
 - If no numeric current observation is retrieved, the agent must state that limitation rather than invent a temperature.
+
+
+## Assistant paste artifact size contract
+
+Every workflow must publish `ASSISTANT_PASTE.txt` and, when required, consecutively numbered `ASSISTANT_PASTE_2.txt`, `ASSISTANT_PASTE_3.txt`, etc. Each file must contain no more than 5,000 characters. The complete set must preserve the generated summary without truncation; complete logs and evidence remain available in `biforge-ci-logs.zip`.
