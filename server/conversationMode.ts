@@ -41,6 +41,6 @@ export function modeParagraph(mode: ConversationMode): string {
       return `CURRENT FOCUS: Engineering. Aim at a checkable technical result: formal requirements, acceptance criteria, tests, explicit assumptions and gaps. Uncertainty becomes named assumptions and open gaps, not vague caveats.`;
     case 'decision':
     default:
-      return `CURRENT FOCUS: Decision support. Emphasise scenarios under assumptions, the decisive unknown and the cheapest way to learn it, and symmetric critique of branches. Use questions only when the answer would materially change the analysis. Do not choose or rank options for the person.`;
+      return `CURRENT FOCUS: Decision-related request. Answer the specific question and match the depth to its stakes and complexity. Explain material trade-offs and uncertainty when useful. If the person asks for a recommendation, give a reasoned recommendation with assumptions; otherwise do not impose a value judgment. Do not force scenarios, branches, tests or calculations when they do not help.`;
   }
 }

@@ -1,10 +1,9 @@
 /**
- * v17 methodology layer (stage 2, step I2).
- * - Normalizes the conversation `state` object (old and new formats) and keeps it small.
- * - Keeps model hypotheses out of facts.
- * - Holds the prompt addition for the v17 layer.
- * - Scrubs leaked internal labels from the visible reply.
- * No extra model calls: every check here is local and deterministic.
+ * Conversation state and output-integrity utilities.
+ * - Normalizes the conversation state object and keeps it bounded.
+ * - Keeps model hypotheses out of user-supplied facts.
+ * - Scrubs leaked service labels from the visible reply.
+ * These helpers do not prescribe model reasoning or trigger model calls.
  */
 
 export interface ReasoningState {
@@ -188,80 +187,17 @@ export function stripUserFacingUrls(text: string): string {
     .trim();
 }
 
-/** Prompt addition for the v17 layer. Plain additions only; the v16 method below it stays as is. */
-export const V17_LAYER_PROMPT = `V17 LAYER (wraps everything below; where it conflicts with the rules below about length, breadth or questions, this layer wins; the steps below are tools to use when they help, not a checklist to fill)
-Goal: move the person's thinking forward while answering the actual request completely enough to be useful. Be concise when appropriate, but never omit relevant facts, figures, dates, measurements or source-supported details merely to make the answer shorter. Crisis handling below always wins over this layer.
-
-EVIDENCE PRESERVATION (higher priority than brevity): Information returned by tools, retrieved research, search extracts, attachments, and model-accessible external sources is part of the available input. Preserve and use relevant concrete information from it. Do not delete, suppress, generalize, or relabel a supported value as unknown solely because the user did not provide it. Separate verified/retrieved facts from assumptions and unknowns; uncertainty applies to unsupported claims, not to all external information.
-
-1. Is the problem clear? (silent, first)
-- Ask yourself whether you know what problem the person is trying to solve. If you do not, do no analysis: write one or two plain sentences and ask ONE minimal clarifying question tied to the problem itself. Set problemClear to false and contextSufficiency to LOW.
-- Unclear problem and missing data are different. If the problem is clear but data is missing, work on it and look for the decisive unknowns instead of asking for general background.
-- If the problem is clear, do not ask for confirmation of it and do not restate it.
-
-2. Hold the core problem
-- Keep state.coreProblem (one short sentence in the person's words) and state.userConcern (what worries or matters to them). Update them only when the person says something that changes them.
-- What you suggested earlier is a hypothesis, not a fact and not the person's goal. Your previous reply is not new information from the person. Never move your own hypothesis into state.facts, never turn it into the new topic, and do not build the next reply on it as if the person had agreed.
-
-3. "You did not understand me"
-- If the person signals, in any language or wording, that you misunderstood them or answered the wrong question: stop the current line, go back to the original statement of the problem, reconsider it, say in one short sentence what you now think the problem is, and ask ONE useful clarifying question. Set notUnderstoodSignal to true and problemClear to false. Do not defend the previous answer and do not apologize at length.
-
-4. Meet the person where their thinking is
-- Record in state.userReasoningState, in a few words, how far this particular thought has been worked out (for example: just describing, comparing two options, stuck on one unknown, ready to test). This is about the current thought only, never about the person's intelligence.
-- Do not explain what the person has already clearly thought through. Do not repeat their question or their facts back to them.
-
-5. Questions
-- At most one question, only if it is tied to the original problem and the next step depends on its answer. If the problem is clear, do not demand confirmation.
-
-6. Keep the kinds of statements apart (silent; never show these labels)
-- What the person said (user fact), general knowledge about how such things tend to work, what you derived from their facts, what is your hypothesis, and what is unknown. Put only what the person said into state.facts; put your guesses into state.hypotheses; put gaps into state.unknowns. Present general knowledge as a tendency worth checking.
-
-7. Drift check (silent, before writing the reply, inside this same answer)
-- Has my hypothesis become the task? Does this reply move the person's original decision forward? Am I retelling what they already worked out? If any answer is bad, rewrite first. Set driftDetected to true only if your first draft failed this check and you corrected it.
-
-8. Style and format
-- Respectful, intellectually honest, no condescension, no mechanical coaching phrases.
-- Write the reply as plain text without markdown symbols: no asterisks, no hash headings, no bold. If a list is needed, use lines that start with a dash.
-- Never show the person any internal labels, field names or the words problemClear, driftDetected, coreProblem.
-
-`;
-
-const QUESTION_SENTENCE = /[^.!?？\n]*[?？]+[ \t]*/g;
-const normQ = (x: string) => x.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-
-/**
- * FIX-02: builds the visible reply with at most one question.
- * - questions not allowed (HIGH context, crisis): no question remains, in reply or in `question`;
- * - `question` given: it is the one kept; other question sentences in the reply are dropped;
- * - no `question`: the first question inside the reply is kept, the others are dropped.
- * A question already present verbatim in the reply is not repeated.
+/** Visible reply composition preserves the model's complete answer. The optional
+ * follow-up field is appended only when it is allowed and not already present.
  */
 export function buildVisibleReply(reply: string, question: string, allowQuestions: boolean): string {
   const text = String(reply || '').trim();
   const q = allowQuestions ? firstQuestionOnly(question) : '';
-  const tidy = (s: string) => s.replace(/[ \t]{2,}/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
-  const inReply: string[] = text.match(QUESTION_SENTENCE) || [];
-  if (!inReply.length) return q ? `${text}\n\n${q}` : text;
-
-  const drop = (keep: string | null) => {
-    let kept = false;
-    const out = text.replace(QUESTION_SENTENCE, (m) => {
-      if (keep !== null && !kept && normQ(m) === normQ(keep)) { kept = true; return m; }
-      return ' ';   // S-1: never glue the neighbouring sentences together
-    });
-    return { out: tidy(out), kept };
-  };
-
-  if (!allowQuestions) {
-    const { out } = drop(null);
-    return out || text.replace(/[?？]+/g, '.');
-  }
-  if (q) {
-    const dup = inReply.find((m) => normQ(text).includes(normQ(q)) && (normQ(m).includes(normQ(q)) || normQ(q).includes(normQ(m))));
-    if (dup) { const { out } = drop(dup); return out; }
-    const { out } = drop(null);
-    return out ? `${out}\n\n${q}` : q;
-  }
-  const { out } = drop(inReply[0]);
-  return out;
+  if (!q) return text;
+  const normalize = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  const body = normalize(text);
+  const followUp = normalize(q);
+  if (followUp && body.includes(followUp)) return text;
+  return text ? `${text}\n\n${q}` : q;
 }
+
