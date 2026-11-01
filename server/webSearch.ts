@@ -133,8 +133,7 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
     || /^(?:(?:а\s+)?(?:в|по)\s+)?(?:градус(?:ах|ы)?\s+)?(?:цельси(?:я|ю)|фаренгейт(?:а|у)?|celsius|fahrenheit|в\s+цельсиях|в\s+фаренгейтах)[?!.,\s]*$/iu.test(latest)
     || /^(?:а\s+)?(?:сейчас|сегодня|завтра|там|а\s+там|what about (?:today|now|there)|and in (?:celsius|fahrenheit))[?!.,\s]*$/iu.test(latest);
   if (!continuation) return latest;
-  const placeMatch = topic.match(/(?:weather|погод\p{L}*)\s+(?:in|for|в|во|на)\s+(?:the\s+city\s+of\s+|городе\s+)?([\p{L}][\p{L} .'-]{1,50}?)(?=\s+(?:today|tomorrow|сегодня|завтра|сейчас|and|и)(?:\s|$)|[?.!,;]|$)/iu)
-    || topic.match(/(?:zurich|zürich|geneva|bern|basel|vienna|paris|london|madrid|rome|new york|tokyo|цюрих|женева|берн|базель|вена|париж|лондон|мадрид|рим|токио)/iu);
+  const placeMatch = topic.match(/(?:weather|погод\p{L}*)\s+(?:in|for|в|во|на)\s+(?:the\s+city\s+of\s+|городе\s+)?([\p{L}][\p{L} .'-]{1,50}?)(?=\s+(?:today|tomorrow|сегодня|завтра|сейчас|and|и)(?:\s|$)|[?.!,;]|$)/iu);
   const place = placeMatch ? (placeMatch[1] || placeMatch[0]).trim() : '';
   if (!place) return latest;
   const weatherContext = /weather|погод\p{L}*|temperature|температур\p{L}*/iu.test(topic);
@@ -196,11 +195,16 @@ export function versionSearchExtras(text: string): string[] {
   return extras.slice(0, 2);
 }
 
+function isWeatherTopic(text: string): boolean {
+  return /(?:weather|forecast|temperature|current conditions|погод\p{L}*|прогноз\p{L}*|температур\p{L}*)/iu.test(String(text || ''));
+}
+
 export function expandSearchQueries(englishQuery: string, originalUserText?: string): string[] {
   const q = buildSearchQuery(englishQuery);
   if (q.length < 3) return q ? [q] : [];
   const rateLike = isRateTopic(q) || isRateTopic(originalUserText || '');
   const versionLike = isVersionTopic(q) || isVersionTopic(originalUserText || '');
+  const weatherLike = isWeatherTopic(q) || isWeatherTopic(originalUserText || '');
   const focused: string[] = [q];
   if (rateLike) {
     focused.push(
@@ -213,6 +217,8 @@ export function expandSearchQueries(englishQuery: string, originalUserText?: str
     );
   } else if (versionLike) {
     focused.push(...versionSearchExtras(originalUserText || englishQuery));
+  } else if (weatherLike) {
+    focused.push(`${q} current observations temperature conditions observation time`);
   } else {
     return [q];
   }
@@ -410,7 +416,7 @@ export async function toEnglishSearchQuery(opts: {
       model,
       contents:
         'Convert the user message into a short English web search query (max 14 words). ' +
-        'Use neutral international terms (e.g. "G7 central bank policy rates", "Zurich weather yesterday daytime temperature"). ' +
+        'Use neutral international terms and preserve the location and topic stated by the user. ' +
         'Do not mention Russia, Russian sources, or any country-specific portal unless the user explicitly asked about that country. ' +
         'Output ONLY the English query. No quotes, no explanation, no other language.\n\nUSER:\n' +
         raw.slice(0, 500),
