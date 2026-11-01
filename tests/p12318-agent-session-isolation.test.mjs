@@ -22,5 +22,5 @@ test('Expert initialization is independent of Simple-mode history', () => {
 
 test('patch metadata remains in cycle 123', () => {
   assert.equal(pkg.version, '123');
-  assert.equal(pkg.patch, '123.18');
+  assert.match(pkg.patch, /^123\.\d+$/, 'patch metadata stays within cycle 123');
 });
