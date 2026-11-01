@@ -65,3 +65,20 @@
 4. `scripts/docs-integrity.mjs` enforces this topology and the markers above.
 
 **Provenance note:** The original texts of D-2026-10-30-01 through -03 were dropped from this file during the C122 rewrite (P122.x), which broke `docs:integrity`. They were restored in P122.4 from the content recorded in `AGENTS.md`, `CHANGELOG.md`, `TECHNICAL_REPORT.md`, and `scripts/docs-integrity.mjs`. If the original wording is needed verbatim, take it from the repository history of this file.
+
+
+## ADR-C123-001 — Model carousel and organisational key pool (2026-11-01)
+
+**Status:** Accepted
+
+**Context:** Continuous agent work is limited by single free-tier API quotas. Research archive c125 proposed discovery, browser channels, and legal gates. Navigator closed C122 and started C123.
+
+**Decision:**
+
+1. Build an API-first **model carousel** (catalog + failover + lineage) shared by all agents.
+2. Project rule: *what is not forbidden is permitted* — no mandatory external legal gate before implementation.
+3. Organisation has **13 participants** and may configure **up to 13 legitimate API key sets** per provider as a key pool.
+4. Browser automation is optional and deferred; not MVP.
+5. Gemini model ids remain restricted to the free-key allowlist until catalog validation supersedes it.
+
+**Consequences:** Implementation starts at P123.1; solo `GEMINI_API_KEY` remains supported; multi-key is opt-in via env.

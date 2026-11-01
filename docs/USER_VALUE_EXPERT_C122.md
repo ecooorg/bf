@@ -48,3 +48,22 @@ C122 may be marked **product-accepted** only when:
 4. At least one Navigator tablet smoke recorded in TECHNICAL_REPORT.
 
 Until then, status remains: **technically reliable, analytical quality under live evaluation**.
+
+
+---
+
+## E. Cycle closure (Navigator, 2026-11-01)
+
+**C122 is closed as sufficiently successful.**
+
+Evidence accepted:
+
+- Deterministic P122.1–P122.4 suites and Expert contracts.
+- Layer B live evaluation on `gemini-3.5-flash-lite` (heuristic pass on scenarios A/B/C/E).
+- Free-key model allowlist locked; retired model ids removed from probes/defaults.
+- expert-verify green (including browser e2e after UI smoke spawn fix).
+- Stage readiness and synthesis quality surfaces shipped.
+
+Residual (non-blocking for closure): optional ongoing tablet UX polish moves to later Expert-depth work **after** C123 carousel capacity exists.
+
+Next cycle: **C123 Model Carousel** — `docs/C123_MODEL_CAROUSEL.md`.
