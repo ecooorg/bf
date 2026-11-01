@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P123.2 Key pool, 2026-11-01
+
+- **Changed:** key pool module; carousel rotation; analysisService + server Project Mode wiring; unit tests.
+- **NOT_RUN:** live multi-key traffic on Render (requires configuring GEMINI_API_KEY_n secrets).
+- **Next:** P123.3 multi-source catalog.
+
 # CURRENT EVIDENCE NOTE — P123.1 Carousel gateway + lineage, 2026-11-01
 
 - **CI fail on 123.0.1 base:** `test:core` — `lock.version` still `122` while `package.json` was `123`. Fixed in package-lock.json.

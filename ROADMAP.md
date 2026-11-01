@@ -28,7 +28,7 @@
 |-------|-------|-----------|--------|
 | P123.0.1 | DOCUMENTATION BASELINE | Close C122 in records; publish C123 mandate, catalog schema, org key-pool policy | DONE (this delivery) |
 | P123.1 | GATEWAY + LINEAGE | Unified `executeModelCall`; single-source Gemini behaviour preserved | DONE |
-| P123.2 | KEY POOL | Rotate up to 13 key slots on quota/429 | PLANNED |
+| P123.2 | KEY POOL | Rotate up to 13 key slots on quota/429 | DONE |
 | P123.3 | MULTI-SOURCE CATALOG | Load YAML/JSON catalog; second API source when keys exist | PLANNED |
 | P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience | PLANNED |
 | P123.5 | OPS PROBES | Optional scheduled health; secret naming; deploy notes | PLANNED |

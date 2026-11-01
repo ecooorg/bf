@@ -40,6 +40,7 @@ import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
 import { waitForModelStart } from './server/modelRateLimit.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
+import { resolveGeminiKeySlots, KeyPoolState } from './server/keyPool.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
@@ -161,6 +162,13 @@ app.use('/api', (req, res, next) => {
 
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+/** C123 P123.2: up to 13 organisational Gemini keys; solo GEMINI_API_KEY remains slot 0. */
+const geminiKeySlots = resolveGeminiKeySlots(process.env);
+const geminiKeyPoolState = new KeyPoolState();
+const buildGeminiAdapterFromKey = (key: string) => {
+  const base = process.env.GEMINI_BASE_URL || '';
+  return createGeminiAdapter(new GoogleGenAI({ apiKey: key, ...(base ? { httpOptions: { baseUrl: base } } : {}) }) as any);
+};
 const codeRouterState = newRouterState();
 
 /** Structured code authoring via the existing Router/JSON-output capability. Generated code is never executed by BiForge. */
@@ -2339,6 +2347,9 @@ async function start() {
         const result = await runAnalysis({ projectId: task.projectId, expectedVersion: Number(project.state_version), task: taskPrompt, artifactIds: task.input.artifactRefs, taskId: task.id, runId: run.id, artifactFilename: filename, artifactId: `artifact_${logicalArtifact}`, signal }, {
           registry: [...registryForGeminiCascade('STRONG'), ...REGISTRY_ALL.filter((e) => e.providerId !== 'gemini')],
           adapters: { gemini: createGeminiAdapter(ai as any), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.GROQ_API_KEY ? { groq: createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, apiKey: process.env.GROQ_API_KEY }) } : {}), ...(process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID ? { 'cloudflare-workers-ai': createOpenAICompatibleAdapter({ providerId: 'cloudflare-workers-ai', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, apiKey: process.env.CLOUDFLARE_API_TOKEN }) } : {}) },
+          keySlots: geminiKeySlots,
+          keyPoolState: geminiKeyPoolState,
+          buildGeminiAdapter: buildGeminiAdapterFromKey,
         });
         return { status: 'SUCCEEDED', providerId: result.model.split('/')[0], modelId: result.model.split('/').slice(1).join('/'), policyVersion: 'router-v1', budget: result.budget, evidence: [`artifact:${result.artifact.artifactId}@${result.artifact.version}`, `state_version:${result.state_version}`, `run:${run.id}`] };
       },

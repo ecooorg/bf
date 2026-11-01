@@ -1,3 +1,13 @@
+## P123.2 — Organisational Gemini key pool (≤13 slots)
+
+- **New** `server/keyPool.ts`: `resolveGeminiKeySlots`, `KeyPoolState`, cooldown, `shouldRotateKeySlot` (quota / transient / auth).
+- **`server/modelCarousel.ts`**: when `keySlots` + `buildGeminiAdapter` are provided, `executeModelCall` rotates keys after rotatable failures; lineage includes `keySlot` and per-attempt slot ids.
+- **Wire:** `server/analysisService.ts` deps accept pool; `server.ts` builds process-wide slots from env and passes them into Project Mode `runAnalysis`.
+- **Solo deploy:** only `GEMINI_API_KEY` → one slot; behaviour unchanged.
+- **Tests:** `tests/p123.2-key-pool.test.mjs`.
+- **`.env.example`:** documents `GEMINI_API_KEY_1`…`_13`.
+- package.json patch → `123.2`.
+
 ## P123.1 — Model carousel gateway + lineage; version lock fix
 
 - **Fix:** `package-lock.json` top-level / `packages[""].version` aligned to `123` (test:core patch metadata was failing after P123.0.1).
