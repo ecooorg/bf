@@ -1,3 +1,9 @@
+## P123.21 — CI repair follow-up
+
+- Repair only the three evidenced P123.20 contract mismatches.
+- Preserve the P123.20 <=5,000-character numbered ASSISTANT_PASTE handoff behavior.
+- Investigate compact artifact failure from its full log before changing packaging semantics.
+
 ## P123.20 — CI assistant handoff size limits
 
 - [x] Define a strict 5,000-character ceiling per `ASSISTANT_PASTE` file.

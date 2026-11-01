@@ -1,3 +1,10 @@
+## 123.21 — CI regression repair
+
+- Replaced the P123.18 hard-coded patch assertion with a cycle-123 patch-format contract.
+- Restored the explicit recommendation exception and explicit-assumptions wording required by the Expert prompt contract.
+- Clarified universal retrieved-evidence handling for weather observations and suppression of user-facing source URLs.
+- Retained P123.20 assistant-paste splitting and workflow artifact changes.
+
 ## P123.20 — Multi-part assistant CI paste summaries
 
 - Every workflow-generated `ASSISTANT_PASTE` part is limited to 5,000 characters.

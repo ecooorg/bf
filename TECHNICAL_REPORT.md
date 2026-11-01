@@ -1,3 +1,7 @@
+# P123.21 evidence note
+
+Status: targeted source/test corrections prepared from P123.20 CI evidence. The P123.20 run proves three concrete contract failures: stale patch assertion (expected 123.18 while package metadata is 123.20), Expert prompt wording assertion, and weather search-block wording assertion. P123.20 also reports test:compact-ci-artifacts failure, but the supplied handoff contains no failing test name, assertion, or source excerpt for that stage; it is intentionally not guessed or claimed fixed. Typecheck, complete test suites, build, and hosted Actions remain NOT_RUN for this patch.
+
 # CURRENT EVIDENCE NOTE — P123.20 multi-part assistant paste artifacts, 2026-11-01
 
 - Change: both assistant summary generation and CI artifact packaging split chat handoffs into numbered UTF-8 text files, each at most 5,000 JavaScript characters.
