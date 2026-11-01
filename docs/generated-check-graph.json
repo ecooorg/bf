@@ -63,6 +63,7 @@
         "scripts/patch-tools.mjs",
         "server/adapter.ts",
         "server/analysisService.ts",
+        "server/appBuilderAdapter.ts",
         "server/artifactFormat.ts",
         "server/artifactRepository.ts",
         "server/budget.ts",
@@ -118,6 +119,7 @@
         "scripts/patch-tools.mjs",
         "server/adapter.ts",
         "server/analysisService.ts",
+        "server/appBuilderAdapter.ts",
         "server/artifactFormat.ts",
         "server/artifactRepository.ts",
         "server/budget.ts",
@@ -184,7 +186,7 @@
     },
     {
       "id": "test:app-builder",
-      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs tests/app-builder-dom-wiring-p118-5-6.test.mjs",
+      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs tests/app-builder-dom-wiring-p118-5-6.test.mjs tests/app-builder-repair-integrity-p121.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -201,6 +203,7 @@
         "tests/app-builder-dom-wiring-p118-5-6.test.mjs",
         "tests/app-builder-engine-p93-2a.test.mjs",
         "tests/app-builder-recovery-p93-3.test.mjs",
+        "tests/app-builder-repair-integrity-p121.test.mjs",
         "tests/app-builder-spec-repair-p118.test.mjs",
         "tests/app-builder-unit-repair-p118.test.mjs",
         "tests/app-builder-validators-p93-2b.test.mjs",
@@ -294,13 +297,14 @@
         "scripts/run-dag.mjs",
         "scripts/schemaValidate.mjs",
         "scripts/statusGraph.mjs",
+        "server/expertAgent.ts",
         "server/githubIntegration.ts",
         "src/config.ts"
       ]
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -313,19 +317,27 @@
       ],
       "files": [
         "tests/core.test.mjs",
+        "tests/neon-initialize-workflow.test.mjs",
         "tests/p119-agent-boundaries.test.mjs",
         "tests/p119-agent-isolation.test.mjs",
         "tests/p119-agent-prompts-routes.test.mjs",
         "tests/p119-agent-ui-contract.test.mjs",
-        "tests/p121-cycle-governance.test.mjs"
+        "tests/p121-architect-result-shape.test.mjs",
+        "tests/p121-cycle-governance.test.mjs",
+        "tests/p121-navigator-protocol.test.mjs",
+        "tests/p12318-agent-session-isolation.test.mjs"
       ],
       "modules": [
+        "scripts/architect-dual-compare.mjs",
         "scripts/check-version.mjs",
         "scripts/docs-integrity.mjs",
         "scripts/lint-copy.mjs",
-        "scripts/p118-architect-live.mjs",
+        "scripts/migrate.mjs",
+        "scripts/neon-migration-preflight.mjs",
+        "scripts/neon-migration-verify.mjs",
         "scripts/p120-e2e-preflight.mjs",
         "scripts/patch-tools.mjs",
+        "scripts/version-metadata.mjs",
         "server/agentRouting.ts",
         "server/authRoutes.ts",
         "server/compatibilityRoutes.ts",
@@ -536,6 +548,7 @@
         "scripts/patch-tools.mjs",
         "server/adapter.ts",
         "server/analysisService.ts",
+        "server/appBuilderAdapter.ts",
         "server/artifactFormat.ts",
         "server/artifactRepository.ts",
         "server/budget.ts",
@@ -698,6 +711,8 @@
       ],
       "modules": [
         "server/epistemicVerifier.ts",
+        "server/expertAgent.ts",
+        "server/reasoningState.ts",
         "server/webSearch.ts"
       ]
     },
@@ -779,6 +794,9 @@
       "critical-app-builder-recovery",
       "test:app-builder"
     ],
+    "scripts/architect-dual-compare.mjs": [
+      "test:core"
+    ],
     "scripts/architectureCheckBoundaries.mjs": [
       "architecture:check"
     ],
@@ -848,19 +866,25 @@
       "test:core"
     ],
     "scripts/migrate.mjs": [
-      "db-migrate"
+      "db-migrate",
+      "test:core"
     ],
     "scripts/monitor-connections.mjs": [
       "critical-gemini-timeout",
       "critical-router-selection",
       "test:models"
     ],
+    "scripts/neon-migration-preflight.mjs": [
+      "test:core"
+    ],
+    "scripts/neon-migration-verify.mjs": [
+      "test:core"
+    ],
     "scripts/p118-architect-live-lib.mjs": [
       "test:app-builder"
     ],
     "scripts/p118-architect-live.mjs": [
-      "test:app-builder",
-      "test:core"
+      "test:app-builder"
     ],
     "scripts/p120-e2e-preflight.mjs": [
       "test:core"
@@ -898,6 +922,9 @@
     "scripts/verify-connections.mjs": [
       "test:integrations"
     ],
+    "scripts/version-metadata.mjs": [
+      "test:core"
+    ],
     "server/adapter.ts": [
       "critical-gemini-timeout",
       "critical-router-selection",
@@ -914,7 +941,10 @@
       "test:models"
     ],
     "server/appBuilderAdapter.ts": [
-      "test:app-builder"
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:app-builder",
+      "test:models"
     ],
     "server/appBuilderIndex.ts": [
       "test:app-builder"
@@ -996,8 +1026,10 @@
       "test:web"
     ],
     "server/expertAgent.ts": [
+      "test:compact-ci-artifacts",
       "test:core",
-      "test:pipeline"
+      "test:pipeline",
+      "test:web"
     ],
     "server/fakeProvider.ts": [
       "critical-gemini-timeout",
@@ -1146,7 +1178,8 @@
       "test:database:live"
     ],
     "server/reasoningState.ts": [
-      "test:core"
+      "test:core",
+      "test:web"
     ],
     "server/redact.ts": [
       "test:security"

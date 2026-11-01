@@ -45,6 +45,20 @@ For every failed DAG stage, retain the complete redacted stage log in `biforge-c
 - Route contract tests assert that `/project`, `/project-legacy`, and `/architect` use the selected `ProjectMode`, while `/architect-lab` remains a frozen diagnostic route.
 - These source/contract checks do not prove a generated app works in a real browser; generated-artifact browser/mobile outcome remains separately required.
 
+## C124 instruction-optimization acceptance
+
+C124 changes must be evaluated as an end-to-end information-preservation boundary, not merely as prompt-text cleanup.
+
+- Inventory prompt sources and every runtime output transformation before broad edits; record dependencies and proposed disposition.
+- Use deterministic fixtures to compare model input/output with the content BiForge finally delivers. Assert preservation of numbers, units, dates, caveats, uncertainty, links, multilingual text, and paragraph order.
+- Assert no unsolicited facts, canned conclusions, arbitrary entity/location insertion, or unrequested rewrite is introduced by BiForge.
+- Verify request/context/attachment transfer, tool-result preservation, session isolation, retry/error behavior, and affected agent workflows.
+- Use model-backed comparisons across unrelated domains where available. Compare raw provider output with final BiForge output; do not use a single canned answer as the oracle for open-ended questions.
+- Report source inspection, deterministic tests, full CI, live model calls, deployed behavior, and user outcomes separately. Mocks and snapshots do not establish live answer quality. Mark unavailable checks `NOT_RUN`.
+- Do not update prompt snapshots or remove an instruction solely to make CI green; establish that the resulting behavior matches the approved C124 contract first.
+
+Normative mandate and full acceptance gates: `C124_INSTRUCTION_OPTIMIZATION.md`.
+
 ## Acceptance hierarchy
 
 1. **User outcome:** realistic user task completed with useful, correct, understandable output.

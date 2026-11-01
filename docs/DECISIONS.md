@@ -1,17 +1,23 @@
-## D-2026-11-01-01 — Isolate Conversational and Expert user sessions
+# Active Decisions
+
+## D-2026-11-01-01 — C124: BiForge as an engineering intermediary, not a substitute LLM
 
 **Decision (owner-directed):**
-1. Conversational and Expert must use independent saved `Decision` sessions.
-2. Switching agents starts a blank session for the selected agent; the previous session remains preserved in the library.
-3. Briefs, transcripts, attachments, pending sends, and Expert method state must not cross the mode boundary.
-4. Expert initialization may use only its own session input/history and must not reconstruct a prior Conversational exchange.
-5. Shared provider infrastructure and a shared HTTP handler remain implementation details; they do not authorize sharing user conversation state.
+1. C124 is approved as the active development cycle, titled Instruction Optimization; product version advances to 124.
+2. External LLMs provide substantive understanding, reasoning, and answer composition. BiForge provides engineering mediation: request/context transfer, model/tool routing, session integrity, execution/recovery, deterministic validation, and faithful result delivery.
+3. Audit every instruction source and output transformation before broad cleanup. Classify each item by engineering control, integrity validation, model-substitution behavior, hard-coded special case, or necessary model communication.
+4. Remove or redesign unnecessary fixed reasoning recipes, canned substantive answers, brittle phrase/entity lists, and transformations that replace or degrade model output.
+5. Retain concise task framing, relevant context, safety constraints, tool instructions, and structured output contracts where they serve a demonstrable purpose.
+6. Preserve model-provided facts and qualifications; do not fabricate or silently discard information. Distinguish unverified model output from verified facts rather than deleting it solely because BiForge cannot verify it.
+7. Prefer deterministic code and tests for mechanical controls. Do not use prompt prose as a substitute for enforceable engineering logic.
+8. Require source-to-output integrity tests and representative model-backed evaluation; report mocks, local tests, hosted CI, live model evidence, and user outcomes separately.
+9. This decision does not authorize unrelated product, provider, security, or workflow changes. Normative user-outcome changes require separate owner approval.
 
-**Rationale:** The previous transition deliberately carried the Conversational transcript into Expert initialization, contrary to the owner's required independent-agent experience.
+**Normative detail:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`; current contract in `TECHNICAL_SPECIFICATION.md`; plan in `ROADMAP.md`.
 
-**Effect:** P123.18 implements client session isolation and changes the `/api/understand` prompt contract. Full separation of the A1/A2 backend handler and shared prompt assembly remains documented architecture debt; this decision does not claim those pipelines are fully split.
+**Effect:** P124.0.1 establishes the documentation mandate. P124.0.2 consolidates that un-applied documentation patch and removes one evidenced weather-location special case while repairing CI contracts. No repository-wide instruction audit or broad prompt cleanup is claimed; that remains P124.1.
 
-# Active Decisions
+---
 
 ## D-2026-10-31-03 — Launch C122: Expert Mode Reliability, Intelligence Quality & Decision Engineering
 
