@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P123.3 Catalog + inventory, 2026-11-01
+
+- **Research basis:** freellm.today / gravity.fast / byoklist / KDnuggets (Oct–Nov 2026), Reddit AgentZero/LocalLLM/openrouter threads — not vendor marketing alone.
+- **Runtime:** only sources with `enabled: true` and non-empty key env are runnable; default = Gemini pool.
+- **Next:** P123.4 health/cooldown per catalog source; enable OpenRouter/Groq when org keys land.
+
 # CURRENT EVIDENCE NOTE — P123.2 Key pool, 2026-11-01
 
 - **Changed:** key pool module; carousel rotation; analysisService + server Project Mode wiring; unit tests.

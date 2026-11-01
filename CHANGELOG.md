@@ -1,3 +1,11 @@
+## P123.3 — Multi-source catalog + free-provider inventory
+
+- **Runtime catalog:** `config/model-sources.json` + `server/modelSourcesCatalog.ts` (`loadModelSourcesCatalog`, `enabledSources`, `runnableSources`).
+- **Gemini** remains the only `enabled: true` source until Navigator sets keys + `enabled` for others (OpenRouter, Groq, Cloudflare, Mistral, NVIDIA, SambaNova, Cohere as disabled candidates in file).
+- **Inventory:** `docs/MODEL_SOURCES_INVENTORY.md` — 25-row snapshot (2026-11-01) of free/API candidates with practitioner caveats (OpenRouter rotation, Groq org limits, GitHub Models **retired**, HF free credits gone, Cerebras uncertain, EU options Mistral/OVH).
+- **Tests:** `tests/p123.3-model-sources-catalog.test.mjs`.
+- package.json patch → `123.3`.
+
 ## P123.2 — Organisational Gemini key pool (≤13 slots)
 
 - **New** `server/keyPool.ts`: `resolveGeminiKeySlots`, `KeyPoolState`, cooldown, `shouldRotateKeySlot` (quota / transient / auth).
