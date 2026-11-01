@@ -1,3 +1,13 @@
+## P123.23 — CI regression follow-up
+Status: targeted fixes prepared from P123.22 handoff evidence; hosted Actions and full test suites NOT_RUN.
+
+Evidence addressed:
+- `test:core` reported a stale `GOLDEN_STEP_PREFIX` expectation versus observed current digest `30fdcd…`. The prompt source was not changed in this patch; the golden is synchronized to the CI-observed digest.
+- `test:web` exposed a Russian weather follow-up regression at `contextualizeSearchText`. Normalization now removes the leading conversational preamble `интересует` before recognizing the Celsius follow-up, and prior-turn splitting uses actual newline boundaries. The supplied handoff did not include all three failing assertion bodies, so only the stack-identified contextualization path is addressed; remaining web failures must be read from the full log.
+- The compact-artifact contract test expected a successful-stage log inside the ZIP, contradicting P123.22's failure-first archive policy. The test now asserts that successful-stage logs are omitted. Structured `results.json` and failed logs remain part of the archive contract.
+
+No product prompt or routing behavior was changed. Validation in this delivery environment: NOT_RUN (dependencies unavailable); ZIP integrity only.
+
 ## P123.22 — CI evidence and logging compaction
 Status: implementation prepared; hosted Actions and full test suites NOT_RUN in this environment.
 

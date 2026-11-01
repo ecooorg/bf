@@ -1,3 +1,8 @@
+## 123.23
+- Updated the Expert step-prefix golden hash to the observed CI value from P123.22; no prompt text was changed by this repair.
+- Corrected contextual weather follow-up normalization for Russian prefatory wording and fixed newline splitting of prior user turns.
+- Aligned the compact-artifact contract test with the failure-first policy: successful-stage logs are excluded while structured results and failed logs remain retained.
+
 ## 123.22
 - Restored the complete prompt snapshot matrix in the primary CI handoff.
 - Reduced CI handoffs to failures, timeouts, blocked/not-run states and concise next actions; positive check output and successful-stage logs are omitted.

@@ -1,3 +1,9 @@
+## P123.23
+- [x] Synchronize the Expert step-prefix golden hash with the observed P123.22 CI digest without changing prompt text.
+- [x] Repair Russian weather follow-up normalization identified by the P123.22 web-test stack.
+- [x] Align compact archive test expectations with failure-first logging (omit successful-stage logs).
+- [ ] Re-run `test:core`, `test:web`, `test:compact-ci-artifacts`, then the verification DAG in hosted Actions; inspect remaining web failures from full log.
+
 ## P123.22
 - [x] Restore prompt snapshot matrix in the primary CI paste report.
 - [x] Make main CI handoff failure-first and suppress positive check noise.
