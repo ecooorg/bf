@@ -72,3 +72,10 @@ Prompt golden hashes are intentional review gates, not values to update mechanic
 5. Run `npm run test:core` and `node scripts/run-dag.mjs --profile check`; report unavailable dependencies or unrun hosted checks as `BLOCKED` / `NOT_RUN`.
 
 Never update a golden hash solely to make CI green, and never weaken or remove the snapshot assertion to bypass a mismatch.
+
+
+### Complete prompt snapshot diagnostics (P123.14)
+
+- The prompt snapshot test computes every Conversational/Expert mode hash, both Expert dialogue paragraph hashes, and the Expert step-prefix hash before running strict assertions. This prevents the first mismatch from hiding later drift.
+- CI writes `prompt-snapshot-diagnostics.json` with expected/actual values, match flags, deterministic inputs, generated prompt text, and exact prompt-builder source contents with SHA-256 fingerprints. `ASSISTANT_PASTE.txt` carries the compact matrix; the inner `biforge-ci-logs.zip` carries the full JSON.
+- Diagnostic evidence does not imply semantic approval. Review the included source and generated text before changing any golden value. Assertions must remain strict, and hashes must never be auto-refreshed by CI.
