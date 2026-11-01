@@ -1,7 +1,7 @@
 /**
  * P119.0.4 — agent-owned prompt text, agent-named routes, client route choice.
- * GOLDEN hashes lock the reviewed prompt contracts. Expert information wording changed in P123.10; Expert decision wording
- * changed to permit explicit, criteria-based recommendations and proportional factual answers. Keep these reviewed
+ * GOLDEN hashes lock the reviewed prompt contracts. Expert information wording changed in P123.10; Expert decision wording changed in P123.12; Expert research wording
+ * was also updated in the current source contract (P123.13 evidence: CI run 41330687334). Keep these reviewed
  * snapshots exact so subsequent unreviewed prompt drift remains detectable.
  */
 import test from 'node:test';
@@ -21,7 +21,7 @@ const GOLDEN = {
   "conversational:decision": "2dcdfba3d4edddc8be63471362c99e1969406d58557538aae8c431460bc20d92",
   "expert:decision": "1ef4e62e9c1f0d94bf87d613a810c8b201f8dad396f5cbc440392541126d8b66",
   "conversational:research": "2b01ca9d770c470cd02c7b2279a870a29ca5a1991bdbceb791c69e2db36df2d4",
-  "expert:research": "e6a446e5daba37e874aba54b91811e454365826a255243a863e82ce28f6237f7",
+  "expert:research": "21cac76f09f4541d462a1845b7b7f40b0a76a2482334728424cb9d28fbbe79cb",
   "conversational:engineering": "def3f9ef2ab36c1e6eb488989f8978dd24d9877c3fc60c9ba74799eae4abe206",
   "expert:engineering": "95b4691f26acc9f3659c66face4ec31eba84af47d503fd311ae48c5ec7347f32",
   "expertParagraph:unknown": "dee81076621e1bbaf42986a0a9b3dd9f7890196e373cfc473a28ab09c012089b",
