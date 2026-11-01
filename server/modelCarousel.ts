@@ -3,8 +3,8 @@
  *
  * Prefer `executeModelCall` over calling adapters directly.
  * P123.1: lineage on every call.
- * P123.2: optional Gemini key pool (≤13 slots) with cooldown rotation on quota/429/auth.
- * Multi-source catalog remains P123.3+.
+ * P123.2: optional Gemini key pool (≤10 slots) with cooldown rotation on quota/429/auth.
+ * P123.4: optional SourceHealthRegistry filters unhealthy catalog sources.
  */
 import type { ProviderAdapter, ProviderRequest } from './adapter.ts';
 import { routeCall, type RouteContext, type RouteResult } from './router.ts';
@@ -14,6 +14,7 @@ import {
   shouldRotateKeySlot,
   type KeySlot,
 } from './keyPool.ts';
+import type { SourceHealthRegistry } from './sourceHealth.ts';
 
 export type ModelChannel = 'api' | 'browser';
 
@@ -23,7 +24,7 @@ export interface ModelCallLineage {
   sourceId: string;
   model: string | null;
   channel: ModelChannel;
-  /** Opaque slot index 0..13; null if pool unused or unknown. */
+  /** Opaque slot index 0..10; null if pool unused or unknown. */
   keySlot: number | null;
   dataClass: 'public' | 'restricted';
   startedAt: string;
@@ -53,6 +54,8 @@ export interface ExecuteModelCallOptions {
   keyPoolState?: KeyPoolState;
   /** Build a Gemini ProviderAdapter for one secret (never log the argument). */
   buildGeminiAdapter?: (apiKey: string) => ProviderAdapter;
+  /** P123.4: per-catalog-source cooldown / breaker. */
+  sourceHealth?: SourceHealthRegistry;
 }
 
 const DEFAULT_SOURCE = 'gemini-free-pool';
@@ -118,13 +121,43 @@ export async function executeModelCall(
   opts: ExecuteModelCallOptions = {}
 ): Promise<CarouselResult> {
   const startedAtMs = Date.now();
+  const sourceId = opts.sourceId || DEFAULT_SOURCE;
+  const health = opts.sourceHealth;
+
+  if (health && !health.isAvailable(sourceId, startedAtMs)) {
+    const blocked: RouteResult = {
+      status: 'blocked',
+      decision: {
+        candidates: [],
+        rejected: [{ model: sourceId, reason: 'source_unhealthy' }],
+        attempts: [],
+        policy: 'carousel-source-health/v1',
+        unitsSpent: 0,
+        reason: 'source_unhealthy',
+      },
+    };
+    return {
+      ...blocked,
+      lineage: buildModelCallLineage(req, blocked, startedAtMs, { ...opts, sourceId, keySlot: null }),
+    };
+  }
+
   const slots = opts.keySlots?.length ? opts.keySlots : null;
   const pool = opts.keyPoolState;
   const build = opts.buildGeminiAdapter;
 
   if (!slots || !build) {
     const result = await routeCall(req, ctx);
-    const lineage = buildModelCallLineage(req, result, startedAtMs, opts);
+    if (health) {
+      if (result.status === 'ok') health.recordSuccess(sourceId);
+      else {
+        const err =
+          result.response?.errorClass ||
+          result.decision.attempts.map((a) => a.errorClass).filter(Boolean).at(-1);
+        health.recordFailure(sourceId, err, Date.now());
+      }
+    }
+    const lineage = buildModelCallLineage(req, result, startedAtMs, { ...opts, sourceId });
     return { ...result, lineage };
   }
 
@@ -170,6 +203,7 @@ export async function executeModelCall(
 
     if (result.status === 'ok') {
       pool?.clearCooldown(slot.slot);
+      health?.recordSuccess(sourceId);
       const lineage = buildModelCallLineage(
         req,
         result,
@@ -192,6 +226,7 @@ export async function executeModelCall(
     }
 
     // Non-rotatable failure (invalid request, blocked policy, etc.)
+    health?.recordFailure(sourceId, errClass, now());
     const lineage = buildModelCallLineage(req, result, startedAtMs, { ...opts, keySlot: slot.slot });
     if (poolAttempts.length) lineage.attempts = poolAttempts;
     return { ...result, lineage };
@@ -213,7 +248,13 @@ export async function executeModelCall(
     keySlot: available.at(-1)?.slot ?? null,
   });
   if (poolAttempts.length) lineage.attempts = poolAttempts;
-  if (failed.status !== 'ok') lineage.status = failed.status === 'blocked' ? 'blocked' : 'error';
+  if (failed.status !== 'ok') {
+    lineage.status = failed.status === 'blocked' ? 'blocked' : 'error';
+    const err =
+      failed.response?.errorClass ||
+      failed.decision.attempts.map((a) => a.errorClass).filter(Boolean).at(-1);
+    health?.recordFailure(sourceId, err, now());
+  }
   return { ...failed, lineage };
 }
 
@@ -232,4 +273,5 @@ export function lineageLogFields(lineage: ModelCallLineage): Record<string, unkn
 }
 
 export { resolveGeminiKeySlots, KeyPoolState, shouldRotateKeySlot };
+export { SourceHealthRegistry, globalSourceHealth } from './sourceHealth.ts';
 export type { KeySlot };

@@ -1,13 +1,14 @@
 /**
- * C123 P123.2 — Organisational API key pool (up to 13 legitimate participant keys).
- * Secrets stay in env; runtime only tracks slot indices and cooldowns.
+ * C123 — Organisational API key pool per vendor.
+ * Up to MAX_ORG_KEY_SLOTS (10) legitimate keys; any count 1..10 is valid (solo = 1).
+ * Tests and runtime must never require a fixed full set of 10.
  */
-export const MAX_ORG_KEY_SLOTS = 13;
+export const MAX_ORG_KEY_SLOTS = 10;
 /** Default cool-down after quota / rate-limit on a slot (5 minutes). */
 export const DEFAULT_SLOT_COOLDOWN_MS = 300_000;
 
 export interface KeySlot {
-  /** 0 = GEMINI_API_KEY; 1..13 = GEMINI_API_KEY_n */
+  /** 0 = primary env (e.g. GEMINI_API_KEY); 1..10 = PREFIX_n */
   slot: number;
   envName: string;
   /** Secret material — never log this field. */
@@ -21,8 +22,19 @@ export interface KeyPoolSnapshot {
   cooledSlots: number[];
 }
 
-/** Resolve Gemini keys from env. Solo deploy keeps a single GEMINI_API_KEY (slot 0). */
-export function resolveGeminiKeySlots(env: NodeJS.ProcessEnv = process.env): KeySlot[] {
+/**
+ * Resolve keys from env for a provider prefix.
+ * Accepts PRIMARY (slot 0) and PREFIX_1 … PREFIX_10; skips empty; dedupes identical secrets.
+ * Any number of present keys from 1 to 10 is valid.
+ */
+export function resolveKeySlots(
+  env: NodeJS.ProcessEnv,
+  options: { primaryEnv: string; numberedPrefix: string; maxSlots?: number } = {
+    primaryEnv: 'GEMINI_API_KEY',
+    numberedPrefix: 'GEMINI_API_KEY',
+  }
+): KeySlot[] {
+  const max = Math.min(options.maxSlots ?? MAX_ORG_KEY_SLOTS, MAX_ORG_KEY_SLOTS);
   const found: KeySlot[] = [];
   const seenKeys = new Set<string>();
 
@@ -34,11 +46,17 @@ export function resolveGeminiKeySlots(env: NodeJS.ProcessEnv = process.env): Key
     found.push({ slot, envName, key });
   };
 
-  push(0, 'GEMINI_API_KEY', env.GEMINI_API_KEY);
-  for (let i = 1; i <= MAX_ORG_KEY_SLOTS; i++) {
-    push(i, `GEMINI_API_KEY_${i}`, env[`GEMINI_API_KEY_${i}`]);
+  push(0, options.primaryEnv, env[options.primaryEnv]);
+  for (let i = 1; i <= max; i++) {
+    const name = `${options.numberedPrefix}_${i}`;
+    push(i, name, env[name]);
   }
   return found;
+}
+
+/** @deprecated alias — Gemini-specific resolver */
+export function resolveGeminiKeySlots(env: NodeJS.ProcessEnv = process.env): KeySlot[] {
+  return resolveKeySlots(env, { primaryEnv: 'GEMINI_API_KEY', numberedPrefix: 'GEMINI_API_KEY' });
 }
 
 export class KeyPoolState {
@@ -51,7 +69,6 @@ export class KeyPoolState {
     return until === undefined || until <= now;
   }
 
-  /** Slots still usable at `now`, preserving catalog order. */
   available(slots: KeySlot[], now: number = Date.now()): KeySlot[] {
     return slots.filter((s) => this.isAvailable(s.slot, now));
   }
@@ -79,7 +96,6 @@ export class KeyPoolState {
   }
 }
 
-/** True when the error class should rotate to the next key slot. */
 export function shouldRotateKeySlot(errorClass: string | undefined): boolean {
   return errorClass === 'PROVIDER_QUOTA' || errorClass === 'PROVIDER_TRANSIENT' || errorClass === 'PROVIDER_AUTH';
 }
