@@ -70,3 +70,22 @@ export function runnableSources(
 ): CatalogSource[] {
   return enabledSources(catalog, dataClass).filter((s) => sourceHasCredentials(s, env));
 }
+
+/**
+ * P123.5: optionally treat a disabled catalog source as enabled when its first key env is set
+ * and CAROUSEL_AUTO_ENABLE=true (ops/experimental). Default off — Navigator enables sources in JSON.
+ */
+export function withEnvAutoEnable(
+  catalog: ModelSourcesCatalog,
+  env: NodeJS.ProcessEnv = process.env
+): ModelSourcesCatalog {
+  if (env.CAROUSEL_AUTO_ENABLE !== 'true') return catalog;
+  return {
+    ...catalog,
+    sources: catalog.sources.map((s) => {
+      if (s.enabled) return s;
+      if (!sourceHasCredentials(s, env)) return s;
+      return { ...s, enabled: true };
+    }),
+  };
+}

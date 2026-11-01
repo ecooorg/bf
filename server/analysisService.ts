@@ -9,7 +9,7 @@ import { DEFAULT_TASK_UNITS, DEFAULT_DAILY_UNITS, createQuotaTracker, shadowCost
 import { guardModelCall } from './planService.ts';
 import { loadRouterState, loadQuotaRows, rehydrateQuota, saveHealthEvent, type HealthEvent } from './modelHealth.ts';
 import { newRouterState, type RouterState } from './router.ts';
-import { executeModelCall, KeyPoolState, type KeySlot, globalSourceHealth } from './modelCarousel.ts';
+import { executeModelCall, KeyPoolState, type KeySlot, type SourceHealthRegistry } from './modelCarousel.ts';
 import { REGISTRY_SEED, type RegistryEntry } from './modelRegistry.ts';
 import { statePatchSchema, SECTIONS, type Section } from './statePipeline.ts';
 import { getPool } from './database.ts';
@@ -21,7 +21,7 @@ export class AnalysisError extends Error { constructor(readonly code: string, me
 const outputSchema = z.object({ summary: z.string().max(20000).default(''), patch: statePatchSchema }).strict();
 const routerState: RouterState = newRouterState();
 
-export interface AnalysisDeps { adapters: Record<string, ProviderAdapter>; registry?: RegistryEntry[]; router?: RouterState; maxTokens?: number; quota?: ReturnType<typeof createQuotaTracker>; keySlots?: KeySlot[]; keyPoolState?: KeyPoolState; buildGeminiAdapter?: (apiKey: string) => ProviderAdapter }
+export interface AnalysisDeps { adapters: Record<string, ProviderAdapter>; registry?: RegistryEntry[]; router?: RouterState; maxTokens?: number; quota?: ReturnType<typeof createQuotaTracker>; keySlots?: KeySlot[]; keyPoolState?: KeyPoolState; buildGeminiAdapter?: (apiKey: string) => ProviderAdapter; sourceHealth?: SourceHealthRegistry }
 
 /** Process-wide quota tracker; restored from the ledger (last 24 h) on the first analysis. */
 const quotaTracker = createQuotaTracker();
@@ -71,7 +71,7 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
     onCall: async (resp, info) => { await writeLedgerEntry(ledgerEntryFromResponse(resp, { runId, retries: info.retries, routeDecisionId, units: info.units, costEstimate: shadowCostUsd({ input: resp.usage.input ?? 0, output: resp.usage.output ?? 0 }, info.entry.pricing) })); },
   }, {
     sourceId: 'gemini-free-pool',
-    sourceHealth: globalSourceHealth,
+    ...(deps.sourceHealth ? { sourceHealth: deps.sourceHealth } : {}),
     ...(deps.keySlots?.length && deps.buildGeminiAdapter
       ? { keySlots: deps.keySlots, keyPoolState: deps.keyPoolState, buildGeminiAdapter: deps.buildGeminiAdapter }
       : {}),
