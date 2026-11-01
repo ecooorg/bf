@@ -106,21 +106,24 @@ jobs:
           MODEL_CASCADE_LIGHT: gemini-3.5-flash-lite,gemini-3.1-flash-lite
           MODEL_CASCADE_STRONG: gemini-3.5-flash-lite,gemini-3.1-flash-lite
           MODEL_MIN_INTERVAL_MS: '0'
-        run: node scripts/carousel-live-smoke.mjs
+          LLM_CALL_TIMEOUT_MS: '25000'
+        # .ts server modules require tsx (same as deterministic layer)
+        run: node --import tsx scripts/carousel-live-smoke.mjs
       - name: Ops probe with real env (no secret output)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: node scripts/carousel-ops-probe.mjs | tee artifacts/carousel-live-probe.json
+        run: |
+          mkdir -p artifacts/carousel-verify
+          node --import tsx scripts/carousel-ops-probe.mjs | tee artifacts/carousel-verify/live-probe.json
       - name: Upload live artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: carousel-verify-live
-          path: |
-            artifacts/carousel-live-probe.json
+          path: artifacts/carousel-verify/
           if-no-files-found: warn
 
   summary:
