@@ -25,7 +25,7 @@ test('P120.0.4 agent transitions preserve the active conversation context', asyn
 
   const port = await freePort();
   const base = `http://127.0.0.1:${port}`;
-  const server = spawn('tsx', ['server.ts'], {
+  const server = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
