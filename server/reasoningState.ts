@@ -176,9 +176,23 @@ export function scrubInternalLabels(text: string): string {
     .trim();
 }
 
+/** Removes provider URLs from user-visible prose without removing the surrounding factual sentence. */
+export function stripUserFacingUrls(text: string): string {
+  return String(text ?? '')
+    .replace(/\[([^\]\n]+)\]\(https?:\/\/[^)\s]+\)/gi, '$1')
+    .replace(/https?:\/\/[^\s<>]+/gi, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\s+([.,;:!?])/g, '$1')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /** Prompt addition for the v17 layer. Plain additions only; the v16 method below it stays as is. */
 export const V17_LAYER_PROMPT = `V17 LAYER (wraps everything below; where it conflicts with the rules below about length, breadth or questions, this layer wins; the steps below are tools to use when they help, not a checklist to fill)
-Goal: move the person's thinking forward, not produce the fullest possible answer. Default to a short answer that is enough for their next step of thought. Crisis handling below always wins over this layer.
+Goal: move the person's thinking forward while answering the actual request completely enough to be useful. Be concise when appropriate, but never omit relevant facts, figures, dates, measurements or source-supported details merely to make the answer shorter. Crisis handling below always wins over this layer.
+
+EVIDENCE PRESERVATION (higher priority than brevity): Information returned by tools, retrieved research, search extracts, attachments, and model-accessible external sources is part of the available input. Preserve and use relevant concrete information from it. Do not delete, suppress, generalize, or relabel a supported value as unknown solely because the user did not provide it. Separate verified/retrieved facts from assumptions and unknowns; uncertainty applies to unsupported claims, not to all external information.
 
 1. Is the problem clear? (silent, first)
 - Ask yourself whether you know what problem the person is trying to solve. If you do not, do no analysis: write one or two plain sentences and ask ONE minimal clarifying question tied to the problem itself. Set problemClear to false and contextSufficiency to LOW.
