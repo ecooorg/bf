@@ -114,6 +114,8 @@ const assistantBrief = [
   `activeAtEnd: ${activeAtEnd ? JSON.stringify(activeAtEnd) : 'none'}`,
   `nextAction: ${nextAction}`,
   '',
+  ...(fs.existsSync(path.join(dir, 'prompt-snapshot-diagnostics.json')) ? ['Prompt snapshot detail: prompt-snapshot-diagnostics.json contains all expected/actual hashes, generated prompt text, and prompt-builder source text.'] : []),
+  '',
   'Rerun commands:',
   ...(failedStages.length ? failedStages.map((s) => `- ${s.id}: ${s.rerun || '(no command recorded)'}`) : ['- (none)']),
   '',
@@ -162,6 +164,25 @@ const tailBlocks = Object.entries(failingLogTails || {})
   .map(([log, body]) => `### log:${log}\n${String(body || '').slice(0, 1800)}`)
   .join('\n\n');
 const evidenceTrim = redact(report).slice(0, 10_000);
+// Prompt snapshot failures often surface one-at-a-time through strict assertions.
+// Preserve the entire computed matrix in the paste summary and the full JSON/source
+// material in the inner ZIP so the assistant can diagnose all drift in one pass.
+let promptSnapshotSummary = null;
+try {
+  const diagnostic = JSON.parse(fs.readFileSync(path.join(dir, 'prompt-snapshot-diagnostics.json'), 'utf8'));
+  const rows = Object.entries(diagnostic.actual || {}).map(([key, actual]) => {
+    const expected = diagnostic.expected?.[key] || null;
+    return `${key}: ${actual} | expected=${expected || 'n/a'} | ${expected ? (actual === expected ? 'MATCH' : 'MISMATCH') : 'DIAGNOSTIC_ONLY'}`;
+  });
+  promptSnapshotSummary = [
+    'PROMPT_SNAPSHOT_DIAGNOSTICS=available',
+    ...rows,
+    'PROMPT_SOURCE_SHA256=' + Object.entries(diagnostic.sources || {}).map(([file, value]) => `${file}:${value.sha256}`).join(';'),
+    'PROMPT_DETAILS_FILE=prompt-snapshot-diagnostics.json (full generated prompts + exact builder source text are inside biforge-ci-logs.zip)',
+  ];
+} catch {
+  promptSnapshotSummary = null;
+}
 const pasteLines = [
   '# ASSISTANT_PASTE — single summary for chat (paste this file when ZIP attach is unavailable)',
   `STATUS=${status}`,
@@ -178,6 +199,7 @@ const pasteLines = [
   '## Failing log tails',
   tailBlocks || '(none captured)',
   '',
+  ...(promptSnapshotSummary ? ['', '## Complete prompt snapshot matrix', ...promptSnapshotSummary, ''] : []),
   '## PATCH_EVIDENCE (truncated; full text inside biforge-ci-logs.zip)',
   evidenceTrim,
   '',
