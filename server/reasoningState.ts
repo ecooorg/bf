@@ -176,8 +176,13 @@ export function scrubInternalLabels(text: string): string {
 }
 
 /** Removes provider URLs from user-visible prose without removing the surrounding factual sentence. */
-export function stripUserFacingUrls(text: string): string {
-  return String(text ?? '')
+export function stripUserFacingUrls(text: string, preserveUrls = false): string {
+  const value = String(text ?? '');
+  // Keep the established no-automatic-source-URL behavior, but never suppress
+  // a link when the user explicitly requested one.
+  if (preserveUrls) return value;
+  return value
+    .replace(/\b(?:sources?|источник(?:и|ов)?)\s*:\s*https?:\/\/[^\s<>]+/giu, '')
     .replace(/\[([^\]\n]+)\]\(https?:\/\/[^)\s]+\)/gi, '$1')
     .replace(/https?:\/\/[^\s<>]+/gi, '')
     .replace(/[ \t]{2,}/g, ' ')

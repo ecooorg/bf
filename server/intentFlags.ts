@@ -12,6 +12,8 @@ export type UserIntentFlags = {
   userCriticizedEvasion: boolean;
   userForbadeMethodology: boolean;
   userDemandedDirectAnswer: boolean;
+  userAskedLinks: boolean;
+  userForbadeLinks: boolean;
 };
 
 export type GainAuditSlice = {
@@ -27,6 +29,10 @@ const RE_ASKED_SEARCH = /(?:найди(?:те)?(?:\s+(?:в\s+(?:сети|инт�
 const RE_CRITICIZED_EVASION = /(?:это\s+не\s+решает(?:\s+мою\s+задачу)?|не\s+решает\s+(?:мою\s+)?задачу|не\s+помогает|бесполезн(?:о|ый|ая)|увилива(?:ешь|ние)|ты\s+уклоняешься|this\s+does\s+not\s+solve\s+(?:my\s+)?(?:task|problem)|doesn'?t\s+(?:solve|help)|you(?:'re|\s+are)\s+avoiding|useless\s+answer|not\s+what\s+I\s+(?:asked|need))/i;
 const RE_LIMITATION_ONLY = /(?:невозможн|недоступн|не\s+могу\s+(?:дать|предсказать|спрогнозировать)|точный\s+(?:прогноз|ответ)\s+невозможен|cannot\s+(?:give|provide|predict)|impossible\s+to\s+(?:give|predict)|no\s+(?:exact|precise)\s+(?:forecast|answer)|I\s+(?:cannot|can't)\s+(?:give|provide))/i;
 const RE_FORBADE_METHODOLOGY = /(?:не\s+(?:пиши|рассказывай|говори)(?:\s+мне)?\s+(?:о\s+)?методик|не\s+поучай|без\s+методик|не\s+объясняй\s+(?:метод|методик|как\s+работа)|don'?t\s+(?:lecture|explain\s+(?:the\s+)?(?:method|methodology))|no\s+methodology|stop\s+lecturing|без\s+(?:вступлени\p{L}*|предислови\p{L}*)|коротко\s+и\s+по\s+делу)/iu;
+
+const RE_ASKED_LINKS = /(?:дай(?:те)?|пришли(?:те)?|покажи(?:те)?|предоставь(?:те)?|нужн[аыо]?|хочу)\s+(?:мне\s+)?(?:прямую\s+)?ссылк\p{L}*|(?:ссылк\p{L}*|url|link)\s+(?:на|к|to)\s+|(?:официальн\p{L}*\s+)?(?:сайт|страниц\p{L}*)\s+(?:и\s+)?(?:ссылк\p{L}*|url)|provide\s+(?:me\s+)?(?:a\s+)?link|give\s+(?:me\s+)?(?:a\s+)?link|send\s+(?:me\s+)?(?:the\s+)?link|link\s+to|show\s+(?:me\s+)?the\s+url|what\s+is\s+the\s+url/iu;
+const RE_FORBADE_LINKS = /(?:без\s+ссылок|не\s+(?:добавляй|давай|присылай|показывай)\s+(?:ссылк\p{L}*|url)|ссылки?\s+не\s+нужн\p{L}*|no\s+(?:source\s+)?links?|do\s+not\s+include\s+(?:source\s+)?links?|don't\s+include\s+(?:source\s+)?links?|without\s+links)/iu;
+
 const RE_DEMANDED_DIRECT = /(?:ответь\s+на\s+мой\s+вопрос|дай\s+прогноз|просто\s+ответь|только\s+ответ|answer\s+my\s+question|just\s+answer|give\s+(?:me\s+)?(?:the\s+)?(?:forecast|answer)|directly\s+answer|без\s+(?:вступлени\p{L}*|предислови\p{L}*)|коротко\s+и\s+по\s+делу)/iu;
 
 // MP3: methodology / lecture preamble before substance (opening patterns).
@@ -52,6 +58,8 @@ export function detectUserIntentFlags(lastUserText: string, history: Array<{ rol
     userCriticizedEvasion: RE_CRITICIZED_EVASION.test(text),
     userForbadeMethodology: RE_FORBADE_METHODOLOGY.test(text) || RE_FORBADE_METHODOLOGY.test(recentUser),
     userDemandedDirectAnswer: RE_DEMANDED_DIRECT.test(text) || RE_DEMANDED_DIRECT.test(recentUser),
+    userAskedLinks: RE_ASKED_LINKS.test(text) && !RE_FORBADE_LINKS.test(text),
+    userForbadeLinks: RE_FORBADE_LINKS.test(text),
   };
 }
 
