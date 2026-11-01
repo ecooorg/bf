@@ -72,7 +72,7 @@ const UNIVERSAL = ['CURRENT DATE (server-provided): 2026-10-14', 'LANGUAGE', 'HO
   assert.ok(sizes.information < sizes.decision * 0.6, `information prompt is much smaller: ${JSON.stringify(sizes)}`);
   console.log('mp2 prompt size (chars):', JSON.stringify(sizes));
   // Expert and Project instructions are untouched.
-  assert.ok(EXPERT_STEP_PREFIX.includes('Do not choose or rank options for the person') && EXPERT_STEP_PREFIX.includes('explicit assumptions'));
+  assert.ok(EXPERT_STEP_PREFIX.includes('unless the person explicitly asks for a recommendation') && EXPERT_STEP_PREFIX.includes('explicit assumptions'));
   assert.ok(ANALYST_INSTRUCTION.includes('Prefer operational precision') && ANALYST_INSTRUCTION.includes('Do not chat or coach'));
   const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   assert.ok(server.includes('EXPERT_STEP_PREFIX + prompt'), 'Expert path still prefixes its steps');
@@ -247,7 +247,7 @@ const approxFlags = detectUserIntentFlags('Дай приблизительную
 
   // Expert / Project string contracts (read from source files without loading full module graphs).
   const packs = readFileSync(new URL('../server/expertAgent.ts', import.meta.url), 'utf8');
-  assert.ok(packs.includes('Do not choose or rank options for the person') && packs.includes('explicit assumptions'));
+  assert.ok(packs.includes('Do not choose or rank options unless the person explicitly asks for a recommendation') && packs.includes('explicit assumptions'));
   const ctx = readFileSync(new URL('../server/contextBuilder.ts', import.meta.url), 'utf8');
   assert.ok(ctx.includes('Prefer operational precision') && ctx.includes('Do not chat or coach'));
   console.log('mp3 mode fixtures OK');

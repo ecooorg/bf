@@ -80,7 +80,7 @@ test('P120.0.3 Architect browser scenario: create, validate evidence, download a
     let projectState = {};
     let buildPayload = null;
     let downloadRequests = 0;
-    const checksRun = ['html-structure', 'js-syntax', 'refs', 'size', 'secrets', 'acceptance', 'dom-wiring'];
+    const checksRun = ['html-structure', 'js-syntax', 'module-contracts', 'refs', 'size', 'secrets', 'acceptance', 'dom-wiring'];
     const project = () => ({
       id: projectId,
       name: projectName,

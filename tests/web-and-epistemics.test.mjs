@@ -358,3 +358,27 @@ test('P50 isRateTopic detects RU and EN rate questions', () => {
 });
 }
 // ===== END p50-web-search.test.mjs =====
+
+
+// ===== BEGIN contextual-search-regression.test.mjs =====
+{
+const test = (await import('node:test')).default;
+const assert = (await import('node:assert/strict')).default;
+const { contextualizeSearchText } = await import('../server/webSearch.ts');
+
+test('elliptical weather follow-up carries the prior city into search', () => {
+  assert.match(
+    contextualizeSearchText('интересует погода в градусах Цельсия', 'погода в Цюрихе сегодня'),
+    /weather in Цюрихе temperature in Celsius/i,
+  );
+});
+
+test('ordinary complete query is not polluted by unrelated history', () => {
+  assert.equal(contextualizeSearchText('weather in Tokyo today', 'weather in Zurich'), 'weather in Tokyo today');
+});
+
+test('unit follow-up without a recoverable place stays unresolved, never guesses', () => {
+  assert.equal(contextualizeSearchText('in Celsius?', 'hello there'), 'in Celsius?');
+});
+}
+// ===== END contextual-search-regression.test.mjs =====
