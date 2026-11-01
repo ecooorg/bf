@@ -176,6 +176,71 @@ function isGenericNumericContext(text: string, start: number, end: number): bool
   return !!m && GENERIC_COUNT_NOUNS.has(m[1].toLowerCase());
 }
 
+
+/** ISO calendar components are date syntax, not independent numeric claims. */
+function isIsoDateComponent(out: string, start: number, end: number): boolean {
+  const left = Math.max(0, start - 16);
+  const right = Math.min(out.length, end + 16);
+  const fragment = out.slice(left, right);
+  const dateRe = /\b20\d{2}-\d{2}-\d{2}\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = dateRe.exec(fragment))) {
+    const a = left + m.index;
+    const b = a + m[0].length;
+    if (start >= a && end <= b) return true;
+  }
+  return false;
+}
+
+/**
+ * A correctly stated Fahrenheit/Celsius pair is a derivation, not an unsupported
+ * external number. Validate the arithmetic before exempting either side.
+ */
+function isValidatedTemperatureConversion(out: string, start: number, end: number): boolean {
+  const patterns = [
+    /(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|degrees?\s+Fahrenheit|градусов?\s+по\s+Фаренгейту)[\s\S]{0,100}?(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|degrees?\s+Celsius|градусов?\s+Цельсия)/giu,
+    /(-?\d+(?:[.,]\d+)?)\s*(?:°\s*C|degrees?\s+Celsius|градусов?\s+Цельсия)[\s\S]{0,100}?(-?\d+(?:[.,]\d+)?)\s*(?:°\s*F|degrees?\s+Fahrenheit|градусов?\s+по\s+Фаренгейту)/giu,
+  ];
+  for (const re of patterns) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(out))) {
+      const first = Number(m[1].replace(',', '.'));
+      const second = Number(m[2].replace(',', '.'));
+      const celsius = /°\s*C|Celsius|Цельсия/iu.test(m[0]) && /°\s*F|Fahrenheit|Фаренгейту/iu.test(m[0])
+        ? (re === patterns[0] ? (first - 32) * 5 / 9 : second)
+        : NaN;
+      const expected = re === patterns[0] ? (first - 32) * 5 / 9 : (second - 32) * 5 / 9;
+      const actual = re === patterns[0] ? second : first;
+      if (!Number.isFinite(celsius) || Math.abs(expected - actual) > 0.51) continue;
+      const a = m.index ?? 0;
+      const b = a + m[0].length;
+      if (start >= a && end <= b) return true;
+      const tokenValue = Number(out.slice(start, end).replace(',', '.'));
+      const formulaNearby = /(?:-\s*32)[\s)]{0,4}[*×]\s*5\s*\/\s*9|[*×]\s*9\s*\/\s*5\s*[+]?\s*32/i.test(out);
+      const fahrenheitOperand = re === patterns[0] ? first : second;
+      if (formulaNearby && tokenValue === fahrenheitOperand) return true;
+    }
+  }
+  // Permit conversion constants only when an explicit, standard conversion formula
+  // is present in the same answer and a correctly calculated temperature pair exists.
+  if (['32', '5', '9'].includes(out.slice(start, end).replace(/[+,]/g, ''))) {
+    const hasFormula = /(?:-\s*32)[\s)]{0,4}[*×]\s*5\s*\/\s*9|[*×]\s*9\s*\/\s*5\s*[+]?\s*32/i.test(out);
+    if (hasFormula && patterns.some((re) => {
+      re.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(out))) {
+        const a = Number(m[1].replace(',', '.'));
+        const b = Number(m[2].replace(',', '.'));
+        const expected = re === patterns[0] ? (a - 32) * 5 / 9 : (b - 32) * 5 / 9;
+        const actual = re === patterns[0] ? b : a;
+        if (Math.abs(expected - actual) <= 0.51) return true;
+      }
+      return false;
+    })) return true;
+  }
+  return false;
+}
+
 export function validateNumbers(out: string, input: string, derived: string[] = [], extraAllowed: number[] = []): string[] {
   const allowed = collectAllowedFromInput(input, extraAllowed);
   for (const d of derived) allowed.add(String(d).replace(',', '.'));
@@ -189,6 +254,7 @@ export function validateNumbers(out: string, input: string, derived: string[] = 
     const start = m.index ?? 0;
     const end = start + m[0].length;
     if (allowed.has(n)) continue;
+    if (isIsoDateComponent(out, start, end) || isValidatedTemperatureConversion(out, start, end)) continue;
     if (n.endsWith('%') && allowed.has(n.slice(0, -1))) continue;
     // A percentage supplied by the user may be echoed as a bare numeric value
     // in derived_numbers (e.g. {value: 50}) or while explicitly discussing
