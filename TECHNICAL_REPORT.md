@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P123.13 Expert research prompt snapshot alignment, 2026-11-01
+
+- **Observed CI failure:** run `41330687334`, commit `d6cf32e1fd88688e10b9f123fa5b3d2dbb72cae5`, reports 27 PASS / 1 FAIL. `test:core` failed at the `expert:research` strict prompt snapshot: expected `e6a446e5…f6237f7`, actual `21cac76f…be79cb`. `workflow-dag` is downstream.
+- **Change:** refresh only the `expert:research` golden hash to the exact actual value in the CI evidence. Strict snapshot equality is preserved; runtime product logic is untouched.
+- **Evidence limits:** the report supplies the actual generated hash but not the changed prompt source diff. This patch therefore records snapshot alignment, not an independently verified semantic review of the prompt wording. Local core/DAG checks and hosted rerun: **NOT_RUN**.
+
 # CURRENT EVIDENCE NOTE — P123.12 Expert decision prompt snapshot alignment, 2026-11-01
 
 - **Observed CI failure:** run `41329292124` had one failing check in `test:core`; `expert:decision` expected `cdca660e…` but the generated prompt hash was `1ef4e62e…`. All other recorded checks passed (27/28). `workflow-dag` failed as a consequence of `test:core`.

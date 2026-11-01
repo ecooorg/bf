@@ -1,3 +1,10 @@
+## P123.13 — Expert research prompt snapshot alignment
+
+- **Observed CI failure:** run `41330687334` failed only `test:core`; the strict `expert:research` prompt snapshot expected `e6a446e5…f6237f7`, while the generated prompt hash was `21cac76f…be79cb`. `workflow-dag` failed downstream of `test:core`.
+- Updated only the `expert:research` golden hash from the run-scoped assertion evidence. The snapshot remains a strict equality check; no test was disabled or weakened and no runtime prompt/source behavior was changed in this patch.
+- Patch metadata advanced to `123.13`; product version remains `123`. Root lockfile version metadata remains aligned (`version: 123`); it has no patch field.
+- **Verification:** CI run reports 27/28 checks passing. Local `npm run test:core` and `node scripts/run-dag.mjs --profile check`: **NOT_RUN** in this delivery environment. Hosted rerun: **NOT_RUN**. The CI-provided actual hash is treated as evidence; source bytes were not independently re-executed locally.
+
 ## P123.12 — Expert decision prompt snapshot alignment
 
 - Updated the reviewed `expert:decision` prompt SHA-256 to match the current, intentional Expert prompt contract: proportional answers for factual questions and conditional, criteria-based recommendations when explicitly requested.

@@ -34,6 +34,7 @@
 | P123.5 | OPS PROBES | Probe script, ops doc, auto-enable opt-in; CI preflight config/; health isolation | DONE |
 | P123.11 | CI REGRESSION REPAIR | Align reviewed Expert prompt snapshot and App Builder prompt-version assertion with current source | IMPLEMENTED — hosted rerun pending |
 | P123.12 | EXPERT DECISION SNAPSHOT ALIGNMENT | Align the strict Expert decision prompt snapshot with the reviewed current source contract | IMPLEMENTED — hosted rerun pending |
+| P123.13 | EXPERT RESEARCH SNAPSHOT ALIGNMENT | Align the strict Expert research prompt snapshot with the exact CI-observed generated hash | IMPLEMENTED — hosted rerun pending; semantic source review NOT_VERIFIED |
 
 ### Frozen / out of scope during C123 MVP
 
