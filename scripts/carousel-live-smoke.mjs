@@ -1,33 +1,56 @@
 #!/usr/bin/env node
 /**
- * Live smoke for carousel (needs GEMINI_API_KEY). One short JSON call via official SDK path.
- * Optional second key: if GEMINI_API_KEY_1 set, reports pool size only (does not burn both unless ROTATE_PROBE=true).
+ * Live smoke for carousel (needs GEMINI_API_KEY).
+ * Must be run with: node --import tsx scripts/carousel-live-smoke.mjs
  */
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const outDir = path.join(root, 'artifacts', 'carousel-verify');
+fs.mkdirSync(outDir, { recursive: true });
 
 async function main() {
-  const key = process.env.GEMINI_API_KEY;
+  const key = String(process.env.GEMINI_API_KEY || '').trim();
   if (!key) {
-    console.error(JSON.stringify({ ok: false, error: 'GEMINI_API_KEY required' }));
+    const msg = { ok: false, error: 'GEMINI_API_KEY required' };
+    console.error(JSON.stringify(msg));
+    fs.writeFileSync(path.join(outDir, 'live-smoke.json'), JSON.stringify(msg, null, 2));
     process.exit(2);
   }
 
-  const { resolveGeminiKeySlots } = await import(pathToFileURL(path.join(root, 'server/keyPool.ts')).href);
+  const { resolveGeminiKeySlots, KeyPoolState } = await import(
+    pathToFileURL(path.join(root, 'server/keyPool.ts')).href
+  );
   const slots = resolveGeminiKeySlots(process.env);
   const { GoogleGenAI } = await import('@google/genai');
-  const { createGeminiAdapter } = await import(pathToFileURL(path.join(root, 'server/geminiAdapter.ts')).href);
-  const { executeModelCall } = await import(pathToFileURL(path.join(root, 'server/modelCarousel.ts')).href);
+  const { createGeminiAdapter } = await import(
+    pathToFileURL(path.join(root, 'server/geminiAdapter.ts')).href
+  );
+  const { executeModelCall } = await import(
+    pathToFileURL(path.join(root, 'server/modelCarousel.ts')).href
+  );
   const { newRouterState } = await import(pathToFileURL(path.join(root, 'server/router.ts')).href);
-  const { registryForGeminiCascade } = await import(pathToFileURL(path.join(root, 'server/modelRegistry.ts')).href);
-  const { KeyPoolState } = await import(pathToFileURL(path.join(root, 'server/keyPool.ts')).href);
+  const { registryForGeminiCascade } = await import(
+    pathToFileURL(path.join(root, 'server/modelRegistry.ts')).href
+  );
+
+  const registry = registryForGeminiCascade('LIGHT', process.env);
+  if (!registry.length) {
+    const msg = {
+      ok: false,
+      error: 'empty_registry',
+      cascade: process.env.MODEL_CASCADE_LIGHT || null,
+    };
+    console.error(JSON.stringify(msg, null, 2));
+    fs.writeFileSync(path.join(outDir, 'live-smoke.json'), JSON.stringify(msg, null, 2));
+    process.exit(1);
+  }
 
   const client = new GoogleGenAI({ apiKey: key });
   const build = (k) => createGeminiAdapter(new GoogleGenAI({ apiKey: k }));
-  const registry = registryForGeminiCascade('LIGHT');
   const pool = new KeyPoolState();
 
   const result = await executeModelCall(
@@ -44,8 +67,8 @@ async function main() {
       adapters: { gemini: createGeminiAdapter(client) },
       state: newRouterState(),
       required: ['json_output'],
-      timeoutMs: 25_000,
-      maxCalls: 3,
+      timeoutMs: Number(process.env.LLM_CALL_TIMEOUT_MS) || 25_000,
+      maxCalls: 4,
     },
     {
       sourceId: 'gemini-free-pool',
@@ -59,6 +82,15 @@ async function main() {
   const report = {
     ok,
     status: result.status,
+    registryModels: registry.map((r) => r.modelId),
+    poolSlotsConfigured: slots.length,
+    reason: result.decision?.reason ?? null,
+    rejected: (result.decision?.rejected || []).slice(0, 8),
+    attempts: (result.decision?.attempts || []).map((a) => ({
+      model: a.model,
+      status: a.status,
+      errorClass: a.errorClass,
+    })),
     lineage: result.lineage
       ? {
           sourceId: result.lineage.sourceId,
@@ -66,17 +98,30 @@ async function main() {
           keySlot: result.lineage.keySlot,
           status: result.lineage.status,
           latencyMs: result.lineage.latencyMs,
+          errorClass: result.lineage.errorClass ?? null,
           attempts: result.lineage.attempts?.length,
         }
       : null,
-    poolSlotsConfigured: slots.length,
-    reason: result.decision?.reason,
+    // never include secret material
   };
-  console.log(JSON.stringify(report, null, 2));
+  const text = JSON.stringify(report, null, 2);
+  console.log(text);
+  fs.writeFileSync(path.join(outDir, 'live-smoke.json'), text);
   process.exit(ok ? 0 : 1);
 }
 
 main().catch((e) => {
-  console.error(JSON.stringify({ ok: false, error: String(e).slice(0, 300) }));
+  const msg = {
+    ok: false,
+    error: String(e?.message || e).slice(0, 400),
+    stack: String(e?.stack || '').split('\n').slice(0, 6).join('\n'),
+  };
+  console.error(JSON.stringify(msg, null, 2));
+  try {
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(path.join(outDir, 'live-smoke.json'), JSON.stringify(msg, null, 2));
+  } catch {
+    /* ignore */
+  }
   process.exit(1);
 });
