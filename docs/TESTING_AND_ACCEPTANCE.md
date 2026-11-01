@@ -51,6 +51,12 @@ For every failed DAG stage, retain the complete redacted stage log in `biforge-c
 - This is a documentation-integrity check only. It does not establish that the listed prompt is invoked in every runtime configuration or that a live model follows it.
 - Re-run the test whenever prompt ownership, file paths or line ranges change.
 
+## P124.2 Simple/Expert prompt-quality regression
+
+- `tests/c124-prompt-quality.test.mjs` verifies that Simple decision prompts do not include the removed reasoning ritual, Expert factual requests remain in information mode, Expert stage/context is treated as data rather than a mandatory method, model-authored questions are preserved, novelty-only retry is absent, and analytical metadata is optional.
+- `tests/p119-agent-prompts-routes.test.mjs`, `tests/p119-agent-isolation.test.mjs`, and `tests/p119-agent-boundaries.test.mjs` verify prompt snapshots, route ownership, mode classification and agent boundaries.
+- These tests establish source/prompt contracts only. They do not prove live model answer quality. Hosted CI, typecheck/build, live provider comparisons and deployed user outcomes remain separate evidence requirements.
+
 ## C124 instruction-optimization acceptance
 
 C124 changes must be evaluated as an end-to-end information-preservation boundary, not merely as prompt-text cleanup.

@@ -15,7 +15,7 @@
 
 **Normative detail:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`; current contract in `TECHNICAL_SPECIFICATION.md`; plan in `ROADMAP.md`.
 
-**Effect:** P124.0.1 establishes the documentation mandate. P124.0.2 consolidates the documentation baseline and removes one evidenced weather-location special case while repairing CI contracts. P124.1 completes the static source inventory and identifies duplicated reasoning recipes and output-loss risks; it does not change runtime prompts. Live/model-backed evaluation remains NOT_RUN.
+**Effect:** P124.0.1 establishes the documentation mandate. P124.0.2 consolidates the baseline and repairs CI regressions. P124.1 completes the static source inventory. P124.2 removes duplicated model-directed reasoning choreography and novelty-only retries from Simple/Expert dialogue, restores factual-mode routing for Expert, and preserves model-written questions. This is a targeted dialogue-path cleanup; staged Expert/Architect/App Builder prompts and live/model-backed evaluation remain open or NOT_RUN.
 
 ---
 

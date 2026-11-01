@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-01T21:16:15.401Z",
+  "generatedAt": "2026-11-01T21:38:22.934Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "reconstructed_123_23",
+  "root": "p12402_work",
   "summary": {
     "moduleCount": 174,
-    "edgeCount": 437,
+    "edgeCount": 436,
     "cycleCount": 0,
-    "totalLines": 33093
+    "totalLines": 32803
   },
   "cycles": [],
   "layers": {
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2406,
+      "lines": 2273,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -459,7 +459,7 @@
     {
       "path": "server/expertAgent.ts",
       "layer": "server",
-      "lines": 89,
+      "lines": 85,
       "imports": [
         "server/conversationMode.ts",
         "server/promptPacks.ts"
@@ -746,11 +746,10 @@
     {
       "path": "server/promptPacks.ts",
       "layer": "server",
-      "lines": 244,
+      "lines": 155,
       "imports": [
         "server/conversationMode.ts",
         "server/promptCore.ts",
-        "server/reasoningState.ts",
         "server/turnFocus.ts"
       ],
       "fanIn": 2
@@ -783,9 +782,9 @@
     {
       "path": "server/reasoningState.ts",
       "layer": "server",
-      "lines": 268,
+      "lines": 204,
       "imports": [],
-      "fanIn": 2
+      "fanIn": 1
     },
     {
       "path": "server/redact.ts",
@@ -1878,7 +1877,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2406
+      "lines": 2273
     },
     {
       "path": "src/ExpertStepScreens.tsx",

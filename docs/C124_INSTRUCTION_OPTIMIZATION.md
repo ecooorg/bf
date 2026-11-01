@@ -1,6 +1,6 @@
 # C124 — Instruction Optimization
 
-**Status:** Approved cycle mandate; P124.1 static source inventory completed. Runtime/model-backed behavior evaluation remains NOT_RUN.  
+**Status:** Approved cycle mandate; P124.1 static inventory completed; P124.2 targeted Simple/Expert dialogue cleanup implemented. Hosted CI and runtime/model-backed behavior evaluation remain NOT_RUN.  
 **Product version:** 124  
 **Documentation baseline:** P124.0.1
 
@@ -161,3 +161,18 @@ The inventory is a static source audit, not proof of live behavior. Model-backed
 ## 11. P124.0.2 implementation note
 
 P124.0.2 consolidates the P124.0.1 documentation mandate and closes the known P123.23 CI regressions. It removes the fixed city-name fallback from weather follow-up contextualization and removes the Zurich example from the search translation prompt. Weather query expansion now requests current observations generically and preserves only the place supplied by the user's context. This is a narrow, evidence-based first cleanup slice, not completion of the repository-wide audit. All other prompt sources and response transformations remain to be inventoried under P124.1.
+
+
+## 12. P124.2 implementation note — Simple and Expert dialogue
+
+P124.2 implements the highest-risk dialogue-path dispositions from the inventory:
+
+- The shared mandatory decision-analysis sequence is replaced by concise task-fit guidance. The model is not required to produce a new angle, branch, calculation, test or next step unless it helps the request.
+- The V17 model-facing reasoning choreography is removed. Deterministic state normalization, bounded state storage, and the user-fact versus model-hypothesis safeguard remain.
+- The duplicate analytical-engine `BASE_SYSTEM` is replaced by a compact task, schema, evidence, honesty and safety contract.
+- The novelty-based gain audit and forced rewrite retry are removed from decision/Expert replies. The narrow information-mode evasiveness repair and technical/provider-format recovery remain.
+- Expert factual questions remain in information mode rather than being promoted to decision mode. Expert stage and session state are context data, not a required reasoning script.
+- The visible-reply composer preserves questions already present in the model answer and appends an optional follow-up additively.
+- Explicitly requested recommendations are permitted; recommendations and decision frameworks are not imposed when the user did not ask for them.
+
+This patch does not rewrite separate Expert staged-operation prompts, Architect, App Builder, search evidence contracts, or the unconditional no-automatic-source-URL presentation policy. These require separate dependency and user-outcome review. Deterministic prompt/agent checks passed locally; full `test:core` was BLOCKED by missing `zod`; full pipeline, typecheck/build, hosted Actions, live provider comparisons and user outcomes remain NOT_RUN.
