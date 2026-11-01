@@ -1,72 +1,75 @@
-# CURRENT ROADMAP CONTROL — 2026-10-31 (C122)
+# CURRENT ROADMAP CONTROL — 2026-11-01 (C123)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-## C122 — Expert Mode Reliability, Intelligence Quality & Decision Engineering (ACTIVE)
+## C123 — Model Carousel / «Карусель» (ACTIVE)
 
-**Product version:** 122  
-**Status:** APPROVED — deterministic + Layer B harness executed; tablet smoke open (P122.7)  
-**Primary target:** Expert Mode  
-**Architect:** FROZEN  
-**Conversational:** OUT OF SCOPE  
+**Product version:** 123  
+**Status:** APPROVED — documentation baseline P123.0.1; implementation starts at P123.1  
+**Primary target:** Shared model access layer (all agents)  
+**Informal name:** Карусель  
+**Architect product features:** remain FROZEN (Architect may consume the carousel)  
+**Conversational / Expert UX polish:** DEFERRED until carousel capacity exists  
+
+### Mandate (Navigator-approved)
+
+1. Catalog-driven API sources with automatic failover (carousel).
+2. Lineage on every model call (`source_id`, `model`, `channel`, `key_slot`, time).
+3. Up to **13 organisational API key slots** per provider (13 participants — legitimate key sets).
+4. Project rule: *what is not forbidden is permitted* — no written-vendor-permission gate blocks engineering.
+5. Official APIs first; browser channel optional later.
+6. Gemini free-key ids remain allowlisted (`3.5` / `3.1` flash-lite) until catalog owns validation.
+
+**Normative docs:** `docs/C123_MODEL_CAROUSEL.md`, `docs/MODEL_SOURCES_CATALOG.md`, `docs/MODEL_ALLOWLIST.md`, ADR-C123-001 in `docs/DECISIONS.md`.
 
 ### Patch sequence
 
 | Patch | Title | Objective | Status |
 |-------|-------|-----------|--------|
-| P122.1 | STATE INTEGRITY & PERSISTENCE | Make Expert sessions durable, recoverable, consistent, and resistant to accidental information loss | DONE (local integrity) |
-| P122.2 | ANALYTICAL RELIABILITY & EVIDENCE INTEGRITY | Ensure Expert reasoning is traceable, logically consistent, evidence-aware, and resistant to unsupported conclusions | DONE (core helpers) |
-| P122.3 | EXECUTION RELIABILITY & WORKFLOW CONTINUITY | Make the Expert execution pipeline resilient to model errors, invalid responses, interrupted operations, repeated requests, and long-running analytical sessions | DONE (core) |
-| P122.4 | DECISION QUALITY, USER EXPERIENCE & FINAL VALIDATION | Ensure Expert produces genuinely useful decisions; complete transition to reliable decision-support product | DONE (deterministic) |
+| P123.0.1 | DOCUMENTATION BASELINE | Close C122 in records; publish C123 mandate, catalog schema, org key-pool policy | DONE (this delivery) |
+| P123.1 | GATEWAY + LINEAGE | Unified `executeModelCall`; single-source Gemini behaviour preserved | PLANNED |
+| P123.2 | KEY POOL | Rotate up to 13 key slots on quota/429 | PLANNED |
+| P123.3 | MULTI-SOURCE CATALOG | Load YAML/JSON catalog; second API source when keys exist | PLANNED |
+| P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience | PLANNED |
+| P123.5 | OPS PROBES | Optional scheduled health; secret naming; deploy notes | PLANNED |
 
-### Priority matrix (from C122 mandate)
+### Frozen / out of scope during C123 MVP
 
-| Priority | Area | Patch |
-|----------|------|-------|
-| P0 | Decision state persistence | P122.1 |
-| P0 | State integrity and recovery | P122.1 |
-| P0 | Evidence provenance | P122.2 |
-| P0 | Fact/assumption separation | P122.2 |
-| P1 | Contradiction detection | P122.2 |
-| P1 | Hypothesis lifecycle | P122.2 |
-| P1 | Numerical auditability | P122.2 |
-| P0 | API reliability | P122.3 |
-| P0 | Model response validation | P122.3 |
-| P1 | Safe retries and recovery | P122.3 |
-| P1 | Long-session continuity | P122.3 |
-| P1 | Final decision synthesis | P122.4 |
-| P1 | User workflow clarity | P122.4 |
-| P0 | Real-model evaluation | P122.4 |
-| P0 | Global acceptance | P122.4 |
+- Browser-chat automation as primary access.
+- Unbounded free-model web discovery.
+- Idealising three agent UIs.
+- Local large-model hosting.
 
-### Residual after P122.4 / addressed in P122.5–P122.7
+---
 
-- Layer B live harness executed successfully on gemini-3.5-flash-lite (heuristic pass). Remaining for C122 product closure: Navigator tablet smoke + human read of Layer B excerpts.
-- Expert-verify coverage/e2e coupling fixed (P122.7).
-- Stage readiness visible in UI (P122.7).
+## Historical: C122 — Expert Mode Reliability (CLOSED 2026-11-01)
 
-### Residual after P122.4 / addressed in P122.5
+**Product version:** 122  
+**Status:** CLOSED — sufficiently successful (Navigator)  
+**Primary target:** Expert Mode  
 
-- Layer B real-model harness is now executable via `expert-verify` (input `real_model=true`) or local `REAL_MODEL_EVAL=1`.
-- Ops dual-compare contract false-negative fixed.
-- Remaining open for true product closure: Navigator runs live eval, reviews rubric + excerpts, optional prompt iteration, full browser E2E journey evidence.
+### C122 outcomes (summary)
 
-### Expected results
+| Area | Result |
+|------|--------|
+| P122.1–P122.4 | Deterministic integrity, analysis, execution, decision quality |
+| Layer B | Live Gemini flash-lite scenarios A/B/C/E heuristic pass |
+| Allowlist | Only `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` |
+| expert-verify | Green including browser e2e after spawn PATH fixes |
+| UX | Stage readiness + synthesis quality panel |
 
-- After P122.1: Expert decisions become persistent, recoverable, and protected against accidental loss.
-- After P122.2: Expert reasoning becomes more transparent, evidence-based, logically consistent, and auditable.
-- After P122.3: Expert becomes technically resilient and capable of handling long, complex, interrupted analytical workflows.
-- After P122.4: Expert becomes a validated decision-support system capable of producing complete, defensible, practical recommendations.
+**Detail:** `docs/USER_VALUE_EXPERT_C122.md` §E, `CHANGELOG.md` P122.*, `TECHNICAL_REPORT.md`.
 
-### Frozen / out of scope during C122
+### Patch sequence (historical)
 
-- Architect development and Architectural Test Lab feature work remain frozen.
-- Conversational Mode improvements remain outside C122.
-- No general visual redesign, unrelated infrastructure refactoring, or new features unrelated to Expert reliability.
+| Patch | Title | Status |
+|-------|-------|--------|
+| P122.1 | STATE INTEGRITY & PERSISTENCE | DONE |
+| P122.2 | ANALYTICAL RELIABILITY & EVIDENCE INTEGRITY | DONE |
+| P122.3 | EXECUTION RELIABILITY & WORKFLOW CONTINUITY | DONE |
+| P122.4 | DECISION QUALITY, USER EXPERIENCE & FINAL VALIDATION | DONE |
+| P122.5–P122.9 | Layer B harness, e2e/coverage fixes, allowlist, UI smoke spawn | DONE |
 
-### Global C122 completion criteria (summary)
-
-State reliability, analytical integrity, execution reliability, decision quality, and validation (deterministic tests + real-model evaluation scenarios) must all be demonstrated. A successful CI run alone does not establish completion. Critical defects must be documented if unresolved.
 
 ## Historical: P121 series (Architect selection and verification)
 

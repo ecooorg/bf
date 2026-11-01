@@ -1,3 +1,18 @@
+## P123.0.1 — C122 closed; C123 Model Carousel documentation baseline
+
+Documentation-only delivery.
+
+- **C122 CLOSED** as sufficiently successful (Navigator 2026-11-01): Expert reliability cycle complete for product purposes; residual UX polish deferred until carousel capacity exists.
+- **C123 ACTIVE** — Model Carousel («Карусель»):
+  - `docs/C123_MODEL_CAROUSEL.md` — full cycle mandate, architecture, phases P123.1–P123.5, org **13-key pool**, policy *not forbidden → permitted*.
+  - `docs/MODEL_SOURCES_CATALOG.md` — catalog schema and selection algorithm.
+  - `docs/MODEL_ALLOWLIST.md` — updated for C123.
+  - `docs/DECISIONS.md` — ADR-C123-001.
+  - `docs/USER_VALUE_EXPERT_C122.md` — §E closure record.
+  - `ROADMAP.md` — current control switched to C123; C122 historical closed.
+- `package.json`: `version` 123, `patch` 123.0.1.
+- No runtime code changes in this patch.
+
 ## P122.9 — Fix UI smoke spawn (expert-verify e2e) + PATH harden
 
 - Root cause of expert-verify red (diag4-2): `tests/ui-check.mjs` used `spawn('tsx', …)` → `ENOENT` on Actions; Expert e2e steps never ran.

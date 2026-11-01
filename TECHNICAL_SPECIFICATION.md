@@ -6,6 +6,21 @@
 
 BiForge succeeds when a real user can complete a meaningful task and receive a correct, useful, understandable result. Tests, CI, architecture boundaries, documentation, and evidence are necessary controls; none alone proves user value. Every feature change must name the user problem, expected user-visible result, failure/recovery behavior, and how that result will be evaluated. Report code presence, local tests, hosted CI, deployed behavior, and user-outcome evidence as distinct facts. Never label an unobserved outcome PASS.
 
+## Current development cycle: C123 — Model Carousel (API source rotation)
+
+**Primary target:** Shared model access (carousel) for all agents  
+**Product version:** 123  
+**Patch sequence:** P123.0.1 (docs), then P123.1+ implementation  
+**Development status:** APPROVED  
+**Scope:** Catalog-driven sources, key pool (≤13), failover, lineage  
+**Architecture policy:** Prefer extending router/registry/adapters; agents stay behind one gateway  
+**Expert / Conversational polish:** Deferred  
+**Architect features:** Frozen (may consume carousel)
+
+Normative detail: `docs/C123_MODEL_CAROUSEL.md`.
+
+### Previous cycle (closed)
+
 ## Current development cycle: C122 — Expert Mode Reliability, Intelligence Quality & Decision Engineering
 
 **Primary target:** Expert Mode  

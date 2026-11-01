@@ -1,3 +1,11 @@
+# CURRENT EVIDENCE NOTE — P123.0.1 Documentation; C122 closed / C123 open, 2026-11-01
+
+- **Navigator:** CI and expert-verify green; C122 closed as sufficiently successful; C123 Model Carousel started.
+- **This patch:** documentation and version metadata only (`123` / `123.0.1`). No application behaviour change.
+- **C122 evidence retained:** Layer B live scores on gemini-3.5-flash-lite; allowlist; e2e spawn fixes; stage readiness.
+- **C123 design inputs locked:** API-first carousel, catalog-as-data, lineage, up to 13 organisational key sets, browser channel deferred, no mandatory external legal gate.
+- **Next implementation:** P123.1 gateway + lineage.
+
 # CURRENT EVIDENCE NOTE — P122.9 UI smoke spawn fix, 2026-11-01
 
 - **diag4-2:** summary shows e2e=failure; UI smoke log: `Error: spawn tsx ENOENT` in tests/ui-check.mjs. static/unit/coverage/flake success.
