@@ -16,7 +16,7 @@ test('assistant-run-summary writes ASSISTANT_PASTE.txt from synthetic fail log',
   const dir = path.join(root, 'artifacts', 'assistant-summary-test');
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
-  writeFileSync(path.join(dir, 'test_web.log'), [
+  writeFileSync(path.join(dir, 'test_web.tap'), [
     'not ok 8 - P116 freshness disclosure',
     '  error: The input did not match',
     '  name: AssertionError',
@@ -51,4 +51,20 @@ test('canonical workflows emit assistant paste step', () => {
     assert.match(yml, /assistant-run-summary\.mjs/, name);
     assert.match(yml, /ASSISTANT_PASTE|artifacts\/ci-checks/, name);
   }
+});
+
+
+test('information-quality workflow publishes consolidated assistant handoff even after failures', () => {
+  const yml = readFileSync(path.join(root, '.github/workflows/information-quality.yml'), 'utf8');
+  assert.match(yml, /assistant-handoff:/);
+  assert.match(yml, /if: always\(\)/);
+  assert.match(yml, /needs:\s*- deterministic-quality\s*- evaluator-contracts/);
+  assert.match(yml, /actions\/download-artifact@v4/);
+  assert.match(yml, /pattern: information-quality-\*/);
+  assert.match(yml, /node scripts\/assistant-run-summary\.mjs/);
+  assert.match(yml, /contracts\.tap/);
+  assert.match(yml, /web-epistemics\.tap/);
+  assert.match(yml, /name: information-quality-assistant-handoff/);
+  assert.match(yml, /ASSISTANT_PASTE\.txt/);
+  assert.match(yml, /ASSISTANT_SUMMARY\.json/);
 });
