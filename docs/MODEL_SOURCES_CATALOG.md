@@ -1,3 +1,5 @@
+**Runtime file:** `config/model-sources.json` (P123.3).
+
 # Model sources catalog (C123)
 
 **Status:** Design baseline for implementation (P123.0.1)  
