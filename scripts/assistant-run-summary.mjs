@@ -21,7 +21,8 @@ fs.mkdirSync(dir, { recursive: true });
 
 const MAX_PASTE = 5_000; // Chat paste limit: every part is independently pasteable.
 const MAX_LOG_SNIP = 2_400;
-const MAX_FILES = 40;
+const MAX_FILES = 24;
+const MAX_FAILURE_GROUPS = 8;
 
 function read(p, max = 200_000) {
   try {
@@ -52,7 +53,7 @@ function listLogs(base) {
 function extractFailures(text) {
   const lines = text.split(/\r?\n/);
   const hits = [];
-  const re = /not ok |FAIL|AssertionError|Error:|TIMEOUT|test:core|test:web|workflow-dag|Traceback|TypeError|SyntaxError|exit code [1-9]/i;
+  const re = /(?:^\s*not ok \d+\b|\bAssertionError\b|\b(?:TypeError|SyntaxError|ReferenceError):|\bTIMEOUT\b|\bTraceback \(most recent call last\)|\bProcess completed with exit code [1-9]\b|^\s*(?:Error|FAIL(?:ED)?)(?:\s|:))/i;
   for (let i = 0; i < lines.length; i++) {
     if (re.test(lines[i])) {
       const chunk = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 8)).join('\n');
@@ -60,7 +61,7 @@ function extractFailures(text) {
       i += 6;
     }
   }
-  return hits.slice(0, 12);
+  return hits.slice(0, MAX_FAILURE_GROUPS);
 }
 
 function compressHits(hits) {
@@ -154,18 +155,20 @@ if (dualRec) {
   lines.push(JSON.stringify(dualRec));
   lines.push('');
 }
-if (dualReport.trim()) {
-  lines.push('## Dual-compare report (truncated)');
-  lines.push(dualReport.trim().slice(0, 4_000));
+if (dualReport.trim() && !dualRec) {
+  lines.push('## Dual-compare status');
+  const statusLine = dualReport.split(/\r?\n/).find((line) => /status|recommendation|error|failed/i.test(line));
+  if (statusLine) lines.push(statusLine.slice(0, 500));
+  lines.push('Full comparison report remains in the diagnostic archive.');
   lines.push('');
 }
 if (patchEvidence.trim()) {
   lines.push('## PATCH_EVIDENCE (truncated)');
-  lines.push(patchEvidence.trim().slice(0, 8_000));
+  lines.push(patchEvidence.trim().slice(0, 1_200));
   lines.push('');
 }
-lines.push('## Log files in artifact');
-for (const f of summary.logFiles.slice(0, 30)) lines.push(`- ${f}`);
+lines.push(`FAILURE_LOG_FILES=${summary.failureSnippets.length ? [...new Set(allHits.map((h) => h.file))].join(', ') : 'none'}`);
+lines.push('Successful-check output and full file inventories are intentionally omitted from this handoff; inspect the ZIP only when deeper evidence is needed.');
 lines.push('');
 lines.push('## Navigator instruction');
 lines.push('If you cannot attach the ZIP, paste this entire ASSISTANT_PASTE.txt into the assistant chat.');
@@ -199,11 +202,32 @@ console.log(`assistant-run-summary → ${pasteParts.length} paste file(s), max $
 
 // Optional: collapse directory to numbered ASSISTANT_PASTE parts + biforge-ci-logs.zip.
 if (String(process.env.PACK_OUTER_ARTIFACT || '').toLowerCase() === 'true') {
-  const names = fs.readdirSync(dir).filter((n) => n !== 'biforge-ci-logs.zip' && !/^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(n));
-  if (names.length) {
-    const packed = spawnSync('zip', ['-q', '-r', 'biforge-ci-logs.zip', ...names], { cwd: dir, encoding: 'utf8' });
+  const failureOnly = (file) => {
+    try { return /(?:^\s*not ok \d+|AssertionError|TypeError:|SyntaxError:|ReferenceError:|TIMEOUT|timed out|Process completed with exit code [1-9])/im.test(fs.readFileSync(file, 'utf8')); }
+    catch { return false; }
+  };
+  const names = fs.readdirSync(dir).filter((n) => {
+    if (n === 'biforge-ci-logs.zip' || /^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(n)) return false;
+    if (/^(?:ASSISTANT_SUMMARY\.json|report\.(?:md|json)|.*(?:evidence|summary|metrics|history|status|manifest).*\.(?:json|md|txt))$/i.test(n)) return true;
+    return /\.(?:log|txt)$/i.test(n) && failureOnly(path.join(dir, n));
+  });
+  // Preserve concise architect-compare evidence, not every generated payload.
+  const dualFiles = [];
+  if (fs.existsSync(dualDir)) {
+    for (const name of ['report.md', 'report.json']) {
+      const file = path.join(dualDir, name);
+      if (fs.existsSync(file)) dualFiles.push(path.relative(dir, file));
+    }
+    for (const name of fs.readdirSync(dualDir)) {
+      const file = path.join(dualDir, name);
+      try { if (fs.statSync(file).isFile() && /\.log$/i.test(name) && failureOnly(file)) dualFiles.push(path.relative(dir, file)); } catch {}
+    }
+  }
+  const archiveNames = [...new Set([...names, ...dualFiles])];
+  if (archiveNames.length) {
+    const packed = spawnSync('zip', ['-q', '-r', 'biforge-ci-logs.zip', ...archiveNames], { cwd: dir, encoding: 'utf8' });
     if (packed.status === 0) {
-      for (const n of names) fs.rmSync(path.join(dir, n), { recursive: true, force: true });
+      for (const n of archiveNames) fs.rmSync(path.join(dir, n), { recursive: true, force: true });
     } else {
       console.warn('PACK_OUTER_ARTIFACT zip failed:', packed.stderr || packed.status);
     }

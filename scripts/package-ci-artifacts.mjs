@@ -73,9 +73,27 @@ for (const name of ['PATCH_EVIDENCE.md', 'ci-metrics.json', 'ci-history.json']) 
 }
 if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
 const zip = JSZip ? new JSZip() : null;
+// Keep the archive useful and bounded: authoritative reports/metadata, prompt diagnostics,
+// and logs for failed checks only. Successful-stage logs and incidental temp files stay out.
+const failedLogNames = new Set(resultRows
+  .filter((r) => ['FAIL', 'TIMEOUT'].includes(String(r.status || '').toUpperCase()))
+  .map((r) => path.basename(String(r.log || ''))).filter(Boolean));
+// Also capture workflow-level failures (install/build/UI/compare) that happen outside the DAG.
+const failureSignature = /(?:^|\s)(?:not ok \d+|FAIL(?:ED)?(?:\s|:)|AssertionError|TypeError:|SyntaxError:|ReferenceError:|Error:|TIMEOUT|timed out|Process completed with exit code [1-9])/im;
+for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+  if (!entry.isFile() || !/\.(?:log|txt)$/i.test(entry.name)) continue;
+  try { if (failureSignature.test(fs.readFileSync(path.join(dir, entry.name), 'utf8'))) failedLogNames.add(entry.name); } catch {}
+}
+const alwaysKeep = new Set([
+  'PATCH_EVIDENCE.md', 'BIForge-PATCH-EVIDENCE.md', 'results.json',
+  'ci-metrics.json', 'ci-history.json', 'evidence-dag.json',
+  'prompt-snapshot-diagnostics.json', 'diagnostics.json',
+]);
 const files = fs.readdirSync(dir, { withFileTypes: true })
   .filter((entry) => entry.isFile() && entry.name !== 'diagnostics.zip' && !entry.name.endsWith('.zip'))
-  .map((entry) => entry.name).sort();
+  .map((entry) => entry.name)
+  .filter((name) => alwaysKeep.has(name) || failedLogNames.has(name))
+  .sort();
 const failedRows = resultRows.filter((r) => ['FAIL', 'TIMEOUT'].includes(String(r.status || '').toUpperCase()));
 const activeAtEnd = resultDoc?.active || resultDoc?.activeAll?.[0] || null;
 const failedStages = failedRows.map((r) => ({
@@ -109,7 +127,7 @@ const assistantBrief = [
   `runId: ${process.env.GITHUB_RUN_ID || metrics?.run?.runId || 'null'}`,
   `runUrl: ${metrics?.run?.runUrl || 'null'}`,
   `workflowJobStatusAtPackaging: ${process.env.CI_STATUS || 'unknown'}`,
-  `checks: total=${counts.total} pass=${counts.pass} fail=${counts.fail} timeout=${counts.timeout} blocked=${counts.blocked} skipped=${counts.skipped}`,
+  `checks: fail=${counts.fail} timeout=${counts.timeout} blocked=${counts.blocked} not_run=${counts.not_run}; successful checks intentionally omitted`,
   `failedStages: ${failedStages.length ? failedStages.map((s) => s.id + ':' + s.status).join(', ') : 'none'}`,
   `activeAtEnd: ${activeAtEnd ? JSON.stringify(activeAtEnd) : 'none'}`,
   `nextAction: ${nextAction}`,
@@ -130,7 +148,7 @@ const index = {
   runUrl: metrics?.run?.runUrl || null,
   createdAt: new Date().toISOString(),
   workflowJobStatusAtPackaging: process.env.CI_STATUS || 'unknown',
-  completeness: 'all available files in CI_LOGS_DIR; unavailable checks and historical metrics remain explicitly unknown',
+  completeness: 'curated evidence: authoritative reports, structured results, prompt diagnostics, and failed-check logs; successful logs and incidental files intentionally omitted',
   checks: counts,
   failedStages,
   activeAtEnd,
@@ -161,29 +179,45 @@ index.files[index.files.length - 1].bytes = indexJson.length;
 const tailBlocks = Object.entries(failingLogTails || {})
   .map(([log, body]) => `### log:${log}\n${String(body || '').slice(0, 1800)}`)
   .join('\n\n');
-const evidenceTrim = redact(report).slice(0, 10_000);
+const evidenceTrim = redact(report).slice(0, 2_500);
+// Compact prompt snapshot matrix is mandatory in the handoff; full source/prompt data stays in ZIP.
+let promptSnapshotSummary = null;
+try {
+  const diagnostic = JSON.parse(fs.readFileSync(path.join(dir, 'prompt-snapshot-diagnostics.json'), 'utf8'));
+  const rows = Object.entries(diagnostic.actual || {}).map(([key, actual]) => {
+    const expected = diagnostic.expected?.[key] || null;
+    return `${key}: ${actual} | expected=${expected || 'n/a'} | ${expected ? (actual === expected ? 'MATCH' : 'MISMATCH') : 'DIAGNOSTIC_ONLY'}`;
+  });
+  promptSnapshotSummary = [
+    'PROMPT_SNAPSHOT_DIAGNOSTICS=available', ...rows,
+    'PROMPT_SOURCE_SHA256=' + Object.entries(diagnostic.sources || {}).map(([file, value]) => `${file}:${value.sha256}`).join(';'),
+    'PROMPT_DETAILS_FILE=prompt-snapshot-diagnostics.json (full prompt/source details are in biforge-ci-logs.zip)',
+  ];
+} catch { promptSnapshotSummary = null; }
 const pasteLines = [
   '# ASSISTANT_PASTE — single summary for chat (paste this file when ZIP attach is unavailable)',
   `STATUS=${status}`,
   `PATCH=${(() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).patch; } catch { return '?'; } })()}`,
   `COMMIT=${process.env.GITHUB_SHA || metrics?.run?.sha || 'unknown'}`,
   `RUN=${metrics?.run?.runUrl || process.env.GITHUB_RUN_ID || 'unknown'}`,
-  `CHECKS=total:${counts.total} pass:${counts.pass} fail:${counts.fail} timeout:${counts.timeout} blocked:${counts.blocked}`,
+  `CHECKS=fail:${counts.fail} timeout:${counts.timeout} blocked:${counts.blocked} not_run:${counts.not_run} (positive checks omitted)`,
   `FAILED_STAGES=${failedStages.length ? failedStages.map((s) => s.id + ':' + s.status).join(', ') : 'none'}`,
   `NEXT_ACTION=${nextAction}`,
   '',
   '## Failed stage reruns',
-  ...(failedStages.length ? failedStages.map((s) => `- ${s.id}: ${s.rerun || '(no command)'}`) : ['- (none)']),
+  ...(failedStages.length ? failedStages.map((s) => `- ${s.id}: ${s.rerun || '(no command)'}`) : ['- No failed stages.']),
   '',
   '## Failing log tails',
-  tailBlocks || '(none captured)',
+  tailBlocks || '(no failing log tails captured)',
   '',
-  '## PATCH_EVIDENCE (truncated; full text inside biforge-ci-logs.zip)',
-  evidenceTrim,
+  ...(promptSnapshotSummary ? ['', '## Complete prompt snapshot matrix', ...promptSnapshotSummary, ''] : []),
+  '## Evidence status',
+  `PATCH_EVIDENCE_INCLUDED=${fs.existsSync(reportPath)}`,
+  'Full reports, structured results and failed logs are in biforge-ci-logs.zip.',
   '',
   '## Navigator',
   'Outer artifact root should contain only ASSISTANT_PASTE*.txt parts and biforge-ci-logs.zip.',
-  'All raw logs, PATCH_EVIDENCE, metrics, and ASSISTANT-BRIEF.md live inside biforge-ci-logs.zip.',
+  'Only failed-check logs and essential evidence are retained inside biforge-ci-logs.zip; successful check output is omitted.',
   '',
 ];
 const pasteText = pasteLines.join('\n');
@@ -214,7 +248,6 @@ if (zip) {
   zip.file('diagnostics-index.json', indexJson);
   // Keep evidence inside the zip under both names for older readers.
   zip.file('PATCH_EVIDENCE.md', Buffer.from(redact(report), 'utf8'));
-  zip.file('BIForge-PATCH-EVIDENCE.md', Buffer.from(redact(report), 'utf8'));
   const bytes = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
   fs.writeFileSync(zipPath, bytes);
 } else {
