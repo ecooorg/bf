@@ -101,7 +101,7 @@ test('P108.2 packaging always includes complete diagnostics on failure', async (
     assert.deepEqual(fs.readdirSync(dir).sort(), ['ASSISTANT_PASTE.txt', 'biforge-ci-logs.zip']);
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
     assert.ok(zip.file('test-core.log'));
-    assert.ok(zip.file('test-project.log'), 'successful-stage log is required for complete cycle diagnostics');
+    assert.equal(zip.file('test-project.log'), null, 'successful-stage logs are omitted to keep artifacts compact');
     assert.ok(zip.file('results.json'));
     assert.ok(zip.file('diagnostics-index.json'));
     assert.ok(zip.file('PATCH_EVIDENCE.md') || zip.file('BIForge-PATCH-EVIDENCE.md'), 'evidence inside zip');
@@ -131,7 +131,7 @@ test('P108.2 packaging emits diagnostics and cycle metrics after a clean run', a
     assert.ok(fs.existsSync(path.join(dir, 'ASSISTANT_PASTE.txt')));
     assert.match(fs.readFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), 'utf8'), /ASSISTANT_PASTE|STATUS=/);
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
-    assert.ok(zip.file('typecheck.log'), 'green-run logs are retained');
+    assert.equal(zip.file('typecheck.log'), null, 'successful-run logs are omitted from compact archive');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 

@@ -42,6 +42,7 @@ test('assistant-run-summary writes ASSISTANT_PASTE.txt from synthetic fail log',
   assert.match(paste, /ASSISTANT_PASTE/);
   assert.match(paste, /STATUS=failure/);
   assert.match(paste, /not ok 8|AssertionError|P116/);
+  assert.doesNotMatch(paste, /Log files in artifact|all passed|npm ci ok/i);
   assert.ok(existsSync(path.join(dir, 'ASSISTANT_SUMMARY.json')));
 });
 
