@@ -1,3 +1,14 @@
+## P122.6 — Fix Layer B model id + golden hash; Expert journey E2E; user-value surface
+
+- Real-model default aligned to production cascade: `gemini-3.5-flash-lite` / `gemini-3.1-flash-lite` (not probe `gemini-3.8-flash`). expert-verify real-model job sets MODEL_CASCADE_* explicitly.
+- Fixed `tests/p119-agent-prompts-routes.test.mjs` GOLDEN_STEP_PREFIX after intentional P122.5 prompt hardening (was failing test:core).
+- Fixed default live model in `tests/p122.4-real-model-eval.mjs`: `gemini-2.0-flash` retired → `gemini-3.8-flash` (overridable via REAL_MODEL_ID / MODEL_CASCADE_STRONG).
+- `src/ExpertStepScreens.tsx` Synthesis: quality panel (stage completion + recommendation checklist score/gaps) + `data-testid="download-final-decision"`.
+- New `tests/p122.5-expert-journey-e2e.test.mjs`: Expert entry → shell → synthesis quality → download → reload persistence (mocked model).
+- `expert-verify.yml` runs the new journey e2e in the browser job.
+- `docs/USER_VALUE_EXPERT_C122.md`: acceptance checklist for live Layer B, browser, and tablet smoke.
+- package.json patch → 122.6.
+
 ## P122.5 — Expert Layer B harness, ops contract fix, edge-case coverage
 
 - `tests/p122.4-real-model-eval.mjs`: full Layer B live harness (scenarios A/B/C/E against Gemini when `REAL_MODEL_EVAL=1` + `GEMINI_API_KEY`); heuristic rubric; JSON artifacts under `artifacts/real-model-eval/`. Scenario D remains deterministic (Layer A).

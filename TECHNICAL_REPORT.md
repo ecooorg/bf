@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P122.6 Expert journey + Layer B fixes, 2026-11-01
+
+- **Changed:** GOLDEN_STEP_PREFIX updated for hardened EXPERT_STEP_PREFIX; real-model default model id fixed; Synthesis quality panel + download testid; Expert full-journey browser e2e; user-value checklist doc.
+- **Deterministic:** p119 prompt golden 5/5 pass locally after hash update; p122.4 decision-quality still green.
+- **NOT_RUN here:** hosted expert-verify with real_model=true against gemini-3.8-flash; hosted journey e2e; Navigator tablet smoke.
+- **Acceptance:** test:core failure from P122.5 is addressed. Layer B must be re-run with the new model id. C122 product closure still requires human review of live answers per docs/USER_VALUE_EXPERT_C122.md.
+
 # CURRENT EVIDENCE NOTE — P122.5 Expert Layer B + stability, 2026-11-01
 
 - **Changed:** Live real-model evaluation harness (A/B/C/E), dual-compare contract path fix, Expert step-prefix hardening, additional P122.4 edge-case tests, expert-verify artifact collection.
