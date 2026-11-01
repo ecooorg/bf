@@ -114,12 +114,10 @@ const assistantBrief = [
   `activeAtEnd: ${activeAtEnd ? JSON.stringify(activeAtEnd) : 'none'}`,
   `nextAction: ${nextAction}`,
   '',
-  ...(fs.existsSync(path.join(dir, 'prompt-snapshot-diagnostics.json')) ? ['Prompt snapshot detail: prompt-snapshot-diagnostics.json contains all expected/actual hashes, generated prompt text, and prompt-builder source text.'] : []),
-  '',
   'Rerun commands:',
   ...(failedStages.length ? failedStages.map((s) => `- ${s.id}: ${s.rerun || '(no command recorded)'}`) : ['- (none)']),
   '',
-  'Inner zip read order: ASSISTANT-BRIEF.md → diagnostics-index.json → PATCH_EVIDENCE.md → failing *.log tails → evidence-dag.json. Outer root: ASSISTANT_PASTE.txt only (+ this zip).',
+  'Inner zip read order: ASSISTANT-BRIEF.md → diagnostics-index.json → PATCH_EVIDENCE.md → failing *.log tails → evidence-dag.json. Outer root: numbered ASSISTANT_PASTE*.txt parts (+ this zip).',
   '',
 ].join('\n');
 
@@ -150,7 +148,7 @@ for (const name of files) {
   else fs.writeFileSync(path.join(dir, name), data);
   index.files.push({ name, bytes: data.length, redacted: isText });
 }
-// Inner zip keeps ASSISTANT-BRIEF.md + full logs. Outer GitHub artifact root keeps ONLY ASSISTANT_PASTE.txt + biforge-ci-logs.zip.
+// Inner zip keeps ASSISTANT-BRIEF.md + full logs. Outer GitHub artifact root keeps numbered ASSISTANT_PASTE*.txt parts + biforge-ci-logs.zip.
 const briefBytes = Buffer.from(assistantBrief, 'utf8');
 index.files.push({ name: 'ASSISTANT-BRIEF.md', bytes: briefBytes.length, redacted: true });
 let indexJson = Buffer.from(JSON.stringify(index, null, 2) + '\n', 'utf8');
@@ -164,25 +162,6 @@ const tailBlocks = Object.entries(failingLogTails || {})
   .map(([log, body]) => `### log:${log}\n${String(body || '').slice(0, 1800)}`)
   .join('\n\n');
 const evidenceTrim = redact(report).slice(0, 10_000);
-// Prompt snapshot failures often surface one-at-a-time through strict assertions.
-// Preserve the entire computed matrix in the paste summary and the full JSON/source
-// material in the inner ZIP so the assistant can diagnose all drift in one pass.
-let promptSnapshotSummary = null;
-try {
-  const diagnostic = JSON.parse(fs.readFileSync(path.join(dir, 'prompt-snapshot-diagnostics.json'), 'utf8'));
-  const rows = Object.entries(diagnostic.actual || {}).map(([key, actual]) => {
-    const expected = diagnostic.expected?.[key] || null;
-    return `${key}: ${actual} | expected=${expected || 'n/a'} | ${expected ? (actual === expected ? 'MATCH' : 'MISMATCH') : 'DIAGNOSTIC_ONLY'}`;
-  });
-  promptSnapshotSummary = [
-    'PROMPT_SNAPSHOT_DIAGNOSTICS=available',
-    ...rows,
-    'PROMPT_SOURCE_SHA256=' + Object.entries(diagnostic.sources || {}).map(([file, value]) => `${file}:${value.sha256}`).join(';'),
-    'PROMPT_DETAILS_FILE=prompt-snapshot-diagnostics.json (full generated prompts + exact builder source text are inside biforge-ci-logs.zip)',
-  ];
-} catch {
-  promptSnapshotSummary = null;
-}
 const pasteLines = [
   '# ASSISTANT_PASTE — single summary for chat (paste this file when ZIP attach is unavailable)',
   `STATUS=${status}`,
@@ -199,17 +178,36 @@ const pasteLines = [
   '## Failing log tails',
   tailBlocks || '(none captured)',
   '',
-  ...(promptSnapshotSummary ? ['', '## Complete prompt snapshot matrix', ...promptSnapshotSummary, ''] : []),
   '## PATCH_EVIDENCE (truncated; full text inside biforge-ci-logs.zip)',
   evidenceTrim,
   '',
   '## Navigator',
-  'Outer artifact root should contain only this ASSISTANT_PASTE.txt and biforge-ci-logs.zip.',
+  'Outer artifact root should contain only ASSISTANT_PASTE*.txt parts and biforge-ci-logs.zip.',
   'All raw logs, PATCH_EVIDENCE, metrics, and ASSISTANT-BRIEF.md live inside biforge-ci-logs.zip.',
   '',
 ];
 const pasteText = pasteLines.join('\n');
-const pasteBytes = Buffer.from(pasteText, 'utf8');
+const MAX_PASTE_CHARS = 5_000;
+function splitPaste(text, limit = MAX_PASTE_CHARS) {
+  const chunks = []; let current = '';
+  for (const sourceLine of text.split('\n')) {
+    let line = sourceLine;
+    while (line.length > limit) {
+      if (current) { chunks.push(current); current = ''; }
+      chunks.push(line.slice(0, limit)); line = line.slice(limit);
+    }
+    const candidate = current ? `${current}\n${line}` : line;
+    if (candidate.length > limit) { chunks.push(current); current = line; }
+    else current = candidate;
+  }
+  if (current || !chunks.length) chunks.push(current);
+  return chunks;
+}
+const pasteParts = splitPaste(pasteText);
+const pasteFiles = pasteParts.map((part, index) => ({
+  name: index === 0 ? 'ASSISTANT_PASTE.txt' : `ASSISTANT_PASTE_${index + 1}.txt`,
+  data: Buffer.from(part, 'utf8'),
+}));
 
 if (zip) {
   zip.file('ASSISTANT-BRIEF.md', briefBytes);
@@ -230,9 +228,10 @@ if (zip) {
 // Outer root: only ASSISTANT_PASTE.txt + biforge-ci-logs.zip
 for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
   if (!entry.isFile()) continue;
-  if (entry.name === 'biforge-ci-logs.zip') continue;
+  if (entry.name === 'biforge-ci-logs.zip' || /^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(entry.name)) continue;
   fs.rmSync(path.join(dir, entry.name), { force: true });
 }
-fs.writeFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), pasteBytes);
-console.log(`Created biforge-ci-logs.zip (${index.files.length} diagnostic files, ${fs.statSync(zipPath).size} bytes); status=${status}; history=${history?.historyStatus || 'unavailable'}.`);
+for (const name of fs.readdirSync(dir)) if (/^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(name)) fs.rmSync(path.join(dir, name), { force: true });
+for (const file of pasteFiles) fs.writeFileSync(path.join(dir, file.name), file.data);
+console.log(`Created ${pasteFiles.length} ASSISTANT_PASTE file(s), max ${Math.max(...pasteParts.map((part) => part.length))} chars each; biforge-ci-logs.zip (${index.files.length} diagnostic files, ${fs.statSync(zipPath).size} bytes); status=${status}; history=${history?.historyStatus || 'unavailable'}.`);
 console.log(`Outer artifact files: ${fs.readdirSync(dir).sort().join(', ')}`);

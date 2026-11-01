@@ -19,7 +19,7 @@ const dir = path.resolve(root, process.env.CI_LOGS_DIR || 'artifacts/ci-checks')
 const dualDir = path.resolve(root, process.env.DUAL_OUT_DIR || 'architect-dual-compare');
 fs.mkdirSync(dir, { recursive: true });
 
-const MAX_PASTE = Math.max(8_000, Math.min(60_000, Number(process.env.ASSISTANT_PASTE_MAX) || 28_000));
+const MAX_PASTE = 5_000; // Chat paste limit: every part is independently pasteable.
 const MAX_LOG_SNIP = 2_400;
 const MAX_FILES = 40;
 
@@ -42,7 +42,7 @@ function listLogs(base) {
       let st;
       try { st = fs.statSync(p); } catch { continue; }
       if (st.isDirectory()) walk(p, depth + 1);
-      else if (/\.(log|txt|md|json|tap|xml|html)$/i.test(name) && st.size > 0) out.push(p);
+      else if (/\.(log|txt|md|json)$/i.test(name) && st.size > 0) out.push(p);
     }
   };
   walk(base);
@@ -94,7 +94,6 @@ const meta = {
   version: pkg.version || null,
   generatedAt: new Date().toISOString(),
   jobStatus: status,
-  handoffArtifact: 'information-quality-assistant-handoff',
 };
 
 const logFiles = listLogs(dir);
@@ -136,7 +135,6 @@ lines.push(`PATCH=${meta.patch || '?'} VERSION=${meta.version || '?'}`);
 lines.push(`WORKFLOW=${meta.workflow || '?'}`);
 lines.push(`SHA=${meta.sha || '?'}`);
 lines.push(`RUN=${meta.runUrl || meta.runId || '?'}`);
-lines.push(`ASSISTANT_ARTIFACT=${meta.handoffArtifact}`);
 lines.push(`GENERATED=${meta.generatedAt}`);
 lines.push('');
 lines.push('## What failed (compressed)');
@@ -174,18 +172,34 @@ lines.push('If you cannot attach the ZIP, paste this entire ASSISTANT_PASTE.txt 
 lines.push('Prefer this file over paraphrasing CI in your own words.');
 lines.push('');
 
-let paste = lines.join('\n');
-if (paste.length > MAX_PASTE) {
-  paste = paste.slice(0, MAX_PASTE) + '\n\n…[ASSISTANT_PASTE truncated to fit chat paste limit]\n';
+const paste = lines.join('\n');
+function splitPaste(text, limit = MAX_PASTE) {
+  const chunks = []; let current = '';
+  for (const sourceLine of text.split('\n')) {
+    let line = sourceLine;
+    while (line.length > limit) {
+      if (current) { chunks.push(current); current = ''; }
+      chunks.push(line.slice(0, limit)); line = line.slice(limit);
+    }
+    const candidate = current ? `${current}\n${line}` : line;
+    if (candidate.length > limit) { chunks.push(current); current = line; }
+    else current = candidate;
+  }
+  if (current || !chunks.length) chunks.push(current);
+  return chunks;
 }
-
-fs.writeFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), paste, 'utf8');
+for (const name of fs.readdirSync(dir)) if (/^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(name)) fs.rmSync(path.join(dir, name), { force: true });
+const pasteParts = splitPaste(paste);
+pasteParts.forEach((part, index) => {
+  const name = index === 0 ? 'ASSISTANT_PASTE.txt' : `ASSISTANT_PASTE_${index + 1}.txt`;
+  fs.writeFileSync(path.join(dir, name), part, 'utf8');
+});
 fs.writeFileSync(path.join(dir, 'ASSISTANT_SUMMARY.json'), JSON.stringify(summary, null, 2) + '\n', 'utf8');
-console.log(`assistant-run-summary → ${path.relative(root, path.join(dir, 'ASSISTANT_PASTE.txt'))} (${paste.length} chars)`);
+console.log(`assistant-run-summary → ${pasteParts.length} paste file(s), max ${Math.max(...pasteParts.map((part) => part.length))} chars each`);
 
-// Optional: collapse directory to outer ASSISTANT_PASTE.txt + biforge-ci-logs.zip (for workflows without package-ci-artifacts).
+// Optional: collapse directory to numbered ASSISTANT_PASTE parts + biforge-ci-logs.zip.
 if (String(process.env.PACK_OUTER_ARTIFACT || '').toLowerCase() === 'true') {
-  const names = fs.readdirSync(dir).filter((n) => n !== 'biforge-ci-logs.zip' && n !== 'ASSISTANT_PASTE.txt');
+  const names = fs.readdirSync(dir).filter((n) => n !== 'biforge-ci-logs.zip' && !/^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(n));
   if (names.length) {
     const packed = spawnSync('zip', ['-q', '-r', 'biforge-ci-logs.zip', ...names], { cwd: dir, encoding: 'utf8' });
     if (packed.status === 0) {
@@ -194,7 +208,7 @@ if (String(process.env.PACK_OUTER_ARTIFACT || '').toLowerCase() === 'true') {
       console.warn('PACK_OUTER_ARTIFACT zip failed:', packed.stderr || packed.status);
     }
   }
-  if (!fs.existsSync(path.join(dir, 'ASSISTANT_PASTE.txt'))) fs.writeFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), paste, 'utf8');
+  if (!fs.existsSync(path.join(dir, 'ASSISTANT_PASTE.txt'))) fs.writeFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), pasteParts[0], 'utf8');
   console.log(`outer artifact files: ${fs.readdirSync(dir).sort().join(', ')}`);
 }
 
