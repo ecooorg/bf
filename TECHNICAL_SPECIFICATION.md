@@ -10,8 +10,8 @@ BiForge succeeds when a real user can complete a meaningful task and receive a c
 
 **Primary target:** Audit and simplify the instruction system across BiForge agents.  
 **Product version:** 124  
-**Documentation baseline:** P124.0.1  
-**Latest cumulative patch:** P124.0.2  
+**Documentation baseline:** P124.0.1; source inventory: P124.1  
+**Latest cumulative patch:** P124.0.3  
 **Development status:** ACTIVE  
 **Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
 **Core architecture:** External LLMs provide substantive intelligence and compose substantive answers; BiForge is the engineering intermediary responsible for request routing, context/session integrity, tool orchestration, transport, deterministic validation, and faithful result delivery.

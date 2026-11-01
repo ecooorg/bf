@@ -63,7 +63,7 @@
 ## C124 — Instruction Optimization (ACTIVE)
 
 **Product version:** 124  
-**Status:** ACTIVE — C124 mandate integrated; one narrow weather-search special-case cleanup completed; repository-wide instruction inventory and cleanup remain NOT_RUN  
+**Status:** ACTIVE — mandate integrated; P124.1 static source inventory completed; runtime/model-backed evaluation and prompt cleanup remain NOT_RUN  
 **Primary target:** Instruction sources and response-processing paths across Conversational, Expert, Architect, and shared infrastructure  
 **Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
 
@@ -84,7 +84,7 @@
 |---|---|---|
 | P124.0.1 | Documentation mandate and acceptance baseline | Canonical docs agree; version metadata synchronized |
 | P124.0.2 | Cumulative baseline, CI regression closure, generic weather-search cleanup | Targeted suites pass; city allowlist/example removed; full instruction inventory remains NOT_RUN |
-| P124.1 | Full instruction and transformation inventory | File/line inventory, category, dependency, risk, proposed disposition |
+| P124.1 | Static instruction and transformation source inventory | `docs/C124_INSTRUCTION_INVENTORY.md`; source/line references checked by `tests/c124-instruction-inventory.test.mjs`; live behavior remains NOT_RUN |
 | P124.2 | Minimal, evidence-based instruction cleanup | Reviewed removals/rewrites; no silent loss of required behavior |
 | P124.3 | Integrity and behavior validation | Regression suite, prompt-path checks, live model comparisons where available |
 

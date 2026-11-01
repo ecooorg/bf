@@ -1,3 +1,13 @@
+## P124.0.3 — P124.1 instruction and output-transformation inventory
+
+- Added `docs/C124_INSTRUCTION_INVENTORY.md`, tracing production prompt sources, runtime call paths, hard-coded routing heuristics, attachment/context handling, and post-generation transformations.
+- Classified each source as engineering control, integrity/validation, model-substitution behavior, hard-coded special case, or necessary model communication; recorded dependencies, risks and proposed dispositions.
+- Identified duplicated model-directed decision-analysis recipes across `server/promptPacks.ts`, `server/reasoningState.ts`, `server.ts` (`BASE_SYSTEM`) and `server/expertAgent.ts` as the primary C124 cleanup candidates.
+- Recorded output-integrity risks including unconditional URL stripping, first-question filtering, internal-label scrubbing, fixed output caps, attachment truncation and context selection.
+- Added `tests/c124-instruction-inventory.test.mjs` and included it in `test:core` to catch stale file/line references.
+- Updated the C124 mandate, roadmap, active decision, technical specification and acceptance documentation with the P124.1 inventory status.
+- **No runtime prompt or answer-processing behavior changed.** Live provider comparisons, deployed behavior, multilingual trigger evaluation and user-outcome validation remain NOT_RUN.
+
 ## P124.0.2 — Cumulative C124 baseline and CI regression closure
 
 - Consolidated the un-applied P124.0.1 documentation mandate with the latest P123.23 source baseline into one cumulative patch; product version remains 124 and patch identity advances to 124.0.2.

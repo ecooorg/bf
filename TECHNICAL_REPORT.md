@@ -1,3 +1,34 @@
+## P124.0.3 — P124.1 static instruction inventory
+
+**Status:** STATIC_SOURCE_INVENTORY_COMPLETE; runtime/model-backed behavior NOT_RUN. This patch is an audit/documentation and inventory-integrity-test change; no production prompt or answer-processing code was modified.
+
+### Source findings
+
+- Identified three overlapping decision-analysis instruction owners: `server/promptPacks.ts` (`DECISION_METHOD`), `server/reasoningState.ts` (`V17_LAYER_PROMPT`) and `server.ts` (`BASE_SYSTEM`). `server/expertAgent.ts` adds a further Expert-specific step prefix and structured analysis recipe.
+- Enumerated the separate Expert endpoint prompts (`neutralize`, `radar`, `understand`, `knowledge-map`, `expand`, `attack`, `redteam`, `premortem`, `experiment-draft`, `forecast-wording`, `synthesis`, `review` and document editing), plus the deterministic gain-audit retry that can force a second answer to manufacture “novelty”.
+- Catalogued the Conversational/Expert shared prompt assembler, information-mode prompt, mode routing heuristics, web-search system and evidence block, Architect project-analyst instruction, optional epistemic verifier, App Builder planner/reviewer/coder prompts, code-author prompts, downstream executor package instructions and untrusted-data wrappers.
+- Traced response/context transformations that may discard or alter information: URL stripping, question filtering, label/Markdown scrubbing, state merging/caps, context token selection, attachment truncation, document sanitization and fixed response-array limits.
+- The full inventory, classifications, call paths, dependencies, risks and proposed dispositions are in `docs/C124_INSTRUCTION_INVENTORY.md`.
+
+### Local checks
+
+- `node --test tests/c124-instruction-inventory.test.mjs` — PASS, 2/2.
+- `npm run docs:generate` — PASS; generated route inventory (84), env inventory (68), migration inventory (19), module map (174 modules / 437 edges / 0 cycles), check graph (28 checks / 160 modules) and capability graph (468 nodes / 954 edges).
+- `node scripts/docs-integrity.mjs` — PASS.
+- `node scripts/docsCheckInventories.mjs` — PASS.
+- `node scripts/statusGraph.mjs --check` — PASS.
+- `node scripts/capabilityGenerateGraph.mjs --check` — PASS.
+- `node scripts/version-metadata.mjs` — PASS (`version: 124`, `patch: 124.0.3`).
+- `npm run docs:check` — PASS (combined documentation integrity, generated inventory, check graph and capability graph checks).
+- `npm run test:core` — BLOCKED before test execution in this sandbox: local `node_modules/tsx` is a `0.0.0-test-shim` and cannot load `.ts`; retrying the core test with Node's experimental type stripping then stopped at missing package `zod` (`ERR_MODULE_NOT_FOUND`). The new inventory test itself passed independently. This environment failure is not reported as a product-test PASS.
+
+### Evidence limits
+
+- Live Gemini/Groq/Cloudflare comparisons: NOT_RUN.
+- Deployed behavior and user-outcome evaluation: NOT_RUN.
+- Full CI / GitHub Actions: NOT_RUN in this patch-generation environment.
+- The inventory is a static source and call-path audit; it does not claim every optional/legacy runtime configuration was exercised.
+
 ## P124.0.2 — Cumulative C124 baseline and CI regression closure
 
 **Status:** Targeted deterministic regression fixes and the un-applied P124.0.1 documentation mandate are consolidated. C124 remains active. Full instruction inventory, full CI, live model evaluation, deployment checks, and user-outcome validation are NOT_RUN.
