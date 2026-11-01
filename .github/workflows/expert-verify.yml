@@ -100,11 +100,17 @@ jobs:
         shell: bash
         run: |
           set -o pipefail; mkdir -p artifacts/expert
-          node --import tsx --test --experimental-test-coverage \
+          # Explicit unit files only — never browser e2e (playwright / long server spawn).
+          EXPERT_COVERAGE_ONLY=1 node --import tsx --test --experimental-test-coverage \
             --test-coverage-include='server/expert*.ts' --test-coverage-include='src/expert*.ts' \
             --test-coverage-include='src/decision*.ts' --test-coverage-include='src/finalDecisionDocument.ts' \
             --test-coverage-include='src/analyticalIntegrity.ts' --test-coverage-include='src/storage.ts' \
-            tests/p122.*.test.mjs 2>&1 | tee artifacts/expert/coverage.txt
+            tests/p122.1-state-integrity.test.mjs \
+            tests/p122.2-analytical-integrity.test.mjs \
+            tests/p122.3-execution-reliability.test.mjs \
+            tests/p122.4-decision-quality.test.mjs \
+            tests/p122.4-real-model-eval.mjs \
+            2>&1 | tee artifacts/expert/coverage.txt
           line=$(grep 'all files' artifacts/expert/coverage.txt | awk -F'|' '{gsub(/ /,"",$2); print $2}')
           func=$(grep 'all files' artifacts/expert/coverage.txt | awk -F'|' '{gsub(/ /,"",$4); print $4}')
           { echo "### Expert coverage"; echo "lines: ${line}%  functions: ${func}%  (gate: lines >= 85, functions >= 80)"; } | tee -a "$GITHUB_STEP_SUMMARY"
@@ -155,7 +161,7 @@ jobs:
       - name: Expert end-to-end
         run: node --test --test-timeout=300000 tests/p120-expert-e2e.test.mjs
       - name: Expert full journey (stages, quality panel, download, persistence)
-        run: node --test --test-timeout=300000 tests/p122.5-expert-journey-e2e.test.mjs
+        run: node --test --test-timeout=300000 tests/expert-journey-e2e.test.mjs
       - name: Agent transitions (Expert <-> Conversational/Architect keep state)
         run: node --test --test-timeout=300000 tests/p120-agent-transitions-e2e.test.mjs
       - uses: actions/upload-artifact@v4
