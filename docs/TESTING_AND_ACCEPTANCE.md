@@ -1,9 +1,9 @@
-## Prompt snapshot evidence (P123.13)
+## P123.17 — Retrieved evidence and source-link acceptance
 
-- Agent prompt snapshots remain strict SHA-256 equality checks over the complete generated prompt bytes. Never weaken or skip an assertion to obtain a green CI run.
-- When CI reports a mismatch, update only the evidenced mode/hash after checking the current prompt source and intended behavior. Record the run, commit, expected hash, actual hash, and whether semantic source review was performed in `TECHNICAL_REPORT.md` and `CHANGELOG.md`.
-- A CI-provided actual hash is sufficient to identify the byte-level mismatch, but not sufficient by itself to claim that the prompt's semantic change is correct. If the source diff is unavailable, mark semantic review `NOT_VERIFIED`.
-- Re-run `npm run test:core` and `node scripts/run-dag.mjs --profile check`; hosted CI remains `NOT_RUN` until the resulting commit has completed Actions.
+- Deterministic: `tests/web-and-epistemics.test.mjs` asserts that the compatibility source-footer formatter emits no user-visible URLs and that shared/Expert/V17 prompts explicitly preserve retrieved facts and values.
+- Live acceptance (required): ask the same current-weather question in Conversational and Expert; confirm the reply contains concrete retrieved values when supplied by the provider, distinguishes observation from forecast, and contains no appended source list/URLs. Repeat with a non-weather current-information query.
+- Failure behavior: when retrieval contains no concrete evidence, the agent must say exactly what could not be verified; it must not invent a value or present page titles as evidence.
+- CI and live provider checks remain separate; source-contract tests do not prove live model quality.
 
 # Testing and Acceptance
 
@@ -54,32 +54,16 @@ Use a realistic software request from initial entry to download. The user must n
 
 Report exact commands run and outcomes. For a docs-only patch, product E2E, live generation, hosted CI, and deployment remain NOT_RUN unless actually executed.
 
-## Prompt snapshot and cache-version contract
 
-- Agent prompt golden hashes are reviewed snapshots of the current prompt output, not permanent assertions that prompt bytes must remain identical to a historical pre-refactor implementation. When an intentional prompt change is accepted, update only the affected golden hash and record why; keep all other mode/agent snapshots unchanged.
-- App Builder coder prompt changes must increment `PROMPT_VERSION` so cached generations cannot be reused across materially different instructions. Tests must compare the exported version against the active version and verify cache-key sensitivity; do not leave tests pinned to an obsolete version string.
-- A snapshot/version assertion failure is not repaired by weakening or removing the assertion. Recompute the actual prompt hash or inspect the exported version, review the source change, then update the narrow expected value.
-
-
-### Prompt snapshot maintenance (P123.12)
-
-Prompt golden hashes are intentional review gates, not values to update mechanically after a failure. When a snapshot fails:
-
-1. Compare the current prompt builder and its source instructions with the last reviewed behavior.
-2. Confirm that the wording change is intentional and consistent with the normative product contract.
-3. Record the user-visible behavior change and rationale in the patch evidence and changelog.
-4. Update only the affected golden hash; retain strict equality assertions for all other snapshots.
-5. Run `npm run test:core` and `node scripts/run-dag.mjs --profile check`; report unavailable dependencies or unrun hosted checks as `BLOCKED` / `NOT_RUN`.
-
-Never update a golden hash solely to make CI green, and never weaken or remove the snapshot assertion to bypass a mismatch.
+## P123.16 — Weather retrieval acceptance
+- Automated tests cover weather query expansion, rejection of title-only search digests, and weather-specific prompt constraints.
+- Manual hosted acceptance remains required: compare Simple and Expert answers with a timestamped MeteoSwiss observation.
+- User-facing replies must not append a raw `Sources (web search)` URL footer.
+- If no numeric current observation is retrieved, the agent must state that limitation rather than invent a temperature.
 
 
-### Complete prompt snapshot diagnostics (P123.14)
-
-- The prompt snapshot test computes every Conversational/Expert mode hash, both Expert dialogue paragraph hashes, and the Expert step-prefix hash before running strict assertions. This prevents the first mismatch from hiding later drift.
-- CI writes `prompt-snapshot-diagnostics.json` with expected/actual values, match flags, deterministic inputs, generated prompt text, and exact prompt-builder source contents with SHA-256 fingerprints. `ASSISTANT_PASTE.txt` carries the compact matrix; the inner `biforge-ci-logs.zip` carries the full JSON.
-- Diagnostic evidence does not imply semantic approval. Review the included source and generated text before changing any golden value. Assertions must remain strict, and hashes must never be auto-refreshed by CI.
-### Prompt snapshot maintenance (P123.15)
-
-The Expert dialogue paragraph is shared across the Expert mode prompts. A reviewed wording change therefore affects both the standalone paragraph snapshots and every full Expert prompt that includes it. When updating snapshots, recompute all dependent hashes from the exact current builder inputs, review the source change against the Expert behavior contract, and update only the affected expected values. Preserve strict equality checks for all other prompts and the step prefix.
-
+## P123.16 — Weather retrieval acceptance
+- Automated tests cover weather query expansion, rejection of title-only search digests, and weather-specific synthesis constraints.
+- Hosted acceptance must compare Simple and Expert answers with timestamped MeteoSwiss observations.
+- User-facing replies must not append a raw `Sources (web search)` URL footer.
+- If no numeric current observation is retrieved, the agent must state that limitation rather than invent a temperature.
