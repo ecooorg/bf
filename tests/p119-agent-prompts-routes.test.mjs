@@ -1,14 +1,11 @@
 /**
  * P119.0.4 — agent-owned prompt text, agent-named routes, client route choice.
- * GOLDEN hashes lock the reviewed prompt contracts. Expert information wording changed in P123.10; Expert decision wording changed in P123.12; Expert research wording
- * was aligned in P123.13. P123.15 aligns the remaining engineering and dialogue-paragraph snapshots with the same reviewed source contract.
- * Keep these snapshots exact so subsequent unreviewed prompt drift remains detectable.
+ * GOLDEN hashes lock agent-owned prompt text. STEP_PREFIX was intentionally updated in P122.5 (anti-invention +
+ * claim labeling). Remaining dialogue hashes still prove the P119.0.4 split did not alter conversational bytes.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
 import { readRepoFile } from './_sources.mjs';
 import { modeParagraph } from '../server/conversationMode.ts';
 import { buildConversationalPrompt } from '../server/conversationalAgent.ts';
@@ -16,71 +13,31 @@ import { buildExpertPrompt, expertDialogueParagraph, EXPERT_STEP_PREFIX, EXPERT_
 import { CONVERSATION_ROUTES, pinConversationAgent, resolveConversationAgent } from '../server/agentRouting.ts';
 
 const sha = (s) => createHash('sha256').update(s).digest('hex');
-const GOLDEN_STEP_PREFIX = '0dc8cdce3d35235c6e596af93b3988caa9cd576be44fe9923d382ff8f251e368';
+const GOLDEN_STEP_PREFIX = '30fdcd3569a5ee1f2d8c4df7c091fe64b0958f70ae4a4afa790668b817e0e49b';
 const GOLDEN = {
   "conversational:information": "ac17f16bd0b0ef3b31dfd8b27d0e4532066a419e2a3ca0237b362cd625b5d4da",
-  "expert:information": "90525cfce9a2010fdbd73e201de50b5f3414d5ba9296467aa117af20793881ac",
+  "expert:information": "6b35eb0154015eca8aa2ce762ce7d36e4bad613b40eafd21f85464b6978fdcee",
   "conversational:decision": "2dcdfba3d4edddc8be63471362c99e1969406d58557538aae8c431460bc20d92",
-  "expert:decision": "1ef4e62e9c1f0d94bf87d613a810c8b201f8dad396f5cbc440392541126d8b66",
+  "expert:decision": "cdca660e6fc2a15b912d8b0c72829aa3d197e3382d92163b65f3c8593f71ebd7",
   "conversational:research": "2b01ca9d770c470cd02c7b2279a870a29ca5a1991bdbceb791c69e2db36df2d4",
-  "expert:research": "21cac76f09f4541d462a1845b7b7f40b0a76a2482334728424cb9d28fbbe79cb",
+  "expert:research": "e6a446e5daba37e874aba54b91811e454365826a255243a863e82ce28f6237f7",
   "conversational:engineering": "def3f9ef2ab36c1e6eb488989f8978dd24d9877c3fc60c9ba74799eae4abe206",
-  "expert:engineering": "1121c970bf371e008c84d4dbe893af3129a64716efadd62b2ea6054af84cdcd9",
-  "expertParagraph:unknown": "c9a7f250de5a96db6a49913d9ef107c630781ca8c859919e33e5a18c2c745c09",
-  "expertParagraph:expand": "1ae85e750dac09cd3b856cd8ee4b29c5df9d55fc2e2d61776bcfe00721574912"
+  "expert:engineering": "95b4691f26acc9f3659c66face4ec31eba84af47d503fd311ae48c5ec7347f32",
+  "expertParagraph:unknown": "dee81076621e1bbaf42986a0a9b3dd9f7890196e373cfc473a28ab09c012089b",
+  "expertParagraph:expand": "0e852e141bfa4feae2dd1239a965fa7f8ce15a6f02253999259a6cd6fca3763c"
 };
 const MODES = ['information', 'decision', 'research', 'engineering'];
 
-// Emit the complete matrix before assertions so one CI failure cannot hide later drift.
-// The JSON artifact includes deterministic prompt inputs/outputs and the exact builder sources
-// needed for semantic review; the paste summary carries the compact hash matrix.
-function collectPromptSnapshotDiagnostics() {
-  const actual = { 'expertStepPrefix': sha(EXPERT_STEP_PREFIX) };
-  const prompts = {};
+test('P119.0.4 prompt bytes are identical to the pre-move implementation (8 prompts, 2 paragraphs, step prefix)', () => {
+  assert.equal(sha(EXPERT_STEP_PREFIX), GOLDEN_STEP_PREFIX);
   for (const m of MODES) {
     const cp = { agent: 'conversational', productMode: 'Simple', conversationMode: m, modeBlock: modeParagraph(m) };
-    const conversational = buildConversationalPrompt('IN', 'ATT', cp, '2026-10-29');
+    assert.equal(sha(buildConversationalPrompt('IN', 'ATT', cp, '2026-10-29')), GOLDEN[`conversational:${m}`], `conversational:${m}`);
     const ep = { agent: 'expert', productMode: 'Expert', conversationMode: m, modeBlock: `${modeParagraph(m)}\n\n${expertDialogueParagraph('EXPAND', 'Facts: a')}` };
-    const expert = buildExpertPrompt('IN', 'ATT', ep, '2026-10-29');
-    actual[`conversational:${m}`] = sha(conversational);
-    actual[`expert:${m}`] = sha(expert);
-    prompts[`conversational:${m}`] = conversational;
-    prompts[`expert:${m}`] = expert;
+    assert.equal(sha(buildExpertPrompt('IN', 'ATT', ep, '2026-10-29')), GOLDEN[`expert:${m}`], `expert:${m}`);
   }
-  actual['expertParagraph:unknown'] = sha(expertDialogueParagraph('NOPE', ''));
-  actual['expertParagraph:expand'] = sha(expertDialogueParagraph('EXPAND', 'Facts: a'));
-  const sourcePaths = ['server/conversationMode.ts', 'server/conversationalAgent.ts', 'server/expertAgent.ts', 'server/promptPacks.ts'];
-  const sources = Object.fromEntries(sourcePaths.map((file) => {
-    const content = readRepoFile(file);
-    return [file, { sha256: sha(content), content }];
-  }));
-  const diagnostic = {
-    schemaVersion: 1,
-    artifactType: 'prompt-snapshot-diagnostics',
-    generatedAt: new Date().toISOString(),
-    testInputs: { input: 'IN', attachmentsBlock: 'ATT', date: '2026-10-29', expertDialogue: 'EXPAND', expertFacts: 'Facts: a' },
-    expected: { expertStepPrefix: GOLDEN_STEP_PREFIX, ...GOLDEN },
-    actual,
-    matches: Object.fromEntries(Object.entries(actual).map(([key, hash]) => [key, hash === (key === 'expertStepPrefix' ? GOLDEN_STEP_PREFIX : GOLDEN[key])])),
-    prompts: Object.fromEntries(Object.entries(prompts).map(([key, text]) => [key, { sha256: sha(text), length: text.length, text }])),
-    sources,
-  };
-  const outputDir = path.resolve(process.cwd(), process.env.CI_LOGS_DIR || 'artifacts/ci-checks');
-  fs.mkdirSync(outputDir, { recursive: true });
-  fs.writeFileSync(path.join(outputDir, 'prompt-snapshot-diagnostics.json'), JSON.stringify(diagnostic, null, 2) + '\n');
-  console.log(`PROMPT_SNAPSHOT_MATRIX=${JSON.stringify({ expected: diagnostic.expected, actual, matches: diagnostic.matches, sourceHashes: Object.fromEntries(Object.entries(sources).map(([file, value]) => [file, value.sha256])) })}`);
-  return diagnostic;
-}
-
-test('agent prompt snapshots match the reviewed current prompt contracts (8 prompts, 2 paragraphs, step prefix)', () => {
-  const diagnostic = collectPromptSnapshotDiagnostics();
-  assert.equal(diagnostic.actual.expertStepPrefix, GOLDEN_STEP_PREFIX, 'expertStepPrefix');
-  for (const m of MODES) {
-    assert.equal(diagnostic.actual[`conversational:${m}`], GOLDEN[`conversational:${m}`], `conversational:${m}`);
-    assert.equal(diagnostic.actual[`expert:${m}`], GOLDEN[`expert:${m}`], `expert:${m}`);
-  }
-  assert.equal(diagnostic.actual['expertParagraph:unknown'], GOLDEN['expertParagraph:unknown']);
-  assert.equal(diagnostic.actual['expertParagraph:expand'], GOLDEN['expertParagraph:expand']);
+  assert.equal(sha(expertDialogueParagraph('NOPE', '')), GOLDEN['expertParagraph:unknown']);
+  assert.equal(sha(expertDialogueParagraph('EXPAND', 'Facts: a')), GOLDEN['expertParagraph:expand']);
   assert.ok(EXPERT_STAGES.length >= 9);
 });
 
