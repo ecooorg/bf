@@ -1,3 +1,9 @@
+## P123.7 — Fix CI: workflow inventory + carousel-verify runner
+
+- **test:core:** `tests/p119-agent-boundaries.test.mjs` expected workflow list now includes `carousel-verify.yml`.
+- **carousel-verify:** `ops-probe` and live smoke invoked with `node --import tsx` (plain `node` cannot load `.ts` server modules).
+- package.json patch → `123.7`.
+
 ## P123.6 — Carousel verification workflow (full automated check)
 
 - **Workflow** `.github/workflows/carousel-verify.yml`:
