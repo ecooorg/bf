@@ -1,14 +1,19 @@
 /**
- * C123 P123.1 — Model Carousel gateway skeleton + call lineage.
+ * C123 — Model Carousel gateway + lineage + key-pool rotation (P123.1 / P123.2).
  *
- * Agents and services should prefer `executeModelCall` over calling adapters directly.
- * Behaviour for a single Gemini cascade is unchanged: this wraps `routeCall` and attaches
- * reproducible lineage (source, model, channel, key slot, timing).
- *
- * Multi-source catalog and 13-key pool land in P123.2+.
+ * Prefer `executeModelCall` over calling adapters directly.
+ * P123.1: lineage on every call.
+ * P123.2: optional Gemini key pool (≤13 slots) with cooldown rotation on quota/429/auth.
+ * Multi-source catalog remains P123.3+.
  */
-import type { ProviderRequest } from './adapter.ts';
-import { routeCall, type RouteContext, type RouteResult, type RouteDecision } from './router.ts';
+import type { ProviderAdapter, ProviderRequest } from './adapter.ts';
+import { routeCall, type RouteContext, type RouteResult } from './router.ts';
+import {
+  KeyPoolState,
+  resolveGeminiKeySlots,
+  shouldRotateKeySlot,
+  type KeySlot,
+} from './keyPool.ts';
 
 export type ModelChannel = 'api' | 'browser';
 
@@ -18,7 +23,7 @@ export interface ModelCallLineage {
   sourceId: string;
   model: string | null;
   channel: ModelChannel;
-  /** Opaque slot index 0..12 when a key pool is active; null if single-key / unknown. */
+  /** Opaque slot index 0..13; null if pool unused or unknown. */
   keySlot: number | null;
   dataClass: 'public' | 'restricted';
   startedAt: string;
@@ -26,9 +31,8 @@ export interface ModelCallLineage {
   latencyMs: number;
   status: 'ok' | 'error' | 'blocked' | 'failover';
   errorClass?: string;
-  /** Router policy id for debugging. */
   policy: string;
-  attempts: { model: string; status: string; errorClass?: string }[];
+  attempts: { model: string; status: string; errorClass?: string; keySlot?: number }[];
 }
 
 export interface CarouselResult extends RouteResult {
@@ -36,12 +40,19 @@ export interface CarouselResult extends RouteResult {
 }
 
 export interface ExecuteModelCallOptions {
-  /** Catalog source id (MVP: single Gemini free pool). */
   sourceId?: string;
   channel?: ModelChannel;
   dataClass?: 'public' | 'restricted';
-  /** Key pool slot when multi-key is configured (P123.2); omit for solo deploy. */
+  /** Force a single slot index into lineage when not using the pool loop. */
   keySlot?: number | null;
+  /**
+   * P123.2: organisational key slots. When set with `buildGeminiAdapter`,
+   * the gateway tries successive slots on quota/transient/auth failures.
+   */
+  keySlots?: KeySlot[];
+  keyPoolState?: KeyPoolState;
+  /** Build a Gemini ProviderAdapter for one secret (never log the argument). */
+  buildGeminiAdapter?: (apiKey: string) => ProviderAdapter;
 }
 
 const DEFAULT_SOURCE = 'gemini-free-pool';
@@ -50,12 +61,12 @@ function iso(ms: number): string {
   return new Date(ms).toISOString();
 }
 
-/** Build lineage from a finished routeCall result. */
 export function buildModelCallLineage(
   req: Pick<ProviderRequest, 'requestId'>,
   result: RouteResult,
   startedAtMs: number,
-  opts: ExecuteModelCallOptions = {}
+  opts: ExecuteModelCallOptions = {},
+  extraAttempts: ModelCallLineage['attempts'] = []
 ): ModelCallLineage {
   const finishedAtMs = Date.now();
   const response = result.response;
@@ -64,13 +75,18 @@ export function buildModelCallLineage(
     result.decision.attempts.map((a) => a.model).filter(Boolean).at(-1) ||
     result.decision.candidates[0] ||
     null;
-  const lastAttempt = result.decision.attempts.at(-1);
+  const mergedAttempts = [
+    ...extraAttempts,
+    ...result.decision.attempts.map((a) => ({
+      model: a.model,
+      status: a.status,
+      ...(a.errorClass ? { errorClass: a.errorClass } : {}),
+    })),
+  ];
+  const lastAttempt = mergedAttempts.at(-1);
+  const multi = mergedAttempts.length > 1 || result.decision.attempts.length > 1;
   const status: ModelCallLineage['status'] =
-    result.status === 'ok'
-      ? result.decision.attempts.length > 1
-        ? 'failover'
-        : 'ok'
-      : result.status;
+    result.status === 'ok' ? (multi ? 'failover' : 'ok') : result.status;
 
   return {
     requestId: String(req.requestId || 'unknown'),
@@ -87,17 +103,14 @@ export function buildModelCallLineage(
       ? { errorClass: lastAttempt?.errorClass || response?.errorClass }
       : {}),
     policy: result.decision.policy || 'unknown',
-    attempts: result.decision.attempts.map((a) => ({
-      model: a.model,
-      status: a.status,
-      ...(a.errorClass ? { errorClass: a.errorClass } : {}),
-    })),
+    attempts: mergedAttempts,
   };
 }
 
 /**
  * Preferred entry for model calls in C123+.
- * MVP: delegates to existing `routeCall` (Gemini cascade / registry unchanged).
+ * Without key pool options → single routeCall (P123.1 behaviour).
+ * With keySlots + buildGeminiAdapter → rotate keys on rotatable errors (P123.2).
  */
 export async function executeModelCall(
   req: Omit<ProviderRequest, 'modelId'>,
@@ -105,12 +118,105 @@ export async function executeModelCall(
   opts: ExecuteModelCallOptions = {}
 ): Promise<CarouselResult> {
   const startedAtMs = Date.now();
-  const result = await routeCall(req, ctx);
-  const lineage = buildModelCallLineage(req, result, startedAtMs, opts);
-  return { ...result, lineage };
+  const slots = opts.keySlots?.length ? opts.keySlots : null;
+  const pool = opts.keyPoolState;
+  const build = opts.buildGeminiAdapter;
+
+  if (!slots || !build) {
+    const result = await routeCall(req, ctx);
+    const lineage = buildModelCallLineage(req, result, startedAtMs, opts);
+    return { ...result, lineage };
+  }
+
+  const now = () => Date.now();
+  const available = pool ? pool.available(slots, now()) : slots;
+  if (!available.length) {
+    const empty: RouteResult = {
+      status: 'blocked',
+      decision: {
+        candidates: [],
+        rejected: slots.map((s) => ({ model: `key_slot:${s.slot}`, reason: 'key_slot_cooldown' })),
+        attempts: [],
+        policy: 'carousel-key-pool/v1',
+        unitsSpent: 0,
+        reason: 'no_available_key_slot',
+      },
+    };
+    return {
+      ...empty,
+      lineage: buildModelCallLineage(req, empty, startedAtMs, { ...opts, keySlot: null }),
+    };
+  }
+
+  const poolAttempts: ModelCallLineage['attempts'] = [];
+  let last: RouteResult | undefined;
+
+  for (const slot of available) {
+    const gemini = build(slot.key);
+    const result = await routeCall(req, {
+      ...ctx,
+      adapters: { ...ctx.adapters, gemini },
+    });
+    last = result;
+
+    for (const a of result.decision.attempts) {
+      poolAttempts.push({
+        model: a.model,
+        status: a.status,
+        keySlot: slot.slot,
+        ...(a.errorClass ? { errorClass: a.errorClass } : {}),
+      });
+    }
+
+    if (result.status === 'ok') {
+      pool?.clearCooldown(slot.slot);
+      const lineage = buildModelCallLineage(
+        req,
+        result,
+        startedAtMs,
+        { ...opts, keySlot: slot.slot },
+        poolAttempts.length ? poolAttempts : undefined
+      );
+      // Prefer poolAttempts as the full picture
+      if (poolAttempts.length) lineage.attempts = poolAttempts;
+      return { ...result, lineage };
+    }
+
+    const errClass =
+      result.response?.errorClass ||
+      result.decision.attempts.map((a) => a.errorClass).filter(Boolean).at(-1);
+
+    if (shouldRotateKeySlot(errClass)) {
+      pool?.markCooldown(slot.slot, now());
+      continue;
+    }
+
+    // Non-rotatable failure (invalid request, blocked policy, etc.)
+    const lineage = buildModelCallLineage(req, result, startedAtMs, { ...opts, keySlot: slot.slot });
+    if (poolAttempts.length) lineage.attempts = poolAttempts;
+    return { ...result, lineage };
+  }
+
+  const failed = last ?? {
+    status: 'blocked' as const,
+    decision: {
+      candidates: [],
+      rejected: [],
+      attempts: [],
+      policy: 'carousel-key-pool/v1',
+      unitsSpent: 0,
+      reason: 'all_key_slots_exhausted',
+    },
+  };
+  const lineage = buildModelCallLineage(req, failed, startedAtMs, {
+    ...opts,
+    keySlot: available.at(-1)?.slot ?? null,
+  });
+  if (poolAttempts.length) lineage.attempts = poolAttempts;
+  if (failed.status !== 'ok') lineage.status = failed.status === 'blocked' ? 'blocked' : 'error';
+  return { ...failed, lineage };
 }
 
-/** Summarise lineage for logs / agent meta (never includes secrets). */
 export function lineageLogFields(lineage: ModelCallLineage): Record<string, unknown> {
   return {
     requestId: lineage.requestId,
@@ -124,3 +230,6 @@ export function lineageLogFields(lineage: ModelCallLineage): Record<string, unkn
     attempts: lineage.attempts.length,
   };
 }
+
+export { resolveGeminiKeySlots, KeyPoolState, shouldRotateKeySlot };
+export type { KeySlot };
