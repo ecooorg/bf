@@ -1,3 +1,11 @@
+## P123.5 — Carousel ops + CI fixes (close C123 implementation)
+
+- **CI fix:** `config/` added to `ALLOWED_TOP` in `scripts/patch-tools.mjs` (preflight no longer rejects `config/model-sources.*`).
+- **CI fix:** `runAnalysis` no longer always uses process-global `sourceHealth` (tests were failing with `source_unhealthy` after prior failures). Production `server.ts` still passes `globalSourceHealth` explicitly.
+- **Ops:** `scripts/carousel-ops-probe.mjs`, `npm run carousel:probe`, `docs/C123_OPS.md`.
+- **Optional second source:** `withEnvAutoEnable` when `CAROUSEL_AUTO_ENABLE=true` and keys present; catalog still defaults OpenRouter/Groq to `enabled: false`.
+- package.json patch → `123.5`.
+
 ## P123.4 — Source health + key pool max 10 (any count 1..10)
 
 - **Key pool:** `MAX_ORG_KEY_SLOTS = 10` (was 13). Any number of configured keys from **1 to 10** is valid; solo deploy stays one key. Numbered env `GEMINI_API_KEY_1`…`_10` only; 11+ ignored.

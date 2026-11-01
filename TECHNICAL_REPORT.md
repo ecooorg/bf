@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P123.5 ops + CI fixes, 2026-11-01
+
+- **test:models** red: preflight forbidden top-level `config/` → ALLOWED_TOP includes `config`.
+- **test:database:live** red: `MODEL_UNAVAILABLE (source_unhealthy)` from global health bleed into analysis tests → sourceHealth only via AnalysisDeps.
+- **C123:** gateway, key pool ≤10, catalog, source health, ops probe documented.
+
 # CURRENT EVIDENCE NOTE — P123.4 Source health + max 10 keys, 2026-11-01
 
 - Pool cap reduced to **10 keys per vendor**; tests assert intermediate sizes 1,2,3,7,10 all work.

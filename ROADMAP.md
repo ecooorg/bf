@@ -5,7 +5,7 @@
 ## C123 — Model Carousel / «Карусель» (ACTIVE)
 
 **Product version:** 123  
-**Status:** APPROVED — documentation baseline P123.0.1; implementation starts at P123.1  
+**Status:** CLOSING — P123.1–P123.5 delivered; remaining polish optional  
 **Primary target:** Shared model access layer (all agents)  
 **Informal name:** Карусель  
 **Architect product features:** remain FROZEN (Architect may consume the carousel)  
@@ -31,7 +31,7 @@
 | P123.2 | KEY POOL | Rotate up to 10 key slots on quota/429 | DONE |
 | P123.3 | MULTI-SOURCE CATALOG | Load JSON catalog; inventory 20+ candidates; second API when keys exist | DONE |
 | P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience; key pool max 10 | DONE |
-| P123.5 | OPS PROBES | Optional scheduled health; secret naming; deploy notes | PLANNED |
+| P123.5 | OPS PROBES | Probe script, ops doc, auto-enable opt-in; CI preflight config/; health isolation | DONE |
 
 ### Frozen / out of scope during C123 MVP
 

@@ -41,6 +41,7 @@ import { waitForModelStart } from './server/modelRateLimit.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { resolveGeminiKeySlots, KeyPoolState } from './server/keyPool.ts';
+import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
@@ -2350,6 +2351,7 @@ async function start() {
           keySlots: geminiKeySlots,
           keyPoolState: geminiKeyPoolState,
           buildGeminiAdapter: buildGeminiAdapterFromKey,
+          sourceHealth: globalSourceHealth,
         });
         return { status: 'SUCCEEDED', providerId: result.model.split('/')[0], modelId: result.model.split('/').slice(1).join('/'), policyVersion: 'router-v1', budget: result.budget, evidence: [`artifact:${result.artifact.artifactId}@${result.artifact.version}`, `state_version:${result.state_version}`, `run:${run.id}`] };
       },

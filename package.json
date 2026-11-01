@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "123",
-  "patch": "123.4",
+  "patch": "123.5",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -74,7 +74,8 @@
     "test:architect-lab": "node --test tests/p122-architect-lab-contract.test.mjs",
     "architect:dual-compare": "node scripts/architect-dual-compare.mjs",
     "test:architect-dual-compare": "node --test tests/architect-dual-compare-contract.test.mjs",
-    "test:assistant-run-summary": "node --test tests/assistant-run-summary-contract.test.mjs"
+    "test:assistant-run-summary": "node --test tests/assistant-run-summary-contract.test.mjs",
+    "carousel:probe": "node scripts/carousel-ops-probe.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
