@@ -1,3 +1,11 @@
+## P123.15 — Expert dialogue prompt snapshot alignment
+
+- Reviewed the current `expertDialogueParagraph` wording against the P123.10 Expert behavior contract: proportionate factual answers, complex analysis scaled to the task, and conditional criteria-based recommendations only when explicitly requested.
+- Updated only the three affected strict SHA-256 snapshots: `expert:engineering`, `expertParagraph:unknown`, and `expertParagraph:expand`. Other prompt snapshots remain unchanged.
+- No runtime prompt text or product behavior changed in this patch; the change aligns stale test expectations with the already-reviewed source.
+- Bumped patch metadata to `123.15`; product version remains `123`.
+- **Verification:** generated hashes reproduced locally from the CI-matching source files. Focused prompt-route test result is recorded in the technical report; full `test:core`, workflow DAG, and hosted CI are not claimed unless run.
+
 ## P123.14 — Complete prompt snapshot CI diagnostics
 
 - Added a pre-assertion diagnostic pass for all eight Conversational/Expert mode prompts, both Expert dialogue paragraphs, and the Expert step prefix. A failure in one strict snapshot can no longer hide additional mismatches in later modes.

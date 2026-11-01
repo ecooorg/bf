@@ -1,3 +1,13 @@
+# CURRENT EVIDENCE NOTE — P123.15 Expert dialogue prompt snapshot alignment, 2026-11-01
+
+- **Observed CI failure:** run `41333525289` failed `test:core` at the strict `expert:engineering` snapshot; `workflow-dag` failed downstream. CI diagnostics recorded three mismatches: `expert:engineering`, `expertParagraph:unknown`, and `expertParagraph:expand`.
+- **Source identity:** the four source-file SHA-256 values in the supplied base archive match the CI diagnostic values: `conversationMode.ts` `8fb33874…`, `conversationalAgent.ts` `d29fb2f5…`, `expertAgent.ts` `44a0e571…`, and `promptPacks.ts` `9f8d7b9f…`.
+- **Root cause:** the current `expertDialogueParagraph` source text differs from the older golden snapshots. The difference is consistent with the reviewed P123.10 Expert contract; the same shared paragraph is included in the full Expert prompt for each conversation mode. No CI/source mismatch was found.
+- **Change in P123.15:** update only the three affected golden hashes. The eight prompt snapshots, paragraph assertions, and step-prefix assertion remain strict; no runtime source changed.
+- **Reproduction:** direct SHA-256 recomputation from the source produced `expert:engineering` `1121c970…`, `expertParagraph:unknown` `c9a7f250…`, and `expertParagraph:expand` `1ae85e75…`, matching the CI diagnostic actual values.
+- **Focused verification:** `node --experimental-strip-types --test tests/p119-agent-prompts-routes.test.mjs` — record actual outcome before delivery.
+- **NOT_RUN:** full `npm run test:core`, `node scripts/run-dag.mjs --profile check`, and hosted CI rerun. No full-suite or hosted PASS is claimed.
+
 # CURRENT EVIDENCE NOTE — P123.14 complete prompt snapshot diagnostics, 2026-11-01
 
 - **Observed issue motivating the change:** repeated CI cycles surfaced one prompt SHA-256 mismatch at a time. In run `41331786620`, `expert:engineering` expected `95b4691f…7347f32` and actual was `1121c970…cdcd9`; the strict test stopped at that assertion, so other prompt-mode drift was not exposed by the report.
