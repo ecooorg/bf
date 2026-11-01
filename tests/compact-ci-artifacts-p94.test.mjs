@@ -89,6 +89,13 @@ test('P108.2 packaging always includes complete diagnostics on failure', async (
     fs.writeFileSync(path.join(dir, 'test-core.log'), 'AssertionError: expected false, actual true\nOPENAI_API_KEY=sk-test-secret-value-12345678901234567890\n');
     fs.writeFileSync(path.join(dir, 'test-project.log'), 'all passed\n');
     fs.writeFileSync(path.join(dir, 'ci-install.log'), 'npm ci ok\n');
+    fs.writeFileSync(path.join(dir, 'prompt-snapshot-diagnostics.json'), JSON.stringify({
+      artifactType: 'prompt-snapshot-diagnostics',
+      expected: { 'expert:engineering': 'expected-hash' },
+      actual: { 'expert:engineering': 'actual-hash', 'expert:research': 'research-hash' },
+      sources: { 'server/expertAgent.ts': { sha256: 'source-hash', content: 'builder source' } },
+      prompts: { 'expert:engineering': { text: 'generated prompt text' } },
+    }));
     const r = run('scripts/package-ci-artifacts.mjs', dir);
     assert.equal(r.status, 0, r.stderr || r.stdout);
     assert.deepEqual(fs.readdirSync(dir).sort(), ['ASSISTANT_PASTE.txt', 'biforge-ci-logs.zip']);
@@ -98,6 +105,12 @@ test('P108.2 packaging always includes complete diagnostics on failure', async (
     assert.ok(zip.file('results.json'));
     assert.ok(zip.file('diagnostics-index.json'));
     assert.ok(zip.file('PATCH_EVIDENCE.md') || zip.file('BIForge-PATCH-EVIDENCE.md'), 'evidence inside zip');
+    assert.ok(zip.file('prompt-snapshot-diagnostics.json'), 'full prompt/source diagnostic must be retained in ZIP');
+    const paste = fs.readFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), 'utf8');
+    assert.match(paste, /Complete prompt snapshot matrix/);
+    assert.match(paste, /expert:engineering: actual-hash \| expected=expected-hash \| MISMATCH/);
+    assert.match(paste, /expert:research: research-hash \| expected=n\/a \| DIAGNOSTIC_ONLY/);
+    assert.match(paste, /server\/expertAgent\.ts:source-hash/);
     const core = await zip.file('test-core.log').async('string');
     assert.match(core, /AssertionError/);
     assert.match(core, /OPENAI_API_KEY=\[REDACTED\]/);
