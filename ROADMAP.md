@@ -1,3 +1,20 @@
+## P123.17 — Retrieved-evidence preservation and source presentation
+
+- Implemented: suppress automatic source URLs in visible conversation replies; retain source metadata; align shared grounding guidance across Conversational and Expert; clarify evidence scope and preserve supported numeric details.
+- Validation still required: run full CI and conduct live, same-question comparisons in both modes. Do not mark user-value acceptance complete based on deterministic tests alone.
+
+## P123.16 — Weather retrieval quality
+- [x] Expand weather searches toward current observation data and MeteoSwiss.
+- [x] Reject title-only search results as factual grounding.
+- [x] Stop appending source URLs to user-visible conversation replies.
+- [ ] Validate live Simple and Expert weather answers against timestamped MeteoSwiss observations.
+
+## P123.16 — Weather retrieval quality
+- [x] Expand weather searches toward current observation data and MeteoSwiss.
+- [x] Reject title-only search results as factual grounding.
+- [x] Stop appending source URLs to user-visible conversation replies.
+- [ ] Validate live Simple and Expert weather answers against MeteoSwiss observations.
+
 # CURRENT ROADMAP CONTROL — 2026-11-01 (C123)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
@@ -32,11 +49,6 @@
 | P123.3 | MULTI-SOURCE CATALOG | Load JSON catalog; inventory 20+ candidates; second API when keys exist | DONE |
 | P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience; key pool max 10 | DONE |
 | P123.5 | OPS PROBES | Probe script, ops doc, auto-enable opt-in; CI preflight config/; health isolation | DONE |
-| P123.11 | CI REGRESSION REPAIR | Align reviewed Expert prompt snapshot and App Builder prompt-version assertion with current source | IMPLEMENTED — hosted rerun pending |
-| P123.12 | EXPERT DECISION SNAPSHOT ALIGNMENT | Align the strict Expert decision prompt snapshot with the reviewed current source contract | IMPLEMENTED — hosted rerun pending |
-| P123.15 | EXPERT DIALOGUE SNAPSHOT ALIGNMENT | Align the remaining strict Expert engineering and dialogue paragraph snapshots with the reviewed source contract | IMPLEMENTED — hosted rerun pending |
-| P123.13 | EXPERT RESEARCH SNAPSHOT ALIGNMENT | Align the strict Expert research prompt snapshot with the exact CI-observed generated hash | IMPLEMENTED — hosted rerun pending; semantic source review NOT_VERIFIED |
-| P123.14 | COMPLETE PROMPT SNAPSHOT DIAGNOSTICS | Expose all prompt-mode hashes and source/prompt evidence in CI handoff artifacts | IMPLEMENTED — verification pending |
 
 ### Frozen / out of scope during C123 MVP
 

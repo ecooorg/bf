@@ -15,7 +15,7 @@ import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.
 
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
-import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels } from './server/reasoningState.ts';
+import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels, stripUserFacingUrls } from './server/reasoningState.ts';
 import { EXPERT_STEP_PREFIX } from './server/expertAgent.ts';
 import {
   validateExpertRequest,
@@ -45,7 +45,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSourcesFooter, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -1403,12 +1403,12 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
     const problemUnclear = !flags.problemClear || flags.notUnderstood;
     if (problemUnclear && audit.triage !== 'CRISIS') contextSufficiency = 'LOW';
     if (flags.driftDetected || problemUnclear) console.info(JSON.stringify({ type: 'v17_check', drift: flags.driftDetected, unclear: !flags.problemClear, notUnderstood: flags.notUnderstood }));
-    const cleanReply = stripMarkdown(scrubInternalLabels(out.reply)
+    const cleanReply = stripUserFacingUrls(stripMarkdown(scrubInternalLabels(out.reply)
       .replace(/\s*\((?:Source|\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a):\s*(?:USER_DATA|GENERAL_PATTERN|GUESS)\)\s*/gi, ' ')
       .replace(/\s*(?:Source|\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a):\s*(?:USER_DATA|GENERAL_PATTERN|GUESS)\s*/gi, ' ')
       .replace(/\s*\((?:Split[- _]?base|Sequence|Timing|Test[_ ]or[_ ]pilot|Temporary[_ ]test|Reversible[_ ](?:step|commitment)|Scale[_ ]change|Scope[_ ]change|Goal[_ ]reframe|Conditions?[_ ]change|Get[_ ]fact[_ ]first|Keep[_ ]open|Underlying[_ ]goal|Internal[_ ]change|Ownership[_ ]change|Financing[_ ]change)\)/gi, '')
       .replace(/[ \t]{2,}/g, ' ')
-      .trim());
+      .trim()));
     // v21: no two questions in a row on MEDIUM context (the stored reply already ends with the shown question)
     const lastAsst = [...safeHistory].reverse().find((m: any) => m.role === 'assistant')?.content || '';
     const prevAsked = /[?？]\s*$/.test(String(lastAsst).trim());
@@ -1459,7 +1459,7 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
       web_search: webSearch.status, verifier: epistemic.verifier, ...phase.summary(),
     }));
     ok(res, {
-      reply: visibleReply + (webSearch.status === 'used' ? formatSourcesFooter(webSearch.sources, lastUserText) : ''),
+      reply: visibleReply,
       question: cleanQuestion,
       contextSufficiency,
       triage: audit.triage,

@@ -1,40 +1,26 @@
-## P123.15 — Expert dialogue prompt snapshot alignment
+## P123.17 — Preserve retrieved evidence and suppress visible source links
 
-- Reviewed the current `expertDialogueParagraph` wording against the P123.10 Expert behavior contract: proportionate factual answers, complex analysis scaled to the task, and conditional criteria-based recommendations only when explicitly requested.
-- Updated only the three affected strict SHA-256 snapshots: `expert:engineering`, `expertParagraph:unknown`, and `expertParagraph:expand`. Other prompt snapshots remain unchanged.
-- No runtime prompt text or product behavior changed in this patch; the change aligns stale test expectations with the already-reviewed source.
-- Bumped patch metadata to `123.15`; product version remains `123`.
-- **Verification:** generated hashes reproduced locally from the CI-matching source files. Focused prompt-route test result is recorded in the technical report; full `test:core`, workflow DAG, and hosted CI are not claimed unless run.
+- Cumulative delivery includes P123.16 current-weather query expansion and rejection of title-only search results.
+- Removed automatic source-footer concatenation from the user-visible conversation reply; provenance remains available as response metadata.
+- Reframed shared search instructions for both Conversational and Expert modes so retrieved facts and concrete values are used rather than discarded by overbroad uncertainty rules.
+- Clarified Expert evidence scope: retrieved research supplied in the prompt is part of the input and may be used as source-supported evidence.
+- Expanded V17 evidence-preservation instructions while retaining the prohibition on invented facts.
+- Added regression assertions for source-link suppression and evidence preservation.
 
-## P123.14 — Complete prompt snapshot CI diagnostics
+## P123.16 — Current-weather retrieval quality and source-link suppression
 
-- Added a pre-assertion diagnostic pass for all eight Conversational/Expert mode prompts, both Expert dialogue paragraphs, and the Expert step prefix. A failure in one strict snapshot can no longer hide additional mismatches in later modes.
-- CI now writes `prompt-snapshot-diagnostics.json` with expected/actual hashes, match status, deterministic test inputs, generated prompt text, and exact prompt-builder source text plus SHA-256 fingerprints.
-- `ASSISTANT_PASTE.txt` now includes the complete compact hash matrix and source fingerprints; the full diagnostic JSON is retained inside `biforge-ci-logs.zip`. This improves diagnosis; it does not auto-approve prompt wording or update golden hashes.
-- Strict snapshot assertions remain unchanged in strength. Product runtime prompt behavior is not changed by this diagnostic patch.
-- Patch metadata advanced to `123.14`; product version remains `123`.
-- **Verification:** diagnostic test and packaging contract checks: `NOT_RUN` in this delivery environment; hosted CI: `NOT_RUN`.
+- Weather searches expand into targeted current-observation queries, including MeteoSwiss.
+- SERP titles without factual snippets are excluded from the grounding digest; title-only results cannot be treated as current observations.
+- Search digests below the minimum evidence threshold are not accepted as grounded results.
+- Conversation responses no longer append raw source URLs to the user-visible reply; source metadata remains internal.
+- Added regression coverage for weather query expansion, title-only SERP rejection and weather-specific synthesis constraints.
 
-## P123.13 — Expert research prompt snapshot alignment
+## P123.16 — Current-weather retrieval quality and source-link suppression
 
-- **Observed CI failure:** run `41330687334` failed only `test:core`; the strict `expert:research` prompt snapshot expected `e6a446e5…f6237f7`, while the generated prompt hash was `21cac76f…be79cb`. `workflow-dag` failed downstream of `test:core`.
-- Updated only the `expert:research` golden hash from the run-scoped assertion evidence. The snapshot remains a strict equality check; no test was disabled or weakened and no runtime prompt/source behavior was changed in this patch.
-- Patch metadata advanced to `123.13`; product version remains `123`. Root lockfile version metadata remains aligned (`version: 123`); it has no patch field.
-- **Verification:** CI run reports 27/28 checks passing. Local `npm run test:core` and `node scripts/run-dag.mjs --profile check`: **NOT_RUN** in this delivery environment. Hosted rerun: **NOT_RUN**. The CI-provided actual hash is treated as evidence; source bytes were not independently re-executed locally.
-
-## P123.12 — Expert decision prompt snapshot alignment
-
-- Updated the reviewed `expert:decision` prompt SHA-256 to match the current, intentional Expert prompt contract: proportional answers for factual questions and conditional, criteria-based recommendations when explicitly requested.
-- Kept the snapshot assertion strict; no test was disabled or weakened and no runtime product logic changed.
-- Bumped patch metadata to `123.12`; product version remains `123`.
-- **Verification:** CI evidence from run `41329292124` records the actual prompt hash as `1ef4e62e9c1f0d94bf87d613a810c8b201f8dad396f5cbc440392541126d8b66`. Local `test:core` is **BLOCKED** in this environment because the installed `tsx` package entrypoint is unavailable. Hosted CI rerun: **NOT_RUN**.
-
-## P123.11 — CI regression repair: prompt snapshots and App Builder version contract
-
-- Updated the Expert information-prompt golden SHA-256 to the reviewed P123.10 prompt output (`90525c…881ac`); retained exact snapshot checking for all eight agent/mode prompt combinations and both Expert dialogue paragraphs.
-- Corrected the App Builder coder-prompt test to expect the active `static_site.v3` prompt version. No runtime behavior or prompt text changed in this patch.
-- Bumped patch metadata to `123.11`; root `package-lock.json` version metadata remains aligned with product version `123`.
-- Verification is limited to checks explicitly recorded in the delivery report; hosted CI is not claimed green until rerun on the resulting commit.
+- Weather lookups now expand into targeted current-observation queries, including MeteoSwiss.
+- Search results containing only page titles are no longer accepted as factual grounding; the agent must not claim a current observation from a page title.
+- The shared conversation endpoint no longer appends raw source URLs to user-visible replies. Source metadata remains available internally.
+- Added regression tests for weather query expansion, title-only SERP rejection and weather-specific synthesis instructions.
 
 ## P123.9 — Live Gemini smoke runner fix
 
@@ -740,11 +726,3 @@ Documentation-only delivery.
 - This is an isolated UI/workflow experiment, **not yet an independent backend generation engine**. Provider orchestration, validation, and artifact persistence remain shared with the existing backend.
 - Added route/mount/completion contract tests. Existing three-agent entry points remain unchanged; the lab is available only by direct route.
 - Local source-contract tests and ZIP validation are reported in the delivery note; typecheck/build and live Android tests remain separate evidence.
-
-## 123.10 — information integrity and architecture contracts
-
-- Contextualize elliptical follow-up web searches with the recent user-turn context so entity/place referents are retained.\n- Stop number-audit false positives on ISO dates and mathematically validated Fahrenheit/Celsius conversions; invalid conversion pairs remain flagged.\n- Add a runnable cross-mode information-quality evaluator with source provenance checks, Architect runtime gates, hard-failure flags and human-score aggregation.
-- Parse generated JavaScript as ES modules and statically verify local module paths plus named/default import-export contracts.
-- Resolve Expert prompt contradictions: factual questions stay proportionate; explicit recommendation requests receive conditional, criteria-based recommendations.\n- Strengthen Architect planner/coder/reviewer instructions around interface contracts, runtime evidence, and fail-closed data handling.
-- Treat WARN/PARTIAL latest build outcomes as non-pass diagnostic health; expose latest artifact outcome separately from infrastructure health.
-- Add a cross-mode information-quality workflow, scoring rubric, hard release gates, and regression tests.

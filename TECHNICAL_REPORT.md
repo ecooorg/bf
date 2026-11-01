@@ -1,39 +1,21 @@
-# CURRENT EVIDENCE NOTE — P123.15 Expert dialogue prompt snapshot alignment, 2026-11-01
+# CURRENT EVIDENCE NOTE — P123.17, 2026-11-01
 
-- **Observed CI failure:** run `41333525289` failed `test:core` at the strict `expert:engineering` snapshot; `workflow-dag` failed downstream. CI diagnostics recorded three mismatches: `expert:engineering`, `expertParagraph:unknown`, and `expertParagraph:expand`.
-- **Source identity:** the four source-file SHA-256 values in the supplied base archive match the CI diagnostic values: `conversationMode.ts` `8fb33874…`, `conversationalAgent.ts` `d29fb2f5…`, `expertAgent.ts` `44a0e571…`, and `promptPacks.ts` `9f8d7b9f…`.
-- **Root cause:** the current `expertDialogueParagraph` source text differs from the older golden snapshots. The difference is consistent with the reviewed P123.10 Expert contract; the same shared paragraph is included in the full Expert prompt for each conversation mode. No CI/source mismatch was found.
-- **Change in P123.15:** update only the three affected golden hashes. The eight prompt snapshots, paragraph assertions, and step-prefix assertion remain strict; no runtime source changed.
-- **Reproduction:** direct SHA-256 recomputation from the source produced `expert:engineering` `1121c970…`, `expertParagraph:unknown` `c9a7f250…`, and `expertParagraph:expand` `1ae85e75…`, matching the CI diagnostic actual values.
-- **Focused verification:** `node --experimental-strip-types --test tests/p119-agent-prompts-routes.test.mjs` — record actual outcome before delivery.
-- **NOT_RUN:** full `npm run test:core`, `node scripts/run-dag.mjs --profile check`, and hosted CI rerun. No full-suite or hosted PASS is claimed.
+- **Changed:** Cumulative P123.16 + P123.17 delivery. Weather-oriented query expansion and title-only SERP rejection are retained. User-visible source footer is disabled while source metadata remains internal. Shared grounding instructions now apply to Conversational and Expert; Expert/V17 prompts explicitly preserve supported retrieved values and distinguish them from unsupported claims.
+- **Observed in source:** `server.ts` no longer concatenates `formatSourcesFooter` to `reply`; `formatSourcesFooter` is compatibility-safe and returns an empty string. Prompt text now states that retrieved evidence is part of model input.
+- **NOT_RUN:** full `test:core`, typecheck/build, hosted CI, live Gemini/Serper calls, deployed Simple/Expert weather comparison. No claim is made that model output quality is restored until live tests confirm it.
+- **Risk/limitation:** these prompt changes prevent BiForge instructions from requiring omission of retrieved evidence, but cannot guarantee provider retrieval quality or model factual accuracy.
 
-# CURRENT EVIDENCE NOTE — P123.14 complete prompt snapshot diagnostics, 2026-11-01
+# CURRENT EVIDENCE NOTE — P123.16 weather retrieval correction
 
-- **Observed issue motivating the change:** repeated CI cycles surfaced one prompt SHA-256 mismatch at a time. In run `41331786620`, `expert:engineering` expected `95b4691f…7347f32` and actual was `1121c970…cdcd9`; the strict test stopped at that assertion, so other prompt-mode drift was not exposed by the report.
-- **Change:** the prompt test now computes the full 8-prompt + 2-paragraph + step-prefix matrix before asserting. It writes `prompt-snapshot-diagnostics.json` containing expected/actual hashes, deterministic test inputs, generated prompt text, and the exact relevant builder source files with SHA-256 fingerprints. The packaging step places a compact full matrix in `ASSISTANT_PASTE.txt` and retains the detailed JSON in the inner CI ZIP.
-- **Integrity:** assertions remain strict; no golden hash is changed automatically and no prompt semantics are altered. Diagnostic output is evidence for review, not authorization to refresh snapshots.
-- **Verification:** local `test:core`, packaging contract test, DAG, and hosted CI: **NOT_RUN** in this delivery environment.
+- **Changed:** current-weather query expansion; strict rejection of title-only SERP digests; weather-specific synthesis constraints; removal of the visible source footer from conversation responses.
+- **Design:** the retrieval layer supplies evidence to the configured answer model, which synthesizes it. A model is not assumed to know live weather without retrieved observations.
+- **NOT_RUN:** hosted CI, live Serper/MeteoSwiss retrieval, real-model Simple/Expert comparison. No live weather correctness claim is made.
 
-# CURRENT EVIDENCE NOTE — P123.13 Expert research prompt snapshot alignment, 2026-11-01
+# CURRENT EVIDENCE NOTE — P123.16 weather retrieval correction
 
-- **Observed CI failure:** run `41330687334`, commit `d6cf32e1fd88688e10b9f123fa5b3d2dbb72cae5`, reports 27 PASS / 1 FAIL. `test:core` failed at the `expert:research` strict prompt snapshot: expected `e6a446e5…f6237f7`, actual `21cac76f…be79cb`. `workflow-dag` is downstream.
-- **Change:** refresh only the `expert:research` golden hash to the exact actual value in the CI evidence. Strict snapshot equality is preserved; runtime product logic is untouched.
-- **Evidence limits:** the report supplies the actual generated hash but not the changed prompt source diff. This patch therefore records snapshot alignment, not an independently verified semantic review of the prompt wording. Local core/DAG checks and hosted rerun: **NOT_RUN**.
-
-# CURRENT EVIDENCE NOTE — P123.12 Expert decision prompt snapshot alignment, 2026-11-01
-
-- **Observed CI failure:** run `41329292124` had one failing check in `test:core`; `expert:decision` expected `cdca660e…` but the generated prompt hash was `1ef4e62e…`. All other recorded checks passed (27/28). `workflow-dag` failed as a consequence of `test:core`.
-- **Source review:** current `server/expertAgent.ts` intentionally changed Expert decision behavior: factual/orienting questions receive proportionate direct answers; explicit recommendation requests receive a conditional recommendation tied to stated criteria with decisive trade-offs explained. This is consistent with the product goal of useful expert analysis while preserving user decision authority.
-- **Change in P123.12:** update only the reviewed `expert:decision` golden hash and its rationale; strict snapshot comparison remains. No runtime behavior or unrelated product logic changed. Patch metadata advanced to `123.12`.
-- **Verification:** the exact actual hash is taken from the run-scoped CI evidence. `npm run test:core` attempted locally but **BLOCKED** before tests because Node could not resolve the `tsx` package entrypoint (`ERR_MODULE_NOT_FOUND`). Hosted rerun and DAG rerun: **NOT_RUN**. No PASS is claimed.
-
-# CURRENT EVIDENCE NOTE — P123.11 CI regression repair, 2026-11-01
-
-- **Observed (hosted CI evidence, commit `dc7f331f518e8156311e69a917afe9179faa502f`):** `test:core` failed because the Expert information prompt snapshot expected the pre-P123.10 hash (`6b35eb…8fdcee`) while current prompt bytes hash to `90525c…881ac`; `test:app-builder` failed because one coder-prompt test still expected `static_site.v2` although the implementation exports `static_site.v3`. The DAG failure is downstream of these failed stages.
-- **Change in P123.11:** refresh only the intentionally changed Expert information snapshot and align the stale App Builder test expectation. No product runtime logic changed.
-- **BLOCKED (local environment):** `npm ci --ignore-scripts --no-audit --no-fund` timed out and left `node_modules` incomplete (`tsx` and `jszip` unavailable). `npm run test:core` and `npm run test:app-builder` were attempted but could not load the `tsx` runtime; `node scripts/run-dag.mjs --profile check` ran but its test/typecheck prerequisites failed for the same missing dependencies. `docs-integrity`, version metadata, and JavaScript syntax checks passed.
-- **NOT_RUN:** hosted CI rerun and deployed behavior. These must not be inferred from source edits.
+- **Changed:** current-weather query expansion; strict rejection of title-only Serper digests; weather-specific synthesis constraints; removal of the visible source footer from conversation responses.
+- **Intent:** provide actual retrieved observations to the answer model rather than a list of weather pages. The model synthesizes retrieved evidence; it is not assumed to know live weather independently.
+- **NOT_RUN:** hosted CI, live Serper/MeteoSwiss retrieval, real-model Simple/Expert comparison. No live weather correctness claim is made.
 
 # CURRENT EVIDENCE NOTE — P123.6 carousel-verify workflow, 2026-11-01
 
