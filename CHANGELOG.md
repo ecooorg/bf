@@ -1,3 +1,11 @@
+## P123.19 — CI failure repair and richer failure evidence
+
+- Fixed the Expert prompt string delimiter that caused TypeScript parsing to fail on the apostrophe in `user's`.
+- Merged non-empty `used` web-search digests even when each individual digest is shorter than the page-extract threshold; short digests with source metadata are retained.
+- Restored a local test scope for the P123.16/P123.17 regression cases in the grouped web-and-epistemics suite.
+- Expanded CI source excerpts around reported locations and taught the evidence generator to resolve TypeScript `file.ts(line,column)` diagnostics. The complete redacted logs remain packaged in the CI diagnostics ZIP.
+- Validation in this delivery environment: NOT_RUN (no dependency installation / CI rerun performed).
+
 ## P123.18 — Independent Conversational and Expert sessions
 
 - Switching directly between Conversational and Expert now starts a fresh Decision/session; the previous session remains saved in the library.

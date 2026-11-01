@@ -1,3 +1,10 @@
+## P123.19 — CI failure repair evidence (2026-11-01)
+
+- Observed CI evidence for P123.18: `server/expertAgent.ts(13,...)` TypeScript parse errors caused server transforms to fail; P50 merge test rejected two non-empty short digests; P123.16/P123.17 grouped tests referenced block-scoped `test`, `assert`, and `mod` outside their scope.
+- Changes: template literal for the Expert prefix; accept non-empty used digests during merge; wrap the P123.16/P123.17 tests in a scope with their own imports; expand source excerpts and parse TypeScript parenthesized locations in CI evidence.
+- Not established by the supplied excerpt: whether every remaining project/database/API/build failure was only a cascade. CI must rerun to determine that.
+- Local validation: NOT_RUN. Hosted CI: NOT_RUN. Live Gemini/user outcome: NOT_RUN.
+
 # CURRENT EVIDENCE NOTE — P123.18, 2026-11-01
 
 - **Changed:** Conversational↔Expert mode transitions create a new blank Decision while retaining the prior Decision in the saved library. Expert initialization prompt now prohibits importing Simple-mode history and uses only Expert-session input.

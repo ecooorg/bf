@@ -1,3 +1,9 @@
+## P123.19 — CI repair follow-up
+
+- Re-run the verification DAG after the syntax, digest-merge, and grouped-test-scope repairs.
+- Inspect any residual failures independently; do not classify them as cascades without logs.
+- Confirm complete source-context and full redacted logs are present in `biforge-ci-logs.zip`.
+
 ## P123.18 — Conversational / Expert session isolation
 
 - [x] Start a fresh saved Decision when switching between Conversational and Expert.
