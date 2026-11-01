@@ -52,7 +52,7 @@ function sourceContext(stage, logText) {
   let lineNo = null;
   const cleanLog = redact(logText);
   const stackLoc = cleanLog.match(/TestContext\.<anonymous> \(([^\s()]+\.(?:mjs|cjs|js|ts)):(\d+):(\d+)\)/);
-  const loc = stackLoc || cleanLog.match(/(?:file:\/\/)?([^\s'"()]+\.(?:mjs|cjs|js|ts)):(\d+):(\d+)/);
+  const loc = stackLoc || cleanLog.match(/(?:file:\/\/)?([^\s'"()]+\.(?:mjs|cjs|js|ts)):(\d+):(\d+)/) || cleanLog.match(/([^\s'"()]+\.(?:mjs|cjs|js|ts))\((\d+),(\d+)\)/);
   if (loc) {
     const suffix = loc[1].replace(/\\/g, '/');
     const marker = suffix.match(/(?:^|\/)(tests|scripts|server|src)\/.+$/);
@@ -73,7 +73,7 @@ function sourceContext(stage, logText) {
     }
   }
   if (!lineNo) return [`SOURCE=${file}; source line unavailable`];
-  const start = Math.max(1, lineNo - 15), end = Math.min(lines.length, lineNo + 25);
+  const start = Math.max(1, lineNo - 40), end = Math.min(lines.length, lineNo + 60);
   return [`SOURCE=${file}:${lineNo}-${end}`, ...lines.slice(start - 1, end).map((line, idx) => `${start+idx}${start+idx===lineNo?' >>>':'    '} ${oneLine(line, 220)}`)];
 }
 for (const name of workflowLogNames) {
