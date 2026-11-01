@@ -359,6 +359,11 @@ test('P50 isRateTopic detects RU and EN rate questions', () => {
 }
 // ===== END p50-web-search.test.mjs =====
 
+// P123.16–P123.17 regressions share the P50 module imports and webSearch module.
+{
+const test = (await import('node:test')).default;
+const assert = (await import('node:assert/strict')).default;
+const mod = await import('../server/webSearch.ts');
 
 test('P123.16 weather search expands to current observations and official MeteoSwiss', () => {
   const queries = mod.expandSearchQueries('current weather in Zurich', 'Какая прямо сейчас погода в Цюрихе?');
@@ -393,3 +398,4 @@ test('P123.17 preserves retrieved evidence for Expert answers and suppresses use
   assert.match(server, /stripUserFacingUrls\(stripMarkdown\(scrubInternalLabels\(out\.reply\)/);
   assert.match(webSearch, /formatSourcesFooter\(_sources: WebSource\[\], _userText: string\): string \{\s*return '';/);
 });
+}
