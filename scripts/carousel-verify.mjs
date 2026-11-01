@@ -76,7 +76,7 @@ run(
 );
 
 // --- Layer B: ops probe (no network) ---
-run('ops-probe', process.execPath, ['scripts/carousel-ops-probe.mjs']);
+run('ops-probe', process.execPath, ['--import', 'tsx', 'scripts/carousel-ops-probe.mjs']);
 
 // --- Layer C: models suite slice if present (allowlist / cascade) ---
 if (fs.existsSync(path.join(root, 'tests/model-allowlist-contract.test.mjs'))) {
@@ -104,7 +104,7 @@ if (LIVE) {
     // reuse real-model eval harness if present, else a tiny probe script inline.
     const liveScript = path.join(root, 'scripts/carousel-live-smoke.mjs');
     if (fs.existsSync(liveScript)) {
-      run('live-smoke', process.execPath, [liveScript], {
+      run('live-smoke', process.execPath, ['--import', 'tsx', liveScript], {
         GEMINI_API_KEY: process.env.GEMINI_API_KEY,
         GEMINI_API_KEY_1: process.env.GEMINI_API_KEY_1 || '',
         GEMINI_API_KEY_2: process.env.GEMINI_API_KEY_2 || '',
