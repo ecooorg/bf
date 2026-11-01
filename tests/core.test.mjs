@@ -232,9 +232,9 @@ add('numbers: ISO date components are not treated as unsupported numeric claims'
   assert.deepEqual(validateNumbers('Сейчас 2026-11-01.', 'Какая сегодня дата?'), []);
 });
 add('numbers: mathematically correct Fahrenheit/Celsius conversions are accepted', () => {
-  assert.deepEqual(validateNumbers('49 градусов по Фаренгейту (примерно 9 градусов Цельсия).', 'Погода в Цюрихе'), []);
-  assert.deepEqual(validateNumbers('49°F = 9.4°C; формула: (49 - 32) * 5 / 9.', 'Погода в Цюрихе'), []);
-  assert.deepEqual(validateNumbers('49°F = 5°C.', 'Погода в Цюрихе'), ['49', '5']);
+  assert.deepEqual(validateNumbers('49 градусов по Фаренгейту (примерно 9 градусов Цельсия).', 'Погода в указанном городе'), []);
+  assert.deepEqual(validateNumbers('49°F = 9.4°C; формула: (49 - 32) * 5 / 9.', 'Погода в указанном городе'), []);
+  assert.deepEqual(validateNumbers('49°F = 5°C.', 'Погода в указанном городе'), ['49', '5']);
 });
 
 for (const [name, fn] of tests) { await fn(); n++; console.log('ok -', name); }

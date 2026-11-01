@@ -27,7 +27,7 @@ const runAsync = (script, dir, extra = {}) => new Promise((resolve, reject) => {
 
 test('P108.3 workflow publishes ASSISTANT_PASTE plus full-log archive only at outer root', () => {
   const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  assert.match(workflow, /artifacts\/ci-checks\/ASSISTANT_PASTE\.txt/);
+  assert.match(workflow, /artifacts\/ci-checks\/ASSISTANT_PASTE\*\.txt/, 'the upload must include the primary paste and any numbered continuation parts');
   assert.match(workflow, /artifacts\/ci-checks\/biforge-ci-logs\.zip/);
   assert.doesNotMatch(workflow, /path:\s*artifacts\/ci-checks\/(?:PATCH_EVIDENCE\.md|diagnostics\.zip|ci-history\.json|ci-metrics\.json)/);
   // Outer upload must not list BIForge-PATCH-EVIDENCE at artifact root (lives inside the zip).

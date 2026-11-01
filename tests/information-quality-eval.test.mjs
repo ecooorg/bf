@@ -11,7 +11,7 @@ test('quality evaluator passes grounded Simple output with current sources', () 
   const result = evaluate({
     scenarioId: 'simple-weather',
     mode: 'simple',
-    reply: 'Zurich is about 9°C according to the current forecast.',
+    reply: 'The requested place is about 9°C according to the current forecast.',
     currentFactExpected: true,
     searchStatus: 'used',
     currentSources: [{ url: 'https://example.org/weather' }],

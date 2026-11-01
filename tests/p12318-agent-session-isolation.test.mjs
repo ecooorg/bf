@@ -20,7 +20,7 @@ test('Expert initialization is independent of Simple-mode history', () => {
   assert.doesNotMatch(route, /already had a conversation in Simple mode/i);
 });
 
-test('patch metadata remains in cycle 123', () => {
-  assert.equal(pkg.version, '123');
-  assert.match(pkg.patch, /^123\.\d+$/, 'patch metadata stays within cycle 123');
+test('patch metadata matches the active product cycle', () => {
+  assert.equal(pkg.patch.split('.')[0], pkg.version);
+  assert.match(pkg.patch, /^\d+(?:\.\d+)+$/, 'patch metadata stays within the active product cycle');
 });

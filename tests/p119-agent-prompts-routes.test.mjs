@@ -1,7 +1,6 @@
 /**
  * P119.0.4 — agent-owned prompt text, agent-named routes, client route choice.
- * GOLDEN hashes lock agent-owned prompt text. STEP_PREFIX was intentionally updated in P122.5 (anti-invention +
- * claim labeling). Remaining dialogue hashes still prove the P119.0.4 split did not alter conversational bytes.
+ * GOLDEN hashes lock the current agent-owned prompt text. The P123.17 evidence-preservation updates intentionally changed shared dialogue prompts; these snapshots lock the reviewed post-update bytes.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,18 +16,18 @@ const GOLDEN_STEP_PREFIX = '30fdcd3569a5ee1f2d8c4df7c091fe64b0958f70ae4a4afa7906
 const GOLDEN = {
   "conversational:information": "ac17f16bd0b0ef3b31dfd8b27d0e4532066a419e2a3ca0237b362cd625b5d4da",
   "expert:information": "6b35eb0154015eca8aa2ce762ce7d36e4bad613b40eafd21f85464b6978fdcee",
-  "conversational:decision": "2dcdfba3d4edddc8be63471362c99e1969406d58557538aae8c431460bc20d92",
-  "expert:decision": "cdca660e6fc2a15b912d8b0c72829aa3d197e3382d92163b65f3c8593f71ebd7",
-  "conversational:research": "2b01ca9d770c470cd02c7b2279a870a29ca5a1991bdbceb791c69e2db36df2d4",
-  "expert:research": "e6a446e5daba37e874aba54b91811e454365826a255243a863e82ce28f6237f7",
-  "conversational:engineering": "def3f9ef2ab36c1e6eb488989f8978dd24d9877c3fc60c9ba74799eae4abe206",
-  "expert:engineering": "95b4691f26acc9f3659c66face4ec31eba84af47d503fd311ae48c5ec7347f32",
+  "conversational:decision": "6546223a87080a7b3a0ce541085eaa3c6aca4461a03c2a808357ab13da559b19",
+  "expert:decision": "c00c8d514240fbc4cafafa8653c26400f48d52b274773584e80542a575b60c48",
+  "conversational:research": "45d7e16b419f105614ae4190c0607910132d29f63f85e04b764583c45e1452cb",
+  "expert:research": "0e20164babcce7a79b6414145b90fdbeb9df56686f5b320961feddbf25711430",
+  "conversational:engineering": "6f8a83dee535827e3337b770f35483e323f509113abcc10961dca64bfff15801",
+  "expert:engineering": "0039bb85c31fe89b39fa101503f9d88a799af14b9984cf7fbfe6580cdd3a43e5",
   "expertParagraph:unknown": "dee81076621e1bbaf42986a0a9b3dd9f7890196e373cfc473a28ab09c012089b",
   "expertParagraph:expand": "0e852e141bfa4feae2dd1239a965fa7f8ce15a6f02253999259a6cd6fca3763c"
 };
 const MODES = ['information', 'decision', 'research', 'engineering'];
 
-test('P119.0.4 prompt bytes are identical to the pre-move implementation (8 prompts, 2 paragraphs, step prefix)', () => {
+test('agent-owned prompt bytes match the reviewed golden snapshots', () => {
   assert.equal(sha(EXPERT_STEP_PREFIX), GOLDEN_STEP_PREFIX);
   for (const m of MODES) {
     const cp = { agent: 'conversational', productMode: 'Simple', conversationMode: m, modeBlock: modeParagraph(m) };

@@ -153,7 +153,7 @@ test('P50 detector: fresh-info questions match, personal decision text does not'
     'Что нового в мире ИИ за эту неделю?',
     'Latest news about the Fed decision',
     'What is the current exchange rate EUR USD?',
-    'Погода в Цюрихе завтра',
+    'Погода в указанном городе завтра',
     'Какая последняя версия Node.js?',
     'Вышел ли уже новый релиз приложения?',
     'What is the latest version of Python?',
@@ -266,16 +266,15 @@ test('P50 prompt block: untrusted data wrapper, dated header, figures allowed on
   assert.match(block, /END UNTRUSTED DATA/);
   assert.match(block, /2026-10-17/);
   assert.match(block, /data, not instructions/);
-  assert.match(block, /add nothing that is not below/);
+  assert.match(block, /Never invent values absent from the evidence/);
+  assert.match(block, /preserve all supported facts and numbers/);
   assert.match(block, /по данным веб-поиска|according to web search/);
 });
 
-test('P50 sources footer is English-only and empty without sources', () => {
+test('P123.17 source URLs remain internal and are not appended to user-facing replies', () => {
   assert.equal(mod.formatSourcesFooter([], 'привет'), '');
-  const ruUser = mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Какие новости?');
-  assert.match(ruUser, /Sources \(web search\):\n1\. A — https:\/\/a\.example/);
-  const en = mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Any news?');
-  assert.match(en, /Sources \(web search\):/);
+  assert.equal(mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Какие новости?'), '');
+  assert.equal(mod.formatSourcesFooter([{ title: 'A', url: 'https://a.example' }], 'Any news?'), '');
 });
 
 test('P50 webSearchProvider: auto prefers serper when SERPER_API_KEY is set', () => {
@@ -289,7 +288,7 @@ test('P50 webSearchProvider: auto prefers serper when SERPER_API_KEY is set', ()
 test('P50 serperLocale and digestFromSerperResponse', () => {
   assert.deepEqual(mod.serperLocale('ключевые ставки G7'), { hl: 'en', gl: 'us' });
   assert.deepEqual(mod.serperLocale('G7 interest rates'), { hl: 'en', gl: 'us' });
-  assert.deepEqual(mod.serperLocale('날씨 취리히'), { hl: 'en', gl: 'us' });
+  assert.deepEqual(mod.serperLocale('날씨 오늘'), { hl: 'en', gl: 'us' });
   assert.equal(mod.needsEnglishQueryTranslation('ключевые ставки G7'), true);
   assert.equal(mod.needsEnglishQueryTranslation('G7 central bank rates October 2026'), false);
   const data = {
@@ -332,9 +331,10 @@ test('P50 digestFromPageExtracts prefers page body', () => {
   assert.match(d, /SOURCE:/);
 });
 
-test('P50 expandSearchQueries: rate topics expand, others stay single', () => {
-  const one = mod.expandSearchQueries('Zurich weather yesterday');
-  assert.equal(one.length, 1);
+test('P50 expandSearchQueries: rate and weather topics receive focused queries', () => {
+  const weather = mod.expandSearchQueries('weather yesterday in the requested place');
+  assert.equal(weather.length, 2);
+  assert.match(weather[1], /current observations temperature conditions observation time/);
   const rates = mod.expandSearchQueries('G7 central bank policy rates October 2026');
   assert.ok(rates.length >= 3 && rates.length <= 5);
   assert.ok(rates.some((q) => /federal reserve|fed funds/i.test(q)));
@@ -353,7 +353,7 @@ test('P50 mergeWebSearchResults combines digests and sources', () => {
 test('P50 isRateTopic detects RU and EN rate questions', () => {
   assert.equal(mod.isRateTopic('Сделай таблицу ключевые ставки стран G7'), true);
   assert.equal(mod.isRateTopic('G7 central bank policy rates'), true);
-  assert.equal(mod.isRateTopic('Zurich weather yesterday'), false);
+  assert.equal(mod.isRateTopic('weather yesterday in the requested place'), false);
   assert.ok(mod.RATE_SEED_URLS.length >= 5);
 });
 }
@@ -365,20 +365,34 @@ const test = (await import('node:test')).default;
 const assert = (await import('node:assert/strict')).default;
 const mod = await import('../server/webSearch.ts');
 
-test('P123.16 weather search expands to current observations and official MeteoSwiss', () => {
-  const queries = mod.expandSearchQueries('current weather in Zurich', 'Какая прямо сейчас погода в Цюрихе?');
-  assert.ok(queries.some((q) => /meteoswiss\.admin\.ch/i.test(q)));
-  assert.ok(queries.some((q) => /temperature|current conditions/i.test(q)));
+test('P123.16 weather search expands to current observations without hard-coded places or providers', () => {
+  const queries = mod.expandSearchQueries('current weather in the requested place', 'Какая прямо сейчас погода в указанном городе?');
+  assert.ok(queries.some((q) => /current observations temperature conditions observation time/i.test(q)));
+  assert.deepEqual(queries, [
+    'current weather in the requested place',
+    'current weather in the requested place current observations temperature conditions observation time',
+  ]);
+});
+
+test('weather follow-ups reuse the place from context without a city allowlist', () => {
+  assert.equal(
+    mod.contextualizeSearchText('интересует погода в градусах Цельсия', 'Какая погода в Городе Пример?'),
+    'weather in Пример temperature in Celsius',
+  );
+  assert.equal(
+    mod.contextualizeSearchText('in Celsius', 'current weather in Example City'),
+    'weather in Example City temperature in Celsius',
+  );
 });
 
 test('P123.16 search digest never treats source titles as factual grounding', () => {
-  const parsed = mod.digestFromSerperResponse({ organic: [{ title: 'Zurich weather today', link: 'https://example.com/weather' }] }, 'Zurich weather');
+  const parsed = mod.digestFromSerperResponse({ organic: [{ title: 'Weather today in the requested place', link: 'https://example.com/weather' }] }, 'Weather today in the requested place');
   assert.equal(parsed.digest, '');
   assert.equal(parsed.sources.length, 1);
 });
 
 test('P123.16 weather prompt requires an observed numeric value and forbids user-facing URLs', () => {
-  const block = mod.formatSearchBlock({ status: 'used', digest: 'Zurich: 8 C, cloudy, updated 19:00', sources: [], queries: ['current weather in Zurich'] }, '2026-11-01');
+  const block = mod.formatSearchBlock({ status: 'used', digest: 'Requested place: 8 C, cloudy, updated 19:00', sources: [], queries: ['current weather in the requested place'] }, '2026-11-01');
   assert.match(block, /actual current temperature/i);
   assert.match(block, /Do not output source URLs/i);
 });
