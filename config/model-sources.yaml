@@ -15,8 +15,8 @@ sources:
       - id: gemini-3.1-flash-lite
         role: light
     key_pool:
-      env_names: [GEMINI_API_KEY, GEMINI_API_KEY_1, GEMINI_API_KEY_2, GEMINI_API_KEY_3, GEMINI_API_KEY_4, GEMINI_API_KEY_5, GEMINI_API_KEY_6, GEMINI_API_KEY_7, GEMINI_API_KEY_8, GEMINI_API_KEY_9, GEMINI_API_KEY_10, GEMINI_API_KEY_11, GEMINI_API_KEY_12, GEMINI_API_KEY_13]
-      max_slots: 13
+      env_names: [GEMINI_API_KEY, GEMINI_API_KEY_1, GEMINI_API_KEY_2, GEMINI_API_KEY_3, GEMINI_API_KEY_4, GEMINI_API_KEY_5, GEMINI_API_KEY_6, GEMINI_API_KEY_7, GEMINI_API_KEY_8, GEMINI_API_KEY_9, GEMINI_API_KEY_10, ]
+      max_slots: 10
     notes: Primary free-key pool (org allowlist). Live in BiForge.
 
   - id: openrouter-free
@@ -32,7 +32,7 @@ sources:
         role: light
     key_pool:
       env_names: [OPENROUTER_API_KEY]
-      max_slots: 13
+      max_slots: 10
     notes: Candidate. :free models ~20 RPM / 50 RPD (1000 after $10 lifetime credits). Lineup rotates.
 
   - id: groq-free
@@ -50,7 +50,7 @@ sources:
         role: light
     key_pool:
       env_names: [GROQ_API_KEY]
-      max_slots: 13
+      max_slots: 10
     notes: Candidate. Fast LPU; ~30 RPM / 1k RPD / 200k tokens/day per model (org-level limits).
 
   - id: cloudflare-workers-ai
@@ -65,7 +65,7 @@ sources:
         role: light
     key_pool:
       env_names: [CLOUDFLARE_API_TOKEN]
-      max_slots: 13
+      max_slots: 10
     notes: Candidate. 10k Neurons/day. Needs CLOUDFLARE_ACCOUNT_ID for base URL.
 
   - id: mistral-free
@@ -81,7 +81,7 @@ sources:
         role: light
     key_pool:
       env_names: [MISTRAL_API_KEY]
-      max_slots: 13
+      max_slots: 10
     notes: Candidate. Free-mode credits; opt-out of training recommended.
 
   - id: nvidia-nim
@@ -97,7 +97,7 @@ sources:
         role: strong
     key_pool:
       env_names: [NVIDIA_API_KEY]
-      max_slots: 13
+      max_slots: 10
     notes: Candidate. Wide catalog; prototype terms; not production license.
 
   - id: sambanova-free
@@ -113,7 +113,7 @@ sources:
         role: strong
     key_pool:
       env_names: [SAMBANOVA_API_KEY]
-      max_slots: 13
+      max_slots: 10
     notes: Candidate. Low daily free caps reported (~20 RPD class).
 
   - id: cohere-trial
@@ -128,5 +128,5 @@ sources:
         role: strong
     key_pool:
       env_names: [COHERE_API_KEY]
-      max_slots: 13
+      max_slots: 10
     notes: Candidate. Trial key; often non-commercial / low monthly calls.

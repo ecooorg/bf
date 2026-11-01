@@ -34,12 +34,9 @@
           "GEMINI_API_KEY_7",
           "GEMINI_API_KEY_8",
           "GEMINI_API_KEY_9",
-          "GEMINI_API_KEY_10",
-          "GEMINI_API_KEY_11",
-          "GEMINI_API_KEY_12",
-          "GEMINI_API_KEY_13"
+          "GEMINI_API_KEY_10"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Primary free-key pool (org allowlist). Live in BiForge."
     },
@@ -64,7 +61,7 @@
         "env_names": [
           "OPENROUTER_API_KEY"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Candidate. :free models ~20 RPM / 50 RPD (1000 after $10 lifetime credits)."
     },
@@ -93,7 +90,7 @@
         "env_names": [
           "GROQ_API_KEY"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Candidate. Fast; ~30 RPM / 1k RPD / 200k tokens/day per model."
     },
@@ -117,7 +114,7 @@
         "env_names": [
           "CLOUDFLARE_API_TOKEN"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Candidate. 10k Neurons/day. Needs CLOUDFLARE_ACCOUNT_ID."
     },
@@ -142,7 +139,7 @@
         "env_names": [
           "MISTRAL_API_KEY"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Candidate. Free-mode credits; training opt-out recommended."
     },
@@ -167,7 +164,7 @@
         "env_names": [
           "NVIDIA_API_KEY"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Candidate. Wide catalog; prototype terms."
     },
@@ -192,7 +189,7 @@
         "env_names": [
           "SAMBANOVA_API_KEY"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Candidate. Low daily free caps reported."
     },
@@ -216,7 +213,7 @@
         "env_names": [
           "COHERE_API_KEY"
         ],
-        "max_slots": 13
+        "max_slots": 10
       },
       "notes": "Candidate. Trial; often non-commercial."
     }
