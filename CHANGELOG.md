@@ -1,3 +1,12 @@
+## P123.1 — Model carousel gateway + lineage; version lock fix
+
+- **Fix:** `package-lock.json` top-level / `packages[""].version` aligned to `123` (test:core patch metadata was failing after P123.0.1).
+- **New** `server/modelCarousel.ts`: `executeModelCall`, `buildModelCallLineage`, `lineageLogFields` — wraps existing `routeCall`, attaches reproducible lineage (`sourceId`, `model`, `channel`, `keySlot`, attempts, timing). MVP source id `gemini-free-pool`; multi-key pool reserved for P123.2.
+- **Wire:** `server/analysisService.ts` uses `executeModelCall` and returns `lineage` on analysis results.
+- **Tests:** `tests/p123.1-model-carousel.test.mjs` (lineage shape, failover status, empty-registry blocked path).
+- `package.json` patch → `123.1`.
+- No change to Gemini allowlist or cascade model ids.
+
 ## P123.0.1 — C122 closed; C123 Model Carousel documentation baseline
 
 Documentation-only delivery.

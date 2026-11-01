@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P123.1 Carousel gateway + lineage, 2026-11-01
+
+- **CI fail on 123.0.1 base:** `test:core` — `lock.version` still `122` while `package.json` was `123`. Fixed in package-lock.json.
+- **Changed:** `server/modelCarousel.ts` gateway; analysisService wiring; unit tests; patch 123.1.
+- **Behaviour:** Single-key Gemini routing still via `routeCall`; lineage always attached when using `executeModelCall`.
+- **NOT_RUN:** multi-key pool, second provider, hosted CI after this patch.
+
 # CURRENT EVIDENCE NOTE — P123.0.1 Documentation; C122 closed / C123 open, 2026-11-01
 
 - **Navigator:** CI and expert-verify green; C122 closed as sufficiently successful; C123 Model Carousel started.
