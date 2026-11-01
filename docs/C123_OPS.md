@@ -15,7 +15,8 @@ Never log raw key values. Lineage uses `keySlot` indices only.
 ## Probe
 
 ```bash
-node scripts/carousel-ops-probe.mjs
+npm run carousel:probe
+# or: node --import tsx scripts/carousel-ops-probe.mjs
 ```
 
 JSON report: enabled / runnable sources, credential presence, in-process health snapshot. Missing keys → `NOT_CONFIGURED`, not a crash.
