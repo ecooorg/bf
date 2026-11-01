@@ -18,7 +18,15 @@ import { fileURLToPath } from 'node:url';
 
 const ENABLED = process.env.REAL_MODEL_EVAL === '1';
 const API_KEY = process.env.GEMINI_API_KEY || '';
-const MODEL = process.env.REAL_MODEL_ID || process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+// Prefer explicit override, then first model from the same cascades used in production (Render).
+// Never default to probe/unavailable ids (e.g. gemini-3.8-flash) — free-key deployments use flash-lite only.
+const MODEL =
+  process.env.REAL_MODEL_ID ||
+  process.env.GEMINI_MODEL ||
+  (process.env.MODEL_CASCADE_STRONG || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite,gemini-3.1-flash-lite')
+    .split(',')[0]
+    .trim() ||
+  'gemini-3.5-flash-lite';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = process.env.REAL_MODEL_OUT || path.join(ROOT, 'artifacts', 'real-model-eval');
 
