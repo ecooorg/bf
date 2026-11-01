@@ -77,7 +77,7 @@
 
 1. Build an API-first **model carousel** (catalog + failover + lineage) shared by all agents.
 2. Project rule: *what is not forbidden is permitted* — no mandatory external legal gate before implementation.
-3. Organisation has **13 participants** and may configure **up to 13 legitimate API key sets** per provider as a key pool.
+3. Organisation may configure **up to 10 legitimate API key sets** per provider as a key pool.
 4. Browser automation is optional and deferred; not MVP.
 5. Gemini model ids remain restricted to the free-key allowlist until catalog validation supersedes it.
 

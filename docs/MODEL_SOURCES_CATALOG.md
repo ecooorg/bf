@@ -42,13 +42,13 @@ sources:
       rpm: 15
       rpd: 1500
     key_pool:
-      # Env names; up to 13 organisational slots
+      # Env names; up to 10 organisational slots
       env_names:
         - GEMINI_API_KEY      # slot 0 / solo deploy alias
         - GEMINI_API_KEY_1
         - GEMINI_API_KEY_2
-        # … through GEMINI_API_KEY_13 as configured
-      max_slots: 13
+        # … through GEMINI_API_KEY_10 as configured
+      max_slots: 10
     health:
       probe: true
       cooldown_ms_on_quota: 300000
@@ -68,7 +68,7 @@ sources:
         role: light
     key_pool:
       env_names: [OPENROUTER_API_KEY]
-      max_slots: 13
+      max_slots: 10
 ```
 
 ### Field notes
@@ -119,7 +119,7 @@ Other providers define their own model ids in-catalog without forcing them into 
 | Slot | Typical env | Who |
 |------|-------------|-----|
 | 0 | `GEMINI_API_KEY` | Solo / primary deploy (backward compatible) |
-| 1..13 | `GEMINI_API_KEY_n` | Participant keys |
+| 1..10 | `GEMINI_API_KEY_n` | Participant keys |
 
 Runtime skips missing or empty env values. Effective pool size can be 1..13 without code change.
 

@@ -47,15 +47,15 @@ Design and implementation are not blocked by speculative compliance rituals. Ope
 
 ### 3.2 Organisation key capacity (legal operational tool)
 
-The project is run by a **non-commercial public-interest scientific organisation** with **13 human participants**.
+The project is run by a **non-commercial public-interest scientific organisation** with **participants (key pool ≤10 per vendor)**.
 
 **Approved capacity model:**
 
-- Up to **13 independent, legitimate API credential sets** may be configured for any given provider/model family that issues keys per person or per account under that provider’s normal signup rules.
+- Up to **10 independent, legitimate API credential sets** may be configured for any given provider/model family that issues keys per person or per account under that provider’s normal signup rules.
 - The carousel **must** be able to treat these sets as **rotating capacity** (key pool), not as a single shared secret.
-- Using 13 key sets for throughput and continuity is an **explicit design input** for C123, not an edge case.
+- Using up to 10 key sets per vendor for throughput and continuity is an **explicit design input** for C123, not an edge case.
 - Keys remain secrets (GitHub Actions secrets, Render env, or a secrets manager). They are never committed. Logs must never print raw key material.
-- Pool size is configuration (`KEY_POOL_SIZE` / listed secret names), defaulting to 1 for solo deploy and scaling to 13 when configured.
+- Pool size is configuration (`KEY_POOL_SIZE` / listed secret names), defaulting to 1 for solo deploy and scaling to 10 when configured.
 
 This does **not** require the code to assume illegal shared accounts or ToS evasion. It assumes **thirteen ordinary accounts/keys** operated by thirteen participants.
 
@@ -125,7 +125,7 @@ Every call records at least:
 }
 ```
 
-`key_slot` is an index or opaque slot id (1–13), **never** the secret value.
+`key_slot` is an index or opaque slot id (1–10), **never** the secret value.
 
 ### 5.2 Failover order (default policy)
 
@@ -149,7 +149,7 @@ MVP may use **static priority** in the catalog file.
 |-------|--------------------------|-------------|-------------------|
 | **D0** | P123.0.1 Documentation | This mandate + catalog schema + C122 closure | Docs only; version 123 |
 | **P1** | Gateway + lineage | `executeModelCall`, lineage on responses, single-source behaviour = today’s Gemini | **DONE P123.1** — `server/modelCarousel.ts`; analysisService wired |
-| **P2** | Key pool | 1..N slots for Gemini (N≤13), rotation on 429/quota | **DONE P123.2** — `server/keyPool.ts` + carousel rotation |
+| **P2** | Key pool | 1..N slots for Gemini (N≤10), rotation on 429/quota | **DONE P123.2** — `server/keyPool.ts` + carousel rotation |
 | **P3** | Multi-source catalog | YAML/JSON catalog + second API source adapter (Navigator picks which) | Failover integration test |
 | **P4** | Health + cooldown + breaker | Per source and per key_slot | Simulated 429/503 |
 | **P5** | Ops | Probe workflow, dashboard-friendly logs, Render/GitHub secret naming convention | Ops doc + optional workflow |
@@ -167,13 +167,13 @@ Illustrative naming (final names in P2/P5):
 # Single-key deploy (today)
 GEMINI_API_KEY=
 
-# Pool deploy (up to 13)
+# Pool deploy (up to 10)
 GEMINI_API_KEY_1=
 GEMINI_API_KEY_2=
 …
-GEMINI_API_KEY_13=
+GEMINI_API_KEY_10=
 MODEL_KEY_POOL_PROVIDER=gemini
-MODEL_KEY_POOL_SIZE=13
+MODEL_KEY_POOL_SIZE=10
 
 # Cascades remain allowlisted model ids only for Gemini family
 MODEL_CASCADE_LIGHT=gemini-3.5-flash-lite,gemini-3.1-flash-lite
@@ -222,7 +222,7 @@ MVP may treat all traffic as `public` if no classifier exists yet.
 ## 11. Success criteria for cycle C123
 
 1. Catalog-driven source list loadable without code change for priority/order tweaks.  
-2. Automatic failover across models and, when configured, across **up to 13 key slots**.  
+2. Automatic failover across models and, when configured, across **up to 10 key slots**.  
 3. Lineage on every model result used by agents.  
 4. Expert and Conversational still function with `GEMINI_API_KEY` alone (pool size 1).  
 5. Documentation and tests describe carousel behaviour without requiring live multi-key CI.  
