@@ -11,17 +11,20 @@ const { newRouterState } = await import(pathToFileURL(path.join(root, 'server/ro
 
 describe('P123.4 source health', () => {
   it('opens breaker after consecutive failures in window', () => {
-    const h = new SourceHealthRegistry({ breakerFailures: 3, breakerWindowMs: 60_000, cooldownMs: 1000 });
+    const h = new SourceHealthRegistry({ breakerFailures: 3, breakerWindowMs: 60_000, cooldownMs: 1_000 });
     const t0 = 1_000_000;
     h.recordFailure('src-a', 'PROVIDER_QUOTA', t0);
-    h.recordFailure('src-a', 'PROVIDER_QUOTA', t0 + 1);
-    assert.equal(h.isAvailable('src-a', t0 + 2), true); // still under threshold after cooldown expire... cooldown blocks
-    // force after cooldown
-    assert.equal(h.snapshot('src-a', t0 + 500).available, false); // in cooldown
-    h.recordFailure('src-a', 'PROVIDER_QUOTA', t0 + 2000);
-    const snap = h.snapshot('src-a', t0 + 2000);
+    // Immediately after a failure the source is in cooldown
+    assert.equal(h.isAvailable('src-a', t0 + 2), false);
+    assert.equal(h.snapshot('src-a', t0 + 2).available, false);
+    // After cooldown expires, still under breaker threshold (2 < 3) → available
+    assert.equal(h.isAvailable('src-a', t0 + 1_500), true);
+    h.recordFailure('src-a', 'PROVIDER_QUOTA', t0 + 2_000);
+    h.recordFailure('src-a', 'PROVIDER_QUOTA', t0 + 2_100);
+    // Third failure opens breaker
+    const snap = h.snapshot('src-a', t0 + 2_100);
     assert.equal(snap.breakerOpen, true);
-    assert.equal(h.isAvailable('src-a', t0 + 2000), false);
+    assert.equal(h.isAvailable('src-a', t0 + 2_100), false);
   });
 
   it('success clears failures and cooldown', () => {

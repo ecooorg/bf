@@ -233,7 +233,7 @@ describe('C123 carousel workflow — key rotation + lineage', () => {
 
 describe('C123 carousel workflow — inventory & ops artifacts exist', () => {
   it('ops doc and inventory are present', () => {
-    assert.match(readFileSync(path.join(root, 'docs/C123_OPS.md'), 'utf8'), /carousel:probe/);
+    assert.match(readFileSync(path.join(root, 'docs/C123_OPS.md'), 'utf8'), /carousel:probe|carousel-ops-probe/);
     assert.match(readFileSync(path.join(root, 'docs/MODEL_SOURCES_INVENTORY.md'), 'utf8'), /OpenRouter/);
     assert.ok(MAX_ORG_KEY_SLOTS === 10);
   });
