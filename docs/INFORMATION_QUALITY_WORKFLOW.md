@@ -157,3 +157,13 @@ A separate job runs the evaluator contract tests, Architect information-quality 
 Browser acceptance and deterministic contracts do **not** establish that every generated factual answer is true or useful. For a release-candidate review, prepare a JSON or JSONL file using the record schema consumed by `scripts/information-quality-eval.mjs`, score all seven dimensions independently (0–4), and supply its repository-relative path in the manual workflow's `evaluation_file` input. The evaluator fails the job for contract violations, hard failures, an average below 3.4, or any dimension below 3. The input file must be committed to the branch being tested. Do not fill human scores with defaults or generated guesses.
 
 To inspect results, open the workflow run and download `information-quality-Simple`, `information-quality-Expert`, `information-quality-Architect`, and `information-quality-evaluator` artifacts. A green deterministic workflow means the tested paths and contracts passed; it is not a substitute for the blind-review report.
+
+
+### Итоговый артефакт для передачи ассистенту
+
+После завершения всех трёх режимов и evaluator job запускается отдельная задача `assistant-handoff` с условием `always()`. Она скачивает результаты всех задач `information-quality-*`, объединяет TAP/логи/JSON-отчёты и формирует два файла:
+
+- `ASSISTANT_PASTE.txt` — готовая диагностическая сводка для вставки в чат ассистента;
+- `ASSISTANT_SUMMARY.json` — структурированная версия с метаданными запуска и извлечёнными ошибками.
+
+Оба файла публикуются вместе с исходными свидетельствами в GitHub Actions artifact **information-quality-assistant-handoff**. Артефакт создаётся и при падении тестовых задач, чтобы ассистент получил сведения о причинах отказа, а не только успешный отчёт. В GitHub Actions → нужный запуск → Artifacts скачайте именно этот артефакт; для передачи достаточно приложить `ASSISTANT_PASTE.txt`, а для глубокого разбора — весь ZIP.
