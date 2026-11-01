@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P123.18, 2026-11-01
+
+- **Changed:** Conversational↔Expert mode transitions create a new blank Decision while retaining the prior Decision in the saved library. Expert initialization prompt now prohibits importing Simple-mode history and uses only Expert-session input.
+- **Source evidence:** prior implementation explicitly sent the shared `modelSuggestions.conversation` to `/api/understand` and described Expert as unpacking the same Simple conversation. This delivery removes that intended coupling at the session transition and prompt contract.
+- **UI impact:** mode selection/menu transition and first Expert `UNDERSTAND` initialization. Existing completion surface is unchanged; existing `data-testid` entry points remain `start-mode-expert`, `expert-open-dialogue`, and mode-menu selectors.
+- **NOT_RUN:** full test suite, TypeScript build, browser e2e, hosted CI, live Gemini comparisons. No claim of user-value acceptance is made.
+
 # CURRENT EVIDENCE NOTE — P123.17, 2026-11-01
 
 - **Changed:** Cumulative P123.16 + P123.17 delivery. Weather-oriented query expansion and title-only SERP rejection are retained. User-visible source footer is disabled while source metadata remains internal. Shared grounding instructions now apply to Conversational and Expert; Expert/V17 prompts explicitly preserve supported retrieved values and distinguish them from unsupported claims.

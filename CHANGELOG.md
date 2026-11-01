@@ -1,3 +1,10 @@
+## P123.18 — Independent Conversational and Expert sessions
+
+- Switching directly between Conversational and Expert now starts a fresh Decision/session; the previous session remains saved in the library.
+- Returning to mode selection ends the current session and prepares a blank session for the next selected agent.
+- Expert `/api/understand` now explicitly uses only the Expert brief/history and never assumes a prior Simple-mode exchange.
+- Added regression coverage for mode-switch isolation and independent Expert initialization.
+
 ## P123.17 — Preserve retrieved evidence and suppress visible source links
 
 - Cumulative delivery includes P123.16 current-weather query expansion and rejection of title-only search results.

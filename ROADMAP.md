@@ -1,3 +1,10 @@
+## P123.18 — Conversational / Expert session isolation
+
+- [x] Start a fresh saved Decision when switching between Conversational and Expert.
+- [x] Keep the previous mode session in the library rather than carrying its transcript into the next mode.
+- [x] Make Expert initialization explicitly independent of Simple-mode history.
+- [ ] Validate mode-switch isolation in browser e2e and real multi-turn usage.
+
 ## P123.17 — Retrieved-evidence preservation and source presentation
 
 - Implemented: suppress automatic source URLs in visible conversation replies; retain source metadata; align shared grounding guidance across Conversational and Expert; clarify evidence scope and preserve supported numeric details.

@@ -1741,8 +1741,9 @@ function classifyExpertRadar(out: any, history: any[]) {
   };
 }
 
-// Build the first Expert-mode analysis from the SAME conversation the user just had
-// in Simple mode. Expert mode should unpack the existing exchange, not restart it.
+// Build the first Expert-mode analysis from the Expert session's own brief and
+// transcript only. Conversational and Expert sessions are isolated in the client;
+// this endpoint must never import or reconstruct a Simple-mode conversation.
 app.post('/api/understand', async (req, res) => {
   try {
     const requestByokKey = byokFromRequest(req);
@@ -1762,9 +1763,9 @@ app.post('/api/understand', async (req, res) => {
     const input = JSON.stringify({ brief, conversation: safeHistory });
     if (input.length > MAX_BODY) return fail(res, 400, 'Text too long', 'TOO_LONG');
 
-    const prompt = `Step understand for Expert mode. IMPORTANT: the user has already had a conversation in Simple mode.
-Do NOT restart the interview and do NOT explain the method. Unpack the existing conversation into a concrete decision map.
-Use BOTH the original brief AND the full conversation below. The assistant's previous answer is evidence of what has already been discussed; preserve useful points from it, but correct generic or unsupported statements by grounding them in the user's actual words.
+    const prompt = `Step understand for Expert mode. This is an independent Expert session.
+Do NOT import, refer to, or assume any Simple-mode conversation. Use only the Expert brief and the Expert-session history supplied below. If the Expert session contains only the opening request, build the decision map from that request and mark missing details as unknown; do not fabricate prior discussion.
+Do NOT explain the method. Unpack the Expert user's own input into a concrete decision map. Preserve useful facts and explicit constraints from the supplied Expert-session input, while distinguishing user statements from assumptions and unknowns.
 
 Return JSON:
 {
@@ -1806,7 +1807,7 @@ Return JSON:
 }
 
 Rules:
-- This is a reconstruction of an existing conversation, not a blank questionnaire.
+- This is an independent Expert session; use only the Expert-session input and ask for missing decisive details when necessary.
 - Use the user's actual numbers, constraints, goals and options when they exist. Never replace them with generic examples.
 - Extract concrete facts from the user's messages AND useful concrete conclusions from the assistant's previous answer.
 - Separate facts, assumptions, interpretations and values.
