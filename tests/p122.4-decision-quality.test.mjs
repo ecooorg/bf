@@ -358,3 +358,54 @@ describe('P122.4 Scenario E — Complete decision cycle', () => {
     assert.ok(rubric.criticalFailures.every((f) => typeof f === 'string'));
   });
 });
+
+describe('P122.4 edge cases (coverage / robustness)', () => {
+  it('empty decision still produces a document with low confidence', () => {
+    const d = emptyDecision();
+    const doc = buildFinalDecisionDocument(d);
+    assert.equal(doc.userRetainsControl, true);
+    assert.ok(doc.confidenceAndLimitations.length > 20);
+    const conf = calibrateConfidence(d);
+    assert.match(conf, /limited structured evidence|low/i);
+  });
+
+  it('SYNTHESIS incomplete without paragraphs', () => {
+    const d = emptyDecision();
+    d.step = 'SYNTHESIS';
+    const r = evaluateStageCompletion(d, 'SYNTHESIS');
+    assert.equal(r.complete, false);
+    assert.ok(r.reasons.some((x) => /synthesis/i.test(x)));
+  });
+
+  it('EXPAND incomplete with zero options', () => {
+    const d = emptyDecision();
+    d.step = 'EXPAND';
+    d.options = [];
+    const r = evaluateStageCompletion(d, 'EXPAND');
+    assert.equal(r.complete, false);
+  });
+
+  it('DECIDE incomplete when nothing recorded', () => {
+    const d = emptyDecision();
+    d.step = 'DECIDE';
+    d.decision = undefined;
+    const r = evaluateStageCompletion(d, 'DECIDE');
+    assert.equal(r.complete, false);
+  });
+
+  it('recommendation quality reports gaps on sparse decision', () => {
+    const d = emptyDecision();
+    d.brief = { decision: 'Should we do X?' };
+    const q = evaluateRecommendationQuality(d);
+    assert.ok(typeof q.score === 'number');
+    assert.ok(Array.isArray(q.gaps));
+    assert.ok(q.score < 8, 'sparse decision should not score near perfect');
+  });
+
+  it('calibrateConfidence mentions contradictions when present', () => {
+    const d = emptyDecision();
+    d.contradictions = [{ id: 'c1', text: 'A vs B', severity: 'high' }];
+    const conf = calibrateConfidence(d, undefined, 1);
+    assert.match(conf, /contradiction/i);
+  });
+});
