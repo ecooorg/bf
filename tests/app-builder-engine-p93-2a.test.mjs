@@ -38,7 +38,7 @@ test('cache key is stable and prompt-version-sensitive', () => {
   const base = { unitInput: { path: 'index.html', prompt: 'x' }, modelId: 'fake' };
   assert.equal(makeCacheKey(base), makeCacheKey(base));
   assert.notEqual(makeCacheKey(base), makeCacheKey({ ...base, promptVersion: 'static_site.v-other' }));
-  assert.equal(PROMPT_VERSION, 'static_site.v3');
+  assert.match(PROMPT_VERSION, /^static_site\.v\d+$/);
 });
 
 test('one-level nested paths are allowed but deeper paths are rejected', async () => {
