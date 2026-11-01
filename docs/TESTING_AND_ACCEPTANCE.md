@@ -1,3 +1,13 @@
+## P123.21 targeted regression checks
+
+- `npm run test:core` — covers the cycle-123 patch metadata contract.
+- `npm run test:pipeline` — covers Expert prompt recommendation/assumption wording.
+- `npm run test:web` — covers retrieved-evidence and source-URL prompt contract.
+- `npm run test:compact-ci-artifacts` — required; P123.20 failure details were not included in the supplied handoff, so inspect its full log before making further changes.
+- `node scripts/run-dag.mjs --profile check` — final repository DAG check.
+
+Hosted CI and these commands have not been run in the patch-generation environment.
+
 ## CI failure evidence payload (P123.19)
 
 For every failed DAG stage, retain the complete redacted stage log in `biforge-ci-logs.zip`. The generated `PATCH_EVIDENCE.md` must include the failing stage, rerun command, assertion/error excerpt, and a source excerpt around the detected source location. Source-location parsing supports both JavaScript stack locations (`file.ts:line:column`) and TypeScript diagnostics (`file.ts(line,column)`). The archive also includes the complete available CI log files, DAG results, metrics, and history; missing evidence must remain explicitly unknown.
