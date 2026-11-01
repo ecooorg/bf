@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P123.11 CI regression repair, 2026-11-01
+
+- **Observed (hosted CI evidence, commit `dc7f331f518e8156311e69a917afe9179faa502f`):** `test:core` failed because the Expert information prompt snapshot expected the pre-P123.10 hash (`6b35eb…8fdcee`) while current prompt bytes hash to `90525c…881ac`; `test:app-builder` failed because one coder-prompt test still expected `static_site.v2` although the implementation exports `static_site.v3`. The DAG failure is downstream of these failed stages.
+- **Change in P123.11:** refresh only the intentionally changed Expert information snapshot and align the stale App Builder test expectation. No product runtime logic changed.
+- **BLOCKED (local environment):** `npm ci --ignore-scripts --no-audit --no-fund` timed out and left `node_modules` incomplete (`tsx` and `jszip` unavailable). `npm run test:core` and `npm run test:app-builder` were attempted but could not load the `tsx` runtime; `node scripts/run-dag.mjs --profile check` ran but its test/typecheck prerequisites failed for the same missing dependencies. `docs-integrity`, version metadata, and JavaScript syntax checks passed.
+- **NOT_RUN:** hosted CI rerun and deployed behavior. These must not be inferred from source edits.
+
 # CURRENT EVIDENCE NOTE — P123.6 carousel-verify workflow, 2026-11-01
 
 - Automated coverage: deterministic catalog/pool/health/gateway + optional live smoke.

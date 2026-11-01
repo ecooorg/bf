@@ -1,3 +1,10 @@
+## P123.11 — CI regression repair: prompt snapshots and App Builder version contract
+
+- Updated the Expert information-prompt golden SHA-256 to the reviewed P123.10 prompt output (`90525c…881ac`); retained exact snapshot checking for all eight agent/mode prompt combinations and both Expert dialogue paragraphs.
+- Corrected the App Builder coder-prompt test to expect the active `static_site.v3` prompt version. No runtime behavior or prompt text changed in this patch.
+- Bumped patch metadata to `123.11`; root `package-lock.json` version metadata remains aligned with product version `123`.
+- Verification is limited to checks explicitly recorded in the delivery report; hosted CI is not claimed green until rerun on the resulting commit.
+
 ## P123.9 — Live Gemini smoke runner fix
 
 - **Root cause (likely):** live job ran `node scripts/carousel-live-smoke.mjs` without `--import tsx`, so imports of `server/*.ts` failed (deterministic path already used tsx).

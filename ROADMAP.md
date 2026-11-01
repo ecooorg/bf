@@ -32,6 +32,7 @@
 | P123.3 | MULTI-SOURCE CATALOG | Load JSON catalog; inventory 20+ candidates; second API when keys exist | DONE |
 | P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience; key pool max 10 | DONE |
 | P123.5 | OPS PROBES | Probe script, ops doc, auto-enable opt-in; CI preflight config/; health isolation | DONE |
+| P123.11 | CI REGRESSION REPAIR | Align reviewed Expert prompt snapshot and App Builder prompt-version assertion with current source | IMPLEMENTED — hosted rerun pending |
 
 ### Frozen / out of scope during C123 MVP
 
