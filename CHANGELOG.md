@@ -1,3 +1,11 @@
+## P123.9 — Live Gemini smoke runner fix
+
+- **Root cause (likely):** live job ran `node scripts/carousel-live-smoke.mjs` without `--import tsx`, so imports of `server/*.ts` failed (deterministic path already used tsx).
+- Live + ops probe now: `node --import tsx …`.
+- Live smoke writes `artifacts/carousel-verify/live-smoke.json` with status, rejected, attempts, errorClass (no secrets).
+- Upload artifact path: full `artifacts/carousel-verify/`.
+- package.json patch → `123.9`.
+
 ## P123.8 — Key-slot isolation + carousel-verify green
 
 - **Bugfix:** `executeModelCall` key rotation shared `ctx.state.cooldownUntil` across slots; after `PROVIDER_QUOTA` on key A the model was on cooldown so key B got `blocked` / `no_suitable_model`. Each slot now uses a fresh cooldown map (disabledProviders still inherited).
