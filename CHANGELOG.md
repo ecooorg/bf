@@ -1,3 +1,12 @@
+## P122.7 — Expert-verify stabilisation, stage readiness UX, Layer B summary
+
+- Coverage job no longer runs browser e2e (`tests/p122.*.test.mjs` glob pulled in journey test → `spawn tsx ENOENT`). Explicit unit list + `EXPERT_COVERAGE_ONLY=1`.
+- Journey e2e renamed to `tests/expert-journey-e2e.test.mjs`; server spawn uses `node --import tsx` (PATH-safe on CI). Same spawn fix for p120 expert/conversational/transitions e2e.
+- Expert UI: `StageReadinessBanner` on every method step (except triage) — shows incomplete reasons from `evaluateStageCompletion`.
+- `scripts/summarize-real-model-eval.mjs` — paste-friendly Layer B summary for Navigator.
+- Layer B live results (prior run): A/B 1.00, C 0.67, E 0.80 on `gemini-3.5-flash-lite` — heuristic PASS; human tablet smoke still open for C122 closure.
+- package.json patch → 122.7.
+
 ## P122.6 — Fix Layer B model id + golden hash; Expert journey E2E; user-value surface
 
 - Real-model default aligned to production cascade: `gemini-3.5-flash-lite` / `gemini-3.1-flash-lite` (not probe `gemini-3.8-flash`). expert-verify real-model job sets MODEL_CASCADE_* explicitly.

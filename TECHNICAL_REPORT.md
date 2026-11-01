@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P122.7 Expert-verify fix + stage readiness, 2026-11-01
+
+- **Root cause of expert-verify red:** coverage job matched `tests/p122.5-expert-journey-e2e.test.mjs` via `tests/p122.*.test.mjs` and crashed with `spawn tsx ENOENT` (uncaughtException). CI main DAG remained green.
+- **Changed:** coverage file list explicit; journey e2e renamed + PATH-safe server spawn; stage readiness banner; Layer B summarizer script; p120 e2e spawn hardening.
+- **Layer B (prior hosted run):** 8/8 pass; scores A=1.00 B=1.00 C=0.67 E=0.80; model gemini-3.5-flash-lite. Human product judgement still required per docs/USER_VALUE_EXPERT_C122.md.
+- **NOT_RUN:** re-hosted expert-verify after this patch; tablet smoke.
+
 # CURRENT EVIDENCE NOTE — P122.6 Expert journey + Layer B fixes, 2026-11-01
 
 - **Changed:** GOLDEN_STEP_PREFIX updated for hardened EXPERT_STEP_PREFIX; real-model default model id fixed; Synthesis quality panel + download testid; Expert full-journey browser e2e; user-value checklist doc.

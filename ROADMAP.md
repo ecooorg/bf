@@ -5,7 +5,7 @@
 ## C122 — Expert Mode Reliability, Intelligence Quality & Decision Engineering (ACTIVE)
 
 **Product version:** 122  
-**Status:** APPROVED — implementation in progress  
+**Status:** APPROVED — deterministic + Layer B harness executed; tablet smoke open (P122.7)  
 **Primary target:** Expert Mode  
 **Architect:** FROZEN  
 **Conversational:** OUT OF SCOPE  
@@ -38,6 +38,12 @@
 | P1 | User workflow clarity | P122.4 |
 | P0 | Real-model evaluation | P122.4 |
 | P0 | Global acceptance | P122.4 |
+
+### Residual after P122.4 / addressed in P122.5–P122.7
+
+- Layer B live harness executed successfully on gemini-3.5-flash-lite (heuristic pass). Remaining for C122 product closure: Navigator tablet smoke + human read of Layer B excerpts.
+- Expert-verify coverage/e2e coupling fixed (P122.7).
+- Stage readiness visible in UI (P122.7).
 
 ### Residual after P122.4 / addressed in P122.5
 
