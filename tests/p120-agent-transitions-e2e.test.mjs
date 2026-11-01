@@ -17,7 +17,7 @@ const freePort = () => new Promise((resolve, reject) => {
   });
 });
 
-test('P120.0.4 agent transitions preserve the active conversation context', async (t) => {
+test('P123.18 Conversational and Expert transitions isolate session context', async (t) => {
   if (!existsSync('dist/index.html')) {
     const build = spawnSync('npm', ['run', 'build'], { stdio: 'inherit', timeout: 180_000 });
     assert.equal(build.status, 0, 'npm run build must succeed before the browser scenario');
@@ -99,7 +99,7 @@ test('P120.0.4 agent transitions preserve the active conversation context', asyn
     assert.equal(requests.length, 1);
     assert.equal(requests[0].brief?.decision, firstPrompt);
 
-    // Switch to Expert and back without creating a new decision or conversation.
+    // Switching agents creates a new independent Decision; the old session remains saved in the library.
     await page.getByTestId('mode-menu-button').click();
     await page.getByTestId('mode-item-expert').click();
     await page.getByTestId('mode-menu-button').waitFor();
@@ -107,18 +107,18 @@ test('P120.0.4 agent transitions preserve the active conversation context', asyn
 
     await page.getByTestId('mode-menu-button').click();
     await page.getByTestId('mode-item-simple').click();
-    await page.getByText(replies[0], { exact: true }).waitFor();
     assert.equal(await page.getByTestId('mode-menu-button').innerText(), 'Conversational');
+    await page.getByRole('button', { name: /Start conversation/i }).click();
 
-    const followUp = 'What is the smallest next step for that same garden project?';
+    const followUp = 'What is the smallest next step for a completely separate question?';
     await page.locator('.conversation-composer textarea').fill(followUp);
     await page.locator('.conversation-composer button.primary').click();
     await page.getByText(replies[1], { exact: true }).waitFor();
 
     assert.equal(requests.length, 2, 'switching agents must not itself submit duplicate turns');
-    assert.equal(requests[1].brief?.decision, firstPrompt, 'the original decision must survive the agent switch');
-    assert.ok(requests[1].history.some((item) => item.role === 'assistant' && item.content === replies[0]), 'prior assistant response must survive the agent switch');
-    assert.ok(requests[1].history.some((item) => item.role === 'user' && item.content === followUp), 'follow-up must be included in the same history');
+    assert.equal(requests[1].brief?.decision, followUp, 'the new Conversational session must start from its own brief');
+    assert.equal(requests[1].history.some((item) => item.content === firstPrompt), false, 'prior Expert/Conversational session must not leak into the new session');
+    assert.equal(requests[1].history.some((item) => item.content === replies[0]), false, 'prior assistant response must not cross the mode boundary');
 
     // Architect is intentionally a separate workspace; this deployment keeps it disabled.
     await page.getByTestId('mode-menu-button').click();
@@ -127,7 +127,7 @@ test('P120.0.4 agent transitions preserve the active conversation context', asyn
     assert.equal(requests.length, 2, 'opening the menu must not send a conversation request');
 
     await context.close();
-    t.diagnostic('Coverage: authenticated browser, Conversational → Expert → Conversational switch, unchanged active goal/history, no duplicate turns, and disabled Architect entry remains unavailable. Responses are deterministic and mocked; live provider behavior and enabled Architect navigation are not covered here.');
+    t.diagnostic('Coverage: authenticated browser, Conversational → Expert → Conversational switch, fresh isolated session after each agent switch, no duplicate turns, and disabled Architect entry remains unavailable. Responses are deterministic and mocked; live provider behavior and enabled Architect navigation are not covered here.');
   } finally {
     if (browser) await browser.close().catch(() => {});
     if (server.exitCode === null) {
