@@ -1,3 +1,6 @@
+## P123.22 CI logging policy
+The primary `ASSISTANT_PASTE` handoff is failure-first: report failed stages, timeouts, blocked/not-run checks, concise failure tails, and next actions. Do not enumerate successful checks. The diagnostic ZIP retains reports, structured result/metrics/history files, prompt snapshot diagnostics, and logs belonging to failed or timed-out checks; successful-stage logs and incidental files are omitted. Validate both failure and green runs in GitHub Actions.
+
 ## P123.21 targeted regression checks
 
 - `npm run test:core` — covers the cycle-123 patch metadata contract.
