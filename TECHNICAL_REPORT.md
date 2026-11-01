@@ -1,3 +1,30 @@
+## CURRENT EVIDENCE NOTE — P124.3 response-path fidelity cleanup (2026-11-01)
+
+**Patch identity:** product version `124`, patch `124.0.5`. **Scope:** Conversational/Expert visible-reply transport, explicit link-intent handling, and C124 regression tests.
+
+### Implemented changes
+
+- The server no longer applies `stripMarkdown` to the model-authored main reply or document payload before returning it to the client.
+- Removed the obsolete hard-coded parenthetical filter for legacy decision-method vocabulary.
+- Kept unsolicited source-URL suppression as the default, but explicit user requests for links preserve model-provided URLs.
+- Added explicit link/no-link intent flags with latest-message precedence over older recent-history preferences.
+- Simplified Expert staged prompts (`understand`, `radar`, `expand`, `attack`, `redteam`, `premortem`, `synthesis`, `review`) by removing arbitrary minimum counts, mandatory option categories, fixed word/paragraph quotas, the synthesis retry that enforced them, and forced review questions; retained task schemas and workflow purpose.
+- Added `tests/c124-output-fidelity.test.mjs` and wired it into `test:core`.
+
+### Verification
+
+- `node --experimental-strip-types --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs tests/p119-agent-prompts-routes.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-boundaries.test.mjs tests/p12318-agent-session-isolation.test.mjs` — **PASS, 54/54**.
+- `npm run docs:check` — **PASS** (documentation integrity, inventories, check graph and capability graph).
+- `npm run version:check` — **PASS** (`124`, patch `124.0.5`).
+- Node syntax checks for `server.ts`, `server/intentFlags.ts`, `server/reasoningState.ts` and `tests/c124-output-fidelity.test.mjs` — **PASS**.
+- `npm run test:core` — **BLOCKED** before the first test file because package `tsx` is not installed in this environment (`ERR_MODULE_NOT_FOUND`).
+- Direct execution of `tests/core.test.mjs` and `tests/pipeline.test.mjs` with Node type stripping — **BLOCKED** before test execution because package `zod` is not installed (`ERR_MODULE_NOT_FOUND`).
+- Hosted GitHub Actions, full CI DAG, TypeScript typecheck/build, browser rendering and live provider comparisons — **NOT_RUN**.
+
+### Acceptance boundary
+
+These changes prevent specific deterministic transformations from deleting or hiding answer content. They do not establish that external models returned correct facts or that every Markdown construct renders optimally in the browser.
+
 ## CURRENT EVIDENCE NOTE — P124.2 instruction cleanup (2026-11-01)
 
 **Patch identity:** product version `124`, patch `124.0.4`. **Scope:** Simple/Conversational and Expert dialogue prompt paths plus final visible-reply composition. This is a targeted implementation slice of C124, not a claim that every Expert staged endpoint, Architect/App Builder prompt, or output transformation has been audited and cleaned.

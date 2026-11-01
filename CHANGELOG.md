@@ -1,3 +1,13 @@
+## P124.0.5 — P124.3 response-path fidelity cleanup
+
+- Removed broad Markdown stripping from the model-authored conversation reply and generated document at the server transport boundary; preserve the original formatting/text for the client.
+- Removed the obsolete fixed parenthetical filter for legacy decision-method vocabulary, which could erase ordinary domain language.
+- Preserved the default policy of suppressing unsolicited source URLs, while honoring explicit user requests for links.
+- Added explicit link/no-link intent flags. A current explicit instruction takes precedence over older recent-history preferences.
+- Removed arbitrary output quotas from Expert `understand`, `radar`, `expand`, `attack`, `redteam`, `premortem`, `synthesis` and `review` prompts while preserving their task-specific schemas and endpoint purposes.
+- Added C124 output-fidelity and Expert prompt-quality regression tests and included them in `test:core`.
+- Hosted CI, browser rendering and live provider comparisons remain separate acceptance requirements.
+
 ## P124.0.4 — P124.2 Simple/Expert instruction cleanup
 
 - Replaced the mandatory multi-step decision-analysis recipe in the shared Conversational/Expert prompt with concise task-fit guidance. The model chooses the analysis depth and structure appropriate to the actual request; it is no longer required to manufacture reframing, branches, calculations, tests or novelty in every response.

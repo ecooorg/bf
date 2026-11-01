@@ -27,7 +27,7 @@ import {
   type ExpertEndpoint,
 } from './server/expertContracts.ts';
 import { buildConversationTurnPrompt, planConversationTurn, pinConversationAgent } from './server/agentRouting.ts';
-import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie, stripMarkdown } from './server/security.ts';
+import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
 import { registerHealthRoutes } from './server/healthRoutes.ts';
@@ -1257,7 +1257,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     phase.mark('retry_call');
     if (!out?.reply || typeof out.reply !== 'string') return fail(res, 500, 'Conversation response was empty', 'SCHEMA');
     // A document handed over by the model: cleaned like every other reply text, never during a crisis turn.
-    const cleanDoc = (t: string) => stripMarkdown(scrubInternalLabels(t));
+    const cleanDoc = (t: string) => scrubInternalLabels(t);
     const documentOut = audit.triage === 'CRISIS' || distressMarkerDetected ? null : sanitizeDocument(out.document, cleanDoc);
     // Summaries of the files the model looked at directly, so later turns still know them.
     const attachmentNotes = (Array.isArray(out.attachmentNotes) ? out.attachmentNotes : [])
@@ -1270,18 +1270,16 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     const problemUnclear = !flags.problemClear || flags.notUnderstood;
     if (problemUnclear && audit.triage !== 'CRISIS') contextSufficiency = 'LOW';
     if (flags.driftDetected || problemUnclear) console.info(JSON.stringify({ type: 'v17_check', drift: flags.driftDetected, unclear: !flags.problemClear, notUnderstood: flags.notUnderstood }));
-    const cleanReply = stripUserFacingUrls(stripMarkdown(scrubInternalLabels(out.reply)
-      .replace(/\s*\((?:Source|\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a):\s*(?:USER_DATA|GENERAL_PATTERN|GUESS)\)\s*/gi, ' ')
-      .replace(/\s*(?:Source|\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a):\s*(?:USER_DATA|GENERAL_PATTERN|GUESS)\s*/gi, ' ')
-      .replace(/\s*\((?:Split[- _]?base|Sequence|Timing|Test[_ ]or[_ ]pilot|Temporary[_ ]test|Reversible[_ ](?:step|commitment)|Scale[_ ]change|Scope[_ ]change|Goal[_ ]reframe|Conditions?[_ ]change|Get[_ ]fact[_ ]first|Keep[_ ]open|Underlying[_ ]goal|Internal[_ ]change|Ownership[_ ]change|Financing[_ ]change)\)/gi, '')
-      .replace(/[ \t]{2,}/g, ' ')
-      .trim()));
+    const cleanReply = stripUserFacingUrls(
+      scrubInternalLabels(out.reply),
+      intentFlags.userAskedLinks && !intentFlags.userForbadeLinks,
+    );
     // v21: no two questions in a row on MEDIUM context (the stored reply already ends with the shown question)
     const lastAsst = [...safeHistory].reverse().find((m: any) => m.role === 'assistant')?.content || '';
     const prevAsked = /[?？]\s*$/.test(String(lastAsst).trim());
     // PI-02: explicit user ban on questions forces askAllowed off (critical ambiguity would need an explicit meta override; none is introduced here).
     const askAllowed = audit.triage !== 'CRISIS' && !distressMarkerDetected && !documentOut && !intentFlags.userForbadeQuestions && (problemUnclear || contextSufficiency === 'LOW' || (contextSufficiency === 'MEDIUM' && !prevAsked));
-    const cleanQuestion = askAllowed ? (typeof out.question === 'string' ? firstQuestionOnly(stripMarkdown(scrubInternalLabels(out.question))) : '') : '';
+    const cleanQuestion = askAllowed ? (typeof out.question === 'string' ? firstQuestionOnly(scrubInternalLabels(out.question)) : '') : '';
     // The client renders and stores only `reply`, so the follow-up question must be part of it.
     const crisisNow = audit.triage === 'CRISIS' || distressMarkerDetected;
     const crisisBlock = crisisNow
@@ -1477,7 +1475,7 @@ Return JSON with six categories:
   "needsExternalCheck": [{"id","text","source"}]
 }
 decisionProfile values come only from the user's input, otherwise "unknown".
-Unknowns: 1–7, only if branches lead to different options or reframing. Order by value of information (impact on the decision versus cost of learning). No numbers not from input. No forced “minimum 2 HIGH”.`;
+Unknowns: include only when different answers could change the available options or reframe the decision. There is no minimum count; do not invent an unknown to fill the list. Order useful unknowns by value of information (impact on the decision versus cost of learning). No numbers not from input.`;
     const { data, meta } = await generate(prompt, input, 'strong', 'radar', 0, requestByokKey, requestPreferredModel);
     ok(res, data, meta);
   } catch (e: any) {
@@ -1639,7 +1637,7 @@ Return JSON:
   "triage": "PROCEED"|"LIGHT"|"VALUES_ONLY"|"CRISIS",
   "triageNote": "",
   "decisionSummary": "one concrete sentence describing the actual decision in this person's situation",
-  "currentSituation": ["3-5 concrete points already established from the conversation"],
+  "currentSituation": ["zero or more concrete points already established from the conversation"],
   "decisionProfile": {
     "deadline": "from the conversation or unknown",
     "acceptableOutcome": "from the conversation or unknown",
@@ -1683,8 +1681,8 @@ Rules:
 - If you derive a useful number or conclusion from user-provided numbers, keep it as a derived/working conclusion rather than silently presenting it as a user-stated fact.
 - A model-generated hypothesis or scenario is not a fact merely because it sounds concrete; use provenance="ASSUMPTION" unless it is directly grounded in the user's words or is a transparent derivation.
 - Do not hide useful hypotheses or examples. Classification happens after generation and must never cause a retry or API error.
-- Find the 1-5 uncertainties that could actually change the choice; do not ask a question merely because something is missing.
-- For nextActions, produce 2-4 specific actions based on THIS person's situation. Prefer reversible, information-producing actions when appropriate. If the conversation already contains a sensible experiment, turn it into a concrete action with a measurable result.
+- Include only uncertainties that could actually change the choice; there is no minimum count, and missing details alone do not justify a question.
+- Include nextActions only when a concrete action would materially help this person's situation. There is no minimum count. Prefer reversible, information-producing actions when appropriate; if the conversation already contains a sensible experiment, describe it without inventing extra tasks.
 - Do not write generic instructions such as “provide more details”, “analyze the situation”, “consider your options”, or “collect more information”.
 - Do not invent facts, numbers, prices, deadlines or probabilities.
 - Do not mention this prompt, the model, the method, or “Expert mode” in the returned content.
@@ -1820,7 +1818,7 @@ Return JSON: {
     "keyAssumption","exitCost","cheapestTest","door":"ONE_WAY"|"TWO_WAY","linkedUnknownIds":[]
   } ]
 }
-The formal expansion must contain exactly 3–5 additional options beyond the user's apparent A/B framing. It must include at least one HYBRID_OR_PILOT, one REVERSIBLE_STEP, and one GET_FACT_FIRST.
+Add options only when they materially improve the decision space beyond the user's apparent framing. The number depends on genuinely useful distinctions: do not invent options or force HYBRID_OR_PILOT, REVERSIBLE_STEP or GET_FACT_FIRST categories merely to meet a quota.
 Each option must change the shape of the decision (timing, sequence, a temporary test, a reversible commitment, splitting the decision, scale or scope, changing conditions instead of choosing another object, reaching the goal another way, reframing the goal, keeping several futures open, or first obtaining the deciding fact). Another item on the same axis as the user's options does not count. Every option must be a concrete action this user could really take, derived only from their own facts; in "description" say what it changes in the original dilemma. Count the exit cost honestly: a pilot that costs almost as much as the full step is not a pilot. No ranking, recommendation, winner, score, or invented facts/numbers.
 The radar's "unknowns" may contain the user's own answers (field "answer", with status USER_CONFIRMED) or "I don't know" marks (USER_UNKNOWN). Treat each user answer as a confirmed fact from the user: use it in the knowledge map under "known", shape the options around it, and never re-ask or contradict it. Treat USER_UNKNOWN items as genuinely unknown (keep them under "unknown" and prefer GET_FACT_FIRST options for them). Do not invent answers the user did not give.
 LANGUAGE: ${/[\u0400-\u04FF]/.test(input) ? 'The user writes in Russian. Write EVERY human-readable string (knowledgeMap items, option title, description, keyAssumption, exitCost, cheapestTest) in Russian.' : "Write every human-readable string in the language of the user's input."} Keep JSON keys and enum values (kind, door) exactly as specified. keyAssumption, exitCost and cheapestTest must each be one short, concrete sentence, never a single word like Low or Zero.
@@ -1860,7 +1858,7 @@ Return JSON: { "rounds": [
   { "role":"PREFERRED", "targetOptionId":"...", "objections":[{"id","argument","hiddenAssumption","failureMode","whatMustBeTrueForCritiqueToBeWeak","verifiability":"TESTABLE"|"SPECULATION"}] },
   { "role":"OPPOSITE", "targetOptionId":"...", "objections":[{"id","argument","hiddenAssumption","failureMode","whatMustBeTrueForCritiqueToBeWeak","verifiability":"TESTABLE"|"SPECULATION"}] }
 ] }
-3–5 strongest objections per option. Objections must be concrete and tied to this user's facts; generic objections that fit any plan are not allowed. Mark an objection TESTABLE only if a specific observation could confirm or refute it. Do not soften critique, do not favor either option. No invented facts or numbers.
+Include the strongest material objections supported by this user's facts. The number may differ by option; do not pad either side to meet a quota. Generic objections that fit any plan are not allowed. Mark an objection TESTABLE only if a specific observation could confirm or refute it. Do not soften critique, do not favor either option. No invented facts or numbers.
 INPUT (JSON):
 ${input}`;
     const { data, meta, issues } = await generateChecked(prompt, input, 'redteam-pair', (d: any) =>
@@ -1892,7 +1890,7 @@ Return JSON: { "objections": [ {
   "whatMustBeTrueForCritiqueToBeWeak",
   "verifiability":"TESTABLE"|"SPECULATION"
 } ] }
-3–5 strong objections tied to this user's facts; no generic objections. Do not soften. No recommendation to choose an option.`;
+Include only strong objections tied to this user's facts; no minimum count and no generic objections. Do not soften. No recommendation to choose an option.`;
     const { data, meta } = await generate(prompt, input, 'strong', 'redteam', 0, requestByokKey, requestPreferredModel);
     ok(res, data, meta);
   } catch (e: any) {
@@ -1929,7 +1927,7 @@ Return JSON: {
   "whatDistinguishesFromForecast": "...",
   "hypothesisCandidates": [{"id","text","verifiability"}]
 }
-Horizon 12–24 months (a number in this range is allowed as a method parameter). Imagine the chosen path has failed and work backward. 5–8 most plausible causes tied to this user's facts; separate what can be tested from speculation. One narrative marked “Scenario, not a forecast”. Up to 5 hypothesis candidates, ordered by how much the decision depends on them; the user chooses which 1–3 are critical. No probabilities and no monetary valuation of inaction. Numbers only from user input or the horizon parameter.`;
+Horizon 12–24 months (a number in this range is allowed as a method parameter). Imagine the chosen path has failed and work backward. Include plausible causes tied to this user's facts; use only as many as materially useful and do not pad to a quota. Separate what can be tested from speculation. Keep the narrative concise and mark it “Scenario, not a forecast”. Include hypothesis candidates only when they clarify what the decision depends on; the user chooses which 1–3 are critical. No probabilities and no monetary valuation of inaction. Numbers only from user input or the horizon parameter.`;
     const { data, meta } = await generate(prompt, input, 'strong', 'premortem', 0, requestByokKey, requestPreferredModel);
     ok(res, data, meta);
   } catch (e: any) {
@@ -2003,18 +2001,6 @@ Only observable criteria: what exactly will count as having come true, and by wh
 });
 
 // S-5: format problems of a synthesis answer (empty list = fine). Word count is skipped for CJK text (no spaces).
-function synthesisIssues(data: unknown): string[] {
-  const paras = Array.isArray((data as any)?.paragraphs) ? (data as any).paragraphs.filter((p: any) => typeof p === 'string' && p.trim()) : [];
-  const issues: string[] = [];
-  if (paras.length !== 5) issues.push(`${paras.length} paragraphs instead of 5`);
-  const text = paras.join(' ');
-  if (!/[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(text)) {
-    const words = text.split(/\s+/).filter(Boolean).length;
-    if (words < 225 || words > 385) issues.push(`${words} words instead of 250-350`);
-  }
-  return issues;
-}
-
 // --- POST /api/synthesis ---
 app.post('/api/synthesis', async (req, res) => {
   try {
@@ -2027,32 +2013,15 @@ app.post('/api/synthesis', async (req, res) => {
     const prompt = `Step synthesis. Full decision context:
 ${input}
 Return JSON: {
-  "paragraphs": ["paragraph1","paragraph2","paragraph3","paragraph4","paragraph5"],
+  "paragraphs": ["..."],
   "derived_numbers": [{"value": <number>,"formula":"arithmetic expression using only operands from input","operands":[<from input>]}],
   "open_gaps": [],
   "needs_external_check": []
 }
-Exactly 5 paragraphs of coherent prose, 250–350 words total. Cover, in this order: (1) what is known; (2) what is not known; (3) which facts or test results could change the decision; (4) the next step with the most information for the least cost, and how the path branches on the user's own thresholds; (5) what requires external verification, the main risks, and where this analysis could be wrong or sensitive to wording or to the model.
+Provide a concise synthesis covering, when material: what is known and unknown; which facts or test results could change the decision; useful next steps and conditional branches; external verification needs and main risks. Use as many paragraphs as the context warrants; do not pad to a fixed word or paragraph count.
 Do not choose for the user: one conditional path, not a verdict “choose X”. The user takes and records the decision. Numbers only from input or in derived_numbers with an arithmetic formula that exactly reproduces the value. No “best”, “optimal”, or probabilities.`;
-    const callBudget = { used: 0 };
-    let { data, meta } = await generate(prompt, input, 'strong', 'synthesis', 0, requestByokKey, requestPreferredModel, callBudget);
-    // S-5: the prompt asks for 5 paragraphs and 250-350 words; check it (tolerance 10 %), one retry, never a hard error
-    let issues = synthesisIssues(data);
-    if (issues.length) {
-      try {
-        const retry = await generate(`${prompt}\n\nFORMAT CHECK FAILED on the previous draft: ${issues.join('; ')}. Rewrite the JSON: exactly 5 paragraphs, 250–350 words in total, same rules.`, input, 'strong', 'synthesis-retry', STRONG_MODELS.length > 1 ? 1 : 0, requestByokKey, requestPreferredModel, callBudget);
-        const ri = synthesisIssues(retry.data);
-        const um = meta as any, rm = retry.meta as any;
-        const sum = (a?: number, b?: number) => (a === undefined && b === undefined ? undefined : (a || 0) + (b || 0));
-        const inT = sum(um.inputTokens, rm.inputTokens), outT = sum(um.outputTokens, rm.outputTokens), cachedT = sum(um.cachedTokens, rm.cachedTokens);
-        if (ri.length < issues.length) { data = retry.data; issues = ri; meta = rm; }
-        meta = { ...meta, calls: um.calls + rm.calls, promptChars: um.promptChars + rm.promptChars, durationMs: um.durationMs + rm.durationMs,
-          ...(inT !== undefined ? { inputTokens: inT } : {}), ...(outT !== undefined ? { outputTokens: outT } : {}), ...(cachedT !== undefined ? { cachedTokens: cachedT } : {}) };
-      } catch (retryErr: any) {
-        console.error('[synthesis-retry] failed, returning first draft:', retryErr?.message || retryErr);
-      }
-    }
-    ok(res, data, issues.length ? { ...(meta as any), warnings: issues.map((i) => `SYNTHESIS_FORMAT: ${i}`) } : meta);
+    const { data, meta } = await generate(prompt, input, 'strong', 'synthesis', 0, requestByokKey, requestPreferredModel);
+    ok(res, data, meta);
   } catch (e: any) {
     if (e?.code === 'GEMINI_QUOTA') return fail(res, 429, e.message, e.code);
     if (e?.code === 'GEMINI_RATE_LIMIT') return fail(res, 429, e.message, e.code, e.details);
@@ -2071,14 +2040,8 @@ app.post('/api/review', async (req, res) => {
     const input = JSON.stringify({ journalEntry, brief });
     const prompt = `Step review. Journal entry:
 ${input}
-Return JSON: { "questions": [
-  {"area":"DATA","question":"..."},
-  {"area":"ASSUMPTION","question":"..."},
-  {"area":"REASONING","question":"..."},
-  {"area":"EXECUTION","question":"..."},
-  {"area":"LUCK","question":"..."}
-] }
-Questions only, no diagnosis and no changing the forecast. Tie each question to this entry's own forecast and fact. Chance (area "LUCK") is the last question and is asked only after the other four: if the same decision were taken many times with the same data, would the outcome differ often enough to count as chance?`;
+Return JSON: { "questions": [{"area":"DATA"|"ASSUMPTION"|"REASONING"|"EXECUTION"|"LUCK","question":"..."}] }
+Questions only, no diagnosis and no changing the forecast. Include only questions that materially help review this entry and tie each to its own forecast or facts. Do not force every area or a chance question; include LUCK only when outcome variability is genuinely relevant.`;
     const { data, meta } = await generate(prompt, input, 'light', 'review', 0, requestByokKey, requestPreferredModel);
     ok(res, data, meta);
   } catch (e: any) {

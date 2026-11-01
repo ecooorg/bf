@@ -60,10 +60,19 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
+## P124.3 — response-path fidelity cleanup
+- [x] Remove Markdown stripping from the model's main reply and document payload at the server transport boundary.
+- [x] Remove obsolete fixed vocabulary filtering for legacy decision-method labels.
+- [x] Keep automatic source URLs suppressed by default, while preserving URLs when the user explicitly requests links.
+- [x] Add regression tests for explicit link/no-link preference and answer preservation.
+- [x] Remove arbitrary output quotas from the remaining Expert staged prompts while retaining their product-specific schemas.
+- [ ] Validate browser rendering of formatted replies and documents.
+- [ ] Compare raw provider output with user-visible output in live Simple and Expert sessions.
+
 ## C124 — Instruction Optimization (ACTIVE)
 
 **Product version:** 124  
-**Status:** ACTIVE — P124.1 inventory completed; P124.2 targeted Simple/Expert dialogue cleanup implemented; hosted CI and model-backed evaluation NOT_RUN  
+**Status:** ACTIVE — P124.1 inventory completed; P124.2 Simple/Expert dialogue cleanup and P124.3 response-path fidelity cleanup implemented; hosted CI and model-backed evaluation NOT_RUN  
 **Primary target:** Instruction sources and response-processing paths across Conversational, Expert, Architect, and shared infrastructure  
 **Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
 
