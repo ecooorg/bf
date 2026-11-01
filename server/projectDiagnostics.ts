@@ -243,7 +243,12 @@ export async function diagnosticArchive(operationId?: string, extraFiles: { path
     (/BUILD_FINISHED|BUILD_COMPLETED/i.test(e.event) && !/^PASS$/i.test(e.status))
   );
   const latestBuild = operations.events.find((e) => /BUILD_FINISHED|BUILD_COMPLETED/i.test(e.event)) || null;
-  const artifactOutcome = latestBuild && !/^PASS$/i.test(latestBuild.status) ? 'WARN' : 'PASS';
+  const buildStatus = String(latestBuild?.status || '').toUpperCase();
+  const artifactOutcome: 'PASS' | 'WARN' | 'FAIL' = !latestBuild || buildStatus === 'PASS'
+    ? 'PASS'
+    : /^(WARN|WARNING|PARTIAL)$/i.test(buildStatus)
+      ? 'WARN'
+      : 'FAIL';
   const combinedOverall = summary.overall === 'FAIL' || artifactOutcome === 'FAIL' ? 'FAIL'
     : summary.overall !== 'PASS' || artifactOutcome !== 'PASS' ? 'WARN' : 'PASS';
   const lastFailed = failedOps[0] || null;
