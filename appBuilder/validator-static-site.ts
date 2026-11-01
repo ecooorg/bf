@@ -1,11 +1,11 @@
 /** Static validators for the static_site stack. Source is parsed/compiled only, never run. */
-import { Script } from 'node:vm';
+import ts from 'typescript';
 import { isSafePath } from './core-plan.ts';
 import type { ReportValidator, Spec } from './core-types.ts';
 import { MAX_FILES, MAX_TOTAL_BYTES } from './stack-static-site.ts';
 
 export type FileMap = Map<string, string>;
-export const REQUIRED_VALIDATORS = ['html-structure', 'js-syntax', 'refs', 'size', 'secrets', 'acceptance', 'dom-wiring'] as const;
+export const REQUIRED_VALIDATORS = ['html-structure', 'js-syntax', 'module-contracts', 'refs', 'size', 'secrets', 'acceptance', 'dom-wiring'] as const;
 type Issue = ReportValidator['issues'][number];
 const result = (name: string, issues: Issue[]): ReportValidator => ({ name, ok: issues.length === 0, issues });
 const VOID = new Set(['meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area', 'base', 'col', 'embed', 'param', 'track', 'wbr']);
@@ -34,11 +34,89 @@ export function validateHtml(files: FileMap): ReportValidator {
 export function validateJs(files: FileMap): ReportValidator {
   const issues: Issue[] = [];
   for (const [path, src] of files) {
-    if (!/\.js$/i.test(path)) continue;
-    try { new Script(src, { filename: path }); } // compile only; never run()
-    catch (e) { issues.push({ path, message: e instanceof Error ? e.message : String(e) }); }
+    if (!/\.(?:m?js|cjs)$/i.test(path)) continue;
+    // Parse as an ES module. vm.Script treated valid import/export syntax as a syntax
+    // error ("Cannot use import statement outside a module"), causing destructive repairs.
+    const parsed = ts.createSourceFile(path, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+    for (const diagnostic of (parsed as ts.SourceFile & { parseDiagnostics: readonly ts.Diagnostic[] }).parseDiagnostics) {
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ');
+      const at = diagnostic.start == null ? '' : ` at offset ${diagnostic.start}`;
+      issues.push({ path, message: `${message}${at}` });
+    }
   }
   return result('js-syntax', issues);
+}
+
+/** Resolve local ES-module imports against generated files and verify named exports. */
+export function validateModuleContracts(files: FileMap): ReportValidator {
+  const issues: Issue[] = [];
+  const resolve = (from: string, spec: string): string | null => {
+    if (!spec.startsWith('.')) return null; // browser/bare imports are checked by deployment policy
+    const base = spec.startsWith('/') ? spec.slice(1) : `${from.split('/').slice(0, -1).join('/')}/${spec}`;
+    const normalized: string[] = [];
+    for (const part of base.split('/')) {
+      if (!part || part === '.') continue;
+      if (part === '..') { if (!normalized.length) return null; normalized.pop(); }
+      else normalized.push(part);
+    }
+    const candidate = normalized.join('/');
+    for (const p of [candidate, candidate + '.js', candidate + '.mjs', candidate + '/index.js']) if (files.has(p)) return p;
+    return null;
+  };
+  const exportNames = (src: ts.SourceFile): Set<string> => {
+    const names = new Set<string>();
+    for (const st of src.statements) {
+      const mods = ts.canHaveModifiers(st) ? ts.getModifiers(st) : undefined;
+      const exported = !!mods?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword);
+      const isDefault = !!mods?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword);
+      if (exported) {
+        if (isDefault) names.add('default');
+        if ((ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st) || ts.isEnumDeclaration(st)) && st.name) names.add(st.name.text);
+        if (ts.isVariableStatement(st)) for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name)) names.add(d.name.text);
+      }
+      if (ts.isExportAssignment(st)) names.add('default');
+      if (ts.isExportDeclaration(st) && st.exportClause && ts.isNamedExports(st.exportClause)) {
+        for (const el of st.exportClause.elements) names.add(el.name.text);
+      }
+    }
+    return names;
+  };
+  const parsed = new Map<string, ts.SourceFile>();
+  for (const [path, src] of files) if (/\.(?:m?js)$/i.test(path)) parsed.set(path, ts.createSourceFile(path, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS));
+  // Module syntax must be loaded by a module script; classic script tags cannot execute imports.
+  for (const [htmlPath, html] of files) {
+    if (!/\.html?$/i.test(htmlPath)) continue;
+    for (const m of html.matchAll(/<script\b([^>]*)\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi)) {
+      const attrs = m[1] + m[0].slice(m[0].indexOf('src'));
+      const src = m[2].replace(/^\.\//, '').split(/[?#]/)[0];
+      const jsPath = resolve(htmlPath, m[2]) ?? (files.has(src) ? src : null);
+      if (!jsPath || !parsed.has(jsPath)) continue;
+      const source = files.get(jsPath) || '';
+      if (/\b(?:import\s+(?:[^(']|\()|export\s+(?:default|\{|const|let|var|function|class|async))/.test(source) && !/\btype\s*=\s*["']module["']/i.test(attrs)) {
+        issues.push({ path: htmlPath, message: `module file '${m[2]}' must be loaded with <script type="module">` });
+      }
+    }
+  }
+  for (const [path, sf] of parsed) {
+    for (const st of sf.statements) {
+      if (!ts.isImportDeclaration(st) || !ts.isStringLiteral(st.moduleSpecifier)) continue;
+      const spec = st.moduleSpecifier.text;
+      if (!spec.startsWith('.')) continue;
+      const target = resolve(path, spec);
+      if (!target) { issues.push({ path, message: `unresolved local module import: ${spec}` }); continue; }
+      const clause = st.importClause;
+      if (!clause) continue;
+      const available = exportNames(parsed.get(target) ?? ts.createSourceFile(target, files.get(target)!, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS));
+      if (clause.name && !available.has('default')) issues.push({ path, message: `${spec} has no default export` });
+      if (clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
+        for (const el of clause.namedBindings.elements) {
+          const imported = (el.propertyName ?? el.name).text;
+          if (!available.has(imported)) issues.push({ path, message: `${spec} does not export '${imported}'` });
+        }
+      }
+    }
+  }
+  return result('module-contracts', issues);
 }
 
 export function validateRefs(files: FileMap): ReportValidator {
@@ -152,5 +230,5 @@ export function validateDomWiring(files: FileMap): ReportValidator {
 }
 
 export function runStaticValidators(files: FileMap, spec: Spec | null): ReportValidator[] {
-  return [validateHtml(files), validateJs(files), validateRefs(files), validateSize(files), validateSecrets(files), checkAcceptance(files, spec?.acceptance ?? []), validateDomWiring(files)];
+  return [validateHtml(files), validateJs(files), validateModuleContracts(files), validateRefs(files), validateSize(files), validateSecrets(files), checkAcceptance(files, spec?.acceptance ?? []), validateDomWiring(files)];
 }
