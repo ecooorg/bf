@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P122.9 UI smoke spawn fix, 2026-11-01
+
+- **diag4-2:** summary shows e2e=failure; UI smoke log: `Error: spawn tsx ENOENT` in tests/ui-check.mjs. static/unit/coverage/flake success.
+- **Fix:** PATH-safe server spawn in ui-check (+ architect e2e); e2e job PATH includes node_modules/.bin.
+- **NOT_RUN:** hosted expert-verify after this patch.
+
 # CURRENT EVIDENCE NOTE — P122.8 allowlist + journey harden, 2026-11-01
 
 - **diag4:** unit/coverage/Layer B green (A0.83 B1.0 C0.67 E0.80). expert-verify still reported red — e2e logs absent from diagnostic zip; journey e2e narrowed to reduce false failures.

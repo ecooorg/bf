@@ -1,3 +1,11 @@
+## P122.9 — Fix UI smoke spawn (expert-verify e2e) + PATH harden
+
+- Root cause of expert-verify red (diag4-2): `tests/ui-check.mjs` used `spawn('tsx', …)` → `ENOENT` on Actions; Expert e2e steps never ran.
+- Fixed spawn in `tests/ui-check.mjs` and `tests/p120-architect-e2e.test.mjs` to `node --import tsx` (same as other e2e).
+- expert-verify e2e job: prepend `node_modules/.bin` to PATH.
+- Continues allowlist + journey work from P122.8.
+- package.json patch → 122.9.
+
 ## P122.8 — Expert journey harden + Gemini free-key allowlist lock
 
 - `tests/expert-journey-e2e.test.mjs`: narrowed, PATH-safe spawn, fewer brittle UI assertions (fix likely expert-verify e2e red).
