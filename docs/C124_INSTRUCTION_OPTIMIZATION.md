@@ -1,6 +1,6 @@
 # C124 — Instruction Optimization
 
-**Status:** Approved cycle mandate; audit and implementation are not yet evidenced by this documentation patch.  
+**Status:** Approved cycle mandate; P124.1 static source inventory completed. Runtime/model-backed behavior evaluation remains NOT_RUN.  
 **Product version:** 124  
 **Documentation baseline:** P124.0.1
 
@@ -152,6 +152,12 @@ C124 does not authorize changing provider vendors, credentials, pricing, securit
 
 Every implementation patch must follow `AGENTS.md`, update the canonical changelog/report/roadmap records, include only changed repository files in its ZIP, and report exactly which checks ran.
 
-## 10. P124.0.2 implementation note
+## 10. P124.1 audit note
+
+P124.1 adds `docs/C124_INSTRUCTION_INVENTORY.md`, a source/line inventory of production prompt owners, dynamic prompt assembly, routing heuristics, attachment/context handling, and post-generation transformations. It identifies duplicated decision-reasoning instructions in `promptPacks.ts`, `reasoningState.ts`, and `server.ts`, plus an additional fixed Expert analysis recipe. These are the highest-priority model-substitution candidates. It also records necessary JSON/security/tool contracts that must not be deleted indiscriminately.
+
+The inventory is a static source audit, not proof of live behavior. Model-backed comparisons, deployed evaluation, multilingual trigger evaluation, and several policy decisions remain NOT_RUN or OPEN. No runtime prompt or output transformation is changed by P124.1.
+
+## 11. P124.0.2 implementation note
 
 P124.0.2 consolidates the P124.0.1 documentation mandate and closes the known P123.23 CI regressions. It removes the fixed city-name fallback from weather follow-up contextualization and removes the Zurich example from the search translation prompt. Weather query expansion now requests current observations generically and preserves only the place supplied by the user's context. This is a narrow, evidence-based first cleanup slice, not completion of the repository-wide audit. All other prompt sources and response transformations remain to be inventoried under P124.1.

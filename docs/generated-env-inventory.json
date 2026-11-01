@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-28T09:15:23Z",
+  "generatedAt": "2026-11-01T21:16:15Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
   "count": 68,

@@ -15,7 +15,7 @@
 
 **Normative detail:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`; current contract in `TECHNICAL_SPECIFICATION.md`; plan in `ROADMAP.md`.
 
-**Effect:** P124.0.1 establishes the documentation mandate. P124.0.2 consolidates that un-applied documentation patch and removes one evidenced weather-location special case while repairing CI contracts. No repository-wide instruction audit or broad prompt cleanup is claimed; that remains P124.1.
+**Effect:** P124.0.1 establishes the documentation mandate. P124.0.2 consolidates the documentation baseline and removes one evidenced weather-location special case while repairing CI contracts. P124.1 completes the static source inventory and identifies duplicated reasoning recipes and output-loss risks; it does not change runtime prompts. Live/model-backed evaluation remains NOT_RUN.
 
 ---
 

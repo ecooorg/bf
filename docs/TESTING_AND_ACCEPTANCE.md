@@ -45,6 +45,12 @@ For every failed DAG stage, retain the complete redacted stage log in `biforge-c
 - Route contract tests assert that `/project`, `/project-legacy`, and `/architect` use the selected `ProjectMode`, while `/architect-lab` remains a frozen diagnostic route.
 - These source/contract checks do not prove a generated app works in a real browser; generated-artifact browser/mobile outcome remains separately required.
 
+## P124.1 inventory integrity
+
+- `node --test tests/c124-instruction-inventory.test.mjs` validates that each source/line reference in `docs/C124_INSTRUCTION_INVENTORY.md` points to an existing file and an in-range line span.
+- This is a documentation-integrity check only. It does not establish that the listed prompt is invoked in every runtime configuration or that a live model follows it.
+- Re-run the test whenever prompt ownership, file paths or line ranges change.
+
 ## C124 instruction-optimization acceptance
 
 C124 changes must be evaluated as an end-to-end information-preservation boundary, not merely as prompt-text cleanup.

@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-10-29T20:25:59.078Z",
+  "generatedAt": "2026-11-01T21:16:15.401Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "bf-main",
+  "root": "reconstructed_123_23",
   "summary": {
-    "moduleCount": 163,
-    "edgeCount": 407,
+    "moduleCount": 174,
+    "edgeCount": 437,
     "cycleCount": 0,
-    "totalLines": 29287
+    "totalLines": 33093
   },
   "cycles": [],
   "layers": {
-    "server": 72,
-    "src": 77,
+    "server": 77,
+    "src": 83,
     "other": 14
   },
   "modules": [
@@ -34,7 +34,7 @@
     {
       "path": "appBuilder/core-engine.ts",
       "layer": "appBuilder",
-      "lines": 482,
+      "lines": 603,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-markers.ts",
@@ -79,7 +79,7 @@
     {
       "path": "appBuilder/core-prompts.ts",
       "layer": "appBuilder",
-      "lines": 15,
+      "lines": 29,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-types.ts"
@@ -144,7 +144,7 @@
     {
       "path": "appBuilder/validator-static-site.ts",
       "layer": "appBuilder",
-      "lines": 139,
+      "lines": 235,
       "imports": [
         "appBuilder/core-plan.ts",
         "appBuilder/core-types.ts",
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2350,
+      "lines": 2406,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -170,6 +170,7 @@
         "server/documents.ts",
         "server/epistemicVerifier.ts",
         "server/expertAgent.ts",
+        "server/expertContracts.ts",
         "server/files.ts",
         "server/gateEngine.ts",
         "server/gateService.ts",
@@ -178,6 +179,7 @@
         "server/healthRoutes.ts",
         "server/intentFlags.ts",
         "server/keepAlive.ts",
+        "server/keyPool.ts",
         "server/latencyPolicy.ts",
         "server/modelAvailability.ts",
         "server/modelRateLimit.ts",
@@ -193,6 +195,7 @@
         "server/reasoningState.ts",
         "server/router.ts",
         "server/security.ts",
+        "server/sourceHealth.ts",
         "server/taskService.ts",
         "server/turnFocus.ts",
         "server/webSearch.ts",
@@ -208,7 +211,7 @@
       "layer": "server",
       "lines": 91,
       "imports": [],
-      "fanIn": 4
+      "fanIn": 5
     },
     {
       "path": "server/agentRouting.ts",
@@ -224,7 +227,7 @@
     {
       "path": "server/analysisService.ts",
       "layer": "server",
-      "lines": 114,
+      "lines": 121,
       "imports": [
         "server/adapter.ts",
         "server/artifactRepository.ts",
@@ -232,6 +235,7 @@
         "server/contextBuilder.ts",
         "server/database.ts",
         "server/ledger.ts",
+        "server/modelCarousel.ts",
         "server/modelHealth.ts",
         "server/modelRegistry.ts",
         "server/planService.ts",
@@ -246,7 +250,7 @@
     {
       "path": "server/appBuilderAdapter.ts",
       "layer": "server",
-      "lines": 253,
+      "lines": 262,
       "imports": [
         "appBuilder/index.ts",
         "server/adapter.ts",
@@ -463,6 +467,13 @@
       "fanIn": 2
     },
     {
+      "path": "server/expertContracts.ts",
+      "layer": "server",
+      "lines": 321,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "server/fakeProvider.ts",
       "layer": "server",
       "lines": 39,
@@ -497,7 +508,7 @@
     {
       "path": "server/geminiAdapter.ts",
       "layer": "server",
-      "lines": 68,
+      "lines": 73,
       "imports": [],
       "fanIn": 2
     },
@@ -544,6 +555,13 @@
       "fanIn": 1
     },
     {
+      "path": "server/keyPool.ts",
+      "layer": "server",
+      "lines": 102,
+      "imports": [],
+      "fanIn": 2
+    },
+    {
       "path": "server/latencyPolicy.ts",
       "layer": "server",
       "lines": 93,
@@ -562,9 +580,21 @@
     {
       "path": "server/modelAvailability.ts",
       "layer": "server",
-      "lines": 36,
+      "lines": 37,
       "imports": [],
       "fanIn": 2
+    },
+    {
+      "path": "server/modelCarousel.ts",
+      "layer": "server",
+      "lines": 285,
+      "imports": [
+        "server/adapter.ts",
+        "server/keyPool.ts",
+        "server/router.ts",
+        "server/sourceHealth.ts"
+      ],
+      "fanIn": 1
     },
     {
       "path": "server/modelHealth.ts",
@@ -589,16 +619,23 @@
     {
       "path": "server/modelRegistry.ts",
       "layer": "server",
-      "lines": 113,
+      "lines": 110,
       "imports": [
         "server/modelAvailability.ts"
       ],
       "fanIn": 5
     },
     {
+      "path": "server/modelSourcesCatalog.ts",
+      "layer": "server",
+      "lines": 92,
+      "imports": [],
+      "fanIn": 0
+    },
+    {
       "path": "server/openaiCompatAdapter.ts",
       "layer": "server",
-      "lines": 81,
+      "lines": 86,
       "imports": [],
       "fanIn": 2
     },
@@ -650,7 +687,7 @@
     {
       "path": "server/projectDiagnostics.ts",
       "layer": "server",
-      "lines": 301,
+      "lines": 344,
       "imports": [
         "server/artifactRepository.ts",
         "server/database.ts",
@@ -671,7 +708,7 @@
     {
       "path": "server/projectRoutes.ts",
       "layer": "server",
-      "lines": 889,
+      "lines": 905,
       "imports": [
         "appBuilder/architectOutcome.ts",
         "server/analysisService.ts",
@@ -746,7 +783,7 @@
     {
       "path": "server/reasoningState.ts",
       "layer": "server",
-      "lines": 254,
+      "lines": 268,
       "imports": [],
       "fanIn": 2
     },
@@ -788,7 +825,7 @@
       "layer": "server",
       "lines": 155,
       "imports": [],
-      "fanIn": 6
+      "fanIn": 7
     },
     {
       "path": "server/security.ts",
@@ -796,6 +833,13 @@
       "lines": 91,
       "imports": [],
       "fanIn": 3
+    },
+    {
+      "path": "server/sourceHealth.ts",
+      "layer": "server",
+      "lines": 107,
+      "imports": [],
+      "fanIn": 2
     },
     {
       "path": "server/statePipeline.ts",
@@ -852,7 +896,7 @@
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 767,
+      "lines": 796,
       "imports": [
         "server/untrustedData.ts"
       ],
@@ -872,7 +916,7 @@
     {
       "path": "src/App.tsx",
       "layer": "src",
-      "lines": 644,
+      "lines": 706,
       "imports": [
         "src/AppHeader.tsx",
         "src/AutoGrow.tsx",
@@ -901,8 +945,10 @@
         "src/evpi.ts",
         "src/expertContext.ts",
         "src/expertHistory.ts",
+        "src/expertWorkflow.ts",
         "src/exportName.ts",
         "src/exportZip.ts",
+        "src/finalDecisionDocument.ts",
         "src/icsBuilder.ts",
         "src/libraryExport.ts",
         "src/programFiles.ts",
@@ -932,6 +978,30 @@
       "fanIn": 1
     },
     {
+      "path": "src/ArchitectLab.tsx",
+      "layer": "src",
+      "lines": 299,
+      "imports": [
+        "src/ArchitectShellHeader.tsx",
+        "src/ErrorBoundary.tsx",
+        "src/projectBuildJob.ts"
+      ],
+      "fanIn": 0
+    },
+    {
+      "path": "src/ArchitectShellHeader.tsx",
+      "layer": "src",
+      "lines": 134,
+      "imports": [
+        "src/ModeMenu.tsx",
+        "src/UserGuide.tsx",
+        "src/driveClient.ts",
+        "src/driveMirror.ts",
+        "src/uiStates.tsx"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "src/AutoGrow.tsx",
       "layer": "src",
       "lines": 85,
@@ -941,7 +1011,7 @@
     {
       "path": "src/ConversationFiles.tsx",
       "layer": "src",
-      "lines": 624,
+      "lines": 618,
       "imports": [
         "src/attachments.ts",
         "src/driveClient.ts",
@@ -978,9 +1048,11 @@
     {
       "path": "src/ErrorBoundary.tsx",
       "layer": "src",
-      "lines": 34,
-      "imports": [],
-      "fanIn": 1
+      "lines": 30,
+      "imports": [
+        "src/emergencyDiagnostics.ts"
+      ],
+      "fanIn": 3
     },
     {
       "path": "src/ExpertNav.tsx",
@@ -995,7 +1067,7 @@
     {
       "path": "src/ExpertStepScreens.tsx",
       "layer": "src",
-      "lines": 1693,
+      "lines": 1756,
       "imports": [
         "src/AutoGrow.tsx",
         "src/ConversationFiles.tsx",
@@ -1004,6 +1076,7 @@
         "src/ModeMenu.tsx",
         "src/UserGuide.tsx",
         "src/WorkspacePanel.tsx",
+        "src/analyticalIntegrity.ts",
         "src/attachments.ts",
         "src/briefView.ts",
         "src/brier.ts",
@@ -1019,6 +1092,7 @@
         "src/expertHistory.ts",
         "src/exportName.ts",
         "src/exportZip.ts",
+        "src/finalDecisionDocument.ts",
         "src/libraryExport.ts",
         "src/programFiles.ts",
         "src/sha256Export.ts",
@@ -1047,7 +1121,7 @@
       "layer": "src",
       "lines": 108,
       "imports": [],
-      "fanIn": 4
+      "fanIn": 5
     },
     {
       "path": "src/OfflineIndicator.tsx",
@@ -1070,12 +1144,11 @@
     {
       "path": "src/ProjectMode.tsx",
       "layer": "src",
-      "lines": 649,
+      "lines": 698,
       "imports": [
         "src/ModeMenu.tsx",
         "src/ProjectDelivery.tsx",
         "src/ProjectNoviceWizard.tsx",
-        "src/ProjectPathChooser.tsx",
         "src/UserGuide.tsx",
         "src/WorkspacePanel.tsx",
         "src/downloadFile.ts",
@@ -1092,7 +1165,7 @@
     {
       "path": "src/ProjectNoviceWizard.tsx",
       "layer": "src",
-      "lines": 348,
+      "lines": 350,
       "imports": [
         "src/downloadFile.ts",
         "src/projectAppBuilder.ts"
@@ -1106,14 +1179,14 @@
       "imports": [
         "src/projectAppBuilder.ts"
       ],
-      "fanIn": 1
+      "fanIn": 0
     },
     {
       "path": "src/UserGuide.tsx",
       "layer": "src",
       "lines": 185,
       "imports": [],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "src/WorkspaceChangeSetCard.tsx",
@@ -1144,9 +1217,19 @@
       "fanIn": 4
     },
     {
+      "path": "src/analyticalIntegrity.ts",
+      "layer": "src",
+      "lines": 461,
+      "imports": [
+        "src/decision.ts",
+        "src/evpi.ts"
+      ],
+      "fanIn": 3
+    },
+    {
       "path": "src/appApi.ts",
       "layer": "src",
-      "lines": 42,
+      "lines": 45,
       "imports": [
         "src/decision.ts",
         "src/errors.ts",
@@ -1212,20 +1295,20 @@
     {
       "path": "src/decision.ts",
       "layer": "src",
-      "lines": 522,
+      "lines": 590,
       "imports": [
         "src/config.ts"
       ],
-      "fanIn": 14
+      "fanIn": 17
     },
     {
       "path": "src/decisionDocument.ts",
       "layer": "src",
-      "lines": 43,
+      "lines": 63,
       "imports": [
         "src/attachments.ts",
         "src/decision.ts",
-        "src/ui.ts"
+        "src/finalDecisionDocument.ts"
       ],
       "fanIn": 4
     },
@@ -1243,7 +1326,7 @@
       "imports": [
         "src/driveMerge.ts"
       ],
-      "fanIn": 8
+      "fanIn": 9
     },
     {
       "path": "src/driveExport.ts",
@@ -1270,7 +1353,7 @@
       "imports": [
         "src/driveClient.ts"
       ],
-      "fanIn": 7
+      "fanIn": 8
     },
     {
       "path": "src/driveSync.ts",
@@ -1281,6 +1364,13 @@
         "src/driveMerge.ts"
       ],
       "fanIn": 1
+    },
+    {
+      "path": "src/emergencyDiagnostics.ts",
+      "layer": "src",
+      "lines": 113,
+      "imports": [],
+      "fanIn": 2
     },
     {
       "path": "src/en.ts",
@@ -1301,7 +1391,7 @@
       "layer": "src",
       "lines": 76,
       "imports": [],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "src/expertContext.ts",
@@ -1330,6 +1420,16 @@
       "fanIn": 1
     },
     {
+      "path": "src/expertWorkflow.ts",
+      "layer": "src",
+      "lines": 226,
+      "imports": [
+        "src/analyticalIntegrity.ts",
+        "src/decision.ts"
+      ],
+      "fanIn": 2
+    },
+    {
       "path": "src/exportName.ts",
       "layer": "src",
       "lines": 7,
@@ -1341,9 +1441,21 @@
     {
       "path": "src/exportZip.ts",
       "layer": "src",
-      "lines": 101,
+      "lines": 114,
       "imports": [
-        "src/decision.ts"
+        "src/decision.ts",
+        "src/storage.ts"
+      ],
+      "fanIn": 3
+    },
+    {
+      "path": "src/finalDecisionDocument.ts",
+      "layer": "src",
+      "lines": 648,
+      "imports": [
+        "src/analyticalIntegrity.ts",
+        "src/decision.ts",
+        "src/expertWorkflow.ts"
       ],
       "fanIn": 3
     },
@@ -1372,9 +1484,11 @@
     {
       "path": "src/main.tsx",
       "layer": "src",
-      "lines": 36,
+      "lines": 47,
       "imports": [
         "src/App.tsx",
+        "src/ErrorBoundary.tsx",
+        "src/emergencyDiagnostics.ts",
         "src/index.css"
       ],
       "fanIn": 0
@@ -1382,7 +1496,7 @@
     {
       "path": "src/numberValidator.ts",
       "layer": "src",
-      "lines": 239,
+      "lines": 305,
       "imports": [],
       "fanIn": 1
     },
@@ -1410,7 +1524,7 @@
       "imports": [
         "src/architectNote.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "src/projectCapabilities.ts",
@@ -1445,11 +1559,11 @@
     {
       "path": "src/storage.ts",
       "layer": "src",
-      "lines": 167,
+      "lines": 425,
       "imports": [
         "src/decision.ts"
       ],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "src/support.ts",
@@ -1470,14 +1584,14 @@
       "layer": "src",
       "lines": 16,
       "imports": [],
-      "fanIn": 6
+      "fanIn": 5
     },
     {
       "path": "src/uiStates.tsx",
       "layer": "src",
       "lines": 41,
       "imports": [],
-      "fanIn": 7
+      "fanIn": 8
     },
     {
       "path": "src/uiTerms.ts",
@@ -1666,7 +1780,7 @@
     },
     {
       "path": "src/decision.ts",
-      "count": 14
+      "count": 17
     },
     {
       "path": "src/workspace/types.ts",
@@ -1677,6 +1791,10 @@
       "count": 10
     },
     {
+      "path": "src/driveClient.ts",
+      "count": 9
+    },
+    {
       "path": "src/attachments.ts",
       "count": 8
     },
@@ -1685,15 +1803,15 @@
       "count": 8
     },
     {
-      "path": "src/driveClient.ts",
+      "path": "src/driveMirror.ts",
       "count": 8
     },
     {
-      "path": "src/driveMirror.ts",
-      "count": 7
+      "path": "src/uiStates.tsx",
+      "count": 8
     },
     {
-      "path": "src/uiStates.tsx",
+      "path": "server/router.ts",
       "count": 7
     },
     {
@@ -1717,10 +1835,6 @@
       "count": 6
     },
     {
-      "path": "server/router.ts",
-      "count": 6
-    },
-    {
       "path": "server/taskService.ts",
       "count": 6
     },
@@ -1729,8 +1843,8 @@
       "count": 6
     },
     {
-      "path": "src/ui.ts",
-      "count": 6
+      "path": "server/adapter.ts",
+      "count": 5
     },
     {
       "path": "server/githubIntegration.ts",
@@ -1745,30 +1859,30 @@
       "count": 5
     },
     {
+      "path": "src/ModeMenu.tsx",
+      "count": 5
+    },
+    {
+      "path": "src/ui.ts",
+      "count": 5
+    },
+    {
       "path": "appBuilder/core-cache.ts",
       "count": 4
     },
     {
       "path": "appBuilder/core-plan.ts",
       "count": 4
-    },
-    {
-      "path": "server/adapter.ts",
-      "count": 4
-    },
-    {
-      "path": "server/codeExecutor.ts",
-      "count": 4
     }
   ],
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2350
+      "lines": 2406
     },
     {
       "path": "src/ExpertStepScreens.tsx",
-      "lines": 1693
+      "lines": 1756
     },
     {
       "path": "server/codeTaskService.ts",
@@ -1776,23 +1890,35 @@
     },
     {
       "path": "server/projectRoutes.ts",
-      "lines": 889
+      "lines": 905
     },
     {
       "path": "server/webSearch.ts",
-      "lines": 767
-    },
-    {
-      "path": "src/ProjectMode.tsx",
-      "lines": 649
+      "lines": 796
     },
     {
       "path": "src/App.tsx",
-      "lines": 644
+      "lines": 706
+    },
+    {
+      "path": "src/ProjectMode.tsx",
+      "lines": 698
+    },
+    {
+      "path": "src/finalDecisionDocument.ts",
+      "lines": 648
     },
     {
       "path": "src/ConversationFiles.tsx",
-      "lines": 624
+      "lines": 618
+    },
+    {
+      "path": "appBuilder/core-engine.ts",
+      "lines": 603
+    },
+    {
+      "path": "src/decision.ts",
+      "lines": 590
     },
     {
       "path": "src/WorkspacePanel.tsx",
@@ -1803,10 +1929,6 @@
       "lines": 557
     },
     {
-      "path": "src/decision.ts",
-      "lines": 522
-    },
-    {
       "path": "src/workspace/changeset.ts",
       "lines": 520
     },
@@ -1815,12 +1937,16 @@
       "lines": 514
     },
     {
-      "path": "appBuilder/core-engine.ts",
-      "lines": 482
+      "path": "src/analyticalIntegrity.ts",
+      "lines": 461
     },
     {
       "path": "src/ConversationScreens.tsx",
       "lines": 449
+    },
+    {
+      "path": "src/storage.ts",
+      "lines": 425
     },
     {
       "path": "server/files.ts",
@@ -1839,28 +1965,16 @@
       "lines": 356
     },
     {
+      "path": "src/ProjectNoviceWizard.tsx",
+      "lines": 350
+    },
+    {
       "path": "src/ProjectDelivery.tsx",
       "lines": 348
     },
     {
-      "path": "src/ProjectNoviceWizard.tsx",
-      "lines": 348
-    },
-    {
-      "path": "server/planService.ts",
-      "lines": 341
-    },
-    {
-      "path": "src/workspace/ingest.ts",
-      "lines": 333
-    },
-    {
-      "path": "src/driveMirror.ts",
-      "lines": 326
-    },
-    {
-      "path": "src/workspace/classify.ts",
-      "lines": 318
+      "path": "server/projectDiagnostics.ts",
+      "lines": 344
     }
   ]
 }

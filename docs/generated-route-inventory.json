@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T20:25:59Z",
+  "generatedAt": "2026-11-01T21:16:15Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "sourceFiles": [
     "server.ts",
@@ -9,7 +9,7 @@
     "server/opsRoutes.ts",
     "server/projectRoutes.ts"
   ],
-  "count": 82,
+  "count": 84,
   "routes": [
     {
       "method": "GET",
@@ -342,6 +342,11 @@
       "file": "server/projectRoutes.ts"
     },
     {
+      "method": "POST",
+      "path": "/api/projects/diagnostics/client-events",
+      "file": "server/projectRoutes.ts"
+    },
+    {
       "method": "GET",
       "path": "/api/projects/diagnostics/export",
       "file": "server/projectRoutes.ts"
@@ -349,6 +354,11 @@
     {
       "method": "GET",
       "path": "/api/projects/diagnostics/operations",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/diagnostics/session-log",
       "file": "server/projectRoutes.ts"
     },
     {

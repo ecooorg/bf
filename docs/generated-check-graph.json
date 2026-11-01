@@ -304,7 +304,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --test tests/c124-instruction-inventory.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -316,6 +316,7 @@
         "ci"
       ],
       "files": [
+        "tests/c124-instruction-inventory.test.mjs",
         "tests/core.test.mjs",
         "tests/neon-initialize-workflow.test.mjs",
         "tests/p119-agent-boundaries.test.mjs",
@@ -328,6 +329,8 @@
         "tests/p12318-agent-session-isolation.test.mjs"
       ],
       "modules": [
+        "appBuilder/core-engine.ts",
+        "appBuilder/core-prompts.ts",
         "scripts/architect-dual-compare.mjs",
         "scripts/check-version.mjs",
         "scripts/docs-integrity.mjs",
@@ -353,6 +356,7 @@
         "server/promptPacks.ts",
         "server/reasoningState.ts",
         "server/statePipeline.ts",
+        "server/webSearch.ts",
         "src/brier.ts",
         "src/config.ts",
         "src/conversationRoutes.ts",
@@ -780,11 +784,17 @@
     "appBuilder/architectOutcome.ts": [
       "test:app-builder"
     ],
+    "appBuilder/core-engine.ts": [
+      "test:core"
+    ],
     "appBuilder/core-markers.ts": [
       "test:app-builder"
     ],
     "appBuilder/core-plan.ts": [
       "test:app-builder"
+    ],
+    "appBuilder/core-prompts.ts": [
+      "test:core"
     ],
     "appBuilder/core-types.ts": [
       "test:app-builder",
@@ -1231,6 +1241,7 @@
       "test:security"
     ],
     "server/webSearch.ts": [
+      "test:core",
       "test:web"
     ],
     "server/worker.ts": [
