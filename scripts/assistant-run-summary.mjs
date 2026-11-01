@@ -42,7 +42,7 @@ function listLogs(base) {
       let st;
       try { st = fs.statSync(p); } catch { continue; }
       if (st.isDirectory()) walk(p, depth + 1);
-      else if (/\.(log|txt|md|json)$/i.test(name) && st.size > 0) out.push(p);
+      else if (/\.(log|txt|md|json|tap|xml|html)$/i.test(name) && st.size > 0) out.push(p);
     }
   };
   walk(base);
@@ -94,6 +94,7 @@ const meta = {
   version: pkg.version || null,
   generatedAt: new Date().toISOString(),
   jobStatus: status,
+  handoffArtifact: 'information-quality-assistant-handoff',
 };
 
 const logFiles = listLogs(dir);
@@ -135,6 +136,7 @@ lines.push(`PATCH=${meta.patch || '?'} VERSION=${meta.version || '?'}`);
 lines.push(`WORKFLOW=${meta.workflow || '?'}`);
 lines.push(`SHA=${meta.sha || '?'}`);
 lines.push(`RUN=${meta.runUrl || meta.runId || '?'}`);
+lines.push(`ASSISTANT_ARTIFACT=${meta.handoffArtifact}`);
 lines.push(`GENERATED=${meta.generatedAt}`);
 lines.push('');
 lines.push('## What failed (compressed)');
