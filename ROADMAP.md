@@ -1,3 +1,10 @@
+## P123.20 — CI assistant handoff size limits
+
+- [x] Define a strict 5,000-character ceiling per `ASSISTANT_PASTE` file.
+- [x] Split overflow into consecutively numbered paste files without dropping summary content.
+- [x] Upload all parts from canonical workflows while preserving the complete diagnostics ZIP.
+- [ ] Confirm artifact contents and per-file size in the next hosted Actions run.
+
 ## P123.19 — CI repair follow-up
 
 - Re-run the verification DAG after the syntax, digest-merge, and grouped-test-scope repairs.

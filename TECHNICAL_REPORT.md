@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P123.20 multi-part assistant paste artifacts, 2026-11-01
+
+- Change: both assistant summary generation and CI artifact packaging split chat handoffs into numbered UTF-8 text files, each at most 5,000 JavaScript characters.
+- Outer artifact retains every `ASSISTANT_PASTE*.txt` part plus `biforge-ci-logs.zip`; full diagnostics remain in the ZIP.
+- Canonical workflows upload all numbered parts using a wildcard path.
+- Local syntax/contract checks: pending in this delivery; hosted Actions: NOT_RUN.
+
 ## P123.19 — CI failure repair evidence (2026-11-01)
 
 - Observed CI evidence for P123.18: `server/expertAgent.ts(13,...)` TypeScript parse errors caused server transforms to fail; P50 merge test rejected two non-empty short digests; P123.16/P123.17 grouped tests referenced block-scoped `test`, `assert`, and `mod` outside their scope.

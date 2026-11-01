@@ -1,3 +1,10 @@
+## P123.20 — Multi-part assistant CI paste summaries
+
+- Every workflow-generated `ASSISTANT_PASTE` part is limited to 5,000 characters.
+- Long summaries are split into `ASSISTANT_PASTE.txt`, `ASSISTANT_PASTE_2.txt`, and subsequent numbered parts; no diagnostic text is silently truncated from the paste handoff.
+- Canonical workflow uploads include every numbered paste part alongside the full diagnostic ZIP.
+- Full logs and evidence remain in `biforge-ci-logs.zip`; paste parts prioritize failure stage, rerun commands, concise error excerpts, and source context.
+
 ## P123.19 — CI failure repair and richer failure evidence
 
 - Fixed the Expert prompt string delimiter that caused TypeScript parsing to fail on the apostrophe in `user's`.
