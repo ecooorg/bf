@@ -1,3 +1,12 @@
+## P123.14 — Complete prompt snapshot CI diagnostics
+
+- Added a pre-assertion diagnostic pass for all eight Conversational/Expert mode prompts, both Expert dialogue paragraphs, and the Expert step prefix. A failure in one strict snapshot can no longer hide additional mismatches in later modes.
+- CI now writes `prompt-snapshot-diagnostics.json` with expected/actual hashes, match status, deterministic test inputs, generated prompt text, and exact prompt-builder source text plus SHA-256 fingerprints.
+- `ASSISTANT_PASTE.txt` now includes the complete compact hash matrix and source fingerprints; the full diagnostic JSON is retained inside `biforge-ci-logs.zip`. This improves diagnosis; it does not auto-approve prompt wording or update golden hashes.
+- Strict snapshot assertions remain unchanged in strength. Product runtime prompt behavior is not changed by this diagnostic patch.
+- Patch metadata advanced to `123.14`; product version remains `123`.
+- **Verification:** diagnostic test and packaging contract checks: `NOT_RUN` in this delivery environment; hosted CI: `NOT_RUN`.
+
 ## P123.13 — Expert research prompt snapshot alignment
 
 - **Observed CI failure:** run `41330687334` failed only `test:core`; the strict `expert:research` prompt snapshot expected `e6a446e5…f6237f7`, while the generated prompt hash was `21cac76f…be79cb`. `workflow-dag` failed downstream of `test:core`.

@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P123.14 complete prompt snapshot diagnostics, 2026-11-01
+
+- **Observed issue motivating the change:** repeated CI cycles surfaced one prompt SHA-256 mismatch at a time. In run `41331786620`, `expert:engineering` expected `95b4691f…7347f32` and actual was `1121c970…cdcd9`; the strict test stopped at that assertion, so other prompt-mode drift was not exposed by the report.
+- **Change:** the prompt test now computes the full 8-prompt + 2-paragraph + step-prefix matrix before asserting. It writes `prompt-snapshot-diagnostics.json` containing expected/actual hashes, deterministic test inputs, generated prompt text, and the exact relevant builder source files with SHA-256 fingerprints. The packaging step places a compact full matrix in `ASSISTANT_PASTE.txt` and retains the detailed JSON in the inner CI ZIP.
+- **Integrity:** assertions remain strict; no golden hash is changed automatically and no prompt semantics are altered. Diagnostic output is evidence for review, not authorization to refresh snapshots.
+- **Verification:** local `test:core`, packaging contract test, DAG, and hosted CI: **NOT_RUN** in this delivery environment.
+
 # CURRENT EVIDENCE NOTE — P123.13 Expert research prompt snapshot alignment, 2026-11-01
 
 - **Observed CI failure:** run `41330687334`, commit `d6cf32e1fd88688e10b9f123fa5b3d2dbb72cae5`, reports 27 PASS / 1 FAIL. `test:core` failed at the `expert:research` strict prompt snapshot: expected `e6a446e5…f6237f7`, actual `21cac76f…be79cb`. `workflow-dag` is downstream.
