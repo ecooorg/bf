@@ -8,7 +8,8 @@ import { newRouteDecisionId, writeRouteDecision } from './routeDecisions.ts';
 import { DEFAULT_TASK_UNITS, DEFAULT_DAILY_UNITS, createQuotaTracker, shadowCostUsd, budgetLevel, runBudget, unitsFor } from './budget.ts';
 import { guardModelCall } from './planService.ts';
 import { loadRouterState, loadQuotaRows, rehydrateQuota, saveHealthEvent, type HealthEvent } from './modelHealth.ts';
-import { newRouterState, routeCall, type RouterState } from './router.ts';
+import { newRouterState, type RouterState } from './router.ts';
+import { executeModelCall } from './modelCarousel.ts';
 import { REGISTRY_SEED, type RegistryEntry } from './modelRegistry.ts';
 import { statePatchSchema, SECTIONS, type Section } from './statePipeline.ts';
 import { getPool } from './database.ts';
@@ -60,7 +61,7 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
   } as ProviderAdapter]));
   const routeDecisionId = newRouteDecisionId();
   const sensitivity = 'normal' as const;   // the project-level sensitivity field arrives with the passport extension; open-publication work is `normal` (ADR-07)
-  const route = await routeCall({ requestId: runId, system: ctx.system, prompt: ctx.prompt, json: true, metadata: {} }, {
+  const route = await executeModelCall({ requestId: runId, system: ctx.system, prompt: ctx.prompt, json: true, metadata: {} }, {
     registry: deps.registry ?? REGISTRY_SEED, adapters: guardedAdapters, state: routerSt, required: ['json_output'], timeoutMs: 90_000,
     sensitivity, paidApproved: process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' ? ['groq', 'cloudflare-workers-ai'] : [], budget: { remainingUnits: runBudget(usedToday, { dayCap: DEFAULT_DAILY_UNITS, taskUnits: DEFAULT_TASK_UNITS }) }, quota, deadlineAt: Date.now() + 90_000,
     onHealth: async (e: HealthEvent) => {
@@ -81,7 +82,7 @@ export async function runAnalysis(input: { projectId: string; expectedVersion: n
   });
   await recordAuditEvent({ eventType: 'analysis.completed', actor: 'agent', projectId: input.projectId, details: { run_id: runId, artifact_id: art.artifactId, version: art.version, estimated_input_tokens: ctx.tokens.total } });
   const usage = route.response.usage;
-  return { state_version: saved.state_version, changes: saved.changes, summary: parsed.data.summary, artifact: art, run_id: runId, model: `${route.response.providerId}/${route.response.modelId}`,
+  return { state_version: saved.state_version, changes: saved.changes, summary: parsed.data.summary, artifact: art, run_id: runId, model: `${route.response.providerId}/${route.response.modelId}`, lineage: route.lineage,
     tokens: { estimated: ctx.tokens, actual: usage }, budget: { used_units: usedToday + route.decision.unitsSpent, cap_units: DEFAULT_DAILY_UNITS, level: budgetLevel(usedToday + route.decision.unitsSpent, DEFAULT_DAILY_UNITS).level },
     included: ctx.included, excluded_count: ctx.excluded.length, route: route.decision };
 }
