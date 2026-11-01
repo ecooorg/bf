@@ -202,11 +202,8 @@ test('P50 extractGrounding keeps http(s) sources only, de-duplicates and names u
   assert.deepEqual(mod.extractGrounding({}), { sources: [], queries: [] });
 });
 
-test('P50 selects the compatible Search Grounding tool for Gemini 2.x and 3+', () => {
-  for (const model of ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro', 'gemini-2-flash', 'gemini-2.0-flash']) {
-    assert.deepEqual(mod.googleSearchToolForModel(model), { googleSearchRetrieval: {} }, model);
-  }
-  for (const model of ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.8-flash']) {
+test('P50 selects Search Grounding tool for production Gemini models', () => {
+  for (const model of ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']) {
     assert.deepEqual(mod.googleSearchToolForModel(model), { googleSearch: {} }, model);
   }
 });
@@ -224,12 +221,12 @@ test('P50 fetch: grounded answer is used, and the call carries the search tool b
   assert.ok(!/history|brief|state/i.test(seen.contents), 'only the question is sent');
 });
 
-test('P50 fetch: Gemini 2.5 sends the legacy Search Grounding tool', async () => {
+test('P50 fetch: production lite model sends googleSearch tool', async () => {
   let seen;
   const client = { models: { async generateContent(args) { seen = args; return grounded(); } } };
-  const r = await mod.fetchWebSearchDigest({ client, models: ['gemini-2.5-flash'], userText: 'Какие актуальные ставки?', today: '2026-10-17' });
+  const r = await mod.fetchWebSearchDigest({ client, models: ['gemini-3.5-flash-lite'], userText: 'Какие актуальные ставки?', today: '2026-10-17' });
   assert.equal(r.status, 'used');
-  assert.deepEqual(seen.config.tools, [{ googleSearchRetrieval: {} }]);
+  assert.deepEqual(seen.config.tools, [{ googleSearch: {} }]);
 });
 
 test('P50 fetch: an answer without grounding is discarded (memory must not pose as web results)', async () => {

@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 const ENABLED = process.env.REAL_MODEL_EVAL === '1';
 const API_KEY = process.env.GEMINI_API_KEY || '';
 // Prefer explicit override, then first model from the same cascades used in production (Render).
-// Never default to probe/unavailable ids (e.g. gemini-3.8-flash) — free-key deployments use flash-lite only.
+// Never default outside GEMINI_ALLOWED_MODELS — free-key deployments use flash-lite only.
 const MODEL =
   process.env.REAL_MODEL_ID ||
   process.env.GEMINI_MODEL ||
