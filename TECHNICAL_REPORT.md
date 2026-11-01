@@ -1,3 +1,30 @@
+## CURRENT EVIDENCE NOTE — P124.2 instruction cleanup (2026-11-01)
+
+**Patch identity:** product version `124`, patch `124.0.4`. **Scope:** Simple/Conversational and Expert dialogue prompt paths plus final visible-reply composition. This is a targeted implementation slice of C124, not a claim that every Expert staged endpoint, Architect/App Builder prompt, or output transformation has been audited and cleaned.
+
+### Implemented changes
+
+- Replaced the long mandatory decision method with concise task-fit guidance. Factual requests are answered factually; decision analysis, alternative generation, calculations and tests are used only when they materially fit the request.
+- Removed `V17_LAYER_PROMPT` from the active system and deleted its model-facing reasoning choreography. Deterministic state normalization/merge and internal-field scrubbing remain.
+- Replaced `BASE_SYSTEM`'s second analytical-engine persona with a concise task/schema/evidence/safety interface contract.
+- Removed the novelty gate that retried a valid decision answer unless it contained a reframing, hidden assumption, branch, test, calculation or other prescribed “gain”. A narrow information-mode evasiveness repair remains, and technical/provider/JSON recovery paths are unchanged.
+- Expert no longer upgrades factual requests to decision mode. Its UI stage and method state are supplied as context data rather than mandatory reasoning instructions. Explicitly requested recommendations are permitted in both dialogue agents. Placeholder facts-to-check and arithmetic examples were removed from the output schemas; these fields are empty unless materially relevant.
+- `buildVisibleReply` no longer deletes questions from the model's answer. The separate optional follow-up is appended additively when allowed.
+
+### Local verification
+
+- `node --experimental-strip-types --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/p119-agent-prompts-routes.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-boundaries.test.mjs` — **PASS, 44/44**.
+- Prompt snapshot hashes were recomputed from the changed prompt builders and are checked by the passing agent prompt suite. `npm run docs:check` — PASS; `node scripts/version-metadata.mjs` — PASS; Node syntax checks for changed TypeScript and test modules — PASS.
+- `node --experimental-strip-types --test tests/core.test.mjs` and `node --experimental-strip-types --test tests/pipeline.test.mjs` — **BLOCKED before test execution** by missing package `zod` imported from `server/statePipeline.ts` (`ERR_MODULE_NOT_FOUND`).
+- Full `test:pipeline`, TypeScript typecheck/build, full `test:core`, full DAG and hosted GitHub Actions — **NOT_RUN** in this environment.
+- Live Gemini/Groq comparisons, raw-provider-to-visible-output comparison, deployed behavior and user-outcome evaluation — **NOT_RUN**.
+
+### Remaining boundaries
+
+- Unconditional user-facing URL stripping remains unchanged to preserve the approved no-automatic-source-link policy; explicit user-requested link behavior still needs a separate focused policy/test.
+- Expert staged endpoint prompts (`neutralize`, `radar`, `understand`, `expand`, `redteam`, `premortem`, `synthesis`, `review`, etc.), Architect and App Builder prompts were not rewritten in this patch because their schemas may be product/UI contracts. They remain in the C124 inventory for a separate dependency-aware review.
+- Passing deterministic prompt/agent tests does not prove improved live answer quality. Hosted CI and model-backed comparison are still required.
+
 ## P124.0.3 — P124.1 static instruction inventory
 
 **Status:** STATIC_SOURCE_INVENTORY_COMPLETE; runtime/model-backed behavior NOT_RUN. This patch is an audit/documentation and inventory-integrity-test change; no production prompt or answer-processing code was modified.

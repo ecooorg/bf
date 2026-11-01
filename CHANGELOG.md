@@ -1,3 +1,16 @@
+## P124.0.4 — P124.2 Simple/Expert instruction cleanup
+
+- Replaced the mandatory multi-step decision-analysis recipe in the shared Conversational/Expert prompt with concise task-fit guidance. The model chooses the analysis depth and structure appropriate to the actual request; it is no longer required to manufacture reframing, branches, calculations, tests or novelty in every response.
+- Removed the V17 model-facing reasoning choreography from `server/reasoningState.ts`; retained deterministic state normalization, provenance safeguards and service-field handling.
+- Replaced the analytical-engine `BASE_SYSTEM` with a concise model-interface contract covering the current task, supplied context, schema, evidence preservation, honesty and safety.
+- Removed the universal `conversationGainAudit` gate and the second model call that rewrote decision/Expert answers solely because they did not contain a prescribed “new insight”. The narrow information-mode evasiveness repair remains; provider/JSON-format recovery remains separate.
+- Simplified the Simple information prompt and shared decision guidance. Explicitly requested recommendations are allowed; no recommendation or decision framework is imposed when not requested. Empty examples now replace placeholder facts-to-check and arithmetic examples, so the model is not nudged to invent verification tasks or calculations.
+- Expert now preserves factual/information classification instead of promoting every factual question to decision mode. Expert dialogue stage/context remains available as data, but no longer forces a fixed analysis sequence, minimum answer length or mandatory new branch.
+- `buildVisibleReply` now preserves all questions already present in the model answer and only appends the optional follow-up field when allowed and not already present.
+- Added C124 prompt-quality and output-preservation regression tests; updated prompt snapshots and planner/pipeline contracts.
+- **Locally verified:** C124 prompt-quality tests 6/6; agent prompt/isolation/boundary suites 36/36; prompt snapshot suite included in those 36 tests; syntax checks and documentation checks recorded in the technical report.
+- **BLOCKED / NOT_RUN:** full `test:core` cannot start because this sandbox lacks installed `zod`; full pipeline integration, TypeScript compiler/build, full DAG, hosted GitHub Actions, live provider comparisons, deployed behavior and user-outcome evaluation are NOT_RUN.
+
 ## P124.0.3 — P124.1 instruction and output-transformation inventory
 
 - Added `docs/C124_INSTRUCTION_INVENTORY.md`, tracing production prompt sources, runtime call paths, hard-coded routing heuristics, attachment/context handling, and post-generation transformations.

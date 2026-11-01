@@ -63,7 +63,7 @@
 ## C124 — Instruction Optimization (ACTIVE)
 
 **Product version:** 124  
-**Status:** ACTIVE — mandate integrated; P124.1 static source inventory completed; runtime/model-backed evaluation and prompt cleanup remain NOT_RUN  
+**Status:** ACTIVE — P124.1 inventory completed; P124.2 targeted Simple/Expert dialogue cleanup implemented; hosted CI and model-backed evaluation NOT_RUN  
 **Primary target:** Instruction sources and response-processing paths across Conversational, Expert, Architect, and shared infrastructure  
 **Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
 
@@ -85,10 +85,10 @@
 | P124.0.1 | Documentation mandate and acceptance baseline | Canonical docs agree; version metadata synchronized |
 | P124.0.2 | Cumulative baseline, CI regression closure, generic weather-search cleanup | Targeted suites pass; city allowlist/example removed; full instruction inventory remains NOT_RUN |
 | P124.1 | Static instruction and transformation source inventory | `docs/C124_INSTRUCTION_INVENTORY.md`; source/line references checked by `tests/c124-instruction-inventory.test.mjs`; live behavior remains NOT_RUN |
-| P124.2 | Minimal, evidence-based instruction cleanup | Reviewed removals/rewrites; no silent loss of required behavior |
-| P124.3 | Integrity and behavior validation | Regression suite, prompt-path checks, live model comparisons where available |
+| P124.2 | Minimal, evidence-based Simple/Expert dialogue cleanup | Mandatory reasoning recipes and novelty retry removed; prompt/output-preservation regressions pass locally; hosted CI/live model comparison pending |
+| P124.3 | Remaining instruction and output-transformation review | Staged Expert/Architect/App Builder prompt dependencies reviewed; output fidelity and live model comparisons where available |
 
-P124.0.2 closes the known P123.23 CI regressions and removes only the evidenced weather-location special case. It does not claim the full C124 audit is complete. The sequence is a planning outline, not authorization to delete instructions without dependency analysis. Each implementation patch must be scoped to observed evidence and current `AGENTS.md` gates.
+P124.0.2 closes the known P123.23 CI regressions and removes the evidenced weather-location special case. P124.1 inventories prompt owners and output transformations. P124.2 removes the highest-risk duplicated reasoning choreography and novelty-only rewrite from the Simple/Expert dialogue path while preserving schemas, safety, state integrity and technical recovery. Remaining staged Expert, Architect, App Builder and output-transformation items are still open. Hosted CI and model-backed quality evidence are NOT_RUN.
 
 ### Explicit non-goals
 

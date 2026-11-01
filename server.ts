@@ -15,7 +15,7 @@ import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.
 
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
-import { V17_LAYER_PROMPT, buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels, stripUserFacingUrls } from './server/reasoningState.ts';
+import { buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels, stripUserFacingUrls } from './server/reasoningState.ts';
 import { EXPERT_STEP_PREFIX } from './server/expertAgent.ts';
 import {
   validateExpertRequest,
@@ -360,18 +360,7 @@ registerProjectRoutes(app, {
 });
 
 
-const BASE_SYSTEM = `You are an analytical engine for a complex decision (BiForge). The human keeps the right to decide: do not choose for them and do not substitute their values.
-Do not imitate a person with life experience or feelings. Use what you are strong at: structuring, exposing hidden assumptions and contradictions, generating the space of possible actions, critique from the opposite side, scenarios, judging which unknown matters most, designing cheap tests, calculation on the user's own numbers.
-Do not invent facts, amounts, deadlines, prices, probabilities, percentages, or organization names about the user's situation. Any percentage or probability must come from the user input. Derived numbers are allowed only when you put them in derived_numbers with numeric operands from the input and a machine-checkable arithmetic formula. Never put an ungrounded new number in prose.
-"Insufficient data" is better than a confident guess; an acknowledged gap is better than a confident error.
-For every claim, set source: USER_DATA, GENERAL_PATTERN, or GUESS.
-Do not call a scenario a forecast; do not state probabilities.
-Mark claims about the external world as requiring external verification.
-Do not soften criticism (red team, pre-mortem).
-Statements like "I decided" or "I know for sure" are hypotheses to test, not facts.
-The options the user lists are what they currently see, not the whole space of possible actions. Never produce generic content that would fit any person in any situation: derive everything from this user's own facts.
-Forbidden: best option, recommended, winner, score, ranking, optimal, you should choose. You may name the most informative next step, but never choose between options or values.
-Reply only with JSON per the schema, no text outside the schema. Write every human-readable string in the language of the user's input; keep JSON keys and enum values exactly as specified in the schema.`;
+const BASE_SYSTEM = `You are BiForge's language-model interface. The current user request and task-specific prompt define what to do. Answer that request using the supplied conversation, attachments, retrieved evidence and tools when relevant. Follow the requested output schema exactly. Preserve relevant facts, numbers, units, dates, caveats and source-supported details. Do not invent facts or claim searches, tool calls or verification that did not occur. Distinguish evidence from assumptions when material. Respect safety requirements and the user's language.`;
 
 function evaluateDerivedFormula(formula: string, operands: number[]): number | null {
   // Accept a small, explicitly arithmetic language only. Numeric literals in
@@ -971,48 +960,6 @@ function aiGate(req: express.Request, res: express.Response): boolean {
   return checkRate(req, res);
 }
 
-function normalizeOptionText(s: string): string {
-  return s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-}
-
-// Structural operations on the decision (domain-free). A new option counts as structural
-// only when it changes the shape of the decision, not when it is one more item on the same axis.
-// Legacy values are kept so older clients keep working.
-const STRUCTURAL_NOVELTY_TYPES = new Set([
-  'TIMING',
-  'SEQUENCE',
-  'TEST_OR_PILOT',
-  'TEMPORARY_TEST',
-  'REVERSIBLE_STEP',
-  'REVERSIBLE_COMMITMENT',
-  'SPLIT',
-  'SPLIT_BASE',
-  'SCALE',
-  'SCALE_CHANGE',
-  'SCOPE',
-  'SCOPE_CHANGE',
-  'GOAL_REFRAME',
-  'UNDERLYING_GOAL',
-  'CONDITIONS_CHANGE',
-  'INTERNAL_CHANGE',
-  'GET_FACT_FIRST',
-  'KEEP_OPEN',
-  'OWNERSHIP_CHANGE',
-  'FINANCING_CHANGE',
-]);
-
-// What a reply can add to the person's state of knowledge.
-const GAIN_TYPES = new Set([
-  'NEW_BRANCH',
-  'REFRAMED_QUESTION',
-  'HIDDEN_ASSUMPTION',
-  'CONTRADICTION',
-  'DECISIVE_UNKNOWN',
-  'CHEAP_TEST',
-  'CALCULATION',
-  'CHANGING_CONDITION',
-]);
-
 function getOptionStrings(value: any): string[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -1024,57 +971,20 @@ function getOptionStrings(value: any): string[] {
     .filter(Boolean);
 }
 
-function optionIsSubstantivelyNew(title: string, userOptions: string[], history: any[]): boolean {
-  const n = normalizeOptionText(title);
-  if (!n) return false;
-  const sources = [
-    ...userOptions,
-    ...history.map((m: any) => String(m?.content || '')),
-  ];
-  return !sources.some((source) => {
-    const sn = normalizeOptionText(source);
-    if (!sn) return false;
-    if (sn === n || sn.includes(n) || n.includes(sn)) return true;
-    const a = new Set(n.split(' ').filter((x) => x.length > 3));
-    const b = new Set(sn.split(' ').filter((x) => x.length > 3));
-    if (!a.size || !b.size) return false;
-    let overlap = 0;
-    for (const word of a) if (b.has(word)) overlap++;
-    return overlap >= Math.max(3, Math.ceil(a.size * 0.65));
-  });
-}
+const GAIN_TYPES = new Set([
+  'NEW_BRANCH', 'REFRAMED_QUESTION', 'HIDDEN_ASSUMPTION', 'CONTRADICTION',
+  'DECISIVE_UNKNOWN', 'CHEAP_TEST', 'CALCULATION', 'CHANGING_CONDITION',
+]);
 
-function conversationGainAudit(out: any, contextSufficiency: string) {
+function conversationAudit(out: any) {
   const triage = String(out?.triage || 'PROCEED').toUpperCase();
   const gain = Array.isArray(out?.gain)
     ? out.gain.map((x: any) => String(x || '').toUpperCase()).filter((x: string) => GAIN_TYPES.has(x))
     : [];
-  const newOptions = getOptionStrings(out?.newOptions);
-  const noveltyTypes = Array.isArray(out?.newOptionTypes)
-    ? out.newOptionTypes.map((x: any) => String(x || '').toUpperCase())
-    : [];
-  const structuralNew = newOptions.filter((_, i) => STRUCTURAL_NOVELTY_TYPES.has(noveltyTypes[i] || ''));
-  // "Just one more branch" does not count unless it is structurally different.
-  const substantiveGain = gain.filter((g: string) => g !== 'NEW_BRANCH');
-  const hasNextStep = typeof out?.nextStep === 'string' && out.nextStep.trim().length > 0;
-  // Triage stops and low-context clarification turns are not required to expand anything.
-  // v17: a turn spent clarifying an unclear problem is not required to expand anything either.
-  const f = readInternalFlags(out);
-  // A turn that hands over a document is not required to expand anything either.
-  const handsOverDocument = Boolean(out && typeof out.document === 'object' && out.document);
-  const exempt = triage !== 'PROCEED' || contextSufficiency === 'LOW' || !f.problemClear || f.notUnderstood || handsOverDocument;
-  return {
-    triage,
-    gain,
-    newOptions,
-    structuralNew,
-    substantiveGain,
-    hasNextStep,
-    passed: exempt || substantiveGain.length > 0 || structuralNew.length > 0 || (hasNextStep && gain.length > 0),
-  };
+  return { triage, gain };
 }
 
-import { detectUserIntentFlags, isLimitationOnlyReply, informationSoftFail, informationRetryHint } from './server/intentFlags.ts';
+import { detectUserIntentFlags, informationSoftFail, informationRetryHint } from './server/intentFlags.ts';
 import { shouldRunVerifier, runEpistemicVerifier, skippedEpistemic } from './server/epistemicVerifier.ts';
 import { detectConversationMode } from './server/conversationMode.ts';
 import { retryDriftedToOpening } from './server/turnFocus.ts';
@@ -1085,7 +995,7 @@ import { retryDriftedToOpening } from './server/turnFocus.ts';
 // used for rendering/export; only the model input is compacted.
 const CONVERSATION_CONTEXT_MESSAGES = 8;
 const CONVERSATION_MESSAGE_MAX_CHARS = 6000;
-// P57: latency policy (quality retry guard, verifier wait, older assistant messages). Defaults keep answers unchanged.
+// P57: latency policy (information-repair retry guard, verifier wait, older assistant messages).
 const LATENCY = readLatencyPolicy();
 
 function compactConversationHistory(history: any[]): any[] {
@@ -1275,7 +1185,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     }
     phase.mark('prepare_search');
     const prompt = buildConversationTurnPrompt(input, promptAttachmentsBlock, turnPlan, new Date().toISOString().slice(0, 10));
-    const callBudget = { used: 0 };   // S-4: the quality retry shares the request's model-call budget
+    const callBudget = { used: 0 };   // S-4: targeted information repair shares the request's model-call budget
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     phase.mark('main_call');
     let out = data as any;
@@ -1286,27 +1196,11 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     };
     let contextSufficiency = normSufficiency(out);
 
-    // Soft quality check.
-    // Decision/research/engineering: gain-audit (must give something new). One retry with decision repair.
-    // Information (MP3): light soft-fail detector; one short retry with information-mode hint (not decision package).
-    // One retry max; if it still fails the person gets the answer anyway — no hard errors from quality gates.
-    // PI-02: when the user asked for an approximate result and the draft is only limitations → force fail (non-information).
-    let audit = conversationGainAudit(out, contextSufficiency);
-    let needRetry = false;
-    let infoRetry = false;
-    if (conversationMode === "information") {
-      // MP3: do not run heavy gain-audit; use information soft-fail instead.
-      audit = { ...audit, passed: true };
-      if (informationSoftFail(out, intentFlags)) {
-        needRetry = true;
-        infoRetry = true;
-      }
-    } else {
-      if (intentFlags.userAskedApproximate && isLimitationOnlyReply(out, audit)) {
-        audit = { ...audit, passed: false };
-      }
-      if (!audit.passed) needRetry = true;
-    }
+    // C124: do not score a valid answer for novelty or trigger a rewrite merely because
+    // it did not manufacture a new branch, reframing, calculation or next step. Keep only
+    // the narrow information-mode repair for objectively evasive/limitations-only drafts.
+    let audit = conversationAudit(out);
+    const needRetry = conversationMode === 'information' && informationSoftFail(out, intentFlags);
     // P57: a second full model call is not worth the wait once the turn has already been slow; the person keeps the first draft.
     retrySkippedForLatency = needRetry && shouldSkipQualityRetry(Date.now() - requestStartedAt, LATENCY.retryMaxElapsedMs);
 
@@ -1317,44 +1211,17 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       elapsedMs: Date.now() - requestStartedAt,
       retryMaxElapsedMs: LATENCY.retryMaxElapsedMs,
       strongModels: STRONG_MODELS.length,
-      auditPassed: audit.passed,
-      gain: audit.gain,
-      structuralNew: audit.structuralNew,
+      qualityGate: 'information_soft_fail_only',
+      gainMetadataCount: audit.gain.length,
     }));
     if (retrySkippedForLatency) {
       console.info(JSON.stringify({ type: 'conversation_retry_skipped', reason: 'latency', elapsed_ms: Date.now() - requestStartedAt, user_turns: userTurns }));
     }
     if (needRetry && !retrySkippedForLatency && STRONG_MODELS.length > 1) {
       retryRan = true;
-      let retryPrompt: string;
-      if (infoRetry) {
-        // MP3: information-mode soft retry — keep the same information prompt, add a short repair hint.
-        retryPrompt = `${prompt}
-
-${informationRetryHint(intentFlags)}`;
-      } else {
-        retryPrompt = `${prompt}
-
-QUALITY CHECK FAILED. The previous draft gave the person nothing new beyond what they already said, or its only "new" content was another item on the same axis as their existing options. Rewrite the JSON from scratch.
-Before writing, silently do this: restate the problem behind the question; list the assumptions that make the person's current framing look complete; apply the structure operations (timing, sequence, test or pilot, reversible step, splitting, scale, scope, goal reframe, change of conditions, get-the-fact-first, keep-open) and keep only what is realistic for THIS person's facts; look for a contradiction in the person's own statements; find the one unknown whose answer would send them to different branches.
-The reply must contain at least one of: a reframed question, a hidden assumption, a contradiction, a decisive unknown with the cheapest way to learn it, a concrete test, a calculation on the person's own numbers, or a structurally different branch together with what it changes. Fill "gain" and "newOptionTypes" accordingly. Do not rank or choose. Do not mention this check, prompts, models or methodology.`;
-        // PI-02: user criticized evasion → require a strategy change and a usable result under the uncertainty contract.
-        if (intentFlags.userCriticizedEvasion) {
-          retryPrompt += `
-
-The person said the previous answer did not solve their task. Change the approach: do not restate the same limitation. Give the best available result of a marked kind (scenario under assumptions, range or qualitative estimate, comparison, or hypothesis with a way to check).`;
-        }
-        if (intentFlags.userAskedApproximate) {
-          retryPrompt += `
-
-The person asked for an approximate or preliminary result. Do not answer with limitations alone: give a rough available result with explicit caveats.`;
-        }
-        if (intentFlags.userDemandedDirectAnswer || intentFlags.userForbadeMethodology) {
-          retryPrompt += `
-
-The person demanded a direct answer and forbade methodology or lecturing. Open with the substance of the answer. Do not explain methods, model limits, or why a perfect answer is impossible. Do not invent a stricter question than they asked.`;
-        }
-      }
+      // A second call is reserved for an information-mode draft that failed the narrow
+      // evasion detector. Decision and Expert replies are never rewritten to manufacture novelty.
+      const retryPrompt = `${prompt}\n\n${informationRetryHint(intentFlags)}`;
       try {
         const retry = await generate(retryPrompt, input, 'strong', 'conversation-retry', 1, requestByokKey, requestPreferredModel, callBudget, genOpts);
         const retryOut = retry.data as any;
@@ -1363,7 +1230,7 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
         // of the conversation (brief.decision) while the first draft did not, keep the first draft.
         const retryDrifted = typeof retryOut?.reply === 'string' && typeof out?.reply === 'string'
           && retryDriftedToOpening(out.reply, retryOut.reply, lastUserText, String(brief.decision || ''));
-        console.info(JSON.stringify({ type: 'conversation_retry', reason: infoRetry ? 'information_soft_fail' : 'gain_audit', kept_first: retryDrifted, user_turns: userTurns }));
+        console.info(JSON.stringify({ type: 'conversation_retry', reason: 'information_soft_fail', kept_first: retryDrifted, user_turns: userTurns }));
         if (!retryDrifted && retryOut?.reply && typeof retryOut.reply === 'string') {
           data = retry.data;
           const sumOpt = (a?: number, b?: number) => (a === undefined && b === undefined ? undefined : (a || 0) + (b || 0));
@@ -1380,7 +1247,7 @@ The person demanded a direct answer and forbade methodology or lecturing. Open w
             ...(cachedTokSum !== undefined ? { cachedTokens: cachedTokSum } : {}) };
           out = retryOut;
           contextSufficiency = normSufficiency(out);
-          audit = conversationGainAudit(out, contextSufficiency);
+          audit = conversationAudit(out);
         }
       } catch (retryErr: any) {
         console.error('[conversation-retry] failed, returning first draft:', retryErr?.message || retryErr);
