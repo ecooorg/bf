@@ -1,3 +1,14 @@
+## P124.3 response-path fidelity checks
+
+- `node --experimental-strip-types --test tests/c124-output-fidelity.test.mjs` — automatic source links remain suppressed unless explicitly requested; model answer content is preserved; Expert stage prompts do not pad results to arbitrary counts or lengths.
+- `npm run test:core` — includes the new C124 output-fidelity suite alongside the inventory and prompt-quality tests.
+- Inspect browser rendering of Markdown/code/document outputs after server-side Markdown stripping is removed.
+- Compare raw provider responses with visible Simple and Expert replies using identical prompts; this requires live provider access and is not covered by deterministic tests.
+
+## P124.3 acceptance boundary
+
+A PASS from the deterministic output-fidelity tests proves only the tested transformation rules. It does not prove provider accuracy, browser rendering quality, or improved user outcomes. Hosted GitHub Actions and live model-backed evaluation must be reported separately.
+
 ## P123.23 regression checks
 - `npm run test:core` — verify prompt golden hash and agent route contracts.
 - `npm run test:web` — verify Russian/English contextual follow-up resolution; inspect full log for any failures beyond the reported stack location.

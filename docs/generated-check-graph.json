@@ -304,7 +304,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -317,6 +317,7 @@
       ],
       "files": [
         "tests/c124-instruction-inventory.test.mjs",
+        "tests/c124-output-fidelity.test.mjs",
         "tests/c124-prompt-quality.test.mjs",
         "tests/core.test.mjs",
         "tests/neon-initialize-workflow.test.mjs",
@@ -351,6 +352,7 @@
         "server/conversationalAgent.ts",
         "server/expertAgent.ts",
         "server/healthRoutes.ts",
+        "server/intentFlags.ts",
         "server/opsRoutes.ts",
         "server/projectRoutes.ts",
         "server/promptCore.ts",
@@ -1093,6 +1095,7 @@
       "test:project"
     ],
     "server/intentFlags.ts": [
+      "test:core",
       "test:pipeline"
     ],
     "server/latencyPolicy.ts": [

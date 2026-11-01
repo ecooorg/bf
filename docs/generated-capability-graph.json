@@ -1,11 +1,11 @@
 {
  "schemaVersion": 1,
  "kind": "capability-graph",
- "generatedAt": "2026-11-01T21:38:23.023Z",
+ "generatedAt": "2026-11-01T22:02:17.131Z",
  "generator": "scripts/capabilityGenerateGraph.mjs",
  "summary": {
   "nodeCount": 468,
-  "edgeCount": 953,
+  "edgeCount": 954,
   "nodeCounts": {
    "check": 28,
    "env": 68,
@@ -17,7 +17,7 @@
    "state": 1
   },
   "edgeCounts": {
-   "covers": 325,
+   "covers": 326,
    "produces_evidence_under": 11,
    "needs": 26,
    "modifies": 19,
@@ -6922,6 +6922,11 @@
   {
    "from": "check:test:core",
    "to": "module:server/healthRoutes.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/intentFlags.ts",
    "relation": "covers"
   },
   {

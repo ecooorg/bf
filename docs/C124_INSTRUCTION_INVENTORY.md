@@ -1,8 +1,8 @@
 # C124 Instruction and Output-Transformation Inventory
 
 **Audit stage:** P124.1 — source inventory  
-**Repository patch identity at inventory creation:** `124.0.3`; P124.2 dispositions are recorded below  
-**Audit status:** STATIC_SOURCE_INVENTORY_COMPLETE; runtime/model-backed behavior NOT_RUN  
+**Repository patch identity:** `124.0.5`; P124.2 and P124.3 dispositions are recorded below  
+**Audit status:** STATIC_SOURCE_INVENTORY_COMPLETE; P124.3 response-path cleanup implemented; runtime/model-backed behavior NOT_RUN  
 **Scope:** production source under `server/`, `appBuilder/`, and the model-facing integration paths.  
 **Method:** source search, import/call-path tracing, inspection of prompt assembly and post-processing, and cross-check against current tests. Line references are valid for the P124.0.2 source baseline and are guarded by `tests/c124-instruction-inventory.test.mjs`.
 
@@ -20,6 +20,44 @@ These were not merely transport or formatting controls. Several prescribed how t
 Other prompt groups are legitimate model-communication contracts: web-search tool use, JSON schemas, file-generation markers, Architect state-patch schema, and the optional claim-classifier task. These should not be removed merely because they are prompts. Their scope and overlap should be minimized and mechanically enforced where possible.
 
 A separate risk exists after the model call: BiForge applies several transformations that can remove URLs, Markdown structure, questions, labels, document text, attachment notes, state entries, and context. Some are intended safety/format controls; others may silently discard useful model output. These transformations are included in this audit because the user-visible answer is not always the raw model response.
+
+## P124.3 — response-path fidelity findings and disposition
+
+P124.3 reviewed the final Conversational/Expert response path after P124.2 removed the mandatory dialogue reasoning recipes.
+
+### Confirmed risks
+
+1. `server.ts` passed the model's complete `reply` through `stripMarkdown`, which removed formatting markers such as headings, code fences and emphasis before the UI received the answer.
+2. The same response path removed a fixed list of legacy decision-method terms in parentheses (for example `Sequence`, `Timing` and `Split-base`). These are ordinary words in many domains and no longer belong to an active reasoning contract.
+3. `stripUserFacingUrls` removed every URL unconditionally. This implemented the no-automatic-source-link policy but also suppressed links when the user explicitly asked for one.
+4. The separate `question` field is a single optional clarifying prompt by contract; its first-question limit remains scoped to that field. It does not truncate questions already included in the model's main `reply`.
+
+### P124.3 disposition
+
+- Removed server-side Markdown stripping from the main reply and document payload at the transport boundary.
+- Removed the obsolete hard-coded parenthetical vocabulary filter.
+- Kept automatic source-URL suppression as the default, but added explicit user-intent detection so URLs are preserved when the user asks for links.
+- A current explicit no-links instruction takes precedence over older conversation preferences; a later explicit link request can override an earlier no-links preference.
+- Reviewed the remaining Expert workflow prompts that implement product-specific stages (`understand`, `radar`, `expand`, `attack`, `redteam`, `premortem`, `synthesis`, `review`). Kept their JSON schemas and task purpose, but removed arbitrary minimum counts, mandatory option categories, fixed paragraph/word quotas, and forced review questions where these could make the model pad an answer.
+- Kept narrow internal-field scrubbing and the single optional follow-up question contract. No substantive model answer is regenerated or rewritten by this patch.
+
+### Expert staged-prompt disposition
+
+The stage prompts are not removed wholesale: their endpoint schemas and named operations are part of the Expert product workflow. P124.3 removes only count/length requirements that could force weak or irrelevant content:
+- `understand`: no minimum number of uncertainties or next actions;
+- `radar`: no minimum unknown count;
+- `expand`: no mandatory number of options or mandatory option categories;
+- `attack` / `redteam`: no fixed objection quota;
+- `premortem`: no fixed cause quota or forced narrative length;
+- `synthesis`: no fixed five-paragraph / 250–350-word requirement and no deterministic second call that rewrites an otherwise valid answer to satisfy that quota;
+- `review`: no forced question for every area and no mandatory chance question.
+
+Typed JSON shapes and engineering validation remain. These changes do not remove the Expert workflow or its stage-specific purpose.
+
+### Remaining verification
+
+Deterministic tests cover the explicit-link preference and output-path contract. They do not establish that the UI renders every Markdown construct ideally, nor do they prove live model answer quality. Browser rendering and same-question live provider comparisons remain required.
+
 
 ## 2. Runtime topology
 
@@ -75,7 +113,7 @@ Categories: **A** engineering control; **B** integrity/validation; **C** model-s
 | I-31 | `server.ts:L1894-L1898` | E | `/api/knowledge-map` requests a structured known/unknown/critical/quick-to-get map using supplied data only. | Narrow output contract; useful, but should not cause the model to omit relevant information outside the fixed buckets. | KEEP concise schema and supplied-data boundary. |
 | I-32 | `server.ts:L1936-L2113` | C/E | `/api/expand`, `/api/attack`, `/api/redteam`, `/api/premortem` and `/api/experiment-draft` use separate prompts to generate options, symmetric critique, pre-mortem and experiments. | These are model-driven substantive reasoning stages. Their fixed sequences and expected number/type of outputs may force a method even when the user's task does not benefit from it. Some schemas are required by the Expert UI. | NEEDS_OWNER_DECISION / REWRITE; map each prompt to an explicit user-visible workflow requirement before deciding what remains. Do not remove an Expert capability without owner approval. |
 | I-33 | `server.ts:L2115-L2215` | C/E | `/api/forecast-wording`, `/api/synthesis` and `/api/review` generate fixed forecast criteria, a mandatory five-paragraph/250–350-word synthesis, and a prescribed five-area review. | The exact paragraph count, word range and fixed review areas are highly prescriptive answer templates; the output schemas may be necessary for the existing UI. | REWRITE; retain UI-required schema and provenance, remove arbitrary length/paragraph constraints unless user outcome evidence supports them. |
-| I-34 | `server.ts:L2228-L2259` | E | `/api/revise-document` tells the model to perform exactly one selected edit and preserve useful document content, returning a document schema. | User-requested transformation and output contract; risk is accidental content loss during “shorter” or table edits. | KEEP; add before/after content-preservation tests for facts, numbers, links and language. |
+| I-34 | `server.ts:L2076-L2084` | E | `/api/revise-document` tells the model to perform exactly one selected edit and preserve useful document content, returning a document schema. | User-requested transformation and output contract; risk is accidental content loss during “shorter” or table edits. | KEEP; add before/after content-preservation tests for facts, numbers, links and language. |
 | I-35 | `server.ts` (former `conversationGainAudit`; removed in P124.2) | C/B | The novelty audit and forced second-call rewrite are removed. A narrow information-mode evasiveness repair remains; technical/provider/JSON recovery is unchanged. | The information-mode retry is a separate targeted quality signal and does not require a new branch or analytical novelty. | REMOVE universal novelty gate; KEEP targeted information repair. IMPLEMENTED P124.2. |
 | I-36 | `server.ts:L848-L850` | A/E | Adds a short retry hint when provider output is invalid JSON. | A narrowly scoped format-repair instruction tied to a deterministic parse failure. | KEEP; ensure it requests format repair only and does not rewrite substantive content. |
 

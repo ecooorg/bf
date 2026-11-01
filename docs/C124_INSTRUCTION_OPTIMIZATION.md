@@ -1,6 +1,6 @@
 # C124 — Instruction Optimization
 
-**Status:** Approved cycle mandate; P124.1 static inventory completed; P124.2 targeted Simple/Expert dialogue cleanup implemented. Hosted CI and runtime/model-backed behavior evaluation remain NOT_RUN.  
+**Status:** Approved cycle mandate; P124.1 static inventory completed; P124.2 Simple/Expert dialogue cleanup and P124.3 response-path fidelity cleanup implemented. Hosted CI and runtime/model-backed behavior evaluation remain NOT_RUN.  
 **Product version:** 124  
 **Documentation baseline:** P124.0.1
 
@@ -176,3 +176,20 @@ P124.2 implements the highest-risk dialogue-path dispositions from the inventory
 - Explicitly requested recommendations are permitted; recommendations and decision frameworks are not imposed when the user did not ask for them.
 
 This patch does not rewrite separate Expert staged-operation prompts, Architect, App Builder, search evidence contracts, or the unconditional no-automatic-source-URL presentation policy. These require separate dependency and user-outcome review. Deterministic prompt/agent checks passed locally; full `test:core` was BLOCKED by missing `zod`; full pipeline, typecheck/build, hosted Actions, live provider comparisons and user outcomes remain NOT_RUN.
+
+## 13. P124.3 — response-path fidelity
+
+The model's substantive reply must not be silently reformatted or filtered by broad legacy rules.
+
+P124.3:
+- removes server-side Markdown stripping from conversation replies and document payloads at the transport boundary;
+- removes the obsolete fixed vocabulary filter for legacy decision-method labels;
+- retains the no-automatic-source-URL default;
+- preserves model-provided URLs when the user explicitly requests links;
+- lets the latest explicit link/no-link instruction override an older preference in recent conversation context;
+- retains narrow service-field scrubbing and the separate single optional follow-up-question contract;
+- simplifies Expert staged prompts by removing arbitrary minimum counts, mandatory option categories, fixed paragraph/word quotas, the synthesis quota-check retry, and forced review questions while retaining endpoint JSON schemas and stage purpose.
+
+The response path must not rewrite the model's answer to make it appear more analytical, concise or novel. Any future transformation must have a named engineering purpose, a narrowly scoped rule and a regression test proving that unrelated content is preserved.
+
+Acceptance tests verify these deterministic rules. They do not replace browser rendering checks or live same-question comparisons against the raw provider response.
