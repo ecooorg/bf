@@ -48,6 +48,7 @@ import { ModeMenu, START_MODE_KEY, type AppMode } from './ModeMenu.tsx';
 import { UserGuideModal } from './UserGuide.tsx';
 import { expertConversationFields } from './expertContext.ts';
 import { ExpertSidebar, ExpertBottomBar } from './ExpertNav.tsx';
+import { evaluateStageCompletion } from './finalDecisionDocument.ts';
 import { expertBaseline, questionLine } from './expertHistory.ts';
 import { STEP_TITLE } from './uiTerms.ts';
 import { StateNotice, driveLabel as sharedDriveLabel, driveTitle, historyLabel, HISTORY_OFF_TITLE } from './uiStates.tsx';
@@ -72,6 +73,23 @@ import {
 } from './ExpertStepScreens.tsx';
 import { BriefScreen, ConversationScreen, SharedConversationContext } from './ConversationScreens.tsx';
 import { isChatRoute } from './conversationRoutes.ts';
+
+
+function StageReadinessBanner({ d }: { d: Decision }) {
+  const stage = evaluateStageCompletion(d, d.step);
+  if (stage.complete && !stage.reasons.length) return null;
+  return (
+    <div data-testid="stage-readiness" className="panel" style={{ margin: '0 0 12px', padding: 10, background: stage.complete ? 'rgba(80,180,120,0.08)' : 'rgba(255,180,80,0.1)' }}>
+      <strong style={{ fontSize: '0.95em' }}>{stage.complete ? 'Stage notes' : 'Before moving on'}</strong>
+      <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+        {stage.reasons.map((r, i) => (
+          <li key={i}>{r}</li>
+        ))}
+        {!stage.reasons.length && !stage.complete ? <li>Complete the required inputs for this step</li> : null}
+      </ul>
+    </div>
+  );
+}
 
 export default function App() {
   const [decisions, setDecisions] = useState<Decision[]>(() => getStoredDecisions());
@@ -578,6 +596,7 @@ export default function App() {
         <main className={`content${expertMode ? ' has-xn-bar' : ''}`}>
           <WorkspacePanel hideHint={expertMode} disabled={busy} onAttachmentsChange={setWorkspaceAttachments} proposedChangeSet={proposedWorkspaceChangeSet} onChangeSetSettled={() => setProposedWorkspaceChangeSet(null)} />
           {expertMode && <StepTitle step={d.step} />}
+          {expertMode && d.step !== 'TRIAGE' && <StageReadinessBanner d={d} />}
           {methodStarted && expertBase > 0 && (
             <SharedConversationContext d={d} upTo={expertBase} onDocumentEdit={reviseConversationDocument} />
           )}
