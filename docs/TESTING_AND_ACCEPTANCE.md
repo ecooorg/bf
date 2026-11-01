@@ -79,3 +79,7 @@ Never update a golden hash solely to make CI green, and never weaken or remove t
 - The prompt snapshot test computes every Conversational/Expert mode hash, both Expert dialogue paragraph hashes, and the Expert step-prefix hash before running strict assertions. This prevents the first mismatch from hiding later drift.
 - CI writes `prompt-snapshot-diagnostics.json` with expected/actual values, match flags, deterministic inputs, generated prompt text, and exact prompt-builder source contents with SHA-256 fingerprints. `ASSISTANT_PASTE.txt` carries the compact matrix; the inner `biforge-ci-logs.zip` carries the full JSON.
 - Diagnostic evidence does not imply semantic approval. Review the included source and generated text before changing any golden value. Assertions must remain strict, and hashes must never be auto-refreshed by CI.
+### Prompt snapshot maintenance (P123.15)
+
+The Expert dialogue paragraph is shared across the Expert mode prompts. A reviewed wording change therefore affects both the standalone paragraph snapshots and every full Expert prompt that includes it. When updating snapshots, recompute all dependent hashes from the exact current builder inputs, review the source change against the Expert behavior contract, and update only the affected expected values. Preserve strict equality checks for all other prompts and the step prefix.
+
