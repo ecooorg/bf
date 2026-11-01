@@ -1,3 +1,9 @@
+## P123.8 — Key-slot isolation + carousel-verify green
+
+- **Bugfix:** `executeModelCall` key rotation shared `ctx.state.cooldownUntil` across slots; after `PROVIDER_QUOTA` on key A the model was on cooldown so key B got `blocked` / `no_suitable_model`. Each slot now uses a fresh cooldown map (disabledProviders still inherited).
+- **Tests:** source-health breaker timing aligned with cooldown; ops doc assertion accepts `carousel-ops-probe`.
+- package.json patch → `123.8`.
+
 ## P123.7 — Fix CI: workflow inventory + carousel-verify runner
 
 - **test:core:** `tests/p119-agent-boundaries.test.mjs` expected workflow list now includes `carousel-verify.yml`.
