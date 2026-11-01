@@ -1,3 +1,13 @@
+## P122.5 — Expert Layer B harness, ops contract fix, edge-case coverage
+
+- `tests/p122.4-real-model-eval.mjs`: full Layer B live harness (scenarios A/B/C/E against Gemini when `REAL_MODEL_EVAL=1` + `GEMINI_API_KEY`); heuristic rubric; JSON artifacts under `artifacts/real-model-eval/`. Scenario D remains deterministic (Layer A).
+- `tests/architect-dual-compare-contract.test.mjs`: workflow path corrected to existing `.github/workflows/architect-compare.yml` (fixes ops dual-compare false failure).
+- `tests/p122.4-decision-quality.test.mjs`: edge-case suite (empty decision, incomplete stages, sparse recommendation quality, contradiction confidence).
+- `server/expertAgent.ts`: stronger `EXPERT_STEP_PREFIX` — no invented numbers/dates/prices; mandatory claim labeling; lower confidence when evidence missing.
+- `.github/workflows/expert-verify.yml`: real-model job uploads TAP + scenario JSON artifacts.
+- package.json patch → 122.5.
+- Limits: live Gemini runs still require workflow_dispatch with `real_model=true`; browser full-journey polish and comparative fluency study remain open.
+
 ## P122.4 — Decision Quality, User Experience & Final Validation
 
 - `src/finalDecisionDocument.ts`: structured final decision document (executive summary through confidence/limitations); recommendation quality checklist; confidence calibration (no invented precision); stage completion criteria; decision-quality rubric (10 dimensions, critical failures).

@@ -39,6 +39,12 @@
 | P0 | Real-model evaluation | P122.4 |
 | P0 | Global acceptance | P122.4 |
 
+### Residual after P122.4 / addressed in P122.5
+
+- Layer B real-model harness is now executable via `expert-verify` (input `real_model=true`) or local `REAL_MODEL_EVAL=1`.
+- Ops dual-compare contract false-negative fixed.
+- Remaining open for true product closure: Navigator runs live eval, reviews rubric + excerpts, optional prompt iteration, full browser E2E journey evidence.
+
 ### Expected results
 
 - After P122.1: Expert decisions become persistent, recoverable, and protected against accidental loss.

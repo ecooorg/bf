@@ -1,3 +1,10 @@
+# CURRENT EVIDENCE NOTE — P122.5 Expert Layer B + stability, 2026-11-01
+
+- **Changed:** Live real-model evaluation harness (A/B/C/E), dual-compare contract path fix, Expert step-prefix hardening, additional P122.4 edge-case tests, expert-verify artifact collection.
+- **Deterministic results:** architect dual-compare contract now points at the real workflow file; new edge-case tests added to decision-quality suite.
+- **NOT_RUN (this environment):** live `REAL_MODEL_EVAL=1` against production Gemini (requires GitHub secret + workflow_dispatch). Hosted expert-verify with real_model=true: NOT_RUN until Navigator triggers it.
+- **Acceptance:** Layer B is no longer a placeholder; it is executable. User-value judgement of live answers remains manual after the run.
+
 # CURRENT EVIDENCE NOTE — P122.4 Decision Quality & Final Validation, 2026-10-31
 
 - **Changed:** Final decision document builder, recommendation quality evaluation, confidence calibration, stage completion gates, quality rubric, Synthesis download, Layer A scenario tests, Layer B real-model harness (opt-in).
