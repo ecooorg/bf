@@ -1,7 +1,8 @@
 /**
  * P119.0.4 — agent-owned prompt text, agent-named routes, client route choice.
- * GOLDEN hashes lock the current prompt snapshots. Expert information prompt was intentionally changed in P123.10;
- * its snapshot is updated here so future unreviewed prompt drift remains detectable.
+ * GOLDEN hashes lock the reviewed prompt contracts. Expert information wording changed in P123.10; Expert decision wording
+ * changed to permit explicit, criteria-based recommendations and proportional factual answers. Keep these reviewed
+ * snapshots exact so subsequent unreviewed prompt drift remains detectable.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,7 +19,7 @@ const GOLDEN = {
   "conversational:information": "ac17f16bd0b0ef3b31dfd8b27d0e4532066a419e2a3ca0237b362cd625b5d4da",
   "expert:information": "90525cfce9a2010fdbd73e201de50b5f3414d5ba9296467aa117af20793881ac",
   "conversational:decision": "2dcdfba3d4edddc8be63471362c99e1969406d58557538aae8c431460bc20d92",
-  "expert:decision": "cdca660e6fc2a15b912d8b0c72829aa3d197e3382d92163b65f3c8593f71ebd7",
+  "expert:decision": "1ef4e62e9c1f0d94bf87d613a810c8b201f8dad396f5cbc440392541126d8b66",
   "conversational:research": "2b01ca9d770c470cd02c7b2279a870a29ca5a1991bdbceb791c69e2db36df2d4",
   "expert:research": "e6a446e5daba37e874aba54b91811e454365826a255243a863e82ce28f6237f7",
   "conversational:engineering": "def3f9ef2ab36c1e6eb488989f8978dd24d9877c3fc60c9ba74799eae4abe206",
