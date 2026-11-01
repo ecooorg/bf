@@ -74,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: information-quality-${{ matrix.mode }}
-          path: artifacts/information-quality/${{ matrix.mode }}/
+          path: artifacts/information-quality/
           if-no-files-found: warn
           retention-days: 21
 
@@ -90,12 +90,21 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run evaluator and Architect information-quality tests
-        run: >-
-          node --import tsx --test
-          tests/information-quality-eval.test.mjs
-          tests/app-builder-information-quality.test.mjs
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/information-quality/evaluator-contracts
+          node --import tsx --test \
+            tests/information-quality-eval.test.mjs \
+            tests/app-builder-information-quality.test.mjs \
+            2>&1 | tee artifacts/information-quality/evaluator-contracts/contracts.tap
       - name: Run web evidence and epistemic regression suite
-        run: node --import tsx --test --test-timeout=120000 tests/web-and-epistemics.test.mjs
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/information-quality/evaluator-contracts
+          node --import tsx --test --test-timeout=120000 tests/web-and-epistemics.test.mjs \
+            2>&1 | tee artifacts/information-quality/evaluator-contracts/web-epistemics.tap
       - name: Evaluate optional blind-review file
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.evaluation_file != '' }}
         env:
@@ -123,3 +132,56 @@ jobs:
           path: artifacts/information-quality/
           if-no-files-found: ignore
           retention-days: 21
+
+  assistant-handoff:
+    name: Build assistant handoff artifact
+    if: always()
+    needs:
+      - deterministic-quality
+      - evaluator-contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Download all information-quality evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: information-quality-*
+          path: artifacts/information-quality
+          merge-multiple: true
+      - name: Build consolidated assistant handoff
+        if: always()
+        env:
+          CI_LOGS_DIR: artifacts/information-quality
+          CI_STATUS: ${{ (needs.deterministic-quality.result == 'success' && needs.evaluator-contracts.result == 'success') && 'success' || 'failure' }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: |
+          mkdir -p artifacts/information-quality
+          node scripts/assistant-run-summary.mjs
+          test -s artifacts/information-quality/ASSISTANT_PASTE.txt
+          test -s artifacts/information-quality/ASSISTANT_SUMMARY.json
+          {
+            echo '## Information-quality run status'
+            echo '- Deterministic mode jobs: ${{ needs.deterministic-quality.result }}'
+            echo '- Evaluator contracts: ${{ needs.evaluator-contracts.result }}'
+            echo '- Assistant handoff: generated'
+            echo ''
+            echo 'Download the `information-quality-assistant-handoff` artifact and attach `ASSISTANT_PASTE.txt` to the assistant for diagnosis.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload consolidated assistant handoff
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: information-quality-assistant-handoff
+          path: artifacts/information-quality/
+          if-no-files-found: warn
+          retention-days: 30
