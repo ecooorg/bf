@@ -2,7 +2,7 @@
   "name": "bifurcation-engine",
   "private": true,
   "version": "122",
-  "patch": "122.7",
+  "patch": "122.8",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

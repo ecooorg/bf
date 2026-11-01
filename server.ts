@@ -225,7 +225,7 @@ interface GenerateOpts { extraParts?: any[]; extraNumberSource?: string; extraCh
 // Availability-first defaults. These are deliberately conservative: the router learns from
 // real requests instead of assuming that the most intelligent model is the most available one.
 // Stable model IDs only; legacy/latest aliases are not used in the default pool.
-// gemini-3.7-flash / gemini-3.5-flash are deprecated aliases routed by Google to 3.8 / 3.6: same quota, so no real fallback.
+// Free-key deployment: only flash-lite models. Never cascade to 2.x / 3.6 / 3.8 / pro.
 const PRIMARY_GEMINI_ORDER = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
 /** Cascade from env. When every configured id is a primary model, keep PRIMARY_GEMINI_ORDER.
  *  Otherwise preserve the explicit list (hermetic tests use m1/m2/m3; operators may pin a non-primary id).

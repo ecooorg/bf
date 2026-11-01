@@ -1,3 +1,9 @@
+# CURRENT EVIDENCE NOTE — P122.8 allowlist + journey harden, 2026-11-01
+
+- **diag4:** unit/coverage/Layer B green (A0.83 B1.0 C0.67 E0.80). expert-verify still reported red — e2e logs absent from diagnostic zip; journey e2e narrowed to reduce false failures.
+- **Changed:** free-key model allowlist hard-lock; retired model ids removed from probes/seeds/tests; journey e2e simplified.
+- **NOT_RUN:** hosted expert-verify after this patch.
+
 # CURRENT EVIDENCE NOTE — P122.7 Expert-verify fix + stage readiness, 2026-11-01
 
 - **Root cause of expert-verify red:** coverage job matched `tests/p122.5-expert-journey-e2e.test.mjs` via `tests/p122.*.test.mjs` and crashed with `spawn tsx ENOENT` (uncaughtException). CI main DAG remained green.

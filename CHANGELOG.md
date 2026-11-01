@@ -1,3 +1,13 @@
+## P122.8 — Expert journey harden + Gemini free-key allowlist lock
+
+- `tests/expert-journey-e2e.test.mjs`: narrowed, PATH-safe spawn, fewer brittle UI assertions (fix likely expert-verify e2e red).
+- Gemini free-key allowlist only: `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`.
+  - `server/modelAvailability.ts` `GEMINI_ALLOWED_MODELS`; probes no longer target retired flash/pro ids.
+  - `server/modelRegistry.ts` empty `GEMINI_CANDIDATE_SEED`; probe list aligned.
+  - Tests updated (p117 availability, cascade, web-and-epistemics); `tests/model-allowlist-contract.test.mjs` locks quoted model ids in sources.
+  - `docs/MODEL_ALLOWLIST.md` for future assistants.
+- package.json patch → 122.8.
+
 ## P122.7 — Expert-verify stabilisation, stage readiness UX, Layer B summary
 
 - Coverage job no longer runs browser e2e (`tests/p122.*.test.mjs` glob pulled in journey test → `spawn tsx ENOENT`). Explicit unit list + `EXPERT_COVERAGE_ONLY=1`.
