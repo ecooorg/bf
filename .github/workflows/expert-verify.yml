@@ -110,6 +110,7 @@ jobs:
             tests/p122.3-execution-reliability.test.mjs \
             tests/p122.4-decision-quality.test.mjs \
             tests/p122.4-real-model-eval.mjs \
+            tests/model-allowlist-contract.test.mjs \
             2>&1 | tee artifacts/expert/coverage.txt
           line=$(grep 'all files' artifacts/expert/coverage.txt | awk -F'|' '{gsub(/ /,"",$2); print $2}')
           func=$(grep 'all files' artifacts/expert/coverage.txt | awk -F'|' '{gsub(/ /,"",$4); print $4}')
