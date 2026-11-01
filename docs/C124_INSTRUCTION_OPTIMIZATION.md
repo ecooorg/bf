@@ -1,6 +1,6 @@
 # C124 — Instruction Optimization
 
-**Status:** Approved cycle mandate; P124.1 static inventory completed; P124.2 Simple/Expert dialogue cleanup and P124.3 response-path fidelity cleanup implemented. Hosted CI and runtime/model-backed behavior evaluation remain NOT_RUN.  
+**Status:** Approved cycle mandate; P124.1 static inventory, P124.2 Simple/Expert dialogue cleanup, P124.3 response-path fidelity cleanup, and P124.4 Architect/App Builder prompt refinement implemented. Hosted CI and runtime/model-backed behavior evaluation remain NOT_RUN.  
 **Product version:** 124  
 **Documentation baseline:** P124.0.1
 
@@ -193,3 +193,10 @@ P124.3:
 The response path must not rewrite the model's answer to make it appear more analytical, concise or novel. Any future transformation must have a named engineering purpose, a narrowly scoped rule and a regression test proving that unrelated content is preserved.
 
 Acceptance tests verify these deterministic rules. They do not replace browser rendering checks or live same-question comparisons against the raw provider response.
+
+
+## 14. P124.4 implementation note — Architect and App Builder
+
+P124.4 refines the Architect project-analysis boundary and App Builder planner/coder/reviewer prompts. The planner now selects architecture from the user's goal rather than a fixed single-file preference. The reviewer distinguishes evidenced functional defects from optional style improvements. The coder may complete missing internal interfaces consistently, while external APIs, credentials, measurements and source results remain non-inventable. Provider recovery retains the full original task/context and no longer instructs the model to omit requested or optional features. The project analyst may use general domain knowledge for implications and gap detection while keeping project-specific facts provenance-bound and decisions human-owned.
+
+Prompt/cache versions were advanced. JSON/file-marker contracts, deterministic plan validation, validators, bounded retries, safety constraints, artifact completion rules and the one-flow Architect contract remain unchanged. Static source-contract tests pass; App Builder engine tests are BLOCKED in the patch environment because `jszip` is not installed. Hosted CI, typecheck/build, browser artifact evaluation, live provider comparison and user outcomes remain NOT_RUN.

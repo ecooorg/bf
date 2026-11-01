@@ -1,8 +1,8 @@
 # C124 Instruction and Output-Transformation Inventory
 
 **Audit stage:** P124.1 — source inventory  
-**Repository patch identity:** `124.0.5`; P124.2 and P124.3 dispositions are recorded below  
-**Audit status:** STATIC_SOURCE_INVENTORY_COMPLETE; P124.3 response-path cleanup implemented; runtime/model-backed behavior NOT_RUN  
+**Repository patch identity:** `124.0.6`; P124.2–P124.4 dispositions are recorded below  
+**Audit status:** STATIC_SOURCE_INVENTORY_COMPLETE; P124.2–P124.4 targeted prompt/output refinements implemented; runtime/model-backed behavior NOT_RUN  
 **Scope:** production source under `server/`, `appBuilder/`, and the model-facing integration paths.  
 **Method:** source search, import/call-path tracing, inspection of prompt assembly and post-processing, and cross-check against current tests. Line references are valid for the P124.0.2 source baseline and are guarded by `tests/c124-instruction-inventory.test.mjs`.
 
@@ -59,6 +59,31 @@ Typed JSON shapes and engineering validation remain. These changes do not remove
 Deterministic tests cover the explicit-link preference and output-path contract. They do not establish that the UI renders every Markdown construct ideally, nor do they prove live model answer quality. Browser rendering and same-question live provider comparisons remain required.
 
 
+## P124.4 — Architect and App Builder prompt findings and disposition
+
+P124.4 reviewed the active Architect project-analysis instruction and the staged App Builder planner, coder, reviewer, and provider-recovery prompts. The scope was limited to prompt behavior and cache versioning; Architect routing, UI flow, API schemas, validators, generated-artifact completion rules, and safety controls were not changed.
+
+### Findings and changes
+
+1. `appBuilder/core-prompts.ts`: the planner's preference for a single `index.html` was an architectural default not derived from every user's goal. It is replaced with task-fit architecture selection. Multi-file import/export and interface contracts remain because they are mechanically validated integration requirements.
+2. `appBuilder/core-prompts.ts`: reviewer guidance now distinguishes evidenced functional defects from optional improvements and prevents unrequested feature demands or style preferences from becoming blockers. Static review remains explicitly non-executing.
+3. `appBuilder/core-prompts.ts`: coder guidance no longer requires a minimal TODO file whenever an internal plan contract is incomplete. It may define the smallest coherent internal interface consistently, while still prohibiting invented external APIs, credentials, measurements, and source results. The file-marker output contract remains.
+4. `appBuilder/core-engine.ts`: the retry path previously clipped the original prompt to 6,500 characters and instructed the model to omit explanations and optional features. This could discard late task requirements or interfaces and bias recovery toward incomplete output. Recovery now retains the full prompt and asks only for completion in the required format without dropping requested functionality.
+5. `appBuilder/core-engine.ts`: the specification prompt now explicitly preserves every capability requested by the user and avoids unrelated additions. Schema validation and bounded recovery remain.
+6. `server/contextBuilder.ts`: Architect project analysis may use general domain knowledge to explain implications and identify gaps, but project-specific facts still require message/artifact provenance; decisions remain human-owned.
+7. `appBuilder/core-cache.ts`: prompt cache version advanced to `static_site.v4`; spec/plan/reviewer prompt versions advanced to v3 to prevent stale generated-unit cache reuse after wording changes.
+
+### Disposition
+
+- **KEEP:** JSON/file-marker contracts, plan validation, import/export checks, no-fabricated-data boundary, static/runtime evidence distinction, deterministic validators, bounded retries, artifact outcome validation, project State patch schema, fact provenance, and human-owned decisions.
+- **REWRITE:** planner architecture selection, reviewer scope, coder handling of incomplete internal contracts, retry framing, and Architect project-analysis knowledge boundary.
+- **REMOVE:** fixed single-file preference and recovery instruction to omit optional features; 6,500-character prompt clipping.
+- **NOT_CHANGED:** generated-code validators, UI and route flow, schemas, completion criteria, provider routing, and artifact execution policy.
+
+### Verification boundary
+
+Static regression tests verify the source contracts and recovery prompt construction. They do not prove live model quality, generated application behavior, or user outcomes. Those remain NOT_RUN until hosted CI, browser artifact checks, and live provider comparisons are available.
+
 ## 2. Runtime topology
 
 | Flow | Prompt construction / entry | Model call | Output path |
@@ -98,7 +123,7 @@ Categories: **A** engineering control; **B** integrity/validation; **C** model-s
 | I-16 | `server/webSearch.ts:L777-L789` | E/D | Injects retrieved evidence with six model-use rules, including rate tables, weather observations, version questions and source URL policy. | Evidence preservation is important, but weather/version/rate-specific answer recipes overfit topic families and can compete with the user's actual requested format. Global URL suppression can conflict with explicit requests for links. | REWRITE as generic evidence/provenance contract; move URL display policy to deterministic presentation logic with an explicit user-request exception. |
 | I-17 | `server/epistemicVerifier.ts:L84-L87`, prompt construction and call at `L119-L133` | B/E | Optional secondary model classifies claims as supported/hypothesis/unknown and returns issues/check suggestions; explicitly cannot rewrite answer. | Separate quality-control role, not primary answer generation. Bounded claims may miss important claims; verifier provenance and false positives need evaluation. | KEEP minimal classifier contract; validate outputs and never let optional verifier silently rewrite/block primary answer. |
 | I-18 | `appBuilder/core-prompts.ts:L8-L28` | A/B/E | Role prompts for App Builder planner, reviewer and coder: JSON/spec schema, architecture constraints, static review and file-marker output. | These are necessary task/output contracts for artifact construction, but include prescriptive design preferences. Some constraints duplicate static validators. | KEEP schemas and safety; MOVE_TO_CODE every mechanically verifiable condition; simplify subjective coding advice and version prompt changes with cache version. |
-| I-19 | `appBuilder/core-engine.ts:L145-L162`, `L203-L244`, `L431-L437`, `L509-L514` | A/B/E/D | Dynamic spec prompt, bounded JSON recovery, syntax repair and DOM-wiring repair prompts; second attempt clips the original prompt to 6,500 characters. | Recovery prompts are grounded in validator errors and are legitimate; hard-coded example in syntax repair and clipped prompt may omit earlier constraints. | KEEP bounded repair; remove stale generic examples when unnecessary; ensure critical constraints survive clipping; validate no unrelated rewrite. |
+| I-19 | `appBuilder/core-engine.ts:L145-L162`, `L203-L244`, `L431-L437`, `L509-L514` | A/B/E | Dynamic specification, bounded JSON recovery, syntax repair and DOM-wiring repair prompts. | P124.4 removed retry clipping and feature-dropping language; recovery retains full task/context. Syntax and DOM repair remain source-grounded and bounded. | KEEP bounded repair; preserve complete context and source; do not rewrite unrelated behavior. P124.4 implemented. |
 | I-20 | `server.ts:L194-L212` | A/B/E | Code-author prompt specifies JSON file output, allowed path prefix, file/line limits, security constraints and non-execution. | Needed for controlled artifact generation; README requirement and scaffold preferences are product-specific and may over-prescribe. | KEEP path/security/output constraints; MOVE path and file-count checks to code; review README/scaffold requirements against actual user request. |
 | I-21 | `server/projectRoutes.ts:L564-L568` | E | Small system instruction for App Builder slice extraction: JSON only, user goal treated as untrusted. | Narrow and appropriate output/security contract. | KEEP; enforce JSON schema and untrusted-data boundaries in code. |
 | I-22 | `server/briefWriter.ts:L30-L45` | E/A | Generates default AGENTS/executor instructions inside a Task Package for a downstream executor; not the primary conversation model prompt. | Correctly constrains paths and protected files, but this is a separate executor product surface and should not be confused with conversational agent instructions. | KEEP as downstream execution contract; maintain explicit separation from the user-facing LLM intermediary. |

@@ -263,13 +263,14 @@
     },
     {
       "id": "test:compact-ci-artifacts",
-      "command": "node --test tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs",
+      "command": "node --test tests/c124-architect-appbuilder-prompt.test.mjs tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs",
       "needs": [],
       "profiles": [
         "check",
         "ci"
       ],
       "files": [
+        "tests/c124-architect-appbuilder-prompt.test.mjs",
         "tests/capability-graph-p111.test.mjs",
         "tests/compact-ci-artifacts-p94.test.mjs",
         "tests/context-select-p112.test.mjs",
@@ -281,6 +282,9 @@
         "tests/status-graph-p106.test.mjs"
       ],
       "modules": [
+        "appBuilder/core-cache.ts",
+        "appBuilder/core-engine.ts",
+        "appBuilder/core-prompts.ts",
         "scripts/boundedRepairLibP108.mjs",
         "scripts/capabilityGenerateGraph.mjs",
         "scripts/capabilityGraphLib.mjs",
@@ -297,6 +301,7 @@
         "scripts/run-dag.mjs",
         "scripts/schemaValidate.mjs",
         "scripts/statusGraph.mjs",
+        "server/contextBuilder.ts",
         "server/expertAgent.ts",
         "server/githubIntegration.ts",
         "src/config.ts"
@@ -787,7 +792,11 @@
     "appBuilder/architectOutcome.ts": [
       "test:app-builder"
     ],
+    "appBuilder/core-cache.ts": [
+      "test:compact-ci-artifacts"
+    ],
     "appBuilder/core-engine.ts": [
+      "test:compact-ci-artifacts",
       "test:core"
     ],
     "appBuilder/core-markers.ts": [
@@ -797,6 +806,7 @@
       "test:app-builder"
     ],
     "appBuilder/core-prompts.ts": [
+      "test:compact-ci-artifacts",
       "test:core"
     ],
     "appBuilder/core-types.ts": [
@@ -1010,6 +1020,7 @@
       "test:core"
     ],
     "server/contextBuilder.ts": [
+      "test:compact-ci-artifacts",
       "test:core",
       "test:pipeline"
     ],

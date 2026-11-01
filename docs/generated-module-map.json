@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-01T21:38:22.934Z",
+  "generatedAt": "2026-11-01T22:21:03.869Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "p12402_work",
+  "root": "bf",
   "summary": {
     "moduleCount": 174,
     "edgeCount": 436,
     "cycleCount": 0,
-    "totalLines": 32803
+    "totalLines": 32780
   },
   "cycles": [],
   "layers": {
@@ -79,7 +79,7 @@
     {
       "path": "appBuilder/core-prompts.ts",
       "layer": "appBuilder",
-      "lines": 29,
+      "lines": 30,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-types.ts"
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2273,
+      "lines": 2236,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -543,7 +543,7 @@
     {
       "path": "server/intentFlags.ts",
       "layer": "server",
-      "lines": 126,
+      "lines": 134,
       "imports": [],
       "fanIn": 2
     },
@@ -782,7 +782,7 @@
     {
       "path": "server/reasoningState.ts",
       "layer": "server",
-      "lines": 204,
+      "lines": 209,
       "imports": [],
       "fanIn": 1
     },
@@ -1877,7 +1877,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2273
+      "lines": 2236
     },
     {
       "path": "src/ExpertStepScreens.tsx",

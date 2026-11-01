@@ -1,3 +1,9 @@
+## P124.4 Architect and App Builder prompt regression
+
+- `tests/c124-architect-appbuilder-prompt.test.mjs` verifies that planner architecture follows the user goal rather than a fixed single-file bias, reviewer feedback distinguishes functional defects from optional style, coder instructions preserve requested features and do not invent external interfaces/data, recovery keeps the complete prompt context, prompt/cache versions are advanced, and Architect project analysis distinguishes general knowledge from project-specific facts.
+- `tests/app-builder-engine-p93-2a.test.mjs` checks prompt-version format without pinning a stale historical version literal.
+- These are deterministic source-contract checks. They do not prove generated applications run correctly or that live models produce better artifacts. Hosted Actions, typecheck/build, browser artifact validation and live provider comparisons remain separate acceptance evidence.
+
 ## P124.3 response-path fidelity checks
 
 - `node --experimental-strip-types --test tests/c124-output-fidelity.test.mjs` — automatic source links remain suppressed unless explicitly requested; model answer content is preserved; Expert stage prompts do not pad results to arbitrary counts or lengths.
