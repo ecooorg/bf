@@ -128,11 +128,35 @@ export default function App() {
       window.location.href = '/project';
       return;
     }
+    // Conversational and Expert are independent sessions. A direct mode switch
+    // starts a fresh Decision so no brief, transcript, method state or attachments
+    // from the previous agent can enter the new agent's context. The old session
+    // remains in the library and can be reopened from History.
+    let previousMode: string | null = null;
+    try { previousMode = sessionStorage.getItem(START_MODE_KEY); } catch {}
+    if (previousMode && previousMode !== mode) {
+      const isolated = emptyDecision();
+      setDecisions((prev) => [isolated, ...prev]);
+      setActiveId(isolated.id);
+      setWorkspaceAttachments([]);
+      setProposedWorkspaceChangeSet(null);
+      setShowBrief(false);
+    }
     setExpertMode(mode === 'Expert');
     setStartMode(mode);
     try { sessionStorage.setItem(START_MODE_KEY, mode); } catch {}
   }
   function resetStartMode() {
+    // Leaving an agent ends its session. Keep it saved and give the next selected
+    // agent a blank Decision rather than reusing the previous transcript/context.
+    if (startMode === 'Simple' || startMode === 'Expert') {
+      const isolated = emptyDecision();
+      setDecisions((prev) => [isolated, ...prev]);
+      setActiveId(isolated.id);
+      setWorkspaceAttachments([]);
+      setProposedWorkspaceChangeSet(null);
+      setShowBrief(false);
+    }
     setStartMode(null);
     setExpertMode(false);
     try { sessionStorage.removeItem(START_MODE_KEY); } catch {}
