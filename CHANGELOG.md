@@ -1,3 +1,12 @@
+## P123.4 — Source health + key pool max 10 (any count 1..10)
+
+- **Key pool:** `MAX_ORG_KEY_SLOTS = 10` (was 13). Any number of configured keys from **1 to 10** is valid; solo deploy stays one key. Numbered env `GEMINI_API_KEY_1`…`_10` only; 11+ ignored.
+- **New** `server/sourceHealth.ts`: per-catalog-source cooldown + consecutive-failure breaker; `globalSourceHealth`.
+- **`executeModelCall`:** refuses calls when source is unhealthy; records success/failure into registry.
+- Catalog JSON `max_slots: 10`; docs/C123/inventory/env.example updated.
+- **Tests:** key pool variable counts; `tests/p123.4-source-health.test.mjs`.
+- package.json patch → `123.4`.
+
 ## P123.3 — Multi-source catalog + free-provider inventory
 
 - **Runtime catalog:** `config/model-sources.json` + `server/modelSourcesCatalog.ts` (`loadModelSourcesCatalog`, `enabledSources`, `runnableSources`).

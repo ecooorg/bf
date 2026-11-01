@@ -15,7 +15,7 @@
 
 1. Catalog-driven API sources with automatic failover (carousel).
 2. Lineage on every model call (`source_id`, `model`, `channel`, `key_slot`, time).
-3. Up to **13 organisational API key slots** per provider (13 participants — legitimate key sets).
+3. Up to **10 organisational API key slots** per provider (organisation participants (up to 10 keys per vendor) — legitimate key sets).
 4. Project rule: *what is not forbidden is permitted* — no written-vendor-permission gate blocks engineering.
 5. Official APIs first; browser channel optional later.
 6. Gemini free-key ids remain allowlisted (`3.5` / `3.1` flash-lite) until catalog owns validation.
@@ -28,9 +28,9 @@
 |-------|-------|-----------|--------|
 | P123.0.1 | DOCUMENTATION BASELINE | Close C122 in records; publish C123 mandate, catalog schema, org key-pool policy | DONE (this delivery) |
 | P123.1 | GATEWAY + LINEAGE | Unified `executeModelCall`; single-source Gemini behaviour preserved | DONE |
-| P123.2 | KEY POOL | Rotate up to 13 key slots on quota/429 | DONE |
+| P123.2 | KEY POOL | Rotate up to 10 key slots on quota/429 | DONE |
 | P123.3 | MULTI-SOURCE CATALOG | Load JSON catalog; inventory 20+ candidates; second API when keys exist | DONE |
-| P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience | PLANNED |
+| P123.4 | HEALTH / COOLDOWN / BREAKER | Per-source and per-slot resilience; key pool max 10 | DONE |
 | P123.5 | OPS PROBES | Optional scheduled health; secret naming; deploy notes | PLANNED |
 
 ### Frozen / out of scope during C123 MVP

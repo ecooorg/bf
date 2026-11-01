@@ -1,3 +1,8 @@
+# CURRENT EVIDENCE NOTE — P123.4 Source health + max 10 keys, 2026-11-01
+
+- Pool cap reduced to **10 keys per vendor**; tests assert intermediate sizes 1,2,3,7,10 all work.
+- Source-level breaker/cooldown in process memory; next ops patch can persist if needed.
+
 # CURRENT EVIDENCE NOTE — P123.3 Catalog + inventory, 2026-11-01
 
 - **Research basis:** freellm.today / gravity.fast / byoklist / KDnuggets (Oct–Nov 2026), Reddit AgentZero/LocalLLM/openrouter threads — not vendor marketing alone.
