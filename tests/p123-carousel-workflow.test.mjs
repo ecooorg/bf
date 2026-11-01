@@ -17,6 +17,7 @@ const keyPool = await load('server/keyPool.ts');
 const healthMod = await load('server/sourceHealth.ts');
 const carousel = await load('server/modelCarousel.ts');
 const { newRouterState } = await load('server/router.ts');
+const { REGISTRY_SEED } = await load('server/modelRegistry.ts');
 
 const {
   loadModelSourcesCatalog,
@@ -147,7 +148,7 @@ describe('C123 carousel workflow — source health', () => {
     const result = await executeModelCall(
       { requestId: 'wf-h', system: 's', prompt: 'p', json: false, metadata: {} },
       {
-        registry: fakeRegistry,
+        registry: REGISTRY_SEED.length ? REGISTRY_SEED : fakeRegistry,
         adapters: {
           gemini: {
             id: 'gemini',
@@ -189,7 +190,7 @@ describe('C123 carousel workflow — key rotation + lineage', () => {
     const result = await executeModelCall(
       { requestId: 'wf-rot', system: 's', prompt: 'p', json: true, metadata: {} },
       {
-        registry: fakeRegistry,
+        registry: REGISTRY_SEED.length ? REGISTRY_SEED : fakeRegistry,
         adapters: { gemini: build('ka') },
         state: newRouterState(),
         required: ['json_output'],
@@ -215,7 +216,7 @@ describe('C123 carousel workflow — key rotation + lineage', () => {
     const result = await executeModelCall(
       { requestId: 'wf-ex', system: 's', prompt: 'p', json: true, metadata: {} },
       {
-        registry: fakeRegistry,
+        registry: REGISTRY_SEED.length ? REGISTRY_SEED : fakeRegistry,
         adapters: { gemini: build('only') },
         state: newRouterState(),
         required: ['json_output'],

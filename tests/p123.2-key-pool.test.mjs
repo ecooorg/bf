@@ -32,7 +32,7 @@ describe('P123.2 key pool resolution (max 10, any count)', () => {
   });
 
   it('caps numbered keys at MAX_ORG_KEY_SLOTS and ignores 11+', () => {
-    assert.equal(MAX_ORG_KEY_SLOTS, 10);
+    assert.equal(MAX_ORG_KEY_SLOTS, 10, `expected max key slots 10, got ${MAX_ORG_KEY_SLOTS}`);
     const env = { GEMINI_API_KEY: 'k0' };
     for (let i = 1; i <= 15; i++) env[`GEMINI_API_KEY_${i}`] = `k${i}`;
     const slots = resolveGeminiKeySlots(env);

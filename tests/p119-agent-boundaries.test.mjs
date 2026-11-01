@@ -201,6 +201,7 @@ test('workflow inventory includes the canonical CI and Expert verification workf
   assert.deepEqual(names, [
     'acceptance.yml',
     'architect-compare.yml',
+    'carousel-verify.yml',
     'ci.yml',
     'expert-verify.yml',
     'ops.yml',
