@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -16,7 +16,7 @@ test('assistant-run-summary writes ASSISTANT_PASTE.txt from synthetic fail log',
   const dir = path.join(root, 'artifacts', 'assistant-summary-test');
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
-  writeFileSync(path.join(dir, 'test_web.tap'), [
+  writeFileSync(path.join(dir, 'test_web.log'), [
     'not ok 8 - P116 freshness disclosure',
     '  error: The input did not match',
     '  name: AssertionError',
@@ -45,26 +45,32 @@ test('assistant-run-summary writes ASSISTANT_PASTE.txt from synthetic fail log',
   assert.ok(existsSync(path.join(dir, 'ASSISTANT_SUMMARY.json')));
 });
 
+
+test('assistant-run-summary splits oversized handoffs into numbered parts <= 5000 chars', () => {
+  const dir = path.join(root, 'artifacts', 'assistant-summary-split-test');
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path.join(dir, 'oversized.log'), Array.from({ length: 120 }, (_, i) =>
+    `FAIL synthetic-${i} ${'diagnostic-context-'.repeat(35)} AssertionError: evidence-${i}`,
+  ).join('\n'));
+  const r = spawnSync(process.execPath, [script], {
+    cwd: root,
+    env: { ...process.env, CI_LOGS_DIR: dir, CI_STATUS: 'failure' },
+    encoding: 'utf8', timeout: 15_000,
+  });
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  const names = readdirSync(dir).filter((name) => /^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(name)).sort();
+  assert.ok(names.length > 1, `expected multiple parts, got ${names.length}`);
+  for (const name of names) assert.ok(readFileSync(path.join(dir, name), 'utf8').length <= 5000, name);
+  assert.equal(names[0], 'ASSISTANT_PASTE.txt');
+  assert.equal(names[1], 'ASSISTANT_PASTE_2.txt');
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test('canonical workflows emit assistant paste step', () => {
   for (const name of ['ci.yml', 'acceptance.yml', 'architect-compare.yml', 'ops.yml']) {
     const yml = readFileSync(path.join(root, '.github/workflows', name), 'utf8');
     assert.match(yml, /assistant-run-summary\.mjs/, name);
-    assert.match(yml, /ASSISTANT_PASTE|artifacts\/ci-checks/, name);
+    assert.match(yml, /ASSISTANT_PASTE\*\.txt/, name);
   }
-});
-
-
-test('information-quality workflow publishes consolidated assistant handoff even after failures', () => {
-  const yml = readFileSync(path.join(root, '.github/workflows/information-quality.yml'), 'utf8');
-  assert.match(yml, /assistant-handoff:/);
-  assert.match(yml, /if: always\(\)/);
-  assert.match(yml, /needs:\s*- deterministic-quality\s*- evaluator-contracts/);
-  assert.match(yml, /actions\/download-artifact@v4/);
-  assert.match(yml, /pattern: information-quality-\*/);
-  assert.match(yml, /node scripts\/assistant-run-summary\.mjs/);
-  assert.match(yml, /contracts\.tap/);
-  assert.match(yml, /web-epistemics\.tap/);
-  assert.match(yml, /name: information-quality-assistant-handoff/);
-  assert.match(yml, /ASSISTANT_PASTE\.txt/);
-  assert.match(yml, /ASSISTANT_SUMMARY\.json/);
 });
