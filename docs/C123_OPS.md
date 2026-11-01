@@ -36,3 +36,26 @@ JSON report: enabled / runnable sources, credential presence, in-process health 
 ## Flat patch rule
 
 `config/` is an allowed top-level folder (`scripts/patch-tools.mjs` `ALLOWED_TOP`). Catalog files live at `config/model-sources.json`.
+
+
+## Automated verification (P123.6)
+
+```bash
+# Deterministic (no secrets, no network model calls)
+npm run test:carousel
+
+# Live smoke (needs GEMINI_API_KEY)
+CAROUSEL_LIVE=true npm run test:carousel
+# or
+npm run carousel:live
+```
+
+GitHub Actions → **carousel-verify**:
+
+| Trigger | What runs |
+|---------|-----------|
+| PR / push touching carousel paths | Deterministic only |
+| Actions → Run workflow, `live=false` | Deterministic only |
+| Actions → Run workflow, `live=true` | Deterministic + live Gemini smoke |
+
+Repository secrets used for live: `GEMINI_API_KEY` (required), optional `GEMINI_API_KEY_1`… for pool size reporting / rotation path.
