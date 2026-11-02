@@ -1,3 +1,7 @@
+## P124.20 — Key rotation in direct mode (2026-11-02)
+
+Product version `124`, patch `124.20`. OBSERVED in source: direct Gemini helper rotates up to 3 pool keys on quota/auth/5xx. NOT_RUN: live quota-exhaustion scenario, hosted CI.
+
 ## P124.19 — Search grounding in direct mode (2026-11-02)
 
 Product version `124`, patch `124.19`. OBSERVED in source: the direct Conversational call includes the Gemini `googleSearch` tool and returns grounding sources. NOT_RUN: live Gemini call, hosted CI. Search success on the hosted service is unverified.

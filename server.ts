@@ -40,7 +40,8 @@ import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
 import { waitForModelStart } from './server/modelRateLimit.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
-import { resolveGeminiKeySlots, KeyPoolState } from './server/keyPool.ts';
+import { resolveGeminiKeySlots, KeyPoolState, classifyKeyError, shouldRotateKeySlot } from './server/keyPool.ts';
+import type { KeySlot } from './server/keyPool.ts';
 import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
@@ -707,29 +708,43 @@ function preferredModelFromRequest(req: express.Request): string | undefined {
   return typeof v === 'string' && v.trim() ? v.trim() : undefined;
 }
 
-/** P124.19: one direct Gemini text call with native Google Search grounding; no Serper, JSON parsing, retry, fallback, or reply rewriting. */
-async function generateGeminiPassThrough(prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = [], useSearch = false): Promise<{ text: string; model: string; durationMs: number; sources: WebSource[]; queries: string[] }> {
-  const key = byokKey || apiKey;
-  if (!key) throw Object.assign(new Error('No Gemini API key is configured.'), { code: 'MODEL_NOT_CONFIGURED' });
+/** P124.19/P124.20: one direct Gemini text call with Google Search grounding; tries up to 3 pool keys on quota/auth/5xx only; no Serper, JSON parsing, provider fallback, or reply rewriting. */
+const MAX_DIRECT_KEY_ATTEMPTS = 3;
+async function generateGeminiPassThrough(prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = [], useSearch = false): Promise<{ text: string; model: string; durationMs: number; sources: WebSource[]; queries: string[]; keySlot: number; keyAttempts: number }> {
+  const poolSlots = geminiKeyPoolState.available(geminiKeySlots);
+  const slots: KeySlot[] = byokKey ? [{ slot: -1, envName: 'BYOK', key: byokKey }] : (poolSlots.length ? poolSlots : geminiKeySlots);
+  if (!slots.length) throw Object.assign(new Error('No Gemini API key is configured.'), { code: 'MODEL_NOT_CONFIGURED' });
   const model = modelsFor('strong', preferredModel)[0];
   if (!model) throw new Error('No Gemini model is available.');
   await waitForModelStart(model);
-  const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), LLM_PER_CALL_TIMEOUT_MS);
-  const started = Date.now();
-  try {
-    const response = await client.models.generateContent({
-      model,
-      contents: [{ role: 'user', parts: [{ text: prompt }, ...extraParts] }],
-      config: { abortSignal: controller.signal, temperature: 0.2, ...(useSearch ? { tools: [googleSearchToolForModel(model)] } : {}) },
-    });
-    if (typeof response.text !== 'string' || !response.text.length) throw new Error('Gemini returned an empty text response.');
-    const { sources, queries } = useSearch ? extractGrounding(response) : { sources: [] as WebSource[], queries: [] as string[] };
-    return { text: response.text, model, durationMs: Date.now() - started, sources, queries };
-  } finally {
-    clearTimeout(timeout);
+  const attempts = Math.min(slots.length, MAX_DIRECT_KEY_ATTEMPTS);
+  let lastError: any;
+  for (let i = 0; i < attempts; i++) {
+    const { slot, key } = slots[i];
+    const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), LLM_PER_CALL_TIMEOUT_MS);
+    const started = Date.now();
+    try {
+      const response = await client.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: prompt }, ...extraParts] }],
+        config: { abortSignal: controller.signal, temperature: 0.2, ...(useSearch ? { tools: [googleSearchToolForModel(model)] } : {}) },
+      });
+      if (typeof response.text !== 'string' || !response.text.length) throw new Error('Gemini returned an empty text response.');
+      const { sources, queries } = useSearch ? extractGrounding(response) : { sources: [] as WebSource[], queries: [] as string[] };
+      return { text: response.text, model, durationMs: Date.now() - started, sources, queries, keySlot: slot, keyAttempts: i + 1 };
+    } catch (e: any) {
+      lastError = e;
+      const cls = classifyKeyError(e);
+      if (!shouldRotateKeySlot(cls)) throw e;
+      if (slot >= 0) geminiKeyPoolState.markCooldown(slot, Date.now(), cls === 'PROVIDER_TRANSIENT' ? 30_000 : undefined);
+      console.warn(JSON.stringify({ type: 'gemini_direct_key_rotated', keySlot: slot, errorClass: cls, attempt: i + 1, of: attempts }));
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  throw lastError;
 }
 
 async function generate(
@@ -1209,7 +1224,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       void recordApplicationLog({ level: 'info', component: 'conversation', event: 'gemini_direct_passthrough', requestId,
         message: 'Direct Gemini text returned without application rewriting', details: {
           provider: 'gemini', model: direct.model, searchEnabled: directSearch, searchInvoked: direct.queries.length > 0 || direct.sources.length > 0,
-          searchQueries: direct.queries, sourceCount: direct.sources.length, externalFallbackInvoked: false,
+          searchQueries: direct.queries, sourceCount: direct.sources.length, keySlot: direct.keySlot, keyAttempts: direct.keyAttempts, externalFallbackInvoked: false,
           rawOutput: direct.text, visibleReply: direct.text, rawOutputSha256: outputHash,
           visibleReplySha256: outputHash, outputModified: false, durationMs: direct.durationMs,
         } });
@@ -1217,7 +1232,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         reply: direct.text, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
         document: null, attachmentNotes: [], ...(direct.sources.length ? { sources: direct.sources } : {}), state: safeState,
-      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, search: !directSearch ? 'disabled' : (direct.sources.length || direct.queries.length ? 'used' : 'enabled_not_used') });
+      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, key_attempts: direct.keyAttempts, search: !directSearch ? 'disabled' : (direct.sources.length || direct.queries.length ? 'used' : 'enabled_not_used') });
     }
 
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.

@@ -1,3 +1,10 @@
+## P124.20 — Key rotation in direct Gemini mode (2026-11-02)
+
+- The direct Conversational call now tries up to 3 keys from the organisational pool (`GEMINI_API_KEY`, `GEMINI_API_KEY_1…10`) when a key returns quota (429), auth (401/403) or 5xx errors. A failed key is cooled down (5 min; 30 s for 5xx) via the shared `KeyPoolState`.
+- Timeouts and other errors are not rotated; a request-level BYOK key is used alone. Still one successful Gemini call, no provider fallback, reply text unchanged.
+- Added `classifyKeyError` (`server/keyPool.ts`); logs and meta report `keySlot`/`keyAttempts` (slot number only, never key material).
+- Verification: source-level and classifier tests run locally; hosted CI and live rotation NOT_RUN.
+
 ## P124.19 — Google Search grounding restored in direct Gemini mode (2026-11-02)
 
 - The direct Conversational path now passes `tools: [googleSearchToolForModel(model)]` to its single `generateContent` call (unless `ENABLE_WEB_SEARCH` is off), so Gemini can ground answers in live Google Search results.
