@@ -176,7 +176,7 @@ jobs:
         with: { node-version-file: .nvmrc, cache: npm }
       - name: Install dependencies
         run: mkdir -p artifacts/expert && npm ci 2>&1 | tee artifacts/expert/e2e-00-dependencies.log
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
