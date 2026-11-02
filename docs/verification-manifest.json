@@ -186,8 +186,7 @@
    "needs": [
     "critical-router-selection",
     "critical-router-policy-call-limit",
-    "critical-gemini-timeout",
-    "critical-app-builder-recovery"
+    "critical-gemini-timeout"
    ],
    "timeoutMs": 120000,
    "critical": true,
@@ -222,8 +221,7 @@
    "needs": [
     "critical-router-selection",
     "critical-router-policy-call-limit",
-    "critical-gemini-timeout",
-    "critical-app-builder-recovery"
+    "critical-gemini-timeout"
    ],
    "timeoutMs": 75000,
    "critical": true,
@@ -243,8 +241,7 @@
    "needs": [
     "critical-router-selection",
     "critical-router-policy-call-limit",
-    "critical-gemini-timeout",
-    "critical-app-builder-recovery"
+    "critical-gemini-timeout"
    ],
    "timeoutMs": 75000,
    "critical": true,
@@ -264,8 +261,7 @@
    "needs": [
     "critical-router-selection",
     "critical-router-policy-call-limit",
-    "critical-gemini-timeout",
-    "critical-app-builder-recovery"
+    "critical-gemini-timeout"
    ],
    "timeoutMs": 75000,
    "critical": true,
@@ -285,8 +281,7 @@
    "needs": [
     "critical-router-selection",
     "critical-router-policy-call-limit",
-    "critical-gemini-timeout",
-    "critical-app-builder-recovery"
+    "critical-gemini-timeout"
    ],
    "timeoutMs": 150000,
    "critical": true,
@@ -306,8 +301,7 @@
    "needs": [
     "critical-router-selection",
     "critical-router-policy-call-limit",
-    "critical-gemini-timeout",
-    "critical-app-builder-recovery"
+    "critical-gemini-timeout"
    ],
    "timeoutMs": 120000,
    "critical": true,
