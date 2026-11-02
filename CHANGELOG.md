@@ -1,10 +1,12 @@
-## P124.5 Diagnostics, current-contract tests, and acceptance workflow
+## P124.5 workflow diagnostics and stale-contract test repair
 
-- Replaced assertions tied to retired Expert stage wording and the V17 prompt marker with assertions for the current prompt contract.
-- Updated attachment-summary tests to preserve model-provided Markdown, matching the current response contract.
-- Corrected the verification DAG test to distinguish shared critical prerequisites from the additional App Builder recovery prerequisite.
-- Split browser acceptance from the full CI DAG to remove duplicate execution; CI remains the canonical deterministic, database, and build gate.
-- Added a shared diagnostics report format: summary.md, summary.json, tests.log, failures.log, and environment.log.
+- Replaced the fragmented `ASSISTANT_PASTE*.txt` / nested ZIP handoff with exactly one `ASSISTANT_SUMMARY.md` per workflow. The handoff contains run identity, overall status, per-log check inventory, TAP counts, failure excerpts, and reproduction guidance.
+- Standardized companion logs as `checks.log`, `failures.log`, and `environment.log`; raw command logs use numbered, purpose-based filenames. The summary aggregates TAP output across multiple suites, expands structured DAG results into per-check status/duration/rerun commands, includes compact structured-report fields, and redacts secrets in uploaded evidence. Workflow artifacts expose the single summary and readable logs directly, without nested diagnostic ZIPs. CI history reads the new `checks.log` artifact format while retaining legacy-artifact compatibility.
+- Removed the duplicate full CI DAG from manual browser acceptance; the CI workflow owns the complete verification DAG, while acceptance owns browser journeys.
+- Updated the DAG dependency contract so the App Builder suite waits for its dedicated recovery probe, without imposing that unrelated probe on other suites.
+- Updated stale regression assertions to the current C124 contracts: Expert stage wording, ANALYST instruction wording, Decision-mode prompt wording, preserved Markdown in generated content and conversational replies, URL-comment whitespace, and App Builder spec prompt/cache version.
+- Changed test server launches from the `tsx` wrapper to `node --import tsx`, ensuring cleanup signals target the actual server process rather than leaving orphaned child processes.
+- Local deterministic diagnostics/DAG tests: PASS (13/13); changed JavaScript syntax checks, workflow YAML parsing, docs integrity and version metadata: PASS. Full runtime suites/typecheck/build/browser/live checks are NOT_RUN because the supplied environment's `node_modules/tsx` directory is empty (dependency installation is unavailable in this run).
 
 ## P124.4 Architect and App Builder prompt refinement
 

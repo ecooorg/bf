@@ -1,21 +1,27 @@
-## CURRENT EVIDENCE NOTE — P124.5 diagnostics and test-contract repair (2026-11-02)
+## CURRENT EVIDENCE NOTE — P124.5 workflow diagnostics and regression repair (2026-11-02)
 
-**Patch identity:** product version `124`, patch `124.5`. **Scope:** stale test assertions after instruction optimization, verification workflow overlap, and diagnostic artifact consistency.
+**Patch identity:** product version `124`, patch `124.5`. **Scope:** repair stale test contracts after C124 prompt/output optimization; standardize workflow diagnostics and remove duplicate acceptance DAG execution.
 
-### Implemented
+### Implemented changes
 
-- Updated Expert dialogue assertions to the current `Current UI workflow stage` wording and current empty-context behavior.
-- Removed the retired V17 marker requirement from the core integration test; it now verifies the current prompt framing and absence of the retired marker.
-- Updated the file-attachment summary test to assert that Markdown formatting is preserved.
-- Corrected DAG prerequisite expectations: common critical probes gate the core suites; App Builder additionally waits for its recovery probe.
-- Changed `acceptance.yml` into a focused browser acceptance workflow; the full DAG, database checks, and build remain in `ci.yml`.
-- Added a common diagnostics collector producing `summary.md`, `summary.json`, `tests.log`, `failures.log`, and `environment.log`.
+- Updated tests to assert current Expert stage/context labels, ANALYST structured-analysis wording, Decision-mode prompt label, current App Builder specification prompt and cache version, and whitespace-tolerant source comment contracts.
+- Updated Markdown assertions to match the documented P124.3 output-fidelity contract: BiForge preserves model-authored Markdown in chat and structured document content; tests no longer demand the retired stripping behavior.
+- Changed test server child processes to invoke Node with the `tsx` loader directly, so termination signals reach the actual server process.
+- Added `scripts/diagnostics-summary.mjs`: every migrated workflow emits one self-contained `ASSISTANT_SUMMARY.md` plus `checks.log`, `failures.log`, and `environment.log`. Raw logs are named by order and purpose. No split assistant paste files or nested log ZIPs are produced by the migrated workflows.
+- Kept the full CI verification DAG in `ci.yml`; manual end-to-end acceptance now runs browser journeys only and performs its own build. Added the App Builder recovery probe as a prerequisite of the App Builder suite only. CI history can read the new `checks.log` artifact while retaining compatibility with previous artifacts.
 
-### Verification limits
+### Verification evidence
 
-- Source and CI-log analysis completed against the supplied archive.
-- `npm ci --ignore-scripts --no-audit --no-fund` did not complete within the available execution window. Therefore no post-change Node test suite, typecheck, build, browser run, or live PostgreSQL run is claimed as PASS.
-- CI logs supplied with the archive show the pre-patch baseline had 22 DAG checks PASS, 5 FAIL, 1 TIMEOUT, and 0 BLOCKED. Failures included stale core/pipeline/file assertions and several App Builder checks; App Builder failures remain subject to runtime re-verification.
+- `node --test tests/diagnostics-summary-contract.test.mjs tests/assistant-run-summary-contract.test.mjs tests/dag-p107.test.mjs` — **PASS, 13/13**.
+- `node --check` on all changed JS/MJS tests and the diagnostics generator — **PASS**.
+- YAML parse of all seven workflow files — **PASS**.
+- `node scripts/version-metadata.mjs` — **PASS** (`124`, patch `124.5`).
+- `node scripts/docs-integrity.mjs` — **PASS**.
+- Full `test:core`, `test:files`, `test:pipeline`, `test:web`, `test:app-builder`, typecheck, build, browser e2e, PostgreSQL live and provider-backed checks — **NOT_RUN**: supplied `node_modules` is incomplete (`tsx` package directory is empty); no claim of runtime PASS is made.
+
+### Acceptance boundary
+
+The deterministic tests verify diagnostic formatting, workflow references, DAG prerequisites and source-contract changes. They do not establish live provider answer quality, deployed behavior, browser user outcomes or hosted GitHub Actions results. The next CI run should attach only `ASSISTANT_SUMMARY.md` when requesting assistant diagnosis; the additional three named logs and raw test logs are available for deeper inspection.
 
 ## CURRENT EVIDENCE NOTE — P124.4 Architect and App Builder prompt refinement (2026-11-01)
 
