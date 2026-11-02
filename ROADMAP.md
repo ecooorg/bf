@@ -2,6 +2,8 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
+> **P124.0.16 status:** The P92 diagnostics contract test has been aligned with P124.0.15 full-content capture: conversation evidence is expected, while credentials remain redacted. Runtime behavior is unchanged. Targeted test and hosted CI rerun are pending.
+
 > **P124.0.15 status:** Simple and Expert expose the shared authenticated diagnostic log in More. For the single-user test phase, conversation logs include user history, normalized model input, assembled prompt, raw model output, agent-cleaned output, final visible reply, search query/results, response metadata, and fallback context. Credentials, cookies and authentication tokens remain redacted. Local and hosted verification for this revised delivery is pending; this instrumentation does not itself resolve answer truncation.
 
 ## P124.3 — response-path fidelity cleanup

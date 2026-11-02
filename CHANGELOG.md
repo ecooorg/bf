@@ -1,3 +1,10 @@
+## P124.0.16 — align legacy diagnostics contract test with full-content capture (2026-11-02)
+
+- Updated the P92 diagnostics contract test: it no longer requires user prompts and conversation bodies to be omitted, which conflicts with the single-user diagnostic capture policy introduced in P124.0.15.
+- The test now asserts that conversation evidence markers are present and credential-like fields remain redacted.
+- No runtime behavior changed. Patch metadata advanced to `124.0.16`.
+- Verification: targeted diagnostics test and full hosted CI are NOT_RUN in this assembly; rerun `npm run test:project-diagnostics` and the complete Core CI workflow.
+
 ## P124.0.15 — Simple and Expert diagnostic access and response-pipeline telemetry (2026-11-02)
 
 - Added `More → Diagnostic log` to the shared Simple/Expert header, with an on-screen bounded log viewer, copy, and refresh actions.

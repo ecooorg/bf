@@ -1,3 +1,19 @@
+## CURRENT EVIDENCE NOTE — P124.0.16 diagnostics contract test repair (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.0.16`.
+
+### Finding
+
+Hosted CI for P124.0.15 failed only in `tests/project-diagnostics-p92.test.mjs`: its P92 assertion still required the compact session log to omit request/response bodies and prompts. That assertion contradicted the single-user full-conversation capture policy introduced in P124.0.15. The implementation was not changed.
+
+### Repair
+
+The stale assertion and test name were replaced with contract checks for retained conversation evidence markers and continued credential redaction. The test also verifies that the model system instruction, assembled prompt, raw output, cleaned reply, and final visible reply are instrumented.
+
+### Verification
+
+Targeted test, typecheck, build, and hosted CI rerun are **NOT_RUN** in this assembly. The required first rerun is `npm run test:project-diagnostics`, followed by the complete Core CI workflow.
+
 ## CURRENT EVIDENCE NOTE — P124.0.15 full-content diagnostics (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.0.15`. **Baseline:** reconstructed P124.0.14 source tree with the original P124.0.15 menu patch applied.
