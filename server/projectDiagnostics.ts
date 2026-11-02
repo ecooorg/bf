@@ -57,6 +57,7 @@ export async function recentApplicationLogs(limit = 1000): Promise<{ logs: Recor
 export function requestDiagnosticsMiddleware(req: any, res: any, next: () => void): void {
   const supplied = String(req.headers?.['x-request-id'] ?? '');
   const requestId = /^[a-zA-Z0-9_.:-]{1,80}$/.test(supplied) ? supplied : crypto.randomUUID();
+  req.requestId = requestId;
   const started = Date.now(); res.setHeader('x-request-id', requestId);
   res.on('finish', () => {
     const details = { method: String(req.method || '').slice(0, 12), path: String(req.path || '/').split('?')[0].slice(0, 180), statusCode: Number(res.statusCode) || 0, durationMs: Math.max(0, Date.now() - started), responseBytes: Number(res.getHeader('content-length')) || undefined };
@@ -137,6 +138,8 @@ export async function compactSessionLog(): Promise<string> {
   const matching = detailed.logs.filter((row: any) => operationId && row.operationId === operationId);
   const browser = detailed.logs.filter((row: any) => row.component === 'browser').slice(-100);
   const http = detailed.logs.filter((row: any) => row.component === 'http').slice(-100);
+  const conversations = detailed.logs.filter((row: any) => row.component === 'conversation').slice(-80);
+  const conversationHttp = http.filter((row: any) => /\/api\/(agent\/conversational|conversation|agent\/expert)/.test(String(row.details?.path || ''))).slice(-40);
   const events = operationId ? operations.events.filter((e) => e.operationId === operationId).reverse() : [];
   const runtime = await systemDiagnostics();
   const lines = [
@@ -155,6 +158,10 @@ export async function compactSessionLog(): Promise<string> {
     ...(matching.length ? matching.slice(-100).map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.component}/${row.event} request=${row.requestId ?? '-'} message=${sanitizeLogText(row.message, 300)} code=${row.errorCode ?? '-'}${row.stack ? ` stack=${sanitizeLogText(row.stack, 700)}` : ''}`) : ['NO_APPLICATION_LOGS_MATCHED_OPERATION']),
     'BROWSER_AFTER_SCREEN_STATE:',
     ...(browser.length ? browser.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} message=${sanitizeLogText(row.message, 400)} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 500)}`) : ['NO_BROWSER_EVENTS_CAPTURED; likely old client, page left before flush, or client telemetry endpoint unavailable']),
+    'RECENT_CONVERSATION_PIPELINE:',
+    ...(conversations.length ? conversations.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} request=${row.requestId ?? '-'} message=${sanitizeLogText(row.message, 240)} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 700)}`) : ['NO_CONVERSATION_PIPELINE_EVENTS_CAPTURED']),
+    'RECENT_CONVERSATION_HTTP_REQUESTS:',
+    ...(conversationHttp.length ? conversationHttp.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} request=${row.requestId ?? '-'} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 400)}`) : ['NO_CONVERSATION_HTTP_REQUESTS_CAPTURED']),
     'RECENT_HTTP_REQUESTS:',
     ...(http.length ? http.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 500)}`) : ['NO_HTTP_REQUEST_TRACE_AVAILABLE']),
     'LIMITS: request/response bodies, prompts, generated source, credentials and cookies are intentionally excluded. Browser trace is bounded and starts when ProjectMode mounts; a crash before mount cannot be captured by this hook. Browser download completion is inferred only from browser events when available, never from server response alone.'
