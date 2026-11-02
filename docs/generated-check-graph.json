@@ -263,18 +263,20 @@
     },
     {
       "id": "test:compact-ci-artifacts",
-      "command": "node --test tests/c124-architect-appbuilder-prompt.test.mjs tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs",
+      "command": "node --test tests/c124-architect-appbuilder-prompt.test.mjs tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs tests/diagnostics-summary-contract.test.mjs tests/assistant-run-summary-contract.test.mjs",
       "needs": [],
       "profiles": [
         "check",
         "ci"
       ],
       "files": [
+        "tests/assistant-run-summary-contract.test.mjs",
         "tests/c124-architect-appbuilder-prompt.test.mjs",
         "tests/capability-graph-p111.test.mjs",
         "tests/compact-ci-artifacts-p94.test.mjs",
         "tests/context-select-p112.test.mjs",
         "tests/dag-p107.test.mjs",
+        "tests/diagnostics-summary-contract.test.mjs",
         "tests/evidence-p105.test.mjs",
         "tests/fault-injection-p108.test.mjs",
         "tests/intent-contract-p110.test.mjs",
@@ -293,16 +295,15 @@
         "scripts/ci-summary.mjs",
         "scripts/contextSelectLib.mjs",
         "scripts/dagLib.mjs",
+        "scripts/diagnostics-summary.mjs",
         "scripts/evidenceLib.mjs",
         "scripts/faultInjectionLibP108.mjs",
         "scripts/intentContractLib.mjs",
-        "scripts/package-ci-artifacts.mjs",
         "scripts/patch-quality-report.mjs",
         "scripts/run-dag.mjs",
         "scripts/schemaValidate.mjs",
         "scripts/statusGraph.mjs",
         "server/contextBuilder.ts",
-        "server/expertAgent.ts",
         "server/githubIntegration.ts",
         "src/config.ts"
       ]
@@ -313,8 +314,7 @@
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
-        "critical-gemini-timeout",
-        "critical-app-builder-recovery"
+        "critical-gemini-timeout"
       ],
       "profiles": [
         "check",
@@ -468,8 +468,7 @@
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
-        "critical-gemini-timeout",
-        "critical-app-builder-recovery"
+        "critical-gemini-timeout"
       ],
       "profiles": [
         "check",
@@ -540,8 +539,7 @@
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
-        "critical-gemini-timeout",
-        "critical-app-builder-recovery"
+        "critical-gemini-timeout"
       ],
       "profiles": [
         "check",
@@ -618,8 +616,7 @@
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
-        "critical-gemini-timeout",
-        "critical-app-builder-recovery"
+        "critical-gemini-timeout"
       ],
       "profiles": [
         "check",
@@ -761,8 +758,7 @@
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
-        "critical-gemini-timeout",
-        "critical-app-builder-recovery"
+        "critical-gemini-timeout"
       ],
       "profiles": [
         "check",
@@ -863,6 +859,9 @@
     "scripts/dagLib.mjs": [
       "test:compact-ci-artifacts"
     ],
+    "scripts/diagnostics-summary.mjs": [
+      "test:compact-ci-artifacts"
+    ],
     "scripts/docs-integrity.mjs": [
       "docs-integrity",
       "test:core"
@@ -911,9 +910,6 @@
     ],
     "scripts/p120-e2e-preflight.mjs": [
       "test:core"
-    ],
-    "scripts/package-ci-artifacts.mjs": [
-      "test:compact-ci-artifacts"
     ],
     "scripts/patch-pack.mjs": [
       "critical-gemini-timeout",
@@ -1050,7 +1046,6 @@
       "test:web"
     ],
     "server/expertAgent.ts": [
-      "test:compact-ci-artifacts",
       "test:core",
       "test:pipeline",
       "test:web"

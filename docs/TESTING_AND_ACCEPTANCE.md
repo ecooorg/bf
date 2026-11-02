@@ -1,17 +1,3 @@
-## CI workflow ownership and diagnostic artifacts
-
-The repository uses seven focused workflows:
-
-- `ci.yml` — canonical push/PR gate: verification DAG, database integration, build, and UI smoke.
-- `acceptance.yml` — browser acceptance for user-visible flows; it deliberately does not rerun the CI DAG.
-- `expert-verify.yml` — Expert-specific contracts, coverage, repeatability, browser journey, and optional live-model evaluation.
-- `information-quality.yml` — deterministic browser acceptance and information-quality evaluator contracts for all three agents.
-- `carousel-verify.yml` — model catalog, key-pool, source-health, gateway, and opt-in live provider smoke.
-- `architect-compare.yml` — explicitly dispatched staging comparison of Architect implementations.
-- `ops.yml` — explicitly dispatched operational diagnostics and dry-run probes.
-
-Each workflow that publishes diagnostics uses `scripts/diagnostics-report.mjs`. The canonical handoff directory contains `summary.md` (assistant-readable overview), `summary.json` (machine-readable statuses), `tests.log` (captured test output), `failures.log` (failure context), and `environment.log` (run metadata). A missing or unexecuted check is never represented as PASS.
-
 ## P124.4 Architect and App Builder prompt regression
 
 - `tests/c124-architect-appbuilder-prompt.test.mjs` verifies that planner architecture follows the user goal rather than a fixed single-file bias, reviewer feedback distinguishes functional defects from optional style, coder instructions preserve requested features and do not invent external interfaces/data, recovery keeps the complete prompt context, prompt/cache versions are advanced, and Architect project analysis distinguishes general knowledge from project-specific facts.
@@ -35,7 +21,10 @@ A PASS from the deterministic output-fidelity tests proves only the tested trans
 - `npm run test:compact-ci-artifacts` — verify failed logs retained and successful-stage logs omitted.
 - `node scripts/run-dag.mjs --profile check` — run after the targeted suites pass.
 
-## P123.22 CI logging policy
+## P123.22 CI logging policy (historical; superseded by P124.5)
+
+P124.5 replaces the former multi-part paste and nested ZIP policy below with one `ASSISTANT_SUMMARY.md` plus three consistent readable logs; see “Unified workflow diagnostics handoff”. The following describes the superseded P123.22 implementation only.
+
 The primary `ASSISTANT_PASTE` handoff is failure-first: report failed stages, timeouts, blocked/not-run checks, concise failure tails, and next actions. Do not enumerate successful checks. The diagnostic ZIP retains reports, structured result/metrics/history files, prompt snapshot diagnostics, and logs belonging to failed or timed-out checks; successful-stage logs and incidental files are omitted. Validate both failure and green runs in GitHub Actions.
 
 ## P123.21 targeted regression checks
@@ -158,6 +147,8 @@ Report exact commands run and outcomes. For a docs-only patch, product E2E, live
 - If no numeric current observation is retrieved, the agent must state that limitation rather than invent a temperature.
 
 
-## Assistant paste artifact size contract
+## Unified workflow diagnostics handoff
 
-Every workflow must publish `ASSISTANT_PASTE.txt` and, when required, consecutively numbered `ASSISTANT_PASTE_2.txt`, `ASSISTANT_PASTE_3.txt`, etc. Each file must contain no more than 5,000 characters. The complete set must preserve the generated summary without truncation; complete logs and evidence remain available in `biforge-ci-logs.zip`.
+Every diagnostic workflow publishes exactly one assistant handoff file: `ASSISTANT_SUMMARY.md`. It must be self-contained and include workflow/run/commit identity, overall status, every discovered check with PASS/FAIL/BLOCKED/NOT_RUN status, TAP counts, failure excerpts with source locations when available, and focused reproduction guidance. Do not split the handoff into numbered parts and do not require a nested ZIP to understand the result.
+
+Every workflow uses the same companion log names: `checks.log` (per-log/per-suite results), `failures.log` (error excerpts and context), and `environment.log` (run and runtime metadata). Preserve raw test output in plainly named logs such as `01-dependencies.log`, `02-verification-dag.log`, and `03-ui-smoke.log`. Upload the one handoff and the readable logs as a single workflow artifact. The assistant should normally need only `ASSISTANT_SUMMARY.md`; companion/raw logs are for deeper investigation.
