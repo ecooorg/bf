@@ -1,3 +1,26 @@
+## CURRENT EVIDENCE NOTE — P124.11 outbound web-fetch hardening and response headers (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.11`. **Scope:** audit recommendations R-02 and R-03 (partial; CSP deferred pending UI validation).
+
+### Implemented changes
+
+- Web page URL validation rejects non-HTTP(S) schemes, URL credentials, localhost/internal/local hostnames, private/reserved/non-global IP literals, and IPv4-mapped private IPv6 addresses.
+- Hostnames are resolved before outbound requests and all returned addresses must be public. Direct retrieval uses manual redirects with per-hop validation, a four-hop ceiling, content-type allowlisting, and a 1 MB streaming response cap.
+- Jina Reader remains an optional extraction proxy. Documentation now states that target URLs are disclosed to Jina and that its internal DNS resolution/redirect behavior cannot be controlled by this process.
+- Added `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`, production-only HSTS, and disabled Express `X-Powered-By`.
+- Added tests for private/loopback/link-local/internal URL rejection, public/private IP classification, and production-vs-development header behavior.
+
+### Verification
+
+- `node scripts/version-metadata.mjs` — **PASS** (`124`, patch `124.11`).
+- `npm audit --omit=dev --audit-level=high` — **BLOCKED**: npm registry DNS/network unavailable (`EAI_AGAIN registry.npmjs.org`); vulnerability state is not established.
+- Runtime tests, TypeScript typecheck, build, browser E2E, full DAG and hosted Actions — **NOT_RUN**: supplied green archive has no installed `node_modules`; dependency installation is unavailable in this environment.
+- Static review confirms direct fetch redirect mode is `manual`, every hop is revalidated, and response bodies are streamed under a byte cap. DNS rebinding between validation and the runtime fetch remains a residual risk because the global Fetch API does not pin the validated address in this implementation. Jina Reader's own fetch behavior is outside local enforcement.
+
+### Boundary
+
+This patch reduces the SSRF attack surface and adds baseline browser security headers; it is not a penetration-test result. CSP enforcement is intentionally deferred because it can break script/style loading or UI completion surfaces and requires report-only plus browser E2E evidence under `AGENTS.md` G4. Hosted CI and live deployment behavior remain **NOT_RUN**.
+
 ## CURRENT EVIDENCE NOTE — P124.10 diagnostics classification and emergency-screen test repair (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.10`. **Scope:** audit recommendations R-04 and R-05 (`DEF-02`, `DEF-03`).

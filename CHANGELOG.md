@@ -1,3 +1,11 @@
+## P124.11 outbound web-fetch hardening and baseline response headers
+
+- Hardened search-result URL eligibility: reject non-HTTP(S), embedded credentials, localhost/internal/local names, and private/reserved/non-global IP literals (including IPv4-mapped IPv6).
+- Added DNS resolution checks that fail closed when any resolved address is non-public. Direct page retrieval now handles redirects manually, revalidates each hop, caps redirects at four, restricts content types, and enforces a 1 MB response-body limit.
+- Kept Jina Reader as the extraction proxy, but documented that selected target URLs are disclosed to Jina and that its own DNS/redirect behavior is outside BiForge's control.
+- Added baseline security response headers, production-only HSTS, and disabled Express `X-Powered-By`. CSP remains unenforced pending report-only validation of the deployed UI and integrations.
+- Added negative URL/IP tests and a security-header middleware contract test. Bumped patch metadata to `124.11`.
+
 ## P124.10 diagnostics classification and emergency-screen regression repair
 
 - Repaired the emergency-screen contract test to read the configured `MAX_ENTRIES` value instead of freezing the historical value `120`; wired the test into `test:core` so it runs in the CI DAG.

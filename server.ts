@@ -62,6 +62,7 @@ import { buildTaskPackageFromBrief } from './server/briefWriter.ts';
 import { routeCall, newRouterState } from './server/router.ts';
 import { startKeepAlive } from './server/keepAlive.ts';
 import { readLatencyPolicy, shouldSkipQualityRetry, trimOlderAssistantMessages, createPhaseTimer } from './server/latencyPolicy.ts';
+import { securityHeadersMiddleware } from './server/securityHeaders.ts';
 
 dotenv.config();
 void recordApplicationLog({ level: 'info', component: 'runtime', event: 'process_boot', message: 'BiForge server process initialized', details: { node: process.version, nodeEnv: process.env.NODE_ENV || 'development', appVersion: APP_VERSION, projectModeEnabled: process.env.ENABLE_PROJECT_MODE === 'true', appBuilderEngine: process.env.APP_BUILDER_ENGINE || 'legacy', hasDatabaseUrl: Boolean(process.env.DATABASE_URL), hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) } });
@@ -71,6 +72,8 @@ const __dirname = path.dirname(__filename);
 // Source execution uses ./dist; compiled production server lives in ./dist-server.
 const DIST_DIR = path.basename(__dirname) === 'dist-server' ? path.resolve(__dirname, '../dist') : path.resolve(__dirname, 'dist');
 const app = express();
+app.disable('x-powered-by');
+app.use(securityHeadersMiddleware(process.env.NODE_ENV === 'production'));
 app.use(requestDiagnosticsMiddleware);
 const PORT = Number(process.env.PORT) || 3000;
 const MAX_BODY = Number(process.env.MAX_BODY_BYTES) || 256 * 1024;
