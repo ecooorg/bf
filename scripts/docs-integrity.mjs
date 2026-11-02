@@ -13,7 +13,7 @@ const required = [
   ['ROADMAP.md', ['CURRENT ROADMAP CONTROL', 'There is no persistent `NEXT_PATCH.md`', 'Current known high-priority product gap (revalidate every session)', 'Roadmap and history rules']],
   ['TECHNICAL_REPORT.md', ['CURRENT EVIDENCE NOTE', 'Evidence boundary']],
   ['CHANGELOG.md', ['Session governance and documentation consolidation']],
-  ['README.md', ['mandatory governance, obligation map, session-start protocol', 'There is no persistent next-patch assignment file']],
+  ['README.md', ['AGENTS.md', 'mandatory governance, obligation map, session-start protocol']],
   ['docs/ARCHITECTURE.md', ['Architect user-flow invariant']],
   ['docs/API_CONTRACTS.md', ['Architect endpoints must implement one flow']],
   ['docs/TESTING_AND_ACCEPTANCE.md', ['Acceptance hierarchy', 'Architect acceptance scenario']],
