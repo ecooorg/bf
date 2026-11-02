@@ -1,3 +1,37 @@
+## P124.0.12 — security redaction, immutable CI and documentation maintenance
+
+**Status:** targeted dependency-free checks PASS; full suite BLOCKED by unavailable npm registry/cache; hosted CI and live behavior NOT_RUN. This is not a release acceptance claim.
+
+**Baseline:** supplied `bf-124-9-green.zip` with P124.10 and P124.11 overlays applied in sequence. Patch identity follows `AGENTS.md`: `package.json` version `124`, patch `124.0.12`.
+
+**Implemented:**
+- Secret redaction inventory now includes Serper, Cloudflare API token, GitHub token and Gemini slots derived from `resolveGeminiKeySlots`; string redaction catches common Google/GitHub/OpenAI credential formats and `x-byok-key` header values. Recursive object redaction treats `x-byok-key` as sensitive.
+- CI external actions are pinned to full commit SHAs: checkout v7.0.1, setup-node v7.1.0, cache v6.1.0, upload-artifact v7.0.2, download-artifact v8.0.2, gitleaks-action v3.0.0. These actions use Node 24 and require self-hosted runners at 2.327.1 or newer; GitHub-hosted runners satisfy this requirement. Dependabot checks GitHub Actions weekly.
+- API contract documentation now generates an index from all 84 source-discovered routes; stale or missing generated rows fail `docs:check`. Auth/Project-Mode/request/response/error schemas remain explicitly pending where not source-verified.
+- Security documentation now describes browser-local BYOK storage, the `x-byok-key` request header, seven-day stateless session cookies, logout/revocation limits and third-party data disclosures.
+- `.env.example` includes previously undocumented tuning/platform variables. `docs/C124_INSTRUCTION_INVENTORY.md` now uses function/route symbols instead of fragile `server.ts` line numbers. Package metadata is `biforge`; `tsx` is dev-only; unused `autoprefixer` was removed.
+- Maintained patch/handoff prose is English. `lint:copy` now enforces the repo language policy outside an explicit allowlist of bilingual modules, user-language evidence and fixtures.
+- Environment inventory, module map, check graph and capability graph were regenerated; route and migration inventories were verified unchanged, and the API route index was generated from the existing route inventory.
+
+**Checks actually run:**
+- `node --experimental-strip-types --test tests/redact-secrets.test.mjs`: PASS 4/4.
+- `node --experimental-strip-types --test tests/security-headers.test.mjs`: PASS 3/3 (middleware contract); `tests/pipeline.test.mjs` also now asserts headers over real `/`, `/health` and `/api/health` responses and submits a malformed request with a synthetic BYOK header to check it is not echoed; that HTTP integration suite is NOT_RUN locally.
+- `node --test tests/workflow-action-pins.test.mjs`: PASS 2/2.
+- `node --test tests/p121-emergency-screen.test.mjs tests/diagnostics-summary-contract.test.mjs`: PASS 3/3 (P124.10 regression checks).
+- `node scripts/api-contract-coverage.mjs`: PASS 84/84 indexed (index coverage only; detailed schemas remain pending).
+- `npm run lint:copy`: PASS.
+- `npm run architecture:check`: PASS (0 new cycles, 0 boundary violations).
+- `npm run version:check`: PASS (`124`, patch `124.0.12`).
+- `npm run docs:generate`: PASS; inventories 84 routes / 68 env vars / 19 migrations; module map 175 modules / 438 edges / 0 cycles; check graph 29 checks / 169 modules; capability graph 474 nodes / 978 edges.
+- `npm run docs:check`: PASS, including docs integrity, repository-path integrity in five maintained docs, environment-example coverage (68/68), inventories, status graph, capability graph and API route index.
+- `npm ci --offline --ignore-scripts --no-audit --no-fund`: BLOCKED (`ENOTCACHED`, zod tarball not present locally). `npm audit --omit=dev --audit-level=high`: BLOCKED (`EAI_AGAIN` resolving registry.npmjs.org). No dependencies were installed.
+
+**Not verified:** full `npm test` (stops because `tsx` is not installed); all dependency-backed test DAG profiles (missing `tsx`/`jszip`), TypeScript typecheck (missing `typescript`), production build (missing `vite`), browser E2E, hosted GitHub Actions, dependency vulnerability status (`npm audit`), live SSRF/DNS-rebinding behavior, production HTTP headers, and user-level scenarios. The check DAG was attempted twice. The last run exceeded the 60-second execution window while the dependency-backed checks were failing module resolution; version, docs-integrity, copy lint and architecture checks passed before timeout. A prior completed run recorded 4 PASS, 14 dependency-related FAIL and 6 BLOCKED; the independent workflow-pin check added afterward passes standalone. `test:compact-ci-artifacts` ran 76 tests: 75 passed and one could not load `jszip`. The new workflow pins and Dependabot config have only static contract tests; actual action execution awaits hosted CI.
+
+**Remaining audit items:** dependency remediation/audit remains BLOCKED pending registry access; detailed request/response contracts for the 84 routes are still incomplete; session revocation and legacy-path removal require owner/security design approval; broad TypeScript `any` debt and server monolith refactoring remain open; full live and browser acceptance has not been performed. No normative product/security posture was changed.
+
+---
+
 ## CURRENT EVIDENCE NOTE — P124.11 outbound web-fetch hardening and response headers (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.11`. **Scope:** audit recommendations R-02 and R-03 (partial; CSP deferred pending UI validation).

@@ -1,3 +1,15 @@
+## P124.0.12 — secret redaction, immutable CI actions and documentation coverage (2026-11-02)
+
+- Expanded diagnostic secret redaction to include Serper, Cloudflare, GitHub and dynamically resolved Gemini key slots; added provider-key shape detection and `x-byok-key` header redaction for text and nested objects.
+- Added regression coverage for BYOK headers and provider-style credentials.
+- Pinned all external GitHub Actions to full commit SHAs and moved the Actions runtime to Node 24-compatible releases; added weekly Dependabot updates for GitHub Actions.
+- Added a generated API route index for all 84 registered routes and a staleness/coverage guard. Detailed request/response schemas remain explicitly pending where they are not yet documented.
+- Documented BYOK storage/transmission, session lifetime/revocation limits and third-party data disclosures.
+- Added missing deployment/tuning variables to `.env.example`; replaced fragile `server.ts` line references in the C124 instruction inventory with function/route symbols; renamed the npm package to `biforge`, moved `tsx` to devDependencies and removed the unused `autoprefixer` dependency.
+- Translated maintained patch-report and information-quality handoff copy to English; added a repository-wide Cyrillic policy check with explicit user-language exceptions.
+- Regenerated the environment inventory, module map and check/capability graphs; route and migration inventories remain unchanged.
+- Verification: dependency-free redaction tests 4/4 PASS; security-header middleware tests 3/3 PASS; workflow pin tests 2/2 PASS; `lint:copy`, architecture check, version check and `docs:check` PASS; HTTP-level security-header and synthetic failed-BYOK-request assertions were added to the pipeline suite but are NOT_RUN locally. Full dependency-backed tests/build/typecheck are BLOCKED because `npm ci --offline` cannot retrieve uncached packages and the npm registry is unreachable from this environment. Hosted CI and live deployment checks are NOT_RUN.
+
 ## P124.11 outbound web-fetch hardening and baseline response headers
 
 - Hardened search-result URL eligibility: reject non-HTTP(S), embedded credentials, localhost/internal/local names, and private/reserved/non-global IP literals (including IPv4-mapped IPv6).

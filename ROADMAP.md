@@ -1,6 +1,8 @@
-## CURRENT ROADMAP CONTROL — 2026-11-01 (C124)
+## CURRENT ROADMAP CONTROL — 2026-11-02 (C124)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
+
+> **P124.0.12 status:** secret redaction, immutable Actions pins, route-index coverage, security/privacy documentation and language-policy checks were implemented. Dependency audit, full dependency-backed tests/build/typecheck, hosted CI, browser E2E and live acceptance remain BLOCKED or NOT_RUN; see the top of `TECHNICAL_REPORT.md`. This is an evidence record, not a next-session assignment.
 
 ## P124.3 — response-path fidelity cleanup
 - [x] Remove Markdown stripping from the model's main reply and document payload at the server transport boundary.
@@ -60,7 +62,7 @@ P124.0.2 closes the known P123.23 CI regressions and removes the evidenced weath
 
 ---
 
-## Previous cycle: C123 — Model Carousel / «Карусель»
+## Previous cycle: C123 — Model Carousel
 
 C123 is superseded as the active development cycle. Its implementation history and specialist documentation remain intact. This transition does not assert that every historical follow-up, CI issue, or live user outcome has been independently revalidated.
 
@@ -550,7 +552,7 @@ npm run check   # full DAG
 
 **Gate P119:** required checks green; three agents work; no user-visible legacy modes; no regression of accepted P116/P117/P118 behaviour. **Transition:** P120 starts only after the Navigator's explicit decision on P119.
 
-**Per-patch rule (from the Navigator's plan):** every patch carries code/doc changes, tests, `CHANGELOG.md`, `NEXT_PATCH.md` and the related documents; the next patch starts only after the required checks of the previous one pass.
+**[SUPERSEDED by `AGENTS.md` §2 and §4] Per-patch rule (from the Navigator's historical plan):** every patch carries code/doc changes, tests, `CHANGELOG.md`, `NEXT_PATCH.md` and the related documents; the next patch starts only after the required checks of the previous one pass.
 
 > **Supersession note (2026-10-30):** the per-patch instruction immediately above is preserved as historical text from the earlier workflow. It is no longer active. There is no `NEXT_PATCH.md`; each new session must follow the independent state-reconstruction and task-selection protocol in `AGENTS.md`.
 
