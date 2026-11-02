@@ -1,3 +1,25 @@
+## CURRENT EVIDENCE NOTE — P124.0.14 preflight false-positive repair (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.0.14`. **Baseline:** supplied `bf-124-12.zip` with P124.0.13 overlay applied; hosted evidence commit `82e1f55a13ca73a95a3af12520b8da721d09ba31`.
+
+### Finding
+
+- The hosted Core CI report records 1,554/1,556 TAP tests passing and one failing DAG check, `test:models`. The sole assertion failure is `the real repository passes the preflight (no false positives)` at `tests/models.test.mjs:1036`.
+- `preflight()` rejected `.github/dependabot.yml` because `.github` was missing from `ALLOWED_TOP`, even though `.github/workflows/**` was already an explicit supported repository path and Dependabot configuration is a valid GitHub repository file. `PATCH_EVIDENCE.md` repeats the same failure excerpt; it is not a separate defect.
+- Added `.github` to the supported top-level directory list. Existing depth rules still allow `.github/workflows/**` at depth three and reject unsupported nested `.github` directories. Added positive and negative regression assertions.
+
+### Verification
+
+- Source-level review confirms the failing path is now accepted and unsupported nested `.github` paths remain rejected.
+- Hosted report baseline: `test:core` 120/120 PASS, `test:pipeline` 22/22 PASS, `typecheck` PASS, `build` PASS, security 24/24 PASS, database live 68/68 PASS; only `test:models` failed (149/150).
+- Local dependency-backed execution, full DAG, and a new hosted Actions run: **NOT_RUN** in this delivery environment. The targeted test depends on repository dependencies (including `jszip`/`tsx`); no PASS is claimed for the new commit.
+
+### Boundary
+
+This patch addresses the evidenced preflight false positive only. It does not establish that the new hosted commit is green or close unrelated audit items.
+
+---
+
 ## P124.0.13 — red-CI diagnosis and regression repair
 
 ### Input evidence

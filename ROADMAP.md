@@ -2,7 +2,7 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-> **P124.0.13 status:** repaired the four failures evidenced in the supplied P124.0.12 CI/E2E diagnostics (stale C124 inventory test, patch-summary language assertions, stale agent-transition browser expectation, and Expert pipeline timeout); removed browser-path Node crypto fallbacks. Pre-change CI evidence included passing typecheck/build and most suites; post-change dependency-backed checks and hosted CI remain NOT_RUN because local `npm ci` timed out. See the top of `TECHNICAL_REPORT.md`.
+> **P124.0.14 status:** P124.0.13 hosted Core CI identified one remaining failure: `test:models` preflight rejected the valid `.github/dependabot.yml` path. P124.0.14 corrects the path policy and adds positive/negative regression coverage. The fix is based on hosted evidence for commit `82e1f55a13ca73a95a3af12520b8da721d09ba31`; verification on the P124.0.14 commit is NOT_RUN. Earlier dependency-audit and live/browser acceptance gaps remain as recorded in `TECHNICAL_REPORT.md`.
 
 ## P124.3 — response-path fidelity cleanup
 - [x] Remove Markdown stripping from the model's main reply and document payload at the server transport boundary.

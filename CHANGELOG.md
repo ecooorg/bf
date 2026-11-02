@@ -1,3 +1,10 @@
+## P124.0.14 — patch preflight recognizes the GitHub configuration directory (2026-11-02)
+
+- Fixed the real-repository preflight false positive for `.github/dependabot.yml`: `.github` is now an explicitly supported top-level repository directory, while nested paths remain restricted to the existing `.github/workflows/**` allowance.
+- Extended the clean-patch preflight fixture to cover the Dependabot configuration and retained a negative test for unsupported nested `.github` directories.
+- No application runtime behavior, API contract, workflow execution policy, or product requirement changed.
+- Verification against the supplied hosted CI evidence: the only failing test was `tests/models.test.mjs` preflight rejecting `.github/dependabot.yml`; the second reported failure was the same assertion repeated in `PATCH_EVIDENCE.md`.
+
 ## P124.0.13 — CI regression and browser workspace crypto repair (2026-11-02)
 
 - Updated the C124 instruction-inventory test to follow the current split agent-routing/conversational modules instead of requiring the retired `server.ts` prompt owner.
