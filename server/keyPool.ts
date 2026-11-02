@@ -103,3 +103,13 @@ export class KeyPoolState {
 export function shouldRotateKeySlot(errorClass: string | undefined): boolean {
   return errorClass === 'PROVIDER_QUOTA' || errorClass === 'PROVIDER_TRANSIENT' || errorClass === 'PROVIDER_AUTH';
 }
+
+/** P124.20: classify a Gemini SDK error for key rotation. Timeouts/aborts and other errors are not rotated. */
+export function classifyKeyError(e: any): 'PROVIDER_QUOTA' | 'PROVIDER_TRANSIENT' | 'PROVIDER_AUTH' | 'OTHER' {
+  const status = Number(e?.status ?? e?.code ?? e?.error?.code);
+  const msg = String(e?.message || e || '');
+  if (status === 429 || /RESOURCE_EXHAUSTED|quota/i.test(msg)) return 'PROVIDER_QUOTA';
+  if (status === 401 || status === 403 || /API[_ ]key (not valid|invalid)|API_KEY_INVALID|PERMISSION_DENIED/i.test(msg)) return 'PROVIDER_AUTH';
+  if ([500, 502, 503, 504].includes(status) || /UNAVAILABLE|overloaded/i.test(msg)) return 'PROVIDER_TRANSIENT';
+  return 'OTHER';
+}
