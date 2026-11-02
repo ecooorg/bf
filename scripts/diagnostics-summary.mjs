@@ -118,9 +118,12 @@ const total = checks.reduce((n,c) => n + (c.tests || 0), 0);
 const passed = checks.reduce((n,c) => n + (c.passed || 0), 0);
 const failedTests = checks.reduce((n,c) => n + (c.failed || 0), 0);
 const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : '';
+const rawWorkflowStatus = String(process.env.CI_STATUS || (failed.length ? 'failure' : 'unknown')).toLowerCase();
+const workflowStatus = /^(?:success|successful|passed|pass)$/i.test(rawWorkflowStatus) ? 'PASS'
+  : /^(?:failure|failed|error|cancelled|timed_out)$/i.test(rawWorkflowStatus) ? 'FAIL' : 'UNKNOWN';
 const summary = [
   '# BiForge — Diagnostic Report', '',
-  `- **Workflow status:** ${process.env.CI_STATUS || (failed.length ? 'failure' : 'unknown')}`,
+  `- **Workflow status:** ${workflowStatus}${rawWorkflowStatus !== workflowStatus.toLowerCase() ? ` (${rawWorkflowStatus})` : ''}`, 
   `- **Workflow:** ${process.env.GITHUB_WORKFLOW || 'local'}`,
   `- **Patch / version:** ${pkg.patch} / ${pkg.version}`,
   `- **Commit:** ${process.env.GITHUB_SHA || 'unknown'}`,
