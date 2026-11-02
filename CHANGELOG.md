@@ -1,3 +1,15 @@
+## P124.0.13 — CI regression and browser workspace crypto repair (2026-11-02)
+
+- Updated the C124 instruction-inventory test to follow the current split agent-routing/conversational modules instead of requiring the retired `server.ts` prompt owner.
+- Aligned patch-pack summary tests with the repository's English-only maintained-artifact policy and the actual `replace / add / delete` output contract.
+- Corrected the Conversational ↔ Expert browser journey: direct agent switches create a fresh Decision and mount the composer immediately, so the E2E now asserts the real transition instead of waiting for the obsolete empty-state button.
+- Raised the Expert unit-matrix timeout to 300 seconds, matching the main CI pipeline timeout and the observed 122-second pipeline suite runtime.
+- Removed browser-path dynamic imports of `node:crypto`; workspace hashing now uses the shared Web Crypto helper and fails explicitly when Web Crypto is unavailable. This removes the browser-incompatible Node fallback and duplicate SHA-256 implementation.
+- Added a regression guard against Node built-ins in browser workspace hashing/export code.
+- Patch metadata advanced to `124.0.13`.
+- Diagnostic evidence from commit `099f7dd42b8e7712c3970cde5a64413ca65bbb37`: primary CI had 2 failing DAG checks (`test:core`, `test:models`); browser acceptance failed the stale agent-transition assertion; Expert verification timed out the pipeline suite at 120 seconds. Existing typecheck, build, architecture, security, database-live, App Builder and other recorded suites passed. Gitleaks SARIF contained zero findings.
+- Local dependency installation was attempted but timed out. Changed dependency-backed suites, full typecheck/build, browser E2E and hosted CI after this patch are NOT_RUN; see `TECHNICAL_REPORT.md`.
+
 ## P124.0.12 — secret redaction, immutable CI actions and documentation coverage (2026-11-02)
 
 - Expanded diagnostic secret redaction to include Serper, Cloudflare, GitHub and dynamically resolved Gemini key slots; added provider-key shape detection and `x-byok-key` header redaction for text and nested objects.

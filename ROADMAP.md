@@ -2,7 +2,7 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-> **P124.0.12 status:** secret redaction, immutable Actions pins, route-index coverage, security/privacy documentation and language-policy checks were implemented. Dependency audit, full dependency-backed tests/build/typecheck, hosted CI, browser E2E and live acceptance remain BLOCKED or NOT_RUN; see the top of `TECHNICAL_REPORT.md`. This is an evidence record, not a next-session assignment.
+> **P124.0.13 status:** repaired the four failures evidenced in the supplied P124.0.12 CI/E2E diagnostics (stale C124 inventory test, patch-summary language assertions, stale agent-transition browser expectation, and Expert pipeline timeout); removed browser-path Node crypto fallbacks. Pre-change CI evidence included passing typecheck/build and most suites; post-change dependency-backed checks and hosted CI remain NOT_RUN because local `npm ci` timed out. See the top of `TECHNICAL_REPORT.md`.
 
 ## P124.3 — response-path fidelity cleanup
 - [x] Remove Markdown stripping from the model's main reply and document payload at the server transport boundary.

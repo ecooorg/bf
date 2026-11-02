@@ -1,3 +1,35 @@
+## P124.0.13 — red-CI diagnosis and regression repair
+
+### Input evidence
+
+- Diagnostic bundle: `bf124.zip`; source snapshot `bf-124-12.zip`.
+- CI commit: `099f7dd42b8e7712c3970cde5a64413ca65bbb37`.
+- Core CI: 27/29 DAG checks passed; `test:core` and `test:models` failed.
+- End-to-End Acceptance: 3/4 checks passed; the Conversational/Expert transition test timed out waiting for the empty-state `Start conversation` button after a mode switch.
+- Expert verification: the `tests/pipeline.test.mjs` matrix job exceeded its 120-second test timeout. The main CI pipeline suite had passed in 122.278 seconds with a 300-second timeout.
+- Recorded typecheck, production build, architecture, database live, security, App Builder and other test suites passed. Gitleaks SARIF contained zero findings.
+
+### Changes
+
+1. `tests/c124-instruction-inventory.test.mjs`: replaced the stale required `server.ts` inventory reference with the current `server/agentRouting.ts` and `server/conversationalAgent.ts` source owners. The line-range validation remains intact.
+2. `tests/models.test.mjs`: changed stale Russian expected strings to the actual English `replace / add / delete` summary contract, consistent with the repository language policy.
+3. `tests/p120-agent-transitions-e2e.test.mjs`: after switching back to Conversational, assert that the fresh session composer is mounted directly and that the empty-state button is absent; continue testing that old session context does not leak.
+4. `.github/workflows/expert-verify.yml`: increased the unit matrix timeout from 120 to 300 seconds, matching the primary pipeline configuration and measured suite runtime.
+5. `src/workspace/hash.ts` and `src/workspace/exportZip.ts`: removed the browser-incompatible `node:crypto` fallback and duplicate SHA-256 implementation. Workspace export now uses the shared Web Crypto helper; environments without Web Crypto fail with an explicit error rather than attempting to load a Node built-in in the browser.
+6. `tests/workspace.test.mjs`: added a regression guard against `node:crypto` imports in browser workspace hashing/export.
+7. `package.json` and `package-lock.json`: patch metadata advanced to `124.0.13`.
+
+### Verification
+
+- CI-provided pre-change evidence: `typecheck` PASS; `build` PASS (with Vite warnings about Node crypto externalization and large chunks); architecture PASS; `test:security` 24/24 PASS; `test:database:live` 68/68 PASS; `test:app-builder` 94/94 PASS; `test:pipeline` 22/22 PASS in 122.278 seconds; Gitleaks 0 findings.
+- Local `npm ci --no-audit --no-fund` was attempted and timed out after 300 seconds; the environment did not complete dependency installation.
+- Dependency-backed reruns of `test:core`, `test:models`, `test:workspace`, typecheck, build and Playwright E2E are therefore NOT_RUN after the edits.
+- Hosted GitHub Actions for P124.0.13 and live user/provider scenarios are NOT_RUN.
+
+### Status
+
+The four CI/E2E causes evidenced by the supplied logs have targeted source/test/workflow corrections. The browser workspace Node-crypto warning also has a source-level correction. This is not a claim of green CI: final acceptance requires the published commit's GitHub Actions results. The dependency installation timeout prevents local end-to-end verification in this environment.
+
 ## P124.0.12 — security redaction, immutable CI and documentation maintenance
 
 **Status:** targeted dependency-free checks PASS; full suite BLOCKED by unavailable npm registry/cache; hosted CI and live behavior NOT_RUN. This is not a release acceptance claim.
