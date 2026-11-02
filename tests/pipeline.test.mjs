@@ -126,7 +126,7 @@ const port = await freePort();
 const base = `http://127.0.0.1:${port}`;
 const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
   stdio: 'ignore',
-  env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' },
+  env: { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' },
 });
 const strings = (v) => (typeof v === 'string' ? [v] : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : []);
 const promptText = () => { try { return strings(JSON.parse(lastPrompt)).join('\n'); } catch { return lastPrompt; } };
@@ -566,7 +566,7 @@ const fake = http.createServer((req, res) => { let b = ''; req.on('data', (d) =>
     ...(withUsage ? { usageMetadata: { promptTokenCount: 4321, candidatesTokenCount: 210, cachedContentTokenCount: 123, totalTokenCount: 4531 } } : {}) })); }); });
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort(); const base = `http://127.0.0.1:${port}`;
-const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS,
   SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' } });
 try {
   for (let i = 0; i < 120; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch {} await sleep(250); }
@@ -628,7 +628,7 @@ await new Promise((r) => fake.listen(0, r));
 const port = await freePort(); const base = `http://127.0.0.1:${port}`;
 // ENABLE_WEB_SEARCH=false: this block asserts conversation meta.calls vs fake hits.
 // Web search reuses GEMINI_BASE_URL and would inflate hits without updating conversation meta.
-const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS,
   SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10', ENABLE_WEB_SEARCH: 'false' } });
 
 // Text of the prompt actually sent to the model (the request body is JSON; read the user content out of it).
@@ -781,7 +781,7 @@ const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
   stdio: 'ignore',
   env: {
     ...process.env,
-    NODE_ENV: 'production',
+    NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false',
     PORT: String(port),
     APP_PASSWORD: PASS,
     SESSION_SECRET: 'x'.repeat(40),
@@ -941,7 +941,7 @@ const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
   stdio: 'ignore',
   env: {
     ...process.env,
-    NODE_ENV: 'production',
+    NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false',
     PORT: String(port),
     APP_PASSWORD: PASS,
     SESSION_SECRET: 'x'.repeat(40),
@@ -1068,7 +1068,7 @@ await new Promise((r) => bridge.listen(0, r)); const BURL = `http://127.0.0.1:${
 // ---------- server ----------
 async function srv(env = {}) {
   const port = await freePort(), base = `http://127.0.0.1:${port}`; let logs = '';
-  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { cwd: BE, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { cwd: BE, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
     GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: BURL, GOOGLE_GEMINI_BASE_URL: BURL, LLM_ROUND_PAUSE_MS: '10', RATE_LIMIT_PER_HOUR: '100000', DAILY_CALL_CAP: '100000',
     MODEL_CASCADE_STRONG: 'm1,m2,m3', MODEL_CASCADE_LIGHT: 'm1,m2,m3', ...env } });
   child.stdout.on('data', (d) => logs += d); child.stderr.on('data', (d) => logs += d);

@@ -63,7 +63,7 @@ const FAKE_URL = `http://127.0.0.1:${fake.address().port}`;
 
 async function startServer(extraEnv = {}) {
   const port = await freePort();
-  const env = { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
+  const env = { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
     GEMINI_API_KEY: 'fake-key', GOOGLE_GEMINI_BASE_URL: FAKE_URL, GEMINI_BASE_URL: FAKE_URL, TRUST_PROXY_HOPS: '1', ...extraEnv };
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
   const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -537,7 +537,7 @@ const FAKE_URL = `http://127.0.0.1:${fake.address().port}`;
 
 async function startServer(extraEnv = {}) {
   const port = await freePort();
-  const env = { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
+  const env = { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
     GEMINI_API_KEY: 'fake-key', GOOGLE_GEMINI_BASE_URL: FAKE_URL, GEMINI_BASE_URL: FAKE_URL, TRUST_PROXY_HOPS: '1', ...extraEnv };
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
   const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });

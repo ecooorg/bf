@@ -277,7 +277,7 @@ const activeChildren = new Set();
 
 async function startServer(env = {}) {
   const port = await freePort();
-  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, DATABASE_URL: '', NODE_ENV: 'production', PORT: String(port),   // hermetic: this test is about a server without a database
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, DATABASE_URL: '', NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port),   // hermetic: this test is about a server without a database
     APP_PASSWORD: PASS, SESSION_SECRET: SECRET, GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: FAKE, TRUST_PROXY_HOPS: '1',
     // Must use real registry primary IDs; normalizePrimaryCascade filters anything outside PRIMARY_GEMINI_ORDER.
     MODEL_CASCADE_LIGHT: 'gemini-3.5-flash-lite,gemini-3.1-flash-lite', LLM_ROUND_PAUSE_MS: '10', ...env } });
@@ -683,7 +683,7 @@ const FAKE_URL = `http://127.0.0.1:${fake.address().port}`;
 // ---- server process helper ----
 async function startServer(extraEnv = {}) {
   const port = await freePort();
-  const env = { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
+  const env = { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
     GEMINI_API_KEY: 'fake-key', GEMINI_BASE_URL: FAKE_URL, ENABLE_WEB_SEARCH: 'false', LLM_CALL_TIMEOUT_MS: '5000', TRUST_PROXY_HOPS: '1', ...extraEnv };
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
   const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -966,7 +966,7 @@ const fake = http.createServer((req, res) => { let b = ''; req.on('data', (d) =>
   res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify(answer) }] }, finishReason: 'STOP' }] })); }); });
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort(); const base = `http://127.0.0.1:${port}`;
-const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', PORT: String(port), APP_PASSWORD: PASS,
   SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' } });
 try {
   for (let i = 0; i < 120; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch {} await sleep(250); }
