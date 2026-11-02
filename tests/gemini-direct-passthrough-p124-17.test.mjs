@@ -4,17 +4,23 @@ import { readFileSync } from 'node:fs';
 
 const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
 
-test('direct conversational mode returns raw Gemini text and bypasses search and rewrite pipeline', () => {
+test('direct conversational mode returns raw Gemini text and uses retrieval before generation when needed', () => {
   assert.match(server, /async function generateGeminiPassThrough/);
   assert.match(server, /responseMimeType:\s*'application\/json'/); // retained only in the legacy structured path
   assert.match(server, /turnPlan\.agent === 'conversational' && !distressMarkerDetected && process\.env\.BIFORGE_GEMINI_DIRECT_MODE !== 'false'/);
-  assert.match(server, /searchInvoked:\s*direct\.queries\.length > 0/);
+  assert.match(server, /searchInvoked, searchProvider:/);
+  assert.match(server, /const directSearchExpected = directSearchEnabled && shouldSearchWeb/);
   assert.match(server, /GEMINI_DIRECT_UNAVAILABLE/);
   assert.match(server, /No alternative provider or generated fallback was used/);
   assert.match(server, /rawOutput:\s*direct\.text, visibleReply:\s*direct\.text/);
   assert.match(server, /rawOutputSha256:\s*outputHash,\s*visibleReplySha256:\s*outputHash,\s*outputModified:\s*false/);
   assert.match(server, /reply:\s*direct\.text/);
-  const branch = server.slice(server.indexOf('if (process.env.BIFORGE_GEMINI_DIRECT_MODE'), server.indexOf('// P50: fresh-web lookup'));
+  const branchStart = server.indexOf("if (turnPlan.agent === 'conversational' && !distressMarkerDetected");
+  const branchEnd = server.indexOf('// P50: optional fresh-web lookup', branchStart);
+  const branch = server.slice(branchStart, branchEnd);
+  assert.match(branch, /fetchSerperDigestMulti/);
+  assert.match(branch, /toEnglishSearchQuery/);
+  assert.match(branch, /directSearchBlock/);
   assert.ok(!branch.includes('runConversationWebSearch'));
   assert.ok(!branch.includes('stripUserFacingUrls'));
   assert.ok(!branch.includes('scrubInternalLabels'));
@@ -30,12 +36,13 @@ test('direct Gemini helper makes one text generation call without JSON mode or p
   assert.doesNotMatch(helper, /responseMimeType|routeCall|createOpenAICompatibleAdapter|parseJson|retry/i);
 });
 
-test('P124.19: direct mode enables Google Search grounding, drops the live-data ban, and returns sources', () => {
+test('P124.21: direct mode uses Serper evidence first and Gemini grounding as fallback', () => {
   const branch = server.slice(server.indexOf("if (turnPlan.agent === 'conversational' && !distressMarkerDetected"), server.indexOf('// P50: fresh-web lookup'));
-  assert.match(branch, /const directSearch = isWebSearchEnabled\(\)/);
-  assert.match(branch, /requestPreferredModel, attachParts, directSearch\)/);
+  assert.match(branch, /const directSearchExpected = directSearchEnabled && shouldSearchWeb/);
+  assert.match(branch, /directSearchBlock \? 'Use the retrieved web evidence below as the primary source/);
+  assert.match(branch, /requestPreferredModel, attachParts, directUseGoogleGrounding\)/);
   assert.ok(!branch.includes('Do not claim to have accessed live data, websites, or tools'));
-  assert.match(branch, /sources: direct\.sources/);
+  assert.match(branch, /sources: directSources/);
   assert.match(branch, /reply: direct\.text/);
 });
 

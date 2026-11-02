@@ -359,7 +359,7 @@ test('P50 digestFromPageExtracts prefers page body', () => {
 
 test('P50 expandSearchQueries: rate and weather topics receive focused queries', () => {
   const weather = mod.expandSearchQueries('weather yesterday in the requested place');
-  assert.equal(weather.length, 2);
+  assert.equal(weather.length, 4);
   assert.match(weather[1], /current observations temperature conditions observation time/);
   const rates = mod.expandSearchQueries('G7 central bank policy rates October 2026');
   assert.ok(rates.length >= 3 && rates.length <= 5);
@@ -393,11 +393,19 @@ const mod = await import('../server/webSearch.ts');
 
 test('P123.16 weather search expands to current observations without hard-coded places or providers', () => {
   const queries = mod.expandSearchQueries('current weather in the requested place', 'Какая прямо сейчас погода в указанном городе?');
+  assert.ok(queries.length >= 2 && queries.length <= 5);
   assert.ok(queries.some((q) => /current observations temperature conditions observation time/i.test(q)));
-  assert.deepEqual(queries, [
-    'current weather in the requested place',
-    'current weather in the requested place current observations temperature conditions observation time',
-  ]);
+  assert.ok(queries.some((q) => /current temperature degrees Celsius weather station/i.test(q)));
+  assert.ok(queries.some((q) => /AccuWeather Weather\.com/i.test(q)));
+});
+
+test('explicit search follow-ups keep search active and carry weather context', () => {
+  assert.equal(mod.isSearchFollowup('ты на других сайтах но мне обязательно нужна температура в Цюрихе'), true);
+  assert.equal(mod.isSearchFollowup('поищи ещё на других сайтах'), true);
+  assert.equal(mod.isSearchFollowup('спасибо, понятно'), false);
+  assert.equal(mod.shouldSearchWeb({ enabled: true, mode: 'explicit', userText: 'ты на других сайтах но мне обязательно нужна температура в Цюрихе', userAskedSearch: false, recentSearchIntent: true }), true);
+  const q = mod.contextualizeSearchText('ты на других сайтах но мне обязательно нужна температура в Цюрихе', 'найди в интернете информацию какая прямо сейчас погода в Цюрихе');
+  assert.equal(q, 'ты на других сайтах но мне обязательно нужна температура в Цюрихе');
 });
 
 test('weather follow-ups reuse the place from context without a city allowlist', () => {
