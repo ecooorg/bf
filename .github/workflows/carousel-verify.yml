@@ -1,4 +1,4 @@
-name: carousel-verify
+name: Model Carousel — Routing, Health and Live Smoke
 # C123 — automated carousel verification (catalog, key pool ≤10, source health, gateway lineage).
 # Deterministic layers always run. Live Gemini smoke is opt-in (needs GEMINI_API_KEY secret).
 on:
@@ -60,31 +60,21 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - name: Install dependencies
+        run: mkdir -p artifacts/carousel-verify && npm ci 2>&1 | tee artifacts/carousel-verify/00-dependencies.log
       - name: Typecheck carousel modules
-        run: npx tsc --noEmit -p tsconfig.server.json 2>/dev/null || npm run typecheck
+        run: (npx tsc --noEmit -p tsconfig.server.json 2>/dev/null || npm run typecheck) 2>&1 | tee artifacts/carousel-verify/01-typecheck.log
       - name: Carousel verify (deterministic)
-        run: node scripts/carousel-verify.mjs
+        run: node scripts/carousel-verify.mjs 2>&1 | tee artifacts/carousel-verify/02-deterministic-verification.log
         env:
           CAROUSEL_LIVE: 'false'
           CAROUSEL_AUTO_ENABLE: ${{ github.event.inputs.auto_enable == 'true' && 'true' || 'false' }}
-      - name: Canonical diagnostics report
-        if: always()
-        run: node scripts/diagnostics-report.mjs
-        env:
-          DIAGNOSTICS_DIR: artifacts/diagnostics/carousel-verify
-          CI_STATUS: ${{ job.status }}
-          GITHUB_WORKFLOW: ${{ github.workflow }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-
       - name: Upload carousel-verify artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: carousel-verify-deterministic
-          path: artifacts/diagnostics/carousel-verify/
-            artifacts/carousel-verify/
+          path: artifacts/carousel-verify/
           if-no-files-found: warn
 
   live:
@@ -99,7 +89,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - name: Install dependencies
+        run: mkdir -p artifacts/carousel-verify && npm ci 2>&1 | tee artifacts/carousel-verify/00-live-dependencies.log
       - name: Require GEMINI_API_KEY secret
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -119,7 +110,7 @@ jobs:
           MODEL_MIN_INTERVAL_MS: '0'
           LLM_CALL_TIMEOUT_MS: '25000'
         # .ts server modules require tsx (same as deterministic layer)
-        run: node --import tsx scripts/carousel-live-smoke.mjs
+        run: node --import tsx scripts/carousel-live-smoke.mjs 2>&1 | tee artifacts/carousel-verify/03-live-smoke.log
       - name: Ops probe with real env (no secret output)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -128,7 +119,7 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           mkdir -p artifacts/carousel-verify
-          node --import tsx scripts/carousel-ops-probe.mjs | tee artifacts/carousel-verify/live-probe.json
+          node --import tsx scripts/carousel-ops-probe.mjs 2>&1 | tee artifacts/carousel-verify/04-ops-probe.log
       - name: Upload live artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -143,6 +134,45 @@ jobs:
     needs: [deterministic, live]
     if: always()
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Download workflow evidence
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          pattern: carousel-verify-*
+          path: artifacts/diagnostics
+          merge-multiple: true
+      - name: Generate unified diagnostic report
+        if: always()
+        env:
+          CI_LOGS_DIR: artifacts/diagnostics
+          CI_STATUS: ${{ needs.deterministic.result == 'success' && (needs.live.result == 'success' || needs.live.result == 'skipped') && 'success' || 'failure' }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/diagnostics-summary.mjs
+      - name: Upload unified diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: carousel-diagnostics
+          path: |
+            artifacts/diagnostics/ASSISTANT_SUMMARY.md
+            artifacts/diagnostics/*.log
+            artifacts/diagnostics/*.tap
+            artifacts/diagnostics/*.txt
+            artifacts/diagnostics/**/*.log
+            artifacts/diagnostics/**/*.tap
+            artifacts/diagnostics/**/*.txt
+          if-no-files-found: warn
+          retention-days: 30
       - name: Compose result
         run: |
           det="${{ needs.deterministic.result }}"

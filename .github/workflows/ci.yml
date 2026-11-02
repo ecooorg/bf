@@ -1,4 +1,4 @@
-name: ci
+name: Core CI — Full Project Verification
 on: [push, pull_request]
 permissions:
   contents: read
@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         id: deps
         shell: bash
-        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/ci-install.log
+        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/01-dependencies.log
 
       # One verification DAG (docs/verification-manifest.json, profile ci): critical probes, minimum suites, remaining checks,
       # migrations, live PostgreSQL and API tests, build. Independent checks finish after an unrelated failure; dependants are BLOCKED with the prerequisite named.
@@ -42,7 +42,7 @@ jobs:
         if: steps.deps.outcome == 'success'
         timeout-minutes: 60
         shell: bash
-        run: set -o pipefail; node scripts/run-dag.mjs --profile ci 2>&1 | tee artifacts/ci-checks/ci-dag.log
+        run: set -o pipefail; node scripts/run-dag.mjs --profile ci 2>&1 | tee artifacts/ci-checks/02-verification-dag.log
         env:
           DAG_ALLOW_UNSAFE: 'true'
           DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
@@ -71,7 +71,7 @@ jobs:
         if: steps.dag.outcome == 'success'
         timeout-minutes: 15
         shell: bash
-        run: set -o pipefail; npm run test:ui-smoke 2>&1 | tee artifacts/ci-checks/ui-smoke.log
+        run: set -o pipefail; npm run test:ui-smoke 2>&1 | tee artifacts/ci-checks/03-ui-smoke.log
 
       - name: Scan repository for leaked secrets
         if: always() && steps.deps.outcome == 'success'
@@ -114,10 +114,10 @@ jobs:
         run: node scripts/ci-evidence-gate.mjs
 
 
-      - name: Assistant paste summary
+      - name: Generate unified diagnostic report
         if: always()
         shell: bash
-        run: node scripts/assistant-run-summary.mjs
+        run: node scripts/diagnostics-summary.mjs
         env:
           CI_LOGS_DIR: artifacts/ci-checks
           CI_STATUS: ${{ job.status }}
@@ -127,14 +127,6 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-
-      - name: Package complete CI diagnostics
-        if: always()
-        run: node scripts/package-ci-artifacts.mjs
-        env:
-          CI_STATUS: ${{ job.status }}
-          GITHUB_SHA: ${{ github.sha }}
           GITHUB_RUN_ID: ${{ github.run_id }}
 
       - name: CI PATCH EVIDENCE — GitHub Actions summary
@@ -155,25 +147,14 @@ jobs:
             echo 'BIForge-PATCH-EVIDENCE.md unavailable; inspect CI report-generation errors above.'
           fi
 
-      - name: Canonical diagnostics report
-        if: always()
-        run: node scripts/diagnostics-report.mjs
-        env:
-          DIAGNOSTICS_DIR: artifacts/diagnostics/ci
-          CI_STATUS: ${{ job.status }}
-          GITHUB_WORKFLOW: ${{ github.workflow }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-
       - name: Upload complete CI report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: biforge-ci-report
+          name: ci-diagnostics
           path: |
-            artifacts/diagnostics/ci/
-            artifacts/ci-checks/ASSISTANT_PASTE*.txt
-            artifacts/ci-checks/biforge-ci-logs.zip
+            artifacts/ci-checks/ASSISTANT_SUMMARY.md
+            artifacts/ci-checks/*.log
           if-no-files-found: error
           compression-level: 0
           retention-days: 30

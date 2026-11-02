@@ -1,4 +1,4 @@
-name: expert-verify
+name: Expert Agent — Quality, Reliability and E2E
 # Automated verification of Expert mode. Run from Actions -> expert-verify -> Run workflow, or automatically on PRs touching Expert code.
 # Covers what ci.yml does NOT: P122.1-P122.4 suites, Expert browser e2e, coverage gate, flake detection, optional live-model evaluation.
 # Everything here is machine-checkable; user-value judgement of real answers stays manual (see the summary job).
@@ -39,13 +39,27 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci
-      - run: npm run typecheck
-      - run: node scripts/check-version.mjs && node scripts/version-metadata.mjs
-      - run: node scripts/docs-integrity.mjs
-      - run: node scripts/lint-copy.mjs
-      - run: npm run architecture:check
-      - run: npm run build
+      - name: Install dependencies
+        run: mkdir -p artifacts/expert && npm ci 2>&1 | tee artifacts/expert/00-dependencies.log
+      - name: TypeScript typecheck
+        run: npm run typecheck 2>&1 | tee artifacts/expert/01-typecheck.log
+      - name: Version metadata
+        run: node scripts/check-version.mjs && node scripts/version-metadata.mjs 2>&1 | tee artifacts/expert/02-version.log
+      - name: Documentation integrity
+        run: node scripts/docs-integrity.mjs 2>&1 | tee artifacts/expert/03-docs-integrity.log
+      - name: Copy lint
+        run: node scripts/lint-copy.mjs 2>&1 | tee artifacts/expert/04-copy-lint.log
+      - name: Architecture boundaries
+        run: npm run architecture:check 2>&1 | tee artifacts/expert/05-architecture.log
+      - name: Production build
+        run: npm run build 2>&1 | tee artifacts/expert/06-build.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: expert-static
+          path: artifacts/expert/*.log
+          if-no-files-found: warn
+          retention-days: 14
 
   unit:
     name: unit (${{ matrix.suite }})
@@ -74,11 +88,11 @@ jobs:
           # Tests may spawn the local tsx executable; direct `node` invocations do not
           # inherit npm's node_modules/.bin PATH setup.
           export PATH="$PWD/node_modules/.bin:$PATH"
-          node --import tsx --test --test-timeout=120000 ${{ matrix.file }} 2>&1 | tee artifacts/expert/unit.tap
+          node --import tsx --test --test-timeout=120000 ${{ matrix.file }} 2>&1 | tee artifacts/expert/unit-${{ strategy.job-index }}.tap
       - name: Fail on skipped/todo tests (a skipped check proves nothing)
         shell: bash
         run: |
-          s=$(grep -E '^# (skipped|todo) ' artifacts/expert/unit.tap | awk '{n+=$3} END{print n+0}')
+          s=$(grep -E '^# (skipped|todo) ' "artifacts/expert/unit-${{ strategy.job-index }}.tap" | awk '{n+=$3} END{print n+0}')
           echo "skipped+todo=$s"; [ "$s" = "0" ] || { echo "::error::$s skipped/todo tests"; exit 1; }
       - uses: actions/upload-artifact@v4
         if: always()
@@ -132,14 +146,22 @@ jobs:
       - name: Repeat suites
         shell: bash
         run: |
+          mkdir -p artifacts/expert
           n="${{ github.event.inputs.repeat || '3' }}"; fails=0
           for i in $(seq 1 "$n"); do
             echo "::group::run $i/$n"
-            node --import tsx --test tests/p122.*.test.mjs > "/tmp/run$i.log" 2>&1 || { fails=$((fails+1)); tail -40 "/tmp/run$i.log"; }
+            node --import tsx --test tests/p122.*.test.mjs > "artifacts/expert/flake-run-$i.tap" 2>&1 || { fails=$((fails+1)); tail -40 "artifacts/expert/flake-run-$i.tap"; }
             echo "::endgroup::"
           done
           echo "### Flake detection: $fails failing run(s) of $n" >> "$GITHUB_STEP_SUMMARY"
           [ "$fails" = "0" ]
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: expert-flake
+          path: artifacts/expert/flake-run-*.tap
+          if-no-files-found: warn
+          retention-days: 14
 
   e2e:
     name: browser e2e (Expert + agent transitions)
@@ -152,38 +174,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
-      - run: npm ci
+      - name: Install dependencies
+        run: mkdir -p artifacts/expert && npm ci 2>&1 | tee artifacts/expert/e2e-00-dependencies.log
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: node scripts/p120-e2e-preflight.mjs
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium 2>&1 | tee artifacts/expert/e2e-01-browser-install.log
+      - name: Production build
+        run: npm run build 2>&1 | tee artifacts/expert/e2e-02-build.log
+      - name: E2E preflight
+        run: node scripts/p120-e2e-preflight.mjs 2>&1 | tee artifacts/expert/e2e-03-preflight.log
       - name: UI smoke
-        run: node --import tsx tests/ui-check.mjs
+        run: node --import tsx tests/ui-check.mjs 2>&1 | tee artifacts/expert/e2e-04-ui-smoke.log
       - name: Expert end-to-end
-        run: node --test --test-timeout=300000 tests/p120-expert-e2e.test.mjs
+        run: node --test --test-timeout=300000 tests/p120-expert-e2e.test.mjs 2>&1 | tee artifacts/expert/e2e-05-expert.tap
       - name: Expert full journey (stages, quality panel, download, persistence)
-        run: node --test --test-timeout=300000 tests/expert-journey-e2e.test.mjs
+        run: node --test --test-timeout=300000 tests/expert-journey-e2e.test.mjs 2>&1 | tee artifacts/expert/e2e-06-journey.tap
       - name: Agent transitions (Expert <-> Conversational/Architect keep state)
-        run: node --test --test-timeout=300000 tests/p120-agent-transitions-e2e.test.mjs
-      - name: Canonical diagnostics report
-        if: always()
-        run: node scripts/diagnostics-report.mjs
-        env:
-          DIAGNOSTICS_DIR: artifacts/diagnostics/expert-verify
-          CI_STATUS: ${{ job.status }}
-          GITHUB_WORKFLOW: ${{ github.workflow }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-
+        run: node --test --test-timeout=300000 tests/p120-agent-transitions-e2e.test.mjs 2>&1 | tee artifacts/expert/e2e-07-transitions.tap
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: e2e-artifacts
           path: |
-            artifacts/diagnostics/expert-verify/
             artifacts/
             test-results/
           if-no-files-found: ignore
@@ -209,14 +224,12 @@ jobs:
           # Same cascade as Render production — do not use probe models (3.8-flash etc.)
           MODEL_CASCADE_STRONG: gemini-3.5-flash-lite,gemini-3.1-flash-lite
           MODEL_CASCADE_LIGHT: gemini-3.1-flash-lite,gemini-3.5-flash-lite
-        run: node --import tsx --test tests/p122.4-real-model-eval.mjs 2>&1 | tee real-model.tap
+        run: mkdir -p artifacts/expert && node --import tsx --test tests/p122.4-real-model-eval.mjs 2>&1 | tee artifacts/expert/real-model-eval.tap
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: real-model-eval
-          path: |
-            real-model.tap
-            artifacts/real-model-eval/
+          name: expert-real-model
+          path: artifacts/expert/real-model-eval.tap
           if-no-files-found: warn
           retention-days: 14
 
@@ -226,6 +239,45 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Download workflow evidence
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*'
+          path: artifacts/diagnostics
+          merge-multiple: true
+      - name: Generate unified diagnostic report
+        if: always()
+        env:
+          CI_LOGS_DIR: artifacts/diagnostics
+          CI_STATUS: ${{ (needs.static.result == 'success' && needs.unit.result == 'success' && needs.coverage.result == 'success' && needs.flake.result == 'success' && needs.e2e.result == 'success' && (needs.real-model.result == 'success' || needs.real-model.result == 'skipped')) && 'success' || 'failure' }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/diagnostics-summary.mjs
+      - name: Upload unified diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: expert-diagnostics
+          path: |
+            artifacts/diagnostics/ASSISTANT_SUMMARY.md
+            artifacts/diagnostics/*.log
+            artifacts/diagnostics/*.tap
+            artifacts/diagnostics/*.txt
+            artifacts/diagnostics/**/*.log
+            artifacts/diagnostics/**/*.tap
+            artifacts/diagnostics/**/*.txt
+          if-no-files-found: warn
+          retention-days: 30
       - name: Verdict
         shell: bash
         run: |

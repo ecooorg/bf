@@ -1,5 +1,5 @@
-# Lab vs Legacy live compare on staging. Outer artifact: ASSISTANT_PASTE.txt + logs zip only.
-name: architect-compare
+# Lab vs Legacy live compare on staging. One assistant summary plus readable logs.
+name: Architect — Lab vs Legacy Comparison
 on:
   workflow_dispatch:
     inputs:
@@ -32,11 +32,11 @@ jobs:
         run: mkdir -p artifacts/ci-checks
       - name: Install
         shell: bash
-        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/compare-install.log
+        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/01-compare-dependencies.log
       - name: Dual compare Lab vs Legacy
         id: dual
         shell: bash
-        run: set -o pipefail; node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/compare-dual.log
+        run: set -o pipefail; node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/02-architect-lab-vs-legacy.log
         env:
           STAGING_SERVICE_URL: ${{ secrets.STAGING_SERVICE_URL }}
           STAGING_APP_PASSWORD: ${{ secrets.STAGING_APP_PASSWORD }}
@@ -44,14 +44,13 @@ jobs:
           DUAL_CLEANUP: ${{ inputs.cleanup }}
           DUAL_OUT_DIR: artifacts/ci-checks/dual-compare
           DUAL_BUILD_WAIT_MS: '600000'
-      - name: Assistant paste + pack outer artifact
+      - name: Generate unified diagnostic report
         if: always()
         shell: bash
-        run: node scripts/assistant-run-summary.mjs
+        run: node scripts/diagnostics-summary.mjs
         env:
           CI_LOGS_DIR: artifacts/ci-checks
           DUAL_OUT_DIR: artifacts/ci-checks/dual-compare
-          PACK_OUTER_ARTIFACT: 'true'
           CI_STATUS: ${{ job.status }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
@@ -60,24 +59,13 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-      - name: Canonical diagnostics report
-        if: always()
-        run: node scripts/diagnostics-report.mjs
-        env:
-          DIAGNOSTICS_DIR: artifacts/diagnostics/architect-compare
-          CI_STATUS: ${{ job.status }}
-          GITHUB_WORKFLOW: ${{ github.workflow }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-
       - name: Upload compare report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: biforge-architect-compare
+          name: architect-compare-diagnostics
           path: |
-            artifacts/diagnostics/architect-compare/
-            artifacts/ci-checks/ASSISTANT_PASTE*.txt
-            artifacts/ci-checks/biforge-ci-logs.zip
+            artifacts/ci-checks/ASSISTANT_SUMMARY.md
+            artifacts/ci-checks/*.log
           if-no-files-found: warn
           retention-days: 30

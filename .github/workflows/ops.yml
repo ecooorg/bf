@@ -1,5 +1,5 @@
-# Ops / diagnostics. Outer artifact: ASSISTANT_PASTE.txt + logs zip only.
-name: ops
+# Ops diagnostics. One assistant summary plus readable logs.
+name: Operations — Diagnostics and Governance
 on:
   workflow_dispatch:
     inputs:
@@ -27,27 +27,26 @@ jobs:
         run: mkdir -p artifacts/ci-checks
       - name: Install
         shell: bash
-        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/ops-install.log
+        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/01-ops-dependencies.log
       - name: Package version / docs integrity (fast)
         if: inputs.mode == 'diagnostics'
         shell: bash
         run: |
           set -o pipefail
-          node scripts/version-metadata.mjs 2>&1 | tee artifacts/ci-checks/ops-version.log || true
-          node scripts/docs-integrity.mjs 2>&1 | tee artifacts/ci-checks/ops-docs.log || true
-          npm run test:architect-dual-compare 2>&1 | tee artifacts/ci-checks/ops-dual-contract.log || true
+          node scripts/version-metadata.mjs 2>&1 | tee artifacts/ci-checks/02-version-check.log
+          node scripts/docs-integrity.mjs 2>&1 | tee artifacts/ci-checks/03-documentation-integrity.log
+          npm run test:architect-dual-compare 2>&1 | tee artifacts/ci-checks/04-architect-compare-contract.log
       - name: Dual-compare dry-run
         if: inputs.mode == 'dual-dry-run'
         shell: bash
-        run: set -o pipefail; DUAL_DRY_RUN=true DUAL_OUT_DIR=artifacts/ci-checks/dual-compare node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/ops-dual-dry.log
-      - name: Assistant paste + pack outer artifact
+        run: set -o pipefail; DUAL_DRY_RUN=true DUAL_OUT_DIR=artifacts/ci-checks/dual-compare node scripts/architect-dual-compare.mjs 2>&1 | tee artifacts/ci-checks/05-architect-compare-dry-run.log
+      - name: Generate unified diagnostic report
         if: always()
         shell: bash
-        run: node scripts/assistant-run-summary.mjs
+        run: node scripts/diagnostics-summary.mjs
         env:
           CI_LOGS_DIR: artifacts/ci-checks
           DUAL_OUT_DIR: artifacts/ci-checks/dual-compare
-          PACK_OUTER_ARTIFACT: 'true'
           CI_STATUS: ${{ job.status }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
@@ -56,24 +55,13 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-      - name: Canonical diagnostics report
-        if: always()
-        run: node scripts/diagnostics-report.mjs
-        env:
-          DIAGNOSTICS_DIR: artifacts/diagnostics/ops
-          CI_STATUS: ${{ job.status }}
-          GITHUB_WORKFLOW: ${{ github.workflow }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-
       - name: Upload ops report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: biforge-ops-report
+          name: ops-diagnostics
           path: |
-            artifacts/diagnostics/ops/
-            artifacts/ci-checks/ASSISTANT_PASTE*.txt
-            artifacts/ci-checks/biforge-ci-logs.zip
+            artifacts/ci-checks/ASSISTANT_SUMMARY.md
+            artifacts/ci-checks/*.log
           if-no-files-found: warn
           retention-days: 14

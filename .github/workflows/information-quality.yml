@@ -1,4 +1,4 @@
-name: information-quality
+name: Information Quality — Conversational and Evidence
 
 on:
   workflow_dispatch:
@@ -74,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: information-quality-${{ matrix.mode }}
-          path: artifacts/information-quality/
+          path: artifacts/information-quality/**
           if-no-files-found: warn
           retention-days: 21
 
@@ -124,23 +124,12 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.evaluation_file == '' }}
         run: |
           echo 'No blind-review file supplied. Deterministic checks ran, but human scoring of factual correctness, usefulness and calibration was not claimed.' >> "$GITHUB_STEP_SUMMARY"
-      - name: Canonical diagnostics report
-        if: always()
-        run: node scripts/diagnostics-report.mjs
-        env:
-          DIAGNOSTICS_DIR: artifacts/diagnostics/information-quality
-          CI_STATUS: ${{ job.status }}
-          GITHUB_WORKFLOW: ${{ github.workflow }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-
       - name: Upload evaluator report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: information-quality-evaluator
-          path: artifacts/diagnostics/information-quality/
-            artifacts/information-quality/
+          path: artifacts/information-quality/**
           if-no-files-found: ignore
           retention-days: 21
 
@@ -158,6 +147,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Download all information-quality evidence
+        if: always()
         uses: actions/download-artifact@v4
         with:
           pattern: information-quality-*
@@ -177,22 +167,21 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: |
           mkdir -p artifacts/information-quality
-          node scripts/assistant-run-summary.mjs
-          test -s artifacts/information-quality/ASSISTANT_PASTE.txt
-          test -s artifacts/information-quality/ASSISTANT_SUMMARY.json
+          node scripts/diagnostics-summary.mjs
+          test -s artifacts/information-quality/ASSISTANT_SUMMARY.md
           {
             echo '## Information-quality run status'
             echo '- Deterministic mode jobs: ${{ needs.deterministic-quality.result }}'
             echo '- Evaluator contracts: ${{ needs.evaluator-contracts.result }}'
             echo '- Assistant handoff: generated'
             echo ''
-            echo 'Download the `information-quality-assistant-handoff` artifact and attach `ASSISTANT_PASTE.txt` to the assistant for diagnosis.'
+            echo 'Download the `information-quality-assistant-handoff` artifact and attach `ASSISTANT_SUMMARY.md` to the assistant for diagnosis.'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload consolidated assistant handoff
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: information-quality-assistant-handoff
-          path: artifacts/information-quality/
+          path: artifacts/information-quality/**
           if-no-files-found: warn
           retention-days: 30
