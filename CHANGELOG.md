@@ -5,14 +5,14 @@
 - Added SHA-256 equality evidence and request-level provenance logging.
 - `BIFORGE_GEMINI_DIRECT_MODE` defaults to enabled; set it to `false` only to restore the legacy pipeline.
 
-## P124.0.16 — align legacy diagnostics contract test with full-content capture (2026-11-02)
+## P124.16 — align legacy diagnostics contract test with full-content capture (2026-11-02)
 
 - Updated the P92 diagnostics contract test: it no longer requires user prompts and conversation bodies to be omitted, which conflicts with the single-user diagnostic capture policy introduced in P124.0.15.
 - The test now asserts that conversation evidence markers are present and credential-like fields remain redacted.
 - No runtime behavior changed. Patch metadata advanced to `124.0.16`.
 - Verification: targeted diagnostics test and full hosted CI are NOT_RUN in this assembly; rerun `npm run test:project-diagnostics` and the complete Core CI workflow.
 
-## P124.0.15 — Simple and Expert diagnostic access and response-pipeline telemetry (2026-11-02)
+## P124.15 — Simple and Expert diagnostic access and response-pipeline telemetry (2026-11-02)
 
 - Added `More → Diagnostic log` to the shared Simple/Expert header, with an on-screen bounded log viewer, copy, and refresh actions.
 - Added an authenticated shared diagnostic endpoint so the feature works independently of Project Mode.
@@ -21,14 +21,14 @@
 - Added a source contract test for menu exposure and authentication ordering.
 - This patch improves diagnostic access and evidence only. It does not change model instructions, response filtering, search routing, or answer-generation behavior; those require a separate evidence-led fix.
 
-## P124.0.14 — patch preflight recognizes the GitHub configuration directory (2026-11-02)
+## P124.14 — patch preflight recognizes the GitHub configuration directory (2026-11-02)
 
 - Fixed the real-repository preflight false positive for `.github/dependabot.yml`: `.github` is now an explicitly supported top-level repository directory, while nested paths remain restricted to the existing `.github/workflows/**` allowance.
 - Extended the clean-patch preflight fixture to cover the Dependabot configuration and retained a negative test for unsupported nested `.github` directories.
 - No application runtime behavior, API contract, workflow execution policy, or product requirement changed.
 - Verification against the supplied hosted CI evidence: the only failing test was `tests/models.test.mjs` preflight rejecting `.github/dependabot.yml`; the second reported failure was the same assertion repeated in `PATCH_EVIDENCE.md`.
 
-## P124.0.13 — CI regression and browser workspace crypto repair (2026-11-02)
+## P124.13 — CI regression and browser workspace crypto repair (2026-11-02)
 
 - Updated the C124 instruction-inventory test to follow the current split agent-routing/conversational modules instead of requiring the retired `server.ts` prompt owner.
 - Aligned patch-pack summary tests with the repository's English-only maintained-artifact policy and the actual `replace / add / delete` output contract.
@@ -40,7 +40,7 @@
 - Diagnostic evidence from commit `099f7dd42b8e7712c3970cde5a64413ca65bbb37`: primary CI had 2 failing DAG checks (`test:core`, `test:models`); browser acceptance failed the stale agent-transition assertion; Expert verification timed out the pipeline suite at 120 seconds. Existing typecheck, build, architecture, security, database-live, App Builder and other recorded suites passed. Gitleaks SARIF contained zero findings.
 - Local dependency installation was attempted but timed out. Changed dependency-backed suites, full typecheck/build, browser E2E and hosted CI after this patch are NOT_RUN; see `TECHNICAL_REPORT.md`.
 
-## P124.0.12 — secret redaction, immutable CI actions and documentation coverage (2026-11-02)
+## P124.12 — secret redaction, immutable CI actions and documentation coverage (2026-11-02)
 
 - Expanded diagnostic secret redaction to include Serper, Cloudflare, GitHub and dynamically resolved Gemini key slots; added provider-key shape detection and `x-byok-key` header redaction for text and nested objects.
 - Added regression coverage for BYOK headers and provider-style credentials.
