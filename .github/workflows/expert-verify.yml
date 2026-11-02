@@ -168,11 +168,22 @@ jobs:
         run: node --test --test-timeout=300000 tests/expert-journey-e2e.test.mjs
       - name: Agent transitions (Expert <-> Conversational/Architect keep state)
         run: node --test --test-timeout=300000 tests/p120-agent-transitions-e2e.test.mjs
+      - name: Canonical diagnostics report
+        if: always()
+        run: node scripts/diagnostics-report.mjs
+        env:
+          DIAGNOSTICS_DIR: artifacts/diagnostics/expert-verify
+          CI_STATUS: ${{ job.status }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: e2e-artifacts
           path: |
+            artifacts/diagnostics/expert-verify/
             artifacts/
             test-results/
           if-no-files-found: ignore

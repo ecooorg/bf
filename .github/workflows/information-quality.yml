@@ -124,12 +124,23 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.evaluation_file == '' }}
         run: |
           echo 'No blind-review file supplied. Deterministic checks ran, but human scoring of factual correctness, usefulness and calibration was not claimed.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Canonical diagnostics report
+        if: always()
+        run: node scripts/diagnostics-report.mjs
+        env:
+          DIAGNOSTICS_DIR: artifacts/diagnostics/information-quality
+          CI_STATUS: ${{ job.status }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
       - name: Upload evaluator report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: information-quality-evaluator
-          path: artifacts/information-quality/
+          path: artifacts/diagnostics/information-quality/
+            artifacts/information-quality/
           if-no-files-found: ignore
           retention-days: 21
 

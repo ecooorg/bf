@@ -155,12 +155,23 @@ jobs:
             echo 'BIForge-PATCH-EVIDENCE.md unavailable; inspect CI report-generation errors above.'
           fi
 
+      - name: Canonical diagnostics report
+        if: always()
+        run: node scripts/diagnostics-report.mjs
+        env:
+          DIAGNOSTICS_DIR: artifacts/diagnostics/ci
+          CI_STATUS: ${{ job.status }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
       - name: Upload complete CI report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: biforge-ci-report
           path: |
+            artifacts/diagnostics/ci/
             artifacts/ci-checks/ASSISTANT_PASTE*.txt
             artifacts/ci-checks/biforge-ci-logs.zip
           if-no-files-found: error
