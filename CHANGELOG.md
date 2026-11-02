@@ -1,3 +1,10 @@
+## P124.21 — Reliable search follow-ups and softened numeric gate (2026-11-02)
+
+- Direct Conversational mode now runs Serper before Gemini when search is expected, translates contextualized queries to English, injects retrieved evidence into the prompt, and falls back to Gemini Google Search only when Serper did not return usable evidence.
+- Explicit web-search intent carries into recognized follow-up turns (e.g. asking for other sites or a missing temperature); weather searches add focused current-temperature queries.
+- Numeric provenance violations are logged but no longer reject otherwise valid model or external-fallback responses.
+- Verification: offline targeted tests/typecheck NOT_RUN in this environment (dependencies absent); live search NOT_RUN.
+
 ## P124.20 — Key rotation in direct Gemini mode (2026-11-02)
 
 - The direct Conversational call now tries up to 3 keys from the organisational pool (`GEMINI_API_KEY`, `GEMINI_API_KEY_1…10`) when a key returns quota (429), auth (401/403) or 5xx errors. A failed key is cooled down (5 min; 30 s for 5xx) via the shared `KeyPoolState`.

@@ -872,11 +872,10 @@ async function generate(
         }
         // INFRA-01: invented % is normally a format failure. After web search in simple conversation
         // we only warn — otherwise live rate/price answers die when SERP extracts omit figures.
-        const badPct = bad.filter((n) => n.endsWith('%'));
-        if (!problem && badPct.length && !opts?.allowUnsourcedPercentages) {
-          problem = `invented percentage: ${badPct.join(', ')}`.slice(0, 200);
-        } else if (badPct.length && opts?.allowUnsourcedPercentages) {
-          console.warn(JSON.stringify({ type: 'llm_number_soft', model, stage, reason: `unsourced % allowed after web search: ${badPct.join(', ')}`.slice(0, 200) }));
+        // C124.21: numeric provenance is diagnostic, not a hard response gate.
+        // Unsupported numbers are logged, but must not discard an otherwise valid answer.
+        if (bad.length) {
+          console.warn(JSON.stringify({ type: 'llm_number_validation_softened', model, stage, rejectedNumericTokens: bad.slice(0, 12), webSearchEvidence: Boolean(opts?.extraNumberSource) }));
         }
         if (problem) {
           formatFailures++;
@@ -954,8 +953,6 @@ async function generate(
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
       const text = JSON.stringify(parsed);
       const bad = validateNumbers(text, inputForNumbers, validatedDerivedNumbers(text, inputForNumbers, []), []);
-      // External fallback is already a degraded path. Keep number validation observable,
-      // but do not discard an otherwise usable answer solely for unsupported numeric tokens.
       if (bad.length) console.warn(JSON.stringify({ type: 'llm_external_fallback_number_validation_softened', provider: provider.id, rejectedNumericTokens: bad.slice(0, 12) }));
       console.info(JSON.stringify({ type: 'llm_external_fallback_succeeded', provider: provider.id, model: provider.model, stage }));
       return { data: parsed, meta: { model: `${provider.id}/${provider.model}`, fallback: true, durationMs: Date.now() - t0, stage, calls: attempts, lightFallback: modelClass === 'strong', promptChars: prompt.length } };
@@ -1206,26 +1203,49 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     const turnPlan = planConversationTurn(req.body, detectedMode);
     const { productMode, conversationMode, modeBlock } = turnPlan;
 
-    // P124.17: controlled provenance test. The Conversational endpoint makes exactly
-    // one direct Gemini text call and returns its text verbatim. Search and other
-    // model providers are not consulted on this path.
+    // P124.21: direct Gemini text remains verbatim, but expected current-info turns
+    // retrieve Serper evidence first and fall back to Gemini Google Search grounding.
     if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false') {
-      const directSearch = isWebSearchEnabled();
+      const directSearchEnabled = isWebSearchEnabled();
+      const recentSearchIntent = /(?:найди\s+в\s+интернет|поищи\s+в\s+интернет|search\s+(?:the\s+)?web|look\s+up\s+online|google\s+search)/iu.test(recentUserText);
+      const directSearchExpected = directSearchEnabled && shouldSearchWeb({
+        enabled: true, mode: webSearchMode(), userText: lastUserText,
+        userAskedSearch: intentFlags.userAskedSearch, recentSearchIntent,
+        distress: distressMarkerDetected, intent: context.intent, hasAttachments: attachItems.length > 0,
+      });
       let directWebSearch: WebSearchResult = skippedWebSearch();
-      if (directSearch && webSearchProvider() === 'serper' && String(process.env.SERPER_API_KEY || '').trim()) {
-        directWebSearch = await fetchSerperDigestMulti({
-          apiKey: String(process.env.SERPER_API_KEY || '').trim(),
-          userText: contextualizeSearchText(lastUserText, recentUserText),
-          today: new Date().toISOString().slice(0, 10),
-          timeoutMs: 28_000,
-        });
+      if (directSearchExpected && webSearchProvider() === 'serper' && String(process.env.SERPER_API_KEY || '').trim()) {
+        const contextualSearchText = contextualizeSearchText(lastUserText, recentUserText);
+        let englishQuery = contextualSearchText;
+        try {
+          const searchKey = requestByokKey || apiKey;
+          if (searchKey) {
+            const searchClient = new GoogleGenAI({ apiKey: searchKey, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+            englishQuery = await toEnglishSearchQuery({
+              userText: contextualSearchText, client: searchClient as any,
+              model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
+              timeoutMs: 8000,
+            });
+          }
+        } catch { /* preserve contextualized query if translation is unavailable */ }
+        try {
+          directWebSearch = await fetchSerperDigestMulti({
+            apiKey: String(process.env.SERPER_API_KEY || '').trim(),
+            userText: contextualSearchText, englishQuery,
+            today: new Date().toISOString().slice(0, 10), timeoutMs: 28000,
+          });
+        } catch (searchError: any) {
+          directWebSearch = skippedWebSearch('failed', String(searchError?.message || searchError).slice(0, 180));
+        }
+        console.info(JSON.stringify({ type: 'direct_web_search', status: directWebSearch.status, provider: 'serper', queries: directWebSearch.queries, sources: directWebSearch.sources.length, reason: directWebSearch.reason }));
       }
       const directSearchBlock = directWebSearch.status === 'used'
-        ? formatSearchBlock(directWebSearch, new Date().toISOString().slice(0, 10))
-        : '';
+        ? formatSearchBlock(directWebSearch, new Date().toISOString().slice(0, 10)) : '';
+      // If Serper produced evidence, avoid a second grounding call; otherwise use Gemini Search as fallback.
+      const directUseGoogleGrounding = directSearchExpected && directWebSearch.status !== 'used';
       const directPrompt = [
         'Answer the latest user message directly. Use the conversation history only when needed for context.',
-        directSearchBlock ? 'Use the following retrieved web evidence as the primary source for current facts.' : directSearch ? 'For current events, weather, prices, news, or other time-sensitive facts, use Google Search and answer from the results. Do not claim live access when search returned nothing.' : 'Do not claim live data access: web search is unavailable for this request.',
+        directSearchBlock ? 'Use the retrieved web evidence below as the primary source for current facts. If it lacks the requested value, say so and do not invent it.' : directSearchExpected ? 'Use Google Search for current facts. Do not claim live access when search returned nothing.' : 'Do not claim live data access unless the request needs current information and search evidence is supplied.',
         directSearchBlock,
         'Return ordinary answer text, not JSON and not markdown wrappers.',
         `Current date: ${new Date().toISOString().slice(0, 10)}.`,
@@ -1233,21 +1253,27 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         `Conversation context (JSON):\n${input}`,
         attachmentsBlock ? `Attachment text:\n${attachmentsBlock}` : '',
       ].filter(Boolean).join('\n\n');
-      const direct = await generateGeminiPassThrough(directPrompt, requestByokKey, requestPreferredModel, attachParts, directSearch);
+      const direct = await generateGeminiPassThrough(directPrompt, requestByokKey, requestPreferredModel, attachParts, directUseGoogleGrounding);
+      const directSources = [...directWebSearch.sources, ...direct.sources].filter((s, i, a) => a.findIndex(x => x.url === s.url) === i).slice(0, 6);
+      const directQueries = [...directWebSearch.queries, ...direct.queries].filter((q, i, a) => q && a.indexOf(q) === i).slice(0, 5);
+      const searchInvoked = directSearchExpected && (directWebSearch.status === 'used' || direct.queries.length > 0 || direct.sources.length > 0);
       const requestId = String((req as any).requestId || req.get('x-request-id') || '');
       const outputHash = crypto.createHash('sha256').update(direct.text, 'utf8').digest('hex');
       void recordApplicationLog({ level: 'info', component: 'conversation', event: 'gemini_direct_passthrough', requestId,
         message: 'Direct Gemini text returned without application rewriting', details: {
-          provider: 'gemini', model: direct.model, searchEnabled: directSearch, searchInvoked: directWebSearch.status === 'used' || direct.queries.length > 0 || direct.sources.length > 0,
-          searchQueries: [...directWebSearch.queries, ...direct.queries], sourceCount: directWebSearch.sources.length + direct.sources.length, keySlot: direct.keySlot, keyAttempts: direct.keyAttempts, externalFallbackInvoked: false,
+          provider: 'gemini', model: direct.model, searchEnabled: directSearchEnabled, searchExpected: directSearchExpected,
+          searchInvoked, searchProvider: directWebSearch.status === 'used' ? 'serper' : (directUseGoogleGrounding ? 'gemini' : 'none'),
+          searchStatus: directWebSearch.status, searchQueries: directQueries, sourceCount: directSources.length,
+          keySlot: direct.keySlot, keyAttempts: direct.keyAttempts, externalFallbackInvoked: false,
           rawOutput: direct.text, visibleReply: direct.text, rawOutputSha256: outputHash,
           visibleReplySha256: outputHash, outputModified: false, durationMs: direct.durationMs,
         } });
       return ok(res, {
         reply: direct.text, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
-        document: null, attachmentNotes: [], ...(directWebSearch.status === 'used' ? { sources: directWebSearch.sources } : {}), ...(direct.sources.length ? { sources: direct.sources } : {}), state: safeState,
-      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, key_attempts: direct.keyAttempts, search: !directSearch ? 'disabled' : (directWebSearch.status === 'used' || direct.sources.length || direct.queries.length ? 'used' : 'enabled_not_used') });
+        document: null, attachmentNotes: [], ...(directSources.length ? { sources: directSources } : {}), state: safeState,
+      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, key_attempts: direct.keyAttempts,
+        search: !directSearchEnabled ? 'disabled' : (searchInvoked ? 'used' : (directSearchExpected ? 'enabled_not_used' : 'not_needed')) });
     }
 
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
@@ -1260,6 +1286,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           mode: webSearchMode(),
           userText: lastUserText,
           userAskedSearch: intentFlags.userAskedSearch,
+          recentSearchIntent: /(?:найди\s+в\s+интернет|поищи\s+в\s+интернет|search\s+(?:the\s+)?web|look\s+up\s+online|google\s+search)/iu.test(recentUserText),
           distress: distressMarkerDetected,
           intent: context.intent,
           hasAttachments: attachItems.length > 0,
@@ -1468,7 +1495,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     if (directModeApplies) {
       const reason = String(e?.code || 'GEMINI_DIRECT_ERROR');
       console.error(JSON.stringify({ type: 'gemini_direct_passthrough_failed', provider: 'gemini', errorCode: reason, message: String(e?.message || e).slice(0, 240) }));
-      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, upstreamStatus: Number(e?.status || e?.statusCode || e?.response?.status || 0) || undefined, upstreamMessage: String(e?.message || e).slice(0, 500), errorName: String(e?.name || 'Error').slice(0, 100), searchInvoked: false, externalFallbackInvoked: false } });
+      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, searchInvoked: false, externalFallbackInvoked: false } });
       return fail(res, 503, 'Gemini did not return a response. No alternative provider or generated fallback was used.', 'GEMINI_DIRECT_UNAVAILABLE', { upstreamCode: reason });
     }
     // Conversation is user-facing: degrade gracefully instead of producing a

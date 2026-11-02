@@ -1,3 +1,7 @@
+## P124.21 — Search follow-up and numeric-gate repair (2026-11-02)
+
+Product version `124`, patch `124.21`. OBSERVED in source: direct mode performs Serper lookup for search-triggered turns, translates contextualized queries, injects search evidence, and uses Gemini grounding only if Serper has no usable result; recognized explicit-search follow-ups inherit search intent. Numeric validation now logs unsupported tokens without rejecting a valid response. NOT_RUN: local tests/typecheck (dependencies absent), live Serper/Gemini behavior, hosted CI.
+
 ## P124.20 — Key rotation in direct mode (2026-11-02)
 
 Product version `124`, patch `124.20`. OBSERVED in source: direct Gemini helper rotates up to 3 pool keys on quota/auth/5xx. NOT_RUN: live quota-exhaustion scenario, hosted CI.
