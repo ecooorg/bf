@@ -407,7 +407,9 @@ test('P123.17 preserves retrieved evidence for Expert answers and suppresses use
   assert.match(expert, /Use relevant retrieved evidence and preserve its concrete values/);
   assert.match(expert, /distinguish source-supported facts, user assertions, assumptions and unknowns/);
   assert.match(reasoning, /export function stripUserFacingUrls/);
-  assert.match(reasoning, /never suppress\s+a link when the user explicitly requested one/);
+  const { stripUserFacingUrls } = await import('../server/reasoningState.ts');
+  assert.equal(stripUserFacingUrls('Read https://example.com/report for details.', true), 'Read https://example.com/report for details.');
+  assert.equal(stripUserFacingUrls('Read https://example.com/report for details.', false), 'Read  for details.'.replace(/\s{2,}/g, ' '));
   assert.match(webSearch, /preserve all supported facts and numbers/);
   assert.doesNotMatch(server, /formatSourcesFooter\(webSearch\.sources/);
   assert.match(server, /stripUserFacingUrls\(\s*scrubInternalLabels\(out\.reply\)/);

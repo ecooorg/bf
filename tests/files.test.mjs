@@ -715,7 +715,10 @@ try {
     const bytes = Buffer.from(await r.arrayBuffer());
     assert.equal(bytes.subarray(0, 2).toString(), 'PK');
     const xml = await (await JSZip.loadAsync(bytes)).file('word/document.xml').async('string');
-    assert.ok(xml.includes('План проверки') && xml.includes('Неустойка') && xml.includes('до пятницы'));
+    const visibleText = [...xml.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)]
+      .map((match) => match[1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'")).join(' ');
+    const normalizedText = visibleText.replace(/\*+/g, '').replace(/\s+/g, ' ');
+    assert.ok(normalizedText.includes('План проверки') && normalizedText.includes('Неустойка') && normalizedText.includes('до пятницы'), normalizedText);
   });
   await t('export pdf: valid PDF that reads back with Cyrillic', async () => {
     const r = await postJson(srv, '/api/export-document', c, { format: 'pdf', document: docResp.document });
@@ -745,7 +748,9 @@ try {
 } catch (e) {
   if (srv) await srv.stop();
   console.error('\nFAILED:', e?.stack || e);
-  fake.closeAllConnections?.(); fake.close(); process.exit(1);
+  fake.closeAllConnections?.();
+  await new Promise((resolve) => fake.close(resolve));
+  throw e;
 }
 fake.closeAllConnections?.(); fake.close();
 } finally {

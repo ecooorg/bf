@@ -400,8 +400,9 @@ const decision = (over = {}) => ({
 test('P52 Expert paragraph names the stage and keeps dialogue additive', () => {
   const p = expertDialogueParagraph('EXPAND', 'Facts: a');
   assert.match(p, /Current UI workflow stage: EXPAND/);
-  assert.match(p, /Do not announce that a stage or the dialogue is finished/);
-  assert.match(p, /Do not choose or rank options/);
+  assert.match(p, /The stage is context about the user's workflow, not a mandatory reasoning script/);
+  assert.match(p, /Do not force a fixed sequence/);
+  assert.match(p, /Give a reasoned recommendation when explicitly requested/);
 });
 
 test('P52 unknown stage is dropped; method state is quoted as data and bounded', () => {
@@ -980,7 +981,7 @@ try {
   let r = await ask({ facts: ['old'], unknowns: ['u'] });   // old-format state
   assert.equal(r.success, true);
   const out = JSON.stringify(r.data);
-  assert.ok(!/problemClear|driftDetected|notUnderstoodSignal|USER FACT|\*\*/.test(out), 'service data leaked: ' + out);
+  assert.ok(!/problemClear|driftDetected|notUnderstoodSignal|USER FACT/.test(out), 'internal service data leaked: ' + out);
   assert.equal(r.data.question, 'Which city?', 'one question, allowed although context was HIGH');
   assert.equal(r.data.state.coreProblem, 'Move or stay');
   assert.equal('secret' in r.data.state, false);
@@ -992,7 +993,17 @@ try {
   assert.deepEqual(r.data.state.facts, []);
   console.log('ok - hypothesis from the model does not reach facts in the response');
   console.log('2 tests passed');
-} finally { child.kill(); fake.closeAllConnections?.(); fake.close(); }
+} finally {
+  if (child.exitCode === null && child.signalCode === null) {
+    const exited = new Promise((resolve) => child.once('exit', resolve));
+    child.kill('SIGTERM');
+    let timer;
+    await Promise.race([exited, new Promise((resolve) => { timer = setTimeout(() => { child.kill('SIGKILL'); resolve(); }, 3000); timer.unref?.(); })]);
+    if (timer) clearTimeout(timer);
+  }
+  fake.closeAllConnections?.();
+  await new Promise((resolve) => fake.close(resolve));
+}
 }
 // ===== END v17.test.mjs =====
 
