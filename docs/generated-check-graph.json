@@ -310,7 +310,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -332,6 +332,7 @@
         "tests/p119-agent-ui-contract.test.mjs",
         "tests/p121-architect-result-shape.test.mjs",
         "tests/p121-cycle-governance.test.mjs",
+        "tests/p121-emergency-screen.test.mjs",
         "tests/p121-navigator-protocol.test.mjs",
         "tests/p12318-agent-session-isolation.test.mjs"
       ],
@@ -369,6 +370,7 @@
         "src/config.ts",
         "src/conversationRoutes.ts",
         "src/decision.ts",
+        "src/emergencyDiagnostics.ts",
         "src/en.ts",
         "src/errors.ts",
         "src/evpi.ts",
@@ -722,6 +724,7 @@
         "server/epistemicVerifier.ts",
         "server/expertAgent.ts",
         "server/reasoningState.ts",
+        "server/securityHeaders.ts",
         "server/webSearch.ts"
       ]
     },
@@ -1225,6 +1228,9 @@
     "server/security.ts": [
       "test:security"
     ],
+    "server/securityHeaders.ts": [
+      "test:web"
+    ],
     "server/statePipeline.ts": [
       "test:core",
       "test:pipeline"
@@ -1304,6 +1310,9 @@
     ],
     "src/driveSync.ts": [
       "test:integrations"
+    ],
+    "src/emergencyDiagnostics.ts": [
+      "test:core"
     ],
     "src/en.ts": [
       "test:core"
