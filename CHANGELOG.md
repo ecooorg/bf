@@ -1,3 +1,9 @@
+## P124.18 — legacy-pipeline tests pinned to the legacy path (2026-11-02)
+
+- Fixed the three CI failures (`tests/core.test.mjs`, `tests/files.test.mjs`, `tests/pipeline.test.mjs`): since P124.17 the Conversational endpoint defaults to direct Gemini pass-through, so tests that verify the structured pipeline (service-field scrubbing, attachment notes, conversation mode meta) received raw model text.
+- These tests now spawn the server with `BIFORGE_GEMINI_DIRECT_MODE=false`. No runtime behavior changed; the direct mode remains covered by `tests/gemini-direct-passthrough-p124-17.test.mjs`.
+- Verification: `test:core`, `test:files`, `test:pipeline` run locally PASS; full hosted CI NOT_RUN.
+
 ## P124.17 — Direct Gemini pass-through
 
 - Added a controlled Conversational path that makes one direct Gemini text-generation call and returns the exact response text without application rewriting.
