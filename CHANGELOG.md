@@ -1,3 +1,10 @@
+## P124.10 diagnostics classification and emergency-screen regression repair
+
+- Repaired the emergency-screen contract test to read the configured `MAX_ENTRIES` value instead of freezing the historical value `120`; wired the test into `test:core` so it runs in the CI DAG.
+- Corrected diagnostic log classification: explicit status lines take precedence, TAP failures remain `FAIL`, and a passing TAP log is `PASS` even when a test title or description contains the word `BLOCKED`.
+- Added a regression test for the false-`BLOCKED` classification.
+- Bumped patch metadata to `124.10`.
+
 ## P124.9 crisis-turn question safety repair
 
 - Restored the crisis-turn contract in the Conversational path: when triage is `CRISIS` or a distress marker is detected, questions the model wrote inside its own answer text are removed (`stripQuestionSentences` in `server/reasoningState.ts`, applied in `server.ts`), while every other model-authored sentence and the support-contacts block are kept. This closes the Pipeline Stage 2 failures `G1 crisis ru`, `G1 crisis es` and `G1 crisis ru-late` seen after P124.7, when `buildVisibleReply` began preserving model-authored questions.

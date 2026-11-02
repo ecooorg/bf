@@ -1,3 +1,26 @@
+## CURRENT EVIDENCE NOTE — P124.10 diagnostics classification and emergency-screen test repair (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.10`. **Scope:** audit recommendations R-04 and R-05 (`DEF-02`, `DEF-03`).
+
+### Implemented changes
+
+- The emergency-screen test now extracts and validates the positive `MAX_ENTRIES` value from `src/emergencyDiagnostics.ts` rather than asserting the obsolete literal `120`.
+- Added the emergency-screen test to `test:core`, making the contract part of the existing CI DAG.
+- Diagnostic per-log classification now uses explicit status lines rather than arbitrary occurrences of `BLOCKED`; TAP failures take precedence, and passing TAP totals classify as `PASS`.
+- Added a regression case where `BLOCKED` appears in a passing test title.
+
+### Verification
+
+- `node --test tests/p121-emergency-screen.test.mjs` — **PASS, 1/1**.
+- `node --test tests/diagnostics-summary-contract.test.mjs` — **PASS, 2/2**.
+- `node --check` for both changed test files and `scripts/diagnostics-summary.mjs` — **PASS**.
+- `node scripts/version-metadata.mjs` — **PASS** (`124`, patch `124.10`).
+- Full `test:core` / CI DAG, typecheck, build, browser e2e, hosted Actions and live-provider checks — **NOT_RUN**; the supplied archive has no installed `node_modules`.
+
+### Boundary
+
+This patch repairs the two audited regression risks. It does not claim a full CI pass or live user-value validation.
+
 ## CURRENT EVIDENCE NOTE — P124.9 crisis-turn question safety repair (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.9`. **Base evidence:** hosted CI run `41412782921` at commit `bb4980a262c16835773b2d65215a818c6a3dcc84` (DAG: 27 PASS, 1 FAIL). **Scope:** repair the only evidenced failure, `test:pipeline` Stage 2 checks `G1 crisis ru`, `G1 crisis es`, `G1 crisis ru-late` (`s200 q=1 contacts=true`).
