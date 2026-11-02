@@ -103,6 +103,7 @@ export type SearchTriggerInput = {
   distress?: boolean;
   intent?: string;
   hasAttachments?: boolean;
+  recentSearchIntent?: boolean;
 };
 
 /** Decide whether a conversation turn should get a web lookup. Pure. */
@@ -114,11 +115,20 @@ export function shouldSearchWeb(o: SearchTriggerInput): boolean {
   const text = String(o.userText || '').trim();
   if (text.length < 8) return false;
   if (o.userAskedSearch) return true;
+  if (o.recentSearchIntent && isSearchFollowup(text)) return true;
   if (o.hasAttachments) return false;
   if ((o.mode || 'auto') === 'explicit') return false;
   return needsFreshWebInfo(text);
 }
 
+
+
+/** A short follow-up that continues an explicit web-search request from the prior turn. */
+export function isSearchFollowup(text: string): boolean {
+  const t = String(text || '').trim();
+  if (t.length < 8) return false;
+  return /(?:друг(?:их|ие)\s+(?:сайт\w*|источник\w*)|на\s+других\s+сайт\w*|обязательно\s+нуж\w*|мне\s+нуж\w*\s+(?:точн\w*\s+)?(?:температур\w*|данн\w*|цифр\w*)|найди\s+(?:ещ[её]|больше)|поищи\s+(?:ещ[её]|на\s+других)|проверь\s+(?:на\s+других|ещ[её])|other\s+sites|other\s+sources|different\s+websites|need\s+(?:the\s+)?(?:exact\s+)?(?:temperature|figure|number)|search\s+elsewhere|try\s+another\s+site)/iu.test(t);
+}
 
 /**
  * Resolve elliptical follow-up searches against the immediately preceding user turns.
@@ -134,9 +144,13 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
   const normalizedLatest = latest.replace(/^(?:меня\s+)?интересует\s+/iu, '').trim();
   const unitFollowup = /цельси|celsius|фаренгейт|fahrenheit/iu.test(normalizedLatest) && /weather|погод\p{L}*|temperature|температур\p{L}*/iu.test(topic);
   const continuation = unitFollowup
+    || isSearchFollowup(latest)
     || /^(?:(?:а\s+)?(?:в|по)\s+)?(?:градус(?:ах|ы)?\s+)?(?:цельси(?:я|ю)|фаренгейт(?:а|у)?|celsius|fahrenheit|в\s+цельсиях|в\s+фаренгейтах)[?!.,\s]*$/iu.test(latest)
     || /^(?:а\s+)?(?:сейчас|сегодня|завтра|там|а\s+там|what about (?:today|now|there)|and in (?:celsius|fahrenheit))[?!.,\s]*$/iu.test(latest);
   if (!continuation) return latest;
+  // If the follow-up already names the location and requested measurement, search it
+  // directly instead of appending a duplicate topic extracted from older turns.
+  if (isSearchFollowup(normalizedLatest) && /(?:в|in)\s+[\p{L}]/iu.test(normalizedLatest) && /температур|temperature/iu.test(normalizedLatest)) return latest;
   const placeMatch = topic.match(/(?:weather|погод\p{L}*)\s+(?:in|for|в|во|на)\s+(?:the\s+city\s+of\s+|городе\s+)?([\p{L}][\p{L} .'-]{1,50}?)(?=\s+(?:today|tomorrow|сегодня|завтра|сейчас|and|и)(?:\s|$)|[?.!,;]|$)/iu);
   const place = placeMatch ? (placeMatch[1] || placeMatch[0]).trim() : '';
   if (!place) return latest;
@@ -222,7 +236,7 @@ export function expandSearchQueries(englishQuery: string, originalUserText?: str
   } else if (versionLike) {
     focused.push(...versionSearchExtras(originalUserText || englishQuery));
   } else if (weatherLike) {
-    focused.push(`${q} current observations temperature conditions observation time`);
+    focused.push(`${q} current observations temperature conditions observation time`, `${q} current temperature degrees Celsius weather station`, `${q} temperature now AccuWeather Weather.com`);
   } else {
     return [q];
   }
