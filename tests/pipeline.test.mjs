@@ -97,7 +97,7 @@ const fake = http.createServer((req, res) => {
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort();
 const base = `http://127.0.0.1:${port}`;
-const child = spawn('tsx', ['server.ts'], {
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
   stdio: 'ignore',
   env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' },
 });
@@ -523,7 +523,7 @@ const fake = http.createServer((req, res) => { let b = ''; req.on('data', (d) =>
     ...(withUsage ? { usageMetadata: { promptTokenCount: 4321, candidatesTokenCount: 210, cachedContentTokenCount: 123, totalTokenCount: 4531 } } : {}) })); }); });
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort(); const base = `http://127.0.0.1:${port}`;
-const child = spawn('tsx', ['server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
   SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10' } });
 try {
   for (let i = 0; i < 120; i++) { try { if ((await fetch(base + '/api/health')).ok) break; } catch {} await sleep(250); }
@@ -585,13 +585,12 @@ await new Promise((r) => fake.listen(0, r));
 const port = await freePort(); const base = `http://127.0.0.1:${port}`;
 // ENABLE_WEB_SEARCH=false: this block asserts conversation meta.calls vs fake hits.
 // Web search reuses GEMINI_BASE_URL and would inflate hits without updating conversation meta.
-const child = spawn('tsx', ['server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { stdio: 'ignore', env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS,
   SESSION_SECRET: 'x'.repeat(40), GEMINI_API_KEY: 'k', GEMINI_BASE_URL: `http://127.0.0.1:${fake.address().port}`, LLM_ROUND_PAUSE_MS: '10', ENABLE_WEB_SEARCH: 'false' } });
 
 // Text of the prompt actually sent to the model (the request body is JSON; read the user content out of it).
 const strings = (v) => (typeof v === 'string' ? [v] : v && typeof v === 'object' ? Object.values(v).flatMap(strings) : []);
 const promptText = () => strings(JSON.parse(lastPrompt)).join('\n');
-const MARKUP = /\*\*|__|^#{1,6}\s|`/m;
 const claimsSearch = /\b(I searched|I have searched|I found online|I checked the (web|sources|bulletins))\b|я (поискал|нашёл в сети|нашел в сети|проверил источники)/i;
 
 // A reply of the shape the contract asks for: one sentence on what is unavailable, then a scenario with its basis.
@@ -638,10 +637,10 @@ try {
     const upper = p.indexOf('FILES THE PERSON ATTACHES');
     assert.ok(p.indexOf('HARD BOUNDARIES') < c && c < upper, `step ${n + 1}: contract misplaced`);
     assert.ok(p.includes(step.say), `step ${n + 1}: the user's text is not in the prompt`);
-    // 2. Server path: no markup, no service labels, honest numbers, no crisis, no model-call surprises.
+    // 2. Server path: preserve model-authored answer text; no service labels, invented numbers, crisis misclassification, or model-call surprises.
     const reply = r.data.reply;
     assert.ok(reply.trim().length > 20, `step ${n + 1}: empty reply`);
-    assert.ok(!MARKUP.test(reply), `step ${n + 1}: markup`);
+    assert.equal(reply, step.reply, `step ${n + 1}: model-authored answer must be preserved verbatim`);
     assert.ok(!claimsSearch.test(reply), `step ${n + 1}: claims a search that was not made`);
     assert.ok(!/\d+\s?%/.test(reply), `step ${n + 1}: invented percentage`);
     assert.notEqual(r.data.triage, 'CRISIS', `step ${n + 1}: triage CRISIS without distress markers`);
@@ -737,7 +736,7 @@ const fake = http.createServer((req, res) => {
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort();
 const base = `http://127.0.0.1:${port}`;
-const child = spawn('tsx', ['server.ts'], {
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
   stdio: 'ignore',
   env: {
     ...process.env,
@@ -875,7 +874,7 @@ const freePort = () => new Promise((res) => { const s = net.createServer().liste
   assert.equal(detectConversationMode('Расскажи, как работать или отдыхать эффективнее'), 'information');
   assert.equal(detectConversationMode('Хочу уволиться завтра же.'), 'information');
   assert.equal(detectConversationMode('что угодно', { userAskedSearch: true }), 'research');
-  assert.ok(/Decision support/i.test(modeParagraph('decision')));
+  assert.ok(/CURRENT FOCUS: Decision-related request/i.test(modeParagraph('decision')));
   assert.ok(/Research/i.test(modeParagraph('research')));
   assert.ok(/Engineering/i.test(modeParagraph('engineering')));
   assert.ok(!/HARD BOUNDARIES/i.test(modeParagraph('decision')));
@@ -898,7 +897,7 @@ const fake = http.createServer((req, res) => {
 await new Promise((r) => fake.listen(0, r));
 const port = await freePort();
 const base = `http://127.0.0.1:${port}`;
-const child = spawn('tsx', ['server.ts'], {
+const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
   stdio: 'ignore',
   env: {
     ...process.env,
@@ -978,7 +977,7 @@ try {
   answer = good('Ветки решения.');
   const decision = await conv(cookie, 'Что мне делать: остаться или уехать?');
   assert.equal(decision.meta?.conversation_mode, 'decision', 'meta decision');
-  assert.ok(/CURRENT FOCUS: Decision support/i.test(promptText()), 'decision paragraph in prompt');
+  assert.ok(/CURRENT FOCUS: Decision-related request/i.test(promptText()), 'decision paragraph in prompt');
 
   answer = good('Требования и критерии.');
   const eng = await conv(cookie, 'Напиши acceptance criteria и unit test для этого API');
@@ -1030,7 +1029,7 @@ await new Promise((r) => bridge.listen(0, r)); const BURL = `http://127.0.0.1:${
 // ---------- server ----------
 async function srv(env = {}) {
   const port = await freePort(), base = `http://127.0.0.1:${port}`; let logs = '';
-  const child = spawn('tsx', ['server.ts'], { cwd: BE, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { cwd: BE, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
     GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: BURL, GOOGLE_GEMINI_BASE_URL: BURL, LLM_ROUND_PAUSE_MS: '10', RATE_LIMIT_PER_HOUR: '100000', DAILY_CALL_CAP: '100000',
     MODEL_CASCADE_STRONG: 'm1,m2,m3', MODEL_CASCADE_LIGHT: 'm1,m2,m3', ...env } });
   child.stdout.on('data', (d) => logs += d); child.stderr.on('data', (d) => logs += d);
@@ -1047,7 +1046,7 @@ const GOOD = (o = {}) => ({ reply: 'Зимняя тяжесть — это од�
   problemClear: true, driftDetected: false, notUnderstoodSignal: false, gain: ['REFRAMED_QUESTION'], newOptions: [], state: { coreProblem: 'Решение', facts: [], hypotheses: [] }, ...o });
 const conv = (s, text, extra = {}, h = {}) => s.post('/api/conversation', { brief: { decision: text }, history: [{ role: 'user', content: text }], ...extra }, h);
 const qn = (t) => (String(t).match(/[?？]/g) || []).length;
-const MARKUP = /\*\*|__|^#{1,6}\s|`|^\s*[*•+]\s/m, LABELS = /USER[ _]FACT|GENERAL[ _]KNOWLEDGE|HYPOTHESIS\)|\[HYPOTHESIS|problemClear|driftDetected|notUnderstoodSignal|\(Source:|USER_DATA|GENERAL_PATTERN/;
+const LABELS = /USER[ _]FACT|GENERAL[ _]KNOWLEDGE|HYPOTHESIS\)|\[HYPOTHESIS|problemClear|driftDetected|notUnderstoodSignal|\(Source:|USER_DATA|GENERAL_PATTERN/;
 const ctxOf = (prompt) => { const i = prompt.indexOf('"context":'); if (i < 0) return null; let d = 0, st = -1; for (let k = prompt.indexOf('{', i); k < prompt.length; k++) { if (prompt[k] === '{') { if (st < 0) st = k; d++; } else if (prompt[k] === '}' && --d === 0) { try { return JSON.parse(prompt.slice(st, k + 1)); } catch { return null; } } } return null; };
 
 // ===== A. entry, auth, 410, EVPI, preconditions =====
@@ -1127,7 +1126,7 @@ await withSrv({}, async function B(s) {
     const id = `B ${c.id}/${mn}`; if (r.s !== 200) { T(id, false, `status ${r.s} ${r.j?.error}`); continue; }
     const rep = r.j.data.reply; const bad = [];
     if (qn(rep) > 1) bad.push('questions=' + qn(rep));
-    if (MARKUP.test(rep)) bad.push('markup'); if (LABELS.test(JSON.stringify(r.j.data))) bad.push('label');
+    if (mn === 'markdown' && !rep.startsWith('**Ключевое:**')) bad.push('model Markdown was stripped'); if (LABELS.test(JSON.stringify(r.j.data))) bad.push('label');
     if (/[a-zа-яё][.!][A-ZА-ЯЁÁÉÍÓÚ¿]/.test(rep)) bad.push('glued'); if (/(^|[^.])\.\.([^.]|$)/.test(rep)) bad.push('double-dot'); if (/\s\.(\s|$)/.test(rep)) bad.push('space-dot');
     if (/(problemClear|driftDetected|notUnderstood)/.test(JSON.stringify(r.j))) bad.push('service field in response');
     T(id, !bad.length, bad.join(',') + ' | ' + rep.replace(/\n/g, '\\n').slice(0, 140));

@@ -40,13 +40,12 @@ test('P107 the ci profile adds the critical probes, database stages and build, w
   for (const id of ['critical-router-selection', 'critical-router-policy-call-limit', 'critical-gemini-timeout', 'critical-app-builder-recovery', 'db-migrate', 'test:database:live', 'test:bx06:api', 'build']) assert.ok(ci.has(id), id);
   const legacyMs = { 'critical-router-selection': 20000, 'critical-gemini-timeout': 20000, 'test:core': 75000, 'test:models': 75000, 'test:files': 75000, 'test:app-builder': 150000, 'test:project': 120000, typecheck: 120000, 'test:pipeline': 330000 };
   for (const [id, ms] of Object.entries(legacyMs)) assert.ok(ci.get(id).timeoutMs >= ms, `${id} timeout must not be lower than ${ms}`);
-  for (const id of ['test:core', 'test:models', 'test:files', 'test:project', 'typecheck']) {
+  for (const id of ['test:core', 'test:models', 'test:files', 'test:app-builder', 'test:project', 'typecheck']) {
     assert.equal(ci.get(id).critical, true);
-    assert.equal(ci.get(id).needs.length, 3, `${id} waits for the three shared critical probes`);
+    const expectedPrerequisites = id === 'test:app-builder' ? 4 : 3;
+    assert.equal(ci.get(id).needs.length, expectedPrerequisites, `${id} waits only for its required critical probes`);
+    assert.ok(ci.get(id).needs.includes('critical-app-builder-recovery') === (id === 'test:app-builder'));
   }
-  assert.equal(ci.get('test:app-builder').critical, true);
-  assert.equal(ci.get('test:app-builder').needs.length, 4, 'App Builder also waits for its recovery probe');
-  assert.ok(ci.get('test:app-builder').needs.includes('critical-app-builder-recovery'));
   for (const id of ['db-migrate', 'test:database:live', 'test:bx06:api']) { assert.equal(ci.get(id).safeToRun, false); assert.ok(ci.get(id).requiresEnv.includes('DAG_TEST_DATABASE_URL')); }
   assert.deepEqual(ci.get('test:database:live').needs, ['db-migrate']);
   assert.deepEqual(ci.get('test:bx06:api').needs, ['db-migrate']);

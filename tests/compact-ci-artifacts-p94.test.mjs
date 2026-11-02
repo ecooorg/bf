@@ -25,35 +25,32 @@ const runAsync = (script, dir, extra = {}) => new Promise((resolve, reject) => {
   child.once('close', (status, signal) => resolve({ status, signal, stdout, stderr }));
 });
 
-test('P108.3 workflow publishes ASSISTANT_PASTE plus full-log archive only at outer root', () => {
-  const workflow = fs.readFileSync(path.join(root, '.github/workflows/ci.yml'), 'utf8');
-  assert.match(workflow, /artifacts\/ci-checks\/ASSISTANT_PASTE\*\.txt/, 'the upload must include the primary paste and any numbered continuation parts');
-  assert.match(workflow, /artifacts\/ci-checks\/biforge-ci-logs\.zip/);
-  assert.doesNotMatch(workflow, /path:\s*artifacts\/ci-checks\/(?:PATCH_EVIDENCE\.md|diagnostics\.zip|ci-history\.json|ci-metrics\.json)/);
-  // Outer upload must not list BIForge-PATCH-EVIDENCE at artifact root (lives inside the zip).
-  assert.doesNotMatch(workflow, /path:\s*\|\s*\n\s*artifacts\/ci-checks\/BIForge-PATCH-EVIDENCE\.md/);
+test('P124.5 every canonical workflow publishes one summary and readable diagnostic logs', () => {
+  for (const name of ['ci.yml', 'acceptance.yml', 'architect-compare.yml', 'ops.yml', 'expert-verify.yml', 'information-quality.yml', 'carousel-verify.yml']) {
+    const workflow = fs.readFileSync(path.join(root, '.github/workflows', name), 'utf8');
+    assert.match(workflow, /diagnostics-summary\.mjs/, name);
+    assert.match(workflow, /ASSISTANT_SUMMARY\.md/, name);
+    assert.doesNotMatch(workflow, /ASSISTANT_PASTE|biforge-ci-logs\.zip/, `${name} must not use split handoffs or nested archives`);
+  }
 });
 
-test('P108.3 handoff turns the two-artifact contract failure into an actionable next step', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p1083-next-action-'));
+test('P124.5 assistant handoff contains failure context and counts in one file', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-diagnostics-handoff-'));
   try {
-    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [
-      { id: 'test:compact-ci-artifacts', status: 'FAIL', exitCode: 1, durationMs: 7000, log: 'test_compact-ci-artifacts.log' },
-    ] }));
-    fs.writeFileSync(path.join(dir, 'test_compact-ci-artifacts.log'), [
-      'not ok 2 - P108.2 packaging always includes complete diagnostics on failure',
-      'AssertionError: Expected values to be strictly deep-equal:',
-      "expected: ['PATCH_EVIDENCE.md', 'ci-history.json', 'ci-metrics.json', 'diagnostics.zip']",
-      "actual: ['BIForge-PATCH-EVIDENCE.md', 'biforge-ci-logs.zip']",
-      'at TestContext.<anonymous> (tests/compact-ci-artifacts-p94.test.mjs:62:12)',
-    ].join('\n'));
-    const r = run('scripts/patch-quality-report.mjs', dir, { CI_STATUS: 'failure', GITHUB_SHA: 'test-sha' });
+    fs.writeFileSync(path.join(dir, '01-core-tests.log'), '# tests 3\n# pass 2\n# fail 1\n# skipped 0\nnot ok 3 - prompt contract\nAssertionError: obsolete prompt wording\n');
+    fs.writeFileSync(path.join(dir, '02-build.log'), 'build completed successfully\n');
+    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [{ id: 'test:core', status: 'FAIL', durationMs: 60000, log: '01-core-tests.log' }] }));
+    const r = run('scripts/diagnostics-summary.mjs', dir, { CI_STATUS: 'failure', GITHUB_SHA: 'test-sha' });
     assert.equal(r.status, 0, r.stderr || r.stdout);
-    const report = fs.readFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), 'utf8');
-    assert.match(report, /Update tests\/compact-ci-artifacts-p94\.test\.mjs/);
-    assert.match(report, /biforge-ci-logs\.zip/);
-    assert.match(report, /ASSISTANT_PASTE|BIForge-PATCH-EVIDENCE|PATCH_EVIDENCE/);
-    assert.match(report, /npm run test:compact-ci-artifacts/);
+    const files = fs.readdirSync(dir).sort();
+    assert.deepEqual(files, ['ASSISTANT_SUMMARY.md', 'checks.log', 'environment.log', 'failures.log', '01-core-tests.log', '02-build.log', 'results.json'].sort());
+    const summary = fs.readFileSync(path.join(dir, 'ASSISTANT_SUMMARY.md'), 'utf8');
+    assert.match(summary, /2\/3/);
+    assert.match(summary, /obsolete prompt wording/);
+    assert.match(summary, /02-build\.log/);
+    assert.match(summary, /test:core/);
+    assert.match(summary, /npm run test:core/);
+    assert.match(fs.readFileSync(path.join(dir, 'failures.log'), 'utf8'), /AssertionError/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -79,62 +76,21 @@ test('P94 report preserves TAP assertion details and timeout tail', () => {
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('P108.2 packaging always includes complete diagnostics on failure', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-package-'));
-  try {
-    fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), '# Report\nPATCH_STATUS=FAILED\n');
-    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [
-      { id: 'test:core', status: 'FAIL', log: 'test-core.log' }, { id: 'test:project', status: 'PASS', log: 'test-project.log' },
-    ] }));
-    fs.writeFileSync(path.join(dir, 'test-core.log'), 'AssertionError: expected false, actual true\nOPENAI_API_KEY=sk-test-secret-value-12345678901234567890\n');
-    fs.writeFileSync(path.join(dir, 'test-project.log'), 'all passed\n');
-    fs.writeFileSync(path.join(dir, 'ci-install.log'), 'npm ci ok\n');
-    fs.writeFileSync(path.join(dir, 'prompt-snapshot-diagnostics.json'), JSON.stringify({
-      artifactType: 'prompt-snapshot-diagnostics',
-      expected: { 'expert:engineering': 'expected-hash' },
-      actual: { 'expert:engineering': 'actual-hash', 'expert:research': 'research-hash' },
-      sources: { 'server/expertAgent.ts': { sha256: 'source-hash', content: 'builder source' } },
-      prompts: { 'expert:engineering': { text: 'generated prompt text' } },
-    }));
-    const r = run('scripts/package-ci-artifacts.mjs', dir);
-    assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['ASSISTANT_PASTE.txt', 'biforge-ci-logs.zip']);
-    const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
-    assert.ok(zip.file('test-core.log'));
-    assert.equal(zip.file('test-project.log'), null, 'successful-stage logs are omitted to keep artifacts compact');
-    assert.ok(zip.file('results.json'));
-    assert.ok(zip.file('diagnostics-index.json'));
-    assert.ok(zip.file('PATCH_EVIDENCE.md') || zip.file('BIForge-PATCH-EVIDENCE.md'), 'evidence inside zip');
-    assert.ok(zip.file('prompt-snapshot-diagnostics.json'), 'full prompt/source diagnostic must be retained in ZIP');
-    const paste = fs.readFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), 'utf8');
-    assert.match(paste, /Complete prompt snapshot matrix/);
-    assert.match(paste, /expert:engineering: actual-hash \| expected=expected-hash \| MISMATCH/);
-    assert.match(paste, /expert:research: research-hash \| expected=n\/a \| DIAGNOSTIC_ONLY/);
-    assert.match(paste, /server\/expertAgent\.ts:source-hash/);
-    const core = await zip.file('test-core.log').async('string');
-    assert.match(core, /AssertionError/);
-    assert.match(core, /OPENAI_API_KEY=\[REDACTED\]/);
-    assert.doesNotMatch(core, /sk-test-secret-value/);
-  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+test('P124.5 clean and failing workflow runs both produce the same diagnostic file set', () => {
+  for (const [status, name] of [['failure', 'core'], ['success', 'build']]) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-diagnostics-shape-'));
+    try {
+      fs.writeFileSync(path.join(dir, `${name}.log`), status === 'failure' ? 'AssertionError: failed check\n' : 'all checks passed\n');
+      const r = run('scripts/diagnostics-summary.mjs', dir, { CI_STATUS: status });
+      assert.equal(r.status, 0, r.stderr || r.stdout);
+      assert.deepEqual(fs.readdirSync(dir).sort(), [`${name}.log`, 'ASSISTANT_SUMMARY.md', 'checks.log', 'environment.log', 'failures.log'].sort());
+      const summary = fs.readFileSync(path.join(dir, 'ASSISTANT_SUMMARY.md'), 'utf8');
+      assert.match(summary, /BiForge — Diagnostic Report/);
+      assert.match(summary, new RegExp(status === 'failure' ? 'FAIL' : 'PASS'));
+      assert.equal(fs.readdirSync(dir).filter(x => /^ASSISTANT_/.test(x)).length, 1);
+    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  }
 });
-
-test('P108.2 packaging emits diagnostics and cycle metrics after a clean run', async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-p94-clean-'));
-  try {
-    fs.writeFileSync(path.join(dir, 'PATCH_EVIDENCE.md'), '# Report\nPATCH_STATUS=PASSED\n');
-    fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify({ results: [{ id: 'typecheck', status: 'PASS' }] }));
-    fs.writeFileSync(path.join(dir, 'typecheck.log'), 'no errors\n');
-    const r = run('scripts/package-ci-artifacts.mjs', dir);
-    assert.equal(r.status, 0, r.stderr || r.stdout);
-    assert.deepEqual(fs.readdirSync(dir).sort(), ['ASSISTANT_PASTE.txt', 'biforge-ci-logs.zip']);
-    assert.ok(fs.statSync(path.join(dir, 'biforge-ci-logs.zip')).size > 0);
-    assert.ok(fs.existsSync(path.join(dir, 'ASSISTANT_PASTE.txt')));
-    assert.match(fs.readFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), 'utf8'), /ASSISTANT_PASTE|STATUS=/);
-    const zip = await JSZip.loadAsync(fs.readFileSync(path.join(dir, 'biforge-ci-logs.zip')));
-    assert.equal(zip.file('typecheck.log'), null, 'successful-run logs are omitted from compact archive');
-  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
-});
-
 
 test('P108.2 history collector records current checks even without GitHub API access', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-ci-history-'));
@@ -159,17 +115,13 @@ test('P108.2 history collector records current checks even without GitHub API ac
 
 test('P108.2 history collector imports exact durations and check counts from the four-cycle window', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'biforge-ci-history-api-'));
-  const artifactZip = await new JSZip().file('ci-metrics.json', JSON.stringify({
-    run: { dagWallClockMs: 1200 },
-    checks: { total: 2, completed: 2, pass: 2, fail: 0, timeout: 0, blocked: 0, skipped: 0, skipped_by_policy: 0, not_run: 0, unknown: 0 },
-    checkResults: [{ id: 'a', status: 'PASS', durationMs: 400 }, { id: 'b', status: 'PASS', durationMs: 500 }],
-  })).generateAsync({ type: 'nodebuffer' });
+  const artifactZip = await new JSZip().file('checks.log', 'PASS    a — 400 ms\nPASS    b — 500 ms\n').generateAsync({ type: 'nodebuffer' });
   const server = createServer((req, res) => {
     const send = (value, status = 200, type = 'application/json') => { res.writeHead(status, { 'content-type': type }); res.end(type === 'application/json' ? JSON.stringify(value) : value); };
     if (req.url === '/repos/test/repo/actions/runs/999/jobs?per_page=100') return send({ jobs: [{ name: 'check-and-build', started_at: '2026-10-26T08:00:00Z', status: 'in_progress', steps: [] }] });
     if (req.url === '/repos/test/repo/actions/workflows/ci.yml/runs?per_page=30') return send({ workflow_runs: [{ id: 998, status: 'completed', conclusion: 'success', run_started_at: '2026-10-26T07:00:00Z', updated_at: '2026-10-26T07:00:03Z', head_sha: 'prev-sha', head_branch: 'main', event: 'push', html_url: 'https://example.test/run/998' }] });
     if (req.url === '/repos/test/repo/actions/runs/998/jobs?per_page=100') return send({ jobs: [{ name: 'check-and-build', started_at: '2026-10-26T07:00:00Z', completed_at: '2026-10-26T07:00:02Z', conclusion: 'success', steps: [{ name: 'Verification DAG', number: 5, status: 'completed', conclusion: 'success', started_at: '2026-10-26T07:00:00Z', completed_at: '2026-10-26T07:00:01Z' }] }] });
-    if (req.url === '/repos/test/repo/actions/runs/998/artifacts?per_page=100') return send({ artifacts: [{ id: 7, name: 'biforge-ci-report', expired: false }] });
+    if (req.url === '/repos/test/repo/actions/runs/998/artifacts?per_page=100') return send({ artifacts: [{ id: 7, name: 'ci-diagnostics', expired: false }] });
     if (req.url === '/repos/test/repo/actions/artifacts/7/zip') return send(artifactZip, 200, 'application/zip');
     return send({ error: `unexpected ${req.url}` }, 404);
   });
@@ -190,7 +142,7 @@ test('P108.2 history collector imports exact durations and check counts from the
     assert.equal(history.historyStatus, 'COMPLETE');
     assert.equal(history.previousRuns[0].workflowDurationMs, 3000);
     assert.equal(history.previousRuns[0].jobDurationMs, 2000);
-    assert.equal(history.previousRuns[0].dagWallClockMs, 1200);
+    assert.equal(history.previousRuns[0].dagWallClockMs, null, 'new compact artifacts intentionally omit the separate metrics JSON');
     assert.equal(history.previousRuns[0].checks.total, 2);
     assert.equal(history.previousRuns[0].checks.pass, 2);
   } finally {

@@ -1,77 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const script = path.join(root, 'scripts/assistant-run-summary.mjs');
+const root = path.resolve(new URL('..', import.meta.url).pathname);
 
-test('assistant-run-summary script exists', () => {
-  assert.ok(existsSync(script));
-});
-
-test('assistant-run-summary writes ASSISTANT_PASTE.txt from synthetic fail log', () => {
-  const dir = path.join(root, 'artifacts', 'assistant-summary-test');
-  rmSync(dir, { recursive: true, force: true });
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(path.join(dir, 'test_web.log'), [
-    'not ok 8 - P116 freshness disclosure',
-    '  error: The input did not match',
-    '  name: AssertionError',
-    '# fail 1',
-  ].join('\n'));
-  const r = spawnSync(process.execPath, [script], {
-    cwd: root,
-    env: {
-      ...process.env,
-      CI_LOGS_DIR: dir,
-      CI_STATUS: 'failure',
-      GITHUB_WORKFLOW: 'ci',
-      GITHUB_SHA: 'abc123deadbeef',
-      GITHUB_RUN_ID: '1',
-      GITHUB_SERVER_URL: 'https://github.com',
-      GITHUB_REPOSITORY: 'ecooorg/bf',
-    },
-    encoding: 'utf8',
-    timeout: 15_000,
-  });
-  assert.equal(r.status, 0, r.stderr || r.stdout);
-  const paste = readFileSync(path.join(dir, 'ASSISTANT_PASTE.txt'), 'utf8');
-  assert.match(paste, /ASSISTANT_PASTE/);
-  assert.match(paste, /STATUS=failure/);
-  assert.match(paste, /not ok 8|AssertionError|P116/);
-  assert.doesNotMatch(paste, /Log files in artifact|all passed|npm ci ok/i);
-  assert.ok(existsSync(path.join(dir, 'ASSISTANT_SUMMARY.json')));
-});
-
-
-test('assistant-run-summary splits oversized handoffs into numbered parts <= 5000 chars', () => {
-  const dir = path.join(root, 'artifacts', 'assistant-summary-split-test');
-  rmSync(dir, { recursive: true, force: true });
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(path.join(dir, 'oversized.log'), Array.from({ length: 120 }, (_, i) =>
-    `FAIL synthetic-${i} ${'diagnostic-context-'.repeat(35)} AssertionError: evidence-${i}`,
-  ).join('\n'));
-  const r = spawnSync(process.execPath, [script], {
-    cwd: root,
-    env: { ...process.env, CI_LOGS_DIR: dir, CI_STATUS: 'failure' },
-    encoding: 'utf8', timeout: 15_000,
-  });
-  assert.equal(r.status, 0, r.stderr || r.stdout);
-  const names = readdirSync(dir).filter((name) => /^ASSISTANT_PASTE(?:_\d+)?\.txt$/.test(name)).sort();
-  assert.ok(names.length > 1, `expected multiple parts, got ${names.length}`);
-  for (const name of names) assert.ok(readFileSync(path.join(dir, name), 'utf8').length <= 5000, name);
-  assert.equal(names[0], 'ASSISTANT_PASTE.txt');
-  assert.equal(names[1], 'ASSISTANT_PASTE_2.txt');
-  rmSync(dir, { recursive: true, force: true });
-});
-
-test('canonical workflows emit the shared structured diagnostics report', () => {
-  for (const name of ['ci.yml', 'acceptance.yml', 'architect-compare.yml', 'ops.yml']) {
-    const yml = readFileSync(path.join(root, '.github/workflows', name), 'utf8');
-    assert.match(yml, /diagnostics-report\.mjs/, name);
-    assert.match(yml, /artifacts\/diagnostics\//, name);
+test('canonical workflows use one unified diagnostics summary', () => {
+  for (const name of ['ci.yml', 'acceptance.yml', 'architect-compare.yml', 'ops.yml', 'expert-verify.yml', 'information-quality.yml', 'carousel-verify.yml']) {
+    const workflow = fs.readFileSync(path.join(root, '.github/workflows', name), 'utf8');
+    assert.match(workflow, /diagnostics-summary\.mjs/, name);
+    assert.match(workflow, /ASSISTANT_SUMMARY\.md/, name);
+    assert.doesNotMatch(workflow, /ASSISTANT_PASTE(?:_\*|\.txt)|biforge-ci-logs\.zip/, `${name} must not publish split handoffs or nested diagnostic archives`);
   }
+});
+
+test('legacy paste-summary command is no longer part of the workflow handoff contract', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  assert.equal(pkg.scripts['test:diagnostics-summary'], 'node --test tests/diagnostics-summary-contract.test.mjs tests/assistant-run-summary-contract.test.mjs');
 });

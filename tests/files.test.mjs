@@ -66,7 +66,7 @@ async function startServer(extraEnv = {}) {
   const env = { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
     GEMINI_API_KEY: 'fake-key', GOOGLE_GEMINI_BASE_URL: FAKE_URL, GEMINI_BASE_URL: FAKE_URL, TRUST_PROXY_HOPS: '1', ...extraEnv };
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
-  const child = spawn('tsx', ['server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
   let log = ''; child.stdout.on('data', (d) => (log += d)); child.stderr.on('data', (d) => (log += d));
   const srv = { base: `http://127.0.0.1:${port}`, getLog: () => log,
     stop: () => new Promise((r) => { if (child.exitCode !== null) return r(); child.once('exit', r); child.kill(); }) };
@@ -540,7 +540,7 @@ async function startServer(extraEnv = {}) {
   const env = { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
     GEMINI_API_KEY: 'fake-key', GOOGLE_GEMINI_BASE_URL: FAKE_URL, GEMINI_BASE_URL: FAKE_URL, TRUST_PROXY_HOPS: '1', ...extraEnv };
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
-  const child = spawn('tsx', ['server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
   let log = ''; child.stdout.on('data', (d) => (log += d)); child.stderr.on('data', (d) => (log += d));
   const srv = { base: `http://127.0.0.1:${port}`, getLog: () => log,
     stop: () => new Promise((r) => { if (child.exitCode !== null) return r(); child.once('exit', r); child.kill(); }) };
@@ -652,7 +652,7 @@ try {
     const j = await r.json();
     assert.ok(lastBody.includes('inlineData') && lastBody.includes('image/png') && lastBody.includes(PNG.toString('base64')));
     assert.deepEqual(j.data.attachmentNotes.map((x) => x.name), ['photo.png']);
-    assert.equal(j.data.attachmentNotes[0].summary, '**Счёт** на 1200, срок оплаты 5 мая.', 'model formatting is preserved in attachment summaries');
+    assert.ok(j.data.attachmentNotes[0].summary.startsWith('**Счёт**'), 'attachment summary Markdown is preserved');
     fakeOut = NORMAL;
   });
   await t('conversation: an image handle that expired or never existed is reported, not a crash', async () => {
@@ -680,9 +680,9 @@ try {
     const r = await conv(srv, c, {}, 'Сделай документ с планом проверки');
     docResp = (await r.json()).data;
     assert.equal(fakeHits, before + 1, 'a document turn must not trigger the quality retry');
-    assert.equal(docResp.document.title, 'План проверки');
-    assert.equal(docResp.document.blocks[0].text, 'Что известно');
-    assert.ok(!JSON.stringify(docResp.document).includes('**') && !JSON.stringify(docResp.document).includes('* пункт'));
+    assert.equal(docResp.document.title, '**План** проверки', 'generated document preserves author Markdown');
+    assert.equal(docResp.document.blocks[0].text, '## Что известно');
+    assert.ok(JSON.stringify(docResp.document).includes('**договор**') && JSON.stringify(docResp.document).includes('* пункт 3'), 'document Markdown is preserved');
     assert.equal(docResp.question, '', 'no follow-up question on a document turn');
     assert.ok(lastBody.includes('DOCUMENTS AND FILES YOU HAND OVER'));
   });

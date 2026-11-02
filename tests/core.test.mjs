@@ -273,6 +273,7 @@ const fake = http.createServer((req, res) => {
 await new Promise((r) => fake.listen(0, r));
 const FAKE = `http://127.0.0.1:${fake.address().port}`;
 const GOOD = JSON.stringify({ items: [], thirdPersonText: 'A person is choosing.' });
+const activeChildren = new Set();
 
 async function startServer(env = {}) {
   const port = await freePort();
@@ -280,6 +281,7 @@ async function startServer(env = {}) {
     APP_PASSWORD: PASS, SESSION_SECRET: SECRET, GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: FAKE, TRUST_PROXY_HOPS: '1',
     // Must use real registry primary IDs; normalizePrimaryCascade filters anything outside PRIMARY_GEMINI_ORDER.
     MODEL_CASCADE_LIGHT: 'gemini-3.5-flash-lite,gemini-3.1-flash-lite', LLM_ROUND_PAUSE_MS: '10', ...env } });
+  activeChildren.add(child); child.once('exit', () => activeChildren.delete(child));
   let log = ''; child.stdout.on('data', (d) => (log += d)); child.stderr.on('data', (d) => (log += d));
   const base = `http://127.0.0.1:${port}`;
   for (let i = 0; i < 120; i++) {
@@ -291,7 +293,7 @@ async function startServer(env = {}) {
   const cookie = (login.headers.get('set-cookie') || '').split(';')[0];
   const neutralize = (headers = {}) => fetch(base + '/api/neutralize', { method: 'POST', headers: { 'Content-Type': 'application/json', cookie, ...headers },
     body: JSON.stringify({ brief: { decision: 'Should I move to another city?' } }) });
-  return { base, neutralize, stop: () => new Promise((r) => { child.once('exit', r); child.kill(); }) };
+  return { base, neutralize, stop: () => new Promise((resolve) => { if (child.exitCode !== null || child.signalCode !== null) return resolve(); const done = () => resolve(); child.once('exit', done); child.kill('SIGTERM'); const timer = setTimeout(() => { child.kill('SIGKILL'); resolve(); }, 3000); timer.unref(); }) };
 }
 let n = 0; const t = async (name, fn) => { calls.length = 0; await fn(); n++; console.log('ok -', name); };
 
@@ -346,7 +348,10 @@ try {
     assert.ok(calls.length >= 3 && calls.every((c) => c.key === USER_KEY), 'user key must be the one sent to Google');
   });
   await s.stop();
-} finally { fake.closeAllConnections?.(); fake.close(); }
+} finally {
+  await Promise.all([...activeChildren].map(child => new Promise(resolve => { if (child.exitCode !== null || child.signalCode !== null) return resolve(); child.once('exit', resolve); child.kill('SIGTERM'); const timer = setTimeout(() => { child.kill('SIGKILL'); resolve(); }, 3000); timer.unref(); })));
+  fake.closeAllConnections?.(); fake.close();
+}
 console.log(`${n} tests passed`);
 process.exit(0);
 } finally {
@@ -651,6 +656,7 @@ const net = (await import("node:net")).default;
 const { spawn } = await import("node:child_process");
 
 const PASS = 'test-pass-123', SECRET = 'x'.repeat(40), BYOK = 'SECRET-USER-KEY-987';
+const activeServerChildren = new Set();
 const freePort = () => new Promise((res) => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -677,12 +683,13 @@ const FAKE_URL = `http://127.0.0.1:${fake.address().port}`;
 async function startServer(extraEnv = {}) {
   const port = await freePort();
   const env = { ...process.env, NODE_ENV: 'production', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: SECRET,
-    GEMINI_API_KEY: 'fake-key', GOOGLE_GEMINI_BASE_URL: FAKE_URL, GEMINI_BASE_URL: FAKE_URL, TRUST_PROXY_HOPS: '1', ...extraEnv };
+    GEMINI_API_KEY: 'fake-key', GEMINI_BASE_URL: FAKE_URL, ENABLE_WEB_SEARCH: 'false', LLM_CALL_TIMEOUT_MS: '5000', TRUST_PROXY_HOPS: '1', ...extraEnv };
   for (const k of Object.keys(env)) if (env[k] === undefined) delete env[k];
   const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+  activeServerChildren.add(child); child.once('exit', () => activeServerChildren.delete(child));
   let log = ''; child.stdout.on('data', (d) => (log += d)); child.stderr.on('data', (d) => (log += d));
   const srv = { port, child, base: `http://127.0.0.1:${port}`, getLog: () => log,
-    stop: () => new Promise((r) => { if (child.exitCode !== null) return r(); child.once('exit', r); child.kill(); }) };
+    stop: () => new Promise((resolve) => { if (child.exitCode !== null || child.signalCode !== null) return resolve(); child.once('exit', resolve); child.kill('SIGTERM'); const timer = setTimeout(() => { child.kill('SIGKILL'); resolve(); }, 3000); timer.unref(); }) };
   for (let i = 0; i < 120; i++) {
     if (child.exitCode !== null) throw new Error('server exited early:\n' + log);
     try { const r = await fetch(srv.base + '/api/health'); if (r.ok) return srv; } catch {}
@@ -880,17 +887,16 @@ try {
     assert.equal((await (await fetch(srv.base + '/api/session', { headers: { cookie: bad } })).json()).authenticated, false);
   });
 
-  // 2. Chat answer without markdown + user key never logged (needs the SDK to honour GOOGLE_GEMINI_BASE_URL)
-  await t('chat reply has no markdown symbols; user key not logged', async () => {
+  // 2. Chat answer preserves model Markdown + user key is never logged; external search is disabled and provider timeout is bounded.
+  await t('chat reply preserves model Markdown; user key is not logged', async () => {
     const before = fakeHits;
     const r = await post(srv, '/api/conversation', { brief: { decision: 'Should I move to a cooler city?' }, history: [{ role: 'user', content: 'Should I move to a cooler city?' }] },
       { cookie, 'x-byok-key': BYOK });
-    if (fakeHits === before) { skipped++; console.log('   SKIPPED: fake Gemini was not reached (SDK ignored GOOGLE_GEMINI_BASE_URL); status', r.status); return; }
+    if (fakeHits === before) { skipped++; console.log('   SKIPPED: local fake Gemini endpoint was not reached; status', r.status); return; }
     const j = await r.json();
     const reply = j?.data?.reply ?? j?.reply ?? '';
     assert.ok(reply.length > 0, 'empty reply: ' + JSON.stringify(j).slice(0, 200));
-    assert.ok(!/[*#]/.test(reply), 'markdown left in reply: ' + reply);
-    assert.ok(reply.includes('- first item') && reply.includes('- second item'));
+    assert.ok(reply.includes('**Key point**') && reply.includes('* first item') && reply.includes('+ second item') && reply.includes('## Heading'), 'model Markdown must be preserved: ' + reply);
     assert.ok(!srv.getLog().includes(BYOK), 'user key found in server log');
   });
 
@@ -931,7 +937,10 @@ try {
     assert.equal((await (await fetch(s.base + '/api/session')).json()).required, false);
     await s.stop();
   });
-} finally { fake.closeAllConnections?.(); fake.close(); }
+} finally {
+  await Promise.all([...activeServerChildren].map(child => new Promise(resolve => { if (child.exitCode !== null || child.signalCode !== null) return resolve(); child.once('exit', resolve); child.kill('SIGTERM'); const timer = setTimeout(() => { child.kill('SIGKILL'); resolve(); }, 3000); timer.unref(); })));
+  fake.closeAllConnections?.(); fake.close();
+}
 
 console.log(`${n} tests passed${skipped ? `, ${skipped} skipped` : ''}`);
 process.exit(0);

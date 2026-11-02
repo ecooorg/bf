@@ -226,7 +226,7 @@ const assert = (await import("node:assert/strict")).default;
 const { spawn } = await import("node:child_process");
 
 test('Project Mode refuses to start without an application password', async () => {
-  const child = spawn('tsx', ['server.ts'], { env: { ...process.env, NODE_ENV: 'production', ENABLE_PROJECT_MODE: 'true', ENABLE_APP_AUTH: 'true', APP_PASSWORD: '', SESSION_SECRET: 'x'.repeat(40), DATABASE_URL: '' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { env: { ...process.env, NODE_ENV: 'production', ENABLE_PROJECT_MODE: 'true', ENABLE_APP_AUTH: 'true', APP_PASSWORD: '', SESSION_SECRET: 'x'.repeat(40), DATABASE_URL: '' }, stdio: ['ignore', 'pipe', 'pipe'] });
   let output = '';
   child.stdout.on('data', chunk => output += chunk);
   child.stderr.on('data', chunk => output += chunk);
