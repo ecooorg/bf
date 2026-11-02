@@ -954,7 +954,9 @@ async function generate(
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
       const text = JSON.stringify(parsed);
       const bad = validateNumbers(text, inputForNumbers, validatedDerivedNumbers(text, inputForNumbers, []), []);
-      if (bad.length) { console.warn(JSON.stringify({ type: 'llm_external_fallback_rejected', provider: provider.id, reason: 'number_validation' })); continue; }
+      // External fallback is already a degraded path. Keep number validation observable,
+      // but do not discard an otherwise usable answer solely for unsupported numeric tokens.
+      if (bad.length) console.warn(JSON.stringify({ type: 'llm_external_fallback_number_validation_softened', provider: provider.id, rejectedNumericTokens: bad.slice(0, 12) }));
       console.info(JSON.stringify({ type: 'llm_external_fallback_succeeded', provider: provider.id, model: provider.model, stage }));
       return { data: parsed, meta: { model: `${provider.id}/${provider.model}`, fallback: true, durationMs: Date.now() - t0, stage, calls: attempts, lightFallback: modelClass === 'strong', promptChars: prompt.length } };
     }
@@ -1209,9 +1211,22 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // model providers are not consulted on this path.
     if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false') {
       const directSearch = isWebSearchEnabled();
+      let directWebSearch: WebSearchResult = skippedWebSearch();
+      if (directSearch && webSearchProvider() === 'serper' && String(process.env.SERPER_API_KEY || '').trim()) {
+        directWebSearch = await fetchSerperDigestMulti({
+          apiKey: String(process.env.SERPER_API_KEY || '').trim(),
+          userText: contextualizeSearchText(lastUserText, recentUserText),
+          today: new Date().toISOString().slice(0, 10),
+          timeoutMs: 28_000,
+        });
+      }
+      const directSearchBlock = directWebSearch.status === 'used'
+        ? formatSearchBlock(directWebSearch, new Date().toISOString().slice(0, 10))
+        : '';
       const directPrompt = [
         'Answer the latest user message directly. Use the conversation history only when needed for context.',
-        directSearch ? 'For current events, weather, prices, news, or other time-sensitive facts, use Google Search and answer from the results. Do not claim live access when search returned nothing.' : 'Do not claim live data access: web search is unavailable for this request.',
+        directSearchBlock ? 'Use the following retrieved web evidence as the primary source for current facts.' : directSearch ? 'For current events, weather, prices, news, or other time-sensitive facts, use Google Search and answer from the results. Do not claim live access when search returned nothing.' : 'Do not claim live data access: web search is unavailable for this request.',
+        directSearchBlock,
         'Return ordinary answer text, not JSON and not markdown wrappers.',
         `Current date: ${new Date().toISOString().slice(0, 10)}.`,
         `Latest user message:\n${lastUserText}`,
@@ -1223,16 +1238,16 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       const outputHash = crypto.createHash('sha256').update(direct.text, 'utf8').digest('hex');
       void recordApplicationLog({ level: 'info', component: 'conversation', event: 'gemini_direct_passthrough', requestId,
         message: 'Direct Gemini text returned without application rewriting', details: {
-          provider: 'gemini', model: direct.model, searchEnabled: directSearch, searchInvoked: direct.queries.length > 0 || direct.sources.length > 0,
-          searchQueries: direct.queries, sourceCount: direct.sources.length, keySlot: direct.keySlot, keyAttempts: direct.keyAttempts, externalFallbackInvoked: false,
+          provider: 'gemini', model: direct.model, searchEnabled: directSearch, searchInvoked: directWebSearch.status === 'used' || direct.queries.length > 0 || direct.sources.length > 0,
+          searchQueries: [...directWebSearch.queries, ...direct.queries], sourceCount: directWebSearch.sources.length + direct.sources.length, keySlot: direct.keySlot, keyAttempts: direct.keyAttempts, externalFallbackInvoked: false,
           rawOutput: direct.text, visibleReply: direct.text, rawOutputSha256: outputHash,
           visibleReplySha256: outputHash, outputModified: false, durationMs: direct.durationMs,
         } });
       return ok(res, {
         reply: direct.text, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
-        document: null, attachmentNotes: [], ...(direct.sources.length ? { sources: direct.sources } : {}), state: safeState,
-      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, key_attempts: direct.keyAttempts, search: !directSearch ? 'disabled' : (direct.sources.length || direct.queries.length ? 'used' : 'enabled_not_used') });
+        document: null, attachmentNotes: [], ...(directWebSearch.status === 'used' ? { sources: directWebSearch.sources } : {}), ...(direct.sources.length ? { sources: direct.sources } : {}), state: safeState,
+      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, key_attempts: direct.keyAttempts, search: !directSearch ? 'disabled' : (directWebSearch.status === 'used' || direct.sources.length || direct.queries.length ? 'used' : 'enabled_not_used') });
     }
 
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
@@ -1453,7 +1468,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     if (directModeApplies) {
       const reason = String(e?.code || 'GEMINI_DIRECT_ERROR');
       console.error(JSON.stringify({ type: 'gemini_direct_passthrough_failed', provider: 'gemini', errorCode: reason, message: String(e?.message || e).slice(0, 240) }));
-      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, searchInvoked: false, externalFallbackInvoked: false } });
+      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, upstreamStatus: Number(e?.status || e?.statusCode || e?.response?.status || 0) || undefined, upstreamMessage: String(e?.message || e).slice(0, 500), errorName: String(e?.name || 'Error').slice(0, 100), searchInvoked: false, externalFallbackInvoked: false } });
       return fail(res, 503, 'Gemini did not return a response. No alternative provider or generated fallback was used.', 'GEMINI_DIRECT_UNAVAILABLE', { upstreamCode: reason });
     }
     // Conversation is user-facing: degrade gracefully instead of producing a
