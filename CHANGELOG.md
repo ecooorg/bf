@@ -1,3 +1,11 @@
+## P124.7 CI regression follow-up
+
+- Restored pull-request browser acceptance for relevant frontend, server, browser-test, build-config and dependency changes while keeping full CI ownership in `ci.yml` and manual dispatch available.
+- Fixed leaked `Source: USER_DATA` provenance annotations at the visible-reply boundary without rewriting model-authored prose or Markdown; scoped the fuzz assertion to user-visible reply/question fields rather than internal structured state.
+- Replaced the Pipeline fuzz test's retired one-question assertion with the C124 output-fidelity contract: model-authored text and questions remain intact, and the separate optional follow-up contributes no more than one question.
+- Made Stage 2 wait for each spawned test server to exit (with SIGKILL fallback) before closing the fake-provider bridge, preventing child-process activity from outliving the test module.
+- Bumped patch metadata to `124.7`.
+
 ## P124.6 CI regression and test-lifecycle repair
 
 - Replaced P52 assertions for retired Expert prompt wording with checks for the current optimized context contract.
@@ -7,6 +15,7 @@
 - Replaced grouped Pipeline/Files `process.exit(1)` failures with awaited cleanup and ordinary test errors, preserving useful failure context instead of producing secondary asynchronous-exit errors.
 - Normalized successful and failed workflow status to explicit `PASS` / `FAIL` in the single assistant handoff summary.
 - Verification: changed MJS syntax checks and a clean-run summary smoke test PASS. Full runtime suites NOT_RUN because dependency installation timed out and `tsx` is unavailable in the supplied environment.
+
 
 ## P124.5 workflow diagnostics and stale-contract test repair
 

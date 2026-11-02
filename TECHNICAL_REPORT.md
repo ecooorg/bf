@@ -1,3 +1,34 @@
+## CURRENT EVIDENCE NOTE — P124.7 CI regression follow-up (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.7`. **Base evidence:** hosted CI run `41405376413` at commit `8f0d2d4a2fcd5c311647a33d9fccc1601fd10311`. **Scope:** resolve the two remaining DAG failures without weakening output-fidelity or workflow-ownership contracts.
+
+### Findings from the supplied report
+
+- The Core failure is a real workflow configuration gap: `tests/p119-agent-boundaries.test.mjs` at the reported commit requires browser acceptance on relevant pull requests, while `acceptance.yml` only exposed manual dispatch.
+- The Pipeline Stage 2 fuzz failures combine two distinct contracts. The old `questions <= 1` expectation conflicts with C124's explicit preservation of model-authored questions. `Source: USER_DATA` is a genuine user-visible provenance leak; scanning the entire structured response also conflates internal state metadata with user-visible text, so the assertion must target the reply and separate question fields.
+- Stage 2 spawned server children were killed without awaiting process exit. A fixed sleep did not establish process teardown and allowed asynchronous activity to outlive the grouped test module.
+- The previous report shows Files, Web and compact CI artifact checks now pass; this patch does not alter those areas.
+
+### Implemented changes
+
+- Added focused `pull_request.paths` triggers to browser acceptance for UI, server, browser-journey, build-configuration and dependency changes; manual dispatch remains available and the full verification DAG remains owned by `ci.yml`.
+- Extended the visible-reply safety net to remove `Source: USER_DATA` annotations while preserving ordinary user-facing prose, formatting and authored questions. Scoped the Pipeline fuzz label check to visible reply/question fields, not internal structured state.
+- Updated the Pipeline mutation test to assert byte-preservation of model-authored replies and permit at most one separate optional follow-up; removed the obsolete one-question total assertion.
+- Stage 2 now awaits child-server exit and escalates to SIGKILL after a bounded grace period before continuing cleanup.
+- Bumped patch metadata to `124.7`.
+
+### Verification evidence
+
+- Focused `reasoningState.ts` checks under Node 22 type stripping — **PASS** (provenance labels removed; authored Spanish questions preserved).
+- `node --check` for changed MJS tests — **PASS**.
+- Acceptance workflow YAML and trigger contract — **PASS**.
+- `node scripts/version-metadata.mjs` — **PASS** (`124`, patch `124.7`).
+- Full `test:core`, `test:pipeline`, complete DAG, typecheck, build and browser E2E — **NOT_RUN** in this environment because the supplied dependency tree has no usable `tsx` installation. Hosted CI must establish the end-to-end result.
+
+### Acceptance boundary
+
+The patch addresses both failures evidenced in the supplied run. It does not claim that the full CI workflow is green until the hosted workflow is rerun. The next handoff remains the single `ASSISTANT_SUMMARY.md`.
+
 ## CURRENT EVIDENCE NOTE — P124.6 CI regression and test-lifecycle repair (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.6`. **Scope:** address the supplied Core CI report's P52 stale assertion, test-process cleanup, DOCX XML assertion, Web behavior contract, grouped test exit handling, and success-status rendering in the single assistant handoff.
@@ -21,6 +52,7 @@
 ### Acceptance boundary
 
 This patch corrects the reported test contracts and lifecycle defects, but hosted CI must be rerun to establish the end-to-end result. The next handoff remains `ASSISTANT_SUMMARY.md`; the other logs are diagnostic companions and are not required for initial assistant analysis.
+
 
 ## CURRENT EVIDENCE NOTE — P124.5 workflow diagnostics and regression repair (2026-11-02)
 
