@@ -35,9 +35,9 @@ const violations = [...preflight({ files, deleted: diff.del, allowlist: allowlis
 const commands = [];
 const agent = opt('agent', 'not stated');
 const ownerSteps = opt('owner-steps') ? opt('owner-steps').split(';').map((s) => s.trim()) : [
-  'Загрузить файлы архива в main; дождаться CI и сверить commit в /health.',
-  'Открыть сайт и /project, проверить сценарий, затронутый патчем.',
-  `Сверить оставшиеся падения с отчётом патча ${patch}.`
+  'Upload the archive files to main, wait for CI, and verify the commit shown by /health.',
+  'Open the application and /project, then smoke-test the user flow affected by the patch.',
+  `Compare any remaining failures with the ${patch} patch report.`
 ];
 
 function writeReport(status) {
@@ -171,5 +171,5 @@ await run('npm run build', ['run', 'build'], { dropDb: true, key: 'build', timeo
 const status = overallStatus([], commands);
 writeReport(status);
 console.log(summaryLine(diff));
-console.log(`Archive: ${outPath}\nReport: ${reportPath}\nStatus: ${status}${status === 'PASS' ? '' : ' (НЕ ГОТОВ К ЗАГРУЗКЕ: см. отчёт)'}`);
+console.log(`Archive: ${outPath}\nReport: ${reportPath}\nStatus: ${status}${status === 'PASS' ? '' : ' (NOT READY FOR UPLOAD: see report)'}`);
 process.exit(0);

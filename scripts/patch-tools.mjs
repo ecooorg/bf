@@ -42,8 +42,8 @@ export function diffTrees(base, work) {
   for (const rel of base.keys()) if (!work.has(rel)) del.push(rel);
   return { replace: replace.sort(), add: add.sort(), del: del.sort() };
 }
-export const summaryLine = (d) => `заменить ${d.replace.length}, добавить ${d.add.length}, удалить ${d.del.length}`
-  + [['заменить', d.replace], ['добавить', d.add], ['удалить', d.del]].filter(([, l]) => l.length).map(([k, l]) => `\n  ${k}: ${l.join(', ')}`).join('');
+export const summaryLine = (d) => `replace ${d.replace.length}, add ${d.add.length}, delete ${d.del.length}`
+  + [['replace', d.replace], ['add', d.add], ['delete', d.del]].filter(([, l]) => l.length).map(([k, l]) => `\n  ${k}: ${l.join(', ')}`).join('');
 
 export async function buildZip(files) {
   const zip = new JSZip();
@@ -133,9 +133,9 @@ export function overallStatus(preflightViolations, commands) {
 export function renderReport({ patch, agent, base, diff, violations, commands, notes, ownerSteps, status }) {
   const rows = commands.map((c) => `| \`${c.cmd}\` | ${c.status} | ${c.note.replace(/\|/g, '/').replace(/\n/g, ' ')} |`).join('\n');
   const red = commands.filter((c) => c.status !== 'PASS');
-  const redTable = red.length ? '\n## Ошибки, таймауты и пропущенные проверки\n\n| Этап | Статус | Лог | Детали |\n|---|---|---|---|\n' + red.map((c) => `| ${c.cmd} | ${c.status} | ${c.logPath || 'см. примечание'} | ${c.note.replace(/\|/g, '/').replace(/\n/g, ' ')} |`).join('\n') + '\n' : '';
+  const redTable = red.length ? '\n## Failures, timeouts and skipped checks\n\n| Stage | Status | Log | Details |\n|---|---|---|---|\n' + red.map((c) => `| ${c.cmd} | ${c.status} | ${c.logPath || 'see note'} | ${c.note.replace(/\|/g, '/').replace(/\n/g, ' ')} |`).join('\n') + '\n' : '';
   const list = (t, l) => (l.length ? l.map((f) => `| \`${f}\` | ${t} |`).join('\n') : '');
   const files = [list('replace', diff.replace), list('add', diff.add), list('delete (by hand)', diff.del)].filter(Boolean).join('\n') || '| (no changes) | |';
   const steps = ownerSteps.map((s, i) => `${i + 1}. ${s}`).join('\n');
-  return `# ${patch} — отчёт\n\n## Статус\n\`${status}\`${status === 'PASS' ? ' по локальным проверкам; окончательный PASS даёт CI на опубликованном коммите (D-08)' : ''}\n\n## Сводка\n- **Патч:** ${patch}\n- **Инструмент и модель:** ${agent}\n- **Базовый архив:** ${base}\n- **Состав:** ${summaryLine(diff).split('\n')[0]}\n\n## Файлы\n| Файл | Изменение |\n|---|---|\n${files}\n\n## Preflight и архив\n${violations.length ? violations.map((x) => `- FAIL: ${x}`).join('\n') : '- PASS: состав и пути проверены; архив создан до запуска проверок и проверен повторным чтением ZIP.'}\n\n## Команды (только выполненные скриптом)\n| Команда | Результат | Примечание |\n|---|---|---|\n${rows}\n${redTable}\nСтатусы этапов: PASS, FAIL, BLOCKED, TIMEOUT, KNOWN_FAIL, NOT_RUN. Итог PASS означает, что все учтённые проверки прошли; любой FAIL/TIMEOUT/BLOCKED/NOT_RUN даёт PARTIAL, если preflight пройден. Критическое нарушение preflight блокирует архив и даёт FAIL.\n\n## Не сделано и известные проблемы\n${notes || 'Не указано исполнителем.'}\n\n## Действия владельца на Railway\n${steps}\n`;
+  return `# ${patch} — report\n\n## Status\n\`${status}\`${status === 'PASS' ? ' based on local checks; final PASS is established by CI on the published commit (D-08)' : ''}\n\n## Summary\n- **Patch:** ${patch}\n- **Tool and model:** ${agent}\n- **Base archive:** ${base}\n- **Contents:** ${summaryLine(diff).split('\n')[0]}\n\n## Files\n| File | Change |\n|---|---|\n${files}\n\n## Preflight and archive\n${violations.length ? violations.map((x) => `- FAIL: ${x}`).join('\n') : '- PASS: paths and contents were checked; the archive was created before checks and verified by reading the ZIP back.'}\n\n## Commands (only commands actually run)\n| Command | Result | Note |\n|---|---|---|\n${rows}\n${redTable}\nStage statuses: PASS, FAIL, BLOCKED, TIMEOUT, KNOWN_FAIL, NOT_RUN. Overall PASS means every recorded check passed; any FAIL/TIMEOUT/BLOCKED/NOT_RUN yields PARTIAL when preflight passed. A critical preflight violation blocks archive creation and yields FAIL.\n\n## Not done and known issues\n${notes || 'Not specified by the executor.'}\n\n## Owner actions on Railway\n${steps}\n`;
 }

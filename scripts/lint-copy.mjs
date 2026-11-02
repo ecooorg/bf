@@ -14,6 +14,30 @@ import path from 'node:path';
 const ROOT = path.resolve(process.env.LINT_COPY_ROOT || 'src');
 const PRINT_DEBT = process.argv.includes('--print-debt');
 
+const LANGUAGE_ALLOWLIST = new Set([
+  'server/intentFlags.ts', 'server/webSearch.ts', 'src/support.ts', 'src/libraryExport.ts',
+  'src/numberValidator.ts', 'server/conversationMode.ts', 'server/turnFocus.ts',
+  'server/documents.ts', 'src/ui.ts', 'server.ts', 'server/codeExecutor.ts',
+  'server/reasoningState.ts', 'server/appBuilderIr.ts', 'server/epistemicVerifier.ts',
+  'server/keepAlive.ts', 'src/projectAppBuilder.ts', 'src/ExpertStepScreens.tsx',
+  'scripts/evidence-collect.mjs', 'scripts/p117-3-live-retest.mjs',
+  'docs/USER_VALUE_EVALUATION.md', 'docs/BiForge-AUDIT-REPORT-P124-9.md',
+  'TECHNICAL_REPORT.md', 'CHANGELOG.md',
+  'scripts/golden-tasks.json',
+]);
+const REPO_SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', 'dist-server', 'artifacts', 'coverage', 'archive', 'ARCHIVE']);
+function walkRepo(dir = '.', out = []) {
+  for (const name of fs.readdirSync(dir)) {
+    if (REPO_SKIP_DIRS.has(name) && dir === '.') continue;
+    const full = path.join(dir, name);
+    const stat = fs.statSync(full);
+    if (stat.isDirectory()) {
+      if (!REPO_SKIP_DIRS.has(name)) walkRepo(full, out);
+    } else if (/\.(ts|tsx|js|mjs|md|json|yml|yaml)$/.test(name)) out.push(full.split(path.sep).join('/'));
+  }
+  return out;
+}
+
 const FORBIDDEN = [
   /calculateOptionScore/,
   /Weighted Score Index/,
@@ -102,6 +126,17 @@ for (const p of walk(ROOT)) {
     }
   }
 }
+// Repository language policy: maintained copy/docs/scripts are English by default.
+// User-language fixtures and bilingual parsing/response modules are explicitly allowlisted.
+for (const rel of walkRepo()) {
+  if (rel.startsWith('tests/') || LANGUAGE_ALLOWLIST.has(rel)) continue;
+  const text = fs.readFileSync(rel, 'utf8');
+  if (/[\u0400-\u04FF]/.test(text)) {
+    console.error(`LANGUAGE ${rel}: Cyrillic is not allowed outside the user-language allowlist.`);
+    failed = true;
+  }
+}
+
 if (PRINT_DEBT) {
   console.log(JSON.stringify(measured, null, 2));
   process.exit(0);
