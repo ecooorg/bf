@@ -1,37 +1,37 @@
-/** P92: bounded, sanitized Project Mode operation evidence. Never store user content. */
+/** Bounded diagnostic evidence; conversation content is retained for the single-user test phase. */
 import crypto from 'node:crypto';
 import JSZip from 'jszip';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getPool } from './database.ts';
-import { redactDeep, redactSecrets } from './redact.ts';
+import { redactSecrets } from './redact.ts';
 import { verifyArtifact } from './artifactRepository.ts';
 
-// Real server console output, redacted, bounded. Without this the export has nothing but operation events.
+// Real server console output, credential-redacted and bounded.
 const consoleLines: string[] = [];
 const MAX_LINES = Math.max(500, Math.min(5000, Number(process.env.DIAGNOSTIC_CONSOLE_LINES) || 2000));
 const applicationLines: Record<string, unknown>[] = [];
 const MAX_APPLICATION_LINES = Math.max(500, Math.min(10000, Number(process.env.DIAGNOSTIC_APPLICATION_LINES) || 3000));
 let dbLogUnavailableUntil = 0;
 let dbLogWriteFailures = 0;
-const REDACTED_DETAIL_KEYS = /prompt|source.?code|authorization|cookie|password|secret|api.?key|token|request.?body|response.?body|content/i;
+const REDACTED_DETAIL_KEYS = /authorization|cookie|password|secret|api.?key|access.?token|refresh.?token|credential|private.?key/i;
 function sanitizeLogText(value: unknown, max = 1200): string {
   return redactSecrets(String(value ?? '')).replace(/(prompt|systemPrompt|sourceCode|requestBody|responseBody|authorization|cookie|api[_-]?key|token|password|privateKey)\s*[:=]\s*(\"[^\"]*\"|'[^']*'|[^,\s}]+)/gi, '$1=[OMITTED]').replace(/AIza[0-9A-Za-z_-]{20,}/g, '[REDACTED_KEY]').replace(/Bearer\s+[^\s,]+/gi, 'Bearer [REDACTED]').slice(0, max);
 }
 function safeDetails(value: unknown, depth = 0): unknown {
   if (depth > 5) return '[DEPTH_LIMIT]';
-  if (typeof value === 'string') return sanitizeLogText(value, 1200);
-  if (Array.isArray(value)) return value.slice(0, 50).map((x) => safeDetails(x, depth + 1));
+  if (typeof value === 'string') return sanitizeLogText(value, 100000);
+  if (Array.isArray(value)) return value.slice(0, 200).map((x) => safeDetails(x, depth + 1));
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {};
-    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 80)) out[key] = REDACTED_DETAIL_KEYS.test(key) ? '[OMITTED]' : safeDetails(item, depth + 1);
-    return redactDeep(out);
+    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 200)) out[key] = REDACTED_DETAIL_KEYS.test(key) ? '[CREDENTIAL_OMITTED]' : safeDetails(item, depth + 1);
+    return out;
   }
   if (typeof value === 'number' || typeof value === 'boolean' || value === null) return value;
   return String(value).slice(0, 200);
 }
 export type ApplicationLogInput = { level?: 'debug' | 'info' | 'warn' | 'error'; component: string; event: string; message?: string; requestId?: string; operationId?: string; details?: unknown; error?: unknown };
-/** Structured privacy-preserving application log. In-memory capture is immediate; DB persistence is best-effort and throttled during DB outages. */
+/** Structured application log. Conversation payloads are intentionally retained for test diagnostics; credentials are redacted. */
 export async function recordApplicationLog(input: ApplicationLogInput): Promise<void> {
   const err = input.error as any;
   const entry: Record<string, unknown> = { timestamp: new Date().toISOString(), level: input.level ?? 'info', component: String(input.component || 'app').slice(0, 80), event: String(input.event || 'event').slice(0, 100), message: sanitizeLogText(input.message ?? err?.message ?? '', 1200), requestId: input.requestId ? String(input.requestId).slice(0, 100) : undefined, operationId: input.operationId ? safe(input.operationId) : undefined, details: safeDetails(input.details ?? {}), ...(err ? { errorName: String(err.name || 'Error').slice(0, 100), errorCode: String(err.code || err.status || '').slice(0, 100), stack: sanitizeLogText(err.stack || '', 5000) } : {}) };
@@ -158,15 +158,15 @@ export async function compactSessionLog(): Promise<string> {
     ...(matching.length ? matching.slice(-100).map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.component}/${row.event} request=${row.requestId ?? '-'} message=${sanitizeLogText(row.message, 300)} code=${row.errorCode ?? '-'}${row.stack ? ` stack=${sanitizeLogText(row.stack, 700)}` : ''}`) : ['NO_APPLICATION_LOGS_MATCHED_OPERATION']),
     'BROWSER_AFTER_SCREEN_STATE:',
     ...(browser.length ? browser.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} message=${sanitizeLogText(row.message, 400)} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 500)}`) : ['NO_BROWSER_EVENTS_CAPTURED; likely old client, page left before flush, or client telemetry endpoint unavailable']),
-    'RECENT_CONVERSATION_PIPELINE:',
-    ...(conversations.length ? conversations.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} request=${row.requestId ?? '-'} message=${sanitizeLogText(row.message, 240)} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 700)}`) : ['NO_CONVERSATION_PIPELINE_EVENTS_CAPTURED']),
+    'RECENT_CONVERSATION_PIPELINE_FULL:',
+    ...(conversations.length ? conversations.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} request=${row.requestId ?? '-'} message=${sanitizeLogText(row.message, 2000)}\nDETAILS=${JSON.stringify(row.details ?? {}, null, 2)}`) : ['NO_CONVERSATION_PIPELINE_EVENTS_CAPTURED']),
     'RECENT_CONVERSATION_HTTP_REQUESTS:',
     ...(conversationHttp.length ? conversationHttp.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} request=${row.requestId ?? '-'} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 400)}`) : ['NO_CONVERSATION_HTTP_REQUESTS_CAPTURED']),
     'RECENT_HTTP_REQUESTS:',
     ...(http.length ? http.map((row: any) => `${row.timestamp} ${String(row.level).toUpperCase()} ${row.event} details=${sanitizeLogText(JSON.stringify(row.details ?? {}), 500)}`) : ['NO_HTTP_REQUEST_TRACE_AVAILABLE']),
-    'LIMITS: request/response bodies, prompts, generated source, credentials and cookies are intentionally excluded. Browser trace is bounded and starts when ProjectMode mounts; a crash before mount cannot be captured by this hook. Browser download completion is inferred only from browser events when available, never from server response alone.'
+    'CAPTURE POLICY: conversational user history, model prompts, raw model output and final agent-visible output are included for this single-user test environment. Credentials, cookies and API keys remain redacted. Logs are bounded by retention and export size.'
   ];
-  return lines.join('\n').slice(0, 28000) + '\n';
+  return lines.join('\n').slice(0, 240000) + '\n';
 }
 
 export async function systemDiagnostics() {
