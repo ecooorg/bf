@@ -63,6 +63,17 @@ async function artifactMetrics(artifactId) {
   if(metric){const doc=JSON.parse(await metric.async('string'));return {checks:doc.checks||doc.run?.checks||null,checkResults:doc.checkResults||doc.run?.checkResults||null,dagWallClockMs:doc.run?.dagWallClockMs??null,source:'ci-metrics.json'};}
   const diagnostic=Object.values(zip.files).find(f=>!f.dir&&f.name.endsWith('diagnostics.zip'));
   if(diagnostic){const inner=await JSZip.loadAsync(await diagnostic.async('nodebuffer'));const file=inner.file('results.json');if(file){const doc=JSON.parse(await file.async('string'));return {checks:countsFor(doc.results||[]),checkResults:(doc.results||[]).map(r=>({id:r.id,status:r.status,durationMs:r.durationMs??null,critical:Boolean(r.critical),log:r.log||null})),dagWallClockMs:doc.wallClockMs??null,source:'legacy diagnostics.zip'};}}
+  const checksFile=Object.values(zip.files).find(f=>!f.dir&&f.name.endsWith('checks.log'));
+  if(checksFile){
+   const text=await checksFile.async('string');
+   const checkResults=[];
+   for(const line of text.split(/\r?\n/)){
+    const m=line.match(/^([A-Z_]+)\s+([^\s]+)(?:\s+—\s+(\d+) ms)?/);
+    if(m&&['PASS','FAIL','TIMEOUT','BLOCKED','SKIPPED','SKIPPED_BY_POLICY','NOT_RUN','UNKNOWN','INTERRUPTED'].includes(m[1]))
+      checkResults.push({id:m[2],status:m[1],durationMs:m[3]?Number(m[3]):null});
+   }
+   if(checkResults.length)return {checks:countsFor(checkResults),checkResults,dagWallClockMs:null,source:'checks.log'};
+  }
   const report=Object.values(zip.files).find(f=>!f.dir&&f.name.endsWith('PATCH_EVIDENCE.md'));
   if(report){const text=await report.async('string');const m=text.match(/DIAGNOSTIC_RESULTS=([^\r\n]+)/);if(m){const c={};for(const x of m[1].matchAll(/(\d+)\s+(PASS|FAIL|TIMEOUT|SKIPPED|BLOCKED|SKIPPED_BY_POLICY|NOT_RUN|UNKNOWN)/g))c[x[2].toLowerCase()]=Number(x[1]);c.total=Object.values(c).reduce((a,b)=>a+b,0);c.executed=(c.pass||0)+(c.fail||0)+(c.timeout||0);c.completed=c.executed;return {checks:c,checkResults:null,source:'legacy handoff summary'};}}
   return {checks:null,checkResults:null,source:'artifact has no check metrics'};
@@ -75,7 +86,7 @@ if(token&&repo&&process.env.GITHUB_RUN_ID){
   await Promise.all(runs.map(async (run) => {
    const item={runId:String(run.id),runAttempt:run.run_attempt||1,runUrl:run.html_url||null,sha:run.head_sha||null,ref:run.head_branch||null,event:run.event||null,conclusion:run.conclusion||'UNKNOWN',startedAt:run.run_started_at||run.created_at||null,completedAt:run.updated_at||null,workflowDurationMs:duration(run.run_started_at||run.created_at,run.updated_at),jobDurationMs:null,jobName:'check-and-build',checks:null,checkResults:null,metricsSource:'github-actions-api'};
    try{const jobs=await getJson(`${apiBase}/repos/${repo}/actions/runs/${run.id}/jobs?per_page=100`);const job=(jobs.jobs||[]).find(j=>j.name==='check-and-build')||(jobs.jobs||[])[0];if(job){item.jobName=job.name;item.jobStartedAt=job.started_at||null;item.jobCompletedAt=job.completed_at||null;item.jobDurationMs=duration(job.started_at,job.completed_at);item.jobConclusion=job.conclusion||job.status||'UNKNOWN';item.workflowSteps=(job.steps||[]).map(s=>({name:s.name,number:s.number,status:s.status,conclusion:s.conclusion,startedAt:s.started_at||null,completedAt:s.completed_at||null,durationMs:duration(s.started_at,s.completed_at)}));}}catch(e){item.jobsApiError=String(e?.message||e).slice(0,250);}
-   try{const arts=await getJson(`${apiBase}/repos/${repo}/actions/runs/${run.id}/artifacts?per_page=100`);const art=(arts.artifacts||[]).find(a=>a.name==='biforge-ci-report'&&!a.expired);if(art){const m=await artifactMetrics(art.id);item.checks=m.checks;item.checkResults=m.checkResults;item.dagWallClockMs=m.dagWallClockMs;item.artifactSource=m.source;}else item.metricsUnavailableReason='No retained biforge-ci-report artifact.';}catch(e){item.artifactError=String(e?.message||e).slice(0,250);}
+   try{const arts=await getJson(`${apiBase}/repos/${repo}/actions/runs/${run.id}/artifacts?per_page=100`);const art=(arts.artifacts||[]).find(a=>['ci-diagnostics','biforge-ci-report'].includes(a.name)&&!a.expired);if(art){const m=await artifactMetrics(art.id);item.checks=m.checks;item.checkResults=m.checkResults;item.dagWallClockMs=m.dagWallClockMs;item.artifactSource=m.source;}else item.metricsUnavailableReason='No retained ci-diagnostics or legacy biforge-ci-report artifact.';}catch(e){item.artifactError=String(e?.message||e).slice(0,250);}
    previousRuns.push(item);
   }));
   previousRuns.sort((a,b)=>Date.parse(b.startedAt||'')-Date.parse(a.startedAt||''));
