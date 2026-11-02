@@ -3,7 +3,7 @@
 **Document ID:** BF-C123-CAROUSEL-001  
 **Status:** APPROVED — documentation baseline (P123.0.1); implementation not started  
 **Product version:** 123  
-**Cycle name (informal):** «Карусель» / Model Carousel  
+**Cycle name (informal):** Model Carousel  
 **Authority:** Navigator-approved 2026-11-01 (closes C122 as sufficiently successful; starts C123)  
 **Related:** `docs/MODEL_SOURCES_CATALOG.md`, `docs/MODEL_ALLOWLIST.md`, `docs/DECISIONS.md` (C123 entries), historical research in session archive `c125` (P121 browser providers / C125 discovery proposals)
 

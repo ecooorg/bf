@@ -28,7 +28,7 @@ This report contains preserved historical records. Any links or instructions ins
 
 ## P119.0.3 — Conversational/Expert isolation, legacy names removed from user copy (2026-10-29)
 
-- **Runtime change:** structural only. Agent selection/planning/prompt entry moved to `server/agentRouting.ts`, `conversationalAgent.ts`, `expertAgent.ts`; prompts and plans are byte-identical to the pre-split logic for all tested request bodies × detected modes. User-visible text no longer says Simple chat / Project mode / Project workspace / Expert method.
+- **Runtime change:** structural only. Agent selection/planning/prompt entry moved to `server/agentRouting.ts`, `server/conversationalAgent.ts`, `server/expertAgent.ts`; prompts and plans are byte-identical to the pre-split logic for all tested request bodies × detected modes. User-visible text no longer says Simple chat / Project mode / Project workspace / Expert method.
 - **Tests:** `tests/p119-agent-isolation.test.mjs` (equivalence to a reference copy of the old logic, Expert never gets the information contract, import isolation, copy). Mutation-checked: five deliberate breaks (Expert information contract, loosened routing, cross-import, prompt drift, legacy copy) each failed at least one test; files restored.
 - **Local verification (Node 22.22.2):** __VERIFY__
 - **Not claimed:** fully separate Conversational/Expert pipelines (route, wire key and prompt pack text still shared); live behaviour unchanged-ness (live scenarios NOT_RUN); `test:ui` NOT_RUN (no Chromium).
@@ -70,7 +70,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 
 ## Live Architect run on commit `9ff44ac` (2026-10-28): HONEST_NON_PASS, progress
 
-- OBSERVED (workflow artifact): deployed commit `9ff44ac`, `/health` version 118, diagnostics release `P118.3.1`; staged engine; spec accepted and plan accepted on the first attempt; `callsUsed=3`; `failedStage=code`, unit `index.html`, `failureReason=missing_expected_file_or_truncated`; no files, no ZIP; `diagnostics.zip` downloaded; refusal controls passed; projects deleted.
+- OBSERVED (workflow artifact): deployed commit `9ff44ac`, `/health` version 118, diagnostics release `P118.3.1`; staged engine; spec accepted and plan accepted on the first attempt; `callsUsed=3`; `failedStage=code`, unit `index.html`, `failureReason=missing_expected_file_or_truncated`; no files, no ZIP; diagnostics.zip downloaded; refusal controls passed; projects deleted.
 - OBSERVED (application log + local reproduction): the coder reply was complete (`finishReason=STOP`, 3703 chars) but began `<<<FILE path>>>index.html`; the prompt template contained the literal `<<<FILE path>>>`. With empty parser `issues` the `<<<END>>>` marker was present. The existing tests could not catch it because their fake model always emitted a correct marker.
 - OBSERVED: configured model candidates for planner (`LIGHT`) and coder (`STRONG`) were the same two `flash-lite` models. Whether this contributed is UNKNOWN.
 - Meaning: P118.3 spec/plan stages work live. The ZIP stage was not reached; ZIP integrity checks remain NOT_RUN live.
@@ -81,14 +81,14 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 
 - Runtime behavior: none changed. Version handling changed: `package.json` (`patch`, `version`) is the only source; `src/config.ts` derives `APP_VERSION`/`APP_PATCH` from it; `check-version` validates `package.json` alone; `patch:pack` rejects a patch without `package.json`, with a patch number not above the base patch, or a `version` that differs from the first number of `patch`.
 - Why (OBSERVED in source): the old gate also compared `src/config.ts`, `server.ts` and the CHANGELOG heading with `package.json`, and `tests/core.test.mjs` repeated that comparison; each patch that touched one of them could turn CI red. The live diagnostics of the run below also showed two sources disagreeing in one process (console `v118`, diagnostics `appVersion 119` / release `P118.3`).
-- Documentation audit: stale statements corrected (operating-rules status, patch protocol vs AGENTS Documentation Policy, report title and latest-record heading, missing index entries for `AI-ENVIRONMENT-CONTEXT.md` and `P121_Browser_based_Model_Providers.md`, task/roadmap state); P118 exit gate written into the roadmap.
+- Documentation audit: stale statements corrected (operating-rules status, patch protocol vs AGENTS Documentation Policy, report title and latest-record heading, retired environment/provider documentation references, task/roadmap state); P118 exit gate written into the roadmap.
 - Verification: local tests and checks only; hosted CI and live workflow NOT_RUN.
 
 ---
 
 ## P118.3.1 — CI repair for P118.3 (2026-10-28)
 
-- OBSERVED (CI run 40680247186, attempt 2, commit `1a98a6a`): four DAG nodes red — `version-consistency`, `typecheck`, `build`, `test:compact-ci-artifacts`. Archive handling in that run worked: `biforge-ci-logs.zip` (36 files, 106224 bytes, status FAILED, history PARTIAL) and `biforge-ci-report` (124566 bytes) were produced and uploaded.
+- OBSERVED (CI run 40680247186, attempt 2, commit `1a98a6a`): four DAG nodes red — `version-consistency`, `typecheck`, `build`, `test:compact-ci-artifacts`. Archive handling in that run worked: biforge-ci-logs.zip (36 files, 106224 bytes, status FAILED, history PARTIAL) and `biforge-ci-report` (124566 bytes) were produced and uploaded.
 - Root causes: (1) P118.3 raised the version to 119 while its CHANGELOG label was P118.3, which the old gate rejected; `test:compact-ci-artifacts` failed only because its P105 end-to-end test runs `version-consistency`. (2) `appBuilder/core-engine.ts`: with `strict:false`, `!x.ok` does not narrow `{ok:true}|{ok:false}`; failure fields are now read through `'error' in x` / `'issues' in x`.
 - Local result after repair: `tsc` (client and server) clean; `build` OK; `test:compact-ci-artifacts` 71/71; `test:app-builder` 64/64; full `ci` DAG 23 PASS, 3 BLOCKED (`db-migrate`, `test:database:live`, `test:bx06:api`: no Postgres locally). Hosted CI of the repair: NOT_RUN here.
 
@@ -97,7 +97,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 ## Live Architect run on commit `7c51c5e` (2026-10-28 11:31 UTC): HONEST_NON_PASS
 
 - OBSERVED (workflow artifact): deployed `/health` version 118, commit `7c51c5e`; session OK; engine mode `staged` (HTTP 202); `failedStage=spec`, `failureReason=invalid_spec`, `callsUsed=1` of 25, `durationMs=1511`; all six declared checks NOT_RUN; `files=[]`; no download (`downloadUrl=null`).
-- Archive handling: no project ZIP existed, so sha256/CRC/entry verification of a built ZIP was NOT_RUN. `diagnostics.zip` downloaded (HTTP 200, 20595 bytes, sha256 recorded, `build-report` present). Refusal controls passed: N1 `409 PASSPORT_NOT_CONFIRMED`, N2 `404` for a missing artifact. Both projects deleted.
+- Archive handling: no project ZIP existed, so sha256/CRC/entry verification of a built ZIP was NOT_RUN. diagnostics.zip downloaded (HTTP 200, 20595 bytes, sha256 recorded, `build-report` present). Refusal controls passed: N1 `409 PASSPORT_NOT_CONFIRMED`, N2 `404` for a missing artifact. Both projects deleted.
 - OBSERVED: this deployment did not contain the P118.3 repair (one call, no `spec_attempt`/`spec_repair` events in `application.jsonl`). It is NOT evidence about P118.3.
 - OBSERVED: console banner `v118` while diagnostics summary reported `appVersion 119`, release `P118.3` — two version sources in one process (removed by P118.3.2). Boot-time candidate probe (11:27:25) marked `gemini-3.6-flash` unavailable (timeout) and `gemini-3.8-flash` unavailable (HTTP_429); the third candidate's state was not captured in the excerpt. Whether provider availability affected the spec call is UNKNOWN: the old engine kept no model text.
 
@@ -128,7 +128,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 
 ## P118.2 — Architect live-evidence workflow (delivered, live run NOT_RUN)
 
-- Added manual workflow `p118-architect-live` and runner. Evidence it will produce: deployed version/commit, build engine mode (201 pipeline vs 202 staged), A3 outcome, downloaded ZIP with sha256, per-entry sizes and CRC check, and two refusal controls. Artifact: `p118-architect-transcript.json` + `architect-source.zip`.
+- Added manual workflow `p118-architect-live` and runner. Evidence it will produce: deployed version/commit, build engine mode (201 pipeline vs 202 staged), A3 outcome, downloaded ZIP with sha256, per-entry sizes and CRC check, and two refusal controls. Generated workflow outputs: a JSON transcript and a source ZIP.
 - OBSERVED locally (no model, real code): `runAppBuilderPipeline` with the model slice off returns an 11-entry generic starter (`node_express_static`), `slice.status=skipped`; `pipelineArchitectOutcome` maps it to PARTIAL (`SLICE_SKIPPED`). The classifier turns that into PARTIAL, never PASS.
 - INFERRED, not proven: on the live service the default config (slice and staged flags unknown) most likely yields PARTIAL. The live run decides.
 - Verification: classifier and runner tests against a loopback fake server PASSED locally (14/14); mutation checks (SUCCESS without ZIP verification, PARTIAL promoted to PASS) are caught. Hosted CI for this patch, the live workflow and production behavior: NOT_RUN / UNKNOWN.
@@ -170,7 +170,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 
 **Context (OBSERVED).** Stand build v117 (P117.1), commit `ab35ebd`, read from the in-app System diagnostics panel. Run on 2026-10-28, about 03:01–03:08 UTC, Simple mode, via the Android Chrome UI. Configuration as reported by the Navigator (secrets redacted): `ENABLE_WEB_SEARCH=true`, `WEB_SEARCH_PROVIDER=serper`, `WEB_SEARCH_MODE=auto`, `MODEL_CASCADE_STRONG=gemini-3.5-flash-lite,gemini-3.1-flash-lite`, `GROQ_API_KEY` present, no `ENABLE_EXTERNAL_MODEL_FALLBACK` reported.
 
-**Method.** The assistant fixed the rubric before seeing results (see `docs/AI-NATIVE-RENOVATION-TASK.md`, "Live re-test protocol"). The Navigator sent 12 scenarios (16 requests) and returned screenshots plus Render log lines. All 16 requests matched 16 `conversation_timing` entries by order and timestamp. Stable facts were judged from assistant knowledge; current facts and cited events were verified by independent web searches on 2026-10-28.
+**Method.** The assistant fixed the rubric before seeing results (see the current evidence semantics in this document and the acceptance policy in `docs/TESTING_AND_ACCEPTANCE.md`). The Navigator sent 12 scenarios (16 requests) and returned screenshots plus Render log lines. All 16 requests matched 16 `conversation_timing` entries by order and timestamp. Stable facts were judged from assistant knowledge; current facts and cited events were verified by independent web searches on 2026-10-28.
 
 | ID | Scenario | Verdict | Key evidence |
 |---|---|---|---|
@@ -260,17 +260,17 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 
 ## P114 — Evidence carried forward
 
-**Historical-plan note:** any P115+ labels or recommendations inside the original P114 audit below describe the plan at that time. They are superseded by the current patch sequence in `docs/AI-NATIVE-RENOVATION-ROADMAP.md`; the roadmap alone determines the next patch.
+**Historical-plan note:** any P115+ labels or recommendations inside the original P114 audit below describe the plan at that time. They are superseded by the current `ROADMAP.md` and `AGENTS.md` session-start protocol. `AGENTS.md` requires each session to reconstruct state and independently select work; the roadmap is context, not a binding next-patch assignment.
 
 
 **Status:** source/log audit complete; live end-to-end reproduction NOT_RUN. No runtime code changed.  
 **Baseline:** P112 / commit `b32357d23efceb5d02e193c5175f45a95a5e5316`; P113 contract accepted by Navigator.  
-**Authority:** `AGENTS.md`; target behavior and scope: `docs/AI-USER-VALUE-SPEC.md`.  
+**Authority:** `AGENTS.md`; normative target behavior and scope: `TECHNICAL_SPECIFICATION.md`.  
 **Purpose:** identify evidenced user-outcome failures, separate facts from hypotheses, and choose bounded implementation work. This audit is an AI-facing control artifact, not a claim that the product works.
 
 ## 1. Evidence limits and interpretation
 
-Inputs reviewed: `bf-112.zip`, `P113-patch.zip`, and `logs.zip`; static source tracing across the UI, API routes, prompt composition, provider selection, state handling, App Builder and tests; production diagnostic snapshot timestamped `2026-10-27T11:55:15Z` for app version 112 / commit `b32357d`.
+Inputs reviewed: bf-112.zip, P113-patch.zip, and logs.zip; static source tracing across the UI, API routes, prompt composition, provider selection, state handling, App Builder and tests; production diagnostic snapshot timestamped `2026-10-27T11:55:15Z` for app version 112 / commit `b32357d`.
 
 The Navigator reports that all four current user workflows are unacceptable. Treat that as authoritative product feedback and the reason for the audit. The supplied archives do not include an authenticated interactive production session, the original user prompts for all failures, or credentials for live provider calls. Therefore the reported UX failures have **not** been independently reproduced end-to-end in this patch. Findings below are labelled `OBSERVED` when directly supported by code/log artifacts, `USER-REPORTED` when based on the Navigator's experience, and `HYPOTHESIS` when causal interpretation still needs a controlled scenario.
 
@@ -293,7 +293,7 @@ The UI has three top-level choices (`Simple`, `Expert`, `Project`) in `src/App.t
 
 **Severity:** P1. **Evidence:** OBSERVED. **Root cause confidence:** medium for the exact `invalid_spec` cause; high that the recorded operation failed without output files.
 
-`biforge-diagnostics.zip/build/build-report.json` reports:
+The supplied historical diagnostics archive (not a repository path) contained the build report JSON with:
 
 - `status: failed`, `failureReason: invalid_spec`, `goalImplemented: false`;
 - `callsUsed: 1`, `durationMs: 73059`;
@@ -386,7 +386,7 @@ Production logs contain repeated `MaxListenersExceededWarning` messages for `Abo
 
 **Severity:** P2. **Evidence:** OBSERVED warnings and source path; functional impact unproven.
 
-Build logs report Vite excluding `node:crypto` from browser bundles in `src/workspace/exportZip.ts` and `src/workspace/hash.ts`; those paths have Web Crypto plus a Node fallback. `exportZip.ts` also contains a fallback ZIP writer whose CRC32 handling must be checked for interoperability. These may not affect supported browsers where Web Crypto is available, but the fallback paths are not established as working in browser contexts.
+Build logs report Vite excluding `node:crypto` from browser bundles in `src/workspace/exportZip.ts` and `src/workspace/hash.ts`; those paths have Web Crypto plus a Node fallback. The ZIP-export module also contains a fallback ZIP writer whose CRC32 handling must be checked for interoperability. These may not affect supported browsers where Web Crypto is available, but the fallback paths are not established as working in browser contexts.
 
 **Disposition:** add browser acceptance tests for project export and hash verification, including ZIP openability, non-empty files, CRC/integrity and supported-browser conditions. Do not treat a warning as a proven failure before testing.
 

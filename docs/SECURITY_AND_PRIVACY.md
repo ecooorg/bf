@@ -30,3 +30,26 @@ Production deployment, repository writes, billing, destructive data changes, dis
 ## Security acceptance
 
 Verify unauthorized access, cross-user/project access, invalid paths, expired/missing artifacts, malformed inputs, rate/budget exhaustion, and failure handling as applicable. Record what was actually tested; do not equate static review with a live penetration test.
+
+## Browser-supplied provider keys (BYOK)
+
+- The optional user Gemini key is stored in the browser's `localStorage` under `bifurcation_gemini_key_v15`; the selected model is stored separately. This is browser-local storage, not server-side account storage. Anyone able to execute script in the BiForge origin can potentially read it, so operators should keep the origin trusted, avoid shared browser profiles, and clear the key when the device is no longer trusted.
+- When a user supplies a key, the client sends it to the BiForge server in the `x-byok-key` request header for the model call. The server must not persist or log the raw header value. BYOK is still disclosed to the selected model provider as the credential used to authenticate the request; provider-side processing and retention terms apply.
+- Environment-backed provider credentials include Gemini key slots, Groq, Serper, Cloudflare Workers AI, GitHub tokens/private keys, webhook secrets, database URLs, and application/session secrets. Diagnostic redaction covers known environment values, common Google/GitHub/OpenAI-style key shapes, and `x-byok-key` header values. This is defense in depth, not a guarantee for arbitrary custom credential formats; new providers must add their environment names and patterns to `server/redact.ts` and regression tests.
+
+## Session model and revocation limits
+
+- The current session cookie is `be_session`, marked `HttpOnly` and `SameSite=Lax`, and `Secure` in production. Its signed payload contains an expiry timestamp; the HMAC prevents modification. The default lifetime is seven days.
+- Sessions are stateless: the server does not keep a per-session record or revocation list. Logout clears the browser cookie but cannot invalidate a copied cookie already held elsewhere; that copy remains valid until expiry. Rotating `SESSION_SECRET` invalidates all existing sessions. This single shared-password model is suitable only for a controlled single-owner deployment and is not per-user identity or multi-user session management.
+- Do not interpret logout as remote revocation. Keep `SESSION_SECRET` private and rotate it if a session cookie may have been exposed. A server-side revocation mechanism requires a separate design decision and migration.
+
+## Third-party processing inventory
+
+- Web research can disclose the target URL (including path and query string) to Jina Reader when that extraction path is selected.
+- Serper receives search queries when the Serper provider is selected.
+- The selected model provider receives the prompt/context needed for the request and any BYOK credential required for authentication.
+- These disclosures are provider-specific. Do not send secrets, private URLs, or confidential content to web research or model providers unless the operator and user have authorized that processing.
+
+## Response security headers
+
+The global Express middleware applies `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), geolocation=()`, and `X-Frame-Options: DENY` to all responses. `Strict-Transport-Security: max-age=31536000; includeSubDomains` is emitted only when `NODE_ENV=production`; the deployment must terminate public HTTPS correctly for browsers to honor it. `X-Powered-By` is disabled. A Content-Security-Policy is not enabled yet: report-only policy and compatibility checks for the Vite bundle, PWA and Drive integration remain open.

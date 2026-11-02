@@ -156,17 +156,21 @@
     },
     {
       "id": "docs-integrity",
-      "command": "node scripts/docs-integrity.mjs",
+      "command": "node scripts/docs-integrity.mjs && node scripts/docs-reference-integrity.mjs && node scripts/docs-env-example-check.mjs",
       "needs": [],
       "profiles": [
         "check",
         "ci"
       ],
       "files": [
-        "scripts/docs-integrity.mjs"
+        "scripts/docs-env-example-check.mjs",
+        "scripts/docs-integrity.mjs",
+        "scripts/docs-reference-integrity.mjs"
       ],
       "modules": [
-        "scripts/docs-integrity.mjs"
+        "scripts/docs-env-example-check.mjs",
+        "scripts/docs-integrity.mjs",
+        "scripts/docs-reference-integrity.mjs"
       ]
     },
     {
@@ -181,7 +185,24 @@
         "scripts/lint-copy.mjs"
       ],
       "modules": [
-        "scripts/lint-copy.mjs"
+        "scripts/evidence-collect.mjs",
+        "scripts/lint-copy.mjs",
+        "scripts/p117-3-live-retest.mjs",
+        "server/appBuilderIr.ts",
+        "server/codeExecutor.ts",
+        "server/conversationMode.ts",
+        "server/documents.ts",
+        "server/epistemicVerifier.ts",
+        "server/intentFlags.ts",
+        "server/keepAlive.ts",
+        "server/reasoningState.ts",
+        "server/turnFocus.ts",
+        "server/webSearch.ts",
+        "src/libraryExport.ts",
+        "src/numberValidator.ts",
+        "src/projectAppBuilder.ts",
+        "src/support.ts",
+        "src/ui.ts"
       ]
     },
     {
@@ -310,7 +331,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --test tests/workflow-action-pins.test.mjs && node --import tsx --test tests/security-headers.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -334,7 +355,10 @@
         "tests/p121-cycle-governance.test.mjs",
         "tests/p121-emergency-screen.test.mjs",
         "tests/p121-navigator-protocol.test.mjs",
-        "tests/p12318-agent-session-isolation.test.mjs"
+        "tests/p12318-agent-session-isolation.test.mjs",
+        "tests/redact-secrets.test.mjs",
+        "tests/security-headers.test.mjs",
+        "tests/workflow-action-pins.test.mjs"
       ],
       "modules": [
         "appBuilder/core-engine.ts",
@@ -364,6 +388,8 @@
         "server/promptCore.ts",
         "server/promptPacks.ts",
         "server/reasoningState.ts",
+        "server/redact.ts",
+        "server/securityHeaders.ts",
         "server/statePipeline.ts",
         "server/webSearch.ts",
         "src/brier.ts",
@@ -674,13 +700,15 @@
     },
     {
       "id": "test:security",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --import tsx --test tests/security-headers.test.mjs",
       "needs": [],
       "profiles": [
         "check",
         "ci"
       ],
       "files": [
+        "tests/redact-secrets.test.mjs",
+        "tests/security-headers.test.mjs",
         "tests/security.test.mjs"
       ],
       "modules": [
@@ -689,6 +717,7 @@
         "server/githubIntegration.ts",
         "server/redact.ts",
         "server/security.ts",
+        "server/securityHeaders.ts",
         "server/untrustedData.ts"
       ]
     },
@@ -785,6 +814,19 @@
         "scripts/check-version.mjs",
         "src/config.ts"
       ]
+    },
+    {
+      "id": "workflow-action-pins",
+      "command": "node --test tests/workflow-action-pins.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/workflow-action-pins.test.mjs"
+      ],
+      "modules": []
     }
   ],
   "modules": {
@@ -865,9 +907,18 @@
     "scripts/diagnostics-summary.mjs": [
       "test:compact-ci-artifacts"
     ],
+    "scripts/docs-env-example-check.mjs": [
+      "docs-integrity"
+    ],
     "scripts/docs-integrity.mjs": [
       "docs-integrity",
       "test:core"
+    ],
+    "scripts/docs-reference-integrity.mjs": [
+      "docs-integrity"
+    ],
+    "scripts/evidence-collect.mjs": [
+      "lint:copy"
     ],
     "scripts/evidence-to-markdown.mjs": [
       "test:files"
@@ -904,6 +955,9 @@
     ],
     "scripts/neon-migration-verify.mjs": [
       "test:core"
+    ],
+    "scripts/p117-3-live-retest.mjs": [
+      "lint:copy"
     ],
     "scripts/p118-architect-live-lib.mjs": [
       "test:app-builder"
@@ -971,6 +1025,9 @@
     "server/appBuilderIndex.ts": [
       "test:app-builder"
     ],
+    "server/appBuilderIr.ts": [
+      "lint:copy"
+    ],
     "server/appBuilderPipeline.ts": [
       "test:pipeline"
     ],
@@ -1005,6 +1062,7 @@
       "test:models"
     ],
     "server/codeExecutor.ts": [
+      "lint:copy",
       "test:bx06:api",
       "test:project"
     ],
@@ -1030,6 +1088,7 @@
       "test:pipeline"
     ],
     "server/conversationMode.ts": [
+      "lint:copy",
       "test:core",
       "test:pipeline"
     ],
@@ -1043,9 +1102,11 @@
       "test:project"
     ],
     "server/documents.ts": [
+      "lint:copy",
       "test:files"
     ],
     "server/epistemicVerifier.ts": [
+      "lint:copy",
       "test:web"
     ],
     "server/expertAgent.ts": [
@@ -1104,8 +1165,12 @@
       "test:project"
     ],
     "server/intentFlags.ts": [
+      "lint:copy",
       "test:core",
       "test:pipeline"
+    ],
+    "server/keepAlive.ts": [
+      "lint:copy"
     ],
     "server/latencyPolicy.ts": [
       "test:turn"
@@ -1201,10 +1266,12 @@
       "test:database:live"
     ],
     "server/reasoningState.ts": [
+      "lint:copy",
       "test:core",
       "test:web"
     ],
     "server/redact.ts": [
+      "test:core",
       "test:security"
     ],
     "server/repairLoop.ts": [
@@ -1229,6 +1296,8 @@
       "test:security"
     ],
     "server/securityHeaders.ts": [
+      "test:core",
+      "test:security",
       "test:web"
     ],
     "server/statePipeline.ts": [
@@ -1251,12 +1320,14 @@
       "test:database:live"
     ],
     "server/turnFocus.ts": [
+      "lint:copy",
       "test:turn"
     ],
     "server/untrustedData.ts": [
       "test:security"
     ],
     "server/webSearch.ts": [
+      "lint:copy",
       "test:core",
       "test:web"
     ],
@@ -1342,12 +1413,15 @@
       "test:core"
     ],
     "src/libraryExport.ts": [
+      "lint:copy",
       "test:files"
     ],
     "src/numberValidator.ts": [
+      "lint:copy",
       "test:core"
     ],
     "src/projectAppBuilder.ts": [
+      "lint:copy",
       "test:core"
     ],
     "src/projectBuildJob.ts": [
@@ -1373,12 +1447,14 @@
       "test:files"
     ],
     "src/support.ts": [
+      "lint:copy",
       "test:pipeline"
     ],
     "src/triage.ts": [
       "test:core"
     ],
     "src/ui.ts": [
+      "lint:copy",
       "test:core"
     ],
     "src/uiStates.tsx": [

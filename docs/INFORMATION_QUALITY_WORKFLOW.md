@@ -159,11 +159,8 @@ Browser acceptance and deterministic contracts do **not** establish that every g
 To inspect results, open the workflow run and download `information-quality-Simple`, `information-quality-Expert`, `information-quality-Architect`, and `information-quality-evaluator` artifacts. A green deterministic workflow means the tested paths and contracts passed; it is not a substitute for the blind-review report.
 
 
-### Итоговый артефакт для передачи ассистенту
+### Assistant handoff artifact
 
-После завершения всех трёх режимов и evaluator job запускается отдельная задача `assistant-handoff` с условием `always()`. Она скачивает результаты всех задач `information-quality-*`, объединяет TAP/логи/JSON-отчёты и формирует два файла:
+After the three agent-mode jobs and evaluator job finish, the `assistant-handoff` job runs with `always()`. It downloads the `information-quality-*` artifacts, combines TAP output, logs and JSON evidence, and creates one `ASSISTANT_SUMMARY.md` file.
 
-- `ASSISTANT_PASTE.txt` — готовая диагностическая сводка для вставки в чат ассистента;
-- `ASSISTANT_SUMMARY.json` — структурированная версия с метаданными запуска и извлечёнными ошибками.
-
-Оба файла публикуются вместе с исходными свидетельствами в GitHub Actions artifact **information-quality-assistant-handoff**. Артефакт создаётся и при падении тестовых задач, чтобы ассистент получил сведения о причинах отказа, а не только успешный отчёт. В GitHub Actions → нужный запуск → Artifacts скачайте именно этот артефакт; для передачи достаточно приложить `ASSISTANT_PASTE.txt`, а для глубокого разбора — весь ZIP.
+The workflow publishes the summary together with the original evidence in the GitHub Actions artifact **information-quality-assistant-handoff**. The artifact is created even when a test job fails, so the handoff contains failure evidence as well as successful results. In GitHub Actions, open the relevant run and download that artifact. Attach `ASSISTANT_SUMMARY.md` for diagnosis; include the complete artifact only when deeper investigation requires the underlying logs.

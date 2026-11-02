@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T21:38:22Z",
+  "generatedAt": "2026-11-02T10:29:12Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
   "count": 68,
@@ -327,9 +327,10 @@
       "name": "NODE_ENV",
       "files": [
         "server.ts",
-        "server/projectDiagnostics.ts"
+        "server/projectDiagnostics.ts",
+        "server/securityHeaders.ts"
       ],
-      "fileCount": 2
+      "fileCount": 3
     },
     {
       "name": "OPS_RSS_LIMIT_MB",

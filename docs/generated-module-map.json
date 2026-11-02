@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-01T22:21:03.869Z",
+  "generatedAt": "2026-11-02T10:29:12.990Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "bf",
+  "root": "bf-main",
   "summary": {
-    "moduleCount": 174,
-    "edgeCount": 436,
+    "moduleCount": 175,
+    "edgeCount": 438,
     "cycleCount": 0,
-    "totalLines": 32780
+    "totalLines": 32921
   },
   "cycles": [],
   "layers": {
-    "server": 77,
+    "server": 78,
     "src": 83,
     "other": 14
   },
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2236,
+      "lines": 2240,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -195,6 +195,7 @@
         "server/reasoningState.ts",
         "server/router.ts",
         "server/security.ts",
+        "server/securityHeaders.ts",
         "server/sourceHealth.ts",
         "server/taskService.ts",
         "server/turnFocus.ts",
@@ -557,9 +558,9 @@
     {
       "path": "server/keyPool.ts",
       "layer": "server",
-      "lines": 102,
+      "lines": 106,
       "imports": [],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "server/latencyPolicy.ts",
@@ -687,7 +688,7 @@
     {
       "path": "server/projectDiagnostics.ts",
       "layer": "server",
-      "lines": 344,
+      "lines": 349,
       "imports": [
         "server/artifactRepository.ts",
         "server/database.ts",
@@ -782,15 +783,17 @@
     {
       "path": "server/reasoningState.ts",
       "layer": "server",
-      "lines": 209,
+      "lines": 230,
       "imports": [],
       "fanIn": 1
     },
     {
       "path": "server/redact.ts",
       "layer": "server",
-      "lines": 95,
-      "imports": [],
+      "lines": 119,
+      "imports": [
+        "server/keyPool.ts"
+      ],
       "fanIn": 1
     },
     {
@@ -832,6 +835,13 @@
       "lines": 91,
       "imports": [],
       "fanIn": 3
+    },
+    {
+      "path": "server/securityHeaders.ts",
+      "layer": "server",
+      "lines": 14,
+      "imports": [],
+      "fanIn": 1
     },
     {
       "path": "server/sourceHealth.ts",
@@ -895,7 +905,7 @@
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 796,
+      "lines": 865,
       "imports": [
         "server/untrustedData.ts"
       ],
@@ -1877,7 +1887,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2236
+      "lines": 2240
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1893,7 +1903,7 @@
     },
     {
       "path": "server/webSearch.ts",
-      "lines": 796
+      "lines": 865
     },
     {
       "path": "src/App.tsx",
@@ -1968,12 +1978,12 @@
       "lines": 350
     },
     {
-      "path": "src/ProjectDelivery.tsx",
-      "lines": 348
+      "path": "server/projectDiagnostics.ts",
+      "lines": 349
     },
     {
-      "path": "server/projectDiagnostics.ts",
-      "lines": 344
+      "path": "src/ProjectDelivery.tsx",
+      "lines": 348
     }
   ]
 }

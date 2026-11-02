@@ -20,7 +20,7 @@ Record: run URL, model id, scores, 3–5 sentence human verdict per scenario.
 
 ## B. Browser journey (mocked model)
 
-`tests/p122.5-expert-journey-e2e.test.mjs` + existing p120 expert e2e cover:
+`tests/expert-journey-e2e.test.mjs` + existing p120 expert e2e cover:
 
 - entry and method shell
 - synthesis quality panel (stage status + recommendation checklist)

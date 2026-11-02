@@ -39,8 +39,9 @@
   {
    "id": "docs-integrity",
    "argv": [
-    "node",
-    "scripts/docs-integrity.mjs"
+    "npm",
+    "run",
+    "docs:integrity"
    ],
    "profiles": [
     "check",
@@ -515,6 +516,20 @@
     "ci"
    ],
    "timeoutMs": 480000
+  },
+  {
+   "id": "workflow-action-pins",
+   "argv": [
+    "node",
+    "--test",
+    "tests/workflow-action-pins.test.mjs"
+   ],
+   "profiles": [
+    "check",
+    "ci"
+   ],
+   "timeoutMs": 60000,
+   "parallelGroup": "static"
   }
  ]
 }
