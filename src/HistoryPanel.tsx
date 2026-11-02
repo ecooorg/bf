@@ -25,7 +25,7 @@ export function HistoryPanel(props: {
 }) {
   const list = props.items.filter(isStarted).sort((a, b) => b.updatedAt - a.updatedAt);
   return (
-    <div role="dialog" aria-label="History" onClick={props.onClose}
+    <div role="dialog" aria-modal="true" aria-label="History" onClick={props.onClose}
       style={{ position: 'fixed', inset: 0, background: '#000a', zIndex: 50, display: 'grid', placeItems: 'start center', padding: '56px 12px 12px', overflow: 'auto' }}>
       <div className="panel" onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 560, maxHeight: '80dvh', overflow: 'auto', margin: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>

@@ -510,7 +510,7 @@ export function FilesPanel({
       {quotaMsg && <div className="files-panel-status files-panel-warn" role="status">{quotaMsg}</div>}
 
       {pickerOpen && (
-        <div className="pf-modal" role="dialog" aria-label="Attached files">
+        <div className="pf-modal" role="dialog" aria-modal="true" aria-label="Attached files">
           <div className="pf-modal-card">
             <div className="pf-modal-head">
               <strong>Attached files</strong>
@@ -568,7 +568,7 @@ export function ProgramFilesManager({ open, onClose }: { open: boolean; onClose:
   }, [open]);
   if (!open) return null;
   return (
-    <div className="pf-modal" role="dialog" aria-label="Attached files">
+    <div className="pf-modal" role="dialog" aria-modal="true" aria-label="Attached files">
       <div className="pf-modal-card">
         <div className="pf-modal-head">
           <strong>Attached files</strong>

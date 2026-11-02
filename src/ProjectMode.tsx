@@ -483,10 +483,10 @@ export default function ProjectMode() {
         </div>
       </div>
     </header>
-    {diagnosticsOpen && <div role="dialog" aria-modal="true" aria-label={diagnosticsTitle} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 20 }}>
-      <div style={{ background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20, width: 'min(800px,95vw)', maxHeight: '80vh', overflow: 'auto' }}>
+    {diagnosticsOpen && <div role="dialog" aria-modal="true" aria-label={diagnosticsTitle} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 200, display: 'grid', placeItems: 'center', padding: 16, boxSizing: 'border-box', overflowY: 'auto' }}>
+      <div className="project-diagnostics-card" style={{ background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 12, padding: 20, width: 'min(800px,95vw)', maxHeight: 'calc(100vh - 32px)', minHeight: 0, overflow: 'auto', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><h2>{diagnosticsTitle}</h2><button type="button" onClick={() => setDiagnosticsOpen(false)} aria-label="Close diagnostics">Close</button></div>
-        {diagnosticsBusy ? <p>Checking…</p> : diagnosticsTitle === 'Compact session log' ? <div><p>Copy this text and paste it into the support chat. No ZIP is created.</p><button type="button" onClick={() => void copySessionLog()} disabled={!sessionLog}> {sessionLogCopied ? 'Copied' : 'Copy log'} </button><textarea aria-label="Compact session log text" readOnly value={sessionLog} style={{ width: '100%', minHeight: 320, marginTop: 10, background: '#07182a', color: '#dce9f7', fontSize: 12, whiteSpace: 'pre', overflow: 'auto' }} /></div> : <DiagnosticsView data={diagnosticsData} />}
+        {diagnosticsBusy ? <p>Checking…</p> : diagnosticsTitle === 'Compact session log' ? <div><p>Copy this text and paste it into the support chat. No ZIP is created.</p><button type="button" onClick={() => void copySessionLog()} disabled={!sessionLog}> {sessionLogCopied ? 'Copied' : 'Copy log'} </button><textarea aria-label="Compact session log text" readOnly value={sessionLog} style={{ width: '100%', minHeight: 0, height: 'min(42vh, 420px)', maxHeight: '45dvh', boxSizing: 'border-box', marginTop: 10, background: '#07182a', color: '#dce9f7', fontSize: 12, whiteSpace: 'pre', overflow: 'auto' }} /></div> : <DiagnosticsView data={diagnosticsData} />}
       </div>
     </div>}
     <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
