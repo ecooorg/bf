@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { stripUserFacingUrls, buildVisibleReply } from '../server/reasoningState.ts';
+import { stripUserFacingUrls, buildVisibleReply, stripQuestionSentences } from '../server/reasoningState.ts';
 import { detectUserIntentFlags } from '../server/intentFlags.ts';
 
 const root = new URL('../', import.meta.url);
@@ -50,4 +50,19 @@ test('C124: adding a follow-up never removes any of the model answer', () => {
   const result = buildVisibleReply(answer, 'A separate follow-up?', true);
   assert.ok(result.startsWith(answer));
   assert.ok(result.endsWith('A separate follow-up?'));
+});
+
+test('C124: crisis turns drop questions from the model answer and keep every other sentence', () => {
+  const ru = stripQuestionSentences('Понимаю. Давайте разберём работу. Что именно вас тревожит?');
+  assert.equal(ru, 'Понимаю. Давайте разберём работу.');
+  const multi = stripQuestionSentences('Мне жаль, что так тяжело.\nХотите поговорить? Я рядом.\n\nЭто важно.');
+  assert.ok(!/[?？]/.test(multi));
+  assert.ok(multi.includes('Мне жаль, что так тяжело.') && multi.includes('Я рядом.') && multi.includes('Это важно.'));
+  assert.equal(stripQuestionSentences('No question here.'), 'No question here.');
+});
+
+test('C124: only the crisis path strips model-authored questions', () => {
+  assert.match(serverSource, /crisisNow \? stripQuestionSentences\(cleanReply\) : cleanReply/);
+  const answer = 'Fact one. What is the budget? Fact two.';
+  assert.equal(buildVisibleReply(answer, '', true), answer);
 });
