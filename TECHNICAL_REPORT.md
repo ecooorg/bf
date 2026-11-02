@@ -1,3 +1,7 @@
+## P124.19 — Search grounding in direct mode (2026-11-02)
+
+Product version `124`, patch `124.19`. OBSERVED in source: the direct Conversational call includes the Gemini `googleSearch` tool and returns grounding sources. NOT_RUN: live Gemini call, hosted CI. Search success on the hosted service is unverified.
+
 ## P124.17 — Direct Gemini pass-through (2026-11-02)
 
 Implemented a default-on direct Gemini path for the Conversational endpoints. It sends a plain-text request to one selected Gemini model and returns `response.text` unchanged as `data.reply`. The path does not call Serper or any other search provider, does not use external model fallback, does not request JSON output, and does not run retry, URL stripping, internal-label scrubbing, response shaping, or the epistemic verifier. The application log records provider/model, raw and visible text, matching SHA-256 hashes, and `outputModified=false`.

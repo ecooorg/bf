@@ -45,8 +45,8 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
-import type { WebSearchResult } from './server/webSearch.ts';
+import { extractGrounding, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import type { WebSearchResult, WebSource } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './server/taskService.ts';
@@ -707,8 +707,8 @@ function preferredModelFromRequest(req: express.Request): string | undefined {
   return typeof v === 'string' && v.trim() ? v.trim() : undefined;
 }
 
-/** P124.17 diagnostic mode: one direct Gemini text call; no search, JSON parsing, retry, fallback, or reply rewriting. */
-async function generateGeminiPassThrough(prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = []): Promise<{ text: string; model: string; durationMs: number }> {
+/** P124.19: one direct Gemini text call with native Google Search grounding; no Serper, JSON parsing, retry, fallback, or reply rewriting. */
+async function generateGeminiPassThrough(prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = [], useSearch = false): Promise<{ text: string; model: string; durationMs: number; sources: WebSource[]; queries: string[] }> {
   const key = byokKey || apiKey;
   if (!key) throw Object.assign(new Error('No Gemini API key is configured.'), { code: 'MODEL_NOT_CONFIGURED' });
   const model = modelsFor('strong', preferredModel)[0];
@@ -722,10 +722,11 @@ async function generateGeminiPassThrough(prompt: string, byokKey?: string, prefe
     const response = await client.models.generateContent({
       model,
       contents: [{ role: 'user', parts: [{ text: prompt }, ...extraParts] }],
-      config: { abortSignal: controller.signal, temperature: 0.2 },
+      config: { abortSignal: controller.signal, temperature: 0.2, ...(useSearch ? { tools: [googleSearchToolForModel(model)] } : {}) },
     });
     if (typeof response.text !== 'string' || !response.text.length) throw new Error('Gemini returned an empty text response.');
-    return { text: response.text, model, durationMs: Date.now() - started };
+    const { sources, queries } = useSearch ? extractGrounding(response) : { sources: [] as WebSource[], queries: [] as string[] };
+    return { text: response.text, model, durationMs: Date.now() - started, sources, queries };
   } finally {
     clearTimeout(timeout);
   }
@@ -1192,29 +1193,31 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // one direct Gemini text call and returns its text verbatim. Search and other
     // model providers are not consulted on this path.
     if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false') {
+      const directSearch = isWebSearchEnabled();
       const directPrompt = [
         'Answer the latest user message directly. Use the conversation history only when needed for context.',
-        'Do not claim to have accessed live data, websites, or tools unless the user supplied that information.',
+        directSearch ? 'For current events, weather, prices, news, or other time-sensitive facts, use Google Search and answer from the results. Do not claim live access when search returned nothing.' : 'Do not claim live data access: web search is unavailable for this request.',
         'Return ordinary answer text, not JSON and not markdown wrappers.',
         `Current date: ${new Date().toISOString().slice(0, 10)}.`,
         `Latest user message:\n${lastUserText}`,
         `Conversation context (JSON):\n${input}`,
         attachmentsBlock ? `Attachment text:\n${attachmentsBlock}` : '',
       ].filter(Boolean).join('\n\n');
-      const direct = await generateGeminiPassThrough(directPrompt, requestByokKey, requestPreferredModel, attachParts);
+      const direct = await generateGeminiPassThrough(directPrompt, requestByokKey, requestPreferredModel, attachParts, directSearch);
       const requestId = String((req as any).requestId || req.get('x-request-id') || '');
       const outputHash = crypto.createHash('sha256').update(direct.text, 'utf8').digest('hex');
       void recordApplicationLog({ level: 'info', component: 'conversation', event: 'gemini_direct_passthrough', requestId,
         message: 'Direct Gemini text returned without application rewriting', details: {
-          provider: 'gemini', model: direct.model, searchInvoked: false, externalFallbackInvoked: false,
+          provider: 'gemini', model: direct.model, searchEnabled: directSearch, searchInvoked: direct.queries.length > 0 || direct.sources.length > 0,
+          searchQueries: direct.queries, sourceCount: direct.sources.length, externalFallbackInvoked: false,
           rawOutput: direct.text, visibleReply: direct.text, rawOutputSha256: outputHash,
           visibleReplySha256: outputHash, outputModified: false, durationMs: direct.durationMs,
         } });
       return ok(res, {
         reply: direct.text, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
-        document: null, attachmentNotes: [], state: safeState,
-      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, search: 'disabled' });
+        document: null, attachmentNotes: [], ...(direct.sources.length ? { sources: direct.sources } : {}), state: safeState,
+      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, search: !directSearch ? 'disabled' : (direct.sources.length || direct.queries.length ? 'used' : 'enabled_not_used') });
     }
 
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.

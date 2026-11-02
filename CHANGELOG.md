@@ -1,3 +1,10 @@
+## P124.19 — Google Search grounding restored in direct Gemini mode (2026-11-02)
+
+- The direct Conversational path now passes `tools: [googleSearchToolForModel(model)]` to its single `generateContent` call (unless `ENABLE_WEB_SEARCH` is off), so Gemini can ground answers in live Google Search results.
+- Removed the prompt rule forbidding live-data claims; the prompt now asks for Google Search on time-sensitive facts.
+- Sources and queries from `groundingMetadata` are returned as `data.sources`, logged (`searchInvoked`, `searchQueries`, `sourceCount`) and reported in meta `search` (`used` / `enabled_not_used` / `disabled`). Reply text is still returned verbatim.
+- Verification: source-level test updated; hosted CI and live Gemini call NOT_RUN.
+
 ## P124.18 — legacy-pipeline tests pinned to the legacy path (2026-11-02)
 
 - Fixed the three CI failures (`tests/core.test.mjs`, `tests/files.test.mjs`, `tests/pipeline.test.mjs`): since P124.17 the Conversational endpoint defaults to direct Gemini pass-through, so tests that verify the structured pipeline (service-field scrubbing, attachment notes, conversation mode meta) received raw model text.
