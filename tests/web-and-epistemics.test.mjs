@@ -310,10 +310,20 @@ test('P50 fetchSerperDigest skips without key', async () => {
   assert.equal(r.reason, 'no_serper_key');
 });
 
-test('P50 page fetch URL filters', () => {
+test('P50 page fetch URL filters', async () => {
   assert.equal(mod.isFetchableContentUrl('https://www.federalreserve.gov/releases/h15/'), true);
   assert.equal(mod.isFetchableContentUrl('https://www.youtube.com/watch?v=abc'), false);
   assert.equal(mod.isFetchableContentUrl('https://x.com/user/status/1'), false);
+  assert.equal(mod.isFetchableContentUrl('http://127.0.0.1/admin'), false);
+  assert.equal(mod.isFetchableContentUrl('http://169.254.169.254/latest/meta-data/'), false);
+  assert.equal(mod.isFetchableContentUrl('http://[::1]/'), false);
+  assert.equal(mod.isFetchableContentUrl('http://service.internal/'), false);
+  assert.equal(mod.isFetchableContentUrl('http://user:pass@example.com/'), false);
+  assert.equal(mod.isPublicIpAddress('8.8.8.8'), true);
+  assert.equal(mod.isPublicIpAddress('10.0.0.1'), false);
+  assert.equal(mod.isPublicIpAddress('::ffff:127.0.0.1'), false);
+  assert.equal(mod.isPublicIpAddress('2606:4700:4700::1111'), true);
+  assert.equal(await mod.isPublicFetchTarget('http://localhost/'), false);
   const picked = mod.pickUrlsToFetch([
     { title: 'YT', url: 'https://www.youtube.com/watch?v=1' },
     { title: 'Fed', url: 'https://www.federalreserve.gov/releases/h15/' },
@@ -321,6 +331,22 @@ test('P50 page fetch URL filters', () => {
   ], 2);
   assert.equal(picked[0].url.includes('federalreserve'), true);
   assert.equal(picked.length, 2);
+});
+
+test('P124.11 security headers are set and HSTS is production-only', async () => {
+  const { securityHeadersMiddleware } = await import('../server/securityHeaders.ts');
+  const makeResponse = () => ({ headers: {}, setHeader(name, value) { this.headers[name] = value; } });
+  let nextCalls = 0;
+  const dev = makeResponse();
+  securityHeadersMiddleware(false)({}, dev, () => { nextCalls += 1; });
+  assert.equal(dev.headers['X-Content-Type-Options'], 'nosniff');
+  assert.equal(dev.headers['Referrer-Policy'], 'strict-origin-when-cross-origin');
+  assert.equal(dev.headers['X-Frame-Options'], 'DENY');
+  assert.equal(dev.headers['Strict-Transport-Security'], undefined);
+  const prod = makeResponse();
+  securityHeadersMiddleware(true)({}, prod, () => { nextCalls += 1; });
+  assert.match(prod.headers['Strict-Transport-Security'], /max-age=31536000/);
+  assert.equal(nextCalls, 2);
 });
 
 test('P50 digestFromPageExtracts prefers page body', () => {
