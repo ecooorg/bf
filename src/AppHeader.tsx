@@ -200,12 +200,12 @@ export function Header(props: {
         </div>
         {props.driveMessage && <span className="hdr-msg">{props.driveMessage}</span>}
       </div>
-      {diagnosticsOpen && <div role="dialog" data-testid="diagnostic-log-dialog" aria-modal="true" aria-label="Diagnostic log" style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,.72)', display: 'grid', placeItems: 'center', padding: 16 }}>
-        <section style={{ width: 'min(900px,96vw)', maxHeight: '88vh', overflow: 'auto', background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 10, padding: 16, color: '#dce9f7' }}>
+      {diagnosticsOpen && <div role="dialog" data-testid="diagnostic-log-dialog" aria-modal="true" aria-label="Diagnostic log" style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,.72)', display: 'grid', placeItems: 'center', padding: 12, boxSizing: 'border-box', overflowY: 'auto' }}>
+        <section style={{ width: 'min(900px, calc(100vw - 24px))', height: 'min(88vh, 760px)', height: 'min(88dvh, 760px)', maxHeight: 'calc(100dvh - 24px)', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxSizing: 'border-box', background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 10, padding: 16, color: '#dce9f7' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><h2 style={{ margin: 0 }}>Diagnostic log</h2><button type="button" className="ghost" onClick={() => setDiagnosticsOpen(false)}>Close</button></div>
           <p style={{ fontSize: 13 }}>Test log includes prompts, user messages, model replies, agent output and search results. Credentials remain redacted.</p>
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}><button type="button" className="ghost" disabled={diagnosticsBusy || !diagnosticsText} data-testid="diagnostic-log-copy" onClick={() => void copyDiagnostics()}>{diagnosticsCopied ? 'Copied' : 'Copy log'}</button><button type="button" className="ghost" disabled={diagnosticsBusy} onClick={() => void loadDiagnostics()}>Refresh</button></div>
-          {diagnosticsBusy ? <p>Loading diagnostics…</p> : <textarea data-testid="diagnostic-log-content" aria-label="Diagnostic log contents" readOnly value={diagnosticsText} style={{ width: '100%', minHeight: '55vh', background: '#07182a', color: '#dce9f7', font: '12px monospace', whiteSpace: 'pre', overflow: 'auto' }} />}
+          {diagnosticsBusy ? <p style={{ flex: '1 1 auto', minHeight: 0, overflow: 'auto' }}>Loading diagnostics…</p> : <textarea data-testid="diagnostic-log-content" aria-label="Diagnostic log contents" readOnly value={diagnosticsText} style={{ flex: '1 1 auto', minHeight: 0, width: '100%', boxSizing: 'border-box', resize: 'none', background: '#07182a', color: '#dce9f7', font: '12px monospace', whiteSpace: 'pre', overflow: 'auto' }} />} 
         </section>
       </div>}
     </header>
