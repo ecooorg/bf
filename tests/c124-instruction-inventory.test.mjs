@@ -16,7 +16,8 @@ test('C124 inventory contains a substantive source map', () => {
   for (const required of [
     'server/promptPacks.ts',
     'server/reasoningState.ts',
-    'server.ts',
+    'server/agentRouting.ts',
+    'server/conversationalAgent.ts',
     'server/expertAgent.ts',
     'server/webSearch.ts',
     'server/contextBuilder.ts',

@@ -6,6 +6,12 @@
 {
 /** P26a.2: tar/gzip, folder ingest, IndexedDB contract availability and WORKSPACE protocol. */
 const assert = (await import("node:assert/strict")).default;
+const { readFileSync } = await import('node:fs');
+const browserHashSource = readFileSync(new URL('../src/workspace/hash.ts', import.meta.url), 'utf8');
+const browserExportSource = readFileSync(new URL('../src/workspace/exportZip.ts', import.meta.url), 'utf8');
+assert.doesNotMatch(browserHashSource, /node:crypto/);
+assert.doesNotMatch(browserExportSource, /node:crypto/);
+assert.match(browserExportSource, /import \{ sha256Bytes \} from '\.\/hash\.ts'/);
 const { gzipSync } = await import("node:zlib");
 const { ingestArchive, ingestFiles } = await import("../src/workspace/ingest.ts");
 const { DEFAULT_BROWSER_LIMITS } = await import("../src/workspace/types.ts");

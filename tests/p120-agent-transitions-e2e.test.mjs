@@ -108,7 +108,10 @@ test('P123.18 Conversational and Expert transitions isolate session context', as
     await page.getByTestId('mode-menu-button').click();
     await page.getByTestId('mode-item-simple').click();
     assert.equal(await page.getByTestId('mode-menu-button').innerText(), 'Conversational');
-    await page.getByRole('button', { name: /Start conversation/i }).click();
+    // Switching agents creates the new empty Decision immediately; the chat composer
+    // is therefore mounted directly and the empty-state Start conversation button is absent.
+    await page.locator('.conversation-composer textarea').waitFor();
+    await page.getByRole('button', { name: /Start conversation/i }).waitFor({ state: 'detached' });
 
     const followUp = 'What is the smallest next step for a completely separate question?';
     await page.locator('.conversation-composer textarea').fill(followUp);

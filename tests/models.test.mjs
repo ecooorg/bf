@@ -982,9 +982,9 @@ const fakeKey = 'gh' + 'p_' + 'a'.repeat(36); // built at run time: no secret li
 test('diff: changed files are replaced, new files added, missing files listed for deletion', () => {
   const d = diffTrees(tree({ 'a.md': '1', 'b.md': '2', 'c.md': '3' }), tree({ 'a.md': '1', 'b.md': '22', 'd.md': '4' }));
   assert.deepEqual(d, { replace: ['b.md'], add: ['d.md'], del: ['c.md'] });
-  assert.match(summaryLine(d), /^заменить 1, добавить 1, удалить 1\n/);
-  assert.match(summaryLine(d), /заменить: b\.md/);
-  assert.equal(summaryLine({ replace: [], add: [], del: [] }), 'заменить 0, добавить 0, удалить 0');
+  assert.match(summaryLine(d), /^replace 1, add 1, delete 1\n/);
+  assert.match(summaryLine(d), /replace: b\.md/);
+  assert.equal(summaryLine({ replace: [], add: [], del: [] }), 'replace 0, add 0, delete 0');
 });
 
 test('zip: a GitHub wrapper folder is stripped; a flat zip is kept; the archive has no wrapper and no manifest', async () => {
@@ -1094,7 +1094,7 @@ test('pack end to end: only changed and new files in the archive, report written
     { cwd: path.join(dir, 'work'), env: { ...process.env, DATABASE_URL: '1' }, encoding: 'utf8' });
   const ok = run([]);
   assert.equal(ok.status, 0, ok.stderr);
-  assert.match(ok.stdout, /заменить 2, добавить 1, удалить 1/);
+  assert.match(ok.stdout, /replace 2, add 1, delete 1/);
   const zip = await readZipTree(fs.readFileSync(path.join(dir, 'work/bf-P99.1.zip')));
   assert.deepEqual([...zip.keys()].sort(), ['a.md', 'package.json', 'server/new.ts']);
   const report = fs.readFileSync(path.join(dir, 'work/patch-report.md'), 'utf8');
