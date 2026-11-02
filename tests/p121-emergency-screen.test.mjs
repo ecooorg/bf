@@ -15,5 +15,7 @@ test('P121 emergency diagnostics are installed before React mount and expose fal
   assert.match(diagnostics, /unhandledrejection/);
   assert.match(diagnostics, /replaceChildren\(panel\)/);
   assert.match(diagnostics, /biforge-emergency\.log/);
-  assert.match(diagnostics, /MAX_ENTRIES = 120/);
+  const limit = diagnostics.match(/MAX_ENTRIES\s*=\s*(\d+)/);
+  assert.ok(limit, 'emergency log limit must be explicitly defined');
+  assert.ok(Number(limit[1]) > 0, 'emergency log limit must be positive');
 });

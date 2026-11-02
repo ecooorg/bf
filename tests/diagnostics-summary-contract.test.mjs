@@ -28,3 +28,13 @@ test('all workflow diagnostics produce one self-contained assistant handoff and 
   assert.match(fs.readFileSync(path.join(dir, 'checks.log'), 'utf8'), /test:core/);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+
+test('passing TAP logs remain PASS when test titles contain BLOCKED', () => {
+  fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'passing.log'), '# Subtest: BLOCKED is a word in this test title\nok 1 - BLOCKED title is not a workflow status\n# tests 1\n# pass 1\n# fail 0\n# skipped 0\n');
+  const run = spawnSync(process.execPath, ['scripts/diagnostics-summary.mjs'], { cwd: root, encoding: 'utf8', env: { ...process.env, CI_LOGS_DIR: path.relative(root, dir), CI_STATUS: 'success' } });
+  assert.equal(run.status, 0, run.stderr || run.stdout);
+  assert.match(fs.readFileSync(path.join(dir, 'checks.log'), 'utf8'), /^PASS    passing\.log/m);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
