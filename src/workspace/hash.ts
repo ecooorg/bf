@@ -10,9 +10,9 @@ export async function sha256Bytes(bytes: Uint8Array): Promise<string> {
     const dig = await globalThis.crypto.subtle.digest('SHA-256', buf);
     return bufferToHex(new Uint8Array(dig));
   }
-  // Node fallback
-  const { createHash } = await import('node:crypto');
-  return createHash('sha256').update(bytes).digest('hex');
+  // This module is part of the browser workspace path. Do not import Node built-ins
+  // into the client bundle; fail explicitly if Web Crypto is unavailable.
+  throw new Error('web_crypto_sha256_unavailable');
 }
 
 function bufferToHex(b: Uint8Array): string {

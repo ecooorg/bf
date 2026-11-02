@@ -5,6 +5,7 @@
 
 import type { Entry, WorkspaceStore } from './types.ts';
 import { unifiedDiffForFile } from './diff.ts';
+import { sha256Bytes } from './hash.ts';
 
 const FIXED_DATE = new Date(Date.UTC(1980, 0, 1, 0, 0, 0));
 
@@ -29,15 +30,6 @@ function safeFileName(raw: string): string {
   return s || 'workspace';
 }
 
-async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  if (typeof globalThis.crypto?.subtle?.digest === 'function') {
-    const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
-    const dig = await globalThis.crypto.subtle.digest('SHA-256', buf);
-    return [...new Uint8Array(dig)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
-  const { createHash } = await import('node:crypto');
-  return createHash('sha256').update(bytes).digest('hex');
-}
 
 function decodeText(bytes: Uint8Array): string {
   try {
@@ -170,7 +162,7 @@ export async function exportWorkspace(
       files.set(e.path, bytes);
     }
     const zip = await buildDeterministicZip(files);
-    const hash = await sha256Hex(zip);
+    const hash = await sha256Bytes(zip);
     return {
       filename: `${name}-v${version}.zip`,
       bytes: zip,
@@ -209,7 +201,7 @@ export async function exportWorkspace(
     }
     const text = parts.join('\n');
     const bytes = new TextEncoder().encode(text);
-    const hash = await sha256Hex(bytes);
+    const hash = await sha256Bytes(bytes);
     return {
       filename: `${name}-v${baseNo}-v${version}.diff`,
       bytes,
@@ -233,7 +225,7 @@ export async function exportWorkspace(
   }
   files.set('BIFORGE-CHANGES.md', new TextEncoder().encode(changeLines.join('\n') + '\n'));
   const zip = await buildDeterministicZip(files);
-  const hash = await sha256Hex(zip);
+  const hash = await sha256Bytes(zip);
   return {
     filename: `${name}-v${version}-changed.zip`,
     bytes: zip,
