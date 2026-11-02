@@ -4,13 +4,13 @@ Implemented a default-on direct Gemini path for the Conversational endpoints. It
 
 This is an isolation test. It does not provide current weather or other live facts because search is deliberately disabled. A successful source-level test does not establish a live Gemini call; hosted deployment and user-level verification remain NOT_RUN.
 
-## CURRENT EVIDENCE NOTE — P124.0.16 diagnostics contract test repair (2026-11-02)
+## CURRENT EVIDENCE NOTE — P124.16 diagnostics contract test repair (2026-11-02)
 
-**Patch identity:** product version `124`, patch `124.0.16`.
+**Patch identity:** product version `124`, patch `124.16`.
 
 ### Finding
 
-Hosted CI for P124.0.15 failed only in `tests/project-diagnostics-p92.test.mjs`: its P92 assertion still required the compact session log to omit request/response bodies and prompts. That assertion contradicted the single-user full-conversation capture policy introduced in P124.0.15. The implementation was not changed.
+Hosted CI for P124.15 failed only in `tests/project-diagnostics-p92.test.mjs`: its P92 assertion still required the compact session log to omit request/response bodies and prompts. That assertion contradicted the single-user full-conversation capture policy introduced in P124.0.15. The implementation was not changed.
 
 ### Repair
 
@@ -22,7 +22,7 @@ Targeted test, typecheck, build, and hosted CI rerun are **NOT_RUN** in this ass
 
 ## CURRENT EVIDENCE NOTE — P124.0.15 full-content diagnostics (2026-11-02)
 
-**Patch identity:** product version `124`, patch `124.0.15`. **Baseline:** reconstructed P124.0.14 source tree with the original P124.0.15 menu patch applied.
+**Patch identity:** product version `124`, patch `124.15`. **Baseline:** reconstructed P124.14 source tree with the original P124.15 menu patch applied.
 
 ### User problem and change
 
@@ -34,9 +34,9 @@ Credentials, cookies, API keys, and authentication tokens remain redacted. Conve
 
 Targeted syntax and contract checks are **NOT_RUN** at assembly. Typecheck, production build, and hosted CI are **NOT_RUN**. Live Simple/Expert verification remains required.
 
-## CURRENT EVIDENCE NOTE — P124.0.14 preflight false-positive repair (2026-11-02)
+## CURRENT EVIDENCE NOTE — P124.14 preflight false-positive repair (2026-11-02)
 
-**Patch identity:** product version `124`, patch `124.0.14`. **Baseline:** supplied `bf-124-12.zip` with P124.0.13 overlay applied; hosted evidence commit `82e1f55a13ca73a95a3af12520b8da721d09ba31`.
+**Patch identity:** product version `124`, patch `124.14`. **Baseline:** supplied `bf-124-12.zip` with P124.0.13 overlay applied; hosted evidence commit `82e1f55a13ca73a95a3af12520b8da721d09ba31`.
 
 ### Finding
 
@@ -56,7 +56,7 @@ This patch addresses the evidenced preflight false positive only. It does not es
 
 ---
 
-## P124.0.13 — red-CI diagnosis and regression repair
+## P124.13 — red-CI diagnosis and regression repair
 
 ### Input evidence
 
@@ -75,24 +75,24 @@ This patch addresses the evidenced preflight false positive only. It does not es
 4. `.github/workflows/expert-verify.yml`: increased the unit matrix timeout from 120 to 300 seconds, matching the primary pipeline configuration and measured suite runtime.
 5. `src/workspace/hash.ts` and `src/workspace/exportZip.ts`: removed the browser-incompatible `node:crypto` fallback and duplicate SHA-256 implementation. Workspace export now uses the shared Web Crypto helper; environments without Web Crypto fail with an explicit error rather than attempting to load a Node built-in in the browser.
 6. `tests/workspace.test.mjs`: added a regression guard against `node:crypto` imports in browser workspace hashing/export.
-7. `package.json` and `package-lock.json`: patch metadata advanced to `124.0.13`.
+7. `package.json` and `package-lock.json`: patch metadata advanced to `124.13`.
 
 ### Verification
 
 - CI-provided pre-change evidence: `typecheck` PASS; `build` PASS (with Vite warnings about Node crypto externalization and large chunks); architecture PASS; `test:security` 24/24 PASS; `test:database:live` 68/68 PASS; `test:app-builder` 94/94 PASS; `test:pipeline` 22/22 PASS in 122.278 seconds; Gitleaks 0 findings.
 - Local `npm ci --no-audit --no-fund` was attempted and timed out after 300 seconds; the environment did not complete dependency installation.
 - Dependency-backed reruns of `test:core`, `test:models`, `test:workspace`, typecheck, build and Playwright E2E are therefore NOT_RUN after the edits.
-- Hosted GitHub Actions for P124.0.13 and live user/provider scenarios are NOT_RUN.
+- Hosted GitHub Actions for P124.13 and live user/provider scenarios are NOT_RUN.
 
 ### Status
 
 The four CI/E2E causes evidenced by the supplied logs have targeted source/test/workflow corrections. The browser workspace Node-crypto warning also has a source-level correction. This is not a claim of green CI: final acceptance requires the published commit's GitHub Actions results. The dependency installation timeout prevents local end-to-end verification in this environment.
 
-## P124.0.12 — security redaction, immutable CI and documentation maintenance
+## P124.12 — security redaction, immutable CI and documentation maintenance
 
 **Status:** targeted dependency-free checks PASS; full suite BLOCKED by unavailable npm registry/cache; hosted CI and live behavior NOT_RUN. This is not a release acceptance claim.
 
-**Baseline:** supplied `bf-124-9-green.zip` with P124.10 and P124.11 overlays applied in sequence. Patch identity follows `AGENTS.md`: `package.json` version `124`, patch `124.0.12`.
+**Baseline:** supplied `bf-124-9-green.zip` with P124.10 and P124.11 overlays applied in sequence. Patch identity follows `AGENTS.md`: `package.json` version `124`, patch `124.12`.
 
 **Implemented:**
 - Secret redaction inventory now includes Serper, Cloudflare API token, GitHub token and Gemini slots derived from `resolveGeminiKeySlots`; string redaction catches common Google/GitHub/OpenAI credential formats and `x-byok-key` header values. Recursive object redaction treats `x-byok-key` as sensitive.
