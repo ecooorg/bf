@@ -165,6 +165,8 @@ export function scrubInternalLabels(text: string): string {
   return String(text ?? '')
     .replace(new RegExp(`\\s*[\\(\\[](?:${LABELS})[\\)\\]]`, 'g'), '')
     .replace(new RegExp(`(^|\\n)[ \\t]*(?:-[ \\t]*)?(?:${LABELS})[ \\t]*:[ \\t]*`, 'g'), '$1')
+    // Source provenance tags are internal metadata, not user-facing prose.
+    .replace(/\s*\(?\s*source\s*:\s*(?:USER_DATA|GENERAL_PATTERN|GUESS)\s*\)?/gi, '')
     .replace(/\b(?:problemClear|driftDetected|notUnderstoodSignal|coreProblem|userConcern|userReasoningState)\b\s*[:=]\s*\w*/g, '')
     // S-3: punctuation orphaned by a removed label ("; ." / ".." / "?.") must not stay behind
     .replace(/\s*[;,]+(?:\s*[;,]+)*\s*(?=[.!?])/g, '')
