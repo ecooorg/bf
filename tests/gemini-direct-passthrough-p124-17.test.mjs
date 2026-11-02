@@ -8,7 +8,7 @@ test('direct conversational mode returns raw Gemini text and bypasses search and
   assert.match(server, /async function generateGeminiPassThrough/);
   assert.match(server, /responseMimeType:\s*'application\/json'/); // retained only in the legacy structured path
   assert.match(server, /turnPlan\.agent === 'conversational' && !distressMarkerDetected && process\.env\.BIFORGE_GEMINI_DIRECT_MODE !== 'false'/);
-  assert.match(server, /searchInvoked:\s*false/);
+  assert.match(server, /searchInvoked:\s*direct\.queries\.length > 0/);
   assert.match(server, /GEMINI_DIRECT_UNAVAILABLE/);
   assert.match(server, /No alternative provider or generated fallback was used/);
   assert.match(server, /rawOutput:\s*direct\.text, visibleReply:\s*direct\.text/);
@@ -25,6 +25,16 @@ test('direct Gemini helper makes one text generation call without JSON mode or p
   const helper = server.match(/async function generateGeminiPassThrough[\s\S]*?\n}\n/)?.[0] || '';
   assert.ok(helper);
   assert.match(helper, /client\.models\.generateContent/);
-  assert.match(helper, /config:\s*\{ abortSignal: controller\.signal, temperature: 0\.2 \}/);
+  assert.match(helper, /config:\s*\{ abortSignal: controller\.signal, temperature: 0\.2, \.\.\.\(useSearch \? \{ tools: \[googleSearchToolForModel\(model\)\] \} : \{\}\) \}/);
+  assert.match(helper, /extractGrounding\(response\)/);
   assert.doesNotMatch(helper, /responseMimeType|routeCall|createOpenAICompatibleAdapter|parseJson|retry/i);
+});
+
+test('P124.19: direct mode enables Google Search grounding, drops the live-data ban, and returns sources', () => {
+  const branch = server.slice(server.indexOf("if (turnPlan.agent === 'conversational' && !distressMarkerDetected"), server.indexOf('// P50: fresh-web lookup'));
+  assert.match(branch, /const directSearch = isWebSearchEnabled\(\)/);
+  assert.match(branch, /requestPreferredModel, attachParts, directSearch\)/);
+  assert.ok(!branch.includes('Do not claim to have accessed live data, websites, or tools'));
+  assert.match(branch, /sources: direct\.sources/);
+  assert.match(branch, /reply: direct\.text/);
 });
