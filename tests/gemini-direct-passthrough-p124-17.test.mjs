@@ -38,3 +38,22 @@ test('P124.19: direct mode enables Google Search grounding, drops the live-data 
   assert.match(branch, /sources: direct\.sources/);
   assert.match(branch, /reply: direct\.text/);
 });
+
+test('P124.20: direct helper rotates pool keys only on quota/auth/5xx, bounded, never logs key material', () => {
+  const helper = server.match(/async function generateGeminiPassThrough[\s\S]*?\n}\n/)?.[0] || '';
+  assert.match(helper, /MAX_DIRECT_KEY_ATTEMPTS/);
+  assert.match(helper, /geminiKeyPoolState\.available\(geminiKeySlots\)/);
+  assert.match(helper, /if \(!shouldRotateKeySlot\(cls\)\) throw e/);
+  assert.match(helper, /markCooldown\(slot/);
+  assert.doesNotMatch(helper, /console\.\w+\([^)]*\bkey\b[^)]*\)/);
+});
+
+test('P124.20: classifyKeyError rotates on quota, auth and 5xx but not on timeouts or other errors', async () => {
+  const { classifyKeyError } = await import('../server/keyPool.ts');
+  assert.equal(classifyKeyError({ status: 429 }), 'PROVIDER_QUOTA');
+  assert.equal(classifyKeyError(new Error('RESOURCE_EXHAUSTED: quota')), 'PROVIDER_QUOTA');
+  assert.equal(classifyKeyError({ status: 403 }), 'PROVIDER_AUTH');
+  assert.equal(classifyKeyError({ status: 503 }), 'PROVIDER_TRANSIENT');
+  assert.equal(classifyKeyError(new Error('This operation was aborted')), 'OTHER');
+  assert.equal(classifyKeyError({ status: 400 }), 'OTHER');
+});
