@@ -14,7 +14,7 @@ import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
 import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.ts';
 
 import { APP_VERSION } from './src/config.ts';
-import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
+import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog, compactSessionLog } from './server/projectDiagnostics.ts';
 import { buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels, stripQuestionSentences, stripUserFacingUrls } from './server/reasoningState.ts';
 import { EXPERT_STEP_PREFIX } from './server/expertAgent.ts';
 import {
@@ -349,6 +349,12 @@ app.use((req, res, next) => {
     return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
   }
   next();
+});
+
+// Shared diagnostics endpoint for Simple and Expert mode. The global /api auth middleware above protects it.
+app.get('/api/diagnostics/session-log', async (_req, res) => {
+  try { res.type('text/plain; charset=utf-8').send(await compactSessionLog()); }
+  catch (error) { res.status(500).type('text/plain; charset=utf-8').send(`Diagnostic log unavailable: ${String((error as Error)?.message || error).slice(0, 240)}`); }
 });
 
 // Project Mode routes and boundary: server/projectRoutes.ts (p73)
@@ -1327,6 +1333,16 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       calls: (meta as any).calls, retried: retryRan, retry_skipped: retrySkippedForLatency,
       web_search: webSearch.status, verifier: epistemic.verifier, ...phase.summary(),
     }));
+    void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_response_pipeline', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Model response passed through the conversational output pipeline', details: {
+      mode: conversationMode, productMode, model: (meta as any).model, provider: (meta as any).provider,
+      modelReplyChars: typeof out.reply === 'string' ? out.reply.length : 0,
+      visibleReplyChars: visibleReply.length,
+      replyChangedBySanitization: typeof out.reply === 'string' && out.reply !== visibleReply,
+      documentPresent: Boolean(documentOut), searchStatus: webSearch.status,
+      searchSourceCount: Array.isArray(webSearch.sources) ? webSearch.sources.length : 0,
+      searchExpected: Boolean(intentFlags.userAskedSearch), calls: (meta as any).calls,
+      retried: retryRan, retrySkipped: retrySkippedForLatency,
+    } });
     ok(res, {
       reply: visibleReply,
       question: cleanQuestion,
@@ -1357,6 +1373,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // throw, even when Gemini quota/rate-limit/timeout errors occur.
     const reason = String(e?.code || 'AI_ERROR');
     console.warn(JSON.stringify({ type: 'conversation_fallback', code: reason, message: String(e?.message || e).slice(0, 240) }));
+    void recordApplicationLog({ level: 'error', component: 'conversation', event: 'conversation_fallback', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Conversational request returned the model-unavailable fallback', details: { errorCode: reason, errorName: String(e?.name || 'Error').slice(0, 80), status: Number(e?.status || e?.statusCode || 0) || undefined } });
 
     const fallbackBody = req.body || {};
     const fallbackBrief = fallbackBody?.brief && typeof fallbackBody.brief === 'object' ? fallbackBody.brief : {};

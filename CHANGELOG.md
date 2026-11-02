@@ -1,3 +1,12 @@
+## P124.0.15 — Simple and Expert diagnostic access and response-pipeline telemetry (2026-11-02)
+
+- Added `More → Diagnostic log` to the shared Simple/Expert header, with an on-screen bounded log viewer, copy, and refresh actions.
+- Added an authenticated shared diagnostic endpoint so the feature works independently of Project Mode.
+- Added privacy-preserving Conversational pipeline telemetry: request correlation ID, provider/model metadata when available, model-reply and visible-reply character counts, whether sanitization changed the reply, search status/source count, retry metadata, and fallback error code. No prompt, user text, model response body, credentials, or cookies are logged.
+- Extended compact session logs with recent conversation pipeline events and matching conversational HTTP requests, so unrelated download operations do not hide the relevant agent evidence.
+- Added a source contract test for menu exposure and authentication ordering.
+- This patch improves diagnostic access and evidence only. It does not change model instructions, response filtering, search routing, or answer-generation behavior; those require a separate evidence-led fix.
+
 ## P124.0.14 — patch preflight recognizes the GitHub configuration directory (2026-11-02)
 
 - Fixed the real-repository preflight false positive for `.github/dependabot.yml`: `.github` is now an explicitly supported top-level repository directory, while nested paths remain restricted to the existing `.github/workflows/**` allowance.
