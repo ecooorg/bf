@@ -1,3 +1,10 @@
+## P124.9 crisis-turn question safety repair
+
+- Restored the crisis-turn contract in the Conversational path: when triage is `CRISIS` or a distress marker is detected, questions the model wrote inside its own answer text are removed (`stripQuestionSentences` in `server/reasoningState.ts`, applied in `server.ts`), while every other model-authored sentence and the support-contacts block are kept. This closes the Pipeline Stage 2 failures `G1 crisis ru`, `G1 crisis es` and `G1 crisis ru-late` seen after P124.7, when `buildVisibleReply` began preserving model-authored questions.
+- Non-crisis behavior is unchanged: C124 output fidelity (model-authored questions preserved, optional follow-up additive) still applies to every other turn.
+- Added focused regression tests in `tests/c124-output-fidelity.test.mjs` (crisis stripping in RU, multi-line text, no-op without questions, and a guard that only the crisis path strips).
+- Bumped patch metadata to `124.9`.
+
 ## P124.8 obsolete model-prompt test cleanup
 
 - Removed golden SHA-256 snapshots that froze complete Conversational/Expert prompt bytes; wording and prompt composition may now evolve without unrelated CI failures.

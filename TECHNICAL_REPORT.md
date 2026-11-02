@@ -1,3 +1,23 @@
+## CURRENT EVIDENCE NOTE — P124.9 crisis-turn question safety repair (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.9`. **Base evidence:** hosted CI run `41412782921` at commit `bb4980a262c16835773b2d65215a818c6a3dcc84` (DAG: 27 PASS, 1 FAIL). **Scope:** repair the only evidenced failure, `test:pipeline` Stage 2 checks `G1 crisis ru`, `G1 crisis es`, `G1 crisis ru-late` (`s200 q=1 contacts=true`).
+
+### Finding
+
+- Cause (source-verified): since P124.7/C124, `buildVisibleReply` preserves questions already written in the model answer. On a crisis turn the scripted model reply contained one question, so the visible reply carried one `?` although the crisis contract requires none. Support contacts were present; only the question rule was violated.
+- Fix: `stripQuestionSentences` removes interrogative sentences from the model answer on crisis turns only (`crisisNow`); all other text, the optional follow-up rules, and the support block are unchanged.
+
+### Verification
+
+- `node --experimental-strip-types --test tests/c124-output-fidelity.test.mjs tests/c124-prompt-quality.test.mjs` — **PASS, 10/10** (local, Node 22).
+- `npm run typecheck` — **PASS** (local).
+- `node --import tsx --test tests/pipeline.test.mjs` — **PASS** (22 pass, 0 fail; local, scripted fake provider).
+- Full DAG, `test:core`, build, browser e2e, live-provider checks and hosted Actions on the new commit — **NOT_RUN**.
+
+### Boundary
+
+This is a safety-behavior repair verified against a scripted fake provider. It is not evidence of real-model crisis-response quality or user value; live crisis scenarios remain `NOT_RUN`.
+
 ## CURRENT EVIDENCE NOTE — P124.8 obsolete model-prompt test cleanup (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.8`. **Scope:** remove test-only source-text locks for model-facing instructions that no longer represent required product behavior. No product source, prompts, instructions, or runtime logic changed.

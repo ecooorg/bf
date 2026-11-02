@@ -15,7 +15,7 @@ import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.
 
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
-import { buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels, stripUserFacingUrls } from './server/reasoningState.ts';
+import { buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels, stripQuestionSentences, stripUserFacingUrls } from './server/reasoningState.ts';
 import { EXPERT_STEP_PREFIX } from './server/expertAgent.ts';
 import {
   validateExpertRequest,
@@ -1285,7 +1285,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     const crisisBlock = crisisNow
       ? `\n\n---\nIf you are in immediate danger, contact local emergency services or a person near you right now.\n${SUPPORT_CONTACTS.map((c) => `${c.label}: ${c.value}`).join('\n')}`
       : '';
-    const visibleReply = buildVisibleReply(cleanReply, cleanQuestion, askAllowed) + crisisBlock;
+    // Crisis turns never carry a question, including questions the model wrote inside its own answer text.
+    const visibleReply = buildVisibleReply(crisisNow ? stripQuestionSentences(cleanReply) : cleanReply, cleanQuestion, askAllowed) + crisisBlock;
     // P48: optional Groq verifier — never blocks primary reply; skip if no key / fail / no trigger.
     let epistemic = skippedEpistemic('skipped');
     try {
