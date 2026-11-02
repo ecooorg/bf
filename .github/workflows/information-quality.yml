@@ -148,7 +148,7 @@ jobs:
           node-version-file: .nvmrc
       - name: Download all information-quality evidence
         if: always()
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: information-quality-*
           path: artifacts/information-quality
