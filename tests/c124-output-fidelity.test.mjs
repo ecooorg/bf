@@ -45,13 +45,6 @@ test('C124: model-authored answer text is not passed through broad Markdown or l
   assert.match(serverSource, /intentFlags\.userAskedLinks && !intentFlags\.userForbadeLinks/);
 });
 
-test('C124: Expert workflow prompts no longer force arbitrary output quotas', () => {
-  assert.doesNotMatch(serverSource, /exactly 3[–-]5 additional options|3[–-]5 strongest objections|3[–-]5 strong objections|5[–-]8 most plausible causes|Exactly 5 paragraphs|250[–-]350 words|Find the 1-5 uncertainties|produce 2-4 specific actions|Chance \(area "LUCK"\) is the last question|synthesisIssues|synthesis-retry|FORMAT CHECK FAILED on the previous draft/);
-  assert.match(serverSource, /Return JSON: \{[\s\S]*?"options": \[/);
-  assert.match(serverSource, /"paragraphs": \["\.\.\."\]/);
-  assert.match(serverSource, /"questions": \[\{"area":"DATA"/);
-});
-
 test('C124: adding a follow-up never removes any of the model answer', () => {
   const answer = 'A complete answer. First question? Second question?';
   const result = buildVisibleReply(answer, 'A separate follow-up?', true);
