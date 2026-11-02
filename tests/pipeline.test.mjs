@@ -1314,8 +1314,8 @@ for (const ep of Object.keys(EP)) {
     T('J3 bad JSON retried ' + ep, r.s === 200, `${r.s} hits=${recs.length}`);
   });
 }
-await withSrv({ MODEL_CASCADE_STRONG: 'm1,m2', MODEL_CASCADE_LIGHT: 'm1,m2' }, async function J4(s) { // invented numbers on non-chat endpoints
-  for (const ep of ['radar', 'redteam', 'synthesis']) { const P5 = { paragraphs: Array.from({ length: 5 }, () => 'слово '.repeat(60).trim()), derived_numbers: [] }; script = (q) => q.n === 1 ? { json: { ...P5, note: 'шанс 91%' } } : { json: { ...P5, note: 'ok' } }; recs = []; const r = await s.post('/api/' + ep, EP[ep]); T('J4 invented % retried ' + ep, r.s === 200 && recs.length === 2, `${r.s} hits=${recs.length}`); }
+await withSrv({ MODEL_CASCADE_STRONG: 'm1,m2', MODEL_CASCADE_LIGHT: 'm1,m2' }, async function J4(s) { // invented numbers are diagnostic-only after C124.21
+  for (const ep of ['radar', 'redteam', 'synthesis']) { const P5 = { paragraphs: Array.from({ length: 5 }, () => 'слово '.repeat(60).trim()), derived_numbers: [] }; script = (q) => q.n === 1 ? { json: { ...P5, note: 'шанс 91%' } } : { json: { ...P5, note: 'ok' } }; recs = []; const r = await s.post('/api/' + ep, EP[ep]); T('J4 invented % softened without retry ' + ep, r.s === 200 && recs.length === 1, `${r.s} hits=${recs.length}`); }
 });
 
 // ===== K. ROB-01: wrong answer shape on /api/expand and /api/redteam-pair gets one retry inside the call budget =====
