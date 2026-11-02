@@ -69,3 +69,22 @@ test('legacy build entry keeps visible model-call and file progress', () => {
   assert.match(projectMode, /units\?\.filter/);
   assert.match(wizard, /busyLabel \|\| 'Working…'/);
 });
+
+
+test('Simple and Expert More menu exposes the shared authenticated diagnostic log', () => {
+  const header = readFileSync(new URL('../src/AppHeader.tsx', import.meta.url), 'utf8');
+  const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
+  assert.match(header, /Diagnostic log/);
+  assert.match(header, /api\/diagnostics\/session-log/);
+  assert.match(header, /Copy log/);
+  assert.match(server, /app\.get\('\/api\/diagnostics\/session-log'/);
+  assert.ok(server.indexOf('app.use((req, res, next) =>') < server.indexOf("app.get('/api/diagnostics/session-log'"), 'diagnostics route must remain behind global API authentication');
+});
+
+test('compact session log exposes response-pipeline fidelity metadata without response bodies', () => {
+  const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
+  const diagnostics = readFileSync(new URL('../server/projectDiagnostics.ts', import.meta.url), 'utf8');
+  for (const marker of ['modelReplyChars', 'visibleReplyChars', 'replyChangedBySanitization', 'searchStatus', 'errorCode']) assert.ok(server.includes(marker), `missing telemetry marker ${marker}`);
+  assert.match(diagnostics, /RECENT_CONVERSATION_PIPELINE/);
+  assert.match(diagnostics, /RECENT_CONVERSATION_HTTP_REQUESTS/);
+});
