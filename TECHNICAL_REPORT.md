@@ -1,3 +1,9 @@
+## P124.17 — Direct Gemini pass-through (2026-11-02)
+
+Implemented a default-on direct Gemini path for the Conversational endpoints. It sends a plain-text request to one selected Gemini model and returns `response.text` unchanged as `data.reply`. The path does not call Serper or any other search provider, does not use external model fallback, does not request JSON output, and does not run retry, URL stripping, internal-label scrubbing, response shaping, or the epistemic verifier. The application log records provider/model, raw and visible text, matching SHA-256 hashes, and `outputModified=false`.
+
+This is an isolation test. It does not provide current weather or other live facts because search is deliberately disabled. A successful source-level test does not establish a live Gemini call; hosted deployment and user-level verification remain NOT_RUN.
+
 ## CURRENT EVIDENCE NOTE — P124.0.16 diagnostics contract test repair (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.0.16`.

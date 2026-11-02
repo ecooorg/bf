@@ -1,3 +1,10 @@
+## P124.17 — Direct Gemini pass-through
+
+- Added a controlled Conversational path that makes one direct Gemini text-generation call and returns the exact response text without application rewriting.
+- Disabled web search, Serper, alternate-provider fallback, structured JSON parsing, retry, and response sanitization on this path.
+- Added SHA-256 equality evidence and request-level provenance logging.
+- `BIFORGE_GEMINI_DIRECT_MODE` defaults to enabled; set it to `false` only to restore the legacy pipeline.
+
 ## P124.0.16 — align legacy diagnostics contract test with full-content capture (2026-11-02)
 
 - Updated the P92 diagnostics contract test: it no longer requires user prompts and conversation bodies to be omitted, which conflicts with the single-user diagnostic capture policy introduced in P124.0.15.

@@ -707,6 +707,30 @@ function preferredModelFromRequest(req: express.Request): string | undefined {
   return typeof v === 'string' && v.trim() ? v.trim() : undefined;
 }
 
+/** P124.17 diagnostic mode: one direct Gemini text call; no search, JSON parsing, retry, fallback, or reply rewriting. */
+async function generateGeminiPassThrough(prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = []): Promise<{ text: string; model: string; durationMs: number }> {
+  const key = byokKey || apiKey;
+  if (!key) throw Object.assign(new Error('No Gemini API key is configured.'), { code: 'MODEL_NOT_CONFIGURED' });
+  const model = modelsFor('strong', preferredModel)[0];
+  if (!model) throw new Error('No Gemini model is available.');
+  await waitForModelStart(model);
+  const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), LLM_PER_CALL_TIMEOUT_MS);
+  const started = Date.now();
+  try {
+    const response = await client.models.generateContent({
+      model,
+      contents: [{ role: 'user', parts: [{ text: prompt }, ...extraParts] }],
+      config: { abortSignal: controller.signal, temperature: 0.2 },
+    });
+    if (typeof response.text !== 'string' || !response.text.length) throw new Error('Gemini returned an empty text response.');
+    return { text: response.text, model, durationMs: Date.now() - started };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function generate(
   prompt: string,
   inputForNumbers: string,
@@ -1163,6 +1187,36 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // Planning (mode focus, Expert stage context) is owned by the selected agent module, not by this handler.
     const turnPlan = planConversationTurn(req.body, detectedMode);
     const { productMode, conversationMode, modeBlock } = turnPlan;
+
+    // P124.17: controlled provenance test. The Conversational endpoint makes exactly
+    // one direct Gemini text call and returns its text verbatim. Search and other
+    // model providers are not consulted on this path.
+    if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false') {
+      const directPrompt = [
+        'Answer the latest user message directly. Use the conversation history only when needed for context.',
+        'Do not claim to have accessed live data, websites, or tools unless the user supplied that information.',
+        'Return ordinary answer text, not JSON and not markdown wrappers.',
+        `Current date: ${new Date().toISOString().slice(0, 10)}.`,
+        `Latest user message:\n${lastUserText}`,
+        `Conversation context (JSON):\n${input}`,
+        attachmentsBlock ? `Attachment text:\n${attachmentsBlock}` : '',
+      ].filter(Boolean).join('\n\n');
+      const direct = await generateGeminiPassThrough(directPrompt, requestByokKey, requestPreferredModel, attachParts);
+      const requestId = String((req as any).requestId || req.get('x-request-id') || '');
+      const outputHash = crypto.createHash('sha256').update(direct.text, 'utf8').digest('hex');
+      void recordApplicationLog({ level: 'info', component: 'conversation', event: 'gemini_direct_passthrough', requestId,
+        message: 'Direct Gemini text returned without application rewriting', details: {
+          provider: 'gemini', model: direct.model, searchInvoked: false, externalFallbackInvoked: false,
+          rawOutput: direct.text, visibleReply: direct.text, rawOutputSha256: outputHash,
+          visibleReplySha256: outputHash, outputModified: false, durationMs: direct.durationMs,
+        } });
+      return ok(res, {
+        reply: direct.text, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
+        gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
+        document: null, attachmentNotes: [], state: safeState,
+      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, search: 'disabled' });
+    }
+
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
     let webSearch: WebSearchResult = skippedWebSearch();
     let promptAttachmentsBlock = attachmentsBlock;
@@ -1372,6 +1426,17 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       }),
     }, responseMeta);
   } catch (e: any) {
+    const failedHistory = Array.isArray(req.body?.history) ? req.body.history : [];
+    const failedLatest = [...failedHistory].reverse().find((m: any) => m?.role === 'user')?.content || req.body?.brief?.decision || '';
+    const directModeApplies = process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false'
+      && req.body?.productMode !== 'Expert'
+      && !hasDistressMarker(String(failedLatest || ''));
+    if (directModeApplies) {
+      const reason = String(e?.code || 'GEMINI_DIRECT_ERROR');
+      console.error(JSON.stringify({ type: 'gemini_direct_passthrough_failed', provider: 'gemini', errorCode: reason, message: String(e?.message || e).slice(0, 240) }));
+      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, searchInvoked: false, externalFallbackInvoked: false } });
+      return fail(res, 503, 'Gemini did not return a response. No alternative provider or generated fallback was used.', 'GEMINI_DIRECT_UNAVAILABLE', { upstreamCode: reason });
+    }
     // Conversation is user-facing: degrade gracefully instead of producing a
     // dead end. The client already stores the user's text locally. Everything
     // needed by the fallback is rebuilt from req.body because values declared

@@ -1,3 +1,7 @@
+### P124.17 — Direct Gemini pass-through
+
+The Conversational route now defaults to a single direct Gemini text call. Search providers (including Serper), external model fallback, structured response parsing, retries, and application-side reply rewriting are bypassed on this route. This is a provenance-isolation test, not a live-data capability.
+
 ## CURRENT ROADMAP CONTROL — 2026-11-02 (C124)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
