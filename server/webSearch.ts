@@ -13,6 +13,8 @@
  * Pure helpers have no imports from server.ts and are safe for offline tests.
  */
 import { asUntrustedDataBlock } from './untrustedData.ts';
+import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
 
 export type WebSource = { title: string; url: string };
 
@@ -41,6 +43,8 @@ const MAX_CHARS_PER_PAGE = 2200;
 const PAGE_FETCH_TIMEOUT_MS = 9000;
 const MIN_DIGEST_CHARS = 40;
 const MAX_SOURCES = 6;
+const MAX_PAGE_RESPONSE_BYTES = 1_000_000;
+const MAX_REDIRECT_HOPS = 4;
 
 export function isWebSearchEnabled(env: Record<string, string | undefined> = process.env): boolean {
   // Current-information requests should not silently fall back to model memory just
@@ -495,18 +499,83 @@ export function digestFromSerperResponse(data: any, query: string): { digest: st
 /** Hosts we prefer when choosing which SERP links to open (official / data-heavy). */
 const PREFERRED_HOST_RE = /(?:federalreserve|ecb\.europa|bankofengland|boj\.or\.jp|bankofcanada|bundesbank|bis\.org|imf\.org|oecd\.org|worldbank|meteoswiss|weather\.gov|noaa\.gov|wikipedia\.org|tradingeconomics|fxstreet|reuters|bloomberg|ft\.com|wsj\.com)/i;
 
-/** Skip social / video / app stores — poor text extraction, low value for rates/facts. */
+/** Reject non-public IP ranges, including IPv4-mapped IPv6 addresses. */
+export function isPublicIpAddress(address: string): boolean {
+  const raw = String(address || '').toLowerCase().split('%')[0];
+  const mapped = raw.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+  if (mapped) return isPublicIpAddress(mapped[1]);
+  const family = isIP(raw);
+  if (family === 4) {
+    const octets = raw.split('.').map(Number);
+    const [a, b, c] = octets;
+    if (a === 0 || a === 10 || a === 127 || a >= 224) return false;
+    if (a === 100 && b >= 64 && b <= 127) return false;
+    if (a === 169 && b === 254) return false;
+    if (a === 172 && b >= 16 && b <= 31) return false;
+    if (a === 192 && (b === 168 || (b === 0 && c === 0) || (b === 0 && c === 2) || (b === 88 && c === 99))) return false;
+    if (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) return false;
+    if (a === 203 && b === 0 && c === 113) return false;
+    return true;
+  }
+  if (family === 6) {
+    // Only globally-routable 2000::/3 unicast is eligible. This excludes
+    // loopback, unspecified, ULA, link-local, multicast and documentation ranges.
+    const first = parseInt(raw.split(':')[0] || '0', 16);
+    return (first & 0xe000) === 0x2000 && !raw.startsWith('2001:db8:');
+  }
+  return false;
+}
+
 export function isFetchableContentUrl(url: string): boolean {
   try {
     const u = new URL(url);
-    if (!/^https?:$/i.test(u.protocol)) return false;
-    const h = u.hostname.toLowerCase();
+    if (!/^https?:$/i.test(u.protocol) || u.username || u.password) return false;
+    const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
+    if (!h || h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.internal') || h.endsWith('.local')) return false;
+    if (isIP(h) && !isPublicIpAddress(h)) return false;
     if (/(?:youtube|youtu\.be|twitter|x\.com|facebook|instagram|tiktok|reddit|vk\.com|t\.me)\b/i.test(h)) return false;
     if (/\.(pdf|zip|exe|dmg|mp4|mp3)(?:$|\?)/i.test(u.pathname)) return false;
     return true;
   } catch {
     return false;
   }
+}
+
+/** Resolve every address and fail closed if any answer is non-public. */
+export async function isPublicFetchTarget(url: string): Promise<boolean> {
+  if (!isFetchableContentUrl(url)) return false;
+  try {
+    const hostname = new URL(url).hostname.replace(/^\[|\]$/g, '');
+    if (isIP(hostname)) return isPublicIpAddress(hostname);
+    const records = await lookup(hostname, { all: true, verbatim: true });
+    return records.length > 0 && records.every((record) => isPublicIpAddress(record.address));
+  } catch {
+    return false;
+  }
+}
+
+async function readResponseTextLimited(response: Response, maxBytes = MAX_PAGE_RESPONSE_BYTES): Promise<string> {
+  const declared = Number(response.headers.get('content-length') || 0);
+  if (declared > maxBytes) throw new Error('Response exceeds size limit');
+  if (!response.body) return '';
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error('Response exceeds size limit');
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return new TextDecoder().decode(Buffer.concat(chunks));
 }
 
 /** Rank SERP sources: preferred hosts first, then stable order. Pure. */
@@ -544,59 +613,59 @@ export function htmlToText(html: string): string {
 
 export async function fetchPageText(url: string, timeoutMs = PAGE_FETCH_TIMEOUT_MS): Promise<string> {
   const target = String(url || '').trim();
-  if (!isFetchableContentUrl(target)) return '';
+  if (!await isPublicFetchTarget(target)) return '';
   const budget = Math.max(2000, timeoutMs);
-  // 1) Jina Reader — main content as markdown/plain
+  // The URL is forwarded to Jina Reader; DNS validation is performed first, but
+  // the proxy's own resolution is outside this process's control (see security docs).
   {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), Math.floor(budget * 0.7));
     try {
       const res = await fetch(`https://r.jina.ai/${target}`, {
         method: 'GET',
-        headers: {
-          Accept: 'text/plain',
-          'X-Return-Format': 'markdown',
-          'X-Timeout': String(Math.max(5, Math.floor(budget / 1000))),
-        },
+        headers: { Accept: 'text/plain', 'X-Return-Format': 'markdown', 'X-Timeout': String(Math.max(5, Math.floor(budget / 1000))) },
         signal: ctrl.signal,
+        redirect: 'error',
       });
-      if (res.ok) {
-        const text = String(await res.text() || '')
-          .replace(/\r/g, '')
-          .replace(/\n{3,}/g, '\n\n')
-          .trim();
+      if (res.ok && /^text\//i.test(String(res.headers.get('content-type') || ''))) {
+        const text = String(await readResponseTextLimited(res) || '').replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim();
         if (text.length >= 40) return text.slice(0, MAX_CHARS_PER_PAGE * 2);
       }
-    } catch { /* fall through */ }
+    } catch { /* fall through to a guarded direct request */ }
     finally { clearTimeout(timer); }
   }
-  // 2) Direct HTML fetch + strip — catches sites Jina misses
-  {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), Math.floor(budget * 0.5));
-    try {
-      const res = await fetch(target, {
+  let current = target;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), Math.floor(budget * 0.5));
+  try {
+    for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
+      if (!await isPublicFetchTarget(current)) return '';
+      const res = await fetch(current, {
         method: 'GET',
-        headers: {
-          Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
-          'User-Agent': 'BiForgeBot/1.0 (+https://github.com; research; readable-text)',
-        },
+        headers: { Accept: 'text/html,application/xhtml+xml;q=0.9,application/json;q=0.8', 'User-Agent': 'BiForgeBot/1.0 (+https://github.com; research; readable-text)' },
         signal: ctrl.signal,
-        redirect: 'follow',
+        redirect: 'manual',
       });
+      if ([301, 302, 303, 307, 308].includes(res.status)) {
+        const location = res.headers.get('location');
+        await res.body?.cancel();
+        if (!location || hop === MAX_REDIRECT_HOPS) return '';
+        try { current = new URL(location, current).toString(); } catch { return ''; }
+        continue;
+      }
       if (!res.ok) return '';
       const ct = String(res.headers.get('content-type') || '');
-      const raw = await res.text();
-      if (/json/i.test(ct)) {
-        return String(raw || '').replace(/\s+/g, ' ').trim().slice(0, MAX_CHARS_PER_PAGE * 2);
-      }
+      if (!/^(text\/html|application\/xhtml\+xml|application\/json)(?:\s*;|$)/i.test(ct)) return '';
+      const raw = await readResponseTextLimited(res);
+      if (/json/i.test(ct)) return raw.replace(/\s+/g, ' ').trim().slice(0, MAX_CHARS_PER_PAGE * 2);
       const text = htmlToText(raw);
       return text.length >= 40 ? text.slice(0, MAX_CHARS_PER_PAGE * 2) : '';
-    } catch {
-      return '';
-    } finally {
-      clearTimeout(timer);
     }
+    return '';
+  } catch {
+    return '';
+  } finally {
+    clearTimeout(timer);
   }
 }
 
