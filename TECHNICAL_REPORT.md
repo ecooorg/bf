@@ -1,16 +1,16 @@
-## CURRENT EVIDENCE NOTE — P124.0.15 in-app Simple/Expert diagnostics (2026-11-02)
+## CURRENT EVIDENCE NOTE — P124.0.15 full-content diagnostics (2026-11-02)
 
-**Patch identity:** product version `124`, patch `124.0.15`. **Baseline:** reconstructed P124.0.14 source tree.
+**Patch identity:** product version `124`, patch `124.0.15`. **Baseline:** reconstructed P124.0.14 source tree with the original P124.0.15 menu patch applied.
 
 ### User problem and change
 
-Simple and Expert previously had no direct diagnostic-log action in their shared More menu; the compact log was reachable only through Architect/Project Mode. Added a shared authenticated `/api/diagnostics/session-log` endpoint and an on-screen viewer with copy/refresh. Added bounded, privacy-preserving Conversational telemetry and compact-log sections for conversation pipeline events and matching HTTP requests.
+Simple and Expert expose `More → Diagnostic log`. The log now captures the full conversation evidence needed to identify answer loss: user request and recent history, normalized history passed to the model, assembled model prompt, raw structured model output, cleaned reply/question, final visible reply, search query and returned sources, provider/model metadata, response metadata, and fallback request context. Conversation event details are emitted without short metadata truncation and the compact export cap is raised to 240 KB.
 
-The telemetry records request ID, provider/model metadata when available, model reply and visible reply character counts, whether the output changed during sanitization, web-search status/source count, retry state, and fallback error code. It deliberately excludes prompts, user messages, model response bodies, credentials and cookies.
+Credentials, cookies, API keys, and authentication tokens remain redacted. Conversation content is intentionally included because this is a single-user test deployment. This patch changes diagnostic capture only, not agent instructions or response generation.
 
 ### Verification
 
-Source-level syntax checks, contract tests, typecheck, build, and hosted CI are **NOT_RUN** at patch assembly. The implementation is not evidence that the suspected answer truncation is fixed; it only makes the response pipeline observable. A live Simple and Expert smoke test remains required.
+Targeted syntax and contract checks are **NOT_RUN** at assembly. Typecheck, production build, and hosted CI are **NOT_RUN**. Live Simple/Expert verification remains required.
 
 ## CURRENT EVIDENCE NOTE — P124.0.14 preflight false-positive repair (2026-11-02)
 

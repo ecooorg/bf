@@ -1342,6 +1342,12 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       searchSourceCount: Array.isArray(webSearch.sources) ? webSearch.sources.length : 0,
       searchExpected: Boolean(intentFlags.userAskedSearch), calls: (meta as any).calls,
       retried: retryRan, retrySkipped: retrySkippedForLatency,
+      userRequest: String(brief?.decision || ''), conversationHistorySent: fullHistory,
+      normalizedHistorySentToModel: safeHistory, modelSystemInstruction: BASE_SYSTEM, modelInputPayload: input, modelPrompt: prompt,
+      rawModelOutput: out, agentCleanReply: cleanReply, agentCleanQuestion: cleanQuestion,
+      finalVisibleReply: visibleReply, searchQuery: lastUserText,
+      searchSources: Array.isArray(webSearch.sources) ? webSearch.sources : [],
+      responseMeta,
     } });
     ok(res, {
       reply: visibleReply,
@@ -1373,7 +1379,9 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // throw, even when Gemini quota/rate-limit/timeout errors occur.
     const reason = String(e?.code || 'AI_ERROR');
     console.warn(JSON.stringify({ type: 'conversation_fallback', code: reason, message: String(e?.message || e).slice(0, 240) }));
-    void recordApplicationLog({ level: 'error', component: 'conversation', event: 'conversation_fallback', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Conversational request returned the model-unavailable fallback', details: { errorCode: reason, errorName: String(e?.name || 'Error').slice(0, 80), status: Number(e?.status || e?.statusCode || 0) || undefined } });
+    void recordApplicationLog({ level: 'error', component: 'conversation', event: 'conversation_fallback', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Conversational request returned the model-unavailable fallback', error: e, details: { errorCode: reason, errorName: String(e?.name || 'Error').slice(0, 80), status: Number(e?.status || e?.statusCode || 0) || undefined,
+      userRequest: String(req.body?.brief?.decision || ''), conversationHistory: Array.isArray(req.body?.history) ? req.body.history.slice(-12) : [],
+      requestBrief: req.body?.brief ?? null, requestState: req.body?.state ?? null, fallbackAgentReply: 'I saved your situation. The AI model is temporarily unavailable, so I will not invent facts or calculations. Your text is not lost — you can repeat the request in a little while.' } });
 
     const fallbackBody = req.body || {};
     const fallbackBrief = fallbackBody?.brief && typeof fallbackBody.brief === 'object' ? fallbackBody.brief : {};

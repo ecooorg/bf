@@ -2,7 +2,7 @@
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
-> **P124.0.15 status:** Simple and Expert now expose the shared authenticated diagnostic log in More. The log includes correlated Conversational pipeline metadata (model/visible output lengths, sanitization-change flag, search status and fallback code) without recording prompts or response bodies. Local and hosted verification for this patch is pending; the feature does not itself resolve the suspected answer-truncation behavior.
+> **P124.0.15 status:** Simple and Expert expose the shared authenticated diagnostic log in More. For the single-user test phase, conversation logs include user history, normalized model input, assembled prompt, raw model output, agent-cleaned output, final visible reply, search query/results, response metadata, and fallback context. Credentials, cookies and authentication tokens remain redacted. Local and hosted verification for this revised delivery is pending; this instrumentation does not itself resolve answer truncation.
 
 ## P124.3 — response-path fidelity cleanup
 - [x] Remove Markdown stripping from the model's main reply and document payload at the server transport boundary.
