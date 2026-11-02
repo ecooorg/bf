@@ -20,7 +20,7 @@ The stale assertion and test name were replaced with contract checks for retaine
 
 Targeted test, typecheck, build, and hosted CI rerun are **NOT_RUN** in this assembly. The required first rerun is `npm run test:project-diagnostics`, followed by the complete Core CI workflow.
 
-## CURRENT EVIDENCE NOTE — P124.0.15 full-content diagnostics (2026-11-02)
+## CURRENT EVIDENCE NOTE — P124.15 full-content diagnostics (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.15`. **Baseline:** reconstructed P124.14 source tree with the original P124.15 menu patch applied.
 
