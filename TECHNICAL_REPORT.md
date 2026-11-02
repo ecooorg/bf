@@ -1,3 +1,25 @@
+## CURRENT EVIDENCE NOTE — P124.8 obsolete model-prompt test cleanup (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.8`. **Scope:** remove test-only source-text locks for model-facing instructions that no longer represent required product behavior. No product source, prompts, instructions, or runtime logic changed.
+
+### Removed checks
+
+- Removed the P119 golden-hash test that froze full Conversational/Expert prompt bytes across all modes and stage-prefix text.
+- Removed C124 static prompt assertions for retired universal reasoning choreography, fixed phrasing, old novelty-retry machinery, and quota-related Expert prompt text.
+- Removed the static assertion block that checked for absence of old Expert output quotas and required exact JSON-example text.
+- Retained behavioral checks for information-mode planning, model-authored question preservation, additive optional follow-up, URL intent, and visible output-path handling.
+- Retained agent ownership/routing, API/schema, security, state, and Architect/App Builder requirements; no product behavior was weakened.
+
+### Verification
+
+- `node --experimental-strip-types --test tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs tests/p119-agent-prompts-routes.test.mjs` — **PASS, 12/12**.
+- Changed test files passed `node --check` — **PASS**.
+- Full `test:core`, complete DAG, typecheck, build, browser E2E, and hosted Actions — **NOT_RUN**.
+
+### Boundary
+
+This is a test-maintenance patch only. It removes obsolete prompt-text expectations; it does not modify model instructions or assert that every possible static text test in the repository is obsolete.
+
 ## CURRENT EVIDENCE NOTE — P124.7 CI regression follow-up (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.7`. **Base evidence:** hosted CI run `41405376413` at commit `8f0d2d4a2fcd5c311647a33d9fccc1601fd10311`. **Scope:** resolve the two remaining DAG failures without weakening output-fidelity or workflow-ownership contracts.

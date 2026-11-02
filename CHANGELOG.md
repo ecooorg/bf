@@ -1,3 +1,11 @@
+## P124.8 obsolete model-prompt test cleanup
+
+- Removed golden SHA-256 snapshots that froze complete Conversational/Expert prompt bytes; wording and prompt composition may now evolve without unrelated CI failures.
+- Removed static tests that asserted retired reasoning choreography, fixed prompt wording, novelty-retry absence, obsolete quota vocabulary, and optional metadata phrasing.
+- Retained runtime checks for information-mode classification, preservation of model-authored questions, additive optional follow-up behavior, URL intent, and output-path fidelity.
+- Retained agent routing, isolation, schema, safety, and Architect/App Builder contracts; no product source, prompts, instructions, or runtime logic changed.
+- Focused tests: 12/12 PASS under Node 22 type stripping. Full CI/DAG not run in this audit.
+
 ## P124.7 CI regression follow-up
 
 - Restored pull-request browser acceptance for relevant frontend, server, browser-test, build-config and dependency changes while keeping full CI ownership in `ci.yml` and manual dispatch available.
