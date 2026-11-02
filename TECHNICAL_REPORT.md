@@ -1,6 +1,6 @@
 ## CURRENT EVIDENCE NOTE — P124.4 Architect and App Builder prompt refinement (2026-11-01)
 
-**Patch identity:** product version `124`, patch `124.0.6`. **Scope:** Architect project-analysis framing and App Builder planner/coder/reviewer prompts, recovery preservation, and prompt-cache versioning. No routing, UI, API schema, validator, or completion-contract changes.
+**Patch identity:** product version `124`, patch `124.4`. **Scope:** Architect project-analysis framing and App Builder planner/coder/reviewer prompts, recovery preservation, and prompt-cache versioning. No routing, UI, API schema, validator, or completion-contract changes.
 
 ### Implemented changes
 
@@ -21,7 +21,7 @@
 - Runtime smoke of `promptFor('planner'|'coder'|'reviewer')` — **PASS**; returned the expected prompt versions and file marker.
 - Changed TypeScript/JavaScript syntax checks — **PASS**.
 - `npm run docs:check` — **PASS** (documentation integrity, inventories, check graph and capability graph).
-- `npm run version:check` — **PASS** (`124`, patch `124.0.6`).
+- `npm run version:check` — **PASS** (`124`, patch `124.4`).
 - `npm run test:compact-ci-artifacts` — **BLOCKED** at 71/72 subtests: the existing `compact-ci-artifacts-p94.test.mjs` file cannot load because `jszip` is not installed; the new C124.4 suite and all other loaded subtests passed.
 - `node --experimental-strip-types --test tests/app-builder-engine-p93-2a.test.mjs` — **BLOCKED** before test execution for the same missing `jszip` dependency.
 - Full `test:app-builder`, `test:core`, full CI DAG, TypeScript build/typecheck, hosted GitHub Actions, generated-app browser tests, live provider comparisons and user outcomes — **NOT_RUN**.
@@ -32,7 +32,7 @@ These changes reduce prescriptive prompt behavior and prevent recovery from sile
 
 ## CURRENT EVIDENCE NOTE — P124.3 response-path fidelity cleanup (2026-11-01)
 
-**Patch identity:** product version `124`, patch `124.0.5`. **Scope:** Conversational/Expert visible-reply transport, explicit link-intent handling, and C124 regression tests.
+**Patch identity:** product version `124`, patch `124.3`. **Scope:** Conversational/Expert visible-reply transport, explicit link-intent handling, and C124 regression tests.
 
 ### Implemented changes
 
@@ -47,7 +47,7 @@ These changes reduce prescriptive prompt behavior and prevent recovery from sile
 
 - `node --experimental-strip-types --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs tests/p119-agent-prompts-routes.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-boundaries.test.mjs tests/p12318-agent-session-isolation.test.mjs` — **PASS, 54/54**.
 - `npm run docs:check` — **PASS** (documentation integrity, inventories, check graph and capability graph).
-- `npm run version:check` — **PASS** (`124`, patch `124.0.5`).
+- `npm run version:check` — **PASS** (`124`, patch `124.3`).
 - Node syntax checks for `server.ts`, `server/intentFlags.ts`, `server/reasoningState.ts` and `tests/c124-output-fidelity.test.mjs` — **PASS**.
 - `npm run test:core` — **BLOCKED** before the first test file because package `tsx` is not installed in this environment (`ERR_MODULE_NOT_FOUND`).
 - Direct execution of `tests/core.test.mjs` and `tests/pipeline.test.mjs` with Node type stripping — **BLOCKED** before test execution because package `zod` is not installed (`ERR_MODULE_NOT_FOUND`).
@@ -59,7 +59,7 @@ These changes prevent specific deterministic transformations from deleting or hi
 
 ## CURRENT EVIDENCE NOTE — P124.2 instruction cleanup (2026-11-01)
 
-**Patch identity:** product version `124`, patch `124.0.4`. **Scope:** Simple/Conversational and Expert dialogue prompt paths plus final visible-reply composition. This is a targeted implementation slice of C124, not a claim that every Expert staged endpoint, Architect/App Builder prompt, or output transformation has been audited and cleaned.
+**Patch identity:** product version `124`, patch `124.2`. **Scope:** Simple/Conversational and Expert dialogue prompt paths plus final visible-reply composition. This is a targeted implementation slice of C124, not a claim that every Expert staged endpoint, Architect/App Builder prompt, or output transformation has been audited and cleaned.
 
 ### Implemented changes
 
@@ -84,7 +84,7 @@ These changes prevent specific deterministic transformations from deleting or hi
 - Expert staged endpoint prompts (`neutralize`, `radar`, `understand`, `expand`, `redteam`, `premortem`, `synthesis`, `review`, etc.), Architect and App Builder prompts were not rewritten in this patch because their schemas may be product/UI contracts. They remain in the C124 inventory for a separate dependency-aware review.
 - Passing deterministic prompt/agent tests does not prove improved live answer quality. Hosted CI and model-backed comparison are still required.
 
-## P124.0.3 — P124.1 static instruction inventory
+## P124.1 static instruction inventory
 
 **Status:** STATIC_SOURCE_INVENTORY_COMPLETE; runtime/model-backed behavior NOT_RUN. This patch is an audit/documentation and inventory-integrity-test change; no production prompt or answer-processing code was modified.
 
