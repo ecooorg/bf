@@ -5,6 +5,33 @@
 // The server's hourly Gemini candidate probe is tested separately. Keep core integration tests hermetic.
 process.env.ENABLE_GEMINI_CANDIDATE_PROBES = 'false';
 
+// Tests spawn real local servers. Never replace process termination with a fixed
+// sleep: wait for the exit event, escalating only when graceful shutdown stalls.
+async function stopChildProcess(child) {
+  if (!child || child.exitCode !== null || child.signalCode !== null) return;
+  await new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve();
+    };
+    const timeout = setTimeout(() => child.kill('SIGKILL'), 1500);
+    child.once('exit', finish);
+    child.once('error', finish);
+    child.kill('SIGTERM');
+  });
+}
+
+async function closeHttpServer(server) {
+  if (!server?.listening) return;
+  await new Promise((resolve) => {
+    server.close(() => resolve());
+    server.closeAllConnections?.();
+  });
+}
+
 // ===== BEGIN mp2.test.mjs =====
 {
 // MP2: shared prompt core + light Simple/information contract.
@@ -160,9 +187,8 @@ try {
 
   console.log('mp2 integration OK');
 } finally {
-  child.kill('SIGTERM');
-  fake.closeAllConnections?.(); fake.close();
-  await sleep(50);
+  await stopChildProcess(child);
+  await closeHttpServer(fake);
 }
 }
 // ===== END mp2.test.mjs =====
@@ -562,7 +588,7 @@ try {
   assert.equal('outputTokens' in r.meta, false);
   console.log('ok - without usageMetadata only promptChars is reported');
   console.log('2 tests passed');
-} finally { child.kill(); fake.closeAllConnections?.(); fake.close(); }
+} finally { await stopChildProcess(child); await closeHttpServer(fake); }
 }
 // ===== END perf.test.mjs =====
 
@@ -664,10 +690,8 @@ try {
   console.log('ok - contract wording present; JSON schema has no new fields');
   console.log('2 tests passed');
 } finally {
-  // Wait for the child to exit so no leftover HTTP activity can throw after the suite ends.
-  await new Promise((r) => { child.once('exit', r); child.kill(); setTimeout(r, 2000); });
-  fake.closeAllConnections?.();
-  fake.close();
+  await stopChildProcess(child);
+  await closeHttpServer(fake);
 }
 }
 // ===== END pi01.test.mjs =====
@@ -840,9 +864,8 @@ try {
 
   console.log('pi02 integration OK');
 } finally {
-  child.kill('SIGTERM');
-  fake.closeAllConnections?.(); fake.close();
-  await sleep(50);
+  await stopChildProcess(child);
+  await closeHttpServer(fake);
 }
 }
 // ===== END pi02.test.mjs =====
@@ -991,9 +1014,8 @@ try {
 
   console.log('pi03 integration OK');
 } finally {
-  child.kill('SIGTERM');
-  fake.closeAllConnections?.(); fake.close();
-  await sleep(50);
+  await stopChildProcess(child);
+  await closeHttpServer(fake);
 }
 }
 // ===== END pi03.test.mjs =====
@@ -1037,16 +1059,17 @@ async function srv(env = {}) {
   const l = await fetch(base + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: PASS }) });
   const cookie = (l.headers.get('set-cookie') || '').split(';')[0];
   const post = async (p, body, h = {}, ck = cookie) => { let r; try { r = await fetch(base + p, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(ck ? { cookie: ck } : {}), ...h }, body: JSON.stringify(body) }); } catch (e) { return { s: 0, j: { error: 'FETCH FAILED; server logs tail: ' + logs.slice(-600) } }; } let j = null; try { j = await r.json(); } catch {} return { s: r.status, j }; };
-  return { base, post, cookie, logs: () => logs, stop: () => child.kill() };
+  const stop = () => stopChildProcess(child);
+  return { base, post, cookie, logs: () => logs, stop };
 }
 // ---------- results ----------
 const R = []; const T = (id, ok, note = '') => { R.push({ id, ok: !!ok, note: String(note).slice(0, 300) }); };
-const withSrv = async (env, fn) => { if (process.env.ONLY && !process.env.ONLY.split(',').includes(fn.name)) return; const s = await srv(env); recs = []; try { await fn(s); } catch (e) { T('EXC ' + fn.name, false, e.stack?.split('\n').slice(0, 3).join(' | ')); } finally { s.stop(); await sleep(100); } };
+const withSrv = async (env, fn) => { if (process.env.ONLY && !process.env.ONLY.split(',').includes(fn.name)) return; const s = await srv(env); recs = []; try { await fn(s); } catch (e) { T('EXC ' + fn.name, false, e.stack?.split('\n').slice(0, 3).join(' | ')); } finally { await s.stop(); } };
 const GOOD = (o = {}) => ({ reply: 'Зимняя тяжесть — это одно, переезд — один из способов. Можно проверить зиму в тёплом месте на три недели.', question: 'В какие месяцы тяжелее всего?', contextSufficiency: 'MEDIUM', triage: 'PROCEED',
   problemClear: true, driftDetected: false, notUnderstoodSignal: false, gain: ['REFRAMED_QUESTION'], newOptions: [], state: { coreProblem: 'Решение', facts: [], hypotheses: [] }, ...o });
 const conv = (s, text, extra = {}, h = {}) => s.post('/api/conversation', { brief: { decision: text }, history: [{ role: 'user', content: text }], ...extra }, h);
 const qn = (t) => (String(t).match(/[?？]/g) || []).length;
-const LABELS = /USER[ _]FACT|GENERAL[ _]KNOWLEDGE|HYPOTHESIS\)|\[HYPOTHESIS|problemClear|driftDetected|notUnderstoodSignal|\(Source:|USER_DATA|GENERAL_PATTERN/;
+const LABELS = /USER[ _]FACT|GENERAL[ _]KNOWLEDGE|HYPOTHESIS\)|\[HYPOTHESIS|problemClear|driftDetected|notUnderstoodSignal|Source:\s*USER_DATA|USER_DATA|GENERAL_PATTERN/;
 const ctxOf = (prompt) => { const i = prompt.indexOf('"context":'); if (i < 0) return null; let d = 0, st = -1; for (let k = prompt.indexOf('{', i); k < prompt.length; k++) { if (prompt[k] === '{') { if (st < 0) st = k; d++; } else if (prompt[k] === '}' && --d === 0) { try { return JSON.parse(prompt.slice(st, k + 1)); } catch { return null; } } } return null; };
 
 // ===== A. entry, auth, 410, EVPI, preconditions =====
@@ -1096,7 +1119,7 @@ await withSrv({}, async function P1190_4(s) {
 // ===== B. chat invariants (fuzz over 10 situations x mutations) =====
 await withSrv({}, async function B(s) {
   // Ten base situations; each is crossed with the seven mutations below (70 checks).
-  // `model` is the base model payload that mutations corrupt; the server must sanitize.
+  // Preserve model-authored prose/questions; scrub only internal labels and service metadata.
   const CASES = [
     { id: 's1', first: 'Зимой тяжело, стоит ли переезжать?', model: GOOD() },
     { id: 's2', first: 'Не могу выбрать между городом и учёбой', model: GOOD() },
@@ -1125,8 +1148,16 @@ await withSrv({}, async function B(s) {
     const r = await s.post('/api/conversation', { brief: { decision: c.first }, history: hist });
     const id = `B ${c.id}/${mn}`; if (r.s !== 200) { T(id, false, `status ${r.s} ${r.j?.error}`); continue; }
     const rep = r.j.data.reply; const bad = [];
-    if (qn(rep) > 1) bad.push('questions=' + qn(rep));
-    if (mn === 'markdown' && !rep.startsWith('**Ключевое:**')) bad.push('model Markdown was stripped'); if (LABELS.test(JSON.stringify(r.j.data))) bad.push('label');
+    // C124 output fidelity: preserve every model-authored question and text byte;
+    // the separate `question` field may add at most one optional follow-up.
+    if (['twoQ', 'es', 'qMid'].includes(mn)) {
+      if (!rep.startsWith(model.reply)) bad.push('model-authored reply was changed');
+      const addedQuestions = qn(rep) - qn(model.reply);
+      if (addedQuestions < 0 || addedQuestions > 1) bad.push('follow-up question count=' + addedQuestions);
+    }
+    if (mn === 'markdown' && !rep.startsWith('**Ключевое:**')) bad.push('model Markdown was stripped');
+    const visibleText = [rep, r.j.data.question].filter((x) => typeof x === 'string').join('\n');
+    if (LABELS.test(visibleText)) bad.push('label in visible text');
     if (/[a-zа-яё][.!][A-ZА-ЯЁÁÉÍÓÚ¿]/.test(rep)) bad.push('glued'); if (/(^|[^.])\.\.([^.]|$)/.test(rep)) bad.push('double-dot'); if (/\s\.(\s|$)/.test(rep)) bad.push('space-dot');
     if (/(problemClear|driftDetected|notUnderstood)/.test(JSON.stringify(r.j))) bad.push('service field in response');
     T(id, !bad.length, bad.join(',') + ' | ' + rep.replace(/\n/g, '\\n').slice(0, 140));
@@ -1277,11 +1308,10 @@ await withSrv({ MODEL_CASCADE_STRONG: 'm1,m2', MODEL_CASCADE_LIGHT: 'm1,m2', MAX
 });
 
 const f = R.filter((x) => !x.ok); console.log(`\nSTAGE 2: ${R.length - f.length}/${R.length} passed, ${f.length} failed`); for (const x of f) console.log('FAIL', x.id, '-', x.note);
-bridge.closeAllConnections?.();
-await new Promise((resolve) => bridge.close(resolve));
+await closeHttpServer(bridge);
 if (f.length) throw new Error(`Stage 2 failed ${f.length}/${R.length} checks: ${f.map((x) => `${x.id}: ${x.note}`).join(' | ')}`);
 } finally {
-  try { bridge.closeAllConnections?.(); bridge.close(); } catch {}
+  try { await closeHttpServer(bridge); } catch {}
   process.exit = __groupOriginalProcessExit;
 }
 }

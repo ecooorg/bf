@@ -613,10 +613,10 @@ t('missing keys carry over from the previous state', () => {
   const m = mergeModelState({ unknowns: ['u1'] }, { previous: prev, userTexts: [], lastAssistantText: '' });
   assert.deepEqual([m.coreProblem, m.facts, m.unknowns], ['Move or stay', ['f1'], ['u1']]);
 });
-t('one question only; service labels are scrubbed', () => {
+t('follow-up field is limited to one question; service labels are scrubbed', () => {
   assert.equal(firstQuestionOnly('What is the budget? And the deadline?'), 'What is the budget?');
-  const c = scrubInternalLabels('Fine (USER FACT)\nHYPOTHESIS: maybe\nproblemClear: true');
-  assert.ok(!/USER FACT|HYPOTHESIS|problemClear/.test(c));
+  const c = scrubInternalLabels('Fine (USER FACT)\nHYPOTHESIS: maybe\nproblemClear: true\nCheck (Source: USER_DATA) and (GENERAL_PATTERN).');
+  assert.ok(!/USER FACT|HYPOTHESIS|problemClear|Source: USER_DATA|GENERAL_PATTERN/.test(c));
 });
 const qs = (x) => (x.match(/[?？]/g) || []).length;
 t('C124: preserve all questions already written in the model answer', () => {
