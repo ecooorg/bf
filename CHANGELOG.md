@@ -1,4 +1,4 @@
-## P124.0.6 — P124.4 Architect and App Builder prompt refinement
+## P124.4 Architect and App Builder prompt refinement
 
 - Removed the App Builder planner's default preference for a single `index.html`; architecture is selected to fit the requested goal while interface and import/export contracts remain enforced.
 - Reframed reviewer guidance around user requirements and evidenced functional defects, distinguishing blockers from optional/style suggestions.
@@ -9,7 +9,7 @@
 - Bumped App Builder prompt/cache versions and added prompt/recovery regression coverage. No Architect routes, UI flow, validators, JSON schemas, or completion rules were changed.
 - Hosted CI, live provider comparisons and generated-artifact browser evaluation remain NOT_RUN.
 
-## P124.0.5 — P124.3 response-path fidelity cleanup
+## P124.3 response-path fidelity cleanup
 
 - Removed broad Markdown stripping from the model-authored conversation reply and generated document at the server transport boundary; preserve the original formatting/text for the client.
 - Removed the obsolete fixed parenthetical filter for legacy decision-method vocabulary, which could erase ordinary domain language.
@@ -19,7 +19,7 @@
 - Added C124 output-fidelity and Expert prompt-quality regression tests and included them in `test:core`.
 - Hosted CI, browser rendering and live provider comparisons remain separate acceptance requirements.
 
-## P124.0.4 — P124.2 Simple/Expert instruction cleanup
+## P124.2 Simple/Expert instruction cleanup
 
 - Replaced the mandatory multi-step decision-analysis recipe in the shared Conversational/Expert prompt with concise task-fit guidance. The model chooses the analysis depth and structure appropriate to the actual request; it is no longer required to manufacture reframing, branches, calculations, tests or novelty in every response.
 - Removed the V17 model-facing reasoning choreography from `server/reasoningState.ts`; retained deterministic state normalization, provenance safeguards and service-field handling.
@@ -32,7 +32,7 @@
 - **Locally verified:** C124 prompt-quality tests 6/6; agent prompt/isolation/boundary suites 36/36; prompt snapshot suite included in those 36 tests; syntax checks and documentation checks recorded in the technical report.
 - **BLOCKED / NOT_RUN:** full `test:core` cannot start because this sandbox lacks installed `zod`; full pipeline integration, TypeScript compiler/build, full DAG, hosted GitHub Actions, live provider comparisons, deployed behavior and user-outcome evaluation are NOT_RUN.
 
-## P124.0.3 — P124.1 instruction and output-transformation inventory
+## P124.1 instruction and output-transformation inventory
 
 - Added `docs/C124_INSTRUCTION_INVENTORY.md`, tracing production prompt sources, runtime call paths, hard-coded routing heuristics, attachment/context handling, and post-generation transformations.
 - Classified each source as engineering control, integrity/validation, model-substitution behavior, hard-coded special case, or necessary model communication; recorded dependencies, risks and proposed dispositions.
