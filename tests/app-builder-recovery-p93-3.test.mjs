@@ -12,7 +12,7 @@ function world() {
     async putUnitResult(r) { results.set(r.cacheKey, r); }, async getUnitResult(k) { return results.get(k) ?? null; }, async putArtifact() { return 'a'; },
   };
   const model = (failCoderCall) => ({ async complete(a) {
-    if (a.role === 'planner') { calls.planner++; return a.prompt.includes('Create a concise project specification')
+    if (a.role === 'planner') { calls.planner++; return a.prompt.includes('Create a focused but complete project specification')
       ? { text: JSON.stringify({ schemaVersion: 1, title: 'Tetris', goal: 'Tetris', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: ['has_file:index.html', 'html_has:index.html:canvas', 'js_contains:app.js:keydown'] }), finishReason: 'stop', modelId: 'fake' }
       : { text: 'not json', finishReason: 'stop', modelId: 'fake' }; }
     calls.coder++;

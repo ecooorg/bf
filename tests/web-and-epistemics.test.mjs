@@ -404,12 +404,13 @@ test('P123.17 preserves retrieved evidence for Expert answers and suppresses use
   const reasoning = fs.readFileSync(new URL('../server/reasoningState.ts', import.meta.url), 'utf8');
   const server = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   const webSearch = fs.readFileSync(new URL('../server/webSearch.ts', import.meta.url), 'utf8');
-  assert.match(expert, /MUST use relevant retrieved evidence and its concrete values/);
-  assert.match(reasoning, /EVIDENCE PRESERVATION/);
+  assert.match(expert, /Use relevant retrieved evidence and preserve its concrete values/);
+  assert.match(expert, /distinguish source-supported facts, user assertions, assumptions and unknowns/);
   assert.match(reasoning, /export function stripUserFacingUrls/);
+  assert.match(reasoning, /never suppress a link when the user explicitly requested one/);
   assert.match(webSearch, /preserve all supported facts and numbers/);
   assert.doesNotMatch(server, /formatSourcesFooter\(webSearch\.sources/);
-  assert.match(server, /stripUserFacingUrls\(stripMarkdown\(scrubInternalLabels\(out\.reply\)/);
+  assert.match(server, /stripUserFacingUrls\(\s*scrubInternalLabels\(out\.reply\)/);
   assert.match(webSearch, /formatSourcesFooter\(_sources: WebSource\[\], _userText: string\): string \{\s*return '';/);
 });
 }

@@ -74,7 +74,10 @@ const UNIVERSAL = ['CURRENT DATE (server-provided): 2026-10-14', 'LANGUAGE', 'HO
   console.log('mp2 prompt size (chars):', JSON.stringify(sizes));
   // Expert framing remains agent-owned; Project instructions remain isolated.
   assert.ok(EXPERT_STEP_PREFIX.includes('appropriate depth and precision') && EXPERT_STEP_PREFIX.includes('recommendation is allowed'));
-  assert.ok(ANALYST_INSTRUCTION.includes('Prefer operational precision') && ANALYST_INSTRUCTION.includes('Do not chat or coach'));
+  assert.match(ANALYST_INSTRUCTION, /project-specific facts/);
+  assert.match(ANALYST_INSTRUCTION, /facts, gaps, risks and requirements tied to this project/);
+  assert.match(ANALYST_INSTRUCTION, /Return ONE JSON object/);
+  assert.doesNotMatch(ANALYST_INSTRUCTION, /Do not chat or coach|mandatory reasoning sequence/i);
   const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   assert.ok(server.includes('EXPERT_STEP_PREFIX + prompt'), 'Expert path still prefixes its steps');
   console.log('mp2 prompt assembly OK');
