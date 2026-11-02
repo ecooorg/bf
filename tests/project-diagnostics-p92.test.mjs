@@ -14,7 +14,7 @@ test('database persists sanitized operation events with retention', () => {
   assert.ok(!diagnostics.includes('prompt:')); assert.ok(!diagnostics.includes('authorization:'));
 });
 
-test('paste-ready session log is exposed without creating an archive and omits user content', () => {
+test('paste-ready session log retains single-user conversation evidence and redacts credentials', () => {
   const diagnostics = readFileSync(new URL('../server/projectDiagnostics.ts', import.meta.url), 'utf8');
   assert.match(route, /diagnostics\/session-log/);
   assert.match(diagnostics, /BIFORGE COMPACT SESSION LOG/);
@@ -22,7 +22,11 @@ test('paste-ready session log is exposed without creating an archive and omits u
   assert.match(ui, /Copy compact session log/);
   assert.match(ui, /Copy log/);
   assert.match(ui, /Compact session log text/);
-  assert.match(diagnostics, /request\/response bodies, prompts, generated source/);
+  assert.match(diagnostics, /conversation content is retained for the single-user test phase/);
+  assert.match(diagnostics, /CREDENTIAL_OMITTED/);
+  assert.ok(diagnostics.includes('authorization|cookie|password|secret'));
+  const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
+  for (const marker of ['userRequest', 'modelSystemInstruction', 'modelPrompt', 'rawModelOutput', 'agentCleanReply', 'finalVisibleReply']) assert.ok(server.includes(marker), `missing conversation evidence marker ${marker}`);
 });
 
 test('black-screen diagnostics capture bounded browser state without page content', () => {
