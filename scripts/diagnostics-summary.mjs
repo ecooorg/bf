@@ -61,7 +61,12 @@ for (const file of inputs) {
   const text = read(file);
   const rel = path.relative(dir, file).split(path.sep).join('/');
   const tap = tapTotals(text);
-  const state = hardFailure(text) || (tap && tap.failed > 0) ? 'FAIL' : /\bBLOCKED\b/i.test(text) ? 'BLOCKED' : /\bPASS\b|\bok \d+\b|# pass\s+\d+/i.test(text) ? 'PASS' : 'LOG';
+  const explicitStatus = text.match(/^\s*(BLOCKED|NOT_RUN|FAIL(?:ED)?|PASS)\b/im)?.[1]?.toUpperCase() || '';
+  const state = hardFailure(text) || (tap && tap.failed > 0) ? 'FAIL'
+    : ['BLOCKED', 'NOT_RUN'].includes(explicitStatus) ? explicitStatus
+    : ['FAIL', 'FAILED'].includes(explicitStatus) ? 'FAIL'
+    : tap && tap.passed > 0 ? 'PASS'
+    : explicitStatus === 'PASS' || /(?:^|\n)\s*ok \d+\b/.test(text) ? 'PASS' : 'LOG';
   if (file.endsWith('.json')) {
     try {
       const data = JSON.parse(text);
