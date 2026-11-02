@@ -148,7 +148,24 @@ const light = (reply, extra = {}) => ({ reply, question: '', contextSufficiency:
 
 try {
   for (let i = 0; i < 80; i++) { try { if ((await fetch(`${base}/health`)).ok) break; } catch { /* */ } await sleep(100); }
+  for (const route of ['/', '/health', '/api/health']) {
+    const response = await fetch(`${base}${route}`);
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff', `${route}: nosniff`);
+    assert.equal(response.headers.get('referrer-policy'), 'strict-origin-when-cross-origin', `${route}: referrer policy`);
+    assert.equal(response.headers.get('permissions-policy'), 'camera=(), geolocation=()', `${route}: permissions policy`);
+    assert.equal(response.headers.get('x-frame-options'), 'DENY', `${route}: frame policy`);
+    assert.equal(response.headers.get('strict-transport-security'), 'max-age=31536000; includeSubDomains', `${route}: HSTS in production`);
+    assert.equal(response.headers.get('x-powered-by'), null, `${route}: framework banner disabled`);
+  }
   const cookie = await login();
+  const syntheticByok = 'synthetic-byok-secret-value-123456';
+  const failedByokRequest = await fetch(`${base}/api/conversation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: cookie, 'x-byok-key': syntheticByok },
+    body: '{',
+  });
+  assert.ok(failedByokRequest.status >= 400, 'malformed BYOK request must fail');
+  assert.ok(!(await failedByokRequest.text()).includes(syntheticByok), 'failed request response must not echo BYOK header');
 
   // 1. Information request: light prompt, light answer accepted, one model call, compatible response shape.
   answer = light('Зимой в Граубюндене обычно холодно и снежно; в долинах слабее, чем на высоте. Это общий ориентир, его стоит проверить по свежему прогнозу.');
