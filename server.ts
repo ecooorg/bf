@@ -1394,6 +1394,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // PI-02: search_expected in meta/logs when the user asked for a web search (no search tool yet).
     const responseMeta = {
       ...(meta as object),
+      provider: "gemini",
       conversation_mode: conversationMode,
       product_mode: productMode,
       ...(intentFlags.userAskedSearch ? { search_expected: true } : {}),
