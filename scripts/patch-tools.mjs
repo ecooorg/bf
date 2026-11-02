@@ -6,7 +6,7 @@ import JSZip from 'jszip';
 
 import { parsePatch, comparePatch, versionErrors } from './check-version.mjs';
 
-export const ALLOWED_TOP = ['server', 'src', 'tests', 'scripts', 'docs', 'migrations', 'public', 'archive', 'ARCHIVE', 'CONCEPTS', 'appBuilder', 'config'];
+export const ALLOWED_TOP = ['server', 'src', 'tests', 'scripts', 'docs', 'migrations', 'public', 'archive', 'ARCHIVE', 'CONCEPTS', 'appBuilder', 'config', '.github'];
 const IGNORED = [/^node_modules\//, /^dist\//, /^dist-server\//, /^\.git\//, /^artifacts\//, /^perf-report\.json$/, /^[^/]+\.zip$/, /^patch-report\.md$/, /^patch-logs\//, /^ci-[a-z]+\.log$/, /\.tsbuildinfo$/];
 export const isIgnored = (rel) => IGNORED.some((re) => re.test(rel));
 const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
