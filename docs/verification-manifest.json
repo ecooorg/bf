@@ -281,7 +281,8 @@
    "needs": [
     "critical-router-selection",
     "critical-router-policy-call-limit",
-    "critical-gemini-timeout"
+    "critical-gemini-timeout",
+    "critical-app-builder-recovery"
    ],
    "timeoutMs": 150000,
    "critical": true,

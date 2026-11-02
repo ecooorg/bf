@@ -1,3 +1,17 @@
+## CI workflow ownership and diagnostic artifacts
+
+The repository uses seven focused workflows:
+
+- `ci.yml` — canonical push/PR gate: verification DAG, database integration, build, and UI smoke.
+- `acceptance.yml` — browser acceptance for user-visible flows; it deliberately does not rerun the CI DAG.
+- `expert-verify.yml` — Expert-specific contracts, coverage, repeatability, browser journey, and optional live-model evaluation.
+- `information-quality.yml` — deterministic browser acceptance and information-quality evaluator contracts for all three agents.
+- `carousel-verify.yml` — model catalog, key-pool, source-health, gateway, and opt-in live provider smoke.
+- `architect-compare.yml` — explicitly dispatched staging comparison of Architect implementations.
+- `ops.yml` — explicitly dispatched operational diagnostics and dry-run probes.
+
+Each workflow that publishes diagnostics uses `scripts/diagnostics-report.mjs`. The canonical handoff directory contains `summary.md` (assistant-readable overview), `summary.json` (machine-readable statuses), `tests.log` (captured test output), `failures.log` (failure context), and `environment.log` (run metadata). A missing or unexecuted check is never represented as PASS.
+
 ## P124.4 Architect and App Builder prompt regression
 
 - `tests/c124-architect-appbuilder-prompt.test.mjs` verifies that planner architecture follows the user goal rather than a fixed single-file bias, reviewer feedback distinguishes functional defects from optional style, coder instructions preserve requested features and do not invent external interfaces/data, recovery keeps the complete prompt context, prompt/cache versions are advanced, and Architect project analysis distinguishes general knowledge from project-specific facts.
