@@ -3,16 +3,31 @@
  * Never log or return raw secret values; only names and present:true|false.
  */
 
-/** Well-known env var name patterns that hold secrets (names only, not values). */
+import { MAX_ORG_KEY_SLOTS, resolveGeminiKeySlots } from './keyPool.ts';
+
+/** Well-known environment variables that can contain credentials. */
+const GEMINI_SLOT_ENV_NAMES = resolveGeminiKeySlots(Object.fromEntries(
+  Array.from({ length: MAX_ORG_KEY_SLOTS + 1 }, (_, slot) => [
+    slot === 0 ? 'GEMINI_API_KEY' : `GEMINI_API_KEY_${slot}`,
+    `redaction-slot-${slot}-sentinel`,
+  ])
+)).map(({ envName }) => envName);
+
 export const SECRET_ENV_NAMES = [
-  'GEMINI_API_KEY',
-  'GEMINI_API_KEY_FREE',
-  'GROQ_API_KEY',
-  'GITHUB_APP_PRIVATE_KEY',
-  'GITHUB_WEBHOOK_SECRET',
-  'SESSION_SECRET',
-  'APP_PASSWORD',
-  'DATABASE_URL',
+  ...new Set([
+    'GEMINI_API_KEY',
+    'GEMINI_API_KEY_FREE',
+    ...GEMINI_SLOT_ENV_NAMES,
+    'GROQ_API_KEY',
+    'SERPER_API_KEY',
+    'CLOUDFLARE_API_TOKEN',
+    'GITHUB_TOKEN',
+    'GITHUB_APP_PRIVATE_KEY',
+    'GITHUB_WEBHOOK_SECRET',
+    'SESSION_SECRET',
+    'APP_PASSWORD',
+    'DATABASE_URL',
+  ]),
 ] as const;
 
 const PLACEHOLDER = '[REDACTED]';
@@ -34,10 +49,19 @@ export function redactSecrets(text: string, env: NodeJS.ProcessEnv = process.env
     const v = env[name];
     if (typeof v === 'string' && v.length >= 8) values.add(v);
   }
-  // Also catch common key-shaped substrings that might leak from partial env dumps
-  for (const v of values) {
-    out = out.split(v).join(PLACEHOLDER);
-  }
+  for (const v of values) out = out.split(v).join(PLACEHOLDER);
+
+  // Catch provider credentials even when their source environment is unavailable.
+  const keyPatterns = [
+    /AIza[0-9A-Za-z_-]{35}/g,
+    /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/g,
+    /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g,
+    /\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b/g,
+  ];
+  for (const pattern of keyPatterns) out = out.replace(pattern, PLACEHOLDER);
+
+  // BYOK arrives in a request header; redact both HTTP and serialized log forms.
+  out = out.replace(/((?:\b|["'])x-byok-key(?:["']?\s*[:=]\s*))(\"|')?([^\s,;\]}\"']+)(\2)?/gi, (_match, prefix: string, quote: string | undefined) => `${prefix}${quote || ''}${PLACEHOLDER}${quote || ''}`);
   return out;
 }
 
@@ -52,7 +76,7 @@ export function redactDeep<T>(value: T, env: NodeJS.ProcessEnv = process.env): T
     const v = env[name];
     if (typeof v === 'string' && v.length >= 8) secretValues.add(v);
   }
-  const secretKey = /(_KEY|_SECRET|_PASSWORD|PRIVATE_KEY|DATABASE_URL|TOKEN)$/i;
+  const secretKey = /(_KEY|_SECRET|_PASSWORD|PRIVATE_KEY|DATABASE_URL|TOKEN|x-byok-key)$/i;
 
   function walk(v: unknown): unknown {
     if (typeof v === 'string') {

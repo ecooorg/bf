@@ -62,7 +62,11 @@ export function resolveGeminiKeySlots(env: NodeJS.ProcessEnv = process.env): Key
 export class KeyPoolState {
   private cooldownUntil = new Map<number, number>();
 
-  constructor(private readonly cooldownMs: number = DEFAULT_SLOT_COOLDOWN_MS) {}
+  private readonly cooldownMs: number;
+
+  constructor(cooldownMs: number = DEFAULT_SLOT_COOLDOWN_MS) {
+    this.cooldownMs = cooldownMs;
+  }
 
   isAvailable(slot: number, now: number = Date.now()): boolean {
     const until = this.cooldownUntil.get(slot);
