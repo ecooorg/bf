@@ -1,62 +1,4 @@
-## P123.23 — follow-up regressions closed by P124.0.2
-- [x] Synchronize the Expert step-prefix golden hash with the observed P123.22 CI digest.
-- [x] Repair Russian weather follow-up normalization and generic place extraction.
-- [x] Align compact archive expectations with the failure-first policy and numbered paste artifact uploads.
-- [x] Reproduce and repair the three P123.23 `test:web` failures: stale prompt assertion, obsolete source-footer expectation, and missing generic current-observation query expansion.
-- [x] Update all stale dialogue prompt snapshots affected by P123.17 evidence-preservation changes.
-- [x] Regenerate the stale verification check graph.
-- [ ] Full `test:core`, full CI-profile DAG, typecheck/build, and hosted GitHub Actions remain to be verified.
-
-## P123.22
-- [x] Restore prompt snapshot matrix in the primary CI paste report.
-- [x] Make main CI handoff failure-first and suppress positive check noise.
-- [x] Curate CI archive to retain failure-relevant logs and authoritative evidence.
-- [ ] Verify all workflow artifact layouts and failure paths in hosted GitHub Actions.
-
-## P123.21 — CI repair follow-up
-
-- Repair only the three evidenced P123.20 contract mismatches.
-- Preserve the P123.20 <=5,000-character numbered ASSISTANT_PASTE handoff behavior.
-- Investigate compact artifact failure from its full log before changing packaging semantics.
-
-## P123.20 — CI assistant handoff size limits
-
-- [x] Define a strict 5,000-character ceiling per `ASSISTANT_PASTE` file.
-- [x] Split overflow into consecutively numbered paste files without dropping summary content.
-- [x] Upload all parts from canonical workflows while preserving the complete diagnostics ZIP.
-- [ ] Confirm artifact contents and per-file size in the next hosted Actions run.
-
-## P123.19 — CI repair follow-up
-
-- Re-run the verification DAG after the syntax, digest-merge, and grouped-test-scope repairs.
-- Inspect any residual failures independently; do not classify them as cascades without logs.
-- Confirm complete source-context and full redacted logs are present in `biforge-ci-logs.zip`.
-
-## P123.18 — Conversational / Expert session isolation
-
-- [x] Start a fresh saved Decision when switching between Conversational and Expert.
-- [x] Keep the previous mode session in the library rather than carrying its transcript into the next mode.
-- [x] Make Expert initialization explicitly independent of Simple-mode history.
-- [ ] Validate mode-switch isolation in browser e2e and real multi-turn usage.
-
-## P123.17 — Retrieved-evidence preservation and source presentation
-
-- Implemented: suppress automatic source URLs in visible conversation replies; retain source metadata; align shared grounding guidance across Conversational and Expert; clarify evidence scope and preserve supported numeric details.
-- Validation still required: run full CI and conduct live, same-question comparisons in both modes. Do not mark user-value acceptance complete based on deterministic tests alone.
-
-## P123.16 — Weather retrieval quality
-- [x] Expand weather searches toward current observation data and MeteoSwiss.
-- [x] Reject title-only search results as factual grounding.
-- [x] Stop appending source URLs to user-visible conversation replies.
-- [ ] Validate live Simple and Expert weather answers against timestamped MeteoSwiss observations.
-
-## P123.16 — Weather retrieval quality
-- [x] Expand weather searches toward current observation data and MeteoSwiss.
-- [x] Reject title-only search results as factual grounding.
-- [x] Stop appending source URLs to user-visible conversation replies.
-- [ ] Validate live Simple and Expert weather answers against MeteoSwiss observations.
-
-# CURRENT ROADMAP CONTROL — 2026-11-01 (C124)
+## CURRENT ROADMAP CONTROL — 2026-11-01 (C124)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
@@ -121,6 +63,65 @@ P124.0.2 closes the known P123.23 CI regressions and removes the evidenced weath
 ## Previous cycle: C123 — Model Carousel / «Карусель»
 
 C123 is superseded as the active development cycle. Its implementation history and specialist documentation remain intact. This transition does not assert that every historical follow-up, CI issue, or live user outcome has been independently revalidated.
+
+## P123.23 — follow-up regressions closed by P124.0.2
+- [x] Synchronize the Expert step-prefix golden hash with the observed P123.22 CI digest.
+- [x] Repair Russian weather follow-up normalization and generic place extraction.
+- [x] Align compact archive expectations with the failure-first policy and numbered paste artifact uploads.
+- [x] Reproduce and repair the three P123.23 `test:web` failures: stale prompt assertion, obsolete source-footer expectation, and missing generic current-observation query expansion.
+- [x] Update all stale dialogue prompt snapshots affected by P123.17 evidence-preservation changes.
+- [x] Regenerate the stale verification check graph.
+- [ ] Full `test:core`, full CI-profile DAG, typecheck/build, and hosted GitHub Actions remain to be verified.
+
+## P123.22
+- [x] Restore prompt snapshot matrix in the primary CI paste report.
+- [x] Make main CI handoff failure-first and suppress positive check noise.
+- [x] Curate CI archive to retain failure-relevant logs and authoritative evidence.
+- [ ] Verify all workflow artifact layouts and failure paths in hosted GitHub Actions.
+
+## P123.21 — CI repair follow-up
+
+- Repair only the three evidenced P123.20 contract mismatches.
+- Preserve the P123.20 <=5,000-character numbered ASSISTANT_PASTE handoff behavior.
+- Investigate compact artifact failure from its full log before changing packaging semantics.
+
+## P123.20 — CI assistant handoff size limits
+
+- [x] Define a strict 5,000-character ceiling per `ASSISTANT_PASTE` file.
+- [x] Split overflow into consecutively numbered paste files without dropping summary content.
+- [x] Upload all parts from canonical workflows while preserving the complete diagnostics ZIP.
+- [ ] Confirm artifact contents and per-file size in the next hosted Actions run.
+
+## P123.19 — CI repair follow-up
+
+- Re-run the verification DAG after the syntax, digest-merge, and grouped-test-scope repairs.
+- Inspect any residual failures independently; do not classify them as cascades without logs.
+- Confirm complete source-context and full redacted logs are present in `biforge-ci-logs.zip`.
+
+## P123.18 — Conversational / Expert session isolation
+
+- [x] Start a fresh saved Decision when switching between Conversational and Expert.
+- [x] Keep the previous mode session in the library rather than carrying its transcript into the next mode.
+- [x] Make Expert initialization explicitly independent of Simple-mode history.
+- [ ] Validate mode-switch isolation in browser e2e and real multi-turn usage.
+
+## P123.17 — Retrieved-evidence preservation and source presentation
+
+- Implemented: suppress automatic source URLs in visible conversation replies; retain source metadata; align shared grounding guidance across Conversational and Expert; clarify evidence scope and preserve supported numeric details.
+- Validation still required: run full CI and conduct live, same-question comparisons in both modes. Do not mark user-value acceptance complete based on deterministic tests alone.
+
+## P123.16 — Weather retrieval quality
+- [x] Expand weather searches toward current observation data and MeteoSwiss.
+- [x] Reject title-only search results as factual grounding.
+- [x] Stop appending source URLs to user-visible conversation replies.
+- [ ] Validate live Simple and Expert weather answers against timestamped MeteoSwiss observations.
+
+## P123.16 — Weather retrieval quality
+- [x] Expand weather searches toward current observation data and MeteoSwiss.
+- [x] Reject title-only search results as factual grounding.
+- [x] Stop appending source URLs to user-visible conversation replies.
+- [ ] Validate live Simple and Expert weather answers against MeteoSwiss observations.
+
 
 ---
 
