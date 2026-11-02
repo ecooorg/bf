@@ -1,3 +1,11 @@
+## P124.5 Diagnostics, current-contract tests, and acceptance workflow
+
+- Replaced assertions tied to retired Expert stage wording and the V17 prompt marker with assertions for the current prompt contract.
+- Updated attachment-summary tests to preserve model-provided Markdown, matching the current response contract.
+- Corrected the verification DAG test to distinguish shared critical prerequisites from the additional App Builder recovery prerequisite.
+- Split browser acceptance from the full CI DAG to remove duplicate execution; CI remains the canonical deterministic, database, and build gate.
+- Added a shared diagnostics report format: summary.md, summary.json, tests.log, failures.log, and environment.log.
+
 ## P124.4 Architect and App Builder prompt refinement
 
 - Removed the App Builder planner's default preference for a single `index.html`; architecture is selected to fit the requested goal while interface and import/export contracts remain enforced.

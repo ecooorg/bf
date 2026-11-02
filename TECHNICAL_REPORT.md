@@ -1,3 +1,22 @@
+## CURRENT EVIDENCE NOTE — P124.5 diagnostics and test-contract repair (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.5`. **Scope:** stale test assertions after instruction optimization, verification workflow overlap, and diagnostic artifact consistency.
+
+### Implemented
+
+- Updated Expert dialogue assertions to the current `Current UI workflow stage` wording and current empty-context behavior.
+- Removed the retired V17 marker requirement from the core integration test; it now verifies the current prompt framing and absence of the retired marker.
+- Updated the file-attachment summary test to assert that Markdown formatting is preserved.
+- Corrected DAG prerequisite expectations: common critical probes gate the core suites; App Builder additionally waits for its recovery probe.
+- Changed `acceptance.yml` into a focused browser acceptance workflow; the full DAG, database checks, and build remain in `ci.yml`.
+- Added a common diagnostics collector producing `summary.md`, `summary.json`, `tests.log`, `failures.log`, and `environment.log`.
+
+### Verification limits
+
+- Source and CI-log analysis completed against the supplied archive.
+- `npm ci --ignore-scripts --no-audit --no-fund` did not complete within the available execution window. Therefore no post-change Node test suite, typecheck, build, browser run, or live PostgreSQL run is claimed as PASS.
+- CI logs supplied with the archive show the pre-patch baseline had 22 DAG checks PASS, 5 FAIL, 1 TIMEOUT, and 0 BLOCKED. Failures included stale core/pipeline/file assertions and several App Builder checks; App Builder failures remain subject to runtime re-verification.
+
 ## CURRENT EVIDENCE NOTE — P124.4 Architect and App Builder prompt refinement (2026-11-01)
 
 **Patch identity:** product version `124`, patch `124.4`. **Scope:** Architect project-analysis framing and App Builder planner/coder/reviewer prompts, recovery preservation, and prompt-cache versioning. No routing, UI, API schema, validator, or completion-contract changes.
