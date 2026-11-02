@@ -204,19 +204,21 @@ test('workflow inventory includes the canonical CI and Expert verification workf
     'carousel-verify.yml',
     'ci.yml',
     'expert-verify.yml',
+    'information-quality.yml',
     'ops.yml',
   ]);
 });
 
-test('P119.0.2 push/PR gate is ci.yml (DAG + UI smoke); other workflows are manual only', () => {
+test('P119.0.2 ci.yml owns the full DAG; specialist workflows use focused path filters or manual dispatch', () => {
   const wf = (n) => readFileSync(new URL(`../.github/workflows/${n}`, import.meta.url), 'utf8');
   assert.match(wf('ci.yml'), /on: \[push, pull_request\]/);
   assert.match(wf('ci.yml'), /run-dag\.mjs --profile ci/);
   assert.match(wf('ci.yml'), /test:ui-smoke|UI smoke/);
-  assert.match(wf('acceptance.yml'), /workflow_dispatch/);
+  assert.match(wf('acceptance.yml'), /workflow_dispatch:/);
+  assert.match(wf('acceptance.yml'), /pull_request:/, 'browser acceptance is path-filtered on relevant changes');
   assert.match(wf('architect-compare.yml'), /workflow_dispatch/);
   assert.match(wf('ops.yml'), /workflow_dispatch/);
-  for (const n of ['acceptance.yml', 'architect-compare.yml', 'ops.yml']) {
+  for (const n of ['architect-compare.yml', 'ops.yml']) {
     assert.doesNotMatch(wf(n), /on: \[push/);
   }
   const expertWorkflow = wf('expert-verify.yml');

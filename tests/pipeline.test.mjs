@@ -254,7 +254,7 @@ const approxFlags = detectUserIntentFlags('Дай приблизительную
   const packs = readFileSync(new URL('../server/expertAgent.ts', import.meta.url), 'utf8');
   assert.ok(packs.includes('appropriate depth and precision') && packs.includes('recommendation is allowed'));
   const ctx = readFileSync(new URL('../server/contextBuilder.ts', import.meta.url), 'utf8');
-  assert.ok(ctx.includes('Prefer operational precision') && ctx.includes('Do not chat or coach'));
+  assert.ok(ctx.includes('Prefer operational precision: facts, gaps, risks and requirements tied to this project') && ctx.includes('Return structured analysis only'));
   console.log('mp3 mode fixtures OK');
 }
 

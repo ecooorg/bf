@@ -652,7 +652,7 @@ try {
     const j = await r.json();
     assert.ok(lastBody.includes('inlineData') && lastBody.includes('image/png') && lastBody.includes(PNG.toString('base64')));
     assert.deepEqual(j.data.attachmentNotes.map((x) => x.name), ['photo.png']);
-    assert.ok(!j.data.attachmentNotes[0].summary.includes('**'), 'markdown removed from the summary');
+    assert.equal(j.data.attachmentNotes[0].summary, '**Счёт** на 1200, срок оплаты 5 мая.', 'model formatting is preserved in attachment summaries');
     fakeOut = NORMAL;
   });
   await t('conversation: an image handle that expired or never existed is reported, not a crash', async () => {

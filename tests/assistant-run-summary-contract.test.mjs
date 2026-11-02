@@ -68,10 +68,10 @@ test('assistant-run-summary splits oversized handoffs into numbered parts <= 500
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('canonical workflows emit assistant paste step', () => {
+test('canonical workflows emit the shared structured diagnostics report', () => {
   for (const name of ['ci.yml', 'acceptance.yml', 'architect-compare.yml', 'ops.yml']) {
     const yml = readFileSync(path.join(root, '.github/workflows', name), 'utf8');
-    assert.match(yml, /assistant-run-summary\.mjs/, name);
-    assert.match(yml, /ASSISTANT_PASTE\*\.txt/, name);
+    assert.match(yml, /diagnostics-report\.mjs/, name);
+    assert.match(yml, /artifacts\/diagnostics\//, name);
   }
 });

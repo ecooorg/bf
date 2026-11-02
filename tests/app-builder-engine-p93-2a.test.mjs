@@ -8,7 +8,7 @@ function harness() {
   const cache = new Map(); const calls = []; const events = [];
   const model = { async complete(args) {
     calls.push(args);
-    if (args.prompt.includes('Create a concise project specification')) return { text: JSON.stringify({ schemaVersion: 1, title: 'Demo', goal: 'Demo site', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: ['has_file:index.html'] }), finishReason: 'stop', modelId: 'fake-v1' };
+    if (args.prompt.includes('Create a focused but complete project specification')) return { text: JSON.stringify({ schemaVersion: 1, title: 'Demo', goal: 'Demo site', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: ['has_file:index.html'] }), finishReason: 'stop', modelId: 'fake-v1' };
     if (args.prompt.includes('Create a Plan JSON')) return { text: JSON.stringify({ schemaVersion: 1, specHash: 'abc', units: [{ id: 'index', kind: 'file', path: 'index.html', purpose: 'entry', dependsOn: [], exports: [], contract: 'entry page', maxOutputTokens: 1000, status: 'pending', attempts: 0 }], order: ['index'] }), finishReason: 'stop', modelId: 'fake-v1' };
     return { text: formatFileMarker('index.html', '<!doctype html><html><body>demo</body></html>'), finishReason: 'stop', modelId: 'fake-v1' };
   } };

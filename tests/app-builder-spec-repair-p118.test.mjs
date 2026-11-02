@@ -74,7 +74,7 @@ test('validateSpec coerces schemaVersion string and rejects empty acceptance', (
 test('P118.3: malformed Spec (schemaVersion string + empty acceptance) triggers one repair then succeeds', async () => {
   let phase = 0;
   const h = harness((args) => {
-    if (args.prompt.includes('Create a concise project specification')) {
+    if (args.prompt.includes('Create a focused but complete project specification')) {
       phase = 1;
       // Parseable but invalid: string schemaVersion, empty acceptance
       return { text: JSON.stringify({ schemaVersion: '1', title: 'Lib', goal: 'Books', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] }), finishReason: 'stop', modelId: 'fake' };
@@ -102,7 +102,7 @@ test('P118.3: malformed Spec (schemaVersion string + empty acceptance) triggers 
 
 test('P118.3: unparseable Spec recovers on second call', async () => {
   const h = harness((args) => {
-    if (args.prompt.includes('Create a concise project specification')) {
+    if (args.prompt.includes('Create a focused but complete project specification')) {
       return { text: 'Sure! I will help.\nNot JSON.', finishReason: 'stop', modelId: 'fake' };
     }
     if (args.prompt.includes('Return corrected valid JSON only for a Spec')) {
@@ -138,7 +138,7 @@ test('P118.3: double-invalid Spec fails with concrete issues and diagnostic even
 
 test('P118.3: schemaVersion string "1" alone is coerced without recovery when other fields ok', async () => {
   const h = harness((args) => {
-    if (args.prompt.includes('Create a concise project specification')) {
+    if (args.prompt.includes('Create a focused but complete project specification')) {
       return { text: JSON.stringify({ ...validSpec, schemaVersion: '1' }), finishReason: 'stop', modelId: 'fake' };
     }
     if (args.prompt.includes('Create a Plan JSON')) return { text: JSON.stringify(validPlan), finishReason: 'stop', modelId: 'fake' };

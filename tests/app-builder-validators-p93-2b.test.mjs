@@ -55,7 +55,7 @@ function ports(task, { badPlan = true } = {}) {
   const cache = new Map(); const calls = [];
   const model = { async complete(a) {
     calls.push(a);
-    if (a.prompt.includes('Create a concise project specification')) return { text: JSON.stringify({ schemaVersion: 1, title: task.task, goal: task.task, language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: task.acceptance }), finishReason: 'stop', modelId: 'fake' };
+    if (a.prompt.includes('Create a focused but complete project specification')) return { text: JSON.stringify({ schemaVersion: 1, title: task.task, goal: task.task, language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: task.acceptance }), finishReason: 'stop', modelId: 'fake' };
     if (a.prompt.includes('Create a Plan JSON')) return { text: badPlan ? 'not json' : '{}', finishReason: 'stop', modelId: 'fake' };
     const m = /Implement unit (\{.*?\}) for spec/s.exec(a.prompt); const path = JSON.parse(m[1]).path;
     return { text: formatFileMarker(path, contentFor(path, task)), finishReason: 'stop', modelId: 'fake' };

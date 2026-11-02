@@ -18,7 +18,7 @@ function multiFileHarness() {
   const events = [];
   const model = {
     async complete(args) {
-      if (args.prompt.includes('Create a concise project specification')) {
+      if (args.prompt.includes('Create a focused but complete project specification')) {
         return {
           text: JSON.stringify({
             schemaVersion: 1,

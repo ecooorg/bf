@@ -93,7 +93,7 @@ test('P118.3.3: the coder prompt names the real path and no longer contains the 
   const { prompt, version } = promptFor('coder', 'Implement unit.', 'index.html');
   assert.ok(prompt.includes('<<<FILE index.html>>>'));
   assert.ok(!prompt.includes('<<<FILE path>>>'));
-  assert.equal(version, 'static_site.v3');
+  assert.equal(version, 'static_site.v4');
 });
 
 
