@@ -78,6 +78,9 @@ test('Simple and Expert More menu exposes the shared authenticated diagnostic lo
   for (const id of ['diagnostic-log-menu-item', 'diagnostic-log-dialog', 'diagnostic-log-copy', 'diagnostic-log-content']) assert.ok(header.includes(id), `missing diagnostic UI test id ${id}`);
   assert.match(header, /api\/diagnostics\/session-log/);
   assert.match(header, /Copy log/);
+  assert.match(header, /height: 'min\(88dvh, 760px\)'/, 'diagnostic dialog must fit within dynamic viewport height');
+  assert.match(header, /flexDirection: 'column'/, 'dialog content must use a constrained vertical layout');
+  assert.match(header, /flex: '1 1 auto', minHeight: 0/, 'log area must shrink and scroll inside the dialog');
   assert.match(server, /app\.get\('\/api\/diagnostics\/session-log'/);
   assert.ok(server.indexOf('app.use((req, res, next) =>') < server.indexOf("app.get('/api/diagnostics/session-log'"), 'diagnostics route must remain behind global API authentication');
 });
