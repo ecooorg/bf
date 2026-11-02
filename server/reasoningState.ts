@@ -194,6 +194,25 @@ export function stripUserFacingUrls(text: string, preserveUrls = false): string 
     .trim();
 }
 
+/** Crisis-safety rule: a crisis turn offers support, never a new question. Removes every sentence that ends
+ * in a question mark and keeps all other model-authored text unchanged (non-crisis turns never call this). */
+export function stripQuestionSentences(text: string): string {
+  const value = String(text ?? '');
+  if (!/[?？]/.test(value)) return value.trim();
+  return value
+    .split(/\n/)
+    .map((line) => {
+      if (!/[?？]/.test(line)) return line;
+      // Split the line into sentences, keeping the terminator with its sentence, and drop the interrogative ones.
+      const parts = line.match(/[^.!?？！。]+(?:[.!?？！。]+|$)/gu) ?? [line];
+      return parts.filter((part) => !/[?？]\s*$/.test(part.trim())).join('').trim();
+    })
+    .join('\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /** Visible reply composition preserves the model's complete answer. The optional
  * follow-up field is appended only when it is allowed and not already present.
  */
