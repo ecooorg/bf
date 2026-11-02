@@ -1,3 +1,13 @@
+## P124.6 CI regression and test-lifecycle repair
+
+- Replaced P52 assertions for retired Expert prompt wording with checks for the current optimized context contract.
+- Replaced the Web test's exact source-comment wording assertion with behavior checks for explicit URL preservation and default URL suppression.
+- Made DOCX export verification read and normalize Word text runs, so XML run boundaries and Markdown emphasis do not create false negatives.
+- Awaited shutdown of the Core fake-provider server child and its HTTP listener to prevent asynchronous activity after test completion; the service-data assertion now targets internal labels rather than rejecting valid user-facing Markdown.
+- Replaced grouped Pipeline/Files `process.exit(1)` failures with awaited cleanup and ordinary test errors, preserving useful failure context instead of producing secondary asynchronous-exit errors.
+- Normalized successful and failed workflow status to explicit `PASS` / `FAIL` in the single assistant handoff summary.
+- Verification: changed MJS syntax checks and a clean-run summary smoke test PASS. Full runtime suites NOT_RUN because dependency installation timed out and `tsx` is unavailable in the supplied environment.
+
 ## P124.5 workflow diagnostics and stale-contract test repair
 
 - Replaced the fragmented `ASSISTANT_PASTE*.txt` / nested ZIP handoff with exactly one `ASSISTANT_SUMMARY.md` per workflow. The handoff contains run identity, overall status, per-log check inventory, TAP counts, failure excerpts, and reproduction guidance.

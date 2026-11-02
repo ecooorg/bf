@@ -1,3 +1,27 @@
+## CURRENT EVIDENCE NOTE — P124.6 CI regression and test-lifecycle repair (2026-11-02)
+
+**Patch identity:** product version `124`, patch `124.6`. **Scope:** address the supplied Core CI report's P52 stale assertion, test-process cleanup, DOCX XML assertion, Web behavior contract, grouped test exit handling, and success-status rendering in the single assistant handoff.
+
+### Implemented changes
+
+- P52 tests now validate the optimized Expert stage/context behavior rather than removed instruction phrases.
+- URL handling is tested through `stripUserFacingUrls` behavior: explicit requested links are preserved; unsolicited URLs are suppressed.
+- DOCX verification extracts Word text runs and normalizes run boundaries and Markdown emphasis before checking Russian content.
+- Core fake-server teardown waits for child-process exit and closes the fake HTTP server; valid Markdown is no longer misclassified as leaked service metadata.
+- Grouped Files and Pipeline suites await server teardown and report the originating error rather than using `process.exit(1)` as an exception surrogate.
+- Diagnostic summary emits explicit `PASS`, `FAIL`, or `UNKNOWN` workflow status while retaining the raw CI status.
+
+### Verification evidence
+
+- `node --check` on changed `.mjs` files — **PASS**.
+- Clean-run diagnostics summary smoke test (`CI_STATUS=success`) — **PASS**, summary contains `Workflow status: PASS` and writes the expected single assistant handoff plus readable technical logs.
+- `node scripts/version-metadata.mjs --write` — **PASS** (`124`, patch `124.6`).
+- Full Core, Files, Pipeline, Web, compact-artifact, typecheck, build, browser and live-provider checks — **NOT_RUN**: `npm ci --ignore-scripts --no-audit --no-fund` timed out; `tsx` remains unavailable. No runtime PASS is claimed.
+
+### Acceptance boundary
+
+This patch corrects the reported test contracts and lifecycle defects, but hosted CI must be rerun to establish the end-to-end result. The next handoff remains `ASSISTANT_SUMMARY.md`; the other logs are diagnostic companions and are not required for initial assistant analysis.
+
 ## CURRENT EVIDENCE NOTE — P124.5 workflow diagnostics and regression repair (2026-11-02)
 
 **Patch identity:** product version `124`, patch `124.5`. **Scope:** repair stale test contracts after C124 prompt/output optimization; standardize workflow diagnostics and remove duplicate acceptance DAG execution.
