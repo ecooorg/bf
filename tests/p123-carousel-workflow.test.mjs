@@ -254,13 +254,26 @@ describe('carousel workflow — operational regression guards', () => {
     assert.doesNotMatch(smoke, /const pool = new KeyPoolState\(\)/);
   });
 
-  it('keeps the Render probe and written Production baseline aligned', () => {
-    const probe = readFileSync(path.join(root, 'scripts/carousel-render-probe.mjs'), 'utf8');
+  it('keeps the Render probe and written Production baseline aligned', async () => {
+    const probePath = path.join(root, 'scripts/carousel-render-probe.mjs');
+    const probe = readFileSync(probePath, 'utf8');
     const contract = readFileSync(path.join(root, 'docs/RENDER_ENV_CONTRACT.md'), 'utf8');
-    for (const value of ['12000', '30000', 'connector', 'serper', 'gemini', 'WEB_SEARCH_MAX_QUERIES', 'WORKER_POLL_MS']) {
-      assert.ok(probe.includes(value), `Render probe must check ${value}`);
-      assert.ok(contract.includes(value), `Render contract must document ${value}`);
+    // Shared env→runtime-key table is the single source of truth (P0 / P124.33).
+    const mod = await import(pathToFileURL(probePath).href);
+    const table = mod.RENDER_ENV_RUNTIME_KEYS;
+    assert.ok(Array.isArray(table) && table.length >= 5, 'RENDER_ENV_RUNTIME_KEYS must be exported');
+    for (const row of table) {
+      assert.ok(row.env && row.key, `table row must have env and key: ${JSON.stringify(row)}`);
+      assert.ok(probe.includes(row.env), `Render probe must reference env ${row.env}`);
+      assert.ok(probe.includes(row.key), `Render probe must check runtime key ${row.key}`);
+      assert.ok(contract.includes(row.env), `Render contract must document ${row.env}`);
     }
-    assert.match(probe, /if \(warnings\.length > 0\) process\.exit\(1\)/);
+    // Contract mismatches exit 1; live health is advisory only.
+    assert.match(probe, /contractWarnings\.length > 0\) process\.exit\(1\)/);
+    assert.match(probe, /liveHealthWarnings/);
+    // Light cascade prefers the faster model first.
+    const light = table.find((r) => r.env === 'MODEL_CASCADE_LIGHT');
+    assert.ok(light && Array.isArray(light.expected) && light.expected[0] === 'gemini-3.5-flash-lite');
   });
 });
+
