@@ -52,6 +52,7 @@ Verify unauthorized access, cross-user/project access, invalid paths, expired/mi
 
 ## Third-party processing inventory
 
+- `JINA_API_KEY` (optional) is sent only as an `Authorization` header to the Jina Reader endpoint and is a redacted secret name; `JINA_READER_BASE_URL` is used only if it is https.
 - Web research can disclose the target URL (including path and query string) to Jina Reader when that extraction path is selected.
 - Serper receives search queries when the Serper provider is selected.
 - The selected model provider receives the prompt/context needed for the request and any BYOK credential required for authentication.
