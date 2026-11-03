@@ -9,7 +9,7 @@
  * - Gemini path: one short call with the Google Search tool (no JSON mode). Serper path: one HTTPS POST.
  * - The main call receives the result as an UNTRUSTED data block.
  * - Any failure returns a non-"used" status; the caller continues exactly as before. Never throws.
- * - Only the person's last message is sent to search (never history, state, brief or attachments).
+ * - The latest user task is contextualized from prior user turns before search; assistant text, state, brief and attachments are never sent as query history.
  * Pure helpers have no imports from server.ts and are safe for offline tests.
  */
 import { asUntrustedDataBlock } from './untrustedData.ts';
@@ -182,21 +182,26 @@ export function isSearchPlannerEnabled(env: Record<string, string | undefined> =
 
 /** Prior user turns that asked for a web search (single definition, shared by every call site; T-3). */
 export function hasRecentSearchIntent(recentUserText: string): boolean {
-  return /(?:найди\s+в\s+интернет|поищи\s+в\s+интернет|search\s+(?:the\s+)?web|look\s+up\s+online|google\s+search)/iu.test(String(recentUserText || ''));
+  const turns = String(recentUserText || '').split(/\n+/).map((x) => x.trim()).filter(Boolean);
+  return turns.some((turn) => /(?:найди\s+в\s+интернет|поищи\s+в\s+интернет|search\s+(?:the\s+)?web|look\s+up\s+online|google\s+search)/iu.test(turn)
+    || needsFreshWebInfo(turn)
+    || /(?:find|check|look\s+up|search)\b.{0,120}\b(?:current|latest|recent|today|now|available|availability|schedule|timetable|price|revenue|rules|deadlines|status|version|opening\s+hours|law|policy|regulation|implementation|deadline)\b/iu.test(turn)
+    || /\b(?:current|latest|recent|today|now)\b.{0,120}\b(?:availability|schedule|timetable|price|revenue|rules|deadlines|status|version|release|opening\s+hours|law|policy|regulation|implementation)\b/iu.test(turn)
+    || /\b(?:price|cost|exchange\s+rate|weather|score|schedule|availability)\s+(?:of|for|in|at)\b/iu.test(turn)
+    || /(?:найди|проверь|поищи)\b.{0,120}(?:актуальн|последн|сейчас|сегодня|доступност|расписан|цен|выручк|правил|срок|статус|верси)/iu.test(turn));
 }
 
-/** A short follow-up that continues an explicit web-search request from the prior turn (the one definition; T-3). */
+/** A follow-up that continues a recent live-information or explicit web-search task. */
 export function isSearchFollowup(text: string): boolean {
   const t = String(text || '').trim();
   if (t.length < 8) return false;
-  return /(?:друг(?:их|ие)\s+(?:сайт\w*|источник\w*)|на\s+других\s+сайт\w*|обязательно\s+нуж\w*|мне\s+нуж\w*\s+(?:точн\w*\s+)?(?:температур\w*|данн\w*|цифр\w*)|найди\s+(?:ещ[её]|больше)|поищи\s+(?:ещ[её]|на\s+других)|проверь\s+(?:на\s+других|ещ[её])|я\s+(?:же\s+)?прошу\s+(?:тебя\s+)?(?:поискать|найти|поискать\s+в\s+интернет\w*)|i\s+(?:am|'m)\s+asking\s+you\s+to\s+search|(?:please\s+)?search\s+(?:for\s+it|online|the\s+web)\b|other\s+sites|other\s+sources|different\s+websites|need\s+(?:the\s+)?(?:exact\s+)?(?:temperature|figure|number)|search\s+elsewhere|try\s+another\s+site)/iu.test(t);
+  return /(?:друг(?:их|ие)\s+(?:сайт\w*|источник\w*)|на\s+других\s+сайт\w*|обязательно\s+нуж\w*|мне\s+нуж\w*\s+(?:точн\w*\s+)?(?:температур\w*|данн\w*|цифр\w*)|найди\s+(?:ещ[её]|больше)|поищи\s+(?:ещ[её]|на\s+других)|проверь\s+(?:на\s+других|ещ[её])|(?:выполни|сделай|повтори)\s+(?:ещ[её]\s+)?(?:один\s+)?поиск|найди\s+более\s+(?:точн|подробн|свеж)|проверь\s+информац|я\s+(?:же\s+)?прошу\s+(?:тебя\s+)?(?:поискать|найти|поискать\s+в\s+интернет\w*)|i\s+(?:am|'m)\s+asking\s+you\s+to\s+search|(?:please\s+)?search\s+(?:again|for\s+it|online|the\s+web)\b|run\s+(?:another|one\s+more)\s+search|other\s+sites|other\s+sources|different\s+websites|need\s+(?:the\s+)?(?:exact\s+)?(?:temperature|figure|number)|search\s+elsewhere|try\s+another\s+site|find\s+more\s+precise\s+(?:information|data|results)|(?:verify|confirm|check)\b.{0,60}\b(?:source|sources|data|result|results|figure|figures|date|dates|information|details)\b|more\s+precise\s+(?:information|data|results|dates|figures))/iu.test(t);
 }
 
 /**
- * Resolve elliptical follow-up searches against the immediately preceding user turns.
- * Search engines do not receive chat history, so a request such as "in Celsius?" must
- * carry forward the place/topic explicitly. Only a small, deterministic set of
- * continuation forms is expanded; unrelated turns remain untouched.
+ * Resolve elliptical follow-ups against recent user turns across domains. Search engines
+ * receive a self-contained query, never a transcript. The resolver carries forward the prior
+ * task and its named entities only for recognizable continuation turns; unrelated turns remain untouched.
  */
 export function contextualizeSearchText(userText: string, recentUserText = ''): string {
   const latest = buildSearchQuery(userText);
@@ -209,6 +214,16 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
     || isSearchFollowup(latest)
     || /^(?:(?:а\s+)?(?:в|по)\s+)?(?:градус(?:ах|ы)?\s+)?(?:цельси(?:я|ю)|фаренгейт(?:а|у)?|celsius|fahrenheit|в\s+цельсиях|в\s+фаренгейтах)[?!.,\s]*$/iu.test(latest)
     || /^(?:а\s+)?(?:сейчас|сегодня|завтра|там|а\s+там|what about (?:today|now|there)|and in (?:celsius|fahrenheit))[?!.,\s]*$/iu.test(latest);
+  // Generic cross-domain continuation: preserve the preceding user task and its entities.
+  // This is deliberately not a weather/topic allowlist. Search engines receive no chat history.
+  const lastPriorUserTask = history[history.length - 1];
+  const priorTask = lastPriorUserTask && hasRecentSearchIntent(lastPriorUserTask) ? lastPriorUserTask : undefined;
+  if (priorTask && (isSearchFollowup(latest) || /^(?:а\s+)?(?:там|тогда|а\s+теперь|и\s+ещ[её]|what about|and what about|how about|more details|why|which one)[?!.,\s]*/iu.test(latest))) {
+    const metaOnly = /^(?:(?:i am|i'm) asking you to search|(?:please\s+)?search again|run (?:another|one more) search|repeat the search|я прошу тебя поискать|выполни ещё один поиск|выполни еще один поиск)[.!?\s]*$/iu.test(normalizedLatest);
+    const refinement = metaOnly ? '' : stripInstructionWords(normalizedLatest);
+    const combined = [priorTask, refinement].filter((x, index) => Boolean(x) && (index === 0 || !priorTask.toLowerCase().includes(x.toLowerCase()))).join(' ');
+    return (combined || priorTask).slice(0, MAX_QUERY_CHARS);
+  }
   if (!continuation) return latest;
   // If the follow-up already names the location and requested measurement, search it
   // directly instead of appending a duplicate topic extracted from older turns.
@@ -217,7 +232,7 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
   const place = placeMatch ? (placeMatch[1] || placeMatch[0]).trim() : '';
   if (!place) {
     // T-2: an instruction-only follow-up ("I am asking you to search") searches the previous topic, not its own words.
-    if (isSearchFollowup(latest) && !/[\p{L}]{3,}\s+(?:in|в)\s+[\p{L}]{3,}/iu.test(latest)) return buildSearchQuery(history[history.length - 1] || latest);
+    if (priorTask && isSearchFollowup(latest) && !/[\p{L}]{3,}\s+(?:in|в)\s+[\p{L}]{3,}/iu.test(latest)) return buildSearchQuery(priorTask);
     return latest;
   }
   const weatherContext = /weather|погод\p{L}*|temperature|температур\p{L}*/iu.test(topic);
@@ -748,14 +763,30 @@ export async function buildSearchDecision(opts: {
   timeoutMs?: number;
   heuristic: () => boolean;
 }): Promise<SearchDecision> {
-  const fallback = (note: string): SearchDecision => ({ search: opts.heuristic(), decisionSource: 'heuristic', decisionNote: note });
+  const priorUserText = (opts.recentTurns || []).filter((t) => t.role === 'user').map((t) => String(t.content || '')).join('\n');
+  const resolvedText = contextualizeSearchText(opts.userText, priorUserText);
+  const priorUserTurns = (opts.recentTurns || []).filter((t) => t.role === 'user');
+  const priorLiveTask = priorUserTurns.length > 0 && hasRecentSearchIntent(String(priorUserTurns[priorUserTurns.length - 1].content || ''));
+  const contextualFollowup = priorLiveTask && isSearchFollowup(opts.userText) && !hasPersonalData(resolvedText);
+  const fallback = (note: string): SearchDecision => {
+    const privacyBlocked = hasPersonalData(resolvedText);
+    const shouldSearch = !privacyBlocked && (contextualFollowup || opts.heuristic());
+    return {
+      search: shouldSearch,
+      ...(shouldSearch && contextualFollowup ? { plan: { query: stripInstructionWords(resolvedText), freshness: 'now' as const, planSource: 'heuristic' as const, planNote: 'contextual_followup_fallback' } } : {}),
+      decisionSource: 'heuristic', decisionNote: privacyBlocked ? 'personal_data_in_query' : (contextualFollowup ? 'contextual_followup_fallback' : note),
+    };
+  };
+  // Preserve a live task across model-planner outages; do not search the literal follow-up alone.
+  if (!contextualFollowup) {
+    const pre = preClassifyLiveDataIntent(opts.userText, opts.recentTurns);
+    if (pre) return pre;
+  }
+  if (contextualFollowup && !opts.client) return fallback('no_client');
   if (!opts.client) return fallback('no_client');
   const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
   const turns = (opts.recentTurns || []).slice(-4).map((t) => `${t.role === 'assistant' ? 'ASSISTANT' : 'USER'}: ${String(t.content || '').replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
   const ctrl = new AbortController();
-  // P124.33: skip the model planner for obvious live-data intents (weather/news/prices/scores/now).
-  const pre = preClassifyLiveDataIntent(opts.userText, opts.recentTurns);
-  if (pre) return pre;
 
   const timer = setTimeout(() => ctrl.abort(), Math.max(1000, opts.timeoutMs ?? 3_000));
   try {
@@ -822,18 +853,27 @@ export function preClassifyLiveDataIntent(userText: string, recentTurns?: Planne
 }
 
 /**
- * Deterministic usability check of a retrieved digest (R-6). No model call.
- * ok: has a number and (when a place is known) mentions it; weak: one of those is missing; none: nothing usable.
+ * Domain-neutral retrieval usability check (R-6). Numeric content is diagnostic, not a universal
+ * quality requirement: a useful source about a software release, regulation, schedule or concept
+ * may contain no number. Relevance is checked against the resolved query and named place instead.
  */
-export function assessUsability(r: WebSearchResult, plan?: { place?: string }): { verdict: 'ok' | 'weak' | 'none'; hasNumber: boolean; placeMatched: boolean | null } {
+export function assessUsability(r: WebSearchResult, plan?: { place?: string; query?: string; topic?: string }): { verdict: 'ok' | 'weak' | 'none'; hasNumber: boolean; placeMatched: boolean | null } {
   const d = String(r.digest || '');
   if (d.trim().length < MIN_DIGEST_CHARS) return { verdict: 'none', hasNumber: false, placeMatched: null };
-  const hasNumber = /\d/.test(d.replace(/\bhttps?:\/\/\S+/g, ' ').replace(/\[date:[^\]]*\]/g, ' '));
-  const tokens = String(plan?.place || '').toLowerCase().split(/[\s,.-]+/).filter((t) => t.length >= 3);
-  const placeMatched = tokens.length ? tokens.some((t) => d.toLowerCase().includes(t)) : null;
-  // The requested place is absent from every extract: the pages are about somewhere else (R-6), numbers or not.
+  const evidenceText = `${d} ${(r.sources || []).map((s) => s.title).join(' ')}`.toLowerCase();
+  const hasNumber = /\d/.test(`${d} ${(r.sources || []).map((source) => source.title).join(' ')}`.replace(/\bhttps?:\/\/\S+/g, ' ').replace(/\[date:[^\]]*\]/g, ' '));
+  const placeTokens = String(plan?.place || '').toLowerCase().split(/[\s,.-]+/).filter((t) => t.length >= 3);
+  const placeMatched = placeTokens.length ? placeTokens.some((t) => evidenceText.includes(t)) : null;
   if (placeMatched === false) return { verdict: 'none', hasNumber, placeMatched };
-  if (!hasNumber) return { verdict: 'weak', hasNumber, placeMatched };
+
+  const stop = new Set(['the', 'and', 'for', 'from', 'with', 'that', 'this', 'what', 'when', 'where', 'which', 'who', 'how', 'current', 'latest', 'today', 'now', 'find', 'search', 'check', 'about', 'into', 'из', 'для', 'как', 'что', 'где', 'когда', 'сейчас', 'сегодня', 'найди', 'поиск']);
+  const queryTokens = `${plan?.topic || ''} ${plan?.query || ''}`.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) || [];
+  const meaningful = [...new Set(queryTokens.filter((t) => !stop.has(t)))];
+  if (!meaningful.length) return { verdict: hasNumber ? 'ok' : 'weak', hasNumber, placeMatched };
+  const relevant = meaningful.some((t) => evidenceText.includes(t));
+  if (!relevant) return { verdict: 'none', hasNumber, placeMatched };
+  const numericIntent = /(?:\b(?:price|cost|rate|exchange|weather|forecast|temperature|score|revenue|number|figure|amount|percentage|percent|how many|how much|time|times|date|dates|deadline|deadlines|duration|age|distance|size|weight|quantity|departure|departures)\b|\d)/iu.test(`${plan?.topic || ''} ${plan?.query || ''}`);
+  if (numericIntent && !hasNumber) return { verdict: 'weak', hasNumber, placeMatched };
   return { verdict: 'ok', hasNumber, placeMatched };
 }
 
