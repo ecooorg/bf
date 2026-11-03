@@ -7,7 +7,7 @@ const server = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
 test('direct conversational mode returns raw Gemini text and uses retrieval before generation when needed', () => {
   assert.match(server, /async function generateGeminiPassThrough/);
   assert.match(server, /responseMimeType:\s*'application\/json'/); // retained only in the legacy structured path
-  assert.match(server, /turnPlan\.agent === 'conversational' && !distressMarkerDetected && process\.env\.BIFORGE_GEMINI_DIRECT_MODE !== 'false'/);
+  assert.match(server, /turnPlan\.agent === 'conversational' && !distressMarkerDetected && process\.env\.BIFORGE_GEMINI_DIRECT_MODE === 'true'/);
   assert.match(server, /searchInvoked, searchProvider:/);
   assert.match(server, /const directSearchExpected = directSearchEnabled && shouldSearchWeb/);
   assert.match(server, /GEMINI_DIRECT_UNAVAILABLE/);

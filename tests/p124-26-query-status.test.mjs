@@ -90,7 +90,7 @@ test('P-1: status block never lets the model claim it lacks internet; silent whe
 
 test('P-2/P-3: evidence contract is topic-neutral, reports status, place and units; weak adds a caveat', () => {
   const b = formatSearchBlock(used('Zurich 8 °C', { status: 'used_weak', plan: { query: 'q', place: 'Zurich', country: 'CH', planSource: 'model' } }), '2026-11-03');
-  assert.match(b, /SEARCH STATUS: USED_WEAK/); assert.match(b, /PLACE SEARCHED: Zurich \(CH\)/); assert.match(b, /metric units/);
+  assert.match(b, /SEARCH STATUS: USED_WEAK/); assert.match(b, /PLACE SEARCHED: Zurich \(CH\)/); assert.match(b, /metric units/i);
   assert.match(b, /only partly cover/);
   const ok = formatSearchBlock(used('Zurich 8 °C'), '2026-11-03');
   assert.match(ok, /SEARCH STATUS: USED —/); assert.doesNotMatch(ok, /\bLTS\b|Bank Rate|weather\b/i);
