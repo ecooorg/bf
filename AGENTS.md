@@ -92,6 +92,8 @@ These rationalizations **do not** override gates:
 
 BiForge succeeds when a real user completes a meaningful task and receives a correct, useful, understandable result. Tests, CI, architecture, documentation, and evidence support that outcome; **none** replaces it.
 
+**Locale rule (owner, 2026-11-03).** At present the developers and users are in Switzerland and metric units are used (°C, km, kg, CHF unless stated otherwise). The product MUST NOT be tied to Switzerland or to the United States: no country, city, host, currency or unit is hard-coded as a default in code or prompts. The deployment's home country is configuration (`WEB_SEARCH_DEFAULT_COUNTRY`, ISO alpha-2, e.g. `CH`), used only when a request names no place; a place named by the user always wins (country from the search plan / source domain), and units follow the place's country (`unitsForCountry`). Tests and examples must not assume one country.
+
 ---
 
 ## 2. Single-source-of-truth map

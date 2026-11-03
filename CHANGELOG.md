@@ -1,3 +1,14 @@
+## P124.27 — Single Gemini key pool, verifier opt-in, pipeline as default path, locale rule (2026-11-03)
+
+- Closes K-2, K-3, K-4, K-5 (label), E-1, A-1 of `docs/WEB_SEARCH_REMEDIATION.md`; patch 124.27. K-1 (shared Google project) stays an owner action; the pool only reacts to it.
+- `server/geminiKeyPool.ts` (new): one pool for every Gemini call. Cooldown per key and model (quota 5 min, transient 30 s) and per key for auth errors (1 h); quota on three distinct keys of one model within a minute parks the model (`sharedQuotaSuspected`), so a shared quota stops burning all ten keys. `callWithKeyPool` rotates only on quota/auth/5xx and rethrows other errors unchanged; `createPooledClient` gives helper calls the same rotation plus fallback models (K-3). Pool snapshot has slot numbers only.
+- `server.ts`: `generate()` rotates keys per model and reports a model failed only after its keys are used up (previously one key, model parked for 30 minutes after the first 429); the search plan and Gemini grounding use the pooled client; rotations are logged as persistent `gemini_pool_rotated` warnings. A deployment with only numbered keys (`GEMINI_API_KEY_1…`) now works too. BYOK bypasses the pool.
+- Pipeline is the default: direct mode runs only with `BIFORGE_GEMINI_DIRECT_MODE=true` (was: unless `false`). Direct code is neither removed nor changed otherwise (decision 3).
+- Verifier opt-in (E-1): `EPISTEMIC_VERIFIER_ENABLED=true` required; a Groq key alone no longer sends user/answer text to Groq.
+- K-4: when a lite model synthesises two or more sources, the response meta carries `synthesis_on_lite_model` and an application-log event `lite_model_synthesis` is written.
+- Locale rule (owner): `docs/DECISIONS.md` D-2026-11-03-02, `AGENTS.md` §1, remediation doc decision 8. Code: optional `WEB_SEARCH_DEFAULT_COUNTRY` (configuration) feeds `gl` and units only when no place is named; nothing is hard-coded to one country.
+- Tests: `tests/p124-27-key-pool.test.mjs` (in `test:core`); `tests/gemini-direct-passthrough-p124-17.test.mjs` follows the new direct-mode condition. No UI, routes, `data-testid` changed (G4 not applicable). Live Gemini/Serper, hosted CI and acceptance A5 `NOT_RUN`.
+
 ## P124.26 — Query plan, country-aware locale, usability check, honest search status (2026-11-03)
 
 - Closes R-3, R-4, R-6, P-1, P-2, P-3, T-3 (T-2 partly; planner over dialogue is P124.28) of `docs/WEB_SEARCH_REMEDIATION.md`. Patch 124.26 (`package.json`).

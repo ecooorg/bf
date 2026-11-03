@@ -20,7 +20,7 @@ Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIO
 - [x] P124.25 micro-fix (owner screenshot 2026-11-03): benign `ResizeObserver loop` window notices no longer trigger the emergency screen. Programme numbering note: the items listed below as P124.25–P124.31 keep their scope and are now delivered as the next free patch numbers in order (P124.26 onward).
 - [x] P124.25 retrieval integrity (same patch number 124.25 by owner decision): fair digest budget, snippet preservation, page selection, Jina key (R-1, R-2, R-5). Unit evidence only; live run `NOT_RUN`.
 - [x] P124.26 query cleaning, country-aware locale, usability check, honest search status, evidence contract (R-3, R-4, R-6, P-1, P-2, T-3).
-- [ ] P124.27 unified Gemini key pool, pipeline as single path, verifier opt-in (K-2…K-5, E-1, A-1).
+- [x] P124.27 unified Gemini key pool, pipeline as single path, verifier opt-in (K-2…K-5, E-1, A-1).
 - [ ] P124.28 LLM search planner with deterministic fallback (T-1, T-2).
 - [ ] P124.29 gated non-commercial weather connector and result cache (R-7).
 - [ ] P124.30 provider chain via `SEARCH_CAROUSEL`, second SERP, circuit breaker.

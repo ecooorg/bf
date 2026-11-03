@@ -1,3 +1,10 @@
+## P124.27 — K-2, K-3, K-4, K-5, E-1, A-1 and locale rule (2026-11-03)
+
+Product version `124`, patch `124.27`.
+
+- **REPRODUCED (local, unit, injected errors):** rotation over keys on 429/5xx/auth, per key-and-model cooldown, shared-quota parking after three distinct keys, fallback model for helper calls, BYOK bypass, no key material in the snapshot, verifier off by default, direct mode only on explicit `true`. `tsc` and `test:core` pass.
+- **NOT_RUN:** live Gemini (real 429 behaviour, real quota sharing), hosted CI, acceptance A5. **INFERRED:** that the ten keys share one project (K-1); the pool treats 3 distinct-key quota hits within 60 s as that signal, a threshold chosen without live data. Known limit: the main `generate()` model queue and the pool both park models, by different rules (30 min global vs 5 min pool).
+
 ## P124.26 — R-3, R-4, R-6, P-1, P-2, P-3, T-3 (2026-11-03)
 
 Product version `124`, patch `124.26`.

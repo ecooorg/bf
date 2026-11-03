@@ -47,6 +47,7 @@ import { waitForModelStart } from './server/modelRateLimit.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { resolveGeminiKeySlots, KeyPoolState, classifyKeyError, shouldRotateKeySlot } from './server/keyPool.ts';
+import { GeminiKeyPool, callWithKeyPool, createPooledClient, PoolExhaustedError } from './server/geminiKeyPool.ts';
 import type { KeySlot } from './server/keyPool.ts';
 import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
@@ -177,6 +178,18 @@ const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 /** C123 P123.2: up to 13 organisational Gemini keys; solo GEMINI_API_KEY remains slot 0. */
 const geminiKeySlots = resolveGeminiKeySlots(process.env);
 const geminiKeyPoolState = new KeyPoolState();
+/** P124.27: the single key pool (cooldown per key and model) used by generate(), the search plan and grounding. */
+const geminiPool = new GeminiKeyPool(geminiKeySlots);
+const logPoolRotation = (e: { slot: number; model: string; errorClass: string; attempt: number; sharedQuotaSuspected?: boolean }) =>
+  console.warn(JSON.stringify({ type: 'gemini_pool_rotated', keySlot: e.slot, model: e.model, errorClass: e.errorClass, attempt: e.attempt, ...(e.sharedQuotaSuspected ? { sharedQuotaSuspected: true } : {}) }));
+/** Helper-call client (plan, grounding): pooled keys, then fallback models. A BYOK key bypasses the pool. */
+function pooledGeminiClient(byokKey?: string): any {
+  return createPooledClient({
+    pool: geminiPool, byokKey, onRotate: logPoolRotation,
+    makeClient: (key) => new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) }) as any,
+    fallbackModels: modelsFor('light').slice(0, 3),
+  });
+}
 const buildGeminiAdapterFromKey = (key: string) => {
   const base = process.env.GEMINI_BASE_URL || '';
   return createGeminiAdapter(new GoogleGenAI({ apiKey: key, ...(base ? { httpOptions: { baseUrl: base } } : {}) }) as any);
@@ -774,7 +787,7 @@ async function generate(
   if (stage !== 'conversation' && stage !== 'conversation-retry') {
     prompt = EXPERT_STEP_PREFIX + prompt;
   }
-  const key = byokKey || apiKey;
+  const key = byokKey || apiKey || geminiKeySlots[0]?.key;
   if (!key && process.env.ENABLE_EXTERNAL_MODEL_FALLBACK !== 'true') throw new Error('No Gemini API key is configured. Add a Gemini API key in Google AI settings or configure GEMINI_API_KEY on Railway.');
   const client = key ? new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) }) : null;
   const models = client ? modelsFor(modelClass, preferredModel) : [];
@@ -839,7 +852,7 @@ async function generate(
         ctrl = new AbortController();
         const timeoutMs = Math.min(LLM_PER_CALL_TIMEOUT_MS, Math.max(1000, LLM_TOTAL_DEADLINE_MS - (Date.now() - t0)));
         timeout = setTimeout(() => ctrl?.abort(), timeoutMs);
-        const r = await client!.models.generateContent({
+        const genRequest: any = {
           model,
           contents: opts?.extraParts?.length ? [{ role: 'user', parts: [{ text: contents }, ...opts.extraParts] }] : contents,
           config: {
@@ -848,7 +861,21 @@ async function generate(
             temperature: repairHint ? 0.2 : 0.25,
             abortSignal: ctrl.signal,
           },
-        });
+        };
+        // P124.27: rotate over pool keys for this model; the model is reported failed only after the keys are used up.
+        let r: any;
+        if (byokKey || !geminiPool.size) r = await client!.models.generateContent(genRequest);
+        else {
+          try {
+            r = (await callWithKeyPool({
+              pool: geminiPool, model, onRotate: logPoolRotation,
+              call: (k) => new GoogleGenAI({ apiKey: k, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) }).models.generateContent(genRequest),
+            })).value;
+          } catch (pe) {
+            if (pe instanceof PoolExhaustedError) throw (pe.last ?? Object.assign(new Error('RESOURCE_EXHAUSTED: all Gemini keys exhausted for this model'), { status: pe.kind === 'unavailable' ? 503 : 429 }));
+            throw pe;
+          }
+        }
         const latencyMs = Date.now() - callStarted;
         const sysText = /[\u0400-\u04FF]/.test(inputForNumbers) ? BASE_SYSTEM.length + 163 : BASE_SYSTEM.length;
         const sentChars = sysText + contents.length + (opts?.extraChars || 0);
@@ -1040,7 +1067,7 @@ function conversationAudit(out: any) {
 }
 
 import { detectUserIntentFlags, informationSoftFail, informationRetryHint } from './server/intentFlags.ts';
-import { shouldRunVerifier, runEpistemicVerifier, skippedEpistemic } from './server/epistemicVerifier.ts';
+import { shouldRunVerifier, runEpistemicVerifier, skippedEpistemic, isVerifierEnabled } from './server/epistemicVerifier.ts';
 import { detectConversationMode } from './server/conversationMode.ts';
 import { retryDriftedToOpening } from './server/turnFocus.ts';
 
@@ -1079,9 +1106,8 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
       const serperKey = (process.env.SERPER_API_KEY || '').trim();
       if (!serperKey) return skippedWebSearch('skipped', 'no_serper_key');
       // P124.26: instruction-free plan (query, place, ISO country) → country-aware SERP → usability check + one retry.
-      let client: any;
-      const gemKey = byokKey || apiKey;
-      if (gemKey) client = new GoogleGenAI({ apiKey: gemKey, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+      const gemKey = byokKey || apiKey || geminiKeySlots[0]?.key;
+      const client: any = gemKey ? pooledGeminiClient(byokKey) : undefined;
       const r = await planAndSearchSerper({
         apiKey: serperKey, userText: searchText, today, client, timeoutMs,
         model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
@@ -1103,7 +1129,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     }
 
     // gemini path (legacy grounding)
-    const key = byokKey || apiKey;
+    const key = byokKey || apiKey || geminiKeySlots[0]?.key;
     if (!key) return skippedWebSearch('skipped', 'no_key');
     const ownKey = Boolean(byokKey);
     const now = Date.now();
@@ -1113,7 +1139,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     const pool = override ? [override, ...cascade.filter((m) => m !== override)] : cascade;
     if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
     if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
-    const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+    const client = pooledGeminiClient(byokKey);
     let geminiSearchText = searchText;
     try {
       geminiSearchText = await toEnglishSearchQuery({
@@ -1209,7 +1235,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
 
     // P124.21: direct Gemini text remains verbatim, but expected current-info turns
     // retrieve Serper evidence first and fall back to Gemini Google Search grounding.
-    if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false') {
+    if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true') {
       const directSearchEnabled = isWebSearchEnabled();
       const recentSearchIntent = hasRecentSearchIntent(recentUserText);
       const directSearchExpected = directSearchEnabled && shouldSearchWeb({
@@ -1224,7 +1250,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         try {
           const searchKey = requestByokKey || apiKey;
           if (searchKey) {
-            const searchClient = new GoogleGenAI({ apiKey: searchKey, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+            const searchClient = pooledGeminiClient(requestByokKey);
             englishQuery = await toEnglishSearchQuery({
               userText: contextualSearchText, client: searchClient as any,
               model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
@@ -1432,7 +1458,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     let epistemic = skippedEpistemic('skipped');
     try {
       const runV = shouldRunVerifier({
-        hasGroqKey: Boolean(process.env.GROQ_API_KEY),
+        hasGroqKey: Boolean(process.env.GROQ_API_KEY) && isVerifierEnabled(),
         triage: audit.triage,
         hasDocument: Boolean(documentOut),
         conversationMode,
@@ -1451,6 +1477,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       epistemic = skippedEpistemic('error');
     }
     phase.mark('verifier');
+    const liteSynthesis = Boolean((meta as any).lightFallback) && (webSearch.status === 'used' || webSearch.status === 'used_weak') && webSearch.sources.length >= 2;
     // PI-02: search_expected in meta/logs when the user asked for a web search (no search tool yet).
     const responseMeta = {
       ...(meta as object),
@@ -1460,7 +1487,10 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       ...(intentFlags.userAskedSearch ? { search_expected: true } : {}),
       ...(webSearch.status !== 'skipped' ? { web_search: webSearch.status } : {}),
       epistemic_verifier: epistemic.verifier,
+      // K-4: multi-source synthesis answered by a lite model is flagged for diagnostics and the UI layer.
+      ...(liteSynthesis ? { synthesis_on_lite_model: true } : {}),
     };
+    if (liteSynthesis) void recordApplicationLog({ level: 'info', component: 'conversation', event: 'lite_model_synthesis', message: 'Multi-source synthesis handled by a lite model', details: { model: (meta as any).model, sources: webSearch.sources.length } });
     console.info(JSON.stringify({
       type: 'conversation_timing', mode: conversationMode, product_mode: productMode,
       calls: (meta as any).calls, retried: retryRan, retry_skipped: retrySkippedForLatency,
@@ -1507,7 +1537,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
   } catch (e: any) {
     const failedHistory = Array.isArray(req.body?.history) ? req.body.history : [];
     const failedLatest = [...failedHistory].reverse().find((m: any) => m?.role === 'user')?.content || req.body?.brief?.decision || '';
-    const directModeApplies = process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false'
+    const directModeApplies = process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true'
       && req.body?.productMode !== 'Expert'
       && !hasDistressMarker(String(failedLatest || ''));
     if (directModeApplies) {
