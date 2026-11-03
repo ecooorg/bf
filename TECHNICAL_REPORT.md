@@ -1,3 +1,12 @@
+## P124.28 — T-1, T-2 and key-ownership fact (2026-11-03)
+
+Product version `124`, patch `124.28`.
+
+- **REPRODUCED (local, unit):** `tests/p124-28-search-planner.test.mjs` — planner decision drives the search; the last turns reach the planner; malformed output, personal data and every failure are handled with a recorded note; hard gates precede the planner; the server hands the plan on. Typecheck of `tsconfig.server.json`: clean. Related suites (p124-23/25/26/27, web-and-epistemics): 80/80 pass.
+- **Measured:** heuristic fallback alone on the 26 + 26 fixtures: 5/26 positive, 0/26 false triggers. The wiring test uses a scripted model and is **not** a measurement of planner quality.
+- **NOT_RUN:** live Gemini/Serper, planner accuracy (target >= 90% positive, <= 5% false triggers, acceptance A7), hosted CI, full `test:core`. **Owner fact (not verified by Claude):** the ten Gemini keys are ten projects of ten scientists of one organization; this refutes the K-1 one-project inference, and the cause of the 2026-11-02 simultaneous 429 stays `NOT_VERIFIED`.
+- Known limits: the planner adds one model call (to one of the ten projects) per eligible message; a planner outage falls back to the regular expressions.
+
 ## P124.27 — K-2, K-3, K-4, K-5, E-1, A-1 and locale rule (2026-11-03)
 
 Product version `124`, patch `124.27`.

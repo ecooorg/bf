@@ -53,8 +53,8 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, planAndSearchSerper, hasRecentSearchIntent, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
-import type { WebSearchResult, WebSource } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, planAndSearchSerper, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './server/taskService.ts';
@@ -1094,7 +1094,7 @@ function compactConversationHistory(history: any[]): any[] {
 // Providers: serper (Serper.dev HTTP SERP — free trial key, no Gemini quota) or gemini (Google Search tool).
 // Never throws: any problem returns a non-"used" result and the conversation continues exactly as before.
 // It does not touch the model-health table of the main cascade (a search-tool failure must not park a model).
-async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string, recentUserText = ''): Promise<WebSearchResult> {
+async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string, recentUserText = '', decidedPlan?: SearchPlan): Promise<WebSearchResult> {
   // Preserve referents in elliptical follow-ups before chat history is omitted from SERP.
   try {
     const searchText = contextualizeSearchText(userText, recentUserText);
@@ -1109,7 +1109,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
       const gemKey = byokKey || apiKey || geminiKeySlots[0]?.key;
       const client: any = gemKey ? pooledGeminiClient(byokKey) : undefined;
       const r = await planAndSearchSerper({
-        apiKey: serperKey, userText: searchText, today, client, timeoutMs,
+        apiKey: serperKey, userText: searchText, today, client, timeoutMs, plan: decidedPlan,
         model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
       });
       const englishQuery = r.plan?.query || searchText;
@@ -1140,8 +1140,8 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
     if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
     const client = pooledGeminiClient(byokKey);
-    let geminiSearchText = searchText;
-    try {
+    let geminiSearchText = decidedPlan?.query || searchText;
+    if (!decidedPlan) try {
       geminiSearchText = await toEnglishSearchQuery({
         userText: searchText,
         client: client as any,
@@ -1312,7 +1312,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     let promptAttachmentsBlock = attachmentsBlock;
     if (isWebSearchEnabled()) {
       try {
-        if (shouldSearchWeb({
+        const searchTrigger = {
           enabled: true,
           mode: webSearchMode(),
           userText: lastUserText,
@@ -1321,8 +1321,26 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           distress: distressMarkerDetected,
           intent: context.intent,
           hasAttachments: attachItems.length > 0,
-        })) {
-          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel, recentUserText);
+        };
+        // P124.28: planner decides over the last turns (T-1, T-2); heuristics only when it is unavailable. Hard gates run first.
+        let searchDecision: SearchDecision | undefined;
+        let searchNow: boolean;
+        if (isSearchPlannerEnabled() && searchPlannerGate(searchTrigger)) {
+          const plannerKey = requestByokKey || apiKey || geminiKeySlots[0]?.key;
+          searchDecision = await buildSearchDecision({
+            userText: lastUserText,
+            recentTurns: fullHistory.slice(-5, -1).map((m: any) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content || '') })),
+            today: new Date().toISOString().slice(0, 10),
+            client: plannerKey ? pooledGeminiClient(requestByokKey) : undefined,
+            model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
+            heuristic: () => shouldSearchWeb(searchTrigger),
+          });
+          searchNow = searchDecision.search || Boolean(intentFlags.userAskedSearch);
+        } else {
+          searchNow = shouldSearchWeb(searchTrigger);
+        }
+        if (searchNow) {
+          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel, recentUserText, searchDecision?.search ? searchDecision.plan : undefined);
           if (webSearch.status === 'used' || webSearch.status === 'used_weak') {
             const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
             promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;
@@ -1337,7 +1355,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           }
         } else {
           webSearch = skippedWebSearch('skipped', distressMarkerDetected ? 'blocked_distress' : attachItems.length > 0 ? 'blocked_attachments' : 'trigger_not_matched');
-          void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search not triggered', details: searchDecisionDetails(webSearch, { provider: webSearchProvider(), gate: 'conversation', expected: Boolean(intentFlags.userAskedSearch) }) });
+          void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search not triggered', details: searchDecisionDetails(webSearch, { provider: webSearchProvider(), gate: 'conversation', expected: Boolean(intentFlags.userAskedSearch), decisionSource: searchDecision?.decisionSource, decisionNote: searchDecision?.decisionNote }) });
         }
       } catch {
         webSearch = skippedWebSearch('failed', 'exception');
