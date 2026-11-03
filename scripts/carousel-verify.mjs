@@ -55,6 +55,21 @@ run(
   ['--import', 'tsx', '--test', '--test-timeout=120000', 'tests/p123-carousel-workflow.test.mjs']
 );
 run(
+  'unit-llm-latency-config',
+  process.execPath,
+  ['--import', 'tsx', '--test', 'tests/p124-31-llm-latency-config.test.mjs']
+);
+run(
+  'unit-search-planner-gate',
+  process.execPath,
+  ['--import', 'tsx', '--test', 'tests/p124-28-search-planner.test.mjs']
+);
+run(
+  'unit-search-carousel-latency',
+  process.execPath,
+  ['--import', 'tsx', '--test', 'tests/p124-30-search-carousel.test.mjs']
+);
+run(
   'unit-key-pool',
   process.execPath,
   ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/p123.2-key-pool.test.mjs']

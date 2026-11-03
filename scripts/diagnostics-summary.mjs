@@ -72,7 +72,7 @@ for (const file of inputs) {
       const data = JSON.parse(text);
       const base = path.basename(file);
       if (!['results.json', 'ci-metrics.json', 'evidence-dag.json'].includes(base)) {
-        const fields = ['status', 'verdict', 'result', 'summary', 'error', 'reason', 'score', 'overallScore', 'coverage', 'passed', 'failed', 'total', 'dimensions', 'checks'];
+        const fields = ['status', 'verdict', 'result', 'summary', 'error', 'reason', 'score', 'overallScore', 'coverage', 'passed', 'failed', 'total', 'dimensions', 'checks', 'warnings', 'advisories', 'samples', 'optionalProviders', 'runtimeConfigCommit'];
         const brief = Object.fromEntries(fields.filter(key => data && Object.hasOwn(data, key)).map(key => [key, data[key]]));
         if (Object.keys(brief).length) structuredReports.push({ file: rel, brief: JSON.stringify(brief).slice(0, 1_200) });
       }
