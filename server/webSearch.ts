@@ -15,6 +15,7 @@
 import { asUntrustedDataBlock } from './untrustedData.ts';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { isWeatherConnectorEnabled, isWeatherPlan, fetchWeatherEvidence } from './weatherConnector.ts';
 
 export type WebSource = { title: string; url: string };
 
@@ -840,12 +841,34 @@ export async function planAndSearchSerper(opts: {
   plan?: SearchPlan;
 }): Promise<WebSearchResult> {
   const plan = opts.plan || await buildSearchPlan({ userText: opts.userText, client: opts.client, model: opts.model, timeoutMs: Math.min(8000, opts.timeoutMs) });
-  return searchWithUsability(plan, (query, country) =>
-    fetchSerperDigestMulti({
+  // P124.29: gated weather connector runs in parallel with the SERP search; its failure never blocks the search.
+  const weatherP: Promise<WebSearchResult | null> = isWeatherConnectorEnabled() && isWeatherPlan(plan)
+    ? weatherEvidenceAsResult(plan, Math.min(8000, opts.timeoutMs))
+    : Promise.resolve(null);
+  return searchWithUsability(plan, async (query, country) => {
+    const serp = await fetchSerperDigestMulti({
       apiKey: opts.apiKey, userText: opts.userText, englishQuery: query, today: opts.today, timeoutMs: opts.timeoutMs, country,
       extraQueries: query === plan.query ? plan.queries : undefined,
-    }),
-  );
+    });
+    return combineWeatherWithSearch(query === plan.query ? await weatherP : null, serp, query);
+  });
+}
+
+/** Weather connector evidence as a WebSearchResult (null when the connector has nothing). Never throws. */
+export async function weatherEvidenceAsResult(plan: { place?: string; country?: string }, timeoutMs: number, fetchImpl?: Parameters<typeof fetchWeatherEvidence>[0]['fetchImpl']): Promise<WebSearchResult | null> {
+  try {
+    const units = unitsForCountry(plan.country || deploymentDefaultCountry());
+    const w = await fetchWeatherEvidence({ place: String(plan.place || ''), country: plan.country, units: units === 'imperial' ? 'imperial' : 'metric', timeoutMs, fetchImpl });
+    if (!w) return null;
+    return { status: 'used', digest: w.digest, sources: w.sources, queries: [`weather connector: ${w.place.name}`], model: 'weather-connector' };
+  } catch { return null; }
+}
+
+/** Put connector evidence first and merge it with the SERP result; a failed SERP leaves the connector evidence alone (R-7). Pure. */
+export function combineWeatherWithSearch(weather: WebSearchResult | null, serp: WebSearchResult, query: string): WebSearchResult {
+  if (!weather) return serp;
+  if (serp.status !== 'used') return weather;
+  return mergeWebSearchResults([weather, serp], query);
 }
 
 /** Build a compact digest + sources from a Serper /search JSON body. Pure. */
