@@ -1,3 +1,14 @@
+## P124.26 — Query plan, country-aware locale, usability check, honest search status (2026-11-03)
+
+- Closes R-3, R-4, R-6, P-1, P-2, P-3, T-3 (T-2 partly; planner over dialogue is P124.28) of `docs/WEB_SEARCH_REMEDIATION.md`. Patch 124.26 (`package.json`).
+- `server/webSearch.ts`: `buildSearchPlan` produces an instruction-free English query plus place, ISO country and topic (one small model call; deterministic `stripInstructionWords` fallback). Every fallback records `planNote` (`no_client`, `plan_timeout`, `plan_error:…`, `plan_unparsable`, `untranslated`), so nothing degrades silently (R-3, K-5 label). `serperLocale(query, country)` sets `gl` from the plan country (default `us` when unknown); `unitsForCountry` feeds the prompt (R-4). No country, city or host lists.
+- `searchWithUsability` / `assessUsability` (deterministic, no model call): a retrieved digest is `used`, `used_weak` (no number, or place only partly covered) or `no_relevant_data` (requested place absent / nothing usable); one retry with a different query (`retryQueryFor`), the better merged result wins (R-6). `planAndSearchSerper` is the shared Serper path.
+- `formatSearchBlock`: the six topic-specific rules are replaced by a general evidence/provenance contract (what/when/observed vs forecast, attribution by site name, disagreement shown, missing fields named) with `SEARCH STATUS` and `PLACE SEARCHED`/units (P-2, I-16). `formatSearchStatusBlock` tells the model why no live data exists (disabled / not configured / quota / failed / no relevant data) and forbids claiming it has no internet access (P-1).
+- `hasRecentSearchIntent` is the single definition used by all three `server.ts` call sites; `isSearchFollowup` gains "I am asking you to search" shapes and an instruction-only follow-up searches the previous topic (T-3, T-2).
+- `server.ts`: pipeline search uses `planAndSearchSerper`; `used_weak` is injected like `used`; failed/no-data/disabled turns with an expected lookup get the status block; search-decision log records country, plan source, usability. Direct mode (non-default) keeps its own search code apart from the shared follow-up definition.
+- Tests: new `tests/p124-26-query-status.test.mjs` (in `test:core`); `tests/web-and-epistemics.test.mjs` updated where it asserted the replaced weather-specific block text.
+- No UI, routes, or `data-testid` changed (G4 not applicable). Live Serper/Gemini, hosted CI and acceptance A1/A2/A5 `NOT_RUN`.
+
 ## P124.25 (retrieval integrity) — Fair digest budget, snippets kept, usable page selection (2026-11-03)
 
 - Same patch number 124.25 as the entry below (owner decision, keeps the section 8 numbering). Closes R-1, R-2, R-5 of `docs/WEB_SEARCH_REMEDIATION.md`.

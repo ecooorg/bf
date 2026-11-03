@@ -1,3 +1,10 @@
+## P124.26 — R-3, R-4, R-6, P-1, P-2, P-3, T-3 (2026-11-03)
+
+Product version `124`, patch `124.26`.
+
+- **REPRODUCED (local, unit):** `tests/p124-26-query-status.test.mjs` — instruction words leave the query; planner failures are recorded, not silent; `gl` follows the plan country; weak results retry once and end as `used_weak` / `no_relevant_data`; the status block forbids "no internet" claims; follow-up definition is single. `tsc` and `test:core` pass.
+- **NOT_RUN:** live Serper/Gemini, hosted CI, acceptance A1, A2, A5. **INFERRED:** planner country accuracy and retry benefit on real pages are not measured. Known limit: the usability check is lexical (place token and a digit); it cannot judge that a number is the right quantity.
+
 ## P124.25 (retrieval integrity) — R-1, R-2, R-5 (2026-11-03)
 
 Product version `124`, patch `124.25` (unchanged by owner decision).

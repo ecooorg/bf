@@ -52,7 +52,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, planAndSearchSerper, hasRecentSearchIntent, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult, WebSource } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -1078,21 +1078,15 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     if (provider === 'serper') {
       const serperKey = (process.env.SERPER_API_KEY || '').trim();
       if (!serperKey) return skippedWebSearch('skipped', 'no_serper_key');
-      // External search is always English + international SERP (hl=en, gl=us). User language only affects the reply.
-      let englishQuery = searchText;
-      try {
-        const gemKey = byokKey || apiKey;
-        if (gemKey) {
-          const client = new GoogleGenAI({ apiKey: gemKey, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
-          englishQuery = await toEnglishSearchQuery({
-            userText: searchText,
-            client: client as any,
-            model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
-            timeoutMs: Math.min(8000, timeoutMs),
-          });
-        }
-      } catch { /* keep original; locale still en/us */ }
-      const r = await fetchSerperDigestMulti({ apiKey: serperKey, userText: searchText, englishQuery, today, timeoutMs });
+      // P124.26: instruction-free plan (query, place, ISO country) → country-aware SERP → usability check + one retry.
+      let client: any;
+      const gemKey = byokKey || apiKey;
+      if (gemKey) client = new GoogleGenAI({ apiKey: gemKey, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+      const r = await planAndSearchSerper({
+        apiKey: serperKey, userText: searchText, today, client, timeoutMs,
+        model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
+      });
+      const englishQuery = r.plan?.query || searchText;
       const dig = String(r.digest || '');
       console.info(JSON.stringify({
         type: 'web_search', status: r.status, provider: 'serper', model: r.model,
@@ -1217,7 +1211,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // retrieve Serper evidence first and fall back to Gemini Google Search grounding.
     if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE !== 'false') {
       const directSearchEnabled = isWebSearchEnabled();
-      const recentSearchIntent = /(?:найди\s+в\s+интернет|поищи\s+в\s+интернет|search\s+(?:the\s+)?web|look\s+up\s+online|google\s+search)/iu.test(recentUserText);
+      const recentSearchIntent = hasRecentSearchIntent(recentUserText);
       const directSearchExpected = directSearchEnabled && shouldSearchWeb({
         enabled: true, mode: webSearchMode(), userText: lastUserText,
         userAskedSearch: intentFlags.userAskedSearch, recentSearchIntent,
@@ -1297,19 +1291,23 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           mode: webSearchMode(),
           userText: lastUserText,
           userAskedSearch: intentFlags.userAskedSearch,
-          recentSearchIntent: /(?:найди\s+в\s+интернет|поищи\s+в\s+интернет|search\s+(?:the\s+)?web|look\s+up\s+online|google\s+search)/iu.test(recentUserText),
+          recentSearchIntent: hasRecentSearchIntent(recentUserText),
           distress: distressMarkerDetected,
           intent: context.intent,
           hasAttachments: attachItems.length > 0,
         })) {
           webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel, recentUserText);
-          if (webSearch.status === 'used') {
+          if (webSearch.status === 'used' || webSearch.status === 'used_weak') {
             const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
             promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;
             // Numbers from the search digest are sourced; also allow model % in simple chat after search
             // so live rate/price answers are not blocked when page extracts omit explicit figures.
             genOpts.extraNumberSource = `${genOpts.extraNumberSource || ''}\n${webSearch.digest}`;
             genOpts.allowUnsourcedPercentages = true;
+          } else {
+            // P-1: tell the model honestly why there is no live data, so it never claims to lack internet access.
+            const statusBlock = formatSearchStatusBlock(webSearch, true);
+            if (statusBlock) promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${statusBlock}` : statusBlock;
           }
         } else {
           webSearch = skippedWebSearch('skipped', distressMarkerDetected ? 'blocked_distress' : attachItems.length > 0 ? 'blocked_attachments' : 'trigger_not_matched');
@@ -1317,10 +1315,14 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         }
       } catch {
         webSearch = skippedWebSearch('failed', 'exception');
-        promptAttachmentsBlock = attachmentsBlock;
+        const exceptionBlock = formatSearchStatusBlock(webSearch, true);
+        promptAttachmentsBlock = exceptionBlock ? (attachmentsBlock ? `${attachmentsBlock}\n\n${exceptionBlock}` : exceptionBlock) : attachmentsBlock;
       }
     } else {
       webSearch = skippedWebSearch('skipped', 'search_disabled');
+      const disabledBlock = (intentFlags.userAskedSearch || needsFreshWebInfo(lastUserText)) && !distressMarkerDetected && attachItems.length === 0
+        ? formatSearchStatusBlock(webSearch, true, false) : '';
+      if (disabledBlock) promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${disabledBlock}` : disabledBlock;
     }
     phase.mark('prepare_search');
     const prompt = buildConversationTurnPrompt(input, promptAttachmentsBlock, turnPlan, new Date().toISOString().slice(0, 10));
@@ -1495,7 +1497,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       attachmentNotes,
       // P48: additive epistemic meta; old clients ignore unknown fields
       epistemic,
-      ...(webSearch.status === 'used' ? { sources: webSearch.sources } : {}),
+      ...(webSearch.status === 'used' || webSearch.status === 'used_weak' ? { sources: webSearch.sources } : {}),
       state: mergeModelState(out.state, {
         previous: safeState,
         userTexts: [String(brief.decision || ''), ...fullHistory.filter((m: any) => m.role === 'user').map((m: any) => m.content)],
