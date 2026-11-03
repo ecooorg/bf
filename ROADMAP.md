@@ -10,6 +10,22 @@ The Conversational route now defaults to a single direct Gemini text call. Searc
 
 > **P124.0.15 status:** Simple and Expert expose the shared authenticated diagnostic log in More. For the single-user test phase, conversation logs include user history, normalized model input, assembled prompt, raw model output, agent-cleaned output, final visible reply, search query/results, response metadata, and fallback context. Credentials, cookies and authentication tokens remain redacted. Local and hosted verification for this revised delivery is pending; this instrumentation does not itself resolve answer truncation.
 
+## P124.22 — Web-search live-data remediation programme (owner-approved scope, 2026-11-03)
+
+Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIONS.md` (D-2026-11-03-01). This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Items are checked only with evidence of the stated type.
+
+- [x] P124.22 documentation: audit, decisions, programme recorded (documentation checks only).
+- [ ] P124.23 number-validator crash fix and persistent search-decision logging (V-1, O-1).
+- [ ] P124.24 Simple/Expert diagnostic log separation, configuration snapshot, build-stamp, restart-reason logging.
+- [ ] P124.25 retrieval integrity: fair digest budget, snippet preservation, page selection (R-1, R-2, R-5).
+- [ ] P124.26 query cleaning, country-aware locale, usability check, honest search status, evidence contract (R-3, R-4, R-6, P-1, P-2, T-3).
+- [ ] P124.27 unified Gemini key pool, pipeline as single path, verifier opt-in (K-2…K-5, E-1, A-1).
+- [ ] P124.28 LLM search planner with deterministic fallback (T-1, T-2).
+- [ ] P124.29 gated non-commercial weather connector and result cache (R-7).
+- [ ] P124.30 provider chain via `SEARCH_CAROUSEL`, second SERP, circuit breaker.
+- [ ] P124.31 live-search acceptance workflow and evidence; specification and comment corrections after owner approval.
+- [ ] Validate live weather answers against timestamped official observations (open since P123.16; closes only with OBSERVED live evidence).
+
 ## P124.3 — response-path fidelity cleanup
 - [x] Remove Markdown stripping from the model's main reply and document payload at the server transport boundary.
 - [x] Remove obsolete fixed vocabulary filtering for legacy decision-method labels.

@@ -1,3 +1,10 @@
+## P124.22 — Web-search live-data defect: audit, decisions, and work programme (2026-11-03)
+
+- Documentation-only patch; no runtime, UI, or test code changed. Product version 124, patch 124.22 (patch identity follows `AGENTS.md`: `.1`–`.99`, no `.0` component).
+- Added `docs/WEB_SEARCH_REMEDIATION.md`: audit of why live-data questions fail (retrieval, trigger, provider/key, answer-layer, validator, observability findings), the owner-reported items with verified facts, confirmed hosting configuration (names and non-secret values only), owner decisions of 2026-11-03, recommendations, the P124.23–P124.31 work programme, manual actions, acceptance criteria, and open questions.
+- `docs/DECISIONS.md`: recorded D-2026-11-03-01. `ROADMAP.md`: added the owner-approved remediation work programme with unchecked items. `docs/SECURITY_AND_PRIVACY.md`: recorded the diagnostics secret rule and planned outbound data recipients. `docs/TESTING_AND_ACCEPTANCE.md` and `docs/USER_VALUE_EVALUATION.md`: recorded live-search acceptance criteria and the evidence state.
+- Verification: documentation integrity and version checks listed in `TECHNICAL_REPORT.md`; live search, hosted CI, and deployment NOT_RUN.
+
 ## P124.21 — Reliable search follow-ups and softened numeric gate (2026-11-02)
 
 - Direct Conversational mode now runs Serper before Gemini when search is expected, translates contextualized queries to English, injects retrieved evidence into the prompt, and falls back to Gemini Google Search only when Serper did not return usable evidence.

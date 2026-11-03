@@ -1,3 +1,14 @@
+## P124.22 — Web-search live-data defect audit recorded (2026-11-03)
+
+Product version `124`, patch `124.22`. Documentation-only.
+
+- **OBSERVED-LOG / OBSERVED-SRC / REPRODUCED:** search is enabled and reaches the model, but the digest loses sub-queries to a fixed character budget, drops snippets once any page is fetched, favours wrong-country pages, fixes `hl=en, gl=us`, and never checks usability before marking `used`; the number validator throws on values such as `+8`; the search trigger fires for 9 of 26 realistic live questions; all ten Gemini key slots returned quota errors in one window; production runs the pipeline, not direct mode. Full register: `docs/WEB_SEARCH_REMEDIATION.md`.
+- **OBSERVED-SRC:** five environment variables set on the host (`SEARCH_CAROUSEL`, `SERPER_ENABLED`, `BIFORGE_ENABLE_WEB_SEARCH`, `JINA_API_KEY`, `JINA_READER_BASE_URL`) are not read by any source file. The Simple-mode diagnostic button exports a Project-Mode-oriented log.
+- **INFERRED:** the ten Gemini keys share project-level quota; the process restarts (138 starts in about 37 hours) come from a mix of deploys, host sleep, and possibly crashes; the commit difference between diagnostics (`7ad970d`) and the supplied deploy log (`9db8a51`) reflects a later deploy.
+- **NOT_VERIFIED:** that the source archive equals the deployed commit.
+- **NOT_RUN:** live Serper, Jina, Gemini, Open-Meteo calls; hosted CI; deployment; real-user weather scenario. No user-value claim is made by this patch.
+- **Checks run for this patch:** see the delivery message (docs integrity, reference integrity, version metadata, cycle-governance test).
+
 ## P124.21 — Search follow-up and numeric-gate repair (2026-11-02)
 
 Product version `124`, patch `124.21`. OBSERVED in source: direct mode performs Serper lookup for search-triggered turns, translates contextualized queries, injects search evidence, and uses Gemini grounding only if Serper has no usable result; recognized explicit-search follow-ups inherit search intent. Numeric validation now logs unsupported tokens without rejecting a valid response. NOT_RUN: local tests/typecheck (dependencies absent), live Serper/Gemini behavior, hosted CI.
