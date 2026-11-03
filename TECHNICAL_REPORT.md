@@ -1,3 +1,11 @@
+## P124.30 — Search provider chain (2026-11-03)
+
+Product version `124`, patch `124.30`.
+
+- **REPRODUCED (local, unit, injected providers):** `tests/p124-30-search-carousel.test.mjs` — carousel parsing and defaults; failure classes; breaker open / half-open single trial / reopen; per-provider daily budgets; first usable provider wins; Serper 429 falls through to Gemini and the next request skips Serper; budget-exhausted chain ends in an honest quota failure; connector evidence merged and kept when providers fail; the search function does not touch the generation cap. `typecheck`, `version:check`, `test:core`, `test:pipeline`, `test:files`, `test:web`, `test:turn`, `test:models`: exit 0 locally.
+- **NOT_RUN:** live Serper / Gemini `googleSearch` through the chain, acceptance A5 against real 429s, hosted CI, remaining test suites.
+- **OPEN:** second SERP adapter (`serp2` slot is `not_configured` until the owner names the provider); rates and crypto connectors (not approved); breaker and budget state are per process and reset on restart. A `SEARCH_CAROUSEL` value already set in production is now honoured; its content was not seen.
+
 ## P124.29 — R-7 weather connector and cache (2026-11-03)
 
 Product version `124`, patch `124.29`.

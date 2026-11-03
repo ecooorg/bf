@@ -53,7 +53,9 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, planAndSearchSerper, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
+import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -1094,76 +1096,67 @@ function compactConversationHistory(history: any[]): any[] {
 // Providers: serper (Serper.dev HTTP SERP — free trial key, no Gemini quota) or gemini (Google Search tool).
 // Never throws: any problem returns a non-"used" result and the conversation continues exactly as before.
 // It does not touch the model-health table of the main cascade (a search-tool failure must not park a model).
+const searchBreaker = new SearchCircuitBreaker();
+const searchBudget = SearchBudget.fromEnv();
+
 async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string, recentUserText = '', decidedPlan?: SearchPlan): Promise<WebSearchResult> {
   // Preserve referents in elliptical follow-ups before chat history is omitted from SERP.
   try {
     const searchText = contextualizeSearchText(userText, recentUserText);
-    const provider = webSearchProvider();
     const today = new Date().toISOString().slice(0, 10);
     const timeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 28000;
-
-    if (provider === 'serper') {
-      const serperKey = (process.env.SERPER_API_KEY || '').trim();
-      if (!serperKey) return skippedWebSearch('skipped', 'no_serper_key');
-      // P124.26: instruction-free plan (query, place, ISO country) → country-aware SERP → usability check + one retry.
-      const gemKey = byokKey || apiKey || geminiKeySlots[0]?.key;
-      const client: any = gemKey ? pooledGeminiClient(byokKey) : undefined;
-      const r = await planAndSearchSerper({
-        apiKey: serperKey, userText: searchText, today, client, timeoutMs, plan: decidedPlan,
-        model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
-      });
-      const englishQuery = r.plan?.query || searchText;
-      const dig = String(r.digest || '');
-      console.info(JSON.stringify({
-        type: 'web_search', status: r.status, provider: 'serper', model: r.model,
-        sources: r.sources.length, queries: r.queries.length, multi: r.queries.length,
-        q: String(r.queries?.[0] || englishQuery || '').slice(0, 120),
-        qq: (r.queries || []).slice(0, 5).map((x: string) => String(x).slice(0, 60)),
-        digestChars: dig.length,
-        digestHasPct: /%|\bpercent\b|\bper cent\b/i.test(dig),
-        digestPreview: dig.slice(0, 180).replace(/\s+/g, ' '),
-        ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}),
-      }));
-      void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search decision', details: searchDecisionDetails(r, { provider: 'serper', gate: 'conversation' }) });
-      return r;
-    }
-
-    // gemini path (legacy grounding)
-    const key = byokKey || apiKey || geminiKeySlots[0]?.key;
-    if (!key) return skippedWebSearch('skipped', 'no_key');
+    const { order, unknown, source: orderSource } = parseSearchCarousel();
     const ownKey = Boolean(byokKey);
-    const now = Date.now();
-    // WEB_SEARCH_MODEL is preferred first; light cascade is always appended so a 404 on 2.5 does not kill search.
-    const override = (process.env.WEB_SEARCH_MODEL || '').trim();
-    const cascade = modelsFor('light', preferredModel).filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
-    const pool = override ? [override, ...cascade.filter((m) => m !== override)] : cascade;
-    if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
-    if (!ownKey && globalDayCount >= DAILY_CALL_CAP) return skippedWebSearch('skipped', 'daily_cap');
-    const client = pooledGeminiClient(byokKey);
-    let geminiSearchText = decidedPlan?.query || searchText;
-    if (!decidedPlan) try {
-      geminiSearchText = await toEnglishSearchQuery({
-        userText: searchText,
-        client: client as any,
-        model: pool[0],
-        timeoutMs: Math.min(8000, timeoutMs),
-      });
-    } catch { /* keep original */ }
-    const r = await fetchWebSearchDigest({
-      client: client as any,
-      models: pool,
-      userText: geminiSearchText,
-      today,
-      timeoutMs,
-      maxAttempts: Math.min(3, Math.max(2, pool.length)),
-      onAttempt: () => { if (!ownKey) globalDayCount++; },
-    });
-    console.info(JSON.stringify({ type: 'web_search', status: r.status, provider: 'gemini', model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
-    void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search decision', details: searchDecisionDetails(r, { provider: 'gemini', gate: 'conversation' }) });
+    const gemKey = byokKey || apiKey || geminiKeySlots[0]?.key;
+    const client: any = gemKey ? pooledGeminiClient(byokKey) : undefined;
+    const translateModel = (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite';
+    // P124.26/28: one instruction-free plan (query, place, ISO country) shared by every provider of the chain.
+    const plan: SearchPlan = decidedPlan || await buildSearchPlan({ userText: searchText, client, model: translateModel, timeoutMs: Math.min(8000, timeoutMs) });
+    const serperKey = (process.env.SERPER_API_KEY || '').trim();
+    const providers: Partial<Record<ProviderId, SearchProvider>> = {
+      serper: {
+        unavailable: () => (serperKey ? undefined : 'no_serper_key'),
+        units: (r) => Math.max(1, r.queries.length),
+        search: (query, country) => fetchSerperDigestMulti({
+          apiKey: serperKey, userText: searchText, englishQuery: query, today, timeoutMs, country,
+          extraQueries: query === plan.query ? plan.queries : undefined,
+        }),
+      },
+      // Gemini googleSearch, step one of the two-step flow (digest); step two is the pipeline's own generation call.
+      // Counted against the search budget, separate from the generation cap (P124.30).
+      gemini: {
+        unavailable: () => (!gemKey ? 'no_key' : undefined),
+        units: () => (ownKey ? 0 : 1),
+        search: async (query) => {
+          const now = Date.now();
+          const override = (process.env.WEB_SEARCH_MODEL || '').trim();
+          const cascade = modelsFor('light', preferredModel).filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
+          const pool = override ? [override, ...cascade.filter((m) => m !== override)] : cascade;
+          if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
+          return fetchWebSearchDigest({ client: client as any, models: pool, userText: query, today, timeoutMs, maxAttempts: Math.min(3, Math.max(2, pool.length)) });
+        },
+      },
+    };
+    const connector = isWeatherConnectorEnabled() && isWeatherPlan(plan) && order.includes('connector')
+      ? weatherEvidenceAsResult(plan, Math.min(8000, timeoutMs)) : undefined;
+    const r = await runSearchCarousel({ plan, order, providers, breaker: searchBreaker, budget: searchBudget, connector });
+    const provider = String(r.provider || 'none');
+    const dig = String(r.digest || '');
+    console.info(JSON.stringify({
+      type: 'web_search', status: r.status, provider, model: r.model, chain: (r.chain || []).map((x) => `${x.provider}:${x.outcome}`),
+      sources: r.sources.length, queries: r.queries.length,
+      q: String(r.queries?.[0] || plan.query || '').slice(0, 120),
+      digestChars: dig.length,
+      ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}),
+    }));
+    void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search decision', details: searchDecisionDetails(r, {
+      provider, gate: 'conversation', carousel: order, carouselSource: orderSource, ...(unknown.length ? { carouselUnknown: unknown } : {}),
+      breaker: searchBreaker.snapshot(), searchBudget: searchBudget.snapshot(),
+    }) });
     return r;
   } catch (e: any) {
     console.warn(JSON.stringify({ type: 'web_search', status: 'failed', reason: String(e?.message || e).slice(0, 120) }));
-    void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'web_search', message: 'Web search threw', error: e, details: { provider: webSearchProvider(), gate: 'conversation', status: 'failed', reason: 'exception' } });
+    void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'web_search', message: 'Web search threw', error: e, details: { provider: 'carousel', gate: 'conversation', status: 'failed', reason: 'exception' } });
     return skippedWebSearch('failed', 'exception');
   }
 }

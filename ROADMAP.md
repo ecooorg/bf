@@ -23,6 +23,7 @@ Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIO
 - [x] P124.27 unified Gemini key pool, pipeline as single path, verifier opt-in (K-2…K-5, E-1, A-1).
 - [x] P124.28 LLM search planner with deterministic fallback (T-1, T-2). Unit evidence only; live run and the 90% / 5% targets `NOT_RUN`. Owner fact recorded: Gemini keys are ten projects of ten scientists (D-2026-11-03-03).
 - [x] P124.29 gated non-commercial weather connector and result cache (R-7). Unit evidence only (injected fetch); live run `NOT_RUN`; off unless `WEATHER_CONNECTOR_ENABLED=true`.
+- [x] P124.30 search provider chain `SEARCH_CAROUSEL`, circuit breaker, separate search budgets. Unit evidence only; live run `NOT_RUN`; `serp2` adapter open until the provider is named.
 - [ ] P124.30 provider chain via `SEARCH_CAROUSEL`, second SERP, circuit breaker.
 - [ ] P124.31 live-search acceptance workflow and evidence; specification and comment corrections after owner approval.
 - [ ] Validate live weather answers against timestamped official observations (open since P123.16; closes only with OBSERVED live evidence).

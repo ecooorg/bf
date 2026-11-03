@@ -1,3 +1,14 @@
+## P124.30 — Search provider chain, circuit breaker, separate search budgets (2026-11-03)
+
+- Work package P124.30 of `docs/WEB_SEARCH_REMEDIATION.md` section 8; patch 124.30 (`package.json`). Live evidence `NOT_RUN`.
+- `server/searchCarousel.ts` (new, pure): `SEARCH_CAROUSEL` is now read. Comma list of `connector`, `serper`, `gemini`, `serp2`; unset keeps the legacy behaviour (`connector,serper,gemini` when a Serper key is set, `WEB_SEARCH_PROVIDER` still narrows it). First provider with `used`/`used_weak` wins; `no_relevant_data`, `no_grounding` and `failed` fall through; the best attempt is returned otherwise; nothing runnable gives `failed` with `all_providers_unavailable[:quota]` (never a "no internet" claim, A5).
+- Circuit breaker per provider: three soft failures open it for 60 s; 401/402/403/429 or quota errors open it for 15 min; after the cooldown exactly one trial call is let through. Empty results are not faults.
+- Separate search budgets: `SEARCH_DAILY_CAP_SERPER`, `SEARCH_DAILY_CAP_GEMINI`, `SEARCH_DAILY_CAP_SERP2` (UTC day, unset = unlimited; Serper is charged per sub-query). Gemini `googleSearch` is step one of the two-step flow (digest), step two is the pipeline's generation call; it no longer increments the generation counter or checks `DAILY_CALL_CAP`. BYOK calls are not charged.
+- Connector (P124.29) is merged into every provider result for the first query, so its evidence counts for the usability check and survives a total provider failure.
+- `server.ts`: `runConversationWebSearch` builds one plan and runs the chain; the log record carries the chain, carousel order, breaker and budget snapshots. Direct mode is untouched.
+- **`serp2` has no adapter:** provider name and variable are still to be supplied by the owner (decision 5); the slot reports `not_configured`. Rates and crypto connectors are not built (marked "if approved").
+- Tests: `tests/p124-30-search-carousel.test.mjs` (in `test:core`). `docs/generated-module-map.json` regenerated; `.env.example` extended. No UI, routes or `data-testid` changed (G4 not applicable).
+
 ## P124.29 — Gated weather connector and result cache (2026-11-03)
 
 - Closes R-7 of `docs/WEB_SEARCH_REMEDIATION.md` where enabled; patch 124.29 (`package.json`). Live evidence `NOT_RUN`.
