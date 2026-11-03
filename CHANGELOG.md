@@ -1,3 +1,14 @@
+## P124.31 — Bounded model latency and full carousel diagnostics (2026-11-03)
+
+- Runtime now clamps `LLM_CALL_TIMEOUT_MS` to at most 12 s, `LLM_TOTAL_DEADLINE_MS` to at most 30 s, and `MAX_MODEL_CALLS` to at most 3. Stricter operator values remain respected. This makes stale permissive Render values ineffective rather than allowing 20 s × repeated calls / 70 s request budgets.
+- The conversational Gemini cascade now makes one pass over the configured model candidates. It no longer repeats a full second pass over models that already timed out or failed transiently; existing model-to-model and external fallback behaviour remains available within the request budget. The 30 s deadline is now shared across the full conversational request (including the search/planner preparation phase), and the model-start queue refuses waits longer than the remaining request budget without consuming a reserved slot, and rechecks the deadline before any provider call starts.
+- Restricted P124.28's LLM Search Planner to freshness candidates and explicit search follow-ups. Ordinary messages no longer pay for a planner model call before the application decides to skip search. Search diagnostics now report planner duration plus each search-provider and weather-connector latency.
+- Removed the transient backoff sleep when moving to a different configured model candidate; the failing model is marked unhealthy and the next candidate/fallback is attempted immediately.
+- Added structured `llm_call_start` / `llm_call_end` events and an effective latency policy event, including per-call latency, timeout status, stage, model, attempt, and remaining request budget (no prompt or secret values).
+- Added public, sanitized `GET /health/runtime-config` for non-secret runtime settings and Render-vs-repository comparison. It reports effective model budgets, model cascades, search configuration, feature switches, worker poll interval, and credential-presence booleans only.
+- Rebuilt `Model Carousel — Routing, Health and Live Smoke`: deterministic latency/planner/search-carousel tests, 2 samples per configured light model, optional Groq fallback probe, isolated Serper/Gemini Search/Jina and optional weather smoke, latency bands and aggregate stats, sanitized source/config probe, and public Render `/health`, `/api/health`, `/ready`, `/health/runtime-config` probe. All live provider calls remain opt-in.
+- Tests added: `tests/p124-31-llm-latency-config.test.mjs`; core health test checks runtime config and asserts no secret variable names are exposed. Live provider latency and deployed Render health remain `NOT_RUN` until workflow execution.
+
 ## P124.30 — Search provider chain, circuit breaker, separate search budgets (2026-11-03)
 
 - Work package P124.30 of `docs/WEB_SEARCH_REMEDIATION.md` section 8; patch 124.30 (`package.json`). Live evidence `NOT_RUN`.

@@ -43,7 +43,7 @@ import { registerOpsRoutes } from './server/opsRoutes.ts';
 import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
 import { checkDatabase, closeDatabase, getPool } from './server/database.ts';
-import { waitForModelStart } from './server/modelRateLimit.ts';
+import { waitForModelStart, minModelIntervalMs, ModelQueueDeadlineError } from './server/modelRateLimit.ts';
 import { consumeRateLimit, createProject, deleteProject, getProject, listProjects, listStateVersions, recordAuditEvent, StateVersionConflict, updateProjectState } from './server/projectRepository.ts';
 import { createGeminiAdapter } from './server/geminiAdapter.ts';
 import { resolveGeminiKeySlots, KeyPoolState, classifyKeyError, shouldRotateKeySlot } from './server/keyPool.ts';
@@ -72,11 +72,12 @@ import { buildTaskPackageFromBrief } from './server/briefWriter.ts';
 import { routeCall, newRouterState } from './server/router.ts';
 import { startKeepAlive } from './server/keepAlive.ts';
 import { readLatencyPolicy, shouldSkipQualityRetry, trimOlderAssistantMessages, createPhaseTimer } from './server/latencyPolicy.ts';
+import { readLlmLatencyConfig } from './server/llmLatencyConfig.ts';
 import { securityHeadersMiddleware } from './server/securityHeaders.ts';
 
 dotenv.config();
 const lifecycle = startLifecycle({ commit: buildCommit(), appVersion: APP_VERSION });
-void recordApplicationLog({ level: 'info', component: 'runtime', event: 'process_boot', message: 'BiForge server process initialized', details: { previousShutdown: lifecycle.boot.previous.reason, previousShutdownDetail: lifecycle.boot.previous, bootId: lifecycle.boot.bootId, uptimeSec: lifecycle.boot.uptimeSec, rssMb: lifecycle.boot.rssMb, heapUsedMb: lifecycle.boot.heapUsedMb, memoryLimitMb: lifecycle.boot.memoryLimitMb, commit: buildCommit(), node: process.version, nodeEnv: process.env.NODE_ENV || 'development', appVersion: APP_VERSION, projectModeEnabled: process.env.ENABLE_PROJECT_MODE === 'true', appBuilderEngine: process.env.APP_BUILDER_ENGINE || 'legacy', hasDatabaseUrl: Boolean(process.env.DATABASE_URL), hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) } });
+void recordApplicationLog({ level: 'info', component: 'runtime', event: 'process_boot', message: 'BiForge server process initialized', details: { previousShutdown: lifecycle.boot.previous.reason, previousShutdownDetail: lifecycle.boot.previous, bootId: lifecycle.boot.bootId, uptimeSec: lifecycle.boot.uptimeSec, rssMb: lifecycle.boot.rssMb, heapUsedMb: lifecycle.boot.heapUsedMb, memoryLimitMb: lifecycle.boot.memoryLimitMb, commit: buildCommit(), node: process.version, nodeEnv: process.env.NODE_ENV || 'development', appVersion: APP_VERSION, projectModeEnabled: process.env.ENABLE_PROJECT_MODE === 'true', appBuilderEngine: process.env.APP_BUILDER_ENGINE || 'staged', hasDatabaseUrl: Boolean(process.env.DATABASE_URL), hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) } });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -279,9 +280,12 @@ const STRONG_MODELS = normalizePrimaryCascade(process.env.MODEL_CASCADE_STRONG |
 
 // Keep the whole request bounded. The router is designed to move to a reserve model
 // quickly rather than hammering one overloaded model with repeated retries.
-const LLM_PER_CALL_TIMEOUT_MS = Number(process.env.LLM_CALL_TIMEOUT_MS) || 25000;
-const LLM_TOTAL_DEADLINE_MS = Number(process.env.LLM_TOTAL_DEADLINE_MS) || 70000;
-const MAX_MODEL_CALLS = Number(process.env.MAX_MODEL_CALLS) || 7;
+// P124.31: hard latency ceilings; stale Render values are clamped at runtime.
+const LLM_LATENCY_CONFIG = readLlmLatencyConfig();
+const LLM_PER_CALL_TIMEOUT_MS = LLM_LATENCY_CONFIG.callTimeoutMs;
+const LLM_TOTAL_DEADLINE_MS = LLM_LATENCY_CONFIG.totalDeadlineMs;
+const MAX_MODEL_CALLS = LLM_LATENCY_CONFIG.maxModelCalls;
+void recordApplicationLog({ level: 'info', component: 'runtime', event: 'llm_latency_policy', message: 'Effective model-call latency limits', details: LLM_LATENCY_CONFIG });
 const GEMINI_BASE_URL = process.env.GEMINI_BASE_URL || '';
 if (apiKey && process.env.ENABLE_GEMINI_CANDIDATE_PROBES !== 'false') {
   const probe = () => void probeGeminiCandidates({ apiKey, baseUrl: GEMINI_BASE_URL || undefined }).then((states) => console.info(JSON.stringify({ type: 'gemini_candidate_probe', states }))).catch((e) => console.warn(JSON.stringify({ type: 'gemini_candidate_probe_error', reason: String(e).slice(0, 160) })));
@@ -309,10 +313,6 @@ const MODEL_COOLDOWN_503_MS = 60 * 1000;
 const MODEL_COOLDOWN_429_MS = 3 * 60 * 1000;
 const MODEL_COOLDOWN_BAD_MS = 10 * 60 * 1000;
 const MODEL_COOLDOWN_QUOTA_MS = 30 * 60 * 1000;
-const BACKOFF_503_MIN_MS = 700;
-const BACKOFF_503_MAX_MS = 1800;
-const BACKOFF_429_MIN_MS = 4500;
-const BACKOFF_429_MAX_MS = 9000;
 
 // Rate limiting (in-memory)
 const rateMap = new Map<string, { hour: number; count: number; day: number; dayCount: number }>();
@@ -617,8 +617,6 @@ function isBadModelError(e: any): boolean {
     || /not found|not supported|permission_denied|permission denied|no longer available/i.test(text);
 }
 
-function sleep(ms: number) { return new Promise((resolve) => setTimeout(resolve, ms)); }
-
 function healthForModel(model: string): ModelHealth {
   let h = modelHealth.get(model);
   if (!h) {
@@ -704,22 +702,6 @@ function extractRetryAfterMs(e: any): number | null {
   return null;
 }
 
-function jitter(minMs: number, maxMs: number): number {
-  return Math.floor(minMs + Math.random() * Math.max(1, maxMs - minMs));
-}
-
-function transientPauseMs(e: any, consecutiveTransientFailures: number): number {
-  const status = geminiStatus(e);
-  const serverDelay = status === 429 ? extractRetryAfterMs(e) : null;
-  if (serverDelay !== null) return Math.min(Math.max(serverDelay, 1000), 15000);
-  if (status === 429 || isGeminiRateLimitError(e)) {
-    const exp = Math.min(BACKOFF_429_MAX_MS, BACKOFF_429_MIN_MS * Math.pow(2, Math.max(0, consecutiveTransientFailures - 1)));
-    return jitter(BACKOFF_429_MIN_MS, exp + 1);
-  }
-  const exp = Math.min(BACKOFF_503_MAX_MS, BACKOFF_503_MIN_MS * Math.pow(2, Math.max(0, consecutiveTransientFailures - 1)));
-  return jitter(BACKOFF_503_MIN_MS, exp + 1);
-}
-
 function byokFromRequest(req: express.Request): string | undefined {
   const v = req.headers['x-byok-key'];
   return typeof v === 'string' && v.trim() ? v.trim() : undefined;
@@ -777,7 +759,7 @@ async function generate(
   startModelIndex = 0,
   byokKey?: string,
   preferredModel?: string,
-  budget?: { used: number },   // S-4: shared by every generate() of one HTTP request
+  budget?: { used: number; startedAt?: number },   // S-4: shared request-wide call count and deadline
   opts?: GenerateOpts,         // attachments: extra parts the model must look at, and text whose numbers are the person's own
 ): Promise<{ data: unknown; meta: { model: string; fallback: boolean; durationMs: number; stage: string; calls: number; lightFallback: boolean; promptChars: number; inputTokens?: number; outputTokens?: number; cachedTokens?: number } }> {
   const ef = expertFiles.getStore();
@@ -794,13 +776,13 @@ async function generate(
   const client = key ? new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) }) : null;
   const models = client ? modelsFor(modelClass, preferredModel) : [];
   const t0 = Date.now();
+  const deadlineStart = budget?.startedAt ?? t0;
   let lastErr: Error | null = null;
   let sawTransient = false;
   let sawQuota = false;
   let lastTransientErr: Error | null = null;
   let attempts = 0;         // actual upstream model calls made for this request
   let formatFailures = 0;   // unusable answers: bad JSON
-  let transientFailures = 0;
   let repairHint = '';
   // PERF-01: input size over all model responses of this request (service data, not shown to the user)
   let promptChars = 0;
@@ -809,9 +791,9 @@ async function generate(
   let cachedTokens: number | undefined;
   const ownKey = Boolean(byokKey);   // the user's own key never uses the server's daily cap
 
-  // One pass through the adaptive queue is normally enough. A second pass is allowed
-  // only when the first pass exhausted because of transient failures and time remains.
-  for (let round = 0; round < 2; round++) {
+  // P124.31: one pass through the adaptive queue only. A second full pass repeated
+  // already-failed models and could multiply the per-call timeout before external fallback.
+  for (let round = 0; round < 1; round++) {
     const orderedModels = models.slice(startModelIndex);
     const now = Date.now();
     const ready = orderedModels.filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
@@ -830,30 +812,48 @@ async function generate(
     for (let localIndex = 0; localIndex < chain.length; localIndex++) {
       const model = chain[localIndex];
       const globalIndex = models.indexOf(model);
-      const elapsed = Date.now() - t0;
+      const elapsed = Date.now() - deadlineStart;
       if (elapsed >= LLM_TOTAL_DEADLINE_MS) break;
       if ((budget ? budget.used : attempts) >= MAX_MODEL_CALLS) break;
 
-      // Count attempts before the network call. A 503/429 still consumes an upstream
-      // request opportunity, so it must not allow us to bypass MAX_MODEL_CALLS.
+      // Check the daily cap before queueing, but count the call only when a provider
+      // request is actually about to start (a deadline-aborted queue wait is not a call).
       if (!ownKey && globalDayCount >= DAILY_CALL_CAP) throw new GeminiQuotaError();
-      attempts++;
-      if (budget) budget.used++;
-      if (!ownKey) globalDayCount++;
 
       let ctrl: AbortController | undefined;
       let timeout: ReturnType<typeof setTimeout> | undefined;
       let callStarted = 0;
       try {
         const contents = repairHint ? `${prompt}${repairHint}` : prompt;
-        // Queue pacing is deliberately outside the provider-call timeout: waiting for a
-        // permitted slot must not look like a hung model request or abort before the call.
-        const spacingWaitMs = await waitForModelStart(model);
+        // Queue pacing is a quota-protection gate. Keep its reservation/wait semantics
+        // intact, then re-check the request-wide deadline before starting the provider call.
+        const remainingBeforeQueue = LLM_TOTAL_DEADLINE_MS - (Date.now() - deadlineStart);
+        if (remainingBeforeQueue <= 0) {
+          lastErr = new Error('Request deadline exhausted before model queue reservation.');
+          console.warn(JSON.stringify({ type: 'llm_request_deadline_exhausted', stage, model, phase: 'before_queue', elapsedMs: Date.now() - deadlineStart, calls: attempts }));
+          break;
+        }
+        const spacingWaitMs = await waitForModelStart(model, { maxWaitMs: Math.max(0, remainingBeforeQueue - 250) });
+        if (Date.now() - deadlineStart >= LLM_TOTAL_DEADLINE_MS) {
+          lastErr = new Error('Request deadline exhausted while waiting for a model slot.');
+          console.warn(JSON.stringify({ type: 'llm_request_deadline_exhausted', stage, model, phase: 'model_queue', elapsedMs: Date.now() - deadlineStart, waitMs: spacingWaitMs, calls: attempts }));
+          break;
+        }
         if (spacingWaitMs > 0) console.info(JSON.stringify({ type: 'llm_spacing_wait', model, stage, waitMs: spacingWaitMs }));
+        attempts++;
+        if (budget) budget.used++;
+        if (!ownKey) globalDayCount++;
         callStarted = Date.now();
         ctrl = new AbortController();
-        const timeoutMs = Math.min(LLM_PER_CALL_TIMEOUT_MS, Math.max(1000, LLM_TOTAL_DEADLINE_MS - (Date.now() - t0)));
+        const remainingDeadlineMs = LLM_TOTAL_DEADLINE_MS - (Date.now() - deadlineStart);
+        if (remainingDeadlineMs <= 0) {
+          lastErr = new Error('Request deadline exhausted before provider call.');
+          console.warn(JSON.stringify({ type: 'llm_request_deadline_exhausted', stage, model, phase: 'before_provider', elapsedMs: Date.now() - deadlineStart, calls: attempts }));
+          break;
+        }
+        const timeoutMs = Math.min(LLM_PER_CALL_TIMEOUT_MS, remainingDeadlineMs);
         timeout = setTimeout(() => ctrl?.abort(), timeoutMs);
+        console.info(JSON.stringify({ type: 'llm_call_start', model, stage, attempt: attempts, timeoutMs, remainingDeadlineMs }));
         const genRequest: any = {
           model,
           contents: opts?.extraParts?.length ? [{ role: 'user', parts: [{ text: contents }, ...opts.extraParts] }] : contents,
@@ -879,6 +879,7 @@ async function generate(
           }
         }
         const latencyMs = Date.now() - callStarted;
+        console.info(JSON.stringify({ type: 'llm_call_end', model, stage, attempt: attempts, status: 'ok', latencyMs }));
         const sysText = /[\u0400-\u04FF]/.test(inputForNumbers) ? BASE_SYSTEM.length + 163 : BASE_SYSTEM.length;
         const sentChars = sysText + contents.length + (opts?.extraChars || 0);
         const um: any = (r as any).usageMetadata;
@@ -933,6 +934,11 @@ async function generate(
             promptChars, ...(inputTokens !== undefined ? { inputTokens } : {}), ...(outputTokens !== undefined ? { outputTokens } : {}), ...(cachedTokens !== undefined ? { cachedTokens } : {}) },
         };
       } catch (e: any) {
+        if (e instanceof ModelQueueDeadlineError) {
+          lastErr = e;
+          console.warn(JSON.stringify({ type: 'llm_request_deadline_exhausted', stage, model, phase: 'model_queue', waitMs: e.waitMs, remainingMs: Math.max(0, LLM_TOTAL_DEADLINE_MS - (Date.now() - deadlineStart)), calls: attempts }));
+          continue;
+        }
         if (e instanceof GeminiFormatError) throw e;
         if (isGeminiQuotaError(e)) {
           // Quota is per model: park this model for a while and try the next one instead of failing the whole request.
@@ -946,17 +952,15 @@ async function generate(
         const msg = lastErr.message || '';
         const status = geminiStatus(e);
         const timedOut = Boolean(ctrl?.signal.aborted) || /abort|timed? ?out|deadline_exceeded/i.test(msg);
+        console.warn(JSON.stringify({ type: 'llm_call_end', model, stage, attempt: attempts, status: 'error', latencyMs: callStarted ? Date.now() - callStarted : null, timedOut, errorClass: timedOut ? 'TIMEOUT' : (status === 429 ? 'RATE_LIMIT' : (status ? `HTTP_${status}` : 'PROVIDER_ERROR')), reason: msg.slice(0, 160) }));
         if (isBadModelError(e)) {
           noteModelFailure(model, 'bad');
           console.warn(JSON.stringify({ type: 'llm_skip', model, stage, reason: msg.slice(0, 120) }));
         } else if (isGeminiRateLimitError(e) || isTransientGeminiError(e) || timedOut) {
           sawTransient = true;
           lastTransientErr = lastErr;
-          transientFailures++;
           noteModelFailure(model, timedOut ? 'timeout' : (status === 429 ? '429' : '503'));
-          const pause = transientPauseMs(e, transientFailures);
-          console.warn(JSON.stringify({ type: 'llm_retry', model, stage, status: status || undefined, pauseMs: pause, reason: msg.slice(0, 180) }));
-          if (Date.now() - t0 + pause < LLM_TOTAL_DEADLINE_MS && localIndex < chain.length - 1) await sleep(pause);
+          console.warn(JSON.stringify({ type: 'llm_retry', model, stage, status: status || undefined, nextModel: localIndex < chain.length - 1 ? chain[localIndex + 1] : null, pauseMs: 0, reason: msg.slice(0, 180) }));
         } else {
           console.warn(JSON.stringify({ type: 'llm_error', model, stage, reason: msg.slice(0, 120) }));
         }
@@ -964,26 +968,23 @@ async function generate(
         if (timeout) clearTimeout(timeout);
       }
     }
-    if (Date.now() - t0 >= LLM_TOTAL_DEADLINE_MS || (budget ? budget.used : attempts) >= MAX_MODEL_CALLS) break;
-    if (!sawTransient || round === 1) break;
-    // Do not immediately hammer the same pool after a full transient pass. A short
-    // jittered pause lets temporary capacity spikes settle without making the UI wait
-    // for a long retry cycle.
-    const pause = jitter(900, 1600);
-    if (Date.now() - t0 + pause >= LLM_TOTAL_DEADLINE_MS) break;
-    await sleep(pause);
+    // One candidate pass is the complete attempt. Do not sleep before a pass that
+    // is intentionally no longer retried; proceed directly to the configured fallback.
+    if (Date.now() - deadlineStart >= LLM_TOTAL_DEADLINE_MS || (budget ? budget.used : attempts) >= MAX_MODEL_CALLS) break;
   }
 
   // Cross-provider fallback is opt-in because prompts may contain user data and Cloudflare/Groq may have separate billing/data terms.
-  if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && !byokKey && !opts?.extraParts?.length && (budget ? budget.used : attempts) < MAX_MODEL_CALLS) {
+  if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && !byokKey && !opts?.extraParts?.length && (budget ? budget.used : attempts) < MAX_MODEL_CALLS && Date.now() - deadlineStart < LLM_TOTAL_DEADLINE_MS) {
     const providers: Array<{ id: string; model: string; baseUrl: string; key: string }> = [];
     if (process.env.GROQ_API_KEY) providers.push({ id: 'groq', model: process.env.GROQ_FALLBACK_MODEL || 'openai/gpt-oss-120b', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, key: process.env.GROQ_API_KEY });
     if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) providers.push({ id: 'cloudflare-workers-ai', model: process.env.CLOUDFLARE_WORKERS_AI_MODEL || '@cf/meta/llama-3.1-8b-instruct', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, key: process.env.CLOUDFLARE_API_TOKEN });
     for (const provider of providers) {
-      if ((budget ? budget.used : attempts) >= MAX_MODEL_CALLS || Date.now() - t0 >= LLM_TOTAL_DEADLINE_MS) break;
+      if ((budget ? budget.used : attempts) >= MAX_MODEL_CALLS || Date.now() - deadlineStart >= LLM_TOTAL_DEADLINE_MS) break;
       attempts++; if (budget) budget.used++;
       const adapter = createOpenAICompatibleAdapter({ providerId: provider.id, baseUrl: provider.baseUrl, apiKey: provider.key });
-      const result = await adapter.call({ requestId: `conversation-${Date.now()}`, modelId: provider.model, system: BASE_SYSTEM, prompt: repairHint ? `${prompt}${repairHint}` : prompt, json: true, maxOutputTokens: 4096, metadata: { stage, modelClass } }, { timeoutMs: Math.min(LLM_PER_CALL_TIMEOUT_MS, Math.max(1000, LLM_TOTAL_DEADLINE_MS - (Date.now() - t0))) });
+      const fallbackRemainingMs = LLM_TOTAL_DEADLINE_MS - (Date.now() - deadlineStart);
+      if (fallbackRemainingMs <= 0) break;
+      const result = await adapter.call({ requestId: `conversation-${Date.now()}`, modelId: provider.model, system: BASE_SYSTEM, prompt: repairHint ? `${prompt}${repairHint}` : prompt, json: true, maxOutputTokens: 4096, metadata: { stage, modelClass } }, { timeoutMs: Math.min(LLM_PER_CALL_TIMEOUT_MS, fallbackRemainingMs) });
       if (result.status !== 'ok') { console.warn(JSON.stringify({ type: 'llm_external_fallback_failed', provider: provider.id, model: provider.model, errorClass: result.errorClass })); continue; }
       const parsed: any = result.output;
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
@@ -1028,6 +1029,33 @@ registerHealthRoutes(app, {
   isAuthenticated: authenticated, distDirectory: DIST_DIR,
   skipDistHealthcheck: process.env.SKIP_DIST_HEALTHCHECK === 'true',
   isDatabaseReady: process.env.DATABASE_URL ? () => checkDatabase() : undefined,
+  runtimeConfig: () => ({
+    llm: { callTimeoutMs: LLM_PER_CALL_TIMEOUT_MS, totalDeadlineMs: LLM_TOTAL_DEADLINE_MS, maxModelCalls: MAX_MODEL_CALLS, retryPasses: 1, configured: LLM_LATENCY_CONFIG.configured, warnings: LLM_LATENCY_CONFIG.warnings },
+    models: { light: LIGHT_MODELS, strong: STRONG_MODELS },
+    search: { enabled: isWebSearchEnabled(), planner: isSearchPlannerEnabled(), carousel: parseSearchCarousel(process.env).order, carouselSource: parseSearchCarousel(process.env).source, carouselUnknown: parseSearchCarousel(process.env).unknown,
+      timeoutMs: Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 15_000, maxQueries: Math.min(5, Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5),
+      configuredMaxPages: Number(process.env.WEB_SEARCH_MAX_PAGES) || 4, maxPagesPerQuery: Math.min(2, Number(process.env.WEB_SEARCH_MAX_PAGES) || 2), fetchPages: process.env.WEB_SEARCH_FETCH_PAGES !== 'false',
+      defaultCountry: process.env.WEB_SEARCH_DEFAULT_COUNTRY || null },
+    features: { directGeminiMode: process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true', externalModelFallback: process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true',
+      weatherConnector: isWeatherConnectorEnabled(), epistemicVerifier: isVerifierEnabled(), projectMode: PROJECT_MODE_ENABLED, appAuth: APP_AUTH_ENABLED },
+    workerPollMs: Number(process.env.WORKER_POLL_MS) || 1_500,
+    modelStartIntervalMs: { flashLite: minModelIntervalMs('gemini-3.5-flash-lite'), otherFlash: minModelIntervalMs('gemini-3.5-flash') },
+    appBuilder: { engine: process.env.APP_BUILDER_ENGINE || 'staged', modelSlice: process.env.APP_BUILDER_MODEL_SLICE === 'true',
+      maxFiles: Number(process.env.CODE_APP_BUILDER_MAX_FILES) || 80, maxLines: Number(process.env.CODE_APP_BUILDER_MAX_LINES) || 8_000,
+      executor: process.env.CODE_EXECUTOR || 'manual' },
+    limits: { dailyCallCap: Number(process.env.DAILY_CALL_CAP) || 200, rateLimitPerHour: Number(process.env.RATE_LIMIT_PER_HOUR) || 60,
+      projectRateLimitPerMinute: Number(process.env.PROJECT_RATE_LIMIT_PER_MINUTE) || 60, maxBodyBytes: MAX_BODY,
+      trustProxyHops: Number(process.env.TRUST_PROXY_HOPS) || 1 },
+    hosting: { serviceUrlConfigured: Boolean(process.env.SERVICE_URL || process.env.RENDER_EXTERNAL_URL), pgSslMode: process.env.PGSSLMODE || 'default',
+      jinaReaderBaseConfigured: Boolean(process.env.JINA_READER_BASE_URL), githubDiffUpload: process.env.GITHUB_DIFF_UPLOAD === 'true' },
+    runtime: { nodeVersion: process.version, nodeEnv: NODE_ENV, uptimeSec: Math.floor(process.uptime()), rssMb: Math.round(process.memoryUsage().rss / 1024 / 1024), heapUsedMb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024), databaseConfigured: Boolean(process.env.DATABASE_URL) },
+    modelHealth: [...new Set([...LIGHT_MODELS, ...STRONG_MODELS])].map((model) => { const h = healthForModel(model); return { model, successes: h.successes, transientFailures: h.transientFailures, rateLimits: h.rateLimits, badModelErrors: h.badModelErrors, timeouts: h.timeouts, consecutiveFailures: h.consecutiveFailures, ewmaLatencyMs: h.ewmaLatencyMs, cooldownUntil: h.cooldownUntil || null, quotaHit: h.quotaHit }; }),
+    sourceHealth: ['gemini-free-pool', 'groq-free', 'cloudflare-workers-ai', 'openrouter-free'].map((id) => globalSourceHealth.snapshot(id)),
+    searchHealth: { circuitBreaker: searchBreaker.snapshot(), dailyBudget: searchBudget.snapshot() },
+    groqPlan: process.env.GROQ_PLAN || 'unspecified',
+    credentials: { gemini: geminiKeySlots.length > 0, geminiKeySlots: geminiKeySlots.length, serper: Boolean(process.env.SERPER_API_KEY), jina: Boolean(process.env.JINA_API_KEY),
+      serp2: Boolean(process.env.SERP2_API_KEY), groq: Boolean(process.env.GROQ_API_KEY), cloudflare: Boolean(process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) },
+  }),
 });
 
 // Ops routes: server/opsRoutes.ts (p73)
@@ -1099,33 +1127,43 @@ function compactConversationHistory(history: any[]): any[] {
 const searchBreaker = new SearchCircuitBreaker();
 const searchBudget = SearchBudget.fromEnv();
 
-async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string, recentUserText = '', decidedPlan?: SearchPlan): Promise<WebSearchResult> {
+async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string, recentUserText = '', decidedPlan?: SearchPlan, deadlineAt?: number): Promise<WebSearchResult> {
   // Preserve referents in elliptical follow-ups before chat history is omitted from SERP.
   try {
     const searchText = contextualizeSearchText(userText, recentUserText);
     const today = new Date().toISOString().slice(0, 10);
-    const timeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 28000;
+    const configuredTimeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 28000;
+    const remainingSearchMs = deadlineAt === undefined ? configuredTimeoutMs : deadlineAt - Date.now();
+    if (remainingSearchMs < 8_000) {
+      console.warn(JSON.stringify({ type: 'web_search_skipped', reason: 'request_deadline', remainingMs: Math.max(0, remainingSearchMs) }));
+      return skippedWebSearch('failed', 'request_deadline');
+    }
+    const timeoutMs = Math.min(configuredTimeoutMs, remainingSearchMs);
     const { order, unknown, source: orderSource } = parseSearchCarousel();
     const ownKey = Boolean(byokKey);
     const gemKey = byokKey || apiKey || geminiKeySlots[0]?.key;
     const client: any = gemKey ? pooledGeminiClient(byokKey) : undefined;
     const translateModel = (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite';
     // P124.26/28: one instruction-free plan (query, place, ISO country) shared by every provider of the chain.
+    const planStartedAt = Date.now();
     const plan: SearchPlan = decidedPlan || await buildSearchPlan({ userText: searchText, client, model: translateModel, timeoutMs: Math.min(8000, timeoutMs) });
+    const planMs = Date.now() - planStartedAt;
     const serperKey = (process.env.SERPER_API_KEY || '').trim();
     const providers: Partial<Record<ProviderId, SearchProvider>> = {
       serper: {
-        unavailable: () => (serperKey ? undefined : 'no_serper_key'),
-        units: (r) => Math.max(1, r.queries.length),
-        search: (query, country) => fetchSerperDigestMulti({
-          apiKey: serperKey, userText: searchText, englishQuery: query, today, timeoutMs, country,
-          extraQueries: query === plan.query ? plan.queries : undefined,
-        }),
+        unavailable: () => deadlineAt !== undefined && deadlineAt - Date.now() < 8_000 ? 'request_deadline' : (serperKey ? undefined : 'no_serper_key'),
+        units: (r) => r.status === 'skipped' ? 0 : Math.max(1, r.queries.length),
+        search: (query, country) => {
+          const remaining = deadlineAt === undefined ? timeoutMs : Math.min(timeoutMs, deadlineAt - Date.now());
+          if (remaining < 8_000) return Promise.resolve(skippedWebSearch('skipped', 'request_deadline'));
+          return fetchSerperDigestMulti({ apiKey: serperKey, userText: searchText, englishQuery: query, today, timeoutMs: remaining, country,
+            extraQueries: query === plan.query ? plan.queries : undefined });
+        },
       },
       // Gemini googleSearch, step one of the two-step flow (digest); step two is the pipeline's own generation call.
       // Counted against the search budget, separate from the generation cap (P124.30).
       gemini: {
-        unavailable: () => (!gemKey ? 'no_key' : undefined),
+        unavailable: () => deadlineAt !== undefined && deadlineAt - Date.now() < 1_000 ? 'request_deadline' : (!gemKey ? 'no_key' : undefined),
         units: () => (ownKey ? 0 : 1),
         search: async (query) => {
           const now = Date.now();
@@ -1133,24 +1171,27 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
           const cascade = modelsFor('light', preferredModel).filter((m) => (healthForModel(m).cooldownUntil || 0) <= now);
           const pool = override ? [override, ...cascade.filter((m) => m !== override)] : cascade;
           if (!pool.length) return skippedWebSearch('skipped', 'no_ready_model');
-          return fetchWebSearchDigest({ client: client as any, models: pool, userText: query, today, timeoutMs, maxAttempts: Math.min(3, Math.max(2, pool.length)) });
+          const remaining = deadlineAt === undefined ? timeoutMs : Math.min(timeoutMs, deadlineAt - Date.now());
+          if (remaining < 1_000) return skippedWebSearch('skipped', 'request_deadline');
+          return fetchWebSearchDigest({ client: client as any, models: pool, userText: query, today, timeoutMs: remaining, maxAttempts: 1 });
         },
       },
     };
-    const connector = isWeatherConnectorEnabled() && isWeatherPlan(plan) && order.includes('connector')
-      ? weatherEvidenceAsResult(plan, Math.min(8000, timeoutMs)) : undefined;
-    const r = await runSearchCarousel({ plan, order, providers, breaker: searchBreaker, budget: searchBudget, connector });
+    const connectorStartedAt = Date.now();
+    const connector = isWeatherConnectorEnabled() && isWeatherPlan(plan) && order.includes('connector') && (deadlineAt === undefined || deadlineAt - Date.now() >= 2_000)
+      ? weatherEvidenceAsResult(plan, Math.min(8000, timeoutMs, deadlineAt === undefined ? 8000 : deadlineAt - Date.now())) : undefined;
+    const r = await runSearchCarousel({ plan, order, providers, breaker: searchBreaker, budget: searchBudget, connector, connectorStartedAt, deadlineAt });
     const provider = String(r.provider || 'none');
     const dig = String(r.digest || '');
     console.info(JSON.stringify({
-      type: 'web_search', status: r.status, provider, model: r.model, chain: (r.chain || []).map((x) => `${x.provider}:${x.outcome}`),
-      sources: r.sources.length, queries: r.queries.length,
+      type: 'web_search', status: r.status, provider, model: r.model,
+      sources: r.sources.length, queries: r.queries.length, planMs, chain: r.chain || [],
       q: String(r.queries?.[0] || plan.query || '').slice(0, 120),
       digestChars: dig.length,
       ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}),
     }));
     void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search decision', details: searchDecisionDetails(r, {
-      provider, gate: 'conversation', carousel: order, carouselSource: orderSource, ...(unknown.length ? { carouselUnknown: unknown } : {}),
+      provider, gate: 'conversation', planMs, carousel: order, carouselSource: orderSource, ...(unknown.length ? { carouselUnknown: unknown } : {}),
       breaker: searchBreaker.snapshot(), searchBudget: searchBudget.snapshot(),
     }) });
     return r;
@@ -1302,6 +1343,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
 
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
     let webSearch: WebSearchResult = skippedWebSearch();
+    let searchPlannerMs = 0;
+    let searchPlannerRan = false;
     let promptAttachmentsBlock = attachmentsBlock;
     if (isWebSearchEnabled()) {
       try {
@@ -1318,7 +1361,12 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         // P124.28: planner decides over the last turns (T-1, T-2); heuristics only when it is unavailable. Hard gates run first.
         let searchDecision: SearchDecision | undefined;
         let searchNow: boolean;
-        if (isSearchPlannerEnabled() && searchPlannerGate(searchTrigger)) {
+        const plannerEnabled = isSearchPlannerEnabled();
+        const plannerRemainingMs = LLM_TOTAL_DEADLINE_MS - (Date.now() - requestStartedAt);
+        const plannerEligible = plannerEnabled && searchPlannerGate(searchTrigger) && plannerRemainingMs >= 1_000;
+        if (plannerEligible) {
+          const plannerStartedAt = Date.now();
+          searchPlannerRan = plannerRemainingMs >= 1_000;
           const plannerKey = requestByokKey || apiKey || geminiKeySlots[0]?.key;
           searchDecision = await buildSearchDecision({
             userText: lastUserText,
@@ -1327,13 +1375,18 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
             client: plannerKey ? pooledGeminiClient(requestByokKey) : undefined,
             model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
             heuristic: () => shouldSearchWeb(searchTrigger),
+            timeoutMs: Math.min(8_000, Math.max(1_000, plannerRemainingMs)),
           });
+          searchPlannerMs = searchPlannerRan ? Date.now() - plannerStartedAt : 0;
           searchNow = searchDecision.search || Boolean(intentFlags.userAskedSearch);
         } else {
           searchNow = shouldSearchWeb(searchTrigger);
         }
+        const plannerReason = !plannerEnabled ? 'disabled' : plannerEligible ? (searchDecision?.decisionNote || searchDecision?.decisionSource || 'completed') : (searchPlannerGate(searchTrigger) && plannerRemainingMs < 1_000 ? 'request_deadline' : 'not_freshness_candidate');
+        console.info(JSON.stringify({ type: 'search_planner_timing', ran: searchPlannerRan, latencyMs: searchPlannerMs, reason: plannerReason, search: searchNow }));
+        void recordApplicationLog({ level: 'info', component: 'conversation', event: 'search_planner_timing', message: 'Search planner gate and duration', details: { ran: searchPlannerRan, latencyMs: searchPlannerMs, reason: plannerReason, search: searchNow } });
         if (searchNow) {
-          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel, recentUserText, searchDecision?.search ? searchDecision.plan : undefined);
+          webSearch = await runConversationWebSearch(lastUserText, requestByokKey, requestPreferredModel, recentUserText, searchDecision?.search ? searchDecision.plan : undefined, requestStartedAt + LLM_TOTAL_DEADLINE_MS);
           if (webSearch.status === 'used' || webSearch.status === 'used_weak') {
             const searchBlock = formatSearchBlock(webSearch, new Date().toISOString().slice(0, 10));
             promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${searchBlock}` : searchBlock;
@@ -1363,7 +1416,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     }
     phase.mark('prepare_search');
     const prompt = buildConversationTurnPrompt(input, promptAttachmentsBlock, turnPlan, new Date().toISOString().slice(0, 10));
-    const callBudget = { used: 0 };   // S-4: targeted information repair shares the request's model-call budget
+    const callBudget = { used: 0, startedAt: requestStartedAt };   // S-4: targeted information repair shares the request's call budget and deadline
     let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
     phase.mark('main_call');
     let out = data as any;
@@ -1505,7 +1558,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     console.info(JSON.stringify({
       type: 'conversation_timing', mode: conversationMode, product_mode: productMode,
       calls: (meta as any).calls, retried: retryRan, retry_skipped: retrySkippedForLatency,
-      web_search: webSearch.status, verifier: epistemic.verifier, ...phase.summary(),
+      web_search: webSearch.status, search_planner_ran: searchPlannerRan, search_planner_ms: searchPlannerMs,
+      search_chain: webSearch.chain || [], verifier: epistemic.verifier, ...phase.summary(),
     }));
     void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_response_pipeline', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Model response passed through the conversational output pipeline', details: {
       mode: conversationMode, productMode, model: (meta as any).model, provider: (meta as any).provider,
@@ -1995,7 +2049,7 @@ function sumMeta(a: any, b: any) {
 async function generateChecked(
   prompt: string, input: string, stage: string, check: (data: any) => string[], byokKey?: string, preferredModel?: string,
 ): Promise<{ data: any; meta: any; issues: string[] }> {
-  const budget = { used: 0 };
+  const budget = { used: 0, startedAt: Date.now() };
   const first = await generate(prompt, input, 'strong', stage, 0, byokKey, preferredModel, budget);
   let issues = check(first.data);
   if (!issues.length) return { data: first.data, meta: first.meta, issues };
