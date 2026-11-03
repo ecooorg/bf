@@ -664,7 +664,7 @@ export async function buildSearchPlan(opts: {
   if (!opts.client) return heuristic('no_client');
   const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), Math.max(1000, opts.timeoutMs ?? 8_000));
+  const timer = setTimeout(() => ctrl.abort(), Math.max(1000, opts.timeoutMs ?? 3_000));
   try {
     const resp = await opts.client.models.generateContent({
       model,
@@ -753,7 +753,11 @@ export async function buildSearchDecision(opts: {
   const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
   const turns = (opts.recentTurns || []).slice(-4).map((t) => `${t.role === 'assistant' ? 'ASSISTANT' : 'USER'}: ${String(t.content || '').replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), Math.max(1000, opts.timeoutMs ?? 8_000));
+  // P124.33: skip the model planner for obvious live-data intents (weather/news/prices/scores/now).
+  const pre = preClassifyLiveDataIntent(opts.userText, opts.recentTurns);
+  if (pre) return pre;
+
+  const timer = setTimeout(() => ctrl.abort(), Math.max(1000, opts.timeoutMs ?? 3_000));
   try {
     const resp = await opts.client.models.generateContent({
       model,
@@ -777,6 +781,37 @@ export async function buildSearchDecision(opts: {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * P124.33: deterministic pre-classifier for obvious live-data intents.
+ * When it matches, the model planner is skipped entirely (saves up to ~8 s on the worst path).
+ * Returns null when the text is ambiguous and the model planner should run.
+ */
+export function preClassifyLiveDataIntent(userText: string, recentTurns?: PlannerTurn[]): SearchDecision | null {
+  const text = String(userText || '').trim();
+  if (text.length < 4) return null;
+  // Strong live-data signals: weather, news, prices, scores, "now/today/current".
+  const liveRe = /(?:\bweather\b|\bforecast\b|\btemperature\b|\bпогод|\bтемператур|\bnews\b|\bновост|\bscore\b|\bсчёт\b|\bсчет\b|\bprice\b|\bцен[аы]\b|\bкурс\b|\bexchange\s+rate\b|\bstock\s+price\b|\btraffic\b|\boutage\b|\bсегодня\b|\bзавтра\b|\bсейчас\b|\btoday\b|\btomorrow\b|\bright\s+now\b|\bcurrent\b)/iu;
+  if (!liveRe.test(text)) return null;
+  // Prefer not to invent place/country; heuristic query is enough for the connector/SERP path.
+  const query = buildSearchQuery(text).slice(0, MAX_QUERY_CHARS);
+  if (query.length < 3) return null;
+  const placeMatch = text.match(/(?:in|for|в|во|на)\s+(?:the\s+city\s+of\s+|городе\s+)?([\p{L}][\p{L} .'-]{1,40})/iu);
+  const place = placeMatch?.[1]?.trim().slice(0, 80) || undefined;
+  return {
+    search: true,
+    plan: {
+      query,
+      place,
+      topic: isWeatherTopic(text) ? 'weather' : undefined,
+      freshness: 'now',
+      planSource: 'heuristic',
+      planNote: 'pre_classifier_live_data',
+    },
+    decisionSource: 'heuristic',
+    decisionNote: 'pre_classifier_live_data',
+  };
 }
 
 /**
@@ -846,10 +881,10 @@ export async function planAndSearchSerper(opts: {
   /** P124.28: plan already produced by the search planner; skips the second plan call. */
   plan?: SearchPlan;
 }): Promise<WebSearchResult> {
-  const plan = opts.plan || await buildSearchPlan({ userText: opts.userText, client: opts.client, model: opts.model, timeoutMs: Math.min(8000, opts.timeoutMs) });
+  const plan = opts.plan || await buildSearchPlan({ userText: opts.userText, client: opts.client, model: opts.model, timeoutMs: Math.min(3000, opts.timeoutMs) });
   // P124.29: gated weather connector runs in parallel with the SERP search; its failure never blocks the search.
   const weatherP: Promise<WebSearchResult | null> = isWeatherConnectorEnabled() && isWeatherPlan(plan)
-    ? weatherEvidenceAsResult(plan, Math.min(8000, opts.timeoutMs))
+    ? weatherEvidenceAsResult(plan, Math.min(6000, opts.timeoutMs))
     : Promise.resolve(null);
   return searchWithUsability(plan, async (query, country) => {
     const serp = await fetchSerperDigestMulti({

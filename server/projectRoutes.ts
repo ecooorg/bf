@@ -443,7 +443,7 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
         constraints: z.string().trim().max(4000).optional(),
         idempotency_key: z.string().trim().min(1).max(200).optional(),
         engine: z.enum(['staged', 'pipeline', 'legacy', 'model_patch']).optional(),
-        ir: z.record(z.unknown()).optional(),
+        ir: z.record(z.string(), z.unknown()).optional(),
         kind: z.string().optional(),
         needsAuth: z.string().optional(),
         needsDb: z.string().optional(),

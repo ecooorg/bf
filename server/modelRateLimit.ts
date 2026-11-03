@@ -87,9 +87,23 @@ export async function waitForModelStart(modelId: string, opts: { signal?: AbortS
   if (waitMs <= 0) return 0;
   try { await opts.onWait?.(waitMs); } catch { /* UI/diagnostics must not block the request */ }
   if (opts.signal?.aborted) throw new Error('Model wait cancelled');
+  // P124.33: always remove the abort listener (timer path or abort path) so shared
+  // request signals do not accumulate listeners across many model waits.
   await new Promise<void>((resolve, reject) => {
-    const timer = setTimeout(() => { opts.signal?.removeEventListener('abort', onAbort); resolve(); }, waitMs);
-    const onAbort = () => { clearTimeout(timer); reject(new Error('Model wait cancelled')); };
+    let settled = false;
+    const onAbort = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      opts.signal?.removeEventListener('abort', onAbort);
+      reject(new Error('Model wait cancelled'));
+    };
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      opts.signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, waitMs);
     opts.signal?.addEventListener('abort', onAbort, { once: true });
   });
   return waitMs;

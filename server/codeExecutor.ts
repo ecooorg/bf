@@ -133,7 +133,7 @@ export const taskPackageSchema = z.object({
   limits: z.object({
     maxFiles: z.number().int().min(1).max(ABSOLUTE_MAX_FILES).default(DEFAULT_MAX_FILES),
     maxChangedLines: z.number().int().min(1).max(ABSOLUTE_MAX_CHANGED_LINES).default(DEFAULT_MAX_CHANGED_LINES),
-  }).strict().default({}),
+  }).strict().default({ maxFiles: DEFAULT_MAX_FILES, maxChangedLines: DEFAULT_MAX_CHANGED_LINES }),
   sensitivity: z.enum(['normal', 'high']).default('normal'),
 }).strict().superRefine((v, ctx) => {
   const seen = new Set<string>();

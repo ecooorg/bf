@@ -1,20 +1,20 @@
 /**
- * Keep-alive для Render (free tier засыпает после ~15 мин без входящего трафика).
+ * Keep-alive for Render (free tier sleeps after ~15 min without inbound traffic).
  *
- * Вместо ровного setInterval имитирует «визиты» живого человека:
- *  - случайный интервал 11–14 мин (колоколообразный, а не равномерный);
- *  - разные сценарии визита: открыл страницу + подтянул ассеты / дёрнул API / health;
- *  - реалистичные заголовки, «липкий» User-Agent, паузы между запросами;
- *  - при ошибке быстрые повторы, чтобы не пропустить окно в 15 минут.
+ * Instead of a flat setInterval, mimics human visits:
+ *  - random interval 11–14 min (bell-shaped, not uniform);
+ *  - varied visit scenarios: open page + pull assets / hit API / health;
+ *  - realistic headers, sticky User-Agent, pauses between requests;
+ *  - on error, faster retries so the 15-minute window is not missed.
  *
- * Пингует только публичные маршруты (без авторизации и без БД).
+ * Only public routes are pinged (no auth, no DB).
  */
 
 const MIN_GAP_MS = 11 * 60_000;
-const MAX_GAP_MS = 14 * 60_000; // строго < 15 мин, иначе сервис уснёт
+const MAX_GAP_MS = 14 * 60_000; // strictly < 15 min, otherwise the service sleeps
 const RETRY_MIN_MS = 40_000;
 const RETRY_MAX_MS = 90_000;
-const REQUEST_TIMEOUT_MS = 45_000; // запас на холодный старт
+const REQUEST_TIMEOUT_MS = 45_000; // margin for cold start
 
 const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -23,7 +23,7 @@ const USER_AGENTS = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
   'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
 ];
-const LANGUAGES = ['ru-RU,ru;q=0.9,en;q=0.8', 'en-US,en;q=0.9', 'uk-UA,uk;q=0.9,ru;q=0.8,en;q=0.7'];
+const LANGUAGES = ['en-US,en;q=0.9', 'de-CH,de;q=0.9,en;q=0.8', 'fr-CH,fr;q=0.9,en;q=0.8'];
 
 type Identity = { ua: string; lang: string };
 type Scenario = 'page' | 'api' | 'health';
@@ -31,7 +31,7 @@ type Scenario = 'page' | 'api' | 'health';
 const rnd = (min: number, max: number) => min + Math.random() * (max - min);
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-/** Среднее двух равномерных величин: чаще середина диапазона, редко края. */
+/** Average of two uniform draws: more often mid-range, rarely the edges. */
 function humanGap(): number {
   return (rnd(MIN_GAP_MS, MAX_GAP_MS) + rnd(MIN_GAP_MS, MAX_GAP_MS)) / 2;
 }
@@ -55,7 +55,7 @@ export function startKeepAlive(): () => void {
     new Promise<void>((resolve) => {
       if (ac.signal.aborted) return resolve();
       const t = setTimeout(resolve, ms);
-      t.unref(); // таймер не мешает корректному завершению процесса
+      t.unref(); // timer must not block process exit
       ac.signal.addEventListener('abort', () => { clearTimeout(t); resolve(); }, { once: true });
     });
 
@@ -73,12 +73,12 @@ export function startKeepAlive(): () => void {
       },
       signal: AbortSignal.any([ac.signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)]),
     });
-    // читаем тело целиком, чтобы соединение корректно освободилось
+    // Consume the body fully so the connection is released cleanly
     const text = kind === 'asset' ? (await res.arrayBuffer(), '') : await res.text();
     return { status: res.status, body: text };
   }
 
-  /** Один «визит». true — сервер ответил нормально (не 5xx). */
+  /** One visit. true when the server responded without a 5xx. */
   async function visit(): Promise<boolean> {
     if (Math.random() < 0.1) identity = { ua: pick(USER_AGENTS), lang: pick(LANGUAGES) };
     const scenario = pickScenario();
@@ -108,17 +108,17 @@ export function startKeepAlive(): () => void {
   }
 
   async function loop() {
-    console.log(`[KeepAlive] запущен, цель: ${baseUrl}`);
-    await sleep(rnd(60_000, 180_000)); // первый визит не сразу после старта
+    console.log(`[KeepAlive] started, target: ${baseUrl}`);
+    await sleep(rnd(60_000, 180_000)); // first visit is not immediately after boot
     while (!ac.signal.aborted) {
       const ok = await visit();
       if (ok) {
-        if (consecutiveFails > 0) console.log(`[KeepAlive] восстановлено после ${consecutiveFails} неудач`);
+        if (consecutiveFails > 0) console.log(`[KeepAlive] recovered after ${consecutiveFails} failures`);
         consecutiveFails = 0;
         await sleep(humanGap());
       } else {
         consecutiveFails++;
-        console.warn(`[KeepAlive] неудачный визит (#${consecutiveFails}), повтор через ~1 мин`);
+        console.warn(`[KeepAlive] failed visit (#${consecutiveFails}), retry in ~1 min`);
         await sleep(rnd(RETRY_MIN_MS, RETRY_MAX_MS));
       }
     }
