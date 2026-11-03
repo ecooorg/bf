@@ -56,7 +56,20 @@ GitHub Actions → **carousel-verify**:
 | Trigger | What runs |
 |---------|-----------|
 | PR / push touching carousel paths | Deterministic only |
-| Actions → Run workflow, `live=false` | Deterministic only |
-| Actions → Run workflow, `live=true` | Deterministic + live Gemini smoke |
+| Actions → Run workflow, `live=false` | Deterministic + public Render health/config probe |
+| Actions → Run workflow, `live=true` | Deterministic + Render probe + live model/search provider matrix |
 
-Repository secrets used for live: `GEMINI_API_KEY` (required), optional `GEMINI_API_KEY_1`… for pool size reporting / rotation path.
+Repository secrets used for live: `GEMINI_API_KEY` (required), optional `GEMINI_API_KEY_1`…`GEMINI_API_KEY_10`, `GROQ_API_KEY`, `SERPER_API_KEY`, and `JINA_API_KEY`. The primary Gemini key is used for the isolated latency samples; pool slot count is reported separately.
+
+
+## P124.31 — full latency and Render diagnostics
+
+The workflow **Model Carousel — Routing, Health and Live Smoke** now has three evidence layers:
+
+1. Deterministic routing, key-pool, source-health and bounded-latency tests.
+2. Optional live Gemini latency matrix: two short JSON samples per configured LIGHT model, with per-call latency, status, error class and aggregate min/median/max. This spends up to four tiny model calls; keep `live=false` when only checking configuration.
+3. Public Render health probe: `/health`, `/api/health`, `/ready`, and `/health/runtime-config`. The latter exposes sanitized non-secret runtime settings only. Search logs now include planner duration and per-provider/connector latency; the ops probe reports the effective shared model-start interval.
+
+Download the `carousel-diagnostics` artifact for the consolidated report and raw JSON/logs; `carousel-verify-live` and `carousel-verify-render` are also uploaded separately. No API key values, prompts, or model response bodies are written to artifacts.
+
+See `docs/RENDER_ENV_CONTRACT.md` for canonical Render values and mismatch handling. Current hard runtime limits are 12 s per model call, 30 s across search/planner plus generation for one conversational request, and 3 generation calls. Larger legacy Render values are clamped and reported as warnings.

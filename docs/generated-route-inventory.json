@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T21:38:22Z",
+  "generatedAt": "2026-11-03T14:48:04Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "sourceFiles": [
     "server.ts",
@@ -9,7 +9,7 @@
     "server/opsRoutes.ts",
     "server/projectRoutes.ts"
   ],
-  "count": 84,
+  "count": 86,
   "routes": [
     {
       "method": "GET",
@@ -39,6 +39,11 @@
     {
       "method": "POST",
       "path": "/api/conversation",
+      "file": "server.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/session-log",
       "file": "server.ts"
     },
     {
@@ -419,6 +424,11 @@
     {
       "method": "GET",
       "path": "/health",
+      "file": "server/healthRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/health/runtime-config",
       "file": "server/healthRoutes.ts"
     },
     {

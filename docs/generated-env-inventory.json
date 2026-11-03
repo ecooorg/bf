@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-02T10:29:12Z",
+  "generatedAt": "2026-11-03T14:48:04Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
-  "count": 68,
+  "count": 71,
   "variables": [
     {
       "name": "APP_BUILDER_ENGINE",
@@ -44,6 +44,13 @@
       "name": "APP_VERSION",
       "files": [
         "server/projectDiagnostics.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "BIFORGE_GEMINI_DIRECT_MODE",
+      "files": [
+        "server.ts"
       ],
       "fileCount": 1
     },
@@ -240,23 +247,23 @@
       "fileCount": 1
     },
     {
+      "name": "GROQ_PLAN",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "JINA_API_KEY",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "KEEP_ALIVE",
       "files": [
         "server/keepAlive.ts"
-      ],
-      "fileCount": 1
-    },
-    {
-      "name": "LLM_CALL_TIMEOUT_MS",
-      "files": [
-        "server.ts"
-      ],
-      "fileCount": 1
-    },
-    {
-      "name": "LLM_TOTAL_DEADLINE_MS",
-      "files": [
-        "server.ts"
       ],
       "fileCount": 1
     },
@@ -283,13 +290,6 @@
     },
     {
       "name": "MAX_BODY_BYTES",
-      "files": [
-        "server.ts"
-      ],
-      "fileCount": 1
-    },
-    {
-      "name": "MAX_MODEL_CALLS",
       "files": [
         "server.ts"
       ],
@@ -391,6 +391,13 @@
       "fileCount": 1
     },
     {
+      "name": "SERP2_API_KEY",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "SERPER_API_KEY",
       "files": [
         "server.ts",
@@ -420,25 +427,42 @@
       "fileCount": 1
     },
     {
-      "name": "WEB_SEARCH_FETCH_PAGES",
+      "name": "WEATHER_CONNECTOR_CONTACT",
       "files": [
-        "server/webSearch.ts"
+        "server/weatherConnector.ts"
       ],
       "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_DEFAULT_COUNTRY",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "WEB_SEARCH_FETCH_PAGES",
+      "files": [
+        "server.ts",
+        "server/webSearch.ts"
+      ],
+      "fileCount": 2
     },
     {
       "name": "WEB_SEARCH_MAX_PAGES",
       "files": [
+        "server.ts",
         "server/webSearch.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "WEB_SEARCH_MAX_QUERIES",
       "files": [
+        "server.ts",
         "server/webSearch.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "WEB_SEARCH_MODE",

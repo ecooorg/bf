@@ -25,6 +25,10 @@ For a changed endpoint, provide: contract tests for success and failure, authori
 `GET /api/projects/diagnostics/session-log` is available behind the existing Project Mode authentication and rate-limit boundary. It returns `text/plain; charset=utf-8`, selecting the latest retained non-diagnostic operation and correlating its retained operation events and application logs. The bounded report includes runtime identity, system-check results, event chronology, error metadata, log provenance, and explicit limits. It excludes prompts, generated source, request/response bodies, credentials, and cookies. Missing or expired evidence is labelled rather than inferred. The endpoint does not create or download an archive.
 
 
+## Sanitized runtime configuration diagnostics (P124.31)
+
+`GET /health/runtime-config` is a public, read-only operational endpoint. It returns the running version/commit and a sanitized allowlist of non-secret effective settings used by the model router, search chain, feature switches, worker polling and credential-presence booleans. It MUST NOT return credential values, prompts, user data, database URLs, session material, or raw environment dumps. This endpoint exists so the Model Carousel workflow can compare the deployed Render runtime with the repository's documented contract.
+
 ## Generated route index (source inventory, not a complete API schema)
 
 The table below is generated from `docs/generated-route-inventory.json`. It prevents routes from disappearing from the documentation map, but it does **not** claim that every endpoint has a fully specified request/response schema, auth matrix, or error catalogue. Until each row receives a detailed contract, use the implementation source and `TECHNICAL_SPECIFICATION.md` §4 as the authoritative behavior; do not infer a missing contract from this index.
@@ -38,6 +42,7 @@ The table below is generated from `docs/generated-route-inventory.json`. It prev
 | `POST` | `/api/analyze-full` | `server/compatibilityRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/attach` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/conversation` | `server.ts` | Source inventory only; detailed request/response schema pending |
+| `GET` | `/api/diagnostics/session-log` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/evpi` | `server/compatibilityRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/expand` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/experiment-draft` | `server.ts` | Source inventory only; detailed request/response schema pending |
@@ -114,6 +119,7 @@ The table below is generated from `docs/generated-route-inventory.json`. It prev
 | `POST` | `/api/understand` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/webhooks/github` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/health` | `server/healthRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `GET` | `/health/runtime-config` | `server/healthRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/ops` | `server/opsRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/ready` | `server/healthRoutes.ts` | Source inventory only; detailed request/response schema pending |
 <!-- END GENERATED ROUTE INDEX -->
