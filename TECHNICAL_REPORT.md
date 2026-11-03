@@ -2,6 +2,8 @@
 
 Product version `124`, patch `124.22`. Documentation-only.
 
+- **OBSERVED-LOG (CI):** run 41600406096 failed 6 tests, all from `lint:copy` reporting Cyrillic in `docs/biforge-web-search-analysis.md`. **Fix applied:** the file is now English (banner marks it auxiliary and non-governing). `npm run lint:copy` and `docs:integrity` re-run locally: see chat; hosted CI `NOT_RUN`.
+
 - **OBSERVED-LOG / OBSERVED-SRC / REPRODUCED:** search is enabled and reaches the model, but the digest loses sub-queries to a fixed character budget, drops snippets once any page is fetched, favours wrong-country pages, fixes `hl=en, gl=us`, and never checks usability before marking `used`; the number validator throws on values such as `+8`; the search trigger fires for 9 of 26 realistic live questions; all ten Gemini key slots returned quota errors in one window; production runs the pipeline, not direct mode. Full register: `docs/WEB_SEARCH_REMEDIATION.md`.
 - **OBSERVED-SRC:** five environment variables set on the host (`SEARCH_CAROUSEL`, `SERPER_ENABLED`, `BIFORGE_ENABLE_WEB_SEARCH`, `JINA_API_KEY`, `JINA_READER_BASE_URL`) are not read by any source file. The Simple-mode diagnostic button exports a Project-Mode-oriented log.
 - **INFERRED:** the ten Gemini keys share project-level quota; the process restarts (138 starts in about 37 hours) come from a mix of deploys, host sleep, and possibly crashes; the commit difference between diagnostics (`7ad970d`) and the supplied deploy log (`9db8a51`) reflects a later deploy.
