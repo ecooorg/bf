@@ -1,3 +1,10 @@
+## P124.25 (retrieval integrity) — R-1, R-2, R-5 (2026-11-03)
+
+Product version `124`, patch `124.25` (unchanged by owner decision).
+
+- **REPRODUCED (local, unit):** `tests/p124-25-retrieval-integrity.test.mjs` — four 4400-character sub-queries now all appear in the digest (R-1); snippets survive when pages are downloaded (R-2); home pages, already-claimed URLs and different-ccTLD sources are not fetched; `JINA_API_KEY` becomes a bearer header. Related suites (`web-and-epistemics`, `p124-23`, `p124-24`, `redact-secrets`) and `tsc` pass.
+- **NOT_RUN:** live Serper/Jina/Gemini, hosted CI, the Zurich acceptance scenario (A1). **INFERRED:** quality of the real digest improves; not measured. Country filtering is inactive until P124.26 supplies the country.
+
 ## P124.25 — Benign ResizeObserver notice no longer stops the UI (2026-11-03)
 
 Product version `124`, patch `124.25`.

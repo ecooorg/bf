@@ -1,3 +1,12 @@
+## P124.25 (retrieval integrity) — Fair digest budget, snippets kept, usable page selection (2026-11-03)
+
+- Same patch number 124.25 as the entry below (owner decision, keeps the section 8 numbering). Closes R-1, R-2, R-5 of `docs/WEB_SEARCH_REMEDIATION.md`.
+- `server/webSearch.ts`: `mergeWebSearchResults` splits the 5000-character budget fairly between sub-queries (`fairDigestShares`, cut at line/sentence boundary) instead of truncating the concatenation, so later sub-queries are no longer dropped (R-1). `digestFromPageExtracts` keeps snippets/answerBox as a bounded `SEARCH SNIPPETS` block next to page bodies (R-2).
+- Page selection (R-5): `pickUrlsToFetch` skips home pages (`isHomePageUrl`), skips URLs already opened by a sibling sub-query (shared `claimed` set in `fetchSerperDigestMulti`), and accepts an optional `country`; sources with a different ccTLD are dropped (`sourceCountry`; generic TLDs stay). `weather.gov`/`noaa.gov` removed from the global preferred hosts. No country or host lists added; the `country` value is supplied by the geocoder in P124.26 (until then no country filtering).
+- Jina Reader: `JINA_API_KEY` is sent as a bearer header when set; `JINA_READER_BASE_URL` is honoured only if https. `JINA_API_KEY` added to `SECRET_ENV_NAMES` (`server/redact.ts`).
+- Tests: `tests/p124-25-retrieval-integrity.test.mjs` (in `test:core`). No UI, routes, or prompts changed (G4 not applicable).
+- Live Serper/Jina/Gemini and hosted CI `NOT_RUN`. Not done here (other patches): query/locale (P124.26), key pool (P124.27), usability check (P124.26).
+
 ## P124.25 — Emergency screen ignores benign ResizeObserver notices (2026-11-03)
 
 - Owner screenshot (Chrome/Android, 10:40): the critical-error screen appeared for `ResizeObserver loop completed with undelivered notifications`, a harmless browser notice about a deferred layout measurement, not an application failure.
