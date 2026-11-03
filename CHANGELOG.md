@@ -1,3 +1,11 @@
+## P124.36 — Cross-mode header and More-menu parity (2026-11-03)
+
+- Conversational and Expert now expose decision brief and delete-dialogue actions under the same context-aware conditions; these actions are no longer hidden solely because the user is in Conversational mode.
+- The chat header exposes an Architect workspace shortcut when Architect is enabled.
+- Architect's top bar now includes New and History shortcuts. They route to the shared conversation workspace with explicit one-shot session flags; New creates a fresh conversation and History opens the existing history panel.
+- Architect More now exposes a route to the shared conversation workspace for import/export, saved texts and AI-key management. Existing Architect diagnostics, Drive save, guide and sign-out actions remain intact.
+- Added a menu parity regression suite. Targeted test: 4/4 PASS. Full typecheck, build, browser E2E, hosted CI and live UI checks are NOT_RUN in this environment.
+
 ## P124.35 — Cross-domain context recovery and evidence relevance (2026-11-03)
 
 - Generalized follow-up resolution across unrelated information domains. Search continuation carries forward only the immediately preceding user task when that turn represents a recent/live lookup; unrelated topic changes do not inherit stale entities.

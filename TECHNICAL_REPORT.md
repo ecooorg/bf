@@ -1,3 +1,11 @@
+## P124.36 — Cross-mode header and More-menu parity (2026-11-03)
+
+- **IMPLEMENTED (source):** Conversational and Expert share the same context-aware decision brief and delete-dialogue menu actions. Architect is reachable from the chat header when enabled.
+- **IMPLEMENTED (source):** Architect header adds New and History navigation into the conversation shell. One-shot session flags are consumed by the chat shell; New creates a fresh conversation and History opens the existing history panel. Architect More links to the shared conversation workspace for import/export, saved texts and AI-key management; Architect diagnostics, Drive save, guide and sign-out remain available.
+- **TESTS PASS (local):** `node --test tests/p124-36-unified-mode-menus.test.mjs` — 4/4.
+- **NOT_RUN:** TypeScript check, production build, existing browser E2E, hosted GitHub Actions, deployed UI and user-level validation. The sandbox has no installed `node_modules`; source-contract tests do not prove browser behavior.
+- **G4 UI impact:** visible steps changed: (1) Architect header New → chat shell creates new conversation; (2) Architect header History → chat shell opens History; (3) Architect More → conversation workspace; (4) chat header Architect workspace → `/project`; (5) Conversational/Expert More → Brief/Delete for the active dialogue. New `data-testid`s: `architect-new-conversation`, `architect-conversation-history`, `architect-conversation-tools`. Existing Architect completion surface and its test IDs were not modified; whether browser E2E still reaches completion is **NOT_RUN** because browser E2E was not run.
+
 ## P124.35 — Cross-domain context recovery and evidence relevance (2026-11-03)
 
 - **IMPLEMENTED (source):** `server/webSearch.ts` now resolves recognizable follow-ups against only the immediately preceding user task. It preserves prior task/entities for continuation requests, does not carry context across an intervening unrelated user turn, and returns a deterministic contextual plan when the search planner is unavailable or throws. Personal-data exclusion is applied to deterministic fallback queries.
