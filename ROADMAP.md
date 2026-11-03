@@ -16,7 +16,7 @@ Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIO
 
 - [x] P124.22 documentation: audit, decisions, programme recorded (documentation checks only).
 - [x] P124.23 number-validator crash fix and persistent search-decision logging (V-1, O-1). Unit evidence only; live run `NOT_RUN`.
-- [ ] P124.24 Simple/Expert diagnostic log separation, configuration snapshot, build-stamp, restart-reason logging.
+- [x] P124.24 Simple/Expert diagnostic log separation, configuration snapshot, build-stamp, restart-reason logging. Unit evidence only; live run `NOT_RUN`.
 - [ ] P124.25 retrieval integrity: fair digest budget, snippet preservation, page selection (R-1, R-2, R-5).
 - [ ] P124.26 query cleaning, country-aware locale, usability check, honest search status, evidence contract (R-3, R-4, R-6, P-1, P-2, T-3).
 - [ ] P124.27 unified Gemini key pool, pipeline as single path, verifier opt-in (K-2…K-5, E-1, A-1).

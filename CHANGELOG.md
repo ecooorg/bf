@@ -1,3 +1,13 @@
+## P124.24 — Conversation diagnostic log, configuration snapshot, restart reasons (2026-11-03)
+
+- `server/conversationDiagnostics.ts`: `GET /api/diagnostics/session-log` (Simple/Expert header button) now returns a conversation-oriented log instead of the Project Mode log: version/patch/commit, build stamp, process and memory, boot history with `previousShutdown`, configuration snapshot, set-but-unused variable names, search decisions, conversation responses, warnings/errors, conversation HTTP. Project Mode keeps `compactSessionLog` on its own route (item 1).
+- `server/diagnosticsConfig.ts`: configuration snapshot under the owner secret rule: non-secret values in full; secrets only as `set / length / 8-hex SHA-256 fingerprint`, no partial key material (item 5). Unused-variable scan by name (numbered slots such as `GEMINI_API_KEY_3` count via their base name); reported `NOT_VERIFIED` when source files are absent at runtime.
+- `scripts/write-build-stamp.mjs` (run first in `npm run build`; output `build-stamp.json`, git-ignored): the log compares the build-stamp commit with the runtime commit (`MATCH`/`MISMATCH`/`UNKNOWN`/`NO_STAMP`) (item 3).
+- `server/processLifecycle.ts`: heartbeat record in the OS temp directory, graceful (SIGTERM/SIGINT), crash (`uncaughtExceptionMonitor`), and exit reasons; the next boot classifies the previous stop (`graceful:*`, `crash:*`, `oom_suspected`, `killed_without_record`, `no_record`). `process_boot` now carries `previousShutdown`, uptime, RSS, heap, container memory limit, commit (item 8). Listeners are observers and do not change Node's exit behaviour.
+- Tests: `tests/p124-24-diagnostics.test.mjs` (in `test:core`). Version/patch 124.24.
+- **G4 statement:** no UI file changed. The header log button, its `fetch('/api/diagnostics/session-log')`, and all `data-testid`s are untouched; only the server payload differs, so existing browser e2e reach the same completion surfaces. The route stays behind global API authentication.
+- Live deployment, hosted CI, and a real restart-reason observation `NOT_RUN`. The restart cause itself is not yet known; this patch only records evidence.
+
 ## P124.23 — Number gate cannot crash answers; search decisions persisted (2026-11-03)
 
 - `src/numberValidator.ts`: `inputHasPercentValue` strips the sign and accepts digits only, so values such as `+8` no longer produce `SyntaxError: Nothing to repeat` (V-1). New `safeValidateNumbers` wraps the diagnostic gate; an exception is logged as `number_validator_error` (warn) and the answer is kept. `server.ts` uses it at both call sites.

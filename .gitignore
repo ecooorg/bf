@@ -5,6 +5,7 @@ ui-welcome-*.png
 
 # Compiled production server output
 dist-server/
+build-stamp.json
 
 # Generated patch-delivery artifacts
 patch-logs/

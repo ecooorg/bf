@@ -14,7 +14,9 @@ import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
 import { collectAllowedFromInput, safeValidateNumbers } from './src/numberValidator.ts';
 
 import { APP_VERSION } from './src/config.ts';
-import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog, compactSessionLog } from './server/projectDiagnostics.ts';
+import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
+import { conversationSessionLog } from './server/conversationDiagnostics.ts';
+import { startLifecycle } from './server/processLifecycle.ts';
 
 function reportNumberValidatorError(error: unknown, stage: string): void {
   void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'number_validator_error', message: 'Number validator threw; the diagnostic gate was skipped and the answer was kept', error, details: { stage } });
@@ -70,7 +72,8 @@ import { readLatencyPolicy, shouldSkipQualityRetry, trimOlderAssistantMessages, 
 import { securityHeadersMiddleware } from './server/securityHeaders.ts';
 
 dotenv.config();
-void recordApplicationLog({ level: 'info', component: 'runtime', event: 'process_boot', message: 'BiForge server process initialized', details: { node: process.version, nodeEnv: process.env.NODE_ENV || 'development', appVersion: APP_VERSION, projectModeEnabled: process.env.ENABLE_PROJECT_MODE === 'true', appBuilderEngine: process.env.APP_BUILDER_ENGINE || 'legacy', hasDatabaseUrl: Boolean(process.env.DATABASE_URL), hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) } });
+const lifecycle = startLifecycle({ commit: buildCommit(), appVersion: APP_VERSION });
+void recordApplicationLog({ level: 'info', component: 'runtime', event: 'process_boot', message: 'BiForge server process initialized', details: { previousShutdown: lifecycle.boot.previous.reason, previousShutdownDetail: lifecycle.boot.previous, bootId: lifecycle.boot.bootId, uptimeSec: lifecycle.boot.uptimeSec, rssMb: lifecycle.boot.rssMb, heapUsedMb: lifecycle.boot.heapUsedMb, memoryLimitMb: lifecycle.boot.memoryLimitMb, commit: buildCommit(), node: process.version, nodeEnv: process.env.NODE_ENV || 'development', appVersion: APP_VERSION, projectModeEnabled: process.env.ENABLE_PROJECT_MODE === 'true', appBuilderEngine: process.env.APP_BUILDER_ENGINE || 'legacy', hasDatabaseUrl: Boolean(process.env.DATABASE_URL), hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) } });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -358,7 +361,7 @@ app.use((req, res, next) => {
 
 // Shared diagnostics endpoint for Simple and Expert mode. The global /api auth middleware above protects it.
 app.get('/api/diagnostics/session-log', async (_req, res) => {
-  try { res.type('text/plain; charset=utf-8').send(await compactSessionLog()); }
+  try { res.type('text/plain; charset=utf-8').send(await conversationSessionLog()); }
   catch (error) { res.status(500).type('text/plain; charset=utf-8').send(`Diagnostic log unavailable: ${String((error as Error)?.message || error).slice(0, 240)}`); }
 });
 
@@ -2375,8 +2378,8 @@ async function start() {
     await new Promise<void>((resolve) => { if (httpServer) { httpServer.close(() => resolve()); (httpServer as any).closeAllConnections?.(); } else resolve(); });
     process.exit(0);
   };
-  process.once('SIGTERM', () => { void shutdown(); });
-  process.once('SIGINT', () => { void shutdown(); });
+  process.once('SIGTERM', () => { lifecycle.markShutdown('SIGTERM'); void shutdown(); });
+  process.once('SIGINT', () => { lifecycle.markShutdown('SIGINT'); void shutdown(); });
   if (NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({

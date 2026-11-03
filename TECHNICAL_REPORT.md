@@ -1,3 +1,12 @@
+## P124.24 — Diagnostics separation, snapshot, restart evidence (2026-11-03)
+
+Product version `124`, patch `124.24`.
+
+- **OBSERVED-SRC:** the Simple/Expert header button now reaches a conversation log; Project Mode's route is unchanged. Secrets are exported only as set/length/fingerprint; the unit test asserts no key fragment appears. Restart evidence (previous-shutdown reason, uptime, memory, container limit) is written at boot.
+- **REPRODUCED (local, Node strip-types):** `tests/p124-24-diagnostics.test.mjs` 7/7 pass (snapshot rule, unused-name scan, shutdown classification, lifecycle round trip, memory limit, build stamp, wiring).
+- **NOT_RUN:** `conversationSessionLog()` against a live database, `npm run build` with the stamp step, typecheck, hosted CI, deployment. The temp-directory lifecycle file survives process restarts but not a new container; `no_record` then means "fresh filesystem", not "first ever start".
+- **Open:** cause of the ~138 starts is still unknown (needs real `previousShutdown` data after deploy). Remaining findings per `docs/WEB_SEARCH_REMEDIATION.md`.
+
 ## P124.23 — V-1 fix and persistent search-decision logging (2026-11-03)
 
 Product version `124`, patch `124.23`.
