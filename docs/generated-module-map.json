@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-03T09:01:03.667Z",
+  "generatedAt": "2026-11-03T12:41:16.164Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 178,
-    "edgeCount": 445,
+    "moduleCount": 180,
+    "edgeCount": 448,
     "cycleCount": 0,
-    "totalLines": 33383
+    "totalLines": 34328
   },
   "cycles": [],
   "layers": {
-    "server": 81,
+    "server": 83,
     "src": 83,
     "other": 14
   },
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2407,
+      "lines": 2457,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -176,6 +176,7 @@
         "server/gateEngine.ts",
         "server/gateService.ts",
         "server/geminiAdapter.ts",
+        "server/geminiKeyPool.ts",
         "server/githubIntegration.ts",
         "server/healthRoutes.ts",
         "server/intentFlags.ts",
@@ -471,7 +472,7 @@
     {
       "path": "server/epistemicVerifier.ts",
       "layer": "server",
-      "lines": 150,
+      "lines": 156,
       "imports": [
         "server/adapter.ts",
         "server/conversationMode.ts",
@@ -536,6 +537,15 @@
       "fanIn": 2
     },
     {
+      "path": "server/geminiKeyPool.ts",
+      "layer": "server",
+      "lines": 166,
+      "imports": [
+        "server/keyPool.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/githubIntegration.ts",
       "layer": "server",
       "lines": 371,
@@ -582,7 +592,7 @@
       "layer": "server",
       "lines": 116,
       "imports": [],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "server/latencyPolicy.ts",
@@ -819,7 +829,7 @@
     {
       "path": "server/redact.ts",
       "layer": "server",
-      "lines": 119,
+      "lines": 120,
       "imports": [
         "server/keyPool.ts"
       ],
@@ -932,11 +942,19 @@
       "fanIn": 1
     },
     {
+      "path": "server/weatherConnector.ts",
+      "layer": "server",
+      "lines": 261,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 910,
+      "lines": 1359,
       "imports": [
-        "server/untrustedData.ts"
+        "server/untrustedData.ts",
+        "server/weatherConnector.ts"
       ],
       "fanIn": 1
     },
@@ -1406,7 +1424,7 @@
     {
       "path": "src/emergencyDiagnostics.ts",
       "layer": "src",
-      "lines": 113,
+      "lines": 125,
       "imports": [],
       "fanIn": 2
     },
@@ -1917,19 +1935,19 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2407
+      "lines": 2457
     },
     {
       "path": "src/ExpertStepScreens.tsx",
       "lines": 1756
     },
     {
-      "path": "server/codeTaskService.ts",
-      "lines": 951
+      "path": "server/webSearch.ts",
+      "lines": 1359
     },
     {
-      "path": "server/webSearch.ts",
-      "lines": 910
+      "path": "server/codeTaskService.ts",
+      "lines": 951
     },
     {
       "path": "server/projectRoutes.ts",
