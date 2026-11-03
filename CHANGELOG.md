@@ -1,3 +1,11 @@
+## P124.29 — Gated weather connector and result cache (2026-11-03)
+
+- Closes R-7 of `docs/WEB_SEARCH_REMEDIATION.md` where enabled; patch 124.29 (`package.json`). Live evidence `NOT_RUN`.
+- `server/weatherConnector.ts` (new): Open-Meteo geocoding (ISO country from the plan filters candidates; same-name alternatives named), Open-Meteo forecast and MET Norway locationforecast fetched in parallel-tolerant fashion (one may fail), seven-day daily min/max, model time (`observedAt`), units converted from the plan country, discrepancy of 2 C or more named, attribution line, data labelled as model output. In-memory cache: weather and geocoding 10 minutes, failures never cached.
+- `server/webSearch.ts`: `planAndSearchSerper` starts the connector in parallel with the SERP search only when `WEATHER_CONNECTOR_ENABLED=true` and the plan has a place and weather wording; `combineWeatherWithSearch` puts connector evidence first and merges it with the SERP digest (a failed SERP leaves the connector evidence; a failed connector changes nothing).
+- Off by default; `WEATHER_CONNECTOR_ENABLED=true` is the deployment's declaration of non-commercial use (owner decision 4). `.env.example` now also lists `WEB_SEARCH_PLANNER` and `WEB_SEARCH_DEFAULT_COUNTRY`. `docs/generated-module-map.json` regenerated.
+- Tests: `tests/p124-29-weather-connector.test.mjs` (in `test:core`). No UI, routes or `data-testid` changed (G4 not applicable).
+
 ## P124.28 — Search planner over the dialogue; key-ownership fact (2026-11-03)
 
 - Closes T-1 and T-2 of `docs/WEB_SEARCH_REMEDIATION.md` in code; patch 124.28 (`package.json`). Live evidence `NOT_RUN`.

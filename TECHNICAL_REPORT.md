@@ -1,3 +1,11 @@
+## P124.29 — R-7 weather connector and cache (2026-11-03)
+
+Product version `124`, patch `124.29`.
+
+- **REPRODUCED (local, unit, injected fetch):** `tests/p124-29-weather-connector.test.mjs` — switch off by default; geocoder candidate filtered by plan country; both providers, model time, unit conversion, discrepancy naming, attribution; 10-minute cache hit/expiry and no cached failures; one or both providers failing; merge with the SERP result. Typecheck, `architecture:check`, `lint:copy`, `docs:integrity`, `test:files`, `test:pipeline` pass locally.
+- **NOT_RUN:** live Open-Meteo / MET Norway (response shapes follow the providers' documented JSON from memory, `NOT_VERIFIED` against the live APIs), terms of use re-reading, accuracy against station data, hosted CI, full `test:core`.
+- Known limits: MET Norway daily values come from hourly temperatures only (no precipitation); partial first and last days; in-memory cache is per process and lost on restart.
+
 ## P124.28 — T-1, T-2 and key-ownership fact (2026-11-03)
 
 Product version `124`, patch `124.28`.
