@@ -105,7 +105,7 @@ export type SearchProvider = {
   /** Budget units spent by one finished call (default 1). Serper spends one credit per sub-query. */
   units?: (r: WebSearchResult) => number;
 };
-export type ChainAttempt = { provider: string; outcome: 'used' | 'used_weak' | 'no_relevant_data' | 'failed' | 'no_grounding' | 'skipped'; detail?: string };
+export type ChainAttempt = { provider: string; outcome: 'used' | 'used_weak' | 'no_relevant_data' | 'failed' | 'no_grounding' | 'skipped'; detail?: string; latencyMs?: number };
 
 const RANK: Record<string, number> = { used: 5, used_weak: 4, no_relevant_data: 3, no_grounding: 2, failed: 1, skipped: 0 };
 
@@ -122,12 +122,25 @@ export async function runSearchCarousel(opts: {
   budget: SearchBudget;
   /** Started by the caller (parallel with the chain); merged into the first-query result of every provider. */
   connector?: Promise<WebSearchResult | null>;
+  connectorStartedAt?: number;
+  deadlineAt?: number;
 }): Promise<WebSearchResult> {
   const attempts: ChainAttempt[] = [];
   let best: WebSearchResult | null = null;
   const weatherP = opts.connector ?? Promise.resolve(null);
+  const addConnectorAttempt = async () => {
+    if (!opts.connector || attempts.some((a) => a.provider === 'connector')) return;
+    const weather = await weatherP;
+    attempts.unshift({ provider: 'connector', outcome: weather?.status === 'used' || weather?.status === 'used_weak' ? weather.status : 'skipped',
+      ...(weather?.reason ? { detail: String(weather.reason).slice(0, 80) } : !weather ? { detail: 'no_connector_result' } : {}),
+      latencyMs: Math.max(0, Date.now() - (opts.connectorStartedAt ?? Date.now())) });
+  };
   for (const id of opts.order) {
     if (id === 'connector') continue;
+    if (opts.deadlineAt !== undefined && Date.now() >= opts.deadlineAt) {
+      attempts.push({ provider: id, outcome: 'skipped', detail: 'request_deadline' });
+      continue;
+    }
     const p = opts.providers[id];
     if (!p) { attempts.push({ provider: id, outcome: 'skipped', detail: 'not_configured' }); continue; }
     const why = p.unavailable?.();
@@ -135,6 +148,7 @@ export async function runSearchCarousel(opts: {
     if (!opts.breaker.allow(id)) { attempts.push({ provider: id, outcome: 'skipped', detail: 'circuit_open' }); continue; }
     if (!opts.budget.allows(id)) { opts.breaker.neutral(id); attempts.push({ provider: id, outcome: 'skipped', detail: 'search_budget_exhausted' }); continue; }
     let r: WebSearchResult;
+    const providerStartedAt = Date.now();
     try {
       r = await searchWithUsability(opts.plan, async (q, c) => {
         const raw = await p.search(q, c, opts.plan);
@@ -146,14 +160,15 @@ export async function runSearchCarousel(opts: {
     }
     const kind = classifyProviderFailure(r);
     if (kind === 'none') { if (r.status === 'used' || r.status === 'used_weak') opts.breaker.success(id); else opts.breaker.neutral(id); } else opts.breaker.failure(id, kind);
-    attempts.push({ provider: id, outcome: r.status as ChainAttempt['outcome'], detail: r.reason ? String(r.reason).slice(0, 80) : undefined });
+    attempts.push({ provider: id, outcome: r.status as ChainAttempt['outcome'], detail: r.reason ? String(r.reason).slice(0, 80) : undefined, latencyMs: Date.now() - providerStartedAt });
     const tagged = { ...r, provider: id } as WebSearchResult;
     if (!best || (RANK[r.status] ?? 0) > (RANK[best.status] ?? 0)) best = tagged;
-    if (r.status === 'used' || r.status === 'used_weak') return { ...tagged, chain: attempts };
+    if (r.status === 'used' || r.status === 'used_weak') { await addConnectorAttempt(); return { ...tagged, chain: attempts }; }
   }
-  if (best) return { ...best, chain: attempts };
+  if (best) { await addConnectorAttempt(); return { ...best, chain: attempts }; }
   // Nothing ran. A connector result alone still counts as evidence.
   const w = await weatherP;
+  await addConnectorAttempt();
   if (w) return { ...w, provider: 'connector', plan: opts.plan, chain: attempts };
   const quota = attempts.some((a) => /_http_(402|429)|quota|budget/i.test(a.detail || ''));
   return { ...skippedWebSearch('failed', `all_providers_unavailable${quota ? ':quota' : ''}`), plan: opts.plan, chain: attempts };

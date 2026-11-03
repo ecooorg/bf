@@ -15,9 +15,11 @@ export interface HealthRouteOptions {
   distDirectory: string;
   skipDistHealthcheck?: boolean;
   isDatabaseReady?: () => Promise<boolean>;
+  /** Sanitized operational settings only; never include credentials or user data. */
+  runtimeConfig?: Record<string, unknown> | (() => Record<string, unknown>);
 }
 
-/** Register the stable public liveness/readiness and authenticated diagnostic contracts. */
+/** Register public liveness/readiness, sanitized runtime config, and authenticated API health contracts. */
 export function registerHealthRoutes(app: Express, options: HealthRouteOptions): void {
   app.get('/health', (_req, res) => {
     if (options.nodeEnv === 'production' && !options.skipDistHealthcheck &&
@@ -25,6 +27,11 @@ export function registerHealthRoutes(app: Express, options: HealthRouteOptions):
       return res.status(503).json({ status: 'error', version: options.appVersion, commit: options.commit || 'unknown', code: 'DIST_MISSING' });
     }
     return res.json({ status: 'ok', version: options.appVersion, commit: options.commit || 'unknown' });
+  });
+
+  app.get('/health/runtime-config', (_req, res) => {
+    const runtimeConfig = typeof options.runtimeConfig === 'function' ? options.runtimeConfig() : (options.runtimeConfig || {});
+    return res.json({ status: 'ok', version: options.appVersion, commit: options.commit || 'unknown', runtimeConfig });
   });
 
   app.get('/ready', async (_req, res) => {

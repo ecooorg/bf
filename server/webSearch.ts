@@ -35,7 +35,7 @@ export type WebSearchResult = {
   usability?: { verdict: 'ok' | 'weak' | 'none'; hasNumber: boolean; placeMatched: boolean | null; retried: boolean };
   /** P124.30: provider that produced the result and the provider-chain trace (non-secret). */
   provider?: string;
-  chain?: { provider: string; outcome: string; detail?: string }[];
+  chain?: { provider: string; outcome: string; detail?: string; latencyMs?: number }[];
 };
 
 /** Flat, secret-free record of one search decision for `recordApplicationLog` (hosts only, never full URLs). */
@@ -166,11 +166,13 @@ export function searchPlannerGate(o: SearchTriggerInput): boolean {
   if (!o.enabled || o.distress) return false;
   if (String(o.triage || '').toUpperCase() === 'CRISIS') return false;
   if (o.intent === 'DOCUMENT') return false;
-  if (String(o.userText || '').trim().length < 8) return false;
+  const text = String(o.userText || '').trim();
+  if (text.length < 8) return false;
   if (o.userAskedSearch) return true;
   if (o.hasAttachments) return false;
-  if ((o.mode || 'auto') === 'explicit') return Boolean(o.recentSearchIntent);
-  return true;
+  // Do not pay for a planner model call on ordinary conversation turns. The planner
+  // only arbitrates candidates already admitted by the deterministic search trigger.
+  return shouldSearchWeb(o);
 }
 
 /** WEB_SEARCH_PLANNER=false switches the planner off (heuristics only). On by default. */
