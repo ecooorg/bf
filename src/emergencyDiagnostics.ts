@@ -91,8 +91,20 @@ function showEmergencyScreen() {
   root.replaceChildren(panel);
 }
 
+/**
+ * Browser notices that are not failures: Chrome reports a ResizeObserver delivery that was deferred to the next frame
+ * as a window error, but nothing is broken and the UI keeps working.
+ */
+export function isBenignBrowserNotice(message: unknown): boolean {
+  return /^\s*(?:Uncaught\s+)?(?:Error:\s*)?ResizeObserver loop (?:completed with undelivered notifications|limit exceeded)/i.test(String(message ?? ''));
+}
+
 export function installEmergencyDiagnostics() {
   window.addEventListener('error', (event) => {
+    if (!(event.target instanceof Element) && isBenignBrowserNotice(event.message || (event.error as Error | undefined)?.message)) {
+      event.stopImmediatePropagation();
+      return;
+    }
     // Resource-load errors target an Element; ordinary window errors target Window.
     // Narrow by runtime type instead of comparing incompatible DOM types.
     const target = event.target instanceof Element ? event.target : null;
