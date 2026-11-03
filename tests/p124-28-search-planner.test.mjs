@@ -7,7 +7,7 @@ import {
   shouldSearchWeb, planAndSearchSerper,
 } from '../server/webSearch.ts';
 
-const sets = JSON.parse(readFileSync(new URL('./fixtures/search-decision-sets.json', import.meta.url), 'utf8'));
+const sets = JSON.parse(readFileSync(new URL('./search-decision-sets.json', import.meta.url), 'utf8'));
 const j = (o) => JSON.stringify(o);
 const client = (fn) => ({ models: { generateContent: async (a) => { const t = await fn(a); if (t instanceof Error) throw t; return { text: t }; } } });
 const lastUser = (a) => String(a.contents).split('LAST USER MESSAGE:\n')[1] || '';
