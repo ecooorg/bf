@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-03T12:41:16.164Z",
+  "generatedAt": "2026-11-03T13:37:26.941Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 180,
-    "edgeCount": 448,
+    "moduleCount": 181,
+    "edgeCount": 451,
     "cycleCount": 0,
-    "totalLines": 34328
+    "totalLines": 34486
   },
   "cycles": [],
   "layers": {
-    "server": 83,
+    "server": 84,
     "src": 83,
     "other": 14
   },
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2457,
+      "lines": 2450,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -197,11 +197,13 @@
         "server/projectRoutes.ts",
         "server/reasoningState.ts",
         "server/router.ts",
+        "server/searchCarousel.ts",
         "server/security.ts",
         "server/securityHeaders.ts",
         "server/sourceHealth.ts",
         "server/taskService.ts",
         "server/turnFocus.ts",
+        "server/weatherConnector.ts",
         "server/webSearch.ts",
         "server/worker.ts",
         "src/config.ts",
@@ -869,6 +871,15 @@
       "fanIn": 7
     },
     {
+      "path": "server/searchCarousel.ts",
+      "layer": "server",
+      "lines": 161,
+      "imports": [
+        "server/webSearch.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/security.ts",
       "layer": "server",
       "lines": 91,
@@ -946,17 +957,17 @@
       "layer": "server",
       "lines": 261,
       "imports": [],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 1359,
+      "lines": 1363,
       "imports": [
         "server/untrustedData.ts",
         "server/weatherConnector.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/worker.ts",
@@ -1935,7 +1946,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2457
+      "lines": 2450
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1943,7 +1954,7 @@
     },
     {
       "path": "server/webSearch.ts",
-      "lines": 1359
+      "lines": 1363
     },
     {
       "path": "server/codeTaskService.ts",
