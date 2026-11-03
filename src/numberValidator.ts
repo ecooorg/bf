@@ -119,7 +119,9 @@ function isGenericWordNumberContext(text: string, value: string): boolean {
 }
 
 function inputHasPercentValue(input: string, value: string): boolean {
-  const n = value.replace(',', '.');
+  // The sign belongs to the number, not to the pattern: only plain digits may reach the RegExp.
+  const n = value.replace(',', '.').replace(/^[-+]/, '');
+  if (!/^\d+(?:\.\d+)?$/.test(n)) return false;
   const re = new RegExp(`(?<![\\p{L}_])[-+]?${n.replace('.', '[.,]')}%`, 'u');
   return re.test(input);
 }
@@ -301,4 +303,16 @@ export function validateNumbers(out: string, input: string, derived: string[] = 
     i = j - 1;
   }
   return [...bad, ...wordNums];
+}
+
+/**
+ * The number gate is diagnostic: it must never be able to fail an answer.
+ * Any exception is reported through `onError` and treated as "no rejected tokens".
+ */
+export function safeValidateNumbers(
+  out: string, input: string, derived: string[] = [], extraAllowed: number[] = [],
+  onError?: (error: unknown) => void,
+): string[] {
+  try { return validateNumbers(out, input, derived, extraAllowed); }
+  catch (error) { try { onError?.(error); } catch { /* logging must not throw */ } return []; }
 }
