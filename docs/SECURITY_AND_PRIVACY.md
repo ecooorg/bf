@@ -13,6 +13,13 @@
 - Security-sensitive changes require targeted negative tests as well as happy-path tests. Never weaken a guard merely to make a test pass.
 
 
+## Diagnostics export and planned data flows (approved 2026-11-03; not yet implemented)
+
+- Diagnostics export non-secret configuration values in full. Secrets (API keys, session secret, passwords, private keys, database credentials) are exported only as set/length/short SHA-256 fingerprint; no value or partial value.
+- Planned new outbound recipients, to be listed in the third-party inventory when each ships: a place geocoder, weather data APIs (non-commercial deployments only, disabled by default), currency and crypto rate APIs, and an optional second web-search provider. A search planner must not place personal data in queries and must keep the distress, crisis, document, and attachment no-search rules.
+- The Groq verifier sends user and answer text to a third party; it becomes opt-in.
+- Detail: `docs/WEB_SEARCH_REMEDIATION.md`.
+
 ## Web research and outbound requests
 
 - Search-result page extraction first rejects non-HTTP(S) URLs, URL credentials, localhost and internal/local hostnames, and private, loopback, link-local, CGNAT, reserved, and non-global IP literals. Hostnames are resolved before outbound requests; every resolved address must be public. Redirects on direct page fetches are handled manually, with each destination revalidated and a four-hop ceiling. Responses are restricted to HTML/XHTML/JSON or text from the reader proxy and capped at 1 MB before parsing.

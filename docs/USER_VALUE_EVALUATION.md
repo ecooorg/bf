@@ -12,6 +12,14 @@
 
 **Purpose:** Record observations of actual user-visible outcomes, newest first. This is evidence, not a second product specification; normative requirements are in `../TECHNICAL_SPECIFICATION.md`. Do not treat an old result as current runtime state without checking its commit/date. Preserve historical entries as written and prepend new evidence rather than retroactively editing prior records. Distinguish OBSERVED, INFERRED, and NOT_RUN. Tests and CI alone do not prove user value.
 
+## Live-data answers (web search) — audit evidence, 2026-11-03
+
+- **OBSERVED:** over 2026-11-02/03 the Conversational agent returned concrete weather temperatures in 3 of 21 weather questions (about 14%); search status counts were used 8, skipped 10, failed 9 of 27 pipeline answers; two answers failed with an internal error on "+N" numbers; seven direct-mode answers claimed no internet access.
+- **OBSERVED (screenshot case):** the Zurich weather request produced a digest without Zurich data; the model correctly said so.
+- **INFERRED:** shared Gemini quota across keys, restart causes, and the reasons for skipped/failed statuses (reasons were not persisted).
+- **NOT_RUN:** any live search, any post-fix scenario, hosted CI, real-user task completion. No user-value claim is made.
+- Findings, decisions, and acceptance criteria: `docs/WEB_SEARCH_REMEDIATION.md`.
+
 ## P121.0.12 — Architect generation failure evidence, 2026-10-30
 
 - **OBSERVED (user report):** On deployed P121.0.11, the user attempted to create a project and did not receive a ZIP; the user also reported a black/unresponsive screen.

@@ -1,5 +1,21 @@
 # Active Decisions
 
+## D-2026-11-03-01 — C124: web-search live-data remediation programme
+
+**Decision (owner-directed, 2026-11-03):**
+1. The audit and work programme in `docs/WEB_SEARCH_REMEDIATION.md` are accepted as the owner-approved scope for fixing live-data answers (`BIO-002`). Sessions still reconstruct state and re-evaluate (`AGENTS.md` §4); this decision is not a next-session assignment file.
+2. Pipeline is the single production Conversational path. Direct mode is neither removed nor default; its key rotation and Serper-then-Gemini fallback move into the pipeline.
+3. A unified Gemini key pool precedes an LLM search planner; deterministic heuristics remain as fallback.
+4. Diagnostics export non-secret configuration in full and secrets only as set/length/short fingerprint.
+5. No static foreign-place or host lists; country comes from geocoding, source domain, and search-provider country parameters.
+6. The Groq verifier becomes opt-in. Weather connectors (Open-Meteo, MET Norway) are non-commercial only, disabled by default, attributed, and labelled as model data. A second SERP provider is configured through `SEARCH_CAROUSEL`; the key lives only in the hosting environment.
+7. `TECHNICAL_SPECIFICATION.md` (search opt-in vs default) changes only after separate owner approval.
+8. Patch identity: documentation patch P124.22; code packages P124.23–P124.31 (no `.0` patch component).
+
+**Effect:** `ROADMAP.md` carries the work programme; each patch records evidence labels honestly; live acceptance stays `NOT_RUN` until executed.
+
+---
+
 ## D-2026-11-01-01 — C124: BiForge as an engineering intermediary, not a substitute LLM
 
 **Decision (owner-directed):**

@@ -1,3 +1,7 @@
+## Live-search acceptance (planned; NOT_RUN) — P124.22
+
+Criteria A1–A8 in `docs/WEB_SEARCH_REMEDIATION.md` define user-level acceptance for live-data answers (place and country correct, units, observation time, named independent sources, follow-up topic carry-over, no false "no internet" claim, quota-exhaustion behaviour, privacy no-search rules, searchable logs). Mock and unit tests prove only mocks. `PASS` for these criteria requires a real run against a deployed instance; until then they are `NOT_RUN`. A scheduled live workflow is part of P124.31.
+
 ## P124.4 Architect and App Builder prompt regression
 
 - `tests/c124-architect-appbuilder-prompt.test.mjs` verifies that planner architecture follows the user goal rather than a fixed single-file bias, reviewer feedback distinguishes functional defects from optional style, coder instructions preserve requested features and do not invent external interfaces/data, recovery keeps the complete prompt context, prompt/cache versions are advanced, and Architect project analysis distinguishes general knowledge from project-specific facts.
