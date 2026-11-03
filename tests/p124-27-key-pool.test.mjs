@@ -93,7 +93,11 @@ test('E-1: verifier is opt-in and never reaches a third party by default', async
 test('pipeline is the default path: direct mode only when explicitly enabled; one pool serves all Gemini calls', () => {
   const src = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   assert.ok(!/BIFORGE_GEMINI_DIRECT_MODE !== 'false'/.test(src));
-  assert.equal((src.match(/BIFORGE_GEMINI_DIRECT_MODE === 'true'/g) || []).length, 2);
+  // One occurrence is the sanitized runtime-config field; the other two are
+  // the direct-mode execution gates. Keep the diagnostics field from being
+  // mistaken for an additional direct-mode branch.
+  assert.equal((src.match(/BIFORGE_GEMINI_DIRECT_MODE === 'true'/g) || []).length, 3);
+  assert.match(src, /directGeminiMode: process\.env\.BIFORGE_GEMINI_DIRECT_MODE === 'true'/);
   assert.match(src, /callWithKeyPool\(/);
   assert.ok(!/new GoogleGenAI\(\{ apiKey: (gemKey|searchKey)\b/.test(src.replace(/function pooledGeminiClient[\s\S]*?\n}\n/, '')), 'helper calls use the pooled client');
 });

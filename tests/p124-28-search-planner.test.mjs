@@ -119,7 +119,10 @@ test('planned search reuses the plan (no second plan call) and passes extra quer
 
 test('server.ts: planner precedes the heuristic, userAskedSearch still forces a search, plan is handed over', () => {
   const s = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
-  assert.match(s, /isSearchPlannerEnabled\(\) && searchPlannerGate\(searchTrigger\)/);
+  // The bounded-latency policy splits the planner gate so the request-deadline budget is checked
+  // before paying for an extra model call.
+  assert.match(s, /const plannerEnabled = isSearchPlannerEnabled\(\)/);
+  assert.match(s, /const plannerEligible = plannerEnabled && searchPlannerGate\(searchTrigger\) && plannerRemainingMs >= 1_000/);
   assert.match(s, /searchDecision\.search \|\| Boolean\(intentFlags\.userAskedSearch\)/);
   assert.match(s, /recentUserText, searchDecision\?\.search \? searchDecision\.plan : undefined/);
   assert.match(s, /decisionSource: searchDecision\?\.decisionSource/);

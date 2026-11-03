@@ -238,3 +238,29 @@ describe('C123 carousel workflow — inventory & ops artifacts exist', () => {
     assert.ok(MAX_ORG_KEY_SLOTS === 10);
   });
 });
+
+
+describe('carousel workflow — operational regression guards', () => {
+  it('propagates failures from tee pipelines so deterministic red cannot look green', () => {
+    const workflow = readFileSync(path.join(root, '.github/workflows/carousel-verify.yml'), 'utf8');
+    assert.match(workflow, /set -o pipefail/);
+    assert.match(workflow, /Deterministic carousel verification failed/);
+    assert.match(workflow, /Render runtime contract probe failed/);
+  });
+
+  it('isolates live model samples so one timeout cannot contaminate later samples', () => {
+    const smoke = readFileSync(path.join(root, 'scripts/carousel-live-smoke.mjs'), 'utf8');
+    assert.match(smoke, /keyPoolState: new KeyPoolState\(\)/);
+    assert.doesNotMatch(smoke, /const pool = new KeyPoolState\(\)/);
+  });
+
+  it('keeps the Render probe and written Production baseline aligned', () => {
+    const probe = readFileSync(path.join(root, 'scripts/carousel-render-probe.mjs'), 'utf8');
+    const contract = readFileSync(path.join(root, 'docs/RENDER_ENV_CONTRACT.md'), 'utf8');
+    for (const value of ['12000', '30000', 'connector', 'serper', 'gemini', 'WEB_SEARCH_MAX_QUERIES', 'WORKER_POLL_MS']) {
+      assert.ok(probe.includes(value), `Render probe must check ${value}`);
+      assert.ok(contract.includes(value), `Render contract must document ${value}`);
+    }
+    assert.match(probe, /if \(warnings\.length > 0\) process\.exit\(1\)/);
+  });
+});
