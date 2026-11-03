@@ -1,3 +1,12 @@
+## P124.32 — CI truthfulness, isolated live samples and frozen Render baseline (2026-11-03)
+
+- Fixed two stale source-contract tests: the Gemini direct-mode test now accounts for the sanitized runtime-config field, and the planner test asserts the deadline-aware `plannerEligible` gate introduced in P124.31.
+- Fixed `Model Carousel — Routing, Health and Live Smoke` shell pipelines to use `set -o pipefail`; previously `tee` could return success while the deterministic verifier had failed, making the workflow appear green incorrectly.
+- Isolated each live Gemini smoke sample with a fresh key-pool state. A timeout/cooldown from one sample can no longer turn subsequent samples into misleading zero-millisecond `blocked` results; each configured model/sample is measured independently.
+- Aligned ops-probe fallback values for `WEB_SEARCH_MAX_QUERIES` and `WEB_SEARCH_MAX_PAGES` with the frozen Production baseline (2 and 2).
+- Expanded `docs/RENDER_ENV_CONTRACT.md` with the complete non-secret Production baseline and the rule that future patches must update docs, runtime diagnostics, and Render probes together.
+- Validation: pending full CI and live provider rerun. Live Gemini latency cannot be inferred from deterministic tests.
+
 ## P124.31 — Bounded model latency and full carousel diagnostics (2026-11-03)
 
 - Runtime now clamps `LLM_CALL_TIMEOUT_MS` to at most 12 s, `LLM_TOTAL_DEADLINE_MS` to at most 30 s, and `MAX_MODEL_CALLS` to at most 3. Stricter operator values remain respected. This makes stale permissive Render values ineffective rather than allowing 20 s × repeated calls / 70 s request budgets.

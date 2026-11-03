@@ -1,3 +1,12 @@
+## P124.32 — CI and live-diagnostic corrections (2026-11-03)
+
+- **IMPLEMENTED:** corrected the two stale test assertions reported by Core CI: P124.27 direct-mode source-count test now includes the additional sanitized runtime-config occurrence; P124.28 planner test now verifies the deadline-aware split gate (`plannerEnabled`, `plannerEligible`).
+- **IMPLEMENTED:** all workflow shell steps that pipe commands through `tee` now enable `set -o pipefail`, so failing tests/typechecks/live probes cannot be masked by a successful `tee` process.
+- **IMPLEMENTED:** live Gemini smoke samples use isolated key-pool health state, preventing a previous timed-out sample from contaminating later model/sample results with false instant `blocked` statuses.
+- **IMPLEMENTED:** Render Production baseline is fully enumerated in `docs/RENDER_ENV_CONTRACT.md`; ops-probe fallback values for query/page counts now match the canonical baseline.
+- **NOT_YET_VERIFIED:** hosted CI, TypeScript check, full deterministic suite, and live provider smoke must be rerun on GitHub Actions. This local reconstruction does not contain a complete installable `tsx` dependency tree, so no green CI claim is made here.
+- **Live evidence requiring follow-up:** the supplied Gemini live run had 0/4 successful samples; the first `gemini-3.5-flash-lite` call timed out at 12,004 ms and the shared key-pool state then blocked the remaining samples. P124.32 removes that diagnostic contamination; it does not itself fix provider-side Gemini latency. Rerun the live workflow to obtain independent timings.
+
 ## P124.31 — Bounded model latency and carousel diagnostics (2026-11-03)
 
 - **IMPLEMENTED; static verification PASS:** Node syntax checks for changed scripts, workflow YAML parse, docs integrity/reference/environment checks, generated route/env inventory checks, and version metadata all pass. `server/llmLatencyConfig.ts` centralizes hard runtime ceilings (12 s per call, 30 s total request, 3 model calls); stricter Render values are honoured and permissive values are clamped. `server.ts` removes the second full Gemini candidate pass after transient failures, applies one 30 s deadline across search preparation and generation, bounds model-queue reservations by the remaining deadline without consuming a slot when the wait would exceed it, and emits per-call start/end diagnostics. `server/webSearch.ts` no longer invokes the LLM Search Planner for ordinary non-freshness conversation turns; it remains active for likely-current-info requests and explicit search follow-ups.
