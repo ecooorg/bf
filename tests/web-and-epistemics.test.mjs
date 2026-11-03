@@ -425,10 +425,11 @@ test('P123.16 search digest never treats source titles as factual grounding', ()
   assert.equal(parsed.sources.length, 1);
 });
 
-test('P123.16 weather prompt requires an observed numeric value and forbids user-facing URLs', () => {
+test('P123.16 → P124.26 evidence contract: observed vs forecast, timestamps, no raw URLs (topic-neutral)', () => {
   const block = mod.formatSearchBlock({ status: 'used', digest: 'Requested place: 8 C, cloudy, updated 19:00', sources: [], queries: ['current weather in the requested place'] }, '2026-11-01');
-  assert.match(block, /actual current temperature/i);
-  assert.match(block, /Do not output source URLs/i);
+  assert.match(block, /distinguish observed from forecast/i);
+  assert.match(block, /Do not print raw URLs/i);
+  assert.doesNotMatch(block, /\bLTS\b|Bank Rate/);
 });
 
 
