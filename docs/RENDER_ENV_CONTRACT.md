@@ -30,7 +30,7 @@ The following table is the canonical non-secret Render configuration approved fo
 | `LLM_TOTAL_DEADLINE_MS` | `30000` |
 | `MAX_BODY_BYTES` | `262144` |
 | `MAX_MODEL_CALLS` | `3` |
-| `MODEL_CASCADE_LIGHT` | `gemini-3.1-flash-lite,gemini-3.5-flash-lite` |
+| `MODEL_CASCADE_LIGHT` | `gemini-3.5-flash-lite,gemini-3.1-flash-lite` |
 | `MODEL_CASCADE_STRONG` | `gemini-3.5-flash-lite,gemini-3.1-flash-lite` |
 | `NODE_ENV` | `production` |
 | `PGSSLMODE` | `require` |

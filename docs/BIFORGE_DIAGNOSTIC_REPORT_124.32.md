@@ -73,7 +73,7 @@ Conversation prompts are 17–20 k chars (~4.3–4.9 k input tokens) with 6 sour
 | E6 | Low | Vite warns `NODE_ENV=production is not supported in the .env file`; `.env` is injected at runtime by dotenvx (57 vars). Remove `NODE_ENV` from `.env`, set it in Render. | deploy log |
 | E7 | Low | `INEFFECTIVE_DYNAMIC_IMPORT` for `jszip`; `pdfjs` chunk 1.6 MB, main chunk 611 kB. Hurts first load on mobile (the diagnostics show a 601×795 viewport). | deploy log |
 | E8 | Low | `npm audit`: 3 vulnerabilities (1 moderate, 2 high) at deploy. | deploy log |
-| E9 | Low | `[KeepAlive] запущен…` — Russian text in a server log string. AGENTS requires English-only repo artifacts (user-language output is a separate contract). | deploy log / `server/keepAlive.ts` |
+| E9 | Low | `[KeepAlive]` log strings were in Russian. AGENTS requires English-only repo artifacts (user-language output is a separate contract). Fixed in P124.33. | deploy log / `server/keepAlive.ts` |
 | E10 | Low | `recent-operations`: last build `BUILD_FINISHED … WARN` with no error text; App Builder logged `dom_wiring_repair` in 7 of 8 builds (OBSERVED counts). Repeated repair suggests the generator frequently emits broken DOM wiring; investigate the root prompt/scaffold. | event counters |
 | E11 | Low | Log noise: `DEBUG_quality_retry` and a full `modelPrompt` are written at info level into `conversation_response_pipeline` records (prompt text in diagnostics conflicts with the README claim "no prompts exported"). Confirm redaction. | detail log |
 
