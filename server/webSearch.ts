@@ -63,6 +63,7 @@ export function skippedWebSearch(status: WebSearchStatus = 'skipped', reason?: s
 const MAX_QUERY_CHARS = 600;
 const MAX_DIGEST_CHARS = 5000;
 const MAX_PAGES_TO_FETCH = 4;
+const SNIPPET_BUDGET_WITH_PAGES = 1200;
 const MAX_CHARS_PER_PAGE = 2200;
 const PAGE_FETCH_TIMEOUT_MS = 9000;
 const MIN_DIGEST_CHARS = 40;
@@ -278,6 +279,48 @@ export function expandSearchQueries(englishQuery: string, originalUserText?: str
 }
 
 /** Merge several WebSearchResult digests/sources into one. Pure. */
+/** Water-filling split of `budget` characters: short digests keep everything, long ones share the rest equally (R-1). Pure. */
+export function fairDigestShares(lengths: number[], budget: number): number[] {
+  const n = lengths.length;
+  const shares = new Array<number>(n).fill(0);
+  let left = Math.max(0, Math.floor(budget));
+  let open = lengths.map((_, i) => i);
+  while (open.length && left > 0) {
+    const even = Math.floor(left / open.length);
+    const fit = open.filter((i) => lengths[i] <= even);
+    if (!fit.length) { for (const i of open) shares[i] = even; left -= even * open.length; break; }
+    for (const i of fit) { shares[i] = lengths[i]; left -= lengths[i]; }
+    open = open.filter((i) => !fit.includes(i));
+  }
+  return shares;
+}
+
+function cutAtBoundary(text: string, max: number): string {
+  if (max <= 0) return '';
+  if (text.length <= max) return text;
+  const head = text.slice(0, max);
+  const cut = Math.max(head.lastIndexOf('\n'), head.lastIndexOf('. '));
+  return (cut > max * 0.6 ? head.slice(0, cut + 1) : head).trim();
+}
+
+/** Page URL carries no data: bare host or root path without a query (JS app shell, portal home) (R-5). Pure. */
+export function isHomePageUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return (u.pathname === '/' || u.pathname === '') && !u.search;
+  } catch { return false; }
+}
+
+const CC_TLD_COUNTRY: Record<string, string> = { uk: 'GB' };
+/** Country of a source from its two-letter ccTLD (generic TLDs return undefined). Pure. */
+export function sourceCountry(url: string): string | undefined {
+  try {
+    const tld = new URL(url).hostname.toLowerCase().split('.').pop() || '';
+    if (tld.length !== 2) return undefined;
+    return CC_TLD_COUNTRY[tld] || tld.toUpperCase();
+  } catch { return undefined; }
+}
+
 export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: string): WebSearchResult {
   const used = parts.filter((p) => p.status === 'used' && p.digest.trim().length > 0);
   if (!used.length) {
@@ -300,7 +343,8 @@ export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: s
     if (p.digest.trim()) digests.push(p.digest.trim());
   }
   const joined = digests.join('\n\n====\n\n');
-  const digest = joined.slice(0, MAX_DIGEST_CHARS);
+  const shares = fairDigestShares(digests.map((d) => d.length), MAX_DIGEST_CHARS - Math.max(0, digests.length - 1) * 10);
+  const digest = digests.map((d, i) => cutAtBoundary(d, shares[i])).filter(Boolean).join('\n\n====\n\n');
   const diagnostics = {
     digestCharsPerQuery: used.map((p) => p.digest.trim().length),
     digestCharsBeforeBudget: joined.length,
@@ -542,7 +586,7 @@ export function digestFromSerperResponse(data: any, query: string): { digest: st
 }
 
 /** Hosts we prefer when choosing which SERP links to open (official / data-heavy). */
-const PREFERRED_HOST_RE = /(?:federalreserve|ecb\.europa|bankofengland|boj\.or\.jp|bankofcanada|bundesbank|bis\.org|imf\.org|oecd\.org|worldbank|meteoswiss|weather\.gov|noaa\.gov|wikipedia\.org|tradingeconomics|fxstreet|reuters|bloomberg|ft\.com|wsj\.com)/i;
+const PREFERRED_HOST_RE = /(?:federalreserve|ecb\.europa|bankofengland|boj\.or\.jp|bankofcanada|bundesbank|bis\.org|imf\.org|oecd\.org|worldbank|meteoswiss|wikipedia\.org|tradingeconomics|fxstreet|reuters|bloomberg|ft\.com|wsj\.com)/i;
 
 /** Reject non-public IP ranges, including IPv4-mapped IPv6 addresses. */
 export function isPublicIpAddress(address: string): boolean {
@@ -624,20 +668,27 @@ async function readResponseTextLimited(response: Response, maxBytes = MAX_PAGE_R
 }
 
 /** Rank SERP sources: preferred hosts first, then stable order. Pure. */
-export function pickUrlsToFetch(sources: WebSource[], max = MAX_PAGES_TO_FETCH): WebSource[] {
-  const eligible = sources.filter((s) => isFetchableContentUrl(s.url));
+export function pickUrlsToFetch(
+  sources: WebSource[],
+  max = MAX_PAGES_TO_FETCH,
+  opts: { country?: string; claimed?: Set<string> } = {},
+): WebSource[] {
+  const country = opts.country ? opts.country.toUpperCase() : undefined;
+  const eligible = sources.filter((s) => {
+    if (!isFetchableContentUrl(s.url) || isHomePageUrl(s.url) || opts.claimed?.has(s.url)) return false;
+    const sc = sourceCountry(s.url);
+    return !(country && sc && sc !== country);
+  });
   const preferred = eligible.filter((s) => {
     try { return PREFERRED_HOST_RE.test(new URL(s.url).hostname); } catch { return false; }
   });
   const rest = eligible.filter((s) => !preferred.includes(s));
-  return [...preferred, ...rest].slice(0, Math.max(1, max));
+  const picked = [...preferred, ...rest].slice(0, Math.max(1, max));
+  const out = eligible.length ? picked : [];
+  for (const s of out) opts.claimed?.add(s.url);
+  return out;
 }
 
-/**
- * Fetch readable page text via Jina Reader (no API key).
- * https://r.jina.ai/{url} → markdown/plain text of the main content.
- * Never throws; returns empty string on failure.
- */
 /** Strip tags / scripts from raw HTML into readable text. Pure. */
 export function htmlToText(html: string): string {
   return String(html || '')
@@ -656,6 +707,21 @@ export function htmlToText(html: string): string {
     .trim();
 }
 
+/** Jina Reader base URL: `JINA_READER_BASE_URL` if it is https, else the public endpoint. */
+export function jinaReaderBase(env: Record<string, string | undefined> = process.env): string {
+  const b = String(env.JINA_READER_BASE_URL || '').trim();
+  if (/^https:\/\/[^\s?#]+$/i.test(b)) return b.endsWith('/') ? b : `${b}/`;
+  return 'https://r.jina.ai/';
+}
+
+/** Request headers for Jina Reader; the key (if any) goes only into Authorization and is never logged. */
+export function jinaHeaders(budgetMs: number, env: Record<string, string | undefined> = process.env): Record<string, string> {
+  const h: Record<string, string> = { Accept: 'text/plain', 'X-Return-Format': 'markdown', 'X-Timeout': String(Math.max(5, Math.floor(budgetMs / 1000))) };
+  const key = String(env.JINA_API_KEY || '').trim();
+  if (key) h.Authorization = `Bearer ${key}`;
+  return h;
+}
+
 export async function fetchPageText(url: string, timeoutMs = PAGE_FETCH_TIMEOUT_MS): Promise<string> {
   const target = String(url || '').trim();
   if (!await isPublicFetchTarget(target)) return '';
@@ -666,9 +732,9 @@ export async function fetchPageText(url: string, timeoutMs = PAGE_FETCH_TIMEOUT_
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), Math.floor(budget * 0.7));
     try {
-      const res = await fetch(`https://r.jina.ai/${target}`, {
+      const res = await fetch(`${jinaReaderBase()}${target}`, {
         method: 'GET',
-        headers: { Accept: 'text/plain', 'X-Return-Format': 'markdown', 'X-Timeout': String(Math.max(5, Math.floor(budget / 1000))) },
+        headers: jinaHeaders(budget),
         signal: ctrl.signal,
         redirect: 'error',
       });
@@ -719,6 +785,7 @@ export function digestFromPageExtracts(
   pages: { title: string; url: string; text: string }[],
   snippetFallback: string,
 ): string {
+  const snippets = String(snippetFallback || '').trim();
   const blocks: string[] = [];
   for (const p of pages) {
     const body = String(p.text || '').trim();
@@ -726,8 +793,13 @@ export function digestFromPageExtracts(
     const excerpt = body.slice(0, MAX_CHARS_PER_PAGE).trim();
     blocks.push(`SOURCE: ${p.title || p.url}\nURL: ${p.url}\n${excerpt}`);
   }
-  if (!blocks.length) return snippetFallback.slice(0, MAX_DIGEST_CHARS);
-  return blocks.join('\n\n---\n\n').slice(0, MAX_DIGEST_CHARS);
+  if (!blocks.length) return snippets.slice(0, MAX_DIGEST_CHARS);
+  // R-2: snippets and answerBox are kept next to page bodies; they get a bounded share so pages still fit.
+  const snippetPart = snippets ? `SEARCH SNIPPETS:\n${cutAtBoundary(snippets, SNIPPET_BUDGET_WITH_PAGES)}` : '';
+  const room = MAX_DIGEST_CHARS - snippetPart.length - (snippetPart ? 10 : 0);
+  const shares = fairDigestShares(blocks.map((b) => b.length), room);
+  const pageParts = blocks.map((b, i) => cutAtBoundary(b, shares[i])).filter(Boolean);
+  return [snippetPart, ...pageParts].filter(Boolean).join('\n\n---\n\n').slice(0, MAX_DIGEST_CHARS);
 }
 
 /**
@@ -743,12 +815,15 @@ export async function fetchSerperDigestMulti(opts: {
   englishQuery?: string;
   fetchPages?: boolean;
   maxPages?: number;
+  /** ISO-3166 alpha-2 country of the place asked about, when known (supplied by the geocoder in a later patch). */
+  country?: string;
 }): Promise<WebSearchResult> {
   const base = buildSearchQuery(opts.englishQuery || opts.userText);
   const queries = expandSearchQueries(base, opts.userText);
   const timeoutMs = Math.max(8000, opts.timeoutMs ?? 28_000);
   const maxQ = Math.max(1, Math.min(5, Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5));
   const slice = queries.slice(0, maxQ);
+  const claimed = new Set<string>(); // URLs already opened by a sibling sub-query (R-5)
   const perQueryTimeout = Math.max(6000, Math.floor(timeoutMs / Math.min(slice.length, 3)));
   const results = await Promise.all(
     slice.map((eq) =>
@@ -761,6 +836,8 @@ export async function fetchSerperDigestMulti(opts: {
         num: opts.num ?? 6,
         fetchPages: opts.fetchPages,
         maxPages: Math.min(2, opts.maxPages ?? 2),
+        country: opts.country,
+        claimedUrls: claimed,
       }),
     ),
   );
@@ -794,7 +871,7 @@ export async function fetchSerperDigestMulti(opts: {
 
 /**
  * One Serper.dev Google SERP lookup, then open top result pages for real text (not only titles/snippets).
- * Uses SERPER_API_KEY. Page body via Jina Reader (no key). Never throws.
+ * Uses SERPER_API_KEY. Page body via Jina Reader (JINA_API_KEY used when set). Never throws.
  */
 export async function fetchSerperDigest(opts: {
   apiKey: string;
@@ -807,6 +884,8 @@ export async function fetchSerperDigest(opts: {
   /** Fetch page bodies (default true). Set WEB_SEARCH_FETCH_PAGES=false to disable. */
   fetchPages?: boolean;
   maxPages?: number;
+  country?: string;
+  claimedUrls?: Set<string>;
 }): Promise<WebSearchResult> {
   const key = String(opts.apiKey || '').trim();
   if (!key) return skippedWebSearch('skipped', 'no_serper_key');
@@ -839,7 +918,7 @@ export async function fetchSerperDigest(opts: {
     let digest = snippetDigest;
 
     if (fetchPages && sources.length) {
-      const toFetch = pickUrlsToFetch(sources, maxPages);
+      const toFetch = pickUrlsToFetch(sources, maxPages, { country: opts.country, claimed: opts.claimedUrls });
       const pageTimeout = Math.max(3000, Math.min(PAGE_FETCH_TIMEOUT_MS, Math.floor((timeoutMs - serperBudget) / Math.max(1, toFetch.length))));
       const settled = await Promise.all(
         toFetch.map(async (s) => {
