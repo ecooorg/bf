@@ -275,6 +275,19 @@ export default function App() {
     setActiveId(d.id);
   };
 
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('biforge-new-conversation') === '1') {
+        sessionStorage.removeItem('biforge-new-conversation');
+        createNew();
+      }
+      if (sessionStorage.getItem('biforge-open-history') === '1') {
+        sessionStorage.removeItem('biforge-open-history');
+        setShowHistory(true);
+      }
+    } catch { /* session storage may be unavailable */ }
+  }, []);
+
 
   // B2: export everything (json backup, or one document with every dialogue as a chapter).
   const exportAll = (fmt: 'json' | 'md' | 'docx' | 'pdf' | 'gdocs') => {
@@ -520,6 +533,7 @@ export default function App() {
         onImportAsDialog={importAsDialog}
         onImportDrive={drive.onButton}
         onUserGuide={() => setShowUserGuide(true)}
+        onProjectWorkspace={projectModeEnabled ? () => { window.location.href = '/project'; } : undefined}
         />
         <div className="empty simple-empty">
           <h1>What would you like help with?</h1>
@@ -607,6 +621,7 @@ export default function App() {
         onSelectMode={chooseStartMode}
         onChangeMode={resetStartMode}
         onUserGuide={() => setShowUserGuide(true)}
+        onProjectWorkspace={projectModeEnabled ? () => { window.location.href = '/project'; } : undefined}
       />
       <div className={`layout ${expertMode ? '' : 'friendly-layout'}`}>
         {expertMode && (

@@ -80,6 +80,7 @@ export function Header(props: {
   historyAvailable?: boolean;
   projectModeEnabled?: boolean;
   onUserGuide?: () => void;
+  onProjectWorkspace?: () => void;
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [sub, setSub] = useState<'' | 'export' | 'import'>('');
@@ -184,15 +185,20 @@ export function Header(props: {
                 <KeyRound size={14} /> Your Gemini API key
               </button>
             )}
+            {props.onProjectWorkspace && (
+              <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProjectWorkspace?.(); }}>
+                Architect workspace
+              </button>
+            )}
             {props.onUserGuide && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onUserGuide?.(); }} title="Open the BiForge user guide">
                 <CircleHelp size={14} /> User guide
               </button>
             )}
-            {props.expertMode && props.onBrief && (
+            {props.onBrief && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onBrief?.(); }} title="Short overview of this decision"><SlidersHorizontal size={14} /> Decision brief</button>
             )}
-            {props.expertMode && props.onDelete && (
+            {props.onDelete && (
               <button type="button" className="ghost danger" role="menuitem" aria-label="Delete" onClick={() => { setMoreOpen(false); props.onDelete?.(); }}>
                 <Trash2 size={14} /> Delete dialogue
               </button>

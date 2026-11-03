@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { CircleHelp, Cloud, CloudUpload, MoreHorizontal, X } from 'lucide-react';
+import { CircleHelp, Cloud, CloudUpload, MoreHorizontal, Plus, History as HistoryIcon, X } from 'lucide-react';
 import ProjectDelivery from './ProjectDelivery.tsx';
 import { describeCapabilities, PROJECT_SCOPE_TEXT, type Capabilities } from './projectCapabilities.ts';
 import { BusyHint, StateNotice, driveLabel, driveTitle } from './uiStates.tsx';
@@ -444,6 +444,12 @@ export default function ProjectMode() {
             window.location.href = '/';
           }}
         />
+        <button type="button" className="ghost" data-testid="architect-new-conversation" title="Start a conversation in Conversational mode" onClick={() => { try { sessionStorage.setItem('biforge-start-mode', 'Simple'); sessionStorage.setItem('biforge-new-conversation', '1'); } catch {} window.location.href = '/'; }}>
+          <Plus size={14} /> <span className="lbl">New</span>
+        </button>
+        <button type="button" className="ghost" data-testid="architect-conversation-history" title="Open conversation history in the conversation workspace" onClick={() => { try { sessionStorage.setItem('biforge-start-mode', 'Simple'); sessionStorage.setItem('biforge-open-history', '1'); } catch {} window.location.href = '/'; }}>
+          <HistoryIcon size={14} /> <span className="lbl">History</span>
+        </button>
         <button
           type="button"
           className="ghost"
@@ -463,6 +469,9 @@ export default function ProjectMode() {
             <div className={`hdr-secondary open`} role="menu">
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowUserGuide(true); }}>
                 <CircleHelp size={14} /> User guide
+              </button>
+              <button type="button" className="ghost" role="menuitem" data-testid="architect-conversation-tools" onClick={() => { setMoreOpen(false); try { sessionStorage.setItem('biforge-start-mode', 'Simple'); } catch {} window.location.href = '/'; }}>
+                Conversation tools (import, export, saved texts, AI key)
               </button>
               {isDriveConfigured() && (
                 <button type="button" className="ghost" role="menuitem" disabled={driveBusy || artifacts.length === 0} onClick={() => { setMoreOpen(false); void saveAllToDrive(); }}>
