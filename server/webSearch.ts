@@ -783,6 +783,11 @@ export async function buildSearchDecision(opts: {
   }
 }
 
+/** P124.34: topics whose answer is live data. Bare time words are deliberately excluded (the planner decides those). */
+const LIVE_TOPIC_RE = /(?:\bweather\b|\bforecast\b|\btemperature\b|\u043f\u043e\u0433\u043e\u0434|\u0442\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440|\bnews\b|\u043d\u043e\u0432\u043e\u0441\u0442|\bscore\b|\u0441\u0447\u0451\u0442|\u0441\u0447\u0435\u0442|\bprice\b|\u0446\u0435\u043d[\u0430\u044b](?!\p{L})|\u043a\u0443\u0440\u0441\s+(?:\u0432\u0430\u043b\u044e\u0442|\u0434\u043e\u043b\u043b\u0430\u0440|\u0435\u0432\u0440\u043e|\u0444\u0440\u0430\u043d\u043a|\u0431\u0438\u0442\u043a\u043e\u0439\u043d)|\bexchange\s+rate\b|\bstock\s+price\b|\btraffic\b|\boutage\b)/iu;
+/** P124.34: a private person named by relation ("my friend", "my boss"); such text is never shortcut into a search. */
+const PRIVATE_PERSON_RE = /\b(?:my|our|his|her|their)\s+(?:friend|wife|husband|partner|boyfriend|girlfriend|mother|mom|father|dad|son|daughter|brother|sister|colleague|coworker|boss|neighbou?r|ex|landlord|teacher|doctor)\b/i;
+
 /**
  * P124.33: deterministic pre-classifier for obvious live-data intents.
  * When it matches, the model planner is skipped entirely (saves up to ~8 s on the worst path).
@@ -791,9 +796,11 @@ export async function buildSearchDecision(opts: {
 export function preClassifyLiveDataIntent(userText: string, recentTurns?: PlannerTurn[]): SearchDecision | null {
   const text = String(userText || '').trim();
   if (text.length < 4) return null;
-  // Strong live-data signals: weather, news, prices, scores, "now/today/current".
-  const liveRe = /(?:\bweather\b|\bforecast\b|\btemperature\b|\bпогод|\bтемператур|\bnews\b|\bновост|\bscore\b|\bсчёт\b|\bсчет\b|\bprice\b|\bцен[аы]\b|\bкурс\b|\bexchange\s+rate\b|\bstock\s+price\b|\btraffic\b|\boutage\b|\bсегодня\b|\bзавтра\b|\bсейчас\b|\btoday\b|\btomorrow\b|\bright\s+now\b|\bcurrent\b)/iu;
-  if (!liveRe.test(text)) return null;
+  // The planner owns the privacy rule: text with personal data, or about a private person, never takes the shortcut.
+  if (hasPersonalData(text) || PRIVATE_PERSON_RE.test(text)) return null;
+  // Strong live-data topics only. A bare time word (today, tomorrow, current, now) also occurs in feelings,
+  // advice and general questions, so it cannot decide alone; those turns go to the planner.
+  if (!LIVE_TOPIC_RE.test(text)) return null;
   // Prefer not to invent place/country; heuristic query is enough for the connector/SERP path.
   const query = buildSearchQuery(text).slice(0, MAX_QUERY_CHARS);
   if (query.length < 3) return null;
