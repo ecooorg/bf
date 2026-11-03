@@ -15,7 +15,7 @@ The Conversational route now defaults to a single direct Gemini text call. Searc
 Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIONS.md` (D-2026-11-03-01). This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Items are checked only with evidence of the stated type.
 
 - [x] P124.22 documentation: audit, decisions, programme recorded (documentation checks only).
-- [ ] P124.23 number-validator crash fix and persistent search-decision logging (V-1, O-1).
+- [x] P124.23 number-validator crash fix and persistent search-decision logging (V-1, O-1). Unit evidence only; live run `NOT_RUN`.
 - [ ] P124.24 Simple/Expert diagnostic log separation, configuration snapshot, build-stamp, restart-reason logging.
 - [ ] P124.25 retrieval integrity: fair digest budget, snippet preservation, page selection (R-1, R-2, R-5).
 - [ ] P124.26 query cleaning, country-aware locale, usability check, honest search status, evidence contract (R-3, R-4, R-6, P-1, P-2, T-3).

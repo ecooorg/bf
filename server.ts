@@ -11,10 +11,14 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 import { GoogleGenAI } from '@google/genai';
 import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
-import { collectAllowedFromInput, validateNumbers } from './src/numberValidator.ts';
+import { collectAllowedFromInput, safeValidateNumbers } from './src/numberValidator.ts';
 
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog, compactSessionLog } from './server/projectDiagnostics.ts';
+
+function reportNumberValidatorError(error: unknown, stage: string): void {
+  void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'number_validator_error', message: 'Number validator threw; the diagnostic gate was skipped and the answer was kept', error, details: { stage } });
+}
 import { buildVisibleReply, firstQuestionOnly, mergeModelState, normalizeState, readInternalFlags, scrubInternalLabels, stripQuestionSentences, stripUserFacingUrls } from './server/reasoningState.ts';
 import { EXPERT_STEP_PREFIX } from './server/expertAgent.ts';
 import {
@@ -46,7 +50,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import type { WebSearchResult, WebSource } from './server/webSearch.ts';
 import { AnalysisError, addDecision, listProjectArtifacts, listProjectLedger, reviewItem, runAnalysis } from './server/analysisService.ts';
 import { createPlan, decideApproval, getBudget, getProjectSettings, listApprovals, listPlans, listPlanTasks, setBudget, setProjectSettings, enqueuePlanTask } from './server/planService.ts';
@@ -861,7 +865,7 @@ async function generate(
         const structuralAllowed = stage === 'premortem' ? Array.from({ length: 13 }, (_, i) => i + 12) : [];
         const numberSource = opts?.extraNumberSource ? `${inputForNumbers}\n${opts.extraNumberSource}` : inputForNumbers;
         const trustedDerived = validatedDerivedNumbers(r.text, numberSource, structuralAllowed);
-        const bad = validateNumbers(r.text, numberSource, trustedDerived, structuralAllowed);
+        const bad = safeValidateNumbers(r.text, numberSource, trustedDerived, structuralAllowed, (e) => reportNumberValidatorError(e, stage));
         try {
           parsed = parseJson(r.text);
         } catch {
@@ -952,7 +956,7 @@ async function generate(
       const parsed: any = result.output;
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
       const text = JSON.stringify(parsed);
-      const bad = validateNumbers(text, inputForNumbers, validatedDerivedNumbers(text, inputForNumbers, []), []);
+      const bad = safeValidateNumbers(text, inputForNumbers, validatedDerivedNumbers(text, inputForNumbers, []), [], (e) => reportNumberValidatorError(e, 'external_fallback'));
       if (bad.length) console.warn(JSON.stringify({ type: 'llm_external_fallback_number_validation_softened', provider: provider.id, rejectedNumericTokens: bad.slice(0, 12) }));
       console.info(JSON.stringify({ type: 'llm_external_fallback_succeeded', provider: provider.id, model: provider.model, stage }));
       return { data: parsed, meta: { model: `${provider.id}/${provider.model}`, fallback: true, durationMs: Date.now() - t0, stage, calls: attempts, lightFallback: modelClass === 'strong', promptChars: prompt.length } };
@@ -1097,6 +1101,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
         digestPreview: dig.slice(0, 180).replace(/\s+/g, ' '),
         ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}),
       }));
+      void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search decision', details: searchDecisionDetails(r, { provider: 'serper', gate: 'conversation' }) });
       return r;
     }
 
@@ -1131,9 +1136,11 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
       onAttempt: () => { if (!ownKey) globalDayCount++; },
     });
     console.info(JSON.stringify({ type: 'web_search', status: r.status, provider: 'gemini', model: r.model, sources: r.sources.length, queries: r.queries.length, ...(r.reason ? { reason: r.reason.slice(0, 120) } : {}) }));
+    void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search decision', details: searchDecisionDetails(r, { provider: 'gemini', gate: 'conversation' }) });
     return r;
   } catch (e: any) {
     console.warn(JSON.stringify({ type: 'web_search', status: 'failed', reason: String(e?.message || e).slice(0, 120) }));
+    void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'web_search', message: 'Web search threw', error: e, details: { provider: webSearchProvider(), gate: 'conversation', status: 'failed', reason: 'exception' } });
     return skippedWebSearch('failed', 'exception');
   }
 }
@@ -1238,6 +1245,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           directWebSearch = skippedWebSearch('failed', String(searchError?.message || searchError).slice(0, 180));
         }
         console.info(JSON.stringify({ type: 'direct_web_search', status: directWebSearch.status, provider: 'serper', queries: directWebSearch.queries, sources: directWebSearch.sources.length, reason: directWebSearch.reason }));
+        void recordApplicationLog({ level: 'info', component: 'conversation', event: 'direct_web_search', message: 'Direct-mode web search decision', details: searchDecisionDetails(directWebSearch, { provider: 'serper', gate: 'direct' }) });
       }
       const directSearchBlock = directWebSearch.status === 'used'
         ? formatSearchBlock(directWebSearch, new Date().toISOString().slice(0, 10)) : '';
@@ -1300,11 +1308,16 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
             genOpts.extraNumberSource = `${genOpts.extraNumberSource || ''}\n${webSearch.digest}`;
             genOpts.allowUnsourcedPercentages = true;
           }
+        } else {
+          webSearch = skippedWebSearch('skipped', distressMarkerDetected ? 'blocked_distress' : attachItems.length > 0 ? 'blocked_attachments' : 'trigger_not_matched');
+          void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search not triggered', details: searchDecisionDetails(webSearch, { provider: webSearchProvider(), gate: 'conversation', expected: Boolean(intentFlags.userAskedSearch) }) });
         }
       } catch {
         webSearch = skippedWebSearch('failed', 'exception');
         promptAttachmentsBlock = attachmentsBlock;
       }
+    } else {
+      webSearch = skippedWebSearch('skipped', 'search_disabled');
     }
     phase.mark('prepare_search');
     const prompt = buildConversationTurnPrompt(input, promptAttachmentsBlock, turnPlan, new Date().toISOString().slice(0, 10));
@@ -1453,7 +1466,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       modelReplyChars: typeof out.reply === 'string' ? out.reply.length : 0,
       visibleReplyChars: visibleReply.length,
       replyChangedBySanitization: typeof out.reply === 'string' && out.reply !== visibleReply,
-      documentPresent: Boolean(documentOut), searchStatus: webSearch.status,
+      documentPresent: Boolean(documentOut), searchStatus: webSearch.status, searchReason: webSearch.reason ? String(webSearch.reason).slice(0, 120) : undefined,
       searchSourceCount: Array.isArray(webSearch.sources) ? webSearch.sources.length : 0,
       searchExpected: Boolean(intentFlags.userAskedSearch), calls: (meta as any).calls,
       retried: retryRan, retrySkipped: retrySkippedForLatency,

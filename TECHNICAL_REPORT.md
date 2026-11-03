@@ -1,3 +1,12 @@
+## P124.23 — V-1 fix and persistent search-decision logging (2026-11-03)
+
+Product version `124`, patch `124.23`.
+
+- **OBSERVED-SRC:** the V-1 cause (`[-+]?+8%` built from a signed value) is removed; the validator is wrapped so it cannot fail a response; search decisions, gate skips, and reasons are written to application logs with hosts only (no URLs, no digest text).
+- **REPRODUCED (local, Node strip-types):** `tests/p124-23-search-integrity.test.mjs` 6/6 pass, including `+8 °C` no longer throwing. `lint:copy`, `docs:integrity`, `version:check` re-run; see chat for results.
+- **NOT_RUN:** full `test:core`/typecheck (no `tsx`/dependencies in the authoring sandbox), live Serper/Gemini, hosted CI, deployment.
+- **Open:** R-1…R-6, T-1…T-3, K-1…K-5, P-1, P-2, E-1 remain open per `docs/WEB_SEARCH_REMEDIATION.md`.
+
 ## P124.22 — Web-search live-data defect audit recorded (2026-11-03)
 
 Product version `124`, patch `124.22`. Documentation-only.

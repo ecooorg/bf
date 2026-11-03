@@ -1,3 +1,11 @@
+## P124.23 — Number gate cannot crash answers; search decisions persisted (2026-11-03)
+
+- `src/numberValidator.ts`: `inputHasPercentValue` strips the sign and accepts digits only, so values such as `+8` no longer produce `SyntaxError: Nothing to repeat` (V-1). New `safeValidateNumbers` wraps the diagnostic gate; an exception is logged as `number_validator_error` (warn) and the answer is kept. `server.ts` uses it at both call sites.
+- `server/webSearch.ts`: `mergeWebSearchResults` records `diagnostics` (characters per sub-query, characters before budget, dropped by budget); new `searchDecisionDetails` builds a secret-free record (provider, status, reason, queries, source hosts only, counts).
+- `server.ts`: persistent `web_search` and `direct_web_search` application-log events (previously console-only), including gate skips (`search_disabled`, `trigger_not_matched`, `blocked_distress`, `blocked_attachments`) and exceptions; `conversation_response_pipeline` now carries `searchReason` (O-1).
+- Tests: `tests/p124-23-search-integrity.test.mjs` (added to `test:core`). Version/patch 124.23.
+- No UI, routes, or prompts changed (G4 not applicable). Live Serper/Gemini and hosted CI `NOT_RUN`.
+
 ## P124.22 — Web-search live-data defect: audit, decisions, and work programme (2026-11-03)
 
 - Documentation-only patch; no runtime, UI, or test code changed. Product version 124, patch 124.22 (patch identity follows `AGENTS.md`: `.1`–`.99`, no `.0` component).
