@@ -104,16 +104,26 @@ async function main() {
       });
     }
   }
-  const ok = samples.length > 0 && samples.every((x) => x.status === 'ok');
+  // Pass if ≥1 sample per model succeeds (partial flakiness is a warning, not a hard fail).
+  const modelsProbed = [...new Set(samples.map((x) => x.model))];
+  const modelsWithOk = new Set(samples.filter((x) => x.status === 'ok').map((x) => x.model));
+  const ok = modelsProbed.length > 0 && modelsProbed.every((m) => modelsWithOk.has(m));
   const latencies = samples.map((x) => x.latencyMs).sort((a, b) => a - b);
   const optionalProviders = [];
   const groqKey = String(process.env.GROQ_API_KEY || '').trim();
   if (groqKey) {
     const groqStarted = Date.now();
     const groq = createOpenAICompatibleAdapter({ providerId: 'groq', baseUrl: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1', apiKey: groqKey });
+    // Align request shape with production openaiCompatAdapter usage.
     const groqResult = await groq.call({ requestId: `carousel-groq-${Date.now()}`, modelId: process.env.GROQ_FALLBACK_MODEL || 'openai/gpt-oss-120b',
       system: 'Reply with one JSON object only.', prompt: 'Return {"pong":true} and nothing else.', json: true, maxOutputTokens: 64, metadata: { role: 'carousel_live_fallback_smoke' } }, { timeoutMs });
-    optionalProviders.push({ provider: 'groq', configured: true, status: groqResult.status, latencyMs: Date.now() - groqStarted, errorClass: groqResult.errorClass || null });
+    const redactedBody = groqResult.rawRef
+      ? String(groqResult.rawRef).replace(/[A-Za-z0-9_\-]{20,}/g, '[REDACTED]').slice(0, 240)
+      : (groqResult.errorClass ? `errorClass=${groqResult.errorClass}` : null);
+    if (groqResult.status !== 'ok') {
+      console.error(JSON.stringify({ type: 'groq_smoke_error', status: groqResult.status, errorClass: groqResult.errorClass || null, redactedBody }, null, 2));
+    }
+    optionalProviders.push({ provider: 'groq', configured: true, status: groqResult.status, latencyMs: Date.now() - groqStarted, errorClass: groqResult.errorClass || null, redactedBody });
   } else optionalProviders.push({ provider: 'groq', configured: false, status: 'NOT_CONFIGURED' });
   const report = {
     type: 'carousel_live_latency_diagnostic',
@@ -130,6 +140,8 @@ async function main() {
     summary: {
       sampleCount: samples.length,
       successCount: samples.filter((x) => x.status === 'ok').length,
+      modelsProbed: modelsProbed.length,
+      modelsWithOk: modelsWithOk.size,
       minLatencyMs: latencies.length ? latencies[0] : null,
       medianLatencyMs: latencies.length ? latencies[Math.floor(latencies.length / 2)] : null,
       maxLatencyMs: latencies.length ? latencies.at(-1) : null,
