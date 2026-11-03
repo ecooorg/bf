@@ -5,16 +5,30 @@ on:
   workflow_dispatch:
     inputs:
       live:
-        description: 'Run live Gemini smoke (repository secret GEMINI_API_KEY; optional GEMINI_API_KEY_1..10)'
+        description: 'Run live Gemini/Groq generation and search-provider smoke (requires repository secret GEMINI_API_KEY)'
         type: boolean
         default: false
       auto_enable:
         description: 'Set CAROUSEL_AUTO_ENABLE=true during probe (does not call paid providers without keys)'
         type: boolean
         default: false
+      render_url:
+        description: 'Render service URL to probe (leave blank to use the SERVICE_URL repository variable)'
+        type: string
+        default: ''
+      weather_place:
+        description: 'Optional place for live weather-connector smoke (e.g. Zurich); leave blank to skip'
+        type: string
+        default: ''
   pull_request:
     paths:
       - 'server/modelCarousel.ts'
+      - 'server/llmLatencyConfig.ts'
+      - 'server/healthRoutes.ts'
+      - 'server/modelRateLimit.ts'
+      - 'server.ts'
+      - 'server/webSearch.ts'
+      - 'server/searchCarousel.ts'
       - 'server/keyPool.ts'
       - 'server/sourceHealth.ts'
       - 'server/modelSourcesCatalog.ts'
@@ -25,17 +39,38 @@ on:
       - 'tests/p123*'
       - 'tests/p123-carousel-workflow.test.mjs'
       - 'scripts/carousel-*.mjs'
+      - 'scripts/diagnostics-summary.mjs'
+      - 'package.json'
+      - 'docs/RENDER_ENV_CONTRACT.md'
+      - 'CHANGELOG.md'
+      - 'tests/p124-31-llm-latency-config.test.mjs'
+      - 'tests/p124-28-search-planner.test.mjs'
+      - 'tests/p124-30-search-carousel.test.mjs'
+      - 'scripts/carousel-render-probe.mjs'
       - '.github/workflows/carousel-verify.yml'
   push:
     branches: [main, master]
     paths:
       - 'server/modelCarousel.ts'
+      - 'server/llmLatencyConfig.ts'
+      - 'server/healthRoutes.ts'
+      - 'server/modelRateLimit.ts'
+      - 'server.ts'
+      - 'server/webSearch.ts'
+      - 'server/searchCarousel.ts'
       - 'server/keyPool.ts'
       - 'server/sourceHealth.ts'
       - 'server/modelSourcesCatalog.ts'
       - 'config/model-sources.json'
       - 'tests/p123*'
       - 'scripts/carousel-*.mjs'
+      - 'scripts/diagnostics-summary.mjs'
+      - 'package.json'
+      - 'docs/RENDER_ENV_CONTRACT.md'
+      - 'CHANGELOG.md'
+      - 'tests/p124-31-llm-latency-config.test.mjs'
+      - 'tests/p124-28-search-planner.test.mjs'
+      - 'tests/p124-30-search-carousel.test.mjs'
       - '.github/workflows/carousel-verify.yml'
 
 permissions:
@@ -61,11 +96,18 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Install dependencies
-        run: mkdir -p artifacts/carousel-verify && npm ci 2>&1 | tee artifacts/carousel-verify/00-dependencies.log
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/carousel-verify
+          npm ci 2>&1 | tee artifacts/carousel-verify/00-dependencies.log
       - name: Typecheck carousel modules
-        run: (npx tsc --noEmit -p tsconfig.server.json 2>/dev/null || npm run typecheck) 2>&1 | tee artifacts/carousel-verify/01-typecheck.log
+        run: |
+          set -o pipefail
+          (npx tsc --noEmit -p tsconfig.server.json 2>/dev/null || npm run typecheck) 2>&1 | tee artifacts/carousel-verify/01-typecheck.log
       - name: Carousel verify (deterministic)
-        run: node scripts/carousel-verify.mjs 2>&1 | tee artifacts/carousel-verify/02-deterministic-verification.log
+        run: |
+          set -o pipefail
+          node scripts/carousel-verify.mjs 2>&1 | tee artifacts/carousel-verify/02-deterministic-verification.log
         env:
           CAROUSEL_LIVE: 'false'
           CAROUSEL_AUTO_ENABLE: ${{ github.event.inputs.auto_enable == 'true' && 'true' || 'false' }}
@@ -90,7 +132,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Install dependencies
-        run: mkdir -p artifacts/carousel-verify && npm ci 2>&1 | tee artifacts/carousel-verify/00-live-dependencies.log
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/carousel-verify
+          npm ci 2>&1 | tee artifacts/carousel-verify/00-live-dependencies.log
       - name: Require GEMINI_API_KEY secret
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -105,19 +150,63 @@ jobs:
           GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
           GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          GEMINI_API_KEY_7: ${{ secrets.GEMINI_API_KEY_7 }}
+          GEMINI_API_KEY_8: ${{ secrets.GEMINI_API_KEY_8 }}
+          GEMINI_API_KEY_9: ${{ secrets.GEMINI_API_KEY_9 }}
+          GEMINI_API_KEY_10: ${{ secrets.GEMINI_API_KEY_10 }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_BASE_URL: ${{ vars.GROQ_BASE_URL }}
+          GROQ_FALLBACK_MODEL: ${{ vars.GROQ_FALLBACK_MODEL }}
           MODEL_CASCADE_LIGHT: gemini-3.5-flash-lite,gemini-3.1-flash-lite
           MODEL_CASCADE_STRONG: gemini-3.5-flash-lite,gemini-3.1-flash-lite
           MODEL_MIN_INTERVAL_MS: '0'
-          LLM_CALL_TIMEOUT_MS: '25000'
+          LLM_CALL_TIMEOUT_MS: '12000'
+          LLM_TOTAL_DEADLINE_MS: '30000'
+          MAX_MODEL_CALLS: '1'
         # .ts server modules require tsx (same as deterministic layer)
-        run: node --import tsx scripts/carousel-live-smoke.mjs 2>&1 | tee artifacts/carousel-verify/03-live-smoke.log
+        run: |
+          set -o pipefail
+          node --import tsx scripts/carousel-live-smoke.mjs 2>&1 | tee artifacts/carousel-verify/03-live-smoke.log
+      - name: Live search-provider and Jina smoke (no response bodies)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+          JINA_READER_BASE_URL: ${{ vars.JINA_READER_BASE_URL }}
+          SEARCH_CAROUSEL: ${{ vars.SEARCH_CAROUSEL }}
+          WEB_SEARCH_DEFAULT_COUNTRY: ${{ vars.WEB_SEARCH_DEFAULT_COUNTRY }}
+          WEB_SEARCH_MAX_QUERIES: '1'
+          WEB_SEARCH_MAX_PAGES: '1'
+          WEB_SEARCH_FETCH_PAGES: 'false'
+          WEB_SEARCH_TIMEOUT_MS: '12000'
+          WEATHER_CONNECTOR_ENABLED: ${{ vars.WEATHER_CONNECTOR_ENABLED || 'false' }}
+          CAROUSEL_WEATHER_PLACE: ${{ github.event.inputs.weather_place }}
+        run: |
+          set -o pipefail
+          node --import tsx scripts/carousel-search-smoke.mjs 2>&1 | tee artifacts/carousel-verify/03b-search-smoke.log
       - name: Ops probe with real env (no secret output)
+        if: always()
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          GEMINI_API_KEY_7: ${{ secrets.GEMINI_API_KEY_7 }}
+          GEMINI_API_KEY_8: ${{ secrets.GEMINI_API_KEY_8 }}
+          GEMINI_API_KEY_9: ${{ secrets.GEMINI_API_KEY_9 }}
+          GEMINI_API_KEY_10: ${{ secrets.GEMINI_API_KEY_10 }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+          SERP2_API_KEY: ${{ secrets.SERP2_API_KEY }}
         run: |
+          set -o pipefail
           mkdir -p artifacts/carousel-verify
           node --import tsx scripts/carousel-ops-probe.mjs 2>&1 | tee artifacts/carousel-verify/04-ops-probe.log
       - name: Upload live artifacts
@@ -128,10 +217,35 @@ jobs:
           path: artifacts/carousel-verify/
           if-no-files-found: warn
 
+  render_probe:
+    name: Render runtime health (public endpoints only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Probe Render health and readiness
+        env:
+          CAROUSEL_RENDER_URL: ${{ github.event.inputs.render_url || vars.SERVICE_URL }}
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/carousel-verify
+          node scripts/carousel-render-probe.mjs | tee artifacts/carousel-verify/05-render-health.json
+      - name: Upload Render probe
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: carousel-verify-render
+          path: artifacts/carousel-verify/05-render-health.json
+          if-no-files-found: warn
+
   summary:
     name: summary
     runs-on: ubuntu-latest
-    needs: [deterministic, live]
+    needs: [deterministic, live, render_probe]
     if: always()
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -149,7 +263,7 @@ jobs:
         if: always()
         env:
           CI_LOGS_DIR: artifacts/diagnostics
-          CI_STATUS: ${{ needs.deterministic.result == 'success' && (needs.live.result == 'success' || needs.live.result == 'skipped') && 'success' || 'failure' }}
+          CI_STATUS: ${{ needs.deterministic.result == 'success' && (needs.live.result == 'success' || needs.live.result == 'skipped') && (needs.render_probe.result == 'success' || needs.render_probe.result == 'skipped') && 'success' || 'failure' }}
           GITHUB_WORKFLOW: ${{ github.workflow }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
@@ -168,9 +282,11 @@ jobs:
             artifacts/diagnostics/*.log
             artifacts/diagnostics/*.tap
             artifacts/diagnostics/*.txt
+            artifacts/diagnostics/*.json
             artifacts/diagnostics/**/*.log
             artifacts/diagnostics/**/*.tap
             artifacts/diagnostics/**/*.txt
+            artifacts/diagnostics/**/*.json
           if-no-files-found: warn
           retention-days: 30
       - name: Compose result
@@ -179,13 +295,20 @@ jobs:
           live="${{ needs.live.result }}"
           echo "deterministic=$det"
           echo "live=$live"
+          echo "render_probe=${{ needs.render_probe.result }}"
           if [ "$det" != "success" ]; then
             echo "::error::Deterministic carousel verification failed"
             exit 1
           fi
-          # live skipped (PR) or success is OK; failure only when job ran and failed
+          # Live may be skipped on PRs. A manually dispatched run must also
+          # pass the public Render runtime-contract probe.
           if [ "$live" = "failure" ]; then
             echo "::error::Live carousel smoke failed"
             exit 1
           fi
-          echo "Carousel verification acceptable (deterministic green; live=$live)"
+          render="${{ needs.render_probe.result }}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$render" != "success" ]; then
+            echo "::error::Render runtime contract probe failed"
+            exit 1
+          fi
+          echo "Carousel verification acceptable (deterministic green; live=$live; render=$render)"
