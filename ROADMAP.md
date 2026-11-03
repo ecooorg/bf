@@ -2,13 +2,20 @@
 
 The Conversational route now defaults to a single direct Gemini text call. Search providers (including Serper), external model fallback, structured response parsing, retries, and application-side reply rewriting are bypassed on this route. This is a provenance-isolation test, not a live-data capability.
 
-## CURRENT ROADMAP CONTROL — 2026-11-02 (C124)
+## CURRENT ROADMAP CONTROL — 2026-11-03 (C124)
 
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
 > **P124.0.16 status:** The P92 diagnostics contract test has been aligned with P124.0.15 full-content capture: conversation evidence is expected, while credentials remain redacted. Runtime behavior is unchanged. Targeted test and hosted CI rerun are pending.
 
 > **P124.0.15 status:** Simple and Expert expose the shared authenticated diagnostic log in More. For the single-user test phase, conversation logs include user history, normalized model input, assembled prompt, raw model output, agent-cleaned output, final visible reply, search query/results, response metadata, and fallback context. Credentials, cookies and authentication tokens remain redacted. Local and hosted verification for this revised delivery is pending; this instrumentation does not itself resolve answer truncation.
+
+## P124.35 — Universal follow-up context and evidence relevance (2026-11-03)
+
+- [x] Cross-domain follow-up resolution using the immediately preceding user task; deterministic fallback preserves the resolved query when the planner provider is unavailable.
+- [x] Query/topic/place relevance validation; numeric evidence is required only for requests whose content requires numeric/time/measurement data.
+- [x] Cross-domain regression corpus integrated into `test:core`; tests cover context retention, topic-switch isolation, provider/planner failure, personal-data exclusion and non-numeric factual evidence.
+- [ ] Hosted CI, normal typecheck/build, live provider acceptance and deployed user-level outcomes remain `NOT_RUN`/`BLOCKED` as recorded in `TECHNICAL_REPORT.md`.
 
 ## P124.22 — Web-search live-data remediation programme (owner-approved scope, 2026-11-03)
 

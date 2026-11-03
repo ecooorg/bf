@@ -1,3 +1,12 @@
+## P124.35 — Cross-domain context recovery and evidence relevance (2026-11-03)
+
+- Generalized follow-up resolution across unrelated information domains. Search continuation carries forward only the immediately preceding user task when that turn represents a recent/live lookup; unrelated topic changes do not inherit stale entities.
+- Deterministic planner fallback now returns a self-contained contextual search plan when the search-planner model is absent or fails, while preserving personal-data exclusion.
+- Retrieval usability is no longer based on the presence of a number as a universal quality signal. It checks query/topic and named-place relevance; numeric evidence is required only for queries that request numeric/time/measurement data.
+- Added a cross-domain regression corpus covering software releases, travel schedules, product availability, public policy, business research, and one weather case. It checks context and evidence invariants rather than fixed answer wording or domain-specific output.
+- Tests: 91/91 targeted retrieval, planner, key-pool, carousel, diagnostics and cross-domain regression checks PASS using Node 22 `--experimental-transform-types`. Documentation integrity, references, inventories, generated graphs, API route coverage, architecture boundaries and version metadata checks PASS. Normal npm CI/typecheck/build, hosted CI, live providers and deployed user outcomes remain NOT_RUN; `npm ci` timed out in this sandbox.
+- No UI, routes, agent entry points or `data-testid` changed.
+
 ## P124.34 — CI red fixes for 124.33: probe import side effect, pre-classifier scope (2026-11-03)
 
 - **CI fix (run 41688456448, `test:carousel-unit`):** `scripts/carousel-render-probe.mjs` ran the network probe at import time, so `tests/p123-carousel-workflow.test.mjs` importing `RENDER_ENV_RUNTIME_KEYS` hit `process.exit(2)` (`CAROUSEL_RENDER_URL` empty). The probe body now lives in `runProbe()` and runs only when the file is executed directly; `node scripts/carousel-render-probe.mjs` (workflow, `npm run carousel:render`) behaves as before.

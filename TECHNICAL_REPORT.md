@@ -1,3 +1,13 @@
+## P124.35 — Cross-domain context recovery and evidence relevance (2026-11-03)
+
+- **IMPLEMENTED (source):** `server/webSearch.ts` now resolves recognizable follow-ups against only the immediately preceding user task. It preserves prior task/entities for continuation requests, does not carry context across an intervening unrelated user turn, and returns a deterministic contextual plan when the search planner is unavailable or throws. Personal-data exclusion is applied to deterministic fallback queries.
+- **IMPLEMENTED (source):** retrieval usability checks digest/source relevance against the resolved query/topic and place. Numeric evidence is not a universal requirement; it is required only when the query expresses a numeric, time, price, rate, measurement, or similar request.
+- **TESTS PASS (local, Node 22 `--experimental-transform-types`):** 91/91 across the P124.23–P124.31 retrieval/planner/key-pool/carousel/latency suites plus `tests/universal-followup-regression.test.mjs`. The native transform-types mode supports the TypeScript parameter properties used by the key-pool and carousel modules.
+- **DOCS / ARCHITECTURE PASS:** docs integrity, reference integrity, environment example coverage, documentation inventories, generated check graph, generated capability graph, API route index (86/86), architecture boundaries (0 cycles / 0 violations), and version metadata (`124.35`).
+- **BLOCKED:** `npm ci --ignore-scripts --no-audit --no-fund` timed out twice. The global TypeScript check is blocked by the missing `vite/client` type package. Normal `npm run typecheck`, `npm run build`, and complete `npm run test:core` were not run.
+- **NOT_RUN:** hosted GitHub Actions, live search providers, real LLM planner/fallback calls, deployed conversation scenarios, and user-level answer quality. No claim of live internet or factual answer quality is made.
+- **SCOPE:** universal Conversational retrieval behavior; no UI/route/agent-entry changes. Regression fixtures are cross-domain and weather is one ordinary case.
+
 ## P124.34 — Evidence (2026-11-03)
 
 Product version `124`, patch `124.34`.
