@@ -2,8 +2,10 @@
  * P124.27 — one Gemini key pool for every Gemini call (generate(), search plan, grounding).
  *
  * - Cooldown is tracked per (key slot, model) for quota/transient errors and per slot for auth errors.
- * - When several different keys hit quota on the same model within a short window the keys most likely share
- *   one Google project (`INFERRED`, K-1); the model is then parked for all slots instead of burning every key.
+ * - When several different keys hit quota on the same model within a short window the model is parked for all
+ *   slots instead of burning every key. Owner fact (2026-11-03): the keys are ten separate Google projects of ten
+ *   different scientists of one organization, so a shared quota is NOT assumed; the cause of simultaneous 429
+ *   (K-1) is open (`NOT_VERIFIED`) and this rule only detects the symptom.
  * - A model is reported exhausted only after the available keys were tried, not after the first 429 (K-2).
  * - No secret material is ever returned by snapshot(); slots are identified by number only.
  */

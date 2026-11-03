@@ -30,7 +30,7 @@ export type WebSearchResult = {
   /** Non-secret retrieval diagnostics for persistent logs (P124.23). */
   diagnostics?: { digestCharsPerQuery: number[]; digestCharsBeforeBudget: number; droppedByBudget: number };
   /** P124.26: query plan and usability decision (non-secret). */
-  plan?: { query: string; place?: string; country?: string; topic?: string; planSource: 'model' | 'heuristic'; planNote?: string };
+  plan?: { query: string; queries?: string[]; place?: string; country?: string; topic?: string; freshness?: 'now' | 'recent' | 'none'; planSource: 'model' | 'heuristic'; planNote?: string };
   usability?: { verdict: 'ok' | 'weak' | 'none'; hasNumber: boolean; placeMatched: boolean | null; retried: boolean };
 };
 
@@ -53,7 +53,7 @@ export function searchDecisionDetails(
     digestChars: (r.digest || '').length,
     digestCharsPerQuery: r.diagnostics?.digestCharsPerQuery ?? [],
     droppedByBudget: r.diagnostics?.droppedByBudget ?? 0,
-    country: r.plan?.country, planSource: r.plan?.planSource, planNote: r.plan?.planNote,
+    country: r.plan?.country, planSource: r.plan?.planSource, planNote: r.plan?.planNote, freshness: r.plan?.freshness,
     usability: r.usability,
   };
 }
@@ -152,6 +152,26 @@ export function shouldSearchWeb(o: SearchTriggerInput): boolean {
 }
 
 
+
+/**
+ * P124.28: hard gates that run BEFORE the planner sees any text. Distress, CRISIS, DOCUMENT and attachment turns
+ * never reach the planner (and so never a search engine) unless the user explicitly asked to search. Pure.
+ */
+export function searchPlannerGate(o: SearchTriggerInput): boolean {
+  if (!o.enabled || o.distress) return false;
+  if (String(o.triage || '').toUpperCase() === 'CRISIS') return false;
+  if (o.intent === 'DOCUMENT') return false;
+  if (String(o.userText || '').trim().length < 8) return false;
+  if (o.userAskedSearch) return true;
+  if (o.hasAttachments) return false;
+  if ((o.mode || 'auto') === 'explicit') return Boolean(o.recentSearchIntent);
+  return true;
+}
+
+/** WEB_SEARCH_PLANNER=false switches the planner off (heuristics only). On by default. */
+export function isSearchPlannerEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return String(env.WEB_SEARCH_PLANNER ?? '').trim().toLowerCase() !== 'false';
+}
 
 /** Prior user turns that asked for a web search (single definition, shared by every call site; T-3). */
 export function hasRecentSearchIntent(recentUserText: string): boolean {
@@ -581,9 +601,12 @@ export function stripInstructionWords(text: string): string {
 
 export type SearchPlan = {
   query: string;
+  /** P124.28: up to 2 extra focused queries from the planner (the first query is `query`). */
+  queries?: string[];
   place?: string;
   country?: string;
   topic?: string;
+  freshness?: 'now' | 'recent' | 'none';
   planSource: 'model' | 'heuristic';
   planNote?: string;
 };
@@ -658,6 +681,97 @@ export async function buildSearchPlan(opts: {
   }
 }
 
+// ---------------------------------------------------------------------------------------------
+// P124.28  Search planner (T-1, T-2): one JSON call over the last turns decides whether a live lookup
+// is needed and, if so, produces the query, place, ISO country, topic and freshness. The regular
+// expressions above remain only as the fallback when no model answer is available.
+// ---------------------------------------------------------------------------------------------
+
+export type SearchDecision = {
+  search: boolean;
+  plan?: SearchPlan;
+  decisionSource: 'model' | 'heuristic';
+  /** Why the decision is what it is when it is not a plain model answer (never silent). */
+  decisionNote?: string;
+};
+
+export type PlannerTurn = { role: 'user' | 'assistant'; content: string };
+
+/** True when text carries an e-mail address, a long digit run (phone, card, account) or an IBAN-like code. Pure. */
+export function hasPersonalData(text: string): boolean {
+  const t = String(text || '');
+  if (/[\w.+-]+@[\w-]+\.[\w.-]+/u.test(t)) return true;
+  if (/\b[A-Z]{2}\d{2}[A-Z0-9]{10,30}\b/.test(t.replace(/\s+/g, ''))) return true;
+  const noDates = t.replace(/\b\d{4}-\d{2}-\d{2}\b/g, ' ').replace(/\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b/g, ' ');
+  return /\d(?:[\s().-]?\d){8,}/.test(noDates);
+}
+
+/** Parse the planner JSON defensively. null = unusable (caller falls back). A query with personal data is never searched. Pure. */
+export function parseSearchDecision(raw: string): { search: boolean; plan?: Omit<SearchPlan, 'planSource'>; note?: string } | null {
+  const m = String(raw || '').replace(/```json|```/g, '').match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  let j: any;
+  try { j = JSON.parse(m[0]); } catch { return null; }
+  if (typeof j?.search !== 'boolean') return null;
+  if (!j.search) return { search: false };
+  const clean = (x: unknown) => String(x ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
+  const query = clean(j.query);
+  if (query.length < 3 || needsEnglishQueryTranslation(query)) return null;
+  const extra = (Array.isArray(j.queries) ? j.queries : []).map(clean).filter((q: string) => q.length >= 3 && !needsEnglishQueryTranslation(q)).slice(0, 2);
+  if ([query, ...extra, j.place].some((x) => hasPersonalData(String(x ?? '')))) return { search: false, note: 'personal_data_in_query' };
+  const country = /^[A-Za-z]{2}$/.test(String(j.country || '').trim()) ? String(j.country).trim().toUpperCase() : undefined;
+  const place = String(j.place || '').replace(/\s+/g, ' ').trim().slice(0, 80) || undefined;
+  const topic = String(j.topic || '').replace(/\s+/g, ' ').trim().slice(0, 60) || undefined;
+  const freshness = (['now', 'recent', 'none'] as const).find((f) => f === j.freshness);
+  return { search: true, plan: { query, queries: extra.length ? extra : undefined, place, country, topic, freshness } };
+}
+
+/**
+ * Decide, with one small model call over the last turns, whether this turn needs a live web lookup (T-1) and
+ * resolve elliptical follow-ups against the dialogue (T-2). The caller applies the hard gates (distress, CRISIS,
+ * DOCUMENT, attachments) BEFORE calling this, so none of that text reaches the planner. On any failure the
+ * deterministic `heuristic()` decides and `decisionNote` records why. Never throws.
+ */
+export async function buildSearchDecision(opts: {
+  userText: string;
+  recentTurns?: PlannerTurn[];
+  today?: string;
+  client?: SearchClientLike;
+  model?: string;
+  timeoutMs?: number;
+  heuristic: () => boolean;
+}): Promise<SearchDecision> {
+  const fallback = (note: string): SearchDecision => ({ search: opts.heuristic(), decisionSource: 'heuristic', decisionNote: note });
+  if (!opts.client) return fallback('no_client');
+  const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
+  const turns = (opts.recentTurns || []).slice(-4).map((t) => `${t.role === 'assistant' ? 'ASSISTANT' : 'USER'}: ${String(t.content || '').replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), Math.max(1000, opts.timeoutMs ?? 8_000));
+  try {
+    const resp = await opts.client.models.generateContent({
+      model,
+      contents:
+        `Today is ${opts.today || new Date().toISOString().slice(0, 10)}. Decide whether the LAST user message needs a live web lookup, using the earlier turns to resolve short follow-ups. ` +
+        'Reply with ONLY one JSON object: {"search": true|false, "query": short English query (max 12 words) for the INFORMATION wanted, no instructions to an assistant, ' +
+        '"queries": up to 2 extra different focused English queries or [], "place": place named or implied by the dialogue in its usual English form or "", ' +
+        '"country": ISO 3166-1 alpha-2 code of that place or "", "topic": 1-3 English words, "freshness": "now" | "recent" | "none"}. ' +
+        'search=true when the answer depends on facts that change or happened recently (weather, prices, rates, scores, news, schedules and opening status, traffic, outages, who currently holds a role, latest versions or releases, current time elsewhere) or the user asks to search or check online, ' +
+        'including a short follow-up that continues such a request. search=false for personal matters and feelings, advice, opinions, writing or editing, code, maths, translation, and general or historical knowledge. ' +
+        'Never put personal data (names of private people, e-mail, phone, numbers of accounts or cards, addresses) into a query; if a lookup would need it, set search=false. Do not add places the dialogue does not mention or imply.\n\n' +
+        `DIALOGUE:\n${turns}\nLAST USER MESSAGE:\n${String(opts.userText || '').slice(0, 500)}`,
+      config: { temperature: 0, maxOutputTokens: 200, abortSignal: ctrl.signal },
+    });
+    const parsed = parseSearchDecision(modelText(resp));
+    if (!parsed) return fallback('decision_unparsable');
+    if (!parsed.search) return { search: false, decisionSource: 'model', ...(parsed.note ? { decisionNote: parsed.note } : {}) };
+    return { search: true, plan: { ...parsed.plan!, planSource: 'model' }, decisionSource: 'model' };
+  } catch (e: any) {
+    return fallback(ctrl.signal.aborted ? 'decision_timeout' : `decision_error:${String(e?.message || e).slice(0, 60)}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * Deterministic usability check of a retrieved digest (R-6). No model call.
  * ok: has a number and (when a place is known) mentions it; weak: one of those is missing; none: nothing usable.
@@ -722,10 +836,15 @@ export async function planAndSearchSerper(opts: {
   client?: SearchClientLike;
   model?: string;
   timeoutMs: number;
+  /** P124.28: plan already produced by the search planner; skips the second plan call. */
+  plan?: SearchPlan;
 }): Promise<WebSearchResult> {
-  const plan = await buildSearchPlan({ userText: opts.userText, client: opts.client, model: opts.model, timeoutMs: Math.min(8000, opts.timeoutMs) });
+  const plan = opts.plan || await buildSearchPlan({ userText: opts.userText, client: opts.client, model: opts.model, timeoutMs: Math.min(8000, opts.timeoutMs) });
   return searchWithUsability(plan, (query, country) =>
-    fetchSerperDigestMulti({ apiKey: opts.apiKey, userText: opts.userText, englishQuery: query, today: opts.today, timeoutMs: opts.timeoutMs, country }),
+    fetchSerperDigestMulti({
+      apiKey: opts.apiKey, userText: opts.userText, englishQuery: query, today: opts.today, timeoutMs: opts.timeoutMs, country,
+      extraQueries: query === plan.query ? plan.queries : undefined,
+    }),
   );
 }
 
@@ -1012,9 +1131,15 @@ export async function fetchSerperDigestMulti(opts: {
   maxPages?: number;
   /** ISO-3166 alpha-2 country of the place asked about, when known (supplied by the geocoder in a later patch). */
   country?: string;
+  /** P124.28: extra planner queries appended after the expansion (deduplicated, still capped by WEB_SEARCH_MAX_QUERIES). */
+  extraQueries?: string[];
 }): Promise<WebSearchResult> {
   const base = buildSearchQuery(opts.englishQuery || opts.userText);
   const queries = expandSearchQueries(base, opts.userText);
+  for (const x of opts.extraQueries || []) {
+    const q = buildSearchQuery(x);
+    if (q.length >= 3 && !queries.some((e) => e.toLowerCase() === q.toLowerCase())) queries.push(q);
+  }
   const timeoutMs = Math.max(8000, opts.timeoutMs ?? 28_000);
   const maxQ = Math.max(1, Math.min(5, Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5));
   const slice = queries.slice(0, maxQ);
