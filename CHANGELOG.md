@@ -5,6 +5,7 @@
 - `server.ts`: the pipeline asks the planner first; an explicit user request to search still forces a search; the plan goes to `planAndSearchSerper` (no second plan call) and the extra queries to `fetchSerperDigestMulti`; decision source and note enter the persistent search log.
 - Documentation: owner fact added. The ten `GEMINI_API_KEY` keys belong to ten different Google projects owned by ten different scientists of one organization; the same holds for any future key carousel of another provider. Places: `docs/WEB_SEARCH_REMEDIATION.md` (K-1 row, section 5, decision 9), `docs/DECISIONS.md` D-2026-11-03-03, `docs/SECURITY_AND_PRIVACY.md`, comment in `server/geminiKeyPool.ts`.
 - Tests: `tests/p124-28-search-planner.test.mjs` (in `test:core`), fixtures `tests/search-decision-sets.json`. No UI, routes or `data-testid` changed (G4 not applicable).
+- CI fix (run 41632546453): `tests/files.test.mjs` and `tests/pipeline.test.mjs` count fake-Gemini calls per turn, and the planner adds one call; their test servers now set `WEB_SEARCH_PLANNER=false`. Planner behaviour stays covered by `tests/p124-28-search-planner.test.mjs`. Production default (planner on) is unchanged, so each eligible message there costs one extra Gemini call.
 
 ## P124.27 — Single Gemini key pool, verifier opt-in, pipeline as default path, locale rule (2026-11-03)
 
