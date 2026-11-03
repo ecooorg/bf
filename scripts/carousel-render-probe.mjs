@@ -3,16 +3,16 @@
 const base = String(process.env.CAROUSEL_RENDER_URL || process.env.SERVICE_URL || '').trim().replace(/\/+$/, '');
 if (!base) {
   console.log(JSON.stringify({ type: 'render_health_probe', status: 'NOT_CONFIGURED', reason: 'CAROUSEL_RENDER_URL is empty' }, null, 2));
-  process.exit(0);
+  process.exit(2);
 }
 let parsedBase;
 try { parsedBase = new URL(base); } catch {
   console.log(JSON.stringify({ type: 'render_health_probe', status: 'INVALID_URL', reason: 'Render URL must be a valid HTTPS URL' }, null, 2));
-  process.exit(0);
+  process.exit(2);
 }
 if (parsedBase.protocol !== 'https:') {
   console.log(JSON.stringify({ type: 'render_health_probe', status: 'INVALID_URL', reason: 'Render URL must use HTTPS' }, null, 2));
-  process.exit(0);
+  process.exit(2);
 }
 
 const paths = ['/health', '/api/health', '/ready', '/health/runtime-config'];
@@ -45,8 +45,54 @@ const configResponse = results.find((item) => item.path === '/health/runtime-con
 const runtime = configResponse?.body?.runtimeConfig ?? null;
 const warnings = [];
 const advisories = [];
-if (!runtime) warnings.push('Runtime config endpoint is missing or returned no runtimeConfig; deploy P124.31 or inspect the endpoint response.');
+if (!runtime) warnings.push('Runtime config endpoint is missing or returned no runtimeConfig; deploy the current patch or inspect the endpoint response.');
 else {
+  const expect = (label, actual, expected) => {
+    const equal = Array.isArray(expected)
+      ? Array.isArray(actual) && JSON.stringify(actual) === JSON.stringify(expected)
+      : actual === expected;
+    if (!equal) warnings.push(`Render contract mismatch: ${label} should be ${JSON.stringify(expected)}, received ${JSON.stringify(actual ?? null)}.`);
+  };
+  // Canonical Production contract (docs/RENDER_ENV_CONTRACT.md). Report
+  // exact non-secret values so operators can correct Render without guessing.
+  expect('llm.callTimeoutMs', runtime.llm?.callTimeoutMs, 12000);
+  expect('llm.totalDeadlineMs', runtime.llm?.totalDeadlineMs, 30000);
+  expect('llm.maxModelCalls', runtime.llm?.maxModelCalls, 3);
+  expect('features.directGeminiMode', runtime.features?.directGeminiMode, false);
+  expect('features.externalModelFallback', runtime.features?.externalModelFallback, true);
+  expect('features.weatherConnector', runtime.features?.weatherConnector, true);
+  expect('features.projectMode', runtime.features?.projectMode, true);
+  expect('features.appAuth', runtime.features?.appAuth, true);
+  expect('search.enabled', runtime.search?.enabled, true);
+  expect('search.planner', runtime.search?.planner, true);
+  expect('search.carousel', runtime.search?.carousel, ['connector', 'serper', 'gemini']);
+  expect('search.maxQueries', runtime.search?.maxQueries, 2);
+  expect('search.configuredMaxPages', runtime.search?.configuredMaxPages, 2);
+  expect('search.timeoutMs', runtime.search?.timeoutMs, 15000);
+  expect('search.fetchPages', runtime.search?.fetchPages, true);
+  expect('search.defaultCountry', runtime.search?.defaultCountry, 'CH');
+  expect('workerPollMs', runtime.workerPollMs, 5000);
+  expect('appBuilder.engine', runtime.appBuilder?.engine, 'staged');
+  expect('appBuilder.modelSlice', runtime.appBuilder?.modelSlice, true);
+  expect('appBuilder.maxFiles', runtime.appBuilder?.maxFiles, 80);
+  expect('appBuilder.maxLines', runtime.appBuilder?.maxLines, 8000);
+  expect('appBuilder.executor', runtime.appBuilder?.executor, 'model_patch');
+  expect('limits.dailyCallCap', runtime.limits?.dailyCallCap, 1000);
+  expect('limits.rateLimitPerHour', runtime.limits?.rateLimitPerHour, 200);
+  expect('limits.projectRateLimitPerMinute', runtime.limits?.projectRateLimitPerMinute, 300);
+  expect('limits.maxBodyBytes', runtime.limits?.maxBodyBytes, 262144);
+  expect('limits.trustProxyHops', runtime.limits?.trustProxyHops, 1);
+  expect('hosting.pgSslMode', runtime.hosting?.pgSslMode, 'require');
+  expect('hosting.serviceUrlConfigured', runtime.hosting?.serviceUrlConfigured, true);
+  expect('hosting.jinaReaderBaseConfigured', runtime.hosting?.jinaReaderBaseConfigured, true);
+  expect('hosting.githubDiffUpload', runtime.hosting?.githubDiffUpload, true);
+  expect('runtime.nodeEnv', runtime.runtime?.nodeEnv, 'production');
+  expect('models.light', runtime.models?.light, ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite']);
+  expect('models.strong', runtime.models?.strong, ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']);
+  if ((runtime.credentials?.geminiKeySlots ?? 0) < 2) warnings.push(`Render contract mismatch: at least 2 Gemini key slots are recommended/configured; received ${runtime.credentials?.geminiKeySlots ?? 0}.`);
+  for (const credential of ['gemini', 'serper', 'jina', 'groq']) {
+    if (runtime.credentials?.[credential] !== true) warnings.push(`Render credential missing: ${credential} provider key is not configured.`);
+  }
   if (!Number.isFinite(runtime.llm?.callTimeoutMs) || runtime.llm.callTimeoutMs > 12_000) warnings.push(`Effective llm.callTimeoutMs must be <=12000, received ${runtime.llm?.callTimeoutMs ?? 'missing'}.`);
   if (!Number.isFinite(runtime.llm?.totalDeadlineMs) || runtime.llm.totalDeadlineMs > 30_000) warnings.push(`Effective llm.totalDeadlineMs must be <=30000, received ${runtime.llm?.totalDeadlineMs ?? 'missing'}.`);
   if (!Number.isFinite(runtime.llm?.maxModelCalls) || runtime.llm.maxModelCalls > 3) warnings.push(`Effective llm.maxModelCalls must be <=3, received ${runtime.llm?.maxModelCalls ?? 'missing'}.`);
@@ -57,8 +103,6 @@ else {
   if (runtime.search?.carousel?.includes('gemini') && !runtime.credentials?.gemini) warnings.push('Gemini Search is in SEARCH_CAROUSEL but no Gemini key is configured.');
   if (runtime.search?.carousel?.includes('connector') && !runtime.features?.weatherConnector) warnings.push('Connector is in SEARCH_CAROUSEL but WEATHER_CONNECTOR_ENABLED is false.');
   if (runtime.features?.externalModelFallback && !runtime.credentials?.groq && !runtime.credentials?.cloudflare) warnings.push('External model fallback is enabled but no Groq or Cloudflare fallback credentials are configured.');
-  if ((runtime.search?.maxQueries ?? 0) > 2) advisories.push('WEB_SEARCH_MAX_QUERIES is above 2; multi-query search can increase latency.');
-  if (runtime.search?.fetchPages) advisories.push('WEB_SEARCH_FETCH_PAGES=true adds external page-fetch requests; compare with false when diagnosing latency.');
   if (runtime.features?.weatherConnector) advisories.push('Weather connector is enabled and can add a parallel external lookup to weather requests.');
   if (runtime.features?.externalModelFallback) advisories.push('External model fallback is enabled; a slow or failed Gemini path may be followed by a Groq/Cloudflare call.');
   if ((runtime.modelStartIntervalMs?.flashLite ?? 0) >= 4_000) advisories.push(`Flash-Lite model-start spacing is ${runtime.modelStartIntervalMs.flashLite} ms; concurrent requests can queue behind this quota gate.`);
@@ -94,4 +138,5 @@ const report = {
   results,
 };
 console.log(JSON.stringify(report, null, 2));
-// This is evidence collection, not a deployment gate: report outages without hiding diagnostics.
+// The workflow is a deployment guard: fail when the live Render contract mismatches.
+if (warnings.length > 0) process.exit(1);

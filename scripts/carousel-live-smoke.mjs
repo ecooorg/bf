@@ -54,7 +54,6 @@ async function main() {
 
   const client = new GoogleGenAI({ apiKey: key });
   const build = (k) => createGeminiAdapter(new GoogleGenAI({ apiKey: k }));
-  const pool = new KeyPoolState();
 
   const timeoutMs = Math.min(12_000, Math.max(2_000, Number(process.env.LLM_CALL_TIMEOUT_MS) || 12_000));
   const samples = [];
@@ -85,8 +84,11 @@ async function main() {
         },
         {
           sourceId: 'gemini-free-pool',
+          // Each sample is isolated: a timeout in sample 1 must not trip
+          // the cooldown/breaker and turn later samples into misleading
+          // zero-latency "blocked" results.
           keySlots: [slots[0]],
-          keyPoolState: pool,
+          keyPoolState: new KeyPoolState(),
           buildGeminiAdapter: build,
         }
       );
