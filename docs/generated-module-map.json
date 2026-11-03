@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-02T10:29:12.990Z",
+  "generatedAt": "2026-11-03T09:01:03.667Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 175,
-    "edgeCount": 438,
+    "moduleCount": 178,
+    "edgeCount": 445,
     "cycleCount": 0,
-    "totalLines": 32921
+    "totalLines": 33383
   },
   "cycles": [],
   "layers": {
-    "server": 78,
+    "server": 81,
     "src": 83,
     "other": 14
   },
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2240,
+      "lines": 2407,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -165,6 +165,7 @@
         "server/codeTaskService.ts",
         "server/compatibilityRoutes.ts",
         "server/contracts.ts",
+        "server/conversationDiagnostics.ts",
         "server/conversationMode.ts",
         "server/database.ts",
         "server/documents.ts",
@@ -188,6 +189,7 @@
         "server/opsMetrics.ts",
         "server/opsRoutes.ts",
         "server/planService.ts",
+        "server/processLifecycle.ts",
         "server/projectCapabilities.ts",
         "server/projectDiagnostics.ts",
         "server/projectRepository.ts",
@@ -407,6 +409,17 @@
       "fanIn": 6
     },
     {
+      "path": "server/conversationDiagnostics.ts",
+      "layer": "server",
+      "lines": 49,
+      "imports": [
+        "server/diagnosticsConfig.ts",
+        "server/processLifecycle.ts",
+        "server/projectDiagnostics.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/conversationMode.ts",
       "layer": "server",
       "lines": 47,
@@ -429,6 +442,15 @@
       "lines": 47,
       "imports": [],
       "fanIn": 17
+    },
+    {
+      "path": "server/diagnosticsConfig.ts",
+      "layer": "server",
+      "lines": 78,
+      "imports": [
+        "server/redact.ts"
+      ],
+      "fanIn": 1
     },
     {
       "path": "server/documents.ts",
@@ -558,7 +580,7 @@
     {
       "path": "server/keyPool.ts",
       "layer": "server",
-      "lines": 106,
+      "lines": 116,
       "imports": [],
       "fanIn": 3
     },
@@ -677,6 +699,13 @@
       "fanIn": 3
     },
     {
+      "path": "server/processLifecycle.ts",
+      "layer": "server",
+      "lines": 76,
+      "imports": [],
+      "fanIn": 2
+    },
+    {
       "path": "server/projectCapabilities.ts",
       "layer": "server",
       "lines": 29,
@@ -688,13 +717,13 @@
     {
       "path": "server/projectDiagnostics.ts",
       "layer": "server",
-      "lines": 349,
+      "lines": 356,
       "imports": [
         "server/artifactRepository.ts",
         "server/database.ts",
         "server/redact.ts"
       ],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "server/projectRepository.ts",
@@ -794,7 +823,7 @@
       "imports": [
         "server/keyPool.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/repairLoop.ts",
@@ -905,7 +934,7 @@
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 865,
+      "lines": 910,
       "imports": [
         "server/untrustedData.ts"
       ],
@@ -976,7 +1005,7 @@
     {
       "path": "src/AppHeader.tsx",
       "layer": "src",
-      "lines": 195,
+      "lines": 219,
       "imports": [
         "src/ModeMenu.tsx",
         "src/WorkspacePanel.tsx",
@@ -1505,7 +1534,7 @@
     {
       "path": "src/numberValidator.ts",
       "layer": "src",
-      "lines": 305,
+      "lines": 319,
       "imports": [],
       "fanIn": 1
     },
@@ -1681,9 +1710,10 @@
     {
       "path": "src/workspace/exportZip.ts",
       "layer": "src",
-      "lines": 246,
+      "lines": 238,
       "imports": [
         "src/workspace/diff.ts",
+        "src/workspace/hash.ts",
         "src/workspace/types.ts"
       ],
       "fanIn": 1
@@ -1702,7 +1732,7 @@
       "layer": "src",
       "lines": 41,
       "imports": [],
-      "fanIn": 4
+      "fanIn": 5
     },
     {
       "path": "src/workspace/idbStore.ts",
@@ -1876,18 +1906,18 @@
       "count": 5
     },
     {
-      "path": "appBuilder/core-cache.ts",
-      "count": 4
+      "path": "src/workspace/hash.ts",
+      "count": 5
     },
     {
-      "path": "appBuilder/core-plan.ts",
+      "path": "appBuilder/core-cache.ts",
       "count": 4
     }
   ],
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2240
+      "lines": 2407
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1898,12 +1928,12 @@
       "lines": 951
     },
     {
-      "path": "server/projectRoutes.ts",
-      "lines": 905
+      "path": "server/webSearch.ts",
+      "lines": 910
     },
     {
-      "path": "server/webSearch.ts",
-      "lines": 865
+      "path": "server/projectRoutes.ts",
+      "lines": 905
     },
     {
       "path": "src/App.tsx",
@@ -1970,16 +2000,16 @@
       "lines": 371
     },
     {
+      "path": "server/projectDiagnostics.ts",
+      "lines": 356
+    },
+    {
       "path": "src/programFiles.ts",
       "lines": 356
     },
     {
       "path": "src/ProjectNoviceWizard.tsx",
       "lines": 350
-    },
-    {
-      "path": "server/projectDiagnostics.ts",
-      "lines": 349
     },
     {
       "path": "src/ProjectDelivery.tsx",
