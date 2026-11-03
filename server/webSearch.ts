@@ -33,6 +33,9 @@ export type WebSearchResult = {
   /** P124.26: query plan and usability decision (non-secret). */
   plan?: { query: string; queries?: string[]; place?: string; country?: string; topic?: string; freshness?: 'now' | 'recent' | 'none'; planSource: 'model' | 'heuristic'; planNote?: string };
   usability?: { verdict: 'ok' | 'weak' | 'none'; hasNumber: boolean; placeMatched: boolean | null; retried: boolean };
+  /** P124.30: provider that produced the result and the provider-chain trace (non-secret). */
+  provider?: string;
+  chain?: { provider: string; outcome: string; detail?: string }[];
 };
 
 /** Flat, secret-free record of one search decision for `recordApplicationLog` (hosts only, never full URLs). */
@@ -56,6 +59,7 @@ export function searchDecisionDetails(
     droppedByBudget: r.diagnostics?.droppedByBudget ?? 0,
     country: r.plan?.country, planSource: r.plan?.planSource, planNote: r.plan?.planNote, freshness: r.plan?.freshness,
     usability: r.usability,
+    chain: r.chain,
   };
 }
 
