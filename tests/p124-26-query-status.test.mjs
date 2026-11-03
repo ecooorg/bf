@@ -51,6 +51,8 @@ test('R-6: usability check is deterministic', () => {
   assert.equal(assessUsability(used('Zurich weather portal with forecasts and radar for the region and city'), { place: 'Zurich' }).verdict, 'weak');
   assert.equal(assessUsability(used('x'), {}).verdict, 'none');
   assert.equal(assessUsability(used('Some figure 12 appears here in the text for reading'), {}).verdict, 'ok');
+  assert.equal(assessUsability(used('Node.js LTS remains in active support and is the recommended production release.'), { query: 'latest Node.js LTS version', topic: 'software release' }).verdict, 'ok', 'relevant non-numeric evidence is usable');
+  assert.equal(assessUsability(used('A general page about gardening and home decoration with no related facts.'), { query: 'latest Node.js LTS version', topic: 'software release' }).verdict, 'none', 'unrelated text is rejected even when long');
 });
 
 test('R-6: weak result triggers exactly one retry with a different query; better merge wins', async () => {
