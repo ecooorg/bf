@@ -1,3 +1,10 @@
+## P124.25 — Emergency screen ignores benign ResizeObserver notices (2026-11-03)
+
+- Owner screenshot (Chrome/Android, 10:40): the critical-error screen appeared for `ResizeObserver loop completed with undelivered notifications`, a harmless browser notice about a deferred layout measurement, not an application failure.
+- `src/emergencyDiagnostics.ts`: new `isBenignBrowserNotice`; the `error` handler returns early for `ResizeObserver loop …` messages (neither logged nor shown). Resource errors, other window errors, and unhandled rejections behave as before.
+- Tests: `tests/p124-25-emergency-benign.test.mjs` (in `test:core`). Version/patch 124.25. The retrieval-integrity work keeps its scope and takes the next free patch number.
+- **G4 statement:** the emergency screen is a fallback surface; no `data-testid`, route, mounting, or completion flow changed. Real errors still replace the root with the emergency screen, so `tests/p121-emergency-screen.test.mjs` and existing e2e are unaffected. Live browser re-check `NOT_RUN` (Navigator: reload the site on the tablet; the screen must not appear on idle load).
+
 ## P124.24 — Conversation diagnostic log, configuration snapshot, restart reasons (2026-11-03)
 
 - `server/conversationDiagnostics.ts`: `GET /api/diagnostics/session-log` (Simple/Expert header button) now returns a conversation-oriented log instead of the Project Mode log: version/patch/commit, build stamp, process and memory, boot history with `previousShutdown`, configuration snapshot, set-but-unused variable names, search decisions, conversation responses, warnings/errors, conversation HTTP. Project Mode keeps `compactSessionLog` on its own route (item 1).

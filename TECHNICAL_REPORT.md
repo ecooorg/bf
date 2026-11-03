@@ -1,3 +1,10 @@
+## P124.25 — Benign ResizeObserver notice no longer stops the UI (2026-11-03)
+
+Product version `124`, patch `124.25`.
+
+- **OBSERVED (owner screenshot):** emergency screen with a single `WINDOW_ERROR`, message `ResizeObserver loop completed with undelivered notifications`, from the production bundle. **OBSERVED-SRC:** the `error` handler treated every non-resource window error as critical.
+- **REPRODUCED (local):** `tests/p124-25-emergency-benign.test.mjs` and `tests/p121-emergency-screen.test.mjs` pass. **NOT_RUN:** browser re-check, hosted CI. **INFERRED:** the notice comes from a layout observer in the bundle; whether it recurs in a loop is not established.
+
 ## P124.24 — Diagnostics separation, snapshot, restart evidence (2026-11-03)
 
 Product version `124`, patch `124.24`.
