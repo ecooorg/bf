@@ -13,6 +13,8 @@ Reference case (screenshot, 2026-11-03 05:37Z): "current weather in Zurich, comp
 
 ## 2. Evidence base and limits
 
+Auxiliary source (non-governing): `docs/biforge-web-search-analysis.md` is the English translation of the original analysis report. It is traceability material only; where it differs from this document or from `docs/DECISIONS.md`, this document and the higher-level documents win.
+
 Inputs: the P124.21 source archive, the application diagnostics export (896 detailed records, 2026-11-01 15:03Z to 2026-11-03 05:40Z), the Render deploy log for commit `9db8a51`, the owner-supplied Render environment listing (secret values masked), a screenshot, and a compact session log.
 
 Limits:
