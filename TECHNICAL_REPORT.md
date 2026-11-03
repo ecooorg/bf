@@ -1,3 +1,12 @@
+## P124.34 — Evidence (2026-11-03)
+
+Product version `124`, patch `124.34`.
+
+- **OBSERVED (run 41688456448, patch 124.33, commit a32c606):** Core CI FAIL; `test:core` 204/206 (two tests in `tests/p124-28-search-planner.test.mjs`), `test:carousel-unit` 11/12 (suite file exit 2); 28 of 30 DAG checks PASS.
+- **ROOT CAUSES (source inspection plus local reproduction):** (1) carousel probe executed its network probe on import and called `process.exit(2)`; (2) the 124.33 pre-classifier matched bare time words and ignored the personal-data rule.
+- **FIXED (source):** probe wrapped in `runProbe()` behind a direct-invocation guard; pre-classifier restricted to live-data topics with personal-data and private-person deferral; regression test added.
+- **NOT_RUN:** hosted GitHub Actions, live Render probe, live Gemini/Groq/Serper timings.
+
 ## P124.33 — Evidence (2026-11-03)
 
 Product version `124`, patch `124.33`.
