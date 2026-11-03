@@ -1,5 +1,13 @@
 # Active Decisions
 
+## D-2026-11-03-02 — Locale rule: Switzerland now, never country-bound
+
+**Locale rule (owner, 2026-11-03).** At present the developers and users are in Switzerland and metric units are used (°C, km, kg, CHF unless stated otherwise). The product MUST NOT be tied to Switzerland or to the United States: no country, city, host, currency or unit is hard-coded as a default in code or prompts. The deployment's home country is configuration (`WEB_SEARCH_DEFAULT_COUNTRY`, ISO alpha-2, e.g. `CH`), used only when a request names no place; a place named by the user always wins (country from the search plan / source domain), and units follow the place's country (`unitsForCountry`). Tests and examples must not assume one country.
+
+**Effect:** `AGENTS.md` §1 carries the rule; `docs/WEB_SEARCH_REMEDIATION.md` section 6 decision 8; P124.27 adds `WEB_SEARCH_DEFAULT_COUNTRY` and removes the implicit `us` bias where a deployment default is set (`us` remains only the neutral last resort when nothing is configured).
+
+---
+
 ## D-2026-11-03-01 — C124: web-search live-data remediation programme
 
 **Decision (owner-directed, 2026-11-03):**
