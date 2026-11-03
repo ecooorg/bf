@@ -1,5 +1,13 @@
 # Active Decisions
 
+## D-2026-11-03-03  Gemini keys are ten separate projects of ten scientists
+
+**Fact and rule (owner, 2026-11-03).** The ten `GEMINI_API_KEY` keys belong to ten different Google projects owned by ten different scientists of one organization. The same holds for any key carousel built later for another provider: each key there is a separate project of a different scientist, not several keys of one project.
+
+**Effect:** supersedes the K-1 inference of one shared quota (`docs/WEB_SEARCH_REMEDIATION.md` sections 3, 5, 6); key-pool code makes no shared-quota assumption; usage and privacy consequences are in `docs/SECURITY_AND_PRIVACY.md`.
+
+---
+
 ## D-2026-11-03-02 — Locale rule: Switzerland now, never country-bound
 
 **Locale rule (owner, 2026-11-03).** At present the developers and users are in Switzerland and metric units are used (°C, km, kg, CHF unless stated otherwise). The product MUST NOT be tied to Switzerland or to the United States: no country, city, host, currency or unit is hard-coded as a default in code or prompts. The deployment's home country is configuration (`WEB_SEARCH_DEFAULT_COUNTRY`, ISO alpha-2, e.g. `CH`), used only when a request names no place; a place named by the user always wins (country from the search plan / source domain), and units follow the place's country (`unitsForCountry`). Tests and examples must not assume one country.
