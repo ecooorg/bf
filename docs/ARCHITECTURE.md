@@ -19,6 +19,13 @@ Architect is one user-facing agent and one state machine. Any beginner-friendly 
 
 The Lab frontend remains a separate surface but is not an independent generation engine: it reuses authenticated project/build APIs and shared backend orchestration, polling, validators, and artifact storage. Its latest supplied build report was `PARTIAL`, with JavaScript syntax and file-reference failures. The selected legacy artifact reported `SUCCESS` with all declared validators passing, although source inspection found semantic DOM aliasing that the old validator missed. The shared validator now checks this failure class. Browser/mobile user outcome is still NOT_RUN.
 
+## Conversational retrieval boundary
+
+- The search planner receives a bounded recent dialogue window, while the provider query is made self-contained from the latest user task. A recognizable follow-up may inherit only the immediately preceding user task; an intervening unrelated user turn breaks carry-over.
+- Planner-model failure does not erase a recognized lookup task: deterministic fallback preserves its query and named entities, subject to the same personal-data exclusion.
+- Search-provider routing and LLM generation routing are separate concerns. Search-provider fallback is handled by the provider carousel; cross-provider generation fallback remains explicitly opt-in because provider data-handling terms and user content may differ.
+- Retrieval usability is query/topic/entity relevance, not a universal number-presence test. Numeric evidence is required only when the requested answer is numeric or time/measurement based. This check is a retrieval-quality gate, not a full claim-by-claim fact verifier.
+
 ## Guardrails
 
 - Client never calls model providers directly.

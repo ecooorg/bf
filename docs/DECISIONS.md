@@ -1,3 +1,17 @@
+## D-2026-11-03-04 — Universal, cross-domain retrieval and regression criteria
+
+**Owner direction (2026-11-03):** BiForge is a universal agent, not a domain-specialized agent. Search-context recovery and retrieval validation must be domain-neutral. Weather may appear as one regression example but must not dominate the test corpus or dictate architecture.
+
+**Implementation rules:**
+1. A recognizable follow-up may inherit context only from the immediately preceding user task when that task represents live/current information or an explicit lookup. An intervening unrelated user turn breaks the carry-over.
+2. A deterministic planner fallback must preserve the resolved task and named entities when the planner model is unavailable, without bypassing privacy rules.
+3. Retrieved evidence is assessed against the resolved query/topic and named entities. Numeric evidence is required only when the task asks for numeric, temporal, price/rate, measurement or comparable values.
+4. Regression tests assert general invariants across unrelated domains, not fixed model wording or a single domain's answers.
+
+**Effect:** P124.35 implements the first slice and records deterministic evidence. Live provider quality and deployed user outcomes remain `NOT_RUN` until verified.
+
+---
+
 # Active Decisions
 
 ## D-2026-11-03-03  Gemini keys are ten separate projects of ten scientists

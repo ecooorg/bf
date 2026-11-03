@@ -1,3 +1,10 @@
+## P124.35 — Universal conversational retrieval regression corpus
+
+- `tests/universal-followup-regression.test.mjs` is a cross-domain contract suite. Its examples span software releases, travel schedules, product availability, public policy, business research and weather; weather is one case, not the suite's organizing domain.
+- Assertions protect invariants: a follow-up retains the immediately preceding live-information task and named entities; an intervening unrelated user turn prevents stale-context carry-over; planner absence/quota failure does not erase context; personal data is not searched; non-numeric but query-relevant evidence can be usable; irrelevant long digests are rejected.
+- Do not assert exact model prose, canned factual answers, specific provider choices, or a fixed topic mix as product truth. Add unrelated domains when new regression classes are found. Tests should constrain correctness properties, not train the implementation to one example.
+- `test:core` includes this suite and is already part of the Core CI verification DAG. Local deterministic PASS does not establish live provider quality, hosted CI status or deployed user outcomes.
+
 ## Live-search acceptance (planned; NOT_RUN) — P124.22
 
 Criteria A1–A8 in `docs/WEB_SEARCH_REMEDIATION.md` define user-level acceptance for live-data answers (place and country correct, units, observation time, named independent sources, follow-up topic carry-over, no false "no internet" claim, quota-exhaustion behaviour, privacy no-search rules, searchable logs). Mock and unit tests prove only mocks. `PASS` for these criteria requires a real run against a deployed instance; until then they are `NOT_RUN`. A scheduled live workflow is part of P124.31.

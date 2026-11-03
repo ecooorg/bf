@@ -21,13 +21,17 @@
     },
     {
       "id": "build",
-      "command": "vite build && npm run build:server",
+      "command": "node scripts/write-build-stamp.mjs && vite build && npm run build:server",
       "needs": [],
       "profiles": [
         "ci"
       ],
-      "files": [],
-      "modules": []
+      "files": [
+        "scripts/write-build-stamp.mjs"
+      ],
+      "modules": [
+        "scripts/write-build-stamp.mjs"
+      ]
     },
     {
       "id": "critical-app-builder-recovery",
@@ -283,6 +287,28 @@
       ]
     },
     {
+      "id": "test:carousel-unit",
+      "command": "node --import tsx --test --test-timeout=120000 tests/p123-carousel-workflow.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/p123-carousel-workflow.test.mjs"
+      ],
+      "modules": [
+        "scripts/carousel-live-smoke.mjs",
+        "scripts/carousel-render-probe.mjs",
+        "server/keyPool.ts",
+        "server/modelCarousel.ts",
+        "server/modelRegistry.ts",
+        "server/modelSourcesCatalog.ts",
+        "server/router.ts",
+        "server/sourceHealth.ts"
+      ]
+    },
+    {
       "id": "test:compact-ci-artifacts",
       "command": "node --test tests/c124-architect-appbuilder-prompt.test.mjs tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs tests/diagnostics-summary-contract.test.mjs tests/assistant-run-summary-contract.test.mjs",
       "needs": [],
@@ -331,7 +357,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --test tests/workflow-action-pins.test.mjs && node --import tsx --test tests/security-headers.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --test tests/workflow-action-pins.test.mjs && node --import tsx --test tests/security-headers.test.mjs tests/p124-23-search-integrity.test.mjs tests/p124-24-diagnostics.test.mjs tests/p124-25-emergency-benign.test.mjs && node --import tsx --test tests/universal-followup-regression.test.mjs && node --import tsx --test tests/p124-25-retrieval-integrity.test.mjs tests/p124-26-query-status.test.mjs tests/p124-27-key-pool.test.mjs tests/p124-28-search-planner.test.mjs tests/p124-29-weather-connector.test.mjs tests/p124-30-search-carousel.test.mjs tests/p124-31-llm-latency-config.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -356,8 +382,19 @@
         "tests/p121-emergency-screen.test.mjs",
         "tests/p121-navigator-protocol.test.mjs",
         "tests/p12318-agent-session-isolation.test.mjs",
+        "tests/p124-23-search-integrity.test.mjs",
+        "tests/p124-24-diagnostics.test.mjs",
+        "tests/p124-25-emergency-benign.test.mjs",
+        "tests/p124-25-retrieval-integrity.test.mjs",
+        "tests/p124-26-query-status.test.mjs",
+        "tests/p124-27-key-pool.test.mjs",
+        "tests/p124-28-search-planner.test.mjs",
+        "tests/p124-29-weather-connector.test.mjs",
+        "tests/p124-30-search-carousel.test.mjs",
+        "tests/p124-31-llm-latency-config.test.mjs",
         "tests/redact-secrets.test.mjs",
         "tests/security-headers.test.mjs",
+        "tests/universal-followup-regression.test.mjs",
         "tests/workflow-action-pins.test.mjs"
       ],
       "modules": [
@@ -378,19 +415,28 @@
         "server/compatibilityRoutes.ts",
         "server/contextBuilder.ts",
         "server/contracts.ts",
+        "server/conversationDiagnostics.ts",
         "server/conversationMode.ts",
         "server/conversationalAgent.ts",
+        "server/diagnosticsConfig.ts",
+        "server/epistemicVerifier.ts",
         "server/expertAgent.ts",
+        "server/geminiKeyPool.ts",
         "server/healthRoutes.ts",
         "server/intentFlags.ts",
+        "server/llmLatencyConfig.ts",
+        "server/modelRateLimit.ts",
         "server/opsRoutes.ts",
+        "server/processLifecycle.ts",
         "server/projectRoutes.ts",
         "server/promptCore.ts",
         "server/promptPacks.ts",
         "server/reasoningState.ts",
         "server/redact.ts",
+        "server/searchCarousel.ts",
         "server/securityHeaders.ts",
         "server/statePipeline.ts",
+        "server/weatherConnector.ts",
         "server/webSearch.ts",
         "src/brier.ts",
         "src/config.ts",
@@ -881,6 +927,12 @@
     "scripts/capabilityGraphLib.mjs": [
       "test:compact-ci-artifacts"
     ],
+    "scripts/carousel-live-smoke.mjs": [
+      "test:carousel-unit"
+    ],
+    "scripts/carousel-render-probe.mjs": [
+      "test:carousel-unit"
+    ],
     "scripts/check-version.mjs": [
       "test:core",
       "version-consistency"
@@ -1001,6 +1053,9 @@
     "scripts/version-metadata.mjs": [
       "test:core"
     ],
+    "scripts/write-build-stamp.mjs": [
+      "build"
+    ],
     "server/adapter.ts": [
       "critical-gemini-timeout",
       "critical-router-selection",
@@ -1087,6 +1142,9 @@
       "test:database:live",
       "test:pipeline"
     ],
+    "server/conversationDiagnostics.ts": [
+      "test:core"
+    ],
     "server/conversationMode.ts": [
       "lint:copy",
       "test:core",
@@ -1101,12 +1159,16 @@
       "test:database:live",
       "test:project"
     ],
+    "server/diagnosticsConfig.ts": [
+      "test:core"
+    ],
     "server/documents.ts": [
       "lint:copy",
       "test:files"
     ],
     "server/epistemicVerifier.ts": [
       "lint:copy",
+      "test:core",
       "test:web"
     ],
     "server/expertAgent.ts": [
@@ -1145,6 +1207,9 @@
       "critical-router-selection",
       "test:models"
     ],
+    "server/geminiKeyPool.ts": [
+      "test:core"
+    ],
     "server/githubIntegration.ts": [
       "test:bx06:api",
       "test:compact-ci-artifacts",
@@ -1172,6 +1237,9 @@
     "server/keepAlive.ts": [
       "lint:copy"
     ],
+    "server/keyPool.ts": [
+      "test:carousel-unit"
+    ],
     "server/latencyPolicy.ts": [
       "test:turn"
     ],
@@ -1180,8 +1248,14 @@
       "test:database:live",
       "test:integrations"
     ],
+    "server/llmLatencyConfig.ts": [
+      "test:core"
+    ],
     "server/modelAvailability.ts": [
       "test:models"
+    ],
+    "server/modelCarousel.ts": [
+      "test:carousel-unit"
     ],
     "server/modelHealth.ts": [
       "critical-gemini-timeout",
@@ -1190,14 +1264,21 @@
       "test:database:live",
       "test:models"
     ],
+    "server/modelRateLimit.ts": [
+      "test:core"
+    ],
     "server/modelRegistry.ts": [
       "critical-gemini-timeout",
       "critical-router-selection",
       "test:app-builder",
+      "test:carousel-unit",
       "test:database",
       "test:database:live",
       "test:integrations",
       "test:models"
+    ],
+    "server/modelSourcesCatalog.ts": [
+      "test:carousel-unit"
     ],
     "server/openaiCompatAdapter.ts": [
       "critical-gemini-timeout",
@@ -1224,6 +1305,9 @@
       "test:database",
       "test:database:live",
       "test:models"
+    ],
+    "server/processLifecycle.ts": [
+      "test:core"
     ],
     "server/projectCapabilities.ts": [
       "test:bx06:api",
@@ -1287,10 +1371,14 @@
       "critical-router-policy-call-limit",
       "critical-router-selection",
       "test:app-builder",
+      "test:carousel-unit",
       "test:database",
       "test:database:live",
       "test:integrations",
       "test:models"
+    ],
+    "server/searchCarousel.ts": [
+      "test:core"
     ],
     "server/security.ts": [
       "test:security"
@@ -1299,6 +1387,9 @@
       "test:core",
       "test:security",
       "test:web"
+    ],
+    "server/sourceHealth.ts": [
+      "test:carousel-unit"
     ],
     "server/statePipeline.ts": [
       "test:core",
@@ -1325,6 +1416,9 @@
     ],
     "server/untrustedData.ts": [
       "test:security"
+    ],
+    "server/weatherConnector.ts": [
+      "test:core"
     ],
     "server/webSearch.ts": [
       "lint:copy",

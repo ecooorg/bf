@@ -1,4 +1,13 @@
-# CURRENT USER-VALUE EVIDENCE — P121.0.48, 2026-10-31
+# P124.35 — Universal retrieval reliability (2026-11-03)
+
+- **OBSERVED (source):** the prior fallback could reduce an elliptical follow-up to its literal latest wording; the search provider does not receive conversation history. The prior usability gate also treated a number as a generic signal of usefulness.
+- **IMPLEMENTED:** cross-domain context carry-over for a recognizable follow-up to the immediately preceding live-information task; stale context is not inherited across a topic switch. Query/topic/place relevance replaces number-presence as the universal relevance test; numeric evidence is conditional on numeric intent.
+- **INFERRED:** this should reduce malformed follow-up queries and false rejection of useful non-numeric research results.
+- **NOT_RUN:** live search and LLM provider acceptance, hosted CI, deployed conversations, and real-user task completion. The deterministic test corpus is not user-value evidence.
+
+---
+
+# CURRENT USER-VALUE EVIDENCE — P124.35, 2026-11-03
 
 - **OBSERVED:** Latest supplied legacy artifact report is `SUCCESS` with all seven declared validators passing; latest Lab report is `PARTIAL` with JavaScript syntax and file-reference failures. The legacy artifact's source nevertheless contained multiple distinct UI properties bound to the same DOM ids, exposing a validator blind spot.
 - **DECISION:** Legacy Architect / `ProjectMode` is the single active development target. Architectural Test Lab is frozen for diagnostics and no longer receives parallel feature work.
