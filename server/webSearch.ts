@@ -27,7 +27,31 @@ export type WebSearchResult = {
   queries: string[];
   model?: string;
   reason?: string;
+  /** Non-secret retrieval diagnostics for persistent logs (P124.23). */
+  diagnostics?: { digestCharsPerQuery: number[]; digestCharsBeforeBudget: number; droppedByBudget: number };
 };
+
+/** Flat, secret-free record of one search decision for `recordApplicationLog` (hosts only, never full URLs). */
+export function searchDecisionDetails(
+  r: WebSearchResult,
+  extra: { provider: string; gate?: string; expected?: boolean } & Record<string, unknown>,
+): Record<string, unknown> {
+  const hosts: string[] = [];
+  for (const s of r.sources || []) {
+    try { const h = new URL(s.url).hostname.replace(/^www\./, ''); if (h && !hosts.includes(h)) hosts.push(h); } catch { /* ignore */ }
+  }
+  return {
+    ...extra,
+    status: r.status,
+    reason: r.reason ? String(r.reason).slice(0, 180) : undefined,
+    queries: (r.queries || []).slice(0, 8).map((q) => String(q).slice(0, 120)),
+    sourceCount: (r.sources || []).length,
+    sourceHosts: hosts.slice(0, 12),
+    digestChars: (r.digest || '').length,
+    digestCharsPerQuery: r.diagnostics?.digestCharsPerQuery ?? [],
+    droppedByBudget: r.diagnostics?.droppedByBudget ?? 0,
+  };
+}
 
 /** Minimal shape of the Gemini client we need (same as the SDK's `client.models.generateContent`). */
 export interface SearchClientLike { models: { generateContent(args: any): Promise<any> } }
@@ -275,7 +299,13 @@ export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: s
     }
     if (p.digest.trim()) digests.push(p.digest.trim());
   }
-  const digest = digests.join('\n\n====\n\n').slice(0, MAX_DIGEST_CHARS);
+  const joined = digests.join('\n\n====\n\n');
+  const digest = joined.slice(0, MAX_DIGEST_CHARS);
+  const diagnostics = {
+    digestCharsPerQuery: used.map((p) => p.digest.trim().length),
+    digestCharsBeforeBudget: joined.length,
+    droppedByBudget: Math.max(0, joined.length - digest.length),
+  };
   if (digest.length < MIN_DIGEST_CHARS && !sources.length) {
     return skippedWebSearch('no_grounding', 'merged_empty');
   }
@@ -285,6 +315,7 @@ export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: s
     sources,
     queries: queries.length ? queries : [fallbackQuery],
     model: 'serper',
+    diagnostics,
   };
 }
 
