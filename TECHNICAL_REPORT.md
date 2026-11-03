@@ -1,3 +1,13 @@
+## P124.33 — Evidence (2026-11-03)
+
+Product version `124`, patch `124.33`.
+
+- **FIXED (source):** Core CI blockers from 124.32 diagnostics — Zod 4 schema defaults and `z.record` arity; Cyrillic lint in diagnostic report and KeepAlive; carousel unit-workflow/probe env-key alignment; `MODEL_CASCADE_LIGHT` order; probe exit policy split (contract vs live health); live-smoke per-model partial-pass; planner 3 s + live-data pre-classifier; abort-listener cleanup in model rate-limit wait.
+- **OBSERVED in prior logs (124.32):** carousel workflow red for probe/test mismatch and models.light order; Core CI failed on lint:copy, typecheck, package limits.
+- **NOT_RUN:** full `npm ci` + hosted GitHub Actions + live Render probe + live Gemini/Groq timings from this sandbox. Deploy and green Actions are the Navigator pass criterion.
+- **Expected effect (INFERRED):** Core CI green; carousel deterministic layer green; weather/news paths skip the 8 s planner on the common case; fewer MaxListenersExceededWarning events.
+
+
 ## P124.32 — CI and live-diagnostic corrections (2026-11-03)
 
 - **IMPLEMENTED:** corrected the two stale test assertions reported by Core CI: P124.27 direct-mode source-count test now includes the additional sanitized runtime-config occurrence; P124.28 planner test now verifies the deadline-aware split gate (`plannerEnabled`, `plannerEligible`).

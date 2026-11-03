@@ -1,3 +1,12 @@
+## P124.33 — Green carousel CI, latency pre-classifier, robustness (2026-11-03)
+
+- **P0 (carousel green):** Shared `RENDER_ENV_RUNTIME_KEYS` table drives the Render probe and the unit-workflow test (no more literal `WEB_SEARCH_MAX_QUERIES` mismatch). Contract mismatches still exit 1; live health (cooldown, quotaHit, circuit, source health) is advisory only and no longer fails the workflow. `MODEL_CASCADE_LIGHT` contract order is `gemini-3.5-flash-lite,gemini-3.1-flash-lite` (faster model first). Live smoke passes when ≥1 sample per model succeeds and logs a redacted Groq error body. Carousel unit-workflow is in the Core CI DAG (`test:carousel-unit`).
+- **CI red fixes:** Zod 4 `taskPackageSchema.limits.default` and `z.record(z.string(), z.unknown())` in project routes; English-only `server/keepAlive.ts` and diagnostic report (E9 / lint:copy Cyrillic).
+- **P1 (latency):** Planner default timeout 3 s (was 8 s). Deterministic `preClassifyLiveDataIntent` skips the model planner for weather/news/prices/scores/now intents. Search plan builder timeout also 3 s; weather connector budget capped at 6 s in the combined path.
+- **P2 (robustness):** Abort-listener cleanup in `modelRateLimit` wait path so shared request signals do not accumulate listeners (E1).
+- Validation: local typecheck and targeted unit tests; full hosted CI NOT_RUN from this archive.
+
+
 ## P124.32 — CI truthfulness, isolated live samples and frozen Render baseline (2026-11-03)
 
 - Fixed two stale source-contract tests: the Gemini direct-mode test now accounts for the sanitized runtime-config field, and the planner test asserts the deadline-aware `plannerEligible` gate introduced in P124.31.
