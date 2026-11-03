@@ -52,6 +52,7 @@ Verify unauthorized access, cross-user/project access, invalid paths, expired/mi
 
 ## Third-party processing inventory
 
+- From P124.26 the search-plan model call (query, place, ISO country, topic) is made for every message that triggers a search, not only for non-Latin text; it uses the same Gemini key as the conversation and the prompt forbids personal data in the query. The hard no-search rules (distress, CRISIS, DOCUMENT, attachments) are unchanged, so those turns never reach it.
 - `JINA_API_KEY` (optional) is sent only as an `Authorization` header to the Jina Reader endpoint and is a redacted secret name; `JINA_READER_BASE_URL` is used only if it is https.
 - Web research can disclose the target URL (including path and query string) to Jina Reader when that extraction path is selected.
 - Serper receives search queries when the Serper provider is selected.
