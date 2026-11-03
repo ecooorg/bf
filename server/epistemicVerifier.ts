@@ -32,6 +32,11 @@ export function hasFactualSurface(text: string): boolean {
   return false;
 }
 
+/** P124.27 (E-1): the verifier sends user and answer text to a third party, so it runs only on explicit opt-in. */
+export function isVerifierEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return String(env.EPISTEMIC_VERIFIER_ENABLED || '').trim().toLowerCase() === 'true';
+}
+
 export function shouldRunVerifier(opts: {
   hasGroqKey: boolean;
   triage: string;
@@ -103,6 +108,7 @@ export async function runEpistemicVerifier(opts: {
   timeoutMs?: number;
 }): Promise<EpistemicResult> {
   const key = process.env.GROQ_API_KEY;
+  if (!opts.adapter && !isVerifierEnabled()) return skippedEpistemic('skipped');
   if (!key && !opts.adapter) return skippedEpistemic('skipped');
 
   let adapter = opts.adapter;
