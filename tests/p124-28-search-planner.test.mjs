@@ -79,9 +79,12 @@ test('fallback is never silent: every failure records a note and the heuristic d
   assert.match(e.decisionNote, /^decision_error:/); assert.equal(e.search, true); assert.equal(e.decisionSource, 'heuristic');
 });
 
-test('hard gates run before the planner: distress, CRISIS, DOCUMENT, attachments, disabled, short', () => {
+test('planner is limited to plausible freshness candidates and explicit search follow-ups', () => {
   const t = 'what is the weather in Zurich';
   assert.equal(searchPlannerGate(trig(t)), true);
+  assert.equal(searchPlannerGate(trig('Can you explain the difference between these two ideas?')), false);
+  assert.equal(searchPlannerGate(trig('Какое сегодня число?')), false, 'simple date question must not spend a planner call');
+  assert.equal(searchPlannerGate(trig('I am asking you to search', { recentSearchIntent: true })), true);
   assert.equal(searchPlannerGate(trig(t, { distress: true })), false);
   assert.equal(searchPlannerGate(trig(t, { triage: 'CRISIS' })), false);
   assert.equal(searchPlannerGate(trig(t, { intent: 'DOCUMENT' })), false);
@@ -89,7 +92,7 @@ test('hard gates run before the planner: distress, CRISIS, DOCUMENT, attachments
   assert.equal(searchPlannerGate(trig(t, { enabled: false })), false);
   assert.equal(searchPlannerGate(trig('short')), false);
   assert.equal(searchPlannerGate(trig(t, { mode: 'explicit' })), false);
-  assert.equal(searchPlannerGate(trig(t, { mode: 'explicit', recentSearchIntent: true })), true);
+  assert.equal(searchPlannerGate(trig('I am asking you to search', { mode: 'explicit', recentSearchIntent: true })), true);
   assert.equal(searchPlannerGate(trig(t, { hasAttachments: true, userAskedSearch: true })), true);
   assert.equal(searchPlannerGate(trig(t, { distress: true, userAskedSearch: true })), false);
 });

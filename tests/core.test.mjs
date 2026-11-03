@@ -723,6 +723,19 @@ try {
     const legacy = await (await fetch(srv.base + '/api/health')).json();
     assert.equal(j.version, legacy.version);
   });
+  await t('GET /health/runtime-config: sanitized runtime latency and routing diagnostics only', async () => {
+    const r = await fetch(srv.base + '/health/runtime-config');
+    assert.equal(r.status, 200);
+    const j = await r.json();
+    assert.equal(j.status, 'ok');
+    assert.ok(j.runtimeConfig.llm.callTimeoutMs <= 12000);
+    assert.ok(j.runtimeConfig.llm.totalDeadlineMs <= 30000);
+    assert.ok(j.runtimeConfig.llm.maxModelCalls <= 3);
+    const serialized = JSON.stringify(j);
+    for (const secretName of ['GEMINI_API_KEY', 'SERPER_API_KEY', 'GROQ_API_KEY', 'DATABASE_URL', 'SESSION_SECRET']) {
+      assert.equal(serialized.includes(secretName), false, `runtime config leaked ${secretName}`);
+    }
+  });
   await t('AI endpoint without sign-in: 401', async () => {
     const r = await post(srv, '/api/conversation', { brief: { decision: 'x' } });
     assert.equal(r.status, 401);

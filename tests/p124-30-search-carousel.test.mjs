@@ -58,6 +58,7 @@ test('chain: first usable provider wins and later ones are not called', async ()
   } });
   assert.equal(r.status, 'used'); assert.equal(r.provider, 'serper'); assert.deepEqual(calls, ['serper']);
   assert.deepEqual(r.chain.map((x) => `${x.provider}:${x.outcome}`), ['serper:used']);
+  assert.ok(Number.isFinite(r.chain[0].latencyMs) && r.chain[0].latencyMs >= 0, 'provider attempt includes latency');
 });
 
 test('chain: Serper quota (429) falls through to Gemini, opens the breaker, next request skips Serper (A5 reserve path)', async () => {
@@ -115,6 +116,7 @@ test('chain: connector evidence is merged into the provider result and survives 
   const { breaker, budget } = fresh();
   const ok = await runSearchCarousel({ plan, order: ['connector', 'serper'], breaker, budget, connector: Promise.resolve(w), providers: { serper: { search: async () => good('serper') } } });
   assert.match(ok.digest, /Open-Meteo|model output/); assert.equal(ok.provider, 'serper');
+  assert.equal(ok.chain[0].provider, 'connector'); assert.ok(Number.isFinite(ok.chain[0].latencyMs));
   const down = await runSearchCarousel({ plan, order: ['connector', 'serper'], breaker: new SearchCircuitBreaker(), budget: new SearchBudget(), connector: Promise.resolve(w), providers: { serper: { search: async () => skippedWebSearch('failed', 'timeout') } } });
   assert.equal(down.status, 'used'); assert.match(down.digest, /Oslo connector: 6 C/);
 });
