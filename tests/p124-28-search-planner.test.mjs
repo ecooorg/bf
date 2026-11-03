@@ -127,3 +127,16 @@ test('server.ts: planner precedes the heuristic, userAskedSearch still forces a 
   assert.match(s, /recentUserText, searchDecision\?\.search \? searchDecision\.plan : undefined/);
   assert.match(s, /decisionSource: searchDecision\?\.decisionSource/);
 });
+
+test('pre-classifier: only live-data topics skip the planner; feelings, bare time words and private persons do not', async () => {
+  const { preClassifyLiveDataIntent } = await import('../server/webSearch.ts');
+  assert.equal(preClassifyLiveDataIntent('what is the weather in Zurich')?.decisionNote, 'pre_classifier_live_data');
+  assert.equal(preClassifyLiveDataIntent('latest news about Tesla')?.search, true);
+  assert.equal(preClassifyLiveDataIntent('I am afraid of the exam tomorrow'), null);
+  assert.equal(preClassifyLiveDataIntent('is the Louvre open today'), null);
+  assert.equal(preClassifyLiveDataIntent('news about my friend'), null);
+  assert.equal(preClassifyLiveDataIntent('news about anna@example.com'), null);
+  assert.equal(preClassifyLiveDataIntent('погода в Цюрихе')?.search, true);
+  const neg = sets.negative.filter((q) => preClassifyLiveDataIntent(q));
+  assert.deepEqual(neg, []);
+});
