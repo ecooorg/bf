@@ -1,8 +1,9 @@
 /**
  * P125.4 item 4 — national authority ranking data (versioned JSON, not hard-coded defaults).
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export type AuthorityEntry = {
   country: string;
@@ -23,7 +24,7 @@ export function loadNationalAuthorities(filePath?: string): AuthorityEntry[] {
     try {
       const here = path.dirname(fileURLToPath(import.meta.url));
       for (const c of [path.join(process.cwd(), 'config', name), path.join(here, '..', 'config', name), path.join(here, '..', '..', 'config', name)]) {
-        if (fs.existsSync(c)) return c;
+        if (existsSync(c)) return c;
       }
     } catch { /* */ }
     return path.resolve(process.cwd(), 'config', name);
