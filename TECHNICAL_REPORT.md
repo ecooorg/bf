@@ -1,3 +1,9 @@
+## P125.13 — Evidence (2026-11-04)
+
+CI policy change only: no runtime product behaviour change. Phrase-level routing tests remain in-repo and runnable via `npm run test:search-heuristics` / manual Actions workflow.
+
+---
+
 ## P125.12 — Evidence (2026-11-04)
 
 Hosted 125.11: p124-26/28 class fixed; remaining failures isolated to p125-3 routing fixtures (result-complaint follow-up, FR place/temp). Fixed without loosening Core product contracts.

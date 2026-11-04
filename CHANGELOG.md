@@ -1,3 +1,13 @@
+## P125.13 — Core CI vs manual search-heuristics (2026-11-04)
+
+Owner decision: stop gating every patch on phrase/heuristic routing asserts.
+
+- **`npm run test:core`:** removed phrase/heuristic packs: `universal-followup-regression`, `p124-26`, `p124-28`, `p124-38`, `p125-3`, `p125-4`. Kept product kernel including `p125-1` (query fidelity + source policy).
+- **`npm run test:search-heuristics`:** those packs in one command.
+- **Workflow `search-heuristics.yml`:** `workflow_dispatch` only — run when debugging routing phrases.
+- **Answer Quality workflow:** no longer runs p125-3/4 or p124-28/38 on PR path; points to the manual suite for phrase checks.
+- **Version:** patch `125.13`.
+
 ## P125.12 — Stop the CI loop: follow-up + multilingual live routing (2026-11-04)
 
 Root causes of remaining `test:core` failures after P125.11 (status/planner precedence fixed):
