@@ -1,3 +1,10 @@
+## P126.8 — Repair direct-route regression and bound pipeline harness (2026-11-04)
+
+- Updated the P126.1 structural regression to match the complete environment-gated Simple Direct condition and verify its position before intent planning.
+- Hardened the pipeline test server harness: detect child exit during readiness, bound health/login/API requests, include captured server logs in failures, clean up children after startup errors, and report per-stage timing.
+- Preserved product assertions; no tests were skipped and no suite timeout was increased.
+- Version: `126.8`.
+
 ## P126.7 — Align search diagnostics with Simple Direct event (2026-11-04)
 
 - Fixed stale P124.23 structural assertion: the current Simple Direct route records optional search as `simple_direct_search`, not the removed `direct_web_search` event.

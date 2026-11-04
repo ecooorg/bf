@@ -1,3 +1,15 @@
+## P126.8 — Evidence (2026-11-04)
+
+**Scope:** correct the stale Simple Direct source assertion and prevent the pipeline harness from waiting indefinitely on an unavailable child server or unbounded HTTP request.
+
+**Changes:** updated `tests/p124-27-key-pool.test.mjs` to match the complete environment-gated route guard. Updated `tests/pipeline.test.mjs` to check child liveness during startup, bound health/login/API requests, include server log tails in failures, clean up on startup failure, and emit per-stage timings. `package.json` is set to version `126`, patch `126.8`; the package-lock root version is synchronized to `126` via the repository version script.
+
+**OBSERVED:** source edits; `node --check` on both changed test files; static verification that the complete Direct route guard precedes intent planning; `npm run version:check`; `npm run architecture:check`; and `npm run lint:copy` all pass.
+**BLOCKED:** executing the key-pool test and `test:pipeline` because this sandbox has no installed `tsx` package (`ERR_MODULE_NOT_FOUND`).
+**NOT_RUN:** full `test:core`, full DAG, production build and hosted Actions. This patch improves failure localization and prevents unbounded harness requests; it does not claim to have proven or repaired an underlying production-server hang.
+
+---
+
 ## P126.7 — Evidence (2026-11-04)
 
 **CI defect addressed:** `tests/p124-23-search-integrity.test.mjs` required the obsolete `direct_web_search` event. Current Simple Direct optional search emits `simple_direct_search`; legacy structured search continues to emit `web_search`.
