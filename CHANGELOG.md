@@ -1,3 +1,9 @@
+## P125.7 — CI red fix: typecheck, action pins (2026-11-04)
+
+- **Typecheck / build:server:** `WebSearchResult.plan` includes `sourceCountry` and `dictated` (P125.5 fields), clearing TS2339 in `server/webSearch.ts` and `server.ts`.
+- **workflow-action-pins:** `answer-quality-verify.yml` uses the same immutable action SHAs as Core CI (`checkout`, `setup-node`); removed obsolete `actions/download-artifact` from the required pin map (no remaining workflow uses it after CI inventory cleanup).
+- **Version:** patch `125.7`.
+
 ## P125.6 — CI inventory: four active contours only (2026-11-04)
 
 - **Programme:** `docs/C125_ANSWER_QUALITY_PROGRAMME.md` and `docs/C125_WP3_WORKFLOW_AUDIT.md` record the active inventory: product workflows **`ci.yml`** + **`answer-quality-verify.yml`**; platform **Dependabot** + **CodeQL** (if enabled). Retired product workflows must not be restored; rewrite fresh when needed.

@@ -1,3 +1,9 @@
+## P125.7 — Evidence (2026-11-04)
+
+Hosted CI on 125.6 failed: typecheck/build (missing plan fields) and workflow-action-pins (unpinned AQ actions + required download-artifact pin with no user). Fixed in this patch. Local: `workflow-action-pins` PASS; full typecheck NOT_RUN in assistant sandbox without tsc install; hosted CI is authority.
+
+---
+
 ## P125.6 — Evidence (2026-11-04)
 
 Micro-patch: C125 programme and WP3 audit align with owner decision — only Core CI, Answer Quality, Dependabot, and CodeQL remain meaningful; other product workflows retired as stale/harmful if left runnable.
