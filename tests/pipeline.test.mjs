@@ -1069,7 +1069,7 @@ await new Promise((r) => bridge.listen(0, r)); const BURL = `http://127.0.0.1:${
 async function srv(env = {}) {
   const port = await freePort(), base = `http://127.0.0.1:${port}`; let logs = '';
   const childEnv = { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', WEB_SEARCH_PLANNER: 'false',
-    ENABLE_GEMINI_CANDIDATE_PROBES: 'false', GEMINI_HTTP_RETRY_ATTEMPTS: '1', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
+    ENABLE_GEMINI_CANDIDATE_PROBES: 'false', GEMINI_HTTP_RETRY_ATTEMPTS: '1', CONVERSATION_RECOVERY_MS: '30000', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
     GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: BURL, GOOGLE_GEMINI_BASE_URL: BURL, LLM_ROUND_PAUSE_MS: '10', RATE_LIMIT_PER_HOUR: '100000', DAILY_CALL_CAP: '100000',
     MODEL_CASCADE_STRONG: 'm1,m2,m3', MODEL_CASCADE_LIGHT: 'm1,m2,m3', ...env };
   // CI may expose organisation-wide GEMINI_API_KEY_1..10 secrets. Never let
@@ -1285,13 +1285,13 @@ await withSrv({}, async function H2(s) { script = () => ({ json: GOOD({ reply: '
   T('H2 valid answer without gain metadata is not rewritten by a novelty retry', okc(r) && r.j.meta.calls === 1 && recs.length === 1 && /Переезд меняет расходы/.test(r.j.data.reply), `${r.s} calls=${r.j?.meta?.calls} ${r.j?.data?.reply?.slice(0, 60)}`); });
 await withSrv({}, async function H2b(s) { script = () => ({ json: GOOD({ reply: 'Вы назвали 73%. Это важная цифра для решения.' }) }); const r = await conv(s, 'Шанс получить повышение 73%, менять ли работу');
   T('H2b % from user input accepted w/o retry', okc(r) && r.j.meta.calls === 1, `${r.s} calls=${r.j?.meta?.calls}`); });
-await withSrv({}, async function H3(s) { script = () => ({ raw: 'broken' }); const r = await conv(s, 'Менять ли работу'); T('H3 two bad answers -> clean error, no walk through the chain', r.s === 200 && r.j?.meta?.stage === 'conversation-fallback' && recs.length === 2, `${r.s} hits=${recs.length} ${r.j?.meta?.stage}`); });
+await withSrv({}, async function H3(s) { script = () => ({ raw: 'broken' }); const r = await conv(s, 'Менять ли работу'); T('H3 two bad answers -> terminal AI_FORMAT error after exactly two calls', r.s === 502 && r.j?.code === 'AI_FORMAT' && recs.length === 2, `${r.s} ${r.j?.code} hits=${recs.length}`); });
 for (const st of [429, 503]) await withSrv({}, async function H4(s) { script = (q) => q.model === 'm1' ? { status: st, message: st === 429 ? 'RESOURCE_EXHAUSTED rate limit' : 'UNAVAILABLE overloaded' } : { json: GOOD() }; const r = await conv(s, 'Менять ли работу');
   T(`H4 ${st} on m1 -> m2`, okc(r) && r.j.meta.model === 'm2' && r.j.meta.fallback === true, `${r.s} ${r.j?.meta?.model}`);
   recs = []; await conv(s, 'ещё раз'); T(`H4b ${st}: m1 on cooldown for next request`, recs[0]?.model === 'm2', recs.map((x) => x.model).join(',')); });
 await withSrv({}, async function H5(s) { script = (q) => q.model === 'm1' ? { status: 404, message: 'model not found' } : { json: GOOD() }; const r = await conv(s, 'Менять ли работу'); T('H5 404 model skipped', okc(r) && r.j.meta.model === 'm2', `${r.s}`); });
-await withSrv({}, async function H6(s) { script = () => ({ status: 429, message: 'RESOURCE_EXHAUSTED' }); const r = await conv(s, 'Менять ли работу'); T('H6 all models 429 -> 429 + code', r.s === 200 && r.j?.meta?.stage === 'conversation-fallback' && /RATE_LIMIT|QUOTA/.test(r.j?.meta?.errorCode || ''), `${r.s} ${r.j?.meta?.errorCode} hits=${recs.length}`); });
-await withSrv({}, async function H6b(s) { script = () => ({ status: 429, message: 'Quota exceeded: daily quota per day' }); const r = await conv(s, 'Менять ли работу'); T('H6b daily quota -> 429 GEMINI_QUOTA', r.s === 200 && r.j?.meta?.errorCode === 'GEMINI_QUOTA', `${r.s} ${r.j?.meta?.errorCode} hits=${recs.length}`); });
+await withSrv({}, async function H6(s) { script = () => ({ status: 429, message: 'RESOURCE_EXHAUSTED' }); const r = await conv(s, 'Менять ли работу'); T('H6 all models 429 -> terminal 429 rate-limit error', r.s === 429 && r.j?.code === 'GEMINI_RATE_LIMIT', `${r.s} ${r.j?.code} hits=${recs.length}`); });
+await withSrv({}, async function H6b(s) { script = () => ({ status: 429, message: 'Quota exceeded: daily quota per day' }); const r = await conv(s, 'Менять ли работу'); T('H6b daily quota -> terminal 429 GEMINI_QUOTA', r.s === 429 && r.j?.code === 'GEMINI_QUOTA', `${r.s} ${r.j?.code} hits=${recs.length}`); });
 await withSrv({}, async function H6c(s) { // quota on one model must not stop the chain; that model is parked for later requests
   script = (q) => q.model === 'm1' ? { status: 429, message: 'Quota exceeded for metric generate_content_free_tier_requests, limit: 20' } : { json: GOOD() };
   const r = await conv(s, 'Менять ли работу'); T('H6c quota on m1 -> answered by m2', okc(r) && r.j.meta.model === 'm2', `${r.s} ${r.j?.meta?.model} ${r.j?.meta?.errorCode}`);

@@ -12,6 +12,11 @@ test('P125.16: conversation recovery retries transient model failures instead of
   assert.match(server, /CONVERSATION_RECOVERY_MS/);
   assert.match(server, /conversation_model_unavailable/);
   assert.match(server, /retryable:\s*true/);
+  assert.match(server, /genErr\?\.retryable !== false/);
+  assert.match(server, /Do not replay a cascade after it has exhausted every candidate/);
+  assert.match(server, /retryAfterMs/);
+  assert.match(server, /class GeminiQuotaError[\s\S]*?retryable = false/);
+  assert.match(server, /class GeminiRateLimitError[\s\S]*?retryable = false/);
 
   // Technical fallback must never be returned as a successful agent reply.
   assert.doesNotMatch(server, /I saved your situation\. The AI model is temporarily unavailable/);
