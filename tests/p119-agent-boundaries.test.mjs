@@ -198,12 +198,13 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; 
 // 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
-test('workflow inventory is Core CI + Answer Quality only (C125 post-audit)', () => {
+test('workflow inventory is Core CI + Answer Quality + manual search-heuristics', () => {
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
     'answer-quality-verify.yml',
     'ci.yml',
+    'search-heuristics.yml',
   ]);
 });
 
