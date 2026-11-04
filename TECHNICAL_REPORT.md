@@ -1,3 +1,15 @@
+## P126.7 — Evidence (2026-11-04)
+
+**CI defect addressed:** `tests/p124-23-search-integrity.test.mjs` required the obsolete `direct_web_search` event. Current Simple Direct optional search emits `simple_direct_search`; legacy structured search continues to emit `web_search`.
+
+**Changes:** updated the structural regression assertion to the current event contract and extended `server/conversationDiagnostics.ts` so `simple_direct_search` appears in the exported SEARCH_DECISIONS section.
+
+**OBSERVED:** source and test changes; version metadata `126` / `126.7`.
+
+**NOT_RUN:** test execution, typecheck, build, hosted Actions and live diagnostics export in this reconstructed sandbox (dependencies are not present). The independent `test:pipeline` timeout (300s, 13/14 passed) remains unresolved; supplied logs do not identify the hanging operation, so no product-code change or timeout relaxation was made. Hosted CI status after this patch: NOT_RUN.
+
+---
+
 ## P126.6 — Evidence (2026-11-04)
 
 Hosted Core CI after P126.5 failed primarily on:

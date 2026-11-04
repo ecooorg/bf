@@ -1,3 +1,11 @@
+## P126.7 — Align search diagnostics with Simple Direct event (2026-11-04)
+
+- Fixed stale P124.23 structural assertion: the current Simple Direct route records optional search as `simple_direct_search`, not the removed `direct_web_search` event.
+- Included `simple_direct_search` in the conversation diagnostic export's SEARCH_DECISIONS section so optional-search outcomes are visible alongside legacy `web_search` records.
+- Updated the regression test to assert the current event contract and diagnostic export wiring.
+- The separate `test:pipeline` 300-second timeout remains unresolved; logs show 13/14 passing but do not identify the hanging operation. No timeout was hidden or relaxed.
+- Version: `126.7`.
+
 ## P126.6 — lint:copy allowlist for Simple Direct search triggers (2026-11-04)
 
 - `scripts/lint-copy.mjs`: allowlist `server/simpleDirectConversation.ts` for intentional Cyrillic in explicit-search detection (same class as `intentFlags` / `webSearch`).
