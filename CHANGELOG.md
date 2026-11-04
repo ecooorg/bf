@@ -1,3 +1,11 @@
+## P125.16 — Conversation recovery without technical fallback (2026-11-04)
+
+- **User-visible defect:** when Gemini timed out or returned 503/429 after the bounded model carousel, the server returned a successful reply with the synthetic text “I saved your situation. The AI model is temporarily unavailable…”, which the UI showed as an agent message.
+- **Backend:** conversation path now retries transient model failures inside the same HTTP request (fresh call budget per pass, exponential backoff 1s→30s, wall-clock recovery window default 90s, env `CONVERSATION_RECOVERY_MS`). After recovery is exhausted, returns operational 503/429 with `retryable: true` — never a synthetic agent reply.
+- **Frontend:** thinking indicator shows live elapsed time: `Looking at your specific situation… 17s` / `1m 12s` (full request wall time, not a single model pass).
+- **Non-goals:** durable job queue, SSE/jobId polling, and survival across server restarts remain future work.
+- **Version:** patch `125.16`.
+
 ## P125.15 — Fix nationalAuthorities imports (typecheck/build) (2026-11-04)
 
 - **CI/Render red on 125.14:** `server/nationalAuthorities.ts` used `fileURLToPath` and `fs.existsSync` without imports.

@@ -1447,8 +1447,54 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     }
     phase.mark('prepare_search');
     const prompt = buildConversationTurnPrompt(input, promptAttachmentsBlock, turnPlan, new Date().toISOString().slice(0, 10));
+    // P125.16: conversation recovery — transient model failures keep retrying inside this request
+    // instead of returning a technical fallback as the agent reply. Each pass gets a fresh
+    // model-call budget/deadline; wall-clock recovery is capped so reverse proxies do not hang.
+    const CONVERSATION_RECOVERY_MS = Math.min(120_000, Math.max(30_000, Number(process.env.CONVERSATION_RECOVERY_MS) || 90_000));
+    const recoveryBackoffMs = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000];
     const callBudget = { used: 0, startedAt: requestStartedAt };   // S-4: targeted information repair shares the request's call budget and deadline
-    let { data, meta } = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, callBudget, genOpts);
+    let data: any;
+    let meta: any;
+    let recoveryAttempt = 0;
+    for (;;) {
+      const passBudget = recoveryAttempt === 0
+        ? callBudget
+        : { used: 0, startedAt: Date.now() };
+      try {
+        const generated = await generate(prompt, input, 'strong', 'conversation', 0, requestByokKey, requestPreferredModel, passBudget, genOpts);
+        data = generated.data;
+        meta = generated.meta;
+        if (recoveryAttempt > 0) {
+          console.info(JSON.stringify({ type: 'conversation_recovery_success', attempt: recoveryAttempt, elapsedMs: Date.now() - requestStartedAt, model: meta?.model }));
+          void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_recovery_success', message: 'Conversation generation succeeded after transient recovery retries', details: { attempt: recoveryAttempt, elapsedMs: Date.now() - requestStartedAt, model: meta?.model } });
+        }
+        // Keep callBudget aligned with the successful pass for the quality-retry path.
+        callBudget.used = passBudget.used;
+        callBudget.startedAt = passBudget.startedAt;
+        break;
+      } catch (genErr: any) {
+        const recoverable = isTransientGeminiError(genErr)
+          || isGeminiRateLimitError(genErr)
+          || isGeminiQuotaError(genErr)
+          || genErr instanceof GeminiUnavailableError
+          || genErr instanceof GeminiRateLimitError
+          || genErr instanceof GeminiQuotaError
+          || genErr?.code === 'GEMINI_UNAVAILABLE'
+          || genErr?.code === 'GEMINI_RATE_LIMIT'
+          || genErr?.code === 'GEMINI_QUOTA';
+        const elapsed = Date.now() - requestStartedAt;
+        if (!recoverable || elapsed >= CONVERSATION_RECOVERY_MS) throw genErr;
+        const idx = Math.min(recoveryAttempt, recoveryBackoffMs.length - 1);
+        let waitMs = recoveryBackoffMs[idx];
+        const retryAfterMs = Number(genErr?.details?.retryAfterMs || genErr?.retryAfterMs || 0);
+        if (Number.isFinite(retryAfterMs) && retryAfterMs > 0) waitMs = Math.max(waitMs, Math.min(Math.floor(retryAfterMs), 60_000));
+        if (elapsed + waitMs >= CONVERSATION_RECOVERY_MS) throw genErr;
+        console.warn(JSON.stringify({ type: 'conversation_recovery_retry', attempt: recoveryAttempt + 1, waitMs, code: genErr?.code || genErr?.name, elapsedMs: elapsed, message: String(genErr?.message || genErr).slice(0, 180) }));
+        void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'conversation_recovery_retry', message: 'Transient model failure; retrying conversation generation within recovery window', error: genErr, details: { attempt: recoveryAttempt + 1, waitMs, elapsedMs: elapsed, recoveryBudgetMs: CONVERSATION_RECOVERY_MS } });
+        recoveryAttempt += 1;
+        await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+      }
+    }
     phase.mark('main_call');
     let out = data as any;
 
@@ -1649,45 +1695,38 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, searchInvoked: false, externalFallbackInvoked: false } });
       return fail(res, 503, 'Gemini did not return a response. No alternative provider or generated fallback was used.', 'GEMINI_DIRECT_UNAVAILABLE', { upstreamCode: reason });
     }
-    // Conversation is user-facing: degrade gracefully instead of producing a
-    // dead end. The client already stores the user's text locally. Everything
-    // needed by the fallback is rebuilt from req.body because values declared
-    // inside the try block are not visible here. The fallback itself must never
-    // throw, even when Gemini quota/rate-limit/timeout errors occur.
+    // P125.16: never present a technical model-unavailable string as the agent reply.
+    // The client keeps the user's text and shows Retry; SafetyBox still covers distress markers.
     const reason = String(e?.code || 'AI_ERROR');
-    console.warn(JSON.stringify({ type: 'conversation_fallback', code: reason, message: String(e?.message || e).slice(0, 240) }));
-    void recordApplicationLog({ level: 'error', component: 'conversation', event: 'conversation_fallback', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Conversational request returned the model-unavailable fallback', error: e, details: { errorCode: reason, errorName: String(e?.name || 'Error').slice(0, 80), status: Number(e?.status || e?.statusCode || 0) || undefined,
-      userRequest: String(req.body?.brief?.decision || ''), conversationHistory: Array.isArray(req.body?.history) ? req.body.history.slice(-12) : [],
-      requestBrief: req.body?.brief ?? null, requestState: req.body?.state ?? null, fallbackAgentReply: 'I saved your situation. The AI model is temporarily unavailable, so I will not invent facts or calculations. Your text is not lost — you can repeat the request in a little while.' } });
+    const status = Number(e?.status || e?.statusCode || 0) || (
+      reason === 'GEMINI_QUOTA' || reason === 'GEMINI_RATE_LIMIT' ? 429 : 503
+    );
+    console.warn(JSON.stringify({ type: 'conversation_model_unavailable', code: reason, status, message: String(e?.message || e).slice(0, 240) }));
+    void recordApplicationLog({
+      level: 'error',
+      component: 'conversation',
+      event: 'conversation_model_unavailable',
+      requestId: String((req as any).requestId || req.get('x-request-id') || ''),
+      message: 'Conversational request exhausted recovery retries; returning operational error instead of a synthetic agent reply',
+      error: e,
+      details: {
+        errorCode: reason,
+        errorName: String(e?.name || 'Error').slice(0, 80),
+        status,
+        userRequest: String(req.body?.brief?.decision || ''),
+        conversationHistory: Array.isArray(req.body?.history) ? req.body.history.slice(-12) : [],
+      },
+    });
+    const httpStatus = status === 429 ? 429 : 503;
+    res.setHeader('Retry-After', httpStatus === 429 ? '15' : '5');
+    return res.status(httpStatus).json({
+      success: false,
+      error: 'The AI model is temporarily unavailable. Your message is saved — use Retry in a moment.',
+      code: reason === 'AI_ERROR' ? 'GEMINI_UNAVAILABLE' : reason,
+      retryable: true,
+      details: { upstreamMessage: String(e?.message || e).slice(0, 200) },
+    });
 
-    const fallbackBody = req.body || {};
-    const fallbackBrief = fallbackBody?.brief && typeof fallbackBody.brief === 'object' ? fallbackBody.brief : {};
-    const fallbackHistory = Array.isArray(fallbackBody?.history)
-      ? fallbackBody.history.slice(-12).map((m: any) => ({
-          role: m?.role === 'user' ? 'user' : 'assistant',
-          content: String(m?.content || '').slice(0, 8000),
-        }))
-      : [];
-    const fallbackUserTurns = fallbackHistory.filter((m: any) => m.role === 'user').length;
-    const fallbackLastUserText = [...fallbackHistory].reverse().find((m: any) => m.role === 'user')?.content
-      || String(fallbackBrief?.decision || '');
-    const fallbackDistressMarkerDetected = hasDistressMarker(fallbackLastUserText)
-      || (fallbackUserTurns <= 1 && hasDistressMarker(String(fallbackBrief?.decision || '')));
-    const fallbackState = normalizeState(fallbackBody?.state);
-    const crisisBlock = fallbackDistressMarkerDetected
-      ? `\n\n---\nIf you are in immediate danger, contact local emergency services or a person near you right now.\n${SUPPORT_CONTACTS.map((c) => `${c.label}: ${c.value}`).join('\n')}`
-      : '';
-    const fallbackReply = `I saved your situation. The AI model is temporarily unavailable, so I will not invent facts or calculations. Your text is not lost — you can repeat the request in a little while.${crisisBlock}`;
-    return ok(res, {
-      reply: fallbackReply, question: '', contextSufficiency: 'LOW',
-      triage: fallbackDistressMarkerDetected ? 'CRISIS' : 'PROCEED',
-      gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
-      state: mergeModelState(fallbackState, {
-        previous: fallbackState,
-        userTexts: [String(fallbackBrief?.decision || ''), ...fallbackHistory.filter((m: any) => m.role === 'user').map((m: any) => m.content)],
-        lastAssistantText: '',
-      }),
-    }, { model: 'fallback', fallback: true, durationMs: 0, stage: 'conversation-fallback', calls: 0, lightFallback: false, promptChars: 0, errorCode: reason });
   }
 };
 

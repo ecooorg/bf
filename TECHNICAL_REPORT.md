@@ -1,3 +1,13 @@
+## P125.16 — Evidence (2026-11-04)
+
+Prod symptom (2026-11-04 logs): web search succeeded; Gemini 3.5/3.1 Flash Lite timed out or returned 503; external fallback failed; server emitted `conversation_fallback` and the UI showed the technical unavailable string as the agent answer.
+
+Code change: `server.ts` conversation handler wraps the main `generate` call in a recovery loop for transient/quota/rate-limit errors; catch path no longer calls `ok()` with the synthetic fallback reply. `src/ConversationScreens.tsx` adds a one-second timer while `busy` is true.
+
+Checks: source markers for recovery loop and absence of the synthetic fallback string; UI timer present with `data-testid="conversation-thinking"`. Live model recovery `NOT_RUN` in this environment (no provider keys in sandbox).
+
+---
+
 ## P125.15 — Evidence (2026-11-04)
 
 Hosted typecheck/build and Render deploy failed TS2304 on nationalAuthorities. Imports restored. No behaviour change beyond compile.

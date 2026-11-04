@@ -12,6 +12,9 @@ The Conversational route now defaults to a single direct Gemini text call. Searc
 
 ## C125 — Answer-quality programme (owner-approved scope, 2026-11-04)
 
+- Status (P125.16): conversation path no longer surfaces the synthetic model-unavailable string as an agent reply; transient failures recover inside the request (default 90s) and the UI shows live wait seconds. Durable job queue remains open.
+
+
 Detail: `docs/C125_ANSWER_QUALITY_PROGRAMME.md`; decisions: `docs/DECISIONS.md` D-2026-11-04-01 and D-2026-11-04-02. This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Cycle C124 closes with P124.40; C125 starts at version `125`, patch `125.1`.
 
 - [x] WP1 query fidelity (P125.1, local tests; live `NOT_RUN`): verbatim translation up to 20 words, entity- and number-preserving compression above, deterministic loss check, logging.
