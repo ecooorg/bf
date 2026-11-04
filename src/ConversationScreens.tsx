@@ -1,5 +1,5 @@
 /** Brief-entry and shared conversation screens extracted for task-local context (P82). */
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import type { Decision } from './decision.ts';
 import { downloadBlob } from './exportZip.ts';
@@ -258,6 +258,31 @@ export function ConversationScreen({
   const [input, setInput] = useState('');
   const [files, setFiles] = useState<Attachment[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  // P125.16: live wait timer for the thinking indicator (full request wall time, not a single model pass).
+  const [waitSeconds, setWaitSeconds] = useState(0);
+  const waitStartedAtRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!busy) {
+      waitStartedAtRef.current = null;
+      setWaitSeconds(0);
+      return;
+    }
+    if (waitStartedAtRef.current == null) waitStartedAtRef.current = Date.now();
+    const tick = () => {
+      const started = waitStartedAtRef.current;
+      if (started == null) return;
+      setWaitSeconds(Math.max(0, Math.floor((Date.now() - started) / 1000)));
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [busy]);
+  const formatWait = (total: number) => {
+    if (total < 60) return `${total}s`;
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${m}m ${s.toString().padStart(2, '0')}s`;
+  };
   const ms: any = d.modelSuggestions || {};
   const history: any[] = Array.isArray(ms.conversation) ? ms.conversation : [];
   const waitingForAssistant = history.length > 0 && history[history.length - 1]?.role === 'user';
@@ -400,7 +425,13 @@ export function ConversationScreen({
             )}
           </div>
         ))}
-        {busy && <div className="conversation-message assistant"><div className="conversation-message-text conversation-thinking">Looking at your specific situation…</div></div>}
+        {busy && (
+          <div className="conversation-message assistant" data-testid="conversation-thinking">
+            <div className="conversation-message-text conversation-thinking">
+              Looking at your specific situation… {formatWait(waitSeconds)}
+            </div>
+          </div>
+        )}
       </div>
       {distress && <SafetyBox />}
       {nextStep && !busy && !ms.conversationCrisis && history.length > startAt && (
