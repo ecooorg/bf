@@ -145,7 +145,7 @@ export function needsFreshWebInfo(text: string): boolean {
 }
 
 /** P124.34 / P125.3: topics whose answer is live data. Bare time words are deliberately excluded (the planner decides those). Hoisted so the planner gate can use it. */
-const LIVE_TOPIC_RE = /(?:\bweather\b|\bforecast\b|\btemperature\b|\u043f\u043e\u0433\u043e\u0434|\u0442\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440|\bnews\b|\u043d\u043e\u0432\u043e\u0441\u0442|\bscore\b|\u0441\u0447\u0451\u0442|\u0441\u0447\u0435\u0442|\bprice\b|\u0446\u0435\u043d[\u0430\u044b](?!\p{L})|\u043a\u0443\u0440\u0441\s+(?:\u0432\u0430\u043b\u044e\u0442|\u0434\u043e\u043b\u043b\u0430\u0440|\u0435\u0432\u0440\u043e|\u0444\u0440\u0430\u043d\u043a|\u0431\u0438\u0442\u043a\u043e\u0439\u043d)|\bexchange\s+rate\b|\bstock\s+price\b|\btraffic\b|\boutage\b)/iu;
+const LIVE_TOPIC_RE = /(?:\bweather\b|\bforecast\b|\btemperatures?\b|\btempérature\b|\btemperatura\b|\bWetter\b|\u043f\u043e\u0433\u043e\u0434|\u0442\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440|\bnews\b|\u043d\u043e\u0432\u043e\u0441\u0442|\bscore\b|\u0441\u0447\u0451\u0442|\u0441\u0447\u0435\u0442|\bprice\b|\u0446\u0435\u043d[\u0430\u044b](?!\p{L})|\u043a\u0443\u0440\u0441\s+(?:\u0432\u0430\u043b\u044e\u0442|\u0434\u043e\u043b\u043b\u0430\u0440|\u0435\u0432\u0440\u043e|\u0444\u0440\u0430\u043d\u043a|\u0431\u0438\u0442\u043a\u043e\u0439\u043d)|\bexchange\s+rate\b|\bstock\s+price\b|\btraffic\b|\boutage\b)/iu;
 
 export type SearchTriggerInput = {
   enabled: boolean;
@@ -282,7 +282,8 @@ export function hasRecentSearchIntent(recentUserText: string): boolean {
 export function isSearchFollowup(text: string): boolean {
   const t = String(text || '').trim();
   if (t.length < 4) return false;
-  // P125.3: also "one more query", "just search", "you always have search", complaints about sites, dictated query asks.
+  // Result/data missing complaints (live search thread).
+  if (/(?:почему|зачем)\s+нет\s+(?:результат\w*|данных|ответа|цифр\w*)|нет\s+(?:результат\w*|данных)|(?:why\s+)?(?:no|still\s+no)\s+(?:result|data|answer)|nothing\s+(?:found|came\s+back)/iu.test(t)) return true;
   return /(?:друг(?:их|ие)\s+(?:сайт\w*|источник\w*)|на\s+других\s+сайт\w*|обязательно\s+нуж\w*|мне\s+нуж\w*\s+(?:точн\w*\s+)?(?:температур\w*|данн\w*|цифр\w*)|найди\s+(?:ещ[её]|больше)|поищи\s+(?:ещ[её]|на\s+других)|проверь\s+(?:на\s+других|ещ[её])|(?:выполни|сделай|повтори)\s+(?:ещ[её]\s+)?(?:один\s+)?(?:поиск|запрос)|ещ[её]\s+(?:один\s+)?(?:поиск|запрос)|просто\s+(?:сделай|выполни)\s+(?:поиск|запрос)|у\s+тебя\s+(?:всегда\s+)?есть\s+поиск|ты\s+всегда\s+(?:можешь|имеешь)\s+поиск|почему\s+(?:эти|такие)\s+сайт|построй\s+запрос|сделай\s+запрос|выполни\s+ровно\s+этот|найди\s+более\s+(?:точн|подробн|свеж)|проверь\s+информац|я\s+(?:же\s+)?прошу\s+(?:тебя\s+)?(?:поискать|найти|поискать\s+в\s+интернет\w*)|i\s+(?:am|'m)\s+asking\s+you\s+to\s+search|(?:please\s+)?search\s+(?:again|for\s+it|online|the\s+web)\b|run\s+(?:another|one\s+more)\s+(?:search|query)|one\s+more\s+(?:search|query)|just\s+(?:make|run|do)\s+(?:a\s+)?(?:search|query)|you\s+always\s+have\s+search|other\s+sites|other\s+sources|different\s+websites|need\s+(?:the\s+)?(?:exact\s+)?(?:temperature|figure|number)|search\s+elsewhere|try\s+another\s+site|find\s+more\s+precise\s+(?:information|data|results)|(?:verify|confirm|check)\b.{0,60}\b(?:source|sources|data|result|results|figure|figures|date|dates|information|details)\b|more\s+precise\s+(?:information|data|results|dates|figures)|why\s+(?:these|those)\s+sites|build\s+(?:the\s+)?query|run\s+(?:exactly\s+)?this\s+query)/iu.test(t);
 }
 
@@ -1215,7 +1216,7 @@ export function extractPlaceCandidate(text: string): string | undefined {
     .replace(/\s+/g, ' ')
     .trim();
   // Prefer trailing capitalised / Cyrillic place after a preposition.
-  const placeMatch = cleaned.match(/(?:in|for|at|в|во|на|из)\s+([\p{L}][\p{L} .'-]{1,40}?)(?=\s+(?:today|tomorrow|сейчас|сегодня|завтра|and|и|с\s|со\s)|[?.!,;]|$)/iu);
+  const placeMatch = cleaned.match(/(?:in|for|at|à|en|bei|de|di|vom|в|во|на|из)\s+([\p{L}][\p{L} .'-]{1,40}?)(?=\s+(?:today|tomorrow|сейчас|сегодня|завтра|and|и|с\s|со\s)|[?.!,;]|$)/iu);
   let place = placeMatch?.[1]?.trim().slice(0, 80);
   if (place) {
     // Drop leftover non-place connector words and time leftovers.
@@ -1241,7 +1242,7 @@ export function preClassifyLiveDataIntent(userText: string, recentTurns?: Planne
   if (isAssistantMetaQuestion(text) || refersToDialogue(text)) return null;
   // Strong live-data topics only. A bare time word (today, tomorrow, current, now) also occurs in feelings,
   // advice and general questions, so it cannot decide alone; those turns go to the planner.
-  if (!LIVE_TOPIC_RE.test(text) && !needsFreshWebInfo(text)) return null;
+  if (!LIVE_TOPIC_RE.test(text) && !needsFreshWebInfo(text) && !/(?:temperat|température|temperatura|Wetter|погод|температур)/iu.test(text)) return null;
   // P125.3: when the current text names no place but a prior user turn in the dialogue does, carry the place forward.
   let place = extractPlaceCandidate(text);
   if (!place && recentTurns?.length) {
