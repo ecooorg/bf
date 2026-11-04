@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-03T13:37:26.941Z",
+  "generatedAt": "2026-11-04T06:20:31.300Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 181,
-    "edgeCount": 451,
+    "moduleCount": 183,
+    "edgeCount": 453,
     "cycleCount": 0,
-    "totalLines": 34486
+    "totalLines": 35001
   },
   "cycles": [],
   "layers": {
-    "server": 84,
+    "server": 86,
     "src": 83,
     "other": 14
   },
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2450,
+      "lines": 2513,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -183,6 +183,7 @@
         "server/keepAlive.ts",
         "server/keyPool.ts",
         "server/latencyPolicy.ts",
+        "server/llmLatencyConfig.ts",
         "server/modelAvailability.ts",
         "server/modelRateLimit.ts",
         "server/modelRegistry.ts",
@@ -571,7 +572,7 @@
     {
       "path": "server/healthRoutes.ts",
       "layer": "server",
-      "lines": 43,
+      "lines": 50,
       "imports": [],
       "fanIn": 1
     },
@@ -613,6 +614,13 @@
       "fanIn": 1
     },
     {
+      "path": "server/llmLatencyConfig.ts",
+      "layer": "server",
+      "lines": 38,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "server/modelAvailability.ts",
       "layer": "server",
       "lines": 37,
@@ -645,7 +653,7 @@
     {
       "path": "server/modelRateLimit.ts",
       "layer": "server",
-      "lines": 76,
+      "lines": 111,
       "imports": [
         "server/database.ts"
       ],
@@ -873,7 +881,7 @@
     {
       "path": "server/searchCarousel.ts",
       "layer": "server",
-      "lines": 161,
+      "lines": 176,
       "imports": [
         "server/webSearch.ts"
       ],
@@ -899,6 +907,13 @@
       "lines": 107,
       "imports": [],
       "fanIn": 2
+    },
+    {
+      "path": "server/sourceTrust.ts",
+      "layer": "server",
+      "lines": 96,
+      "imports": [],
+      "fanIn": 1
     },
     {
       "path": "server/statePipeline.ts",
@@ -962,8 +977,9 @@
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 1363,
+      "lines": 1594,
       "imports": [
+        "server/sourceTrust.ts",
         "server/untrustedData.ts",
         "server/weatherConnector.ts"
       ],
@@ -983,7 +999,7 @@
     {
       "path": "src/App.tsx",
       "layer": "src",
-      "lines": 706,
+      "lines": 721,
       "imports": [
         "src/AppHeader.tsx",
         "src/AutoGrow.tsx",
@@ -1034,7 +1050,7 @@
     {
       "path": "src/AppHeader.tsx",
       "layer": "src",
-      "lines": 219,
+      "lines": 225,
       "imports": [
         "src/ModeMenu.tsx",
         "src/WorkspacePanel.tsx",
@@ -1211,7 +1227,7 @@
     {
       "path": "src/ProjectMode.tsx",
       "layer": "src",
-      "lines": 698,
+      "lines": 707,
       "imports": [
         "src/ModeMenu.tsx",
         "src/ProjectDelivery.tsx",
@@ -1946,7 +1962,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2450
+      "lines": 2513
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1954,7 +1970,7 @@
     },
     {
       "path": "server/webSearch.ts",
-      "lines": 1363
+      "lines": 1594
     },
     {
       "path": "server/codeTaskService.ts",
@@ -1966,11 +1982,11 @@
     },
     {
       "path": "src/App.tsx",
-      "lines": 706
+      "lines": 721
     },
     {
       "path": "src/ProjectMode.tsx",
-      "lines": 698
+      "lines": 707
     },
     {
       "path": "src/finalDecisionDocument.ts",
