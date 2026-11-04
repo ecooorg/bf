@@ -139,6 +139,8 @@ export type SearchTriggerInput = {
   intent?: string;
   hasAttachments?: boolean;
   recentSearchIntent?: boolean;
+  /** P124.38: the user turns before this one were a live-information task (resolved by the caller from the dialogue). */
+  priorLiveThread?: boolean;
 };
 
 /** Decide whether a conversation turn should get a web lookup. Pure. */
@@ -150,6 +152,8 @@ export function shouldSearchWeb(o: SearchTriggerInput): boolean {
   const text = String(o.userText || '').trim();
   if (text.length < 8) return false;
   if (o.userAskedSearch) return true;
+  // P124.38: a question about the assistant's own earlier answer is answered from the dialogue, never searched.
+  if (isAssistantMetaQuestion(text)) return false;
   if (o.recentSearchIntent && isSearchFollowup(text)) return true;
   if (o.hasAttachments) return false;
   if ((o.mode || 'auto') === 'explicit') return false;
@@ -170,9 +174,25 @@ export function searchPlannerGate(o: SearchTriggerInput): boolean {
   if (text.length < 8) return false;
   if (o.userAskedSearch) return true;
   if (o.hasAttachments) return false;
-  // Do not pay for a planner model call on ordinary conversation turns. The planner
-  // only arbitrates candidates already admitted by the deterministic search trigger.
-  return shouldSearchWeb(o);
+  // Do not pay for a planner model call on ordinary conversation turns. The planner only arbitrates
+  // candidates: turns admitted by the deterministic search trigger (P124.28) or plausible time-sensitive
+  // questions and short follow-ups inside a live thread (P124.38). The planner itself decides search/no search.
+  return shouldSearchWeb(o) || isPlannerCandidate(o);
+}
+
+/**
+ * P124.38: turns the deterministic trigger cannot recognise but the planner model should judge:
+ * a question about what happened / is being said / how something went, and a short elliptical follow-up
+ * ("eastern states", "more about that") after a live-information turn. Pure. Never for personal text,
+ * assistant-meta questions or deployments that only search on explicit request.
+ */
+export function isPlannerCandidate(o: SearchTriggerInput): boolean {
+  const text = String(o.userText || '').trim();
+  if (text.length < 8 || o.hasAttachments) return false;
+  if ((o.mode || 'auto') === 'explicit') return false;
+  if (isAssistantMetaQuestion(text) || PRIVATE_PERSON_RE.test(text) || PRIVATE_PERSON_RU_RE.test(text) || hasPersonalData(text)) return false;
+  if (isTimeSensitiveQuestion(text)) return true;
+  return Boolean(o.priorLiveThread) && text.split(/\s+/).length <= 6;
 }
 
 /** WEB_SEARCH_PLANNER=false switches the planner off (heuristics only). On by default. */
@@ -180,11 +200,53 @@ export function isSearchPlannerEnabled(env: Record<string, string | undefined> =
   return String(env.WEB_SEARCH_PLANNER ?? '').trim().toLowerCase() !== 'false';
 }
 
+/**
+ * P124.38: a question about what happened, what is being said or how something went. Such a question is about
+ * the world as it is now or just was, so the planner must see it even when no keyword trigger matches. Pure.
+ */
+const TIME_SENSITIVE_QUESTION_RES: RegExp[] = [
+  re(String.raw`(?:что|как|кто|чем|где|почему)\s+(?:\p{L}+\s+){0,4}(?:произошл\p{L}*|случил\p{L}*|происход\p{L}*|говорят|пишут|сообщают|сообщили)`),
+  re(String.raw`what\s+(?:\p{L}+\s+){0,3}(?:happened|happening|going\s+on|are\s+they\s+saying|is\s+being\s+said)|who\s+(?:won|is\s+winning|leads|is\s+leading)|how\s+did\s+.{2,60}\s+go\b|any\s+(?:incidents|problems|disruptions|updates)\b`),
+];
+const PAST_EVENT_QUESTION_RE = re(String.raw`прошл[иао](?![\p{L}\p{N}_])|прошёл|прошел|случил\p{L}*|произошл\p{L}*|происходил\p{L}*|went\s+(?:smoothly|well|badly)|passed\s+without`);
+/** P124.38: Russian counterpart of PRIVATE_PERSON_RE (relation words in any case form). */
+const PRIVATE_PERSON_RU_RE = re(String.raw`(?:мо(?:й|его|ему|им|ём|ем|их|я|ей|ю)|наш(?:его|ему|им|ей)|сво(?:его|ему|им|ей))\s+(?:друг|подруг|жен|муж|мам|пап|брат|сестр|сын|доч|начальник|коллег|сосед|бывш|парн|девуш)\p{L}*`);
+export function isTimeSensitiveQuestion(text: string): boolean {
+  const t = String(text || '').trim();
+  if (t.length < 8 || PRIVATE_PERSON_RE.test(t) || PRIVATE_PERSON_RU_RE.test(t) || hasPersonalData(t)) return false;
+  if (TIME_SENSITIVE_QUESTION_RES.some((p) => p.test(t))) return true;
+  return /[?？]\s*$/.test(t) && PAST_EVENT_QUESTION_RE.test(t);
+}
+
+/** P124.38: the user asks about the assistant's own earlier answer (its sources, whether it invented it). Never a web query. */
+const ASSISTANT_META_RES: RegExp[] = [
+  re(String.raw`(?:какие|какой|какую|какими)\s+(?:\p{L}+\s+){0,2}источник\p{L}*\s+(?:ты|вы)\s+(?:использовал\p{L}*|брал\p{L}*|взял\p{L}*|применял\p{L}*)|источник\p{L}*\s+(?:ты|вы)\s+(?:использовал\p{L}*|брал\p{L}*)`),
+  re(String.raw`откуда\s+(?:ты|вы)\s+(?:это\s+|эту\s+|такую\s+)?(?:взял\p{L}*|знаешь|знаете|узнал\p{L}*|информаци\p{L}*)|(?:ты|вы)\s+(?:это\s+|эту\s+)?(?:выдумал\p{L}*|придумал\p{L}*|сочинил\p{L}*)|на\s+(?:чём|чем)\s+(?:основан|базир)\p{L}*\s+(?:твой|ваш|этот)\s+ответ`),
+  re(String.raw`(?:what|which)\s+(?:\p{L}+\s+){0,2}sources?\s+(?:did|do)\s+you\s+(?:use|rely\s+on|consult)|where\s+did\s+you\s+(?:get|find|take|read)\s+(?:that|this|it)\b|did\s+you\s+(?:make|invent)\s+(?:that|this|it)\s+up`),
+];
+export function isAssistantMetaQuestion(text: string): boolean {
+  const t = String(text || '');
+  return ASSISTANT_META_RES.some((p) => p.test(t));
+}
+
+/** P124.38: the text points back at the dialogue ("this news", "that incident"); it cannot be searched on its own wording. */
+const DIALOGUE_REFERENCE_RE = re(String.raw`(?:эт[ауоеи]\p{L}*|тот|ту|такую|такие|that|this|those)\s+(?:\p{L}+\s+){0,2}(?:новост\p{L}*|событи\p{L}*|инцидент\p{L}*|истори\p{L}*|news|story|event|incident|report)`);
+export function refersToDialogue(text: string): boolean {
+  return DIALOGUE_REFERENCE_RE.test(String(text || ''));
+}
+
+/** P124.38: honest status for a question about earlier sources. Source lists of earlier replies are not kept in the dialogue. */
+export function formatSourceQuestionBlock(): string {
+  return `SOURCE QUESTION: the user asks which sources an earlier reply used. BiForge does not keep the source lists of earlier replies in this dialogue, so you cannot see them.
+Rules: name no outlet, link, place or event as a source unless it appears in the text of this dialogue. Do not retract or replace the earlier answer with a new explanation you cannot support. Say plainly that the source list of that reply is not available here, say what the reply rested on only as far as the dialogue shows, and say when you are unsure. Offer to run a new web search on the topic. NEVER say that you have no internet access.`;
+}
+
 /** Prior user turns that asked for a web search (single definition, shared by every call site; T-3). */
 export function hasRecentSearchIntent(recentUserText: string): boolean {
   const turns = String(recentUserText || '').split(/\n+/).map((x) => x.trim()).filter(Boolean);
   return turns.some((turn) => /(?:найди\s+в\s+интернет|поищи\s+в\s+интернет|search\s+(?:the\s+)?web|look\s+up\s+online|google\s+search)/iu.test(turn)
     || needsFreshWebInfo(turn)
+    || isTimeSensitiveQuestion(turn)
     || /(?:find|check|look\s+up|search)\b.{0,120}\b(?:current|latest|recent|today|now|available|availability|schedule|timetable|price|revenue|rules|deadlines|status|version|opening\s+hours|law|policy|regulation|implementation|deadline)\b/iu.test(turn)
     || /\b(?:current|latest|recent|today|now)\b.{0,120}\b(?:availability|schedule|timetable|price|revenue|rules|deadlines|status|version|release|opening\s+hours|law|policy|regulation|implementation)\b/iu.test(turn)
     || /\b(?:price|cost|exchange\s+rate|weather|score|schedule|availability)\s+(?:of|for|in|at)\b/iu.test(turn)
@@ -769,9 +831,16 @@ export async function buildSearchDecision(opts: {
   const priorUserTurns = (opts.recentTurns || []).filter((t) => t.role === 'user');
   const priorLiveTask = priorUserTurns.length > 0 && hasRecentSearchIntent(String(priorUserTurns[priorUserTurns.length - 1].content || ''));
   const contextualFollowup = priorLiveTask && isSearchFollowup(opts.userText) && !hasPersonalData(resolvedText);
+  if (isAssistantMetaQuestion(opts.userText)) return { search: false, decisionSource: 'heuristic', decisionNote: 'meta_question_about_answer' };
+  const dialogueReference = refersToDialogue(opts.userText) && priorUserTurns.length > 0;
   const fallback = (note: string): SearchDecision => {
     const privacyBlocked = hasPersonalData(resolvedText);
-    const shouldSearch = !privacyBlocked && (contextualFollowup || opts.heuristic());
+    const shouldSearch = !privacyBlocked && (contextualFollowup || dialogueReference || opts.heuristic());
+    if (shouldSearch && dialogueReference && !contextualFollowup) {
+      const prior = stripInstructionWords(String(priorUserTurns[priorUserTurns.length - 1].content || ''));
+      const query = `${prior} ${stripInstructionWords(opts.userText)}`.replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
+      return { search: true, plan: { query, freshness: 'now' as const, planSource: 'heuristic' as const, planNote: 'dialogue_reference_fallback' }, decisionSource: 'heuristic', decisionNote: 'dialogue_reference_fallback' };
+    }
     return {
       search: shouldSearch,
       ...(shouldSearch && contextualFollowup ? { plan: { query: stripInstructionWords(resolvedText), freshness: 'now' as const, planSource: 'heuristic' as const, planNote: 'contextual_followup_fallback' } } : {}),
@@ -779,7 +848,7 @@ export async function buildSearchDecision(opts: {
     };
   };
   // Preserve a live task across model-planner outages; do not search the literal follow-up alone.
-  if (!contextualFollowup) {
+  if (!contextualFollowup && !dialogueReference) {
     const pre = preClassifyLiveDataIntent(opts.userText, opts.recentTurns);
     if (pre) return pre;
   }
@@ -830,6 +899,8 @@ export function preClassifyLiveDataIntent(userText: string, recentTurns?: Planne
   if (text.length < 4) return null;
   // The planner owns the privacy rule: text with personal data, or about a private person, never takes the shortcut.
   if (hasPersonalData(text) || PRIVATE_PERSON_RE.test(text)) return null;
+  // P124.38: a meta question or a reference to the dialogue ("find this news") needs the dialogue, not its own words.
+  if (isAssistantMetaQuestion(text) || refersToDialogue(text)) return null;
   // Strong live-data topics only. A bare time word (today, tomorrow, current, now) also occurs in feelings,
   // advice and general questions, so it cannot decide alone; those turns go to the planner.
   if (!LIVE_TOPIC_RE.test(text)) return null;
