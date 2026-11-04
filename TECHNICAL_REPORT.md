@@ -1,3 +1,35 @@
+## P125.4 — Evidence (2026-11-04)
+
+Product `125`, patch `125.4`. Scope: remaining WP3 (items 2, 3, 4, 8; steps 2–4 as behaviour suite + diagnostics + unified workflow).
+
+**Code:** `server/webSearch.ts` (live-task, dictated query, sourceCountry on plan), `server/nationalAuthorities.ts`, `config/national-authorities.json`, `server/conversationDiagnostics.ts`, `server.ts` (priorLiveTaskState wire).
+
+**Tests:** `tests/p125-4-answer-quality-suite.test.mjs`. Workflow: `.github/workflows/answer-quality-verify.yml`.
+
+**Local sandbox test run:** may be `NOT_RUN` if npm install is incomplete in the assistant environment. Hosted CI after apply is the offline evidence channel.
+
+**Live / production:** owner definition of C125 complete requires the multi-turn temperature-style scenario (and analogues in other languages/places) to succeed on a **deployed release whose patch equals 125.4**. That remains `NOT_RUN` until Navigator deploys and runs the dialogue (G5). Unified workflow live job is opt-in and does not replace production OBSERVED.
+
+**WP2 O1 / IANA:** out of cycle per owner.
+
+---
+
+## P125.3 — Evidence (2026-11-04)
+
+Product version `125`, patch `125.3`. Scope: WP3 scope extension implementation (search routing and answer grounding items 1, 2, 5, 6, 7) plus WP3 step-1 workflow audit table.
+
+**Code:** `server/webSearch.ts` (gate, freshness patterns, place extraction, follow-up, status block), `server.ts` (status injection on skipped turns, planner timeout cap).
+
+**Tests:** `tests/p125-3-search-routing-grounding.test.mjs` (offline pure). Local run: see session validation. Hosted CI: `NOT_RUN` until Navigator Actions on the applied commit.
+
+**Docs:** `docs/C125_WP3_WORKFLOW_AUDIT.md` (step-1 audit table).
+
+**Not in this patch:** dictated-query as sole query (item 3), sourceCountry plan field (item 4), full diagnostics export fidelity (item 8 / step 4), full regex→behaviour migration (step 2), full answer-quality replay suite with model (step 3 beyond pure gate assertions). Those remain gaps for later C125 work after owner review of the audit table.
+
+**User-value:** OBSERVED failure chain of the 2026-11-04 nine-turn dialogue is addressed at the gate/place/status layer in pure functions; live dialogue on a running release equal to 125.3 remains `NOT_RUN` (G5).
+
+---
+
 ## P125.2 — Evidence (2026-11-04)
 
 Product version `125`, patch `125.2`. Scope: WP3 scope extension (documentation) and group B of the source policy (data).

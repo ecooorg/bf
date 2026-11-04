@@ -1,3 +1,17 @@
+## P125.4 — C125 close-out: WP3 remaining + unified answer-quality workflow (2026-11-04)
+
+- **WP3 extension remaining items:**
+  - Item 2 live-task state: `resolveLiveTaskState` / `planFromLiveTask`; search-about-search turns resolve against stored place/topic/query; wired into `buildSearchDecision` and conversation path.
+  - Item 3 dictated query: `extractDictatedQuery` — quoted text after a search/build-query request becomes the plan query (`dictated: true`), not planner rewrite.
+  - Item 4 sourceCountry: plan field + `extractSourceCountryConstraint`; versioned `config/national-authorities.json` (global seed, source/date per entry, no hard-coded product default country); `server/nationalAuthorities.ts` load/rank helpers.
+  - Item 8 diagnostics fidelity: conversation export header `releaseMatchesRepoPackagePatch`; search decision details include place/topic/sourceCountry/dictated; planner timing section in export.
+- **WP3 steps 2–4:** behaviour coverage in `tests/p125-4-answer-quality-suite.test.mjs` (language-neutral patterns × EN/DE/FR/JA × places); regex→behaviour sample for temperature intent; diagnostics export updates; full historical regex migration remains incremental.
+- **Unified workflow:** `.github/workflows/answer-quality-verify.yml` — offline suite (P125 + search planner/trigger/source/weather/carousel unit) on PR/schedule; live smoke job opt-in via `workflow_dispatch` + secrets.
+- **Locale:** suite always sets place/country explicitly; `WEB_SEARCH_DEFAULT_COUNTRY` remains deployment config only. User-facing languages in fixtures ≥3; provider queries remain English (WP1).
+- **WP2:** left as-is (A/B/C on); O1/IANA next cycle per owner.
+- **Version:** `125` / patch `125.4`. Live OBSERVED on production release equal to this patch remains required for C125 “done” (owner definition); this delivery provides code, tests and workflow only — production dialogue is Navigator after deploy (G5).
+- No UI / entry / `data-testid` changes (G4 N/A).
+
 ## P125.3 — C125 WP3 search routing / grounding + workflow audit (2026-11-04)
 
 - **WP3 scope extension (search routing and answer grounding):**

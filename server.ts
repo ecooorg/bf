@@ -53,7 +53,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -1383,7 +1383,14 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
             client: plannerKey ? pooledGeminiClient(requestByokKey) : undefined,
             model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
             heuristic: () => shouldSearchWeb(searchTrigger),
-            timeoutMs: Math.min(8_000, Math.max(1_000, plannerRemainingMs)),
+            // P125.3 item 7: cap planner at ~3s so a slow call does not cost 8s or search a meta phrase.
+            timeoutMs: Math.min(3_000, Math.max(1_000, plannerRemainingMs)),
+            // P125.4 item 2: reconstruct live-task from prior user turns (place/topic) without client schema change.
+            priorLiveTaskState: resolveLiveTaskState({
+              userText: lastUserText,
+              prior: null,
+              recentUserTexts: fullHistory.filter((m: any) => m.role === 'user').slice(0, -1).slice(-4).map((m: any) => String(m.content || '')),
+            }),
           });
           searchPlannerMs = searchPlannerRan ? Date.now() - plannerStartedAt : 0;
           searchNow = searchDecision.search || Boolean(intentFlags.userAskedSearch);
@@ -1414,6 +1421,10 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           if (isAssistantMetaQuestion(lastUserText) && !intentFlags.userAskedSearch && !distressMarkerDetected) {
             const sourceBlock = formatSourceQuestionBlock();
             promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${sourceBlock}` : sourceBlock;
+          } else if (!distressMarkerDetected) {
+            // P125.3 item 6: honest status on every skipped turn so the model never invents "no search tool".
+            const statusBlock = formatSearchStatusBlock(webSearch, true);
+            if (statusBlock) promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${statusBlock}` : statusBlock;
           }
         }
       } catch {
