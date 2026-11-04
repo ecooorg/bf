@@ -1,3 +1,21 @@
+## D-2026-11-04-02 — Source policy: no Russian or Belarusian authority-controlled domains in evidence
+
+**Owner decision (2026-11-04).** Search evidence must not come from domains controlled by the authorities of Russia or Belarus: the country-code zones `.ru`, `.su`, `.xn--p1ai`, `.by`, `.xn--90ais`, other top-level domains whose registry operator is a Russian or Belarusian entity (to be verified against the IANA database), and listed state-controlled hosts outside those zones (starting from the EU broadcasting-ban list, Regulation (EU) 833/2014 Annex XV). The owner is Ukrainian and lives in Switzerland and wants no Russian or Belarusian state sources.
+
+**Implementation rules:** the lists are versioned configuration data, not code constants, so the product stays free of hard-coded country defaults (`AGENTS.md` §1); URL hosts are matched in Punycode form including subdomains; filtering happens before the digest and before page fetches; diagnostics keep counts only; an empty result after filtering is reported honestly. Whether an explicit user request may bypass the filter is open (O1); default is no bypass. Scope and acceptance: `docs/C125_ANSWER_QUALITY_PROGRAMME.md` WP2.
+
+**Effect:** planned for C125; nothing in this decision is implemented yet. The trusted-source list of P124.39 is unchanged.
+
+---
+
+## D-2026-11-04-01 — Answer quality is cycle C125, separate from carousel and operations work
+
+**Owner decision (2026-11-04).** Improving the quality of model answers (query fidelity, source policy, workflow and diagnostics quality) is a new cycle, C125, and is not part of model-carousel, key-pool, provider-routing or operations work. C124 closes with patch 124.40. C125 uses product version `125` and patches `125.1`–`125.99`.
+
+**Effect:** `ROADMAP.md` and `docs/C125_ANSWER_QUALITY_PROGRAMME.md` carry the approved scope; the first C125 session still reconstructs state and chooses its task from current gaps (`AGENTS.md` §4).
+
+---
+
 ## D-2026-11-03-04 — Universal, cross-domain retrieval and regression criteria
 
 **Owner direction (2026-11-03):** BiForge is a universal agent, not a domain-specialized agent. Search-context recovery and retrieval validation must be domain-neutral. Weather may appear as one regression example but must not dominate the test corpus or dictate architecture.
