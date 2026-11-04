@@ -16,7 +16,7 @@ export async function conversationSessionLog(): Promise<string> {
   const unused = src.files ? unusedEnvNames(cfg.map((c) => c.name), src.text) : null;
   const snap = processSnapshot();
   const boots = rows.filter((r) => r.event === 'process_boot').slice(-20);
-  const searches = rows.filter((r) => r.event === 'web_search' || r.event === 'direct_web_search').slice(-40);
+  const searches = rows.filter((r) => r.event === 'web_search' || r.event === 'simple_direct_search' || r.event === 'direct_web_search').slice(-40);
   const planner = rows.filter((r) => r.event === 'search_planner_timing').slice(-40);
   const convo = rows.filter((r) => r.component === 'conversation'
     && (/pipeline|passthrough/.test(String(r.event)) || String(r.event).startsWith('conversation_') || String(r.event).startsWith('simple_direct_'))).slice(-80);
