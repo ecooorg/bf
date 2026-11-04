@@ -16,6 +16,7 @@ import { collectAllowedFromInput, safeValidateNumbers } from './src/numberValida
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
 import { conversationSessionLog } from './server/conversationDiagnostics.ts';
+import { observeSimpleResponseDelivery, simpleConversationMetricDetails } from './server/simpleConversationDiagnostics.ts';
 import { startLifecycle } from './server/processLifecycle.ts';
 
 function reportNumberValidatorError(error: unknown, stage: string): void {
@@ -717,7 +718,7 @@ function preferredModelFromRequest(req: express.Request): string | undefined {
 const MAX_DIRECT_KEY_ATTEMPTS = 10;
 async function generateGeminiPassThrough(
   prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = [], useSearch = false,
-): Promise<{ text: string; model: string; durationMs: number; sources: WebSource[]; queries: string[]; keySlot: number; keyAttempts: number }> {
+): Promise<{ text: string; model: string; durationMs: number; sources: WebSource[]; queries: string[]; keySlot: number; keyAttempts: number; modelRotations: number }> {
   const activeGeminiModels = new Set(registryForGeminiCascade('STRONG')
     .filter((entry) => entry.status === 'active' && entry.adapter === 'gemini')
     .map((entry) => entry.modelId));
@@ -725,6 +726,7 @@ async function generateGeminiPassThrough(
   const models = configuredModels.filter((model) => (healthForModel(model).cooldownUntil || 0) <= Date.now());
   if (!models.length) throw new GeminiUnavailableError('All configured Gemini models are cooling down.');
   let lastError: any;
+  let modelRotations = 0;
   for (const model of models) {
     await waitForModelStart(model);
     const call = async (key: string, slot: number) => {
@@ -746,14 +748,26 @@ async function generateGeminiPassThrough(
       } finally { clearTimeout(timeout); }
     };
     try {
-      if (byokKey) return { ...(await call(byokKey, -1)), keyAttempts: 1 };
+      if (byokKey) return { ...(await call(byokKey, -1)), keyAttempts: 1, modelRotations };
       const pooled = await callWithKeyPool({
-        pool: geminiPool, model, maxKeyAttempts: MAX_DIRECT_KEY_ATTEMPTS, onRotate: logPoolRotation,
+        pool: geminiPool, model, maxKeyAttempts: MAX_DIRECT_KEY_ATTEMPTS,
+        onRotate: (event) => {
+          logPoolRotation(event);
+          void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'conversation_key_rotations',
+            message: 'Simple Gemini key pool rotated to another key slot',
+            details: { model, keySlot: event.slot, attempt: event.attempt, errorClass: event.errorClass } });
+        },
         call: async (key, slot) => call(key, slot),
       });
-      return { ...pooled.value, keySlot: pooled.slot, keyAttempts: pooled.keyAttempts };
+      return { ...pooled.value, keySlot: pooled.slot, keyAttempts: pooled.keyAttempts, modelRotations };
     } catch (error: any) {
       lastError = error;
+      if (models.indexOf(model) < models.length - 1) {
+        modelRotations += 1;
+        void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'conversation_model_rotations',
+          message: 'Simple Gemini cascade advanced to the next eligible model',
+          details: { failedModel: model, nextModel: models[models.indexOf(model) + 1], errorCode: String(error?.code || 'MODEL_ERROR') } });
+      }
       if (error?.code === 'EMPTY_MODEL_RESPONSE' || error instanceof PoolExhaustedError) continue;
       if (!shouldRotateKeySlot(classifyKeyError(error))) throw error;
     }
@@ -1278,6 +1292,10 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // legacy intent/mode, search-decision, quality-retry and epistemic stages remain outside this route.
     if (req.body?.productMode !== 'Expert' && !distressMarkerDetected) {
       simpleDirectRequest = true;
+      const directRequestId = String((req as any).requestId || req.get('x-request-id') || '');
+      void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_requests',
+        requestId: directRequestId, message: 'Simple Direct request accepted for processing',
+        details: { agent: 'conversational', provider: 'gemini', hasAttachments: attachItems.length > 0 } });
       const explicitSearch = isExplicitSearchRequest(String(lastUserText || brief.decision || ''));
       const searchTrigger = {
         enabled: true, mode: webSearchMode(), userText: String(lastUserText || brief.decision || ''), userAskedSearch: explicitSearch,
@@ -1316,6 +1334,14 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           provider: searchResult?.provider || 'none', sourceCount: searchResult?.sources?.length || 0,
           timedOut: optionalSearch.timedOut, generationContinues: true },
       });
+      if (searchExpected && searchResult?.status !== 'used' && searchResult?.status !== 'used_weak') {
+        void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'conversation_search_failures',
+          requestId: directRequestId, message: 'Optional web search did not produce usable sources',
+          details: { status: searchResult?.status || 'failed', reason: searchResult?.reason || (optionalSearch.timedOut ? 'timeout' : 'not_run') } });
+        void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'conversation_search_degraded',
+          requestId: directRequestId, message: 'Simple generation continues without the requested search evidence',
+          details: { generationContinues: true, userDisclosureIncluded: true } });
+      }
       const direct = await handleSimpleDirectConversation({
         latestUserMessage: String(lastUserText || brief.decision || ''),
         history: safeHistory,
@@ -1326,13 +1352,21 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         preferredModel: requestPreferredModel,
       }, generateGeminiPassThrough);
       const requestId = String((req as any).requestId || req.get('x-request-id') || '');
-      void recordApplicationLog({
-        level: 'info', component: 'conversation', event: 'simple_direct_response', requestId,
-        message: 'Simple response generated and returned directly by Gemini',
-        details: { agent: 'conversational', provider: 'gemini', model: direct.model, keySlot: direct.keySlot,
-          keyAttempts: direct.keyAttempts, durationMs: direct.durationMs, hasAttachments: attachItems.length > 0,
-          searchUsed: Boolean(searchResult?.status === 'used' || searchResult?.status === 'used_weak'), searchResult: searchResult?.status || (searchExpected ? 'failed' : 'not_run'), generated: true, nonEmpty: Boolean(direct.reply), delivered: true },
+      const metricDetails = simpleConversationMetricDetails({
+        requestId, model: direct.model, keySlot: direct.keySlot, keyAttempts: direct.keyAttempts,
+        durationMs: direct.durationMs, hasAttachments: attachItems.length > 0,
+        searchUsed: Boolean(searchResult?.status === 'used' || searchResult?.status === 'used_weak'),
+        searchResult: searchResult?.status || (searchExpected ? 'failed' : 'not_run'),
       });
+      void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_model_success',
+        requestId, message: 'Simple Gemini generated a non-empty response',
+        details: { ...metricDetails, generated: true, nonEmpty: true, delivery: 'pending' } });
+      observeSimpleResponseDelivery(res, (event, details) => {
+        void recordApplicationLog({ level: event === 'conversation_http_response_success' ? 'info' : 'warn',
+          component: 'conversation', event, requestId, message: event === 'conversation_http_response_success'
+            ? 'Simple response HTTP write completed; browser rendering is not observed'
+            : event === 'conversation_http_response_failure' ? 'Simple response completed with an unsuccessful HTTP status' : 'Simple response connection closed before successful HTTP completion', details });
+      }, metricDetails);
       return ok(res, {
         reply: direct.reply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
@@ -1688,6 +1722,10 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     const directModeApplies = simpleDirectRequest;
     if (directModeApplies) {
       const reason = String(e?.code || 'GEMINI_DIRECT_ERROR');
+      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'conversation_model_failures',
+        requestId: String((req as any).requestId || req.get('x-request-id') || ''),
+        message: 'Simple Gemini generation failed before a non-empty response was produced',
+        error: e, details: { agent: 'conversational', provider: 'gemini', generated: false, nonEmpty: false, retryable: true } });
       console.error(JSON.stringify({ type: 'gemini_direct_passthrough_failed', provider: 'gemini', errorCode: reason, message: String(e?.message || e).slice(0, 240) }));
       void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, searchInvoked: false, externalFallbackInvoked: false } });
       return fail(res, 503, 'Gemini did not return a response. No alternative provider or generated fallback was used.', 'GEMINI_DIRECT_UNAVAILABLE', { upstreamCode: reason });

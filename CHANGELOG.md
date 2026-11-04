@@ -1,3 +1,12 @@
+## P126.3 — Conversation reliability and outcome diagnostics (2026-11-04)
+
+- Added request-level Simple telemetry for accepted requests, successful non-empty Gemini generations, key-slot rotations, model-cascade rotations, search failures/degradation, HTTP response completion and interrupted delivery.
+- Response completion is deliberately recorded as an HTTP-write outcome, not proof of browser rendering. `clientRendered` and `userVisibleSuccess` remain `not_observed` because no client acknowledgement exists.
+- Added P126.3 regression coverage for three-turn history ordering, PDF/image payload forwarding, retry preservation of pending text/files, BYOK isolation, existing key/model carousel usage, distress/SafetyBox and Expert route isolation, and successful/interrupted response lifecycle accounting.
+- Existing attachment processing, conversation history compaction, retry UI and SafetyBox remain in place; no Expert/Architect implementation or user-facing UI behaviour was changed.
+- Verification status and limits: see `TECHNICAL_REPORT.md`. Live providers, full CI/build, browser rendering and deployed user outcome remain `NOT_RUN`.
+- Version: `126.3`.
+
 ## P126.2 — Search decoupling and runtime source-policy packaging (2026-11-04)
 
 - Simple now detects explicit search requests and existing automatic freshness candidates without invoking the legacy conversational intent/mode pipeline.

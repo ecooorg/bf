@@ -1,5 +1,14 @@
 ## P126 — Simple Mode direct Gemini conversation (owner-provided C126 specification)
 
+### P126.3 — CONVERSATION RELIABILITY
+
+- Status: reliability instrumentation and regression tests added in patch 126.3.
+- Reviewed natural history ordering/compaction, native PDF/image attachment forwarding, client Retry payload preservation, existing key/model carousel and BYOK isolation, and distress/SafetyBox and Expert route boundaries.
+- Added request, generation, rotation, search-degradation and HTTP response lifecycle diagnostic events.
+- HTTP response completion is not treated as proof of client rendering; client render/user-visible success remains `NOT_OBSERVED` pending a client acknowledgement.
+- Full Core CI, typecheck, production build, browser E2E, live provider/file tests and deployment remain `NOT_RUN`.
+- Evidence and verification limits: `TECHNICAL_REPORT.md` — P126.3.
+
 ### P126.2 — SEARCH DECOUPLING
 
 - Status: implementation added in patch 126.2; automated verification status is recorded in `TECHNICAL_REPORT.md`.
