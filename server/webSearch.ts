@@ -129,6 +129,10 @@ const FRESH_PATTERNS: RegExp[] = [
   re(String.raw`news\s+(?:about|on|today|this\s+week)|what(?:'|’)?s\s+(?:new|happening|going\s+on)\s+(?:in|with|at|on)|what\s+happened\s+(?:in|with|at|to)`),
   re(String.raw`(?:current|today(?:'|’)?s|live)\s+(?:price|rate|exchange\s+rate|weather|score|status|version)|exchange\s+rate|(?:price|stock\s+price)\s+of|weather\s+(?:in|for|today|tomorrow)`),
   re(String.raw`as\s+of\s+(?:today|now)`),
+  // P125.3: temperature / air-temp questions (plain weather without "weather in" phrasing)
+  re(String.raw`(?:температур\p{L}*(?:\s+воздух\p{L}*)?|air\s+temperature|how\s+(?:cold|hot|warm)\s+is\s+it)\b`),
+  re(String.raw`(?:какая|какой|какое)\s+(?:сейчас\s+)?(?:температур\p{L}*|погод\p{L}*)|(?:what(?:'|’)?s|what\s+is)\s+the\s+(?:temperature|weather)\b`),
+  re(String.raw`(?:сейчас|сегодня)\s+(?:в|во|на)\s+[\p{L}][\p{L}\s.'-]{1,40}\s+(?:температур|погод|градус)|(?:temperature|weather)\s+(?:in|for|at)\s+[\p{L}]`),
 ];
 
 export function needsFreshWebInfo(text: string): boolean {
@@ -136,6 +140,9 @@ export function needsFreshWebInfo(text: string): boolean {
   if (t.trim().length < 8) return false;
   return FRESH_PATTERNS.some((p) => p.test(t));
 }
+
+/** P124.34 / P125.3: topics whose answer is live data. Bare time words are deliberately excluded (the planner decides those). Hoisted so the planner gate can use it. */
+const LIVE_TOPIC_RE = /(?:\bweather\b|\bforecast\b|\btemperature\b|\u043f\u043e\u0433\u043e\u0434|\u0442\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440|\bnews\b|\u043d\u043e\u0432\u043e\u0441\u0442|\bscore\b|\u0441\u0447\u0451\u0442|\u0441\u0447\u0435\u0442|\bprice\b|\u0446\u0435\u043d[\u0430\u044b](?!\p{L})|\u043a\u0443\u0440\u0441\s+(?:\u0432\u0430\u043b\u044e\u0442|\u0434\u043e\u043b\u043b\u0430\u0440|\u0435\u0432\u0440\u043e|\u0444\u0440\u0430\u043d\u043a|\u0431\u0438\u0442\u043a\u043e\u0439\u043d)|\bexchange\s+rate\b|\bstock\s+price\b|\btraffic\b|\boutage\b)/iu;
 
 export type SearchTriggerInput = {
   enabled: boolean;
@@ -200,6 +207,13 @@ export function isPlannerCandidate(o: SearchTriggerInput): boolean {
   if ((o.mode || 'auto') === 'explicit') return false;
   if (isAssistantMetaQuestion(text) || PRIVATE_PERSON_RE.test(text) || PRIVATE_PERSON_RU_RE.test(text) || hasPersonalData(text)) return false;
   if (isTimeSensitiveQuestion(text)) return true;
+  // P125.3: live-data topics must reach the planner (and thus the pre-classifier). The gate
+  // previously blocked plain temperature/weather questions that the pre-classifier would have
+  // recognised, so the model answered "no search tool".
+  if (LIVE_TOPIC_RE.test(text) || needsFreshWebInfo(text)) return true;
+  // P125.3: instruction/complaint about the search itself inside a live thread, or a short
+  // continuation, must reach the planner so live-task state can resolve them.
+  if (Boolean(o.priorLiveThread) && (isSearchFollowup(text) || text.split(/\s+/).length <= 12)) return true;
   return Boolean(o.priorLiveThread) && text.split(/\s+/).length <= 6;
 }
 
@@ -264,8 +278,9 @@ export function hasRecentSearchIntent(recentUserText: string): boolean {
 /** A follow-up that continues a recent live-information or explicit web-search task. */
 export function isSearchFollowup(text: string): boolean {
   const t = String(text || '').trim();
-  if (t.length < 8) return false;
-  return /(?:друг(?:их|ие)\s+(?:сайт\w*|источник\w*)|на\s+других\s+сайт\w*|обязательно\s+нуж\w*|мне\s+нуж\w*\s+(?:точн\w*\s+)?(?:температур\w*|данн\w*|цифр\w*)|найди\s+(?:ещ[её]|больше)|поищи\s+(?:ещ[её]|на\s+других)|проверь\s+(?:на\s+других|ещ[её])|(?:выполни|сделай|повтори)\s+(?:ещ[её]\s+)?(?:один\s+)?поиск|найди\s+более\s+(?:точн|подробн|свеж)|проверь\s+информац|я\s+(?:же\s+)?прошу\s+(?:тебя\s+)?(?:поискать|найти|поискать\s+в\s+интернет\w*)|i\s+(?:am|'m)\s+asking\s+you\s+to\s+search|(?:please\s+)?search\s+(?:again|for\s+it|online|the\s+web)\b|run\s+(?:another|one\s+more)\s+search|other\s+sites|other\s+sources|different\s+websites|need\s+(?:the\s+)?(?:exact\s+)?(?:temperature|figure|number)|search\s+elsewhere|try\s+another\s+site|find\s+more\s+precise\s+(?:information|data|results)|(?:verify|confirm|check)\b.{0,60}\b(?:source|sources|data|result|results|figure|figures|date|dates|information|details)\b|more\s+precise\s+(?:information|data|results|dates|figures))/iu.test(t);
+  if (t.length < 4) return false;
+  // P125.3: also "one more query", "just search", "you always have search", complaints about sites, dictated query asks.
+  return /(?:друг(?:их|ие)\s+(?:сайт\w*|источник\w*)|на\s+других\s+сайт\w*|обязательно\s+нуж\w*|мне\s+нуж\w*\s+(?:точн\w*\s+)?(?:температур\w*|данн\w*|цифр\w*)|найди\s+(?:ещ[её]|больше)|поищи\s+(?:ещ[её]|на\s+других)|проверь\s+(?:на\s+других|ещ[её])|(?:выполни|сделай|повтори)\s+(?:ещ[её]\s+)?(?:один\s+)?(?:поиск|запрос)|ещ[её]\s+(?:один\s+)?(?:поиск|запрос)|просто\s+(?:сделай|выполни)\s+(?:поиск|запрос)|у\s+тебя\s+(?:всегда\s+)?есть\s+поиск|ты\s+всегда\s+(?:можешь|имеешь)\s+поиск|почему\s+(?:эти|такие)\s+сайт|построй\s+запрос|сделай\s+запрос|выполни\s+ровно\s+этот|найди\s+более\s+(?:точн|подробн|свеж)|проверь\s+информац|я\s+(?:же\s+)?прошу\s+(?:тебя\s+)?(?:поискать|найти|поискать\s+в\s+интернет\w*)|i\s+(?:am|'m)\s+asking\s+you\s+to\s+search|(?:please\s+)?search\s+(?:again|for\s+it|online|the\s+web)\b|run\s+(?:another|one\s+more)\s+(?:search|query)|one\s+more\s+(?:search|query)|just\s+(?:make|run|do)\s+(?:a\s+)?(?:search|query)|you\s+always\s+have\s+search|other\s+sites|other\s+sources|different\s+websites|need\s+(?:the\s+)?(?:exact\s+)?(?:temperature|figure|number)|search\s+elsewhere|try\s+another\s+site|find\s+more\s+precise\s+(?:information|data|results)|(?:verify|confirm|check)\b.{0,60}\b(?:source|sources|data|result|results|figure|figures|date|dates|information|details)\b|more\s+precise\s+(?:information|data|results|dates|figures)|why\s+(?:these|those)\s+sites|build\s+(?:the\s+)?query|run\s+(?:exactly\s+)?this\s+query)/iu.test(t);
 }
 
 /**
@@ -919,8 +934,6 @@ export async function buildSearchDecision(opts: {
   }
 }
 
-/** P124.34: topics whose answer is live data. Bare time words are deliberately excluded (the planner decides those). */
-const LIVE_TOPIC_RE = /(?:\bweather\b|\bforecast\b|\btemperature\b|\u043f\u043e\u0433\u043e\u0434|\u0442\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440|\bnews\b|\u043d\u043e\u0432\u043e\u0441\u0442|\bscore\b|\u0441\u0447\u0451\u0442|\u0441\u0447\u0435\u0442|\bprice\b|\u0446\u0435\u043d[\u0430\u044b](?!\p{L})|\u043a\u0443\u0440\u0441\s+(?:\u0432\u0430\u043b\u044e\u0442|\u0434\u043e\u043b\u043b\u0430\u0440|\u0435\u0432\u0440\u043e|\u0444\u0440\u0430\u043d\u043a|\u0431\u0438\u0442\u043a\u043e\u0439\u043d)|\bexchange\s+rate\b|\bstock\s+price\b|\btraffic\b|\boutage\b)/iu;
 /** P124.34: a private person named by relation ("my friend", "my boss"); such text is never shortcut into a search. */
 const PRIVATE_PERSON_RE = /\b(?:my|our|his|her|their)\s+(?:friend|wife|husband|partner|boyfriend|girlfriend|mother|mom|father|dad|son|daughter|brother|sister|colleague|coworker|boss|neighbou?r|ex|landlord|teacher|doctor)\b/i;
 
@@ -929,6 +942,34 @@ const PRIVATE_PERSON_RE = /\b(?:my|our|his|her|their)\s+(?:friend|wife|husband|p
  * When it matches, the model planner is skipped entirely (saves up to ~8 s on the worst path).
  * Returns null when the text is ambiguous and the model planner should run.
  */
+/** P125.3: strip time / connector phrases before place extraction so "right now in the city of X" does not become the place. */
+const TIME_AND_CONNECTOR_PHRASES_RE = /(?:\b(?:right\s+now|at\s+the\s+moment|currently|now|today|tonight|this\s+(?:morning|evening|afternoon)|сейчас|в\s+данный\s+момент|на\s+данный\s+момент|сегодня|сейчас\s+же|прямо\s+сейчас|в\s+настоящий\s+момент)\b)/giu;
+const CITY_OF_RE = /(?:the\s+city\s+of|городе|город|г\.)\s+/giu;
+
+export function extractPlaceCandidate(text: string): string | undefined {
+  const cleaned = String(text || '')
+    .replace(TIME_AND_CONNECTOR_PHRASES_RE, ' ')
+    .replace(CITY_OF_RE, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // Prefer trailing capitalised / Cyrillic place after a preposition.
+  const placeMatch = cleaned.match(/(?:in|for|at|в|во|на|из)\s+([\p{L}][\p{L} .'-]{1,40}?)(?=\s+(?:today|tomorrow|сейчас|сегодня|завтра|and|и|с\s|со\s)|[?.!,;]|$)/iu);
+  let place = placeMatch?.[1]?.trim().slice(0, 80);
+  if (place) {
+    // Drop leftover non-place connector words and time leftovers.
+    place = place.replace(/^(?:the\s+|a\s+|an\s+|городе\s+|город\s+)/i, '').replace(/\s+(?:now|today|сейчас|сегодня)$/i, '').trim();
+  }
+  if (!place || place.length < 2) {
+    // Fallback: last capitalised / multi-letter token sequence that looks like a place name.
+    const trailing = cleaned.match(/([\p{Lu}\p{Ll}][\p{L}]{2,}(?:\s+[\p{Lu}\p{Ll}][\p{L}]{2,}){0,2})\s*$/u);
+    place = trailing?.[1]?.trim().slice(0, 80);
+  }
+  // Never return pure time words or instruction leftovers as place.
+  if (!place || /^(?:now|today|сейчас|сегодня|момент|current|right)$/i.test(place)) return undefined;
+  // Reject if the candidate is dominated by non-Latin leftovers mixed with Latin (provider query pollution).
+  return place;
+}
+
 export function preClassifyLiveDataIntent(userText: string, recentTurns?: PlannerTurn[]): SearchDecision | null {
   const text = String(userText || '').trim();
   if (text.length < 4) return null;
@@ -938,12 +979,22 @@ export function preClassifyLiveDataIntent(userText: string, recentTurns?: Planne
   if (isAssistantMetaQuestion(text) || refersToDialogue(text)) return null;
   // Strong live-data topics only. A bare time word (today, tomorrow, current, now) also occurs in feelings,
   // advice and general questions, so it cannot decide alone; those turns go to the planner.
-  if (!LIVE_TOPIC_RE.test(text)) return null;
-  // Prefer not to invent place/country; heuristic query is enough for the connector/SERP path.
-  const query = buildSearchQuery(text).slice(0, MAX_QUERY_CHARS);
+  if (!LIVE_TOPIC_RE.test(text) && !needsFreshWebInfo(text)) return null;
+  // P125.3: when the current text names no place but a prior user turn in the dialogue does, carry the place forward.
+  let place = extractPlaceCandidate(text);
+  if (!place && recentTurns?.length) {
+    for (let i = recentTurns.length - 1; i >= 0; i--) {
+      const t = recentTurns[i];
+      if (t.role !== 'user') continue;
+      const priorPlace = extractPlaceCandidate(String(t.content || ''));
+      if (priorPlace) { place = priorPlace; break; }
+    }
+  }
+  const queryBase = place && !text.toLowerCase().includes(place.toLowerCase())
+    ? `${stripInstructionWords(text)} ${place}`
+    : stripInstructionWords(text);
+  const query = buildSearchQuery(queryBase).slice(0, MAX_QUERY_CHARS);
   if (query.length < 3) return null;
-  const placeMatch = text.match(/(?:in|for|в|во|на)\s+(?:the\s+city\s+of\s+|городе\s+)?([\p{L}][\p{L} .'-]{1,40})/iu);
-  const place = placeMatch?.[1]?.trim().slice(0, 80) || undefined;
   return {
     search: true,
     plan: {
@@ -1590,7 +1641,15 @@ export function formatSearchStatusBlock(
   lookupExpected: boolean,
   searchEnabled = true,
 ): string {
-  if (!lookupExpected || r.status === 'used' || r.status === 'used_weak') return '';
+  // P125.3 item 6: when search is enabled, always emit a short honest status so the model never invents "no search tool".
+  if (r.status === 'used' || r.status === 'used_weak') return '';
+  if (!lookupExpected && searchEnabled) {
+    // Skipped turn: still tell the model search exists and was not run this turn.
+    const reason = String(r.reason || 'trigger_not_matched');
+    return `SEARCH STATUS: NOT_RUN (reason: ${reason.slice(0, 80)}) — live web search is available in this deployment but was not used for this turn.
+Rules: BiForge has web search. NEVER say that you have no internet access, cannot browse, or have no search tool. Do not present remembered values as current live data. Answer what can be answered without live data, or invite the user to ask for a search.`;
+  }
+  if (!lookupExpected) return '';
   const reason = String(r.reason || '');
   const quota = /429|quota|RESOURCE_EXHAUSTED|rate/i.test(reason);
   let line: string;
@@ -1598,10 +1657,10 @@ export function formatSearchStatusBlock(
   else if (r.status === 'no_relevant_data' && reason === 'source_policy_filtered') line = 'SEARCH STATUS: NO_RELEVANT_DATA — a live lookup ran, but every result came from sources excluded by the deployment source policy, so no evidence remains. Say this plainly; do not say that search or internet access is unavailable.';
   else if (r.status === 'no_relevant_data') line = 'SEARCH STATUS: NO_RELEVANT_DATA — a live lookup ran but the retrieved pages did not contain the requested data.';
   else if (r.status === 'skipped' && reason === 'no_serper_key') line = 'SEARCH STATUS: UNAVAILABLE — the search provider is not configured, so no live data was retrieved.';
-  else if (r.status === 'skipped') line = 'SEARCH STATUS: NOT_RUN — no live lookup was performed for this turn.';
+  else if (r.status === 'skipped') line = `SEARCH STATUS: NOT_RUN (reason: ${reason.slice(0, 80) || 'unspecified'}) — no live lookup was performed for this turn.`;
   else line = `SEARCH STATUS: ${quota ? 'TEMPORARILY_UNAVAILABLE (provider quota or rate limit)' : 'FAILED'} — the live lookup did not return usable data this time.`;
   return `${line}
-Rules: BiForge can retrieve web data when it works; NEVER say that you have no internet access or cannot browse. Say only what this status says (the lookup did not return the requested data / is unavailable now / is disabled), do not present remembered values as current, and offer to try again or name where the user can check. Answer what can be answered without live data.`;
+Rules: BiForge can retrieve web data when it works; NEVER say that you have no internet access, cannot browse, or have no search tool. Say only what this status says (the lookup did not return the requested data / is unavailable now / is disabled), do not present remembered values as current, and offer to try again or name where the user can check. Answer what can be answered without live data.`;
 }
 
 /** Source URLs are metadata for provenance, not user-facing reply content. */
