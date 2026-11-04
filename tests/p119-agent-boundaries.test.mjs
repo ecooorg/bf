@@ -116,7 +116,10 @@ test('P121.0.49 selected Architect uses ProjectMode; Architectural Test Lab rema
   assert.match(main, /lazy\(\(\) => import\('\.\/ProjectMode\.tsx'\)\)/);
   assert.match(main, /lazy\(\(\) => import\('\.\/ArchitectLab\.tsx'\)\)/);
   assert.match(app, /window\.location\.href = '\/project'/);
-  assert.equal((app.match(/window\.location\.href = '/g) || []).length, 1, 'App.tsx navigates only to the selected primary Architect route');
+  // Header and More-menu shortcuts add: several call sites are fine, but every one must target the primary Architect route.
+  const navigations = app.match(/window\.location\.href = '[^']*'/g) || [];
+  assert.ok(navigations.length >= 1, 'App.tsx keeps at least one Architect navigation');
+  assert.ok(navigations.every((n) => n === "window.location.href = '/project'"), 'App.tsx navigates only to the selected primary Architect route');
 });
 
 test('P119.0.2 chat shell never keeps Architect as an in-shell mode', () => {

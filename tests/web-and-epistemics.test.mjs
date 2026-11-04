@@ -406,6 +406,9 @@ test('explicit search follow-ups keep search active and carry weather context', 
   assert.equal(mod.shouldSearchWeb({ enabled: true, mode: 'explicit', userText: 'ты на других сайтах но мне обязательно нужна температура в Цюрихе', userAskedSearch: false, recentSearchIntent: true }), true);
   const q = mod.contextualizeSearchText('ты на других сайтах но мне обязательно нужна температура в Цюрихе', 'найди в интернете информацию какая прямо сейчас погода в Цюрихе');
   assert.equal(q, 'ты на других сайтах но мне обязательно нужна температура в Цюрихе');
+  // A follow-up that already names the place and the measurement is self-contained: the prior task is not prepended.
+  const en = 'search other sites, I need the temperature in Example City';
+  assert.equal(mod.contextualizeSearchText(en, 'search the web for the current weather in Example City'), en);
 });
 
 test('weather follow-ups reuse the place from context without a city allowlist', () => {
