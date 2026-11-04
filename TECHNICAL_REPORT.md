@@ -1,3 +1,9 @@
+## P125.15 — Evidence (2026-11-04)
+
+Hosted typecheck/build and Render deploy failed TS2304 on nationalAuthorities. Imports restored. No behaviour change beyond compile.
+
+---
+
 ## P125.14 — Evidence (2026-11-04)
 
 Prod log web_search event: status failed, reason ENOENT source-policy.json under dist-server; place "Цюрихе посмотри в"; chain connector skipped, serper failed, gemini quota. Deploy 5e96a8c / 125.13. Fixed path resolution and place boundary.

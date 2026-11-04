@@ -1,3 +1,9 @@
+## P125.15 — Fix nationalAuthorities imports (typecheck/build) (2026-11-04)
+
+- **CI/Render red on 125.14:** `server/nationalAuthorities.ts` used `fileURLToPath` and `fs.existsSync` without imports.
+- **Fix:** import `existsSync` from `node:fs` and `fileURLToPath` from `node:url`.
+- **Version:** patch `125.15`.
+
 ## P125.14 — Production search: config path + Zurich place (2026-11-04)
 
 **Root cause (prod 125.13, OBSERVED):** Serper failed with
