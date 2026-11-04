@@ -1,0 +1,38 @@
+# Manual-only: phrase / heuristic / routing regression suite (not product-core CI).
+# Run when debugging search-routing phrasing or after intentional heuristic changes.
+# Core CI must NOT depend on these checks (owner decision P125.13).
+name: Search Heuristics — Manual Phrase and Routing Suite
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: search-heuristics-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: 'true'
+  MODEL_MIN_INTERVAL_MS: '0'
+
+jobs:
+  heuristics:
+    name: Phrase and routing heuristics
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - name: Install
+        run: |
+          set -o pipefail
+          npm ci --ignore-scripts
+      - name: Search heuristics suite
+        run: |
+          set -o pipefail
+          npm run test:search-heuristics
