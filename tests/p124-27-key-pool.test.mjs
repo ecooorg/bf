@@ -90,15 +90,18 @@ test('E-1: verifier is opt-in and never reaches a third party by default', async
   finally { if (saved.k === undefined) delete process.env.GROQ_API_KEY; else process.env.GROQ_API_KEY = saved.k; if (saved.v !== undefined) process.env.EPISTEMIC_VERIFIER_ENABLED = saved.v; }
 });
 
-test('pipeline is the default path: direct mode only when explicitly enabled; one pool serves all Gemini calls', () => {
+test('P126.1: Simple direct route is unconditional and uses the shared Gemini key pool', () => {
   const src = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
-  assert.ok(!/BIFORGE_GEMINI_DIRECT_MODE !== 'false'/.test(src));
-  // One occurrence is the sanitized runtime-config field; the other two are
-  // the direct-mode execution gates. Keep the diagnostics field from being
-  // mistaken for an additional direct-mode branch.
-  assert.equal((src.match(/BIFORGE_GEMINI_DIRECT_MODE === 'true'/g) || []).length, 3);
-  assert.match(src, /directGeminiMode: process\.env\.BIFORGE_GEMINI_DIRECT_MODE === 'true'/);
+  const start = src.indexOf('const conversationHandler =');
+  const direct = src.indexOf("if (req.body?.productMode !== 'Expert' && !distressMarkerDetected)", start);
+  const intent = src.indexOf('const intentFlags = detectUserIntentFlags', start);
+  assert.ok(direct > start && direct < intent, 'Simple direct return precedes intent and mode planning');
   assert.match(src, /callWithKeyPool\(/);
+  assert.match(src, /pool: geminiPool, model, maxKeyAttempts: MAX_DIRECT_KEY_ATTEMPTS/);
+  assert.match(src, /modelsFor\('strong', preferredModel\)/);
+  assert.match(src, /registryForGeminiCascade\('STRONG'\)/);
+  assert.match(src, /entry\.status === 'active' && entry\.adapter === 'gemini'/);
+  assert.ok(!/turnPlan\.agent === 'conversational'.*BIFORGE_GEMINI_DIRECT_MODE/.test(src));
   assert.ok(!/new GoogleGenAI\(\{ apiKey: (gemKey|searchKey)\b/.test(src.replace(/function pooledGeminiClient[\s\S]*?\n}\n/, '')), 'helper calls use the pooled client');
 });
 
