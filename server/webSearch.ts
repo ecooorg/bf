@@ -890,21 +890,19 @@ export function resolveLiveTaskState(opts: {
   const prior: LiveTaskState = { ...(opts.prior || {}) };
   const text = String(opts.userText || '').trim();
   const aboutSearch = isSearchFollowup(text) || isAssistantMetaQuestion(text);
-  // Carry forward place from prior or from recent user turns when current text is about the search itself.
-  if (!prior.place && opts.recentUserTexts?.length) {
+  // Carry forward place / topic / full prior task from recent user turns (not only weather/LIVE patterns).
+  if (opts.recentUserTexts?.length) {
     for (let i = opts.recentUserTexts.length - 1; i >= 0; i--) {
-      const p = extractPlaceCandidate(opts.recentUserTexts[i]);
-      if (p) { prior.place = p; break; }
-    }
-  }
-  if (!prior.topic && opts.recentUserTexts?.length) {
-    for (let i = opts.recentUserTexts.length - 1; i >= 0; i--) {
-      const u = opts.recentUserTexts[i];
-      if (isWeatherTopic(u) || LIVE_TOPIC_RE.test(u) || needsFreshWebInfo(u)) {
-        prior.topic = isWeatherTopic(u) ? 'weather' : prior.topic;
-        if (!prior.query) prior.query = stripInstructionWords(u).slice(0, MAX_QUERY_CHARS);
-        break;
+      const u = String(opts.recentUserTexts[i] || '').trim();
+      if (!u || isSearchFollowup(u) || isAssistantMetaQuestion(u)) continue;
+      if (!prior.place) {
+        const p = extractPlaceCandidate(u);
+        if (p) prior.place = p;
       }
+      if (!prior.topic && isWeatherTopic(u)) prior.topic = 'weather';
+      // Substantive prior user task becomes the query when the current turn is meta/follow-up.
+      if (!prior.query) prior.query = stripInstructionWords(u).slice(0, MAX_QUERY_CHARS);
+      break;
     }
   }
   const dictated = extractDictatedQuery(text);
@@ -920,7 +918,7 @@ export function resolveLiveTaskState(opts: {
     };
   }
   if (aboutSearch) {
-    // Never search the meta wording; keep the stored task.
+    // Never search the meta wording; keep the stored task (full prior query when available).
     return {
       ...prior,
       sourceCountry,
