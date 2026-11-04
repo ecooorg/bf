@@ -10,7 +10,6 @@ const expected = new Map([
   ['actions/setup-node', '949feb2413d6458794dcd2491c4babbbce0c15c1'],
   ['actions/cache', '55cc8345863c7cc4c66a329aec7e433d2d1c52a9'],
   ['actions/upload-artifact', 'cf430e030ddbb5b0abf93d22962f4752f3646cd9'],
-  ['actions/download-artifact', '9000827ccba6bdab643e8b6fd33ac0654aef8333'],
   ['gitleaks/gitleaks-action', 'e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e'],
 ]);
 
