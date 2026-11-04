@@ -1216,11 +1216,12 @@ export function extractPlaceCandidate(text: string): string | undefined {
     .replace(/\s+/g, ' ')
     .trim();
   // Prefer trailing capitalised / Cyrillic place after a preposition.
-  const placeMatch = cleaned.match(/(?:in|for|at|à|en|bei|de|di|vom|в|во|на|из)\s+([\p{L}][\p{L} .'-]{1,40}?)(?=\s+(?:today|tomorrow|сейчас|сегодня|завтра|and|и|с\s|со\s)|[?.!,;]|$)/iu);
+  const placeMatch = cleaned.match(/(?:in|for|at|à|en|bei|de|di|vom|в|во|на|из)\s+([\p{L}][\p{L}'-]{1,40}?)(?=\s+(?:today|tomorrow|сейчас|сегодня|завтра|and|и|с\s|со\s|посмотри\w*|найди\w*|поищи\w*|проверь\w*|search|look|check|find|please|в\s+интернет|on\s+the\s+web|online)|[?.!,;]|$)/iu);
   let place = placeMatch?.[1]?.trim().slice(0, 80);
   if (place) {
     // Drop leftover non-place connector words and time leftovers.
-    place = place.replace(/^(?:the\s+|a\s+|an\s+|городе\s+|город\s+)/i, '').replace(/\s+(?:now|today|сейчас|сегодня)$/i, '').trim();
+    place = place.replace(/^(?:the\s+|a\s+|an\s+|городе\s+|город\s+)/i, '').replace(/\s+(?:now|today|сейчас|сегодня|посмотри\w*|найди\w*|search\w*|look\w*)$/i, '').trim();
+    place = place.split(/\s+/).filter((w) => !/^(?:посмотри\w*|найди\w*|поищи\w*|search|look|check|в|интернет)$/i.test(w)).slice(0, 3).join(' ').trim();
   }
   if (!place || place.length < 2) {
     // Fallback: last capitalised / multi-letter token sequence that looks like a place name.

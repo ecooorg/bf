@@ -12,7 +12,20 @@ export type PolicyGroup = 'A' | 'B' | 'C';
 export type PolicyCounts = Record<PolicyGroup, number>;
 export type SourcePolicy = { version: number; suffixes: { group: PolicyGroup; value: string }[]; hosts: { group: PolicyGroup; value: string }[] };
 
-const POLICY_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'config', 'source-policy.json');
+/** Resolve config both from repo root (tsx/dev) and from dist-server (production Render). */
+function resolvePolicyPath(): string {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const name = 'source-policy.json';
+  for (const c of [
+    path.join(process.cwd(), 'config', name),
+    path.join(here, '..', 'config', name),
+    path.join(here, '..', '..', 'config', name),
+  ]) {
+    if (fs.existsSync(c)) return c;
+  }
+  return path.join(process.cwd(), 'config', name);
+}
+const POLICY_PATH = resolvePolicyPath();
 
 export const emptyPolicyCounts = (): PolicyCounts => ({ A: 0, B: 0, C: 0 });
 

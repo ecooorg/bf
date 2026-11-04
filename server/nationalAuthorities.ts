@@ -18,7 +18,16 @@ let cached: AuthorityEntry[] | null = null;
 
 export function loadNationalAuthorities(filePath?: string): AuthorityEntry[] {
   if (cached && !filePath) return cached;
-  const p = filePath || path.resolve(process.cwd(), 'config/national-authorities.json');
+  const p = filePath || (() => {
+    const name = 'national-authorities.json';
+    try {
+      const here = path.dirname(fileURLToPath(import.meta.url));
+      for (const c of [path.join(process.cwd(), 'config', name), path.join(here, '..', 'config', name), path.join(here, '..', '..', 'config', name)]) {
+        if (fs.existsSync(c)) return c;
+      }
+    } catch { /* */ }
+    return path.resolve(process.cwd(), 'config', name);
+  })();
   try {
     const raw = readFileSync(p, 'utf8');
     const j = JSON.parse(raw) as FileShape;
