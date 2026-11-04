@@ -93,9 +93,11 @@ test('E-1: verifier is opt-in and never reaches a third party by default', async
 test('P126.1: Simple direct route is unconditional and uses the shared Gemini key pool', () => {
   const src = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   const start = src.indexOf('const conversationHandler =');
-  const direct = src.indexOf("if (req.body?.productMode !== 'Expert' && !distressMarkerDetected)", start);
+  const handler = src.slice(start);
+  const directMatch = handler.match(/if\s*\(\s*process\.env\.BIFORGE_GEMINI_DIRECT_MODE\s*===\s*'true'\s*&&\s*req\.body\?\.productMode\s*!==\s*'Expert'\s*&&\s*!distressMarkerDetected\s*\)/);
+  const direct = directMatch ? start + directMatch.index : -1;
   const intent = src.indexOf('const intentFlags = detectUserIntentFlags', start);
-  assert.ok(direct > start && direct < intent, 'Simple direct return precedes intent and mode planning');
+  assert.ok(direct > start && direct < intent, 'Simple direct route gate precedes intent and mode planning');
   assert.match(src, /callWithKeyPool\(/);
   assert.match(src, /pool: geminiPool, model, maxKeyAttempts: MAX_DIRECT_KEY_ATTEMPTS/);
   assert.match(src, /modelsFor\('strong', preferredModel\)/);
