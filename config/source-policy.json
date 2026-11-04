@@ -1,28 +1,46 @@
 {
-  "version": 1,
+  "version": 2,
   "decision": "D-2026-11-04-02",
-  "note": "Owner decision 2026-11-04: no domain controlled by the authorities of Russia or Belarus in search evidence. Data, not code. Entries with enabled=false are candidates that still need verification against the IANA root zone database or EUR-Lex and are NOT applied.",
+  "note": "Owner decision 2026-11-04: no domain controlled by the authorities of Russia or Belarus in search evidence. Data, not code. Groups A, B and C are all applied by default (group B since P125.2, owner decision, even though the lists are not yet reconciled with the IANA root zone database or EUR-Lex). An entry with enabled=false would not be applied.",
   "groups": {
     "A": {
       "label": "country-code zones of Russia and Belarus",
       "enabled": true,
       "source": "Public registry descriptions (secondary); confirm against the IANA root zone database",
       "retrieved": null,
-      "suffixes": ["ru", "su", "xn--p1ai", "by", "xn--90ais"]
+      "suffixes": [
+        "ru",
+        "su",
+        "xn--p1ai",
+        "by",
+        "xn--90ais"
+      ]
     },
     "B": {
       "label": "other zones whose sponsoring organisation is Russian or Belarusian",
-      "enabled": false,
-      "source": "Candidates .rus, .moscow, .tatar and Cyrillic zones: Punycode forms must be taken from the IANA database",
+      "enabled": true,
+      "source": "Owner decision 2026-11-04 (P125.2): applied by default without IANA reconciliation. Zones believed to be sponsored by Russian entities (best available knowledge, NOT_VERIFIED); Punycode computed from the zone names; confirm against the IANA root zone database",
       "retrieved": null,
-      "suffixes": []
+      "suffixes": [
+        "rus",
+        "moscow",
+        "tatar",
+        "xn--p1acf",
+        "xn--80adxhks",
+        "xn--d1acj3b"
+      ]
     },
     "C": {
       "label": "hosts outside those zones controlled by Russian or Belarusian authorities",
       "enabled": true,
-      "source": "Owner candidate list (C125 programme section 3): EU Regulation 833/2014 Annex XV outlets and a state news agency; confirm against EUR-Lex",
+      "source": "Owner candidate list (C125 programme section 3): EU Regulation 833/2014 Annex XV outlets and a state news agency; applied by default, reconciliation with EUR-Lex NOT_VERIFIED",
       "retrieved": null,
-      "hosts": ["rt.com", "sputnikglobe.com", "sputniknews.com", "tass.com"]
+      "hosts": [
+        "rt.com",
+        "sputnikglobe.com",
+        "sputniknews.com",
+        "tass.com"
+      ]
     }
   }
 }
