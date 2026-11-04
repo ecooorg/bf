@@ -53,7 +53,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -392,7 +392,7 @@ registerProjectRoutes(app, {
 });
 
 
-const BASE_SYSTEM = `You are BiForge's language-model interface. The current user request and task-specific prompt define what to do. Answer that request using the supplied conversation, attachments, retrieved evidence and tools when relevant. Follow the requested output schema exactly. Preserve relevant facts, numbers, units, dates, caveats and source-supported details. Do not invent facts or claim searches, tool calls or verification that did not occur. Distinguish evidence from assumptions when material. Respect safety requirements and the user's language.`;
+const BASE_SYSTEM = `You are BiForge's language-model interface. The current user request and task-specific prompt define what to do. Answer that request using the supplied conversation, attachments, retrieved evidence and tools when relevant. Follow the requested output schema exactly. Preserve relevant facts, numbers, units, dates, caveats and source-supported details. Do not invent facts or claim searches, tool calls or verification that did not occur. Distinguish evidence from assumptions when material. Respect safety requirements and the user's language. Answer in the user's language; do not cite or rely on state-controlled outlets of Russia and Belarus; prefer international and regional sources.`;
 
 function evaluateDerivedFormula(formula: string, operands: number[]): number | null {
   // Accept a small, explicitly arithmetic language only. Numeric literals in
@@ -1148,7 +1148,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     const planStartedAt = Date.now();
     const rawPlan: SearchPlan = decidedPlan || await buildSearchPlan({ userText: searchText, client, model: translateModel, timeoutMs: Math.min(8000, timeoutMs) });
     // P124.39: a plan from the heuristic paths may still hold the user's own language; the provider always gets an English query.
-    const plan: SearchPlan = await ensureEnglishPlan(rawPlan, { client, model: translateModel, timeoutMs: Math.min(5000, timeoutMs) });
+    const plan: SearchPlan = await ensureEnglishPlan(rawPlan, { client, model: translateModel, timeoutMs: Math.min(5000, timeoutMs), sourceText: searchText });
     const planMs = Date.now() - planStartedAt;
     const serperKey = (process.env.SERPER_API_KEY || '').trim();
     const providers: Partial<Record<ProviderId, SearchProvider>> = {
@@ -1283,26 +1283,30 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       if (directSearchExpected && webSearchProvider() === 'serper' && String(process.env.SERPER_API_KEY || '').trim()) {
         const contextualSearchText = contextualizeSearchText(lastUserText, recentUserText);
         let englishQuery = contextualSearchText;
+        let englishExtras: string[] = [];
+        let queryFidelity: WebSearchResult['queryFidelity'];
         try {
           const searchKey = requestByokKey || apiKey;
           if (searchKey) {
             const searchClient = pooledGeminiClient(requestByokKey);
-            englishQuery = await toEnglishSearchQuery({
+            const built = await toEnglishSearchQueries({
               userText: contextualSearchText, client: searchClient as any,
               model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
               timeoutMs: 8000,
             });
+            englishQuery = built.queries[0] || englishQuery; englishExtras = built.queries.slice(1); queryFidelity = built.fidelity;
           }
         } catch { /* preserve contextualized query if translation is unavailable */ }
         try {
           directWebSearch = await fetchSerperDigestMulti({
             apiKey: String(process.env.SERPER_API_KEY || '').trim(),
-            userText: contextualSearchText, englishQuery,
+            userText: contextualSearchText, englishQuery, extraQueries: englishExtras,
             today: new Date().toISOString().slice(0, 10), timeoutMs: 28000,
           });
         } catch (searchError: any) {
           directWebSearch = skippedWebSearch('failed', String(searchError?.message || searchError).slice(0, 180));
         }
+        if (queryFidelity) directWebSearch = { ...directWebSearch, queryFidelity };
         console.info(JSON.stringify({ type: 'direct_web_search', status: directWebSearch.status, provider: 'serper', queries: directWebSearch.queries, sources: directWebSearch.sources.length, reason: directWebSearch.reason }));
         void recordApplicationLog({ level: 'info', component: 'conversation', event: 'direct_web_search', message: 'Direct-mode web search decision', details: searchDecisionDetails(directWebSearch, { provider: 'serper', gate: 'direct' }) });
       }

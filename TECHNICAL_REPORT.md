@@ -1,3 +1,13 @@
+## P125.1 — Evidence (2026-11-04)
+
+Product version `125`, patch `125.1`. Scope: C125 WP1 and WP2.
+
+- **IMPLEMENTED (source):** query-size rule and entity check (`server/queryFidelity.ts`), faithful plan rebuild, documented bounds instead of 500/300-character cuts; source-policy data file and filter (`config/source-policy.json`, `server/sourcePolicy.ts`) applied to the Serper response, fetch targets and redirect hops of the direct fetch; `source_policy_filtered` status; per-group counts in diagnostics; prompt rule.
+- **TESTS PASS (local, Node 22):** `npm run test:core` (includes 14 new P125.1 tests), `npm run test:web`, `tsc --noEmit -p tsconfig.server.json`, `npm run lint:copy`, `npm run version:check`. Hosted CI `NOT_RUN`.
+- **OPEN / NOT_VERIFIED:** group B zones (`.rus`, `.moscow`, `.tatar`, Cyrillic zones) are disabled until checked against the IANA root zone database; the zone lists and the host candidates (`rt.com`, `sputnikglobe.com`, `sputniknews.com`, `tass.com`) were not confirmed against IANA or EUR-Lex (not reachable in this session); the full EU Annex XV list is not loaded. The 2026-11-04 diagnostics export is not in the archive, so the replay test uses a synthetic host mix: the acceptance replay on the real export is `NOT_RUN`. Live search quality and measurement of the main model's source preference without search are `NOT_RUN`.
+- **KNOWN LIMITS:** the Jina Reader proxy follows redirects itself, so only the direct-fetch fallback checks every hop; mirrors, archives, translation proxies, social platforms and aggregators are not covered; the zone filter also drops harmless pages hosted in those zones; the Cyrillic-name match is a consonant-skeleton heuristic, a false miss only triggers the safe fallback. Open question O1 (bypass on explicit request): default no bypass.
+- **CHANGED CONTRACT:** the P124.39 test fixture no longer uses `ria.ru` as an unlisted host.
+
 ## P124.40 — Evidence (2026-11-04)
 
 Product version `124`, patch `124.40`. Documentation only.
