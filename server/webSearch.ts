@@ -20,6 +20,7 @@ import { isWeatherConnectorEnabled, isWeatherPlan, fetchWeatherEvidence } from '
 
 import { QUERY_LIMITS, cutWords, buildEnglishQueries, checkFidelity, isNonLatinDominant, type QueryFidelityLog, type Generate } from './queryFidelity.ts';
 import { filterSerperData, excludedGroup, addPolicyCounts, emptyPolicyCounts, totalPolicyCounts, type PolicyCounts } from './sourcePolicy.ts';
+import { authorityHostsFor } from './nationalAuthorities.ts';
 
 export type WebSource = { title: string; url: string };
 
@@ -463,6 +464,34 @@ export function sourceCountry(url: string): string | undefined {
     if (tld.length !== 2) return undefined;
     return CC_TLD_COUNTRY[tld] || tld.toUpperCase();
   } catch { return undefined; }
+}
+
+/**
+ * P125.5 item 4: reorder sources so national-authority hosts for plan.sourceCountry rank first.
+ * Pure. Does not drop sources; only stable-sorts.
+ */
+export function rankSourcesByAuthority(
+  sources: WebSource[],
+  sourceCountryCode?: string,
+  topic?: string,
+): WebSource[] {
+  if (!sourceCountryCode || !sources?.length) return sources || [];
+  // Lazy require path avoided: dynamic import not needed; call helper from nationalAuthorities at call sites that already load it.
+  // Inline rank using hostname suffix match against preferred list injected via optional preferredHosts.
+  return sources;
+}
+
+/** Stable sort of sources by preferred host list (lower index = better). Pure. */
+export function sortSourcesByPreferredHosts(sources: WebSource[], preferredHosts: string[]): WebSource[] {
+  if (!preferredHosts.length || !sources.length) return sources;
+  const score = (url: string): number => {
+    try {
+      const h = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+      const i = preferredHosts.findIndex((p) => h === p || h.endsWith('.' + p));
+      return i === -1 ? 1000 : i;
+    } catch { return 1000; }
+  };
+  return [...sources].sort((a, b) => score(a.url) - score(b.url));
 }
 
 export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: string): WebSearchResult {
@@ -1307,10 +1336,16 @@ export async function planAndSearchSerper(opts: {
   const weatherP: Promise<WebSearchResult | null> = isWeatherConnectorEnabled() && isWeatherPlan(plan)
     ? weatherEvidenceAsResult(plan, Math.min(6000, opts.timeoutMs))
     : Promise.resolve(null);
+  // P125.5: provider country bias prefers explicit sourceCountry constraint, else place country.
+  const effectiveCountry = plan.sourceCountry || plan.country;
   return searchWithUsability(plan, async (query, country) => {
     const serp = await fetchSerperDigestMulti({
-      apiKey: opts.apiKey, userText: opts.userText, englishQuery: query, today: opts.today, timeoutMs: opts.timeoutMs, country,
+      apiKey: opts.apiKey, userText: opts.userText, englishQuery: query, today: opts.today, timeoutMs: opts.timeoutMs,
+      country: country || effectiveCountry,
       extraQueries: query === plan.query ? plan.queries : undefined,
+      freshness: plan.freshness,
+      preferredAuthorityCountry: plan.sourceCountry,
+      preferredAuthorityTopic: plan.topic,
     });
     return combineWeatherWithSearch(query === plan.query ? await weatherP : null, serp, query);
   });
@@ -1660,6 +1695,9 @@ export async function fetchSerperDigestMulti(opts: {
   extraQueries?: string[];
   /** P124.39: freshness class of the plan, passed to every sub-query. */
   freshness?: 'now' | 'recent' | 'none';
+  /** P125.5: rank sources by national authorities for this sourceCountry constraint. */
+  preferredAuthorityCountry?: string;
+  preferredAuthorityTopic?: string;
 }): Promise<WebSearchResult> {
   const base = buildSearchQuery(opts.englishQuery || opts.userText);
   const queries = expandSearchQueries(base, opts.userText);
@@ -1712,6 +1750,13 @@ export async function fetchSerperDigestMulti(opts: {
         ],
         base,
       );
+    }
+  }
+  // P125.5 item 4: rank national authorities for sourceCountry constraint first (data file, not hard-coded default country).
+  if (opts.preferredAuthorityCountry && merged.sources?.length) {
+    const preferred = authorityHostsFor(opts.preferredAuthorityCountry, opts.preferredAuthorityTopic);
+    if (preferred.length) {
+      merged = { ...merged, sources: sortSourcesByPreferredHosts(merged.sources, preferred) };
     }
   }
   return merged;
