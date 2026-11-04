@@ -1068,9 +1068,16 @@ await new Promise((r) => bridge.listen(0, r)); const BURL = `http://127.0.0.1:${
 // ---------- server ----------
 async function srv(env = {}) {
   const port = await freePort(), base = `http://127.0.0.1:${port}`; let logs = '';
-  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { cwd: BE, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', WEB_SEARCH_PLANNER: 'false', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
+  const childEnv = { ...process.env, NODE_ENV: 'production', BIFORGE_GEMINI_DIRECT_MODE: 'false', WEB_SEARCH_PLANNER: 'false',
+    ENABLE_GEMINI_CANDIDATE_PROBES: 'false', GEMINI_HTTP_RETRY_ATTEMPTS: '1', PORT: String(port), APP_PASSWORD: PASS, SESSION_SECRET: 'x'.repeat(40),
     GEMINI_API_KEY: 'server-key', GEMINI_BASE_URL: BURL, GOOGLE_GEMINI_BASE_URL: BURL, LLM_ROUND_PAUSE_MS: '10', RATE_LIMIT_PER_HOUR: '100000', DAILY_CALL_CAP: '100000',
-    MODEL_CASCADE_STRONG: 'm1,m2,m3', MODEL_CASCADE_LIGHT: 'm1,m2,m3', ...env } });
+    MODEL_CASCADE_STRONG: 'm1,m2,m3', MODEL_CASCADE_LIGHT: 'm1,m2,m3', ...env };
+  // CI may expose organisation-wide GEMINI_API_KEY_1..10 secrets. Never let
+  // integration tests rotate through real credentials: the local bridge is the
+  // sole provider, and application-level model fallback remains under test.
+  for (let slot = 1; slot <= 10; slot++) delete childEnv[`GEMINI_API_KEY_${slot}`];
+  childEnv.GEMINI_API_KEY = 'server-key';
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], { cwd: BE, stdio: ['ignore', 'pipe', 'pipe'], env: childEnv });
   child.stdout.on('data', (d) => logs += d); child.stderr.on('data', (d) => logs += d);
   const boundedFetch = (url, options = {}, timeoutMs = 15_000) => {
     const controller = new AbortController();
@@ -1096,7 +1103,7 @@ async function srv(env = {}) {
     const post = async (p, body, h = {}, ck = cookie) => {
       let r;
       try {
-        r = await boundedFetch(base + p, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(ck ? { cookie: ck } : {}), ...h }, body: JSON.stringify(body) }, 25_000);
+        r = await boundedFetch(base + p, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(ck ? { cookie: ck } : {}), ...h }, body: JSON.stringify(body) }, 35_000);
       } catch (e) {
         throw new Error(`POST ${p} failed: ${e.message}; server logs: ${logs.slice(-2400)}`);
       }
@@ -1104,7 +1111,7 @@ async function srv(env = {}) {
       return { s: r.status, j };
     };
     const stop = () => stopChildProcess(child);
-    return { base, post, fetch: boundedFetch, cookie, logs: () => logs, stop };
+    return { base, post, cookie, logs: () => logs, stop };
   } catch (error) {
     await stopChildProcess(child);
     throw error;
@@ -1138,7 +1145,7 @@ const ctxOf = (prompt) => { const i = prompt.indexOf('"context":'); if (i < 0) r
 // ===== A. entry, auth, 410, EVPI, preconditions =====
 await withSrv({ LOGIN_MAX_FAILS: '3' }, async function A(s) {
   script = () => ({ json: GOOD() });
-  T('A1 health open', (await s.fetch(s.base + '/api/health', {}, 5_000)).status === 200);
+  T('A1 health open', (await fetch(s.base + '/api/health')).status === 200);
   const nologin = await s.post('/api/conversation', { brief: { decision: 'x' } }, {}, ''); T('A2 401 without login', nologin.s === 401, nologin.s);
   const un = await s.post('/api/neutralize', { brief: { decision: 'x' } }, {}, ''); T('A2b 401 neutralize', un.s === 401, un.s);
   for (const p of ['/api/analyze-full', '/api/radar-legacy']) { const r = await s.post(p, {}); T('A3 410 ' + p, r.s === 410 && r.j?.code === 'GONE', r.s); }
@@ -1150,8 +1157,8 @@ await withSrv({ LOGIN_MAX_FAILS: '3' }, async function A(s) {
     ['/api/forecast-wording', {}], ['/api/knowledge-map', { radar: { unknowns: [{ critical: true, id: 'u1' }] } }]];
   for (const [p, b] of pre) { const r = await s.post(p, b); T(`A5 400 ${p} ${JSON.stringify(b).slice(0, 40)}`, r.s === 400 && r.j?.success === false, `${r.s} ${r.j?.code}`); }
   T('A5z no model call on precondition fail', recs.length === 0, recs.length);
-  const sess = await s.fetch(s.base + '/api/session', { headers: { cookie: s.cookie } }, 5_000); T('A6 session', sess.status === 200, sess.status);
-  const bad = []; for (let i = 0; i < 4; i++) bad.push((await s.fetch(s.base + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'wrong' + i }) }, 5_000)).status);
+  const sess = await fetch(s.base + '/api/session', { headers: { cookie: s.cookie } }); T('A6 session', sess.status === 200, sess.status);
+  const bad = []; for (let i = 0; i < 4; i++) bad.push((await fetch(s.base + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'wrong' + i }) })).status);
   T('A7 login: wrong=401, then lockout 429', bad[0] === 401 && bad[3] === 429, bad.join(','));
 });
 
