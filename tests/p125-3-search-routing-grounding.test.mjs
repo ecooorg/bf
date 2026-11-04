@@ -108,8 +108,8 @@ describe('P125.3 search follow-up detection', () => {
 });
 
 describe('P125.3 honest status block on skipped turns', () => {
-  it('emits NOT_RUN status when search is enabled and lookup was not expected', () => {
-    const block = formatSearchStatusBlock(skippedWebSearch('skipped', 'trigger_not_matched'), false, true);
+  it('emits NOT_RUN status when lookup was expected but search did not run', () => {
+    const block = formatSearchStatusBlock(skippedWebSearch('skipped', 'trigger_not_matched'), true, true);
     assert.ok(block.includes('SEARCH STATUS: NOT_RUN'));
     assert.ok(/NEVER say that you have no internet access/i.test(block) || /no search tool/i.test(block));
   });

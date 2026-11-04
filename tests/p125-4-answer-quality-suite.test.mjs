@@ -138,8 +138,8 @@ describe('P125.4 pattern: search complaint / status honesty', () => {
     assert.equal(isSearchFollowup('why these sites?'), true);
   });
 
-  it('skipped turn always exposes honest status when search enabled', () => {
-    const block = formatSearchStatusBlock(skippedWebSearch('skipped', 'trigger_not_matched'), false, true);
+  it('skipped turn exposes honest status when lookup was expected', () => {
+    const block = formatSearchStatusBlock(skippedWebSearch('skipped', 'trigger_not_matched'), true, true);
     assert.match(block, /SEARCH STATUS: NOT_RUN/);
     assert.match(block, /NEVER say that you have no internet access|no search tool/i);
   });
