@@ -78,7 +78,9 @@ export async function resolveOptionalSearch<T extends { status?: string; reason?
       .then((result) => ({ timedOut: false as const, result }))
       .catch(() => ({ timedOut: false as const, result: { status: 'failed' as const, reason: 'exception' } }));
     const settled = await Promise.race([search, timeout]);
-    if (settled.timedOut) return { expected: true, timedOut: true, result: { status: 'failed', reason: 'timeout' } };
+    if (settled.timedOut === true) {
+      return { expected: true, timedOut: true, result: { status: "failed" as const, reason: "timeout" } };
+    }
     return { expected: true, timedOut: false, result: settled.result };
   } finally {
     if (timer) clearTimeout(timer);
