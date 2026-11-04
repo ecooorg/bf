@@ -122,6 +122,16 @@ test('P125.1 policy file validates and matches host or subdomain only', () => {
   assert.throws(() => compilePolicy({ version: 1, groups: { A: { enabled: true, suffixes: ['.RU'] }, B: { enabled: false }, C: { enabled: false } } }));
 });
 
+test('P125.2 group B is applied by default: zones and subdomains match, look-alikes pass, counted per group', () => {
+  const policy = loadSourcePolicy();
+  assert.ok(policy.suffixes.some((r) => r.group === 'B'), 'group B has entries');
+  for (const h of ['example.rus', 'news.example.moscow', 'https://site.tatar/page', 'example.xn--p1acf', 'a.b.xn--80adxhks', 'example.xn--d1acj3b']) assert.equal(excludedGroup(h), 'B', h);
+  for (const h of ['rus.example.org', 'notmoscow.com', 'example.moscow.example.com', 'tatar.io', 'example.com/rus']) assert.equal(excludedGroup(h), null, h);
+  const f = filterSerperData({ organic: [{ link: 'https://x.example.moscow/1' }, { link: 'https://reuters.com/a' }, { link: 'https://y.example.rus/2' }] });
+  assert.deepEqual(f.dropped, { A: 0, B: 2, C: 0 });
+  assert.equal(f.kept, 1);
+});
+
 const SERP = {
   answerBox: { snippet: 'Kremlin says X', link: 'https://www.rt.com/a', title: 'RT' },
   organic: [
