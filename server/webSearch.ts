@@ -941,10 +941,10 @@ export function resolveLiveTaskState(opts: {
 /** Build a SearchPlan from live-task state + optional dictated flag (heuristic path). */
 export function planFromLiveTask(state: LiveTaskState, note = 'live_task_state'): SearchPlan {
   const place = state.place;
-  const topic = state.topic || 'information';
+  const topic = state.topic || undefined;
   const query = (state.query || [topic, place].filter(Boolean).join(' ')).replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
   return {
-    query: query || 'current information',
+    query: query || (place ? `current conditions ${place}` : 'current information'),
     place,
     country: state.country,
     topic: state.topic,
