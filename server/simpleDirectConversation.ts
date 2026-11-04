@@ -44,13 +44,43 @@ export async function handleSimpleDirectConversation(
     attachmentParts?: unknown[];
     byokKey?: string;
     preferredModel?: string;
+    promptOverride?: string;
   },
   generate: (prompt: string, byokKey?: string, preferredModel?: string, attachmentParts?: unknown[], useSearch?: boolean) =>
     Promise<{ text: string; model: string; durationMs: number; keySlot: number; keyAttempts: number }>,
 ): Promise<{ reply: string; model: string; durationMs: number; keySlot: number; keyAttempts: number }> {
-  const prompt = buildSimpleDirectPrompt(input);
+  const prompt = input.promptOverride ?? buildSimpleDirectPrompt(input);
   const generated = await generate(prompt, input.byokKey, input.preferredModel, input.attachmentParts as unknown[], false);
   const reply = normalizeSimpleDirectReply(generated.text);
   if (!reply) throw Object.assign(new Error('Gemini returned an empty response.'), { code: 'EMPTY_MODEL_RESPONSE' });
   return { reply, model: generated.model, durationMs: generated.durationMs, keySlot: generated.keySlot, keyAttempts: generated.keyAttempts };
+}
+
+
+/** Detect an explicit request for a web lookup without invoking intent classification or a model planner. */
+export function isExplicitSearchRequest(text: string): boolean {
+  return /(?:найди(?:те)?(?:\s+(?:в\s+(?:сети|интернете)|онлайн))?|поищи(?:те)?(?:\s+(?:в\s+(?:сети|интернете)|онлайн))?|поиск(?:ай|ать)?(?:\s+в\s+(?:сети|интернете))?|\bв\s+(?:сети|интернете)\b|find\s+(?:(?:it|them|this|that|data|info(?:rmation)?)\s+)?(?:online|on\s+the\s+web|on\s+the\s+internet)|search\s+(?:the\s+)?(?:web|internet|online)|look\s+up\s+(?:online|on\s+the\s+web)|\bgoogle\b)/iu.test(String(text || ''));
+}
+
+/** Optional search is fail-open: failure and timeout become status data, never a generation exception. */
+export async function resolveOptionalSearch<T extends { status?: string; reason?: string }>(opts: {
+  expected: boolean;
+  timeoutMs: number;
+  run: () => Promise<T>;
+}): Promise<{ expected: boolean; timedOut: boolean; result: T | { status: 'failed'; reason: string } | null }> {
+  if (!opts.expected) return { expected: false, timedOut: false, result: null };
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const timeout = new Promise<{ timedOut: true }>((resolve) => {
+      timer = setTimeout(() => resolve({ timedOut: true }), Math.max(1, opts.timeoutMs));
+    });
+    const search = Promise.resolve().then(opts.run)
+      .then((result) => ({ timedOut: false as const, result }))
+      .catch(() => ({ timedOut: false as const, result: { status: 'failed' as const, reason: 'exception' } }));
+    const settled = await Promise.race([search, timeout]);
+    if (settled.timedOut) return { expected: true, timedOut: true, result: { status: 'failed', reason: 'timeout' } };
+    return { expected: true, timedOut: false, result: settled.result };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
