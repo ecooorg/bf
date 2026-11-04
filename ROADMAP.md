@@ -1,11 +1,18 @@
 ## P126 — Simple Mode direct Gemini conversation (owner-provided C126 specification)
 
+### P126.2 — SEARCH DECOUPLING
+
+- Status: implementation added in patch 126.2; automated verification status is recorded in `TECHNICAL_REPORT.md`.
+- Search is an optional bounded side operation on the Simple direct route. Explicit search and configured automatic freshness candidates can trigger it; successful evidence is passed to Gemini, while failure/timeout/disabled states are disclosed without blocking generation.
+- Production packaging copies `config/source-policy.json` to `dist-server/config/source-policy.json`.
+- Live provider behaviour, hosted CI and deployed user outcome remain `NOT_RUN` until independently observed.
+
 ### P126.1 — DIRECT CONVERSATION CORE
 
 - Status: implementation added in patch 126.1; focused local tests `PASS`; full suite, typecheck/build and hosted verification `NOT_RUN`.
 - Simple route uses a dedicated direct handler path, short system instruction, natural conversation history, existing attachment processing, Gemini model order and shared Gemini key pool.
 - The legacy intelligence pipeline is bypassed for ordinary Simple turns. Expert and distress/SafetyBox turns remain on their existing path.
-- Existing response envelope is preserved. P126.2 search decoupling, P126.3 reliability validation/diagnostics and P126.4 30-scenario user-level comparison are not claimed complete.
+- Existing response envelope is preserved. P126.2 search decoupling is recorded separately above; P126.3 reliability validation/diagnostics and P126.4 30-scenario user-level comparison remain open.
 - Evidence and verification limits: `TECHNICAL_REPORT.md` — P126.1.
 
 ### P124.17 — Direct Gemini pass-through

@@ -1,3 +1,15 @@
+## P126.2 — Search decoupling (2026-11-04)
+
+**Source change:** the Simple direct route performs only deterministic search-trigger detection (explicit user request, existing freshness heuristic and recent search thread); it does not invoke the legacy Search Decision planner or the conversational intent/mode pipeline. Optional lookup is bounded by `SIMPLE_SEARCH_WAIT_MS` (default 3s, max 4s). The route prepares the direct prompt while lookup is in flight, then includes successful retrieved evidence or an honest search-status block in the one direct Gemini request. Search exceptions/timeouts degrade to status data; they do not throw through or suppress generation. BYOK, key/model carousel and Expert/Architect routes are unchanged.
+
+**Packaging fix:** the compiled policy loader checks `dist-server/config/source-policy.json`; `build:server` now copies the source policy file to that exact runtime location and verifies the JSON copy.
+
+**Tests added:** explicit-search detection; optional search success, exception and timeout; Simple route wiring and no planner/retry/verifier invocation in the direct branch; build-config copy in an isolated temporary directory. These are source/unit checks, not live provider evidence.
+
+**Verification (Node 22.16.0, reconstructed local archive):** P126.1 + P126.2 focused tests `PASS` 11/11 via `node --experimental-strip-types --test`; `server.ts` and `server/simpleDirectConversation.ts` syntax checks `PASS`; `node scripts/version-metadata.mjs` `PASS` (126 / 126.2). Full `test:core`, TypeScript typecheck, production server build and hosted CI `NOT_RUN` because `node_modules` is absent. Live Serper/Gemini Search, live Gemini answer delivery and production deploy `NOT_RUN`. Live user-visible search quality remains `NOT_RUN` until a deployed scenario is observed.
+
+---
+
 ## P126.1 — Evidence (2026-11-04)
 
 Implemented the Simple Direct Conversation entry path in `server.ts` and request shaping in `server/simpleDirectConversation.ts`. Non-Expert, non-distress conversational requests now build a concise natural-history prompt and return immediately after Gemini generation, before intent classification, conversation-mode planning, Search Planner, information retry, output audit and epistemic verification. Expert and distress-sensitive turns remain on the established handler path.

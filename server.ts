@@ -33,7 +33,7 @@ import {
   type ExpertEndpoint,
 } from './server/expertContracts.ts';
 import { buildConversationTurnPrompt, planConversationTurn, pinConversationAgent } from './server/agentRouting.ts';
-import { SIMPLE_DIRECT_SYSTEM, handleSimpleDirectConversation } from './server/simpleDirectConversation.ts';
+import { SIMPLE_DIRECT_SYSTEM, buildSimpleDirectPrompt, handleSimpleDirectConversation, isExplicitSearchRequest, resolveOptionalSearch } from './server/simpleDirectConversation.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
@@ -1274,14 +1274,53 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       extraNumberSource: attachItems.map((a) => a.text).join('\n'),
       extraChars: attachmentsBlock.length,
     };
-    // P126.1: Simple uses a direct Gemini request. Expert and safety-sensitive turns
-    // remain on their established routes; no intent/search/quality pipeline runs here.
+    // P126.1/P126.2: Simple uses one direct Gemini generation. Optional search is bounded and fail-open;
+    // legacy intent/mode, search-decision, quality-retry and epistemic stages remain outside this route.
     if (req.body?.productMode !== 'Expert' && !distressMarkerDetected) {
       simpleDirectRequest = true;
+      const explicitSearch = isExplicitSearchRequest(String(lastUserText || brief.decision || ''));
+      const searchTrigger = {
+        enabled: true, mode: webSearchMode(), userText: String(lastUserText || brief.decision || ''), userAskedSearch: explicitSearch,
+        recentSearchIntent: hasRecentSearchIntent(fullHistory.filter((m: any) => m.role === 'user').slice(0, -1).slice(-2).map((m: any) => String(m.content || '')).join('\n')),
+        hasAttachments: attachItems.length > 0,
+      };
+      const searchExpected = explicitSearch || shouldSearchWeb(searchTrigger);
+      const searchShouldRun = isWebSearchEnabled() && shouldSearchWeb(searchTrigger);
+      // Search is an optional side operation. Start it while the direct prompt is being prepared;
+      // cap how long Simple waits for evidence, and never let search failure prevent Gemini generation.
+      const optionalSearchPromise = resolveOptionalSearch<WebSearchResult>({
+        expected: searchShouldRun,
+        timeoutMs: Math.max(500, Math.min(4_000, Number(process.env.SIMPLE_SEARCH_WAIT_MS) || 3_000)),
+        run: () => runConversationWebSearch(
+          String(lastUserText || brief.decision || ''), requestByokKey, requestPreferredModel,
+          fullHistory.filter((m: any) => m.role === 'user').slice(-3).map((m: any) => String(m.content || '')).join('\n'),
+          undefined, Date.now() + 9_000,
+        ),
+      });
+      const directPromptBase = buildSimpleDirectPrompt({
+        latestUserMessage: String(lastUserText || brief.decision || ''), history: safeHistory, attachmentText: attachmentsBlock,
+      });
+      const optionalSearch = await optionalSearchPromise;
+      const searchResult = (optionalSearch.result as WebSearchResult | null)
+        || (searchExpected ? skippedWebSearch('skipped', !isWebSearchEnabled() ? 'search_disabled' : optionalSearch.timedOut ? 'timeout' : 'not_run') : null);
+      const searchBlock = searchResult?.status === 'used' || searchResult?.status === 'used_weak'
+        ? formatSearchBlock(searchResult, new Date().toISOString().slice(0, 10))
+        : formatSearchStatusBlock(searchResult || skippedWebSearch(), searchExpected, isWebSearchEnabled());
+      void recordApplicationLog({
+        level: searchExpected && searchResult?.status !== 'used' && searchResult?.status !== 'used_weak' ? 'warn' : 'info',
+        component: 'conversation', event: 'simple_direct_search',
+        requestId: String((req as any).requestId || req.get('x-request-id') || ''),
+        message: 'Optional search completed independently of direct Gemini generation',
+        details: { expected: searchExpected, explicit: explicitSearch, status: searchResult?.status || 'not_run',
+          reason: searchResult?.reason || (optionalSearch.timedOut ? 'timeout' : undefined),
+          provider: searchResult?.provider || 'none', sourceCount: searchResult?.sources?.length || 0,
+          timedOut: optionalSearch.timedOut, generationContinues: true },
+      });
       const direct = await handleSimpleDirectConversation({
         latestUserMessage: String(lastUserText || brief.decision || ''),
         history: safeHistory,
         attachmentText: attachmentsBlock,
+        promptOverride: [directPromptBase, searchBlock].filter(Boolean).join('\n\n'),
         attachmentParts: attachParts,
         byokKey: requestByokKey,
         preferredModel: requestPreferredModel,
@@ -1292,7 +1331,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         message: 'Simple response generated and returned directly by Gemini',
         details: { agent: 'conversational', provider: 'gemini', model: direct.model, keySlot: direct.keySlot,
           keyAttempts: direct.keyAttempts, durationMs: direct.durationMs, hasAttachments: attachItems.length > 0,
-          searchUsed: false, searchResult: 'not_run', generated: true, nonEmpty: Boolean(direct.reply), delivered: true },
+          searchUsed: Boolean(searchResult?.status === 'used' || searchResult?.status === 'used_weak'), searchResult: searchResult?.status || (searchExpected ? 'failed' : 'not_run'), generated: true, nonEmpty: Boolean(direct.reply), delivered: true },
       });
       return ok(res, {
         reply: direct.reply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',

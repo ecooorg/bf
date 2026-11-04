@@ -1,3 +1,13 @@
+## P126.2 — Search decoupling and runtime source-policy packaging (2026-11-04)
+
+- Simple now detects explicit search requests and existing automatic freshness candidates without invoking the legacy conversational intent/mode pipeline.
+- Optional web search runs as a bounded side operation. A successful result is passed to Gemini as untrusted evidence; failed, unavailable, disabled or timed-out search is represented honestly and never prevents the single direct Gemini generation.
+- Search diagnostics record whether lookup was expected, explicit, timed out, the status/provider, source count and the fact that generation continues. No API credentials or raw URLs are added.
+- `build:server` now copies `config/source-policy.json` to `dist-server/config/source-policy.json`, matching the compiled `server/sourcePolicy.js` runtime lookup path.
+- Added P126.2 search-degradation and production-config-copy tests; added them to `test:core`.
+- Local P126.1 + P126.2 focused tests: `PASS` 11/11 using Node 22.16.0 type stripping; changed TypeScript syntax checks and version metadata check: `PASS`. Full Core CI, typecheck, production build, live Serper/Gemini Search, hosted CI, production deployment and user-level outcome: `NOT_RUN`.
+- Version: `126.2`.
+
 ## P126.1 — Simple Direct Conversation core (2026-11-04)
 
 - Added a dedicated Simple request-shaping module with a short system instruction and natural conversation history.
