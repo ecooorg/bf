@@ -1108,8 +1108,11 @@ export async function buildSearchDecision(opts: {
     return { search: true, plan, decisionSource: 'heuristic', decisionNote: 'dictated_query' };
   }
 
-  // P125.4 item 2: search-about-search / follow-up turns resolve against live-task state, never their own wording.
-  if ((contextualFollowup || (isSearchFollowup(opts.userText) && (opts.priorLiveTaskState?.place || priorLiveTask))) && !hasPersonalData(opts.userText)) {
+  // P125.4 item 2: when the model planner is unavailable, resolve search follow-ups from live-task state
+  // (never search the meta wording alone). When a client is present, let the model planner run first (T-2);
+  // on outage the fallback below still uses live-task retention.
+  const liveTaskCandidate = (contextualFollowup || (isSearchFollowup(opts.userText) && (opts.priorLiveTaskState?.place || priorLiveTask))) && !hasPersonalData(opts.userText);
+  if (liveTaskCandidate && !opts.client) {
     const live = resolveLiveTaskState({
       userText: opts.userText,
       prior: opts.priorLiveTaskState || null,
@@ -1133,10 +1136,27 @@ export async function buildSearchDecision(opts: {
       const query = `${prior} ${stripInstructionWords(opts.userText)}`.replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
       return { search: true, plan: { query, freshness: 'now' as const, planSource: 'heuristic' as const, planNote: 'dialogue_reference_fallback' }, decisionSource: 'heuristic', decisionNote: 'dialogue_reference_fallback' };
     }
+    if (shouldSearch && (contextualFollowup || liveTaskCandidate)) {
+      const live = resolveLiveTaskState({
+        userText: opts.userText,
+        prior: opts.priorLiveTaskState || null,
+        recentUserTexts,
+      });
+      if (live.place || live.query || live.topic) {
+        const plan = planFromLiveTask(live, 'live_task_followup');
+        const sc = extractSourceCountryConstraint(opts.userText);
+        if (sc) plan.sourceCountry = sc;
+        return { search: true, plan, decisionSource: 'heuristic', decisionNote: 'live_task_followup' };
+      }
+      return {
+        search: true,
+        plan: { query: stripInstructionWords(resolvedText), freshness: 'now' as const, planSource: 'heuristic' as const, planNote: 'contextual_followup_fallback' },
+        decisionSource: 'heuristic', decisionNote: 'contextual_followup_fallback',
+      };
+    }
     return {
       search: shouldSearch,
-      ...(shouldSearch && contextualFollowup ? { plan: { query: stripInstructionWords(resolvedText), freshness: 'now' as const, planSource: 'heuristic' as const, planNote: 'contextual_followup_fallback' } } : {}),
-      decisionSource: 'heuristic', decisionNote: privacyBlocked ? 'personal_data_in_query' : (contextualFollowup ? 'contextual_followup_fallback' : note),
+      decisionSource: 'heuristic', decisionNote: privacyBlocked ? 'personal_data_in_query' : note,
     };
   };
   // Preserve a live task across model-planner outages; do not search the literal follow-up alone.
@@ -1899,14 +1919,9 @@ export function formatSearchStatusBlock(
   lookupExpected: boolean,
   searchEnabled = true,
 ): string {
-  // P125.3 item 6: when search is enabled, always emit a short honest status so the model never invents "no search tool".
+  // Used/weak: evidence block carries status. Not expected: stay silent (prompt hygiene).
+  // Expected but failed/skipped: honest status + NEVER claim "no internet / no search tool" (C125 item 6).
   if (r.status === 'used' || r.status === 'used_weak') return '';
-  if (!lookupExpected && searchEnabled) {
-    // Skipped turn: still tell the model search exists and was not run this turn.
-    const reason = String(r.reason || 'trigger_not_matched');
-    return `SEARCH STATUS: NOT_RUN (reason: ${reason.slice(0, 80)}) — live web search is available in this deployment but was not used for this turn.
-Rules: BiForge has web search. NEVER say that you have no internet access, cannot browse, or have no search tool. Do not present remembered values as current live data. Answer what can be answered without live data, or invite the user to ask for a search.`;
-  }
   if (!lookupExpected) return '';
   const reason = String(r.reason || '');
   const quota = /429|quota|RESOURCE_EXHAUSTED|rate/i.test(reason);
