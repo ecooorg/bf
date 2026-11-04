@@ -1,3 +1,14 @@
+## P125.14 — Production search: config path + Zurich place (2026-11-04)
+
+**Root cause (prod 125.13, OBSERVED):** Serper failed with
+`ENOENT ... dist-server/config/source-policy.json` — policy path was resolved next to `dist-server/server/`, where `config/` is not copied. Connector returned no result; gemini pool exhausted; place extracted as `Цюрихе посмотри в`.
+
+**Fixes:**
+1. `sourcePolicy.ts` / `nationalAuthorities.ts`: resolve `config/*.json` via `process.cwd()` and multiple relative candidates (dev + dist-server).
+2. `extractPlaceCandidate`: stop at instruction verbs (`посмотри`, `search`, `look`, …); cap place to a short token group.
+
+**Version:** patch `125.14`.
+
 ## P125.13 — Core CI vs manual search-heuristics (2026-11-04)
 
 Owner decision: stop gating every patch on phrase/heuristic routing asserts.

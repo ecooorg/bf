@@ -1,3 +1,9 @@
+## P125.14 — Evidence (2026-11-04)
+
+Prod log web_search event: status failed, reason ENOENT source-policy.json under dist-server; place "Цюрихе посмотри в"; chain connector skipped, serper failed, gemini quota. Deploy 5e96a8c / 125.13. Fixed path resolution and place boundary.
+
+---
+
 ## P125.13 — Evidence (2026-11-04)
 
 CI policy change only: no runtime product behaviour change. Phrase-level routing tests remain in-repo and runnable via `npm run test:search-heuristics` / manual Actions workflow.
