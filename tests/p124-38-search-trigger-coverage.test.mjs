@@ -62,7 +62,11 @@ test('P124.38 planner outage: a dialogue reference is searched with the prior ta
     heuristic: () => false,
   });
   assert.equal(d.search, true);
-  assert.equal(d.decisionNote, 'dialogue_reference_fallback');
+  // P125.4+ may resolve the same case via live_task_followup (prior task retained).
+  assert.ok(
+    d.decisionNote === 'dialogue_reference_fallback' || d.decisionNote === 'live_task_followup',
+    d.decisionNote,
+  );
   assert.match(d.plan.query, /толидо/i);
 });
 

@@ -216,6 +216,32 @@ describe('P125.4 behaviour over source-text regex (WP3 step 2 sample)', () => {
   });
 });
 
+
+describe('P125.9 live-task: prior substantive query retained across domains', () => {
+  const samples = [
+    { prior: 'What is the latest stable Node.js LTS version?', followup: 'Run another search and verify the exact release.', tokens: ['node', 'lts'] },
+    { prior: 'Find the current direct train schedule from Zurich to Milan for Friday.', followup: 'Check another source.', tokens: ['zurich', 'milan'] },
+    { prior: 'What is the current weather in Oslo?', followup: 'Search again from a reliable source.', tokens: ['oslo'] },
+  ];
+  for (const s of samples) {
+    it(`retains entities for: ${s.prior.slice(0, 40)}`, async () => {
+      const d = await buildSearchDecision({
+        userText: s.followup,
+        recentTurns: [
+          { role: 'user', content: s.prior },
+          { role: 'assistant', content: 'Here is a result.' },
+        ],
+        heuristic: () => false,
+      });
+      assert.equal(d.search, true);
+      assert.ok(d.plan?.query, 'plan.query required');
+      const q = d.plan.query.toLowerCase();
+      for (const tok of s.tokens) assert.ok(q.includes(tok), `${tok} in ${q}`);
+      assert.doesNotMatch(d.plan.query, /here is a result/i);
+    });
+  }
+});
+
 describe('P125.5 item 4: authority ranking on sources', () => {
   it('sortSourcesByPreferredHosts puts authority hosts first', async () => {
     const { sortSourcesByPreferredHosts } = await import('../server/webSearch.ts');
