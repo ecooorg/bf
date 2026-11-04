@@ -10,6 +10,15 @@ The Conversational route now defaults to a single direct Gemini text call. Searc
 
 > **P124.0.15 status:** Simple and Expert expose the shared authenticated diagnostic log in More. For the single-user test phase, conversation logs include user history, normalized model input, assembled prompt, raw model output, agent-cleaned output, final visible reply, search query/results, response metadata, and fallback context. Credentials, cookies and authentication tokens remain redacted. Local and hosted verification for this revised delivery is pending; this instrumentation does not itself resolve answer truncation.
 
+## C125 — Answer-quality programme (owner-approved scope, 2026-11-04)
+
+Detail: `docs/C125_ANSWER_QUALITY_PROGRAMME.md`; decisions: `docs/DECISIONS.md` D-2026-11-04-01 and D-2026-11-04-02. This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Cycle C124 closes with P124.40; C125 starts at version `125`, patch `125.1`.
+
+- [ ] WP1 query fidelity: verbatim translation up to 20 words, entity- and number-preserving compression above, deterministic loss check, logging.
+- [ ] WP2 source policy: exclude Russian and Belarusian authority-controlled domains (country-code zones `.ru`, `.su`, `.xn--p1ai`, `.by`, `.xn--90ais`; verified Russian/Belarusian-operated zones; listed state-controlled hosts outside those zones), as versioned data, with diagnostics and a replay acceptance test. Open question O1 (bypass) is with the owner.
+- [ ] WP3 workflow, test and diagnostics audit: audit table first, then behaviour tests, a replayable answer-quality suite and a diagnostics export that lets an assistant diagnose a failed dialogue.
+- Status of everything above: `OPEN`; nothing implemented, no live evidence (`NOT_RUN`).
+
 ## P124.35 — Universal follow-up context and evidence relevance (2026-11-03)
 
 - [x] Cross-domain follow-up resolution using the immediately preceding user task; deterministic fallback preserves the resolved query when the planner provider is unavailable.

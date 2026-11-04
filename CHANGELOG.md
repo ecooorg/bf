@@ -1,3 +1,10 @@
+## P124.40 — Documentation: C125 answer-quality programme and source-policy decision (2026-11-04)
+
+- Documentation only; no source, test, route, UI or dependency change.
+- New `docs/C125_ANSWER_QUALITY_PROGRAMME.md`: owner-approved scope of cycle C125 with three work packages (query fidelity, Russian and Belarusian source policy, workflow and diagnostics audit), evidence labels, acceptance criteria and open question O1.
+- `ROADMAP.md`: C125 scope list. `docs/DECISIONS.md`: D-2026-11-04-01 (answer quality is cycle C125, C124 closes here) and D-2026-11-04-02 (no Russian or Belarusian authority-controlled domains in search evidence; owner decision, planned, not implemented).
+- Not a next-session assignment and not `NEXT_PATCH.md` (`AGENTS.md` §4 and §5). G4 not applicable. Validation: see `TECHNICAL_REPORT.md` P124.40; hosted CI `NOT_RUN`.
+
 ## P124.39 — Source quality: English queries, trusted-source labels, old results, same-name places (2026-11-04)
 
 - **Evidence (diagnostics export, dialogue of 2026-11-04):** the pre-classifier and fallback plans passed the user's own Russian wording to Serper unchanged (`planSource: heuristic`), so the SERP was Russian-language (ria.ru, lenta.ru, rg.ru, iz.ru among the hosts). Retrieval had no source-quality layer, no age check, and `placeMatched` was true for any text containing the place name (Toledo, Spain matched Toledo, Ohio).

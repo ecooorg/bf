@@ -1,3 +1,12 @@
+## P124.40 — Evidence (2026-11-04)
+
+Product version `124`, patch `124.40`. Documentation only.
+
+- **RECORDED:** C125 scope (three work packages) and two owner decisions; all status `OPEN`.
+- **CHECKED (public secondary sources, 2026-11-04):** `.xn--p1ai` (Cyrillic Russian zone) run by the Coordination Center for TLD RU; `.su` run by RIPN with an announced ICANN phase-out by 2030; `.xn--90ais` (Cyrillic Belarus zone), registry cctld.by; EU ban list names include RT English, RT UK, Sputnik, Rossiya 24, TV Centre International, NTV/NTV Mir, Rossiya 1, REN TV, Pervyi Kanal.
+- **NOT_VERIFIED:** the IANA root zone database (not reachable in this session), the full EU Annex XV list, operators of `.rus`, `.moscow`, `.tatar` and the other Cyrillic zones, and the candidate state-host list. The programme document marks these as to be verified.
+- **TESTS PASS (local, Node 22):** `npm run lint:copy`, `npm run docs:check`, `npm run version:check`, `npm run test:core`, and the `check` verification DAG (26/26 PASS). Hosted CI `NOT_RUN`.
+
 ## P124.39 — Evidence (2026-11-04)
 
 Product version `124`, patch `124.39`.
