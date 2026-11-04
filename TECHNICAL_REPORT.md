@@ -1,3 +1,14 @@
+## P126.10 — Evidence (2026-11-04)
+
+**Failure evidence:** hosted P126.9 passed Core (240/240) but `test:pipeline` still failed four `/api/conversation` checks (H3, H6, H6b and I) after 35-second client timeouts. The previous P126.9 diagnosis attributed the delay to inherited provider keys and SDK backoff; the P126.9 fixture already removed numbered keys and set one SDK attempt, so that explanation was insufficient. Source inspection identified the remaining cause: the conversation handler retried quota/rate-limit/unavailable outcomes for up to 90 seconds even after `generate()` had exhausted its candidates and put them into circuit-breaker cooldown. The pipeline client aborted at 35 seconds.
+
+**Changes:** exhausted quota, rate-limit and invalid-format errors are now marked non-retryable for the current request. Transient 503/unavailable failures remain eligible for conversation recovery, but the error carries the earliest candidate cooldown as `retryAfterMs`, preventing repeated immediate passes through cooling models. The pipeline fixture uses a 30-second recovery window beneath its 35-second HTTP guard. Pipeline assertions now verify the established P125.16 operational-error contract: H3 returns `502 AI_FORMAT`, H6 returns `429 GEMINI_RATE_LIMIT`, and H6b returns `429 GEMINI_QUOTA`. A source-level regression check protects the terminal-recovery guard. Patch metadata is `126.10`.
+
+**OBSERVED:** source edits; JavaScript syntax checks, targeted static regression checks, package/lock metadata consistency and ZIP path review.
+**NOT_RUN:** full `test:pipeline`, full DAG, typecheck/build and hosted GitHub Actions. The sandbox does not contain the repository runtime dependencies (`tsx` and `@google/genai`), so the integration fix remains pending hosted CI confirmation.
+
+---
+
 ## P126.9 — Evidence (2026-11-04)
 
 **Failure evidence:** hosted P126.8 run passed Core (`test:core` 240/240) but `test:pipeline` failed 4/204 checks (H3, H6, H6b, I), each with a 25-second `/api/conversation` timeout. The captured server output included `gemini_pool_rotated` during synthetic quota tests. The pipeline child inherited the CI process environment, including numbered organisation key slots, while its fake Gemini bridge intended to be the only provider. The Google Gen AI JavaScript SDK also defaults to five HTTP attempts with exponential backoff for retryable statuses (including 429 and 5xx); this compounded test latency before BiForge's own fallback could complete.

@@ -564,6 +564,8 @@ type ModelClass = 'light' | 'strong';
 class GeminiRateLimitError extends Error {
   code = 'GEMINI_RATE_LIMIT';
   status = 429;
+  /** All configured candidates were exhausted and circuit-broken; an in-request replay cannot help. */
+  retryable = false;
   details: Record<string, unknown>;
   constructor(message = 'Gemini rate limit was reached. Please try again shortly.', details: Record<string, unknown> = {}) {
     super(message);
@@ -586,6 +588,7 @@ class GeminiUnavailableError extends Error {
 class GeminiFormatError extends Error {
   code = 'AI_FORMAT';
   status = 502;
+  retryable = false;
   constructor(message = 'The AI returned an unusable answer twice. Please try again.') {
     super(message);
     this.name = 'GeminiFormatError';
@@ -595,6 +598,7 @@ class GeminiFormatError extends Error {
 class GeminiQuotaError extends Error {
   code = 'GEMINI_QUOTA';
   status = 429;
+  retryable = false;
   constructor(message = 'The AI usage quota is temporarily exhausted. Please try again later.') {
     super(message);
     this.name = 'GeminiQuotaError';
@@ -842,8 +846,11 @@ async function generate(
       if (round > 0) break;
       // Every model is cooling down. Say why: all quota -> quota error, otherwise "unavailable".
       if (orderedModels.length && orderedModels.every((m) => healthForModel(m).quotaHit)) throw new GeminiQuotaError();
-      if (orderedModels.length) throw new GeminiUnavailableError(
-        'Gemini models are cooling down after recent errors. The request was not lost.', { stage });
+      if (orderedModels.length) {
+        const retryAfterMs = Math.max(0, Math.min(...orderedModels.map((m) => healthForModel(m).cooldownUntil || now)) - now);
+        throw new GeminiUnavailableError(
+          'Gemini models are cooling down after recent errors. The request was not lost.', { stage, retryAfterMs });
+      }
       break;
     }
     const chain = ready;
@@ -1044,9 +1051,12 @@ async function generate(
         { stage, upstreamStatus: status, upstreamMessage: transientErr?.message || undefined },
       );
     }
+    const retryAfterMs = models.length
+      ? Math.max(0, Math.min(...models.map((m) => healthForModel(m).cooldownUntil || Date.now())) - Date.now())
+      : undefined;
     throw new GeminiUnavailableError(
       `Gemini models were temporarily unavailable or overloaded. Last upstream error: ${transientErr?.message || 'unknown'}`,
-      { stage, upstreamStatus: status || undefined, upstreamMessage: transientErr?.message || undefined },
+      { stage, upstreamStatus: status || undefined, upstreamMessage: transientErr?.message || undefined, retryAfterMs },
     );
   }
   throw lastErr || new Error('Gemini models unavailable');
@@ -1522,7 +1532,12 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         callBudget.startedAt = passBudget.startedAt;
         break;
       } catch (genErr: any) {
-        const recoverable = isTransientGeminiError(genErr)
+        // Do not replay a cascade after it has exhausted every candidate and
+        // opened their circuit breakers. Quota/rate-limit/format outcomes are
+        // terminal for this request; another pass would only hit the same
+        // cooling models and hold the HTTP request open through the recovery window.
+        const recoverable = genErr?.retryable !== false && genErr?.details?.retryable !== false && (
+          isTransientGeminiError(genErr)
           || isGeminiRateLimitError(genErr)
           || isGeminiQuotaError(genErr)
           || genErr instanceof GeminiUnavailableError
@@ -1530,7 +1545,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           || genErr instanceof GeminiQuotaError
           || genErr?.code === 'GEMINI_UNAVAILABLE'
           || genErr?.code === 'GEMINI_RATE_LIMIT'
-          || genErr?.code === 'GEMINI_QUOTA';
+          || genErr?.code === 'GEMINI_QUOTA'
+        );
         const elapsed = Date.now() - requestStartedAt;
         if (!recoverable || elapsed >= CONVERSATION_RECOVERY_MS) throw genErr;
         const idx = Math.min(recoveryAttempt, recoveryBackoffMs.length - 1);

@@ -1,3 +1,11 @@
+## P126.10 — Stop recovery after candidate exhaustion (2026-11-04)
+
+- Fixed the remaining pipeline latency defect at its source: conversation recovery no longer replays a model cascade after every configured candidate has failed and entered circuit-breaker cooldown.
+- Marked exhausted quota, rate-limit and invalid-format outcomes as non-retryable for the current request. For transient 503/unavailable outcomes, recovery remains enabled but now honours the actual model cooldown via `retryAfterMs` rather than repeatedly polling cooling candidates.
+- Bounded the pipeline fixture's conversation-recovery window to 30 seconds so its 35-second HTTP guard can observe the operational response. Updated H3/H6/H6b expectations to the current P125.16 contract (operational error, never a synthetic successful fallback) and added a regression assertion for terminal recovery outcomes.
+- No model cascade, quota classification, retry policy for genuinely recoverable transient errors, or product response content was weakened.
+- Version and lockfile patch metadata: `126.10`.
+
 ## P126.9 — Isolate pipeline Gemini fixtures from CI secrets and SDK backoff (2026-11-04)
 
 - Fixed the remaining `test:pipeline` failures (H3, H6, H6b and I) at the test-harness boundary: child servers now use only the scripted bridge key, clear inherited `GEMINI_API_KEY_1..10` organisation secrets, and disable background candidate probes.
