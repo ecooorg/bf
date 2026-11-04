@@ -66,6 +66,8 @@ export function searchDecisionDetails(
     sourcePolicyDropped: r.diagnostics?.sourcePolicyDropped ?? emptyPolicyCounts(),
     queryFidelity: r.queryFidelity ?? r.plan?.fidelity,
     country: r.plan?.country, planSource: r.plan?.planSource, planNote: r.plan?.planNote, freshness: r.plan?.freshness,
+    place: r.plan?.place, topic: r.plan?.topic,
+    sourceCountry: r.plan?.sourceCountry, dictated: r.plan?.dictated,
     usability: r.usability,
     chain: r.chain,
   };
@@ -744,7 +746,188 @@ export type SearchPlan = {
   planNote?: string;
   /** P125.1: sanitised query-fidelity record. */
   fidelity?: QueryFidelityLog;
+  /**
+   * P125.4 item 4: user constraint "from sources of country X" → ISO 3166-1 alpha-2.
+   * Sets provider country bias and ranks matching national authorities first. Data-driven, not hard-coded.
+   */
+  sourceCountry?: string;
+  /** P125.4 item 3: query text was taken from user-dictated quotes, not rewritten by the planner. */
+  dictated?: boolean;
 };
+
+/** P125.4 item 2: last resolved live-task fields carried across turns (pure snapshot). */
+export type LiveTaskState = {
+  place?: string;
+  country?: string;
+  topic?: string;
+  freshness?: 'now' | 'recent' | 'none';
+  query?: string;
+  sourceCountry?: string;
+};
+
+/**
+ * P125.4 item 3: when the user dictates a query in quotation marks after a search/build-query request,
+ * that text is the search query (translated under WP1 later), never rewritten or dropped.
+ * Pure. Returns the inner text or null.
+ */
+export function extractDictatedQuery(userText: string): string | null {
+  const t = String(userText || '').trim();
+  if (t.length < 3) return null;
+  // Require a search/build intent nearby so ordinary quoted phrases are not treated as search queries.
+  const asksSearch = /(?:search|query|запрос|поиск|google|look\s+up|find\s+online|поищи|найди|выполни|построй|run\s+(?:this|exactly)|use\s+this\s+query)/iu.test(t);
+  if (!asksSearch && !isSearchFollowup(t)) return null;
+  const patterns = [
+    /["“”«»]([^"“”«»]{3,200})["“”«»]/u,
+    /'([^']{3,200})'/u,
+  ];
+  for (const re of patterns) {
+    const m = t.match(re);
+    if (m?.[1]) {
+      const inner = m[1].replace(/\s+/g, ' ').trim();
+      if (inner.length >= 3) return inner.slice(0, MAX_QUERY_CHARS);
+    }
+  }
+  return null;
+}
+
+/**
+ * P125.4 item 4: detect an explicit user constraint to prefer sources from a named country.
+ * Returns ISO alpha-2 when the text clearly asks for sources of that country; otherwise undefined.
+ * Country names are matched from a small built-in map (not a product default country).
+ */
+const SOURCE_COUNTRY_NAME_TO_ISO: Record<string, string> = {
+  switzerland: 'CH', swiss: 'CH',
+  norway: 'NO', norwegian: 'NO',
+  sweden: 'SE', swedish: 'SE',
+  germany: 'DE', german: 'DE',
+  france: 'FR', french: 'FR',
+  japan: 'JP', japanese: 'JP',
+  canada: 'CA', canadian: 'CA',
+  australia: 'AU', australian: 'AU',
+  brazil: 'BR', brazilian: 'BR',
+  india: 'IN', indian: 'IN',
+  'united kingdom': 'GB', uk: 'GB', britain: 'GB', british: 'GB',
+  'united states': 'US', usa: 'US', american: 'US',
+  poland: 'PL', polish: 'PL',
+  spain: 'ES', spanish: 'ES',
+  italy: 'IT', italian: 'IT',
+  netherlands: 'NL', dutch: 'NL',
+  austria: 'AT', austrian: 'AT',
+  finland: 'FI', finnish: 'FI',
+  denmark: 'DK', danish: 'DK',
+  ireland: 'IE', irish: 'IE',
+  portugal: 'PT', portuguese: 'PT',
+  mexico: 'MX', mexican: 'MX',
+  argentina: 'AR',
+  chile: 'CL',
+  'south korea': 'KR', korea: 'KR', korean: 'KR',
+  'new zealand': 'NZ',
+  singapore: 'SG',
+  israel: 'IL',
+  turkey: 'TR',
+  egypt: 'EG',
+  'south africa': 'ZA',
+};
+
+export function extractSourceCountryConstraint(userText: string): string | undefined {
+  const t = String(userText || '').trim();
+  if (t.length < 8) return undefined;
+  // Explicit "from sources of country X" / "only country X sources" style constraints.
+  const m = t.match(/(?:from|using|prefer|only|only\s+from)\s+(?:sources?\s+)?(?:of|in|from)?\s*(?:the\s+)?([A-Za-z][A-Za-z\s-]{1,40}?)\s+(?:sources?|sites?|websites?|authorities|agencies|services?)/iu)
+    || t.match(/(?:sources?|sites?|websites?)\s+(?:of|from|in)\s+(?:the\s+)?([A-Za-z][A-Za-z\s-]{1,40})/iu)
+    || t.match(/(?:только|из|с)\s+(?:источник\p{L}*|сайт\p{L}*)\s+([A-Za-z\p{L}][A-Za-z\p{L}\s-]{1,40})/iu);
+  if (!m?.[1]) {
+    // ISO code stated directly: "sourceCountry DE" / "country code NO"
+    const iso = t.match(/\b(?:source\s*country|country\s*code|from\s+country)\s*[:=]?\s*([A-Za-z]{2})\b/i);
+    if (iso && /^[A-Za-z]{2}$/.test(iso[1])) return iso[1].toUpperCase();
+    return undefined;
+  }
+  const name = m[1].replace(/\s+/g, ' ').trim().toLowerCase();
+  if (SOURCE_COUNTRY_NAME_TO_ISO[name]) return SOURCE_COUNTRY_NAME_TO_ISO[name];
+  // Two-letter token
+  if (/^[a-z]{2}$/i.test(name)) return name.toUpperCase();
+  return undefined;
+}
+
+/**
+ * P125.4 item 2: resolve live-task state from a prior plan snapshot and/or recent user turns.
+ * Instruction/complaint turns about search never become the search wording; the stored task does.
+ */
+export function resolveLiveTaskState(opts: {
+  userText: string;
+  prior?: LiveTaskState | null;
+  recentUserTexts?: string[];
+}): LiveTaskState {
+  const prior: LiveTaskState = { ...(opts.prior || {}) };
+  const text = String(opts.userText || '').trim();
+  const aboutSearch = isSearchFollowup(text) || isAssistantMetaQuestion(text);
+  // Carry forward place from prior or from recent user turns when current text is about the search itself.
+  if (!prior.place && opts.recentUserTexts?.length) {
+    for (let i = opts.recentUserTexts.length - 1; i >= 0; i--) {
+      const p = extractPlaceCandidate(opts.recentUserTexts[i]);
+      if (p) { prior.place = p; break; }
+    }
+  }
+  if (!prior.topic && opts.recentUserTexts?.length) {
+    for (let i = opts.recentUserTexts.length - 1; i >= 0; i--) {
+      const u = opts.recentUserTexts[i];
+      if (isWeatherTopic(u) || LIVE_TOPIC_RE.test(u) || needsFreshWebInfo(u)) {
+        prior.topic = isWeatherTopic(u) ? 'weather' : prior.topic;
+        if (!prior.query) prior.query = stripInstructionWords(u).slice(0, MAX_QUERY_CHARS);
+        break;
+      }
+    }
+  }
+  const dictated = extractDictatedQuery(text);
+  const sourceCountry = extractSourceCountryConstraint(text) || prior.sourceCountry;
+  if (dictated) {
+    return {
+      ...prior,
+      query: dictated,
+      place: extractPlaceCandidate(dictated) || prior.place,
+      sourceCountry,
+      freshness: prior.freshness || 'now',
+      topic: prior.topic,
+    };
+  }
+  if (aboutSearch) {
+    // Never search the meta wording; keep the stored task.
+    return {
+      ...prior,
+      sourceCountry,
+      freshness: prior.freshness || 'now',
+      query: prior.query || (prior.place && prior.topic ? `${prior.topic} ${prior.place}` : prior.place) || undefined,
+    };
+  }
+  const place = extractPlaceCandidate(text) || prior.place;
+  const topic = isWeatherTopic(text) ? 'weather' : prior.topic;
+  return {
+    place,
+    country: prior.country,
+    topic,
+    freshness: needsFreshWebInfo(text) || LIVE_TOPIC_RE.test(text) ? 'now' : prior.freshness,
+    query: stripInstructionWords(text).slice(0, MAX_QUERY_CHARS) || prior.query,
+    sourceCountry,
+  };
+}
+
+/** Build a SearchPlan from live-task state + optional dictated flag (heuristic path). */
+export function planFromLiveTask(state: LiveTaskState, note = 'live_task_state'): SearchPlan {
+  const place = state.place;
+  const topic = state.topic || 'information';
+  const query = (state.query || [topic, place].filter(Boolean).join(' ')).replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
+  return {
+    query: query || 'current information',
+    place,
+    country: state.country,
+    topic: state.topic,
+    freshness: state.freshness || 'now',
+    planSource: 'heuristic',
+    planNote: note,
+    sourceCountry: state.sourceCountry,
+    dictated: note === 'dictated_query' || undefined,
+  };
+}
 
 function modelText(resp: any): string {
   let out = '';
@@ -875,12 +1058,44 @@ export async function buildSearchDecision(opts: {
   model?: string;
   timeoutMs?: number;
   heuristic: () => boolean;
+  /** P125.4: optional prior live-task snapshot from the conversation (place/topic/query). */
+  priorLiveTaskState?: LiveTaskState | null;
 }): Promise<SearchDecision> {
   const priorUserText = (opts.recentTurns || []).filter((t) => t.role === 'user').map((t) => String(t.content || '')).join('\n');
   const resolvedText = contextualizeSearchText(opts.userText, priorUserText);
   const priorUserTurns = (opts.recentTurns || []).filter((t) => t.role === 'user');
+  const recentUserTexts = priorUserTurns.map((t) => String(t.content || ''));
   const priorLiveTask = priorUserTurns.length > 0 && hasRecentSearchIntent(String(priorUserTurns[priorUserTurns.length - 1].content || ''));
   const contextualFollowup = priorLiveTask && isSearchFollowup(opts.userText) && !hasPersonalData(resolvedText);
+
+  // P125.4 item 3: dictated query in quotes wins over planner rewrite.
+  const dictated = extractDictatedQuery(opts.userText);
+  if (dictated && !hasPersonalData(dictated)) {
+    const live = resolveLiveTaskState({
+      userText: opts.userText,
+      prior: opts.priorLiveTaskState || null,
+      recentUserTexts,
+    });
+    const plan = planFromLiveTask({ ...live, query: dictated }, 'dictated_query');
+    plan.dictated = true;
+    return { search: true, plan, decisionSource: 'heuristic', decisionNote: 'dictated_query' };
+  }
+
+  // P125.4 item 2: search-about-search / follow-up turns resolve against live-task state, never their own wording.
+  if ((contextualFollowup || (isSearchFollowup(opts.userText) && (opts.priorLiveTaskState?.place || priorLiveTask))) && !hasPersonalData(opts.userText)) {
+    const live = resolveLiveTaskState({
+      userText: opts.userText,
+      prior: opts.priorLiveTaskState || null,
+      recentUserTexts,
+    });
+    if (live.place || live.query || live.topic) {
+      const plan = planFromLiveTask(live, 'live_task_followup');
+      const sc = extractSourceCountryConstraint(opts.userText);
+      if (sc) plan.sourceCountry = sc;
+      return { search: true, plan, decisionSource: 'heuristic', decisionNote: 'live_task_followup' };
+    }
+  }
+
   if (isAssistantMetaQuestion(opts.userText)) return { search: false, decisionSource: 'heuristic', decisionNote: 'meta_question_about_answer' };
   const dialogueReference = refersToDialogue(opts.userText) && priorUserTurns.length > 0;
   const fallback = (note: string): SearchDecision => {
