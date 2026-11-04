@@ -8,6 +8,8 @@
 
 **Status (P125.1):** implemented for groups A and C (`config/source-policy.json`, `server/sourcePolicy.ts`); group B stays disabled until verified; open question O1 unchanged (default: no bypass).
 
+**Status (P125.2):** owner decision 2026-11-04: group B is applied by default as well, as data in `config/source-policy.json` (zones `rus`, `moscow`, `tatar` and the Punycode forms of the Cyrillic zones for "Russia" (rus), "Moscow" and "children"), even though the list is not reconciled with the IANA root zone database or EUR-Lex (`NOT_VERIFIED`). The reconciliation stays open and only adds or removes data entries. The P125.1 status above is history.
+
 ---
 
 ## D-2026-11-04-01 — Answer quality is cycle C125, separate from carousel and operations work
