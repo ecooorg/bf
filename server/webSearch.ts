@@ -18,6 +18,9 @@ import { isIP } from 'node:net';
 import { classifySource, sourceLabel, independentListedSources, dateFromUrl } from './sourceTrust.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan, fetchWeatherEvidence } from './weatherConnector.ts';
 
+import { QUERY_LIMITS, cutWords, buildEnglishQueries, checkFidelity, isNonLatinDominant, type QueryFidelityLog, type Generate } from './queryFidelity.ts';
+import { filterSerperData, excludedGroup, addPolicyCounts, emptyPolicyCounts, totalPolicyCounts, type PolicyCounts } from './sourcePolicy.ts';
+
 export type WebSource = { title: string; url: string };
 
 export type WebSearchStatus = 'used' | 'used_weak' | 'no_relevant_data' | 'skipped' | 'failed' | 'no_grounding';
@@ -30,9 +33,11 @@ export type WebSearchResult = {
   model?: string;
   reason?: string;
   /** Non-secret retrieval diagnostics for persistent logs (P124.23). */
-  diagnostics?: { digestCharsPerQuery: number[]; digestCharsBeforeBudget: number; droppedByBudget: number };
+  diagnostics?: { digestCharsPerQuery: number[]; digestCharsBeforeBudget: number; droppedByBudget: number; sourcePolicyDropped?: PolicyCounts };
+  /** P125.1 (WP1): sanitised query-fidelity record (lengths and flags only, never text). */
+  queryFidelity?: { sourceWords: number; queryWords: number[]; queryCount: number; check: 'ok' | 'missing' | 'not_needed'; fallback: boolean };
   /** P124.26: query plan and usability decision (non-secret). */
-  plan?: { query: string; queries?: string[]; place?: string; country?: string; topic?: string; freshness?: 'now' | 'recent' | 'none'; planSource: 'model' | 'heuristic'; planNote?: string };
+  plan?: { query: string; queries?: string[]; place?: string; country?: string; topic?: string; freshness?: 'now' | 'recent' | 'none'; planSource: 'model' | 'heuristic'; planNote?: string; fidelity?: QueryFidelityLog };
   usability?: { verdict: 'ok' | 'weak' | 'none'; hasNumber: boolean; placeMatched: boolean | null; retried: boolean };
   /** P124.30: provider that produced the result and the provider-chain trace (non-secret). */
   provider?: string;
@@ -58,6 +63,8 @@ export function searchDecisionDetails(
     digestChars: (r.digest || '').length,
     digestCharsPerQuery: r.diagnostics?.digestCharsPerQuery ?? [],
     droppedByBudget: r.diagnostics?.droppedByBudget ?? 0,
+    sourcePolicyDropped: r.diagnostics?.sourcePolicyDropped ?? emptyPolicyCounts(),
+    queryFidelity: r.queryFidelity ?? r.plan?.fidelity,
     country: r.plan?.country, planSource: r.plan?.planSource, planNote: r.plan?.planNote, freshness: r.plan?.freshness,
     usability: r.usability,
     chain: r.chain,
@@ -71,7 +78,7 @@ export function skippedWebSearch(status: WebSearchStatus = 'skipped', reason?: s
   return { status, digest: '', sources: [], queries: [], ...(reason ? { reason } : {}) };
 }
 
-const MAX_QUERY_CHARS = 600;
+const MAX_QUERY_CHARS = QUERY_LIMITS.searchInputMaxChars; // P125.1: documented upper bound for source text (was 600)
 const MAX_DIGEST_CHARS = 5000;
 const MAX_PAGES_TO_FETCH = 4;
 const SNIPPET_BUDGET_WITH_PAGES = 1200;
@@ -443,9 +450,14 @@ export function sourceCountry(url: string): string | undefined {
 
 export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: string): WebSearchResult {
   const used = parts.filter((p) => p.status === 'used' && p.digest.trim().length > 0);
+  const policyTotal = parts.reduce((a, p) => addPolicyCounts(a, p.diagnostics?.sourcePolicyDropped), emptyPolicyCounts());
   if (!used.length) {
     const last = parts[parts.length - 1];
-    return last || skippedWebSearch('failed', 'no_results');
+    if (!last) return skippedWebSearch('failed', 'no_results');
+    if (totalPolicyCounts(policyTotal) > 0 && parts.every((p) => p.reason === 'source_policy_filtered' || p.status === 'no_grounding')) {
+      return { ...last, status: 'no_relevant_data', reason: 'source_policy_filtered', diagnostics: { digestCharsPerQuery: [], digestCharsBeforeBudget: 0, droppedByBudget: 0, sourcePolicyDropped: policyTotal } };
+    }
+    return last;
   }
   const seenUrl = new Set<string>();
   const sources: WebSource[] = [];
@@ -469,6 +481,7 @@ export function mergeWebSearchResults(parts: WebSearchResult[], fallbackQuery: s
     digestCharsPerQuery: used.map((p) => p.digest.trim().length),
     digestCharsBeforeBudget: joined.length,
     droppedByBudget: Math.max(0, joined.length - digest.length),
+    sourcePolicyDropped: policyTotal,
   };
   if (digest.length < MIN_DIGEST_CHARS && !sources.length) {
     return skippedWebSearch('no_grounding', 'merged_empty');
@@ -614,63 +627,52 @@ export function unitsForCountry(country?: string): 'metric' | 'imperial' | 'unkn
 
 /** True when the text is dominated by non-Latin scripts (Cyrillic, CJK, Hangul, Arabic, …). */
 export function needsEnglishQueryTranslation(text: string): boolean {
-  const t = String(text || '');
-  if (!t.trim()) return false;
-  // Latin letters, digits, common punctuation — count “script letters”
-  const letters = t.match(/\p{L}/gu) || [];
-  if (letters.length < 3) return false;
-  const nonLatin = letters.filter((ch) => !/[A-Za-z\u00C0-\u024F]/.test(ch));
-  return nonLatin.length / letters.length >= 0.25;
+  return isNonLatinDominant(text);
 }
 
+/** Model call used by the query-fidelity builder; the timeout is shared by all calls of one build. */
+function searchGenerate(opts: { client?: SearchClientLike; model?: string; timeoutMs?: number }): Generate | undefined {
+  if (!opts.client) return undefined;
+  const client = opts.client;
+  const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
+  const deadline = Date.now() + Math.max(1000, opts.timeoutMs ?? 8_000);
+  return async (prompt: string) => {
+    const left = deadline - Date.now();
+    if (left < 500) return '';
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), left);
+    try {
+      const resp = await client.models.generateContent({ model, contents: prompt, config: { temperature: 0.1, maxOutputTokens: 256, abortSignal: ctrl.signal } });
+      return responseText(resp);
+    } finally { clearTimeout(timer); }
+  };
+}
+
+/** WEB_SEARCH_MAX_QUERIES (default and ceiling 5) caps the number of fidelity queries. */
+const maxQueriesFromEnv = (): number => Math.max(1, Math.min(5, Number(process.env.WEB_SEARCH_MAX_QUERIES) || 5));
+
 /**
- * Build the query string sent to external search. Always English when possible.
- * - Already Latin-heavy → cleaned as-is.
- * - Otherwise, if a Gemini client is provided, one short translation to an English search query.
- * - On failure → cleaned original (locale is still en/us).
+ * Build the English provider queries for a user text (P125.1, WP1). At most 20 words: one verbatim translation;
+ * longer: up to 3 short queries with an entity check (see `queryFidelity.ts`). Never throws.
  */
+export async function toEnglishSearchQueries(opts: {
+  userText: string;
+  client?: SearchClientLike;
+  model?: string;
+  timeoutMs?: number;
+}): Promise<{ queries: string[]; fidelity: QueryFidelityLog }> {
+  return buildEnglishQueries({ text: opts.userText, generate: searchGenerate(opts), queryCap: maxQueriesFromEnv() });
+}
+
+/** First English query for a user text (kept for callers that need one string). */
 export async function toEnglishSearchQuery(opts: {
   userText: string;
   client?: SearchClientLike;
   model?: string;
   timeoutMs?: number;
 }): Promise<string> {
-  const raw = buildSearchQuery(opts.userText);
-  if (raw.length < 3) return raw;
-  if (!needsEnglishQueryTranslation(raw)) return raw;
-  if (!opts.client) return raw;
-  const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
-  const timeoutMs = Math.max(1000, opts.timeoutMs ?? 8_000);
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const resp = await opts.client.models.generateContent({
-      model,
-      contents:
-        'Convert the user message into a short English web search query (max 14 words). ' +
-        'Use neutral international terms and preserve the location and topic stated by the user. ' +
-        'Do not mention Russia, Russian sources, or any country-specific portal unless the user explicitly asked about that country. ' +
-        'Output ONLY the English query. No quotes, no explanation, no other language.\n\nUSER:\n' +
-        raw.slice(0, 500),
-      config: { temperature: 0.1, maxOutputTokens: 64, abortSignal: ctrl.signal },
-    });
-    let out = '';
-    try {
-      if (typeof resp?.text === 'string') out = resp.text;
-    } catch { /* */ }
-    if (!out) {
-      const parts = resp?.candidates?.[0]?.content?.parts;
-      if (Array.isArray(parts)) out = parts.map((p: any) => (typeof p?.text === 'string' ? p.text : '')).join('');
-    }
-    out = String(out || '').replace(/^["'\s]+|["'\s]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
-    // Reject if model still answered in a non-Latin script
-    if (out.length >= 3 && !needsEnglishQueryTranslation(out)) return out;
-    return raw;
-  } catch {
-    return raw;
-  } finally {
-    clearTimeout(timer);
-  }
+  const { queries } = await toEnglishSearchQueries(opts);
+  return buildSearchQuery(queries[0] || opts.userText);
 }
 
 /**
@@ -681,20 +683,25 @@ export async function toEnglishSearchQuery(opts: {
  */
 export async function ensureEnglishPlan(
   plan: SearchPlan,
-  opts: { client?: SearchClientLike; model?: string; timeoutMs?: number },
+  opts: { client?: SearchClientLike; model?: string; timeoutMs?: number; sourceText?: string },
 ): Promise<SearchPlan> {
   const extras = plan.queries || [];
-  if (!needsEnglishQueryTranslation(plan.query) && !extras.some(needsEnglishQueryTranslation)) return plan;
-  let query = plan.query;
-  if (needsEnglishQueryTranslation(query)) {
-    query = await toEnglishSearchQuery({ userText: stripInstructionWords(query), client: opts.client, model: opts.model, timeoutMs: opts.timeoutMs });
-  }
-  const queries = extras.filter((q) => !needsEnglishQueryTranslation(q));
+  const source = String(opts.sourceText || '').trim();
+  const sourceFaithful = (): boolean => !source || checkFidelity(source, [plan.query, ...extras]).ok;
+  // P125.1: a planner or heuristic query that lost an entity of the user's text is replaced by the faithful build.
+  const needsRebuild = needsEnglishQueryTranslation(plan.query) || extras.some(needsEnglishQueryTranslation) || !sourceFaithful();
+  if (!needsRebuild) return plan;
+  const base = needsEnglishQueryTranslation(plan.query) || !source ? stripInstructionWords(plan.query) : stripInstructionWords(source);
+  const { queries: built, fidelity } = await toEnglishSearchQueries({ userText: source && !sourceFaithful() ? stripInstructionWords(source) : base, client: opts.client, model: opts.model, timeoutMs: opts.timeoutMs });
+  const query = built[0] || plan.query;
+  const latinExtras = extras.filter((q) => !needsEnglishQueryTranslation(q));
+  const merged = [...built.slice(1), ...latinExtras].filter((q, i, a) => q && q.toLowerCase() !== query.toLowerCase() && a.findIndex((x) => x.toLowerCase() === q.toLowerCase()) === i);
   return {
     ...plan,
     query,
-    queries: queries.length ? queries : undefined,
-    planNote: needsEnglishQueryTranslation(query) ? 'untranslated' : `${plan.planNote ? `${plan.planNote}+` : ''}translated`,
+    queries: merged.length ? merged : undefined,
+    fidelity,
+    planNote: needsEnglishQueryTranslation(query) ? 'untranslated' : `${plan.planNote ? `${plan.planNote}+` : ''}${fidelity.fallback ? 'fidelity_fallback' : 'translated'}`,
   };
 }
 
@@ -720,6 +727,8 @@ export type SearchPlan = {
   freshness?: 'now' | 'recent' | 'none';
   planSource: 'model' | 'heuristic';
   planNote?: string;
+  /** P125.1: sanitised query-fidelity record. */
+  fidelity?: QueryFidelityLog;
 };
 
 function modelText(resp: any): string {
@@ -774,12 +783,12 @@ export async function buildSearchPlan(opts: {
       model,
       contents:
         'Turn the user message into a web search plan. Reply with ONLY one JSON object: ' +
-        '{"query": short English search query (max 12 words) describing the INFORMATION wanted, with no instructions to an assistant ' +
+        '{"query": faithful English search query (at most 25 words; keep every name, number, date, place, negation and condition of the text) describing the INFORMATION wanted, with no instructions to an assistant ' +
         '(no words like compare, find, search, forecast for a week, several sites); ' +
         '"place": the place named by the user in its usual English form (add its region after a comma when needed to tell same-named places apart), or ""; ' +
         '"country": ISO 3166-1 alpha-2 code of that place (pick the most likely one for an ambiguous name), or ""; ' +
         '"topic": 1-3 English words naming the subject (e.g. "weather", "exchange rate")}. ' +
-        'Do not add countries or places the user did not mention or imply. No personal data in the query.\n\nUSER:\n' + raw.slice(0, 500),
+        'Do not add countries or places the user did not mention or imply. No personal data in the query.\n\nUSER:\n' + raw.slice(0, QUERY_LIMITS.searchInputMaxChars),
       config: { temperature: 0, maxOutputTokens: 120, abortSignal: ctrl.signal },
     });
     const parsed = parseSearchPlan(modelText(resp));
@@ -881,7 +890,7 @@ export async function buildSearchDecision(opts: {
   if (contextualFollowup && !opts.client) return fallback('no_client');
   if (!opts.client) return fallback('no_client');
   const model = (opts.model || 'gemini-3.5-flash-lite').trim() || 'gemini-3.5-flash-lite';
-  const turns = (opts.recentTurns || []).slice(-4).map((t) => `${t.role === 'assistant' ? 'ASSISTANT' : 'USER'}: ${String(t.content || '').replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
+  const turns = (opts.recentTurns || []).slice(-4).map((t) => `${t.role === 'assistant' ? 'ASSISTANT' : 'USER'}: ${String(t.content || '').replace(/\s+/g, ' ').slice(0, QUERY_LIMITS.plannerTurnMaxChars)}`).join('\n');
   const ctrl = new AbortController();
 
   const timer = setTimeout(() => ctrl.abort(), Math.max(1000, opts.timeoutMs ?? 3_000));
@@ -890,13 +899,13 @@ export async function buildSearchDecision(opts: {
       model,
       contents:
         `Today is ${opts.today || new Date().toISOString().slice(0, 10)}. Decide whether the LAST user message needs a live web lookup, using the earlier turns to resolve short follow-ups. ` +
-        'Reply with ONLY one JSON object: {"search": true|false, "query": short English query (max 12 words) for the INFORMATION wanted, no instructions to an assistant, ' +
+        'Reply with ONLY one JSON object: {"search": true|false, "query": faithful English query (at most 25 words; keep every name, number, date, place, negation and condition) for the INFORMATION wanted, no instructions to an assistant, ' +
         '"queries": up to 2 extra different focused English queries or [], "place": place named or implied by the dialogue in its usual English form, with its region after a comma when needed to tell same-named places apart, or "", ' +
         '"country": ISO 3166-1 alpha-2 code of that place or "", "topic": 1-3 English words, "freshness": "now" | "recent" | "none"}. ' +
         'search=true when the answer depends on facts that change or happened recently (weather, prices, rates, scores, news, schedules and opening status, traffic, outages, who currently holds a role, latest versions or releases, current time elsewhere) or the user asks to search or check online, ' +
         'including a short follow-up that continues such a request. search=false for personal matters and feelings, advice, opinions, writing or editing, code, maths, translation, and general or historical knowledge. ' +
         'Never put personal data (names of private people, e-mail, phone, numbers of accounts or cards, addresses) into a query; if a lookup would need it, set search=false. Do not add places the dialogue does not mention or imply.\n\n' +
-        `DIALOGUE:\n${turns}\nLAST USER MESSAGE:\n${String(opts.userText || '').slice(0, 500)}`,
+        `DIALOGUE:\n${turns}\nLAST USER MESSAGE:\n${String(opts.userText || '').slice(0, QUERY_LIMITS.searchInputMaxChars)}`,
       config: { temperature: 0, maxOutputTokens: 200, abortSignal: ctrl.signal },
     });
     const parsed = parseSearchDecision(modelText(resp));
@@ -1084,7 +1093,9 @@ export function resultAgeDays(date: string, today: string): number | null {
 }
 
 /** Build a compact digest + sources from a Serper /search JSON body. Every line carries its source label; old dated results are marked. Pure. */
-export function digestFromSerperResponse(data: any, query: string, opts: { today?: string; freshness?: 'now' | 'recent' | 'none' } = {}): { digest: string; sources: WebSource[]; queries: string[] } {
+export function digestFromSerperResponse(rawData: any, query: string, opts: { today?: string; freshness?: 'now' | 'recent' | 'none' } = {}): { digest: string; sources: WebSource[]; queries: string[]; policyDropped: PolicyCounts; keptResults: number } {
+  // P125.1 (WP2): excluded hosts are removed before anything is turned into digest text or a source.
+  const { data, dropped: policyDropped, kept: keptResults } = filterSerperData(rawData);
   const maxAge = maxAgeDaysFor(opts.freshness);
   const isOld = (date: string, link = '') => {
     if (maxAge === null || !opts.today) return false;
@@ -1143,7 +1154,7 @@ export function digestFromSerperResponse(data: any, query: string, opts: { today
   }
   const digest = lines.join('\n').trim().slice(0, MAX_DIGEST_CHARS);
   const queries = [String(query || '').trim()].filter(Boolean);
-  return { digest, sources, queries };
+  return { digest, sources, queries, policyDropped, keptResults };
 }
 
 /** Hosts we prefer when choosing which SERP links to open (official / data-heavy). */
@@ -1183,6 +1194,7 @@ export function isFetchableContentUrl(url: string): boolean {
     const h = u.hostname.toLowerCase().replace(/^\[|\]$/g, '').replace(/\.$/, '');
     if (!h || h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.internal') || h.endsWith('.local')) return false;
     if (isIP(h) && !isPublicIpAddress(h)) return false;
+    if (excludedGroup(h)) return false; // P125.1 (WP2): fetch targets and every redirect hop pass through here
     if (/(?:youtube|youtu\.be|twitter|x\.com|facebook|instagram|tiktok|reddit|vk\.com|t\.me)\b/i.test(h)) return false;
     if (/\.(pdf|zip|exe|dmg|mp4|mp3)(?:$|\?)/i.test(u.pathname)) return false;
     return true;
@@ -1461,7 +1473,7 @@ export async function fetchSerperDigest(opts: {
 }): Promise<WebSearchResult> {
   const key = String(opts.apiKey || '').trim();
   if (!key) return skippedWebSearch('skipped', 'no_serper_key');
-  const q = buildSearchQuery(opts.englishQuery || opts.userText);
+  const q = cutWords(buildSearchQuery(opts.englishQuery || opts.userText), QUERY_LIMITS.providerMaxWords); // Google truncates near 32 words anyway
   if (q.length < 3) return skippedWebSearch('skipped', 'empty_query');
   const timeoutMs = Math.max(1000, opts.timeoutMs ?? 25_000);
   const { hl, gl } = serperLocale(q, opts.country);
@@ -1480,7 +1492,11 @@ export async function fetchSerperDigest(opts: {
       return { ...skippedWebSearch('failed', `serper_http_${res.status}:${body.slice(0, 80)}`), model: 'serper' };
     }
     const data = await res.json();
-    const { digest: snippetDigest, sources, queries } = digestFromSerperResponse(data, q, { today: opts.today, freshness: opts.freshness });
+    const { digest: snippetDigest, sources, queries, policyDropped, keptResults } = digestFromSerperResponse(data, q, { today: opts.today, freshness: opts.freshness });
+    const policyDiag = { digestCharsPerQuery: [], digestCharsBeforeBudget: 0, droppedByBudget: 0, sourcePolicyDropped: policyDropped };
+    if (totalPolicyCounts(policyDropped) > 0 && !sources.length && keptResults === 0) {
+      return { status: 'no_relevant_data', digest: '', sources: [], queries: [q], reason: 'source_policy_filtered', model: 'serper', diagnostics: policyDiag };
+    }
     if (!sources.length && snippetDigest.length < MIN_DIGEST_CHARS) {
       return { ...skippedWebSearch('no_grounding', 'serper_empty'), model: 'serper' };
     }
@@ -1511,7 +1527,7 @@ export async function fetchSerperDigest(opts: {
     if (digest.length < MIN_DIGEST_CHARS && !sources.length) {
       return { ...skippedWebSearch('no_grounding', 'serper_empty'), model: 'serper' };
     }
-    return { status: 'used', digest, sources, queries, model: 'serper' };
+    return { status: 'used', digest, sources, queries, model: 'serper', diagnostics: { ...policyDiag, digestCharsPerQuery: [digest.length], digestCharsBeforeBudget: digest.length } };
   } catch (e: any) {
     const msg = ctrl.signal.aborted ? 'timeout' : String(e?.message || e).slice(0, 160);
     return { ...skippedWebSearch('failed', msg), model: 'serper' };
@@ -1579,6 +1595,7 @@ export function formatSearchStatusBlock(
   const quota = /429|quota|RESOURCE_EXHAUSTED|rate/i.test(reason);
   let line: string;
   if (!searchEnabled || reason === 'search_disabled') line = 'SEARCH STATUS: DISABLED — live web search is switched off in this deployment, so no live data was retrieved for this turn.';
+  else if (r.status === 'no_relevant_data' && reason === 'source_policy_filtered') line = 'SEARCH STATUS: NO_RELEVANT_DATA — a live lookup ran, but every result came from sources excluded by the deployment source policy, so no evidence remains. Say this plainly; do not say that search or internet access is unavailable.';
   else if (r.status === 'no_relevant_data') line = 'SEARCH STATUS: NO_RELEVANT_DATA — a live lookup ran but the retrieved pages did not contain the requested data.';
   else if (r.status === 'skipped' && reason === 'no_serper_key') line = 'SEARCH STATUS: UNAVAILABLE — the search provider is not configured, so no live data was retrieved.';
   else if (r.status === 'skipped') line = 'SEARCH STATUS: NOT_RUN — no live lookup was performed for this turn.';
