@@ -1158,8 +1158,15 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
         search: (query, country) => {
           const remaining = deadlineAt === undefined ? timeoutMs : Math.min(timeoutMs, deadlineAt - Date.now());
           if (remaining < 8_000) return Promise.resolve(skippedWebSearch('skipped', 'request_deadline'));
-          return fetchSerperDigestMulti({ apiKey: serperKey, userText: searchText, englishQuery: query, today, timeoutMs: remaining, country, freshness: plan.freshness,
-            extraQueries: query === plan.query ? plan.queries : undefined });
+          // P125.5: gl bias uses place country or sourceCountry constraint; authority ranking uses sourceCountry only.
+          const effectiveCountry = country || plan.sourceCountry || plan.country;
+          return fetchSerperDigestMulti({
+            apiKey: serperKey, userText: searchText, englishQuery: query, today, timeoutMs: remaining,
+            country: effectiveCountry, freshness: plan.freshness,
+            extraQueries: query === plan.query ? plan.queries : undefined,
+            preferredAuthorityCountry: plan.sourceCountry,
+            preferredAuthorityTopic: plan.topic,
+          });
         },
       },
       // Gemini googleSearch, step one of the two-step flow (digest); step two is the pipeline's own generation call.
@@ -1594,11 +1601,18 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       searchSourceCount: Array.isArray(webSearch.sources) ? webSearch.sources.length : 0,
       searchExpected: Boolean(intentFlags.userAskedSearch), calls: (meta as any).calls,
       retried: retryRan, retrySkipped: retrySkippedForLatency,
-      userRequest: String(brief?.decision || ''), conversationHistorySent: fullHistory,
+      // P125.5 item 8: current turn text (not the first brief of the dialogue).
+      userRequest: String(lastUserText || brief?.decision || ''),
+      conversationHistorySent: fullHistory,
       normalizedHistorySentToModel: safeHistory, modelSystemInstruction: BASE_SYSTEM, modelInputPayload: input, modelPrompt: prompt,
       rawModelOutput: out, agentCleanReply: cleanReply, agentCleanQuestion: cleanQuestion,
       finalVisibleReply: visibleReply, searchQuery: lastUserText,
       searchSources: Array.isArray(webSearch.sources) ? webSearch.sources : [],
+      searchPlanPlace: webSearch.plan?.place, searchPlanCountry: webSearch.plan?.country,
+      searchPlanSourceCountry: webSearch.plan?.sourceCountry, searchPlanDictated: webSearch.plan?.dictated,
+      searchPlanSource: webSearch.plan?.planSource, searchPlanNote: webSearch.plan?.planNote,
+      searchPlannerRan, searchPlannerMs,
+      releasePatch: process.env.npm_package_version || undefined,
       responseMeta,
     } });
     ok(res, {

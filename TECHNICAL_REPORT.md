@@ -1,3 +1,13 @@
+## P125.5 — Evidence (2026-11-04)
+
+Product `125`, patch `125.5`. Closes residual C125 implementation gaps from P125.4 review: sourceCountry ranking in search path, diagnostics current-turn `userRequest`, workflow consolidation.
+
+**Deletions (Navigator):** `.github/workflows/carousel-verify.yml`, `.github/workflows/information-quality.yml` — offline coverage folded into `answer-quality-verify.yml`. Scripts `scripts/carousel-*.mjs` and unit tests retained.
+
+**Live production:** still `NOT_RUN` until release patch equals 125.5 and Navigator confirms user multi-turn outcome.
+
+---
+
 ## P125.4 — Evidence (2026-11-04)
 
 Product `125`, patch `125.4`. Scope: remaining WP3 (items 2, 3, 4, 8; steps 2–4 as behaviour suite + diagnostics + unified workflow).

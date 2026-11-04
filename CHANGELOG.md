@@ -1,3 +1,11 @@
+## P125.5 — C125 absolute close-out (remaining gaps + workflow consolidation) (2026-11-04)
+
+- **Item 4 complete:** `plan.sourceCountry` drives Serper `gl` bias (with place country fallback); `sortSourcesByPreferredHosts` + `authorityHostsFor` rank national-authority hosts first after merge in `fetchSerperDigestMulti` / conversation carousel path.
+- **Item 8 complete:** conversation pipeline log uses **current** `lastUserText` as `userRequest`; adds plan place/country/sourceCountry/dictated, planner timing fields; diagnostics export already carries `releaseMatchesRepoPackagePatch`.
+- **Authority ranking + suite:** tests for preferred-host sort; language-neutral patterns retained.
+- **Workflow consolidation:** offline carousel deterministic + render contract probe absorbed into `answer-quality-verify.yml`. Superseded workflow files removed from tree (Navigator must delete on GitHub if still present — see chat deletion list).
+- **Version:** patch `125.5`. WP2 O1/IANA still next cycle. Production multi-turn OBSERVED still required for owner “C125 done” (G5); this patch completes **code** scope of the programme.
+
 ## P125.4 — C125 close-out: WP3 remaining + unified answer-quality workflow (2026-11-04)
 
 - **WP3 extension remaining items:**
