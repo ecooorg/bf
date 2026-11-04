@@ -1,3 +1,20 @@
+## P126.6 — Evidence (2026-11-04)
+
+Hosted Core CI after P126.5 failed primarily on:
+
+```
+LANGUAGE server/simpleDirectConversation.ts: Cyrillic is not allowed outside the user-language allowlist.
+lint:copy failed
+```
+
+Secondary: `test:core` P60 tests assert `lint:copy` exit 0; `test:compact-ci-artifacts` embeds a mini DAG that re-runs lint:copy; `test:pipeline` hit a 300s node test timeout (13 pass, 1 cancelled) — same TIMEOUT class as recent prior runs.
+
+**Fix:** add `server/simpleDirectConversation.ts` to `LANGUAGE_ALLOWLIST` in `scripts/lint-copy.mjs` (user-language detection patterns; parallel to existing allowlisted bilingual modules).
+
+**OBSERVED:** source change to allowlist. **NOT_RUN:** full hosted re-run of Core CI after this patch; pipeline hang root-cause isolation.
+
+---
+
 ## P126.5 — Evidence (2026-11-04)
 
 **Scope:** C126 §12.D / §13 user-level validation phase (numbered **P126.5** because P126.4 was the CI/Render hotfix).

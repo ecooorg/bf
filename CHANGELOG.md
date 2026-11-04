@@ -1,3 +1,10 @@
+## P126.6 — lint:copy allowlist for Simple Direct search triggers (2026-11-04)
+
+- `scripts/lint-copy.mjs`: allowlist `server/simpleDirectConversation.ts` for intentional Cyrillic in explicit-search detection (same class as `intentFlags` / `webSearch`).
+- Unblocks `lint:copy`, `test:core` P60 copy-lint assertions, and the compact-ci-artifacts mini-DAG that re-ran lint:copy.
+- `test:pipeline` TIMEOUT (300s, 13 pass / 1 cancelled) is recorded as pre-existing flake / environment; not addressed by product logic in this patch.
+- Version: `126.6`.
+
 ## P126.5 — User-level validation ledger and enablement gate (2026-11-04)
 
 - Delivered C126 §13 “P126.4 User-level validation” as repository patch **P126.5** (P126.4 was the typecheck/gate hotfix).
