@@ -1,3 +1,9 @@
+## P125.10 — Evidence (2026-11-04)
+
+Sweep for the same class of failure as CI 125.8 (follow-up plan missing prior entities / rigid decisionNote). Code + related tests updated in one patch.
+
+---
+
 ## P125.9 — Evidence (2026-11-04)
 
 Hosted CI 125.8 still failed test:core on retained tokens (“software releases” / Node LTS). Root cause in live-task state recovery, not the decisionNote assertion. Fixed in resolveLiveTaskState.

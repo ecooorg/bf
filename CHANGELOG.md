@@ -1,3 +1,10 @@
+## P125.10 — Follow-up retention: related CI/assertions and live-task query (2026-11-04)
+
+- **resolveLiveTaskState (from P125.9):** last substantive prior user turn becomes `query` for search follow-ups (not only weather/LIVE patterns).
+- **planFromLiveTask:** avoid empty generic `information` when place is known.
+- **Tests:** `p124-38` accepts `live_task_followup` as well as `dialogue_reference_fallback` while still requiring prior place in the query; `p125-4` adds cross-domain retention cases (Node LTS, trains, weather).
+- **Version:** patch `125.10`.
+
 ## P125.9 — Live-task follow-up retains full prior user query (2026-11-04)
 
 - **Bug:** `resolveLiveTaskState` only recovered prior query when the previous turn matched weather/LIVE_TOPIC patterns, so follow-ups like “run another search” after a Node.js LTS question produced a generic plan without “Node”/“LTS”.
