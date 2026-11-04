@@ -1,3 +1,12 @@
+## P125.11 — CI root-cause: status silence + planner precedence (2026-11-04)
+
+Serious analysis of repeated red Core CI after C125 search changes:
+
+1. **formatSearchStatusBlock:** P125.3 over-emitted NOT_RUN on every non-search turn (`lookupExpected=false`), breaking P-1 (`p124-26`) and polluting prompts. Restored: silent when lookup was not expected; honest NEVER-claim-no-internet status only when lookup **was** expected but failed/skipped/disabled.
+2. **buildSearchDecision live-task short-circuit:** Always taking the heuristic live-task path prevented the model planner from seeing dialogue turns (T-2 / `p124-28` failed with empty `seen`). Live-task deterministic path now runs only when **no planner client** is available; with a client, the model planner runs first; on outage/unparsable, fallback still uses `resolveLiveTaskState` / `planFromLiveTask` so entity retention is kept.
+3. **Tests:** p125-3 / p125-4 status cases assert expected+skipped, not unexpected turns.
+4. **Version:** patch `125.11`.
+
 ## P125.10 — Follow-up retention: related CI/assertions and live-task query (2026-11-04)
 
 - **resolveLiveTaskState (from P125.9):** last substantive prior user turn becomes `query` for search follow-ups (not only weather/LIVE patterns).

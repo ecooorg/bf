@@ -1,3 +1,9 @@
+## P125.11 — Evidence (2026-11-04)
+
+Hosted 125.10 failures: p124-26 P-1 status silent contract; p124-28 T-2 planner dialogue visibility. Both were product-regressions from aggressive C125 short-circuits, not flaky CI. Fixed in code paths above.
+
+---
+
 ## P125.10 — Evidence (2026-11-04)
 
 Sweep for the same class of failure as CI 125.8 (follow-up plan missing prior entities / rigid decisionNote). Code + related tests updated in one patch.
