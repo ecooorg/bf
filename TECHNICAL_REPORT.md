@@ -1,3 +1,14 @@
+## P125.2 — Evidence (2026-11-04)
+
+Product version `125`, patch `125.2`. Scope: WP3 scope extension (documentation) and group B of the source policy (data).
+
+- **OBSERVED (diagnostics export and render log of 2026-11-04, running release 124.40, commit fb99ded):** a nine-turn dialogue about one city's current temperature; four turns ran no search, one used a mis-parsed place, one lost the place, one planner call timed out at 8003 ms, one turn answered through the model planner and the weather connector. The running release was 124.40, so patch 125.1 was not live when the dialogue was recorded.
+- **INFERRED / REPRODUCED (source, local replay of the gate functions on the 125.1 archive):** the pre-classifier is unreachable for the first turn because the planner gate rejects it; the place regex takes the first preposition-led fragment; the follow-up list lacks "one more query". The weather connector and the model planner path work.
+- **RECORDED (documentation):** eight work items, tests and acceptance in `docs/C125_ANSWER_QUALITY_PROGRAMME.md` section 4. Status of every item: `OPEN`.
+- **IMPLEMENTED (data):** group B enabled in `config/source-policy.json` (zones `rus`, `moscow`, `tatar`, `xn--p1acf`, `xn--80adxhks`, `xn--d1acj3b`). **NOT_VERIFIED:** the list against the IANA root zone database (not reachable in this session); the Punycode forms were computed from the zone names, not read from IANA. Cyrillic zones for "site", "online" and "org" were not applied (believed non-Russian operators, unconfirmed). The host list of group C is likewise not reconciled with EUR-Lex.
+- **KNOWN LIMITS:** the zone filter removes harmless pages hosted in these zones; mirrors and aggregators remain uncovered (unchanged from P125.1).
+- **TESTS:** see the validation lines below once run in this session; hosted CI, live Serper/Gemini and real conversations `NOT_RUN`.
+
 ## P125.1 — Evidence (2026-11-04)
 
 Product version `125`, patch `125.1`. Scope: C125 WP1 and WP2.

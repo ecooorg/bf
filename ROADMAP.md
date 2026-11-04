@@ -17,6 +17,7 @@ Detail: `docs/C125_ANSWER_QUALITY_PROGRAMME.md`; decisions: `docs/DECISIONS.md` 
 - [x] WP1 query fidelity (P125.1, local tests; live `NOT_RUN`): verbatim translation up to 20 words, entity- and number-preserving compression above, deterministic loss check, logging.
 - [x] WP2 source policy (P125.1, groups A and C applied; group B and IANA/EUR-Lex verification `OPEN`; live `NOT_RUN`): exclude Russian and Belarusian authority-controlled domains (country-code zones `.ru`, `.su`, `.xn--p1ai`, `.by`, `.xn--90ais`; verified Russian/Belarusian-operated zones; listed state-controlled hosts outside those zones), as versioned data, with diagnostics and a replay acceptance test. Open question O1 (bypass) is with the owner.
 - [ ] WP3 workflow, test and diagnostics audit: audit table first, then behaviour tests, a replayable answer-quality suite and a diagnostics export that lets an assistant diagnose a failed dialogue.
+- Status (P125.2, documentation and data): WP3 scope extended with search routing and answer grounding (`docs/C125_ANSWER_QUALITY_PROGRAMME.md`, section 4); WP2 group B now applied by default, IANA and EUR-Lex reconciliation `OPEN`; live `NOT_RUN`.
 - Status: WP1 and WP2 implemented in P125.1 with the limits recorded in `TECHNICAL_REPORT.md`; WP3 `OPEN`; no live evidence (`NOT_RUN`). Earlier status (P124.40): all `OPEN`.
 
 ## P124.35 — Universal follow-up context and evidence relevance (2026-11-03)
