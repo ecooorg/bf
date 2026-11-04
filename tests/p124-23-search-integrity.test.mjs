@@ -44,6 +44,8 @@ test('searchDecisionDetails exposes hosts and counts, never full URLs or digest 
 
 test('server wires the guarded validator and persistent search events (structure)', () => {
   const src = readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
+  const diagnostics = readFileSync(new URL('../server/conversationDiagnostics.ts', import.meta.url), 'utf8');
   assert.ok(!/\bvalidateNumbers\(/.test(src), 'server.ts must call safeValidateNumbers only');
-  for (const ev of ["event: 'web_search'", "event: 'direct_web_search'", "event: 'number_validator_error'"]) assert.ok(src.includes(ev), ev);
+  for (const ev of ["event: 'web_search'", "event: 'simple_direct_search'", "event: 'number_validator_error'"]) assert.ok(src.includes(ev), ev);
+  assert.ok(diagnostics.includes("r.event === 'simple_direct_search'"), 'conversation diagnostics must include the Simple Direct search event');
 });
