@@ -1,3 +1,10 @@
+## P124.37 — CI red fixes for 124.36: Architect navigation contract, self-contained search follow-ups (2026-11-04)
+
+- **CI fix (`test:core`, `tests/p119-agent-boundaries.test.mjs`, "P121.0.49"):** the test required exactly one `window.location.href = '` in `src/App.tsx`; P124.36 intentionally added two more Architect shortcuts (chat header, More menu). The contract is now "at least one navigation, and every navigation targets `/project`", which still fails on any other target.
+- **CI fix (`test:web`, `tests/web-and-epistemics.test.mjs`, "explicit search follow-ups..."):** the P124.35 prior-task branch of `contextualizeSearchText` ran before the existing "follow-up already names the place and the measurement" shortcut, so such a follow-up was searched as `<previous task> <follow-up words>` (duplicated place, leaked instruction words). The shortcut now runs first in `server/webSearch.ts`; the test gains an English, place-neutral assertion.
+- No UI, routes, agent entry points or `data-testid` changed (G4 not applicable).
+- Validation: see `TECHNICAL_REPORT.md` P124.37; hosted CI `NOT_RUN` from this archive.
+
 ## P124.36 — Cross-mode header and More-menu parity (2026-11-03)
 
 - Conversational and Expert now expose decision brief and delete-dialogue actions under the same context-aware conditions; these actions are no longer hidden solely because the user is in Conversational mode.

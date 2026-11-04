@@ -1,3 +1,14 @@
+## P124.37 — Evidence (2026-11-04)
+
+Product version `124`, patch `124.37`.
+
+- **OBSERVED (hosted run for patch 124.36, log `0_check-and-build`):** DAG 28 PASS, 2 FAIL (`test:core`, `test:web`); one failing test in each.
+- **ROOT CAUSES (source inspection plus local reproduction):** (1) stale source-contract assertion after P124.36 added two more `/project` navigations in `src/App.tsx`; (2) branch order in `contextualizeSearchText` made the self-contained-follow-up shortcut unreachable after P124.35.
+- **FIXED (source):** `tests/p119-agent-boundaries.test.mjs` (contract = every navigation targets `/project`); `server/webSearch.ts` (shortcut moved before the prior-task branch); `tests/web-and-epistemics.test.mjs` (extra assertion).
+- **TESTS PASS (local, Node 22):** `npm run test:core`, `npm run test:web`, `npm run typecheck`, `npm run version:check`, `npm run lint:copy`.
+- **NOT_RUN:** hosted GitHub Actions for this patch, browser E2E, live providers, user-level answer quality.
+- **SCOPE:** no UI/route/entry changes.
+
 ## P124.36 — Cross-mode header and More-menu parity (2026-11-03)
 
 - **IMPLEMENTED (source):** Conversational and Expert share the same context-aware decision brief and delete-dialogue menu actions. Architect is reachable from the chat header when enabled.
