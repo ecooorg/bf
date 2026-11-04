@@ -48,7 +48,7 @@ test('P124.39 freshness "now" marks old results, keeps them out of the sources a
       { title: 'Fresh report', snippet: 'Voting went on.', link: 'https://www.reuters.com/world/us/fresh', date: '3 hours ago' },
       { title: 'Old hoax story', snippet: 'Threats came from email domains.', link: 'https://example.org/news/2024/11/05/hoax' },
       { title: 'Dated old', snippet: 'Earlier event.', link: 'https://apnews.com/article/old', date: 'Nov 5, 2024' },
-      { title: 'Unlisted today', snippet: 'Claim.', link: 'https://ria.ru/20261104/x.html', date: '2 hours ago' },
+      { title: 'Unlisted today', snippet: 'Claim.', link: 'https://news.example.net/20261104/x.html', date: '2 hours ago' },
     ],
   };
   const r = digestFromSerperResponse(data, 'q', { today: TODAY, freshness: 'now' });
@@ -57,9 +57,9 @@ test('P124.39 freshness "now" marks old results, keeps them out of the sources a
   assert.doesNotMatch(lines[0], /OLD/);
   assert.match(lines[1], /example\.org — unlisted; OLD/);
   assert.match(lines[2], /apnews\.com — trusted agency \(Associated Press\); OLD/);
-  assert.match(lines[3], /ria\.ru — unlisted\]/);
+  assert.match(lines[3], /news\.example\.net — unlisted\]/);
   assert.doesNotMatch(lines[3], /OLD/);
-  assert.deepEqual(r.sources.map((s) => new URL(s.url).hostname), ['www.reuters.com', 'ria.ru']);
+  assert.deepEqual(r.sources.map((s) => new URL(s.url).hostname), ['www.reuters.com', 'news.example.net']);
   const noFresh = digestFromSerperResponse(data, 'q', { today: TODAY });
   assert.doesNotMatch(noFresh.digest, /OLD/, 'no freshness class: nothing is marked old');
   assert.equal(noFresh.sources.length, 4);
