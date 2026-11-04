@@ -110,3 +110,9 @@ Evidence labels as in section 1. Source: the diagnostics export and render log o
 ## 5. Order and non-goals
 
 Order: WP2 and WP1 can proceed first because they change what reaches the model; WP3 step 1 may run in parallel because it only reports. The WP3 scope extension (search routing and answer grounding) changes what reaches the model and may run alongside WP2 and WP1 work; it is user-visible and takes priority over audit work in the cascade (`AGENTS.md` §4, P2 before P4). Non-goals: model-carousel, key-pool and provider-routing changes; UI changes (if any entry or completion surface changes, `AGENTS.md` G4 applies); changing the trusted-source list of P124.39 without owner approval.
+
+
+## 6. CI vs manual heuristics (P125.13)
+
+- **Core CI** (`ci.yml` / `npm run test:core`): product kernel — build, typecheck, security, contracts, source policy / query fidelity, carousel unit, retrieval integrity. Not phrase-level routing regex packs.
+- **Manual** (`search-heuristics.yml` / `npm run test:search-heuristics`): phrase and heuristic routing regressions (`p125-3`, `p125-4`, `p124-26`, `p124-28`, `p124-38`, `universal-followup`). Run on demand when debugging search phrasing; not a gate on every patch.
