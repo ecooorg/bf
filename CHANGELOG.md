@@ -1,3 +1,11 @@
+## P126.4 — Fix Simple Direct gate, typecheck and CI/render (2026-11-04)
+
+- Gated the P126.1 Simple Direct conversation path on `BIFORGE_GEMINI_DIRECT_MODE=true`. When the flag is unset or false (as in Core CI tests and previous non-direct deployments), the structured conversational pipeline is used again so fake-Gemini tests and existing clients receive the expected JSON shape.
+- Restored the missing `normalizeSimpleDirectReply` import in `server.ts` (TS2304).
+- Fixed TypeScript narrowing in `resolveOptionalSearch` so `settled.result` is only accessed after a successful non-timeout branch (TS2339).
+- These three defects caused typecheck/build failure (Render red) and 503 responses from `/api/conversation` under the test env that forces `BIFORGE_GEMINI_DIRECT_MODE=false` (core/files/pipeline TAP failures).
+- Version: `126.4`.
+
 ## P126.3 — Conversation reliability and outcome diagnostics (2026-11-04)
 
 - Added request-level Simple telemetry for accepted requests, successful non-empty Gemini generations, key-slot rotations, model-cascade rotations, search failures/degradation, HTTP response completion and interrupted delivery.

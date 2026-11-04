@@ -1,3 +1,21 @@
+## P126.4 — Evidence (2026-11-04)
+
+Hosted Core CI (commit 433ee0b / 126.3) and Render deploy failed:
+
+1. `typecheck` / `build:server`: TS2304 `normalizeSimpleDirectReply` not in scope in `server.ts`; TS2339 unsafe access to `settled.result` in `resolveOptionalSearch`.
+2. Runtime under test env (`BIFORGE_GEMINI_DIRECT_MODE=false`): the Simple Direct path still ran for non-Expert turns, expected plain-text Gemini output, and returned 503 `GEMINI_DIRECT_UNAVAILABLE` when the structured fake-Gemini response was treated as empty / unusable. Affected `tests/core.test.mjs`, `tests/files.test.mjs`, `tests/pipeline.test.mjs` (503 !== 200 and the same error message).
+
+Fixes in this patch:
+- Import `normalizeSimpleDirectReply` from `./server/simpleDirectConversation.ts`.
+- Narrow the race result with `settled.timedOut === true` before reading `.result`.
+- Require `process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true'` before entering the Simple Direct branch.
+
+No intentional product behaviour change when the flag is true. When the flag is false (CI default and prior deployments), the pre-P126 structured pipeline is restored.
+
+Checks: source inspection of the three changed sites; version metadata `126` / `126.4`. Full `npm run typecheck`, production build, Core CI TAP suite, live Gemini and Render deploy remain `NOT_RUN` in this sandbox (no full `node_modules` / provider keys).
+
+---
+
 ## P126.3 — Conversation reliability and outcome diagnostics (2026-11-04)
 
 **Reliability review:** the Simple direct route receives the compacted chronological history, removes the current user turn from the history block when it is also supplied as the latest message, and forwards it once as the current turn. The existing compaction helper retains recent exchanges and protects recent user messages from the older-assistant trimming policy. Native attachment payloads are passed as Gemini `inlineData` parts; text/PDF extraction and size validation remain in the existing `server/files.ts` pipeline. The existing Conversation UI retry path resends the pending text and file list, and removes the already-persisted failed user turn before adding the retry turn, avoiding duplicate history entries.

@@ -34,7 +34,7 @@ import {
   type ExpertEndpoint,
 } from './server/expertContracts.ts';
 import { buildConversationTurnPrompt, planConversationTurn, pinConversationAgent } from './server/agentRouting.ts';
-import { SIMPLE_DIRECT_SYSTEM, buildSimpleDirectPrompt, handleSimpleDirectConversation, isExplicitSearchRequest, resolveOptionalSearch } from './server/simpleDirectConversation.ts';
+import { SIMPLE_DIRECT_SYSTEM, buildSimpleDirectPrompt, handleSimpleDirectConversation, isExplicitSearchRequest, resolveOptionalSearch, normalizeSimpleDirectReply } from './server/simpleDirectConversation.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
@@ -1288,9 +1288,10 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       extraNumberSource: attachItems.map((a) => a.text).join('\n'),
       extraChars: attachmentsBlock.length,
     };
-    // P126.1/P126.2: Simple uses one direct Gemini generation. Optional search is bounded and fail-open;
-    // legacy intent/mode, search-decision, quality-retry and epistemic stages remain outside this route.
-    if (req.body?.productMode !== 'Expert' && !distressMarkerDetected) {
+    // P126.1/P126.2: Simple uses one direct Gemini generation when BIFORGE_GEMINI_DIRECT_MODE=true.
+    // Optional search is bounded and fail-open; legacy intent/mode, search-decision, quality-retry and
+    // epistemic stages remain outside this route. Tests and non-direct deployments keep the structured path.
+    if (process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true' && req.body?.productMode !== 'Expert' && !distressMarkerDetected) {
       simpleDirectRequest = true;
       const directRequestId = String((req as any).requestId || req.get('x-request-id') || '');
       void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_requests',
