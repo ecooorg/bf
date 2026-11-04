@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "decision": "C125 WP3 item 4 / P125.4",
+  "note": "Versioned national authority hosts for ranking when sourceCountry is set. Not a product default country. Each entry lists retrieval source and date. Locale rule: no hard-coded home country in code or prompts.",
+  "authorities": [
+    {
+      "country": "NO",
+      "hosts": ["met.no", "yr.no"],
+      "topics": ["weather"],
+      "source": "Norwegian Meteorological Institute public site",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "SE",
+      "hosts": ["smhi.se"],
+      "topics": ["weather"],
+      "source": "Swedish Meteorological and Hydrological Institute",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "DE",
+      "hosts": ["dwd.de"],
+      "topics": ["weather"],
+      "source": "Deutscher Wetterdienst",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "FR",
+      "hosts": ["meteofrance.com", "meteofrance.fr"],
+      "topics": ["weather"],
+      "source": "Météo-France",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "JP",
+      "hosts": ["jma.go.jp"],
+      "topics": ["weather"],
+      "source": "Japan Meteorological Agency",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "CA",
+      "hosts": ["weather.gc.ca"],
+      "topics": ["weather"],
+      "source": "Environment and Climate Change Canada",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "AU",
+      "hosts": ["bom.gov.au"],
+      "topics": ["weather"],
+      "source": "Australian Bureau of Meteorology",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "GB",
+      "hosts": ["metoffice.gov.uk"],
+      "topics": ["weather"],
+      "source": "UK Met Office",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "US",
+      "hosts": ["weather.gov", "noaa.gov"],
+      "topics": ["weather"],
+      "source": "US National Weather Service / NOAA",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "BR",
+      "hosts": ["inmet.gov.br"],
+      "topics": ["weather"],
+      "source": "Instituto Nacional de Meteorologia (Brazil)",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "IN",
+      "hosts": ["mausam.imd.gov.in", "imd.gov.in"],
+      "topics": ["weather"],
+      "source": "India Meteorological Department",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "PL",
+      "hosts": ["imgw.pl"],
+      "topics": ["weather"],
+      "source": "Institute of Meteorology and Water Management (Poland)",
+      "retrieved": "2026-11-04"
+    },
+    {
+      "country": "CH",
+      "hosts": ["meteoswiss.admin.ch", "meteoschweiz.admin.ch"],
+      "topics": ["weather"],
+      "source": "MeteoSwiss (deployment example only; not a code default)",
+      "retrieved": "2026-11-04"
+    }
+  ]
+}
