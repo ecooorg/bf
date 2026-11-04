@@ -47,13 +47,13 @@ export async function handleSimpleDirectConversation(
     promptOverride?: string;
   },
   generate: (prompt: string, byokKey?: string, preferredModel?: string, attachmentParts?: unknown[], useSearch?: boolean) =>
-    Promise<{ text: string; model: string; durationMs: number; keySlot: number; keyAttempts: number }>,
-): Promise<{ reply: string; model: string; durationMs: number; keySlot: number; keyAttempts: number }> {
+    Promise<{ text: string; model: string; durationMs: number; keySlot: number; keyAttempts: number; modelRotations?: number }>,
+): Promise<{ reply: string; model: string; durationMs: number; keySlot: number; keyAttempts: number; modelRotations: number }> {
   const prompt = input.promptOverride ?? buildSimpleDirectPrompt(input);
   const generated = await generate(prompt, input.byokKey, input.preferredModel, input.attachmentParts as unknown[], false);
   const reply = normalizeSimpleDirectReply(generated.text);
   if (!reply) throw Object.assign(new Error('Gemini returned an empty response.'), { code: 'EMPTY_MODEL_RESPONSE' });
-  return { reply, model: generated.model, durationMs: generated.durationMs, keySlot: generated.keySlot, keyAttempts: generated.keyAttempts };
+  return { reply, model: generated.model, durationMs: generated.durationMs, keySlot: generated.keySlot, keyAttempts: generated.keyAttempts, modelRotations: generated.modelRotations || 0 };
 }
 
 

@@ -18,7 +18,8 @@ export async function conversationSessionLog(): Promise<string> {
   const boots = rows.filter((r) => r.event === 'process_boot').slice(-20);
   const searches = rows.filter((r) => r.event === 'web_search' || r.event === 'direct_web_search').slice(-40);
   const planner = rows.filter((r) => r.event === 'search_planner_timing').slice(-40);
-  const convo = rows.filter((r) => r.component === 'conversation' && /pipeline|passthrough/.test(String(r.event))).slice(-40);
+  const convo = rows.filter((r) => r.component === 'conversation'
+    && (/pipeline|passthrough/.test(String(r.event)) || String(r.event).startsWith('conversation_') || String(r.event).startsWith('simple_direct_'))).slice(-80);
   const problems = rows.filter((r) => (r.component === 'conversation' || r.event === 'number_validator_error') && (r.level === 'warn' || r.level === 'error')).slice(-40);
   const http = rows.filter((r) => r.component === 'http' && /\/api\/(agent\/conversational|conversation|agent\/expert)/.test(String(r.details?.path || ''))).slice(-40);
   const line = (r: any) => `${r.timestamp} ${String(r.level).toUpperCase()} ${r.event} request=${r.requestId ?? '-'} message=${String(r.message ?? '').slice(0, 300)} details=${j(r.details)}`;
@@ -44,7 +45,7 @@ export async function conversationSessionLog(): Promise<string> {
     ...(searches.length ? searches.map(line) : ['NO_SEARCH_DECISION_RECORDS']),
     'SEARCH_PLANNER_TIMING (last 40):',
     ...(planner.length ? planner.map(line) : ['NO_SEARCH_PLANNER_TIMING_RECORDS']),
-    'CONVERSATION_RESPONSES (last 40, full details; per-turn userRequest should be the current message when logged):',
+    'CONVERSATION_RESPONSES_AND_RELIABILITY_METRICS (last 80; separates generation from HTTP completion; client rendering is not inferred):',
     ...(convo.length ? convo.map((r) => `${r.timestamp} ${r.event} request=${r.requestId ?? '-'}\nDETAILS=${JSON.stringify(r.details ?? {}, null, 2)}`) : ['NO_CONVERSATION_EVENTS_CAPTURED']),
     'WARNINGS_AND_ERRORS (conversation, last 40):',
     ...(problems.length ? problems.map(line) : ['NONE']),
