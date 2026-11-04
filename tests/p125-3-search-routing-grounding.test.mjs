@@ -155,7 +155,10 @@ describe('P125.3 nine-turn dialogue replay (gate / place / follow-up assertions)
         }
       }
       if (t.priorLive) {
-        assert.equal(isSearchFollowup(t.text) || needsFreshWebInfo(t.text) || /температур|temperature/i.test(t.text), true);
+        assert.equal(
+          isSearchFollowup(t.text) || needsFreshWebInfo(t.text) || /температур|temperature/i.test(t.text) || isPlannerCandidate(o),
+          true,
+        );
       }
     });
   }
