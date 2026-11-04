@@ -1,3 +1,8 @@
+## P125.8 — CI red fix: universal follow-up decisionNote (2026-11-04)
+
+- **test:core:** `tests/universal-followup-regression.test.mjs` accepts `live_task_followup` (P125.4 live-task path) as well as legacy `contextual_followup_fallback` when the model planner is absent or fails.
+- **Version:** patch `125.8`.
+
 ## P125.7 — CI red fix: typecheck, action pins (2026-11-04)
 
 - **Typecheck / build:server:** `WebSearchResult.plan` includes `sourceCountry` and `dictated` (P125.5 fields), clearing TS2339 in `server/webSearch.ts` and `server.ts`.

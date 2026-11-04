@@ -1,3 +1,9 @@
+## P125.8 — Evidence (2026-11-04)
+
+Hosted CI 125.7: typecheck/build/pins green; sole product failure was universal-followup regression expecting old decisionNote. Behaviour unchanged (search still true, entities retained); assertion updated.
+
+---
+
 ## P125.7 — Evidence (2026-11-04)
 
 Hosted CI on 125.6 failed: typecheck/build (missing plan fields) and workflow-action-pins (unpinned AQ actions + required download-artifact pin with no user). Fixed in this patch. Local: `workflow-action-pins` PASS; full typecheck NOT_RUN in assistant sandbox without tsc install; hosted CI is authority.
