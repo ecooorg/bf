@@ -199,6 +199,7 @@
         "server/epistemicVerifier.ts",
         "server/intentFlags.ts",
         "server/keepAlive.ts",
+        "server/queryFidelity.ts",
         "server/reasoningState.ts",
         "server/turnFocus.ts",
         "server/webSearch.ts",
@@ -357,7 +358,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --test tests/workflow-action-pins.test.mjs && node --import tsx --test tests/security-headers.test.mjs tests/p124-23-search-integrity.test.mjs tests/p124-24-diagnostics.test.mjs tests/p124-25-emergency-benign.test.mjs && node --import tsx --test tests/universal-followup-regression.test.mjs && node --test tests/p124-36-unified-mode-menus.test.mjs && node --import tsx --test tests/p124-25-retrieval-integrity.test.mjs tests/p124-26-query-status.test.mjs tests/p124-27-key-pool.test.mjs tests/p124-28-search-planner.test.mjs tests/p124-29-weather-connector.test.mjs tests/p124-30-search-carousel.test.mjs tests/p124-31-llm-latency-config.test.mjs tests/p124-38-search-trigger-coverage.test.mjs tests/p124-39-source-quality.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --test tests/workflow-action-pins.test.mjs && node --import tsx --test tests/security-headers.test.mjs tests/p124-23-search-integrity.test.mjs tests/p124-24-diagnostics.test.mjs tests/p124-25-emergency-benign.test.mjs && node --import tsx --test tests/universal-followup-regression.test.mjs && node --test tests/p124-36-unified-mode-menus.test.mjs && node --import tsx --test tests/p124-25-retrieval-integrity.test.mjs tests/p124-26-query-status.test.mjs tests/p124-27-key-pool.test.mjs tests/p124-28-search-planner.test.mjs tests/p124-29-weather-connector.test.mjs tests/p124-30-search-carousel.test.mjs tests/p124-31-llm-latency-config.test.mjs tests/p124-38-search-trigger-coverage.test.mjs tests/p124-39-source-quality.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/p125-1-query-fidelity-source-policy.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -395,6 +396,7 @@
         "tests/p124-36-unified-mode-menus.test.mjs",
         "tests/p124-38-search-trigger-coverage.test.mjs",
         "tests/p124-39-source-quality.test.mjs",
+        "tests/p125-1-query-fidelity-source-policy.test.mjs",
         "tests/redact-secrets.test.mjs",
         "tests/security-headers.test.mjs",
         "tests/universal-followup-regression.test.mjs",
@@ -434,10 +436,12 @@
         "server/projectRoutes.ts",
         "server/promptCore.ts",
         "server/promptPacks.ts",
+        "server/queryFidelity.ts",
         "server/reasoningState.ts",
         "server/redact.ts",
         "server/searchCarousel.ts",
         "server/securityHeaders.ts",
+        "server/sourcePolicy.ts",
         "server/sourceTrust.ts",
         "server/statePipeline.ts",
         "server/weatherConnector.ts",
@@ -1342,6 +1346,10 @@
       "critical-router-selection",
       "test:models"
     ],
+    "server/queryFidelity.ts": [
+      "lint:copy",
+      "test:core"
+    ],
     "server/queueMachine.ts": [
       "critical-gemini-timeout",
       "critical-router-selection",
@@ -1394,6 +1402,9 @@
     ],
     "server/sourceHealth.ts": [
       "test:carousel-unit"
+    ],
+    "server/sourcePolicy.ts": [
+      "test:core"
     ],
     "server/sourceTrust.ts": [
       "test:core"

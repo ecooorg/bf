@@ -6,6 +6,8 @@
 
 **Effect:** planned for C125; nothing in this decision is implemented yet. The trusted-source list of P124.39 is unchanged.
 
+**Status (P125.1):** implemented for groups A and C (`config/source-policy.json`, `server/sourcePolicy.ts`); group B stays disabled until verified; open question O1 unchanged (default: no bypass).
+
 ---
 
 ## D-2026-11-04-01 — Answer quality is cycle C125, separate from carousel and operations work

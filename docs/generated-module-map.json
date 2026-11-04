@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-04T06:20:31.300Z",
+  "generatedAt": "2026-11-04T08:32:25.646Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
   "root": "bf-main",
   "summary": {
-    "moduleCount": 183,
-    "edgeCount": 453,
+    "moduleCount": 185,
+    "edgeCount": 455,
     "cycleCount": 0,
-    "totalLines": 35001
+    "totalLines": 35305
   },
   "cycles": [],
   "layers": {
-    "server": 86,
+    "server": 88,
     "src": 83,
     "other": 14
   },
@@ -155,7 +155,7 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2513,
+      "lines": 2517,
       "imports": [
         "server/agentRouting.ts",
         "server/analysisService.ts",
@@ -812,6 +812,13 @@
       "fanIn": 0
     },
     {
+      "path": "server/queryFidelity.ts",
+      "layer": "server",
+      "lines": 189,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "server/queueMachine.ts",
       "layer": "server",
       "lines": 39,
@@ -909,6 +916,13 @@
       "fanIn": 2
     },
     {
+      "path": "server/sourcePolicy.ts",
+      "layer": "server",
+      "lines": 94,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "server/sourceTrust.ts",
       "layer": "server",
       "lines": 96,
@@ -977,8 +991,10 @@
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 1594,
+      "lines": 1611,
       "imports": [
+        "server/queryFidelity.ts",
+        "server/sourcePolicy.ts",
         "server/sourceTrust.ts",
         "server/untrustedData.ts",
         "server/weatherConnector.ts"
@@ -1962,7 +1978,7 @@
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2513
+      "lines": 2517
     },
     {
       "path": "src/ExpertStepScreens.tsx",
@@ -1970,7 +1986,7 @@
     },
     {
       "path": "server/webSearch.ts",
-      "lines": 1594
+      "lines": 1611
     },
     {
       "path": "server/codeTaskService.ts",

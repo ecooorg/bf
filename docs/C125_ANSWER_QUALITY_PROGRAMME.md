@@ -17,6 +17,16 @@ Labels: OBSERVED (diagnostics export of 2026-11-04, release 124.36, one Expert d
 
 Problem: shortening can drop key entities, numbers, negations and constraints.
 
+**Query-size rule (owner, 2026-11-04).** A fixed compression ratio does not work: 100 words cannot be squeezed into 20 without loss. The limit is defined as follows:
+
+- If the query has at most 20 words, translate it verbatim, without compression.
+- If it has more than 20 words, send not one compressed query but several short queries. The number of queries is k = min(3, ⌈n/30⌉), where n is the word count of the source text. Each query has at most 25 words. Google truncates a query at roughly 32 words anyway, so one long query is pointless.
+- Criterion instead of a ratio: every name, number, date, place, negation and explicit condition of the source text must appear in at least one of the queries. If the check fails, translate the first 25 words verbatim and add the missing entities as a second query.
+- Examples: 100 words become 3 queries of 25 words each; 45 words become 2 queries; 25 words become 1 query; 20 words go through verbatim.
+- The limits are configurable: 20, 25 and 3 are constants in one place. The number of queries is capped by the existing `WEB_SEARCH_MAX_QUERIES` limit.
+
+Details:
+
 - Queries up to 20 words (owner threshold, one named constant): translate faithfully and verbatim; no summarising; keep the existing instruction-word filter only.
 - Longer queries: compress, but every named entity, number, date, place, negation and explicit constraint must survive.
 - Deterministic check after translation or compression: entities and numbers found in the source text must appear in the English query; on a miss fall back to the verbatim translation.
