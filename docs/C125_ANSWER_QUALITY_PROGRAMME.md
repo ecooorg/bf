@@ -66,7 +66,7 @@ Implementation rules:
 
 ## 4. Work package WP3 — Workflow, test and diagnostics audit
 
-Problem: seven workflows (`acceptance`, `architect-compare`, `carousel-verify`, `ci`, `expert-verify`, `information-quality`, `ops` under `.github/workflows`) and the 30 verification-DAG checks are partly stale or silent, and the same classes of failure recur.
+Problem (historical): seven product workflows under `.github/workflows` were partly stale or silent, and the same classes of failure recurred. **Active product CI after C125 (P125.6):** only `ci.yml` (Core CI) and `answer-quality-verify.yml` (Answer Quality — search, routing, carousel offline, replay suite). Platform-only: Dependabot (`.github/dependabot.yml`) and CodeQL when enabled at org/repo level. Retired (do not resurrect; rewrite if needed later): `acceptance`, `architect-compare`, `carousel-verify`, `expert-verify`, `information-quality`, `ops`. Stale workflows that encoded a past mode-selection or past UI contract are treated as harmful if left runnable.
 
 - Step 1, audit only. For each workflow and each DAG check record purpose, last real signal, whether it ever caught a user-visible defect, and a disposition keep / update / merge / archive / delete (`AGENTS.md` §6). Deliver the table and stop for review. Do not start steps 2–4 before the owner has seen it.
 - Step 2: replace source-text regex contracts with behaviour tests where the behaviour can run offline; keep regex contracts only for security and routing invariants.
