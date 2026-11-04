@@ -1,3 +1,10 @@
+## P125.6 — CI inventory: four active contours only (2026-11-04)
+
+- **Programme:** `docs/C125_ANSWER_QUALITY_PROGRAMME.md` and `docs/C125_WP3_WORKFLOW_AUDIT.md` record the active inventory: product workflows **`ci.yml`** + **`answer-quality-verify.yml`**; platform **Dependabot** + **CodeQL** (if enabled). Retired product workflows must not be restored; rewrite fresh when needed.
+- **Tree:** removed obsolete product workflows from `.github/workflows/` (see Navigator deletion list if remote still has them).
+- **Tests:** inventory and handoff contracts updated for the two product workflows only; architect dual-compare workflow assertion inverted (file must stay absent).
+- **Version:** patch `125.6`. No runtime product behaviour change beyond CI inventory.
+
 ## P125.5 — C125 absolute close-out (remaining gaps + workflow consolidation) (2026-11-04)
 
 - **Item 4 complete:** `plan.sourceCountry` drives Serper `gl` bias (with place country fallback); `sortSourcesByPreferredHosts` + `authorityHostsFor` rank national-authority hosts first after merge in `fetchSerperDigestMulti` / conversation carousel path.

@@ -1,3 +1,9 @@
+## P125.6 — Evidence (2026-11-04)
+
+Micro-patch: C125 programme and WP3 audit align with owner decision — only Core CI, Answer Quality, Dependabot, and CodeQL remain meaningful; other product workflows retired as stale/harmful if left runnable.
+
+---
+
 ## P125.5 — Evidence (2026-11-04)
 
 Product `125`, patch `125.5`. Closes residual C125 implementation gaps from P125.4 review: sourceCountry ranking in search path, diagnostics current-turn `userRequest`, workflow consolidation.
