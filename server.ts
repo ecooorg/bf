@@ -53,7 +53,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -1146,7 +1146,9 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     const translateModel = (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite';
     // P124.26/28: one instruction-free plan (query, place, ISO country) shared by every provider of the chain.
     const planStartedAt = Date.now();
-    const plan: SearchPlan = decidedPlan || await buildSearchPlan({ userText: searchText, client, model: translateModel, timeoutMs: Math.min(8000, timeoutMs) });
+    const rawPlan: SearchPlan = decidedPlan || await buildSearchPlan({ userText: searchText, client, model: translateModel, timeoutMs: Math.min(8000, timeoutMs) });
+    // P124.39: a plan from the heuristic paths may still hold the user's own language; the provider always gets an English query.
+    const plan: SearchPlan = await ensureEnglishPlan(rawPlan, { client, model: translateModel, timeoutMs: Math.min(5000, timeoutMs) });
     const planMs = Date.now() - planStartedAt;
     const serperKey = (process.env.SERPER_API_KEY || '').trim();
     const providers: Partial<Record<ProviderId, SearchProvider>> = {
@@ -1156,7 +1158,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
         search: (query, country) => {
           const remaining = deadlineAt === undefined ? timeoutMs : Math.min(timeoutMs, deadlineAt - Date.now());
           if (remaining < 8_000) return Promise.resolve(skippedWebSearch('skipped', 'request_deadline'));
-          return fetchSerperDigestMulti({ apiKey: serperKey, userText: searchText, englishQuery: query, today, timeoutMs: remaining, country,
+          return fetchSerperDigestMulti({ apiKey: serperKey, userText: searchText, englishQuery: query, today, timeoutMs: remaining, country, freshness: plan.freshness,
             extraQueries: query === plan.query ? plan.queries : undefined });
         },
       },

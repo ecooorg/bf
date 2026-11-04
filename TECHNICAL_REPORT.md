@@ -1,3 +1,13 @@
+## P124.39 — Evidence (2026-11-04)
+
+Product version `124`, patch `124.39`.
+
+- **OBSERVED (diagnostics export, release 124.36):** search turns on `pre_classifier_live_data` used Russian queries (`planSource: heuristic`) and returned Russian-language hosts; the single turn on a model plan used English queries and hosts such as reuters, apnews, politico. Search result text is not exported, so which page first carried the Toledo claim is `NOT_VERIFIED`.
+- **IMPLEMENTED (source):** English-only provider queries for every plan; trusted-source registry and labels; OLD marking and exclusion for freshness `now`; corroboration and same-name rules in the evidence contract; region-qualified place matching.
+- **LIMITS:** the registry is a finite owner-supplied list; an unlisted outlet is "not proof on its own", not "false". A state-affiliated outlet outside the list is not separately flagged. Date detection needs a SERP date or a date in the URL path; undated results are not marked.
+- **TESTS PASS (local, Node 22):** new suite 10/10; `npm run test:core`, `npm run test:web`, `npm run typecheck`, `npm run version:check`, `npm run docs:check` and the `check` verification DAG: `check` verification DAG 26/26 PASS; additionally `test:pipeline`, `test:turn`, `test:gates`, `test:security`, `test:project`, `test:models`, `test:capability-graph` PASS.
+- **NOT_RUN:** hosted GitHub Actions, live Serper/Gemini, real conversations, user-level answer quality.
+
 ## P124.38 — Evidence (2026-11-04)
 
 Product version `124`, patch `124.38`.
