@@ -12,14 +12,11 @@ const script = path.join(root, 'scripts/architect-dual-compare.mjs');
 const workflow = path.join(root, '.github/workflows/architect-compare.yml');
 const fixture = path.join(root, 'scripts/architect-dual-expense-goal.txt');
 
-test('architect dual-compare script and workflow exist', () => {
+test('architect dual-compare script exists; Lab vs Legacy workflow retired after mode choice', () => {
   assert.ok(existsSync(script), 'scripts/architect-dual-compare.mjs');
-  assert.ok(existsSync(workflow), 'workflow file (.github/workflows/architect-compare.yml)');
   assert.ok(existsSync(fixture), 'expense goal fixture');
-  const yml = readFileSync(workflow, 'utf8');
-  assert.match(yml, /workflow_dispatch/);
-  assert.match(yml, /architect-dual-compare\.mjs/);
-  assert.match(yml, /upload-artifact/);
+  // C125 programme: architect-compare.yml removed; dual-compare was a one-time mode-selection tool.
+  assert.equal(existsSync(workflow), false, 'architect-compare.yml must stay deleted');
 });
 
 test('dual-compare dry-run writes report without staging', () => {

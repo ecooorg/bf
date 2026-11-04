@@ -25,13 +25,11 @@ const runAsync = (script, dir, extra = {}) => new Promise((resolve, reject) => {
   child.once('close', (status, signal) => resolve({ status, signal, stdout, stderr }));
 });
 
-test('P124.5 every canonical workflow publishes one summary and readable diagnostic logs', () => {
-  for (const name of ['ci.yml', 'acceptance.yml', 'architect-compare.yml', 'ops.yml', 'expert-verify.yml', 'answer-quality-verify.yml']) {
-    const workflow = fs.readFileSync(path.join(root, '.github/workflows', name), 'utf8');
-    assert.match(workflow, /diagnostics-summary\.mjs/, name);
-    assert.match(workflow, /ASSISTANT_SUMMARY\.md/, name);
-    assert.doesNotMatch(workflow, /ASSISTANT_PASTE|biforge-ci-logs\.zip/, `${name} must not use split handoffs or nested archives`);
-  }
+test('P124.5 Core CI publishes one summary and readable diagnostic logs', () => {
+  const workflow = fs.readFileSync(path.join(root, '.github/workflows', 'ci.yml'), 'utf8');
+  assert.match(workflow, /diagnostics-summary\.mjs/);
+  assert.match(workflow, /ASSISTANT_SUMMARY\.md/);
+  assert.doesNotMatch(workflow, /ASSISTANT_PASTE|biforge-ci-logs\.zip/);
 });
 
 test('P124.5 assistant handoff contains failure context and counts in one file', () => {

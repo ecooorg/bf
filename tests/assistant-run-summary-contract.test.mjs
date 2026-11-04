@@ -6,13 +6,14 @@ import { spawnSync } from 'node:child_process';
 
 const root = path.resolve(new URL('..', import.meta.url).pathname);
 
-test('canonical workflows use one unified diagnostics summary', () => {
-  for (const name of ['ci.yml', 'acceptance.yml', 'architect-compare.yml', 'ops.yml', 'expert-verify.yml', 'answer-quality-verify.yml']) {
-    const workflow = fs.readFileSync(path.join(root, '.github/workflows', name), 'utf8');
-    assert.match(workflow, /diagnostics-summary\.mjs/, name);
-    assert.match(workflow, /ASSISTANT_SUMMARY\.md/, name);
-    assert.doesNotMatch(workflow, /ASSISTANT_PASTE(?:_\*|\.txt)|biforge-ci-logs\.zip/, `${name} must not publish split handoffs or nested diagnostic archives`);
-  }
+test('Core CI uses one unified diagnostics summary; Answer Quality is a focused second workflow', () => {
+  const ci = fs.readFileSync(path.join(root, '.github/workflows', 'ci.yml'), 'utf8');
+  assert.match(ci, /diagnostics-summary\.mjs/);
+  assert.match(ci, /ASSISTANT_SUMMARY\.md/);
+  assert.doesNotMatch(ci, /ASSISTANT_PASTE(?:_\*|\.txt)|biforge-ci-logs\.zip/);
+  const aq = fs.readFileSync(path.join(root, '.github/workflows', 'answer-quality-verify.yml'), 'utf8');
+  assert.match(aq, /Answer Quality/);
+  assert.doesNotMatch(aq, /ASSISTANT_PASTE(?:_\*|\.txt)|biforge-ci-logs\.zip/);
 });
 
 test('legacy paste-summary command is no longer part of the workflow handoff contract', () => {

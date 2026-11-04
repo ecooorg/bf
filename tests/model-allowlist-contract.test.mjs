@@ -22,7 +22,7 @@ test('server sources do not hard-code retired Gemini ids as defaults or probes',
     'server/modelRegistry.ts',
     'server.ts',
     '.env.example',
-    '.github/workflows/expert-verify.yml',
+    '.github/workflows/ci.yml',
   ];
   const banned = [
     'gemini-2.0-flash',

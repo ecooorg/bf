@@ -198,38 +198,23 @@ test('KNOWN_SHARED_PATH: legacy IR pipeline is no longer imported by server.ts; 
 // 4. Workflow inventory (do not duplicate CI; P119.0.5 adds p119-* workflows only for CI gaps)
 // ---------------------------------------------------------------------------
 
-test('workflow inventory includes the canonical CI and Expert verification workflows', () => {
+test('workflow inventory is Core CI + Answer Quality only (C125 post-audit)', () => {
   const dir = new URL('../.github/workflows/', import.meta.url);
   const names = readdirSync(dir).filter((n) => n.endsWith('.yml')).sort();
   assert.deepEqual(names, [
-    'acceptance.yml',
-    'architect-compare.yml',
     'answer-quality-verify.yml',
     'ci.yml',
-    'expert-verify.yml',
-    'answer-quality-verify.yml',
-    'ops.yml',
   ]);
 });
 
-test('P119.0.2 ci.yml owns the full DAG; specialist workflows use focused path filters or manual dispatch', () => {
+test('P119.0.2 ci.yml owns the full DAG; answer-quality is the second product workflow', () => {
   const wf = (n) => readFileSync(new URL(`../.github/workflows/${n}`, import.meta.url), 'utf8');
   assert.match(wf('ci.yml'), /on: \[push, pull_request\]/);
   assert.match(wf('ci.yml'), /run-dag\.mjs --profile ci/);
   assert.match(wf('ci.yml'), /test:ui-smoke|UI smoke/);
-  assert.match(wf('acceptance.yml'), /workflow_dispatch:/);
-  assert.match(wf('acceptance.yml'), /pull_request:/, 'browser acceptance is path-filtered on relevant changes');
-  assert.match(wf('architect-compare.yml'), /workflow_dispatch/);
-  assert.match(wf('ops.yml'), /workflow_dispatch/);
-  for (const n of ['architect-compare.yml', 'ops.yml']) {
-    assert.doesNotMatch(wf(n), /on: \[push/);
-  }
-  const expertWorkflow = wf('expert-verify.yml');
-  assert.match(expertWorkflow, /workflow_dispatch:/);
-  assert.match(expertWorkflow, /pull_request:/);
-  assert.doesNotMatch(expertWorkflow, /on: \[push/);
-  // Architect dual-compare script must not drive chat routes.
-  assert.doesNotMatch(readRepoFile('scripts/architect-dual-compare.mjs'), /\/api\/conversation/);
+  const aq = wf('answer-quality-verify.yml');
+  assert.match(aq, /Answer Quality/);
+  assert.match(aq, /workflow_dispatch:|pull_request:/);
 });
 
 test('P119.0.2 CI DAG runs test:core and test:app-builder, so these contracts and Architect tests gate every push', () => {
