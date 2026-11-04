@@ -1,3 +1,13 @@
+## P126.5 — User-level validation ledger and enablement gate (2026-11-04)
+
+- Delivered C126 §13 “P126.4 User-level validation” as repository patch **P126.5** (P126.4 was the typecheck/gate hotfix).
+- Added `docs/C126_USER_LEVEL_VALIDATION.md`: 30-scenario comparative matrix, OBSERVED / INFERRED / NOT_RUN ledger, production/preview checklist, and binding **KEEP GATED** enablement decision.
+- Added `tests/p126-5-user-level-validation.test.mjs` (wired into `test:core`): opt-in flag, ledger presence, direct-branch isolation from intent/mode/epistemic stages, Expert isolation, empty-reply rejection.
+- Updated p126-1/2/3 structural string matches for the env-gated Simple Direct condition introduced in P126.4.
+- `.env.example` documents the flag as opt-in pending live dual-run evidence.
+- Live dual-run vs direct Gemini, preview with flag=true, and default production flip: **NOT_RUN**. No production deployment in this patch.
+- Version: `126.5`.
+
 ## P126.4 — Fix Simple Direct gate, typecheck and CI/render (2026-11-04)
 
 - Gated the P126.1 Simple Direct conversation path on `BIFORGE_GEMINI_DIRECT_MODE=true`. When the flag is unset or false (as in Core CI tests and previous non-direct deployments), the structured conversational pipeline is used again so fake-Gemini tests and existing clients receive the expected JSON shape.

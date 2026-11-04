@@ -1,3 +1,27 @@
+## P126.5 — Evidence (2026-11-04)
+
+**Scope:** C126 §12.D / §13 user-level validation phase (numbered **P126.5** because P126.4 was the CI/Render hotfix).
+
+**OBSERVED**
+- Simple Direct remains behind `BIFORGE_GEMINI_DIRECT_MODE === 'true'` (`server.ts`).
+- Architectural isolation of the direct branch from `detectUserIntentFlags`, mode selection, epistemic verifier, and search planner (source + p126-5 test).
+- Empty Gemini text rejected (unit).
+- Validation ledger committed: `docs/C126_USER_LEVEL_VALIDATION.md` with 30 scenarios and KEEP GATED decision.
+- p126-1/2/3 tests updated for the env gate string.
+- Hosted Render build was green after P126.4 (Navigator report); this patch does not redeploy.
+
+**NOT_RUN**
+- Live dual-run of the 30 scenarios against direct Gemini vs BiForge Simple.
+- Preview/production traffic with the flag enabled.
+- Aggregate non-empty / usefulness / latency comparison scores.
+- Owner decision to flip the default.
+
+**Decision recorded:** do not enable Simple Direct by default until the live matrix is filled. CI continues to force the flag off.
+
+**Checks in this sandbox:** source inspection; new p126-5 test file syntax; version metadata 126 / 126.5. Full `npm test`, typecheck with installed `node_modules`, and hosted Actions: **NOT_RUN**.
+
+---
+
 ## P126.4 — Evidence (2026-11-04)
 
 Hosted Core CI (commit 433ee0b / 126.3) and Render deploy failed:
