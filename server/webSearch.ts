@@ -218,6 +218,10 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
   // This is deliberately not a weather/topic allowlist. Search engines receive no chat history.
   const lastPriorUserTask = history[history.length - 1];
   const priorTask = lastPriorUserTask && hasRecentSearchIntent(lastPriorUserTask) ? lastPriorUserTask : undefined;
+  // A follow-up that already names the place and the requested measurement is self-contained:
+  // search it directly instead of prepending the prior task (which duplicated the place and
+  // leaked instruction words such as "найди в интернете" into the query).
+  if (isSearchFollowup(normalizedLatest) && /(?:в|in)\s+[\p{L}]/iu.test(normalizedLatest) && /температур|temperature/iu.test(normalizedLatest)) return latest;
   if (priorTask && (isSearchFollowup(latest) || /^(?:а\s+)?(?:там|тогда|а\s+теперь|и\s+ещ[её]|what about|and what about|how about|more details|why|which one)[?!.,\s]*/iu.test(latest))) {
     const metaOnly = /^(?:(?:i am|i'm) asking you to search|(?:please\s+)?search again|run (?:another|one more) search|repeat the search|я прошу тебя поискать|выполни ещё один поиск|выполни еще один поиск)[.!?\s]*$/iu.test(normalizedLatest);
     const refinement = metaOnly ? '' : stripInstructionWords(normalizedLatest);
@@ -225,9 +229,6 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
     return (combined || priorTask).slice(0, MAX_QUERY_CHARS);
   }
   if (!continuation) return latest;
-  // If the follow-up already names the location and requested measurement, search it
-  // directly instead of appending a duplicate topic extracted from older turns.
-  if (isSearchFollowup(normalizedLatest) && /(?:в|in)\s+[\p{L}]/iu.test(normalizedLatest) && /температур|temperature/iu.test(normalizedLatest)) return latest;
   const placeMatch = topic.match(/(?:weather|погод\p{L}*)\s+(?:in|for|в|во|на)\s+(?:the\s+city\s+of\s+|городе\s+)?([\p{L}][\p{L} .'-]{1,50}?)(?=\s+(?:today|tomorrow|сегодня|завтра|сейчас|and|и)(?:\s|$)|[?.!,;]|$)/iu);
   const place = placeMatch ? (placeMatch[1] || placeMatch[0]).trim() : '';
   if (!place) {
