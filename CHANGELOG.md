@@ -1,3 +1,16 @@
+## P125.12 — Stop the CI loop: follow-up + multilingual live routing (2026-11-04)
+
+Root causes of remaining `test:core` failures after P125.11 (status/planner precedence fixed):
+
+1. **isSearchFollowup** missed «почему нет результата?» / «no result» style complaints → priorLive thread assert failed even when the gate could open via short-text+priorLiveThread.
+2. **LIVE_TOPIC_RE** lacked common non-English temperature forms (`température`, `temperatura`, …) → French weather sample failed the gate.
+3. **extractPlaceCandidate** lacked prepositions `à`/`en`/`bei`/… → place missing for FR samples.
+4. **preClassifyLiveDataIntent** live-topic guard tightened with the same multilingual temperature tokens so prior-place carry still runs for instruction turns with «температуру».
+
+Tests: priorLive assert also accepts `isPlannerCandidate` for short live-thread complaints.
+
+Version: patch `125.12`.
+
 ## P125.11 — CI root-cause: status silence + planner precedence (2026-11-04)
 
 Serious analysis of repeated red Core CI after C125 search changes:

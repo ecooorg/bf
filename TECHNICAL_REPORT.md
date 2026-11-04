@@ -1,3 +1,9 @@
+## P125.12 — Evidence (2026-11-04)
+
+Hosted 125.11: p124-26/28 class fixed; remaining failures isolated to p125-3 routing fixtures (result-complaint follow-up, FR place/temp). Fixed without loosening Core product contracts.
+
+---
+
 ## P125.11 — Evidence (2026-11-04)
 
 Hosted 125.10 failures: p124-26 P-1 status silent contract; p124-28 T-2 planner dialogue visibility. Both were product-regressions from aggressive C125 short-circuits, not flaky CI. Fixed in code paths above.
