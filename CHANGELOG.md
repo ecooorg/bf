@@ -1,3 +1,16 @@
+## P125.3 — C125 WP3 search routing / grounding + workflow audit (2026-11-04)
+
+- **WP3 scope extension (search routing and answer grounding):**
+  - Item 1 (single search router): `isPlannerCandidate` / `searchPlannerGate` admit live-data topics (`LIVE_TOPIC_RE`, `needsFreshWebInfo`) and live-thread search follow-ups so the pre-classifier and planner are reachable; plain temperature questions no longer stop at `trigger_not_matched` / `not_freshness_candidate`.
+  - Item 2 / follow-ups: `isSearchFollowup` expanded for "one more query", "you always have search", source complaints, dictated-query asks; prior-live-thread short continuations reach the planner.
+  - Item 5 (place extraction): `extractPlaceCandidate` strips time/connector phrases ("right now", "в городе") before geocoding-style capture; pre-classifier carries place from dialogue when the current turn names none.
+  - Item 6 (honest status): `formatSearchStatusBlock` always emits a NOT_RUN status when search is enabled and the turn was skipped; conversation path injects the block on skipped turns so the model never invents "no search tool".
+  - Item 7 (planner timeout): planner `timeoutMs` capped at 3 s (was up to 8 s).
+  - Freshness patterns extended for plain temperature / air-temperature questions (RU/EN).
+- **WP3 step 1 audit:** `docs/C125_WP3_WORKFLOW_AUDIT.md` — disposition table for the seven workflows and check classes (keep / update). Steps 2–4 of the base audit remain for subsequent owner-reviewed work; user-visible routing fixes take priority (`AGENTS.md` cascade).
+- **Tests:** `tests/p125-3-search-routing-grounding.test.mjs` — gate admission, place extraction, follow-up detection, status block, nine-turn dialogue replay assertions, multi-place/language samples. Wired into `test:core`.
+- **Version:** product `125`, patch `125.3`. No UI, routes, agent entry points or `data-testid` changed (G4 N/A). No new environment variables. Live hosted CI and live dialogue on a deployed release: `NOT_RUN` until Navigator runs Actions / confirms release equals this patch (G5).
+
 ## P125.2 — C125 WP3 scope extension and source-policy group B (2026-11-04)
 
 - **Documentation (`docs/C125_ANSWER_QUALITY_PROGRAMME.md`):** WP3 gains a "scope extension" section: observed failure chain of the 2026-11-04 nine-turn dialogue (release 124.40), eight work items (single search router, live-task state, dictated query, source constraint as a plan field, place extraction, honest status on every turn, planner timeout, diagnostics fidelity), tests and acceptance, and a release check. Evidence section and order section updated; WP2 text updated for group B. Scope text only; no work item is implemented here.
