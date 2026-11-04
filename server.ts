@@ -33,6 +33,7 @@ import {
   type ExpertEndpoint,
 } from './server/expertContracts.ts';
 import { buildConversationTurnPrompt, planConversationTurn, pinConversationAgent } from './server/agentRouting.ts';
+import { SIMPLE_DIRECT_SYSTEM, handleSimpleDirectConversation } from './server/simpleDirectConversation.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
@@ -712,43 +713,52 @@ function preferredModelFromRequest(req: express.Request): string | undefined {
   return typeof v === 'string' && v.trim() ? v.trim() : undefined;
 }
 
-/** P124.19/P124.20: one direct Gemini text call with Google Search grounding; tries up to 3 pool keys on quota/auth/5xx only; no Serper, JSON parsing, provider fallback, or reply rewriting. */
-const MAX_DIRECT_KEY_ATTEMPTS = 3;
-async function generateGeminiPassThrough(prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = [], useSearch = false): Promise<{ text: string; model: string; durationMs: number; sources: WebSource[]; queries: string[]; keySlot: number; keyAttempts: number }> {
-  const poolSlots = geminiKeyPoolState.available(geminiKeySlots);
-  const slots: KeySlot[] = byokKey ? [{ slot: -1, envName: 'BYOK', key: byokKey }] : (poolSlots.length ? poolSlots : geminiKeySlots);
-  if (!slots.length) throw Object.assign(new Error('No Gemini API key is configured.'), { code: 'MODEL_NOT_CONFIGURED' });
-  const model = modelsFor('strong', preferredModel)[0];
-  if (!model) throw new Error('No Gemini model is available.');
-  await waitForModelStart(model);
-  const attempts = Math.min(slots.length, MAX_DIRECT_KEY_ATTEMPTS);
+/** P126.1: direct text generation through the existing Gemini key and model carousel. */
+const MAX_DIRECT_KEY_ATTEMPTS = 10;
+async function generateGeminiPassThrough(
+  prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = [], useSearch = false,
+): Promise<{ text: string; model: string; durationMs: number; sources: WebSource[]; queries: string[]; keySlot: number; keyAttempts: number }> {
+  const activeGeminiModels = new Set(registryForGeminiCascade('STRONG')
+    .filter((entry) => entry.status === 'active' && entry.adapter === 'gemini')
+    .map((entry) => entry.modelId));
+  const configuredModels = modelsFor('strong', preferredModel).filter((model) => activeGeminiModels.has(model));
+  const models = configuredModels.filter((model) => (healthForModel(model).cooldownUntil || 0) <= Date.now());
+  if (!models.length) throw new GeminiUnavailableError('All configured Gemini models are cooling down.');
   let lastError: any;
-  for (let i = 0; i < attempts; i++) {
-    const { slot, key } = slots[i];
-    const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), LLM_PER_CALL_TIMEOUT_MS);
-    const started = Date.now();
+  for (const model of models) {
+    await waitForModelStart(model);
+    const call = async (key: string, slot: number) => {
+      const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), LLM_PER_CALL_TIMEOUT_MS);
+      const started = Date.now();
+      try {
+        const response = await client.models.generateContent({
+          model,
+          contents: [{ role: 'user', parts: [{ text: prompt }, ...extraParts] }],
+          config: { systemInstruction: SIMPLE_DIRECT_SYSTEM, abortSignal: controller.signal,
+            ...(useSearch ? { tools: [googleSearchToolForModel(model)] } : {}) },
+        });
+        const text = normalizeSimpleDirectReply(response.text);
+        if (!text) throw Object.assign(new Error('Gemini returned an empty text response.'), { code: 'EMPTY_MODEL_RESPONSE' });
+        const grounding = useSearch ? extractGrounding(response) : { sources: [] as WebSource[], queries: [] as string[] };
+        return { text, model, durationMs: Date.now() - started, sources: grounding.sources, queries: grounding.queries, keySlot: slot };
+      } finally { clearTimeout(timeout); }
+    };
     try {
-      const response = await client.models.generateContent({
-        model,
-        contents: [{ role: 'user', parts: [{ text: prompt }, ...extraParts] }],
-        config: { abortSignal: controller.signal, temperature: 0.2, ...(useSearch ? { tools: [googleSearchToolForModel(model)] } : {}) },
+      if (byokKey) return { ...(await call(byokKey, -1)), keyAttempts: 1 };
+      const pooled = await callWithKeyPool({
+        pool: geminiPool, model, maxKeyAttempts: MAX_DIRECT_KEY_ATTEMPTS, onRotate: logPoolRotation,
+        call: async (key, slot) => call(key, slot),
       });
-      if (typeof response.text !== 'string' || !response.text.length) throw new Error('Gemini returned an empty text response.');
-      const { sources, queries } = useSearch ? extractGrounding(response) : { sources: [] as WebSource[], queries: [] as string[] };
-      return { text: response.text, model, durationMs: Date.now() - started, sources, queries, keySlot: slot, keyAttempts: i + 1 };
-    } catch (e: any) {
-      lastError = e;
-      const cls = classifyKeyError(e);
-      if (!shouldRotateKeySlot(cls)) throw e;
-      if (slot >= 0) geminiKeyPoolState.markCooldown(slot, Date.now(), cls === 'PROVIDER_TRANSIENT' ? 30_000 : undefined);
-      console.warn(JSON.stringify({ type: 'gemini_direct_key_rotated', keySlot: slot, errorClass: cls, attempt: i + 1, of: attempts }));
-    } finally {
-      clearTimeout(timeout);
+      return { ...pooled.value, keySlot: pooled.slot, keyAttempts: pooled.keyAttempts };
+    } catch (error: any) {
+      lastError = error;
+      if (error?.code === 'EMPTY_MODEL_RESPONSE' || error instanceof PoolExhaustedError) continue;
+      if (!shouldRotateKeySlot(classifyKeyError(error))) throw error;
     }
   }
-  throw lastError;
+  throw lastError || Object.assign(new Error('All allowed Gemini models are unavailable.'), { code: 'GEMINI_UNAVAILABLE' });
 }
 
 async function generate(
@@ -1215,6 +1225,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
 // Route table and agent pinning: server/agentRouting.ts. Turn planning and prompt entry: conversationalAgent.ts | expertAgent.ts (P119.0.3).
 
 const conversationHandler = async (req: express.Request, res: express.Response) => {
+  let simpleDirectRequest = false;
   const phase = createPhaseTimer();   // P57: per-phase timing, logged as conversation_timing
   const requestStartedAt = Date.now();
   let retryRan = false;
@@ -1263,6 +1274,33 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       extraNumberSource: attachItems.map((a) => a.text).join('\n'),
       extraChars: attachmentsBlock.length,
     };
+    // P126.1: Simple uses a direct Gemini request. Expert and safety-sensitive turns
+    // remain on their established routes; no intent/search/quality pipeline runs here.
+    if (req.body?.productMode !== 'Expert' && !distressMarkerDetected) {
+      simpleDirectRequest = true;
+      const direct = await handleSimpleDirectConversation({
+        latestUserMessage: String(lastUserText || brief.decision || ''),
+        history: safeHistory,
+        attachmentText: attachmentsBlock,
+        attachmentParts: attachParts,
+        byokKey: requestByokKey,
+        preferredModel: requestPreferredModel,
+      }, generateGeminiPassThrough);
+      const requestId = String((req as any).requestId || req.get('x-request-id') || '');
+      void recordApplicationLog({
+        level: 'info', component: 'conversation', event: 'simple_direct_response', requestId,
+        message: 'Simple response generated and returned directly by Gemini',
+        details: { agent: 'conversational', provider: 'gemini', model: direct.model, keySlot: direct.keySlot,
+          keyAttempts: direct.keyAttempts, durationMs: direct.durationMs, hasAttachments: attachItems.length > 0,
+          searchUsed: false, searchResult: 'not_run', generated: true, nonEmpty: Boolean(direct.reply), delivered: true },
+      });
+      return ok(res, {
+        reply: direct.reply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
+        gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
+        document: null, attachmentNotes: [], state: safeState,
+      }, { provider: 'gemini', model: direct.model, calls: direct.keyAttempts, fallback: false,
+        direct_conversation: true, key_slot: direct.keySlot, key_attempts: direct.keyAttempts });
+    }
     // PI-02: intent flags from the last user turn (and recent history for a standing ban on questions).
     const intentFlags = detectUserIntentFlags(lastUserText, fullHistory);
     if (intentFlags.userAskedSearch) {
@@ -1275,84 +1313,6 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     // Planning (mode focus, Expert stage context) is owned by the selected agent module, not by this handler.
     const turnPlan = planConversationTurn(req.body, detectedMode);
     const { productMode, conversationMode, modeBlock } = turnPlan;
-
-    // P124.21: direct Gemini text remains verbatim, but expected current-info turns
-    // retrieve Serper evidence first and fall back to Gemini Google Search grounding.
-    if (turnPlan.agent === 'conversational' && !distressMarkerDetected && process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true') {
-      const directSearchEnabled = isWebSearchEnabled();
-      const recentSearchIntent = hasRecentSearchIntent(recentUserText);
-      const directSearchExpected = directSearchEnabled && shouldSearchWeb({
-        enabled: true, mode: webSearchMode(), userText: lastUserText,
-        userAskedSearch: intentFlags.userAskedSearch, recentSearchIntent,
-        distress: distressMarkerDetected, intent: context.intent, hasAttachments: attachItems.length > 0,
-      });
-      let directWebSearch: WebSearchResult = skippedWebSearch();
-      if (directSearchExpected && webSearchProvider() === 'serper' && String(process.env.SERPER_API_KEY || '').trim()) {
-        const contextualSearchText = contextualizeSearchText(lastUserText, recentUserText);
-        let englishQuery = contextualSearchText;
-        let englishExtras: string[] = [];
-        let queryFidelity: WebSearchResult['queryFidelity'];
-        try {
-          const searchKey = requestByokKey || apiKey;
-          if (searchKey) {
-            const searchClient = pooledGeminiClient(requestByokKey);
-            const built = await toEnglishSearchQueries({
-              userText: contextualSearchText, client: searchClient as any,
-              model: (process.env.WEB_SEARCH_TRANSLATE_MODEL || process.env.MODEL_CASCADE_LIGHT || 'gemini-3.5-flash-lite').split(',')[0].trim() || 'gemini-3.5-flash-lite',
-              timeoutMs: 8000,
-            });
-            englishQuery = built.queries[0] || englishQuery; englishExtras = built.queries.slice(1); queryFidelity = built.fidelity;
-          }
-        } catch { /* preserve contextualized query if translation is unavailable */ }
-        try {
-          directWebSearch = await fetchSerperDigestMulti({
-            apiKey: String(process.env.SERPER_API_KEY || '').trim(),
-            userText: contextualSearchText, englishQuery, extraQueries: englishExtras,
-            today: new Date().toISOString().slice(0, 10), timeoutMs: 28000,
-          });
-        } catch (searchError: any) {
-          directWebSearch = skippedWebSearch('failed', String(searchError?.message || searchError).slice(0, 180));
-        }
-        if (queryFidelity) directWebSearch = { ...directWebSearch, queryFidelity };
-        console.info(JSON.stringify({ type: 'direct_web_search', status: directWebSearch.status, provider: 'serper', queries: directWebSearch.queries, sources: directWebSearch.sources.length, reason: directWebSearch.reason }));
-        void recordApplicationLog({ level: 'info', component: 'conversation', event: 'direct_web_search', message: 'Direct-mode web search decision', details: searchDecisionDetails(directWebSearch, { provider: 'serper', gate: 'direct' }) });
-      }
-      const directSearchBlock = directWebSearch.status === 'used'
-        ? formatSearchBlock(directWebSearch, new Date().toISOString().slice(0, 10)) : '';
-      // If Serper produced evidence, avoid a second grounding call; otherwise use Gemini Search as fallback.
-      const directUseGoogleGrounding = directSearchExpected && directWebSearch.status !== 'used';
-      const directPrompt = [
-        'Answer the latest user message directly. Use the conversation history only when needed for context.',
-        directSearchBlock ? 'Use the retrieved web evidence below as the primary source for current facts. If it lacks the requested value, say so and do not invent it.' : directSearchExpected ? 'Use Google Search for current facts. Do not claim live access when search returned nothing.' : 'Do not claim live data access unless the request needs current information and search evidence is supplied.',
-        directSearchBlock,
-        'Return ordinary answer text, not JSON and not markdown wrappers.',
-        `Current date: ${new Date().toISOString().slice(0, 10)}.`,
-        `Latest user message:\n${lastUserText}`,
-        `Conversation context (JSON):\n${input}`,
-        attachmentsBlock ? `Attachment text:\n${attachmentsBlock}` : '',
-      ].filter(Boolean).join('\n\n');
-      const direct = await generateGeminiPassThrough(directPrompt, requestByokKey, requestPreferredModel, attachParts, directUseGoogleGrounding);
-      const directSources = [...directWebSearch.sources, ...direct.sources].filter((s, i, a) => a.findIndex(x => x.url === s.url) === i).slice(0, 6);
-      const directQueries = [...directWebSearch.queries, ...direct.queries].filter((q, i, a) => q && a.indexOf(q) === i).slice(0, 5);
-      const searchInvoked = directSearchExpected && (directWebSearch.status === 'used' || direct.queries.length > 0 || direct.sources.length > 0);
-      const requestId = String((req as any).requestId || req.get('x-request-id') || '');
-      const outputHash = crypto.createHash('sha256').update(direct.text, 'utf8').digest('hex');
-      void recordApplicationLog({ level: 'info', component: 'conversation', event: 'gemini_direct_passthrough', requestId,
-        message: 'Direct Gemini text returned without application rewriting', details: {
-          provider: 'gemini', model: direct.model, searchEnabled: directSearchEnabled, searchExpected: directSearchExpected,
-          searchInvoked, searchProvider: directWebSearch.status === 'used' ? 'serper' : (directUseGoogleGrounding ? 'gemini' : 'none'),
-          searchStatus: directWebSearch.status, searchQueries: directQueries, sourceCount: directSources.length,
-          keySlot: direct.keySlot, keyAttempts: direct.keyAttempts, externalFallbackInvoked: false,
-          rawOutput: direct.text, visibleReply: direct.text, rawOutputSha256: outputHash,
-          visibleReplySha256: outputHash, outputModified: false, durationMs: direct.durationMs,
-        } });
-      return ok(res, {
-        reply: direct.text, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
-        gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
-        document: null, attachmentNotes: [], ...(directSources.length ? { sources: directSources } : {}), state: safeState,
-      }, { provider: 'gemini', model: direct.model, calls: 1, fallback: false, direct_passthrough: true, key_attempts: direct.keyAttempts,
-        search: !directSearchEnabled ? 'disabled' : (searchInvoked ? 'used' : (directSearchExpected ? 'enabled_not_used' : 'not_needed')) });
-    }
 
     // P50: optional fresh-web lookup. Off unless ENABLE_WEB_SEARCH=true; any problem simply continues without it.
     let webSearch: WebSearchResult = skippedWebSearch();
@@ -1686,9 +1646,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
   } catch (e: any) {
     const failedHistory = Array.isArray(req.body?.history) ? req.body.history : [];
     const failedLatest = [...failedHistory].reverse().find((m: any) => m?.role === 'user')?.content || req.body?.brief?.decision || '';
-    const directModeApplies = process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true'
-      && req.body?.productMode !== 'Expert'
-      && !hasDistressMarker(String(failedLatest || ''));
+    const directModeApplies = simpleDirectRequest;
     if (directModeApplies) {
       const reason = String(e?.code || 'GEMINI_DIRECT_ERROR');
       console.error(JSON.stringify({ type: 'gemini_direct_passthrough_failed', provider: 'gemini', errorCode: reason, message: String(e?.message || e).slice(0, 240) }));

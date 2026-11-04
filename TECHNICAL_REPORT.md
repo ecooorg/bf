@@ -1,3 +1,12 @@
+## P126.1 — Evidence (2026-11-04)
+
+Implemented the Simple Direct Conversation entry path in `server.ts` and request shaping in `server/simpleDirectConversation.ts`. Non-Expert, non-distress conversational requests now build a concise natural-history prompt and return immediately after Gemini generation, before intent classification, conversation-mode planning, Search Planner, information retry, output audit and epistemic verification. Expert and distress-sensitive turns remain on the established handler path.
+
+Gemini generation iterates the configured strong-model order and uses the existing `GeminiKeyPool` / `callWithKeyPool` for key rotation. BYOK is passed directly and is not silently replaced. The existing attachment normalization and inline-data parts are preserved. Existing response envelope fields are retained; empty output throws and is handled as an operational failure.
+
+Added `tests/p126-1-simple-direct.test.mjs` covering prompt history/attachments, empty-output normalization and route bypass ordering. The test has been wired into `test:core`.
+
+Verification: P126.1 focused suite — 5/5 PASS using Node 22 experimental TypeScript stripping; updated direct-route contract suite — 3/3 PASS using the same runner. Syntax checks for the changed server and test files — PASS. `npm run version:check` — PASS. The standard `tsx`-based `test:core`, full key-pool suite, typecheck and build are `NOT_RUN` because dependencies/`node_modules` are absent from this sandbox. Live Gemini, BYOK, key/model rotation against provider APIs, PDF/image upload, Expert/Architect user-level regression, hosted CI and production deployment `NOT_RUN`. This patch does not claim live answer-quality improvement.
 ## P125.16 — Evidence (2026-11-04)
 
 Prod symptom (2026-11-04 logs): web search succeeded; Gemini 3.5/3.1 Flash Lite timed out or returned 503; external fallback failed; server emitted `conversation_fallback` and the UI showed the technical unavailable string as the agent answer.

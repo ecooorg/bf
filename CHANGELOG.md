@@ -1,3 +1,13 @@
+## P126.1 — Simple Direct Conversation core (2026-11-04)
+
+- Added a dedicated Simple request-shaping module with a short system instruction and natural conversation history.
+- The Conversational route now returns directly after one successful Gemini text generation; it bypasses intent/mode planning, Search Planner, quality retry, response audit, and epistemic verification. Expert and distress/SafetyBox turns retain the established path.
+- Direct Gemini generation now iterates the configured model order and uses the existing `GeminiKeyPool` for per-model key rotation; BYOK remains isolated and is never replaced with an organisational key.
+- Preserved the existing response envelope and attachment processing. Empty Gemini output is treated as a failed generation, not a successful empty reply.
+- Added P126.1 tests and included them in `test:core`.
+- Live Gemini, attachment-provider integration, hosted CI and production behaviour: `NOT_RUN`.
+- Version: `126.1`.
+
 ## P125.16 — Conversation recovery without technical fallback (2026-11-04)
 
 - **User-visible defect:** when Gemini timed out or returned 503/429 after the bounded model carousel, the server returned a successful reply with the synthetic text “I saved your situation. The AI model is temporarily unavailable…”, which the UI showed as an agent message.

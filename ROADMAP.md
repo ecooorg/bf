@@ -1,3 +1,13 @@
+## P126 — Simple Mode direct Gemini conversation (owner-provided C126 specification)
+
+### P126.1 — DIRECT CONVERSATION CORE
+
+- Status: implementation added in patch 126.1; focused local tests `PASS`; full suite, typecheck/build and hosted verification `NOT_RUN`.
+- Simple route uses a dedicated direct handler path, short system instruction, natural conversation history, existing attachment processing, Gemini model order and shared Gemini key pool.
+- The legacy intelligence pipeline is bypassed for ordinary Simple turns. Expert and distress/SafetyBox turns remain on their existing path.
+- Existing response envelope is preserved. P126.2 search decoupling, P126.3 reliability validation/diagnostics and P126.4 30-scenario user-level comparison are not claimed complete.
+- Evidence and verification limits: `TECHNICAL_REPORT.md` — P126.1.
+
 ### P124.17 — Direct Gemini pass-through
 
 The Conversational route now defaults to a single direct Gemini text call. Search providers (including Serper), external model fallback, structured response parsing, retries, and application-side reply rewriting are bypassed on this route. This is a provenance-isolation test, not a live-data capability.
