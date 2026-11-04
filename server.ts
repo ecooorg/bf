@@ -1768,7 +1768,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
     const status = Number(e?.status || e?.statusCode || 0) || (
       reason === 'GEMINI_QUOTA' || reason === 'GEMINI_RATE_LIMIT' ? 429 : 503
     );
-    console.warn(JSON.stringify({ type: 'conversation_model_unavailable', code: reason, status, message: String(e?.message || e).slice(0, 240) }));
+    const retryable = e?.retryable !== false && e?.details?.retryable !== false;
+    console.warn(JSON.stringify({ type: 'conversation_model_unavailable', code: reason, status, retryable, message: String(e?.message || e).slice(0, 240) }));
     void recordApplicationLog({
       level: 'error',
       component: 'conversation',
@@ -1780,17 +1781,23 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         errorCode: reason,
         errorName: String(e?.name || 'Error').slice(0, 80),
         status,
+        retryable,
         userRequest: String(req.body?.brief?.decision || ''),
         conversationHistory: Array.isArray(req.body?.history) ? req.body.history.slice(-12) : [],
       },
     });
-    const httpStatus = status === 429 ? 429 : 503;
-    res.setHeader('Retry-After', httpStatus === 429 ? '15' : '5');
+    // Preserve explicit provider/application status codes such as AI_FORMAT 502;
+    // only unknown statuses are normalized to the generic unavailable response.
+    const httpStatus = status === 429 ? 429 : status === 502 ? 502 : 503;
+    if (retryable && (httpStatus === 429 || httpStatus === 503)) res.setHeader('Retry-After', httpStatus === 429 ? '15' : '5');
+    const errorMessage = reason === 'AI_FORMAT'
+      ? 'The AI returned an unusable response. Please try again.'
+      : 'The AI model is temporarily unavailable. Your message is saved — use Retry in a moment.';
     return res.status(httpStatus).json({
       success: false,
-      error: 'The AI model is temporarily unavailable. Your message is saved — use Retry in a moment.',
+      error: errorMessage,
       code: reason === 'AI_ERROR' ? 'GEMINI_UNAVAILABLE' : reason,
-      retryable: true,
+      retryable,
       details: { upstreamMessage: String(e?.message || e).slice(0, 200) },
     });
 

@@ -1,3 +1,10 @@
+## P126.11 — Preserve terminal AI format error status (2026-11-04)
+
+- Fixed the conversation error boundary so explicit `502 AI_FORMAT` is not normalized to `503`; terminal format failures now return `retryable: false` consistently with `GeminiFormatError`.
+- `Retry-After` is emitted only for retryable 429/503 responses; AI format failures receive a truthful format-specific message.
+- Strengthened H3 to assert status, error code, terminal retryability and exactly two model calls; added source regression checks.
+- Version and lockfile patch metadata: `126.11`.
+
 ## P126.10 — Stop recovery after candidate exhaustion (2026-11-04)
 
 - Fixed the remaining pipeline latency defect at its source: conversation recovery no longer replays a model cascade after every configured candidate has failed and entered circuit-breaker cooldown.

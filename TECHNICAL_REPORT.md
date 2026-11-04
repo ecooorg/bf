@@ -1,3 +1,15 @@
+## P126.11 — Preserve terminal AI format error contract (2026-11-04)
+
+**Failure evidence:** hosted P126.10 passed Core (240/240) and all but one pipeline group (13/14). H3 made exactly two scripted invalid-JSON calls and received `503 AI_FORMAT`; the generator's `GeminiFormatError` already declared `status = 502` and `retryable = false`. The conversation route catch block discarded that status (normalizing every non-429 result to 503) and hard-coded `retryable: true`, contradicting the error classification. The reported uncaught asynchronous Stage 2 activity followed the failed H3 assertion; no separate failing scenario was identified in the supplied report.
+
+**Changes:** the conversation error boundary now preserves explicit HTTP 502 alongside 429, derives the response `retryable` flag from the thrown error, records that flag in diagnostics, and omits `Retry-After` for terminal non-retryable format errors. `AI_FORMAT` receives a format-specific message. H3 now asserts `502 AI_FORMAT`, `retryable: false`, and exactly two model calls; the P125.16 source regression test protects the status and retryability mapping. Patch metadata is `126.11`.
+
+**PASS:** `node --experimental-strip-types --check server.ts`; `node --check tests/pipeline.test.mjs`; `node --check tests/p125-16-conversation-recovery.test.mjs`; `node --test tests/p125-16-conversation-recovery.test.mjs` (1/1); `npm run version:check`; `npm run architecture:check`; `npm run lint:copy`.
+**BLOCKED:** `npm run test:pipeline` could not start because this sandbox has no installed `tsx` package (`ERR_MODULE_NOT_FOUND`).
+**NOT_RUN:** full DAG, typecheck/build and hosted GitHub Actions.
+
+---
+
 ## P126.10 — Evidence (2026-11-04)
 
 **Failure evidence:** hosted P126.9 passed Core (240/240) but `test:pipeline` still failed four `/api/conversation` checks (H3, H6, H6b and I) after 35-second client timeouts. The previous P126.9 diagnosis attributed the delay to inherited provider keys and SDK backoff; the P126.9 fixture already removed numbered keys and set one SDK attempt, so that explanation was insufficient. Source inspection identified the remaining cause: the conversation handler retried quota/rate-limit/unavailable outcomes for up to 90 seconds even after `generate()` had exhausted its candidates and put them into circuit-breaker cooldown. The pipeline client aborted at 35 seconds.
