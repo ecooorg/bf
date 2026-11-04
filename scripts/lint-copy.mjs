@@ -15,7 +15,7 @@ const ROOT = path.resolve(process.env.LINT_COPY_ROOT || 'src');
 const PRINT_DEBT = process.argv.includes('--print-debt');
 
 const LANGUAGE_ALLOWLIST = new Set([
-  'server/intentFlags.ts', 'server/webSearch.ts', 'src/support.ts', 'src/libraryExport.ts',
+  'server/intentFlags.ts', 'server/webSearch.ts', 'server/queryFidelity.ts', 'src/support.ts', 'src/libraryExport.ts',
   'src/numberValidator.ts', 'server/conversationMode.ts', 'server/turnFocus.ts',
   'server/documents.ts', 'src/ui.ts', 'server.ts', 'server/codeExecutor.ts',
   'server/reasoningState.ts', 'server/appBuilderIr.ts', 'server/epistemicVerifier.ts',
