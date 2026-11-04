@@ -20,6 +20,8 @@ const LANGUAGE_ALLOWLIST = new Set([
   'server/documents.ts', 'src/ui.ts', 'server.ts', 'server/codeExecutor.ts',
   'server/reasoningState.ts', 'server/appBuilderIr.ts', 'server/epistemicVerifier.ts',
   'server/keepAlive.ts', 'src/projectAppBuilder.ts', 'src/ExpertStepScreens.tsx',
+  // P126: Russian explicit-search trigger patterns (user-language detection, same class as intentFlags/webSearch).
+  'server/simpleDirectConversation.ts',
   'scripts/evidence-collect.mjs', 'scripts/p117-3-live-retest.mjs',
   'docs/USER_VALUE_EVALUATION.md', 'docs/BiForge-AUDIT-REPORT-P124-9.md',
   'TECHNICAL_REPORT.md', 'CHANGELOG.md',
