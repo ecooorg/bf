@@ -33,7 +33,7 @@ test('optional search timeout is non-fatal and late completion is ignored', asyn
 
 test('Simple route injects search evidence/status but retains direct single-generation path', () => {
   const source = fs.readFileSync(path.join(root, 'server.ts'), 'utf8');
-  const start = source.indexOf("if (req.body?.productMode !== 'Expert' && !distressMarkerDetected)");
+  const start = source.indexOf("if (process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true' && req.body?.productMode !== 'Expert' && !distressMarkerDetected)");
   const end = source.indexOf('// PI-02: intent flags', start);
   const branch = source.slice(start, end);
   assert.ok(start >= 0 && end > start);

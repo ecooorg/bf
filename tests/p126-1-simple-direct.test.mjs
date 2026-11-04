@@ -27,7 +27,7 @@ test('Simple Direct normalization rejects empty model output without manufacturi
 test('Simple route returns before the legacy intelligence pipeline; Expert remains routed separately', () => {
   const source = fs.readFileSync(new URL('../server.ts', import.meta.url), 'utf8');
   const handlerStart = source.indexOf('const conversationHandler =');
-  const directStart = source.indexOf('if (req.body?.productMode !== \'Expert\' && !distressMarkerDetected)', handlerStart);
+  const directStart = source.indexOf("if (process.env.BIFORGE_GEMINI_DIRECT_MODE === 'true' && req.body?.productMode !== 'Expert' && !distressMarkerDetected)", handlerStart);
   const intentStart = source.indexOf('const intentFlags = detectUserIntentFlags', handlerStart);
   const directReturn = source.indexOf('return ok(res, {', directStart);
   assert.ok(handlerStart >= 0 && directStart > handlerStart);

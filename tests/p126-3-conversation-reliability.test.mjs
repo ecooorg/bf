@@ -67,7 +67,7 @@ test('P126.3: BYOK remains isolated and API/model carousel remains the sole dire
 
 test('P126.3: distress safety and Expert routing remain outside Simple direct branch', () => {
   const server = read('../server.ts');
-  assert.match(server, /productMode !== 'Expert' && !distressMarkerDetected/);
+  assert.match(server, /BIFORGE_GEMINI_DIRECT_MODE === 'true' && req\.body\?\.productMode !== 'Expert' && !distressMarkerDetected/);
   assert.match(server, /hasDistressMarker\(lastUserText\)/);
   assert.match(server, /app\.post\('\/api\/agent\/expert', pinConversationAgent\('expert'\), conversationHandler\)/);
   assert.match(server, /SafetyBox/);
