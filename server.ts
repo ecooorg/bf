@@ -53,7 +53,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQuery, webSearchMode, webSearchProvider } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -1354,6 +1354,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           userText: lastUserText,
           userAskedSearch: intentFlags.userAskedSearch,
           recentSearchIntent: hasRecentSearchIntent(recentUserText),
+          // P124.38: user turns before the current one decide whether a short follow-up continues a live thread.
+          priorLiveThread: hasRecentSearchIntent(fullHistory.filter((m: any) => m.role === 'user').slice(0, -1).slice(-2).map((m: any) => String(m.content || '')).join('\n')),
           distress: distressMarkerDetected,
           intent: context.intent,
           hasAttachments: attachItems.length > 0,
@@ -1402,6 +1404,11 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         } else {
           webSearch = skippedWebSearch('skipped', distressMarkerDetected ? 'blocked_distress' : attachItems.length > 0 ? 'blocked_attachments' : 'trigger_not_matched');
           void recordApplicationLog({ level: 'info', component: 'conversation', event: 'web_search', message: 'Web search not triggered', details: searchDecisionDetails(webSearch, { provider: webSearchProvider(), gate: 'conversation', expected: Boolean(intentFlags.userAskedSearch), decisionSource: searchDecision?.decisionSource, decisionNote: searchDecision?.decisionNote }) });
+          // P124.38: a question about earlier sources is answered honestly from the dialogue, never from a fresh search or invention.
+          if (isAssistantMetaQuestion(lastUserText) && !intentFlags.userAskedSearch && !distressMarkerDetected) {
+            const sourceBlock = formatSourceQuestionBlock();
+            promptAttachmentsBlock = attachmentsBlock ? `${attachmentsBlock}\n\n${sourceBlock}` : sourceBlock;
+          }
         }
       } catch {
         webSearch = skippedWebSearch('failed', 'exception');

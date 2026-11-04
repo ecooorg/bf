@@ -1,3 +1,14 @@
+## P124.38 — Evidence (2026-11-04)
+
+Product version `124`, patch `124.38`.
+
+- **OBSERVED (diagnostics export `biforge-diagnostics`, app 124 / release 124.36, one Expert dialogue about the US midterms):** 4 of 9 time-sensitive turns ran no search; 2 searches used the raw wording of the turn as query; 1 meta question about sources was sent to the search provider; one turn hit Gemini key-pool quota and fell back to Groq; two turns hit the 12 s model timeout. Search result text is not in the export, so whether individual claims in the answers were supported by retrieved pages is `NOT_VERIFIED`.
+- **ROOT CAUSES (source inspection):** keyword-only gate in front of the planner; fixed-phrase follow-up detection; pre-classifier on raw wording; no stored source list for earlier replies.
+- **IMPLEMENTED (source):** wider planner gate, live-thread follow-ups, meta-question guard with honest status block, dialogue-reference handling in the pre-classifier and in the planner-outage fallback.
+- **OPEN:** persisting the source hosts of each answer with the dialogue (needs a client and state-schema decision and owner approval against P123.17); quota and timeout handling; planner on every question turn behind a flag.
+- **TESTS PASS (local, Node 22):** new suite 6/6; `npm run test:core`, `npm run test:web`, `npm run typecheck`, `npm run version:check`, `npm run lint:copy` and the `check` verification DAG: `check` DAG 26/26 PASS; additionally `test:pipeline`, `test:turn`, `test:gates`, `test:security`, `test:project` PASS.
+- **NOT_RUN:** hosted GitHub Actions, live Gemini/Serper, real conversations, user-level answer quality.
+
 ## P124.37 — Evidence (2026-11-04)
 
 Product version `124`, patch `124.37`.
