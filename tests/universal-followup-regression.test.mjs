@@ -63,7 +63,12 @@ test('model-planner absence or provider failure still returns a contextual searc
       });
       assert.equal(decision.search, true, item.domain);
       assert.equal(decision.decisionSource, 'heuristic', item.domain);
-      assert.equal(decision.decisionNote, 'contextual_followup_fallback', item.domain);
+      // P125.4+: live_task_followup supersedes contextual_followup_fallback for the same behaviour.
+      assert.ok(
+        decision.decisionNote === 'live_task_followup' || decision.decisionNote === 'contextual_followup_fallback',
+        `${item.domain}: unexpected decisionNote ${decision.decisionNote}`,
+      );
+      assert.ok(decision.plan?.query, item.domain);
       for (const token of item.retained) assert.ok(decision.plan.query.toLowerCase().includes(token.toLowerCase()), item.domain);
       assert.doesNotMatch(decision.plan.query, /initial result/i, 'assistant output must not leak into the search query');
     }
