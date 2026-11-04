@@ -242,7 +242,7 @@ describe('C123 carousel workflow — inventory & ops artifacts exist', () => {
 
 describe('carousel workflow — operational regression guards', () => {
   it('propagates failures from tee pipelines so deterministic red cannot look green', () => {
-    const workflow = readFileSync(path.join(root, '.github/workflows/carousel-verify.yml'), 'utf8');
+    const workflow = readFileSync(path.join(root, '.github/workflows/answer-quality-verify.yml'), 'utf8');
     assert.match(workflow, /set -o pipefail/);
     assert.match(workflow, /Deterministic carousel verification failed/);
     assert.match(workflow, /Render runtime contract probe failed/);

@@ -204,10 +204,10 @@ test('workflow inventory includes the canonical CI and Expert verification workf
   assert.deepEqual(names, [
     'acceptance.yml',
     'architect-compare.yml',
-    'carousel-verify.yml',
+    'answer-quality-verify.yml',
     'ci.yml',
     'expert-verify.yml',
-    'information-quality.yml',
+    'answer-quality-verify.yml',
     'ops.yml',
   ]);
 });
