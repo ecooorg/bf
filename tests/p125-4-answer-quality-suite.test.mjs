@@ -215,3 +215,18 @@ describe('P125.4 behaviour over source-text regex (WP3 step 2 sample)', () => {
     assert.ok(preClassifyLiveDataIntent('What is the current air temperature in Ottawa?'));
   });
 });
+
+describe('P125.5 item 4: authority ranking on sources', () => {
+  it('sortSourcesByPreferredHosts puts authority hosts first', async () => {
+    const { sortSourcesByPreferredHosts } = await import('../server/webSearch.ts');
+    const ranked = sortSourcesByPreferredHosts(
+      [
+        { title: 'Blog', url: 'https://random-blog.example/x' },
+        { title: 'JMA', url: 'https://www.jma.go.jp/forecast' },
+        { title: 'Other', url: 'https://news.example/y' },
+      ],
+      authorityHostsFor('JP', 'weather'),
+    );
+    assert.match(ranked[0].url, /jma\.go\.jp/i);
+  });
+});
