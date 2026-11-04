@@ -1,3 +1,10 @@
+## P125.9 — Live-task follow-up retains full prior user query (2026-11-04)
+
+- **Bug:** `resolveLiveTaskState` only recovered prior query when the previous turn matched weather/LIVE_TOPIC patterns, so follow-ups like “run another search” after a Node.js LTS question produced a generic plan without “Node”/“LTS”.
+- **Fix:** Carry forward the last substantive user turn (not a search-meta follow-up) as `query` / place / weather topic for any about-search follow-up.
+- **CI:** Unblocks `universal-followup-regression` retained-entity assertions.
+- **Version:** patch `125.9`.
+
 ## P125.8 — CI red fix: universal follow-up decisionNote (2026-11-04)
 
 - **test:core:** `tests/universal-followup-regression.test.mjs` accepts `live_task_followup` (P125.4 live-task path) as well as legacy `contextual_followup_fallback` when the model planner is absent or fails.

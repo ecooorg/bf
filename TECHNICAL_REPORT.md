@@ -1,3 +1,9 @@
+## P125.9 — Evidence (2026-11-04)
+
+Hosted CI 125.8 still failed test:core on retained tokens (“software releases” / Node LTS). Root cause in live-task state recovery, not the decisionNote assertion. Fixed in resolveLiveTaskState.
+
+---
+
 ## P125.8 — Evidence (2026-11-04)
 
 Hosted CI 125.7: typecheck/build/pins green; sole product failure was universal-followup regression expecting old decisionNote. Behaviour unchanged (search still true, entities retained); assertion updated.
