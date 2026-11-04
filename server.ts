@@ -78,6 +78,21 @@ import { readLlmLatencyConfig } from './server/llmLatencyConfig.ts';
 import { securityHeadersMiddleware } from './server/securityHeaders.ts';
 
 dotenv.config();
+
+/** Build a Gemini client with an optional base URL and explicitly bounded SDK retries.
+ * The production default is unchanged; deterministic test harnesses may set
+ * GEMINI_HTTP_RETRY_ATTEMPTS=1 so SDK-level backoff does not mask application retries.
+ */
+function createGeminiClient(apiKey: string, baseUrl = process.env.GEMINI_BASE_URL || ''): GoogleGenAI {
+  const rawAttempts = Number(process.env.GEMINI_HTTP_RETRY_ATTEMPTS);
+  const attempts = Number.isInteger(rawAttempts) && rawAttempts >= 1 && rawAttempts <= 5 ? rawAttempts : undefined;
+  const httpOptions = {
+    ...(baseUrl ? { baseUrl } : {}),
+    ...(attempts ? { retryOptions: { attempts } } : {}),
+  };
+  return new GoogleGenAI({ apiKey, ...(Object.keys(httpOptions).length ? { httpOptions } : {}) });
+}
+
 const lifecycle = startLifecycle({ commit: buildCommit(), appVersion: APP_VERSION });
 void recordApplicationLog({ level: 'info', component: 'runtime', event: 'process_boot', message: 'BiForge server process initialized', details: { previousShutdown: lifecycle.boot.previous.reason, previousShutdownDetail: lifecycle.boot.previous, bootId: lifecycle.boot.bootId, uptimeSec: lifecycle.boot.uptimeSec, rssMb: lifecycle.boot.rssMb, heapUsedMb: lifecycle.boot.heapUsedMb, memoryLimitMb: lifecycle.boot.memoryLimitMb, commit: buildCommit(), node: process.version, nodeEnv: process.env.NODE_ENV || 'development', appVersion: APP_VERSION, projectModeEnabled: process.env.ENABLE_PROJECT_MODE === 'true', appBuilderEngine: process.env.APP_BUILDER_ENGINE || 'staged', hasDatabaseUrl: Boolean(process.env.DATABASE_URL), hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) } });
 
@@ -191,13 +206,13 @@ const logPoolRotation = (e: { slot: number; model: string; errorClass: string; a
 function pooledGeminiClient(byokKey?: string): any {
   return createPooledClient({
     pool: geminiPool, byokKey, onRotate: logPoolRotation,
-    makeClient: (key) => new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) }) as any,
+    makeClient: (key) => createGeminiClient(key) as any,
     fallbackModels: modelsFor('light').slice(0, 3),
   });
 }
 const buildGeminiAdapterFromKey = (key: string) => {
   const base = process.env.GEMINI_BASE_URL || '';
-  return createGeminiAdapter(new GoogleGenAI({ apiKey: key, ...(base ? { httpOptions: { baseUrl: base } } : {}) }) as any);
+  return createGeminiAdapter(createGeminiClient(key, base) as any);
 };
 const codeRouterState = newRouterState();
 
@@ -730,7 +745,7 @@ async function generateGeminiPassThrough(
   for (const model of models) {
     await waitForModelStart(model);
     const call = async (key: string, slot: number) => {
-      const client = new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) });
+      const client = createGeminiClient(key);
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), LLM_PER_CALL_TIMEOUT_MS);
       const started = Date.now();
@@ -797,7 +812,7 @@ async function generate(
   }
   const key = byokKey || apiKey || geminiKeySlots[0]?.key;
   if (!key && process.env.ENABLE_EXTERNAL_MODEL_FALLBACK !== 'true') throw new Error('No Gemini API key is configured. Add a Gemini API key in Google AI settings or configure GEMINI_API_KEY on Railway.');
-  const client = key ? new GoogleGenAI({ apiKey: key, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) }) : null;
+  const client = key ? createGeminiClient(key) : null;
   const models = client ? modelsFor(modelClass, preferredModel) : [];
   const t0 = Date.now();
   const deadlineStart = budget?.startedAt ?? t0;
@@ -895,7 +910,7 @@ async function generate(
           try {
             r = (await callWithKeyPool({
               pool: geminiPool, model, onRotate: logPoolRotation,
-              call: (k) => new GoogleGenAI({ apiKey: k, ...(GEMINI_BASE_URL ? { httpOptions: { baseUrl: GEMINI_BASE_URL } } : {}) }).models.generateContent(genRequest),
+              call: (k) => createGeminiClient(k).models.generateContent(genRequest),
             })).value;
           } catch (pe) {
             if (pe instanceof PoolExhaustedError) throw (pe.last ?? Object.assign(new Error('RESOURCE_EXHAUSTED: all Gemini keys exhausted for this model'), { status: pe.kind === 'unavailable' ? 503 : 429 }));

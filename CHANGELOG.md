@@ -1,8 +1,14 @@
-## P126.8 — Repair direct-route regression and bound pipeline harness (2026-11-04)
+## P126.9 — Isolate pipeline Gemini fixtures from CI secrets and SDK backoff (2026-11-04)
 
-- Updated the P126.1 structural regression to match the complete environment-gated Simple Direct condition and verify its position before intent planning.
-- Hardened the pipeline test server harness: detect child exit during readiness, bound health/login/API requests, include captured server logs in failures, clean up children after startup errors, and report per-stage timing.
-- Preserved product assertions; no tests were skipped and no suite timeout was increased.
+- Fixed the remaining `test:pipeline` failures (H3, H6, H6b and I) at the test-harness boundary: child servers now use only the scripted bridge key, clear inherited `GEMINI_API_KEY_1..10` organisation secrets, and disable background candidate probes.
+- Added `GEMINI_HTTP_RETRY_ATTEMPTS` as a bounded Gemini SDK client option (1–5). Its default is unset, preserving the production SDK retry policy; pipeline fixtures set it to `1` so HTTP 429/503 scenarios exercise BiForge's own key/model fallback without five SDK-level exponential-backoff attempts first. The fixture HTTP deadline is 35 seconds, just above the server's 30-second total model deadline, so the harness does not abort a request before the server can return its bounded fallback.
+- No product response rules, model cascade order, quota policy, or test assertions were weakened. Version and lockfile patch metadata: `126.9`.
+
+## P126.8 — Repair direct-route regression and bound pipeline server harness (2026-11-04)
+
+- Updated the P126.1 key-pool structural regression to locate the complete environment-gated Simple Direct condition, including its Expert and distress exclusions, then verify that the route gate precedes intent planning.
+- Hardened the pipeline integration harness: detect child-process exit during readiness, fail with captured startup logs, bound login/API requests, guarantee cleanup on startup failure, and emit per-stage timing so a slow or stuck integration is attributable.
+- Preserved all product assertions; no test was skipped and no product timeout was increased.
 - Version: `126.8`.
 
 ## P126.7 — Align search diagnostics with Simple Direct event (2026-11-04)

@@ -1,12 +1,22 @@
+## P126.9 — Evidence (2026-11-04)
+
+**Failure evidence:** hosted P126.8 run passed Core (`test:core` 240/240) but `test:pipeline` failed 4/204 checks (H3, H6, H6b, I), each with a 25-second `/api/conversation` timeout. The captured server output included `gemini_pool_rotated` during synthetic quota tests. The pipeline child inherited the CI process environment, including numbered organisation key slots, while its fake Gemini bridge intended to be the only provider. The Google Gen AI JavaScript SDK also defaults to five HTTP attempts with exponential backoff for retryable statuses (including 429 and 5xx); this compounded test latency before BiForge's own fallback could complete.
+
+**Changes:** `server.ts` centralizes Gemini client construction and accepts optional `GEMINI_HTTP_RETRY_ATTEMPTS` (bounded to 1–5; unset preserves the SDK default). `tests/pipeline.test.mjs` clears inherited `GEMINI_API_KEY_1..10`, forces its fixture key, disables candidate probes, and sets one SDK attempt. Application-level retry/fallback assertions remain intact. The fixture's HTTP deadline is now 35 seconds (above the server's 30-second model deadline) to avoid aborting a still-bounded server request prematurely. Package and lock patch metadata are `126.9`.
+
+**OBSERVED:** source edits; syntax checks and repository metadata checks run as listed in the delivery message.
+**NOT_RUN:** full `test:pipeline`, complete DAG, typecheck/build and hosted GitHub Actions in this sandbox because the project dependencies (`tsx` and `@google/genai`) are not installed. The hosted P126.8 failure is explained by fixture environment contamination and SDK retry backoff; P126.9 still requires CI confirmation.
+
+---
+
 ## P126.8 — Evidence (2026-11-04)
 
-**Scope:** correct the stale Simple Direct source assertion and prevent the pipeline harness from waiting indefinitely on an unavailable child server or unbounded HTTP request.
+**Scope:** repair the stale Simple Direct route assertion and prevent the pipeline harness from silently waiting on a dead/unresponsive child server or unbounded HTTP request.
 
-**Changes:** updated `tests/p124-27-key-pool.test.mjs` to match the complete environment-gated route guard. Updated `tests/pipeline.test.mjs` to check child liveness during startup, bound health/login/API requests, include server log tails in failures, clean up on startup failure, and emit per-stage timings. `package.json` is set to version `126`, patch `126.8`; the package-lock root version is synchronized to `126` via the repository version script.
+**Changes:** `tests/p124-27-key-pool.test.mjs` now matches the complete env-gated route guard and checks its ordering against intent planning. `tests/pipeline.test.mjs` now checks child liveness during readiness, bounds health/login/API requests, includes server log tails in failures, cleans up children when startup fails, and prints per-stage timings.
 
-**OBSERVED:** source edits; `node --check` on both changed test files; static verification that the complete Direct route guard precedes intent planning; `npm run version:check`; `npm run architecture:check`; and `npm run lint:copy` all pass.
-**BLOCKED:** executing the key-pool test and `test:pipeline` because this sandbox has no installed `tsx` package (`ERR_MODULE_NOT_FOUND`).
-**NOT_RUN:** full `test:core`, full DAG, production build and hosted Actions. This patch improves failure localization and prevents unbounded harness requests; it does not claim to have proven or repaired an underlying production-server hang.
+**OBSERVED:** source edits; package/lock metadata set to `126` / `126.8`.
+**NOT_RUN:** npm test commands, typecheck, build and hosted Actions. Dependency installation could not complete in this sandbox, so this patch is not represented as CI-verified. The pipeline instrumentation will make the exact stalled stage visible if the underlying runtime still blocks; the supplied prior log did not identify that operation.
 
 ---
 
