@@ -38,7 +38,7 @@ export type WebSearchResult = {
   /** P125.1 (WP1): sanitised query-fidelity record (lengths and flags only, never text). */
   queryFidelity?: { sourceWords: number; queryWords: number[]; queryCount: number; check: 'ok' | 'missing' | 'not_needed'; fallback: boolean };
   /** P124.26: query plan and usability decision (non-secret). */
-  plan?: { query: string; queries?: string[]; place?: string; country?: string; topic?: string; freshness?: 'now' | 'recent' | 'none'; planSource: 'model' | 'heuristic'; planNote?: string; fidelity?: QueryFidelityLog };
+  plan?: { query: string; queries?: string[]; place?: string; country?: string; topic?: string; freshness?: 'now' | 'recent' | 'none'; planSource: 'model' | 'heuristic'; planNote?: string; fidelity?: QueryFidelityLog; sourceCountry?: string; dictated?: boolean };
   usability?: { verdict: 'ok' | 'weak' | 'none'; hasNumber: boolean; placeMatched: boolean | null; retried: boolean };
   /** P124.30: provider that produced the result and the provider-chain trace (non-secret). */
   provider?: string;
