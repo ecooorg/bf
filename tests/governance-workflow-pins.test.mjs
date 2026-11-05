@@ -8,7 +8,6 @@ const workflowFiles = fs.readdirSync(workflowDir).filter((name) => name.endsWith
 const expected = new Map([
   ['actions/checkout', '3d3c42e5aac5ba805825da76410c181273ba90b1'],
   ['actions/setup-node', '949feb2413d6458794dcd2491c4babbbce0c15c1'],
-  ['actions/cache', '55cc8345863c7cc4c66a329aec7e433d2d1c52a9'],
   ['actions/upload-artifact', 'cf430e030ddbb5b0abf93d22962f4752f3646cd9'],
   ['gitleaks/gitleaks-action', 'e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e'],
 ]);
