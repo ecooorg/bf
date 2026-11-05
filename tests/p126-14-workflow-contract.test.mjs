@@ -11,21 +11,11 @@ test('every workflow runs the preflight and ends with an always-run assistant re
   for (const n of names) {
     const y = read(n);
     assert.match(y, /workflow-preflight\.mjs/, `${n}: preflight missing`);
-    if (n === 'ci.yml') {
-      assert.match(y, /diagnostics-summary\.mjs/);
-      assert.match(y, /ASSISTANT_SUMMARY\.md/);
-    } else {
-      assert.match(y, /uses: \.\/\.github\/actions\/diagnostic-report/, `${n}: report action missing`);
-    }
+    assert.match(y, /diagnostics-summary\.mjs/, `${n}: report step missing`);
+    assert.match(y, /ASSISTANT_SUMMARY\.md/);
     assert.match(y, /if: always\(\)/, `${n}: report must run after failures`);
     assert.doesNotMatch(y, /\|\|\s*echo\b/, `${n}: "|| echo" masks a failing step`);
   }
-});
-
-test('report action uploads the assistant summary and logs', () => {
-  const a = fs.readFileSync('.github/actions/diagnostic-report/action.yml', 'utf8');
-  assert.match(a, /ASSISTANT_SUMMARY\.md/);
-  assert.match(a, /upload-artifact@[a-f0-9]{40}/);
 });
 
 test('Answer Quality does not run manual-only heuristic packs (P125.13)', () => {
