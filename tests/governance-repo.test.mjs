@@ -3,7 +3,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -61,3 +61,34 @@ test('workflow action pins suite enforces immutable SHAs', () => {
   assert.match(pins, /pinned to a full immutable commit SHA/);
   assert.match(pins, /actions\/checkout/);
 });
+
+test('docs layout: only allowlisted prose and machine JSON under docs/', () => {
+  const docsDir = path.join(root, 'docs');
+  assert.ok(existsSync(docsDir), 'docs/ must exist');
+  const allowProse = new Set([
+    'ARCHITECTURE.md', 'API_CONTRACTS.md', 'TESTING_AND_ACCEPTANCE.md',
+    'USER_VALUE_EVALUATION.md', 'SECURITY_AND_PRIVACY.md', 'OPERATIONS_AND_RELEASES.md',
+    'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md',
+  ]);
+  const names = readdirSync(docsDir);
+  const nested = names.filter((n) => {
+    try { return statSync(path.join(docsDir, n)).isDirectory(); } catch { return false; }
+  });
+  assert.deepEqual(nested, [], `docs/ must not contain nested folders: ${nested.join(', ')}`);
+  const prose = names.filter((n) => n.endsWith('.md'));
+  const badProse = prose.filter((n) => !allowProse.has(n));
+  assert.deepEqual(badProse, [], `docs/ prose not on allowlist: ${badProse.join(', ')}`);
+  const cycleLike = prose.filter((n) => /^C\d{3}_/i.test(n) || /AUDIT-REPORT|DIAGNOSTIC_REPORT|REMEDIATION|web-search-analysis/i.test(n));
+  assert.deepEqual(cycleLike, [], `cycle/audit report markdown forbidden under docs/: ${cycleLike.join(', ')}`);
+  for (const req of ['ARCHITECTURE.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'DECISIONS.md']) {
+    assert.ok(prose.includes(req), `missing canonical prose ${req}`);
+  }
+});
+
+test('AGENTS.md binds documentation layout rule', () => {
+  const agents = read('AGENTS.md');
+  assert.match(agents, /Documentation layout \(binding\)/);
+  assert.match(agents, /MODEL_REGISTRY/);
+  assert.match(agents, /open only on explicit Navigator request|VIX-CONCEPT/);
+});
+
