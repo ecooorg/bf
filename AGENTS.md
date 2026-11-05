@@ -112,6 +112,8 @@ BiForge succeeds when a real user completes a meaningful task and receives a cor
 | Security and privacy | `docs/SECURITY_AND_PRIVACY.md` | Binding. |
 | Operations and releases | `docs/OPERATIONS_AND_RELEASES.md` | Live/destructive actions need authorization. |
 | Data, schemas, artifacts | `docs/DATA_AND_ARTIFACTS.md` | Respect schemas and delivery contract. |
+| Client workspace (local files) | `docs/ARCHITECTURE.md`, `docs/DATA_AND_ARTIFACTS.md`, `docs/DECISIONS.md` | **Keep.** Browser-side file workspace: ingest, IndexedDB, attachments to agents, ChangeSet apply/export. Not optional noise; do not propose removal. |
+| Google Drive backup/save | `docs/ARCHITECTURE.md`, `docs/DATA_AND_ARTIFACTS.md`, `docs/DECISIONS.md` | **Keep.** User backup and cloud file persistence. Distinct from client workspace; do not propose removal. |
 | Active decisions | `docs/DECISIONS.md` | Supersede explicitly; do not erase history. |
 | Test category map | `docs/TEST_MAP.md` | Where to put a check; category suites only. |
 | Model registry / allowlist summary | `docs/MODEL_REGISTRY.md` | Prose summary; code and `config/model-sources.json` are runtime authority. |
@@ -120,6 +122,12 @@ BiForge succeeds when a real user completes a meaningful task and receives a cor
 | Version and patch identity | `package.json` (`version`, `patch`) | No duplicate authority. |
 
 If sources conflict, this table wins. Historical roadmap/report/changelog text is not a current instruction when superseded.
+
+### Client file systems (binding)
+
+- **`src/workspace/` + `WorkspacePanel` — keep.** Local browser workspace (folder/archive/files → IndexedDB → privacy-gated attachments for Simple/Expert/Project → agent ChangeSet parse/apply/export). Product surface, not disposable experiment.
+- **Google Drive client (`src/drive*.ts`, `useDrive`) — keep.** Backup and cloud save of user files. Does **not** replace workspace; workspace does **not** replace Drive.
+- **MUST NOT** recommend deleting, freezing, or “cleaning up” either subsystem without an explicit Navigator decision that supersedes `docs/DECISIONS.md` (D-2026-11-05-01).
 
 `PATCH_EVIDENCE.md` / `BIForge-PATCH-EVIDENCE.md` are run-scoped CI diagnostics only. **MUST NOT** treat them as planning docs or next-session assignments. **MUST NOT** keep a root `NEXT_PATCH.md` or equivalent.
 

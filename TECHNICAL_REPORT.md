@@ -1,3 +1,13 @@
+## P126.25 — Evidence (2026-11-05)
+
+**Scope:** Documentation-only — close the open question on Drive/workspace status after owner confirmed Drive is backup/save and workspace analysis showed active product use.
+
+**OBSERVED:** Decision and SSOT text present in AGENTS / ARCHITECTURE / DATA_AND_ARTIFACTS / DECISIONS.
+
+**NOT_RUN:** N/A (no runtime change).
+
+---
+
 ## P126.24 — Evidence (2026-11-05)
 
 **Scope:** Align DAG with real checks; single model-sources authority (JSON).

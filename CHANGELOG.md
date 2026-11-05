@@ -1,3 +1,11 @@
+## P126.25 — Document Drive + workspace as keep (2026-11-05)
+
+- **AGENTS.md:** SSOT rows and binding “Client file systems” — workspace and Google Drive are **keep**; must not propose removal without superseding decision.
+- **docs/ARCHITECTURE.md:** landmarks for workspace vs Drive (complementary).
+- **docs/DATA_AND_ARTIFACTS.md:** client workspace vs Drive vs Architect ZIP.
+- **docs/DECISIONS.md:** D-2026-11-05-01 owner clarification.
+- No code or runtime behavior change.
+
 ## P126.24 — DAG honesty + single model-sources.json (2026-11-05)
 
 - **verification-manifest.json:** dropped retired/no-op DAG checks (`test:files`, `test:pipeline`, `test:workspace`, `test:database*`, `test:web`, `test:turn`, `test:gates`, `test:integrations`, `test:compact-ci-artifacts`, `test:bx06:api`, carousel placeholder). **18 real checks** remain (check: 16, ci adds `db-migrate` + `build`).
