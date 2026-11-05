@@ -146,9 +146,66 @@ const FRESH_PATTERNS: RegExp[] = [
   re(String.raw`(?:usd|eur|chf|gbp|jpy|cny|rub|uah|pln|btc|eth)\s*(?:/|to|in|->)\s*(?:usd|eur|chf|gbp|jpy|cny|rub|uah|pln)\b|(?:how\s+much\s+(?:is|are|does|do)\s+.{1,60}\s+(?:cost|worth)|price\s+(?:for|per))\b`),
 ];
 
+/**
+ * P126.29: share/percentage questions about a place or population of things need live lookup
+ * (e.g. "what % of trees in Graubünden are larch"). Pure.
+ */
+export function isStatisticShareQuestion(text: string): boolean {
+  const t = String(text || '').trim();
+  if (t.length < 8) return false;
+  return (
+    /(?:какой|какая|какое|какие)\s+процент/iu.test(t)
+    || /какая\s+доля|доля\s+(?:\p{L}+\s+){0,4}в\s+/iu.test(t)
+    || /процент\s+(?:от\s+)?(?:всех\s+)?\p{L}{3,}/iu.test(t)
+    || /сколько\s+(?:процент|процентов)/iu.test(t)
+    || /what\s+(?:is\s+the\s+)?(?:percentage|percent|share|proportion)\b/iu.test(t)
+    || /how\s+many\s+percent/iu.test(t)
+    || /(?:percentage|percent|share)\s+of\s+(?:all\s+)?\p{L}{3,}/iu.test(t)
+  );
+}
+
+/** True when the model reply asserts a concrete percentage as if from data/inventory. Pure. */
+export function replyAssertsGroundedPercentage(reply: string): boolean {
+  const r = String(reply || '');
+  if (!/\d{1,3}(?:\s*[–—-]\s*\d{1,3})?\s*%|\d{1,3}(?:\s*[–—-]\s*\d{1,3})?\s*процент/iu.test(r)) return false;
+  return (
+    /согласно\s+(?:актуальным\s+)?данным|по\s+данным|по\s+оценкам|инвентаризац|LFI|NFI|national\s+(?:forest\s+)?inventory|according\s+to|official\s+(?:data|statistics|figures)/iu.test(r)
+    || /(?:составля\p{L}*|составляет|составляют|около|примерно)\s+(?:примерно\s+|около\s+)?\d{1,3}/iu.test(r)
+  );
+}
+
+/**
+ * P126.29: when search did not ground the turn, do not leave invented inventory percentages as facts.
+ * Returns the original reply when grounded or when the reply is not a confident percentage claim.
+ */
+export function applyUngroundedStatisticGate(input: {
+  userText: string;
+  reply: string;
+  searchStatus: string;
+}): string {
+  const status = String(input.searchStatus || '');
+  if (status === 'used' || status === 'used_weak') return input.reply;
+  if (!isStatisticShareQuestion(input.userText)) return input.reply;
+  if (!replyAssertsGroundedPercentage(input.reply)) return input.reply;
+  const cyrillic = /\p{Script=Cyrillic}/u.test(input.userText);
+  if (cyrillic) {
+    return (
+      'Проверенный поиск по этому вопросу не выполнен (или не дал пригодных источников), '
+      + 'поэтому я не могу подтвердить конкретный процент и не ссылаюсь на инвентаризацию или «актуальные данные» без проверки. '
+      + 'Попросите найти данные в сети явно, или продолжим без точных цифр.'
+    );
+  }
+  return (
+    'A verified web lookup was not completed for this question (or returned no usable sources), '
+    + 'so I cannot confirm a specific percentage or cite inventory figures as current data. '
+    + 'Ask me explicitly to search the web, or we can continue without exact numbers.'
+  );
+}
+
 export function needsFreshWebInfo(text: string): boolean {
   const t = String(text || '');
   if (t.trim().length < 8) return false;
+  if (isStatisticShareQuestion(t)) return true;
   return FRESH_PATTERNS.some((p) => p.test(t));
 }
 
