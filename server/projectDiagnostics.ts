@@ -19,12 +19,16 @@ function sanitizeLogText(value: unknown, max = 1200): string {
   return redactSecrets(String(value ?? '')).replace(/(prompt|systemPrompt|sourceCode|requestBody|responseBody|authorization|cookie|api[_-]?key|token|password|privateKey)\s*[:=]\s*(\"[^\"]*\"|'[^']*'|[^,\s}]+)/gi, '$1=[OMITTED]').replace(/AIza[0-9A-Za-z_-]{20,}/g, '[REDACTED_KEY]').replace(/Bearer\s+[^\s,]+/gi, 'Bearer [REDACTED]').slice(0, max);
 }
 function safeDetails(value: unknown, depth = 0): unknown {
+  if (value === undefined) return undefined;
   if (depth > 5) return '[DEPTH_LIMIT]';
   if (typeof value === 'string') return sanitizeLogText(value, 100000);
-  if (Array.isArray(value)) return value.slice(0, 200).map((x) => safeDetails(x, depth + 1));
+  if (Array.isArray(value)) return value.slice(0, 200).map((x) => safeDetails(x, depth + 1)).filter((x) => x !== undefined);
   if (value && typeof value === 'object') {
     const out: Record<string, unknown> = {};
-    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 200)) out[key] = REDACTED_DETAIL_KEYS.test(key) ? '[CREDENTIAL_OMITTED]' : safeDetails(item, depth + 1);
+    for (const [key, item] of Object.entries(value as Record<string, unknown>).slice(0, 200)) {
+      if (item === undefined) continue;
+      out[key] = REDACTED_DETAIL_KEYS.test(key) ? '[CREDENTIAL_OMITTED]' : safeDetails(item, depth + 1);
+    }
     return out;
   }
   if (typeof value === 'number' || typeof value === 'boolean' || value === null) return value;
