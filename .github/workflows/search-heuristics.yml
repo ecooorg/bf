@@ -1,6 +1,7 @@
 # Manual-only: phrase / heuristic / routing regression suite (not product-core CI).
 # Run when debugging search-routing phrasing or after intentional heuristic changes.
-# Core CI must NOT depend on these checks (owner decision P125.13).
+# Core CI and Answer Quality must NOT depend on these checks (owner decision P125.13).
+# The suite command is `npm run test:search-heuristics`, so this file never lists stale test paths.
 name: Search Heuristics — Manual Phrase and Routing Suite
 
 on:
@@ -16,6 +17,7 @@ concurrency:
 env:
   CI: 'true'
   MODEL_MIN_INTERVAL_MS: '0'
+  CI_LOGS_DIR: artifacts/search-heuristics
 
 jobs:
   heuristics:
@@ -31,8 +33,19 @@ jobs:
       - name: Install
         run: |
           set -o pipefail
-          npm ci --ignore-scripts
+          mkdir -p "$CI_LOGS_DIR"
+          npm ci --ignore-scripts 2>&1 | tee "$CI_LOGS_DIR/01-install.log"
+      - name: Preflight (current files, scripts, exports, version)
+        run: node scripts/workflow-preflight.mjs
       - name: Search heuristics suite
         run: |
           set -o pipefail
-          npm run test:search-heuristics
+          npm run test:search-heuristics 2>&1 | tee "$CI_LOGS_DIR/02-search-heuristics.log"
+      - name: Assistant diagnostic report
+        if: always()
+        uses: ./.github/actions/diagnostic-report
+        with:
+          logs-dir: artifacts/search-heuristics
+          artifact-name: search-heuristics-diagnostics
+          status: ${{ job.status }}
+          rerun: npm run test:search-heuristics

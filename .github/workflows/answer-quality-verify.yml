@@ -1,5 +1,6 @@
-# P125.7 — Unified answer-quality verification (C125)
-# Action pins match Core CI (immutable SHAs).
+# P126.14 — Answer-quality verification (C126). Offline suite is the product kernel for search,
+# carousel, fidelity, source policy and direct-conversation fallback. Phrase/heuristic packs are
+# manual-only (search-heuristics.yml, owner decision P125.13). Action pins match Core CI.
 name: Answer Quality — Routing, Search, Carousel and Replay
 
 on:
@@ -15,19 +16,17 @@ on:
         default: ''
   pull_request:
     paths:
-      - 'server/webSearch.ts'
-      - 'server/nationalAuthorities.ts'
-      - 'server/queryFidelity.ts'
-      - 'server/sourcePolicy.ts'
-      - 'server/modelCarousel.ts'
-      - 'server/conversationDiagnostics.ts'
+      - 'server/**'
       - 'server.ts'
       - 'config/**'
-      - 'tests/p125-*.test.mjs'
-      - 'tests/p124-*.test.mjs'
-      - 'tests/p123-carousel-workflow.test.mjs'
+      - 'connectors.yaml'
+      - 'tests/p12[3-6]-*.test.mjs'
       - 'scripts/carousel-*.mjs'
+      - 'scripts/workflow-preflight.mjs'
+      - 'scripts/diagnostics-summary.mjs'
+      - 'package.json'
       - '.github/workflows/answer-quality-verify.yml'
+      - '.github/actions/**'
   schedule:
     - cron: '17 5 * * 1'
 
@@ -47,6 +46,8 @@ jobs:
     name: Offline answer-quality + carousel deterministic
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CI_LOGS_DIR: artifacts/answer-quality
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -56,36 +57,49 @@ jobs:
       - name: Install
         run: |
           set -o pipefail
-          npm ci --ignore-scripts
-      - name: P125 answer-quality pure suite
+          mkdir -p "$CI_LOGS_DIR"
+          npm ci --ignore-scripts 2>&1 | tee "$CI_LOGS_DIR/01-install.log"
+      - name: Preflight (current files, scripts, exports, version)
+        run: node scripts/workflow-preflight.mjs
+      - name: Offline answer-quality suite
         run: |
           set -o pipefail
-          MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 \
-            tests/p125-1-query-fidelity-source-policy.test.mjs \
-            tests/p125-3-search-routing-grounding.test.mjs \
-            tests/p125-4-answer-quality-suite.test.mjs
-      - name: Search and carousel unit tests
-        run: |
-          set -o pipefail
-          MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 \
-            tests/p124-28-search-planner.test.mjs \
-            tests/p124-38-search-trigger-coverage.test.mjs \
-            tests/p124-39-source-quality.test.mjs \
-            tests/p124-29-weather-connector.test.mjs \
-            tests/p124-30-search-carousel.test.mjs \
-            tests/p123-carousel-workflow.test.mjs
+          npm run test:answer-quality 2>&1 | tee "$CI_LOGS_DIR/02-answer-quality.log"
       - name: Deterministic carousel verification
         run: |
           set -o pipefail
-          node scripts/carousel-verify.mjs || { echo "Deterministic carousel verification failed"; exit 1; }
-      - name: Render runtime contract probe
+          node scripts/carousel-verify.mjs 2>&1 | tee "$CI_LOGS_DIR/03-carousel-verify.log" || { echo "Deterministic carousel verification failed"; exit 1; }
+      - name: Render runtime contract probe (needs repository variable CAROUSEL_RENDER_URL)
+        env:
+          CAROUSEL_RENDER_URL: ${{ vars.CAROUSEL_RENDER_URL }}
         run: |
           set -o pipefail
-          node scripts/carousel-render-probe.mjs || { echo "Render runtime contract probe failed"; exit 1; }
+          if [ -z "$CAROUSEL_RENDER_URL" ]; then
+            echo "NOT_RUN render runtime probe: repository variable CAROUSEL_RENDER_URL (deployed HTTPS URL) is not set; offline contract is covered by tests/p123-carousel-workflow.test.mjs" | tee "$CI_LOGS_DIR/04-carousel-render-probe.log"
+            exit 0
+          fi
+          node scripts/carousel-render-probe.mjs 2>&1 | tee "$CI_LOGS_DIR/04-carousel-render-probe.log" || { echo "Render runtime contract probe failed"; exit 1; }
       - name: National authorities data loads
         run: |
           set -o pipefail
-          node --import tsx -e "import { loadNationalAuthorities } from './server/nationalAuthorities.ts'; const a=loadNationalAuthorities(); if(a.length<5) process.exit(1); console.log('authorities', a.length);"
+          node --import tsx -e "import { loadNationalAuthorities } from './server/nationalAuthorities.ts'; const a=loadNationalAuthorities(); if(a.length<5) { console.error('FAIL authorities', a.length); process.exit(1); } console.log('PASS authorities', a.length);" 2>&1 | tee "$CI_LOGS_DIR/05-national-authorities.log"
+      - name: Copy structured carousel reports
+        if: always()
+        run: |
+          mkdir -p "$CI_LOGS_DIR/structured"
+          if ls artifacts/carousel-verify/*.json >/dev/null 2>&1; then
+            cp artifacts/carousel-verify/*.json "$CI_LOGS_DIR/structured/"
+          else
+            printf 'NOT_RUN no structured carousel reports were produced\n' > "$CI_LOGS_DIR/06-structured.log"
+          fi
+      - name: Assistant diagnostic report
+        if: always()
+        uses: ./.github/actions/diagnostic-report
+        with:
+          logs-dir: artifacts/answer-quality
+          artifact-name: answer-quality-diagnostics-offline
+          status: ${{ job.status }}
+          rerun: npm run test:answer-quality && node scripts/carousel-verify.mjs && node scripts/carousel-render-probe.mjs
 
   live-smoke:
     name: Live carousel + search smoke (opt-in)
@@ -93,6 +107,8 @@ jobs:
     timeout-minutes: 20
     needs: offline-suite
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.live == true }}
+    env:
+      CI_LOGS_DIR: artifacts/answer-quality-live
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -102,20 +118,30 @@ jobs:
       - name: Install
         run: |
           set -o pipefail
-          npm ci --ignore-scripts
+          mkdir -p "$CI_LOGS_DIR"
+          npm ci --ignore-scripts 2>&1 | tee "$CI_LOGS_DIR/01-install.log"
       - name: Live carousel smoke
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CAROUSEL_LIVE: 'true'
           WEATHER_PLACE: ${{ inputs.weather_place }}
         run: |
           set -o pipefail
-          if [ -z "$GEMINI_API_KEY" ] && [ -z "$SERPER_API_KEY" ]; then
-            echo "No live secrets; NOT_RUN"
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "NOT_RUN live smoke: GEMINI_API_KEY secret is not set" | tee "$CI_LOGS_DIR/02-live-smoke.log"
             exit 0
           fi
-          if [ -n "$GEMINI_API_KEY" ]; then
-            node --import tsx scripts/carousel-live-smoke.mjs || echo "Live smoke non-zero"
-          fi
-          echo "Production multi-turn OBSERVED remains Navigator after deploy (patch must match package.json)."
+          node --import tsx scripts/carousel-live-smoke.mjs 2>&1 | tee "$CI_LOGS_DIR/02-live-smoke.log"
+          echo "Production multi-turn remains NOT_RUN here; Navigator observes it after deploy (patch must match package.json)." | tee -a "$CI_LOGS_DIR/02-live-smoke.log"
+      - name: Assistant diagnostic report
+        if: always()
+        uses: ./.github/actions/diagnostic-report
+        with:
+          logs-dir: artifacts/answer-quality-live
+          artifact-name: answer-quality-diagnostics-live
+          status: ${{ job.status }}
+          rerun: GEMINI_API_KEY=... node --import tsx scripts/carousel-live-smoke.mjs
