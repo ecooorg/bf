@@ -360,6 +360,22 @@ export function ConversationScreen({
     send(p.text, p.intent, true, p.files);
   };
 
+  // P126.13: after a request ends without an answer, retry automatically (4 s, 8 s, 12 s) before leaving the manual button.
+  const prevBusyRef = useRef(busy);
+  const autoRetriesRef = useRef(0);
+  const [autoRetryPending, setAutoRetryPending] = useState(false);
+  useEffect(() => {
+    const wasBusy = prevBusyRef.current;
+    prevBusyRef.current = busy;
+    if (!waitingForAssistant) { autoRetriesRef.current = 0; setAutoRetryPending(false); return; }
+    if (!wasBusy || busy) return;
+    if (autoRetriesRef.current >= 3) { setAutoRetryPending(false); return; }
+    const n = ++autoRetriesRef.current;
+    setAutoRetryPending(true);
+    const t = setTimeout(() => { setAutoRetryPending(false); retry(); }, 4000 * n);
+    return () => clearTimeout(t);
+  }, [busy, waitingForAssistant]);
+
   // Drag-and-drop onto the conversation shell
   const onDragOver = (e: React.DragEvent) => {
     if (busy || !e.dataTransfer?.types?.includes('Files')) return;
@@ -420,7 +436,7 @@ export function ConversationScreen({
                 <button type="button" className="ghost retry-button" onClick={retry} aria-label="Retry">
                   <RotateCcw size={14} /> Retry
                 </button>
-                <span className="conversation-hint">No reply yet — try again</span>
+                <span className="conversation-hint">{autoRetryPending ? 'No reply yet — retrying automatically…' : 'No reply yet — try again'}</span>
               </div>
             )}
           </div>
