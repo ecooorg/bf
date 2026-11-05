@@ -1,3 +1,13 @@
+## P126.21 — Docs micro-hardening after topology cleanup (2026-11-05)
+
+- **USER_VALUE_EVALUATION:** growth rule — full detail for recent 2–3 cycles; older blocks may become short index lines without erasing OBSERVED records.
+- **ARCHITECTURE / OPERATIONS:** Quick orientation bullets at the top for faster assistant orientation.
+- **AGENTS.md:** VIX-CONCEPT open only on explicit Navigator request (SSOT row + docs layout bullet).
+- **ROADMAP / DECISIONS:** retired-path banners so historical C12x / remediation links are not treated as current authority.
+- **MODEL_REGISTRY:** aligned with current `GEMINI_ALLOWED_MODELS`, default cascades, and `config/model-sources.json` gemini-free-pool.
+- **governance-repo.test.mjs:** asserts docs/ allowlist, no nested folders, no C###_/audit report markdown; AGENTS documentation-layout binding.
+- No program/code behavior changes.
+
 ## P126.20 — Documentation topology cleanup (2026-11-05)
 
 - **Canonical prose allowlist** under `docs/`: ARCHITECTURE, API_CONTRACTS, TESTING_AND_ACCEPTANCE, USER_VALUE_EVALUATION, SECURITY_AND_PRIVACY, OPERATIONS_AND_RELEASES, DATA_AND_ARTIFACTS, DECISIONS, TEST_MAP, MODEL_REGISTRY, VIX-CONCEPT.

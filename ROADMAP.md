@@ -30,6 +30,8 @@ The Conversational route now defaults to a single direct Gemini text call. Searc
 
 ## CURRENT ROADMAP CONTROL — 2026-11-03 (C124)
 
+> **Retired documentation paths (P126.20+):** Any historical mention of `docs/C12x_*`, `docs/WEB_SEARCH_REMEDIATION.md`, `docs/INFORMATION_QUALITY_WORKFLOW.md`, `docs/RENDER_ENV_CONTRACT.md`, `docs/MODEL_ALLOWLIST.md`, `docs/MODEL_SOURCES_*`, or similar cycle/audit reports is **historical only**. Current prose authority is the Single-source-of-truth map in `AGENTS.md`. Do not recreate retired files to satisfy an old link.
+
 > This current control section governs the historical plan below. Completed stages and historical patch records are retained as written. If an older instruction below conflicts with this section or `AGENTS.md`, it is historical and must not be followed as a current operating rule.
 
 > **P124.0.16 status:** The P92 diagnostics contract test has been aligned with P124.0.15 full-content capture: conversation evidence is expected, while credentials remain redacted. Runtime behavior is unchanged. Targeted test and hosted CI rerun are pending.

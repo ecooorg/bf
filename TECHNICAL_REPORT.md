@@ -1,3 +1,13 @@
+## P126.21 — Evidence (2026-11-05)
+
+**Scope:** Micro-hardening of documentation topology after P126.20 (growth rule, orientation, VIX gate, retired-path banners, MODEL_REGISTRY sync, governance assertions).
+
+**OBSERVED (sandbox):** docs-integrity markers still present; governance-repo includes docs layout suite; allowlist files present.
+
+**NOT_RUN:** Hosted CI after apply of P126.20 + this patch.
+
+---
+
 ## P126.20 — Evidence (2026-11-05)
 
 **Scope:** Full docs/ cleanup per owner plan — canonical prose only, machine JSON retained, historical C/audit reports removed after consolidation into canon / DECISIONS / REPORT.
