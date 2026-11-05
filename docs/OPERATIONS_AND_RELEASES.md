@@ -2,16 +2,25 @@
 
 ## Quick orientation
 
-- Live shared environment historically: `https://biforge.onrender.com/` — reconfirm before ops work.
+- **Primary deploy: Render** (live URL historically `https://biforge.onrender.com/`) — reconfirm before ops work. `railway.toml` / `nixpacks.toml` are secondary/legacy, not the production contract.
 - Non-secret Render settings: table in **Render environment contract** below; secrets never in docs or logs.
 - Artifact download = SUCCESS only after validators + verified archive; PARTIAL/FAILED must be honest.
 - Production deploy, DB mutation, destructive restore require explicit owner authorization.
 
 ## Environment and deployment
 
-The repository's historical operational notes identify `https://biforge.onrender.com/` as the public Render service and describe it as the owner's live shared test environment. Reconfirm deployment facts before operational work; do not assume a separate staging service exists. The owner manually applies patch ZIPs to the repository unless a later authorized workflow establishes another process. Do not assume direct GitHub or Render access.
+### Primary deployment host
 
-Keep authentication enabled. Use GitHub Actions secrets or the host's secret manager for credentials; never copy secret values into files or logs. A public service remains public even when used by one person.
+- **Primary production / live shared environment: [Render](https://render.com)** — historically `https://biforge.onrender.com/`. Reconfirm the live URL and health before operational work.
+- Non-secret Render settings are the table in **Render environment contract** below; secrets stay in the host secret manager only.
+- The owner manually applies patch ZIPs to the repository unless a later authorized workflow establishes another process. Do not assume direct GitHub or Render dashboard access for the assistant.
+
+### Secondary / legacy deploy files (not primary)
+
+- Root `railway.toml` and `nixpacks.toml` are **not** the primary production contract. They may remain for alternate hosts or historical packaging; do not treat them as superseding Render ops or the Render env table.
+- PostgreSQL is whatever `DATABASE_URL` the deployment provides (often attached on the same host). Connector inventory text must not hard-require a specific cloud vendor name for the database.
+
+Keep authentication enabled. Use GitHub Actions secrets or the host's secret manager for credentials; never copy secret values into files or logs. A public service remains public even when used by one person. Do not assume a separate staging service exists unless the owner documents one.
 
 ## Render environment contract (non-secret)
 

@@ -29,3 +29,14 @@ These definitions are the product-facing meaning. A test/workflow may have its o
 ## Machine-readable assets retained
 
 `schema-common.json`, `schema-intent-policy-contract.json`, `schema-change-impact-plan.json`, `schema-verification-plan.json`, `schema-evidence-record.json`, `schema-artifact-manifest.json`, `schema-handoff-report.json`, `schema-approval-decision.json`, `verification-manifest.json`, architecture rules/violations, and generated route/env/migration/module/check/capability inventories remain machine assets, not prose source-of-truth documents.
+
+## Repository config files
+
+Checked-in, non-secret configuration under `config/`:
+
+- `model-sources.json` — model catalog (sole format; no parallel yaml).
+- `source-policy.json` / `national-authorities.json` — search/source policy data.
+- `config/connectors.yaml` — inventory of external connections for `verify:connections` (JSON body with `#` line comments; **no secrets**).
+
+Do not put API keys or tokens in these files.
+
