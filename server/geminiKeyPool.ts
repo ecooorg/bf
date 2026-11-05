@@ -13,13 +13,13 @@ import { classifyKeyError, shouldRotateKeySlot, type KeySlot } from './keyPool.t
 
 export type PoolErrorClass = ReturnType<typeof classifyKeyError>;
 
-export const QUOTA_COOLDOWN_MS = 5 * 60_000;
+export const QUOTA_COOLDOWN_MS = 60_000;
 export const TRANSIENT_COOLDOWN_MS = 30_000;
 export const AUTH_COOLDOWN_MS = 60 * 60_000;
 /** Distinct keys hitting quota on one model inside this window ⇒ shared quota suspected. */
 export const SHARED_QUOTA_WINDOW_MS = 60_000;
 export const SHARED_QUOTA_MIN_SLOTS = 3;
-export const MODEL_PARK_MS = 5 * 60_000;
+export const MODEL_PARK_MS = 30_000;
 
 export class GeminiKeyPool {
   private slotModelUntil = new Map<string, number>();

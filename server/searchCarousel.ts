@@ -50,7 +50,7 @@ export class SearchCircuitBreaker {
   constructor(private o: { threshold?: number; softOpenMs?: number; hardOpenMs?: number } = {}) {}
   private get threshold() { return this.o.threshold ?? 3; }
   private get softMs() { return this.o.softOpenMs ?? 60_000; }
-  private get hardMs() { return this.o.hardOpenMs ?? 15 * 60_000; }
+  private get hardMs() { return this.o.hardOpenMs ?? 60_000; }
   /** Closed or half-open (cooldown elapsed: exactly one trial call is allowed). */
   allow(id: string, now = Date.now()): boolean {
     const s = this.st.get(id); if (!s || s.openUntil === 0) return true;

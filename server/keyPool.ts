@@ -4,8 +4,8 @@
  * Tests and runtime must never require a fixed full set of 10.
  */
 export const MAX_ORG_KEY_SLOTS = 10;
-/** Default cool-down after quota / rate-limit on a slot (5 minutes). */
-export const DEFAULT_SLOT_COOLDOWN_MS = 300_000;
+/** Default cool-down after quota / rate-limit on a slot (60 seconds). */
+export const DEFAULT_SLOT_COOLDOWN_MS = 60_000;
 
 export interface KeySlot {
   /** 0 = primary env (e.g. GEMINI_API_KEY); 1..10 = PREFIX_n */
