@@ -105,3 +105,26 @@ test('scripts layout: no per-patch tools; integrity allowlist present', () => {
   assert.match(agents, /Scripts layout \(binding\)/);
 });
 
+test('package.json has no no-op retired test:* scripts; DAG ids match real scripts', () => {
+  const scripts = pkg.scripts || {};
+  const noop = Object.entries(scripts).filter(([k, v]) =>
+    /^test:/.test(k) && /retired|folded|NOT_RUN|console\.log\(|echo "/.test(String(v)) && /exit 0/.test(String(v))
+  ).map(([k]) => k);
+  assert.deepEqual(noop, [], `remove no-op test scripts: ${noop.join(', ')}`);
+  assert.ok(!scripts['architect:dual-compare'], 'architect:dual-compare must not remain');
+  const manifest = JSON.parse(read('docs/verification-manifest.json'));
+  const ids = (manifest.checks || []).map((c) => c.id);
+  for (const dead of ['test:files', 'test:pipeline', 'test:workspace', 'test:database', 'test:web', 'test:turn', 'test:gates', 'test:integrations', 'test:compact-ci-artifacts', 'test:database:live', 'test:bx06:api', 'test:carousel-unit-retired-placeholder']) {
+    assert.ok(!ids.includes(dead), `manifest must not list ${dead}`);
+  }
+  for (const live of ['test:core', 'test:models', 'docs-integrity', 'build']) {
+    assert.ok(ids.includes(live), `manifest missing ${live}`);
+  }
+});
+
+test('config has single model-sources.json (no yaml twin)', () => {
+  assert.ok(existsSync(path.join(root, 'config/model-sources.json')));
+  assert.ok(!existsSync(path.join(root, 'config/model-sources.yaml')));
+  assert.ok(!existsSync(path.join(root, 'config/model-sources.yml')));
+});
+
