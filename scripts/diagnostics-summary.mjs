@@ -46,6 +46,7 @@ const tapTotals = text => {
   if (!tests) return null;
   return { tests, passed: sum(/^.*?# pass\s+(\d+)\s*$/gm), failed: sum(/^.*?# fail\s+(\d+)\s*$/gm), skipped: sum(/^.*?# skipped\s+(\d+)\s*$/gm) };
 };
+const failedNames = [];
 const checks = [];
 const failures = [];
 const structuredReports = [];
@@ -93,6 +94,7 @@ for (const file of inputs) {
     } catch { /* a malformed optional JSON artifact is still represented as a log file */ }
   }
   checks.push({ file: rel, state, ...(tap ? tap : {}) });
+  for (const m of text.matchAll(/^\s*not ok \d+ - (.+?)(?:\s+#.*)?$/gm)) if (failedNames.length < 40) failedNames.push(`${rel}: ${m[1].slice(0, 160)}`);
   const lines = text.split(/\r?\n/);
   const hits = [];
   for (let i = 0; i < lines.length; i++) {
@@ -144,13 +146,19 @@ const summary = [
   '', '## Failures and Context', '',
   stageChecks.some(c => ['FAIL', 'TIMEOUT', 'BLOCKED', 'NOT_RUN'].includes(c.status)) ? `### DAG failures and rerun commands\n\n${stageChecks.filter(c => ['FAIL', 'TIMEOUT', 'BLOCKED', 'NOT_RUN'].includes(c.status)).map(c => `- **${c.status}** \`${c.id}\`${c.command ? ` — \`${c.command}\`` : ''}${c.log ? ` (log: \`${c.log}\`)` : ''}${c.note ? `\n  ${String(c.note).slice(0, 250)}` : ''}`).join('\n')}` : '',
   failures.length ? failures.slice(0, 8).map(f => `### ${f.file}\n\n\`\`\`text\n${f.excerpts.join('\n\n---\n\n').slice(0, 2_500)}\n\`\`\``).join('\n\n') : 'No failure signatures detected.',
+  failedNames.length ? `\n### Failed test names (${failedNames.length}${failedNames.length >= 40 ? '+' : ''})\n\n${failedNames.map(n => `- ${n}`).join('\n')}` : '',
   '', '## Reproduction', '',
+  process.env.WORKFLOW_RERUN ? `Workflow rerun commands:\n\n\`\`\`bash\n${process.env.WORKFLOW_RERUN.split(/;\s*|\s+&&\s+/).join('\n')}\n\`\`\`\n` : '',
   'Rerun the failed check command first, then rerun the complete workflow profile. BLOCKED and NOT_RUN are not successful results.',
   '', '## Companion Logs', '',
   '- `checks.log` — concise status for every log file and structured DAG check.',
   '- `failures.log` — failure excerpts with surrounding context.',
   '- `environment.log` — runtime environment and run identity.',
   '- Raw workflow logs — full command output; filenames identify the step and test area.',
+  '', '## Evidence rules for the assistant', '',
+  '- Only steps listed above ran. NOT_RUN, BLOCKED and absent steps are not PASS (AGENTS.md G5).',
+  '- Preflight (`00-preflight.log`) states whether referenced files, npm scripts, exports and version metadata were current at this commit.',
+  '- Green automated checks do not prove user value; report them separately from user-level evidence.',
   '',
 ].join('\n');
 fs.writeFileSync(path.join(dir, 'ASSISTANT_SUMMARY.md'), summary);
