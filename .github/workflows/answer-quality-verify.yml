@@ -19,7 +19,7 @@ on:
       - 'server/**'
       - 'server.ts'
       - 'config/**'
-      - 'connectors.yaml'
+      - 'config/connectors.yaml'
       - 'tests/*.test.mjs'
       - 'scripts/carousel-*.mjs'
       - 'scripts/workflow-preflight.mjs'
