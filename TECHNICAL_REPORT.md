@@ -1,3 +1,13 @@
+## P126.31 — Evidence (2026-11-06)
+
+**Scope:** Query hygiene only (priority A).
+
+**OBSERVED:** patterns strip meta process phrases; factual percent question retains topic words; `contextualizeSearchText` reuses prior task on meta-only turns.
+
+**NOT_RUN:** Hosted live SERP after deploy.
+
+---
+
 ## P126.30 — Evidence (2026-11-05)
 
 **Scope:** Owner request — return model response with web search; do not replace replies after generation.

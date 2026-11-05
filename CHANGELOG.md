@@ -1,3 +1,10 @@
+## P126.31 — Search query hygiene (strip meta instructions) (2026-11-06)
+
+- **General (any topic):** expand `stripInstructionWords` with multi-word meta phrases (search again / other sites / only the number / no explanations / answer my question — EN+RU).
+- **`buildSearchQuery`:** always runs the same strip so SERP never receives process-only wording as the query.
+- **`contextualizeSearchText`:** if the latest user turn is meta-only, reuse the **prior** factual user task (when it had search intent) instead of searching the instruction text.
+- Not domain-specific (no tree/LFI hardcoding).
+
 ## P126.30 — Pass through model reply with search (no statistic reply gate) (2026-11-05)
 
 - **Removed** `applyUngroundedStatisticGate` from Simple Direct and Expert response paths. The HTTP reply is again the **model text** after optional web search is injected into the prompt (search status / digest blocks unchanged).
