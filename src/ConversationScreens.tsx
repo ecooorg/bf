@@ -18,6 +18,18 @@ import { buildIcs } from './icsBuilder.ts';
 import { parseChangeSetFromText } from './workspace/changeSetParse.ts';
 import { chatRoute } from './conversationRoutes.ts';
 
+/** Tell the server the reply was painted so All Logs can mark clientRendered=acked. */
+function ackClientRender(meta: any, expert: boolean) {
+  const requestId = meta?.requestId || meta?.request_id;
+  if (!requestId || typeof requestId !== 'string') return;
+  void fetch('/api/diagnostics/client-render', {
+    method: 'POST', credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ requestId, productMode: expert ? 'Expert' : 'Simple' }),
+    keepalive: true,
+  }).catch(() => { /* diagnostics only */ });
+}
+
 // --- CONVERSATION HELPERS ---
 const INTENT_CHIPS: { id: string; label: string; hint: string }[] = [
   { id: 'THINK_ALOUD', label: 'Think out loud', hint: 'Describe what is going on. There is no need to structure it.' },
@@ -94,6 +106,7 @@ export function BriefScreen({
       interactionState: 'UNDERSTANDING',
     });
     runApi(chatRoute(expert), fitRequest({ brief: { ...b, decision: text }, history: historyForRequest([userMessage]), attachments: collectDecisionAttachments(d, [userMessage]), intent, ...expertConversationFields(d, expert) }), (data, meta) => {
+      ackClientRender(meta, expert);
       const assistant: any = { role: 'assistant', content: data.reply, at: Date.now(), ...(data.document ? { document: data.document } : {}) };
       if (typeof data.reply === 'string' && parseChangeSetFromText(data.reply)) onProposedChangeSet?.(data.reply);
       setFiles([]);
@@ -324,6 +337,7 @@ export function ConversationScreen({
       chatRoute(expert),
       fitRequest({ brief: d.brief, history: historyForRequest(nextHistory), attachments: collectDecisionAttachments(d, nextHistory), state: ms.conversationState, intent, returningAfterDays: days >= 1 ? days : undefined, ...expertConversationFields(d, expert) }),
       (data, meta) => {
+      ackClientRender(meta, Boolean(expert));
         pendingRef.current = null;
         update({
           modelSuggestions: {

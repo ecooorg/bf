@@ -14,7 +14,7 @@ export async function api(path: string, body: unknown, opts?: { idempotencyKey?:
   if (opts?.idempotencyKey) {
     headers['x-idempotency-key'] = opts.idempotencyKey;
   }
-  const r = await fetch(path, { method: 'POST', headers, body: JSON.stringify(body) });
+  const r = await fetch(path, { method: 'POST', headers, body: JSON.stringify(body), credentials: 'same-origin' });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.success) {
     // Preserve the real provider/server reason. AI failures are handled by runApi
@@ -26,6 +26,9 @@ export async function api(path: string, body: unknown, opts?: { idempotencyKey?:
     (err as any).retryable = j.retryable;
     throw err;
   }
+  const requestId = r.headers.get('x-request-id') || j.requestId || null;
+  if (requestId && j.meta && typeof j.meta === 'object') (j.meta as any).requestId = requestId;
+  else if (requestId) (j as any).requestId = requestId;
   return j;
 }
 
