@@ -1,3 +1,11 @@
+## P126.28 — Primary deploy (Render), SECURITY pointer, connectors in config/ (2026-11-05)
+
+- **docs/OPERATIONS_AND_RELEASES.md:** Render is the primary production host; `railway.toml` / `nixpacks.toml` documented as secondary/legacy.
+- **SECURITY.md:** replaced template with pointer to binding `docs/SECURITY_AND_PRIVACY.md`.
+- **connectors.yaml → `config/connectors.yaml`:** path updates in `scripts/verify-connections.mjs`, answer-quality workflow path filter, comment in `githubIntegration.ts`; postgres connector label host-agnostic.
+- **docs/DATA_AND_ARTIFACTS.md:** `config/` inventory note.
+- Runtime connector checks unchanged aside from file path.
+
 ## P126.27 — CI: docs path refs + drop actions/cache pin (2026-11-05)
 
 - **docs-reference-integrity:** `App.tsx` / `ProjectMode.tsx` in ARCHITECTURE and DECISIONS → `src/App.tsx` / `src/ProjectMode.tsx`.

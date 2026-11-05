@@ -1,3 +1,13 @@
+## P126.28 — Evidence (2026-11-05)
+
+**Scope:** Doc-primary deploy clarity; security pointer; move connectors inventory under `config/`.
+
+**OBSERVED:** `config/connectors.yaml` present; root `connectors.yaml` removed; verify-connections path updated; SECURITY.md is pointer-only.
+
+**NOT_RUN:** Hosted `verify:connections` / live Render (no behavior change intended beyond path).
+
+---
+
 ## P126.27 — Evidence (2026-11-05)
 
 **Scope:** CI red on 126.26 — three DAG FAILs.

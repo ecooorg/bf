@@ -1,21 +1,13 @@
-# Security Policy
+# Security
 
-## Supported Versions
+**Canonical security and privacy rules** for this repository live in:
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+**[`docs/SECURITY_AND_PRIVACY.md`](docs/SECURITY_AND_PRIVACY.md)**
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+That document is binding. This root file is only a pointer so GitHub’s Security tab and casual clones still find the policy.
 
-## Reporting a Vulnerability
+## Reporting
 
-Use this section to tell people how to report a vulnerability.
+Report vulnerabilities privately to the repository owner (Navigator). Do not open public issues with exploit details or secrets.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Do not commit API keys, tokens, private keys, or production credentials. Use the host secret manager and `.env` locally (see `.env.example`); never put secret values in docs, workflows, or CI logs.
