@@ -80,7 +80,7 @@ test('R-6: still nothing relevant after the retry → no_relevant_data; failures
 });
 
 test('P-1: status block never lets the model claim it lacks internet; silent when not expected or when used', () => {
-  for (const [st, reason, re] of [['failed', 'serper_http_429:quota', /TEMPORARILY_UNAVAILABLE/], ['no_relevant_data', '', /NO_RELEVANT_DATA/], ['skipped', 'no_serper_key', /UNAVAILABLE/], ['failed', 'timeout', /FAILED/]]) {
+  for (const [st, reason, re] of [['failed', 'serper_http_429:quota', /TEMPORARILY_UNAVAILABLE/], ['no_relevant_data', '', /NO_RELEVANT_DATA/], ['skipped', 'no_serper_key', /UNAVAILABLE/], ['failed', 'timeout', /TIMED_OUT/]]) {
     const b = formatSearchStatusBlock({ status: st, reason }, true);
     assert.match(b, re); assert.match(b, /NEVER say that you have no internet access/);
   }

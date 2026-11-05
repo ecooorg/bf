@@ -21,7 +21,7 @@ test('P126.1: Gemini direct generation uses existing key and model carousel with
   assert.match(helper, /registryForGeminiCascade\('STRONG'\)/);
   assert.match(helper, /callWithKeyPool\(/);
   assert.match(helper, /pool: geminiPool/);
-  assert.match(helper, /systemInstruction: SIMPLE_DIRECT_SYSTEM/);
+  assert.match(helper, /systemInstruction: buildSimpleDirectSystem\(\)/);
   assert.doesNotMatch(helper, /responseMimeType|parseJson|retryPrompt|runEpistemicVerifier/);
   assert.match(directModule, /export async function handleSimpleDirectConversation/);
 });
