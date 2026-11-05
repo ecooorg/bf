@@ -26,7 +26,6 @@ on:
       - 'scripts/diagnostics-summary.mjs'
       - 'package.json'
       - '.github/workflows/answer-quality-verify.yml'
-      - '.github/actions/**'
   schedule:
     - cron: '17 5 * * 1'
 
@@ -94,12 +93,31 @@ jobs:
           fi
       - name: Assistant diagnostic report
         if: always()
-        uses: ./.github/actions/diagnostic-report
+        shell: bash
+        run: |
+          if ! node scripts/diagnostics-summary.mjs; then echo "Report generation failed; raw logs are still uploaded."; fi
+          if [ -f "$CI_LOGS_DIR/ASSISTANT_SUMMARY.md" ]; then cat "$CI_LOGS_DIR/ASSISTANT_SUMMARY.md" >> "$GITHUB_STEP_SUMMARY"; fi
+        env:
+          CI_STATUS: ${{ job.status }}
+          WORKFLOW_RERUN: 'npm run test:answer-quality && node scripts/carousel-verify.mjs && node scripts/carousel-render-probe.mjs'
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+      - name: Upload assistant report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          logs-dir: artifacts/answer-quality
-          artifact-name: answer-quality-diagnostics-offline
-          status: ${{ job.status }}
-          rerun: npm run test:answer-quality && node scripts/carousel-verify.mjs && node scripts/carousel-render-probe.mjs
+          name: answer-quality-diagnostics-offline
+          path: |
+            artifacts/answer-quality/ASSISTANT_SUMMARY.md
+            artifacts/answer-quality/*.log
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
 
   live-smoke:
     name: Live carousel + search smoke (opt-in)
@@ -139,9 +157,28 @@ jobs:
           echo "Production multi-turn remains NOT_RUN here; Navigator observes it after deploy (patch must match package.json)." | tee -a "$CI_LOGS_DIR/02-live-smoke.log"
       - name: Assistant diagnostic report
         if: always()
-        uses: ./.github/actions/diagnostic-report
+        shell: bash
+        run: |
+          if ! node scripts/diagnostics-summary.mjs; then echo "Report generation failed; raw logs are still uploaded."; fi
+          if [ -f "$CI_LOGS_DIR/ASSISTANT_SUMMARY.md" ]; then cat "$CI_LOGS_DIR/ASSISTANT_SUMMARY.md" >> "$GITHUB_STEP_SUMMARY"; fi
+        env:
+          CI_STATUS: ${{ job.status }}
+          WORKFLOW_RERUN: 'GEMINI_API_KEY=... node --import tsx scripts/carousel-live-smoke.mjs'
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+      - name: Upload assistant report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          logs-dir: artifacts/answer-quality-live
-          artifact-name: answer-quality-diagnostics-live
-          status: ${{ job.status }}
-          rerun: GEMINI_API_KEY=... node --import tsx scripts/carousel-live-smoke.mjs
+          name: answer-quality-diagnostics-live
+          path: |
+            artifacts/answer-quality-live/ASSISTANT_SUMMARY.md
+            artifacts/answer-quality-live/*.log
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
