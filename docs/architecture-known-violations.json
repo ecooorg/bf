@@ -1,9 +1,0 @@
-{
-  "_about": "Ratchet baseline for architecture:check. Existing violations may remain; new ones fail the check. Remove entries only after the underlying issue is fixed.",
-  "knownCycles": [],
-  "knownBoundaryViolations": [],
-  "updatedIn": "p74",
-  "notes": [
-    "p74: removed static import gateService → codeTaskService (dynamic import). Cycle cluster cleared."
-  ]
-}
