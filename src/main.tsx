@@ -7,7 +7,7 @@ import { installEmergencyDiagnostics } from './emergencyDiagnostics.ts';
 
 installEmergencyDiagnostics();
 
-/** Project Mode routes (primary workspace). Architectural Test Lab (/architect-lab) was retired. */
+/** Project Mode routes (primary workspace). Retired lab route removed; Project Mode only. */
 const isProject = ['/project', '/project-legacy', '/architect'].some((path) =>
   window.location.pathname === path || window.location.pathname.startsWith(`${path}/`),
 );
