@@ -80,6 +80,8 @@ test('docs layout: only allowlisted prose and machine JSON under docs/', () => {
   assert.deepEqual(badProse, [], `docs/ prose not on allowlist: ${badProse.join(', ')}`);
   const cycleLike = prose.filter((n) => /^C\d{3}_/i.test(n) || /AUDIT-REPORT|DIAGNOSTIC_REPORT|REMEDIATION|web-search-analysis/i.test(n));
   assert.deepEqual(cycleLike, [], `cycle/audit report markdown forbidden under docs/: ${cycleLike.join(', ')}`);
+  const other = names.filter((n) => !n.endsWith('.md') && !n.endsWith('.json'));
+  assert.deepEqual(other, [], `docs/ only .md and .json allowed: ${other.join(', ')}`);
   for (const req of ['ARCHITECTURE.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'DECISIONS.md']) {
     assert.ok(prose.includes(req), `missing canonical prose ${req}`);
   }
@@ -90,5 +92,16 @@ test('AGENTS.md binds documentation layout rule', () => {
   assert.match(agents, /Documentation layout \(binding\)/);
   assert.match(agents, /MODEL_REGISTRY/);
   assert.match(agents, /open only on explicit Navigator request|VIX-CONCEPT/);
+});
+
+test('scripts layout: no per-patch tools; integrity allowlist present', () => {
+  const dir = path.join(root, 'scripts');
+  const names = readdirSync(dir);
+  const patchLike = names.filter((n) => /^p\d{2,3}/i.test(n) || /-p\d{2,3}/i.test(n) || /p108|p93-7|architect-dual-compare/i.test(n));
+  assert.deepEqual(patchLike, [], `per-patch or retired lab scripts forbidden: ${patchLike.join(', ')}`);
+  assert.ok(names.includes('scripts-integrity.mjs'), 'scripts-integrity.mjs required');
+  assert.ok(names.includes('run-dag.mjs') && names.includes('docs-integrity.mjs'));
+  const agents = read('AGENTS.md');
+  assert.match(agents, /Scripts layout \(binding\)/);
 });
 
