@@ -79,7 +79,7 @@
         "--test-timeout=15000",
         "--test-name-pattern",
         "router: deterministic selection with recorded rejections",
-        "tests/models.test.mjs"
+        "tests/providers-models.test.mjs"
       ],
       "profiles": [
         "check",
@@ -88,7 +88,7 @@
       "timeoutMs": 20000,
       "critical": true,
       "phase": "critical",
-      "sourceFile": "tests/models.test.mjs",
+      "sourceFile": "tests/providers-models.test.mjs",
       "targetPattern": "router: deterministic selection with recorded rejections",
       "expectOutput": [
         "router: deterministic selection with recorded rejections"
@@ -103,7 +103,7 @@
         "tsx",
         "--test",
         "--test-timeout=15000",
-        "tests/critical-router-policy-call-limit.test.mjs"
+        "tests/providers-router-policy.test.mjs"
       ],
       "profiles": [
         "check",
@@ -112,7 +112,7 @@
       "timeoutMs": 20000,
       "critical": true,
       "phase": "critical",
-      "sourceFile": "tests/critical-router-policy-call-limit.test.mjs",
+      "sourceFile": "tests/providers-router-policy.test.mjs",
       "expectOutput": [
         "router: invalid request stops before fallback",
         "router: policy rejection stops before fallback",
@@ -130,7 +130,7 @@
         "--test-timeout=15000",
         "--test-name-pattern",
         "conformance gemini: timeout",
-        "tests/models.test.mjs"
+        "tests/providers-models.test.mjs"
       ],
       "profiles": [
         "check",
@@ -139,7 +139,7 @@
       "timeoutMs": 20000,
       "critical": true,
       "phase": "critical",
-      "sourceFile": "tests/models.test.mjs",
+      "sourceFile": "tests/providers-models.test.mjs",
       "targetPattern": "conformance gemini: timeout",
       "expectOutput": [
         "conformance gemini: timeout"
@@ -156,7 +156,7 @@
         "--test-timeout=15000",
         "--test-name-pattern",
         "recovery: interrupted on unit three, resume reuses completed units without regenerating|cancellation stops before the next unit and reports cancelled",
-        "tests/app-builder-recovery-p93-3.test.mjs"
+        "tests/project-builder-recovery.test.mjs"
       ],
       "profiles": [
         "check",
@@ -165,7 +165,7 @@
       "timeoutMs": 20000,
       "critical": true,
       "phase": "critical",
-      "sourceFile": "tests/app-builder-recovery-p93-3.test.mjs",
+      "sourceFile": "tests/project-builder-recovery.test.mjs",
       "targetPattern": "recovery: interrupted on unit three, resume reuses completed units without regenerating|cancellation stops before the next unit and reports cancelled",
       "expectOutput": [
         "recovery: interrupted on unit three, resume reuses completed units without regenerating",
@@ -229,14 +229,11 @@
       "phase": "minimum-suite"
     },
     {
-      "id": "test:carousel-unit",
+      "id": "test:carousel-unit-retired-placeholder",
       "argv": [
         "node",
-        "--import",
-        "tsx",
         "--test",
-        "--test-timeout=120000",
-        "tests/p123-carousel-workflow.test.mjs"
+        "tests/governance-repo.test.mjs"
       ],
       "profiles": [
         "check",
@@ -542,7 +539,7 @@
       "argv": [
         "node",
         "--test",
-        "tests/workflow-action-pins.test.mjs"
+        "tests/governance-workflow-pins.test.mjs"
       ],
       "profiles": [
         "check",
