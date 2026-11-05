@@ -10,7 +10,7 @@ const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
 const only = args.includes('--only') ? String(args[args.indexOf('--only') + 1] || '').split(',').filter(Boolean) : null;
 const dryRun = flag('--dry-run');
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'connectors.yaml'), 'utf8').split('\n').filter((l) => !/^\s*#/.test(l)).join('\n'));
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'config', 'connectors.yaml'), 'utf8').split('\n').filter((l) => !/^\s*#/.test(l)).join('\n'));
 const TIMEOUT_MS = 10_000;
 
 const results = [];
