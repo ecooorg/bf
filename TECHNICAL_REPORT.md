@@ -1,3 +1,14 @@
+## P126.14 — Evidence (2026-11-05)
+
+**Source:** workflow audit of archive 126.13.
+**Changes:** see CHANGELOG P126.14.
+**OBSERVED (sandbox, tsx, Node 22.23):** `test:answer-quality` 79/79; `carousel-verify` exit 0; `p126-12` 5/5, `p126-13` 5/5, `p126-14` pass; workflow-action-pins, assistant-run-summary, diagnostics-summary, status-graph, dag, p119-agent-boundaries pass; `docs:check` OK; YAML parses; preflight PASS and detects a stale fixture.
+**OBSERVED failing (pre-existing, unchanged code):** `p125-3` (2) and `p125-4` (3) — place extraction / multi-language search gate (Oslo, de, ja, Munich). Now visible only in manual `search-heuristics.yml`. Open P2 for routing quality.
+**Stale artifacts found, not changed:** `scripts/quick-diagnostics.mjs` and `tests/quick-diagnostics-workflow.test.mjs` reference the absent `quick-diagnostics.yml`.
+**NOT_RUN:** hosted GitHub Actions, composite action on a runner, `npm run test:core` in full, `check`/DAG, typecheck/build, UI e2e, live smoke, render probe (no URL). Lockfile root `patch` strings still read 126.11 (check-version gate passes).
+
+---
+
 ## P126.13 — Evidence (2026-11-05)
 
 **Failure evidence:** diagnostic export at runtime commit e871515 (126.12): search succeeded via Serper in all but one request, but Gemini generation failed with `gemini_pool_exhausted:quota` after 429s on keys 6–9; pool parked both models for 5 min, Simple Direct had no fallback, Expert threw before the Groq fallback (Groq succeeded once, at 05:12:20), and the client offered only a manual Retry. The first search failure was Serper skipped by the 8 s remaining-time rule after a 1.7 s planner call.
