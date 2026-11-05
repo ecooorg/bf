@@ -136,6 +136,14 @@ const FRESH_PATTERNS: RegExp[] = [
   re(String.raw`(?:температур\p{L}*(?:\s+воздух\p{L}*)?|air\s+temperature|how\s+(?:cold|hot|warm)\s+is\s+it)\b`),
   re(String.raw`(?:какая|какой|какое)\s+(?:сейчас\s+)?(?:температур\p{L}*|погод\p{L}*)|(?:what(?:'|’)?s|what\s+is)\s+the\s+(?:temperature|weather)\b`),
   re(String.raw`(?:сейчас|сегодня)\s+(?:в|во|на)\s+[\p{L}][\p{L}\s.'-]{1,40}\s+(?:температур|погод|градус)|(?:temperature|weather)\s+(?:in|for|at)\s+[\p{L}]`),
+  // P126.12: elections, results, winners, seat counts, currency pairs, prices and match scores.
+  // When in doubt the direct route prefers a (cheap) lookup over an answer from memory.
+  re(String.raw`выбор\p{L}*\s+(?:\p{L}+\s+){0,4}?(?:итог\p{L}*|результат\p{L}*|подсч[её]т\p{L}*|явк\p{L}*|победил\p{L}*|выиграл\p{L}*)|(?:итог\p{L}*|результат\p{L}*|подсч[её]т\p{L}*|явк\p{L}*)\s+(?:\p{L}+\s+){0,2}?(?:выбор\p{L}*|голосовани\p{L}*|референдум\p{L}*|матч\p{L}*|игр\p{L}*)`),
+  re(String.raw`кто\s+(?:\p{L}+\s+){0,2}?(?:выиграл\p{L}*|победил\p{L}*|побеждает|лидирует|ведёт|ведет|прош\p{L}*\s+в)|сколько\s+(?:\p{L}+\s+){0,4}?(?:получил\p{L}*|набрал\p{L}*|завоевал\p{L}*|взял\p{L}*)\s+(?:\p{L}+\s+){0,2}?(?:мест|голос\p{L}*|процент\p{L}*)`),
+  re(String.raw`(?:сч[её]т|итог\p{L}*)\s+(?:\p{L}+\s+){0,2}?(?:матч\p{L}*|игр\p{L}*|встреч\p{L}*)|(?:как|чем)\s+законч\p{L}*\s+(?:\p{L}+\s+){0,3}?(?:матч|игр|встреч|выбор)\p{L}*`),
+  re(String.raw`курс\s+(?:франк|фунт|иен|йен|злот|гривн|тенге|лир|рупи|дирхам|крон|песо|реал|вон|динар|лей|лев|форинт)\p{L}*|курс\s+\p{L}+\s+(?:к|по\s+отношению\s+к|против)\s+\p{L}+|сколько\s+(?:сейчас\s+)?(?:стоит|стоят|стоил\p{L}*)\s+(?:\p{L}+\s+){0,3}?`),
+  re(String.raw`(?:who|which\s+party)\s+(?:\p{L}+\s+){0,2}?(?:won|wins|is\s+winning|is\s+leading|leads|got\s+elected)|(?:election|vote|poll|primary|runoff)\s+(?:results?|count|outcome|winner)|(?:results?|outcome)\s+of\s+(?:\p{L}+\s+){0,3}?(?:election|vote|referendum|primary|match|game)s?|how\s+many\s+seats|(?:final\s+)?score\s+(?:of|in)\s+|who\s+won\b`),
+  re(String.raw`(?:usd|eur|chf|gbp|jpy|cny|rub|uah|pln|btc|eth)\s*(?:/|to|in|->)\s*(?:usd|eur|chf|gbp|jpy|cny|rub|uah|pln)\b|(?:how\s+much\s+(?:is|are|does|do)\s+.{1,60}\s+(?:cost|worth)|price\s+(?:for|per))\b`),
 ];
 
 export function needsFreshWebInfo(text: string): boolean {
@@ -285,6 +293,27 @@ export function isSearchFollowup(text: string): boolean {
   // Result/data missing complaints (live search thread).
   if (/(?:почему|зачем)\s+нет\s+(?:результат\w*|данных|ответа|цифр\w*)|нет\s+(?:результат\w*|данных)|(?:why\s+)?(?:no|still\s+no)\s+(?:result|data|answer)|nothing\s+(?:found|came\s+back)/iu.test(t)) return true;
   return /(?:друг(?:их|ие)\s+(?:сайт\w*|источник\w*)|на\s+других\s+сайт\w*|обязательно\s+нуж\w*|мне\s+нуж\w*\s+(?:точн\w*\s+)?(?:температур\w*|данн\w*|цифр\w*)|найди\s+(?:ещ[её]|больше)|поищи\s+(?:ещ[её]|на\s+других)|проверь\s+(?:на\s+других|ещ[её])|(?:выполни|сделай|повтори)\s+(?:ещ[её]\s+)?(?:один\s+)?(?:поиск|запрос)|ещ[её]\s+(?:один\s+)?(?:поиск|запрос)|просто\s+(?:сделай|выполни)\s+(?:поиск|запрос)|у\s+тебя\s+(?:всегда\s+)?есть\s+поиск|ты\s+всегда\s+(?:можешь|имеешь)\s+поиск|почему\s+(?:эти|такие)\s+сайт|построй\s+запрос|сделай\s+запрос|выполни\s+ровно\s+этот|найди\s+более\s+(?:точн|подробн|свеж)|проверь\s+информац|я\s+(?:же\s+)?прошу\s+(?:тебя\s+)?(?:поискать|найти|поискать\s+в\s+интернет\w*)|i\s+(?:am|'m)\s+asking\s+you\s+to\s+search|(?:please\s+)?search\s+(?:again|for\s+it|online|the\s+web)\b|run\s+(?:another|one\s+more)\s+(?:search|query)|one\s+more\s+(?:search|query)|just\s+(?:make|run|do)\s+(?:a\s+)?(?:search|query)|you\s+always\s+have\s+search|other\s+sites|other\s+sources|different\s+websites|need\s+(?:the\s+)?(?:exact\s+)?(?:temperature|figure|number)|search\s+elsewhere|try\s+another\s+site|find\s+more\s+precise\s+(?:information|data|results)|(?:verify|confirm|check)\b.{0,60}\b(?:source|sources|data|result|results|figure|figures|date|dates|information|details)\b|more\s+precise\s+(?:information|data|results|dates|figures)|why\s+(?:these|those)\s+sites|build\s+(?:the\s+)?query|run\s+(?:exactly\s+)?this\s+query)/iu.test(t);
+}
+
+/**
+ * P126.12: a turn that only makes sense with the previous turns ("а завтра?", "and there?", an instruction-only
+ * "search again"). Everything else is a self-contained question and must be searched as written, so earlier
+ * topics (e.g. a weather thread) never leak into an unrelated query. Pure.
+ */
+export function isContextDependentFollowup(text: string): boolean {
+  const t = buildSearchQuery(text);
+  if (!t) return false;
+  if (isSearchFollowup(t)) return true;
+  if (/^(?:а|и|ну|так|тогда|а\s+теперь|а\s+если)\s+\S/iu.test(t) && t.split(/\s+/).length <= 6) return true;
+  if (/^(?:and|what\s+about|how\s+about|then|so|and\s+what\s+about)\b/iu.test(t) && t.split(/\s+/).length <= 8) return true;
+  if (/^(?:(?:а\s+)?(?:сейчас|сегодня|завтра|послезавтра|там|тут|здесь)|(?:в|по)\s+(?:цельси\p{L}*|фаренгейт\p{L}*)|(?:in\s+)?(?:celsius|fahrenheit)|(?:and\s+)?(?:now|today|tomorrow|there))[?!.,\s]*$/iu.test(t)) return true;
+  return false;
+}
+
+/** P126.12: prior user turns to hand to the search resolver: none unless the latest turn is a follow-up. */
+export function searchContextForTurn(latestText: string, priorUserTexts: string[]): string {
+  if (!isContextDependentFollowup(latestText)) return '';
+  return priorUserTexts.map((x) => String(x || '').trim()).filter(Boolean).slice(-3).join('\n');
 }
 
 /**
@@ -1932,6 +1961,7 @@ export function formatSearchStatusBlock(
   else if (r.status === 'no_relevant_data' && reason === 'source_policy_filtered') line = 'SEARCH STATUS: NO_RELEVANT_DATA — a live lookup ran, but every result came from sources excluded by the deployment source policy, so no evidence remains. Say this plainly; do not say that search or internet access is unavailable.';
   else if (r.status === 'no_relevant_data') line = 'SEARCH STATUS: NO_RELEVANT_DATA — a live lookup ran but the retrieved pages did not contain the requested data.';
   else if (r.status === 'skipped' && reason === 'no_serper_key') line = 'SEARCH STATUS: UNAVAILABLE — the search provider is not configured, so no live data was retrieved.';
+  else if (reason === 'timeout') line = 'SEARCH STATUS: TIMED_OUT — a live lookup was started but did not finish in time, so no live data was retrieved. Tell the user this plainly at the start of the answer and offer to retry.';
   else if (r.status === 'skipped') line = `SEARCH STATUS: NOT_RUN (reason: ${reason.slice(0, 80) || 'unspecified'}) — no live lookup was performed for this turn.`;
   else line = `SEARCH STATUS: ${quota ? 'TEMPORARILY_UNAVAILABLE (provider quota or rate limit)' : 'FAILED'} — the live lookup did not return usable data this time.`;
   return `${line}

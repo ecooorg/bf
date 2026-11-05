@@ -7,7 +7,22 @@ export const SIMPLE_DIRECT_SYSTEM = [
   'Respect the user’s goals, be honest about uncertainty and capabilities, and respond in the user’s language.',
   'Use the supplied conversation history and attachments when relevant.',
   'Continue the conversation naturally.',
+  'BiForge can retrieve live web data. Never claim that you have no internet access, cannot browse, or have no search tool unless a SEARCH STATUS block in the prompt says that search is disabled or unavailable.',
+  'When a SEARCH STATUS block says a lookup failed, timed out or was not run, say so plainly and do not present remembered facts as current.',
 ].join(' ');
+
+/** P126.12: system instruction with today's date (UTC, ISO) so relative dates and "latest" are anchored. */
+export function buildSimpleDirectSystem(now: Date = new Date()): string {
+  return `${SIMPLE_DIRECT_SYSTEM} Today's date is ${now.toISOString().slice(0, 10)} (UTC); your training data may be older, so treat anything after it as unknown unless supplied.`;
+}
+
+/** P126.12: how long Simple waits for an expected search; the search itself is allowed SIMPLE_SEARCH_DEADLINE_MS. */
+export const SIMPLE_SEARCH_DEADLINE_MS = 9_000;
+export function simpleSearchWaitMs(env: Record<string, string | undefined> = process.env): number {
+  const n = Number(env.SIMPLE_SEARCH_WAIT_MS);
+  const v = Number.isFinite(n) && n > 0 ? n : 8_500;
+  return Math.max(500, Math.min(SIMPLE_SEARCH_DEADLINE_MS, v));
+}
 
 export type SimpleHistoryMessage = { role: 'user' | 'assistant'; content: string };
 
