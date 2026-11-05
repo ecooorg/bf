@@ -16,6 +16,7 @@ import { collectAllowedFromInput, safeValidateNumbers } from './src/numberValida
 import { APP_VERSION } from './src/config.ts';
 import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
 import { conversationSessionLog } from './server/conversationDiagnostics.ts';
+import { buildAllLogsZip } from './server/allLogs.ts';
 import { observeSimpleResponseDelivery, simpleConversationMetricDetails } from './server/simpleConversationDiagnostics.ts';
 import { startLifecycle } from './server/processLifecycle.ts';
 
@@ -395,6 +396,19 @@ app.use((req, res, next) => {
 app.get('/api/diagnostics/session-log', async (_req, res) => {
   try { res.type('text/plain; charset=utf-8').send(await conversationSessionLog()); }
   catch (error) { res.status(500).type('text/plain; charset=utf-8').send(`Diagnostic log unavailable: ${String((error as Error)?.message || error).slice(0, 240)}`); }
+});
+
+// P126.15 — unified All Logs ZIP (Simple + Expert + Project, 72h). Download only; no UI body.
+app.get('/api/diagnostics/all-logs', async (_req, res) => {
+  try {
+    const { buffer, filename } = await buildAllLogsZip();
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', String(buffer.length));
+    res.status(200).end(buffer);
+  } catch (error) {
+    res.status(500).type('text/plain; charset=utf-8').send(`All Logs unavailable: ${String((error as Error)?.message || error).slice(0, 240)}`);
+  }
 });
 
 // Project Mode routes and boundary: server/projectRoutes.ts (p73)

@@ -1,3 +1,13 @@
+## P126.15 — Commit badge, mode rename, unified All Logs (2026-11-05)
+
+- **Commit badge:** `CommitBadge` shows the short running commit (from `/api/health` / `resolvedBuildCommit`) left of the mode menu in Simple, Expert and Project.
+- **Rename (user-facing only):** Conversational → **Simple**, Architect → **Project**. Internal keys (`Simple` / `Expert` / `Project`) and routes (`/project`, `/architect-lab`) unchanged.
+- **Diagnostics UI removed** from More menus in all three modes (Diagnostic log; Run system diagnostics; View recent operations; Copy compact session log; Download diagnostic logs). Diagnostic dialogs removed from AppHeader, ProjectMode and ArchitectLab.
+- **All Logs:** single identical menu item `data-testid="all-logs-menu-item"` in More of every mode. Click downloads a ZIP from `GET /api/diagnostics/all-logs` (auth-protected). No on-screen dump.
+- **Archive layout** (`server/allLogs.ts`): `simple/`, `expert/`, `project/` (application logs, SUMMARY.md, conversations.md; project adds build-operations), `shared/` (console, full application log stream, system diagnostics, build identity), `assistant/` (ASSISTANT-BRIEF.md + context.json), `MANIFEST.sha256`. Window: 72 hours. Redaction: API keys / bearer tokens only.
+- **buildCommit:** falls back to `build-stamp.json` when platform env is empty.
+- Tests: `tests/p126-15-all-logs.test.mjs` (8/8). Patch metadata: `126.15`.
+
 ## P126.14 — Workflow audit: current-state preflight and assistant reports (2026-11-05)
 
 - Audit of `ci.yml`, `answer-quality-verify.yml`, `search-heuristics.yml` against the current tree. Findings: p126-12/13 were in no workflow; Answer Quality ran manual-only heuristic packs (P125.13) that currently fail (`p125-3`, `p125-4`); its Render probe always exited 2 without a URL; `|| echo` masked live-smoke failures; its PR path filter omitted current files (`simpleDirectConversation`, `keyPool`, `providerMonitor`, ...); two of three workflows produced no report.

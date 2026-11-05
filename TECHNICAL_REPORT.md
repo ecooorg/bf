@@ -1,3 +1,15 @@
+## P126.15 — Evidence (2026-11-05)
+
+**Scope:** Navigator task — commit badge in all three modes; rename Conversational→Simple and Architect→Project; remove diagnostic menu items/windows; unified All Logs download (identical in all modes, full 72h archive, mode-separated folders + assistant brief; redact API keys only).
+
+**OBSERVED (sandbox):** `node --test tests/p126-15-all-logs.test.mjs` → 8/8 pass. UI strings and data-testids verified by static contract tests. Server module `server/allLogs.ts` and route `/api/diagnostics/all-logs` present.
+
+**NOT_RUN:** full `test:core`, typecheck/build (npm install failed with registry 502 in this sandbox), browser e2e, live ZIP download against a running server. G4: affected entry points are ModeMenu, AppHeader More, ProjectMode More, ArchitectShellHeader More; All Logs is download-only so e2e result screens are unchanged for primary flows.
+
+**Risks:** Older tests that assert "Conversational"/"Architect" labels or "Diagnostic log" menu items will need updates (listed in unfinished-session notes). `/api/diagnostics/session-log` and `/api/projects/diagnostics/*` left for CI compatibility.
+
+---
+
 ## P126.14 — Evidence (2026-11-05)
 
 **Source:** workflow audit of archive 126.13.
