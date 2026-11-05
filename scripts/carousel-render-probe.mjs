@@ -98,7 +98,7 @@ async function runProbe() {
       expect(row.key, getByPath(runtime, row.key), row.expected, contractWarnings);
     }
 
-    expect('features.directGeminiMode', runtime.features?.directGeminiMode, false);
+    expect('features.directGeminiMode', runtime.features?.directGeminiMode, true);
     expect('features.externalModelFallback', runtime.features?.externalModelFallback, true);
     expect('features.weatherConnector', runtime.features?.weatherConnector, true);
     expect('features.projectMode', runtime.features?.projectMode, true);
