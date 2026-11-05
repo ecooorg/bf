@@ -1,3 +1,15 @@
+## P126.27 — Evidence (2026-11-05)
+
+**Scope:** CI red on 126.26 — three DAG FAILs.
+
+**OBSERVED:** docs-reference-integrity missing `App.tsx`/`ProjectMode.tsx`; pins test required `actions/cache` absent from workflows after UI-smoke removal.
+
+**Fix:** qualified src/ paths; pins allowlist without cache.
+
+**NOT_RUN:** Hosted CI after apply.
+
+---
+
 ## P126.26 — Evidence (2026-11-05)
 
 **Scope:** CI red on 126.24 — preflight only.

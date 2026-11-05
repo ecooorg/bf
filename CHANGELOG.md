@@ -1,3 +1,9 @@
+## P126.27 — CI: docs path refs + drop actions/cache pin (2026-11-05)
+
+- **docs-reference-integrity:** `App.tsx` / `ProjectMode.tsx` in ARCHITECTURE and DECISIONS → `src/App.tsx` / `src/ProjectMode.tsx`.
+- **governance-workflow-pins:** remove required `actions/cache` pin after P126.26 removed Playwright cache from `ci.yml` (cache is no longer used).
+- Fixes CI FAIL trio: docs-integrity, test:core pins, workflow-action-pins.
+
 ## P126.26 — CI preflight: drop retired test:ui-smoke (2026-11-05)
 
 - **Root cause:** after P126.24 removed no-op `test:ui-smoke`, `workflow-preflight` failed on `.github/workflows/ci.yml` still calling that script; DAG never started (18 NOT_RUN).
