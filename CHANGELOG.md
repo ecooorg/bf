@@ -1,3 +1,12 @@
+## P126.20 — Documentation topology cleanup (2026-11-05)
+
+- **Canonical prose allowlist** under `docs/`: ARCHITECTURE, API_CONTRACTS, TESTING_AND_ACCEPTANCE, USER_VALUE_EVALUATION, SECURITY_AND_PRIVACY, OPERATIONS_AND_RELEASES, DATA_AND_ARTIFACTS, DECISIONS, TEST_MAP, MODEL_REGISTRY, VIX-CONCEPT.
+- **Merged:** INFORMATION_QUALITY_WORKFLOW → ARCHITECTURE; RENDER_ENV_CONTRACT → OPERATIONS_AND_RELEASES; MODEL_ALLOWLIST + MODEL_SOURCES_* → MODEL_REGISTRY.
+- **Retired (removed from repo):** C123–C126 cycle reports, diagnostic/audit reports, web-search analysis/remediation markdowns, USER_VALUE_EXPERT_C122, and the three MODEL_* predecessors.
+- **Integrity:** `scripts/docs-integrity.mjs` enforces allowlist + no nested folders + retired absence; `docs-reference-integrity.mjs` scans only remaining canon.
+- **AGENTS.md:** SSOT table + Documentation layout (binding) rule.
+- No program/code behavior changes.
+
 ## P126.19 — Conversation diagnostic fidelity (2026-11-05)
 
 - **safeDetails:** stop converting `undefined` into the string `"undefined"` in application log JSON (root cause of empty-looking search fields).

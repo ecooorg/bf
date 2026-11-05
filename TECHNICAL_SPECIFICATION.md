@@ -13,14 +13,14 @@ BiForge succeeds when a real user can complete a meaningful task and receive a c
 **Documentation baseline:** P124.0.1; source inventory: P124.1; dialogue cleanup: P124.2; response-path fidelity: P124.3  
 **Latest cumulative patch:** P124.4  
 **Development status:** ACTIVE  
-**Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
+**Normative mandate:** historical cycle notes (consolidated)  
 **Core architecture:** External LLMs provide substantive intelligence and compose substantive answers; BiForge is the engineering intermediary responsible for request routing, context/session integrity, tool orchestration, transport, deterministic validation, and faithful result delivery.
 
 C124 audits all instruction sources and downstream transformations. It removes or redesigns instructions that make BiForge imitate an LLM's reasoning or answer-generation capabilities through hard-coded scripts, exhaustive prompt recipes, canned answers, or special-case substitutions. It preserves task framing genuinely needed to convey the user's intent, model/tool constraints, safety requirements, output contracts, and deterministic engineering controls.
 
 **Non-goal:** blindly deleting prompts, removing necessary model instructions, changing agent product roles, or reducing answer quality. Every proposed removal must be traced to its effect and dependencies before implementation.
 
-Normative detail and acceptance criteria: `docs/C124_INSTRUCTION_OPTIMIZATION.md`.
+Normative detail and acceptance criteria: historical cycle notes (consolidated).
 
 ### Previous cycle (C123 — Model Carousel)
 

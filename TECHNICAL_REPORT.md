@@ -1,3 +1,15 @@
+## P126.20 — Evidence (2026-11-05)
+
+**Scope:** Full docs/ cleanup per owner plan — canonical prose only, machine JSON retained, historical C/audit reports removed after consolidation into canon / DECISIONS / REPORT.
+
+**OBSERVED (sandbox):** `docs:integrity` PASS; `docs-reference-integrity` PASS; docs/ contains 11 prose + 18 JSON; no nested folders.
+
+**NOT_RUN:** Hosted CI after apply; live Render probe (ops contract text only moved).
+
+**Note:** Historical cycle evidence remains in CHANGELOG / prior TECHNICAL_REPORT entries; retired markdown files are not restored.
+
+---
+
 ## P126.19 — Evidence (2026-11-05)
 
 **Scope:** Navigator — improve log/diagnostic quality for recent Simple vs Expert dialogues (missing fields, no request↔reply index, clientRendered always not_observed). No answer-path changes.

@@ -113,6 +113,8 @@ BiForge succeeds when a real user completes a meaningful task and receives a cor
 | Operations and releases | `docs/OPERATIONS_AND_RELEASES.md` | Live/destructive actions need authorization. |
 | Data, schemas, artifacts | `docs/DATA_AND_ARTIFACTS.md` | Respect schemas and delivery contract. |
 | Active decisions | `docs/DECISIONS.md` | Supersede explicitly; do not erase history. |
+| Test category map | `docs/TEST_MAP.md` | Where to put a check; category suites only. |
+| Model registry / allowlist summary | `docs/MODEL_REGISTRY.md` | Prose summary; code and `config/model-sources.json` are runtime authority. |
 | Language policy | `TECHNICAL_SPECIFICATION.md`, `docs/DECISIONS.md` | English-only repo artifacts; user languages are a separate contract. |
 | Long-horizon strategy | `docs/VIX-CONCEPT.md` | Context only; not implementation authorization. |
 | Version and patch identity | `package.json` (`version`, `patch`) | No duplicate authority. |
@@ -229,6 +231,14 @@ Mandatory tests and gates for **this** change always apply; P4 is extra standalo
 - **MUST NOT** grow `test:core` with one-off per-patch invocations; category files already run inside `test:core`.  
 - A new category suite file is allowed only when the Navigator explicitly approves a new row in `docs/TEST_MAP.md`.  
 - `tests/governance-repo.test.mjs` enforces the no-per-patch-file rule in CI.
+
+### Documentation layout (binding)
+
+- **Canonical prose under `docs/` (allowlist):** `ARCHITECTURE.md`, `API_CONTRACTS.md`, `TESTING_AND_ACCEPTANCE.md`, `USER_VALUE_EVALUATION.md`, `SECURITY_AND_PRIVACY.md`, `OPERATIONS_AND_RELEASES.md`, `DATA_AND_ARTIFACTS.md`, `DECISIONS.md`, `TEST_MAP.md`, `MODEL_REGISTRY.md`, `VIX-CONCEPT.md`.  
+- **Machine artifacts under `docs/`:** `generated-*.json`, `schema-*.json`, `architecture-*.json`, `verification-manifest.json`, `p120-acceptance-record.json` (and future generated inventories).  
+- **MUST NOT** add a new cycle/audit/report markdown (`C12x_*`, diagnostic/audit reports, one-off remediation analyses) under `docs/`. New facts go into the canonical files, `TECHNICAL_REPORT.md`, `CHANGELOG.md`, or `docs/DECISIONS.md`.  
+- **MUST NOT** create nested folders under `docs/`.  
+- `scripts/docs-integrity.mjs` enforces required markers and absence of retired competing documents.
 
 ---
 

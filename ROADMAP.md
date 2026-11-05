@@ -41,14 +41,14 @@ The Conversational route now defaults to a single direct Gemini text call. Searc
 - Status (P125.16): conversation path no longer surfaces the synthetic model-unavailable string as an agent reply; transient failures recover inside the request (default 90s) and the UI shows live wait seconds. Durable job queue remains open.
 
 
-Detail: `docs/C125_ANSWER_QUALITY_PROGRAMME.md`; decisions: `docs/DECISIONS.md` D-2026-11-04-01 and D-2026-11-04-02. This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Cycle C124 closes with P124.40; C125 starts at version `125`, patch `125.1`.
+Detail: historical cycle notes (consolidated); decisions: `docs/DECISIONS.md` D-2026-11-04-01 and D-2026-11-04-02. This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Cycle C124 closes with P124.40; C125 starts at version `125`, patch `125.1`.
 
 - [x] WP1 query fidelity (P125.1, local tests; live `NOT_RUN`): verbatim translation up to 20 words, entity- and number-preserving compression above, deterministic loss check, logging.
 - [x] WP2 source policy (P125.1, groups A and C applied; group B and IANA/EUR-Lex verification `OPEN`; live `NOT_RUN`): exclude Russian and Belarusian authority-controlled domains (country-code zones `.ru`, `.su`, `.xn--p1ai`, `.by`, `.xn--90ais`; verified Russian/Belarusian-operated zones; listed state-controlled hosts outside those zones), as versioned data, with diagnostics and a replay acceptance test. Open question O1 (bypass) is with the owner.
 - [x] WP3 workflow, test and diagnostics audit (P125.3–P125.5): step-1 audit table; steps 2–4 covered by behaviour suite, diagnostics fidelity updates and unified `answer-quality-verify` workflow (incremental regex migration continues). Scope-extension items 1–8 implemented in code/tests; **live production OBSERVED still required** for owner “C125 done”.
 - Status (P125.6): active CI = Core CI + Answer Quality (+ Dependabot/CodeQL platform); retired product workflows documented; live production dialogue `NOT_RUN` until release patch equals 125.6 and Navigator confirms user outcome.
 - Status (P125.3): WP3 step-1 audit + search routing/grounding (items 1, 2, 5, 6, 7); WP2 group B applied (P125.2); IANA/EUR-Lex deferred.
-- Status (P125.2, documentation and data): WP3 scope extended with search routing and answer grounding (`docs/C125_ANSWER_QUALITY_PROGRAMME.md`, section 4); WP2 group B now applied by default, IANA and EUR-Lex reconciliation `OPEN`; live `NOT_RUN`.
+- Status (P125.2, documentation and data): WP3 scope extended with search routing and answer grounding (historical cycle notes (consolidated), section 4); WP2 group B now applied by default, IANA and EUR-Lex reconciliation `OPEN`; live `NOT_RUN`.
 - Status: WP1 and WP2 implemented in P125.1 with the limits recorded in `TECHNICAL_REPORT.md`; C125 code path through P125.5; production user-outcome evidence `NOT_RUN` until release equals 125.5. Earlier status (P124.40): all `OPEN`.
 
 ## P124.35 — Universal follow-up context and evidence relevance (2026-11-03)
@@ -60,7 +60,7 @@ Detail: `docs/C125_ANSWER_QUALITY_PROGRAMME.md`; decisions: `docs/DECISIONS.md` 
 
 ## P124.22 — Web-search live-data remediation programme (owner-approved scope, 2026-11-03)
 
-Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIONS.md` (D-2026-11-03-01). This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Items are checked only with evidence of the stated type.
+Detail, findings, and decisions: historical cycle notes (consolidated), `docs/DECISIONS.md` (D-2026-11-03-01). This is the approved scope list, not a next-session assignment; each session re-derives its task from current gaps (`AGENTS.md` §4). Items are checked only with evidence of the stated type.
 
 - [x] P124.22 documentation: audit, decisions, programme recorded (documentation checks only).
 - [x] P124.23 number-validator crash fix and persistent search-decision logging (V-1, O-1). Unit evidence only; live run `NOT_RUN`.
@@ -99,7 +99,7 @@ Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIO
 **Product version:** 124  
 **Status:** ACTIVE — P124.1 inventory, P124.2 Simple/Expert dialogue cleanup, P124.3 response-path fidelity cleanup, and P124.4 Architect/App Builder prompt refinement implemented; hosted CI and model-backed evaluation NOT_RUN  
 **Primary target:** Instruction sources and response-processing paths across Conversational, Expert, Architect, and shared infrastructure  
-**Normative mandate:** `docs/C124_INSTRUCTION_OPTIMIZATION.md`  
+**Normative mandate:** historical cycle notes (consolidated)  
 
 ### Mandate
 
@@ -118,7 +118,7 @@ Detail, findings, and decisions: `docs/WEB_SEARCH_REMEDIATION.md`, `docs/DECISIO
 |---|---|---|
 | P124.0.1 | Documentation mandate and acceptance baseline | Canonical docs agree; version metadata synchronized |
 | P124.0.2 | Cumulative baseline, CI regression closure, generic weather-search cleanup | Targeted suites pass; city allowlist/example removed; full instruction inventory remains NOT_RUN |
-| P124.1 | Static instruction and transformation source inventory | `docs/C124_INSTRUCTION_INVENTORY.md`; source/line references checked by `tests/c124-instruction-inventory.test.mjs`; live behavior remains NOT_RUN |
+| P124.1 | Static instruction and transformation source inventory | historical cycle notes (consolidated); source/line references checked by `tests/c124-instruction-inventory.test.mjs`; live behavior remains NOT_RUN |
 | P124.2 | Minimal, evidence-based Simple/Expert dialogue cleanup | Mandatory reasoning recipes and novelty retry removed; prompt/output-preservation regressions pass locally; hosted CI/live model comparison pending |
 | P124.3 | Expert staged prompts and response-path fidelity | Arbitrary quotas removed; model-authored output preserved; browser/live comparisons remain open |
 | P124.4 | Architect and App Builder prompt refinement | Task-fit planning, complete-context recovery, preserved requested features, and project-fact provenance protected by deterministic tests |
@@ -216,7 +216,7 @@ C123 is superseded as the active development cycle. Its implementation history a
 | expert-verify | Green including browser e2e after spawn PATH fixes |
 | UX | Stage readiness + synthesis quality panel |
 
-**Detail:** `docs/USER_VALUE_EXPERT_C122.md` §E, `CHANGELOG.md` P122.*, `TECHNICAL_REPORT.md`.
+**Detail:** historical cycle notes (consolidated) §E, `CHANGELOG.md` P122.*, `TECHNICAL_REPORT.md`.
 
 ### Patch sequence (historical)
 
