@@ -20,7 +20,7 @@
 **Owner clarification (2026-11-05).**
 
 1. **Google Drive** is used for **backup and saving files**. Status: **keep**. Do not propose removal or freeze in routine documentation/script cleanups.
-2. **Client workspace** (`src/workspace/`, `WorkspacePanel`) is the **browser-local file workspace** (ingest, IndexedDB, agent attachments, ChangeSet apply/export) for Simple, Expert, and Project. Status: **keep**. Analysis of call sites confirmed active use from `App.tsx` and `ProjectMode.tsx`; it is not dead code.
+2. **Client workspace** (`src/workspace/`, `WorkspacePanel`) is the **browser-local file workspace** (ingest, IndexedDB, agent attachments, ChangeSet apply/export) for Simple, Expert, and Project. Status: **keep**. Analysis of call sites confirmed active use from `src/App.tsx` and `src/ProjectMode.tsx`; it is not dead code.
 3. Drive and workspace are **complementary**, not duplicates. Workspace ≠ Drive; server Architect ZIP delivery ≠ workspace export.
 4. Any future change of status (freeze/retire) requires an explicit Navigator decision recorded here; assistants must not reopen “is Drive/workspace needed?” as a cleanup task.
 

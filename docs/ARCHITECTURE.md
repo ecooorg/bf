@@ -65,7 +65,7 @@ Two complementary client-side mechanisms; both are **in-force product features**
    - Ingest zip / folder / files; store in IndexedDB; optional memory store for tests.
    - Privacy-gated text attachments fed into Simple, Expert, and Project agent requests.
    - Parse agent-proposed ChangeSets; validate / apply / rollback; export full, changed, or diff.
-   - Mounted from `App.tsx` (Simple/Expert) and `ProjectMode.tsx`. Not the same as server `codeExecutor` ChangeSet validation for Architect code tasks.
+   - Mounted from `src/App.tsx` (Simple/Expert) and `src/ProjectMode.tsx`. Not the same as server `codeExecutor` ChangeSet validation for Architect code tasks.
 
 2. **Google Drive (`src/driveClient.ts`, `driveSync`, `driveMirror`, `driveMerge`, `driveExport`, `useDrive`)** — backup and cloud persistence of user files.
    - Owner-intended backup/save path; keep and maintain when touching related UI or auth.
