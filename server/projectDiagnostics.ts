@@ -93,7 +93,16 @@ export const capturedConsole = () => consoleLines.slice();
 export function releaseLabel(file = path.resolve(process.cwd(), 'package.json')): string | null {
   try { const p = JSON.parse(fs.readFileSync(file, 'utf8')).patch; return typeof p === 'string' && p ? p : null; } catch { return null; }
 }
-export const buildCommit = (env: NodeJS.ProcessEnv = process.env): string => (env.RENDER_GIT_COMMIT || env.RAILWAY_GIT_COMMIT_SHA || env.GIT_COMMIT || 'unknown').slice(0, 7);
+export function resolvedBuildCommit(env: NodeJS.ProcessEnv = process.env): string {
+  const fromEnv = (env.RENDER_GIT_COMMIT || env.RAILWAY_GIT_COMMIT_SHA || env.GIT_COMMIT || env.GITHUB_SHA || '').trim();
+  if (fromEnv) return fromEnv.slice(0, 7);
+  try {
+    const stamp = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'build-stamp.json'), 'utf8'));
+    if (typeof stamp?.commit === 'string' && stamp.commit && stamp.commit !== 'unknown') return String(stamp.commit).slice(0, 7);
+  } catch { /* optional */ }
+  return 'unknown';
+}
+export const buildCommit = (env: NodeJS.ProcessEnv = process.env): string => resolvedBuildCommit(env);
 function runtimeAppVersion(): string { try { return String(JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')).version || 'unknown'); } catch { return process.env.APP_VERSION || 'unknown'; } }
 
 
