@@ -29,3 +29,13 @@ Inside `test('…')` names, prefix with the patch id when useful, e.g. `P126.17 
 ## E2E / live
 
 Browser and live-model suites belong in dedicated workflows, not as per-patch unit files. Prefer extending existing e2e scripts when UI flows change (see AGENTS G4).
+
+## Shared helpers (not suites)
+
+| File | Role |
+|------|------|
+| `_sources.mjs` | Aggregated server/app source text for static contracts |
+| `_prompts.mjs` | Agent prompt builders for tests |
+| `app-builder-golden.json` | Golden fixture for model/task scoring in providers-models |
+
+These are imported by category suites; they are not run directly.

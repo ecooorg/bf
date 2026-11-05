@@ -46,7 +46,7 @@ This report contains preserved historical records. Any links or instructions ins
 ## P119.0.3 — Conversational/Expert isolation, legacy names removed from user copy (2026-10-29)
 
 - **Runtime change:** structural only. Agent selection/planning/prompt entry moved to `server/agentRouting.ts`, `server/conversationalAgent.ts`, `server/expertAgent.ts`; prompts and plans are byte-identical to the pre-split logic for all tested request bodies × detected modes. User-visible text no longer says Simple chat / Project mode / Project workspace / Expert method.
-- **Tests:** `tests/p119-agent-isolation.test.mjs` (equivalence to a reference copy of the old logic, Expert never gets the information contract, import isolation, copy). Mutation-checked: five deliberate breaks (Expert information contract, loosened routing, cross-import, prompt drift, legacy copy) each failed at least one test; files restored.
+- **Tests:** `tests/agents-contract.test.mjs` (equivalence to a reference copy of the old logic, Expert never gets the information contract, import isolation, copy). Mutation-checked: five deliberate breaks (Expert information contract, loosened routing, cross-import, prompt drift, legacy copy) each failed at least one test; files restored.
 - **Local verification (Node 22.22.2):** __VERIFY__
 - **Not claimed:** fully separate Conversational/Expert pipelines (route, wire key and prompt pack text still shared); live behaviour unchanged-ness (live scenarios NOT_RUN); `test:ui` NOT_RUN (no Chromium).
 - **Observed defect (OBSERVED):** `tsc --noEmit` failed intermittently with a stack overflow, also on unmodified P119.0.2 code (root cause UNKNOWN); mitigated with `--stack-size=4000` in `typecheck`/`lint`/`build:server`.
@@ -57,7 +57,7 @@ This report contains preserved historical records. Any links or instructions ins
 
 - **Runtime change:** none. Documentation, tests and version metadata only.
 - **OBSERVED (source):** Conversational and Expert share `POST /api/conversation`, one handler and `buildSimpleConversationPrompt`; the agent is chosen by `body.productMode === 'Expert'` (anything else = Conversational). Expert additionally owns 13 step routes (`/api/understand`, `/expand`, `/synthesis`, …). Architect is isolated: `/project`, `/api/projects/*`, `appBuilder/`, separate client modules, gated by `ENABLE_PROJECT_MODE`. This matches the owner-reported/audit hypothesis that Simple/Expert orchestration is shared; it is a structural fact, not a measured quality defect.
-- **Tests:** `tests/p119-agent-boundaries.test.mjs` (21) locks route ownership, import isolation, selection and gating, plus `KNOWN_SHARED_PATH` locks for the shared path. Mutation-checked: four deliberate boundary breaks each failed a test; files restored.
+- **Tests:** `tests/agents-contract.test.mjs` (21) locks route ownership, import isolation, selection and gating, plus `KNOWN_SHARED_PATH` locks for the shared path. Mutation-checked: four deliberate boundary breaks each failed a test; files restored.
 - **Local verification (Assistant environment, Node 22.22.2, `npm ci`):** `npm run check` (DAG profile `check`) PASS 23/23; `node scripts/docs-integrity.mjs` PASS; `node scripts/check-version.mjs` OK for 119 / 119.0.2. DAG profile `ci`: 24 PASS, 0 FAIL, 0 TIMEOUT, 2 BLOCKED (`test:database:live`, `test:bx06:api`) and 1 SKIPPED_BY_POLICY (`db-migrate`) because no `DATABASE_URL` exists in this environment — not PASS; hosted CI must confirm. Not run: `npm run test:ui` (Playwright/Chromium), live scenarios, hosted CI on the commit — status NOT_RUN, not PASS.
 - **P119.0.4 (OBSERVED in source; user-visible effect: none by design):** the chat client now calls `/api/agent/conversational` or `/api/agent/expert`; the old shared path still works for older clients. Prompt text of both agents is byte-identical to P119.0.3 (golden SHA-256 for 8 prompts, Expert paragraph and step prefix). No claim is made that answer quality changed; live scenarios remain NOT_RUN.
 - **Not claimed:** separate Conversational/Expert pipelines; removal of legacy paths; P118 residuals resolved.
@@ -97,7 +97,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 ## P118.3.2 — Single version source and documentation audit (2026-10-28)
 
 - Runtime behavior: none changed. Version handling changed: `package.json` (`patch`, `version`) is the only source; `src/config.ts` derives `APP_VERSION`/`APP_PATCH` from it; `check-version` validates `package.json` alone; `patch:pack` rejects a patch without `package.json`, with a patch number not above the base patch, or a `version` that differs from the first number of `patch`.
-- Why (OBSERVED in source): the old gate also compared `src/config.ts`, `server.ts` and the CHANGELOG heading with `package.json`, and `tests/core.test.mjs` repeated that comparison; each patch that touched one of them could turn CI red. The live diagnostics of the run below also showed two sources disagreeing in one process (console `v118`, diagnostics `appVersion 119` / release `P118.3`).
+- Why (OBSERVED in source): the old gate also compared `src/config.ts`, `server.ts` and the CHANGELOG heading with `package.json`, and `tests/governance-repo.test.mjs` repeated that comparison; each patch that touched one of them could turn CI red. The live diagnostics of the run below also showed two sources disagreeing in one process (console `v118`, diagnostics `appVersion 119` / release `P118.3`).
 - Documentation audit: stale statements corrected (operating-rules status, patch protocol vs AGENTS Documentation Policy, report title and latest-record heading, retired environment/provider documentation references, task/roadmap state); P118 exit gate written into the roadmap.
 - Verification: local tests and checks only; hosted CI and live workflow NOT_RUN.
 
@@ -122,7 +122,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 
 ## P118.3 — Spec-stage bounded repair and assistant diagnostics
 
-- Delivered: `parseJsonLenient`, `validateSpec` with concrete issues, `schemaVersion "1"`→1 coercion, one recovery call listing the issues, `spec_*`/`plan_*` diagnostic events with text previews, adapter logging of model response previews; tests `tests/app-builder-spec-repair-p118.test.mjs`.
+- Delivered: `parseJsonLenient`, `validateSpec` with concrete issues, `schemaVersion "1"`→1 coercion, one recovery call listing the issues, `spec_*`/`plan_*` diagnostic events with text previews, adapter logging of model response previews; tests `tests/project-builder-recovery.test.mjs`.
 - Trigger (as reported in the P118.3 handoff, live #3, commit `6990277`): one planner call succeeded, then `invalid_spec` without recovery; transcript lacked model text and issues.
 - Effect on the live product: NOT_RUN (see the run above: old engine; hosted CI of the commit was red).
 
@@ -173,7 +173,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 ## P117.3 — implementation evidence (2026-10-28)
 
 - Implemented WI-1 freshness trigger expansion and referral-only retry detection; removed the generic information-mode verification closer; tightened Cyrillic research boundaries; preserved Serper-returned dates in digest lines.
-- Added `tests/p117-3-conversation.test.mjs` and wired it into `npm run test:web`.
+- Added `tests/conversation-simple-direct.test.mjs` and wired it into `npm run test:web`.
 - Added a manual-dispatch GitHub Actions workflow and script for the 15-scenario retest, including C1/C2 follow-up turns and three B4 repetitions. Artifact is raw transcript, not an automatic rubric verdict.
 - ND-4 conservative choice: no Serper time-range parameter or additional query is added, so no intentional increase in credit consumption. The current patch carries dates but does not filter results strictly to the requested week; B1 acceptance still requires manual scrutiny and may remain PARTIAL.
 - Diagnostic archive review: overall checks PASS and DB write failures are zero, but the export manifest has a byte-count discrepancy for `logs/server-console.log` (manifest 549 vs actual 538) and reports `source=database` while also saying persistent logs were skipped because the database was unavailable. The build report confirms a failed build (`invalid_spec`, zero files, ~73 s). These are useful evidence but need clearer provenance/consistency; no diagnostics-runtime patch was made in this bounded P117.3 patch.
@@ -253,7 +253,7 @@ Newest record first. Facts are tagged OBSERVED (artifact/log/source), INFERRED, 
 - Implemented: default primary Gemini order is `gemini-3.5-flash-lite` then `gemini-3.1-flash-lite` for Simple/Expert; project cascades use the same order.
 - Implemented: `gemini-3.6-flash`, `gemini-3.8-flash`, `gemma-4` are only eligible after a successful minimal live probe. Probe state is process-local, hourly, and logged.
 - Implemented: opt-in Groq and Cloudflare Workers AI fallback (`ENABLE_EXTERNAL_MODEL_FALLBACK=true`), with explicit provider approval at the router. The direct conversation fallback is text/JSON-only and is skipped for native file/image parts.
-- Tests added: `tests/model-availability-p117.test.mjs` (probe gating, failure handling, hourly throttle, no-key behavior).
+- Tests added: `tests/providers-models.test.mjs` (probe gating, failure handling, hourly throttle, no-key behavior).
 - NOT_RUN: test suite, typecheck, build, CI, browser E2E, live model probes, end-to-end Expert/project artifact tests. Do not treat this patch as accepted until CI and representative user scenarios pass.
 - Risks: `gemma-4` may not be a valid Gemini API model ID; the probe intentionally verifies the exact requested ID rather than silently substituting another model. Probes can incur small token usage and repeat on multiple replicas. External providers may incur cost and receive user prompts, hence opt-in.
 - Product outcome not yet proven: prompt contract changes are not evidence of a working independent Expert agent; that acceptance remains open.
