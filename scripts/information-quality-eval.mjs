@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Deterministic companion to docs/INFORMATION_QUALITY_WORKFLOW.md.
+ * Deterministic companion to docs/ARCHITECTURE.md (Information quality workflow summary).
  * Input: JSON array or JSONL of scenario records. Factual truth still requires blind review;
  * this runner enforces evidence/provenance contracts and aggregates human rubric scores.
  */

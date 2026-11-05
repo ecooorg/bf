@@ -6,13 +6,19 @@ import path from 'node:path';
 const files = [
   'docs/API_CONTRACTS.md',
   'docs/SECURITY_AND_PRIVACY.md',
-  'docs/INFORMATION_QUALITY_WORKFLOW.md',
   'docs/USER_VALUE_EVALUATION.md',
-  'docs/USER_VALUE_EXPERT_C122.md',
+  'docs/ARCHITECTURE.md',
+  'docs/OPERATIONS_AND_RELEASES.md',
+  'docs/MODEL_REGISTRY.md',
+  'docs/DECISIONS.md',
 ];
 const pathLike = /^(?:\.\.?\/)?[\w./-]+\.(?:md|mjs|js|ts|tsx|json|yml|yaml|sql|sh|zip)$/;
 const missing = [];
 for (const file of files) {
+  if (!fs.existsSync(file)) {
+    missing.push({ file, candidate: '(file itself missing)' });
+    continue;
+  }
   const source = fs.readFileSync(file, 'utf8');
   for (const match of source.matchAll(/`([^`]+)`/g)) {
     const candidate = match[1];
