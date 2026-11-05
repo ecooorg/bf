@@ -29,15 +29,14 @@ test('search decoupling suite still covers Simple Direct vs search responsibilit
 });
 
 
-test('P126.29 statistic share questions and ungrounded gate are wired', () => {
+test('P126.30 statistic share questions still trigger search; reply gate not applied', () => {
   const web = read('server/webSearch.ts');
   assert.match(web, /export function isStatisticShareQuestion/);
-  assert.match(web, /export function applyUngroundedStatisticGate/);
   assert.match(web, /isStatisticShareQuestion\(t\)/);
   const server = read('server.ts');
-  assert.match(server, /applyUngroundedStatisticGate/);
-  assert.match(server, /statisticGateApplied/);
-  assert.match(server, /ungrounded_statistic_gate/);
+  assert.doesNotMatch(server, /applyUngroundedStatisticGate/);
+  // Simple Direct still returns model reply field directly
+  assert.match(server, /reply: direct\.reply/);
 });
 
 test('P126.29 pure patterns: larch percent question matches share trigger', () => {
