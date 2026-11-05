@@ -1,12 +1,14 @@
-## P126.15 — Evidence (2026-11-05)
+## P126.16 — Evidence (2026-11-05)
 
-**Scope:** Navigator task — commit badge in all three modes; rename Conversational→Simple and Architect→Project; remove diagnostic menu items/windows; unified All Logs download (identical in all modes, full 72h archive, mode-separated folders + assistant brief; redact API keys only).
+**Scope:** Navigator request — fully remove the retired Architectural Test Lab (`/architect-lab`) as a separate micro-patch after P126.15. Must not affect Simple, Expert, or Project.
 
-**OBSERVED (sandbox):** `node --test tests/p126-15-all-logs.test.mjs` → 8/8 pass. UI strings and data-testids verified by static contract tests. Server module `server/allLogs.ts` and route `/api/diagnostics/all-logs` present.
+**Deleted:** `src/ArchitectLab.tsx`, `src/ArchitectShellHeader.tsx`, `tests/p122-architect-lab-contract.test.mjs`, `tests/p122-architect-lab-e2e.test.mjs`.
 
-**NOT_RUN:** full `test:core`, typecheck/build (npm install failed with registry 502 in this sandbox), browser e2e, live ZIP download against a running server. G4: affected entry points are ModeMenu, AppHeader More, ProjectMode More, ArchitectShellHeader More; All Logs is download-only so e2e result screens are unchanged for primary flows.
+**Changed:** `src/main.tsx`, `src/index.css`, `package.json` (patch `126.16`, scripts), `tests/p119-agent-ui-contract.test.mjs`, `tests/p119-agent-boundaries.test.mjs`, `tests/p121-cycle-governance.test.mjs`, `scripts/architect-dual-compare.mjs` (guidance text only).
 
-**Risks:** Older tests that assert "Conversational"/"Architect" labels or "Diagnostic log" menu items will need updates (listed in unfinished-session notes). `/api/diagnostics/session-log` and `/api/projects/diagnostics/*` left for CI compatibility.
+**Preserved:** Project Mode on `/project` (+ `/architect`, `/project-legacy` aliases), Simple/Expert via `App`, ModeMenu, diagnostics/All Logs from P126.15 (apply that patch first if not yet applied; this micro-patch only removes Lab).
+
+**OBSERVED:** static absence of Lab sources; `main.tsx` has no `ArchitectLab` / `architect-lab` route. **NOT_RUN:** full test:core, typecheck, browser e2e (sandbox limits).
 
 ---
 
