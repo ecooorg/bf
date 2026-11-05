@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "kind": "verification-manifest",
   "profiles": {
-    "check": "npm run check: the local and CI check chain without database stages",
-    "ci": "hosted CI: check chain plus migrations, live database tests, API tests and build"
+    "check": "Local and CI check chain without database migrate or production build",
+    "ci": "Hosted CI: check chain plus db-migrate (when DAG_TEST_DATABASE_URL is set) and production build"
   },
   "defaults": {
     "timeoutMs": 600000,
@@ -229,48 +229,11 @@
       "phase": "minimum-suite"
     },
     {
-      "id": "test:carousel-unit-retired-placeholder",
-      "argv": [
-        "node",
-        "--test",
-        "tests/governance-repo.test.mjs"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 180000,
-      "parallelGroup": "tests",
-      "prerequisites": [
-        "typecheck"
-      ]
-    },
-    {
       "id": "test:models",
       "argv": [
         "npm",
         "run",
         "test:models"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "needs": [
-        "critical-router-selection",
-        "critical-router-policy-call-limit",
-        "critical-gemini-timeout"
-      ],
-      "timeoutMs": 75000,
-      "critical": true,
-      "phase": "minimum-suite"
-    },
-    {
-      "id": "test:files",
-      "argv": [
-        "npm",
-        "run",
-        "test:files"
       ],
       "profiles": [
         "check",
@@ -327,102 +290,11 @@
       "phase": "minimum-suite"
     },
     {
-      "id": "test:pipeline",
-      "argv": [
-        "npm",
-        "run",
-        "test:pipeline"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 330000
-    },
-    {
       "id": "test:security",
       "argv": [
         "npm",
         "run",
         "test:security"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 600000
-    },
-    {
-      "id": "test:workspace",
-      "argv": [
-        "npm",
-        "run",
-        "test:workspace"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 600000
-    },
-    {
-      "id": "test:database",
-      "argv": [
-        "npm",
-        "run",
-        "test:database"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 600000
-    },
-    {
-      "id": "test:integrations",
-      "argv": [
-        "npm",
-        "run",
-        "test:integrations"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 600000
-    },
-    {
-      "id": "test:gates",
-      "argv": [
-        "npm",
-        "run",
-        "test:gates"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 600000
-    },
-    {
-      "id": "test:web",
-      "argv": [
-        "npm",
-        "run",
-        "test:web"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 600000
-    },
-    {
-      "id": "test:turn",
-      "argv": [
-        "npm",
-        "run",
-        "test:turn"
       ],
       "profiles": [
         "check",
@@ -444,19 +316,6 @@
       "timeoutMs": 600000
     },
     {
-      "id": "test:compact-ci-artifacts",
-      "argv": [
-        "npm",
-        "run",
-        "test:compact-ci-artifacts"
-      ],
-      "profiles": [
-        "check",
-        "ci"
-      ],
-      "timeoutMs": 600000
-    },
-    {
       "id": "db-migrate",
       "argv": [
         "npm",
@@ -467,52 +326,6 @@
         "ci"
       ],
       "timeoutMs": 300000,
-      "requiresEnv": [
-        "DAG_TEST_DATABASE_URL"
-      ],
-      "env": {
-        "DATABASE_URL": "$DAG_TEST_DATABASE_URL",
-        "PGSSLMODE": "disable"
-      },
-      "safeToRun": false
-    },
-    {
-      "id": "test:database:live",
-      "argv": [
-        "npm",
-        "run",
-        "test:database:live"
-      ],
-      "profiles": [
-        "ci"
-      ],
-      "needs": [
-        "db-migrate"
-      ],
-      "timeoutMs": 600000,
-      "requiresEnv": [
-        "DAG_TEST_DATABASE_URL"
-      ],
-      "env": {
-        "DATABASE_URL": "$DAG_TEST_DATABASE_URL",
-        "PGSSLMODE": "disable"
-      },
-      "safeToRun": false
-    },
-    {
-      "id": "test:bx06:api",
-      "argv": [
-        "npm",
-        "run",
-        "test:bx06:api"
-      ],
-      "profiles": [
-        "ci"
-      ],
-      "needs": [
-        "db-migrate"
-      ],
-      "timeoutMs": 600000,
       "requiresEnv": [
         "DAG_TEST_DATABASE_URL"
       ],

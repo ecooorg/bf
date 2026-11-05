@@ -41,7 +41,7 @@ The primary `ASSISTANT_PASTE` handoff is failure-first: report failed stages, ti
 ## P123.21 targeted regression checks
 
 - `npm run test:core` — covers the cycle-123 patch metadata contract.
-- `npm run test:pipeline` — covers Expert prompt recommendation/assumption wording.
+- `npm run test:core` / category suites — Expert and search wording covered in conversation and search category tests.
 - `npm run test:web` — covers retrieved-evidence and source-URL prompt contract.
 - `npm run test:compact-ci-artifacts` — required; P123.20 failure details were not included in the supplied handoff, so inspect its full log before making further changes.
 - `node scripts/run-dag.mjs --profile check` — final repository DAG check.

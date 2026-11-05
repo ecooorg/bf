@@ -24,7 +24,7 @@ Prefer the faster flash-lite first for light stages when live probes show materi
 
 ## Catalog and carousel
 
-- Runtime catalog: `config/model-sources.json` (public metadata only; secrets via env).
+- Runtime catalog: `config/model-sources.json` only (public metadata; secrets via env). Do not add a parallel `.yaml` catalog.
 - Enabled production source (catalog): `gemini-free-pool` (adapter `gemini`, priority 100), models flash-lite strong/light as above, key pool slots `GEMINI_API_KEY` … `GEMINI_API_KEY_10` (`max_slots: 10`).
 - Adding a source means editing configuration and secrets, not patching agent code.
 - Search-provider routing and LLM generation routing remain separate concerns; cross-provider generation fallback is explicitly opt-in.
