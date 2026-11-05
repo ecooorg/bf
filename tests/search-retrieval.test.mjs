@@ -61,3 +61,26 @@ test('P126.29 pure patterns: larch percent question matches share trigger', () =
   assert.equal(isStatisticShareQuestion('привет, расскажи анекдот про лес'), false);
 });
 
+
+
+test('P126.31 query hygiene strips meta search instructions from SERP text', () => {
+  const web = read('server/webSearch.ts');
+  assert.match(web, /SEARCH_META_PHRASE_RE/);
+  assert.match(web, /isSearchMetaOnlyTurn/);
+  assert.match(web, /P126\.31/);
+  // buildSearchQuery uses strip core
+  assert.match(web, /stripInstructionWordsCore/);
+});
+
+test('P126.31 pure: meta follow-up strips to empty-ish; factual percent question kept', () => {
+  // Mirror core patterns enough to lock the contract without importing TS.
+  const INSTRUCTION_WORD_RE = /(?<![\p{L}\p{N}_])(?:search|find|sites?|найди|поищи|найти|поискать)(?![\p{L}\p{N}_])/giu;
+  const SEARCH_META_PHRASE_RE = /(?:проведи|выполни)\s+(?:поиск|искать)|на\s+других\s+сайт\p{L}*|(?:ответь|ответ)\s+на\s+(?:мой\s+)?вопрос|только\s+(?:цифр\p{L}*|процент)|не\s+объясняй|answer\s+my\s+question/giu;
+  const core = (text) => String(text || '').replace(SEARCH_META_PHRASE_RE, ' ').replace(INSTRUCTION_WORD_RE, ' ').replace(/[?!.,;:]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const fact = 'какой процент составляют лиственницы от всех деревьев в Швейцарии?';
+  assert.match(core(fact), /лиственниц/);
+  assert.match(core(fact), /процент/);
+  const meta = 'проведи поиск на других сайтах и ответь на мой вопрос';
+  const m = core(meta);
+  assert.ok(m.length < 20, m);
+});
