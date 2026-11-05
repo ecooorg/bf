@@ -34,7 +34,7 @@ import {
   type ExpertEndpoint,
 } from './server/expertContracts.ts';
 import { buildConversationTurnPrompt, planConversationTurn, pinConversationAgent } from './server/agentRouting.ts';
-import { SIMPLE_DIRECT_SYSTEM, buildSimpleDirectPrompt, handleSimpleDirectConversation, isExplicitSearchRequest, resolveOptionalSearch, normalizeSimpleDirectReply } from './server/simpleDirectConversation.ts';
+import { SIMPLE_SEARCH_DEADLINE_MS, buildSimpleDirectSystem, simpleSearchWaitMs, buildSimpleDirectPrompt, handleSimpleDirectConversation, isExplicitSearchRequest, resolveOptionalSearch, normalizeSimpleDirectReply } from './server/simpleDirectConversation.ts';
 import { LoginLimiter, SESSION_COOKIE, clearedCookie, createSessionSigner, isSameOrigin, sessionCookie } from './server/security.ts';
 import { MAX_UPLOAD_BYTES, NativeFileCache, UploadError, buildAttachmentsBlock, makeWindowLimiter, normalizeAttachments, processUpload, resolveAttachments, safeFileName } from './server/files.ts';
 import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './server/documents.ts';
@@ -55,7 +55,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -757,7 +757,7 @@ async function generateGeminiPassThrough(
         const response = await client.models.generateContent({
           model,
           contents: [{ role: 'user', parts: [{ text: prompt }, ...extraParts] }],
-          config: { systemInstruction: SIMPLE_DIRECT_SYSTEM, abortSignal: controller.signal,
+          config: { systemInstruction: buildSimpleDirectSystem(), abortSignal: controller.signal,
             ...(useSearch ? { tools: [googleSearchToolForModel(model)] } : {}) },
         });
         const text = normalizeSimpleDirectReply(response.text);
@@ -1334,11 +1334,11 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       // cap how long Simple waits for evidence, and never let search failure prevent Gemini generation.
       const optionalSearchPromise = resolveOptionalSearch<WebSearchResult>({
         expected: searchShouldRun,
-        timeoutMs: Math.max(500, Math.min(4_000, Number(process.env.SIMPLE_SEARCH_WAIT_MS) || 3_000)),
+        timeoutMs: simpleSearchWaitMs(),
         run: () => runConversationWebSearch(
           String(lastUserText || brief.decision || ''), requestByokKey, requestPreferredModel,
-          fullHistory.filter((m: any) => m.role === 'user').slice(-3).map((m: any) => String(m.content || '')).join('\n'),
-          undefined, Date.now() + 9_000,
+          searchContextForTurn(String(lastUserText || brief.decision || ''), fullHistory.filter((m: any) => m.role === 'user').slice(0, -1).map((m: any) => String(m.content || ''))),
+          undefined, Date.now() + SIMPLE_SEARCH_DEADLINE_MS,
         ),
       });
       const directPromptBase = buildSimpleDirectPrompt({

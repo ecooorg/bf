@@ -1,3 +1,11 @@
+## P126.12 — Simple Direct search coverage, wait, context and system prompt (2026-11-05)
+
+- Search trigger (`server/webSearch.ts`): added election results, winners, seat counts, match scores, currency pairs and price questions (Russian and English) to the deterministic freshness patterns used by the direct route.
+- Wait (`server.ts`, `server/simpleDirectConversation.ts`): Simple now waits up to 8.5 s by default (cap 9 s, `SIMPLE_SEARCH_WAIT_MS`) for a search that has a 9 s deadline; a timeout is reported to the model as `SEARCH STATUS: TIMED_OUT` with an instruction to tell the user.
+- Context: earlier user turns are passed to the search resolver only for explicit follow-ups (`searchContextForTurn`); self-contained questions are searched as written.
+- System prompt: `buildSimpleDirectSystem()` adds today's date (UTC) and forbids claiming that search or internet is unavailable unless the SEARCH STATUS says so.
+- Tests: new `tests/p126-12-direct-search-coverage.test.mjs`; updated two existing assertions (TIMED_OUT status, system-instruction call). Patch metadata: `126.12`.
+
 ## P126.11 — Preserve terminal AI format error status (2026-11-04)
 
 - Fixed the conversation error boundary so explicit `502 AI_FORMAT` is not normalized to `503`; terminal format failures now return `retryable: false` consistently with `GeminiFormatError`.

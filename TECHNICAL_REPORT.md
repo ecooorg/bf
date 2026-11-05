@@ -1,3 +1,15 @@
+## P126.12 — Evidence (2026-11-05)
+
+**Source:** recommendation items 1–4 against archive 126.11. Items 1–4 were re-checked in source before editing; the 126.11 trigger missed the quoted election, seat-count, winner and currency questions.
+
+**Changes:** see CHANGELOG P126.12. Item 5 (source-policy packaging) was already fixed in 126.11 and is unchanged; fail-fast startup on a missing file is not part of this patch.
+
+**OBSERVED (sandbox, `node --experimental-strip-types`):** new `p126-12` suite 5/5; `p124-28`, `p124-38`, `web-and-epistemics`, `universal-followup-regression`, `p124-26`, `p126-1`, `p126-2`, `p126-3`, `p126-5` all pass.
+**Pre-existing in this sandbox (identical on the 126.11 archive):** `p125-3` (2 fail), `p125-4` (5 fail) and one source-structure test in `gemini-direct-passthrough-p124-17` fail under `--experimental-strip-types` without `tsx`; not caused by this patch, to be confirmed by hosted CI.
+**NOT_RUN:** `tsx`-based runs, full DAG, typecheck/build, hosted CI, live search against Serper/Gemini, live comparison of direct mode with the legacy chain (still NOT_RUN per C126 KEEP GATED).
+
+---
+
 ## P126.11 — Preserve terminal AI format error contract (2026-11-04)
 
 **Failure evidence:** hosted P126.10 passed Core (240/240) and all but one pipeline group (13/14). H3 made exactly two scripted invalid-JSON calls and received `503 AI_FORMAT`; the generator's `GeminiFormatError` already declared `status = 502` and `retryable = false`. The conversation route catch block discarded that status (normalizing every non-429 result to 503) and hard-coded `retryable: true`, contradicting the error classification. The reported uncaught asynchronous Stage 2 activity followed the failed H3 assertion; no separate failing scenario was identified in the supplied report.

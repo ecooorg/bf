@@ -2,7 +2,7 @@
   "name": "biforge",
   "private": true,
   "version": "126",
-  "patch": "126.11",
+  "patch": "126.12",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -84,7 +84,8 @@
     "test:p126-1": "node --import tsx --test tests/p126-1-simple-direct.test.mjs",
     "test:p126-2": "node --import tsx --test tests/p126-2-search-decoupling.test.mjs",
     "test:p126-3": "node --experimental-strip-types --test tests/p126-3-conversation-reliability.test.mjs",
-    "test:p126-5": "node --import tsx --test tests/p126-5-user-level-validation.test.mjs"
+    "test:p126-5": "node --import tsx --test tests/p126-5-user-level-validation.test.mjs",
+    "test:p126-12": "node --import tsx --test tests/p126-12-direct-search-coverage.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
