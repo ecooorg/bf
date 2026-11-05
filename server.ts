@@ -327,9 +327,9 @@ type ModelHealth = {
 };
 const modelHealth = new Map<string, ModelHealth>();
 const MODEL_COOLDOWN_503_MS = 60 * 1000;
-const MODEL_COOLDOWN_429_MS = 3 * 60 * 1000;
+const MODEL_COOLDOWN_429_MS = 60 * 1000;
 const MODEL_COOLDOWN_BAD_MS = 10 * 60 * 1000;
-const MODEL_COOLDOWN_QUOTA_MS = 30 * 60 * 1000;
+const MODEL_COOLDOWN_QUOTA_MS = 60 * 1000;
 
 // Rate limiting (in-memory)
 const rateMap = new Map<string, { hour: number; count: number; day: number; dayCount: number }>();
@@ -794,6 +794,41 @@ async function generateGeminiPassThrough(
   throw lastError || Object.assign(new Error('All allowed Gemini models are unavailable.'), { code: 'GEMINI_UNAVAILABLE' });
 }
 
+/** P126.13: plain-text answer from Groq / Cloudflare when Gemini cannot answer (any mode, any reason). */
+async function externalTextFallback(prompt: string, hadNativeFiles: boolean): Promise<{ text: string; model: string; durationMs: number } | null> {
+  if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK !== 'true') return null;
+  const providers: Array<{ id: string; model: string; baseUrl: string; key: string }> = [];
+  if (process.env.GROQ_API_KEY) providers.push({ id: 'groq', model: process.env.GROQ_FALLBACK_MODEL || 'openai/gpt-oss-120b', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, key: process.env.GROQ_API_KEY });
+  if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) providers.push({ id: 'cloudflare-workers-ai', model: process.env.CLOUDFLARE_WORKERS_AI_MODEL || '@cf/meta/llama-3.1-8b-instruct', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, key: process.env.CLOUDFLARE_API_TOKEN });
+  const fullPrompt = hadNativeFiles ? `${prompt}\n\nNote: an attached file could not be viewed by this provider; say so if the answer depends on it.` : prompt;
+  for (const provider of providers) {
+    const t0 = Date.now();
+    const adapter = createOpenAICompatibleAdapter({ providerId: provider.id, baseUrl: provider.baseUrl, apiKey: provider.key });
+    const result: any = await adapter.call({ requestId: `direct-${Date.now()}`, modelId: provider.model, system: buildSimpleDirectSystem(), prompt: fullPrompt, json: false, maxOutputTokens: 4096, metadata: { stage: 'conversation', modelClass: 'strong' } }, { timeoutMs: 20_000 }).catch((e: any) => ({ status: 'error', errorClass: String(e?.message || e).slice(0, 80) }));
+    const text = result?.status === 'ok' ? normalizeSimpleDirectReply(result.output) : '';
+    if (!text) { console.warn(JSON.stringify({ type: 'llm_external_fallback_failed', provider: provider.id, model: provider.model, errorClass: result?.errorClass })); continue; }
+    console.info(JSON.stringify({ type: 'llm_external_fallback_succeeded', provider: provider.id, model: provider.model, stage: 'direct' }));
+    return { text, model: `${provider.id}/${provider.model}`, durationMs: Date.now() - t0 };
+  }
+  return null;
+}
+
+/** P126.13: Gemini first; on any failure (cooldown, quota, empty, error) fall through to the other providers. */
+async function generateDirectWithFallback(
+  prompt: string, byokKey?: string, preferredModel?: string, extraParts: any[] = [], useSearch = false,
+) {
+  try {
+    return await generateGeminiPassThrough(prompt, byokKey, preferredModel, extraParts, useSearch);
+  } catch (error: any) {
+    const fb = await externalTextFallback(prompt, extraParts.length > 0);
+    if (!fb) throw error;
+    void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'conversation_provider_fallback',
+      message: 'Gemini could not answer; an alternative provider produced the reply',
+      details: { provider: fb.model, geminiError: String(error?.code || error?.message || 'unknown').slice(0, 80) } });
+    return { text: fb.text, model: fb.model, durationMs: fb.durationMs, sources: [] as WebSource[], queries: [] as string[], keySlot: -1, keyAttempts: 0, modelRotations: 0 };
+  }
+}
+
 async function generate(
   prompt: string,
   inputForNumbers: string,
@@ -836,6 +871,7 @@ async function generate(
 
   // P124.31: one pass through the adaptive queue only. A second full pass repeated
   // already-failed models and could multiply the per-call timeout before external fallback.
+  let coolingError: any;
   for (let round = 0; round < 1; round++) {
     const orderedModels = models.slice(startModelIndex);
     const now = Date.now();
@@ -845,11 +881,10 @@ async function generate(
     if (!ready.length) {
       if (round > 0) break;
       // Every model is cooling down. Say why: all quota -> quota error, otherwise "unavailable".
-      if (orderedModels.length && orderedModels.every((m) => healthForModel(m).quotaHit)) throw new GeminiQuotaError();
+      if (orderedModels.length && orderedModels.every((m) => healthForModel(m).quotaHit)) { coolingError = new GeminiQuotaError(); break; }
       if (orderedModels.length) {
         const retryAfterMs = Math.max(0, Math.min(...orderedModels.map((m) => healthForModel(m).cooldownUntil || now)) - now);
-        throw new GeminiUnavailableError(
-          'Gemini models are cooling down after recent errors. The request was not lost.', { stage, retryAfterMs });
+        { coolingError = new GeminiUnavailableError('Gemini models are cooling down after recent errors. The request was not lost.', { stage, retryAfterMs }); break; }
       }
       break;
     }
@@ -1020,15 +1055,15 @@ async function generate(
   }
 
   // Cross-provider fallback is opt-in because prompts may contain user data and Cloudflare/Groq may have separate billing/data terms.
-  if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' && !byokKey && !opts?.extraParts?.length && (budget ? budget.used : attempts) < MAX_MODEL_CALLS && Date.now() - deadlineStart < LLM_TOTAL_DEADLINE_MS) {
+  // P126.13: alternative providers are always tried when Gemini cannot answer, regardless of call budget, BYOK or attachments.
+  if (process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true') {
     const providers: Array<{ id: string; model: string; baseUrl: string; key: string }> = [];
     if (process.env.GROQ_API_KEY) providers.push({ id: 'groq', model: process.env.GROQ_FALLBACK_MODEL || 'openai/gpt-oss-120b', baseUrl: process.env.GROQ_BASE_URL || GROQ_BASE_URL, key: process.env.GROQ_API_KEY });
     if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) providers.push({ id: 'cloudflare-workers-ai', model: process.env.CLOUDFLARE_WORKERS_AI_MODEL || '@cf/meta/llama-3.1-8b-instruct', baseUrl: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`, key: process.env.CLOUDFLARE_API_TOKEN });
     for (const provider of providers) {
-      if ((budget ? budget.used : attempts) >= MAX_MODEL_CALLS || Date.now() - deadlineStart >= LLM_TOTAL_DEADLINE_MS) break;
       attempts++; if (budget) budget.used++;
       const adapter = createOpenAICompatibleAdapter({ providerId: provider.id, baseUrl: provider.baseUrl, apiKey: provider.key });
-      const fallbackRemainingMs = LLM_TOTAL_DEADLINE_MS - (Date.now() - deadlineStart);
+      const fallbackRemainingMs = Math.max(12_000, LLM_TOTAL_DEADLINE_MS - (Date.now() - deadlineStart));
       if (fallbackRemainingMs <= 0) break;
       const result = await adapter.call({ requestId: `conversation-${Date.now()}`, modelId: provider.model, system: BASE_SYSTEM, prompt: repairHint ? `${prompt}${repairHint}` : prompt, json: true, maxOutputTokens: 4096, metadata: { stage, modelClass } }, { timeoutMs: Math.min(LLM_PER_CALL_TIMEOUT_MS, fallbackRemainingMs) });
       if (result.status !== 'ok') { console.warn(JSON.stringify({ type: 'llm_external_fallback_failed', provider: provider.id, model: provider.model, errorClass: result.errorClass })); continue; }
@@ -1041,6 +1076,7 @@ async function generate(
       return { data: parsed, meta: { model: `${provider.id}/${provider.model}`, fallback: true, durationMs: Date.now() - t0, stage, calls: attempts, lightFallback: modelClass === 'strong', promptChars: prompt.length } };
     }
   }
+  if (coolingError) throw coolingError;
   if (sawQuota && !sawTransient) throw new GeminiQuotaError();
   if (sawTransient) {
     const transientErr = lastTransientErr || lastErr;
@@ -1176,6 +1212,9 @@ function compactConversationHistory(history: any[]): any[] {
 const searchBreaker = new SearchCircuitBreaker();
 const searchBudget = SearchBudget.fromEnv();
 
+/** P126.13: Serper needs a few seconds, not eight; a slow planner call must not disable it. */
+const SERPER_MIN_REMAINING_MS = 3_000;
+
 async function runConversationWebSearch(userText: string, byokKey?: string, preferredModel?: string, recentUserText = '', decidedPlan?: SearchPlan, deadlineAt?: number): Promise<WebSearchResult> {
   // Preserve referents in elliptical follow-ups before chat history is omitted from SERP.
   try {
@@ -1183,7 +1222,7 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     const today = new Date().toISOString().slice(0, 10);
     const configuredTimeoutMs = Number(process.env.WEB_SEARCH_TIMEOUT_MS) || 28000;
     const remainingSearchMs = deadlineAt === undefined ? configuredTimeoutMs : deadlineAt - Date.now();
-    if (remainingSearchMs < 8_000) {
+    if (remainingSearchMs < SERPER_MIN_REMAINING_MS) {
       console.warn(JSON.stringify({ type: 'web_search_skipped', reason: 'request_deadline', remainingMs: Math.max(0, remainingSearchMs) }));
       return skippedWebSearch('failed', 'request_deadline');
     }
@@ -1202,11 +1241,11 @@ async function runConversationWebSearch(userText: string, byokKey?: string, pref
     const serperKey = (process.env.SERPER_API_KEY || '').trim();
     const providers: Partial<Record<ProviderId, SearchProvider>> = {
       serper: {
-        unavailable: () => deadlineAt !== undefined && deadlineAt - Date.now() < 8_000 ? 'request_deadline' : (serperKey ? undefined : 'no_serper_key'),
+        unavailable: () => deadlineAt !== undefined && deadlineAt - Date.now() < SERPER_MIN_REMAINING_MS ? 'request_deadline' : (serperKey ? undefined : 'no_serper_key'),
         units: (r) => r.status === 'skipped' ? 0 : Math.max(1, r.queries.length),
         search: (query, country) => {
           const remaining = deadlineAt === undefined ? timeoutMs : Math.min(timeoutMs, deadlineAt - Date.now());
-          if (remaining < 8_000) return Promise.resolve(skippedWebSearch('skipped', 'request_deadline'));
+          if (remaining < SERPER_MIN_REMAINING_MS) return Promise.resolve(skippedWebSearch('skipped', 'request_deadline'));
           // P125.5: gl bias uses place country or sourceCountry constraint; authority ranking uses sourceCountry only.
           const effectiveCountry = country || plan.sourceCountry || plan.country;
           return fetchSerperDigestMulti({
@@ -1376,7 +1415,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         attachmentParts: attachParts,
         byokKey: requestByokKey,
         preferredModel: requestPreferredModel,
-      }, generateGeminiPassThrough);
+      }, generateDirectWithFallback);
       const requestId = String((req as any).requestId || req.get('x-request-id') || '');
       const metricDetails = simpleConversationMetricDetails({
         requestId, model: direct.model, keySlot: direct.keySlot, keyAttempts: direct.keyAttempts,
@@ -1759,8 +1798,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         message: 'Simple Gemini generation failed before a non-empty response was produced',
         error: e, details: { agent: 'conversational', provider: 'gemini', generated: false, nonEmpty: false, retryable: true } });
       console.error(JSON.stringify({ type: 'gemini_direct_passthrough_failed', provider: 'gemini', errorCode: reason, message: String(e?.message || e).slice(0, 240) }));
-      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed; no alternate provider or application fallback was used', error: e, details: { provider: 'gemini', errorCode: reason, searchInvoked: false, externalFallbackInvoked: false } });
-      return fail(res, 503, 'Gemini did not return a response. No alternative provider or generated fallback was used.', 'GEMINI_DIRECT_UNAVAILABLE', { upstreamCode: reason });
+      void recordApplicationLog({ level: 'error', component: 'conversation', event: 'gemini_direct_passthrough_failed', requestId: String((req as any).requestId || req.get('x-request-id') || ''), message: 'Direct Gemini request failed and every alternative provider also failed', error: e, details: { provider: 'gemini', errorCode: reason, searchInvoked: false, externalFallbackInvoked: process.env.ENABLE_EXTERNAL_MODEL_FALLBACK === 'true' } });
+      return fail(res, 503, 'No AI provider returned a response right now (Gemini and alternative providers failed). Please retry in a few seconds.', 'GEMINI_DIRECT_UNAVAILABLE', { upstreamCode: reason });
     }
     // P125.16: never present a technical model-unavailable string as the agent reply.
     // The client keeps the user's text and shows Retry; SafetyBox still covers distress markers.

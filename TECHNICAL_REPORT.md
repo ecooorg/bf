@@ -1,3 +1,12 @@
+## P126.13 — Evidence (2026-11-05)
+
+**Failure evidence:** diagnostic export at runtime commit e871515 (126.12): search succeeded via Serper in all but one request, but Gemini generation failed with `gemini_pool_exhausted:quota` after 429s on keys 6–9; pool parked both models for 5 min, Simple Direct had no fallback, Expert threw before the Groq fallback (Groq succeeded once, at 05:12:20), and the client offered only a manual Retry. The first search failure was Serper skipped by the 8 s remaining-time rule after a 1.7 s planner call.
+**Changes:** see CHANGELOG P126.13. Owner decision (2026-11-05): quotas exist on all keys and only per-minute quotas are consumed, so no pause above one minute; all providers in all modes; the user must always get an answer.
+**OBSERVED (sandbox, `--experimental-transform-types`):** `p126-13` 5/5; `p126-1/2/3/5`, `p126-12`, `p124-26/27/28/30/31/38`, `web-and-epistemics`, `p125-16` pass. `gemini-direct-passthrough-p124-17` test 1 fails identically on the 126.12 base in this sandbox.
+**NOT_RUN:** `tsx` runs, `test:pipeline`, typecheck/build (client edit in `ConversationScreens.tsx` is unbuilt), browser e2e for the new auto-retry, hosted CI, live Groq/Cloudflare fallback calls.
+
+---
+
 ## P126.12 — Evidence (2026-11-05)
 
 **Source:** recommendation items 1–4 against archive 126.11. Items 1–4 were re-checked in source before editing; the 126.11 trigger missed the quoted election, seat-count, winner and currency questions.

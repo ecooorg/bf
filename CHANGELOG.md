@@ -1,3 +1,12 @@
+## P126.13 — Never leave the user without an answer (2026-11-05)
+
+- Evidence: diagnostics of 2026-11-05 showed Gemini 429s on three keys, both flash-lite models parked for 5 min, search breaker open 15 min, Simple Direct without any alternative provider, Expert throwing "cooling down" before reaching Groq, and an endless manual Retry.
+- Pauses: quota/rate-limit cooldowns are at most 60 s (key slot 60 s, model park 30 s, model health 429/quota 60 s, search hard breaker 60 s), because only per-minute quotas are consumed.
+- Providers: Simple Direct now falls back to Groq / Cloudflare on any Gemini failure (`generateDirectWithFallback`); Expert reaches the same providers when every Gemini model is cooling down, regardless of call budget, BYOK or attachments (attachments are flagged as unseen). Serper, Groq and Gemini are all used in both modes.
+- Search: Serper is skipped only below 3 s remaining (was 8 s against a 9 s deadline, so any slow planner call disabled it). The "skip search when generation is unavailable" idea was dropped: generation is now always attempted through the fallbacks.
+- UI: after a request ends without an answer the client retries automatically (4 s, 8 s, 12 s) before leaving the manual Retry button.
+- Tests: new `tests/p126-13-provider-fallback.test.mjs`. Patch metadata: `126.13`.
+
 ## P126.12 — Simple Direct search coverage, wait, context and system prompt (2026-11-05)
 
 - Search trigger (`server/webSearch.ts`): added election results, winners, seat counts, match scores, currency pairs and price questions (Russian and English) to the deterministic freshness patterns used by the direct route.
