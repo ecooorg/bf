@@ -10,7 +10,7 @@ The following table is the canonical non-secret Render configuration approved fo
 |---|---|
 | `APP_BUILDER_ENGINE` | `staged` |
 | `APP_BUILDER_MODEL_SLICE` | `true` |
-| `BIFORGE_GEMINI_DIRECT_MODE` | `false` |
+| `BIFORGE_GEMINI_DIRECT_MODE` | `true` |
 | `CODE_APP_BUILDER_MAX_FILES` | `80` |
 | `CODE_APP_BUILDER_MAX_LINES` | `8000` |
 | `CODE_EXECUTOR` | `model_patch` |
@@ -88,7 +88,7 @@ The application clamps larger values at runtime and logs both configured and eff
 
 ## Other supplied settings
 
-- `BIFORGE_GEMINI_DIRECT_MODE=false`: correct for the current pipeline-first implementation; keep it false.
+- `BIFORGE_GEMINI_DIRECT_MODE=true`: Simple Direct conversation (P126.1+) is the production path; Expert and distress turns still use their own paths. Core CI tests force `false` to exercise the legacy pipeline.
 - `ENABLE_EXTERNAL_MODEL_FALLBACK=true`: permits Groq/Cloudflare fallback, but can send eligible prompt content to another provider. Keep enabled only with the applicable privacy/consent decision. The bounded model-call budget applies to the main conversation path.
 - `MODEL_CASCADE_LIGHT` / `MODEL_CASCADE_STRONG`: both currently contain Flash-Lite models. This is a cost/availability choice, not a true strong-model cascade. It may affect answer quality, not explain a 20-second single call by itself.
 - `GROQ_PLAN=free`: descriptive deployment metadata only in this source snapshot; it does not configure Groq service limits. Actual plan/rate limits must be checked in the Groq account.
