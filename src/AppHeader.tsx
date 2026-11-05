@@ -1,7 +1,8 @@
 /** App chrome: method guide and main header. */
 import React, { useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { ModeMenu, type AppMode } from './ModeMenu.tsx';
+import { CommitBadge } from './CommitBadge.tsx';
+import { downloadAllLogs } from './allLogs.ts';
 import {
   BrainCircuit, CircleHelp, Cloud, CloudUpload, History as HistoryIcon,
   MoreHorizontal, SlidersHorizontal, Trash2, KeyRound, FolderOpen, Download, Upload, Plus,
@@ -84,18 +85,15 @@ export function Header(props: {
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [sub, setSub] = useState<'' | 'export' | 'import'>('');
-  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
-  const [diagnosticsBusy, setDiagnosticsBusy] = useState(false);
-  const [diagnosticsText, setDiagnosticsText] = useState('');
-  const [diagnosticsCopied, setDiagnosticsCopied] = useState(false);
-  const loadDiagnostics = async () => {
-    setMoreOpen(false); setDiagnosticsOpen(true); setDiagnosticsBusy(true); setDiagnosticsText(''); setDiagnosticsCopied(false);
-    try { const response = await fetch('/api/diagnostics/session-log', { credentials: 'same-origin' }); if (!response.ok) throw new Error(`Diagnostic log request failed (${response.status})`); setDiagnosticsText(await response.text()); }
-    catch (error) { setDiagnosticsText(`ERROR: ${String((error as Error).message || error)}`); }
-    finally { setDiagnosticsBusy(false); }
-  };
-  const copyDiagnostics = async () => { try { await navigator.clipboard.writeText(diagnosticsText); setDiagnosticsCopied(true); } catch { setDiagnosticsCopied(false); } };
+  const [allLogsBusy, setAllLogsBusy] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const loadAllLogs = async () => {
+    setMoreOpen(false);
+    setAllLogsBusy(true);
+    try { await downloadAllLogs(); }
+    catch (error) { window.alert(String((error as Error).message || error)); }
+    finally { setAllLogsBusy(false); }
+  };
   // Cloud is a sync status indicator only; actions live under More → Import / Export all.
   const driveLabel = sharedDriveLabel({ connected: Boolean(props.driveConnected), busy: props.driveBusy });
   React.useEffect(() => {
@@ -113,7 +111,10 @@ export function Header(props: {
     <header className="header" style={{ justifyContent: 'flex-end' }}>
       <div className="header-actions has-mode">
         {props.onSelectMode && props.onChangeMode && (
-          <ModeMenu current={props.expertMode ? 'Expert' : 'Simple'} projectEnabled={Boolean(props.projectModeEnabled)} onSelect={props.onSelectMode} onOverview={props.onChangeMode} />
+          <>
+            <CommitBadge />
+            <ModeMenu current={props.expertMode ? 'Expert' : 'Simple'} projectEnabled={Boolean(props.projectModeEnabled)} onSelect={props.onSelectMode} onOverview={props.onChangeMode} />
+          </>
         )}
         {props.showNew !== false && <button className="ghost" onClick={props.onNew} title="Start a new conversation" aria-label="New conversation"><Plus size={14} /> <span className="lbl">New</span></button>}
         {props.onDrive && (
@@ -174,7 +175,7 @@ export function Header(props: {
                 )}
               </div>
             )}
-            <button type="button" className="ghost" role="menuitem" data-testid="diagnostic-log-menu-item" onClick={() => void loadDiagnostics()} title="Show diagnostic information for recent requests">Diagnostic log</button>
+            <button type="button" className="ghost" role="menuitem" data-testid="all-logs-menu-item" disabled={allLogsBusy} onClick={() => void loadAllLogs()} title="Download a ZIP of full logs for Simple, Expert and Project (last 72 hours)">All Logs</button>
             {props.onProgramFiles && (
               <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onProgramFiles?.(); }} title="Texts saved from chats on this device">
                 Saved texts on this device
@@ -207,17 +208,6 @@ export function Header(props: {
         </div>
         {props.driveMessage && <span className="hdr-msg">{props.driveMessage}</span>}
       </div>
-      {diagnosticsOpen && typeof document !== 'undefined' && createPortal(
-        <div role="dialog" data-testid="diagnostic-log-dialog" aria-modal="true" aria-label="Diagnostic log" style={{ position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(0,0,0,.72)', display: 'grid', placeItems: 'center', padding: 12, boxSizing: 'border-box', overflowY: 'auto' }}>
-          <section style={{ width: 'min(900px, calc(100vw - 24px))', height: 'min(88dvh, 760px)', maxHeight: 'calc(100dvh - 24px)', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxSizing: 'border-box', background: '#10243a', border: '1px solid #3d7fc4', borderRadius: 10, padding: 16, color: '#dce9f7' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}><h2 style={{ margin: 0 }}>Diagnostic log</h2><button type="button" className="ghost" onClick={() => setDiagnosticsOpen(false)}>Close</button></div>
-            <p style={{ fontSize: 13 }}>Test log includes prompts, user messages, model replies, agent output and search results. Credentials remain redacted.</p>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}><button type="button" className="ghost" disabled={diagnosticsBusy || !diagnosticsText} data-testid="diagnostic-log-copy" onClick={() => void copyDiagnostics()}>{diagnosticsCopied ? 'Copied' : 'Copy log'}</button><button type="button" className="ghost" disabled={diagnosticsBusy} onClick={() => void loadDiagnostics()}>Refresh</button></div>
-            {diagnosticsBusy ? <p style={{ flex: '1 1 auto', minHeight: 0, overflow: 'auto' }}>Loading diagnostics…</p> : <textarea data-testid="diagnostic-log-content" aria-label="Diagnostic log contents" readOnly value={diagnosticsText} style={{ flex: '1 1 auto', minHeight: 0, width: '100%', boxSizing: 'border-box', resize: 'none', background: '#07182a', color: '#dce9f7', font: '12px monospace', whiteSpace: 'pre', overflow: 'auto' }} />} 
-          </section>
-        </div>,
-        document.body
-      )}
     </header>
   );
 }

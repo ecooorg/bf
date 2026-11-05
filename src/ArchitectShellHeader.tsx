@@ -1,22 +1,22 @@
 /**
- * Shared Architect top chrome — same pattern as ProjectMode / App Header:
- * ModeMenu (Conversational · Expert · Architect) + Drive + More.
+ * Shared Project top chrome — same pattern as ProjectMode / App Header:
+ * CommitBadge + ModeMenu (Simple · Expert · Project) + Drive + More.
  * Used by /architect-lab so the user does not see a different control set.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { CircleHelp, Cloud, CloudUpload, MoreHorizontal } from 'lucide-react';
 import { ModeMenu } from './ModeMenu.tsx';
+import { CommitBadge } from './CommitBadge.tsx';
+import { downloadAllLogs } from './allLogs.ts';
 import { driveLabel, driveTitle } from './uiStates.tsx';
 import { isDriveConfigured } from './driveClient.ts';
 import { connectDriveFiles, isMirrorConnected } from './driveMirror.ts';
 import { UserGuideModal } from './UserGuide.tsx';
 
 export type ArchitectShellHeaderProps = {
-  /** When false, Architect entry in the mode menu is disabled. */
+  /** When false, Project entry in the mode menu is disabled. */
   projectEnabled: boolean;
   authenticated: boolean;
-  onDiagnostics: (kind: 'session' | 'system' | 'operations') => void;
-  onDownloadDiagnostics: () => void;
   onSignOut?: () => void;
 };
 
@@ -57,18 +57,19 @@ export function ArchitectShellHeader(props: ArchitectShellHeaderProps) {
     <>
       <header className="header project-app-header" style={{ justifyContent: 'flex-end' }} data-testid="architect-shell-header">
         <div className="header-actions has-mode">
+          <CommitBadge />
           <ModeMenu
             current="Project"
             projectEnabled={props.projectEnabled}
             onSelect={(mode) => {
               if (mode === 'Project') return;
-              const ok = window.confirm('Leave Architect and open ' + mode + '?\n\nYour projects stay on the server.');
+              const ok = window.confirm('Leave Project workspace and open the selected agent? Unsaved work on this page may be lost.');
               if (!ok) return;
               try { sessionStorage.setItem('biforge-start-mode', mode); } catch { /* ignore */ }
               window.location.href = '/';
             }}
             onOverview={() => {
-              const ok = window.confirm('Return to mode selection?\n\nYour projects stay on the server.');
+              const ok = window.confirm('Leave Project workspace and return to agent selection? Unsaved work on this page may be lost.');
               if (!ok) return;
               try { sessionStorage.removeItem('biforge-start-mode'); } catch { /* ignore */ }
               window.location.href = '/';
@@ -81,7 +82,6 @@ export function ArchitectShellHeader(props: ArchitectShellHeaderProps) {
             onClick={() => { if (isDriveConfigured()) void connectDrive(); }}
             title={driveTitle({ configured: isDriveConfigured(), connected: driveConnected })}
             aria-label={driveLabel({ configured: isDriveConfigured(), connected: driveConnected, busy: driveBusy })}
-            data-testid="architect-shell-drive"
           >
             {driveConnected ? <CloudUpload size={14} /> : <Cloud size={14} />}
             <span className="lbl">{driveLabel({ configured: isDriveConfigured(), connected: driveConnected, busy: driveBusy })}</span>
@@ -92,7 +92,7 @@ export function ArchitectShellHeader(props: ArchitectShellHeaderProps) {
               className="ghost hdr-more-btn"
               aria-expanded={moreOpen}
               onClick={() => setMoreOpen((v) => !v)}
-              title="User guide, diagnostics, sign out"
+              title="User guide, logs, sign out"
               data-testid="architect-shell-more"
             >
               <MoreHorizontal size={14} /> <span className="lbl">More</span>
@@ -102,20 +102,20 @@ export function ArchitectShellHeader(props: ArchitectShellHeaderProps) {
                 <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); setShowUserGuide(true); }}>
                   <CircleHelp size={14} /> User guide
                 </button>
-                <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onDiagnostics('system'); }}>
-                  Run system diagnostics
-                </button>
-                <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onDiagnostics('operations'); }}>
-                  View recent operations
-                </button>
-                <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onDiagnostics('session'); }}>
-                  Copy compact session log
-                </button>
-                <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onDownloadDiagnostics(); }}>
-                  Download diagnostic logs (not the program)
+                <button
+                  type="button"
+                  className="ghost"
+                  role="menuitem"
+                  data-testid="all-logs-menu-item"
+                  onClick={() => {
+                    setMoreOpen(false);
+                    void downloadAllLogs().catch((e) => window.alert(String(e?.message || e)));
+                  }}
+                >
+                  All Logs
                 </button>
                 <a href="/project" className="ghost" role="menuitem" style={{ textDecoration: 'none' }} onClick={() => setMoreOpen(false)}>
-                  Legacy Architect workspace
+                  Legacy Project workspace
                 </a>
                 {props.authenticated && props.onSignOut && (
                   <button type="button" className="ghost" role="menuitem" onClick={() => { setMoreOpen(false); props.onSignOut?.(); }}>

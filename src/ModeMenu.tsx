@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Layers, RotateCcw } from 'lucide-react';
 
 /**
- * P119.0.1 — expose the three approved agent names while retaining stable internal route keys.
- * Conversational and Expert switch within the chat shell; Architect navigates to its dedicated workspace.
+ * P119.0.1 / P126.15 — three approved agent names; internal route keys unchanged.
+ * Simple and Expert switch within the chat shell; Project navigates to its dedicated workspace.
  */
 export type AppMode = 'Simple' | 'Expert' | 'Project';
 
@@ -11,16 +11,16 @@ export type AppMode = 'Simple' | 'Expert' | 'Project';
 export const START_MODE_KEY = 'biforge-start-mode';
 
 const ITEMS: { mode: AppMode; label: string; hint: string }[] = [
-  { mode: 'Simple', label: 'Conversational', hint: 'Open conversation — no required steps' },
+  { mode: 'Simple', label: 'Simple', hint: 'Open conversation — no required steps' },
   { mode: 'Expert', label: 'Expert', hint: 'Step-by-step problem-solving with stages' },
-  { mode: 'Project', label: 'Architect', hint: 'Build and download validated software ZIPs' },
+  { mode: 'Project', label: 'Project', hint: 'Build and download validated software ZIPs' },
 ];
 
-const AGENT_LABEL: Record<AppMode, string> = { Simple: 'Conversational', Expert: 'Expert', Project: 'Architect' };
+const AGENT_LABEL: Record<AppMode, string> = { Simple: 'Simple', Expert: 'Expert', Project: 'Project' };
 
 export function ModeMenu(props: {
   current: AppMode;
-  /** When false the Architect entry is shown but disabled (deployment without Architect workspace). */
+  /** When false the Project entry is shown but disabled (deployment without Project workspace). */
   projectEnabled: boolean;
   onSelect: (mode: AppMode) => void;
   /** Return to the start screen with the three mode cards. */
@@ -57,7 +57,7 @@ export function ModeMenu(props: {
         data-testid="mode-menu-button"
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Switch between Conversational, Expert and Architect"
+        title="Switch between Simple, Expert and Project"
         onClick={() => setOpen((v) => !v)}
       >
         <Layers size={14} className="mode-btn-icon" />
@@ -83,7 +83,7 @@ export function ModeMenu(props: {
                 <span className="mode-item-check">{selected ? <Check size={14} /> : null}</span>
                 <span className="mode-item-text">
                   <strong>{it.label}</strong>
-                  <small>{disabled ? 'Unavailable: Architect workspace is disabled for this deployment' : it.hint}</small>
+                  <small>{disabled ? 'Unavailable: Project workspace is disabled for this deployment' : it.hint}</small>
                 </span>
               </button>
             );

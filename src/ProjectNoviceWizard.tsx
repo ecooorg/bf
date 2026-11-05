@@ -135,7 +135,7 @@ export function ProjectNoviceWizard({
         ← Back to projects
       </button>
       <h2 style={{ margin: '4px 0 8px' }}>Describe what you want to build</h2>
-      <p style={S.muted}>Step {Math.min(step + 1, 5)} of 5 · One Architect flow · You stay in control; nothing is published automatically.</p>
+      <p style={S.muted}>Step {Math.min(step + 1, 5)} of 5 · One Project flow · You stay in control; nothing is published automatically.</p>
 
       {step === 0 && (
         <div style={S.box}>

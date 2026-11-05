@@ -847,3 +847,29 @@ body {
 
 /* UI audit: keep Project diagnostics within the dynamic viewport. */
 @supports (height: 100dvh) { .project-diagnostics-card { max-height: calc(100dvh - 32px) !important; } }
+
+/* P126.15 — commit badge left of mode menu */
+.commit-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #8fa6c2;
+  padding: 2px 8px;
+  border: 1px solid #2a4560;
+  border-radius: 6px;
+  white-space: nowrap;
+  margin-right: 4px;
+  line-height: 1.4;
+}
+@media (max-width: 720px) {
+  .header-actions.has-mode {
+    flex-wrap: wrap;
+  }
+  .commit-badge {
+    width: 100%;
+    order: -1;
+    margin: 0 0 4px 0;
+    justify-content: flex-start;
+  }
+}

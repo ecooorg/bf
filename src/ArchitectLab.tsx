@@ -33,9 +33,6 @@ function LabWorkspace() {
   const [project, setProject] = useState<Project | null>(null);
   const [passport, setPassport] = useState<Passport | null>(null);
   const [result, setResult] = useState<BuildJobResult | null>(null);
-  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
-  const [diagnosticsBusy, setDiagnosticsBusy] = useState(false);
-  const [diagnosticsText, setDiagnosticsText] = useState('');
 
   useEffect(() => {
     fetch('/api/session', { credentials: 'same-origin' }).then(r => r.json()).then(s => {
@@ -113,27 +110,7 @@ function LabWorkspace() {
     finally { setBusy(false); }
   }
 
-  async function loadDiagnostics(kind: 'session' | 'system' | 'operations') {
-    setDiagnosticsOpen(true); setDiagnosticsBusy(true); setDiagnosticsText('Loading diagnostics…');
-    try {
-      const path = kind === 'session' ? '/api/projects/diagnostics/session-log' : `/api/projects/diagnostics/${kind}`;
-      const response = await fetch(path, { credentials: 'same-origin' });
-      if (!response.ok) throw new Error(`Diagnostics request failed (${response.status})`);
-      setDiagnosticsText(kind === 'session' ? await response.text() : JSON.stringify(await response.json(), null, 2));
-    } catch (e) { setDiagnosticsText(`DIAGNOSTICS ERROR: ${String((e as Error).message || e)}`); }
-    finally { setDiagnosticsBusy(false); }
-  }
 
-  async function downloadDiagnostics() {
-    
-    try {
-      const response = await fetch('/api/projects/diagnostics/export', { credentials: 'same-origin' });
-      if (!response.ok) throw new Error(`Diagnostic export failed (${response.status})`);
-      const blob = await response.blob(); const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'biforge-diagnostics.zip'; document.body.appendChild(anchor); anchor.click(); anchor.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
-    } catch (e) { setDiagnosticsText(`DIAGNOSTIC EXPORT ERROR: ${String((e as Error).message || e)}`); setDiagnosticsOpen(true); }
-  }
 
   async function download() {
     if (!project?.id || !result?.downloadUrl) return;
@@ -148,10 +125,7 @@ function LabWorkspace() {
   }
 
   const panel: React.CSSProperties = { background: '#111d2c', border: '1px solid #29445c', borderRadius: 18, padding: 20 };
-  const requireSignIn = () => {
-    setDiagnosticsText('Sign in to load diagnostics. Diagnostics endpoints require an authenticated session.');
-    setDiagnosticsOpen(true);
-  };
+  const requireSignIn = () => { setError('Sign in required.'); };
 
   async function signOut() {
     try {
@@ -164,44 +138,16 @@ function LabWorkspace() {
     <ArchitectShellHeader
       projectEnabled={Boolean(enabled)}
       authenticated={Boolean(authenticated)}
-      onDiagnostics={(kind) => {
-        if (!(authenticated && enabled)) {
-          requireSignIn();
-          return;
-        }
-        void loadDiagnostics(kind);
-      }}
-      onDownloadDiagnostics={() => {
-        if (!(authenticated && enabled)) {
-          requireSignIn();
-          return;
-        }
-        void downloadDiagnostics();
-      }}
       onSignOut={() => void signOut()}
     />
   );
 
-  const diagnosticsOverlay = diagnosticsOpen && (
-    <div className="architect-lab-diagnostics-overlay" role="dialog" aria-modal="true" aria-label="Architectural Lab diagnostics">
-      <section className="architect-lab-diagnostics">
-        <div className="architect-lab-diagnostics-head">
-          <h2>Diagnostics</h2>
-          <button type="button" onClick={() => setDiagnosticsOpen(false)}>Close</button>
-        </div>
-        <p>Copy this report and paste it into the support chat. Secrets and passwords should not be included.</p>
-        <button type="button" onClick={() => void navigator.clipboard?.writeText(diagnosticsText)}>Copy report</button>
-        <textarea aria-label="Diagnostic report" readOnly value={diagnosticsBusy ? 'Loading diagnostics…' : diagnosticsText} />
-      </section>
-    </div>
-  );
 
   if (authenticated === null) {
     return (
       <main className="architect-lab" data-testid="architect-lab-loading">
         {header}
-        {diagnosticsOverlay}
-        <p className="architect-lab-muted" style={{ maxWidth: 1100, margin: '24px auto' }}>Checking secure session…</p>
+                <p className="architect-lab-muted" style={{ maxWidth: 1100, margin: '24px auto' }}>Checking secure session…</p>
       </main>
     );
   }
@@ -210,10 +156,9 @@ function LabWorkspace() {
     return (
       <main className="architect-lab" data-testid="architect-lab-disabled">
         {header}
-        {diagnosticsOverlay}
-        <section style={panel} data-testid="architect-lab-disabled-panel">
+                <section style={panel} data-testid="architect-lab-disabled-panel">
           <h2>Project Mode is not enabled</h2>
-          <p>Project Mode is not enabled for this deployment. Diagnostics remain available after sign-in when Project Mode is on.</p>
+          <p>Project Mode is not enabled for this deployment. Enable Project Mode on the server to use this workspace.</p>
           <a href="/">Return to BiForge</a>
         </section>
       </main>
@@ -224,8 +169,7 @@ function LabWorkspace() {
     return (
       <main className="architect-lab" data-testid="architect-lab-signin">
         {header}
-        {diagnosticsOverlay}
-        <form style={panel} onSubmit={login} data-testid="architect-lab-signin-form">
+                <form style={panel} onSubmit={login} data-testid="architect-lab-signin-form">
           <h2>Sign in to continue</h2>
           <p>Architectural Test Lab requires an authenticated session.</p>
           <label>Password
@@ -241,8 +185,7 @@ function LabWorkspace() {
   return (
     <main className="architect-lab" data-testid="architect-lab-main">
       {header}
-      {diagnosticsOverlay}
-      <div className="architect-lab-grid">
+            <div className="architect-lab-grid">
         <form style={panel} onSubmit={createPassport} data-testid="architect-lab-build-form">
           <h2>Start an experiment</h2>
           <label>Project name<input value={name} onChange={e => setName(e.target.value)} placeholder="My test project" /></label>
