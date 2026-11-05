@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://biforge.local/schemas/schema-artifact-manifest.json",
+  "title": "Patch/Artifact Manifest",
+  "description": "Inventory of files added, modified, or deleted by a patch, with integrity notes.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "status",
+    "entries"
+  ],
+  "properties": {
+    "meta": {
+      "$ref": "schema-common.json#/$defs/schemaMeta"
+    },
+    "status": {
+      "$ref": "schema-common.json#/$defs/status"
+    },
+    "patchId": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "action"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "modify",
+              "delete",
+              "move"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "deletionsListedSeparately": {
+      "type": "boolean"
+    }
+  }
+}

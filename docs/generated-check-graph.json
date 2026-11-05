@@ -1,0 +1,1633 @@
+{
+  "schemaVersion": 1,
+  "kind": "check-graph",
+  "description": "check -> files run by the check -> source modules those files import or read. Deterministic; regenerate with npm run status:graph.",
+  "checks": [
+    {
+      "id": "architecture:check",
+      "command": "node scripts/architectureCheckBoundaries.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "scripts/architectureCheckBoundaries.mjs"
+      ],
+      "modules": [
+        "scripts/architectureCheckBoundaries.mjs",
+        "scripts/architectureLib.mjs"
+      ]
+    },
+    {
+      "id": "build",
+      "command": "node scripts/write-build-stamp.mjs && vite build && npm run build:server",
+      "needs": [],
+      "profiles": [
+        "ci"
+      ],
+      "files": [
+        "scripts/write-build-stamp.mjs"
+      ],
+      "modules": [
+        "scripts/write-build-stamp.mjs"
+      ]
+    },
+    {
+      "id": "critical-app-builder-recovery",
+      "command": "node --import tsx --test --test-timeout=15000 --test-name-pattern recovery: interrupted on unit three, resume reuses completed units without regenerating|cancellation stops before the next unit and reports cancelled tests/app-builder-recovery-p93-3.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/app-builder-recovery-p93-3.test.mjs"
+      ],
+      "modules": [
+        "appBuilder/index.ts"
+      ]
+    },
+    {
+      "id": "critical-gemini-timeout",
+      "command": "node --import tsx --test --test-timeout=15000 --test-name-pattern conformance gemini: timeout tests/models.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/models.test.mjs"
+      ],
+      "modules": [
+        "scripts/ci-summary.mjs",
+        "scripts/golden-eval.mjs",
+        "scripts/monitor-connections.mjs",
+        "scripts/patch-pack.mjs",
+        "scripts/patch-tools.mjs",
+        "server/adapter.ts",
+        "server/analysisService.ts",
+        "server/appBuilderAdapter.ts",
+        "server/artifactFormat.ts",
+        "server/artifactRepository.ts",
+        "server/budget.ts",
+        "server/fakeProvider.ts",
+        "server/files.ts",
+        "server/geminiAdapter.ts",
+        "server/goldenEval.ts",
+        "server/modelHealth.ts",
+        "server/modelRegistry.ts",
+        "server/openaiCompatAdapter.ts",
+        "server/planMachine.ts",
+        "server/planService.ts",
+        "server/providerMonitor.ts",
+        "server/queueMachine.ts",
+        "server/router.ts",
+        "server/taskMachine.ts",
+        "server/worker.ts",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "critical-router-policy-call-limit",
+      "command": "node --import tsx --test --test-timeout=15000 tests/critical-router-policy-call-limit.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/critical-router-policy-call-limit.test.mjs"
+      ],
+      "modules": [
+        "server/fakeProvider.ts",
+        "server/router.ts"
+      ]
+    },
+    {
+      "id": "critical-router-selection",
+      "command": "node --import tsx --test --test-timeout=15000 --test-name-pattern router: deterministic selection with recorded rejections tests/models.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/models.test.mjs"
+      ],
+      "modules": [
+        "scripts/ci-summary.mjs",
+        "scripts/golden-eval.mjs",
+        "scripts/monitor-connections.mjs",
+        "scripts/patch-pack.mjs",
+        "scripts/patch-tools.mjs",
+        "server/adapter.ts",
+        "server/analysisService.ts",
+        "server/appBuilderAdapter.ts",
+        "server/artifactFormat.ts",
+        "server/artifactRepository.ts",
+        "server/budget.ts",
+        "server/fakeProvider.ts",
+        "server/files.ts",
+        "server/geminiAdapter.ts",
+        "server/goldenEval.ts",
+        "server/modelHealth.ts",
+        "server/modelRegistry.ts",
+        "server/openaiCompatAdapter.ts",
+        "server/planMachine.ts",
+        "server/planService.ts",
+        "server/providerMonitor.ts",
+        "server/queueMachine.ts",
+        "server/router.ts",
+        "server/taskMachine.ts",
+        "server/worker.ts",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "db-migrate",
+      "command": "node scripts/migrate.mjs",
+      "needs": [],
+      "profiles": [
+        "ci"
+      ],
+      "files": [
+        "scripts/migrate.mjs"
+      ],
+      "modules": [
+        "scripts/migrate.mjs"
+      ]
+    },
+    {
+      "id": "docs-integrity",
+      "command": "node scripts/docs-integrity.mjs && node scripts/docs-reference-integrity.mjs && node scripts/docs-env-example-check.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "scripts/docs-env-example-check.mjs",
+        "scripts/docs-integrity.mjs",
+        "scripts/docs-reference-integrity.mjs"
+      ],
+      "modules": [
+        "scripts/docs-env-example-check.mjs",
+        "scripts/docs-integrity.mjs",
+        "scripts/docs-reference-integrity.mjs"
+      ]
+    },
+    {
+      "id": "lint:copy",
+      "command": "node scripts/lint-copy.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "scripts/lint-copy.mjs"
+      ],
+      "modules": [
+        "scripts/evidence-collect.mjs",
+        "scripts/lint-copy.mjs",
+        "scripts/p117-3-live-retest.mjs",
+        "server/appBuilderIr.ts",
+        "server/codeExecutor.ts",
+        "server/conversationMode.ts",
+        "server/documents.ts",
+        "server/epistemicVerifier.ts",
+        "server/intentFlags.ts",
+        "server/keepAlive.ts",
+        "server/queryFidelity.ts",
+        "server/reasoningState.ts",
+        "server/simpleDirectConversation.ts",
+        "server/turnFocus.ts",
+        "server/webSearch.ts",
+        "src/libraryExport.ts",
+        "src/numberValidator.ts",
+        "src/projectAppBuilder.ts",
+        "src/support.ts",
+        "src/ui.ts"
+      ]
+    },
+    {
+      "id": "test:app-builder",
+      "command": "node --import tsx --test tests/app-builder-contracts.test.mjs tests/app-builder-engine-p93-2a.test.mjs tests/app-builder-validators-p93-2b.test.mjs tests/app-builder-recovery-p93-3.test.mjs tests/app-builder-spec-repair-p118.test.mjs tests/app-builder-unit-repair-p118.test.mjs tests/architect-outcome-p118.test.mjs tests/p118-architect-live.test.mjs tests/app-builder-adapter-p93-3.test.mjs tests/archive-delivery-p118-5-1.test.mjs tests/archive-delivery-e2e-p118-5-2.test.mjs tests/app-builder-dom-wiring-p118-5-6.test.mjs tests/app-builder-repair-integrity-p121.test.mjs",
+      "needs": [
+        "critical-router-selection",
+        "critical-router-policy-call-limit",
+        "critical-gemini-timeout",
+        "critical-app-builder-recovery"
+      ],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/app-builder-adapter-p93-3.test.mjs",
+        "tests/app-builder-contracts.test.mjs",
+        "tests/app-builder-dom-wiring-p118-5-6.test.mjs",
+        "tests/app-builder-engine-p93-2a.test.mjs",
+        "tests/app-builder-recovery-p93-3.test.mjs",
+        "tests/app-builder-repair-integrity-p121.test.mjs",
+        "tests/app-builder-spec-repair-p118.test.mjs",
+        "tests/app-builder-unit-repair-p118.test.mjs",
+        "tests/app-builder-validators-p93-2b.test.mjs",
+        "tests/architect-outcome-p118.test.mjs",
+        "tests/archive-delivery-e2e-p118-5-2.test.mjs",
+        "tests/archive-delivery-p118-5-1.test.mjs",
+        "tests/p118-architect-live.test.mjs"
+      ],
+      "modules": [
+        "appBuilder/architectOutcome.ts",
+        "appBuilder/core-markers.ts",
+        "appBuilder/core-plan.ts",
+        "appBuilder/core-types.ts",
+        "appBuilder/index.ts",
+        "scripts/architectureLib.mjs",
+        "scripts/p118-architect-live-lib.mjs",
+        "scripts/p118-architect-live.mjs",
+        "server/appBuilderAdapter.ts",
+        "server/appBuilderIndex.ts",
+        "server/modelRegistry.ts",
+        "server/router.ts"
+      ]
+    },
+    {
+      "id": "test:bx06:api",
+      "command": "RUN_BX06_API=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/project-mode.test.mjs",
+      "needs": [
+        "db-migrate"
+      ],
+      "profiles": [
+        "ci"
+      ],
+      "files": [
+        "tests/project-mode.test.mjs"
+      ],
+      "modules": [
+        "scripts/backup-restore-check.mjs",
+        "server/briefWriter.ts",
+        "server/codeExecutor.ts",
+        "server/codeTaskService.ts",
+        "server/database.ts",
+        "server/gateEngine.ts",
+        "server/githubIntegration.ts",
+        "server/healthRoutes.ts",
+        "server/opsMetrics.ts",
+        "server/projectCapabilities.ts",
+        "server/projectRepository.ts",
+        "server/repairLoop.ts",
+        "server/reviewer.ts",
+        "src/ProjectDelivery.tsx",
+        "src/projectCapabilities.ts",
+        "src/projectDeliveryModel.ts",
+        "src/projectLabels.ts",
+        "src/uiStates.tsx",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:carousel-unit",
+      "command": "node --import tsx --test --test-timeout=120000 tests/p123-carousel-workflow.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/p123-carousel-workflow.test.mjs"
+      ],
+      "modules": [
+        "scripts/carousel-live-smoke.mjs",
+        "scripts/carousel-render-probe.mjs",
+        "server/keyPool.ts",
+        "server/modelCarousel.ts",
+        "server/modelRegistry.ts",
+        "server/modelSourcesCatalog.ts",
+        "server/router.ts",
+        "server/sourceHealth.ts"
+      ]
+    },
+    {
+      "id": "test:compact-ci-artifacts",
+      "command": "node --test tests/c124-architect-appbuilder-prompt.test.mjs tests/compact-ci-artifacts-p94.test.mjs tests/evidence-p105.test.mjs tests/schema-validate.test.mjs tests/status-graph-p106.test.mjs tests/dag-p107.test.mjs tests/intent-contract-p110.test.mjs tests/fault-injection-p108.test.mjs tests/capability-graph-p111.test.mjs tests/context-select-p112.test.mjs tests/diagnostics-summary-contract.test.mjs tests/assistant-run-summary-contract.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/assistant-run-summary-contract.test.mjs",
+        "tests/c124-architect-appbuilder-prompt.test.mjs",
+        "tests/capability-graph-p111.test.mjs",
+        "tests/compact-ci-artifacts-p94.test.mjs",
+        "tests/context-select-p112.test.mjs",
+        "tests/dag-p107.test.mjs",
+        "tests/diagnostics-summary-contract.test.mjs",
+        "tests/evidence-p105.test.mjs",
+        "tests/fault-injection-p108.test.mjs",
+        "tests/intent-contract-p110.test.mjs",
+        "tests/schema-validate.test.mjs",
+        "tests/status-graph-p106.test.mjs"
+      ],
+      "modules": [
+        "appBuilder/core-cache.ts",
+        "appBuilder/core-engine.ts",
+        "appBuilder/core-prompts.ts",
+        "scripts/boundedRepairLibP108.mjs",
+        "scripts/capabilityGenerateGraph.mjs",
+        "scripts/capabilityGraphLib.mjs",
+        "scripts/ci-evidence-gate.mjs",
+        "scripts/ci-run-history.mjs",
+        "scripts/ci-summary.mjs",
+        "scripts/contextSelectLib.mjs",
+        "scripts/dagLib.mjs",
+        "scripts/diagnostics-summary.mjs",
+        "scripts/evidenceLib.mjs",
+        "scripts/faultInjectionLibP108.mjs",
+        "scripts/intentContractLib.mjs",
+        "scripts/patch-quality-report.mjs",
+        "scripts/run-dag.mjs",
+        "scripts/schemaValidate.mjs",
+        "scripts/statusGraph.mjs",
+        "server/contextBuilder.ts",
+        "server/githubIntegration.ts",
+        "src/config.ts"
+      ]
+    },
+    {
+      "id": "test:core",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/core.test.mjs && node --test tests/p121-architect-result-shape.test.mjs && node --test tests/p119-agent-ui-contract.test.mjs && node --test tests/p12318-agent-session-isolation.test.mjs && node --import tsx --test tests/p119-agent-boundaries.test.mjs tests/p119-agent-isolation.test.mjs tests/p119-agent-prompts-routes.test.mjs && node --test tests/p121-cycle-governance.test.mjs && node --test tests/p121-navigator-protocol.test.mjs && npm run test:architect-lab && node --test tests/neon-initialize-workflow.test.mjs && node --import tsx --test tests/c124-instruction-inventory.test.mjs tests/c124-prompt-quality.test.mjs tests/c124-output-fidelity.test.mjs && node --test tests/p121-emergency-screen.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --test tests/workflow-action-pins.test.mjs && node --import tsx --test tests/security-headers.test.mjs tests/p124-23-search-integrity.test.mjs tests/p124-24-diagnostics.test.mjs tests/p124-25-emergency-benign.test.mjs && node --test tests/p124-36-unified-mode-menus.test.mjs && node --import tsx --test tests/p124-25-retrieval-integrity.test.mjs tests/p124-27-key-pool.test.mjs tests/p124-29-weather-connector.test.mjs tests/p124-30-search-carousel.test.mjs tests/p124-31-llm-latency-config.test.mjs tests/p124-39-source-quality.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/p125-1-query-fidelity-source-policy.test.mjs && npm run test:p126-1 && npm run test:p126-2 && npm run test:p126-3 && npm run test:p126-5 && npm run test:p126-12 && npm run test:p126-13 && npm run test:p126-14",
+      "needs": [
+        "critical-router-selection",
+        "critical-router-policy-call-limit",
+        "critical-gemini-timeout"
+      ],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/c124-instruction-inventory.test.mjs",
+        "tests/c124-output-fidelity.test.mjs",
+        "tests/c124-prompt-quality.test.mjs",
+        "tests/core.test.mjs",
+        "tests/neon-initialize-workflow.test.mjs",
+        "tests/p119-agent-boundaries.test.mjs",
+        "tests/p119-agent-isolation.test.mjs",
+        "tests/p119-agent-prompts-routes.test.mjs",
+        "tests/p119-agent-ui-contract.test.mjs",
+        "tests/p121-architect-result-shape.test.mjs",
+        "tests/p121-cycle-governance.test.mjs",
+        "tests/p121-emergency-screen.test.mjs",
+        "tests/p121-navigator-protocol.test.mjs",
+        "tests/p12318-agent-session-isolation.test.mjs",
+        "tests/p124-23-search-integrity.test.mjs",
+        "tests/p124-24-diagnostics.test.mjs",
+        "tests/p124-25-emergency-benign.test.mjs",
+        "tests/p124-25-retrieval-integrity.test.mjs",
+        "tests/p124-27-key-pool.test.mjs",
+        "tests/p124-29-weather-connector.test.mjs",
+        "tests/p124-30-search-carousel.test.mjs",
+        "tests/p124-31-llm-latency-config.test.mjs",
+        "tests/p124-36-unified-mode-menus.test.mjs",
+        "tests/p124-39-source-quality.test.mjs",
+        "tests/p125-1-query-fidelity-source-policy.test.mjs",
+        "tests/redact-secrets.test.mjs",
+        "tests/security-headers.test.mjs",
+        "tests/workflow-action-pins.test.mjs"
+      ],
+      "modules": [
+        "appBuilder/core-engine.ts",
+        "appBuilder/core-prompts.ts",
+        "scripts/check-version.mjs",
+        "scripts/docs-integrity.mjs",
+        "scripts/lint-copy.mjs",
+        "scripts/migrate.mjs",
+        "scripts/neon-migration-preflight.mjs",
+        "scripts/neon-migration-verify.mjs",
+        "scripts/p120-e2e-preflight.mjs",
+        "scripts/patch-tools.mjs",
+        "scripts/version-metadata.mjs",
+        "server/agentRouting.ts",
+        "server/authRoutes.ts",
+        "server/compatibilityRoutes.ts",
+        "server/contextBuilder.ts",
+        "server/contracts.ts",
+        "server/conversationDiagnostics.ts",
+        "server/conversationMode.ts",
+        "server/conversationalAgent.ts",
+        "server/diagnosticsConfig.ts",
+        "server/epistemicVerifier.ts",
+        "server/expertAgent.ts",
+        "server/geminiKeyPool.ts",
+        "server/healthRoutes.ts",
+        "server/intentFlags.ts",
+        "server/llmLatencyConfig.ts",
+        "server/modelRateLimit.ts",
+        "server/opsRoutes.ts",
+        "server/processLifecycle.ts",
+        "server/projectRoutes.ts",
+        "server/promptCore.ts",
+        "server/promptPacks.ts",
+        "server/queryFidelity.ts",
+        "server/reasoningState.ts",
+        "server/redact.ts",
+        "server/searchCarousel.ts",
+        "server/securityHeaders.ts",
+        "server/sourcePolicy.ts",
+        "server/sourceTrust.ts",
+        "server/statePipeline.ts",
+        "server/weatherConnector.ts",
+        "server/webSearch.ts",
+        "src/brier.ts",
+        "src/config.ts",
+        "src/conversationRoutes.ts",
+        "src/decision.ts",
+        "src/emergencyDiagnostics.ts",
+        "src/en.ts",
+        "src/errors.ts",
+        "src/evpi.ts",
+        "src/expertContext.ts",
+        "src/expertHistory.ts",
+        "src/expertNav.ts",
+        "src/icsBuilder.ts",
+        "src/numberValidator.ts",
+        "src/projectAppBuilder.ts",
+        "src/projectBuildJob.ts",
+        "src/sha256Export.ts",
+        "src/triage.ts",
+        "src/ui.ts",
+        "src/uiTerms.ts",
+        "tests/_prompts.mjs",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:database",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/database.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/database.test.mjs"
+      ],
+      "modules": [
+        "server/analysisService.ts",
+        "server/artifactRepository.ts",
+        "server/budget.ts",
+        "server/codeTaskService.ts",
+        "server/contracts.ts",
+        "server/database.ts",
+        "server/fakeProvider.ts",
+        "server/gateEngine.ts",
+        "server/gateService.ts",
+        "server/healthRoutes.ts",
+        "server/ledger.ts",
+        "server/modelHealth.ts",
+        "server/modelRegistry.ts",
+        "server/planMachine.ts",
+        "server/planService.ts",
+        "server/projectRepository.ts",
+        "server/queueMachine.ts",
+        "server/queueService.ts",
+        "server/router.ts",
+        "server/stateService.ts",
+        "server/taskMachine.ts",
+        "server/taskService.ts",
+        "server/worker.ts"
+      ]
+    },
+    {
+      "id": "test:database:live",
+      "command": "RUN_LIVE_TESTS=true node --import tsx --test --test-timeout=120000 --test-concurrency=1 tests/database.test.mjs",
+      "needs": [
+        "db-migrate"
+      ],
+      "profiles": [
+        "ci"
+      ],
+      "files": [
+        "tests/database.test.mjs"
+      ],
+      "modules": [
+        "server/analysisService.ts",
+        "server/artifactRepository.ts",
+        "server/budget.ts",
+        "server/codeTaskService.ts",
+        "server/contracts.ts",
+        "server/database.ts",
+        "server/fakeProvider.ts",
+        "server/gateEngine.ts",
+        "server/gateService.ts",
+        "server/healthRoutes.ts",
+        "server/ledger.ts",
+        "server/modelHealth.ts",
+        "server/modelRegistry.ts",
+        "server/planMachine.ts",
+        "server/planService.ts",
+        "server/projectRepository.ts",
+        "server/queueMachine.ts",
+        "server/queueService.ts",
+        "server/router.ts",
+        "server/stateService.ts",
+        "server/taskMachine.ts",
+        "server/taskService.ts",
+        "server/worker.ts"
+      ]
+    },
+    {
+      "id": "test:files",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/files.test.mjs",
+      "needs": [
+        "critical-router-selection",
+        "critical-router-policy-call-limit",
+        "critical-gemini-timeout"
+      ],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/files.test.mjs"
+      ],
+      "modules": [
+        "scripts/evidence-to-markdown.mjs",
+        "server/documents.ts",
+        "server/files.ts",
+        "src/config.ts",
+        "src/decision.ts",
+        "src/exportName.ts",
+        "src/exportZip.ts",
+        "src/libraryExport.ts",
+        "src/storage.ts",
+        "src/useDrive.ts"
+      ]
+    },
+    {
+      "id": "test:gates",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/gates.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/gates.test.mjs"
+      ],
+      "modules": [
+        "scripts/staging-drills.mjs",
+        "server/gateEngine.ts"
+      ]
+    },
+    {
+      "id": "test:integrations",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/integrations.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/integrations.test.mjs"
+      ],
+      "modules": [
+        "scripts/verify-connections.mjs",
+        "server/artifactRepository.ts",
+        "server/fakeProvider.ts",
+        "server/githubIntegration.ts",
+        "server/ledger.ts",
+        "server/modelRegistry.ts",
+        "server/router.ts",
+        "src/autosave.ts",
+        "src/driveClient.ts",
+        "src/driveExport.ts",
+        "src/driveMerge.ts",
+        "src/driveMirror.ts",
+        "src/driveSync.ts"
+      ]
+    },
+    {
+      "id": "test:models",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/models.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-cascade-p93-5.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/model-availability-p117.test.mjs",
+      "needs": [
+        "critical-router-selection",
+        "critical-router-policy-call-limit",
+        "critical-gemini-timeout"
+      ],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/model-availability-p117.test.mjs",
+        "tests/model-cascade-p93-5.test.mjs",
+        "tests/models.test.mjs"
+      ],
+      "modules": [
+        "scripts/ci-summary.mjs",
+        "scripts/golden-eval.mjs",
+        "scripts/monitor-connections.mjs",
+        "scripts/patch-pack.mjs",
+        "scripts/patch-tools.mjs",
+        "server/adapter.ts",
+        "server/analysisService.ts",
+        "server/appBuilderAdapter.ts",
+        "server/artifactFormat.ts",
+        "server/artifactRepository.ts",
+        "server/budget.ts",
+        "server/fakeProvider.ts",
+        "server/files.ts",
+        "server/geminiAdapter.ts",
+        "server/goldenEval.ts",
+        "server/modelAvailability.ts",
+        "server/modelHealth.ts",
+        "server/modelRegistry.ts",
+        "server/openaiCompatAdapter.ts",
+        "server/planMachine.ts",
+        "server/planService.ts",
+        "server/providerMonitor.ts",
+        "server/queueMachine.ts",
+        "server/router.ts",
+        "server/taskMachine.ts",
+        "server/worker.ts",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:pipeline",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=300000 tests/pipeline.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/pipeline.test.mjs"
+      ],
+      "modules": [
+        "server/appBuilderPipeline.ts",
+        "server/contextBuilder.ts",
+        "server/contracts.ts",
+        "server/conversationMode.ts",
+        "server/expertAgent.ts",
+        "server/intentFlags.ts",
+        "server/promptCore.ts",
+        "server/statePipeline.ts",
+        "src/briefView.ts",
+        "src/config.ts",
+        "src/driveClient.ts",
+        "src/driveMirror.ts",
+        "src/support.ts",
+        "src/useDrive.ts",
+        "tests/_prompts.mjs",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:project",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test tests/project-build-job-p93-5.test.mjs",
+      "needs": [
+        "critical-router-selection",
+        "critical-router-policy-call-limit",
+        "critical-gemini-timeout"
+      ],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/project-build-job-p93-5.test.mjs",
+        "tests/project-mode.test.mjs"
+      ],
+      "modules": [
+        "scripts/backup-restore-check.mjs",
+        "server/briefWriter.ts",
+        "server/codeExecutor.ts",
+        "server/codeTaskService.ts",
+        "server/database.ts",
+        "server/gateEngine.ts",
+        "server/githubIntegration.ts",
+        "server/healthRoutes.ts",
+        "server/opsMetrics.ts",
+        "server/projectCapabilities.ts",
+        "server/projectRepository.ts",
+        "server/repairLoop.ts",
+        "server/reviewer.ts",
+        "src/ProjectDelivery.tsx",
+        "src/projectBuildJob.ts",
+        "src/projectCapabilities.ts",
+        "src/projectDeliveryModel.ts",
+        "src/projectLabels.ts",
+        "src/uiStates.tsx",
+        "tests/_sources.mjs"
+      ]
+    },
+    {
+      "id": "test:project-diagnostics",
+      "command": "node --import tsx --test tests/project-diagnostics-p92.test.mjs tests/ci-diagnostics-chain.test.mjs tests/content-disposition-p93.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/ci-diagnostics-chain.test.mjs",
+        "tests/content-disposition-p93.test.mjs",
+        "tests/project-diagnostics-p92.test.mjs"
+      ],
+      "modules": [
+        "appBuilder/core-types.ts",
+        "scripts/ci-summary.mjs",
+        "scripts/patch-tools.mjs",
+        "server/projectDiagnostics.ts",
+        "server/projectRoutes.ts"
+      ]
+    },
+    {
+      "id": "test:security",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/security.test.mjs && node --import tsx --test tests/redact-secrets.test.mjs && node --import tsx --test tests/security-headers.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/redact-secrets.test.mjs",
+        "tests/security-headers.test.mjs",
+        "tests/security.test.mjs"
+      ],
+      "modules": [
+        "server/auditCatalog.ts",
+        "server/codeTaskService.ts",
+        "server/githubIntegration.ts",
+        "server/redact.ts",
+        "server/security.ts",
+        "server/securityHeaders.ts",
+        "server/untrustedData.ts"
+      ]
+    },
+    {
+      "id": "test:turn",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-turn.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/conversation-turn.test.mjs"
+      ],
+      "modules": [
+        "server/latencyPolicy.ts",
+        "server/turnFocus.ts",
+        "tests/_prompts.mjs"
+      ]
+    },
+    {
+      "id": "test:web",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/web-and-epistemics.test.mjs && npm run test:p117-3",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/web-and-epistemics.test.mjs"
+      ],
+      "modules": [
+        "server/epistemicVerifier.ts",
+        "server/expertAgent.ts",
+        "server/reasoningState.ts",
+        "server/securityHeaders.ts",
+        "server/webSearch.ts"
+      ]
+    },
+    {
+      "id": "test:workspace",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/workspace.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/workspace.test.mjs"
+      ],
+      "modules": [
+        "src/workspace/changeSetParse.ts",
+        "src/workspace/changeset.ts",
+        "src/workspace/classify.ts",
+        "src/workspace/context.ts",
+        "src/workspace/exportZip.ts",
+        "src/workspace/extract.ts",
+        "src/workspace/hash.ts",
+        "src/workspace/idbStore.ts",
+        "src/workspace/ingest.ts",
+        "src/workspace/memoryStore.ts",
+        "src/workspace/paths.ts",
+        "src/workspace/persistIngest.ts",
+        "src/workspace/types.ts"
+      ]
+    },
+    {
+      "id": "typecheck",
+      "command": "node --stack-size=4000 node_modules/typescript/bin/tsc --noEmit",
+      "needs": [
+        "critical-router-selection",
+        "critical-router-policy-call-limit",
+        "critical-gemini-timeout"
+      ],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [],
+      "modules": []
+    },
+    {
+      "id": "version-consistency",
+      "command": "node scripts/check-version.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "scripts/check-version.mjs"
+      ],
+      "modules": [
+        "scripts/check-version.mjs",
+        "src/config.ts"
+      ]
+    },
+    {
+      "id": "workflow-action-pins",
+      "command": "node --test tests/workflow-action-pins.test.mjs",
+      "needs": [],
+      "profiles": [
+        "check",
+        "ci"
+      ],
+      "files": [
+        "tests/workflow-action-pins.test.mjs"
+      ],
+      "modules": []
+    }
+  ],
+  "modules": {
+    "appBuilder/architectOutcome.ts": [
+      "test:app-builder"
+    ],
+    "appBuilder/core-cache.ts": [
+      "test:compact-ci-artifacts"
+    ],
+    "appBuilder/core-engine.ts": [
+      "test:compact-ci-artifacts",
+      "test:core"
+    ],
+    "appBuilder/core-markers.ts": [
+      "test:app-builder"
+    ],
+    "appBuilder/core-plan.ts": [
+      "test:app-builder"
+    ],
+    "appBuilder/core-prompts.ts": [
+      "test:compact-ci-artifacts",
+      "test:core"
+    ],
+    "appBuilder/core-types.ts": [
+      "test:app-builder",
+      "test:project-diagnostics"
+    ],
+    "appBuilder/index.ts": [
+      "critical-app-builder-recovery",
+      "test:app-builder"
+    ],
+    "scripts/architectureCheckBoundaries.mjs": [
+      "architecture:check"
+    ],
+    "scripts/architectureLib.mjs": [
+      "architecture:check",
+      "test:app-builder"
+    ],
+    "scripts/backup-restore-check.mjs": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "scripts/boundedRepairLibP108.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/capabilityGenerateGraph.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/capabilityGraphLib.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/carousel-live-smoke.mjs": [
+      "test:carousel-unit"
+    ],
+    "scripts/carousel-render-probe.mjs": [
+      "test:carousel-unit"
+    ],
+    "scripts/check-version.mjs": [
+      "test:core",
+      "version-consistency"
+    ],
+    "scripts/ci-evidence-gate.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/ci-run-history.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/ci-summary.mjs": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:compact-ci-artifacts",
+      "test:models",
+      "test:project-diagnostics"
+    ],
+    "scripts/contextSelectLib.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/dagLib.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/diagnostics-summary.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/docs-env-example-check.mjs": [
+      "docs-integrity"
+    ],
+    "scripts/docs-integrity.mjs": [
+      "docs-integrity",
+      "test:core"
+    ],
+    "scripts/docs-reference-integrity.mjs": [
+      "docs-integrity"
+    ],
+    "scripts/evidence-collect.mjs": [
+      "lint:copy"
+    ],
+    "scripts/evidence-to-markdown.mjs": [
+      "test:files"
+    ],
+    "scripts/evidenceLib.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/faultInjectionLibP108.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/golden-eval.mjs": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "scripts/intentContractLib.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/lint-copy.mjs": [
+      "lint:copy",
+      "test:core"
+    ],
+    "scripts/migrate.mjs": [
+      "db-migrate",
+      "test:core"
+    ],
+    "scripts/monitor-connections.mjs": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "scripts/neon-migration-preflight.mjs": [
+      "test:core"
+    ],
+    "scripts/neon-migration-verify.mjs": [
+      "test:core"
+    ],
+    "scripts/p117-3-live-retest.mjs": [
+      "lint:copy"
+    ],
+    "scripts/p118-architect-live-lib.mjs": [
+      "test:app-builder"
+    ],
+    "scripts/p118-architect-live.mjs": [
+      "test:app-builder"
+    ],
+    "scripts/p120-e2e-preflight.mjs": [
+      "test:core"
+    ],
+    "scripts/patch-pack.mjs": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "scripts/patch-quality-report.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/patch-tools.mjs": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:core",
+      "test:models",
+      "test:project-diagnostics"
+    ],
+    "scripts/run-dag.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/schemaValidate.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/staging-drills.mjs": [
+      "test:gates"
+    ],
+    "scripts/statusGraph.mjs": [
+      "test:compact-ci-artifacts"
+    ],
+    "scripts/verify-connections.mjs": [
+      "test:integrations"
+    ],
+    "scripts/version-metadata.mjs": [
+      "test:core"
+    ],
+    "scripts/write-build-stamp.mjs": [
+      "build"
+    ],
+    "server/adapter.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "server/agentRouting.ts": [
+      "test:core"
+    ],
+    "server/analysisService.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "server/appBuilderAdapter.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:app-builder",
+      "test:models"
+    ],
+    "server/appBuilderIndex.ts": [
+      "test:app-builder"
+    ],
+    "server/appBuilderIr.ts": [
+      "lint:copy"
+    ],
+    "server/appBuilderPipeline.ts": [
+      "test:pipeline"
+    ],
+    "server/artifactFormat.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "server/artifactRepository.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/auditCatalog.ts": [
+      "test:security"
+    ],
+    "server/authRoutes.ts": [
+      "test:core"
+    ],
+    "server/briefWriter.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "server/budget.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "server/codeExecutor.ts": [
+      "lint:copy",
+      "test:bx06:api",
+      "test:project"
+    ],
+    "server/codeTaskService.ts": [
+      "test:bx06:api",
+      "test:database",
+      "test:database:live",
+      "test:project",
+      "test:security"
+    ],
+    "server/compatibilityRoutes.ts": [
+      "test:core"
+    ],
+    "server/contextBuilder.ts": [
+      "test:compact-ci-artifacts",
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/contracts.ts": [
+      "test:core",
+      "test:database",
+      "test:database:live",
+      "test:pipeline"
+    ],
+    "server/conversationDiagnostics.ts": [
+      "test:core"
+    ],
+    "server/conversationMode.ts": [
+      "lint:copy",
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/conversationalAgent.ts": [
+      "test:core"
+    ],
+    "server/database.ts": [
+      "test:bx06:api",
+      "test:database",
+      "test:database:live",
+      "test:project"
+    ],
+    "server/diagnosticsConfig.ts": [
+      "test:core"
+    ],
+    "server/documents.ts": [
+      "lint:copy",
+      "test:files"
+    ],
+    "server/epistemicVerifier.ts": [
+      "lint:copy",
+      "test:core",
+      "test:web"
+    ],
+    "server/expertAgent.ts": [
+      "test:core",
+      "test:pipeline",
+      "test:web"
+    ],
+    "server/fakeProvider.ts": [
+      "critical-gemini-timeout",
+      "critical-router-policy-call-limit",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/files.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:files",
+      "test:models"
+    ],
+    "server/gateEngine.ts": [
+      "test:bx06:api",
+      "test:database",
+      "test:database:live",
+      "test:gates",
+      "test:project"
+    ],
+    "server/gateService.ts": [
+      "test:database",
+      "test:database:live"
+    ],
+    "server/geminiAdapter.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "server/geminiKeyPool.ts": [
+      "test:core"
+    ],
+    "server/githubIntegration.ts": [
+      "test:bx06:api",
+      "test:compact-ci-artifacts",
+      "test:integrations",
+      "test:project",
+      "test:security"
+    ],
+    "server/goldenEval.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "server/healthRoutes.ts": [
+      "test:bx06:api",
+      "test:core",
+      "test:database",
+      "test:database:live",
+      "test:project"
+    ],
+    "server/intentFlags.ts": [
+      "lint:copy",
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/keepAlive.ts": [
+      "lint:copy"
+    ],
+    "server/keyPool.ts": [
+      "test:carousel-unit"
+    ],
+    "server/latencyPolicy.ts": [
+      "test:turn"
+    ],
+    "server/ledger.ts": [
+      "test:database",
+      "test:database:live",
+      "test:integrations"
+    ],
+    "server/llmLatencyConfig.ts": [
+      "test:core"
+    ],
+    "server/modelAvailability.ts": [
+      "test:models"
+    ],
+    "server/modelCarousel.ts": [
+      "test:carousel-unit"
+    ],
+    "server/modelHealth.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "server/modelRateLimit.ts": [
+      "test:core"
+    ],
+    "server/modelRegistry.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:app-builder",
+      "test:carousel-unit",
+      "test:database",
+      "test:database:live",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/modelSourcesCatalog.ts": [
+      "test:carousel-unit"
+    ],
+    "server/openaiCompatAdapter.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "server/opsMetrics.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "server/opsRoutes.ts": [
+      "test:core"
+    ],
+    "server/planMachine.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "server/planService.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "server/processLifecycle.ts": [
+      "test:core"
+    ],
+    "server/projectCapabilities.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "server/projectDiagnostics.ts": [
+      "test:project-diagnostics"
+    ],
+    "server/projectRepository.ts": [
+      "test:bx06:api",
+      "test:database",
+      "test:database:live",
+      "test:project"
+    ],
+    "server/projectRoutes.ts": [
+      "test:core",
+      "test:project-diagnostics"
+    ],
+    "server/promptCore.ts": [
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/promptPacks.ts": [
+      "test:core"
+    ],
+    "server/providerMonitor.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:models"
+    ],
+    "server/queryFidelity.ts": [
+      "lint:copy",
+      "test:core"
+    ],
+    "server/queueMachine.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "server/queueService.ts": [
+      "test:database",
+      "test:database:live"
+    ],
+    "server/reasoningState.ts": [
+      "lint:copy",
+      "test:core",
+      "test:web"
+    ],
+    "server/redact.ts": [
+      "test:core",
+      "test:security"
+    ],
+    "server/repairLoop.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "server/reviewer.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "server/router.ts": [
+      "critical-gemini-timeout",
+      "critical-router-policy-call-limit",
+      "critical-router-selection",
+      "test:app-builder",
+      "test:carousel-unit",
+      "test:database",
+      "test:database:live",
+      "test:integrations",
+      "test:models"
+    ],
+    "server/searchCarousel.ts": [
+      "test:core"
+    ],
+    "server/security.ts": [
+      "test:security"
+    ],
+    "server/securityHeaders.ts": [
+      "test:core",
+      "test:security",
+      "test:web"
+    ],
+    "server/simpleDirectConversation.ts": [
+      "lint:copy"
+    ],
+    "server/sourceHealth.ts": [
+      "test:carousel-unit"
+    ],
+    "server/sourcePolicy.ts": [
+      "test:core"
+    ],
+    "server/sourceTrust.ts": [
+      "test:core"
+    ],
+    "server/statePipeline.ts": [
+      "test:core",
+      "test:pipeline"
+    ],
+    "server/stateService.ts": [
+      "test:database",
+      "test:database:live"
+    ],
+    "server/taskMachine.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "server/taskService.ts": [
+      "test:database",
+      "test:database:live"
+    ],
+    "server/turnFocus.ts": [
+      "lint:copy",
+      "test:turn"
+    ],
+    "server/untrustedData.ts": [
+      "test:security"
+    ],
+    "server/weatherConnector.ts": [
+      "test:core"
+    ],
+    "server/webSearch.ts": [
+      "lint:copy",
+      "test:core",
+      "test:web"
+    ],
+    "server/worker.ts": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:database",
+      "test:database:live",
+      "test:models"
+    ],
+    "src/ProjectDelivery.tsx": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "src/autosave.ts": [
+      "test:integrations"
+    ],
+    "src/briefView.ts": [
+      "test:pipeline"
+    ],
+    "src/brier.ts": [
+      "test:core"
+    ],
+    "src/config.ts": [
+      "test:compact-ci-artifacts",
+      "test:core",
+      "test:files",
+      "test:pipeline",
+      "version-consistency"
+    ],
+    "src/conversationRoutes.ts": [
+      "test:core"
+    ],
+    "src/decision.ts": [
+      "test:core",
+      "test:files"
+    ],
+    "src/driveClient.ts": [
+      "test:integrations",
+      "test:pipeline"
+    ],
+    "src/driveExport.ts": [
+      "test:integrations"
+    ],
+    "src/driveMerge.ts": [
+      "test:integrations"
+    ],
+    "src/driveMirror.ts": [
+      "test:integrations",
+      "test:pipeline"
+    ],
+    "src/driveSync.ts": [
+      "test:integrations"
+    ],
+    "src/emergencyDiagnostics.ts": [
+      "test:core"
+    ],
+    "src/en.ts": [
+      "test:core"
+    ],
+    "src/errors.ts": [
+      "test:core"
+    ],
+    "src/evpi.ts": [
+      "test:core"
+    ],
+    "src/expertContext.ts": [
+      "test:core"
+    ],
+    "src/expertHistory.ts": [
+      "test:core"
+    ],
+    "src/expertNav.ts": [
+      "test:core"
+    ],
+    "src/exportName.ts": [
+      "test:files"
+    ],
+    "src/exportZip.ts": [
+      "test:files"
+    ],
+    "src/icsBuilder.ts": [
+      "test:core"
+    ],
+    "src/libraryExport.ts": [
+      "lint:copy",
+      "test:files"
+    ],
+    "src/numberValidator.ts": [
+      "lint:copy",
+      "test:core"
+    ],
+    "src/projectAppBuilder.ts": [
+      "lint:copy",
+      "test:core"
+    ],
+    "src/projectBuildJob.ts": [
+      "test:core",
+      "test:project"
+    ],
+    "src/projectCapabilities.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "src/projectDeliveryModel.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "src/projectLabels.ts": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "src/sha256Export.ts": [
+      "test:core"
+    ],
+    "src/storage.ts": [
+      "test:files"
+    ],
+    "src/support.ts": [
+      "lint:copy",
+      "test:pipeline"
+    ],
+    "src/triage.ts": [
+      "test:core"
+    ],
+    "src/ui.ts": [
+      "lint:copy",
+      "test:core"
+    ],
+    "src/uiStates.tsx": [
+      "test:bx06:api",
+      "test:project"
+    ],
+    "src/uiTerms.ts": [
+      "test:core"
+    ],
+    "src/useDrive.ts": [
+      "test:files",
+      "test:pipeline"
+    ],
+    "src/workspace/changeSetParse.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/changeset.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/classify.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/context.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/exportZip.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/extract.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/hash.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/idbStore.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/ingest.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/memoryStore.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/paths.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/persistIngest.ts": [
+      "test:workspace"
+    ],
+    "src/workspace/types.ts": [
+      "test:workspace"
+    ],
+    "tests/_prompts.mjs": [
+      "test:core",
+      "test:pipeline",
+      "test:turn"
+    ],
+    "tests/_sources.mjs": [
+      "critical-gemini-timeout",
+      "critical-router-selection",
+      "test:bx06:api",
+      "test:core",
+      "test:models",
+      "test:pipeline",
+      "test:project"
+    ]
+  }
+}

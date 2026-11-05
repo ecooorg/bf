@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://biforge.local/schemas/schema-verification-plan.json",
+  "title": "Verification Plan",
+  "description": "Ordered or dependency-aware set of checks to run, with expected evidence and skip policy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "status",
+    "checks"
+  ],
+  "properties": {
+    "meta": {
+      "$ref": "schema-common.json#/$defs/schemaMeta"
+    },
+    "status": {
+      "$ref": "schema-common.json#/$defs/status"
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "command",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "$ref": "schema-common.json#/$defs/status"
+          },
+          "prerequisiteIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "safeToRunAfterUnrelatedFailure": {
+            "type": "boolean"
+          },
+          "counterexamples": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
