@@ -1,3 +1,9 @@
+## P126.26 — CI preflight: drop retired test:ui-smoke (2026-11-05)
+
+- **Root cause:** after P126.24 removed no-op `test:ui-smoke`, `workflow-preflight` failed on `.github/workflows/ci.yml` still calling that script; DAG never started (18 NOT_RUN).
+- **ci.yml:** removed Playwright install/cache + UI smoke step that only invoked the retired no-op; `WORKFLOW_RERUN` is `npm run check`.
+- Hosted browser UI smoke remains out of category layout until a real suite is added (AGENTS G4 / TEST_MAP).
+
 ## P126.25 — Document Drive + workspace as keep (2026-11-05)
 
 - **AGENTS.md:** SSOT rows and binding “Client file systems” — workspace and Google Drive are **keep**; must not propose removal without superseding decision.

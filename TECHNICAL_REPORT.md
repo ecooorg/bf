@@ -1,3 +1,15 @@
+## P126.26 — Evidence (2026-11-05)
+
+**Scope:** CI red on 126.24 — preflight only.
+
+**OBSERVED (diagnostics):** `FAIL ci.yml: references missing npm script test:ui-smoke` (twice); all DAG checks NOT_RUN.
+
+**Fix:** align ci.yml with package.json (no test:ui-smoke).
+
+**NOT_RUN:** Hosted CI after this patch.
+
+---
+
 ## P126.25 — Evidence (2026-11-05)
 
 **Scope:** Documentation-only — close the open question on Drive/workspace status after owner confirmed Drive is backup/save and workspace analysis showed active product use.
