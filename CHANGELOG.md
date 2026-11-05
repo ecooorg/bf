@@ -1,3 +1,10 @@
+## P126.29 — Statistic search trigger + ungrounded percentage gate (2026-11-05)
+
+- **Search trigger:** `isStatisticShareQuestion` → `needsFreshWebInfo` so questions like «какой процент … в [месте]» expect live lookup (Simple `shouldSearchWeb` and Expert planner candidates).
+- **Honesty gate:** `applyUngroundedStatisticGate` — if search is not `used`/`used_weak` and the model asserts a concrete % as data/inventory, replace with an explicit «not verified» reply (RU/EN). Wired on Simple Direct and Expert conversation responses.
+- Cascades unchanged (3.5 → 3.1 still available).
+- Tests: wiring + pure share-question patterns in `tests/search-retrieval.test.mjs`.
+
 ## P126.28 — Primary deploy (Render), SECURITY pointer, connectors in config/ (2026-11-05)
 
 - **docs/OPERATIONS_AND_RELEASES.md:** Render is the primary production host; `railway.toml` / `nixpacks.toml` documented as secondary/legacy.

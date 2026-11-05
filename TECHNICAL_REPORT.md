@@ -1,3 +1,13 @@
+## P126.29 — Evidence (2026-11-05)
+
+**Scope:** Reduce incompatible invented percentages (Simple/Expert) without cascade change.
+
+**OBSERVED (sandbox):** pure regex accepts Graubünden larch %-question; gate helpers and server wiring present. Full `tsx` suite NOT_RUN here (no node_modules in assistant env).
+
+**NOT_RUN:** Hosted live Simple/Expert on Render after deploy; search success path with real Serper/Gemini grounding.
+
+---
+
 ## P126.28 — Evidence (2026-11-05)
 
 **Scope:** Doc-primary deploy clarity; security pointer; move connectors inventory under `config/`.
