@@ -27,3 +27,38 @@ test('search decoupling suite still covers Simple Direct vs search responsibilit
   // Companion suite search-decoupling.test.mjs holds behavioral cases.
   assert.ok(existsSync(path.join(root, 'tests/search-decoupling.test.mjs')));
 });
+
+
+test('P126.29 statistic share questions and ungrounded gate are wired', () => {
+  const web = read('server/webSearch.ts');
+  assert.match(web, /export function isStatisticShareQuestion/);
+  assert.match(web, /export function applyUngroundedStatisticGate/);
+  assert.match(web, /isStatisticShareQuestion\(t\)/);
+  const server = read('server.ts');
+  assert.match(server, /applyUngroundedStatisticGate/);
+  assert.match(server, /statisticGateApplied/);
+  assert.match(server, /ungrounded_statistic_gate/);
+});
+
+test('P126.29 pure patterns: larch percent question matches share trigger', () => {
+  const isStatisticShareQuestion = (text) => {
+    const t = String(text || '').trim();
+    if (t.length < 8) return false;
+    return (
+      /(?:какой|какая|какое|какие)\s+процент/iu.test(t)
+      || /какая\s+доля|доля\s+(?:\p{L}+\s+){0,4}в\s+/iu.test(t)
+      || /процент\s+(?:от\s+)?(?:всех\s+)?\p{L}{3,}/iu.test(t)
+      || /сколько\s+(?:процент|процентов)/iu.test(t)
+      || /what\s+(?:is\s+the\s+)?(?:percentage|percent|share|proportion)\b/iu.test(t)
+      || /how\s+many\s+percent/iu.test(t)
+      || /(?:percentage|percent|share)\s+of\s+(?:all\s+)?\p{L}{3,}/iu.test(t)
+    );
+  };
+  assert.equal(
+    isStatisticShareQuestion('какой процент от всех деревьев составляют лиственницы в кантоне Граубюнден?'),
+    true,
+  );
+  assert.equal(isStatisticShareQuestion('what percentage of trees are larch in Graubünden'), true);
+  assert.equal(isStatisticShareQuestion('привет, расскажи анекдот про лес'), false);
+});
+
