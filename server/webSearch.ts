@@ -382,6 +382,11 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
   const latest = buildSearchQuery(userText);
   const history = String(recentUserText || '').split(/\n+/).map((x) => x.trim()).filter(Boolean).slice(-3);
   if (!latest || !history.length) return latest;
+  // P126.31: pure meta follow-ups ("search other sites", "only the number") search the prior user task, not the instruction words.
+  const lastPriorForMeta = history[history.length - 1];
+  if (lastPriorForMeta && isSearchMetaOnlyTurn(userText) && hasRecentSearchIntent(lastPriorForMeta)) {
+    return buildSearchQuery(lastPriorForMeta);
+  }
   const topic = history.join(' ');
   const normalizedLatest = latest.replace(/^(?:меня\s+)?интересует\s+/iu, '').trim();
   const unitFollowup = /цельси|celsius|фаренгейт|fahrenheit/iu.test(normalizedLatest) && /weather|погод\p{L}*|temperature|температур\p{L}*/iu.test(topic);
@@ -398,7 +403,7 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
   // leaked instruction words such as "найди в интернете" into the query).
   if (isSearchFollowup(normalizedLatest) && /(?:в|in)\s+[\p{L}]/iu.test(normalizedLatest) && /температур|temperature/iu.test(normalizedLatest)) return latest;
   if (priorTask && (isSearchFollowup(latest) || /^(?:а\s+)?(?:там|тогда|а\s+теперь|и\s+ещ[её]|what about|and what about|how about|more details|why|which one)[?!.,\s]*/iu.test(latest))) {
-    const metaOnly = /^(?:(?:i am|i'm) asking you to search|(?:please\s+)?search again|run (?:another|one more) search|repeat the search|я прошу тебя поискать|выполни ещё один поиск|выполни еще один поиск)[.!?\s]*$/iu.test(normalizedLatest);
+    const metaOnly = isSearchMetaOnlyTurn(normalizedLatest) || /^(?:(?:i am|i'm) asking you to search|(?:please\s+)?search again|run (?:another|one more) search|repeat the search|я прошу тебя поискать|выполни ещё один поиск|выполни еще один поиск|проведи поиск|search on other sites?)[.!?\s]*$/iu.test(normalizedLatest);
     const refinement = metaOnly ? '' : stripInstructionWords(normalizedLatest);
     const combined = [priorTask, refinement].filter((x, index) => Boolean(x) && (index === 0 || !priorTask.toLowerCase().includes(x.toLowerCase()))).join(' ');
     return (combined || priorTask).slice(0, MAX_QUERY_CHARS);
@@ -418,7 +423,10 @@ export function contextualizeSearchText(userText: string, recentUserText = ''): 
 }
 
 export function buildSearchQuery(text: string): string {
-  return String(text || '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
+  // P126.31: always prefer instruction-stripped text so SERP never sees "search other sites" alone.
+  const stripped = stripInstructionWordsCore(String(text || ''));
+  const base = stripped.length >= 3 ? stripped : String(text || '').replace(/\s+/g, ' ').trim();
+  return base.slice(0, MAX_QUERY_CHARS);
 }
 
 /**
@@ -844,10 +852,65 @@ const INSTRUCTION_WORD_RE = new RegExp(
   'giu',
 );
 
-/** Remove assistant-directed instruction words; keeps topic, place, and time words. Pure. */
+/**
+ * P126.31: multi-word meta instructions that must not become SERP query text.
+ * Generic (any topic): search-again, other sites, only the number, no explanations, answer my question.
+ */
+const SEARCH_META_PHRASE_RE = new RegExp(
+  [
+    // English process instructions
+    String.raw`(?:please\s+)?(?:run|do|perform|conduct|try)\s+(?:another\s+|one\s+more\s+|a\s+)?(?:web\s+|online\s+|internet\s+)?search(?:\s+again)?`,
+    String.raw`(?:search|look)\s+(?:again|elsewhere|online|the\s+(?:web|internet)|on\s+(?:the\s+)?(?:web|internet|other\s+sites?))`,
+    String.raw`(?:on\s+)?(?:other|different|various)\s+(?:web\s+)?(?:sites?|sources?|pages?)`,
+    String.raw`answer\s+my\s+question|respond\s+to\s+my\s+question`,
+    String.raw`(?:just|only)\s+(?:the\s+)?(?:number|percentage|percent|figure|digit|answer)`,
+    String.raw`(?:without|no)\s+(?:any\s+)?(?:explanation|explanations|comments?|commentary|intro)`,
+    String.raw`do\s+not\s+explain|don'?t\s+explain|stop\s+explaining`,
+    String.raw`i\s+need\s+(?:only|just)\s+(?:the\s+)?(?:number|percentage|answer)`,
+    // Russian process instructions
+    String.raw`(?:проведи|выполни|сделай|запусти)\s+(?:ещ[её]\s+один\s+|повторн\p{L}*\s+)?(?:поиск|искать)(?:\s+в\s+(?:интернете|сети|онлайн))?`,
+    String.raw`поиск\s+в\s+(?:интернете|сети|онлайн)`,
+    String.raw`(?:на\s+)?(?:других|разных)\s+сайт\p{L}*`,
+    String.raw`(?:ответь|ответ)\s+на\s+(?:мой\s+)?вопрос`,
+    String.raw`(?:только|лишь)\s+(?:цифр\p{L}*|процент\p{L}*|ответ)`,
+    String.raw`без\s+(?:всяких\s+)?(?:объяснени\p{L}*|комментари\p{L}*|вступлени\p{L}*)`,
+    String.raw`не\s+объясняй|не\s+пиши\s+объяснени\p{L}*|не\s+нужно\s+(?:больше\s+)?(?:мне\s+)?писать\s+объяснени\p{L}*`,
+    String.raw`мне\s+не\s+нужн\p{L}*\s+информаци\p{L}*\s+о\s+том\s+где\s+искать`,
+    String.raw`просто\s+(?:очень\s+)?коротко\s+ответь`,
+    String.raw`мне\s+нужен\s+только\s+(?:процент|ответ|цифр\p{L}*)`,
+  ].join('|'),
+  'giu',
+);
+
+/** Pure core strip used by stripInstructionWords and buildSearchQuery (no circular fallback). */
+function stripInstructionWordsCore(text: string): string {
+  return String(text || '')
+    .replace(SEARCH_META_PHRASE_RE, ' ')
+    .replace(INSTRUCTION_WORD_RE, ' ')
+    .replace(/[?!.,;:]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Remove assistant-directed instruction words and meta search phrases; keeps topic, place, and time words. Pure. */
 export function stripInstructionWords(text: string): string {
-  const out = String(text || '').replace(INSTRUCTION_WORD_RE, ' ').replace(/[?!.,;:]+/g, ' ').replace(/\s+/g, ' ').trim();
-  return out.length >= 3 ? out.slice(0, MAX_QUERY_CHARS) : buildSearchQuery(text);
+  const out = stripInstructionWordsCore(text);
+  if (out.length >= 3) return out.slice(0, MAX_QUERY_CHARS);
+  // Fallback: original compressed text (better than empty) — caller may still prefer prior turn.
+  return String(text || '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUERY_CHARS);
+}
+
+/** True when the turn is almost only process instructions (search again / only the number), not a new topic. Pure. */
+export function isSearchMetaOnlyTurn(text: string): boolean {
+  const raw = String(text || '').replace(/\s+/g, ' ').trim();
+  if (raw.length < 3) return true;
+  const stripped = stripInstructionWordsCore(raw);
+  if (stripped.length < 8) return true;
+  // Residue is only "answer my question" / empty process leftover.
+  if (/^(?:и\s+)?(?:ответ\s+на\s+(?:мой\s+)?вопрос|answer\s+my\s+question)$/iu.test(stripped)) return true;
+  // Stripping removed most of the turn (instruction-heavy).
+  if (stripped.length <= Math.max(10, Math.floor(raw.length * 0.35))) return true;
+  return false;
 }
 
 export type SearchPlan = {
