@@ -109,17 +109,15 @@ test('P119.0.2 appBuilder/ (Architect engine) does not import chat prompts or co
 // 2. Agent selection (client → route → server)
 // ---------------------------------------------------------------------------
 
-test('P121.0.49 selected Architect uses ProjectMode; Architectural Test Lab remains diagnostic-only', () => {
-  assert.match(main, /const isArchitectLab = window\.location\.pathname === '\/architect-lab'/);
+test('P121.0.49 selected Project uses ProjectMode; Architectural Test Lab removed', () => {
+  assert.doesNotMatch(main, /architect-lab/);
+  assert.doesNotMatch(main, /ArchitectLab/);
   assert.match(main, /const isProject = \[.*'\/project'.*'\/project-legacy'.*'\/architect'/);
-  assert.doesNotMatch(main, /isArchitectLab \|\| isArchitectEntry/);
   assert.match(main, /lazy\(\(\) => import\('\.\/ProjectMode\.tsx'\)\)/);
-  assert.match(main, /lazy\(\(\) => import\('\.\/ArchitectLab\.tsx'\)\)/);
   assert.match(app, /window\.location\.href = '\/project'/);
-  // Header and More-menu shortcuts add: several call sites are fine, but every one must target the primary Architect route.
   const navigations = app.match(/window\.location\.href = '[^']*'/g) || [];
-  assert.ok(navigations.length >= 1, 'App.tsx keeps at least one Architect navigation');
-  assert.ok(navigations.every((n) => n === "window.location.href = '/project'"), 'App.tsx navigates only to the selected primary Architect route');
+  assert.ok(navigations.length >= 1, 'App.tsx keeps at least one Project navigation');
+  assert.ok(navigations.every((n) => n === "window.location.href = '/project'"), 'App.tsx navigates only to the primary Project route');
 });
 
 test('P119.0.2 chat shell never keeps Architect as an in-shell mode', () => {

@@ -25,7 +25,8 @@ test('Architect opens the selected legacy workflow without a browser confirmatio
   assert.doesNotMatch(app, /Open Architect\?/);
   assert.match(app, /window\.location\.href = '\/project'/);
   assert.match(entry, /const isProject = \[.*'\/project'.*'\/project-legacy'.*'\/architect'/);
-  assert.match(entry, /const isArchitectLab = window\.location\.pathname === '\/architect-lab'/);
+  assert.doesNotMatch(entry, /architect-lab/);
+  assert.doesNotMatch(entry, /ArchitectLab/);
 });
 
 test('retired task and competing prose files are absent', () => {

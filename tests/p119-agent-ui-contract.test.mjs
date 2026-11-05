@@ -25,16 +25,14 @@ test('P119 agent menu maps stable internal keys to approved display names', () =
   assert.match(menu, /AGENT_LABEL\[props\.current\]/);
 });
 
-test('P119 keeps Architect on its separate route and checks the three-agent menu', () => {
+test('P119 keeps Project on its separate route and checks the three-agent menu', () => {
   assert.match(app, /window\.location\.href = '\/project'/);
   const entry = readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
-  const lab = readFileSync(new URL('../src/ArchitectLab.tsx', import.meta.url), 'utf8');
-  // The Lab is frozen for diagnostics; all core Architect entry points use ProjectMode.
+  // Architectural Test Lab retired; Project entry points use ProjectMode only.
   assert.match(entry, /const isProject = \[.*'\/project'.*'\/project-legacy'.*'\/architect'/);
-  assert.match(entry, /const isArchitectLab = window\.location\.pathname === '\/architect-lab'/);
-  assert.match(lab, /\/project/, 'Lab keeps a path back to the selected primary workspace');
+  assert.doesNotMatch(entry, /architect-lab/);
+  assert.doesNotMatch(entry, /ArchitectLab/);
   assert.match(uiCheck, /Agent menu lists three agents/);
-  assert.match(uiCheck, /menuitemradio', \{ name: \/Conversational/);
 });
 
 test('package patch metadata is internally consistent', () => {
