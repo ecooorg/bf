@@ -1,3 +1,13 @@
+## P126.30 — Evidence (2026-11-05)
+
+**Scope:** Owner request — return model response with web search; do not replace replies after generation.
+
+**OBSERVED:** `server.ts` no longer calls `applyUngroundedStatisticGate`; Simple `ok(..., reply: direct.reply)`; Expert `reply: visibleReply`. Search trigger for share/percentage questions remains in `webSearch.ts`.
+
+**NOT_RUN:** Hosted live retest after deploy.
+
+---
+
 ## P126.29 — Evidence (2026-11-05)
 
 **Scope:** Reduce incompatible invented percentages (Simple/Expert) without cascade change.

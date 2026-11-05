@@ -1,3 +1,9 @@
+## P126.30 — Pass through model reply with search (no statistic reply gate) (2026-11-05)
+
+- **Removed** `applyUngroundedStatisticGate` from Simple Direct and Expert response paths. The HTTP reply is again the **model text** after optional web search is injected into the prompt (search status / digest blocks unchanged).
+- **Kept** `isStatisticShareQuestion` → `needsFreshWebInfo` so percentage/share questions still **trigger** live search when enabled.
+- Aligns with product intent: agent returns the model answer with internet search, without post-hoc replacement of the reply body.
+
 ## P126.29 — Statistic search trigger + ungrounded percentage gate (2026-11-05)
 
 - **Search trigger:** `isStatisticShareQuestion` → `needsFreshWebInfo` so questions like «какой процент … в [месте]» expect live lookup (Simple `shouldSearchWeb` and Expert planner candidates).

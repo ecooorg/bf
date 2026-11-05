@@ -56,7 +56,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn, applyUngroundedStatisticGate } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -1467,13 +1467,6 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         byokKey: requestByokKey,
         preferredModel: requestPreferredModel,
       }, generateDirectWithFallback);
-      const searchStatusForGate = searchResult?.status || (searchExpected ? 'failed' : 'not_run');
-      const gatedReply = applyUngroundedStatisticGate({
-        userText: String(lastUserText || brief.decision || ''),
-        reply: String(direct.reply || ''),
-        searchStatus: searchStatusForGate,
-      });
-      const directReply = gatedReply;
       const requestId = String((req as any).requestId || req.get('x-request-id') || '');
       const searchHosts: string[] = [];
       for (const src of searchResult?.sources || []) {
@@ -1487,7 +1480,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         searchResult: searchResult?.status || (searchExpected ? 'failed' : 'not_run'),
         productMode: 'Simple',
         userPreview: userTextNow.slice(0, 240),
-        replyChars: String(directReply || '').length,
+        replyChars: String(direct.reply || '').length,
         searchProvider: searchResult?.provider,
         searchSourceCount: searchResult?.sources?.length || 0,
         searchTopic: searchResult?.plan?.topic,
@@ -1504,8 +1497,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         details: {
           productMode: 'Simple',
           userText: userTextNow.slice(0, 4000),
-          replyText: String(directReply || '').slice(0, 8000),
-          statisticGateApplied: directReply !== String(direct.reply || ''),
+          replyText: String(direct.reply || '').slice(0, 8000),
           model: direct.model,
           searchStatus: searchResult?.status || (searchExpected ? 'failed' : 'not_run'),
           searchProvider: searchResult?.provider || null,
@@ -1523,7 +1515,7 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
             : event === 'conversation_http_response_failure' ? 'Simple response completed with an unsuccessful HTTP status' : 'Simple response connection closed before successful HTTP completion', details });
       }, metricDetails);
       return ok(res, {
-        reply: directReply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
+        reply: direct.reply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
         document: null, attachmentNotes: [], state: safeState,
       }, { provider: 'gemini', model: direct.model, calls: direct.keyAttempts, fallback: false,
@@ -1855,23 +1847,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       releasePatch: process.env.npm_package_version || undefined,
       responseMeta,
     } });
-    const searchStatusExpert = webSearch?.status || 'skipped';
-    const gatedVisibleReply = applyUngroundedStatisticGate({
-      userText: String(lastUserText || brief?.decision || ''),
-      reply: visibleReply,
-      searchStatus: searchStatusExpert,
-    });
-    if (gatedVisibleReply !== visibleReply) {
-      void recordApplicationLog({
-        level: 'info', component: 'conversation', event: 'ungrounded_statistic_gate',
-        requestId: String((req as any).requestId || req.get('x-request-id') || ''),
-        message: 'Replaced ungrounded percentage claim after search did not ground the turn',
-        details: { productMode, searchStatus: searchStatusExpert },
-      });
-    }
-
     ok(res, {
-      reply: gatedVisibleReply,
+      reply: visibleReply,
       question: cleanQuestion,
       contextSufficiency,
       triage: audit.triage,
