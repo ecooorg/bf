@@ -1,3 +1,15 @@
+## P126.19 — Evidence (2026-11-05)
+
+**Scope:** Navigator — improve log/diagnostic quality for recent Simple vs Expert dialogues (missing fields, no request↔reply index, clientRendered always not_observed). No answer-path changes.
+
+**OBSERVED:** static instrumentation present (`simple_direct_exchange`, `client-render`, `REQUEST_INDEX`, safeDetails guard).
+
+**NOT_RUN:** live All Logs download after deploy; browser ack on production.
+
+**UI note (screenshots, not fixed here):** Simple shows a full prose answer; Expert Clarify surfaces the same numbers under “What is still an assumption” — product framing difference, out of scope for this diagnostics patch.
+
+---
+
 ## P126.18 — Evidence (2026-11-05)
 
 **CI failure source:** `ci-diagnostics.zip` after P126.17 — docs-integrity (7 stale test paths), `providers-models` missing `tests/_sources.mjs`, `test:project` without tsx, `test:workspace`/`test:project-diagnostics` pointing at deleted files.

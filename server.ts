@@ -398,6 +398,23 @@ app.get('/api/diagnostics/session-log', async (_req, res) => {
   catch (error) { res.status(500).type('text/plain; charset=utf-8').send(`Diagnostic log unavailable: ${String((error as Error)?.message || error).slice(0, 240)}`); }
 });
 
+// P126.19 — browser acknowledges that a conversation reply was painted (upgrades clientRendered).
+app.post('/api/diagnostics/client-render', async (req, res) => {
+  try {
+    const requestId = String(req.body?.requestId || req.get('x-request-id') || '').slice(0, 100);
+    const productMode = String(req.body?.productMode || 'Simple').slice(0, 32);
+    if (!requestId) return res.status(400).json({ ok: false, error: 'requestId required' });
+    void recordApplicationLog({
+      level: 'info', component: 'conversation', event: 'conversation_client_render',
+      requestId, message: 'Client reported conversation reply painted',
+      details: { productMode, clientRendered: 'acked', userVisibleSuccess: true },
+    });
+    return res.json({ ok: true });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: String((error as Error)?.message || error).slice(0, 200) });
+  }
+});
+
 // P126.15 — unified All Logs ZIP (Simple + Expert + Project, 72h). Download only; no UI body.
 app.get('/api/diagnostics/all-logs', async (_req, res) => {
   try {
@@ -1374,7 +1391,11 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       const directRequestId = String((req as any).requestId || req.get('x-request-id') || '');
       void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_requests',
         requestId: directRequestId, message: 'Simple Direct request accepted for processing',
-        details: { agent: 'conversational', provider: 'gemini', hasAttachments: attachItems.length > 0 } });
+        details: {
+          agent: 'conversational', productMode: 'Simple', provider: 'gemini',
+          hasAttachments: attachItems.length > 0,
+          userPreview: String(lastUserText || brief.decision || '').slice(0, 240),
+        } });
       const explicitSearch = isExplicitSearchRequest(String(lastUserText || brief.decision || ''));
       const searchTrigger = {
         enabled: true, mode: webSearchMode(), userText: String(lastUserText || brief.decision || ''), userAskedSearch: explicitSearch,
@@ -1403,16 +1424,32 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       const searchBlock = searchResult?.status === 'used' || searchResult?.status === 'used_weak'
         ? formatSearchBlock(searchResult, new Date().toISOString().slice(0, 10))
         : formatSearchStatusBlock(searchResult || skippedWebSearch(), searchExpected, isWebSearchEnabled());
-      void recordApplicationLog({
-        level: searchExpected && searchResult?.status !== 'used' && searchResult?.status !== 'used_weak' ? 'warn' : 'info',
-        component: 'conversation', event: 'simple_direct_search',
-        requestId: String((req as any).requestId || req.get('x-request-id') || ''),
-        message: 'Optional search completed independently of direct Gemini generation',
-        details: { expected: searchExpected, explicit: explicitSearch, status: searchResult?.status || 'not_run',
-          reason: searchResult?.reason || (optionalSearch.timedOut ? 'timeout' : undefined),
-          provider: searchResult?.provider || 'none', sourceCount: searchResult?.sources?.length || 0,
-          timedOut: optionalSearch.timedOut, generationContinues: true },
-      });
+      {
+        const searchRid = String((req as any).requestId || req.get('x-request-id') || '');
+        const searchDetails = searchResult
+          ? searchDecisionDetails(searchResult, {
+              provider: searchResult.provider || webSearchProvider(),
+              gate: 'simple_direct',
+              expected: searchExpected,
+              explicit: explicitSearch,
+              timedOut: optionalSearch.timedOut,
+              generationContinues: true,
+              productMode: 'Simple',
+            })
+          : {
+              expected: searchExpected, explicit: explicitSearch, status: 'not_run',
+              provider: 'none', sourceCount: 0, timedOut: optionalSearch.timedOut,
+              generationContinues: true, productMode: 'Simple',
+              ...(optionalSearch.timedOut ? { reason: 'timeout' } : {}),
+            };
+        void recordApplicationLog({
+          level: searchExpected && searchResult?.status !== 'used' && searchResult?.status !== 'used_weak' ? 'warn' : 'info',
+          component: 'conversation', event: 'simple_direct_search',
+          requestId: searchRid,
+          message: 'Optional search completed independently of direct Gemini generation',
+          details: searchDetails,
+        });
+      }
       if (searchExpected && searchResult?.status !== 'used' && searchResult?.status !== 'used_weak') {
         void recordApplicationLog({ level: 'warn', component: 'conversation', event: 'conversation_search_failures',
           requestId: directRequestId, message: 'Optional web search did not produce usable sources',
@@ -1431,15 +1468,46 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         preferredModel: requestPreferredModel,
       }, generateDirectWithFallback);
       const requestId = String((req as any).requestId || req.get('x-request-id') || '');
+      const searchHosts: string[] = [];
+      for (const src of searchResult?.sources || []) {
+        try { const h = new URL(src.url).hostname.replace(/^www\./, ''); if (h && !searchHosts.includes(h)) searchHosts.push(h); } catch { /* ignore */ }
+      }
+      const userTextNow = String(lastUserText || brief.decision || '');
       const metricDetails = simpleConversationMetricDetails({
         requestId, model: direct.model, keySlot: direct.keySlot, keyAttempts: direct.keyAttempts,
         durationMs: direct.durationMs, hasAttachments: attachItems.length > 0,
         searchUsed: Boolean(searchResult?.status === 'used' || searchResult?.status === 'used_weak'),
         searchResult: searchResult?.status || (searchExpected ? 'failed' : 'not_run'),
+        productMode: 'Simple',
+        userPreview: userTextNow.slice(0, 240),
+        replyChars: String(direct.reply || '').length,
+        searchProvider: searchResult?.provider,
+        searchSourceCount: searchResult?.sources?.length || 0,
+        searchTopic: searchResult?.plan?.topic,
+        searchPlace: searchResult?.plan?.place,
+        searchHosts,
       });
       void recordApplicationLog({ level: 'info', component: 'conversation', event: 'conversation_model_success',
         requestId, message: 'Simple Gemini generated a non-empty response',
         details: { ...metricDetails, generated: true, nonEmpty: true, delivery: 'pending' } });
+      // Full exchange for All Logs / assistant evaluation (user turn + model reply + search summary).
+      void recordApplicationLog({
+        level: 'info', component: 'conversation', event: 'simple_direct_exchange',
+        requestId, message: 'Simple Direct user turn and model reply',
+        details: {
+          productMode: 'Simple',
+          userText: userTextNow.slice(0, 4000),
+          replyText: String(direct.reply || '').slice(0, 8000),
+          model: direct.model,
+          searchStatus: searchResult?.status || (searchExpected ? 'failed' : 'not_run'),
+          searchProvider: searchResult?.provider || null,
+          searchSourceCount: searchResult?.sources?.length || 0,
+          searchHosts: searchHosts.slice(0, 12),
+          searchQueries: (searchResult?.queries || []).slice(0, 6),
+          searchTopic: searchResult?.plan?.topic || null,
+          searchPlace: searchResult?.plan?.place || null,
+        },
+      });
       observeSimpleResponseDelivery(res, (event, details) => {
         void recordApplicationLog({ level: event === 'conversation_http_response_success' ? 'info' : 'warn',
           component: 'conversation', event, requestId, message: event === 'conversation_http_response_success'

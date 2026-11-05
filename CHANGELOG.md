@@ -1,3 +1,11 @@
+## P126.19 — Conversation diagnostic fidelity (2026-11-05)
+
+- **safeDetails:** stop converting `undefined` into the string `"undefined"` in application log JSON (root cause of empty-looking search fields).
+- **Simple Direct:** log `userPreview`, `productMode`, full `searchDecisionDetails` on `simple_direct_search`, and new `simple_direct_exchange` (user text + reply + search hosts/queries).
+- **Delivery:** HTTP success marks `clientRendered: awaiting_client_ack`; browser POSTs `/api/diagnostics/client-render` with `requestId` after paint.
+- **All Logs:** `shared/REQUEST_INDEX.md`, mode-filtered `exchanges.jsonl`, single `shared/conversations-full.md` (no triplicate identical transcripts).
+- Scope: diagnostics only — no change to answer generation.
+
 ## P126.18 — CI follow-up after category test layout (2026-11-05)
 
 - Restored test helpers required by `providers-models`: `_sources.mjs`, `_prompts.mjs`, `app-builder-golden.json`.
