@@ -20,7 +20,7 @@ on:
       - 'server.ts'
       - 'config/**'
       - 'connectors.yaml'
-      - 'tests/p12[3-6]-*.test.mjs'
+      - 'tests/*.test.mjs'
       - 'scripts/carousel-*.mjs'
       - 'scripts/workflow-preflight.mjs'
       - 'scripts/diagnostics-summary.mjs'
@@ -74,7 +74,7 @@ jobs:
         run: |
           set -o pipefail
           if [ -z "$CAROUSEL_RENDER_URL" ]; then
-            echo "NOT_RUN render runtime probe: repository variable CAROUSEL_RENDER_URL (deployed HTTPS URL) is not set; offline contract is covered by tests/p123-carousel-workflow.test.mjs" | tee "$CI_LOGS_DIR/04-carousel-render-probe.log"
+            echo "NOT_RUN render runtime probe: repository variable CAROUSEL_RENDER_URL (deployed HTTPS URL) is not set; offline contract is covered by tests/providers-models.test.mjs" | tee "$CI_LOGS_DIR/04-carousel-render-probe.log"
             exit 0
           fi
           node scripts/carousel-render-probe.mjs 2>&1 | tee "$CI_LOGS_DIR/04-carousel-render-probe.log" || { echo "Render runtime contract probe failed"; exit 1; }
