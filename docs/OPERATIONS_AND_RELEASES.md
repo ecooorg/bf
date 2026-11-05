@@ -1,5 +1,12 @@
 # Operations and Releases
 
+## Quick orientation
+
+- Live shared environment historically: `https://biforge.onrender.com/` — reconfirm before ops work.
+- Non-secret Render settings: table in **Render environment contract** below; secrets never in docs or logs.
+- Artifact download = SUCCESS only after validators + verified archive; PARTIAL/FAILED must be honest.
+- Production deploy, DB mutation, destructive restore require explicit owner authorization.
+
 ## Environment and deployment
 
 The repository's historical operational notes identify `https://biforge.onrender.com/` as the public Render service and describe it as the owner's live shared test environment. Reconfirm deployment facts before operational work; do not assume a separate staging service exists. The owner manually applies patch ZIPs to the repository unless a later authorized workflow establishes another process. Do not assume direct GitHub or Render access.

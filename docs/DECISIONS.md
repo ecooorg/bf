@@ -1,5 +1,8 @@
 ## D-2026-11-04-02 — Source policy: no Russian or Belarusian authority-controlled domains in evidence
 
+> **Retired documentation paths (P126.20+):** Mentions of cycle/audit reports (C12x_*, WEB_SEARCH_REMEDIATION, INFORMATION_QUALITY_WORKFLOW, RENDER_ENV_CONTRACT, old MODEL_* inventory files) are historical. Current authority is the AGENTS.md Single-source-of-truth map and the remaining canonical docs/ files.
+
+
 **Owner decision (2026-11-04).** Search evidence must not come from domains controlled by the authorities of Russia or Belarus: the country-code zones `.ru`, `.su`, `.xn--p1ai`, `.by`, `.xn--90ais`, other top-level domains whose registry operator is a Russian or Belarusian entity (to be verified against the IANA database), and listed state-controlled hosts outside those zones (starting from the EU broadcasting-ban list, Regulation (EU) 833/2014 Annex XV). The owner is Ukrainian and lives in Switzerland and wants no Russian or Belarusian state sources.
 
 **Implementation rules:** the lists are versioned configuration data, not code constants, so the product stays free of hard-coded country defaults (`AGENTS.md` §1); URL hosts are matched in Punycode form including subdomains; filtering happens before the digest and before page fetches; diagnostics keep counts only; an empty result after filtering is reported honestly. Whether an explicit user request may bypass the filter is open (O1); default is no bypass. Scope and acceptance: answer-quality programme under ROADMAP / TECHNICAL_SPECIFICATION (C125).

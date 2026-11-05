@@ -19,7 +19,12 @@
 
 # User-Value Evaluation — Rolling Evidence
 
-**Purpose:** Record observations of actual user-visible outcomes, newest first. This is evidence, not a second product specification; normative requirements are in `../TECHNICAL_SPECIFICATION.md`. Do not treat an old result as current runtime state without checking its commit/date. Preserve historical entries as written and prepend new evidence rather than retroactively editing prior records. Distinguish OBSERVED, INFERRED, and NOT_RUN. Tests and CI alone do not prove user value.
+**Growth rule (P126.21):** Prepend new evidence newest-first. Keep the most recent 2–3 cycles in full detail; older cycle blocks may be reduced to a short dated index line when the file becomes unwieldy. Do not rewrite or delete historical OBSERVED/INFERRED/NOT_RUN records that still serve audit. Normative requirements remain in `../TECHNICAL_SPECIFICATION.md`.
+
+**Purpose:** Record observations of actual user-visible outcomes, newest first. This is evidence, not a second product specification. Distinguish OBSERVED, INFERRED, and NOT_RUN. Tests and CI alone do not prove user value.
+
+---
+
 
 ## Live-data answers (web search) — audit evidence, 2026-11-03
 

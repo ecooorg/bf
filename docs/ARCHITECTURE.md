@@ -2,6 +2,14 @@
 
 **Authority:** Product and behavior requirements are in `../TECHNICAL_SPECIFICATION.md`. This file records architectural constraints and implementation landmarks; it must not redefine user-facing behavior.
 
+## Quick orientation
+
+- Three user-facing agents only: Conversational (Simple), Expert, Architect — one Architect flow, no mode switch.
+- Client never calls model providers; server owns auth, budgets, search, and generation.
+- App Builder core (`appBuilder/`) is ports-only; Express/DB/React stay in adapters.
+- Search continuity and evidence grounding rules live under Information quality workflow below; model ids under `docs/MODEL_REGISTRY.md`.
+- Generated inventories under `docs/generated-*.json` are authoritative maps; do not hand-maintain duplicates.
+
 ## Target shape
 
 - Client: React + Vite; server: Express; model calls remain server-side.
