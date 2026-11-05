@@ -1,3 +1,13 @@
+## P126.24 — Evidence (2026-11-05)
+
+**Scope:** Align DAG with real checks; single model-sources authority (JSON).
+
+**OBSERVED (sandbox):** `validateManifest` empty errors; check profile 16 ids; ci 18 ids; governance-repo 11/11 PASS including DAG and model-sources asserts; `config/model-sources.yaml` absent.
+
+**NOT_RUN:** Hosted CI full DAG after apply.
+
+---
+
 ## P126.23 — Evidence (2026-11-05)
 
 **Scope:** Scripts topology cleanup (priority A after docs/tests) — allowlist + delete per-patch/one-off tools.

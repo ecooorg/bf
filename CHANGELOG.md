@@ -1,3 +1,12 @@
+## P126.24 — DAG honesty + single model-sources.json (2026-11-05)
+
+- **verification-manifest.json:** dropped retired/no-op DAG checks (`test:files`, `test:pipeline`, `test:workspace`, `test:database*`, `test:web`, `test:turn`, `test:gates`, `test:integrations`, `test:compact-ci-artifacts`, `test:bx06:api`, carousel placeholder). **18 real checks** remain (check: 16, ci adds `db-migrate` + `build`).
+- **package.json:** removed matching no-op `test:*` scripts and `architect:dual-compare` (20 entries).
+- **config/model-sources.yaml:** deleted; sole catalog is `config/model-sources.json` (loader already used JSON only).
+- **carousel-verify.mjs:** runs category suites (`providers-models`, `search-retrieval`, `providers-router-policy`) instead of missing `tests/p123-*.test.mjs`.
+- **patch-pack / architectureChangeImpact / TESTING + SPEC:** callers updated off retired script names.
+- **governance-repo:** asserts no no-op test scripts, manifest ids, and no model-sources.yaml.
+
 ## P126.23 — Scripts allowlist: remove per-patch and one-off tools (2026-11-05)
 
 - **Removed** from `scripts/`: p117/p118/p119/p120 live and evidence harnesses, bounded-repair/faultInjection p108, ai-test-harness-p93-7, architect-dual-compare (+ expense goal), neon-migration-*, staging-drills, summarize-real-model-eval, intentContractLib, information-quality-eval, package-ci-artifacts (21 files).

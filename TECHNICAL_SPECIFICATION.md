@@ -713,7 +713,7 @@ Architect (A3) program delivery uses **exactly one** success path. Normative det
 
 ### 10.1 Test Suites
 
-- `test:core`, `test:models`, `test:security`, `test:files`, `test:database`, `test:app-builder`, `test:ai`, `test:compact-ci-artifacts`, architecture and schema tests.
+- `test:core`, `test:models`, `test:security`, `test:app-builder`, `test:project`, architecture and schema tests (category layout; see `docs/TEST_MAP.md`).
 - Golden evaluation harness.
 - P119 agent contracts: `tests/p119-agent-ui-contract.test.mjs`, `tests/p119-agent-boundaries.test.mjs`, `tests/p119-agent-isolation.test.mjs` (in `test:core`; also `npm run test:p119-agents`).
 - Live workflows: `p118-architect-live` (and predecessors).
