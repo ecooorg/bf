@@ -1,3 +1,27 @@
+## P126.23 — Evidence (2026-11-05)
+
+**Scope:** Scripts topology cleanup (priority A after docs/tests) — allowlist + delete per-patch/one-off tools.
+
+**OBSERVED (sandbox):** 51 files remain under `scripts/`; `scripts:integrity` PASS; governance scripts layout assertion added; removed tools were not on CI critical path except dual-compare/ai harness npm entries (now no-op).
+
+**NOT_RUN:** Hosted CI after apply.
+
+**Deletions (chat only, already applied in this delivery tree):** listed in CHANGELOG P126.23.
+
+---
+
+## P126.22 — Evidence (2026-11-05)
+
+**Scope:** CI red after P126.21 — sole DAG FAIL was `docs-integrity` on stray `docs/1.txt`.
+
+**OBSERVED (diagnostics):** TAP 504/504; DAG 29 PASS / 1 FAIL (`docs-integrity`); test:core 58/58 PASS including docs layout suite.
+
+**Fix:** harden integrity + governance assertions; delete path listed in chat.
+
+**NOT_RUN:** Hosted CI after this patch + deletion of `docs/1.txt`.
+
+---
+
 ## P126.21 — Evidence (2026-11-05)
 
 **Scope:** Micro-hardening of documentation topology after P126.20 (growth rule, orientation, VIX gate, retired-path banners, MODEL_REGISTRY sync, governance assertions).

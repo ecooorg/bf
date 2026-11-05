@@ -2,7 +2,7 @@
   "name": "biforge",
   "private": true,
   "version": "126",
-  "patch": "126.21",
+  "patch": "126.23",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -47,7 +47,7 @@
     "docs:check": "npm run docs:integrity && node scripts/docsCheckInventories.mjs && node scripts/statusGraph.mjs --check && node scripts/capabilityGenerateGraph.mjs --check && node scripts/api-contract-coverage.mjs",
     "acceptance:report": "node scripts/acceptanceReport.mjs",
     "test:app-builder": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs",
-    "test:ai": "node scripts/ai-test-harness-p93-7.mjs",
+    "test:ai": "node -e \"console.log('ai-test-harness (p93) retired; use hosted live smoke when needed')\" && exit 0",
     "patch:quality-report": "node scripts/patch-quality-report.mjs",
     "test:compact-ci-artifacts": "node -e \"console.log('compact-ci-artifacts retired')\" && exit 0",
     "test:intent-contract": "node -e \"console.log('intent-contract retired into search/providers categories')\" && exit 0",
@@ -55,10 +55,10 @@
     "test:context-select": "node -e \"console.log('context-select retired')\" && exit 0",
     "status:graph": "node scripts/statusGraph.mjs",
     "schema:validate": "node scripts/schemaValidate.mjs",
-    "docs:integrity": "node scripts/docs-integrity.mjs && node scripts/docs-reference-integrity.mjs && node scripts/docs-env-example-check.mjs",
+    "docs:integrity": "node scripts/docs-integrity.mjs && node scripts/docs-reference-integrity.mjs && node scripts/docs-env-example-check.mjs && node scripts/scripts-integrity.mjs",
     "version:check": "node scripts/version-metadata.mjs",
     "version:sync": "node scripts/version-metadata.mjs --write",
-    "architect:dual-compare": "node scripts/architect-dual-compare.mjs",
+    "architect:dual-compare": "node -e \"console.log('architect dual-compare lab path retired')\" && exit 0",
     "test:architect-dual-compare": "node -e \"console.log('architect dual-compare lab path retired')\" && exit 0",
     "test:diagnostics-summary": "node --test tests/diagnostics-ops.test.mjs",
     "carousel:probe": "node --import tsx scripts/carousel-ops-probe.mjs",
@@ -74,7 +74,8 @@
     "test:diagnostics": "node --test tests/diagnostics-ops.test.mjs",
     "test:pipeline": "echo \"pipeline suite retired into category layout; use test:core\" && exit 0",
     "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode-contract.test.mjs tests/project-builder-recovery.test.mjs",
-    "test:project-diagnostics": "node --test tests/diagnostics-ops.test.mjs"
+    "test:project-diagnostics": "node --test tests/diagnostics-ops.test.mjs",
+    "scripts:integrity": "node scripts/scripts-integrity.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

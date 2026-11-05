@@ -1,3 +1,19 @@
+## P126.23 — Scripts allowlist: remove per-patch and one-off tools (2026-11-05)
+
+- **Removed** from `scripts/`: p117/p118/p119/p120 live and evidence harnesses, bounded-repair/faultInjection p108, ai-test-harness-p93-7, architect-dual-compare (+ expense goal), neon-migration-*, staging-drills, summarize-real-model-eval, intentContractLib, information-quality-eval, package-ci-artifacts (21 files).
+- **Added** `scripts/scripts-integrity.mjs` allowlist gate; wired into `docs:integrity` and `scripts:integrity`.
+- **AGENTS.md:** Scripts layout (binding) — no pNNN scripts; new tools need allowlist + caller in same delivery.
+- **package.json:** `test:ai` and `architect:dual-compare` become retired no-ops (DAG-safe).
+- **governance-repo:** asserts no patch-like script names.
+- No product runtime behavior change.
+
+## P126.22 — Docs layout: reject stray non-md/json under docs/ (2026-11-05)
+
+- **Root cause (CI red on 126.21):** remote `docs/1.txt` tripped `docs-integrity` (`unexpected file type`).
+- **docs-integrity.mjs:** layout section no longer prints PASS after a layout FAIL; still fails closed on unexpected types.
+- **governance-repo.test.mjs:** asserts docs/ contains only `.md` and `.json` (catches `1.txt` and similar).
+- **Navigator action:** delete `docs/1.txt` (not shipped in ZIP). No program behavior change.
+
 ## P126.21 — Docs micro-hardening after topology cleanup (2026-11-05)
 
 - **USER_VALUE_EVALUATION:** growth rule — full detail for recent 2–3 cycles; older blocks may become short index lines without erasing OBSERVED records.

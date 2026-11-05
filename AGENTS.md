@@ -240,6 +240,15 @@ Mandatory tests and gates for **this** change always apply; P4 is extra standalo
 - **MUST NOT** create nested folders under `docs/`.  
 - `scripts/docs-integrity.mjs` enforces required markers and absence of retired competing documents.
 
+
+### Scripts layout (binding)
+
+- **Source of truth for maintained tools:** `scripts/scripts-integrity.mjs` allowlist and `npm run scripts:integrity`.
+- **MUST NOT** add `scripts/pNNN-*.mjs`, `*-pNNN*`, or cycle-scoped one-off harnesses (`p108`, `p93-7`, live-retest by patch id).
+- New maintained scripts require an allowlist entry in the same delivery and a clear `package.json` / workflow caller.
+- Retired dual-compare, per-patch live smoke, and bounded-repair experiment tools are removed; do not restore them without Navigator approval.
+
+
 ---
 
 ## 7. Delivery checklist (every patch)
