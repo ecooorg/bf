@@ -213,7 +213,7 @@ export async function commitTaskPackage(
 }
 
 // ---- P18 / BX-21.a: executor delivery. Reads of branches and diffs; the only writes are a commit and a PR on `biforge/<task_id>` ----
-/** Repository settings from the environment (names as in connectors.yaml), or null when GitHub is not configured. */
+/** Repository settings from the environment (names as in config/connectors.yaml), or null when GitHub is not configured. */
 export function githubConfigFromEnv(): GitHubAppConfig | null {
   const e = process.env;
   if (!e.GITHUB_APP_ID || !e.GITHUB_APP_INSTALLATION_ID || !e.GITHUB_APP_PRIVATE_KEY || !e.GITHUB_REPOSITORY_OWNER || !e.GITHUB_REPOSITORY_NAME) return null;
