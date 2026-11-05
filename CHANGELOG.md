@@ -1,3 +1,12 @@
+## P126.17 — Category test layout replaces per-patch test files (2026-11-05)
+
+- **Removed** the historical per-patch / fragmented `tests/` set (~120 files).
+- **New category suites** (see `docs/TEST_MAP.md`): agents, conversation-simple-direct, search, providers-models, providers-router-policy, providers-fallback, project-mode, project-builder-recovery, diagnostics-ops, security-*, governance-*.
+- **AGENTS §6** now binds: no `tests/pNNN-*` files, no `test:pNNN-*` scripts; patch id lives in `test()` titles only.
+- `tests/governance-repo.test.mjs` enforces the layout in CI.
+- `package.json` `test:core` runs category suites; `docs/verification-manifest.json` paths updated for critical router checks.
+- Preserves behavioural suites: model router (`providers-models`), Simple Direct, search decoupling, provider fallback, appBuilder recovery, security redact/headers, workflow pins.
+
 ## P126.16 — Remove retired Architectural Test Lab (2026-11-05)
 
 - Deleted dead test route `/architect-lab` and sources `src/ArchitectLab.tsx`, `src/ArchitectShellHeader.tsx`.

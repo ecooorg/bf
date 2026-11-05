@@ -220,6 +220,16 @@ Mandatory tests and gates for **this** change always apply; P4 is extra standalo
 - **MUST NOT** delete binding requirements or required audit evidence.  
 - Prefer small current-contract tests over permanent historical suites.
 
+### Test file layout (binding)
+
+- **Source of truth for “where to put a check”:** `docs/TEST_MAP.md`.  
+- **MUST** add or update assertions in an existing **category suite** listed in `docs/TEST_MAP.md`.  
+- **MUST NOT** create a new `tests/` file named for a patch (`pNNN-…`, `…-pNNN…`, `cNNN-…`) or a new npm script `test:pNNN-*`.  
+- **MUST** put the patch id in the `test('…')` title when useful (e.g. `P126.17 …`), not in the file name.  
+- **MUST NOT** grow `test:core` with one-off per-patch invocations; category files already run inside `test:core`.  
+- A new category suite file is allowed only when the Navigator explicitly approves a new row in `docs/TEST_MAP.md`.  
+- `tests/governance-repo.test.mjs` enforces the no-per-patch-file rule in CI.
+
 ---
 
 ## 7. Delivery checklist (every patch)

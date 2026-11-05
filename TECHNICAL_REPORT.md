@@ -1,3 +1,15 @@
+## P126.17 — Evidence (2026-11-05)
+
+**Scope:** Navigator — replace chaotic per-patch tests with assistant-friendly category suites; full `tests/` replacement.
+
+**OBSERVED:** `node --test` on governance/agents/diagnostics category files → 14/14 PASS in sandbox. Layout gate rejects `pNNN-*.test.mjs`.
+
+**NOT_RUN:** full `test:core` (includes providers-models needing deps), typecheck, hosted DAG, browser e2e. Apply after P126.15 + P126.16 product patches (labels, All Logs, lab removal) so agents/diagnostics contracts match source.
+
+**Deletions:** entire previous `tests/*` inventory (listed in delivery chat); replaced by the category set only.
+
+---
+
 ## P126.16 — Evidence (2026-11-05)
 
 **Scope:** Navigator request — fully remove the retired Architectural Test Lab (`/architect-lab`) as a separate micro-patch after P126.15. Must not affect Simple, Expert, or Project.
