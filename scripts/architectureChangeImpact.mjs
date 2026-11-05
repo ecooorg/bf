@@ -33,10 +33,10 @@ function collectChangedFromArgs() {
 }
 
 const TEST_HINTS = [
-  { match: /^server\/(taskService|gateService|codeTaskService|gateEngine)/, tests: ['test:gates', 'test:project', 'test:pipeline'] },
+  { match: /^server\/(taskService|gateService|codeTaskService|gateEngine)/, tests: ['test:project', 'test:core'] },
   { match: /^server\/(router|modelHealth|modelRegistry|adapter|gemini|openai)/, tests: ['test:models'] },
   { match: /^server\/(security|redact|untrustedData)/, tests: ['test:security'] },
-  { match: /^server\/(files|documents)/, tests: ['test:files'] },
+  { match: /^server\/(files|documents)/, tests: ['test:models', 'test:core'] },
   { match: /^server\/(database|projectRepository|stateService)/, tests: ['test:database', 'test:project'] },
   { match: /^server\/(githubIntegration)/, tests: ['test:integrations'] },
   { match: /^server\/(webSearch|epistemic)/, tests: ['test:web'] },

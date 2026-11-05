@@ -48,59 +48,25 @@ function run(name, command, args, env = {}) {
   return ok;
 }
 
-// --- Layer A: unit contracts ---
+// --- Layer A: category suite contracts (no per-patch test files) ---
 run(
-  'unit-workflow',
+  'unit-providers-models',
   process.execPath,
-  ['--import', 'tsx', '--test', '--test-timeout=120000', 'tests/p123-carousel-workflow.test.mjs']
+  ['--import', 'tsx', '--test', '--test-timeout=120000', 'tests/providers-models.test.mjs']
 );
 run(
-  'unit-llm-latency-config',
+  'unit-search-retrieval',
   process.execPath,
-  ['--import', 'tsx', '--test', 'tests/p124-31-llm-latency-config.test.mjs']
+  ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/search-retrieval.test.mjs']
 );
 run(
-  'unit-search-planner-gate',
+  'unit-providers-router-policy',
   process.execPath,
-  ['--import', 'tsx', '--test', 'tests/p124-28-search-planner.test.mjs']
-);
-run(
-  'unit-search-carousel-latency',
-  process.execPath,
-  ['--import', 'tsx', '--test', 'tests/p124-30-search-carousel.test.mjs']
-);
-run(
-  'unit-key-pool',
-  process.execPath,
-  ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/p123.2-key-pool.test.mjs']
-);
-run(
-  'unit-source-health',
-  process.execPath,
-  ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/p123.4-source-health.test.mjs']
-);
-run(
-  'unit-catalog',
-  process.execPath,
-  ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/p123.3-model-sources-catalog.test.mjs']
-);
-run(
-  'unit-carousel-lineage',
-  process.execPath,
-  ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/p123.1-model-carousel.test.mjs']
+  ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/providers-router-policy.test.mjs']
 );
 
 // --- Layer B: ops probe (no network) ---
 run('ops-probe', process.execPath, ['--import', 'tsx', 'scripts/carousel-ops-probe.mjs']);
-
-// --- Layer C: models suite slice if present (allowlist / cascade) ---
-if (fs.existsSync(path.join(root, 'tests/model-allowlist-contract.test.mjs'))) {
-  run(
-    'unit-allowlist',
-    process.execPath,
-    ['--import', 'tsx', '--test', '--test-timeout=60000', 'tests/model-allowlist-contract.test.mjs']
-  );
-}
 
 // --- Layer D: live (optional) ---
 if (LIVE) {

@@ -157,13 +157,11 @@ for (const step of uniqueSteps) {
   await run(`npm run ${step}`, ['run', step], { key: step, dropDb: true, timeoutSec: step === 'typecheck' ? LIMITS.typecheck : LIMITS[step] ?? 600 });
 }
 
-if (process.env.DATABASE_URL && !skip.has('live')) {
-  await run('npm run test:database:live', ['run', 'test:database:live'], { key: 'database-live', timeoutSec: LIMITS.live });
-  await run('npm run test:bx06:api', ['run', 'test:bx06:api'], { key: 'bx06-api-live', timeoutSec: LIMITS.live });
-} else if (skip.has('live')) {
+// Live database/API category suites are not registered as npm scripts; DAG keeps db-migrate only when env is set.
+if (skip.has('live')) {
   commands.push({ cmd: 'live database and API tests', status: 'NOT_RUN', note: 'skipped by --skip live', logPath: '' });
 } else {
-  commands.push({ cmd: 'live database and API tests', status: 'NOT_RUN', note: 'DATABASE_URL is not set: live tests were not run', logPath: '' });
+  commands.push({ cmd: 'live database and API tests', status: 'NOT_RUN', note: 'no category live suite in package.json; use hosted CI db-migrate when DAG_TEST_DATABASE_URL is set', logPath: '' });
 }
 
 // Build is a single, independent quality check; it does not rebuild the already-created patch archive.
