@@ -19,6 +19,13 @@ The Architect's principal user value is a useful, downloadable software artifact
 
 These definitions are the product-facing meaning. A test/workflow may have its own execution status, but that must not be confused with artifact status.
 
+## Client workspace and Google Drive
+
+- **Workspace (browser, keep):** user project/files held locally (IndexedDB) for agent context and ChangeSet workflows. Artifacts here are client-side; they are not a substitute for Architect server-built ZIP delivery.
+- **Google Drive (keep):** backup and cloud save of user files. Operational and product feature; secrets and OAuth remain outside repo artifacts.
+- Server Architect delivery ZIPs and validators remain under “Project artifacts and ZIPs” above; do not conflate them with workspace export or Drive backup.
+
+
 ## Machine-readable assets retained
 
 `schema-common.json`, `schema-intent-policy-contract.json`, `schema-change-impact-plan.json`, `schema-verification-plan.json`, `schema-evidence-record.json`, `schema-artifact-manifest.json`, `schema-handoff-report.json`, `schema-approval-decision.json`, `verification-manifest.json`, architecture rules/violations, and generated route/env/migration/module/check/capability inventories remain machine assets, not prose source-of-truth documents.

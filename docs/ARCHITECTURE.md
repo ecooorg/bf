@@ -56,6 +56,23 @@ Detailed acceptance criteria and human blind-review process remain under `docs/T
 - Runtime catalog: `config/model-sources.json`.
 - Cascades and health probes are code-owned; documentation must not invent additional default model ids.
 
+
+## Client file systems (keep)
+
+Two complementary client-side mechanisms; both are **in-force product features**:
+
+1. **Workspace (`src/workspace/`, `WorkspacePanel`)** — local browser workspace.
+   - Ingest zip / folder / files; store in IndexedDB; optional memory store for tests.
+   - Privacy-gated text attachments fed into Simple, Expert, and Project agent requests.
+   - Parse agent-proposed ChangeSets; validate / apply / rollback; export full, changed, or diff.
+   - Mounted from `App.tsx` (Simple/Expert) and `ProjectMode.tsx`. Not the same as server `codeExecutor` ChangeSet validation for Architect code tasks.
+
+2. **Google Drive (`src/driveClient.ts`, `driveSync`, `driveMirror`, `driveMerge`, `driveExport`, `useDrive`)** — backup and cloud persistence of user files.
+   - Owner-intended backup/save path; keep and maintain when touching related UI or auth.
+   - Does not replace local workspace ingest/attachments; workspace does not replace Drive backup.
+
+Do not treat either tree as retired, experimental noise, or a candidate for removal in routine cleanup sessions.
+
 ## Guardrails
 
 - Client never calls model providers directly.
