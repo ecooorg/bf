@@ -1,3 +1,10 @@
+## P126.18 — CI follow-up after category test layout (2026-11-05)
+
+- Restored test helpers required by `providers-models`: `_sources.mjs`, `_prompts.mjs`, `app-builder-golden.json`.
+- Fixed maintained doc path refs in `USER_VALUE_EVALUATION.md` / `USER_VALUE_EXPERT_C122.md` to category suites (docs-reference-integrity).
+- Soft-retired npm scripts still invoked by the verification DAG (`test:workspace`, `test:files`, `test:database*`, `test:live`, `test:bx06:api`, `test:ui-smoke`) so missing deleted suites no longer fail the run.
+- `test:project` now uses `--import tsx` (appBuilder `.ts` imports); added `test:project-diagnostics` alias to `diagnostics-ops`.
+
 ## P126.17 — Category test layout replaces per-patch test files (2026-11-05)
 
 - **Removed** the historical per-patch / fragmented `tests/` set (~120 files).

@@ -1,3 +1,13 @@
+## P126.18 — Evidence (2026-11-05)
+
+**CI failure source:** `ci-diagnostics.zip` after P126.17 — docs-integrity (7 stale test paths), `providers-models` missing `tests/_sources.mjs`, `test:project` without tsx, `test:workspace`/`test:project-diagnostics` pointing at deleted files.
+
+**OBSERVED (sandbox):** docs-reference-integrity PASS; governance-repo 6/6 PASS.
+
+**NOT_RUN:** full hosted DAG re-run after this patch.
+
+---
+
 ## P126.17 — Evidence (2026-11-05)
 
 **Scope:** Navigator — replace chaotic per-patch tests with assistant-friendly category suites; full `tests/` replacement.
