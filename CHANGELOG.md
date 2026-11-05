@@ -2,9 +2,10 @@
 
 - Audit of `ci.yml`, `answer-quality-verify.yml`, `search-heuristics.yml` against the current tree. Findings: p126-12/13 were in no workflow; Answer Quality ran manual-only heuristic packs (P125.13) that currently fail (`p125-3`, `p125-4`); its Render probe always exited 2 without a URL; `|| echo` masked live-smoke failures; its PR path filter omitted current files (`simpleDirectConversation`, `keyPool`, `providerMonitor`, ...); two of three workflows produced no report.
 - New `scripts/workflow-preflight.mjs` (first step of every workflow): fails on missing referenced files, npm scripts, `paths:` targets, local actions, lost exports, node/`.nvmrc` mismatch, patch/version mismatch, orphaned current-cycle tests.
-- New composite action `.github/actions/diagnostic-report`: builds `ASSISTANT_SUMMARY.md` + logs, prints to the run summary, uploads an artifact; used by Answer Quality (offline, live) and Search Heuristics. `ci.yml` also prints the summary to the run summary.
+- Each workflow ends with inline report steps (no new folders, the repository structure is flat): builds `ASSISTANT_SUMMARY.md` + logs, prints to the run summary, uploads an artifact; in Core CI, Answer Quality (offline, live) and Search Heuristics.
 - `scripts/diagnostics-summary.mjs`: failed test names, workflow rerun commands (`WORKFLOW_RERUN`), evidence rules (NOT_RUN is not PASS).
 - Workflows call npm scripts (`test:answer-quality`, `test:search-heuristics`) instead of hard-coded test lists. `test:core` now includes p126-12, p126-13, p126-14. Live smoke passes current provider secrets, reports NOT_RUN explicitly and no longer swallows failures. Render probe runs only with variable `CAROUSEL_RENDER_URL`, else NOT_RUN. `ci.yml`: concurrency, full history for gitleaks.
+- Hosted-run fixes: no composite action (the patch preflight forbids nested folders); Render probe and `docs/RENDER_ENV_CONTRACT.md` expect `BIFORGE_GEMINI_DIRECT_MODE=true`.
 - Tests: new `tests/p126-14-workflow-contract.test.mjs`. Regenerated `docs/generated-check-graph.json`. Patch metadata: `126.14`.
 
 ## P126.13 — Never leave the user without an answer (2026-11-05)

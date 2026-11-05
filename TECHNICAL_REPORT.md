@@ -5,7 +5,8 @@
 **OBSERVED (sandbox, tsx, Node 22.23):** `test:answer-quality` 79/79; `carousel-verify` exit 0; `p126-12` 5/5, `p126-13` 5/5, `p126-14` pass; workflow-action-pins, assistant-run-summary, diagnostics-summary, status-graph, dag, p119-agent-boundaries pass; `docs:check` OK; YAML parses; preflight PASS and detects a stale fixture.
 **OBSERVED failing (pre-existing, unchanged code):** `p125-3` (2) and `p125-4` (3) — place extraction / multi-language search gate (Oslo, de, ja, Munich). Now visible only in manual `search-heuristics.yml`. Open P2 for routing quality.
 **Stale artifacts found, not changed:** `scripts/quick-diagnostics.mjs` and `tests/quick-diagnostics-workflow.test.mjs` reference the absent `quick-diagnostics.yml`.
-**NOT_RUN:** hosted GitHub Actions, composite action on a runner, `npm run test:core` in full, `check`/DAG, typecheck/build, UI e2e, live smoke, render probe (no URL). Lockfile root `patch` strings still read 126.11 (check-version gate passes).
+**Hosted run 41981848312/41982864985 (OBSERVED by Navigator diagnostics):** Core CI red only on `models.test.mjs` patch-preflight (flat-structure rule rejected `.github/actions/...`); Answer Quality tests 79/79 but Render probe `MISMATCH` (`directGeminiMode` expected false, deployment true). Fixed in this patch: composite action removed (inline report steps), probe and `docs/RENDER_ENV_CONTRACT.md` now expect `BIFORGE_GEMINI_DIRECT_MODE=true` (Simple Direct is the production path since P126.1).
+**NOT_RUN:** hosted rerun after this fix, `npm run test:core` in full, `check`/DAG, typecheck/build, UI e2e, live smoke, render probe (no URL). Lockfile root `patch` strings still read 126.11 (check-version gate passes).
 
 ---
 
