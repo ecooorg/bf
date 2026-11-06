@@ -1,3 +1,22 @@
+## P127.13 — Project Mode Files-first workspace (2026-11-06)
+
+**Type:** USER_VALUE. **Scope:** `src/ProjectMode.tsx` layout/copy only (+ package metadata/tests). Simple and Expert untouched. No server API change.
+
+**OBSERVED:** After P127.12, Continue/Upload existed but the default surface still pushed analysis/plan tabs and "Run an analysis" as the next step, so tablet users still saw an engineer console.
+
+**CHANGE:**
+1. Default `activeTab` = `journal` (Files); project selection resets to Files.
+2. Analysis block gated by `showDevData` (`project-analysis-advanced`).
+3. Advanced toggle reveals Analysis, Plan, Code package, Raw JSON; hides them when closed.
+4. `nextStepText` and empty-list copy describe create/upload/improve ZIP path.
+5. Tests assert Files-first defaults; package patch `127.13`.
+
+**VERIFICATION:** Category tests **NOT_RUN** in sandbox; expected in CI `test:project` / `test:core`. Tablet UI smoke **NOT_RUN**.
+
+**LIMITATIONS:** Drive bar and passport editors remain on the main column; further densification deferred. No change to generation quality or runtimeVerified.
+
+---
+
 ## P127.12 — Project continue + source ZIP upload (2026-11-06)
 
 **Type:** USER_VALUE / RELIABILITY. **Scope:** Project Mode UI + `projectRoutes` artifact upload. Simple and Expert untouched.

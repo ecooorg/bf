@@ -1,3 +1,12 @@
+## [127.13] - Project Mode Files-first workspace
+
+- Default project tab is **Files** (not Results).
+- Analysis ("What should we analyse?") only appears under **Advanced**.
+- Primary nav: Files; Plan/Analysis/Code package/Raw JSON behind Advanced toggle.
+- Next-step copy points to create/upload/improve ZIPs instead of "Run an analysis".
+- Selecting a project opens the Files tab; empty-project copy matches the program-ZIP path.
+- Package patch `127.13`. Continues P127.12 continue/upload without API changes.
+
 ## [127.12] - Project continue + source ZIP upload (UX)
 
 - Wired **Improve this program** in Project Mode UI to existing `POST /api/projects/:id/code/continue` (base ZIP selector + change request).
