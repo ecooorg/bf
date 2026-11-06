@@ -36,7 +36,7 @@ import {
 } from './planService.ts';
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './taskService.ts';
 import { getPool } from './database.ts';
-import { readArtifact, readArtifactBytes, saveArtifact, inspectArtifact, listArtifactVersions, listProjectArtifactVersions } from './artifactRepository.ts';
+import { readArtifact, readArtifactBytes, saveArtifact, inspectArtifact, listArtifactVersions, listProjectArtifactVersions, ArtifactFormatError } from './artifactRepository.ts';
 import { buildContinuationTask, loadContinuationSource } from './projectContinuation.ts';
 import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
 import { pipelineArchitectOutcome } from '../appBuilder/architectOutcome.ts';
@@ -451,6 +451,52 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       const taskText = buildContinuationTask(input.goal, source);
       const started = await startStagedBuild(deps, { projectId: project.id, userId: 'owner', taskText });
       res.status(202).json({ success: true, data: { jobId: started.jobId, engine: 'staged', continuation: true, baseArtifactId: source.artifactId, baseVersion: source.version, statusUrl: `/api/projects/${encodeURIComponent(project.id)}/code/build/${started.jobId}` } });
+    } catch (error) { projectError(res, error); }
+  });
+
+  /**
+   * P127.12: user uploads a source ZIP into the project artifact registry (for Continue / download).
+   * Body is JSON (base64) so tablet browsers need no multipart support beyond fetch.
+   */
+  app.post('/api/projects/:projectId/artifacts/upload', async (req, res) => {
+    try {
+      const input = z.object({
+        filename: z.string().trim().min(1).max(255)
+          .refine((n) => !/[\\/\0]/.test(n), 'filename must not contain path separators')
+          .refine((n) => /\.zip$/i.test(n), 'filename must end with .zip'),
+        content_base64: z.string().min(8).max(10_000_000),
+        artifact_id: z.string().trim().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/).optional(),
+      }).strict().parse(req.body);
+      const project = await getProject(req.params.projectId);
+      if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+      let data: Uint8Array;
+      try {
+        data = new Uint8Array(Buffer.from(input.content_base64, 'base64'));
+      } catch {
+        return res.status(400).json({ success: false, error: 'Invalid base64 content', code: 'VALIDATION' });
+      }
+      if (!data.byteLength) return res.status(400).json({ success: false, error: 'Empty file', code: 'VALIDATION' });
+      const saved = await saveArtifact({
+        projectId: project.id,
+        artifactId: input.artifact_id,
+        filename: input.filename,
+        mime: 'application/zip',
+        data,
+        createdBy: 'user_upload',
+        derivedFrom: [],
+      });
+      res.status(201).json({
+        success: true,
+        data: {
+          artifact_id: saved.artifactId,
+          version: saved.version,
+          filename: input.filename,
+          hash: saved.hash,
+          size: saved.size,
+          kind: saved.kind,
+          created: saved.created,
+        },
+      });
     } catch (error) { projectError(res, error); }
   });
 
@@ -952,6 +998,11 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       return res.status(409).json({ success: false, error: 'State version conflict', code: 'CONFLICT', expected_version: e.expectedVersion, actual_version: e.actualVersion });
     }
     if (error instanceof AnalysisError) return res.status(error.status).json({ success: false, error: error.message, code: error.code });
+    if (error instanceof ArtifactFormatError) return res.status(400).json({ success: false, error: e.message || 'Invalid artifact', code: e.code || 'ARTIFACT_FORMAT' });
+    if (e?.code === 'CONTINUATION_BINARY_UNSUPPORTED' || e?.code === 'CONTINUATION_LIMIT' || e?.code === 'INVALID_SOURCE_ARCHIVE') {
+      return res.status(400).json({ success: false, error: e.message || 'Continuation source rejected', code: e.code });
+    }
+    if (e?.code === 'SOURCE_ARTIFACT_NOT_FOUND') return res.status(404).json({ success: false, error: e.message || 'Source artifact not found', code: e.code });
     if (e?.name === 'PlanError' || e?.name === 'TaskError' || e?.name === 'CodeTaskError') return res.status((error as any).status || 409).json({ success: false, error: e.message || 'Task operation failed', code: e.code || 'TASK_ERROR', details: (error as any).details });
     if (e?.code === 'VALIDATION') return res.status(422).json({ success: false, error: 'The proposed change was refused by the State policy', code: 'VALIDATION', details: ((error as any).errors ?? []).map((x: any) => x.code) });
     if (e?.code === 'NOT_FOUND') return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
