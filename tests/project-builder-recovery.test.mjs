@@ -24,13 +24,75 @@ function world() {
     async putUnitResult(r) { results.set(r.cacheKey, r); }, async getUnitResult(k) { return results.get(k) ?? null; }, async putArtifact() { return 'a'; },
   };
   const model = (failCoderCall) => ({ async complete(a) {
-    if (a.role === 'planner') { calls.planner++; return a.prompt.includes('Create a focused but complete project specification')
-      ? { text: JSON.stringify({ schemaVersion: 1, title: 'Tetris', goal: 'Tetris', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: ['has_file:index.html', 'html_has:index.html:canvas', 'js_contains:app.js:keydown'] }), finishReason: 'stop', modelId: 'fake' }
-      : { text: 'not json', finishReason: 'stop', modelId: 'fake' }; }
+    if (a.role === 'planner') {
+      calls.planner++;
+      const p = a.prompt || '';
+      // P127.17 intent stage
+      if (/User request \(plain language\)|elaborate what a typical person means|expandedGoal/i.test(p) || /app_builder\.intent/i.test(a.system || '')) {
+        return {
+          text: JSON.stringify({
+            expandedGoal: 'A simple browser Tetris with keyboard controls and a visible playfield',
+            mustHave: ['canvas playfield', 'keyboard moves pieces', 'line clear'],
+            shouldHave: ['score'],
+            notSuccessIf: ['blank page'],
+            complexity: 'simple',
+            targetModules: 4,
+            suggestedModules: [
+              { id: 'style', path: 'style.css', purpose: 'layout' },
+              { id: 'app', path: 'app.js', purpose: 'game' },
+              { id: 'index', path: 'index.html', purpose: 'shell' },
+              { id: 'readme', path: 'README.md', purpose: 'usage' },
+            ],
+          }),
+          finishReason: 'stop',
+          modelId: 'fake',
+        };
+      }
+      if (p.includes('Create a focused but complete project specification')) {
+        return {
+          text: JSON.stringify({
+            schemaVersion: 1,
+            title: 'Tetris',
+            goal: 'Tetris',
+            language: 'en',
+            stack: 'static_site',
+            features: [],
+            nonGoals: [],
+            acceptance: ['has_file:index.html', 'html_has:index.html:canvas', 'js_contains:app.js:keydown'],
+          }),
+          finishReason: 'stop',
+          modelId: 'fake',
+        };
+      }
+      // plan JSON
+      if (/units|plan|schemaVersion/i.test(p) && !p.includes('Create a focused')) {
+        return {
+          text: JSON.stringify({
+            schemaVersion: 1,
+            units: [
+              { id: 'style', kind: 'file', path: 'style.css', purpose: 'css', dependsOn: [], exports: [], contract: 'css', maxOutputTokens: 1500, status: 'pending', attempts: 0 },
+              { id: 'app', kind: 'file', path: 'app.js', purpose: 'js', dependsOn: [], exports: [], contract: 'js', maxOutputTokens: 4096, status: 'pending', attempts: 0 },
+              { id: 'index', kind: 'file', path: 'index.html', purpose: 'html', dependsOn: ['style', 'app'], exports: [], contract: 'html', maxOutputTokens: 1500, status: 'pending', attempts: 0 },
+              { id: 'readme', kind: 'file', path: 'README.md', purpose: 'doc', dependsOn: ['index'], exports: [], contract: 'md', maxOutputTokens: 600, status: 'pending', attempts: 0 },
+            ],
+            order: ['style', 'app', 'index', 'readme'],
+            specHash: 'test',
+          }),
+          finishReason: 'stop',
+          modelId: 'fake',
+        };
+      }
+      return { text: 'not json', finishReason: 'stop', modelId: 'fake' };
+    }
     calls.coder++;
     if (failCoderCall && calls.coder >= failCoderCall && calls.coder < failCoderCall + 2) return { code: 'unavailable', message: 'provider down' };
     const path = JSON.parse(/Implement unit (\{.*?\}) for spec/s.exec(a.prompt)[1]).path;
-    return { text: formatFileMarker(path, body(path)), finishReason: 'stop', modelId: 'fake' };
+    // Adequacy floor for simple still low; pad app.js so static validators + adequacy can pass
+    let content = body(path);
+    if (path.endsWith('.js')) {
+      content = content + '\n' + ('// pad ' + 'x'.repeat(900) + '\n').repeat(6);
+    }
+    return { text: formatFileMarker(path, content), finishReason: 'stop', modelId: 'fake' };
   } });
   const ports = (m) => { let n = 0; return { model: m, store, events: { emit(e) { events.push(e); } }, clock: { now: () => n++, async sleep() {} } }; };
   return { jobs, results, events, calls, store, model, ports };
