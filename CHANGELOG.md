@@ -1,3 +1,16 @@
+## [127.17b] - Flat package paths only (no nested folders)
+
+- Intent suggested modules and expanded plans use top-level files only (`main.js`, `scene.js`, …).
+- Model-suggested paths sanitized to basename.
+- `isSafePath`: reject any `/` nested path.
+- Package patch `127.17b`.
+
+## [127.17a] - CI fix: intent-brief language + duplicate templatePlan export
+
+- Removed Cyrillic tokens from `intent-brief.ts` complexity regex (lint:copy).
+- `appBuilder/index.ts`: drop duplicate `templatePlan` re-export (esbuild/tsc).
+- Package patch `127.17a`.
+
 ## [127.18] - Project Mode user-value workflow (human simulator)
 
 - New offline **human-simulator** evaluator: `scripts/project-user-value-eval.mjs`.

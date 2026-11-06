@@ -1,3 +1,19 @@
+## P127.17b — Flat package paths (2026-11-06)
+
+**OBSERVED:** Project policy forbids nested folders in packages; P127.17 used `js/*.js` paths.
+
+**CHANGE:** Flat filenames only; isSafePath length === 1; patch `127.17b`.
+
+---
+
+## P127.17a — CI fix for 127.17 (lint:copy + duplicate export) (2026-11-06)
+
+**OBSERVED:** CI failed `lint:copy` (Cyrillic in intent-brief), `critical-*` / build:server on duplicate `templatePlan` export in `appBuilder/index.ts`.
+
+**CHANGE:** Latin-only complexity regex; single templatePlan export; patch `127.17a`.
+
+---
+
 ## P127.18 — Project user-value human-simulator workflow (2026-11-06)
 
 **Type:** USER_VALUE / RELIABILITY (evaluation harness). **Scope:** scripts, fixtures, workflow; does not change generation prompts.
