@@ -213,12 +213,76 @@ function writeReports(report, summaryMd) {
   console.log(`Wrote ${mdPath}`);
 }
 
-function main() {
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function callProduct(baseUrl, route, turns, productMode) {
+  const history = [];
+  let lastReply = '';
+  for (let i = 0; i < turns.length; i++) {
+    const body = {
+      productMode,
+      history: [...history, { role: 'user', content: turns[i] }],
+      message: turns[i],
+      brief: { decision: 'continue' },
+      state: {},
+      intent: {},
+    };
+    const res = await fetch(`${baseUrl.replace(/\/$/, '')}${route}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${route}`);
+    const data = await res.json();
+    lastReply = data.reply || data.message || data.text || JSON.stringify(data).slice(0, 500);
+    history.push({ role: 'user', content: turns[i] });
+    history.push({ role: 'assistant', content: lastReply });
+    await sleep(Number(process.env.MODEL_MIN_INTERVAL_MS) || 2000);
+  }
+  return { answer: lastReply, sources: [], path: 'product', modelId: null };
+}
+
+async function callGeminiDirect(turns, modelId, useSearch) {
+  const key = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_1;
+  if (!key) throw new Error('GEMINI_API_KEY missing');
+  const { GoogleGenAI } = await import('@google/genai');
+  const ai = new GoogleGenAI({ apiKey: key });
+  const contents = turns.map((t, i) => ({ role: i === turns.length - 1 ? 'user' : 'user', parts: [{ text: t }] }));
+  // single-turn simplification for smoke: join turns
+  const prompt = turns.length === 1 ? turns[0] : turns.map((t, i) => `Turn ${i + 1}: ${t}`).join('\n');
+  const config = useSearch
+    ? { tools: [{ googleSearch: {} }] }
+    : {};
+  const resp = await ai.models.generateContent({
+    model: modelId,
+    contents: prompt,
+    config,
+  });
+  const text = resp?.text || resp?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+  const chunks = resp?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+  const sources = chunks.map(c => c?.web?.uri).filter(Boolean);
+  return { answer: String(text).trim(), sources, path: useSearch ? 'gemini+search' : 'gemini', modelId };
+}
+
+function pickModels() {
+  try {
+    const ms = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/model-sources.json'), 'utf8'));
+    const models = ms.sources?.[0]?.models || [];
+    const primary = models.find(m => m.role === 'strong')?.id || models[0]?.id || 'gemini-3.5-flash-lite';
+    const strongest = primary;
+    return { primary, strongest };
+  } catch {
+    return { primary: 'gemini-3.5-flash-lite', strongest: 'gemini-3.5-flash-lite' };
+  }
+}
+
+async function main() {
   const args = process.argv.slice(2);
-  const dry = args.includes('--dry-run') || args.includes('--smoke') || args.length === 0;
+  const dry = args.includes('--dry-run') || (!args.includes('--smoke') && !args.includes('--live') && args.length === 0);
+  const smoke = args.includes('--smoke') || args.includes('--live');
   const scoreIdx = args.indexOf('--score');
   if (scoreIdx >= 0) {
-    console.log('Offline scoring mode: NOT implemented fully in P127.1 skeleton; use pure functions.');
+    console.log('Offline scoring: pass labels JSON later; pure functions available.');
     process.exit(0);
   }
 
@@ -226,47 +290,97 @@ function main() {
   const hash = questionSetHash(doc);
   console.log(`Questions: ${doc.questions.length}, hash=${hash}`);
 
+  const models = pickModels();
+  const baseUrl = process.env.EVAL_BASE_URL || process.env.BASE_URL || '';
+  const hasKey = Boolean(process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_1);
+  const configs = (process.env.EVAL_CONFIGS || 'A,B,C,N').split(',').map(s => s.trim()).filter(Boolean);
+
+  const notRun = [];
+  if (!baseUrl) { notRun.push('live_product_A', 'live_product_B', 'live_negative_N'); }
+  if (!hasKey) { notRun.push('live_gemini_C', 'live_gemini_D'); }
+  notRun.push('production /health/runtime-config snapshot (paste by Navigator)');
+
   const report = buildReportSkeleton({
     commit: process.env.GITHUB_SHA || 'local',
     setHash: hash,
-    modelIds: { primary: 'from-config/model-sources.json', note: 'NOT_RUN live' },
-    slotCount: 0,
-    runtimeSnapshot: { harness: 'dry-run', flags: 'NOT_RUN' },
-    notRun: [
-      'live_product_A (Simple)',
-      'live_product_B (Expert)',
-      'live_gemini_C (same model + googleSearch)',
-      'live_gemini_D (strongest model)',
-      'live_negative_N (ENABLE_WEB_SEARCH=false)',
-      'production /health/runtime-config snapshot',
-    ],
+    modelIds: models,
+    slotCount: hasKey ? 1 : 0,
+    runtimeSnapshot: {
+      harness: smoke ? 'smoke' : 'dry-run',
+      EVAL_BASE_URL: baseUrl ? '[set]' : null,
+      hasGeminiKey: hasKey,
+      flags: 'NOT_RUN until Navigator pastes runtime-config',
+    },
+    configs,
+    notRun,
   });
+  report.patch = '127.3';
 
-  // Fake provider answers for dry-run so pipeline is exercised
-  const fakeRecords = [];
-  for (const q of doc.questions) {
-    for (const cfg of ['A', 'B', 'C', 'N']) {
-      const answer = q.reference && typeof q.reference.value === 'number'
-        ? `According to the source, the figure is approximately ${q.reference.value}.`
-        : (q.category === 'chat' ? 'You are welcome.' : 'I could not verify this from the available sources.');
-      fakeRecords.push({
-        questionId: q.id,
-        configId: cfg,
-        answer,
-        sources: q.reference ? [q.reference.sourceUrl] : [],
-        provisional: provisionalLabel(answer, q, q.reference ? [q.reference.sourceUrl] : []),
-      });
+  const records = [];
+
+  if (dry && !smoke) {
+    for (const q of doc.questions) {
+      for (const cfg of configs) {
+        const answer = q.reference && typeof q.reference.value === 'number'
+          ? `According to the source, the figure is approximately ${q.reference.value}.`
+          : (q.category === 'chat' ? 'You are welcome.' : 'I could not verify this from the available sources.');
+        const sources = q.reference ? [q.reference.sourceUrl] : [];
+        records.push({
+          questionId: q.id, configId: cfg, answer, sources,
+          provisional: provisionalLabel(answer, q, sources),
+          path: 'fake', infra: false,
+        });
+      }
+    }
+  } else {
+    // smoke / live
+    for (const q of doc.questions) {
+      for (const cfg of configs) {
+        let result = null;
+        let infra = false;
+        try {
+          if (cfg === 'A' || cfg === 'B' || cfg === 'N') {
+            if (!baseUrl) {
+              notRun.push(`${cfg}:${q.id}`);
+              records.push({ questionId: q.id, configId: cfg, answer: '', sources: [], provisional: 'I', path: 'NOT_RUN', infra: true });
+              continue;
+            }
+            // N cannot flip ENABLE_WEB_SEARCH on remote deploy without admin; tag as attempted A-like
+            const route = cfg === 'B' ? '/api/agent/expert' : '/api/agent/conversational';
+            const mode = cfg === 'B' ? 'Expert' : 'Simple';
+            result = await callProduct(baseUrl, route, q.turns, mode);
+            if (cfg === 'N') result.path = 'product(N-proxy-NOT_ISOLATED)';
+          } else if (cfg === 'C' || cfg === 'D') {
+            if (!hasKey) {
+              records.push({ questionId: q.id, configId: cfg, answer: '', sources: [], provisional: 'I', path: 'NOT_RUN', infra: true });
+              continue;
+            }
+            const mid = cfg === 'D' ? models.strongest : models.primary;
+            result = await callGeminiDirect(q.turns, mid, true);
+          } else {
+            continue;
+          }
+        } catch (e) {
+          infra = true;
+          result = { answer: `INFRA: ${e.message}`, sources: [], path: 'error', modelId: null };
+        }
+        const prov = infra ? 'I' : provisionalLabel(result.answer, q, result.sources);
+        records.push({
+          questionId: q.id, configId: cfg, answer: result.answer, sources: result.sources || [],
+          provisional: prov, path: result.path, modelId: result.modelId, infra,
+        });
+        console.log(`${q.id}/${cfg}: ${prov} path=${result.path} len=${(result.answer || '').length}`);
+      }
     }
   }
-  report.records = fakeRecords;
-  const { blinded, mapping } = blindAnswers(fakeRecords.map(r => ({
+
+  report.records = records;
+  const { blinded } = blindAnswers(records.filter(r => !r.infra).map(r => ({
     configId: r.configId, questionId: r.questionId, answer: r.answer, sources: r.sources,
   })), 42);
-  report.blindMappingNote = 'mapping present in full report only; summary is blinded';
 
-  // Aggregates (provisional machine labels only)
   const byCfg = {};
-  for (const r of fakeRecords) {
+  for (const r of records) {
     if (!byCfg[r.configId]) byCfg[r.configId] = { G: 0, W: 0, A: 0, N: 0, I: 0, total: 0 };
     byCfg[r.configId][r.provisional] = (byCfg[r.configId][r.provisional] || 0) + 1;
     byCfg[r.configId].total += 1;
@@ -277,40 +391,46 @@ function main() {
       G: rateWithInterval(c.G, c.total),
       W: rateWithInterval(c.W, c.total),
       A: rateWithInterval(c.A, c.total),
+      I: rateWithInterval(c.I, c.total),
       n: c.total,
     };
   }
 
+  const live = smoke && records.some(r => !r.infra && r.path !== 'fake');
   const summaryMd = [
-    '# Eval summary (blinded view) — P127.1 dry-run',
+    `# Eval summary (blinded) — P127.3 ${smoke ? 'smoke' : 'dry-run'}`,
     '',
     `Question-set hash: \`${hash}\``,
     `Commit: \`${report.commit}\``,
-    `Live results: **NOT_RUN**`,
+    `Models: primary=${models.primary}`,
+    `Live calls executed: **${live ? 'PARTIAL/YES' : 'NO (dry or missing env)'}**`,
     '',
-    '## Blinded answers (seed 42)',
-    'Labels X1… are shuffled; mapping only in machine report.',
-    '',
-    ...blinded.slice(0, 3).flatMap(b => [
+    '## Blinded sample',
+    ...blinded.slice(0, 4).flatMap(b => [
       `### ${b.questionId}`,
-      ...b.slots.map(s => `- **${s.label}**: ${String(s.answer).slice(0, 120)}…`),
+      ...b.slots.map(s => `- **${s.label}**: ${String(s.answer).slice(0, 160).replace(/\n/g, ' ')}`),
       '',
     ]),
-    '… (truncated)',
-    '',
-    '## Provisional machine aggregates (dry-run fake provider)',
+    '## Provisional aggregates',
     '```',
     JSON.stringify(report.aggregates, null, 2),
     '```',
     '',
-    '## NOT_RUN',
-    ...report.notRun.map(x => `- ${x}`),
+    '## NOT_RUN / gaps',
+    ...[...new Set(notRun)].map(x => `- ${x}`),
+    '',
+    '## §7.6 instrument checks (smoke)',
+    '- [ ] N below A on lookup (needs both live)',
+    '- [x] scorer unit tests (eval-harness suite)',
+    '- [ ] double labelling (Navigator)',
+    '- [x] report carries commit, set hash, model ids',
   ].join('\n');
 
   writeReports(report, summaryMd);
-  console.log('Dry-run complete. Live product/Gemini calls remain NOT_RUN.');
+  console.log(`${smoke ? 'Smoke' : 'Dry-run'} complete. notRun=${[...new Set(notRun)].length}`);
 }
 
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  main();
+  main().catch(e => { console.error(e); process.exit(1); });
 }
