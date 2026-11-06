@@ -642,7 +642,7 @@ export default function ProjectMode() {
         <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
         {isFolderPickerSupported() && <details style={{ position: 'relative' }}><summary aria-label="More workspace actions" title="More actions" style={{ ...styles.button, padding: '6px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 40, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8, whiteSpace: 'nowrap' }}><button type="button" style={styles.button} disabled={busy} title="Load a whole project folder from this computer (desktop browsers only)" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); window.dispatchEvent(new CustomEvent(PICK_FOLDER_EVENT)); }}>Import project folder…</button></div></details>}
       </div>
-      <p style={{ fontSize: 13, color: '#8fa6c2' }}>Local files on this device for analysis only (not the project archive on the server). Readable text can be included when you run analysis. To store a program ZIP on the server, use Upload source ZIP on the Files tab.</p>
+      <p style={{ fontSize: 13, color: '#8fa6c2' }}>Local analysis files on this device only. Use Files → Upload source ZIP for a server archive.</p>
       <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} />
     </section>}
     {(error || notice) && <div style={{ position: 'fixed', left: 12, right: 12, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
@@ -721,7 +721,7 @@ export default function ProjectMode() {
               </div>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([
               ['journal', 'Files'],
-              ...(showDevData ? ([['results', 'Analysis'], ['plan', 'Plan'], ['delivery', 'Code package'], ['data', 'Raw JSON']] as const) : []),
+              ...(showDevData ? ([['results', 'Analysis'], ['plan', 'Plan'], ['delivery', 'Code package'], ['data', 'Project data']] as const) : []),
             ] as const).map(([key, label]) => <button key={key} type="button" aria-current={activeTab === key ? 'page' : undefined} onClick={() => setActiveTab(key as typeof activeTab)} style={{ ...styles.button, minHeight: 38, background: activeTab === key ? '#12345a' : 'transparent', color: activeTab === key ? '#e6edf7' : '#8fa6c2', borderColor: activeTab === key ? '#78baff' : '#25405e' }}>{label}</button>)}
             <button type="button" onClick={() => setShowDevData((v) => !v)} style={{ ...styles.button, minHeight: 38, background: showDevData ? '#12345a' : 'transparent', color: showDevData ? '#e6edf7' : '#8fa6c2', borderColor: showDevData ? '#78baff' : '#25405e', fontSize: 12 }} title="Show analysis, plan, and advanced tools">{showDevData ? 'Hide advanced' : 'Advanced'}</button>
             </nav>
