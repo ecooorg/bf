@@ -1,3 +1,13 @@
+## P127.2d — Evidence (2026-11-06)
+
+**Scope:** Instrument. User value: NOT_RUN.
+
+**OBSERVED (prior smoke 31da1de):** geminiKeySlots=10, hasAppPassword=true; A/B path=product but empty answers (envelope bug); C all 429 across pool; infra gate FAIL 33%+.
+
+**NOT_RUN:** re-smoke after envelope fix; answer quality labels.
+
+---
+
 ## P127.2c — Evidence (2026-11-06)
 
 **Scope:** Instrument CI + eval key pool. User value: NOT_RUN.

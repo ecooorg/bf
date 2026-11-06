@@ -1,3 +1,9 @@
+## P127.2d — eval product response envelope (instrument) (2026-11-06)
+
+- Parse `{ success, data.reply }` from conversation routes (was reading top-level `reply` → empty A/B).
+- Empty product body is infra error, not silent I.
+- Still P127.2 Experiment 0 instrument; not plan P127.3.
+
 ## P127.2c — preflight letter-patch + Gemini 10-key pool in eval (instrument) (2026-11-06)
 
 - workflow-preflight accepts `127.2c`-style letter suffix.
