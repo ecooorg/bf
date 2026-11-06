@@ -1,3 +1,20 @@
+## P127.17 — Intent brief + small-file tree + goal adequacy (2026-11-06)
+
+**Type:** USER_VALUE / RELIABILITY. **Scope:** appBuilder core (`intent-brief.ts`, `stack-static-site.ts`, `core-engine.ts`, `profile-default.ts`, prompts). UI unchanged.
+
+**PROBLEM:** Formal ZIP SUCCESS on ~2KB stubs (e.g. "3D city race" → red rectangle). AGENTS BIO-005 / user-value: SUCCESS must mean useful artifact, not marker/syntax pass.
+
+**CHANGE:**
+1. Intent stage elaborates user `taskText` into mustHave / notSuccessIf / module hints before plan/code.
+2. Plans expand to many small modules from the brief; maxUnits 48.
+3. `assessGoalAdequacy` gates `goalImplemented` and SUCCESS (size/module/theme heuristics + plan_fallback).
+
+**VERIFICATION:** Unit tests for adequacy + expanded plan (CI). Live model rebuild **NOT_RUN** in this environment.
+
+**LIMITATIONS:** Adequacy is heuristic (not runtime 3D proof). Does not guarantee AAA games under flash-lite; it blocks false SUCCESS and aims the plan at user meaning.
+
+---
+
 ## P127.16a — lint:copy Cyrillic in stack-static-site (2026-11-06)
 
 **OBSERVED:** CI 127.16 failed only `lint:copy`: Cyrillic in `appBuilder/stack-static-site.ts` interactive regex.

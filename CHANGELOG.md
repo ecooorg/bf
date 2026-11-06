@@ -1,3 +1,12 @@
+## [127.17] - Intent elaboration + multi-module plan + honest goal adequacy
+
+- New **intent** stage before spec: model elaborates plain-language requests into expanded goal, mustHave / notSuccessIf, complexity, suggested small modules (`app_builder.intent.v1`).
+- Fallback brief when the intent call fails still expands ambition (games/3D/city → ambitious).
+- **expandedPlanFromBrief**: tree of many small files (js/*, css, html) instead of a 4-file stub template for standard/ambitious goals.
+- **assessGoalAdequacy**: SUCCESS / `goalImplemented` require more than static validators — rejects tiny JS stubs for ambitious/standard goals; plan_fallback forces PARTIAL.
+- Profile: `maxUnits` 48, `maxCallsPerJob` 60.
+- Package patch `127.17`.
+
 ## [127.16a] - lint:copy: no Cyrillic in stack-static-site
 
 - Removed Cyrillic tokens from `ensureMultiFileStaticPlan` interactive regex (lint:copy language rule).
