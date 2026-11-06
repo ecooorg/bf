@@ -1,3 +1,21 @@
+## P127.12 — Project continue + source ZIP upload (2026-11-06)
+
+**Type:** USER_VALUE / RELIABILITY. **Scope:** Project Mode UI + `projectRoutes` artifact upload. Simple and Expert untouched.
+
+**OBSERVED:** Continuation API (`POST .../code/continue`) existed but `ProjectMode.tsx` never called it. Users could download ZIPs but not iterate. Workspace was confused with server artifacts; post-SUCCESS copy pushed Render/Railway even for static HTML.
+
+**CHANGE:**
+1. UI: continue panel (base ZIP + change text + Improve), upload ZIP (Files tab and continue panel), loadExtras after build/continue.
+2. API: `POST /api/projects/:projectId/artifacts/upload` with `content_base64` + `.zip` filename; `saveArtifact` + ZIP validation; clearer errors for ArtifactFormatError / continuation limits.
+3. `manualDeployInstructions(name, { stack })` static-first path; `suggestProjectName` shortened.
+4. Tests in `project-mode-contract` and `project-builder-recovery`; package patch `127.12`.
+
+**VERIFICATION:** Unit/category tests **NOT_RUN** in this sandbox (no full install). Expected under `test:project` / `test:core` in CI. Browser tablet smoke of Continue + Upload **NOT_RUN**.
+
+**LIMITATIONS:** Upload accepts ZIP only (≤5 MB registry limit). Continuation still rejects archives with binary files that cannot be UTF-8 decoded. Full UI simplification of Analysis/Plan remains partial (continue is outside the collapsed “Create a small program” details).
+
+---
+
 ## P127.11 — Patch process compliance and integration-gate tests (2026-11-06)
 
 **Type:** RELIABILITY / MAINTENANCE. **Scope:** package metadata + Project Mode category tests. Simple and Expert untouched.

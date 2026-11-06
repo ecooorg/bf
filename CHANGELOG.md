@@ -1,3 +1,12 @@
+## [127.12] - Project continue + source ZIP upload (UX)
+
+- Wired **Improve this program** in Project Mode UI to existing `POST /api/projects/:id/code/continue` (base ZIP selector + change request).
+- Added `POST /api/projects/:id/artifacts/upload` (JSON base64 ZIP) so users can store an arbitrary source archive in the project registry and continue from it.
+- Files tab: upload control + clearer copy distinguishing local Workspace vs server artifacts.
+- Static-site post-download instructions no longer default to Render/Railway deploy; they tell the user to open `index.html` and use Improve/Upload.
+- Shorter `suggestProjectName` (drop filler words, max 28 chars).
+- Category tests for continue/upload wiring; package patch `127.12`.
+
 ## [127.11] - Patch process compliance + integration-gate tests
 
 - Advanced `package.json` / `package-lock.json` product patch metadata to `127.11` (major `version` remains `127`).
