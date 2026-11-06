@@ -1,3 +1,13 @@
+## P127.16a — lint:copy Cyrillic in stack-static-site (2026-11-06)
+
+**OBSERVED:** CI 127.16 failed only `lint:copy`: Cyrillic in `appBuilder/stack-static-site.ts` interactive regex.
+
+**CHANGE:** Latin-only keyword list; patch `127.16a`.
+
+**VERIFICATION:** lint:copy **NOT_RUN** here; expected PASS after apply.
+
+---
+
 ## P127.16 — Multi-file plan + MAX_TOKENS/missing_end (2026-11-06)
 
 **Type:** RELIABILITY / USER_VALUE. **Scope:** appBuilder plan/coder path + ProjectChat lint copy. Simple/Expert untouched.
