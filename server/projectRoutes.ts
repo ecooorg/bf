@@ -37,6 +37,7 @@ import {
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './taskService.ts';
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
+import { buildContinuationTask, loadContinuationSource } from './projectContinuation.ts';
 import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
 import { pipelineArchitectOutcome } from '../appBuilder/architectOutcome.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
@@ -432,6 +433,27 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
    * Residuals: engine=model_patch (manual hand-off); engine=legacy only if ALLOW_LEGACY_APP_BUILDER=true.
    * Legacy pipeline must never be the silent default SUCCESS path for Architect.
    */
+  /** Continue an existing project from a verified, versioned source ZIP. */
+  app.post('/api/projects/:projectId/code/continue', async (req, res) => {
+    try {
+      const input = z.object({
+        goal: z.string().trim().min(1).max(8000),
+        artifact_id: z.string().trim().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/),
+        version: z.number().int().min(1).optional(),
+      }).strict().parse(req.body);
+      const project = await getProject(req.params.projectId);
+      if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+      if (!stagedEnabled() || !process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Staged continuation is unavailable.', code: 'STAGED_UNAVAILABLE' });
+      const deps = stagedDeps();
+      if (!deps || !ai) return res.status(503).json({ success: false, error: 'No model adapters are configured.', code: 'STAGED_UNAVAILABLE' });
+      const source = await loadContinuationSource(project.id, input.artifact_id, input.version);
+      if (!source) return res.status(404).json({ success: false, error: 'Source ZIP not found in this project.', code: 'SOURCE_ARTIFACT_NOT_FOUND' });
+      const taskText = buildContinuationTask(input.goal, source);
+      const started = await startStagedBuild(deps, { projectId: project.id, userId: 'owner', taskText });
+      res.status(202).json({ success: true, data: { jobId: started.jobId, engine: 'staged', continuation: true, baseArtifactId: source.artifactId, baseVersion: source.version, statusUrl: `/api/projects/${encodeURIComponent(project.id)}/code/build/${started.jobId}` } });
+    } catch (error) { projectError(res, error); }
+  });
+
   app.post('/api/projects/:projectId/code/build', async (req, res) => {
     const operationId = newOperationId(); const startedAt = Date.now();
     res.setHeader('X-BiForge-Operation-Id', operationId);
