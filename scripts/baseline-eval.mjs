@@ -230,6 +230,27 @@ function resolveGeminiKeys(env = process.env) {
   return out;
 }
 
+const SLOT_COOLDOWN_MS = Number(process.env.EVAL_KEY_COOLDOWN_MS) || 60_000;
+const GEMINI_GAP_MS = Number(process.env.EVAL_GEMINI_GAP_MS) || 12_000;
+const PRODUCT_GAP_MS = Number(process.env.MODEL_MIN_INTERVAL_MS) || 6_000;
+const slotCooldownUntil = new Map();
+function slotAvailable(slot, now = Date.now()) {
+  return (slotCooldownUntil.get(slot) || 0) <= now;
+}
+function markSlotCooldown(slot, now = Date.now()) {
+  slotCooldownUntil.set(slot, now + SLOT_COOLDOWN_MS);
+}
+
+function extractProductPayload(data) {
+  if (!data || typeof data !== 'object') return { reply: '', sources: [] };
+  const payload = (data.data && typeof data.data === 'object') ? data.data : data;
+  const reply = payload.reply || payload.message || payload.text || payload.answer || data.reply || '';
+  const sources = Array.isArray(payload.sources)
+    ? payload.sources.map((s) => (typeof s === 'string' ? s : (s?.url || s?.uri || s?.link || ''))).filter(Boolean)
+    : [];
+  return { reply: String(reply || ''), sources, success: data.success, error: data.error, code: data.code };
+}
+
 
 function pickModels() {
   try {
@@ -274,7 +295,8 @@ async function loginSession(baseUrl) {
 async function callProduct(baseUrl, route, turns, productMode, cookie) {
   const history = [];
   let lastReply = '';
-  const headers = { 'Content-Type': 'application/json' };
+  let lastSources = [];
+  const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
   if (cookie) headers.Cookie = cookie;
   for (let i = 0; i < turns.length; i++) {
     const userText = turns[i];
@@ -290,69 +312,71 @@ async function callProduct(baseUrl, route, turns, productMode, cookie) {
       headers,
       body: JSON.stringify(body),
     });
-    const text = await res.text();
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${route}: ${text.slice(0, 160)}`);
+    const textBody = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${route}: ${textBody.slice(0, 200)}`);
     let data;
-    try { data = JSON.parse(text); } catch { data = { reply: text }; }
-    // Product envelope: { success, data: { reply, ... }, meta } (server ok())
-    const payload = (data && typeof data === 'object' && data.data && typeof data.data === 'object')
-      ? data.data
-      : data;
-    lastReply = payload.reply || payload.message || payload.text || payload.answer
-      || data.reply || data.message || '';
-    if (data && data.success === false) throw new Error(String(data.error || data.code || 'request failed'));
-    if (!String(lastReply || '').trim()) {
-      throw new Error('empty reply from product: ' + text.slice(0, 200));
+    try { data = JSON.parse(textBody); } catch {
+      throw new Error(`non-JSON product response: ${textBody.slice(0, 160)}`);
     }
-    history.push({ role: 'assistant', content: String(lastReply) });
-    await sleep(Number(process.env.MODEL_MIN_INTERVAL_MS) || 5000);
+    if (data && data.success === false) {
+      throw new Error(`product error: ${data.error || data.code || textBody.slice(0, 160)}`);
+    }
+    const { reply, sources } = extractProductPayload(data);
+    if (!String(reply).trim()) {
+      throw new Error(`empty data.reply from product: ${textBody.slice(0, 220)}`);
+    }
+    lastReply = String(reply).trim();
+    lastSources = sources;
+    history.push({ role: 'assistant', content: lastReply });
+    if (i < turns.length - 1) await sleep(PRODUCT_GAP_MS);
   }
-  return { answer: String(lastReply).trim(), sources: [], path: 'product', modelId: null };
+  return { answer: lastReply, sources: lastSources, path: 'product', modelId: null };
 }
 
 async function callGeminiDirect(turns, modelIds, useSearch) {
   const slots = resolveGeminiKeys();
   if (!slots.length) throw new Error('GEMINI_API_KEY pool empty');
   const { GoogleGenAI } = await import('@google/genai');
-  const prompt = turns.length === 1 ? turns[0] : turns.map((t, i) => 'Turn ' + (i + 1) + ': ' + t).join('\n');
+  const prompt = turns.length === 1
+    ? turns[0]
+    : turns.map((t, i) => 'Turn ' + (i + 1) + ': ' + t).join('\n');
   const config = useSearch ? { tools: [{ googleSearch: {} }] } : {};
   const chain = Array.isArray(modelIds) ? modelIds : [modelIds];
   let lastErr;
+  let tried = 0;
   for (const { slot, envName, key } of slots) {
+    if (!slotAvailable(slot)) continue;
     const ai = new GoogleGenAI({ apiKey: key });
     for (const modelId of chain) {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          if (attempt > 0) await sleep(3000 * attempt);
-          const resp = await ai.models.generateContent({ model: modelId, contents: prompt, config });
-          const text = resp?.text
-            || resp?.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('')
-            || '';
-          const chunks = resp?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-          const sources = chunks.map(c => c?.web?.uri).filter(Boolean);
-          return {
-            answer: String(text).trim(),
-            sources,
-            path: useSearch ? 'gemini+search' : 'gemini',
-            modelId,
-            keySlot: slot,
-            keyEnv: envName,
-          };
-        } catch (e) {
-          lastErr = e;
-          const msg = String(e?.message || e);
-          const rotate = /429|quota|rate|RESOURCE_EXHAUSTED|403|API_KEY/i.test(msg);
-          if (rotate) break; // next model or next key
-          if (!/503|UNAVAILABLE|timeout|fetch/i.test(msg)) {
-            // non-retryable for this key/model
-            break;
-          }
+      tried += 1;
+      if (tried > 1) await sleep(GEMINI_GAP_MS);
+      try {
+        const resp = await ai.models.generateContent({ model: modelId, contents: prompt, config });
+        const outText = resp?.text
+          || resp?.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('')
+          || '';
+        if (!String(outText).trim()) throw new Error('empty gemini text');
+        const chunks = resp?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        const sources = chunks.map(c => c?.web?.uri).filter(Boolean);
+        return {
+          answer: String(outText).trim(),
+          sources,
+          path: useSearch ? 'gemini+search' : 'gemini',
+          modelId,
+          keySlot: slot,
+          keyEnv: envName,
+        };
+      } catch (e) {
+        lastErr = e;
+        const msg = String(e?.message || e);
+        if (/429|quota|rate|RESOURCE_EXHAUSTED|403|API_KEY|INVALID|PERMISSION/i.test(msg)) {
+          markSlotCooldown(slot);
+          break;
         }
       }
     }
-    // exhausted models for this key → try next key slot
   }
-  throw lastErr || new Error('gemini pool exhausted');
+  throw new Error(`gemini pool failed after ${tried} attempts: ${String(lastErr?.message || lastErr || 'exhausted').slice(0, 240)}`);
 }
 
 async function main() {
@@ -373,7 +397,11 @@ async function main() {
   const geminiSlots = resolveGeminiKeys();
   const hasKey = geminiSlots.length > 0;
   const hasPassword = Boolean(process.env.EVAL_APP_PASSWORD || process.env.APP_PASSWORD);
-  const configs = (process.env.EVAL_CONFIGS || 'A,B,C,N').split(',').map(s => s.trim()).filter(Boolean);
+  let configs = (process.env.EVAL_CONFIGS || 'A,B').split(',').map(s => s.trim()).filter(Boolean);
+  // C/D from CI IP often 429; only include when explicitly requested
+  if (process.env.EVAL_INCLUDE_C === 'true' && !configs.includes('C')) configs.push('C');
+  if (process.env.EVAL_INCLUDE_D === 'true' && !configs.includes('D')) configs.push('D');
+  if (process.env.EVAL_INCLUDE_N === 'true' && !configs.includes('N')) configs.push('N');
 
   const notRun = [];
   if (!baseUrl) notRun.push('live_product_A/B (no EVAL_BASE_URL)');
@@ -491,7 +519,9 @@ async function main() {
   }
 
   const live = smoke && records.some(r => !r.infra && r.path !== 'fake');
-  const infraRate = records.length ? records.filter(r => r.infra).length / records.length : 1;
+  const infraRate = records.length
+    ? records.filter(r => r.infra || r.path === 'error' || r.path === 'NOT_RUN' || !String(r.answer || '').trim()).length / records.length
+    : 1;
   const summaryMd = [
     `# Eval summary (blinded) — P127.3 ${smoke ? 'smoke' : 'dry-run'}`,
     '',
