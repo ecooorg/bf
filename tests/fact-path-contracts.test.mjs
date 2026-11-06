@@ -18,6 +18,11 @@ const {
   replyAssertsSpecificQuantity,
   applyUngroundedStatisticGate,
   needsFreshWebInfo,
+  extractClaimedNumberTokens,
+  numberTokenInEvidence,
+  normalizeNumberToken,
+  applyGroundedNumberCheck,
+  buildSearchEvidenceText,
 } = await import('../server/webSearch.ts');
 
 const { extractAgentDataPayload } = await import('../server/conversationPayload.ts');
@@ -156,4 +161,69 @@ test('contract: harness still targets nested data.reply (eval regression)', () =
 test('contract: needsFreshWebInfo uses quantitative helper (not only share %)', () => {
   const web = read('server/webSearch.ts');
   assert.match(web, /isQuantitativeFactQuestion\(t\)/);
+});
+
+
+test('contract P127.4: normalize and match grouped population figures', () => {
+  assert.equal(normalizeNumberToken('8 962 300'), '8962300');
+  assert.equal(normalizeNumberToken('8,962,300'), '8962300');
+  assert.equal(normalizeNumberToken('1.7'), '1.7');
+  assert.equal(numberTokenInEvidence('8962300', 'Population: 8 962 300 (BFS)'), true);
+  assert.equal(numberTokenInEvidence('8796669', 'Population: 8 962 300 (BFS)'), false);
+});
+
+test('contract P127.4: extractClaimedNumberTokens from reply', () => {
+  const toks = extractClaimedNumberTokens('The permanent resident population was 8,962,300 at end-2023.');
+  assert.ok(toks.some((t) => t === '8962300' || t.includes('8962300') || normalizeNumberToken(t) === '8962300'));
+});
+
+test('contract P127.4: grounded check keeps reply when number is in digest', () => {
+  const reply = 'Switzerland population was 8,962,300.';
+  const evidence = buildSearchEvidenceText({
+    digest: 'BFS: permanent resident population 8 962 300 on 31 December 2023.',
+    sources: [{ title: 'FSO population' }],
+  });
+  const out = applyGroundedNumberCheck({
+    userText: 'What was Switzerland permanent resident population on 31 December 2023?',
+    reply,
+    searchStatus: 'used',
+    evidenceText: evidence,
+  });
+  assert.equal(out, reply);
+});
+
+test('contract P127.4: grounded check replaces when used but number absent from evidence', () => {
+  const reply = 'Switzerland population was 8,796,669.';
+  const evidence = buildSearchEvidenceText({
+    digest: 'BFS reports 8 962 300 permanent residents end 2023.',
+    sources: [{ title: 'Official statistics' }],
+  });
+  const out = applyGroundedNumberCheck({
+    userText: 'What was Switzerland permanent resident population on 31 December 2023?',
+    reply,
+    searchStatus: 'used',
+    evidenceText: evidence,
+  });
+  assert.notEqual(out, reply);
+  assert.match(out, /do not support|not assert|sources/i);
+});
+
+test('contract P127.4: grounded check no-ops when search not used', () => {
+  const reply = 'Population was 1 234 567.';
+  assert.equal(
+    applyGroundedNumberCheck({
+      userText: 'What was Switzerland permanent resident population on 31 December 2023?',
+      reply,
+      searchStatus: 'not_run',
+      evidenceText: '',
+    }),
+    reply,
+  );
+});
+
+test('contract P127.4: server wires GROUNDED_NUMBER_CHECK flag', () => {
+  const server = read('server.ts');
+  assert.match(server, /GROUNDED_NUMBER_CHECK === 'true'/);
+  assert.match(server, /applyGroundedNumberCheck/);
+  assert.match(server, /buildSearchEvidenceText/);
 });
