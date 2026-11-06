@@ -163,3 +163,29 @@ Report exact commands run and outcomes. For a docs-only patch, product E2E, live
 Every diagnostic workflow publishes exactly one assistant handoff file: `ASSISTANT_SUMMARY.md`. It must be self-contained and include workflow/run/commit identity, overall status, every discovered check with PASS/FAIL/BLOCKED/NOT_RUN status, TAP counts, failure excerpts with source locations when available, and focused reproduction guidance. Do not split the handoff into numbered parts and do not require a nested ZIP to understand the result.
 
 Every workflow uses the same companion log names: `checks.log` (per-log/per-suite results), `failures.log` (error excerpts and context), and `environment.log` (run and runtime metadata). Preserve raw test output in plainly named logs such as `01-dependencies.log`, `02-verification-dag.log`, and `03-ui-smoke.log`. Upload the one handoff and the readable logs as a single workflow artifact. The assistant should normally need only `ASSISTANT_SUMMARY.md`; companion/raw logs are for deeper investigation.
+
+## P127.8 — Project Mode recovery and acceptance checklist
+
+Status of every item is `NOT_RUN` until evidence exists (record `PASS`/`FAIL`/`BLOCKED`/`NOT_RUN` with environment, commit and log). A local unit/contract test is not evidence of a live PostgreSQL race, browser rendering or deployed outcome.
+
+**Automated:** `npm run test:project` (stale-job lease, app-builder checkpoint recovery), `npm run typecheck`, `npm run build`, `npm run docs:check`, `npm run test:core` (includes Simple direct-conversation and Expert/provider regression).
+
+**Live database recovery:**
+1. Start a staged build; wait until one unit result is persisted.
+2. Stop the worker without cancelling the job.
+3. Start two replicas against the same PostgreSQL database.
+4. Exactly one replica claims and resumes the stale job; the other skips the locked/fresh-heartbeat row.
+5. Completed units are reused from `app_build_unit_results`, only unfinished units are generated, the final ZIP is stored and downloadable.
+6. Cancelled and completed jobs are not resumed.
+
+**Browser acceptance (Project Mode):**
+1. Create a project; confirm its passport.
+2. Generate a browser-rendered 3D game project; wait for validation and packaging.
+3. UI reports the real build state; no success state or download link without a stored artifact.
+4. Open the artifact inventory, inspect the ZIP, download the latest and one older version.
+5. Refresh and navigate Results, Plan, Delivery, Files/Journal, Advanced Data; selection and section stay coherent, no dead ends.
+6. Open the downloaded ZIP locally; verify contents and integrity; launch it; the 3D scene renders and core controls work.
+7. Continue with a small change; a new immutable version is created and the previous one stays downloadable.
+8. Cross-project artifact download and an invalid version number are rejected without disclosing another project's bytes.
+
+**Regression boundary (Simple/Expert):** run full `test:core`; compare Simple/Expert route and UI smoke checks with the release baseline; verify Simple text conversation, attachments, retry, model selection, response envelope; Expert route, model/provider policy, structured response and safety flow; confirm Project Mode flags/auth do not alter Simple/Expert navigation or rendering.
