@@ -44,10 +44,10 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '127');
-  assert.equal(pkg.patch, '127.12');
+  assert.equal(pkg.patch, '127.13');
   const lock = JSON.parse(read('package-lock.json'));
   assert.equal(lock.version, '127');
-  assert.equal(lock.patch, '127.12');
+  assert.equal(lock.patch, '127.13');
 });
 
 test('P127.12 ProjectMode wires continue and source ZIP upload', () => {
@@ -69,4 +69,14 @@ test('P127.12 static ZIP usage instructions avoid forced Render deploy', () => {
   assert.match(src, /Open `index\.html` in a browser/);
   assert.match(src, /Improve this program/);
   assert.doesNotMatch(src, /looksStatic[\s\S]{0,200}Render or Railway: create a Web Service/);
+});
+
+test('P127.13 Files-first Project workspace hides analysis until Advanced', () => {
+  const ui = read('src/ProjectMode.tsx');
+  assert.match(ui, /useState<'results' \| 'plan' \| 'delivery' \| 'journal' \| 'data'>\('journal'\)/);
+  assert.match(ui, /data-testid="project-analysis-advanced"/);
+  assert.match(ui, /showDevData && <div data-testid="project-analysis-advanced"/);
+  assert.match(ui, /Hide advanced/);
+  assert.match(ui, /Create a program or upload a source ZIP/);
+  assert.doesNotMatch(ui, /!lastRun && artifacts\.length === 0 \? 'Run an analysis\.'/);
 });
