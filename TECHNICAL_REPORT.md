@@ -1,3 +1,15 @@
+## P127.2b — Evidence (2026-11-06)
+
+**Scope:** Experiment 0 smoke capability (instrument under P127.2; **not** plan P127.3 intervention). User value: NOT_RUN until live labels.
+
+**OBSERVED:** login session path; request body uses brief.decision + history; Gemini retry chain; workflow secrets wiring.
+
+**NOT_RUN:** live smoke answers after this commit; human labels; §7.6 check 1 (N isolation).
+
+**Prior smoke (pre-auth):** 100% I — A/B 401, C 429 (diagnostic only).
+
+---
+
 ## P127.2a — Evidence (2026-11-06)
 
 **Scope:** Non-product CI fix. User value: NOT_RUN.

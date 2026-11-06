@@ -1,3 +1,11 @@
+## P127.2b — Experiment 0 smoke: auth + quota-aware Gemini (instrument, user_value: NOT_RUN) (2026-11-06)
+
+- Still under plan step **P127.2** (Experiment 0), not P127.3 intervention.
+- Instrument: harness logs in to deploy (`/api/login` + session cookie) for A/B; C/D retry on 429 with model cascade and pacing.
+- Workflow passes `secrets.APP_PASSWORD` as EVAL_APP_PASSWORD; default configs A,B,C; base_url biforge.onrender.com.
+- N remains imperfect on shared deploy (search cannot be forced off).
+- Decision: prefer real product answers via session over inventing an auth bypass in product code.
+
 ## P127.2a — lint:copy allowlist for eval instrument (non-product) (2026-11-06)
 
 - Allow Cyrillic in `config/eval-questions.json`, `scripts/baseline-eval.mjs`, `docs/EXPERIMENTS.md` (multilingual fixtures).
