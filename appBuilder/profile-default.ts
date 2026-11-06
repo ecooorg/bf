@@ -15,10 +15,10 @@ export function conservativeProfile(id = 'conservative'): Profile {
     requestsPerMinute: 5,
     tokensPerMinute: 32_000,
     maxParallel: 1,
-    maxCallsPerJob: 25,
+    maxCallsPerJob: 60,
     contextTokens: 8192,
     supportsLongOutput: false,
-    maxUnits: 16,
+    maxUnits: 48,
   };
 }
 

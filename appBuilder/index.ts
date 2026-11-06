@@ -97,3 +97,16 @@ export {
   type PipelineOutcomeResult,
   type StagedNoteInput,
 } from './architectOutcome.ts';
+
+export {
+  estimateComplexity,
+  parseIntentBrief,
+  fallbackIntentBrief,
+  applyBriefToSpec,
+  assessGoalAdequacy,
+  buildIntentPrompt,
+  type IntentBrief,
+  type IntentComplexity,
+  type AdequacyResult,
+} from './intent-brief.ts';
+export { expandedPlanFromBrief, ensureMultiFileStaticPlan, templatePlan } from './stack-static-site.ts';

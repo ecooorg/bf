@@ -7,7 +7,15 @@ import { parseFileMarkers } from './core-markers.ts';
 import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
-import { templatePlan, ensureMultiFileStaticPlan } from './stack-static-site.ts';
+import { templatePlan, ensureMultiFileStaticPlan, expandedPlanFromBrief } from './stack-static-site.ts';
+import {
+  buildIntentPrompt,
+  parseIntentBrief,
+  fallbackIntentBrief,
+  applyBriefToSpec,
+  assessGoalAdequacy,
+  type IntentBrief,
+} from './intent-brief.ts';
 import {
   runStaticValidators,
   REQUIRED_VALIDATORS,
@@ -148,6 +156,8 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const unitReports: BuildReport['units'] = [];
   let failureReason: string | undefined;
   let templateUsed: string | undefined;
+  let intentBrief: IntentBrief | undefined;
+  let planFallbackUsed = false;
   const call = async (role: 'planner' | 'coder', context: string, version?: string, expectedPath?: string) => {
     const p = promptFor(role, context, expectedPath);
     const maxAttempts = 2; // bounded: one original call plus at most one recovery call
@@ -203,6 +213,39 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   };
   try {
     await save();
+    // P127.17 — Intent elaboration before spec/plan/code (user meaning, not ZIP formalities).
+    if (!state.spec) {
+      state.stage = 'intent'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'intent' });
+      const intentUserText = (input.taskText || '').slice(0, 4000) || 'interactive browser program';
+      const ip = buildIntentPrompt(intentUserText);
+      if (state.callsUsed < budget && !cancelled) {
+        state.callsUsed++;
+        const intentResult = await ports.model.complete({
+          role: 'planner',
+          system: ip.system,
+          prompt: ip.prompt,
+          maxOutputTokens: Math.min(4096, profile.maxOutputTokens),
+          signal: options.signal,
+        });
+        if (!isModelError(intentResult) && intentResult.text) {
+          intentBrief = parseIntentBrief(intentResult.text, intentUserText);
+          event(ports, input.jobId, 'intent_accepted', {
+            complexity: intentBrief.complexity,
+            targetModules: intentBrief.targetModules,
+            mustHaveCount: intentBrief.mustHave.length,
+            moduleHints: intentBrief.suggestedModules.length,
+          });
+        } else {
+          intentBrief = fallbackIntentBrief(intentUserText);
+          event(ports, input.jobId, 'intent_fallback', {
+            reason: isModelError(intentResult) ? intentResult.code : 'empty_intent',
+            complexity: intentBrief.complexity,
+          }, 'warn');
+        }
+      } else {
+        intentBrief = fallbackIntentBrief(intentUserText);
+      }
+    }
     if (!state.spec) {
     state.stage = 'spec'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'spec' });
     const specPrompt = `Create a focused but complete project specification as JSON with schemaVersion:1 (number), title, goal, language, stack, features[], nonGoals[], acceptance[] (non-empty string array of testable criteria). Capture all capabilities explicitly requested by the user in features[]. Do not add unrelated features or invent constraints; use nonGoals[] only for clear exclusions. Acceptance criteria must describe observable behavior. Return only JSON. Task: ${input.taskText}`;
@@ -274,6 +317,10 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     }
     state.spec = accepted; await save();
     event(ports, input.jobId, 'spec_accepted', { title: accepted.title, acceptanceCount: accepted.acceptance.length, stack: accepted.stack, coerced: validated && validated.ok ? validated.coerced : [] });
+    if (!intentBrief) intentBrief = fallbackIntentBrief(accepted.goal || accepted.title || '');
+    accepted = applyBriefToSpec(accepted, intentBrief);
+    event(ports, input.jobId, 'spec_brief_applied', { complexity: intentBrief.complexity, acceptanceCount: accepted.acceptance.length, targetModules: intentBrief.targetModules });
+
     }
     const spec = state.spec!;
     if (!state.plan?.units.length) {
@@ -296,12 +343,13 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     if (!plan || !checked.ok) {
       // static_site template fallback (P93.2b); the reason stays visible in the report.
       const why = checked.issues.map((i) => i.message).join('; ') || 'invalid_plan';
-      plan = templatePlan(spec); checked = validatePlan(plan, profile);
+      plan = intentBrief && intentBrief.complexity !== 'trivial' ? expandedPlanFromBrief(spec, intentBrief) : templatePlan(spec); checked = validatePlan(plan, profile);
+      if (!checked.ok) { plan = templatePlan(spec); checked = validatePlan(plan, profile); }
       if (!checked.ok) throw new Error(why);
-      failureReason = undefined; templateUsed = why;
-      event(ports, input.jobId, 'plan_fallback', { reason: why });
+      failureReason = undefined; templateUsed = why; planFallbackUsed = true;
+      event(ports, input.jobId, 'plan_fallback', { reason: why, unitCount: plan.units.length });
     }
-    const multi = ensureMultiFileStaticPlan(plan, spec);
+    const multi = ensureMultiFileStaticPlan(plan, spec, intentBrief);
     if (multi.coerced.length) {
       plan = multi.plan;
       checked = validatePlan(plan, profile);
@@ -670,7 +718,18 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const validatorsOk = files.size > 0 && allFilesDone && checksNotRun.length === 0 && validators.every((v) => v.ok);
   if (files.size === 0 && !failureReason) failureReason = cancelled ? 'cancelled' : 'empty_artifact';
   if (allFilesDone && files.size > 0 && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || checksNotRun.join(', ') || 'not run'}`;
-  const status = cancelled ? 'partial' : validatorsOk ? 'complete' : files.size ? 'partial' : 'failed';
+  // P127.17: static validators are necessary but not sufficient for user-facing SUCCESS.
+  if (!intentBrief) intentBrief = fallbackIntentBrief(state.spec?.goal || state.spec?.title || '');
+  const contentMapForAdequacy = new Map([...files].map(([path, f]) => [path, f.content] as [string, string]));
+  const adequacy = assessGoalAdequacy(contentMapForAdequacy, intentBrief, { planFallback: planFallbackUsed || Boolean(templateUsed) });
+  if (!adequacy.adequate && validatorsOk) {
+    event(ports, input.jobId, 'goal_adequacy_failed', { issues: adequacy.issues, jsBytes: adequacy.jsBytes, moduleCount: adequacy.moduleCount, complexity: intentBrief.complexity }, 'warn');
+    if (!failureReason) failureReason = `goal_not_adequate: ${adequacy.issues.join('; ')}`;
+  } else if (adequacy.adequate) {
+    event(ports, input.jobId, 'goal_adequacy_passed', { jsBytes: adequacy.jsBytes, moduleCount: adequacy.moduleCount, complexity: intentBrief.complexity });
+  }
+  const goalImplemented = validatorsOk && adequacy.adequate;
+  const status = cancelled ? 'partial' : goalImplemented ? 'complete' : files.size ? 'partial' : 'failed';
   const outcome = status === 'complete' ? 'SUCCESS' as const : status === 'partial' ? 'PARTIAL' as const : 'FAILED' as const;
   const failedStage = status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage);
   const note = failureReason ?? (templateUsed ? `plan_fallback_used: ${templateUsed}` : undefined);
@@ -680,7 +739,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     jobId: input.jobId,
     status,
     outcome,
-    goalImplemented: validatorsOk,
+    goalImplemented,
     runtimeVerified: false,
     ...(orphanedFiles.length ? { orphanedFiles } : {}),
     ...(droppedOrphanedFiles.length ? { droppedOrphanedFiles } : {}),

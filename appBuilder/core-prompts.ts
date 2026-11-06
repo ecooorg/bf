@@ -13,7 +13,9 @@ Create an implementation plan that fits the user's actual goal and requested fun
 - Default to a small static site that opens by double-click: no build step, no CDN, no TypeScript, no React, no Three.js unless the user explicitly asked for them.
 - For any interactive app (game, canvas, keyboard/touch controls, score, editor, non-trivial logic): plan MULTIPLE files — at least index.html + app.js, and style.css when layout is non-trivial. Never put the whole game or app logic in a single index.html unit.
 - A single HTML file is allowed only for a trivial static page with almost no script.
-- Keep each unit small enough to finish in one model reply (prefer under ~200 lines of source per file).
+- Keep each unit small enough to finish in one model reply (prefer under ~200 lines / ~8KB of source per file).
+- When the task is standard or ambitious, plan many small modules (often 12–32 files: js/*, style.css, index.html), not 1–3 files.
+- Prefer paths like js/scene.js, js/input.js, js/entities.js over one app.js monolith.
 - Avoid features the user did not request unless they are necessary for the stated goal.
 
 When the plan uses multiple files, define the file map and contracts: paths, exports, imports, function/property names, and how HTML loads CSS/JS. Every planned import must resolve to a planned file. The entry HTML must reference every CSS/JS file that is part of the deliverable (no orphan modules beside a self-contained HTML).
