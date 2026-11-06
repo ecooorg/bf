@@ -1,3 +1,10 @@
+## P127.3a — Fact-path contract tests (instrument) (2026-11-06)
+
+- `tests/fact-path-contracts.test.mjs`: pure contracts for quantitative detection, ungrounded gate, envelope `data.reply`.
+- `server/conversationPayload.ts`: pure `extractAgentDataPayload` (shared contract surface).
+- Wired into `npm run test:answer-quality`.
+- No product behaviour change.
+
 ## P127.3 — Ungrounded fact gate (flag-gated product intervention) (2026-11-06)
 
 - Hypothesis from Experiment 0 smoke: confident quantities without search grounding → high W on stats/lookup.

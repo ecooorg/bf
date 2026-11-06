@@ -2,7 +2,7 @@
   "name": "biforge",
   "private": true,
   "version": "127",
-  "patch": "127.3",
+  "patch": "127.3a",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -49,7 +49,7 @@
     "carousel:live": "node --import tsx scripts/carousel-live-smoke.mjs",
     "test:search-heuristics": "node --import tsx --test --test-timeout=60000 tests/search-retrieval.test.mjs tests/search-decoupling.test.mjs",
     "workflow:preflight": "node scripts/workflow-preflight.mjs",
-    "test:answer-quality": "node --import tsx --test --test-timeout=60000 tests/search-retrieval.test.mjs tests/conversation-simple-direct.test.mjs",
+    "test:answer-quality": "node --import tsx --test --test-timeout=60000 tests/search-retrieval.test.mjs tests/conversation-simple-direct.test.mjs tests/fact-path-contracts.test.mjs",
     "test:agents": "node --test tests/agents-contract.test.mjs",
     "test:governance": "node --test tests/governance-repo.test.mjs tests/governance-workflow-pins.test.mjs",
     "test:diagnostics": "node --test tests/diagnostics-ops.test.mjs",

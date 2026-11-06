@@ -1,3 +1,11 @@
+## P127.3a — Evidence (2026-11-06)
+
+**Scope:** Tests only.
+
+**OBSERVED:** 14/14 fact-path contracts pass.
+
+---
+
 ## P127.3 — Evidence (2026-11-06)
 
 **Scope:** Product intervention (flag default off). User value: pending flag-on smoke.
