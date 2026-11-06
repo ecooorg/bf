@@ -1,3 +1,15 @@
+## P127.14 — CI fix for 127.12/127.13 (lint:copy + typecheck) (2026-11-06)
+
+**Type:** MAINTENANCE. **Scope:** copy in `ProjectMode.tsx`; upload typing in `projectRoutes.ts`; package metadata.
+
+**OBSERVED (CI):** After P127.13, DAG failed `lint:copy` (workspace sentence >24 words; visible term "raw JSON"), `typecheck`/`build:server` (`Uint8Array<ArrayBufferLike>` not assignable on upload `data`).
+
+**CHANGE:** Short workspace string; tab label `Project data`; `Uint8Array.from(bytes)` for upload payload; patch `127.14`.
+
+**VERIFICATION:** Prior CI logs show the three failures; this sandbox does **NOT_RUN** `lint:copy` / `typecheck` / `build`. Expected green on those checks after apply.
+
+---
+
 ## P127.13 — Project Mode Files-first workspace (2026-11-06)
 
 **Type:** USER_VALUE. **Scope:** `src/ProjectMode.tsx` layout/copy only (+ package metadata/tests). Simple and Expert untouched. No server API change.

@@ -1,3 +1,10 @@
+## [127.14] - CI fix: lint:copy + upload Uint8Array type
+
+- Shortened Project Mode workspace help text (lint:copy 24-word limit).
+- Renamed Advanced tab label `Raw JSON` → `Project data` (forbidden internal term).
+- `POST .../artifacts/upload`: pass `Uint8Array.from(Buffer)` so typecheck accepts ArrayBuffer-backed bytes.
+- Package patch `127.14`.
+
 ## [127.13] - Project Mode Files-first workspace
 
 - Default project tab is **Files** (not Results).
