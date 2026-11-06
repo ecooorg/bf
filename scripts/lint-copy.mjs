@@ -26,6 +26,10 @@ const LANGUAGE_ALLOWLIST = new Set([
   'docs/USER_VALUE_EVALUATION.md', 'docs/BiForge-AUDIT-REPORT-P124-9.md',
   'TECHNICAL_REPORT.md', 'CHANGELOG.md',
   'scripts/golden-tasks.json',
+  // P127: eval instrument — multilingual dev questions + abstention fixtures (RU/DE/FR)
+  'config/eval-questions.json',
+  'scripts/baseline-eval.mjs',
+  'docs/EXPERIMENTS.md',
 ]);
 const REPO_SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', 'dist-server', 'artifacts', 'coverage', 'archive', 'ARCHIVE']);
 function walkRepo(dir = '.', out = []) {
