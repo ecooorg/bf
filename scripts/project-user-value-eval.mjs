@@ -175,7 +175,7 @@ function evaluateAsHuman(scenario, pkg) {
   });
 
   // 4. Controls / interactivity markers for interactive requests
-  const wantsInteractive = /game|play|race|walk|touch|control|tablet|игр/.test(request);
+  const wantsInteractive = /game|play|race|walk|touch|control|tablet/.test(request);
   const hasLoop = /requestanimationframe|setinterval|settimeout/.test(blob);
   const hasInput = /keydown|keyup|pointer|touchstart|addEventListener\s*\(\s*['\"]click/.test(blob);
   const interactPass = !wantsInteractive || (hasLoop && (hasInput || /button|control/.test(blob)));
