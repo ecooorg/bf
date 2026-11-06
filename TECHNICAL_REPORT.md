@@ -1,3 +1,15 @@
+## P127.3 — Evidence (2026-11-06)
+
+**Scope:** Product intervention (flag default off). User value: pending flag-on smoke.
+
+**OBSERVED (pre):** eval smoke A/B infra 4%; machine W ~50% on 12; empty/wrong figures when search not grounded.
+
+**CHANGE:** honesty gate + broader quantitative trigger; enable with UNGROUNDED_FACT_GATE=true on Render.
+
+**NOT_RUN:** paired before/after with flag on.
+
+---
+
 ## P127.2e — Evidence (2026-11-06)
 
 **Scope:** Instrument. User value: NOT_RUN.

@@ -1,3 +1,10 @@
+## P127.3 — Ungrounded fact gate (flag-gated product intervention) (2026-11-06)
+
+- Hypothesis from Experiment 0 smoke: confident quantities without search grounding → high W on stats/lookup.
+- `isQuantitativeFactQuestion` + broader gate; wire Simple Direct + Expert/structured behind `UNGROUNDED_FACT_GATE` (default **off**).
+- `needsFreshWebInfo` includes population/GDP/rate prompts so search is more likely to run.
+- Direct responses may include `sources` when search returned them.
+
 ## P127.2e — eval smoke reliability (instrument) (2026-11-06)
 
 - Product: parse `data.reply` + sources; empty body = infra.

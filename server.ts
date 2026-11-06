@@ -56,7 +56,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, applyUngroundedStatisticGate, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -1514,12 +1514,24 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
             ? 'Simple response HTTP write completed; browser rendering is not observed'
             : event === 'conversation_http_response_failure' ? 'Simple response completed with an unsuccessful HTTP status' : 'Simple response connection closed before successful HTTP completion', details });
       }, metricDetails);
+      const searchStatusDirect = searchResult?.status || (searchExpected ? 'failed' : 'not_run');
+      let directReply = String(direct.reply || '');
+      // P127.3: optional honesty gate (default off). UNGROUNDED_FACT_GATE=true replaces ungrounded quantities.
+      if (process.env.UNGROUNDED_FACT_GATE === 'true') {
+        directReply = applyUngroundedStatisticGate({
+          userText: userTextNow,
+          reply: directReply,
+          searchStatus: searchStatusDirect,
+        });
+      }
       return ok(res, {
-        reply: direct.reply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
+        reply: directReply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
         document: null, attachmentNotes: [], state: safeState,
+        ...(searchResult?.sources?.length ? { sources: searchResult.sources } : {}),
       }, { provider: 'gemini', model: direct.model, calls: direct.keyAttempts, fallback: false,
-        direct_conversation: true, key_slot: direct.keySlot, key_attempts: direct.keyAttempts });
+        direct_conversation: true, key_slot: direct.keySlot, key_attempts: direct.keyAttempts,
+        ungrounded_fact_gate: process.env.UNGROUNDED_FACT_GATE === 'true' || undefined });
     }
     // PI-02: intent flags from the last user turn (and recent history for a standing ban on questions).
     const intentFlags = detectUserIntentFlags(lastUserText, fullHistory);
@@ -1847,8 +1859,16 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
       releasePatch: process.env.npm_package_version || undefined,
       responseMeta,
     } });
+    let gatedReply = visibleReply;
+    if (process.env.UNGROUNDED_FACT_GATE === 'true') {
+      gatedReply = applyUngroundedStatisticGate({
+        userText: String(lastUserText || brief?.decision || ''),
+        reply: String(visibleReply || ''),
+        searchStatus: String(webSearch?.status || 'not_run'),
+      });
+    }
     ok(res, {
-      reply: visibleReply,
+      reply: gatedReply,
       question: cleanQuestion,
       contextSufficiency,
       triage: audit.triage,
