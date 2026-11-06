@@ -6,7 +6,7 @@
 |-------|-------|
 | **ID** | EXP-0 |
 | **Date** | 2026-11-06 |
-| **Patch** | P127.2 (Experiment 0; Stage B pre-register + live harness) |
+| **Patch** | P127.2b (Experiment 0 smoke: login + quota-aware C; still Stage A/B of P127.2) |
 | **Type** | EXPERIMENT |
 | **User problem and evidence** | No measured oracle for factual answer quality (Perestroika §1–§2). |
 | **Hypothesis** | Versioned question set + multi-config harness yields comparable W/G/A rates for Simple (A), Expert (B), Gemini+Search (C), strongest (D), negative control (N). |
@@ -67,6 +67,11 @@ Source: `https://biforge.onrender.com/health/runtime-config` · commit `3451600`
 
 | Stage | Status |
 |-------|--------|
-| A Smoke | NOT_RUN — Navigator: Baseline Eval, base_url=https://biforge.onrender.com |
+| A Smoke | READY — needs APP_PASSWORD in GH secrets; dispatch A,B,C |
 | B Pre-register | DONE |
 | C–F | blocked on A |
+
+
+### Auth for A/B (P127.2b)
+
+Production has `appAuth=true`. Smoke logs in via `POST /api/login` using GitHub secret `APP_PASSWORD` (mapped to `EVAL_APP_PASSWORD`). Cookie `be_session` is attached to product calls. C/D use `GEMINI_API_KEY` only; 429 retries with model fallback (`3.5` → `3.1` flash-lite) and 6s pacing.
