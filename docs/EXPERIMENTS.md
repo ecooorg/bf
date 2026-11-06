@@ -99,3 +99,14 @@ Production has `appAuth=true`. Smoke logs in via `POST /api/login` using GitHub 
 ### P127.3a — Fact-path contracts
 
 Deterministic offline tests for quantitative triggers, ungrounded gate, HTTP data.reply. In Answer Quality suite. No product change.
+
+
+## P127.4 — Grounded number check
+
+| Field | Value |
+|-------|-------|
+| **Hypothesis** | Search can be `used` while the model still asserts a number absent from digest/titles (E01/A class). |
+| **Change** | `applyGroundedNumberCheck` after optional P127.3 gate; evidence = digest + source titles. Flag **`GROUNDED_NUMBER_CHECK=true`** (default off). |
+| **Metric** | Smoke A/B: wrong ungrounded figures on lookup should drop; chat unchanged. |
+| **Rollback** | Unset / false the flag. |
+| **Result** | NOT_RUN until flag-on deploy + smoke |
