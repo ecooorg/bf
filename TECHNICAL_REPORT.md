@@ -1,3 +1,20 @@
+## P127.16 — Multi-file plan + MAX_TOKENS/missing_end (2026-11-06)
+
+**Type:** RELIABILITY / USER_VALUE. **Scope:** appBuilder plan/coder path + ProjectChat lint copy. Simple/Expert untouched.
+
+**OBSERVED (logs):** Job `aa2464d9…` FAILED: planner emitted one `index.html` unit; coder hit `finishReason: MAX_TOKENS` twice; `missing_end_for:index.html`; no ZIP. CI on 127.15: only `lint:copy` failed (ProjectChat welcome >24 words).
+
+**CHANGE:**
+1. Plan prompt v5 + `ensureMultiFileStaticPlan` after plan accept.
+2. Truncation-aware unit repair + compact third attempt; `truncated_unit:` failure taxonomy.
+3. ProjectChat welcome ≤24 words; package `127.16`.
+
+**VERIFICATION:** Category tests **NOT_RUN** in sandbox; expected in CI. Live model Tetris rebuild **NOT_RUN**.
+
+**LIMITATIONS:** Does not raise provider hard token caps. Does not guarantee high game quality — only that units are small enough to close markers. Compact retry may still fail if the model ignores limits.
+
+---
+
 ## P127.15 — Project Mode chat-first surface (2026-11-06)
 
 **Type:** USER_VALUE. **Scope:** Project Mode client only (`ProjectChat.tsx`, `ProjectMode.tsx`). APIs from P127.12 reused. Simple/Expert untouched.

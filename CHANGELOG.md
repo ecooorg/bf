@@ -1,3 +1,12 @@
+## [127.16] - Multi-file plan + MAX_TOKENS / missing_end recovery
+
+- Planner prompt **v5**: interactive apps must plan multiple files (index.html + app.js [+ style.css]); forbid mega-single HTML.
+- `ensureMultiFileStaticPlan`: coerce single-HTML / no-JS interactive plans to the static multi-file template.
+- Coder: stronger compact-unit + required `<<<END>>>` instructions.
+- On truncation / MAX_TOKENS / missing_end: explicit repair hint, then one ultra-compact retry (`unit_repair_compact`); clearer `truncated_unit:` failure reason.
+- ProjectChat welcome text shortened for `lint:copy`.
+- Package patch `127.16`.
+
 ## [127.15] - Project Mode chat-first surface
 
 - Default Project UI is a **single chat**: user describes the program, gets a ZIP (or an error), then keeps chatting to refine.
