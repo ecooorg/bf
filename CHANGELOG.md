@@ -1,9 +1,3 @@
-## [127.17a] - CI fix: intent-brief language + duplicate templatePlan export
-
-- Removed Cyrillic tokens from `intent-brief.ts` complexity regex (lint:copy).
-- `appBuilder/index.ts`: drop duplicate `templatePlan` re-export (esbuild/tsc).
-- Package patch `127.17a`.
-
 ## [127.18] - Project Mode user-value workflow (human simulator)
 
 - New offline **human-simulator** evaluator: `scripts/project-user-value-eval.mjs`.
