@@ -29,14 +29,17 @@ test('search decoupling suite still covers Simple Direct vs search responsibilit
 });
 
 
-test('P126.30 statistic share questions still trigger search; reply gate not applied', () => {
+test('P127.3 ungrounded fact gate is flag-gated in server; quantitative helpers exported', () => {
   const web = read('server/webSearch.ts');
   assert.match(web, /export function isStatisticShareQuestion/);
-  assert.match(web, /isStatisticShareQuestion\(t\)/);
+  assert.match(web, /export function isQuantitativeFactQuestion/);
+  assert.match(web, /export function applyUngroundedStatisticGate/);
+  assert.match(web, /isQuantitativeFactQuestion\(t\)/);
   const server = read('server.ts');
-  assert.doesNotMatch(server, /applyUngroundedStatisticGate/);
-  // Simple Direct still returns model reply field directly
-  assert.match(server, /reply: direct\.reply/);
+  assert.match(server, /applyUngroundedStatisticGate/);
+  assert.match(server, /UNGROUNDED_FACT_GATE/);
+  // Default remains model reply; gate only when env flag is true
+  assert.match(server, /UNGROUNDED_FACT_GATE === 'true'/);
 });
 
 test('P126.29 pure patterns: larch percent question matches share trigger', () => {
@@ -83,4 +86,24 @@ test('P126.31 pure: meta follow-up strips to empty-ish; factual percent question
   const meta = 'проведи поиск на других сайтах и ответь на мой вопрос';
   const m = core(meta);
   assert.ok(m.length < 20, m);
+});
+
+
+test('P127.3 pure: population question is quantitative; ungrounded reply gated', async () => {
+  const { isQuantitativeFactQuestion, applyUngroundedStatisticGate, replyAssertsSpecificQuantity } = await import('../server/webSearch.ts');
+  assert.equal(isQuantitativeFactQuestion('What was Switzerland permanent resident population on 31 December 2023?'), true);
+  assert.equal(isQuantitativeFactQuestion('привет, как дела'), false);
+  assert.equal(replyAssertsSpecificQuantity('The population was 8 962 300.'), true);
+  const gated = applyUngroundedStatisticGate({
+    userText: 'What was Switzerland permanent resident population on 31 December 2023?',
+    reply: 'The population was 8 962 300.',
+    searchStatus: 'not_run',
+  });
+  assert.match(gated, /cannot confirm|could not verify|not completed|search the web/i);
+  const ok = applyUngroundedStatisticGate({
+    userText: 'What was Switzerland permanent resident population on 31 December 2023?',
+    reply: 'The population was 8 962 300.',
+    searchStatus: 'used',
+  });
+  assert.equal(ok, 'The population was 8 962 300.');
 });
