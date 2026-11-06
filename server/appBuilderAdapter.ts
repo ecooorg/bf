@@ -27,7 +27,7 @@ function rowToJob(r: any): JobState {
   return { schemaVersion: SCHEMA_VERSION, id: r.id, projectId: r.project_id, userId: r.user_id, status: r.status, stage: r.stage, spec: r.spec ?? null, plan: r.plan ?? null, callsUsed: r.calls_used, callsBudget: r.calls_budget, error: r.error ?? null, report: r.report ?? null, artifactId: r.artifact_id ?? null, createdAt: iso(r.created_at), updatedAt: iso(r.updated_at), heartbeatAt: iso(r.heartbeat_at) };
 }
 
-export function createStorePort(deps: Pick<AdapterDeps, 'getPoolFn'> = {}): StorePort & { taskText(jobId: string): Promise<string | null>; setTaskText(jobId: string, text: string): Promise<void> } {
+export function createStorePort(deps: Pick<AdapterDeps, 'getPoolFn'> = {}): StorePort & { taskText(jobId: string): Promise<string | null>; setTaskText(jobId: string, text: string): Promise<void>; claimResumable(olderThanMs: number): Promise<JobState[]> } {
   const pool = () => (deps.getPoolFn ?? getPool)();
   return {
     async saveJob(s) {
@@ -41,6 +41,27 @@ export function createStorePort(deps: Pick<AdapterDeps, 'getPoolFn'> = {}): Stor
     async loadJob(id) { const r = await (await pool()).query('SELECT * FROM app_build_jobs WHERE id=$1', [id]); return r.rows[0] ? rowToJob(r.rows[0]) : null; },
     async listResumable(olderThanMs) {
       const r = await (await pool()).query(`SELECT * FROM app_build_jobs WHERE status IN ('queued','running') AND heartbeat_at < now() - ($1::int * interval '1 millisecond') ORDER BY created_at LIMIT 20`, [Math.trunc(olderThanMs)]);
+      return r.rows.map(rowToJob);
+    },
+    /** Atomically leases stale jobs so only one server instance resumes each job. */
+    async claimResumable(olderThanMs) {
+      const r = await (await pool()).query(
+        `WITH candidates AS (
+           SELECT id FROM app_build_jobs
+           WHERE status IN ('queued','running')
+             AND heartbeat_at < now() - ($1::int * interval '1 millisecond')
+           ORDER BY created_at
+           LIMIT 20
+           FOR UPDATE SKIP LOCKED
+         )
+         UPDATE app_build_jobs AS jobs
+         SET heartbeat_at=now(), updated_at=now()
+         FROM candidates
+         WHERE jobs.id=candidates.id
+           AND jobs.status IN ('queued','running')
+         RETURNING jobs.*`,
+        [Math.max(5_000, Math.trunc(olderThanMs))],
+      );
       return r.rows.map(rowToJob);
     },
     async putUnitResult(x) { await (await pool()).query('INSERT INTO app_build_unit_results (job_id,unit_id,cache_key,content,content_hash,created_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT DO NOTHING', [x.jobId, x.unitId, x.cacheKey, x.content, x.contentHash, x.createdAt]); },
@@ -210,8 +231,15 @@ export async function cancelStagedBuild(deps: Pick<AdapterDeps, 'getPoolFn'>, jo
 
 /** Called at startup when the flag is on: restarts jobs whose heartbeat went stale (process restart). */
 export async function resumeStaleJobs(deps: AdapterDeps): Promise<number> {
-  const stale = await createStorePort(deps).listResumable(staleMs()); let n = 0;
-  for (const j of stale) if (!running.has(j.id)) { void executeJob(deps, j.id); n++; }
+  const store = createStorePort(deps);
+  // Claim in the database before scheduling work: process-local `running` alone
+  // cannot prevent two replicas from resuming the same stale job concurrently.
+  const stale = await store.claimResumable(staleMs()); let n = 0;
+  for (const j of stale) {
+    if (running.has(j.id)) continue;
+    void executeJob(deps, j.id);
+    n++;
+  }
   return n;
 }
 
