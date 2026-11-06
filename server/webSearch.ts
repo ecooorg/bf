@@ -164,6 +164,20 @@ export function isStatisticShareQuestion(text: string): boolean {
   );
 }
 
+/** P127.3: population / official counts / rates that need grounded lookup (extends share questions). Pure. */
+export function isQuantitativeFactQuestion(text: string): boolean {
+  const t = String(text || '').trim();
+  if (t.length < 8) return false;
+  if (isStatisticShareQuestion(t)) return true;
+  return (
+    /(?:населен\p{L}*|численност\p{L}*|постоянн\p{L}*\s+населен|permanent\s+resident\s+population|\bpopulation\b)/iu.test(t)
+    || /(?:сколько\s+(?:человек|жителей|людей)|how\s+many\s+(?:people|residents|inhabitants))/iu.test(t)
+    || /(?:ввп|\bgdp\b|валовой\s+внутренн)/iu.test(t)
+    || /(?:процентн\p{L}*\s+ставк|interest\s+rate|policy\s+rate|ключев\p{L}*\s+ставк)/iu.test(t)
+    || /(?:на\s+31\s+декабря|as\s+of\s+31\s+december|end\s+of\s+20\d{2})/iu.test(t)
+  );
+}
+
 /** True when the model reply asserts a concrete percentage as if from data/inventory. Pure. */
 export function replyAssertsGroundedPercentage(reply: string): boolean {
   const r = String(reply || '');
@@ -174,9 +188,21 @@ export function replyAssertsGroundedPercentage(reply: string): boolean {
   );
 }
 
+/** P127.3: reply claims a specific quantity (%, large headcount, millions) as fact. Pure. */
+export function replyAssertsSpecificQuantity(reply: string): boolean {
+  const r = String(reply || '');
+  if (replyAssertsGroundedPercentage(r)) return true;
+  // Bare or phrased large integers typical of population / official counts
+  if (/\b\d{1,3}(?:[ \u00a0.,']\d{3}){1,3}\b/.test(r)) return true;
+  if (/\b\d+(?:[.,]\d+)?\s*(?:million|миллион|млн|milliard|billion|млрд)\b/iu.test(r)) return true;
+  if (/(?:составля\p{L}*|was|were|is|are|равня\p{L}*)\s+\d/iu.test(r) && /\d{4,}/.test(r)) return true;
+  return false;
+}
+
 /**
- * P126.29: when search did not ground the turn, do not leave invented inventory percentages as facts.
- * Returns the original reply when grounded or when the reply is not a confident percentage claim.
+ * P126.29 / P127.3: when search did not ground the turn, do not leave invented quantities as facts.
+ * Returns the original reply when grounded or when the reply is not a confident quantitative claim.
+ * Enable at call site with UNGROUNDED_FACT_GATE=true (default off).
  */
 export function applyUngroundedStatisticGate(input: {
   userText: string;
@@ -185,19 +211,19 @@ export function applyUngroundedStatisticGate(input: {
 }): string {
   const status = String(input.searchStatus || '');
   if (status === 'used' || status === 'used_weak') return input.reply;
-  if (!isStatisticShareQuestion(input.userText)) return input.reply;
-  if (!replyAssertsGroundedPercentage(input.reply)) return input.reply;
+  if (!isQuantitativeFactQuestion(input.userText)) return input.reply;
+  if (!replyAssertsSpecificQuantity(input.reply)) return input.reply;
   const cyrillic = /\p{Script=Cyrillic}/u.test(input.userText);
   if (cyrillic) {
     return (
       'Проверенный поиск по этому вопросу не выполнен (или не дал пригодных источников), '
-      + 'поэтому я не могу подтвердить конкретный процент и не ссылаюсь на инвентаризацию или «актуальные данные» без проверки. '
-      + 'Попросите найти данные в сети явно, или продолжим без точных цифр.'
+      + 'поэтому я не могу подтвердить конкретную цифру и не выдаю её как факт без проверки. '
+      + 'Попросите найти данные в сети явно — или продолжим без точных чисел.'
     );
   }
   return (
     'A verified web lookup was not completed for this question (or returned no usable sources), '
-    + 'so I cannot confirm a specific percentage or cite inventory figures as current data. '
+    + 'so I cannot confirm a specific figure as fact. '
     + 'Ask me explicitly to search the web, or we can continue without exact numbers.'
   );
 }
@@ -205,7 +231,7 @@ export function applyUngroundedStatisticGate(input: {
 export function needsFreshWebInfo(text: string): boolean {
   const t = String(text || '');
   if (t.trim().length < 8) return false;
-  if (isStatisticShareQuestion(t)) return true;
+  if (isQuantitativeFactQuestion(t)) return true;
   return FRESH_PATTERNS.some((p) => p.test(t));
 }
 
