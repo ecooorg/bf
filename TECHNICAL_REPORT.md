@@ -1,3 +1,22 @@
+## P127.11 — Patch process compliance and integration-gate tests (2026-11-06)
+
+**Type:** RELIABILITY / MAINTENANCE. **Scope:** package metadata + Project Mode category tests. Simple and Expert untouched.
+
+**OBSERVED (process):** P127.9 and P127.10 ZIPs omitted `package.json` / `package-lock.json` patch bumps required by AGENTS §7 delivery checklist item 1, because the working extract initially lacked those files. G3 also requires CI-runnable category tests for new validators; those were **NOT_RUN** / not delivered in 127.9–127.10.
+
+**CHANGE:**
+1. `package.json` and `package-lock.json`: `patch` → `127.11` (root lock `patch` and `packages[""].patch` aligned).
+2. `tests/project-builder-recovery.test.mjs`: contracts for required validators list, reachability on self-contained HTML, orphan drop, member-contracts (`paused` vs `isPaused`), completeness truncation, and SUCCESS `runtimeVerified === false`.
+3. `tests/project-mode-contract.test.mjs`: asserts package patch `127.11`.
+
+**VERIFICATION:**
+- Category tests in this delivery: **NOT_RUN** in this sandbox (full dependency install / `tsx` not executed here). Expected to run under existing `npm run test:core` / `test:project` in CI.
+- `version:check`: **NOT_RUN** locally; metadata fields set to match AGENTS numbering (`version` 127, `patch` 127.11).
+
+**LIMITATIONS:** Does not re-ship P127.9/P127.10 code; those remain prior deliveries. Apply order: 127.9 → 127.10 → 127.11.
+
+---
+
 ## P127.10 — Member contracts and coherent self-contained packages (2026-11-06)
 
 **Type:** RELIABILITY. **Scope:** Project Mode `appBuilder/` only. Simple and Expert untouched.

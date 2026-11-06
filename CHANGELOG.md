@@ -1,3 +1,10 @@
+## [127.11] - Patch process compliance + integration-gate tests
+
+- Advanced `package.json` / `package-lock.json` product patch metadata to `127.11` (major `version` remains `127`).
+- Extended category suite `tests/project-builder-recovery.test.mjs` with contracts for `reachability`, `completeness`, `member-contracts`, orphan drop, and `runtimeVerified: false` on SUCCESS (covers P127.9–P127.10 gates under G3).
+- Extended `tests/project-mode-contract.test.mjs` with package metadata assertion.
+- No Simple/Expert behaviour change.
+
 ## [127.10] - Member contracts + coherent package for self-contained HTML
 
 - Added required validator `member-contracts`: after `import { Class }` + `new Class()`, instance property/method accesses must match the class surface (`this.x =` assignments and methods). Suggests `is*`/`get*` near-misses (e.g. `paused` vs `isPaused`).
