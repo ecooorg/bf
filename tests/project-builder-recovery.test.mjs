@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runBuild, formatFileMarker, SCHEMA_VERSION } from '../appBuilder/index.ts';
-import { ensureMultiFileStaticPlan, templatePlan } from '../appBuilder/stack-static-site.ts';
+import { ensureMultiFileStaticPlan, templatePlan, expandedPlanFromBrief } from '../appBuilder/stack-static-site.ts';
+import { assessGoalAdequacy, fallbackIntentBrief, parseIntentBrief, applyBriefToSpec } from '../appBuilder/intent-brief.ts';
 import {
   validateRefs,
   validateModuleContracts,
@@ -239,4 +240,35 @@ test('P127.16 template plan is already multi-file', () => {
   const out = ensureMultiFileStaticPlan(t, spec);
   assert.equal(out.coerced.length, 0);
   assert.ok(t.units.some((u) => u.path === 'app.js'));
+});
+
+test('P127.17 ambitious brief rejects tiny stub via assessGoalAdequacy', () => {
+  const brief = fallbackIntentBrief('3D racing game through a city with traffic');
+  assert.equal(brief.complexity, 'ambitious');
+  assert.ok(brief.targetModules >= 16);
+  const files = new Map([
+    ['index.html', '<!doctype html><canvas></canvas><script src="app.js"></script>'],
+    ['app.js', 'const c=document.querySelector("canvas");c.getContext("2d");'],
+  ]);
+  const a = assessGoalAdequacy(files, brief);
+  assert.equal(a.adequate, false);
+  assert.ok(a.issues.some((i) => /stub_size|stub_modules|stub_theme/.test(i)));
+});
+
+test('P127.17 expandedPlanFromBrief yields many small modules', () => {
+  const brief = fallbackIntentBrief('animals walking in a forest game');
+  const spec = { schemaVersion: 1, title: 'Forest', goal: brief.expandedGoal, language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: brief.mustHave };
+  const plan = expandedPlanFromBrief(spec, brief);
+  assert.ok(plan.units.length >= 5, `units ${plan.units.length}`);
+  assert.ok(plan.units.every((u) => u.path && u.path.length < 80));
+  const coerced = ensureMultiFileStaticPlan({ schemaVersion: 1, specHash: 'x', units: [{ id: 'i', kind: 'file', path: 'index.html', purpose: 'x', dependsOn: [], exports: [], contract: '', maxOutputTokens: 1000, status: 'pending', attempts: 0 }], order: ['i'] }, spec, brief);
+  assert.ok(coerced.coerced.length >= 1);
+  assert.ok(coerced.plan.units.length >= 5);
+});
+
+test('P127.17 applyBriefToSpec embeds MUST acceptance', () => {
+  const brief = fallbackIntentBrief('todo list');
+  const spec = { schemaVersion: 1, title: 'T', goal: 'g', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] };
+  const next = applyBriefToSpec(spec, brief);
+  assert.ok(next.acceptance.some((a) => a.startsWith('MUST:')));
 });
