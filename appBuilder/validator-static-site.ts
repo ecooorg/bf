@@ -5,7 +5,7 @@ import type { ReportValidator, Spec } from './core-types.ts';
 import { MAX_FILES, MAX_TOTAL_BYTES } from './stack-static-site.ts';
 
 export type FileMap = Map<string, string>;
-/** Required for SUCCESS. Includes reachability + completeness (P127.9). */
+/** Required for SUCCESS. Includes reachability, completeness, member-contracts (P127.9–P127.10). */
 export const REQUIRED_VALIDATORS = [
   'html-structure',
   'js-syntax',
@@ -17,6 +17,7 @@ export const REQUIRED_VALIDATORS = [
   'dom-wiring',
   'reachability',
   'completeness',
+  'member-contracts',
 ] as const;
 type Issue = ReportValidator['issues'][number];
 const result = (name: string, issues: Issue[]): ReportValidator => ({ name, ok: issues.length === 0, issues });
@@ -434,6 +435,194 @@ export function orphanedPathsFromReachability(v: ReportValidator | undefined): s
   return v.issues.map((i) => i.path).filter((p): p is string => Boolean(p) && !p.includes(' '));
 }
 
+type ClassSurface = { methods: Set<string>; props: Set<string> };
+
+function collectClassSurfaces(sf: ts.SourceFile): Map<string, ClassSurface> {
+  const out = new Map<string, ClassSurface>();
+  const walkMembers = (members: ts.NodeArray<ts.ClassElement>, surface: ClassSurface) => {
+    for (const m of members) {
+      if (ts.isMethodDeclaration(m) && m.name && ts.isIdentifier(m.name)) surface.methods.add(m.name.text);
+      if (ts.isConstructorDeclaration(m) && m.body) {
+        for (const st of m.body.statements) {
+          if (ts.isExpressionStatement(st) && ts.isBinaryExpression(st.expression) && st.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            const left = st.expression.left;
+            if (ts.isPropertyAccessExpression(left) && left.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isIdentifier(left.name)) {
+              surface.props.add(left.name.text);
+            }
+          }
+        }
+      }
+      if ((ts.isPropertyDeclaration(m) || ts.isGetAccessorDeclaration(m)) && m.name && ts.isIdentifier(m.name)) {
+        surface.props.add(m.name.text);
+      }
+      if (ts.isMethodDeclaration(m) && m.body) {
+        const visit = (node: ts.Node) => {
+          if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            const left = node.left;
+            if (ts.isPropertyAccessExpression(left) && left.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isIdentifier(left.name)) {
+              surface.props.add(left.name.text);
+            }
+          }
+          ts.forEachChild(node, visit);
+        };
+        visit(m.body);
+      }
+    }
+  };
+  for (const st of sf.statements) {
+    if (ts.isClassDeclaration(st) && st.name) {
+      const surface: ClassSurface = { methods: new Set(), props: new Set() };
+      walkMembers(st.members, surface);
+      out.set(st.name.text, surface);
+    }
+  }
+  return out;
+}
+
+function suggestSimilar(name: string, available: string[]): string | null {
+  const lower = name.toLowerCase();
+  for (const a of available) {
+    if (a.toLowerCase() === lower) return a;
+    if (a.toLowerCase() === `is${lower}` || lower === `is${a.toLowerCase()}`) return a;
+    if (a.toLowerCase() === `get${lower}` || lower === `get${a.toLowerCase()}`) return a;
+  }
+  // edit distance 1–2 for short names
+  for (const a of available) {
+    if (Math.abs(a.length - name.length) > 2) continue;
+    let diff = 0;
+    const x = a.toLowerCase();
+    const y = lower;
+    const max = Math.max(x.length, y.length);
+    for (let i = 0; i < max && diff <= 2; i++) if (x[i] !== y[i]) diff++;
+    if (diff > 0 && diff <= 2) return a;
+  }
+  return null;
+}
+
+/**
+ * Cross-file instance member check: after `import { Foo }` + `const x = new Foo()`,
+ * accesses `x.bar` must match methods/props defined on class Foo (including `this.bar =` assignments).
+ * Catches the observed `game.paused` vs `isPaused` class of defects.
+ */
+export function validateMemberContracts(files: FileMap): ReportValidator {
+  const issues: Issue[] = [];
+  const parsed = new Map<string, ts.SourceFile>();
+  const surfacesByFile = new Map<string, Map<string, ClassSurface>>();
+  for (const [path, src] of files) {
+    if (!/\.(?:m?js|cjs)$/i.test(path)) continue;
+    const sf = ts.createSourceFile(path, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+    parsed.set(path, sf);
+    surfacesByFile.set(path, collectClassSurfaces(sf));
+  }
+  const resolve = (from: string, spec: string): string | null => {
+    if (!spec.startsWith('.')) return null;
+    const base = spec.startsWith('/') ? spec.slice(1) : `${from.split('/').slice(0, -1).join('/')}/${spec}`;
+    const normalized: string[] = [];
+    for (const part of base.split('/')) {
+      if (!part || part === '.') continue;
+      if (part === '..') {
+        if (!normalized.length) return null;
+        normalized.pop();
+      } else normalized.push(part);
+    }
+    const candidate = normalized.join('/');
+    for (const p of [candidate, candidate + '.js', candidate + '.mjs', candidate + '/index.js']) if (files.has(p)) return p;
+    return null;
+  };
+  for (const [path, sf] of parsed) {
+    // localName -> { file, className }
+    const importedClasses = new Map<string, { file: string; className: string }>();
+    for (const st of sf.statements) {
+      if (!ts.isImportDeclaration(st) || !ts.isStringLiteral(st.moduleSpecifier)) continue;
+      const target = resolve(path, st.moduleSpecifier.text);
+      if (!target) continue;
+      const surfaces = surfacesByFile.get(target);
+      if (!surfaces) continue;
+      const clause = st.importClause;
+      if (!clause) continue;
+      if (clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
+        for (const el of clause.namedBindings.elements) {
+          const imported = (el.propertyName ?? el.name).text;
+          const local = el.name.text;
+          if (surfaces.has(imported)) importedClasses.set(local, { file: target, className: imported });
+        }
+      }
+      if (clause.name && surfaces.has('default')) {
+        // default class export under a synthetic name is rare in our stack; skip
+      }
+    }
+    // varName -> surface
+    const instances = new Map<string, ClassSurface & { className: string; defFile: string }>();
+    const bindNew = (varName: string, classLocal: string) => {
+      const meta = importedClasses.get(classLocal);
+      if (!meta) return;
+      const surface = surfacesByFile.get(meta.file)?.get(meta.className);
+      if (!surface) return;
+      instances.set(varName, { methods: surface.methods, props: surface.props, className: meta.className, defFile: meta.file });
+    };
+    for (const st of sf.statements) {
+      if (ts.isVariableStatement(st)) {
+        for (const d of st.declarationList.declarations) {
+          if (!ts.isIdentifier(d.name) || !d.initializer) continue;
+          if (ts.isNewExpression(d.initializer) && ts.isIdentifier(d.initializer.expression)) {
+            bindNew(d.name.text, d.initializer.expression.text);
+          }
+        }
+      }
+    }
+    // Also scan for assignments inside functions at top level is enough for typical main.js bootstrap
+    const visit = (node: ts.Node) => {
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && ts.isNewExpression(node.initializer) && ts.isIdentifier(node.initializer.expression)) {
+        bindNew(node.name.text, node.initializer.expression.text);
+      }
+      if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.expression) && ts.isIdentifier(node.name)) {
+        const inst = instances.get(node.expression.text);
+        if (inst) {
+          const member = node.name.text;
+          if (inst.methods.has(member) || inst.props.has(member)) {
+            // ok
+          } else {
+            const available = [...inst.methods, ...inst.props].sort();
+            const suggestion = suggestSimilar(member, available);
+            const hint = suggestion ? ` (class ${inst.className} in ${inst.defFile} has '${suggestion}')` : ` (class ${inst.className} members: ${available.slice(0, 12).join(', ') || 'none'})`;
+            issues.push({ path, message: `unknown member '${node.expression.text}.${member}'${hint}` });
+          }
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(sf);
+  }
+  return result('member-contracts', issues);
+}
+
+/**
+ * When the entry HTML is a self-contained app (large inline script, no external script src)
+ * and other CSS/JS files are unreachable, drop those orphans so the package matches what runs.
+ * Returns paths removed. Caller must re-run validators after mutation.
+ */
+export function dropUnreachableOrphansIfSelfContained(files: FileMap): string[] {
+  const htmlPaths = [...files.keys()].filter((p) => /\.html?$/i.test(p));
+  if (!htmlPaths.length) return [];
+  let totalInline = 0;
+  let externalScriptRefs = 0;
+  for (const hp of htmlPaths) {
+    const html = files.get(hp) || '';
+    for (const m of html.matchAll(/<script\b([^>]*)(?:\/>|>([\s\S]*?)<\/script>)/gi)) {
+      if (/\bsrc\s*=/i.test(m[1])) externalScriptRefs++;
+      else if (m[2]) totalInline += m[2].length;
+    }
+  }
+  if (totalInline < 400 || externalScriptRefs > 0) return [];
+  const reach = validateReachability(files);
+  const orphans = orphanedPathsFromReachability(reach).filter((p) => /\.(?:css|m?js|cjs)$/i.test(p));
+  const dropped: string[] = [];
+  for (const p of orphans) {
+    if (files.delete(p)) dropped.push(p);
+  }
+  return dropped;
+}
+
 export function runStaticValidators(files: FileMap, spec: Spec | null): ReportValidator[] {
   return [
     validateHtml(files),
@@ -446,5 +635,6 @@ export function runStaticValidators(files: FileMap, spec: Spec | null): ReportVa
     validateDomWiring(files),
     validateReachability(files),
     validateCompleteness(files),
+    validateMemberContracts(files),
   ];
 }

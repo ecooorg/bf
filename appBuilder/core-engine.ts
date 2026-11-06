@@ -8,7 +8,12 @@ import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
 import { templatePlan } from './stack-static-site.ts';
-import { runStaticValidators, REQUIRED_VALIDATORS, orphanedPathsFromReachability } from './validator-static-site.ts';
+import {
+  runStaticValidators,
+  REQUIRED_VALIDATORS,
+  orphanedPathsFromReachability,
+  dropUnreachableOrphansIfSelfContained,
+} from './validator-static-site.ts';
 
 export interface BuildResult { state: JobState; report: BuildReport; archive: Uint8Array | null }
 export interface EngineOptions { profileId?: string; modelId?: string; maxCallsPerJob?: number; maxAttemptsPerUnit?: number; promptVersion?: string; resumeFrom?: JobState | null; signal?: AbortSignal; isCancelled?: () => boolean | Promise<boolean> }
@@ -367,8 +372,17 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
 
   const allFilesDone = Boolean(state.plan?.units.length) && state.plan!.units.every((u) => u.status === 'done' || u.status === 'skipped');
   let validators: BuildReport['validators'] = [];
+  let droppedOrphanedFiles: string[] = [];
   if (files.size) {
     state.stage = 'check'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'check' });
+    // P127.10: if HTML is a self-contained app and modular assets are unreachable, drop them
+    // before scoring so SUCCESS reflects the runnable package (orphans are recorded on the report).
+    const contentMap = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+    droppedOrphanedFiles = dropUnreachableOrphansIfSelfContained(contentMap);
+    if (droppedOrphanedFiles.length) {
+      for (const p of droppedOrphanedFiles) files.delete(p);
+      event(ports, input.jobId, 'orphans_dropped', { paths: droppedOrphanedFiles, reason: 'self_contained_html' }, 'warn');
+    }
     validators = runStaticValidators(new Map([...files].map(([p, f]) => [p, f.content])), state.spec);
   }
 
@@ -551,12 +565,80 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     }
   }
 
+  // P127.10: bounded repair when member-contracts fails (e.g. game.paused vs isPaused).
+  const memberIssues = () => validators.find((v) => v.name === 'member-contracts')?.issues ?? [];
+  if (
+    files.size > 0 &&
+    allFilesDone &&
+    !cancelled &&
+    !options.signal?.aborted &&
+    validators.some((v) => v.name === 'member-contracts' && !v.ok) &&
+    state.callsUsed < budget
+  ) {
+    const brokenScripts = [...new Set(memberIssues().map((i) => i.path).filter((p): p is string => Boolean(p) && /\.(?:m?js|cjs)$/i.test(p)))].slice(0, 2);
+    for (const scriptPath of brokenScripts) {
+      if (state.callsUsed >= budget || cancelled || options.signal?.aborted) break;
+      const entry = files.get(scriptPath);
+      if (!entry) continue;
+      const issuesForScript = memberIssues().filter((i) => i.path === scriptPath).map((i) => i.message);
+      if (!issuesForScript.length) continue;
+      const beforeCount = memberIssues().length;
+      const previouslyOk = new Set(validators.filter((v) => v.ok).map((v) => v.name));
+      event(ports, input.jobId, 'member_contracts_repair', {
+        path: scriptPath,
+        issues: issuesForScript,
+        callsUsed: state.callsUsed,
+        callsBudget: budget,
+      }, 'warn');
+      const repairPrompt =
+        `Fix cross-module member contract defects in ${scriptPath} only. Align property and method names with the imported class definitions (including is*/get* naming). Do not invent new APIs.\n` +
+        `Current problems:\n- ${issuesForScript.join('\n- ')}\n` +
+        repairSourceBlock(scriptPath, entry.content) +
+        `Reply with the COMPLETE corrected file for path ${scriptPath} in the required marker block. Change only the mismatched member names; return every function and line of the current source. Do not add new files.`;
+      const repaired = await call('coder', repairPrompt, undefined, scriptPath);
+      if (!repaired) continue;
+      const parsed = parseFileMarkers(repaired.text, scriptPath);
+      const found = parsed.files.find((f) => f.path === scriptPath);
+      if (!found || parsed.truncated) {
+        event(ports, input.jobId, 'member_contracts_repair_rejected', { path: scriptPath, reason: parsed.truncated ? 'truncated' : 'path_missing', issues: parsed.issues }, 'warn');
+        continue;
+      }
+      if (repairDiscardsSource(entry.content, found.content)) {
+        event(ports, input.jobId, 'member_contracts_repair_rejected', { path: scriptPath, reason: 'destructive_shrink', beforeChars: entry.content.length, afterChars: found.content.length }, 'warn');
+        continue;
+      }
+      const trial = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+      trial.set(scriptPath, found.content);
+      const trialValidators = runStaticValidators(trial, state.spec);
+      const trialMember = trialValidators.find((v) => v.name === 'member-contracts');
+      const trialCount = trialMember?.issues.length ?? 0;
+      const newlyBroken = trialValidators.filter((v) => !v.ok && previouslyOk.has(v.name)).map((v) => v.name);
+      if (newlyBroken.length || trialCount >= beforeCount) {
+        event(ports, input.jobId, 'member_contracts_repair_rejected', {
+          path: scriptPath,
+          reason: newlyBroken.length ? `broke_validators:${newlyBroken.join(',')}` : 'no_improvement',
+          beforeCount,
+          afterCount: trialCount,
+        }, 'warn');
+        continue;
+      }
+      files.set(scriptPath, { content: found.content, unitId: entry.unitId });
+      validators = trialValidators;
+      event(ports, input.jobId, 'member_contracts_repair_accepted', {
+        path: scriptPath,
+        beforeCount,
+        afterCount: trialCount,
+        callsUsed: state.callsUsed,
+      });
+    }
+  }
+
   const checksDeclared = [...REQUIRED_VALIDATORS];
   const checksRun = validators.map((v) => v.name);
   const ran = new Set(checksRun);
   const checksNotRun = checksDeclared.filter((n) => !ran.has(n));
-  // P118 + P127.9: SUCCESS requires non-empty files, all required validators ran and ok
-  // (including reachability + completeness). Static pass never implies runtimeVerified.
+  // P118 + P127.9/10: SUCCESS requires non-empty files, all required validators ran and ok.
+  // Static pass never implies runtimeVerified.
   const validatorsOk = files.size > 0 && allFilesDone && checksNotRun.length === 0 && validators.every((v) => v.ok);
   if (files.size === 0 && !failureReason) failureReason = cancelled ? 'cancelled' : 'empty_artifact';
   if (allFilesDone && files.size > 0 && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || checksNotRun.join(', ') || 'not run'}`;
@@ -573,6 +655,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     goalImplemented: validatorsOk,
     runtimeVerified: false,
     ...(orphanedFiles.length ? { orphanedFiles } : {}),
+    ...(droppedOrphanedFiles.length ? { droppedOrphanedFiles } : {}),
     files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })),
     units: unitReports,
     validators,

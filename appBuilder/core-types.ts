@@ -125,6 +125,8 @@ export interface BuildReport {
   runtimeVerified: boolean;
   /** Files present in the package but unreachable from any HTML entrypoint (if any). */
   orphanedFiles?: string[];
+  /** Orphans removed deterministically because the entry HTML is self-contained (P127.10). */
+  droppedOrphanedFiles?: string[];
   files: ReportFile[];
   units: ReportUnit[];
   validators: ReportValidator[];

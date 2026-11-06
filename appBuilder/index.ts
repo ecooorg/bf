@@ -85,7 +85,9 @@ export {
   validateDomWiring,
   validateReachability,
   validateCompleteness,
+  validateMemberContracts,
   orphanedPathsFromReachability,
+  dropUnreachableOrphansIfSelfContained,
   REQUIRED_VALIDATORS,
 } from './validator-static-site.ts';
 export {
