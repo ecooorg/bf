@@ -38,7 +38,7 @@ export function pipelineArchitectOutcome(input: PipelineOutcomeInput): PipelineO
     return {
       outcome: 'SUCCESS',
       goalImplemented: true,
-      note: 'IR → scaffold → model-written files → ZIP. Upload to GitHub and connect Render/Railway manually. Generated code was not executed on BiForge.',
+      note: 'IR → scaffold → model-written files → ZIP. Static validators passed; runtime/browser execution was not performed on BiForge. Open the ZIP locally to confirm behaviour.',
     };
   }
   const reason = sliceReason || (sliceStatus === 'failed' ? 'model slice failed' : 'model slice skipped');
@@ -64,11 +64,11 @@ export type StagedNoteInput = {
 export function stagedArchitectNote(input: StagedNoteInput): string {
   const outcome = input.outcome;
   if (outcome === 'SUCCESS' || (input.status === 'done' && input.goalImplemented === true)) {
-    return 'Build complete and validated. Download the source ZIP.';
+    return 'Build complete: required static validators passed and the archive is ready. Runtime behaviour was not executed on BiForge — open the ZIP locally to confirm.';
   }
   if (outcome === 'PARTIAL' || (input.status === 'done' && input.goalImplemented === false)) {
     const why = input.failureReason ? ` ${input.failureReason}` : '';
-    return `PARTIAL: ZIP produced, but validation did not confirm the full goal.${why}`.trim();
+    return `PARTIAL: archive may exist, but required validation did not confirm a complete, integrated goal.${why}`.trim();
   }
   const stage = input.failedStage ? ` Failed stage: ${input.failedStage}.` : '';
   const why = input.failureReason || input.errorMessage || 'No ZIP was produced.';

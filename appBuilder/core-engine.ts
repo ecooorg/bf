@@ -8,7 +8,7 @@ import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
 import { templatePlan } from './stack-static-site.ts';
-import { runStaticValidators, REQUIRED_VALIDATORS } from './validator-static-site.ts';
+import { runStaticValidators, REQUIRED_VALIDATORS, orphanedPathsFromReachability } from './validator-static-site.ts';
 
 export interface BuildResult { state: JobState; report: BuildReport; archive: Uint8Array | null }
 export interface EngineOptions { profileId?: string; modelId?: string; maxCallsPerJob?: number; maxAttemptsPerUnit?: number; promptVersion?: string; resumeFrom?: JobState | null; signal?: AbortSignal; isCancelled?: () => boolean | Promise<boolean> }
@@ -555,7 +555,8 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const checksRun = validators.map((v) => v.name);
   const ran = new Set(checksRun);
   const checksNotRun = checksDeclared.filter((n) => !ran.has(n));
-  // P118: SUCCESS requires non-empty generated files AND required validators all ran and ok.
+  // P118 + P127.9: SUCCESS requires non-empty files, all required validators ran and ok
+  // (including reachability + completeness). Static pass never implies runtimeVerified.
   const validatorsOk = files.size > 0 && allFilesDone && checksNotRun.length === 0 && validators.every((v) => v.ok);
   if (files.size === 0 && !failureReason) failureReason = cancelled ? 'cancelled' : 'empty_artifact';
   if (allFilesDone && files.size > 0 && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || checksNotRun.join(', ') || 'not run'}`;
@@ -563,12 +564,15 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const outcome = status === 'complete' ? 'SUCCESS' as const : status === 'partial' ? 'PARTIAL' as const : 'FAILED' as const;
   const failedStage = status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage);
   const note = failureReason ?? (templateUsed ? `plan_fallback_used: ${templateUsed}` : undefined);
+  const orphanedFiles = orphanedPathsFromReachability(validators.find((v) => v.name === 'reachability'));
   const report: BuildReport = {
     schemaVersion: SCHEMA_VERSION,
     jobId: input.jobId,
     status,
     outcome,
     goalImplemented: validatorsOk,
+    runtimeVerified: false,
+    ...(orphanedFiles.length ? { orphanedFiles } : {}),
     files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })),
     units: unitReports,
     validators,
@@ -582,16 +586,17 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   };
   // Hard gate: never mark job done when outcome is not SUCCESS.
   state.status = cancelled ? 'cancelled' : status === 'complete' ? 'done' : 'failed';
-  if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : (failureReason.startsWith('invalid_spec') ? 'invalid_spec' : (files.size === 0 ? 'empty_artifact' : 'build_incomplete')), message: failureReason.slice(0, 300), detail: { stage: state.stage, callsUsed: state.callsUsed, callsBudget: budget, failedStage: status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage) } };
+  if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : (failureReason.startsWith('invalid_spec') ? 'invalid_spec' : (files.size === 0 ? 'empty_artifact' : 'build_incomplete')), message: failureReason.slice(0, 300), detail: { stage: state.stage, callsUsed: state.callsUsed, callsBudget: budget, failedStage: status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage), orphanedFiles: orphanedFiles.length ? orphanedFiles : undefined } };
   else if (failureReason && state.error && !state.error.message) state.error.message = failureReason.slice(0, 300);
   state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
   await save();
-  event(ports, input.jobId, 'job_done', { status, outcome, goalImplemented: report.goalImplemented });
+  event(ports, input.jobId, 'job_done', { status, outcome, goalImplemented: report.goalImplemented, runtimeVerified: false, orphanedCount: orphanedFiles.length });
   const archive = files.size ? await packZip([...files].map(([path, f]) => ({ path, content: f.content })), report) : null;
   if (report.outcome === 'SUCCESS' && (!archive || !archive.byteLength)) {
     report.outcome = 'FAILED';
     report.status = 'failed';
     report.goalImplemented = false;
+    report.runtimeVerified = false;
     report.failureReason = (report.failureReason ? report.failureReason + '; ' : '') + 'archive_missing';
     state.status = 'failed';
     state.error = { code: 'archive_missing', message: 'SUCCESS requires a non-empty archive' };

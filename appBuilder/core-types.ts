@@ -118,6 +118,13 @@ export interface BuildReport {
   outcome: ArchitectOutcome;
   /** true only when every file unit is done and all required validators ok. */
   goalImplemented: boolean;
+  /**
+   * true only after browser/runtime smoke (not available in pure static_site core).
+   * Static validators alone must never set this to true.
+   */
+  runtimeVerified: boolean;
+  /** Files present in the package but unreachable from any HTML entrypoint (if any). */
+  orphanedFiles?: string[];
   files: ReportFile[];
   units: ReportUnit[];
   validators: ReportValidator[];

@@ -5,11 +5,25 @@ import type { ReportValidator, Spec } from './core-types.ts';
 import { MAX_FILES, MAX_TOTAL_BYTES } from './stack-static-site.ts';
 
 export type FileMap = Map<string, string>;
-export const REQUIRED_VALIDATORS = ['html-structure', 'js-syntax', 'module-contracts', 'refs', 'size', 'secrets', 'acceptance', 'dom-wiring'] as const;
+/** Required for SUCCESS. Includes reachability + completeness (P127.9). */
+export const REQUIRED_VALIDATORS = [
+  'html-structure',
+  'js-syntax',
+  'module-contracts',
+  'refs',
+  'size',
+  'secrets',
+  'acceptance',
+  'dom-wiring',
+  'reachability',
+  'completeness',
+] as const;
 type Issue = ReportValidator['issues'][number];
 const result = (name: string, issues: Issue[]): ReportValidator => ({ name, ok: issues.length === 0, issues });
 const VOID = new Set(['meta', 'link', 'br', 'hr', 'img', 'input', 'source', 'area', 'base', 'col', 'embed', 'param', 'track', 'wbr']);
 const strip = (h: string) => h.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, (m) => m.replace(/>[\s\S]*<\/(script|style)\s*>$/i, '></$1>'));
+/** Paths that may exist without being linked from the entry HTML (docs / machine report). */
+const REACHABILITY_EXEMPT = /^(readme\.md|license(?:\..+)?|build-report\.json|changelog\.md|robots\.txt|favicon\.ico)$/i;
 
 export function validateHtml(files: FileMap): ReportValidator {
   const issues: Issue[] = [];
@@ -202,7 +216,7 @@ export function checkAcceptance(files: FileMap, acceptance: string[]): ReportVal
 }
 
 
-/** IDs referenced via getElementById / querySelector('#id') / querySelectorAll('#id') must exist in some HTML file. Static literals only; dynamic or class selectors are ignored. */
+/** IDs referenced via getElementById / querySelector('#id') / querySelectorAll('#id') must exist in some HTML file. Static literals only; dynamic or class selectors are ignored. Also scans inline <script> bodies. */
 export function validateDomWiring(files: FileMap): ReportValidator {
   const issues: Issue[] = [];
   const htmlIds = new Set<string>();
@@ -215,8 +229,7 @@ export function validateDomWiring(files: FileMap): ReportValidator {
     if (/^#[\w-]+$/.test(s)) return s.slice(1);
     return null;
   };
-  for (const [path, src] of files) {
-    if (!/\.js$/i.test(path)) continue;
+  const scanScript = (path: string, src: string) => {
     const propertyBindings = new Map<string, Set<string>>();
     for (const m of src.matchAll(/\bthis\.([A-Za-z_$][\w$]*)\s*=\s*(?:document\.)?getElementById\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
       const [, property, id] = m;
@@ -225,9 +238,6 @@ export function validateDomWiring(files: FileMap): ReportValidator {
       properties.add(property);
       propertyBindings.set(id, properties);
     }
-    // Distinct controller roles must not be silently collapsed onto one DOM node by a repair.
-    // Reusing a node is sometimes intentional, so only flag multiple explicit `this.*` bindings
-    // when their property names differ; the generated app should use semantically matching ids.
     for (const [id, properties] of propertyBindings) {
       if (properties.size > 1) {
         issues.push({ path, message: `DOM id '${id}' is bound to multiple controller properties: ${[...properties].join(', ')}` });
@@ -243,10 +253,198 @@ export function validateDomWiring(files: FileMap): ReportValidator {
       const id = idFromSelector(m[1]);
       if (id && !htmlIds.has(id)) issues.push({ path, message: `querySelector('${m[1]}'): no element with id '${id}' in HTML` });
     }
+  };
+  for (const [path, src] of files) {
+    if (/\.(?:m?js|cjs)$/i.test(path)) scanScript(path, src);
+    if (/\.html?$/i.test(path)) {
+      for (const m of src.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+        if (/\bsrc\s*=/i.test(m[1])) continue;
+        scanScript(`${path}#inline-script`, m[2]);
+      }
+    }
   }
   return result('dom-wiring', issues);
 }
 
+function resolveLocal(from: string, spec: string): string | null {
+  if (!spec || /^(https?:)?\/\//i.test(spec) || /^(data:|mailto:|tel:|javascript:|#)/i.test(spec)) return null;
+  const clean = spec.split(/[?#]/, 1)[0].replace(/\\/g, '/');
+  if (!clean) return null;
+  const base = clean.startsWith('/') ? clean.slice(1) : `${from.split('/').slice(0, -1).join('/')}/${clean}`;
+  const parts: string[] = [];
+  for (const part of base.split('/')) {
+    if (!part || part === '.') continue;
+    if (part === '..') {
+      if (!parts.length) return null;
+      parts.pop();
+    } else parts.push(part);
+  }
+  return parts.join('/') || null;
+}
+
+/**
+ * Every generated file (except exempt docs) must be reachable from an HTML entrypoint
+ * via src/href links and relative ES-module imports. Catches orphaned modular files
+ * left beside a self-contained index.html (observed on live Tetris builds).
+ */
+export function validateReachability(files: FileMap): ReportValidator {
+  const issues: Issue[] = [];
+  const htmlPaths = [...files.keys()].filter((p) => /\.html?$/i.test(p));
+  if (htmlPaths.length === 0) {
+    issues.push({ message: 'no HTML entrypoint; cannot verify deliverable reachability' });
+    return result('reachability', issues);
+  }
+  const resolveInFiles = (from: string, spec: string): string | null => {
+    const candidate = resolveLocal(from, spec);
+    if (!candidate) return null;
+    for (const p of [candidate, candidate + '.js', candidate + '.mjs', candidate + '/index.js']) {
+      if (files.has(p)) return p;
+    }
+    return files.has(candidate) ? candidate : null;
+  };
+  const reachable = new Set<string>();
+  const queue = [...htmlPaths];
+  for (const h of htmlPaths) reachable.add(h);
+  while (queue.length) {
+    const path = queue.pop()!;
+    const src = files.get(path);
+    if (!src) continue;
+    if (/\.html?$/i.test(path)) {
+      for (const m of src.matchAll(/\b(?:src|href)\s*=\s*["']([^"']+)["']/gi)) {
+        const target = resolveInFiles(path, m[1].trim());
+        if (target && !reachable.has(target)) {
+          reachable.add(target);
+          queue.push(target);
+        }
+      }
+    }
+    if (/\.(?:m?js|cjs)$/i.test(path)) {
+      for (const m of src.matchAll(/\bfrom\s*["']([^"']+)["']/g)) {
+        const target = resolveInFiles(path, m[1]);
+        if (target && !reachable.has(target)) {
+          reachable.add(target);
+          queue.push(target);
+        }
+      }
+      for (const m of src.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g)) {
+        const target = resolveInFiles(path, m[1]);
+        if (target && !reachable.has(target)) {
+          reachable.add(target);
+          queue.push(target);
+        }
+      }
+    }
+  }
+  const orphaned: string[] = [];
+  for (const path of files.keys()) {
+    const base = path.split('/').pop() || path;
+    if (REACHABILITY_EXEMPT.test(base)) continue;
+    if (!reachable.has(path)) orphaned.push(path);
+  }
+  for (const path of orphaned.sort()) {
+    issues.push({ path, message: `unreachable from any HTML entrypoint (orphaned deliverable file)` });
+  }
+  // Self-contained HTML + external JS that is never linked is the common false-SUCCESS pattern.
+  for (const htmlPath of htmlPaths) {
+    const html = files.get(htmlPath) || '';
+    let inlineChars = 0;
+    for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+      if (/\bsrc\s*=/i.test(m[1])) continue;
+      inlineChars += m[2].length;
+    }
+    if (inlineChars < 400) continue;
+    const externalJs = [...files.keys()].filter((p) => /\.(?:m?js|cjs)$/i.test(p) && !reachable.has(p));
+    if (externalJs.length) {
+      issues.push({
+        path: htmlPath,
+        message: `HTML has a large inline script (${inlineChars} chars) while ${externalJs.length} external script(s) are unreachable: ${externalJs.slice(0, 6).join(', ')}`,
+      });
+    }
+  }
+  return result('reachability', issues);
+}
+
+/**
+ * Detect truncated / incomplete sources that static parse may still accept or that
+ * leave the package non-runnable (observed: mid-function cutoffs in renderer3D.ts).
+ */
+export function validateCompleteness(files: FileMap): ReportValidator {
+  const issues: Issue[] = [];
+  const balance = (src: string, open: string, close: string): number => {
+    let n = 0;
+    let inStr: string | null = null;
+    let escaped = false;
+    for (let i = 0; i < src.length; i++) {
+      const c = src[i];
+      if (inStr) {
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (c === '\\' && inStr !== '`') {
+          escaped = true;
+          continue;
+        }
+        if (c === inStr) inStr = null;
+        continue;
+      }
+      if (c === '"' || c === "'" || c === '`') {
+        inStr = c;
+        continue;
+      }
+      if (c === open) n++;
+      else if (c === close) n--;
+    }
+    return n;
+  };
+  for (const [path, src] of files) {
+    if (!src || !src.trim()) continue;
+    const trimmed = src.replace(/\s+$/, '');
+    if (/\.(?:m?js|cjs|ts|tsx)$/i.test(path)) {
+      const braces = balance(src, '{', '}');
+      const parens = balance(src, '(', ')');
+      const brackets = balance(src, '[', ']');
+      if (braces > 0) issues.push({ path, message: `likely truncated: ${braces} unclosed '{'` });
+      if (parens > 0) issues.push({ path, message: `likely truncated: ${parens} unclosed '('` });
+      if (brackets > 0) issues.push({ path, message: `likely truncated: ${brackets} unclosed '['` });
+      if (/(?:\bfunction\b|\bconst\b|\blet\b|\breturn\b|\bimport\b|\bexport\b|\bif\s*\(|\belse\b)\s*$/.test(trimmed)) {
+        issues.push({ path, message: 'likely truncated: file ends mid-statement' });
+      }
+      if (/[,=+\-*/.]\s*$/.test(trimmed) && !/\/\//.test(trimmed.split('\n').pop() || '')) {
+        issues.push({ path, message: 'likely truncated: file ends with an operator or comma' });
+      }
+    }
+    if (/\.html?$/i.test(path)) {
+      if (!/<\/html\s*>/i.test(src)) issues.push({ path, message: 'likely truncated: missing </html>' });
+      if (/<(?:div|section|main|body|script|style)\b[^>]*$/im.test(trimmed)) {
+        issues.push({ path, message: 'likely truncated: file ends inside an open tag' });
+      }
+    }
+    if (/\.css$/i.test(path)) {
+      const braces = balance(src, '{', '}');
+      if (braces > 0) issues.push({ path, message: `likely truncated: ${braces} unclosed '{'` });
+    }
+  }
+  return result('completeness', issues);
+}
+
+/** List orphaned paths from a reachability validator result (for BuildReport). */
+export function orphanedPathsFromReachability(v: ReportValidator | undefined): string[] {
+  if (!v || v.name !== 'reachability') return [];
+  return v.issues.map((i) => i.path).filter((p): p is string => Boolean(p) && !p.includes(' '));
+}
+
 export function runStaticValidators(files: FileMap, spec: Spec | null): ReportValidator[] {
-  return [validateHtml(files), validateJs(files), validateModuleContracts(files), validateRefs(files), validateSize(files), validateSecrets(files), checkAcceptance(files, spec?.acceptance ?? []), validateDomWiring(files)];
+  return [
+    validateHtml(files),
+    validateJs(files),
+    validateModuleContracts(files),
+    validateRefs(files),
+    validateSize(files),
+    validateSecrets(files),
+    checkAcceptance(files, spec?.acceptance ?? []),
+    validateDomWiring(files),
+    validateReachability(files),
+    validateCompleteness(files),
+  ];
 }
