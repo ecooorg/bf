@@ -83,6 +83,13 @@
 - Added project-mode contract coverage. Simple and Expert paths were not modified.
 - Verification: pending local test/typecheck/build execution; see `TECHNICAL_REPORT.md`.
 
+## [127.6] - Project continuation
+
+- Added `POST /api/projects/:projectId/code/continue` for continuing work from an existing verified ZIP artifact.
+- Added bounded ZIP source extraction, project ownership checks, CRC validation, path traversal protection, and explicit rejection of binary assets not yet supported by the text-context continuation path.
+- Added continuation prompt construction and regression coverage.
+- Added `docs/PROJECT_CONTINUATION.md`. Simple and Expert behavior is unchanged.
+
 ## P127.5 — Project Mode build reliability (2026-11-06)
 
 - Normalize HTML local references against the generated project root or the referencing HTML directory; preserve path-traversal rejection.
@@ -1436,6 +1443,14 @@ Documentation-only delivery.
 - Defined the target for independent Lab instructions, workflow/state machine, generation engine, progress, timeout/cancellation, recovery, and completion behavior. Legacy promotion or retirement requires a separate owner decision and user-outcome evidence.
 - Documentation/governance only; no runtime behavior changed. Local documentation/version checks: pending. Hosted CI and live Android behavior: NOT_RUN.
 
+## P121.0.15 — Architectural Test Lab isolated entry
+
+- Added a separately lazy-loaded `/architect-lab` experimental workspace with its own responsive presentation, form, progress surface, completion panel, and error boundary.
+- The lab creates a separately named project and uses the authenticated project-build API and shared staged-job polling; it does not mount `ProjectMode.tsx` or the legacy result UI.
+- This is an isolated UI/workflow experiment, **not yet an independent backend generation engine**. Provider orchestration, validation, and artifact persistence remain shared with the existing backend.
+- Added route/mount/completion contract tests. Existing three-agent entry points remain unchanged; the lab is available only by direct route.
+- Local source-contract tests and ZIP validation are reported in the delivery note; typecheck/build and live Android tests remain separate evidence.
+
 ## P121.0.14 — Critical-screen emergency recovery
 
 - Install global browser error and unhandled-rejection capture before React mounts.
@@ -1688,20 +1703,3 @@ Documentation-only delivery.
 - Diagnostics: `spec_attempt`/`spec_repair`/`spec_failed` events with text previews; adapter logs model `responsePreview` and forwards event data into application logs.
 - Tests: `tests/app-builder-spec-repair-p118.test.mjs`.
 - APP_VERSION stays 118 (version = phase number; sub-patches P118.x do not bump it).
-
-
-## P121.0.15 — Architectural Test Lab isolated entry
-
-- Added a separately lazy-loaded `/architect-lab` experimental workspace with its own responsive presentation, form, progress surface, completion panel, and error boundary.
-- The lab creates a separately named project and uses the authenticated project-build API and shared staged-job polling; it does not mount `ProjectMode.tsx` or the legacy result UI.
-- This is an isolated UI/workflow experiment, **not yet an independent backend generation engine**. Provider orchestration, validation, and artifact persistence remain shared with the existing backend.
-- Added route/mount/completion contract tests. Existing three-agent entry points remain unchanged; the lab is available only by direct route.
-- Local source-contract tests and ZIP validation are reported in the delivery note; typecheck/build and live Android tests remain separate evidence.
-
-
-## [127.6] - Project continuation
-
-- Added `POST /api/projects/:projectId/code/continue` for continuing work from an existing verified ZIP artifact.
-- Added bounded ZIP source extraction, project ownership checks, CRC validation, path traversal protection, and explicit rejection of binary assets not yet supported by the text-context continuation path.
-- Added continuation prompt construction and regression coverage.
-- Added `docs/PROJECT_CONTINUATION.md`. Simple and Expert behavior is unchanged.
