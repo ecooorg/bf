@@ -36,7 +36,7 @@ import {
 } from './planService.ts';
 import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from './taskService.ts';
 import { getPool } from './database.ts';
-import { readArtifact, readArtifactBytes, saveArtifact } from './artifactRepository.ts';
+import { readArtifact, readArtifactBytes, saveArtifact, inspectArtifact, listArtifactVersions, listProjectArtifactVersions } from './artifactRepository.ts';
 import { buildContinuationTask, loadContinuationSource } from './projectContinuation.ts';
 import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
 import { pipelineArchitectOutcome } from '../appBuilder/architectOutcome.ts';
@@ -692,7 +692,9 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     try {
       const project = await getProject(req.params.projectId);
       if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
-      const bytes = await readArtifactBytes(req.params.artifactId);
+      const requestedVersion = req.query.version === undefined ? undefined : Number(req.query.version);
+      if (requestedVersion !== undefined && (!Number.isInteger(requestedVersion) || requestedVersion < 1)) return res.status(400).json({ success: false, error: 'Invalid artifact version', code: 'INVALID_VERSION' });
+      const bytes = await readArtifactBytes(req.params.artifactId, requestedVersion);
       if (!bytes || (bytes as any).project_id !== project.id) return res.status(404).json({ success: false, error: 'Artifact not found', code: 'NOT_FOUND' });
       if ((bytes as any).mime === 'application/zip') {
         const data = Buffer.from((bytes as any).data);
@@ -896,6 +898,40 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
 
   app.get('/api/projects/:projectId/artifacts', async (req, res) => {
     try { res.json({ success: true, data: await listProjectArtifacts(req.params.projectId) }); } catch (error) { projectError(res, error); }
+  });
+
+  /** P127.7: complete immutable version inventory for the selected project. */
+  app.get('/api/projects/:projectId/artifact-versions', async (req, res) => {
+    try {
+      const project = await getProject(req.params.projectId);
+      if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+      res.json({ success: true, data: await listProjectArtifactVersions(project.id) });
+    } catch (error) { projectError(res, error); }
+  });
+
+  /** P127.7: inspect one artifact version, including ZIP entries and integrity status. */
+  app.get('/api/projects/:projectId/artifacts/:artifactId/inspect', async (req, res) => {
+    try {
+      const project = await getProject(req.params.projectId);
+      if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+      const version = req.query.version === undefined ? undefined : Number(req.query.version);
+      if (version !== undefined && (!Number.isInteger(version) || version < 1)) return res.status(400).json({ success: false, error: 'Invalid artifact version', code: 'INVALID_VERSION' });
+      const meta = await readArtifactBytes(req.params.artifactId, version);
+      if (!meta || meta.project_id !== project.id) return res.status(404).json({ success: false, error: 'Artifact not found', code: 'NOT_FOUND' });
+      const details = await inspectArtifact(req.params.artifactId, version);
+      res.json({ success: true, data: { ...details, artifact_id: req.params.artifactId, filename: meta.filename, mime: meta.mime, size: meta.size, hash: meta.hash, kind: meta.kind } });
+    } catch (error) { projectError(res, error); }
+  });
+
+  app.get('/api/projects/:projectId/artifacts/:artifactId/versions', async (req, res) => {
+    try {
+      const project = await getProject(req.params.projectId);
+      if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+      const versions = await listArtifactVersions(req.params.artifactId);
+      const owned = versions.length > 0 && versions.every((v: any) => v.project_id === project.id);
+      if (!owned) return res.status(404).json({ success: false, error: 'Artifact not found', code: 'NOT_FOUND' });
+      res.json({ success: true, data: versions });
+    } catch (error) { projectError(res, error); }
   });
 
   app.get('/api/projects/:projectId/artifacts/:artifactId', async (req, res) => {

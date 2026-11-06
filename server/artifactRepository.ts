@@ -178,9 +178,24 @@ export async function diffArtifactVersions(artifactId: string, from: number, to:
 export async function listArtifactVersions(artifactId: string) {
   const pool = await getPool();
   const r = await pool.query(
-    `SELECT m.artifact_id, m.version, a.filename, m.mime, m.kind, m.size, m.hash, a.created_by, m.created_at
+    `SELECT m.artifact_id, m.version, m.project_id, a.filename, m.mime, m.kind, m.size, m.hash, a.created_by, m.created_at
        FROM artifact_manifests m LEFT JOIN artifacts a ON a.artifact_id=m.artifact_id AND a.version=m.version
       WHERE m.artifact_id=$1 ORDER BY m.version`, [idSchema.parse(artifactId)]);
+  return r.rows;
+}
+
+
+/** Lists every immutable artifact version for one project, newest first. */
+export async function listProjectArtifactVersions(projectIdInput: string) {
+  const projectId = idSchema.parse(projectIdInput);
+  const pool = await getPool();
+  const r = await pool.query(
+    `SELECT m.artifact_id, m.version, a.filename, m.mime, m.kind, m.size, m.hash,
+            a.created_by, m.created_at
+       FROM artifact_manifests m
+       LEFT JOIN artifacts a ON a.artifact_id=m.artifact_id AND a.version=m.version
+      WHERE m.project_id=$1
+      ORDER BY m.created_at DESC, m.artifact_id, m.version DESC`, [projectId]);
   return r.rows;
 }
 
