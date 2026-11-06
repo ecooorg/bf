@@ -192,3 +192,8 @@
 
 **Status (P127.1):** instrument only (eval questions, harness, tests, workflow, EXPERIMENTS ledger). Product behaviour unchanged. User value: NOT_RUN.
 
+
+## D-2026-11-06-02 — Patch letter suffix for non-product work
+
+**Owner (2026-11-06).** Product patches in a cycle are `major.n` (e.g. 127.1, 127.2). Non-product patches (CI, allowlists, pure docs/harness fixes) append a Latin letter to the current numeric stem (`127.1a`, `127.2b`) and do not consume the next product number. `package.json` `"patch"` may carry the letter; version gates accept it.
+

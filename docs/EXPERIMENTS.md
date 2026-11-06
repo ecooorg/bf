@@ -6,59 +6,67 @@
 |-------|-------|
 | **ID** | EXP-0 |
 | **Date** | 2026-11-06 |
-| **Patch** | P127.3 (Stage B pre-register + live harness) |
+| **Patch** | P127.2 (Experiment 0; Stage B pre-register + live harness) |
 | **Type** | EXPERIMENT |
 | **User problem and evidence** | No measured oracle for factual answer quality (Perestroika §1–§2). |
 | **Hypothesis** | Versioned question set + multi-config harness yields comparable W/G/A rates for Simple (A), Expert (B), Gemini+Search (C), strongest (D), negative control (N). |
-| **Baseline** | Set `dev-1`; hash written into every report. Full baseline numbers NOT_RUN until smoke + full run. |
-| **Metric and acceptance thresholds (pre-registered, locked before full run)** | Materiality §7.4: ΔG ≥15 pp **or** ΔW ≥10 pp on dev set **and** direction holds in ≥2 category groups. Else INCONCLUSIVE. Instrument §7.6: (1) N worse than A on lookup; (2) scorer unit tests green; (3) double-label subset later. |
+| **Baseline** | Set `dev-1`. Production runtime snapshot below. Full numbers NOT_RUN until smoke + labels. |
+| **Metric and acceptance thresholds (locked before full run)** | Materiality §7.4: ΔG ≥15 pp **or** ΔW ≥10 pp on dev **and** direction in ≥2 category groups. Else INCONCLUSIVE. §7.6: (1) N worse than A on lookup; (2) scorer unit tests green; (3) double-label subset. |
 | **Scope** | Instrument only. Fact path frozen. |
-| **Regression risks** | None for product path. |
-| **Result** | NOT_RUN (awaiting Navigator smoke dispatch + labels) |
-| **Decision** | PENDING O1–O6 after Stage E |
+| **Result** | NOT_RUN (awaiting smoke dispatch + labels) |
+| **Decision** | PENDING O1–O6 |
+
+### Production runtime snapshot (Navigator, 2026-11-06)
+
+Source: `https://biforge.onrender.com/health/runtime-config` · commit `3451600` · version 127
+
+| Area | Effective |
+|------|-----------|
+| Search | enabled=true, planner=true, carousel=[connector,serper,gemini], country=CH, timeout=15s, maxQueries=2 |
+| Features | directGeminiMode=**true**, epistemicVerifier=**false**, weather=true, projectMode=true, appAuth=true |
+| Models light/strong | gemini-3.5-flash-lite → gemini-3.1-flash-lite |
+| Credentials | gemini=true (10 slots), serper=true, jina=true, groq=true |
+| Caps | dailyCallCap=1000, rateLimitPerHour=200 |
+
+**Implication for configs:** A ≈ production Simple with Direct mode ON and search ON. N (ENABLE_WEB_SEARCH=false) cannot be forced on the shared deploy without a dedicated flag/env; smoke will mark N isolation limits.
 
 ### Question set
 
-- Version: `dev-1`
-- Count: 12
-- Hash: computed at run time from `config/eval-questions.json` (see report)
-- Holdout: owner/other session only; coding assistant does not author or view
+- Version: `dev-1` · 12 questions · hash at run time from `config/eval-questions.json`
+- Holdout: owner/other session only
 
-### Configurations (§7.1)
+### Configurations
 
-| ID | Description | Smoke requirement |
-|----|-------------|-------------------|
-| A | BiForge Simple as deployed | `EVAL_BASE_URL` |
-| B | BiForge Expert | `EVAL_BASE_URL` |
-| C | Gemini one-call + googleSearch, primary model | `GEMINI_API_KEY` |
-| D | Same, strongest model | `GEMINI_API_KEY` |
-| N | A with no web search | deploy cannot flip flag remotely → smoke may proxy; isolation imperfect until local/flag |
+| ID | Description | Smoke need |
+|----|-------------|------------|
+| A | BiForge Simple (deploy) | EVAL_BASE_URL=https://biforge.onrender.com |
+| B | BiForge Expert | same |
+| C | Gemini one-call + googleSearch, primary | GEMINI_API_KEY |
+| D | Strongest model + search | GEMINI_API_KEY |
+| N | No web search control | imperfect on shared deploy |
 
 ### Outcome matrix (pre-registered)
 
-| Outcome | Condition | Next step |
-|---------|-----------|-----------|
-| O1 | Architecture hurts (A/B materially worse than C) | Ablate one layer |
-| O2 | Model tier dominates (D ≫ C ≈ A) | Model / quota |
-| O3 | Search path broken (N not clearly worse on lookup) | Fix instrument or search gate |
-| O4 | BiForge ≥ C | Keep; targeted fix per taxonomy |
+| Outcome | Condition | Next |
+|---------|-----------|------|
+| O1 | A/B materially worse than C | Ablate one layer |
+| O2 | D ≫ C ≈ A | Model/quota |
+| O3 | N not worse on lookup | Instrument or search gate |
+| O4 | BiForge ≥ C | Keep; taxonomy fix |
 | O5 | Simple vs Expert gap | Align weaker |
-| O6 | Instrument invalid / inconclusive | Repair instrument; no product change |
+| O6 | Instrument invalid | Repair; no product change |
 
-### Results table
+### Results
 
-| Run | Commit | Set hash | Config | n | W-rate | G-rate | Notes |
-|-----|--------|----------|--------|---|--------|--------|-------|
-| smoke | — | — | — | — | NOT_RUN | NOT_RUN | Awaiting Navigator dispatch |
-| full | — | — | — | — | NOT_RUN | NOT_RUN | After smoke passes §7.6 |
+| Run | Commit | Set hash | Config | n | W | G | Notes |
+|-----|--------|----------|--------|---|---|---|-------|
+| smoke | — | — | — | — | NOT_RUN | NOT_RUN | Dispatch pending |
+| full | — | — | — | — | NOT_RUN | NOT_RUN | After smoke §7.6 |
 
 ### Stage status
 
 | Stage | Status |
 |-------|--------|
-| A Smoke | NOT_RUN — Navigator dispatches Baseline Eval |
-| B Pre-register | DONE this patch |
-| C Full run | blocked on A |
-| D Label | Navigator |
-| E Score/decide | Assistant offline after labels |
-| F Ablate | conditional |
+| A Smoke | NOT_RUN — Navigator: Baseline Eval, base_url=https://biforge.onrender.com |
+| B Pre-register | DONE |
+| C–F | blocked on A |
