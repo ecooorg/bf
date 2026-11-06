@@ -7,13 +7,17 @@ on:
         type: boolean
         default: true
       configs:
-        description: 'Configs (comma). Prefer A,B,C; N imperfect on shared deploy'
+        description: 'Configs. Default A,B (product via deploy). Add C only if non-Actions IP or EVAL ok with quota'
         type: string
-        default: 'A,B,C'
+        default: 'A,B'
       base_url:
         description: 'EVAL_BASE_URL'
         type: string
         default: 'https://biforge.onrender.com'
+      include_c:
+        description: 'Also run Gemini direct+search control (often 429 from Actions IP)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -38,7 +42,6 @@ jobs:
             node scripts/baseline-eval.mjs --dry-run
           fi
         env:
-          # Same pool layout as server/keyPool.ts (solo = 1 key still valid)
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
           GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
@@ -55,6 +58,9 @@ jobs:
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
           EVAL_BASE_URL: ${{ inputs.base_url }}
           EVAL_CONFIGS: ${{ inputs.configs }}
+          EVAL_INCLUDE_C: ${{ inputs.include_c }}
+          EVAL_GEMINI_GAP_MS: '12000'
+          EVAL_KEY_COOLDOWN_MS: '60000'
           MODEL_MIN_INTERVAL_MS: '6000'
           GITHUB_SHA: ${{ github.sha }}
       - name: Upload report
