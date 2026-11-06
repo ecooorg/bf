@@ -215,74 +215,114 @@ function writeReports(report, summaryMd) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-async function callProduct(baseUrl, route, turns, productMode) {
-  const history = [];
-  let lastReply = '';
-  for (let i = 0; i < turns.length; i++) {
-    const body = {
-      productMode,
-      history: [...history, { role: 'user', content: turns[i] }],
-      message: turns[i],
-      brief: { decision: 'continue' },
-      state: {},
-      intent: {},
-    };
-    const res = await fetch(`${baseUrl.replace(/\/$/, '')}${route}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${route}`);
-    const data = await res.json();
-    lastReply = data.reply || data.message || data.text || JSON.stringify(data).slice(0, 500);
-    history.push({ role: 'user', content: turns[i] });
-    history.push({ role: 'assistant', content: lastReply });
-    await sleep(Number(process.env.MODEL_MIN_INTERVAL_MS) || 2000);
-  }
-  return { answer: lastReply, sources: [], path: 'product', modelId: null };
-}
-
-async function callGeminiDirect(turns, modelId, useSearch) {
-  const key = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_1;
-  if (!key) throw new Error('GEMINI_API_KEY missing');
-  const { GoogleGenAI } = await import('@google/genai');
-  const ai = new GoogleGenAI({ apiKey: key });
-  const contents = turns.map((t, i) => ({ role: i === turns.length - 1 ? 'user' : 'user', parts: [{ text: t }] }));
-  // single-turn simplification for smoke: join turns
-  const prompt = turns.length === 1 ? turns[0] : turns.map((t, i) => `Turn ${i + 1}: ${t}`).join('\n');
-  const config = useSearch
-    ? { tools: [{ googleSearch: {} }] }
-    : {};
-  const resp = await ai.models.generateContent({
-    model: modelId,
-    contents: prompt,
-    config,
-  });
-  const text = resp?.text || resp?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
-  const chunks = resp?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-  const sources = chunks.map(c => c?.web?.uri).filter(Boolean);
-  return { answer: String(text).trim(), sources, path: useSearch ? 'gemini+search' : 'gemini', modelId };
-}
-
 function pickModels() {
   try {
     const ms = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/model-sources.json'), 'utf8'));
     const models = ms.sources?.[0]?.models || [];
     const primary = models.find(m => m.role === 'strong')?.id || models[0]?.id || 'gemini-3.5-flash-lite';
-    const strongest = primary;
-    return { primary, strongest };
+    const light = models.find(m => m.role === 'light')?.id || models[1]?.id || primary;
+    return { primary, strongest: primary, light };
   } catch {
-    return { primary: 'gemini-3.5-flash-lite', strongest: 'gemini-3.5-flash-lite' };
+    return { primary: 'gemini-3.5-flash-lite', strongest: 'gemini-3.5-flash-lite', light: 'gemini-3.1-flash-lite' };
   }
+}
+
+/** Login once; returns Cookie header value or null. */
+async function loginSession(baseUrl) {
+  const password = process.env.EVAL_APP_PASSWORD || process.env.APP_PASSWORD || '';
+  if (!password) return null;
+  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+    redirect: 'manual',
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    throw new Error(`login HTTP ${res.status} ${t.slice(0, 120)}`);
+  }
+  // Node fetch may expose set-cookie as getSetCookie()
+  const raw = typeof res.headers.getSetCookie === 'function'
+    ? res.headers.getSetCookie()
+    : (res.headers.get('set-cookie') ? [res.headers.get('set-cookie')] : []);
+  const parts = (raw || []).map(c => String(c).split(';')[0].trim()).filter(Boolean);
+  if (!parts.length) {
+    // some runtimes fold cookies
+    const single = res.headers.get('set-cookie');
+    if (single) parts.push(String(single).split(';')[0].trim());
+  }
+  if (!parts.length) throw new Error('login ok but no Set-Cookie');
+  return parts.join('; ');
+}
+
+async function callProduct(baseUrl, route, turns, productMode, cookie) {
+  const history = [];
+  let lastReply = '';
+  const headers = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
+  for (let i = 0; i < turns.length; i++) {
+    const userText = turns[i];
+    history.push({ role: 'user', content: userText });
+    const body = {
+      productMode,
+      brief: { decision: userText },
+      history: history.slice(),
+      state: {},
+    };
+    const res = await fetch(`${baseUrl.replace(/\/$/, '')}${route}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${route}: ${text.slice(0, 160)}`);
+    let data;
+    try { data = JSON.parse(text); } catch { data = { reply: text }; }
+    lastReply = data.reply || data.message || data.text || data.answer || '';
+    if (!lastReply && data.success === false) throw new Error(data.error || 'empty failure');
+    history.push({ role: 'assistant', content: String(lastReply) });
+    await sleep(Number(process.env.MODEL_MIN_INTERVAL_MS) || 5000);
+  }
+  return { answer: String(lastReply).trim(), sources: [], path: 'product', modelId: null };
+}
+
+async function callGeminiDirect(turns, modelIds, useSearch) {
+  const key = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_1;
+  if (!key) throw new Error('GEMINI_API_KEY missing');
+  const { GoogleGenAI } = await import('@google/genai');
+  const ai = new GoogleGenAI({ apiKey: key });
+  const prompt = turns.length === 1 ? turns[0] : turns.map((t, i) => `Turn ${i + 1}: ${t}`).join('\n');
+  const config = useSearch ? { tools: [{ googleSearch: {} }] } : {};
+  const chain = Array.isArray(modelIds) ? modelIds : [modelIds];
+  let lastErr;
+  for (const modelId of chain) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        if (attempt > 0) await sleep(4000 * attempt);
+        const resp = await ai.models.generateContent({ model: modelId, contents: prompt, config });
+        const text = resp?.text
+          || resp?.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('')
+          || '';
+        const chunks = resp?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        const sources = chunks.map(c => c?.web?.uri).filter(Boolean);
+        return { answer: String(text).trim(), sources, path: useSearch ? 'gemini+search' : 'gemini', modelId };
+      } catch (e) {
+        lastErr = e;
+        const msg = String(e?.message || e);
+        const retryable = /429|quota|rate|RESOURCE_EXHAUSTED|503|UNAVAILABLE/i.test(msg);
+        if (!retryable) break;
+      }
+    }
+  }
+  throw lastErr || new Error('gemini failed');
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const dry = args.includes('--dry-run') || (!args.includes('--smoke') && !args.includes('--live') && args.length === 0);
   const smoke = args.includes('--smoke') || args.includes('--live');
-  const scoreIdx = args.indexOf('--score');
-  if (scoreIdx >= 0) {
-    console.log('Offline scoring: pass labels JSON later; pure functions available.');
+  if (args.includes('--score')) {
+    console.log('Offline scoring: use pure exports; labels file path later.');
     process.exit(0);
   }
 
@@ -293,12 +333,14 @@ async function main() {
   const models = pickModels();
   const baseUrl = process.env.EVAL_BASE_URL || process.env.BASE_URL || '';
   const hasKey = Boolean(process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_1);
+  const hasPassword = Boolean(process.env.EVAL_APP_PASSWORD || process.env.APP_PASSWORD);
   const configs = (process.env.EVAL_CONFIGS || 'A,B,C,N').split(',').map(s => s.trim()).filter(Boolean);
 
   const notRun = [];
-  if (!baseUrl) { notRun.push('live_product_A', 'live_product_B', 'live_negative_N'); }
-  if (!hasKey) { notRun.push('live_gemini_C', 'live_gemini_D'); }
-  notRun.push('production /health/runtime-config snapshot (paste by Navigator)');
+  if (!baseUrl) notRun.push('live_product_A/B (no EVAL_BASE_URL)');
+  if (baseUrl && !hasPassword) notRun.push('live_product_A/B auth (no EVAL_APP_PASSWORD/APP_PASSWORD)');
+  if (!hasKey) notRun.push('live_gemini_C/D (no GEMINI_API_KEY)');
+  notRun.push('N isolation on shared deploy (search cannot be forced off remotely)');
 
   const report = buildReportSkeleton({
     commit: process.env.GITHUB_SHA || 'local',
@@ -309,14 +351,15 @@ async function main() {
       harness: smoke ? 'smoke' : 'dry-run',
       EVAL_BASE_URL: baseUrl ? '[set]' : null,
       hasGeminiKey: hasKey,
-      flags: 'NOT_RUN until Navigator pastes runtime-config',
+      hasAppPassword: hasPassword,
     },
     configs,
     notRun,
   });
-  report.patch = '127.3';
+  report.patch = process.env.npm_package_patch || '127.3';
 
   const records = [];
+  let cookie = null;
 
   if (dry && !smoke) {
     for (const q of doc.questions) {
@@ -333,33 +376,44 @@ async function main() {
       }
     }
   } else {
-    // smoke / live
+    if (baseUrl && hasPassword && configs.some(c => c === 'A' || c === 'B' || c === 'N')) {
+      try {
+        cookie = await loginSession(baseUrl);
+        console.log('login: session cookie acquired');
+      } catch (e) {
+        console.error('login failed:', e.message);
+        notRun.push(`login_failed: ${e.message}`);
+      }
+    }
+
     for (const q of doc.questions) {
       for (const cfg of configs) {
         let result = null;
         let infra = false;
         try {
           if (cfg === 'A' || cfg === 'B' || cfg === 'N') {
-            if (!baseUrl) {
-              notRun.push(`${cfg}:${q.id}`);
+            if (!baseUrl || !cookie) {
               records.push({ questionId: q.id, configId: cfg, answer: '', sources: [], provisional: 'I', path: 'NOT_RUN', infra: true });
               continue;
             }
-            // N cannot flip ENABLE_WEB_SEARCH on remote deploy without admin; tag as attempted A-like
             const route = cfg === 'B' ? '/api/agent/expert' : '/api/agent/conversational';
             const mode = cfg === 'B' ? 'Expert' : 'Simple';
-            result = await callProduct(baseUrl, route, q.turns, mode);
-            if (cfg === 'N') result.path = 'product(N-proxy-NOT_ISOLATED)';
+            result = await callProduct(baseUrl, route, q.turns, mode, cookie);
+            if (cfg === 'N') {
+              result.path = 'product(N-proxy-NOT_ISOLATED)';
+              // Remote deploy cannot flip ENABLE_WEB_SEARCH; treat as diagnostic only
+            }
           } else if (cfg === 'C' || cfg === 'D') {
             if (!hasKey) {
               records.push({ questionId: q.id, configId: cfg, answer: '', sources: [], provisional: 'I', path: 'NOT_RUN', infra: true });
               continue;
             }
-            const mid = cfg === 'D' ? models.strongest : models.primary;
-            result = await callGeminiDirect(q.turns, mid, true);
-          } else {
-            continue;
-          }
+            const chain = cfg === 'D'
+              ? [models.strongest, models.light]
+              : [models.primary, models.light];
+            result = await callGeminiDirect(q.turns, chain, true);
+            await sleep(Number(process.env.MODEL_MIN_INTERVAL_MS) || 5000);
+          } else continue;
         } catch (e) {
           infra = true;
           result = { answer: `INFRA: ${e.message}`, sources: [], path: 'error', modelId: null };
@@ -397,18 +451,20 @@ async function main() {
   }
 
   const live = smoke && records.some(r => !r.infra && r.path !== 'fake');
+  const infraRate = records.length ? records.filter(r => r.infra).length / records.length : 1;
   const summaryMd = [
     `# Eval summary (blinded) — P127.3 ${smoke ? 'smoke' : 'dry-run'}`,
     '',
     `Question-set hash: \`${hash}\``,
     `Commit: \`${report.commit}\``,
-    `Models: primary=${models.primary}`,
-    `Live calls executed: **${live ? 'PARTIAL/YES' : 'NO (dry or missing env)'}**`,
+    `Models: primary=${models.primary}, light=${models.light}`,
+    `Live calls executed: **${live ? 'YES/PARTIAL' : 'NO'}**`,
+    `Infra failure rate: ${(infraRate * 100).toFixed(1)}% (smoke gate: <25%)`,
     '',
     '## Blinded sample',
     ...blinded.slice(0, 4).flatMap(b => [
       `### ${b.questionId}`,
-      ...b.slots.map(s => `- **${s.label}**: ${String(s.answer).slice(0, 160).replace(/\n/g, ' ')}`),
+      ...b.slots.map(s => `- **${s.label}**: ${String(s.answer).slice(0, 160).replace(/\\n/g, ' ')}`),
       '',
     ]),
     '## Provisional aggregates',
@@ -420,16 +476,15 @@ async function main() {
     ...[...new Set(notRun)].map(x => `- ${x}`),
     '',
     '## §7.6 instrument checks (smoke)',
-    '- [ ] N below A on lookup (needs both live)',
-    '- [x] scorer unit tests (eval-harness suite)',
-    '- [ ] double labelling (Navigator)',
-    '- [x] report carries commit, set hash, model ids',
+    `- Infra failures <25%: ${infraRate < 0.25 ? 'PASS' : 'FAIL'} (${(infraRate * 100).toFixed(1)}%)`,
+    '- Scorer unit tests: see CI test:core / eval-harness',
+    '- N below A on lookup: needs live non-infra N (may be NOT_RUN on shared deploy)',
+    '- Double labelling: Navigator',
   ].join('\n');
 
   writeReports(report, summaryMd);
-  console.log(`${smoke ? 'Smoke' : 'Dry-run'} complete. notRun=${[...new Set(notRun)].length}`);
+  console.log(`${smoke ? 'Smoke' : 'Dry-run'} complete. infraRate=${(infraRate * 100).toFixed(1)}% notRun=${[...new Set(notRun)].length}`);
 }
-
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   main().catch(e => { console.error(e); process.exit(1); });
