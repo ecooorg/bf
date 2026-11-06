@@ -44,10 +44,10 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '127');
-  assert.equal(pkg.patch, '127.13');
+  assert.equal(pkg.patch, '127.14');
   const lock = JSON.parse(read('package-lock.json'));
   assert.equal(lock.version, '127');
-  assert.equal(lock.patch, '127.13');
+  assert.equal(lock.patch, '127.14');
 });
 
 test('P127.12 ProjectMode wires continue and source ZIP upload', () => {
@@ -79,4 +79,13 @@ test('P127.13 Files-first Project workspace hides analysis until Advanced', () =
   assert.match(ui, /Hide advanced/);
   assert.match(ui, /Create a program or upload a source ZIP/);
   assert.doesNotMatch(ui, /!lastRun && artifacts\.length === 0 \? 'Run an analysis\.'/);
+});
+
+test('P127.14 workspace copy stays short and avoids raw JSON label', () => {
+  const ui = read('src/ProjectMode.tsx');
+  assert.match(ui, /Local analysis files on this device only/);
+  assert.doesNotMatch(ui, /Raw JSON/);
+  assert.match(ui, /Project data/);
+  const routes = read('server/projectRoutes.ts');
+  assert.match(routes, /Uint8Array\.from\(bytes\)/);
 });
