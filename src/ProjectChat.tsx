@@ -153,7 +153,7 @@ export function ProjectChat({
       id: 'welcome',
       role: 'assistant',
       text:
-        'Describe the program you want. I will build a downloadable source ZIP. Then keep writing here to change or extend it — no extra panels needed.',
+        'Describe the program you want. I build a ZIP. Keep chatting here to change it.',
       at: Date.now(),
     },
   ]);
