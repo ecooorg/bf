@@ -75,3 +75,10 @@ Source: `https://biforge.onrender.com/health/runtime-config` · commit `3451600`
 ### Auth for A/B (P127.2b)
 
 Production has `appAuth=true`. Smoke logs in via `POST /api/login` using GitHub secret `APP_PASSWORD` (mapped to `EVAL_APP_PASSWORD`). Cookie `be_session` is attached to product calls. C/D use `GEMINI_API_KEY` only; 429 retries with model fallback (`3.5` → `3.1` flash-lite) and 6s pacing.
+
+
+### Smoke ops (P127.2e)
+
+- Default configs **A,B** via deploy + `APP_PASSWORD` (product envelope `data.reply`).
+- **C** not required for §7.6 smoke gate from Actions (shared IP → 429 even with 10 independent keys). Set `include_c=true` only when quota/IP allow; prefer C off-Actions.
+- Gemini pool: serialize, 12s gap, 60s slot cooldown on 429 (aligned with `keyPool`).
