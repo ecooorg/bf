@@ -1,3 +1,17 @@
+## [127.17a] - CI fix: intent-brief language + duplicate templatePlan export
+
+- Removed Cyrillic tokens from `intent-brief.ts` complexity regex (lint:copy).
+- `appBuilder/index.ts`: drop duplicate `templatePlan` re-export (esbuild/tsc).
+- Package patch `127.17a`.
+
+## [127.18] - Project Mode user-value workflow (human simulator)
+
+- New offline **human-simulator** evaluator: `scripts/project-user-value-eval.mjs`.
+- Fixtures: `stub-racer` (SUCCESS on tiny package — must fail human rubric) and `rich-forest` (recognizable animals/forest — must pass).
+- Workflow: `.github/workflows/project-user-value.yml` (PR/path + dispatch).
+- npm script `test:project-user-value`. Scores recognition, stub size, honest SUCCESS, interaction markers — not syntax gates.
+- Package patch `127.18`.
+
 ## [127.17] - Intent elaboration + multi-module plan + honest goal adequacy
 
 - New **intent** stage before spec: model elaborates plain-language requests into expanded goal, mustHave / notSuccessIf, complexity, suggested small modules (`app_builder.intent.v1`).

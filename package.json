@@ -2,7 +2,7 @@
   "name": "biforge",
   "private": true,
   "version": "127",
-  "patch": "127.17",
+  "patch": "127.17a",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -56,7 +56,8 @@
     "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode-contract.test.mjs tests/project-resume-lease.test.mjs tests/project-builder-recovery.test.mjs",
     "test:project-diagnostics": "node --test tests/diagnostics-ops.test.mjs",
     "scripts:integrity": "node scripts/scripts-integrity.mjs",
-    "eval:baseline": "node scripts/baseline-eval.mjs"
+    "eval:baseline": "node scripts/baseline-eval.mjs",
+    "test:project-user-value": "node scripts/project-user-value-eval.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
