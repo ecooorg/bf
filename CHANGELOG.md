@@ -1,3 +1,9 @@
+## P127.2c — preflight letter-patch + Gemini 10-key pool in eval (instrument) (2026-11-06)
+
+- workflow-preflight accepts `127.2c`-style letter suffix.
+- baseline-eval rotates GEMINI_API_KEY + GEMINI_API_KEY_1..10 like server/keyPool.ts; workflow maps all ten secrets.
+- Still under plan **P127.2** (Experiment 0); not P127.3 intervention.
+
 ## P127.2b — Experiment 0 smoke: auth + quota-aware Gemini (instrument, user_value: NOT_RUN) (2026-11-06)
 
 - Still under plan step **P127.2** (Experiment 0), not P127.3 intervention.

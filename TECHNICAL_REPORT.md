@@ -1,3 +1,13 @@
+## P127.2c — Evidence (2026-11-06)
+
+**Scope:** Instrument CI + eval key pool. User value: NOT_RUN.
+
+**OBSERVED:** preflight accepts letter patch; harness resolves up to 10 Gemini slots; workflow env wired.
+
+**NOT_RUN:** live smoke with full pool (needs secrets GEMINI_API_KEY_1..10 and APP_PASSWORD in GH).
+
+---
+
 ## P127.2b — Evidence (2026-11-06)
 
 **Scope:** Experiment 0 smoke capability (instrument under P127.2; **not** plan P127.3 intervention). User value: NOT_RUN until live labels.
