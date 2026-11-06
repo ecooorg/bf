@@ -1,3 +1,8 @@
+## P127.2a — lint:copy allowlist for eval instrument (non-product) (2026-11-06)
+
+- Allow Cyrillic in `config/eval-questions.json`, `scripts/baseline-eval.mjs`, `docs/EXPERIMENTS.md` (multilingual fixtures).
+- package patch `127.2a` (letter suffix; does not advance product sequence).
+
 ## P127.2 — Experiment 0 Stage B + live harness (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
 
 - Pre-register EXP-0 with production runtime-config snapshot (directGeminiMode=true, search on, verifier off).

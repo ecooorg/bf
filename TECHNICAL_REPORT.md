@@ -1,3 +1,13 @@
+## P127.2a — Evidence (2026-11-06)
+
+**Scope:** Non-product CI fix. User value: NOT_RUN.
+
+**OBSERVED:** lint:copy OK after language allowlist; version 127.2a accepted by gates.
+
+**NOT_RUN:** live smoke.
+
+---
+
 ## P127.2 — Evidence (2026-11-06)
 
 **Scope:** Experiment 0 Stage B + numbering correction. User value: NOT_RUN.
