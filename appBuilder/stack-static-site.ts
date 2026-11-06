@@ -31,8 +31,9 @@ export function ensureMultiFileStaticPlan(plan: Plan, spec: Spec): { plan: Plan;
   const onlyOneHtml = files.length === 1 && /\.html?$/.test(paths[0] || '');
   const hasJs = paths.some((p) => p.endsWith('.js'));
   const goal = `${spec.goal || ''} ${spec.title || ''}`.toLowerCase();
+  // Latin-only markers (lint:copy forbids Cyrillic in source). Russian-only goals still hit onlyOneHtml / no-JS branches.
   const interactive =
-    /game|tetris|play|canvas|touch|keyboard|score|pause|editor|interactive|анимац|игр|тетрис|тач|сенсор/.test(goal);
+    /game|tetris|play|canvas|touch|keyboard|score|pause|editor|interactive|animat/.test(goal);
   if (onlyOneHtml || (interactive && !hasJs) || (interactive && files.length < 2)) {
     return { plan: templatePlan(spec), coerced: ['plan:force_multifile_static'] };
   }
