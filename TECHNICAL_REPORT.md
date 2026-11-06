@@ -1,3 +1,17 @@
+## P127.7 — Project workspace artifact inventory (2026-11-06)
+
+**Type:** RELIABILITY. **Scope:** Project Mode only.
+
+**CHANGE:** Added `GET /api/projects/:projectId/artifact-versions` for every immutable artifact version; added project-scoped per-artifact version listing and inspection endpoints; downloads now accept a validated `version` query parameter. Project Mode Files view now shows historical versions, offers version-specific downloads, and displays integrity status plus ZIP entry names. Existing artifact storage, manifests, checksum verification, and binary support are reused.
+
+**ISOLATION:** No Simple or Expert routes, prompts, model selection, or interfaces were changed.
+
+**VERIFICATION:** Pending. Local targeted tests, typecheck, production build, browser UI and database-backed route tests have not yet been run for this patch.
+
+**LIMITATIONS:** This patch exposes all registered artifact versions, not arbitrary transient files that were never registered. ZIP entry inspection reports the archive manifest/listing and integrity; it does not execute the contents.
+
+---
+
 ## P127.5 — Project Mode build reliability (2026-11-06)
 
 **Type:** RELIABILITY. **Scope:** Project Mode appBuilder validators only; Simple and Expert untouched.

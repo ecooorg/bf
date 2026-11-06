@@ -1,3 +1,11 @@
+## [127.7] - Project workspace artifact inventory
+
+- Added project-scoped inventory of all immutable artifact versions.
+- Added version-specific artifact downloads and artifact inspection endpoints.
+- Added Project Mode UI for historical version downloads, integrity status, and ZIP entry listings.
+- Added project-mode contract coverage. Simple and Expert paths were not modified.
+- Verification: pending local test/typecheck/build execution; see `TECHNICAL_REPORT.md`.
+
 ## P127.5 — Project Mode build reliability (2026-11-06)
 
 - Normalize HTML local references against the generated project root or the referencing HTML directory; preserve path-traversal rejection.

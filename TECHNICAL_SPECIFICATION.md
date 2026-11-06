@@ -772,3 +772,8 @@ This specification is the single source of truth for re-implementation. Subseque
 ## P127.6 — Existing project continuation
 
 The Project Mode API exposes `POST /api/projects/:projectId/code/continue`. It accepts a goal, a project-owned ZIP artifact ID, and an optional artifact version. The route verifies the artifact through the artifact repository, validates the ZIP and paths, and injects bounded source-file context into a new staged build job. Only UTF-8 text files are accepted in this initial version; binary assets fail explicitly. Source archives are limited to 80 files and 80,000 characters; exceeding either limit fails explicitly. The source artifact is immutable and the continuation output is a separate artifact. See `docs/PROJECT_CONTINUATION.md`.
+
+
+## P127.7 — Project artifact workspace inventory
+
+Project Mode exposes a project-scoped inventory of every immutable artifact version through `GET /api/projects/:projectId/artifact-versions`. Each artifact supports version-specific downloads using `?version=N`, version listing, and inspection through `GET /api/projects/:projectId/artifacts/:artifactId/inspect?version=N`. Inspection returns manifest/integrity status and, for ZIP archives, the stored entry listing. Every route verifies the selected project and artifact ownership before exposing metadata or content. The Project Mode Files view displays all versions and offers per-version download and inspection. Simple and Expert are outside this contract.
