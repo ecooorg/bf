@@ -1,3 +1,7 @@
+## [127.8a] - Docs layout CI fix
+
+- Removed three non-allowlisted prose files from `docs/` (`PROJECT_CONTINUATION.md`, `PROJECT_MODE_P127_8_ACCEPTANCE.md`, `PROJECT_MODE_RELIABILITY_PLAN.md`) and redirected references to canonical documents. Fixes `docs-integrity` and `test:core` failures. No runtime change.
+
 ## [127.8] - Project Mode recovery and acceptance
 
 - Stale build recovery now atomically leases eligible jobs with PostgreSQL row locks (`FOR UPDATE SKIP LOCKED`) and refreshes the heartbeat before a worker resumes them. This prevents multiple BiForge replicas from concurrently resuming the same stale job.

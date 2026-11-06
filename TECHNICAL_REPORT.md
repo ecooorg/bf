@@ -1,3 +1,15 @@
+## P127.8a — Docs layout CI fix (2026-11-06)
+
+**Type:** MAINTENANCE. **Scope:** repository docs layout only; no runtime or answer-path change.
+
+**OBSERVED:** CI run 42254676945 (commit 81ae5a9) failed `docs-integrity` and `test:core` (`docs layout: only allowlisted prose...`) because `docs/PROJECT_CONTINUATION.md`, `docs/PROJECT_MODE_P127_8_ACCEPTANCE.md` and `docs/PROJECT_MODE_RELIABILITY_PLAN.md` are not on the docs allowlist (AGENTS.md §6). All other 16 DAG checks passed.
+
+**CHANGE:** Retired the three files; references in `TECHNICAL_SPECIFICATION.md`, `ROADMAP.md` and this report now point to canonical files. Their content was merged: requirements, isolation rules and continuation contract into `TECHNICAL_SPECIFICATION.md` (Project Mode recovery programme; P127.6), and the acceptance checklist into `docs/TESTING_AND_ACCEPTANCE.md`. P127.8 manual acceptance remains NOT_RUN.
+
+**VERIFICATION:** Not run locally (no dependencies installed). Expected: `docs:integrity` and `test:core` pass in CI; to be confirmed by the Actions result.
+
+---
+
 ## P127.7 — Project workspace artifact inventory (2026-11-06)
 
 **Type:** RELIABILITY. **Scope:** Project Mode only.
@@ -2335,4 +2347,4 @@ P127.6 introduces a safe initial continuation workflow. The API validates owners
 - TESTED: `node --check` passed for the recovery test files; `node --test tests/project-mode-contract.test.mjs` passed (4/4). `package.json` JSON parsing passed.
 - BLOCKED: dependency-backed lease/recovery tests and TypeScript build could not be run: `node_modules` was absent, and `npm ci --ignore-scripts --no-audit --no-fund` did not complete within the available execution window.
 - NOT_RUN: browser E2E, live PostgreSQL recovery, multi-replica contention test, and deployed artifact-download verification.
-- No claim is made that production or browser acceptance has passed. See `docs/PROJECT_MODE_P127_8_ACCEPTANCE.md`. Run `npm ci`, `npm run test:project`, `npm run typecheck`, and `npm run build` in the target environment, then perform the live DB/browser checks.
+- No claim is made that production or browser acceptance has passed. Acceptance steps are recorded in the P127.8a entry at the top of this report. Run `npm ci`, `npm run test:project`, `npm run typecheck`, and `npm run build` in the target environment, then perform the live DB/browser checks.
