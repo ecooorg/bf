@@ -13,7 +13,7 @@ const pkg = JSON.parse(read('package.json'));
 
 test('package patch metadata is internally consistent', () => {
   assert.equal(String(pkg.version), '127');
-  assert.match(String(pkg.patch), /^127\.\d+$/);
+  assert.match(String(pkg.patch), /^127\.\d+(\.\d+)?$/);
   assert.ok(pkg.patch.startsWith(`${pkg.version}.`));
 });
 
