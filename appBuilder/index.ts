@@ -109,4 +109,4 @@ export {
   type IntentComplexity,
   type AdequacyResult,
 } from './intent-brief.ts';
-export { expandedPlanFromBrief, ensureMultiFileStaticPlan, templatePlan } from './stack-static-site.ts';
+export { expandedPlanFromBrief, ensureMultiFileStaticPlan } from './stack-static-site.ts';

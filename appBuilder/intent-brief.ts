@@ -24,9 +24,9 @@ export interface IntentBrief {
 }
 
 const AMBITIOUS_RE =
-  /3d|three\.?js|webgl|city|racing|race|open.?world|multiplayer|physics|rpg|minecraft|simulator|simulat|forest|animals|живот|лес|город|гонка|тетрис|tetris|editor|sandbox/i;
+  /3d|three\.?js|webgl|city|racing|race|open.?world|multiplayer|physics|rpg|minecraft|simulator|simulat|forest|animals|tetris|editor|sandbox/i;
 const STANDARD_RE =
-  /game|play|canvas|touch|keyboard|score|level|enemy|player|игр|анимац/i;
+  /game|play|canvas|touch|keyboard|score|level|enemy|player/i;
 
 /** Heuristic complexity from user text (used if model brief is missing). */
 export function estimateComplexity(text: string): IntentComplexity {
