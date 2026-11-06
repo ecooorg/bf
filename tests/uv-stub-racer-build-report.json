@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "jobId": "fixture-stub-racer",
+  "status": "complete",
+  "outcome": "SUCCESS",
+  "goalImplemented": true,
+  "runtimeVerified": false,
+  "files": [],
+  "units": [],
+  "validators": [],
+  "checksDeclared": [],
+  "checksRun": [],
+  "checksNotRun": [],
+  "callsUsed": 6,
+  "durationMs": 1
+}

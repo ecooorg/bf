@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "jobId": "fixture-rich-forest",
+  "status": "complete",
+  "outcome": "PARTIAL",
+  "goalImplemented": false,
+  "runtimeVerified": false,
+  "files": [],
+  "units": [],
+  "validators": [],
+  "checksDeclared": [],
+  "checksRun": [],
+  "checksNotRun": [],
+  "callsUsed": 20,
+  "durationMs": 1,
+  "failureReason": "fixture: honest partial until human review"
+}
