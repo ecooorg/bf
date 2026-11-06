@@ -1,3 +1,14 @@
+## P127.2e — Evidence (2026-11-06)
+
+**Scope:** Instrument. User value: NOT_RUN.
+
+**OBSERVED prior smoke:** A/B empty due to envelope; C 429×10 from Actions IP.
+**FIX:** envelope + pacing + default A,B.
+
+**NOT_RUN:** re-smoke A,B after apply.
+
+---
+
 ## P127.2d — Evidence (2026-11-06)
 
 **Scope:** Instrument. User value: NOT_RUN.

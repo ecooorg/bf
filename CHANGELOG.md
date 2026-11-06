@@ -1,3 +1,10 @@
+## P127.2e — eval smoke reliability (instrument) (2026-11-06)
+
+- Product: parse `data.reply` + sources; empty body = infra.
+- Default smoke **A,B** only; C optional (`include_c` / EVAL_INCLUDE_C).
+- Gemini pool: 12s gap, 60s cooldown per slot on 429; infra rate counts empty/NOT_RUN.
+- Still under plan **P127.2**; not P127.3 intervention.
+
 ## P127.2d — eval product response envelope (instrument) (2026-11-06)
 
 - Parse `{ success, data.reply }` from conversation routes (was reading top-level `reply` → empty A/B).
