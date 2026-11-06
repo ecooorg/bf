@@ -9,6 +9,9 @@
 
 ## Project artifacts and ZIPs
 
+Project Mode's artifact workspace is backed by `artifacts` and `artifact_manifests`; the manifest is the inventory authority for immutable artifact versions. `GET /api/projects/:projectId/artifact-versions` lists every registered version in the selected project. Artifact inspection returns manifest integrity status and, for ZIPs, the entry listing. Downloads may specify `?version=N`; omitting the version selects the latest. Every read must verify project ownership and artifact integrity before returning content. Never infer an artifact from a temporary URL or UI state.
+
+
 The Architect's principal user value is a useful, downloadable software artifact. Delivery evidence should record the operation/build identity, final status, files included, validator outcomes, ZIP integrity (including CRC/entry checks where implemented), and whether the archive can be downloaded and used. Do not report a successful artifact if generation failed or the archive is missing/corrupt.
 
 ## Delivery states

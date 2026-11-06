@@ -1,6 +1,6 @@
 # Project Mode Recovery and Improvement Plan
 
-**Status:** Four-patch implementation programme; Patch 1 is in progress.  
+**Status:** Four-patch implementation programme; P127.5–P127.6 implementation slices exist; P127.7 workspace inventory is in progress.  
 **Boundary:** Changes in this programme are confined to Project Mode and `appBuilder`. Simple and Expert behavior, prompts, routing, model selection, and interfaces must remain unchanged.
 
 ## Product outcome
@@ -51,6 +51,7 @@ Acceptance:
 
 Scope:
 - Provide a single project workspace with Results, Plan, Files & Archives, History, and Continue Development sections.
+- P127.7 adds a project-scoped complete immutable-version inventory, version-specific downloads, and artifact inspection with integrity status and ZIP entry listing.
 - Display every generated file with path, size, version, modified time, preview, and download action.
 - Display every archive with version, creation time, size, file count, validation outcome, and download action.
 - Register artifacts durably and link them to project, build, and version identifiers; verify checksums and archive contents.
@@ -59,6 +60,8 @@ Scope:
 
 Acceptance:
 - The UI lists all artifacts belonging to the selected project, including older versions.
+- The version inventory and inspection endpoints verify project ownership before returning metadata or bytes.
+- Users can download a selected historical version, not only the latest.
 - Every displayed download resolves to a real stored artifact.
 - ZIP integrity, manifest/file agreement, and checksum checks pass.
 

@@ -65,6 +65,10 @@ The table below is generated from `docs/generated-route-inventory.json`. It prev
 | `GET` | `/api/projects/:projectId/artifacts` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/artifacts/:artifactId` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/artifacts/:artifactId/download` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `GET` | `/api/projects/:projectId/artifact-versions` | `server/projectRoutes.ts` | All immutable artifact versions scoped to the selected project |
+| `GET` | `/api/projects/:projectId/artifacts/:artifactId/versions` | `server/projectRoutes.ts` | Version history for one project-owned artifact |
+| `GET` | `/api/projects/:projectId/artifacts/:artifactId/inspect?version=N` | `server/projectRoutes.ts` | Integrity status, manifest preview, and ZIP entry listing for a selected version |
+| `GET` | `/api/projects/:projectId/artifacts/:artifactId/download?version=N` | `server/projectRoutes.ts` | Downloads selected immutable version; omitted version means latest |
 | `GET` | `/api/projects/:projectId/budgets/:scope/:scopeId` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `PUT` | `/api/projects/:projectId/budgets/:scope/:scopeId` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/code` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
