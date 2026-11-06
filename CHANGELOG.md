@@ -1,3 +1,14 @@
+## [127.9] - Project Mode integration gates (reachability + completeness)
+
+- Added required static validators `reachability` and `completeness` for the `static_site` stack so SUCCESS cannot be claimed when generated files are orphaned or truncated.
+- `reachability`: every non-exempt file must be reachable from an HTML entrypoint via `src`/`href` and relative ES imports; flags self-contained HTML with large inline scripts alongside unreferenced external modules.
+- `completeness`: detects truncated JS/CSS/HTML (unclosed braces, mid-statement endings, missing `</html>`).
+- `dom-wiring` now also scans `.mjs`/`.cjs` and inline `<script>` bodies.
+- `BuildReport` gains mandatory `runtimeVerified: false` for static-only core runs and optional `orphanedFiles`.
+- Planner/coder prompts tightened: simplest static architecture by default, no unrequested frameworks, entry HTML must link every deliverable asset, no truncated files (`PROMPT_VERSION` → `static_site.v5`, plan → `app_builder.plan.v4`).
+- User-facing SUCCESS notes state that runtime was not executed on BiForge.
+- Scope: Project Mode `appBuilder/` only; Simple and Expert untouched.
+
 ## [127.8a] - Docs layout CI fix
 
 - Removed three non-allowlisted prose files from `docs/` (`PROJECT_CONTINUATION.md`, `PROJECT_MODE_P127_8_ACCEPTANCE.md`, `PROJECT_MODE_RELIABILITY_PLAN.md`) and redirected references to canonical documents. Fixes `docs-integrity` and `test:core` failures. No runtime change.

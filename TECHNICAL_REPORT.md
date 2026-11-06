@@ -1,3 +1,28 @@
+## P127.9 — Project Mode integration gates (2026-11-06)
+
+**Type:** RELIABILITY. **Scope:** Project Mode `appBuilder/` only (validators, report contract, prompts, outcome notes). Simple and Expert untouched.
+
+**OBSERVED:** Live sample builds (Touch Tetris / 3D Tetris) were marked SUCCESS while packages contained unreachable modular files beside a self-contained `index.html`, broken cross-file contracts (`paused` vs `isPaused`), and historically truncated sources. Required validators (`module-contracts`, `refs`, `dom-wiring`, `acceptance`) all reported `ok` because they did not check entrypoint reachability or truncation. `goalImplemented: true` implied user value without runtime evidence.
+
+**CHANGE:**
+1. New required validators `reachability` and `completeness` in `validator-static-site.ts`; included in `REQUIRED_VALIDATORS` and `runStaticValidators`.
+2. `dom-wiring` extended to `.mjs`/`.cjs` and inline HTML scripts.
+3. `BuildReport.runtimeVerified` always `false` in the pure static core; `orphanedFiles` populated from reachability issues; `job_done` events carry `orphanedCount`.
+4. SUCCESS remains gated on all required validators ok (so orphans or truncation → PARTIAL/FAILED, not SUCCESS).
+5. Planner/coder prompts prefer simplest static architecture, forbid unrequested frameworks, require HTML to link deliverable assets, forbid truncation; cache key version `static_site.v5`.
+6. `stagedArchitectNote` / `pipelineArchitectOutcome` SUCCESS copy states static-only verification.
+
+**ISOLATION:** No Simple/Expert prompts, routes, model selection, or UI changes.
+
+**VERIFICATION:**
+- Manual reasoning against the supplied Tetris sample: all of `style.css`, `game.js`, `main.js`, `renderer.js`, `tetrominoes.js` are unreachable from `index.html` → would fail `reachability` and block SUCCESS. **OBSERVED** via standalone graph walk of the sample package.
+- Unit/CI tests for the new validators: **NOT_RUN** (full repo test harness not present in the working archive).
+- Browser runtime smoke still **NOT_RUN** (explicitly out of scope for this pure-core patch; `runtimeVerified` stays false).
+
+**LIMITATIONS:** Property-name mismatches across modules (e.g. `isPaused` vs `paused`) are not yet fully inferred; reachability + completeness close the dominant false-SUCCESS class. Headless browser acceptance remains a follow-up.
+
+---
+
 ## P127.8a — Docs layout CI fix (2026-11-06)
 
 **Type:** MAINTENANCE. **Scope:** repository docs layout only; no runtime or answer-path change.
