@@ -45,7 +45,8 @@ for (const name of workflows) {
 }
 
 // Current program state.
-const patchOk = /^\d+(\.\d+)+$/.test(String(pkg.patch)) && String(pkg.patch).split('.')[0] === String(pkg.version);
+const patchNumeric = String(pkg.patch || '').replace(/[a-z]$/i, '');
+const patchOk = /^\d+(\.\d+)+$/.test(patchNumeric) && patchNumeric.split('.')[0] === String(pkg.version);
 if (!patchOk) fail(`package.json patch ${pkg.patch} does not belong to version ${pkg.version}`);
 const lock = exists('package-lock.json') ? JSON.parse(read('package-lock.json')) : null;
 if (lock && lock.version !== undefined && String(lock.version) !== String(pkg.version) && String(lock.version) !== String(pkg.patch)) {

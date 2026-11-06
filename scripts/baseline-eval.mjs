@@ -215,6 +215,22 @@ function writeReports(report, summaryMd) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+/** Same env layout as server/keyPool.ts: GEMINI_API_KEY + GEMINI_API_KEY_1..10 */
+function resolveGeminiKeys(env = process.env) {
+  const seen = new Set();
+  const out = [];
+  const push = (slot, name, raw) => {
+    const key = String(raw || '').trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    out.push({ slot, envName: name, key });
+  };
+  push(0, 'GEMINI_API_KEY', env.GEMINI_API_KEY);
+  for (let i = 1; i <= 10; i++) push(i, `GEMINI_API_KEY_${i}`, env[`GEMINI_API_KEY_${i}`]);
+  return out;
+}
+
+
 function pickModels() {
   try {
     const ms = JSON.parse(fs.readFileSync(path.join(ROOT, 'config/model-sources.json'), 'utf8'));
@@ -287,34 +303,48 @@ async function callProduct(baseUrl, route, turns, productMode, cookie) {
 }
 
 async function callGeminiDirect(turns, modelIds, useSearch) {
-  const key = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_1;
-  if (!key) throw new Error('GEMINI_API_KEY missing');
+  const slots = resolveGeminiKeys();
+  if (!slots.length) throw new Error('GEMINI_API_KEY pool empty');
   const { GoogleGenAI } = await import('@google/genai');
-  const ai = new GoogleGenAI({ apiKey: key });
-  const prompt = turns.length === 1 ? turns[0] : turns.map((t, i) => `Turn ${i + 1}: ${t}`).join('\n');
+  const prompt = turns.length === 1 ? turns[0] : turns.map((t, i) => 'Turn ' + (i + 1) + ': ' + t).join('\n');
   const config = useSearch ? { tools: [{ googleSearch: {} }] } : {};
   const chain = Array.isArray(modelIds) ? modelIds : [modelIds];
   let lastErr;
-  for (const modelId of chain) {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        if (attempt > 0) await sleep(4000 * attempt);
-        const resp = await ai.models.generateContent({ model: modelId, contents: prompt, config });
-        const text = resp?.text
-          || resp?.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('')
-          || '';
-        const chunks = resp?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-        const sources = chunks.map(c => c?.web?.uri).filter(Boolean);
-        return { answer: String(text).trim(), sources, path: useSearch ? 'gemini+search' : 'gemini', modelId };
-      } catch (e) {
-        lastErr = e;
-        const msg = String(e?.message || e);
-        const retryable = /429|quota|rate|RESOURCE_EXHAUSTED|503|UNAVAILABLE/i.test(msg);
-        if (!retryable) break;
+  for (const { slot, envName, key } of slots) {
+    const ai = new GoogleGenAI({ apiKey: key });
+    for (const modelId of chain) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          if (attempt > 0) await sleep(3000 * attempt);
+          const resp = await ai.models.generateContent({ model: modelId, contents: prompt, config });
+          const text = resp?.text
+            || resp?.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('')
+            || '';
+          const chunks = resp?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+          const sources = chunks.map(c => c?.web?.uri).filter(Boolean);
+          return {
+            answer: String(text).trim(),
+            sources,
+            path: useSearch ? 'gemini+search' : 'gemini',
+            modelId,
+            keySlot: slot,
+            keyEnv: envName,
+          };
+        } catch (e) {
+          lastErr = e;
+          const msg = String(e?.message || e);
+          const rotate = /429|quota|rate|RESOURCE_EXHAUSTED|403|API_KEY/i.test(msg);
+          if (rotate) break; // next model or next key
+          if (!/503|UNAVAILABLE|timeout|fetch/i.test(msg)) {
+            // non-retryable for this key/model
+            break;
+          }
+        }
       }
     }
+    // exhausted models for this key → try next key slot
   }
-  throw lastErr || new Error('gemini failed');
+  throw lastErr || new Error('gemini pool exhausted');
 }
 
 async function main() {
@@ -332,7 +362,8 @@ async function main() {
 
   const models = pickModels();
   const baseUrl = process.env.EVAL_BASE_URL || process.env.BASE_URL || '';
-  const hasKey = Boolean(process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY_1);
+  const geminiSlots = resolveGeminiKeys();
+  const hasKey = geminiSlots.length > 0;
   const hasPassword = Boolean(process.env.EVAL_APP_PASSWORD || process.env.APP_PASSWORD);
   const configs = (process.env.EVAL_CONFIGS || 'A,B,C,N').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -346,11 +377,12 @@ async function main() {
     commit: process.env.GITHUB_SHA || 'local',
     setHash: hash,
     modelIds: models,
-    slotCount: hasKey ? 1 : 0,
+    slotCount: geminiSlots.length,
     runtimeSnapshot: {
       harness: smoke ? 'smoke' : 'dry-run',
       EVAL_BASE_URL: baseUrl ? '[set]' : null,
       hasGeminiKey: hasKey,
+      geminiKeySlots: geminiSlots.length,
       hasAppPassword: hasPassword,
     },
     configs,
