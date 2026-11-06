@@ -469,13 +469,15 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       }).strict().parse(req.body);
       const project = await getProject(req.params.projectId);
       if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
-      let data: Uint8Array;
+      let bytes: Buffer;
       try {
-        data = new Uint8Array(Buffer.from(input.content_base64, 'base64'));
+        bytes = Buffer.from(input.content_base64, 'base64');
       } catch {
         return res.status(400).json({ success: false, error: 'Invalid base64 content', code: 'VALIDATION' });
       }
-      if (!data.byteLength) return res.status(400).json({ success: false, error: 'Empty file', code: 'VALIDATION' });
+      if (!bytes.byteLength) return res.status(400).json({ success: false, error: 'Empty file', code: 'VALIDATION' });
+      // Copy into a fresh ArrayBuffer-backed Uint8Array (TS 5.x Buffer generics).
+      const data = Uint8Array.from(bytes);
       const saved = await saveArtifact({
         projectId: project.id,
         artifactId: input.artifact_id,
