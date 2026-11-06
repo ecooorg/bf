@@ -7,11 +7,11 @@ on:
         type: boolean
         default: true
       configs:
-        description: 'Configs (comma). Prefer A,B,C first; N is imperfect on shared deploy'
+        description: 'Configs (comma). Prefer A,B,C; N imperfect on shared deploy'
         type: string
         default: 'A,B,C'
       base_url:
-        description: 'EVAL_BASE_URL (e.g. https://biforge.onrender.com)'
+        description: 'EVAL_BASE_URL'
         type: string
         default: 'https://biforge.onrender.com'
 permissions:
@@ -38,7 +38,18 @@ jobs:
             node scripts/baseline-eval.mjs --dry-run
           fi
         env:
+          # Same pool layout as server/keyPool.ts (solo = 1 key still valid)
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GEMINI_API_KEY_6: ${{ secrets.GEMINI_API_KEY_6 }}
+          GEMINI_API_KEY_7: ${{ secrets.GEMINI_API_KEY_7 }}
+          GEMINI_API_KEY_8: ${{ secrets.GEMINI_API_KEY_8 }}
+          GEMINI_API_KEY_9: ${{ secrets.GEMINI_API_KEY_9 }}
+          GEMINI_API_KEY_10: ${{ secrets.GEMINI_API_KEY_10 }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           EVAL_APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
