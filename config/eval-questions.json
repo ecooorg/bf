@@ -1,0 +1,174 @@
+{
+  "version": "dev-1",
+  "updated": "2026-11-06",
+  "questions": [
+    {
+      "id": "S01",
+      "category": "statistic",
+      "lang": "en",
+      "turns": ["What was Switzerland's permanent resident population on 31 December 2023?"],
+      "expect": { "search": "required" },
+      "reference": {
+        "value": 8962300,
+        "unit": "persons",
+        "territory": "Switzerland",
+        "metric": "permanent resident population",
+        "sourceUrl": "https://statistik.admin.ch/en/asset/32174455",
+        "retrievedOn": "2026-11-06",
+        "asOf": "2023-12-31"
+      },
+      "volatile": false,
+      "notes": "FSO final results"
+    },
+    {
+      "id": "S02",
+      "category": "statistic",
+      "lang": "ru",
+      "turns": ["Какова была численность постоянного населения Швейцарии на 31 декабря 2023 года?"],
+      "expect": { "search": "required" },
+      "reference": {
+        "value": 8962300,
+        "unit": "persons",
+        "territory": "Switzerland",
+        "metric": "permanent resident population",
+        "sourceUrl": "https://statistik.admin.ch/en/asset/32174455",
+        "retrievedOn": "2026-11-06",
+        "asOf": "2023-12-31"
+      },
+      "volatile": false
+    },
+    {
+      "id": "C01",
+      "category": "current",
+      "lang": "en",
+      "turns": ["What is the current official interest rate of the Swiss National Bank?"],
+      "expect": { "search": "required" },
+      "reference": null,
+      "volatile": true,
+      "notes": "Volatile; scored by source class only"
+    },
+    {
+      "id": "L01",
+      "category": "lookup",
+      "lang": "en",
+      "turns": ["When did Switzerland join the United Nations?"],
+      "expect": { "search": "required" },
+      "reference": {
+        "value": "2002-09-10",
+        "unit": "date",
+        "territory": "Switzerland",
+        "metric": "UN membership",
+        "sourceUrl": "https://www.eda.admin.ch/eda/en/fdfa/fdfa/aktuell/dossiers/uno.html",
+        "retrievedOn": "2026-11-06",
+        "asOf": "2002-09-10"
+      },
+      "volatile": false
+    },
+    {
+      "id": "L02",
+      "category": "lookup",
+      "lang": "de",
+      "turns": ["Wann trat die Schweiz der UNO bei?"],
+      "expect": { "search": "required" },
+      "reference": {
+        "value": "2002-09-10",
+        "unit": "date",
+        "territory": "Switzerland",
+        "metric": "UN membership",
+        "sourceUrl": "https://www.eda.admin.ch/eda/de/home/aussenpolitik/internationale-organisationen/uno.html",
+        "retrievedOn": "2026-11-06",
+        "asOf": "2002-09-10"
+      },
+      "volatile": false
+    },
+    {
+      "id": "A01",
+      "category": "ambiguous",
+      "lang": "en",
+      "turns": ["What is the population of Bern?"],
+      "expect": { "search": "either" },
+      "reference": null,
+      "acceptableBehaviours": ["state interpretation (city vs canton)", "ask clarifying question", "abstain with reason"],
+      "mustNotAssert": ["single number without specifying city or canton"],
+      "volatile": false
+    },
+    {
+      "id": "A02",
+      "category": "ambiguous",
+      "lang": "ru",
+      "turns": ["Какой ВВП у Японии?"],
+      "expect": { "search": "either" },
+      "reference": null,
+      "acceptableBehaviours": ["state year and nominal/real", "ask clarifying question", "abstain with reason"],
+      "mustNotAssert": ["single figure without year or basis"],
+      "volatile": true
+    },
+    {
+      "id": "M01",
+      "category": "multiturn",
+      "lang": "en",
+      "turns": [
+        "What was Switzerland's population at end of 2023?",
+        "And the growth rate versus 2022?"
+      ],
+      "expect": { "search": "required" },
+      "reference": {
+        "value": 1.7,
+        "unit": "percent",
+        "territory": "Switzerland",
+        "metric": "population growth 2022-2023",
+        "sourceUrl": "https://statistik.admin.ch/en/asset/32174455",
+        "retrievedOn": "2026-11-06",
+        "asOf": "2023-12-31"
+      },
+      "volatile": false
+    },
+    {
+      "id": "M02",
+      "category": "multiturn",
+      "lang": "en",
+      "turns": [
+        "Tell me about the capital of Japan.",
+        "Now search more: what is its approximate population?"
+      ],
+      "expect": { "search": "required" },
+      "reference": null,
+      "volatile": true
+    },
+    {
+      "id": "H01",
+      "category": "chat",
+      "lang": "en",
+      "turns": ["Thanks, that was helpful."],
+      "expect": { "search": "forbidden" },
+      "reference": null,
+      "volatile": false
+    },
+    {
+      "id": "H02",
+      "category": "chat",
+      "lang": "fr",
+      "turns": ["Bonjour, comment allez-vous ?"],
+      "expect": { "search": "forbidden" },
+      "reference": null,
+      "volatile": false
+    },
+    {
+      "id": "E01",
+      "category": "explicit_meta",
+      "lang": "en",
+      "turns": ["Search many sites and give me only the number: population of Switzerland end 2023."],
+      "expect": { "search": "required" },
+      "reference": {
+        "value": 8962300,
+        "unit": "persons",
+        "territory": "Switzerland",
+        "metric": "permanent resident population",
+        "sourceUrl": "https://statistik.admin.ch/en/asset/32174455",
+        "retrievedOn": "2026-11-06",
+        "asOf": "2023-12-31"
+      },
+      "volatile": false
+    }
+  ]
+}
