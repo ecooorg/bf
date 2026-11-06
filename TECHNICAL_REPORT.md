@@ -1,3 +1,13 @@
+## P127.1 — Evidence (2026-11-06)
+
+**Scope:** Measurement instrument only (EXPERIMENT). User value: NOT_RUN.
+
+**OBSERVED:** eval-questions schema + pure harness functions (schema, numeric match, abstention, intervals, blinding); suite in test:core; workflow_dispatch baseline-eval.yml; C127 block in AGENTS.md; EXPERIMENTS ledger with NOT_RUN results.
+
+**NOT_RUN:** Live Simple/Expert/Gemini configs A–N; production runtime-config; human labels; holdout.
+
+---
+
 ## P126.31 — Evidence (2026-11-06)
 
 **Scope:** Query hygiene only (priority A).

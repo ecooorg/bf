@@ -1,8 +1,8 @@
 {
   "name": "biforge",
   "private": true,
-  "version": "126",
-  "patch": "126.31",
+  "version": "127",
+  "patch": "127.1",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -25,7 +25,7 @@
     "evidence:collect": "node scripts/evidence-collect.mjs",
     "gate:eval": "node scripts/gate-eval.mjs",
     "ops:backup-check": "tsx scripts/backup-restore-check.mjs",
-    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/governance-repo.test.mjs tests/agents-contract.test.mjs tests/diagnostics-ops.test.mjs tests/project-mode-contract.test.mjs tests/search-retrieval.test.mjs tests/security-headers.test.mjs tests/security-redact.test.mjs tests/governance-workflow-pins.test.mjs tests/providers-router-policy.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-simple-direct.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/search-decoupling.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/providers-fallback.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs",
+    "test:core": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/governance-repo.test.mjs tests/agents-contract.test.mjs tests/diagnostics-ops.test.mjs tests/project-mode-contract.test.mjs tests/search-retrieval.test.mjs tests/security-headers.test.mjs tests/security-redact.test.mjs tests/governance-workflow-pins.test.mjs tests/providers-router-policy.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-simple-direct.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/search-decoupling.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/providers-fallback.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/eval-harness.test.mjs",
     "test:models": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/providers-models.test.mjs",
     "test:security": "node --import tsx --test tests/security-redact.test.mjs tests/security-headers.test.mjs",
     "test": "npm run test:core",
@@ -55,7 +55,8 @@
     "test:diagnostics": "node --test tests/diagnostics-ops.test.mjs",
     "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode-contract.test.mjs tests/project-builder-recovery.test.mjs",
     "test:project-diagnostics": "node --test tests/diagnostics-ops.test.mjs",
-    "scripts:integrity": "node scripts/scripts-integrity.mjs"
+    "scripts:integrity": "node scripts/scripts-integrity.mjs",
+    "eval:baseline": "node scripts/baseline-eval.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

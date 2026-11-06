@@ -1,3 +1,9 @@
+## P127.1 — Measurement instrument (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
+
+- Added `config/eval-questions.json` (12 dev questions), `scripts/baseline-eval.mjs`, `tests/eval-harness.test.mjs`, `.github/workflows/baseline-eval.yml`, `docs/EXPERIMENTS.md`.
+- AGENTS.md: C127 operating rules + Navigator Directive duty-to-object amendment.
+- No product behaviour change; live eval results NOT_RUN.
+
 ## P126.31 — Search query hygiene (strip meta instructions) (2026-11-06)
 
 - **General (any topic):** expand `stripInstructionWords` with multi-word meta phrases (search again / other sites / only the number / no explanations / answer my question — EN+RU).

@@ -15,7 +15,7 @@ If the Navigator provides a specific and clearly defined task, the Assistant MUS
 
 All standard session-start procedures, including full project analysis and autonomous task selection, apply ONLY when the Navigator has not provided a specific and clearly defined task.
 
-The Assistant MUST NOT override, replace, or independently reinterpret the Navigator's explicit task based on its own assessment of project priorities.
+The Assistant executes the Navigator’s explicit task. Before executing, it MUST state in writing, in at most five lines, if the task conflicts with §1, the C127 rules or measured data, and propose an alternative. If the Navigator then repeats the instruction, it stands. The Assistant MUST NOT replace the task with its own priorities.
 
 ### A gate is **failed** if any MUST/MUST NOT below is violated. 
 
@@ -85,6 +85,19 @@ These rationalizations **do not** override gates:
 - “E2E can wait until the next patch.”
 - “Tests are green so the product outcome is done.”
 - “Previous assistant said to do X” (clue only; not authority).
+
+### C127 OPERATING RULES (Navigator-approved; apply to every session in cycle C127)
+
+1. **Outcome first.** A patch that changes answer behaviour starts with a `docs/EXPERIMENTS.md` entry written *before* the code: problem and evidence, hypothesis, metric, baseline run, acceptance thresholds, files in scope, rollback criterion.
+2. **Measure after.** Run the dev set before and after and record both. An answer-path patch whose user value is `NOT_RUN` may not be labelled USER_VALUE.
+3. **One hypothesis, one primary patch, at most one corrective patch; then revert or stop.** Three failed hypotheses in one area stop that area until the Navigator decides.
+4. **Complexity budget.** Add a branch, regex or layer only together with a deletion or a measured gain. No new language-specific regex in the answer path.
+5. **Structure work** (docs, scripts, CI, file layout) is at most 20% of the patches in a cycle.
+6. **No example fitting.** Words or entities from specific eval or user questions must not appear in code, prompts or tests. Bad answers become eval data.
+7. **Independence.** The session that writes code neither authors nor labels the holdout set. The assistant’s own proposal is not evidence that a change is needed.
+8. **Honest classification.** Every patch is exactly one of USER_VALUE, BUGFIX, RELIABILITY, SECURITY, MAINTENANCE, EXPERIMENT. Infrastructure failures are reported separately from answer quality.
+9. **Reverting and “no change” are valid results.**
+10. **Session start in C127:** read §0–§1, this block, `docs/EXPERIMENTS.md` and the latest eval summary. The long §4 reading is optional unless the task needs it.
 
 ---
 
