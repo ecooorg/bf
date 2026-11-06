@@ -197,3 +197,8 @@
 
 **Owner (2026-11-06).** Product patches in a cycle are `major.n` (e.g. 127.1, 127.2). Non-product patches (CI, allowlists, pure docs/harness fixes) append a Latin letter to the current numeric stem (`127.1a`, `127.2b`) and do not consume the next product number. `package.json` `"patch"` may carry the letter; version gates accept it.
 
+
+## D-2026-11-06-03 — P127.3 ungrounded fact gate
+
+Navigator approved accelerated path after smoke A/B: one flag-gated intervention for ungrounded quantitative claims. Default off until measured.
+

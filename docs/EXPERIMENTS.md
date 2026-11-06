@@ -82,3 +82,15 @@ Production has `appAuth=true`. Smoke logs in via `POST /api/login` using GitHub 
 - Default configs **A,B** via deploy + `APP_PASSWORD` (product envelope `data.reply`).
 - **C** not required for §7.6 smoke gate from Actions (shared IP → 429 even with 10 independent keys). Set `include_c=true` only when quota/IP allow; prefer C off-Actions.
 - Gemini pool: serialize, 12s gap, 60s slot cooldown on 429 (aligned with `keyPool`).
+
+
+## P127.3 — Ungrounded quantitative honesty gate
+
+| Field | Value |
+|-------|-------|
+| **Type** | EXPERIMENT / targeted intervention |
+| **Hypothesis** | On statistic/lookup turns, Simple/Expert often assert specific figures when search did not ground the turn → high machine W on dev-12. |
+| **Change** | Expand quantitative-question detection; `applyUngroundedStatisticGate` replaces confident quantities when search status is not `used`/`used_weak`. Wired on Simple Direct + structured path behind **`UNGROUNDED_FACT_GATE=true` (default off)**. Also `needsFreshWebInfo` treats population/GDP/rate questions as needing lookup. |
+| **Metric** | Smoke A/B on same 12: infra still &lt;25%; paired W-rate on statistic/lookup subset not worse; fewer confident bare numbers when search not_run. |
+| **Rollback** | Unset / `false` the env flag. |
+| **Result** | NOT_RUN live after deploy with flag on |
