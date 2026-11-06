@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runBuild, formatFileMarker, SCHEMA_VERSION } from '../appBuilder/index.ts';
+import { validateRefs, validateModuleContracts } from '../appBuilder/validator-static-site.ts';
 
 const page = '<!doctype html><html><head><link rel="stylesheet" href="style.css"></head><body><canvas></canvas><script src="app.js"></script></body></html>';
 const body = (path) => path.endsWith('.html') ? page : path.endsWith('.css') ? 'body{margin:0}' : path.endsWith('.js') ? 'addEventListener("keydown",()=>{});' : '# Tetris';
@@ -91,4 +92,31 @@ test('rate-limit retry is bounded, persists a visible waiting state, and resumes
   assert.deepEqual(waits, [1200]);
   assert.ok(w.events.some((e) => e.type === 'model_wait' && e.data?.reason === 'rate_limit'));
   assert.ok(result.state.callsUsed >= 1);
+});
+
+
+test('P127.5 refs: root-absolute generated paths resolve from project root', () => {
+  const files = new Map([['index.html', '<!doctype html><html><body><script type="module" src="/src/main.js"></script></body></html>'], ['src/main.js', 'console.log("ok")']]);
+  const result = validateRefs(files);
+  assert.equal(result.ok, true, JSON.stringify(result.issues));
+});
+
+test('P127.5 refs: nested relative paths resolve from the HTML directory', () => {
+  const files = new Map([['pages/index.html', '<!doctype html><html><body><script src="../assets/app.js"></script></body></html>'], ['assets/app.js', 'console.log("ok")']]);
+  assert.equal(validateRefs(files).ok, true);
+});
+
+test('P127.5 refs: static_site rejects TypeScript entry points with an actionable issue', () => {
+  const files = new Map([['index.html', '<!doctype html><html><body><script type="module" src="/src/main.ts"></script></body></html>'], ['src/main.ts', 'console.log("not transpiled")']]);
+  const refs = validateRefs(files);
+  const modules = validateModuleContracts(files);
+  assert.ok(refs.issues.some((i) => i.message.includes('cannot execute TypeScript')));
+  assert.ok(modules.issues.some((i) => i.message.includes('TypeScript source is not executable')));
+});
+
+test('P127.5 module contracts: unresolved extensionless import remains a failure', () => {
+  const files = new Map([['main.js', 'import { start } from "./renderer-3d"; start();'], ['renderer3D.js', 'export function start() {}']]);
+  const result = validateModuleContracts(files);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((i) => i.message.includes('unresolved local module import')));
 });
