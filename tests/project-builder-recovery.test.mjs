@@ -1,7 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runBuild, formatFileMarker, SCHEMA_VERSION } from '../appBuilder/index.ts';
-import { validateRefs, validateModuleContracts } from '../appBuilder/validator-static-site.ts';
+import {
+  validateRefs,
+  validateModuleContracts,
+  validateReachability,
+  validateMemberContracts,
+  validateCompleteness,
+  dropUnreachableOrphansIfSelfContained,
+  REQUIRED_VALIDATORS,
+  runStaticValidators,
+} from '../appBuilder/validator-static-site.ts';
 
 const page = '<!doctype html><html><head><link rel="stylesheet" href="style.css"></head><body><canvas></canvas><script src="app.js"></script></body></html>';
 const body = (path) => path.endsWith('.html') ? page : path.endsWith('.css') ? 'body{margin:0}' : path.endsWith('.js') ? 'addEventListener("keydown",()=>{});' : '# Tetris';
@@ -133,4 +142,77 @@ test('P127.6 continuation prompt carries existing files and requires incremental
   assert.match(task, /Add a pause button/);
   assert.match(task, /--- FILE: src\/game.js ---/);
   assert.match(task, /smallest coherent changes/);
+});
+
+test('P127.9/P127.11 required validators include reachability, completeness, and member-contracts', () => {
+  for (const name of ['reachability', 'completeness', 'member-contracts']) {
+    assert.ok(REQUIRED_VALIDATORS.includes(name), `missing required validator ${name}`);
+  }
+  const linked = new Map([
+    ['index.html', '<!doctype html><html><head><link rel="stylesheet" href="style.css"></head><body><script src="app.js"></script></body></html>'],
+    ['style.css', 'body{margin:0}'],
+    ['app.js', 'console.log(1)'],
+    ['README.md', '# ok'],
+  ]);
+  const results = runStaticValidators(linked, null);
+  assert.deepEqual(results.map((v) => v.name).sort(), [...REQUIRED_VALIDATORS].sort());
+  assert.equal(results.find((v) => v.name === 'reachability').ok, true);
+});
+
+test('P127.9 reachability: self-contained HTML leaves modular assets unreachable', () => {
+  const inline = '<!doctype html><html><body><canvas id="c"></canvas><script>' + 'x'.repeat(500) + '</script></body></html>';
+  const files = new Map([
+    ['index.html', inline],
+    ['game.js', 'export class Game {}'],
+    ['style.css', 'body{margin:0}'],
+  ]);
+  const result = validateReachability(files);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((i) => i.path === 'game.js'));
+  assert.ok(result.issues.some((i) => i.path === 'style.css'));
+});
+
+test('P127.10 dropUnreachableOrphansIfSelfContained removes dead CSS/JS beside inline HTML', () => {
+  const inline = '<!doctype html><html><body><script>' + 'x'.repeat(500) + '</script></body></html>';
+  const files = new Map([
+    ['index.html', inline],
+    ['game.js', 'export class Game {}'],
+    ['style.css', 'body{margin:0}'],
+    ['README.md', '# keep'],
+  ]);
+  const dropped = dropUnreachableOrphansIfSelfContained(files);
+  assert.ok(dropped.includes('game.js'));
+  assert.ok(dropped.includes('style.css'));
+  assert.equal(files.has('index.html'), true);
+  assert.equal(files.has('README.md'), true);
+  assert.equal(files.has('game.js'), false);
+});
+
+test('P127.10 member-contracts: flags instance property mismatch (paused vs isPaused)', () => {
+  const files = new Map([
+    ['game.js', 'export class TetrisGame {\n  constructor() { this.isPaused = false; }\n  toggle() { this.isPaused = !this.isPaused; }\n}\n'],
+    ['main.js', 'import { TetrisGame } from "./game.js";\nconst game = new TetrisGame();\ngame.paused = true;\nif (game.paused) game.toggle();\n'],
+  ]);
+  const result = validateMemberContracts(files);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((i) => /paused/i.test(i.message) && /isPaused/i.test(i.message)), JSON.stringify(result.issues));
+});
+
+test('P127.9 completeness: truncated JS with unclosed brace fails', () => {
+  const files = new Map([
+    ['index.html', '<!doctype html><html><body><script src="app.js"></script></body></html>'],
+    ['app.js', 'function start() {\n  const x = 1;\n'],
+  ]);
+  const result = validateCompleteness(files);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((i) => i.path === 'app.js' && /unclosed/i.test(i.message)));
+});
+
+test('P127.9/P127.11 SUCCESS report sets runtimeVerified false', async () => {
+  const w = world();
+  const r = await runBuild(input, w.ports(w.model(0)));
+  assert.equal(r.report.goalImplemented, true);
+  assert.equal(r.report.runtimeVerified, false);
+  assert.ok(r.report.checksDeclared.includes('reachability'));
+  assert.ok(r.report.checksDeclared.includes('member-contracts'));
 });
