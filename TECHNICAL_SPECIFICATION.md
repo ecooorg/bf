@@ -777,3 +777,8 @@ The Project Mode API exposes `POST /api/projects/:projectId/code/continue`. It a
 ## P127.7 — Project artifact workspace inventory
 
 Project Mode exposes a project-scoped inventory of every immutable artifact version through `GET /api/projects/:projectId/artifact-versions`. Each artifact supports version-specific downloads using `?version=N`, version listing, and inspection through `GET /api/projects/:projectId/artifacts/:artifactId/inspect?version=N`. Inspection returns manifest/integrity status and, for ZIP archives, the stored entry listing. Every route verifies the selected project and artifact ownership before exposing metadata or content. The Project Mode Files view displays all versions and offers per-version download and inspection. Simple and Expert are outside this contract.
+
+
+## P127.8 — Stale build recovery lease
+
+Recovery workers must claim stale `queued`/`running` rows atomically before scheduling execution. The claim uses a PostgreSQL CTE with `FOR UPDATE SKIP LOCKED`, updates `heartbeat_at` and `updated_at`, and returns the claimed job rows. The stale threshold is clamped to at least 5 seconds. This is a cross-process lease; the in-memory `running` set remains only a same-process duplicate guard. Recovery must continue to use the existing job state and unit-result checkpoints, and must not change Simple or Expert behavior.

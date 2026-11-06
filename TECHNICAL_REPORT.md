@@ -2320,3 +2320,19 @@ This report is reconstructed solely from artefacts present in the analysed archi
 ## P127.6 — Existing project continuation
 
 P127.6 introduces a safe initial continuation workflow. The API validates ownership and integrity of a source ZIP, checks CRC and archive paths, caps context at 80 files / 80,000 characters, and starts a new staged job with the selected source version included as context. It does not overwrite the source artifact. This is a context-based continuation, not yet a full AST-aware patch engine.
+
+
+## P127.8 — Project Mode recovery and acceptance
+
+### IMPLEMENTED
+- `server/appBuilderAdapter.ts`: added `claimResumable`, which uses a single PostgreSQL CTE/update with `FOR UPDATE SKIP LOCKED` to atomically lease stale jobs across replicas. The lease refreshes heartbeat/update timestamps before `executeJob` is scheduled. Minimum lease age is clamped to 5 seconds.
+- `resumeStaleJobs` now consumes claimed rows rather than performing an unprotected stale-row read.
+- `tests/project-resume-lease.test.mjs`: covers lock-based claim SQL, returned job conversion, and minimum threshold.
+- `package.json`: includes the focused lease test in `test:project`.
+- Project Mode remains the only changed runtime surface; no Simple or Expert code was edited.
+
+### TESTED / BLOCKED / NOT_RUN
+- TESTED: `node --check` passed for the recovery test files; `node --test tests/project-mode-contract.test.mjs` passed (4/4). `package.json` JSON parsing passed.
+- BLOCKED: dependency-backed lease/recovery tests and TypeScript build could not be run: `node_modules` was absent, and `npm ci --ignore-scripts --no-audit --no-fund` did not complete within the available execution window.
+- NOT_RUN: browser E2E, live PostgreSQL recovery, multi-replica contention test, and deployed artifact-download verification.
+- No claim is made that production or browser acceptance has passed. See `docs/PROJECT_MODE_P127_8_ACCEPTANCE.md`. Run `npm ci`, `npm run test:project`, `npm run typecheck`, and `npm run build` in the target environment, then perform the live DB/browser checks.

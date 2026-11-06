@@ -1,3 +1,10 @@
+## [127.8] - Project Mode recovery and acceptance
+
+- Stale build recovery now atomically leases eligible jobs with PostgreSQL row locks (`FOR UPDATE SKIP LOCKED`) and refreshes the heartbeat before a worker resumes them. This prevents multiple BiForge replicas from concurrently resuming the same stale job.
+- Added focused tests for atomic lease SQL, returned job mapping, and the minimum lease age.
+- Preserved Project Mode-only scope; no Simple or Expert route, prompt, or UI implementation was changed.
+- Verification status: see `TECHNICAL_REPORT.md`; browser E2E and live multi-replica/database recovery remain `NOT_RUN`.
+
 ## [127.7] - Project workspace artifact inventory
 
 - Added project-scoped inventory of all immutable artifact versions.
