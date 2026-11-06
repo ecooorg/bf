@@ -9,8 +9,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export function parsePatch(text) {
-  const m = /^(\d+)(?:\.\d+)*$/.exec(String(text ?? ''));
-  return m ? { text: m[0], major: m[1], parts: m[0].split('.').map(Number) } : null;
+  // Product: "127.2". Non-product (CI/docs): "127.2a" — optional trailing Latin letter.
+  const m = /^(\d+)(?:\.\d+)*([a-z])?$/.exec(String(text ?? ''));
+  if (!m) return null;
+  const numeric = m[0].replace(/[a-z]$/i, '');
+  return { text: m[0], major: m[1], parts: numeric.split('.').map(Number), letter: m[2] || null };
 }
 
 /** Negative / zero / positive like a comparator; missing trailing parts count as 0. */
@@ -24,7 +27,7 @@ export function versionErrors(pkg) {
   const errors = [];
   if (!pkg || typeof pkg !== 'object') return ['package.json is not a JSON object'];
   const patch = typeof pkg.patch === 'string' ? parsePatch(pkg.patch) : null;
-  if (!patch) errors.push(`package.json "patch" must be a string of numbers separated by dots (e.g. "118.3.2"), got ${JSON.stringify(pkg.patch)}`);
+  if (!patch) errors.push(`package.json "patch" must be digits/dots with optional trailing letter (e.g. "118.3.2" or "118.3.2a"), got ${JSON.stringify(pkg.patch)}`);
   if (typeof pkg.version !== 'string' || !/^\d+$/.test(pkg.version)) errors.push(`package.json "version" must be a string of digits (e.g. "118"), got ${JSON.stringify(pkg.version)}`);
   if (patch && typeof pkg.version === 'string' && pkg.version !== patch.major) {
     errors.push(`package.json version ${pkg.version} must equal the first number of patch ${patch.text} (${patch.major}); set version to ${patch.major}`);
