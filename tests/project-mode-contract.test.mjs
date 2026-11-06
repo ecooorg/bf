@@ -127,3 +127,10 @@ test('P127.17 intent stage and goal adequacy wired in engine', () => {
   assert.match(intent, /app_builder\.intent\.v1/);
   assert.match(intent, /expandedGoal/);
 });
+
+test('P127.17b plan paths stay flat (no nested folders)', () => {
+  const intent = read('appBuilder/intent-brief.ts');
+  const plan = read('appBuilder/core-plan.ts');
+  assert.doesNotMatch(intent, /js\/main\.js/);
+  assert.match(plan, /Flat package only|segments\.length !== 1/);
+});
