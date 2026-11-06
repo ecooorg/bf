@@ -120,3 +120,17 @@ test('P127.5 module contracts: unresolved extensionless import remains a failure
   assert.equal(result.ok, false);
   assert.ok(result.issues.some((i) => i.message.includes('unresolved local module import')));
 });
+
+import { buildContinuationTask } from '../server/projectContinuation.ts';
+
+test('P127.6 continuation prompt carries existing files and requires incremental changes', () => {
+  const task = buildContinuationTask('Add a pause button', {
+    artifactId: 'app_zip_existing', version: 3, filename: 'game.zip',
+    files: [{ path: 'index.html', content: '<main>Game</main>' }, { path: 'src/game.js', content: 'export const start = () => {};' }],
+  });
+  assert.match(task, /CONTINUATION MODE/);
+  assert.match(task, /Base artifact: app_zip_existing version 3/);
+  assert.match(task, /Add a pause button/);
+  assert.match(task, /--- FILE: src\/game.js ---/);
+  assert.match(task, /smallest coherent changes/);
+});
