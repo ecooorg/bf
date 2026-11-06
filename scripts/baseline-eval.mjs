@@ -294,8 +294,16 @@ async function callProduct(baseUrl, route, turns, productMode, cookie) {
     if (!res.ok) throw new Error(`HTTP ${res.status} ${route}: ${text.slice(0, 160)}`);
     let data;
     try { data = JSON.parse(text); } catch { data = { reply: text }; }
-    lastReply = data.reply || data.message || data.text || data.answer || '';
-    if (!lastReply && data.success === false) throw new Error(data.error || 'empty failure');
+    // Product envelope: { success, data: { reply, ... }, meta } (server ok())
+    const payload = (data && typeof data === 'object' && data.data && typeof data.data === 'object')
+      ? data.data
+      : data;
+    lastReply = payload.reply || payload.message || payload.text || payload.answer
+      || data.reply || data.message || '';
+    if (data && data.success === false) throw new Error(String(data.error || data.code || 'request failed'));
+    if (!String(lastReply || '').trim()) {
+      throw new Error('empty reply from product: ' + text.slice(0, 200));
+    }
     history.push({ role: 'assistant', content: String(lastReply) });
     await sleep(Number(process.env.MODEL_MIN_INTERVAL_MS) || 5000);
   }
