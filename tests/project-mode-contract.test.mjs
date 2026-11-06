@@ -44,10 +44,10 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '127');
-  assert.equal(pkg.patch, '127.15');
+  assert.equal(pkg.patch, '127.16');
   const lock = JSON.parse(read('package-lock.json'));
   assert.equal(lock.version, '127');
-  assert.equal(lock.patch, '127.15');
+  assert.equal(lock.patch, '127.16');
 });
 
 test('P127.12 ProjectMode wires continue and source ZIP upload', () => {
@@ -103,4 +103,16 @@ test('P127.15 Project Mode defaults to chat surface', () => {
   assert.match(chat, /code\/build/);
   assert.match(chat, /code\/continue/);
   assert.match(chat, /Download source ZIP/);
+});
+
+test('P127.16 plan.v5 and truncation recovery are wired in appBuilder', () => {
+  const prompts = read('appBuilder/core-prompts.ts');
+  const engine = read('appBuilder/core-engine.ts');
+  const stack = read('appBuilder/stack-static-site.ts');
+  assert.match(prompts, /app_builder\.plan\.v5/);
+  assert.match(prompts, /Never put the whole game/);
+  assert.match(stack, /ensureMultiFileStaticPlan/);
+  assert.match(engine, /ensureMultiFileStaticPlan/);
+  assert.match(engine, /unit_repair_compact/);
+  assert.match(engine, /truncated_unit:/);
 });

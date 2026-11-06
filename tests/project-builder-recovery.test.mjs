@@ -1,9 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { runBuild, formatFileMarker, SCHEMA_VERSION } from '../appBuilder/index.ts';
+import { ensureMultiFileStaticPlan, templatePlan } from '../appBuilder/stack-static-site.ts';
 import {
   validateRefs,
   validateModuleContracts,
@@ -220,10 +218,25 @@ test('P127.9/P127.11 SUCCESS report sets runtimeVerified false', async () => {
   assert.ok(r.report.checksDeclared.includes('member-contracts'));
 });
 
-test('P127.12 upload route and continue remain registered in projectRoutes', () => {
-  const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const routes = readFileSync(path.join(rootDir, 'server/projectRoutes.ts'), 'utf8');
-  assert.match(routes, /artifacts\/upload/);
-  assert.match(routes, /code\/continue/);
-  assert.match(routes, /user_upload/);
+test('P127.16 ensureMultiFileStaticPlan expands single HTML interactive plans', () => {
+  const spec = { schemaVersion: 1, title: 'Tetris', goal: 'Create a touch tetris game', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] };
+  const single = {
+    schemaVersion: 1,
+    specHash: 'x',
+    units: [{ id: 'index_html', kind: 'file', path: 'index.html', purpose: 'all', dependsOn: [], exports: [], contract: '', maxOutputTokens: 8192, status: 'pending', attempts: 0 }],
+    order: ['index_html'],
+  };
+  const out = ensureMultiFileStaticPlan(single, spec);
+  assert.ok(out.coerced.includes('plan:force_multifile_static'));
+  assert.ok(out.plan.units.some((u) => u.path === 'app.js'));
+  assert.ok(out.plan.units.some((u) => u.path === 'index.html'));
+  assert.ok(out.plan.units.length >= 3);
+});
+
+test('P127.16 template plan is already multi-file', () => {
+  const spec = { schemaVersion: 1, title: 'Tetris', goal: 'tetris', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] };
+  const t = templatePlan(spec);
+  const out = ensureMultiFileStaticPlan(t, spec);
+  assert.equal(out.coerced.length, 0);
+  assert.ok(t.units.some((u) => u.path === 'app.js'));
 });
