@@ -77,7 +77,9 @@ export default function ProjectMode() {
     setBuildProgress({ job, startedAt: buildStartedAtRef.current });
   };
   const [decisionText, setDecisionText] = useState('');
-  const [artifacts, setFiles] = useState<{ artifact_id: string; version: number; filename: string; hash: string }[]>([]);
+  const [artifacts, setFiles] = useState<{ artifact_id: string; version: number; filename: string; hash: string; size?: number }[]>([]);
+  const [artifactVersions, setArtifactVersions] = useState<any[]>([]);
+  const [archiveInspection, setArchiveInspection] = useState<any | null>(null);
   const [artifactText, setArtifactText] = useState('');
   const [ledger, setLedger] = useState<{ model_id: string; input_tokens: number; output_tokens: number; status: string }[]>([]);
   const [lastRun, setLastRun] = useState<{ model: string; tokens: { estimated: { total: number }; actual: { input: number; output: number } } } | null>(null);
@@ -192,8 +194,8 @@ export default function ProjectMode() {
   const loadExtras = useCallback(async (id: string) => {
     try {
       const base = `/api/projects/${encodeURIComponent(id)}`;
-      const [a, l, p, ap, t] = await Promise.all([api<any[]>(`${base}/artifacts`), api<any[]>(`${base}/ledger`), api<any[]>(`${base}/plans`), api<any[]>(`${base}/approvals`), api<any[]>(`${base}/tasks`)]);
-      setFiles(a); setLedger(l); setPlans(p); setApprovals(ap); setTasks(t);
+      const [a, l, p, ap, t, versions] = await Promise.all([api<any[]>(`${base}/artifacts`), api<any[]>(`${base}/ledger`), api<any[]>(`${base}/plans`), api<any[]>(`${base}/approvals`), api<any[]>(`${base}/tasks`), api<any[]>(`${base}/artifact-versions`).catch(() => [])]);
+      setFiles(a); setArtifactVersions(versions); setLedger(l); setPlans(p); setApprovals(ap); setTasks(t);
       // P54: which tasks already have a hand-off, for the link from the Plan tab. A failure here must not break the page.
       setCodeTaskIds(await api<Array<{ taskId: string }>>(`${base}/code`).then(r => [...new Set(r.map(c => c.taskId))]).catch(() => []));
     } catch (e) { setError(String((e as Error).message || e)); }
@@ -270,6 +272,11 @@ export default function ProjectMode() {
     await api(`/api/projects/${encodeURIComponent(selected!.id)}/tasks/${encodeURIComponent(t.id)}/validate`, { method: 'POST', body: JSON.stringify({ expected_version: t.version, passed, evidence }) });
     return `Task marked as ${passed ? 'passed' : 'failed'}.`;
   });
+  async function inspectProjectArtifact(id: string, version: number) {
+    try { setArchiveInspection(await api<any>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}/inspect?version=${version}`)); }
+    catch (e) { setError(String((e as Error).message || e)); }
+  }
+
   async function openArtifact(id: string, filename = '') { try {
     if (isBinaryName(filename)) { setArtifactText(`Binary file (${filename}) — it cannot be shown as text. Use "Download" next to it.`); return; } const a = await api<{ text: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(id)}`); setArtifactText(a.text); } catch (e) { setError(String((e as Error).message || e)); } }
   // P55: Google Drive for Project files. Explicit buttons; every result is announced (saved / waiting / the real reason).
@@ -660,7 +667,9 @@ export default function ProjectMode() {
             </section>}
             {activeTab === 'delivery' && <ProjectDelivery projectId={selected.id} capabilities={capabilities} passportConfirmed={passport?.status === 'confirmed'} executor={passport?.executor ?? 'manual'} focusTaskId={focusTaskId} onFocusHandled={() => setFocusTaskId(null)} />}
             {activeTab === 'journal' && <section><h3>Files</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Project files and saved versions.</p>
-            {artifacts.length === 0 ? <StateNotice kind="empty">No files yet. They appear after analysis, builds or uploads.</StateNotice> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id, a.filename)}>{a.filename} v{a.version}</button>{isBinaryName(a.filename) && <> <button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void downloadViaFetch(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(a.artifact_id)}/download`, a.filename).catch((e) => setError(String(e.message || e)))}>Download</button></>}{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
+            {artifacts.length === 0 ? <StateNotice kind="empty">No files yet. They appear after analysis, builds or uploads.</StateNotice> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13, marginBottom: 8 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id, a.filename)}>{a.filename} · latest v{a.version}</button> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} onClick={() => void inspectProjectArtifact(a.artifact_id, a.version)}>Inspect</button> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} onClick={() => void downloadViaFetch(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(a.artifact_id)}/download?version=${a.version}`, a.filename).catch((e) => setError(String(e.message || e)))}>Download</button>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
+            {artifactVersions.length > 0 && <details style={{ marginTop: 10 }}><summary style={{ cursor: 'pointer', color: '#9fd8ff', minHeight: 36 }}>All immutable versions ({artifactVersions.length})</summary><ul>{artifactVersions.map((v: any) => <li key={`${v.artifact_id}:${v.version}`} style={{ fontSize: 12, margin: '5px 0' }}>{v.filename} · v{v.version} · {Number(v.size || 0).toLocaleString()} bytes · {v.kind} <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 8px' }} onClick={() => void downloadViaFetch(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(v.artifact_id)}/download?version=${v.version}`, v.filename).catch((e) => setError(String(e.message || e)))}>Download version</button> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 8px' }} onClick={() => void inspectProjectArtifact(v.artifact_id, v.version)}>Inspect</button></li>)}</ul></details>}
+            {archiveInspection && <section aria-label="Artifact inspection" style={{ marginTop: 10, padding: 10, border: '1px solid #1f4f86', borderRadius: 8 }}><strong>Inspection: {archiveInspection.filename || archiveInspection.manifest?.filename || archiveInspection.artifact_id} · v{archiveInspection.version}</strong><p>Integrity: {archiveInspection.ok ? 'PASS' : 'FAIL'} {archiveInspection.problems?.length ? `(${archiveInspection.problems.join(', ')})` : ''}</p>{archiveInspection.archive && <><p>Archive entries ({archiveInspection.archive.length})</p><ul>{archiveInspection.archive.map((entry: any, i: number) => <li key={`${entry.name || entry.path || 'entry'}:${i}`}>{entry.name || entry.path || JSON.stringify(entry)}</li>)}</ul></>}<button type="button" style={styles.button} onClick={() => setArchiveInspection(null)}>Close inspection</button></section>}
             {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}
             <details style={{ marginTop: 12 }}><summary style={{ cursor: 'pointer', color: '#9fd8ff', fontSize: 13, minHeight: 36 }}>Model request history</summary>
             {ledger.length === 0 ? <StateNotice kind="empty">No model requests yet.</StateNotice> : <ul style={{ paddingLeft: 18, margin: '6px 0 0' }}>{ledger.slice(0, 8).map((l, i) => <li key={i} style={{ fontSize: 13 }}>{l.model_id} · {l.status} · {l.input_tokens} in / {l.output_tokens} out</li>)}</ul>}
