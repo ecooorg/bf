@@ -67,6 +67,9 @@ export default function ProjectMode() {
   const [notice, setNotice] = useState('');
   const [task, setTask] = useState('');
   const [programGoal, setProgramGoal] = useState('');
+  const [continueGoal, setContinueGoal] = useState('');
+  const [continueArtifactId, setContinueArtifactId] = useState('');
+  const zipUploadRef = useRef<HTMLInputElement>(null);
   const [driveConnected, setDriveConnected] = useState(() => isMirrorConnected());
   const [driveBusy, setDriveBusy] = useState(false);
   const [programResult, setProgramResult] = useState<{ taskId: string; codeTask?: { id?: string; status?: string; statusReason?: string; prUrl?: string; [key: string]: unknown }; downloadUrl?: string; note?: string; status?: string } | null>(null);
@@ -230,8 +233,51 @@ export default function ProjectMode() {
     const r = started.jobId ? await waitForProjectBuild(selected!.id, started, updateBuildProgress) : started;
     if (started.jobId) updateBuildProgress(r);
     setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build' }); setProgramGoal('');
+    await loadExtras(selected!.id);
     return r.downloadUrl ? (r.note?.startsWith('WARNING') ? r.note : 'Program source generated; download is ready.') : (r.note || 'No downloadable source was produced. Check project settings and try again.');
   });
+  const zipArtifacts = artifacts.filter((a) => /\.zip$/i.test(a.filename));
+  const continueProgram = () => act(async () => {
+    const artifactId = continueArtifactId || zipArtifacts[0]?.artifact_id;
+    if (!artifactId) throw new Error('Generate or upload a source ZIP first, then choose it below.');
+    if (!continueGoal.trim()) throw new Error('Describe the change you want (for example: add a pause button).');
+    buildStartedAtRef.current = Date.now();
+    const started = await api<BuildJobResult & { taskId?: string; codeTask?: any; stack?: string; continuation?: boolean }>(
+      `/api/projects/${encodeURIComponent(selected!.id)}/code/continue`,
+      { method: 'POST', body: JSON.stringify({ goal: continueGoal.trim(), artifact_id: artifactId }) },
+    );
+    if (started.jobId) updateBuildProgress(started);
+    const r = started.jobId ? await waitForProjectBuild(selected!.id, started, updateBuildProgress) : started;
+    if (started.jobId) updateBuildProgress(r);
+    setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'continue' });
+    setContinueGoal('');
+    await loadExtras(selected!.id);
+    return r.downloadUrl
+      ? (r.goalImplemented === true ? 'Updated program ZIP is ready to download.' : `Continue finished with issues. ${r.note || ''}`)
+      : (r.note || 'Continue did not produce a downloadable ZIP.');
+  });
+  const uploadSourceZip = async (file: File) => {
+    if (!selected) return;
+    if (!/\.zip$/i.test(file.name)) { setError('Only .zip archives can be uploaded as source.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('ZIP must be 5 MB or smaller.'); return; }
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const buf = new Uint8Array(await file.arrayBuffer());
+      let binary = '';
+      const chunk = 0x8000;
+      for (let i = 0; i < buf.length; i += chunk) binary += String.fromCharCode(...buf.subarray(i, i + chunk));
+      const content_base64 = btoa(binary);
+      const saved = await api<{ artifact_id: string; version: number; filename: string }>(
+        `/api/projects/${encodeURIComponent(selected.id)}/artifacts/upload`,
+        { method: 'POST', body: JSON.stringify({ filename: file.name.replace(/[^\w.\-]+/g, '_'), content_base64 }) },
+      );
+      setContinueArtifactId(saved.artifact_id);
+      await loadExtras(selected.id);
+      setActiveTab('journal');
+      setNotice(`Uploaded ${saved.filename || file.name} (v${saved.version}). You can Improve this program from it.`);
+    } catch (e) { setError(String((e as Error).message || e)); }
+    finally { setBusy(false); }
+  };
   const review = (section: string, id: string, action: 'confirm' | 'reject') => act(async () => { await post('items/review', { section, id, action }); return action === 'confirm' ? `${id} confirmed.` : `${id} rejected.`; });
   const addDecision = () => act(async () => { await post('decisions', { text: decisionText }); setDecisionText(''); return 'Decision recorded.'; });
   const createPlan = () => act(async () => { const r = await api<any>(`/api/projects/${encodeURIComponent(selected!.id)}/plans`, { method: 'POST', body: JSON.stringify({ source: 'template', template: 'spec_arch_review_approval', goal: task || goal || selected!.name }) }); setTask(''); return 'Plan created. Approve it before tasks can run.'; });
@@ -590,7 +636,7 @@ export default function ProjectMode() {
         <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
         {isFolderPickerSupported() && <details style={{ position: 'relative' }}><summary aria-label="More workspace actions" title="More actions" style={{ ...styles.button, padding: '6px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 40, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8, whiteSpace: 'nowrap' }}><button type="button" style={styles.button} disabled={busy} title="Load a whole project folder from this computer (desktop browsers only)" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); window.dispatchEvent(new CustomEvent(PICK_FOLDER_EVENT)); }}>Import project folder…</button></div></details>}
       </div>
-      <p style={{ fontSize: 13, color: '#8fa6c2' }}>After you confirm privacy, readable file text is included in analysis. Other files are kept and described by name and type only.</p>
+      <p style={{ fontSize: 13, color: '#8fa6c2' }}>Local files on this device for analysis only (not the project archive on the server). Readable text can be included when you run analysis. To store a program ZIP on the server, use Upload source ZIP on the Files tab.</p>
       <WorkspacePanel disabled={busy} onAttachmentsChange={setWorkspaceAttachments} />
     </section>}
     {(error || notice) && <div style={{ position: 'fixed', left: 12, right: 12, bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
@@ -637,8 +683,33 @@ export default function ProjectMode() {
               <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || (capabilities !== null && !capabilities.programZip)} onClick={() => void buildProgram()}>Create program</button>
               {!programGoal.trim() && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program to enable this button. The source pipeline can generate a ZIP without changing project permissions.</p>}
               <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>
-              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }}><strong>{programResult.codeTask?.statusReason === 'source_bundle_ready_github_delivery_not_requested' || programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>{programResult.codeTask?.prUrl && <p><a href={programResult.codeTask?.prUrl} target="_blank" rel="noreferrer" style={{ color: '#9ac7ff' }}>Open the pull request</a></p>}{programResult.downloadUrl && <p><a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }} onClick={(e) => { e.preventDefault(); void downloadViaFetch(programResult.downloadUrl!, `${selected?.name || 'program'}-source.zip`).catch((err) => setError(String(err.message || err))); }}>Download generated program (.zip)</a>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button></>}</p>}{programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project')}</pre>}{programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}</div>}
+              {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }} data-testid="project-program-result">
+                <strong>{programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>
+                {programResult.downloadUrl && <p style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                  <a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }} onClick={(e) => { e.preventDefault(); void downloadViaFetch(programResult.downloadUrl!, `${selected?.name || 'program'}-source.zip`).catch((err) => setError(String(err.message || err))); }}>Download generated program (.zip)</a>
+                  {isDriveConfigured() && <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button>}
+                </p>}
+                {programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project', { stack: (programResult as { stack?: string }).stack })}</pre>}
+                {programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}
+              </div>}
+              
             </div></details>
+            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #1f4f86' }} data-testid="project-continue-panel">
+                <strong style={{ color: '#9fd8ff' }}>Improve this program</strong>
+                <p style={{ fontSize: 13, color: '#8fa6c2', margin: '6px 0' }}>Describe a change to an existing source ZIP (generated or uploaded). BiForge starts a continuation build; previous versions stay downloadable.</p>
+                <label style={{ display: 'grid', gap: 4, fontSize: 12, color: '#a9bfd8' }}>Base ZIP
+                  <select aria-label="Base source ZIP for continue" value={continueArtifactId || zipArtifacts[0]?.artifact_id || ''} onChange={(e) => setContinueArtifactId(e.target.value)} style={{ ...styles.input, minHeight: 40 }} disabled={!zipArtifacts.length || busy}>
+                    {!zipArtifacts.length && <option value="">No ZIP in this project yet</option>}
+                    {zipArtifacts.map((a) => <option key={a.artifact_id} value={a.artifact_id}>{a.filename} · v{a.version}</option>)}
+                  </select>
+                </label>
+                <textarea aria-label="Change request for continue" value={continueGoal} onChange={(e) => setContinueGoal(e.target.value)} rows={2} maxLength={4000} placeholder="Example: Add a pause button and show high score." style={{ ...styles.input, minHeight: 0, fontSize: 14, marginTop: 8 }} />
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                  <button type="button" style={styles.primary} disabled={busy || !continueGoal.trim() || !(continueArtifactId || zipArtifacts[0]?.artifact_id)} onClick={() => void continueProgram()} data-testid="project-continue-submit">Improve this program</button>
+                  <button type="button" style={styles.button} disabled={busy} onClick={() => zipUploadRef.current?.click()} data-testid="project-upload-zip">Upload source ZIP</button>
+                </div>
+                <input ref={zipUploadRef} type="file" accept=".zip,application/zip" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void uploadSourceZip(f); }} />
+              </div>
             <nav aria-label="Project sections" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, borderBottom: '1px solid #25405e', margin: '18px 0 12px' }}>{([
               ['results', 'Results'],
               ['plan', 'Plan'],
@@ -666,8 +737,12 @@ export default function ProjectMode() {
               <h4>Tasks</h4>{tasks.length ? tasks.map(t => <p key={t.id} style={{ fontSize: 13, borderTop: '1px solid #1f4f86', paddingTop: 8 }}>{t.title} · <strong>{taskStateLabel(t.state)}</strong>{t.blockedReason ? ` (${blockedReasonLabel(t.blockedReason)})` : ''}<br />{t.state === 'READY' && <button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void queueTask(t)}>Start task</button>}{t.state === 'VALIDATING' && <><button type="button" style={{ ...styles.primary, minHeight: 44 }} disabled={busy} onClick={() => void validateTask(t, true)}>Mark as passed</button> <button type="button" style={{ ...styles.button, minHeight: 44 }} disabled={busy} onClick={() => void validateTask(t, false)}>Mark as failed</button></>}{codeTaskIds.includes(t.id) && <> <button type="button" style={{ ...styles.button, minHeight: 44 }} onClick={() => { setFocusTaskId(t.id); setActiveTab('delivery'); }}>Open in Code package</button></>}</p>) : <StateNotice kind="empty">Tasks appear after a plan is approved.</StateNotice>}
             </section>}
             {activeTab === 'delivery' && <ProjectDelivery projectId={selected.id} capabilities={capabilities} passportConfirmed={passport?.status === 'confirmed'} executor={passport?.executor ?? 'manual'} focusTaskId={focusTaskId} onFocusHandled={() => setFocusTaskId(null)} />}
-            {activeTab === 'journal' && <section><h3>Files</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Project files and saved versions.</p>
-            {artifacts.length === 0 ? <StateNotice kind="empty">No files yet. They appear after analysis, builds or uploads.</StateNotice> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13, marginBottom: 8 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id, a.filename)}>{a.filename} · latest v{a.version}</button> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} onClick={() => void inspectProjectArtifact(a.artifact_id, a.version)}>Inspect</button> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} onClick={() => void downloadViaFetch(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(a.artifact_id)}/download?version=${a.version}`, a.filename).catch((e) => setError(String(e.message || e)))}>Download</button>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
+            {activeTab === 'journal' && <section><h3>Files</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Project archives on the server (generated builds and uploads). Download any version, or upload a ZIP then use Improve this program above.</p>
+            <div style={{ marginBottom: 10, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <button type="button" style={styles.button} disabled={busy} onClick={() => zipUploadRef.current?.click()} data-testid="project-files-upload-zip">Upload source ZIP</button>
+              {zipArtifacts.length > 0 && <button type="button" style={styles.button} disabled={busy} onClick={() => { document.querySelector('[data-testid=project-continue-panel]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }}>Improve a ZIP…</button>}
+            </div>
+            {artifacts.length === 0 ? <StateNotice kind="empty">No files yet. Create a program or upload a source ZIP.</StateNotice> : <ul style={{ paddingLeft: 18, margin: 0 }}>{artifacts.map(a => <li key={a.artifact_id} style={{ fontSize: 13, marginBottom: 8 }}><button type="button" style={{ ...styles.button, minHeight: 44, padding: '6px 12px' }} onClick={() => void openArtifact(a.artifact_id, a.filename)}>{a.filename} · latest v{a.version}</button> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} onClick={() => void inspectProjectArtifact(a.artifact_id, a.version)}>Inspect</button> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} onClick={() => void downloadViaFetch(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(a.artifact_id)}/download?version=${a.version}`, a.filename).catch((e) => setError(String(e.message || e)))}>Download</button>{isDriveConfigured() && <> <button type="button" style={{ ...styles.button, minHeight: 36, padding: '4px 10px' }} disabled={driveBusy} onClick={() => void driveAct(() => saveArtifactToDrive(a))}>Save to Google Drive</button></>}</li>)}</ul>}
             {artifactVersions.length > 0 && <details style={{ marginTop: 10 }}><summary style={{ cursor: 'pointer', color: '#9fd8ff', minHeight: 36 }}>All immutable versions ({artifactVersions.length})</summary><ul>{artifactVersions.map((v: any) => <li key={`${v.artifact_id}:${v.version}`} style={{ fontSize: 12, margin: '5px 0' }}>{v.filename} · v{v.version} · {Number(v.size || 0).toLocaleString()} bytes · {v.kind} <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 8px' }} onClick={() => void downloadViaFetch(`/api/projects/${encodeURIComponent(selected!.id)}/artifacts/${encodeURIComponent(v.artifact_id)}/download?version=${v.version}`, v.filename).catch((e) => setError(String(e.message || e)))}>Download version</button> <button type="button" style={{ ...styles.button, minHeight: 32, padding: '2px 8px' }} onClick={() => void inspectProjectArtifact(v.artifact_id, v.version)}>Inspect</button></li>)}</ul></details>}
             {archiveInspection && <section aria-label="Artifact inspection" style={{ marginTop: 10, padding: 10, border: '1px solid #1f4f86', borderRadius: 8 }}><strong>Inspection: {archiveInspection.filename || archiveInspection.manifest?.filename || archiveInspection.artifact_id} · v{archiveInspection.version}</strong><p>Integrity: {archiveInspection.ok ? 'PASS' : 'FAIL'} {archiveInspection.problems?.length ? `(${archiveInspection.problems.join(', ')})` : ''}</p>{archiveInspection.archive && <><p>Archive entries ({archiveInspection.archive.length})</p><ul>{archiveInspection.archive.map((entry: any, i: number) => <li key={`${entry.name || entry.path || 'entry'}:${i}`}>{entry.name || entry.path || JSON.stringify(entry)}</li>)}</ul></>}<button type="button" style={styles.button} onClick={() => setArchiveInspection(null)}>Close inspection</button></section>}
             {artifactText && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, background: '#07111f', padding: 8, borderRadius: 8, maxHeight: 260, overflow: 'auto' }}>{artifactText}</pre>}

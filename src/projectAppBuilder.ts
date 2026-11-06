@@ -134,9 +134,30 @@ export function buildGoalFromNoviceAnswers(a: NoviceAnswers): string {
   return parts.filter(Boolean).join('\n');
 }
 
-/** Short deploy instruction shown in the UI and suitable for README paste. */
-export function manualDeployInstructions(projectName: string): string {
+/**
+ * Post-download usage text. Static sites open locally; server stacks may mention hosting.
+ * P127.12: do not push Render/Railway as the default for browser-only ZIPs.
+ */
+export function manualDeployInstructions(projectName: string, options?: { stack?: string | null }): string {
   const name = projectName.trim() || 'your-project';
+  const stack = (options?.stack || '').toLowerCase();
+  const looksStatic =
+    !stack ||
+    stack.includes('static') ||
+    stack === 'auto' ||
+    stack === 'static_site';
+  if (looksStatic) {
+    return [
+      `## How to use this ZIP (${name})`,
+      '',
+      '1. Download and unpack the archive on your computer or tablet.',
+      '2. Open `index.html` in a browser (double-click or “Open with”).',
+      '3. If the app uses ES modules, prefer a tiny local static server only when the browser blocks `file://` imports.',
+      '4. To change the program in BiForge: use **Improve this program** with this ZIP selected, or upload your own ZIP on the Files tab.',
+      '',
+      'BiForge does not publish this ZIP for you. Nothing is pushed to GitHub or a host unless you do it yourself.',
+    ].join('\n');
+  }
   return [
     `## How to use this ZIP (${name})`,
     '',
@@ -144,25 +165,23 @@ export function manualDeployInstructions(projectName: string): string {
     '2. Read README.md inside — it lists local run commands.',
     '3. Copy `.env.example` to `.env` and fill in values if needed (never commit real secrets).',
     '4. Create a new empty repository on GitHub and upload the unpacked files.',
-    '5. On Render or Railway: create a Web Service and connect that GitHub repo.',
+    '5. On your host (e.g. Render or Railway): create a Web Service and connect that GitHub repo.',
     '6. Set build and start commands from the README; add variables from `.env.example`.',
     '7. Deploy. Open the health URL if the README mentions one.',
     '',
-    'BiForge does not push to GitHub or Render for you. You stay in control of the account and the merge.',
+    'BiForge does not push to GitHub or a host for you. You stay in control of the account and the merge.',
   ].join('\n');
 }
 
-/** Suggested project name from the idea (safe, short). */
+/** Suggested project name from the idea (safe, short, readable in the project list). */
 export function suggestProjectName(idea: string): string {
-  const base = idea
+  const tokens = idea
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9а-яё\s-]/gi, '')
     .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 4)
-    .join('-')
-    .slice(0, 40);
+    .filter((t) => t && !/^(создай|сделай|create|make|a|an|the|и|or|for|with)$/i.test(t));
+  const base = tokens.slice(0, 3).join('-').slice(0, 28);
   return base || 'my-app';
 }
 
