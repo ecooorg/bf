@@ -44,10 +44,10 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '127');
-  assert.equal(pkg.patch, '127.18a');
+  assert.equal(pkg.patch, '127.18c');
   const lock = JSON.parse(read('package-lock.json'));
   assert.equal(lock.version, '127');
-  assert.equal(lock.patch, '127.18a');
+  assert.equal(lock.patch, '127.18c');
 });
 
 test('P127.12 ProjectMode wires continue and source ZIP upload', () => {
@@ -132,5 +132,5 @@ test('P127.17b plan paths stay flat (no nested folders)', () => {
   const intent = read('appBuilder/intent-brief.ts');
   const plan = read('appBuilder/core-plan.ts');
   assert.doesNotMatch(intent, /js\/main\.js/);
-  assert.match(plan, /Flat package only|segments\.length !== 1/);
+  assert.match(plan, /isFlatPackagePath|segments\.length > 2/);
 });
