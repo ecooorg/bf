@@ -82,7 +82,10 @@ export function validateModuleContracts(files: FileMap): ReportValidator {
     return names;
   };
   const parsed = new Map<string, ts.SourceFile>();
-  for (const [path, src] of files) if (/\.(?:m?js)$/i.test(path)) parsed.set(path, ts.createSourceFile(path, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS));
+  for (const [path, src] of files) {
+    if (/\.tsx?$/i.test(path)) issues.push({ path, message: 'TypeScript source is not executable in the static_site stack; provide compiled browser JavaScript or use a build-enabled stack' });
+    else if (/\.(?:m?js)$/i.test(path)) parsed.set(path, ts.createSourceFile(path, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS));
+  }
   // Module syntax must be loaded by a module script; classic script tags cannot execute imports.
   for (const [htmlPath, html] of files) {
     if (!/\.html?$/i.test(htmlPath)) continue;
@@ -121,14 +124,29 @@ export function validateModuleContracts(files: FileMap): ReportValidator {
 
 export function validateRefs(files: FileMap): ReportValidator {
   const issues: Issue[] = [];
+  const resolveHtmlReference = (htmlPath: string, rawRef: string): string | null => {
+    const clean = rawRef.split(/[?#]/, 1)[0].replace(/\\/g, '/');
+    if (!clean) return null;
+    // A leading slash is rooted at the generated project, not the host filesystem.
+    const base = clean.startsWith('/') ? clean.slice(1) : `${htmlPath.split('/').slice(0, -1).join('/')}/${clean}`;
+    const parts: string[] = [];
+    for (const part of base.split('/')) {
+      if (!part || part === '.') continue;
+      if (part === '..') { if (!parts.length) return null; parts.pop(); }
+      else parts.push(part);
+    }
+    const target = parts.join('/');
+    return target && isSafePath(target) ? target : null;
+  };
   for (const [path, src] of files) {
     if (!/\.html?$/i.test(path)) continue;
     for (const m of src.matchAll(/\b(?:src|href)\s*=\s*["']([^"']+)["']/gi)) {
       const ref = m[1].trim();
       if (/^(#|mailto:|tel:|data:|javascript:)/i.test(ref)) { if (/^javascript:/i.test(ref)) issues.push({ path, message: `javascript: URL not allowed: ${ref}` }); continue; }
       if (/^(https?:)?\/\//i.test(ref)) { issues.push({ path, message: `external reference not allowed: ${ref}` }); continue; }
-      const target = ref.replace(/^\.\//, '').split(/[?#]/)[0];
-      if (!isSafePath(target) || !files.has(target)) issues.push({ path, message: `reference does not resolve to a generated file: ${ref}` });
+      const target = resolveHtmlReference(path, ref);
+      if (!target || !files.has(target)) issues.push({ path, message: `reference does not resolve to a generated file: ${ref}` });
+      else if (/\.tsx?$/i.test(target)) issues.push({ path, message: `static_site cannot execute TypeScript reference '${ref}'; use browser-compatible JavaScript or a configured build stack` });
     }
   }
   return result('refs', issues);
