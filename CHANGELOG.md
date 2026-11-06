@@ -1,3 +1,10 @@
+## P127.5 — Project Mode build reliability (2026-11-06)
+
+- Normalize HTML local references against the generated project root or the referencing HTML directory; preserve path-traversal rejection.
+- Reject raw TypeScript in the `static_site` stack with an actionable message because this stack does not transpile TypeScript.
+- Add regression contracts for root-absolute references, nested relative references, TypeScript entry points, and unresolved local imports.
+- Project Mode only; Simple and Expert behavior is out of scope. Verification status is recorded in `TECHNICAL_REPORT.md`.
+
 ## P127.4 — Grounded number check (flag-gated) (2026-11-06)
 
 - When search is used/used_weak, quantitative claims must appear in digest/titles or reply is replaced.

@@ -504,6 +504,8 @@ Bounded repair:
 
 Idempotency: job IDs; cache keys include prompt version (`PROMPT_VERSION`).
 
+**Project Mode recovery programme (owner-requested, 2026-11-06):** The four-patch implementation sequence, mode-isolation constraints, artifact visibility requirements, continuation/versioning behavior, and acceptance criteria are maintained in `docs/PROJECT_MODE_RELIABILITY_PLAN.md`. That plan supplements this pipeline description; implementation facts and verification evidence remain exclusively in `TECHNICAL_REPORT.md`. The programme must not alter Simple or Expert behavior.
+
 **REQ-SM-001**  
 **Precondition:** Architect job started.  
 **Behaviour:** Pipeline advances only on successful stage validation; events `spec_attempt`, `spec_repair`, `unit_attempt`, `unit_repair` emitted.  

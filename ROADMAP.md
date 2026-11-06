@@ -28,6 +28,17 @@
 
 The Conversational route now defaults to a single direct Gemini text call. Search providers (including Serper), external model fallback, structured response parsing, retries, and application-side reply rewriting are bypassed on this route. This is a provenance-isolation test, not a live-data capability.
 
+## Project Mode recovery programme (owner request, 2026-11-06)
+
+Four sequential patches are planned; implementation state is authoritative in `TECHNICAL_REPORT.md`, requirements and acceptance are in `docs/PROJECT_MODE_RELIABILITY_PLAN.md`.
+
+- **P127.5 — Build Reliability:** validator path normalization, explicit static-site execution contract, regression coverage, and completion of bounded validator-driven repair. IN PROGRESS.
+- **P127.6 — Project Continuation:** continue an existing project from immutable source/version context; compare and roll back versions. PLANNED.
+- **P127.7 — Project Workspace:** durable, complete listing of project files, archives, versions, and verified downloads. PLANNED.
+- **P127.8 — Recovery and Acceptance:** durable checkpoints, safe navigation, artifact-link integrity, and real browser end-to-end acceptance. PLANNED.
+
+All four patches are Project Mode-only. Simple and Expert prompts, routes, model selection, response behavior, and interfaces are protected by regression tests.
+
 ## CURRENT ROADMAP CONTROL — 2026-11-03 (C124)
 
 > **Retired documentation paths (P126.20+):** Any historical mention of `docs/C12x_*`, `docs/WEB_SEARCH_REMEDIATION.md`, `docs/INFORMATION_QUALITY_WORKFLOW.md`, `docs/RENDER_ENV_CONTRACT.md`, `docs/MODEL_ALLOWLIST.md`, `docs/MODEL_SOURCES_*`, or similar cycle/audit reports is **historical only**. Current prose authority is the Single-source-of-truth map in `AGENTS.md`. Do not recreate retired files to satisfy an old link.

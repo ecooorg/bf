@@ -1,3 +1,17 @@
+## P127.5 — Project Mode build reliability (2026-11-06)
+
+**Type:** RELIABILITY. **Scope:** Project Mode appBuilder validators only; Simple and Expert untouched.
+
+**OBSERVED:** Supplied diagnostics recorded `PARTIAL` with `validators_failed: refs, size`; the supplied game references `/src/main.ts` while `static_site` has no TypeScript compilation step. Source inspection found leading-slash references were not normalized to project-root paths.
+
+**CHANGE:** `validateRefs` now resolves `/...` from the generated project root and relative references from the HTML file directory, while retaining traversal and missing-file rejection. It reports TypeScript references as unsupported by `static_site`. `validateModuleContracts` also reports raw `.ts`/`.tsx` source as non-executable in this stack. Added focused regression tests to the existing project-builder recovery suite.
+
+**NOT_RUN:** Tests, typecheck, build, CI, browser execution, and live model repair. The supplied archive contains no `node_modules`; no claim of PASS is made.
+
+**LIMITATION:** This first patch slice improves validator correctness and error clarity. A generalized bounded repair cycle for all actionable required-validator failures, rather than only existing syntax/DOM repair paths, remains to be completed within Patch 1 before Patch 1 acceptance.
+
+---
+
 ## P127.4 — Evidence (2026-11-06)
 
 **Scope:** Product intervention, default off.
