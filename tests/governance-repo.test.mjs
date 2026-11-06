@@ -12,8 +12,8 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
 test('package patch metadata is internally consistent', () => {
-  assert.equal(String(pkg.version), '126');
-  assert.match(String(pkg.patch), /^126\.\d+$/);
+  assert.equal(String(pkg.version), '127');
+  assert.match(String(pkg.patch), /^127\.\d+$/);
   assert.ok(pkg.patch.startsWith(`${pkg.version}.`));
 });
 
@@ -68,7 +68,7 @@ test('docs layout: only allowlisted prose and machine JSON under docs/', () => {
   const allowProse = new Set([
     'ARCHITECTURE.md', 'API_CONTRACTS.md', 'TESTING_AND_ACCEPTANCE.md',
     'USER_VALUE_EVALUATION.md', 'SECURITY_AND_PRIVACY.md', 'OPERATIONS_AND_RELEASES.md',
-    'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md',
+    'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md', 'EXPERIMENTS.md', 'BIFORGE Perestroika.md',
   ]);
   const names = readdirSync(docsDir);
   const nested = names.filter((n) => {
