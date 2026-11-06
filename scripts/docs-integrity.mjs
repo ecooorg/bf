@@ -69,7 +69,7 @@ if (existsSync(docsDir)) {
   const allowProse = new Set([
     'ARCHITECTURE.md', 'API_CONTRACTS.md', 'TESTING_AND_ACCEPTANCE.md',
     'USER_VALUE_EVALUATION.md', 'SECURITY_AND_PRIVACY.md', 'OPERATIONS_AND_RELEASES.md',
-    'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md',
+    'DATA_AND_ARTIFACTS.md', 'DECISIONS.md', 'TEST_MAP.md', 'MODEL_REGISTRY.md', 'VIX-CONCEPT.md', 'EXPERIMENTS.md', 'BIFORGE Perestroika.md',
   ]);
   const allowJsonPrefixes = ['generated-', 'schema-', 'architecture-', 'verification-manifest', 'p120-acceptance-record'];
   for (const name of readdirSync(docsDir)) {

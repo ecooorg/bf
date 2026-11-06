@@ -21,6 +21,7 @@ const ALLOW = new Set([
   'architectureVerifyChange.mjs',
   'assistant-run-summary.mjs',
   'backup-restore-check.mjs',
+  'baseline-eval.mjs',
   'capabilityGenerateGraph.mjs',
   'capabilityGraphLib.mjs',
   'carousel-live-smoke.mjs',
