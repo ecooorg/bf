@@ -1,3 +1,20 @@
+## P127.15 — Project Mode chat-first surface (2026-11-06)
+
+**Type:** USER_VALUE. **Scope:** Project Mode client only (`ProjectChat.tsx`, `ProjectMode.tsx`). APIs from P127.12 reused. Simple/Expert untouched.
+
+**OBSERVED:** Users still faced multi-panel Project UI (lists, analysis, plan, files, wizard). Requested product shape is chat-only: one message box, archive or continued dialogue.
+
+**CHANGE:**
+1. `ProjectChat` — message list, sticky composer, Send; first message creates project + confirms passport + build; later messages continue from latest ZIP artifact; assistant replies include Download link and short usage text.
+2. `ProjectMode` default `viewMode: 'chat'`; guided start off by default; full prior workspace under Advanced + Back to chat.
+3. Tests assert chat default wiring; package `127.15`.
+
+**VERIFICATION:** Category tests **NOT_RUN** here; CI expected. Tablet chat smoke **NOT_RUN**.
+
+**LIMITATIONS:** Advanced workspace still exists for power users/diagnostics. Chat does not yet stream token-level model text (status line only). Upload of external ZIP still via Advanced for now.
+
+---
+
 ## P127.14 — CI fix for 127.12/127.13 (lint:copy + typecheck) (2026-11-06)
 
 **Type:** MAINTENANCE. **Scope:** copy in `ProjectMode.tsx`; upload typing in `projectRoutes.ts`; package metadata.

@@ -1,3 +1,10 @@
+## [127.15] - Project Mode chat-first surface
+
+- Default Project UI is a **single chat**: user describes the program, gets a ZIP (or an error), then keeps chatting to refine.
+- New `src/ProjectChat.tsx`: transcript + composer; auto-creates/confirms project; `code/build` then `code/continue` from the latest ZIP; download link in the assistant message.
+- Multi-panel workspace (analysis, plans, files tools, wizard) moved behind **Advanced** with **Back to chat**.
+- Package patch `127.15`.
+
 ## [127.14] - CI fix: lint:copy + upload Uint8Array type
 
 - Shortened Project Mode workspace help text (lint:copy 24-word limit).
