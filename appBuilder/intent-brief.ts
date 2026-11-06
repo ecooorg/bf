@@ -66,7 +66,7 @@ export function fallbackIntentBrief(userText: string): IntentBrief {
   const shouldHave: string[] = [];
   const suggestedModules: IntentBrief['suggestedModules'] = [
     { id: 'style', path: 'style.css', purpose: 'Layout and theme' },
-    { id: 'main', path: 'js/main.js', purpose: 'Entry: wire UI and start loop' },
+    { id: 'main', path: 'main.js', purpose: 'Entry: wire UI and start loop' },
     { id: 'index', path: 'index.html', purpose: 'Shell linking CSS/JS modules' },
   ];
 
@@ -75,9 +75,9 @@ export function fallbackIntentBrief(userText: string): IntentBrief {
     mustHave.push('Ongoing animation or update loop if the request implies motion');
     shouldHave.push('Clear separation of scene, entities, and input');
     suggestedModules.push(
-      { id: 'input', path: 'js/input.js', purpose: 'Keyboard/touch input state' },
-      { id: 'scene', path: 'js/scene.js', purpose: 'Scene setup and draw/update orchestration' },
-      { id: 'entities', path: 'js/entities.js', purpose: 'Entities described by the user request' },
+      { id: 'input', path: 'input.js', purpose: 'Keyboard/touch input state' },
+      { id: 'scene', path: 'scene.js', purpose: 'Scene setup and draw/update orchestration' },
+      { id: 'entities', path: 'entities.js', purpose: 'Entities described by the user request' },
     );
   }
   if (complexity === 'ambitious') {
@@ -86,10 +86,10 @@ export function fallbackIntentBrief(userText: string): IntentBrief {
     notSuccessIf.push('Total app logic under ~4KB when the request is ambitious');
     notSuccessIf.push('Missing any must-have capability listed in this brief');
     suggestedModules.push(
-      { id: 'render', path: 'js/render.js', purpose: 'Drawing / camera / perspective helpers' },
-      { id: 'world', path: 'js/world.js', purpose: 'World or level layout data and helpers' },
-      { id: 'ui', path: 'js/ui.js', purpose: 'HUD and on-screen controls' },
-      { id: 'util', path: 'js/util.js', purpose: 'Shared math/helpers' },
+      { id: 'render', path: 'render.js', purpose: 'Drawing / camera / perspective helpers' },
+      { id: 'world', path: 'world.js', purpose: 'World or level layout data and helpers' },
+      { id: 'ui', path: 'ui.js', purpose: 'HUD and on-screen controls' },
+      { id: 'util', path: 'util.js', purpose: 'Shared math/helpers' },
     );
   }
 
@@ -133,8 +133,10 @@ export function parseIntentBrief(text: string, userText: string): IntentBrief {
     const path = str(row.path);
     const id = str(row.id) || path.replace(/\W+/g, '_').slice(0, 32);
     const purpose = str(row.purpose) || id;
-    if (path && /^[a-zA-Z0-9._/-]+$/.test(path) && path.length < 80) {
-      suggestedModules.push({ id, path, purpose });
+    // Project policy: flat package only — no nested directories.
+    const flat = path.replace(/\\/g, '/').split('/').filter(Boolean).pop() || '';
+    if (flat && /^[a-zA-Z0-9._-]+$/.test(flat) && flat.length < 80 && !flat.includes('..')) {
+      suggestedModules.push({ id, path: flat, purpose });
     }
   }
   return {
@@ -254,7 +256,7 @@ Return ONLY a JSON object with:
 - notSuccessIf: string[] (explicit stub patterns that must NOT count as success)
 - complexity: "trivial"|"simple"|"standard"|"ambitious"
 - targetModules: number (how many small source files are appropriate; ambitious often 16–32)
-- suggestedModules: array of {id, path, purpose} with paths like js/scene.js, style.css, index.html — each file small (roughly 3–12KB of source), one responsibility
+- suggestedModules: array of {id, path, purpose} with flat paths only: scene.js, style.css, index.html (no subfolders) — each file small (roughly 3–12KB of source), one responsibility
 
 Rules:
 - Prefer many small modules over one large file.

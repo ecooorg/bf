@@ -31,7 +31,7 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     ? [...brief.suggestedModules]
     : [
         { id: 'style', path: 'style.css', purpose: 'Theme' },
-        { id: 'main', path: 'js/main.js', purpose: 'Entry' },
+        { id: 'main', path: 'main.js', purpose: 'Entry' },
         { id: 'index', path: 'index.html', purpose: 'Shell' },
       ];
 
@@ -40,7 +40,7 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     modules.unshift({ id: 'style', path: 'style.css', purpose: 'Layout and theme' });
   }
   if (![...paths].some((p) => p.endsWith('.js'))) {
-    modules.push({ id: 'main', path: 'js/main.js', purpose: 'Application entry and loop' });
+    modules.push({ id: 'main', path: 'main.js', purpose: 'Application entry and loop' });
   }
   if (![...paths].some((p) => p.endsWith('.html'))) {
     modules.push({ id: 'index', path: 'index.html', purpose: 'Entry HTML linking assets' });
@@ -69,7 +69,7 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     units.push(
       unit(
         id,
-        m.path.replace(/^\/+/, '').slice(0, 80),
+        (m.path.replace(/\\/g, '/').split('/').filter(Boolean).pop() || 'file.txt').slice(0, 80),
         m.purpose.slice(0, 200),
         dependsOn,
         isJs ? `ES module or plain script; helpers for: ${m.purpose.slice(0, 80)}` : isCss ? 'Selectors used by HTML' : 'Links all planned CSS/JS with relative paths',

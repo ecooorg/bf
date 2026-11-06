@@ -39,9 +39,9 @@ export function isSafePath(p: string): boolean {
   if (typeof p !== 'string' || p.length === 0 || p.length > 256) return false;
   if (UNSAFE_PATH_RE.test(p)) return false;
   if (p.includes('//')) return false;
-  // v1 permits a single nested level (e.g. assets/logo.svg), never deeper paths.
+  // Project policy: flat package only — no nested directories (index.html, app.js, style.css, …).
   const segments = p.split('/');
-  if (segments.length > 2 || segments.some((part) => !part || part === '.' || part === '..')) return false;
+  if (segments.length !== 1 || !segments[0] || segments[0] === '.' || segments[0] === '..') return false;
   return true;
 }
 
