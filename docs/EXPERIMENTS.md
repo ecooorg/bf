@@ -94,3 +94,8 @@ Production has `appAuth=true`. Smoke logs in via `POST /api/login` using GitHub 
 | **Metric** | Smoke A/B on same 12: infra still &lt;25%; paired W-rate on statistic/lookup subset not worse; fewer confident bare numbers when search not_run. |
 | **Rollback** | Unset / `false` the env flag. |
 | **Result** | NOT_RUN live after deploy with flag on |
+
+
+### P127.3a — Fact-path contracts
+
+Deterministic offline tests for quantitative triggers, ungrounded gate, HTTP data.reply. In Answer Quality suite. No product change.
