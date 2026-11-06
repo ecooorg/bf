@@ -767,3 +767,8 @@ Each REQ above carries its acceptance. Global product acceptance (current normat
 - External model fallbacks remain opt-in.
 
 This specification is the single source of truth for re-implementation. Subsequent patches update it in place under the Navigator charter.
+
+
+## P127.6 — Existing project continuation
+
+The Project Mode API exposes `POST /api/projects/:projectId/code/continue`. It accepts a goal, a project-owned ZIP artifact ID, and an optional artifact version. The route verifies the artifact through the artifact repository, validates the ZIP and paths, and injects bounded source-file context into a new staged build job. Only UTF-8 text files are accepted in this initial version; binary assets fail explicitly. Source archives are limited to 80 files and 80,000 characters; exceeding either limit fails explicitly. The source artifact is immutable and the continuation output is a separate artifact. See `docs/PROJECT_CONTINUATION.md`.

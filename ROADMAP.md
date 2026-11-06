@@ -717,3 +717,8 @@ npm run check   # full DAG
 8. Reassess the standing repository language audit; English-only source text must not be achieved by silently narrowing product language support.
 
 This roadmap is the sole authoritative sequence. Update it in place when the Navigator accepts a phase transition.
+
+
+## P127.6 — Existing project continuation
+
+Implemented: project-scoped continuation endpoint using a verified prior ZIP, bounded source context, unsafe-path rejection, and a new staged build job. Remaining: repository-aware patch application and UI selection of prior versions.

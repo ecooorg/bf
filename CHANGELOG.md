@@ -1612,3 +1612,11 @@ Documentation-only delivery.
 - This is an isolated UI/workflow experiment, **not yet an independent backend generation engine**. Provider orchestration, validation, and artifact persistence remain shared with the existing backend.
 - Added route/mount/completion contract tests. Existing three-agent entry points remain unchanged; the lab is available only by direct route.
 - Local source-contract tests and ZIP validation are reported in the delivery note; typecheck/build and live Android tests remain separate evidence.
+
+
+## [127.6] - Project continuation
+
+- Added `POST /api/projects/:projectId/code/continue` for continuing work from an existing verified ZIP artifact.
+- Added bounded ZIP source extraction, project ownership checks, CRC validation, path traversal protection, and explicit rejection of binary assets not yet supported by the text-context continuation path.
+- Added continuation prompt construction and regression coverage.
+- Added `docs/PROJECT_CONTINUATION.md`. Simple and Expert behavior is unchanged.

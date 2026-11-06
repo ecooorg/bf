@@ -2301,3 +2301,8 @@ This report recovers the implementation history. For each material change it rec
 7. P92 production diagnostics verification still frozen.
 
 This report is reconstructed solely from artefacts present in the analysed archive. Claims of live SUCCESS beyond the documented acceptance of P116 are not supported by the available evidence.
+
+
+## P127.6 — Existing project continuation
+
+P127.6 introduces a safe initial continuation workflow. The API validates ownership and integrity of a source ZIP, checks CRC and archive paths, caps context at 80 files / 80,000 characters, and starts a new staged job with the selected source version included as context. It does not overwrite the source artifact. This is a context-based continuation, not yet a full AST-aware patch engine.
