@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runBuild, formatFileMarker, SCHEMA_VERSION } from '../appBuilder/index.ts';
 import {
   validateRefs,
@@ -215,4 +218,12 @@ test('P127.9/P127.11 SUCCESS report sets runtimeVerified false', async () => {
   assert.equal(r.report.runtimeVerified, false);
   assert.ok(r.report.checksDeclared.includes('reachability'));
   assert.ok(r.report.checksDeclared.includes('member-contracts'));
+});
+
+test('P127.12 upload route and continue remain registered in projectRoutes', () => {
+  const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const routes = readFileSync(path.join(rootDir, 'server/projectRoutes.ts'), 'utf8');
+  assert.match(routes, /artifacts\/upload/);
+  assert.match(routes, /code\/continue/);
+  assert.match(routes, /user_upload/);
 });

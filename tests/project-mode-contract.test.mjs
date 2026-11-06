@@ -44,8 +44,29 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '127');
-  assert.equal(pkg.patch, '127.11');
+  assert.equal(pkg.patch, '127.12');
   const lock = JSON.parse(read('package-lock.json'));
   assert.equal(lock.version, '127');
-  assert.equal(lock.patch, '127.11');
+  assert.equal(lock.patch, '127.12');
+});
+
+test('P127.12 ProjectMode wires continue and source ZIP upload', () => {
+  const ui = read('src/ProjectMode.tsx');
+  const routes = read('server/projectRoutes.ts');
+  assert.match(routes, /\/api\/projects\/:projectId\/code\/continue/);
+  assert.match(routes, /\/api\/projects\/:projectId\/artifacts\/upload/);
+  assert.match(routes, /createdBy: 'user_upload'/);
+  assert.match(ui, /code\/continue/);
+  assert.match(ui, /artifacts\/upload/);
+  assert.match(ui, /data-testid="project-continue-panel"/);
+  assert.match(ui, /data-testid="project-continue-submit"/);
+  assert.match(ui, /Improve this program/);
+  assert.match(ui, /uploadSourceZip/);
+});
+
+test('P127.12 static ZIP usage instructions avoid forced Render deploy', () => {
+  const src = read('src/projectAppBuilder.ts');
+  assert.match(src, /Open `index\.html` in a browser/);
+  assert.match(src, /Improve this program/);
+  assert.doesNotMatch(src, /looksStatic[\s\S]{0,200}Render or Railway: create a Web Service/);
 });
