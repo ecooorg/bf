@@ -185,3 +185,10 @@
 5. Gemini model ids remain restricted to the free-key allowlist until catalog validation supersedes it.
 
 **Consequences:** Implementation starts at P123.1; solo `GEMINI_API_KEY` remains supported; multi-key is opt-in via env.
+
+## D-2026-11-06-01 — C127 freeze, holdout rule, duty to object
+
+**Owner-approved plan (Perestroika).** Cycle C127 freezes the fact path (`server/webSearch.ts` and related, conversation wiring, prompts, model cascade) until Experiment 0 decides. Answer-path patches require a pre-written `docs/EXPERIMENTS.md` entry with hypothesis and metric. Holdout questions are authored and labelled outside the coding session. The Navigator Directive is amended with a duty to object in writing (≤5 lines) before executing a conflicting task; if the Navigator repeats the instruction, it stands. Supersedes any cancelled P126.32 proposal that would have changed answer behaviour without measurement.
+
+**Status (P127.1):** instrument only (eval questions, harness, tests, workflow, EXPERIMENTS ledger). Product behaviour unchanged. User value: NOT_RUN.
+

@@ -15,6 +15,7 @@
 | `security-redact.test.mjs` / `security-headers.test.mjs` | Secrets & headers | Security |
 | `governance-repo.test.mjs` | Version, TEST_MAP, AGENTS, script layout | Repo process |
 | `governance-workflow-pins.test.mjs` | GitHub Actions SHA pins | Workflow pin changes |
+| `eval-harness.test.mjs` | Baseline eval instrument (schema, scorer, intervals, blinding) | Measurement harness / Experiment 0 |
 
 ## Tags
 
