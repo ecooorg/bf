@@ -44,10 +44,10 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '127');
-  assert.equal(pkg.patch, '127.14');
+  assert.equal(pkg.patch, '127.15');
   const lock = JSON.parse(read('package-lock.json'));
   assert.equal(lock.version, '127');
-  assert.equal(lock.patch, '127.14');
+  assert.equal(lock.patch, '127.15');
 });
 
 test('P127.12 ProjectMode wires continue and source ZIP upload', () => {
@@ -88,4 +88,19 @@ test('P127.14 workspace copy stays short and avoids raw JSON label', () => {
   assert.match(ui, /Project data/);
   const routes = read('server/projectRoutes.ts');
   assert.match(routes, /Uint8Array\.from\(bytes\)/);
+});
+
+test('P127.15 Project Mode defaults to chat surface', () => {
+  const ui = read('src/ProjectMode.tsx');
+  const chat = read('src/ProjectChat.tsx');
+  assert.match(ui, /from '\.\/ProjectChat\.tsx'/);
+  assert.match(ui, /useState<'chat' \| 'advanced'>\('chat'\)/);
+  assert.match(ui, /viewMode === 'chat'/);
+  assert.match(ui, /data-testid="project-back-to-chat"/);
+  assert.match(chat, /data-testid="project-chat"/);
+  assert.match(chat, /data-testid="project-chat-input"/);
+  assert.match(chat, /data-testid="project-chat-send"/);
+  assert.match(chat, /code\/build/);
+  assert.match(chat, /code\/continue/);
+  assert.match(chat, /Download source ZIP/);
 });
