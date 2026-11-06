@@ -46,7 +46,7 @@ export {
 } from './core-ports.ts';
 
 export {
-  isSafePath,
+  isSafePath, isFlatPackagePath,
   topoSort,
   validatePlan,
   nextRunnable,

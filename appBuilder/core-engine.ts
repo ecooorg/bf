@@ -219,15 +219,48 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       const intentUserText = (input.taskText || '').slice(0, 4000) || 'interactive browser program';
       const ip = buildIntentPrompt(intentUserText);
       if (state.callsUsed < budget && !cancelled) {
-        state.callsUsed++;
-        const intentResult = await ports.model.complete({
-          role: 'planner',
-          system: ip.system,
-          prompt: ip.prompt,
-          maxOutputTokens: Math.min(4096, profile.maxOutputTokens),
-          signal: options.signal,
-        });
-        if (!isModelError(intentResult) && intentResult.text) {
+        // Reuse bounded rate-limit / unavailable recovery (same as call()).
+        let intentResult: Awaited<ReturnType<typeof ports.model.complete>> | null = null;
+        for (let attempt = 0; attempt < 2 && !cancelled && state.callsUsed < budget; attempt++) {
+          state.callsUsed++;
+          const result = await ports.model.complete({
+            role: 'planner',
+            system: ip.system,
+            prompt: attempt > 0
+              ? `${ip.prompt}\n\nRECOVERY: return the same JSON intent brief only.`
+              : ip.prompt,
+            maxOutputTokens: Math.min(4096, profile.maxOutputTokens),
+            signal: options.signal,
+          });
+          if (!isModelError(result)) {
+            intentResult = result;
+            break;
+          }
+          const retryable = result.code === 'rate_limited' || result.code === 'timeout' || result.code === 'unavailable' || result.code === 'truncated';
+          if (!retryable || attempt + 1 >= 2) {
+            intentResult = result;
+            break;
+          }
+          if (result.code === 'rate_limited') {
+            const requestedWait = Math.max(1000, result.retryAfterMs ?? 5_000);
+            const maxWait = Math.max(1_000, Math.min(180_000, Number(process.env.APP_BUILDER_MAX_RATE_WAIT_MS) || 180_000));
+            if (requestedWait > maxWait) {
+              intentResult = result;
+              break;
+            }
+            state.error = { code: 'waiting_rate_limit', message: `Waiting ${Math.ceil(requestedWait / 1000)} seconds for model quota before retrying…` };
+            state.stage = 'waiting_model';
+            event(ports, input.jobId, 'model_wait', { reason: 'rate_limit', waitMs: requestedWait, role: 'planner' });
+            await save();
+            await ports.clock.sleep(requestedWait, options.signal);
+            state.error = null;
+            state.stage = 'intent';
+            await save();
+          } else {
+            await ports.clock.sleep(Math.min(4_000, 900 * (attempt + 1)), options.signal);
+          }
+        }
+        if (intentResult && !isModelError(intentResult) && intentResult.text) {
           intentBrief = parseIntentBrief(intentResult.text, intentUserText);
           event(ports, input.jobId, 'intent_accepted', {
             complexity: intentBrief.complexity,
@@ -238,7 +271,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
         } else {
           intentBrief = fallbackIntentBrief(intentUserText);
           event(ports, input.jobId, 'intent_fallback', {
-            reason: isModelError(intentResult) ? intentResult.code : 'empty_intent',
+            reason: intentResult && isModelError(intentResult) ? intentResult.code : 'empty_intent',
             complexity: intentBrief.complexity,
           }, 'warn');
         }

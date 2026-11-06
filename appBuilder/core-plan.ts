@@ -39,10 +39,15 @@ export function isSafePath(p: string): boolean {
   if (typeof p !== 'string' || p.length === 0 || p.length > 256) return false;
   if (UNSAFE_PATH_RE.test(p)) return false;
   if (p.includes('//')) return false;
-  // Project policy: flat package only — no nested directories (index.html, app.js, style.css, …).
+  // Validators may resolve at most one nested level (HTML-relative / legacy packages).
   const segments = p.split('/');
-  if (segments.length !== 1 || !segments[0] || segments[0] === '.' || segments[0] === '..') return false;
+  if (segments.length > 2 || segments.some((part) => !part || part === '.' || part === '..')) return false;
   return true;
+}
+
+/** New static_site plan units must be top-level files only (no subfolders). */
+export function isFlatPackagePath(p: string): boolean {
+  return typeof p === 'string' && isSafePath(p) && !p.includes('/');
 }
 
 /**
@@ -135,7 +140,7 @@ export function validatePlan(plan: unknown, profile?: Pick<Profile, 'maxUnits'>)
     if (u.kind === 'file') {
       if (typeof u.path !== 'string' || !u.path) {
         issues.push({ code: 'unsafe_path', message: `File unit ${u.id} has no path`, unitId: u.id });
-      } else if (!isSafePath(u.path)) {
+      } else if (!isFlatPackagePath(u.path)) {
         issues.push({
           code: 'unsafe_path',
           message: `Unsafe path: ${u.path}`,
