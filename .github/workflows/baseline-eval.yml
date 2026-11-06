@@ -7,19 +7,19 @@ on:
         type: boolean
         default: true
       configs:
-        description: 'Configs (comma)'
+        description: 'Configs (comma). Prefer A,B,C first; N is imperfect on shared deploy'
         type: string
-        default: 'A,B,C,N'
+        default: 'A,B,C'
       base_url:
-        description: 'EVAL_BASE_URL for product A/B (deployed instance)'
+        description: 'EVAL_BASE_URL (e.g. https://biforge.onrender.com)'
         type: string
-        default: ''
+        default: 'https://biforge.onrender.com'
 permissions:
   contents: read
 jobs:
   eval:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -40,9 +40,11 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          EVAL_APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+          APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
           EVAL_BASE_URL: ${{ inputs.base_url }}
           EVAL_CONFIGS: ${{ inputs.configs }}
-          MODEL_MIN_INTERVAL_MS: '3000'
+          MODEL_MIN_INTERVAL_MS: '6000'
           GITHUB_SHA: ${{ github.sha }}
       - name: Upload report
         if: always()
