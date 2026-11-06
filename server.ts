@@ -56,7 +56,7 @@ import { globalSourceHealth } from './server/sourceHealth.ts';
 import { createOpenAICompatibleAdapter } from './server/openaiCompatAdapter.ts';
 import { eligibleGeminiCandidates, probeGeminiCandidates } from './server/modelAvailability.ts';
 import { REGISTRY_ALL, GROQ_BASE_URL, registryForGeminiCascade } from './server/modelRegistry.ts';
-import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, applyUngroundedStatisticGate, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
+import { extractGrounding, searchDecisionDetails, googleSearchToolForModel, fetchSerperDigestMulti, fetchWebSearchDigest, formatSearchBlock, formatSearchStatusBlock, weatherEvidenceAsResult, buildSearchPlan, hasRecentSearchIntent, buildSearchDecision, searchPlannerGate, isSearchPlannerEnabled, needsFreshWebInfo, applyUngroundedStatisticGate, applyGroundedNumberCheck, buildSearchEvidenceText, isWebSearchEnabled, shouldSearchWeb, skippedWebSearch, ensureEnglishPlan, isAssistantMetaQuestion, formatSourceQuestionBlock, contextualizeSearchText, toEnglishSearchQueries, webSearchMode, webSearchProvider, extractDictatedQuery, resolveLiveTaskState, planFromLiveTask, extractSourceCountryConstraint, searchContextForTurn } from './server/webSearch.ts';
 import { parseSearchCarousel, runSearchCarousel, SearchCircuitBreaker, SearchBudget, type ProviderId, type SearchProvider } from './server/searchCarousel.ts';
 import { isWeatherConnectorEnabled, isWeatherPlan } from './server/weatherConnector.ts';
 import type { WebSearchResult, WebSource, SearchPlan, SearchDecision } from './server/webSearch.ts';
@@ -1524,6 +1524,19 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
           searchStatus: searchStatusDirect,
         });
       }
+      // P127.4: optional grounded-number check when search was used (default off).
+      if (process.env.GROUNDED_NUMBER_CHECK === 'true') {
+        const evidence = buildSearchEvidenceText({
+          digest: searchResult?.digest,
+          sources: searchResult?.sources,
+        });
+        directReply = applyGroundedNumberCheck({
+          userText: userTextNow,
+          reply: directReply,
+          searchStatus: searchStatusDirect,
+          evidenceText: evidence,
+        });
+      }
       return ok(res, {
         reply: directReply, question: '', contextSufficiency: 'HIGH', triage: 'PROCEED',
         gain: [], options: [], newOptions: [], newOptionTypes: [], nextStep: '', factsToCheck: [],
@@ -1531,7 +1544,8 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         ...(searchResult?.sources?.length ? { sources: searchResult.sources } : {}),
       }, { provider: 'gemini', model: direct.model, calls: direct.keyAttempts, fallback: false,
         direct_conversation: true, key_slot: direct.keySlot, key_attempts: direct.keyAttempts,
-        ungrounded_fact_gate: process.env.UNGROUNDED_FACT_GATE === 'true' || undefined });
+        ungrounded_fact_gate: process.env.UNGROUNDED_FACT_GATE === 'true' || undefined,
+        grounded_number_check: process.env.GROUNDED_NUMBER_CHECK === 'true' || undefined });
     }
     // PI-02: intent flags from the last user turn (and recent history for a standing ban on questions).
     const intentFlags = detectUserIntentFlags(lastUserText, fullHistory);
@@ -1865,6 +1879,18 @@ const conversationHandler = async (req: express.Request, res: express.Response) 
         userText: String(lastUserText || brief?.decision || ''),
         reply: String(visibleReply || ''),
         searchStatus: String(webSearch?.status || 'not_run'),
+      });
+    }
+    if (process.env.GROUNDED_NUMBER_CHECK === 'true') {
+      const evidence = buildSearchEvidenceText({
+        digest: webSearch?.digest,
+        sources: webSearch?.sources,
+      });
+      gatedReply = applyGroundedNumberCheck({
+        userText: String(lastUserText || brief?.decision || ''),
+        reply: String(gatedReply || ''),
+        searchStatus: String(webSearch?.status || 'not_run'),
+        evidenceText: evidence,
       });
     }
     ok(res, {

@@ -1,3 +1,15 @@
+## P127.4 — Evidence (2026-11-06)
+
+**Scope:** Product intervention, default off.
+
+**OBSERVED prior:** E01/A wrong number with search used.
+
+**CHANGE:** applyGroundedNumberCheck + evidence from digest/titles.
+
+**NOT_RUN:** live smoke with flag on.
+
+---
+
 ## P127.3a — Evidence (2026-11-06)
 
 **Scope:** Tests only.

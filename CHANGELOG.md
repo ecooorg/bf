@@ -1,3 +1,8 @@
+## P127.4 — Grounded number check (flag-gated) (2026-11-06)
+
+- When search is used/used_weak, quantitative claims must appear in digest/titles or reply is replaced.
+- Flag `GROUNDED_NUMBER_CHECK` default off. Pure helpers + wiring Simple Direct + structured.
+
 ## P127.3a — Fact-path contract tests (instrument) (2026-11-06)
 
 - `tests/fact-path-contracts.test.mjs`: pure contracts for quantitative detection, ungrounded gate, envelope `data.reply`.
