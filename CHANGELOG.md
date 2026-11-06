@@ -1,3 +1,10 @@
+## P127.2 — Experiment 0 Stage B + live harness (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
+
+- Pre-register EXP-0 with production runtime-config snapshot (directGeminiMode=true, search on, verifier off).
+- Live harness `--smoke` for A/B (EVAL_BASE_URL) and C/D (GEMINI_API_KEY).
+- **Numbering rule (Navigator):** product patches = numeric (`127.n`); non-product = letter suffix (`127.na`). Prior mis-numbered CI fix treated as **P127.1a** (non-product); this delivery is product step **P127.2** per plan.
+- AGENTS.md + version parsers accept optional letter suffix.
+
 ## P127.3 — Experiment 0 Stage B + live harness (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
 
 - Pre-register EXP-0 thresholds/outcome matrix in docs/EXPERIMENTS.md before any full run.

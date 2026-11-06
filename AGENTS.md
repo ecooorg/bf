@@ -146,7 +146,12 @@ If sources conflict, this table wins. Historical roadmap/report/changelog text i
 
 ### Cycle, version, and patch identity
 
-Cycle `C<major>` uses product `version` `<major>`. Patch identifiers are `P<major>.<patch>` from `.1` through `.99`; for example, cycle C124 uses product version `124` and patch values `124.1`–`124.99` in `package.json`. Never insert an extra `.0` component. Increment the single patch component within the cycle. Sync root lockfile version metadata (`version:sync` / `version:check` when available). **MUST NOT** embed the current patch number as a fixed string in tests; derive from `package.json`. **MUST NOT** rewrite historical version strings in old evidence.
+Cycle `C<major>` uses product `version` `<major>`. Patch identifiers are `P<major>.<n>` stored in `package.json` `"patch"`.
+
+- **Product patches** (behaviour, measurement instrument that advances the plan, user-visible work): numeric only — `127.1`, `127.2`, … `127.99`. Never insert an extra `.0`.
+- **Non-product patches** (CI green, allowlist, docs-only, harness typo): same numeric stem **plus one Latin letter** — `127.1a`, `127.2b`. Letter does **not** advance the product sequence; the next product patch after `127.2` / `127.2a` is still `127.3` only when the plan’s next product step ships.
+
+Sync root lockfile version metadata (`version:sync` / `version:check`). **MUST NOT** embed the current patch number as a fixed string in tests; derive from `package.json`. **MUST NOT** rewrite historical version strings in old evidence.
 
 ---
 

@@ -1,3 +1,13 @@
+## P127.2 — Evidence (2026-11-06)
+
+**Scope:** Experiment 0 Stage B + numbering correction. User value: NOT_RUN.
+
+**OBSERVED:** runtime-config ingested; EXPERIMENTS thresholds locked; letter-suffix patch rule in AGENTS + check-version; package patch 127.2.
+
+**NOT_RUN:** live smoke answers; human labels; §7.6 checks 1 and 3.
+
+---
+
 ## P127.3 — Evidence (2026-11-06)
 
 **Scope:** Experiment 0 Stage B pre-register + live capability. User value: NOT_RUN.
