@@ -1,3 +1,10 @@
+## P127.3 — Experiment 0 Stage B + live harness (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
+
+- Pre-register EXP-0 thresholds/outcome matrix in docs/EXPERIMENTS.md before any full run.
+- baseline-eval: `--smoke`/`--live` calls Gemini+Search (C/D) when GEMINI_API_KEY set; product A/B when EVAL_BASE_URL set.
+- Workflow accepts base_url + configs inputs; secrets passed as env.
+- Live results still NOT_RUN until Navigator dispatches smoke and pastes runtime-config.
+
 ## P127.2 — CI green for instrument (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
 
 - governance-repo: version assert 127; docs allowlist includes EXPERIMENTS.md and BIFORGE Perestroika.md.

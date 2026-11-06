@@ -1,3 +1,13 @@
+## P127.3 — Evidence (2026-11-06)
+
+**Scope:** Experiment 0 Stage B pre-register + live capability. User value: NOT_RUN.
+
+**OBSERVED:** EXPERIMENTS.md locked thresholds; harness smoke path; workflow inputs.
+
+**NOT_RUN:** live A/B/C/N answers; runtime-config snapshot; human labels; §7.6 check 1 and 3.
+
+---
+
 ## P127.2 — Evidence (2026-11-06)
 
 **Scope:** Instrument CI fix. User value: NOT_RUN.
