@@ -1,3 +1,23 @@
+## P127.10 — Member contracts and coherent self-contained packages (2026-11-06)
+
+**Type:** RELIABILITY. **Scope:** Project Mode `appBuilder/` only. Simple and Expert untouched.
+
+**OBSERVED:** Multi-file packages could pass import-level `module-contracts` while consumers called non-existent instance members (`game.paused` vs class field `isPaused`). Separately, self-contained HTML apps were shipped together with unreachable modular files, confusing downloaders.
+
+**CHANGE:**
+1. Required validator `member-contracts` (TypeScript AST): maps exported class methods and `this.*` assignments; checks instance member access after `new ClassName()`.
+2. `dropUnreachableOrphansIfSelfContained`: if HTML has a large inline script and no external `<script src>`, unreachable CSS/JS are removed before validation; recorded as `droppedOrphanedFiles`.
+3. Bounded `member_contracts_repair` loop in `core-engine.ts` (max 2 files, reject destructive shrink / no improvement / newly broken validators).
+
+**VERIFICATION:**
+- Reasoning check against the supplied Tetris sample modular files: `main.js` uses `game.paused` while `game.js` defines `isPaused` → would fail `member-contracts` when both files remain linked. Self-contained `index.html` path drops modular orphans via deterministic cleanup. **OBSERVED** by inspection.
+- Automated unit tests: **NOT_RUN** (full test harness not in working archive).
+- Browser runtime smoke: **NOT_RUN** (`runtimeVerified` remains false).
+
+**LIMITATIONS:** Member analysis is static and limited to direct `const x = new ImportedClass()` bindings; does not track deep aliases or prototype mutations. Orphan drop only applies to the self-contained HTML pattern, not to partially linked graphs.
+
+---
+
 ## P127.9 — Project Mode integration gates (2026-11-06)
 
 **Type:** RELIABILITY. **Scope:** Project Mode `appBuilder/` only (validators, report contract, prompts, outcome notes). Simple and Expert untouched.

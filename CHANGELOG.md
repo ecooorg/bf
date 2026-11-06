@@ -1,3 +1,10 @@
+## [127.10] - Member contracts + coherent package for self-contained HTML
+
+- Added required validator `member-contracts`: after `import { Class }` + `new Class()`, instance property/method accesses must match the class surface (`this.x =` assignments and methods). Suggests `is*`/`get*` near-misses (e.g. `paused` vs `isPaused`).
+- Deterministic package cleanup: when the entry HTML is a large self-contained inline app and external CSS/JS are unreachable, those orphans are dropped before scoring (`droppedOrphanedFiles` on the report, `orphans_dropped` event).
+- Bounded model repair for `member-contracts` (max 2 scripts, same non-destructive acceptance rules as DOM wiring repair).
+- Scope: Project Mode `appBuilder/` only; Simple and Expert untouched.
+
 ## [127.9] - Project Mode integration gates (reachability + completeness)
 
 - Added required static validators `reachability` and `completeness` for the `static_site` stack so SUCCESS cannot be claimed when generated files are orphaned or truncated.
