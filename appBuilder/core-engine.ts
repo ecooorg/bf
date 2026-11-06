@@ -7,7 +7,7 @@ import { parseFileMarkers } from './core-markers.ts';
 import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
-import { templatePlan } from './stack-static-site.ts';
+import { templatePlan, ensureMultiFileStaticPlan } from './stack-static-site.ts';
 import {
   runStaticValidators,
   REQUIRED_VALIDATORS,
@@ -301,6 +301,13 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       failureReason = undefined; templateUsed = why;
       event(ports, input.jobId, 'plan_fallback', { reason: why });
     }
+    const multi = ensureMultiFileStaticPlan(plan, spec);
+    if (multi.coerced.length) {
+      plan = multi.plan;
+      checked = validatePlan(plan, profile);
+      if (!checked.ok) throw new Error(checked.issues.map((i) => i.message).join('; ') || 'invalid_forced_multifile_plan');
+      event(ports, input.jobId, 'plan_coerced', { coerced: multi.coerced, unitCount: plan.units.length });
+    }
     state.plan = { ...plan, order: checked.order ?? plan.order }; await save();
     }
 
@@ -334,20 +341,41 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
           return { parsed, found, ok };
         };
         let ev = evaluate(output.text, 1, output.finishReason);
+        const truncatedOrLength = (finish?: string) =>
+          Boolean(ev.parsed.truncated) || finish === 'MAX_TOKENS' || finish === 'length' || /missing_end_for:/.test(ev.parsed.issues.join(','));
         if (!ev.ok && !cancelled && !options.signal?.aborted && state.callsUsed < budget) {
           // Bounded repair (A3 step 6): one more call that names what was wrong; the same requirements, nothing weakened.
           const problems = ev.parsed.issues.length ? ev.parsed.issues : [`expected_path_not_found:${unit.path} (found: ${ev.parsed.files.map((f) => f.path).join(', ') || 'none'})`];
-          event(ports, input.jobId, 'unit_repair', { unitId: id, path: unit.path, issues: problems, callsUsed: state.callsUsed, callsBudget: budget }, 'warn');
+          const truncHint = truncatedOrLength(output.finishReason)
+            ? ' CRITICAL: the previous reply was truncated (MAX_TOKENS / missing <<<END>>>). Output a SHORTER complete file for this unit only — prefer under 150 lines, no large inline programs in HTML, always end with <<<END>>> on its own line.'
+            : '';
+          event(ports, input.jobId, 'unit_repair', { unitId: id, path: unit.path, issues: problems, truncated: ev.parsed.truncated, finishReason: output.finishReason ?? null, callsUsed: state.callsUsed, callsBudget: budget }, 'warn');
           unit.attempts++;
-          const repaired = await call('coder', `${unitContext}\nYour previous reply was rejected: ${problems.join('; ')}. Reply again with the complete file in the required block format.${ev.parsed.truncated ? ' The previous reply was cut off: keep the file compact so it fits in one reply.' : ''}`, undefined, unit.path);
+          const repaired = await call('coder', `${unitContext}\nYour previous reply was rejected: ${problems.join('; ')}. Reply again with the complete file in the required block format.${truncHint}`, undefined, unit.path);
           if (repaired) { modelId = repaired.modelId; ev = evaluate(repaired.text, 2, repaired.finishReason); }
           else if (cancelled) { unit.status = 'pending'; failureReason = 'cancelled'; await save(); break; }
+        }
+        // P127.16: if still truncated after repair, one last ultra-compact attempt (still same unit path — plan already multi-file).
+        if (!ev.ok && truncatedOrLength(output.finishReason) && !cancelled && !options.signal?.aborted && state.callsUsed < budget) {
+          const problems = ev.parsed.issues.length ? ev.parsed.issues : ['truncated_output'];
+          event(ports, input.jobId, 'unit_repair_compact', { unitId: id, path: unit.path, issues: problems, callsUsed: state.callsUsed }, 'warn');
+          unit.attempts++;
+          const compact = await call(
+            'coder',
+            `${unitContext}\nREJECTED again (${problems.join('; ')}). Emit the SMALLEST working version of ${unit.path} that still satisfies the unit purpose. Hard limit: under 120 lines. First line <<<FILE ${unit.path}>>>, last line <<<END>>>. No markdown fences.`,
+            undefined,
+            unit.path,
+          );
+          if (compact) { modelId = compact.modelId; ev = evaluate(compact.text, 3, compact.finishReason); }
         }
         const { parsed, found } = ev;
         if (!ev.ok || !found) {
           unit.status = 'failed'; unitReports.push({ id, status: 'failed', attempts: unit.attempts, modelId });
-          failureReason = parsed.issues.length ? parsed.issues.join(', ') : `expected_path_not_found:${unit.path} (found: ${parsed.files.map((f) => f.path).join(', ') || 'none'})`;
-          void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason } }); await save(); break;
+          const trunc = parsed.truncated || /missing_end_for:/.test(parsed.issues.join(','));
+          failureReason = trunc
+            ? `truncated_unit:${unit.path} (${parsed.issues.join(', ') || 'missing_end'}); plan should keep units small`
+            : (parsed.issues.length ? parsed.issues.join(', ') : `expected_path_not_found:${unit.path} (found: ${parsed.files.map((f) => f.path).join(', ') || 'none'})`);
+          void ports.events.emit({ jobId: input.jobId, unitId: id, type: 'unit_failed', level: 'error', data: { reason: failureReason, truncated: trunc } }); await save(); break;
         }
         content = found.content;
         await ports.store.putUnitResult({ jobId: input.jobId, unitId: id, cacheKey: key, content, contentHash: sha256(content), createdAt: new Date(ports.clock.now()).toISOString() });
