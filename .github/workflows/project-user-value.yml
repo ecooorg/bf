@@ -1,0 +1,66 @@
+# P127.18 — Project Mode user-value (human-simulator) evaluation.
+# Offline fixtures only by default: does not call live models.
+# This is NOT the same as Core CI unit tests; it rejects SUCCESS-on-stub packages.
+name: Project Mode — User Value (Human Simulator)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'appBuilder/**'
+      - 'server/project*.ts'
+      - 'src/Project*.tsx'
+      - 'scripts/project-user-value-eval.mjs'
+      - 'tests/fixtures/project-user-value/**'
+      - 'tests/project-user-value*.mjs'
+      - '.github/workflows/project-user-value.yml'
+      - 'package.json'
+  push:
+    paths:
+      - 'appBuilder/**'
+      - 'scripts/project-user-value-eval.mjs'
+      - 'tests/fixtures/project-user-value/**'
+      - '.github/workflows/project-user-value.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-user-value-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: 'true'
+
+jobs:
+  offline-human-sim:
+    name: Offline human-simulator suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI_LOGS_DIR: artifacts/project-user-value
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - name: Install
+        run: |
+          set -o pipefail
+          mkdir -p "$CI_LOGS_DIR"
+          npm ci --ignore-scripts 2>&1 | tee "$CI_LOGS_DIR/01-install.log"
+      - name: Human-simulator offline eval
+        run: |
+          set -o pipefail
+          npm run test:project-user-value 2>&1 | tee "$CI_LOGS_DIR/02-human-sim.log"
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: project-user-value-report
+          path: |
+            artifacts/project-user-value-report.json
+            artifacts/project-user-value-report.md
+            artifacts/project-user-value/**
+          if-no-files-found: warn
