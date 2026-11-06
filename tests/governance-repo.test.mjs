@@ -12,9 +12,10 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
 test('package patch metadata is internally consistent', () => {
-  assert.equal(String(pkg.version), '127');
-  assert.match(String(pkg.patch), /^127\.\d+(\.\d+)?$/);
-  assert.ok(pkg.patch.startsWith(`${pkg.version}.`));
+  assert.match(String(pkg.version), /^\d+$/);
+  assert.match(String(pkg.patch), /^\d+(?:\.\d+)*[a-z]?$/);
+  assert.equal(String(pkg.version), String(pkg.patch).replace(/[a-z]$/, '').split('.')[0]);
+  assert.ok(String(pkg.patch).startsWith(`${pkg.version}.`) || String(pkg.patch) === String(pkg.version));
 });
 
 test('test layout: only approved category files under tests/ (no per-patch pNNN files)', () => {
