@@ -25,3 +25,18 @@ test('project routes stay registered on the server', () => {
 test('builder recovery suite remains available for Project appBuilder path', () => {
   assert.ok(existsSync(path.join(root, 'tests/project-builder-recovery.test.mjs')));
 });
+
+
+test('P127.7 exposes project-scoped artifact inventory, immutable versions and inspection', () => {
+  const routes = read('server/projectRoutes.ts');
+  const repo = read('server/artifactRepository.ts');
+  const ui = read('src/ProjectMode.tsx');
+  assert.match(routes, /api\/projects\/:projectId\/artifact-versions/);
+  assert.match(routes, /api\/projects\/:projectId\/artifacts\/:artifactId\/inspect/);
+  assert.match(routes, /readArtifactBytes\(req\.params\.artifactId, requestedVersion\)/);
+  assert.match(repo, /export async function listProjectArtifactVersions/);
+  assert.match(repo, /m\.project_id, a\.filename/);
+  assert.match(routes, /meta\.project_id !== project\.id/);
+  assert.match(ui, /All immutable versions/);
+  assert.match(ui, /inspectProjectArtifact/);
+});
