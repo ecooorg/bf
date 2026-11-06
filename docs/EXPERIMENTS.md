@@ -1,5 +1,20 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-1 — Project build reliability (P127.5)
+
+| Field | Value |
+|---|---|
+| **Date** | 2026-11-06 |
+| **Patch** | P127.5 — Project Mode only |
+| **Type** | RELIABILITY |
+| **Problem and evidence** | Supplied diagnostics show a Project Mode build ending `PARTIAL` after `refs` and `size` failures with no subsequent repair run. The supplied generated game uses a TypeScript entry point in the `static_site` stack and has unresolved local module naming. Source inspection also shows that `validateRefs` treats a leading slash as a literal generated path and that existing model repair is specialized to JS syntax and DOM wiring. |
+| **Hypothesis** | Correct project-root path resolution and an explicit static-site TypeScript execution contract will eliminate misleading reference failures and produce actionable failures for unsupported entry points; targeted tests will prevent regressions. |
+| **Baseline** | Source snapshot `bf.zip` / repository version 127, patch 127.4. Existing validators: refs strips `./` only; JS parsing covers `.js`/`.mjs`; repair is specialized. No dependencies were installed in the supplied environment; baseline test run `NOT_RUN`. |
+| **Metric / acceptance** | Root-absolute and nested relative references resolve; missing/traversal references fail; uncompiled TS fails with an actionable issue; module mismatch remains a failure; targeted tests and typecheck pass. |
+| **Scope** | `appBuilder/validator-static-site.ts`, `tests/project-builder-recovery.test.mjs`, project-mode documentation and patch records. No Simple/Expert behavior changes. |
+| **Result** | Implementation added; verification pending in this environment. |
+| **Decision** | Continue only if targeted tests and typecheck pass; otherwise correct or revert this patch. |
+
 ## Experiment 0 — Instrument validation & architecture baseline
 
 | Field | Value |
