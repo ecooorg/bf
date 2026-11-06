@@ -6,7 +6,7 @@
  * NOT whether static validators or ZIP formalities passed.
  *
  * Modes:
- *   --offline (default): fixed scenarios + fixtures under tests/fixtures/project-user-value/
+ *   --offline (default): fixed scenarios + flat fixtures under tests/uv-<name>-<file>
  *   --live: optional; requires GEMINI keys + running server (NOT default CI gate)
  *
  * Exit 0 only if offline suite meets the human-sim pass bar.
@@ -22,10 +22,44 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
-const fixturesRoot = path.join(root, 'tests/fixtures/project-user-value');
+/** Flat fixture files live directly under tests/ (no nested folders). Prefix groups one package. */
+const testsDir = path.join(root, 'tests');
+const FIXTURE_PREFIX = {
+  'stub-racer': 'uv-stub-racer-',
+  'rich-forest': 'uv-rich-forest-',
+};
+
+/** Build a virtual package map from flat tests/uv-<id>-<filename> files. */
+function loadFlatFixture(prefix) {
+  const map = new Map();
+  let jsBytes = 0;
+  let jsModules = 0;
+  let report = null;
+  if (!fs.existsSync(testsDir)) return { files: map, jsBytes, jsModules, report, fileList: [] };
+  for (const name of fs.readdirSync(testsDir)) {
+    if (!name.startsWith(prefix)) continue;
+    const rest = name.slice(prefix.length);
+    if (!rest || rest.includes('/') || rest.includes('\\')) continue;
+    const abs = path.join(testsDir, name);
+    if (!fs.statSync(abs).isFile()) continue;
+    const text = fs.readFileSync(abs, 'utf8');
+    if (rest === 'build-report.json') {
+      try { report = JSON.parse(text); } catch { report = null; }
+      continue;
+    }
+    map.set(rest, text);
+    if (/\.js$/i.test(rest)) {
+      jsBytes += text.length;
+      jsModules += 1;
+    }
+  }
+  const fileList = [...map.keys()].map((p) => ({ path: p, abs: path.join(testsDir, prefix + p), bytes: (map.get(p) || '').length }));
+  return { files: map, jsBytes, jsModules, report, fileList };
+}
+
 
 /** @typedef {{ id: string; weight: number; pass: boolean; detail: string }} CriterionResult */
-/** @typedef {{ id: string; userRequest: string; packageDir: string; expectHumanPass: boolean; complexity: string; notes?: string }} Scenario */
+/** @typedef {{ id: string; userRequest: string; fixtureKey: string; expectHumanPass: boolean; complexity: string; notes?: string }} Scenario */
 
 /** Scenarios fixed in-repo — the "person" always asks the same things. */
 const SCENARIOS = /** @type {Scenario[]} */ ([
@@ -33,7 +67,7 @@ const SCENARIOS = /** @type {Scenario[]} */ ([
     id: 'stub-racer-false-success',
     userRequest:
       'Create a 3D racing game through a detailed city with traffic, buildings, and touch controls for a tablet',
-    packageDir: path.join(fixturesRoot, 'stub-racer'),
+    fixtureKey: 'stub-racer',
     expectHumanPass: false,
     complexity: 'ambitious',
     notes: 'Observed failure mode: SUCCESS on ~2KB rectangle car. Human must reject.',
@@ -41,7 +75,7 @@ const SCENARIOS = /** @type {Scenario[]} */ ([
   {
     id: 'rich-forest-animals',
     userRequest: 'Make a simple game where different animals walk around in a forest I can explore',
-    packageDir: path.join(fixturesRoot, 'rich-forest'),
+    fixtureKey: 'rich-forest',
     expectHumanPass: true,
     complexity: 'standard',
     notes: 'Not AAA — but a person should recognize forest + multiple animals + movement.',
@@ -192,17 +226,28 @@ function evaluateAsHuman(scenario, pkg) {
 function runOffline() {
   const results = [];
   for (const scenario of SCENARIOS) {
-    if (!fs.existsSync(scenario.packageDir)) {
+    const prefix = FIXTURE_PREFIX[scenario.fixtureKey];
+    if (!prefix) {
       results.push({
         scenarioId: scenario.id,
-        error: `missing fixture ${scenario.packageDir}`,
+        error: `unknown fixtureKey ${scenario.fixtureKey}`,
         matchesExpectation: false,
         humanPass: false,
         score: 0,
       });
       continue;
     }
-    const pkg = readPackage(scenario.packageDir);
+    const pkg = loadFlatFixture(prefix);
+    if (pkg.files.size === 0) {
+      results.push({
+        scenarioId: scenario.id,
+        error: `missing flat fixture files tests/${prefix}*`,
+        matchesExpectation: false,
+        humanPass: false,
+        score: 0,
+      });
+      continue;
+    }
     results.push(evaluateAsHuman(scenario, pkg));
   }
   const allMatch = results.every((r) => r.matchesExpectation);
