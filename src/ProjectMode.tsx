@@ -12,6 +12,7 @@ import { CommitBadge } from './CommitBadge.tsx';
 import { downloadAllLogs } from './allLogs.ts';
 import { UserGuideModal } from './UserGuide.tsx';
 import { ProjectNoviceWizard } from './ProjectNoviceWizard.tsx';
+import { ProjectChat } from './ProjectChat.tsx';
 import { downloadViaFetch } from './downloadFile.ts';
 import { manualDeployInstructions } from './projectAppBuilder.ts';
 import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
@@ -131,7 +132,9 @@ export default function ProjectMode() {
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
   const [workspaceAttachments, setWorkspaceAttachments] = useState<{ name: string; kind: string; text: string }[]>([]);
   /** One Architect flow: guided start when no project selected; full tools after selection. No novice/professional mode choice. */
-  const [showGuidedStart, setShowGuidedStart] = useState(true);
+  const [showGuidedStart, setShowGuidedStart] = useState(false);
+  /** P127.15: chat is the product surface; advanced is opt-in. */
+  const [viewMode, setViewMode] = useState<'chat' | 'advanced'>('chat');
 
   const loadProjects = useCallback(async (selectProjectId?: string) => {
     const list = await api<Project[]>('/api/projects');
@@ -586,7 +589,20 @@ export default function ProjectMode() {
 
       </div>;
     })()}
-    {authenticated && enabled && showGuidedStart && (
+    {authenticated && enabled && viewMode === 'chat' && (
+      <ProjectChat
+        programZipAvailable={capabilities === null ? true : Boolean(capabilities.programZip)}
+        onOpenAdvanced={() => { setViewMode('advanced'); setShowGuidedStart(false); }}
+      />
+    )}
+        {authenticated && enabled && viewMode === 'advanced' && (
+      <div style={{ margin: '8px 12px', padding: '8px 12px', border: '1px solid #1f4f86', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 13, color: '#8fa6c2' }}>Advanced workspace — panels and tools. Everyday use is the chat.</span>
+        <button type="button" style={{ minHeight: 36, padding: '6px 12px', borderRadius: 8, border: '1px solid #78baff', background: '#12345a', color: '#e6edf7', cursor: 'pointer' }} onClick={() => setViewMode('chat')} data-testid="project-back-to-chat">Back to chat</button>
+      </div>
+    )}
+{authenticated && enabled && viewMode === 'advanced' && showGuidedStart && (
+
       <ProjectNoviceWizard
         busy={busy}
         busyLabel={buildProgress ? `Working… · ${buildProgress.job.callsUsed ?? 0} model calls · ${buildProgress.job.units?.filter((u: any) => u.status === 'done').length ?? 0}/${buildProgress.job.units?.length ?? 0} files` : undefined}
@@ -637,7 +653,7 @@ export default function ProjectMode() {
         }}
       />
     )}
-    {authenticated && enabled && (selected || !showGuidedStart) && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
+    {authenticated && enabled && viewMode === 'advanced' && (selected || !showGuidedStart) && <section style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
         <h2 style={{ marginTop: 0, fontSize: 16 }}>Workspace files</h2>
         {isFolderPickerSupported() && <details style={{ position: 'relative' }}><summary aria-label="More workspace actions" title="More actions" style={{ ...styles.button, padding: '6px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 40, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8, whiteSpace: 'nowrap' }}><button type="button" style={styles.button} disabled={busy} title="Load a whole project folder from this computer (desktop browsers only)" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); window.dispatchEvent(new CustomEvent(PICK_FOLDER_EVENT)); }}>Import project folder…</button></div></details>}
