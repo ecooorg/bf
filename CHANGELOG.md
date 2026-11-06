@@ -1,3 +1,8 @@
+## P127.2 — CI green for instrument (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
+
+- governance-repo: version assert 127; docs allowlist includes EXPERIMENTS.md and BIFORGE Perestroika.md.
+- Corrective for P127.1 instrument only; no product change.
+
 ## P127.1 — Measurement instrument (EXPERIMENT, user_value: NOT_RUN) (2026-11-06)
 
 - Added `config/eval-questions.json` (12 dev questions), `scripts/baseline-eval.mjs`, `tests/eval-harness.test.mjs`, `.github/workflows/baseline-eval.yml`, `docs/EXPERIMENTS.md`.

@@ -1,3 +1,13 @@
+## P127.2 — Evidence (2026-11-06)
+
+**Scope:** Instrument CI fix. User value: NOT_RUN.
+
+**OBSERVED:** governance-repo version/docs-allowlist aligned with package 127.2 and new prose files.
+
+**NOT_RUN:** live eval.
+
+---
+
 ## P127.1 — Evidence (2026-11-06)
 
 **Scope:** Measurement instrument only (EXPERIMENT). User value: NOT_RUN.
