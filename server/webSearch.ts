@@ -228,6 +228,109 @@ export function applyUngroundedStatisticGate(input: {
   );
 }
 
+
+/** P127.4: normalize a numeric claim for comparison (digits only, keep one decimal marker as dot). Pure. */
+export function normalizeNumberToken(raw: string): string {
+  let s = String(raw || '').trim();
+  if (!s) return '';
+  s = s.replace(/\s+/g, '').replace(/'/g, '');
+  // European thousands: 8.962.300 or 8,962,300 → strip grouping separators
+  if (/^\d{1,3}([.,]\d{3})+$/.test(s)) {
+    s = s.replace(/[.,]/g, '');
+  } else if (/^\d{1,3}([ \u00a0]\d{3})+$/.test(String(raw || '').replace(/'/g, '').trim())) {
+    s = String(raw || '').replace(/[\s\u00a0']/g, '');
+  } else {
+    // decimal: 1,7 or 1.7 → 1.7
+    const m = s.match(/^(\d+)[,.](\d+)$/);
+    if (m) s = `${m[1]}.${m[2]}`;
+    else s = s.replace(/[^\d.]/g, '');
+  }
+  return s.replace(/^0+(\d)/, '$1');
+}
+
+/** Claimed quantities in a reply (percentages and large integers). Pure. */
+export function extractClaimedNumberTokens(reply: string): string[] {
+  const r = String(reply || '');
+  const found: string[] = [];
+  const push = (raw: string) => {
+    const n = normalizeNumberToken(raw);
+    if (n && n.length >= 1 && !found.includes(n)) found.push(n);
+  };
+  for (const m of r.matchAll(/\d{1,3}(?:\s*[.,]\s*\d{3})+(?:[.,]\d+)?|\d+[.,]\d+|\d{4,}/g)) {
+    push(m[0]);
+  }
+  for (const m of r.matchAll(/(\d{1,3}(?:[.,]\d+)?)\s*%/g)) {
+    push(m[1]);
+  }
+  return found;
+}
+
+/** True if normalized token appears in evidence (digest/titles), allowing light formatting drift. Pure. */
+export function numberTokenInEvidence(token: string, evidence: string): boolean {
+  const n = normalizeNumberToken(token);
+  if (!n || n.length < 1) return false;
+  const ev = String(evidence || '');
+  if (!ev) return false;
+  const evNorm = ev.replace(/[\s\u00a0']/g, '');
+  if (evNorm.includes(n)) return true;
+  // grouped forms in evidence
+  if (n.length >= 4 && /^\d+$/.test(n)) {
+    const re = new RegExp(n.split('').join('[\\s.,\\u00a0\']*'));
+    if (re.test(ev)) return true;
+  }
+  // percent often written with comma decimal in evidence
+  if (n.includes('.')) {
+    const comma = n.replace('.', ',');
+    if (ev.includes(comma) || evNorm.includes(comma)) return true;
+  }
+  return false;
+}
+
+export function buildSearchEvidenceText(input: {
+  digest?: string;
+  sources?: { title?: string; url?: string }[];
+}): string {
+  const parts: string[] = [];
+  if (input.digest) parts.push(String(input.digest));
+  for (const s of input.sources || []) {
+    if (s?.title) parts.push(String(s.title));
+  }
+  return parts.join('\n').slice(0, 100_000);
+}
+
+/**
+ * P127.4: when search was used but none of the reply's quantitative claims appear in evidence,
+ * replace with an honest non-numeric answer. Pure. Enable at call site with GROUNDED_NUMBER_CHECK=true.
+ */
+export function applyGroundedNumberCheck(input: {
+  userText: string;
+  reply: string;
+  searchStatus: string;
+  evidenceText: string;
+}): string {
+  const status = String(input.searchStatus || '');
+  if (status !== 'used' && status !== 'used_weak') return input.reply;
+  if (!isQuantitativeFactQuestion(input.userText)) return input.reply;
+  const tokens = extractClaimedNumberTokens(input.reply);
+  if (!tokens.length) return input.reply;
+  const evidence = String(input.evidenceText || '');
+  const anyGrounded = tokens.some((tok) => numberTokenInEvidence(tok, evidence));
+  if (anyGrounded) return input.reply;
+  const cyrillic = /\p{Script=Cyrillic}/u.test(input.userText);
+  if (cyrillic) {
+    return (
+      'Поиск выполнился, но в полученных фрагментах источников я не нахожу подтверждения той цифры, '
+      + 'которая получилась бы как точный факт. Не буду называть конкретное число без опоры в источниках. '
+      + 'Можно переформулировать запрос или попросить проверить другой источник.'
+    );
+  }
+  return (
+    'A web lookup ran, but the retrieved source snippets do not support the specific figure that would be stated as fact. '
+    + 'I will not assert an exact number without support in the sources. '
+    + 'You can rephrase the question or ask me to check another source.'
+  );
+}
+
 export function needsFreshWebInfo(text: string): boolean {
   const t = String(text || '');
   if (t.trim().length < 8) return false;
