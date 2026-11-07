@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { downloadViaFetch } from './downloadFile.ts';
 import { manualDeployInstructions, suggestProjectName } from './projectAppBuilder.ts';
 import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
+import { BuildFilesPanel, type BuildFileView } from './BuildFilesPanel.tsx';
 
 type ApiResult<T> = { success: boolean; data?: T; error?: string; code?: string };
 
@@ -160,6 +161,7 @@ export function ProjectChat({
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [statusLine, setStatusLine] = useState('');
+  const [liveFiles, setLiveFiles] = useState<{ files: BuildFileView[]; archiveUrl?: string } | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>('');
   const [baseArtifactId, setBaseArtifactId] = useState<string | null>(null);
@@ -221,6 +223,7 @@ export function ProjectChat({
     });
     const result = started.jobId
       ? await waitForProjectBuild(pid, started, (job) => {
+          setLiveFiles({ files: (job.files as BuildFileView[] | undefined) ?? [], archiveUrl: job.downloadUrl });
           const done = job.units?.filter((u) => u.status === 'done').length ?? 0;
           const total = job.units?.length ?? 0;
           setStatusLine(
@@ -242,6 +245,7 @@ export function ProjectChat({
     });
     const result = started.jobId
       ? await waitForProjectBuild(pid, started, (job) => {
+          setLiveFiles({ files: (job.files as BuildFileView[] | undefined) ?? [], archiveUrl: job.downloadUrl });
           const done = job.units?.filter((u) => u.status === 'done').length ?? 0;
           const total = job.units?.length ?? 0;
           setStatusLine(
@@ -291,6 +295,7 @@ export function ProjectChat({
       return;
     }
     setInput('');
+    setLiveFiles(null);
     push({ role: 'user', text });
     setBusy(true);
     try {
@@ -331,6 +336,7 @@ export function ProjectChat({
         at: Date.now(),
       },
     ]);
+    setLiveFiles(null);
     setProjectId(null);
     setProjectName('');
     setBaseArtifactId(null);
@@ -375,6 +381,7 @@ export function ProjectChat({
           </div>
         ))}
         {statusLine ? <div style={S.bubbleAssistant}>{statusLine}</div> : null}
+        {liveFiles?.files.length ? <BuildFilesPanel files={liveFiles.files} archiveUrl={liveFiles.archiveUrl} archiveName={`${projectName || 'program'}-source.zip`} /> : null}
         <div ref={bottomRef} />
       </div>
 

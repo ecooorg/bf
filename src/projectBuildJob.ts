@@ -12,6 +12,7 @@ export type BuildJobResult = {
   error?: { code?: string; message?: string } | string | null;
   callsUsed?: number;
   callsBudget?: number;
+  files?: Array<{ path: string; state: 'ready' | 'working' | 'pending' | 'failed'; downloadUrl?: string }>;
   units?: Array<{ id: string; path?: string | null; status?: string; attempts?: number }>;
   report?: {
     status?: string;
