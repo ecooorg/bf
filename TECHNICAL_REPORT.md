@@ -1,3 +1,13 @@
+## P127.22 — Revert P127.21 (EXPERIMENT outcome)
+
+**OBSERVED (live run, commit d88b819 = repo, 5 scenarios):** PRODUCT_PASS 0/5 (bar >=3/5), SUCCESS-vs-human mismatches 1/5 (bar <=1/5). Failures now: `module-contracts` back in 1 build (missing export), runtime API mismatches between files (`onTick`/`player.reset` not a function), `null.value` DOM reads, `completeness`, `reachability`. Previous run (P127.20): 1/5. n=5 per run: the difference 1/5 vs 0/5 is within noise, but the pre-registered rule is applied as written.
+
+**DECISION:** revert; no further corrective on this hypothesis. **Local:** tests/tsc PASS; live NOT_RUN.
+
+**LESSON:** prompt-level interface hints removed one error class (import names) but cross-file runtime contracts (method names, DOM reads, state shape) remain the dominant failure family when many small files are generated independently.
+
+---
+
 ## P127.21 — Style the real page (EXPERIMENT)
 
 **OBSERVED (live run, commit 24173ab = repo, 5 scenarios):** vs baseline 69e46f6: `module-contracts` failures 5/5 → 0/5; SUCCESS 0/5 → 3/5; PRODUCT_PASS 0/5 → 1/5. Two of three SUCCESS builds failed the human check (study timer: black disc, no time shown, settings panel always open — screenshot confirms CSS written for classes the HTML does not have; arcade: blank playfield). Also: list app linked a missing `app.js` (404); converter failed `completeness`.

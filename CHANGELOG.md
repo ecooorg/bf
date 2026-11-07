@@ -1,3 +1,8 @@
+## [127.22] - Revert P127.21 (EXP-PROJECT-3 failed its pre-registered bar)
+
+- `stack-static-site.ts`, `core-prompts.ts`, `project-builder-recovery.test.mjs` restored to the P127.20 state (HTML again after CSS; no DOM contract in prompts).
+- Package patch `127.22`.
+
 ## [127.21] - EXPERIMENT: style the real page (CSS after HTML, DOM contract in prompts)
 
 - `stack-static-site.ts`: HTML no longer waits for CSS; CSS depends on the HTML unit.
