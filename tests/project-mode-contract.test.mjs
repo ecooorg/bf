@@ -144,3 +144,11 @@ test('P127.25: project chat shows per-file build progress with download controls
   for (const id of ['build-files', 'build-file', 'build-file-download', 'build-files-archive']) assert.match(panel, new RegExp(`data-testid="${id}"`));
   assert.match(panel, /ready:\s*'#2fbf71'/); assert.match(panel, /working:\s*'#e5484d'/);
 });
+
+test('P127.27 build replies show no partial-validation banner and no deploy instructions', () => {
+  for (const rel of ['src/ProjectChat.tsx', 'src/ProjectMode.tsx', 'src/ProjectNoviceWizard.tsx']) {
+    const src = read(rel);
+    assert.doesNotMatch(src, /validation was only partial/, rel);
+    assert.doesNotMatch(src, /manualDeployInstructions/, rel);
+  }
+});

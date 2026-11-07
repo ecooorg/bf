@@ -487,3 +487,31 @@ test('P127.25b: in a real build the HTML is generated first and later prompts ca
   assert.doesNotMatch(prompts[0], /DOM CONTRACT/); assert.match(prompts[0], /generated BEFORE the scripts/);
   assert.ok(prompts.slice(1).every((p) => /DOM CONTRACT/.test(p)));
 });
+
+test('P127.27: module ids used as paths get their extension back', async () => {
+  const { repairPackagePath } = await import('../appBuilder/core-plan.ts');
+  assert.equal(repairPackagePath('audio_js'), 'audio.js');
+  assert.equal(repairPackagePath('style_css'), 'style.css');
+  assert.equal(repairPackagePath('ui_events_js'), 'ui_events.js');
+  assert.equal(repairPackagePath('engine.js'), 'engine.js');
+  assert.equal(repairPackagePath('notes'), 'notes');
+  const brief = parseIntentBrief(JSON.stringify({ suggestedModules: [{ id: 'audio_js', path: 'audio_js', purpose: 'sound' }, { id: 'main_js', path: 'main_js', purpose: 'entry' }, { id: 'index_html', path: 'index_html', purpose: 'shell' }] }), 'a game with sound');
+  assert.ok(brief.suggestedModules.some((m) => m.id === 'audio_js' && m.path === 'audio.js'));
+  assert.ok(brief.suggestedModules.every((m) => !/_js$/.test(m.path)));
+  const plan = expandedPlanFromBrief({ schemaVersion: SCHEMA_VERSION, title: 't', goal: 'g', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] },
+    { ...fallbackIntentBrief('g'), suggestedModules: [{ id: 'car_js', path: 'car_js', purpose: 'car' }, { id: 'main', path: 'main.js', purpose: 'entry' }] });
+  assert.ok(plan.units.every((u) => !/_js$/.test(u.path)), 'no unit path ends in _js');
+});
+
+test('P127.27: member-contracts flags unknown keys of imported constant objects', () => {
+  const files = new Map([
+    ['constants.js', 'export const TILE = { EMPTY: 0, WALL: 1 };'],
+    ['maze.js', "import { TILE } from './constants.js';\nexport const a = TILE.WALL;\nexport const b = TILE.PATH;"],
+  ]);
+  const v = validateMemberContracts(files);
+  assert.equal(v.ok, false);
+  assert.equal(v.issues.length, 1);
+  assert.match(v.issues[0].message, /TILE\.PATH/);
+  files.set('maze.js', "import { TILE } from './constants.js';\nexport const a = TILE.WALL + TILE.EMPTY;");
+  assert.equal(validateMemberContracts(files).ok, true);
+});
