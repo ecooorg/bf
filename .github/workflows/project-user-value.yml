@@ -1,34 +1,12 @@
 # P127.18/23 — Project Mode user-value evaluation. Zero input required.
 # offline-human-sim: rubric SELF-TEST on fixed fixtures (not evidence about the live product).
 # live-project-mode: real builds on https://biforge.onrender.com, real Chromium, 10 neutral prompts x 2 runs.
-#   Starts automatically after Core CI succeeds on main when Project Mode code changed (or manually, no inputs);
-#   waits by itself until the deployed commit equals the commit under test; reports PRODUCT results and INFRA failures separately.
+#   P127.26a: manual start only (workflow_dispatch, no inputs); no automatic trigger after patches.
+#   Waits by itself until the deployed commit equals the commit under test; reports PRODUCT results and INFRA failures separately.
 name: Project Mode — User Value (Human Simulator)
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ['Core CI — Full Project Verification']
-    types: [completed]
-    branches: [main]
-  pull_request:
-    paths:
-      - 'appBuilder/**'
-      - 'server/project*.ts'
-      - 'src/Project*.tsx'
-      - 'scripts/project-user-value-eval.mjs'
-      - 'tests/uv-*'
-      - 'tests/project-user-value-eval.test.mjs'
-      - 'tests/project-user-value*.mjs'
-      - '.github/workflows/project-user-value.yml'
-      - 'package.json'
-  push:
-    paths:
-      - 'appBuilder/**'
-      - 'scripts/project-user-value-eval.mjs'
-      - 'tests/uv-*'
-      - 'tests/project-user-value-eval.test.mjs'
-      - '.github/workflows/project-user-value.yml'
 
 permissions:
   contents: read
