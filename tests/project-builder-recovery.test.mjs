@@ -334,3 +334,26 @@ test('P127.17 applyBriefToSpec embeds MUST acceptance', () => {
   const next = applyBriefToSpec(spec, brief);
   assert.ok(next.acceptance.some((a) => a.startsWith('MUST:')));
 });
+
+import { exportedNames, interfaceBlock } from '../appBuilder/core-prompts.ts';
+
+test('P127.20 exportedNames reads real exports and interfaceBlock lists them for later units', () => {
+  const src = 'export const A = 1;\nexport function b() {}\nexport class C {}\nconst d = 1, e = 2;\nexport { d, e as f };\nexport default function () {}\n';
+  assert.deepEqual(exportedNames(src).sort(), ['A', 'C', 'b', 'd', 'default', 'f']);
+  const block = interfaceBlock(new Map([['lib.js', { content: src }], ['style.css', { content: 'x' }], ['plain.js', { content: 'var z = 1;' }]]));
+  assert.match(block, /lib\.js: exports A, b, C, d, f, default/);
+  assert.match(block, /plain\.js: exports nothing/);
+  assert.ok(!block.includes('style.css'));
+});
+
+test('P127.20 entry script is planned after every other script and the plan stays acyclic', () => {
+  const spec = { schemaVersion: 1, title: 'T', goal: 'g', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] };
+  const brief = { ...fallbackIntentBrief('a todo list'), complexity: 'standard', targetModules: 6, suggestedModules: [
+    { id: 'main', path: 'main.js', purpose: 'entry' }, { id: 'cards', path: 'cards.js', purpose: 'c' }, { id: 'game', path: 'game.js', purpose: 'g' },
+    { id: 'style', path: 'style.css', purpose: 's' }, { id: 'index', path: 'index.html', purpose: 'h' } ] };
+  const plan = expandedPlanFromBrief(spec, brief);
+  const main = plan.units.find((u) => u.id === 'main');
+  assert.ok(main.dependsOn.includes('cards'));
+  // game would depend on the first script (main) by name; the entry must not also depend on it (no cycle)
+  assert.ok(!(main.dependsOn.includes('game') && plan.units.find((u) => u.id === 'game').dependsOn.includes('main')));
+});
