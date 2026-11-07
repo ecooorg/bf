@@ -7,7 +7,7 @@
  * Evidence honesty (G5): anything not executed is NOT_RUN. Deployed commit is compared with GITHUB_SHA, never assumed.
  * Env: EVAL_BASE_URL (required), APP_PASSWORD|EVAL_APP_PASSWORD, GEMINI_API_KEY (judge, optional),
  *      UV_SCENARIOS (comma ids), UV_BUILD_TIMEOUT_MS (default 720000), UV_MIN_PASS_RATE (default 0 = measure only),
- *      UV_JUDGE_MODEL (default gemini-2.5-flash), UV_OUT_DIR (default artifacts/project-user-value-live)
+ *      UV_JUDGE_MODEL (optional; else ids from config/model-sources.json are tried in order), UV_OUT_DIR (default artifacts/project-user-value-live)
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,7 +22,10 @@ const PASSWORD = env.EVAL_APP_PASSWORD || env.APP_PASSWORD || '';
 const OUT = path.resolve(root, env.UV_OUT_DIR || 'artifacts/project-user-value-live');
 const BUILD_TIMEOUT = Number(env.UV_BUILD_TIMEOUT_MS) || 720_000;
 const MIN_PASS = Number(env.UV_MIN_PASS_RATE) || 0;
-const JUDGE_MODEL = env.UV_JUDGE_MODEL || 'gemini-2.5-flash';
+const configuredModels = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'config/model-sources.json'), 'utf8')); } catch { return null; } })();
+const configIds = JSON.stringify(configuredModels ?? {}).match(/gemini-[\w.-]+/g) ?? [];
+const JUDGE_MODELS = [...new Set([env.UV_JUDGE_MODEL, ...configIds].filter(Boolean))];
+let JUDGE_MODEL = JUDGE_MODELS[0] || 'none';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 class InfraError extends Error {}
@@ -108,8 +111,14 @@ async function judge(scenario, rt) {
   const parts = [{ text: `A person asked for: "${scenario.request}"\nThe images are what they see right after opening the delivered app (before, then after trying buttons/keys/taps).\nFor each statement answer yes/no/unclear based ONLY on the images:\n${scenario.mustObserve.map((m, i) => `${i + 1}. ${m}`).join('\n')}\nAlso give "useful" 0-3 (0 blank/broken, 1 unrecognisable, 2 partly what was asked, 3 clearly what was asked).\nReturn JSON only: {"answers":["yes|no|unclear",...],"useful":0-3,"why":"one sentence"}` },
     ...rt.screenshots.map((f) => ({ inlineData: { mimeType: 'image/png', data: fs.readFileSync(f).toString('base64') } }))];
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${JUDGE_MODEL}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }) });
-    const j = await r.json();
+    let r = null, j = null; const tried = [];
+    for (const model of JUDGE_MODELS) {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY }, body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: 'application/json', temperature: 0 } }) });
+      j = await r.json().catch(() => null);
+      if (r.ok && j?.candidates?.length) { JUDGE_MODEL = model; break; }
+      tried.push(`${model}:${r.status}:${String(j?.error?.message ?? '').slice(0, 80)}`); j = null;
+    }
+    if (!j) return { status: 'NOT_RUN', reason: `judge_unavailable ${tried.join(' | ')}`.slice(0, 400) };
     const v = JSON.parse(j?.candidates?.[0]?.content?.parts?.[0]?.text ?? 'null');
     if (!v || !Array.isArray(v.answers)) return { status: 'NOT_RUN', reason: `judge_unparseable http=${r.status}` };
     const yes = v.answers.filter((a) => a === 'yes').length;
@@ -138,7 +147,7 @@ async function runScenario(browser, scenario) {
       if (['done', 'failed', 'cancelled'].includes(job.status)) break;
     }
     if (!job || !['done', 'failed', 'cancelled'].includes(job.status)) throw new InfraError(`build_timeout after ${Math.round((Date.now() - t0) / 1000)}s stage=${job?.stage}`);
-    rec.build = { status: job.status, stage: job.stage, stages, outcome: job.outcome, goalImplemented: job.goalImplemented, callsUsed: job.callsUsed, callsBudget: job.callsBudget, failureReason: job.report?.failureReason ?? job.error?.message ?? null, units: (job.units || []).map((u) => `${u.path}:${u.status}`), seconds: Math.round((Date.now() - t0) / 1000) };
+    rec.build = { status: job.status, stage: job.stage, stages, outcome: job.outcome, goalImplemented: job.goalImplemented, callsUsed: job.callsUsed, callsBudget: job.callsBudget, failureReason: job.report?.failureReason ?? job.error?.message ?? null, units: (job.units || []).map((u) => `${u.path}:${u.status}`), seconds: Math.round((Date.now() - t0) / 1000), jobError: job.error ?? null, hasDownloadUrl: Boolean(job.downloadUrl), reportStatus: job.report?.status ?? null };
     if (/rate_limited|quota|429|unavailable|timeout/i.test(String(rec.build.failureReason))) throw new InfraError(`provider: ${rec.build.failureReason}`);
     if (!job.downloadUrl) { rec.class = 'PRODUCT_NO_PACKAGE'; return rec; }
     const dl = await api('GET', job.downloadUrl, null, { raw: true });
@@ -196,7 +205,7 @@ async function main() {
   await browser.close();
   const productRuns = results.filter((r) => r.class.startsWith('PRODUCT')).length;
   const productPass = results.filter((r) => r.class === 'PRODUCT_PASS').length;
-  const rep = { mode: 'live', baseUrl: BASE, deployed, repoCommit, commitMatch, promptSet: { version: cfg.version, authoredBy: cfg.authoredBy }, judgeModel: env.GEMINI_API_KEY ? JUDGE_MODEL : null, summary: { productRuns, productPass, infra: results.filter((r) => r.class === 'INFRA_FAIL').length, runnerErrors: results.filter((r) => r.class === 'RUNNER_ERROR').length }, results };
+  const rep = { mode: 'live', baseUrl: BASE, deployed, repoCommit, commitMatch, promptSet: { version: cfg.version, authoredBy: cfg.authoredBy }, judgeModel: env.GEMINI_API_KEY ? JUDGE_MODELS.join(' → ') : null, summary: { productRuns, productPass, infra: results.filter((r) => r.class === 'INFRA_FAIL').length, runnerErrors: results.filter((r) => r.class === 'RUNNER_ERROR').length }, results };
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(rep, null, 2));
   fs.writeFileSync(path.join(OUT, 'report.md'), markdown(rep));
   console.log(markdown(rep));
