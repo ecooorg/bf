@@ -436,7 +436,7 @@ export function orphanedPathsFromReachability(v: ReportValidator | undefined): s
   return v.issues.map((i) => i.path).filter((p): p is string => Boolean(p) && !p.includes(' '));
 }
 
-type ClassSurface = { methods: Set<string>; props: Set<string> };
+type ClassSurface = { methods: Set<string>; props: Set<string>; ctorCalls?: Set<string> };
 
 function collectClassSurfaces(sf: ts.SourceFile): Map<string, ClassSurface> {
   const out = new Map<string, ClassSurface>();
@@ -444,6 +444,13 @@ function collectClassSurfaces(sf: ts.SourceFile): Map<string, ClassSurface> {
     for (const m of members) {
       if (ts.isMethodDeclaration(m) && m.name && ts.isIdentifier(m.name)) surface.methods.add(m.name.text);
       if (ts.isConstructorDeclaration(m) && m.body) {
+        // P127.28: remember `this.method()` calls made by the constructor (duplicate-init detection).
+        const calls = (surface.ctorCalls ??= new Set<string>());
+        const seeCalls = (node: ts.Node) => {
+          if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && node.expression.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isIdentifier(node.expression.name)) calls.add(node.expression.name.text);
+          ts.forEachChild(node, seeCalls);
+        };
+        seeCalls(m.body);
         for (const st of m.body.statements) {
           if (ts.isExpressionStatement(st) && ts.isBinaryExpression(st.expression) && st.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             const left = st.expression.left;
@@ -559,7 +566,7 @@ export function validateMemberContracts(files: FileMap): ReportValidator {
       if (!meta) return;
       const surface = surfacesByFile.get(meta.file)?.get(meta.className);
       if (!surface) return;
-      instances.set(varName, { methods: surface.methods, props: surface.props, className: meta.className, defFile: meta.file });
+      instances.set(varName, { methods: surface.methods, props: surface.props, ctorCalls: surface.ctorCalls, className: meta.className, defFile: meta.file });
     };
     for (const st of sf.statements) {
       if (ts.isVariableStatement(st)) {
@@ -573,6 +580,15 @@ export function validateMemberContracts(files: FileMap): ReportValidator {
     }
     // Also scan for assignments inside functions at top level is enough for typical main.js bootstrap
     const visit = (node: ts.Node) => {
+      // P127.28: `x.initFoo()` right after `new X()` when X's constructor already calls `this.initFoo()` runs setup twice
+      // (observed: DOM rebuilt and listeners doubled; init() called again from main.js).
+      if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && ts.isIdentifier(node.expression.expression) && ts.isIdentifier(node.expression.name)) {
+        const inst = instances.get(node.expression.expression.text);
+        const name = node.expression.name.text;
+        if (inst?.ctorCalls?.has(name) && /^(?:init|setup|bind|attach|create|build)/i.test(name)) {
+          issues.push({ path, message: `duplicate setup call '${node.expression.expression.text}.${name}()': the constructor of ${inst.className} in ${inst.defFile} already calls this.${name}(); remove this call` });
+        }
+      }
       if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && ts.isNewExpression(node.initializer) && ts.isIdentifier(node.initializer.expression)) {
         bindNew(node.name.text, node.initializer.expression.text);
       }

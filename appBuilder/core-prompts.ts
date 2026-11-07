@@ -37,7 +37,7 @@ Stage: ${context}`, version: PROMPT_VERSIONS.review };
 
 Keep THIS unit compact so it always finishes in one reply (prefer under ~200 lines). Do not paste the whole application into one file when the plan assigns other files for logic or styles.
 
-If this unit is the entry HTML, link every CSS/JS file from the plan with relative paths. Prefer short markup and external scripts — do not embed a large game engine inline. If this unit is a module, export exactly the names listed in the plan contract and use the same property/method names other units will call. Finish every function completely — never stop mid-statement.
+If this unit is the entry HTML, link every CSS/JS file from the plan with relative paths. Prefer short markup and external scripts — do not embed a large game engine inline. If this unit is a module, export exactly the names listed in the plan contract and use the same property/method names other units will call. Finish every function completely — never stop mid-statement. Startup contract: a class constructor sets itself up completely and draws its initial state at once, so the first screen is never empty (for a board, grid or list: render it immediately, not only after a button click); code that creates an object must not call setup methods (init*, setup*, bind*, create*) that the constructor already calls.
 
 Return exactly one complete file block and nothing else. First line: ${header} exactly. Then the complete file content. Last line MUST be <<<END>>> (required). Do not add code fences or text outside the block.`, version: PROMPT_VERSION };
 }
