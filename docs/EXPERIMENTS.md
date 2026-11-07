@@ -26,8 +26,8 @@
 | **Baseline** | Same 5 prompts, 24173ab: PRODUCT_PASS 1/5, SUCCESS-vs-human mismatches 2/5. |
 | **Metric / acceptance** | Same 5 prompts on the deployed new commit: PRODUCT_PASS >= 3/5 AND mismatches <= 1/5. |
 | **Rollback criterion** | If not met: revert P127.21; no further corrective on this hypothesis. |
-| **Result** | NOT_RUN |
-| **Decision** | PENDING live re-measure |
+| **Result** | Live run d88b819 (deployed==repo): PRODUCT_PASS 0/5 (bar >=3: NOT MET); mismatches 1/5 (bar <=1: met); module-contracts reappeared in 1 build. n=5, single run. |
+| **Decision** | REVERTED in P127.22 per rollback criterion. No further corrective on this hypothesis. |
 
 ## EXP-PROJECT-LIVE-1 — Live Project Mode baseline (P127.19)
 
