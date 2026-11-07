@@ -1,6 +1,7 @@
 /** P93.3: connects the App Builder core ports to routeCall, PostgreSQL, artifacts and diagnostics. Active only with APP_BUILDER_ENGINE=staged. */
 import crypto from 'node:crypto';
 import { runBuild, SCHEMA_VERSION, type BuildInput, type ClockPort, type EventPayload, type EventPort, type JobState, type ModelPort, type ModelResult, type Ports, type StorePort } from '../appBuilder/index.ts';
+import { runtimePortFromEnv } from './appBuilderRuntimeCheck.ts';
 import type { ProviderAdapter } from './adapter.ts';
 import { registryForGeminiCascade, type RegistryEntry } from './modelRegistry.ts';
 import { routeCall, type RouterState } from './router.ts';
@@ -191,7 +192,7 @@ export async function executeJob(deps: AdapterDeps, jobId: string): Promise<void
   try {
     const job = await store.loadJob(jobId); if (!job || job.status === 'done' || job.status === 'cancelled') return;
     const taskText = (await store.taskText(jobId)) ?? '';
-    const ports: Ports = { model: createModelPort(deps, job.projectId, jobId), store, events: createEventPort(), clock: realClock };
+    const ports: Ports = { model: createModelPort(deps, job.projectId, jobId), store, events: createEventPort(), clock: realClock, runtime: runtimePortFromEnv() };
     const input: BuildInput = { schemaVersion: SCHEMA_VERSION, jobId, projectId: job.projectId, userId: job.userId, taskText };
     const result = await runBuild(input, ports, { modelId: deps.modelId ?? process.env.APP_BUILDER_MODEL_ID ?? 'router', resumeFrom: job, signal: ac.signal, isCancelled: async () => (await store.loadJob(jobId))?.status === 'cancelled' });
     if (result.archive && result.state.status !== 'cancelled') {
