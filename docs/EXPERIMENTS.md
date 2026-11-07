@@ -1,5 +1,16 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-RACE — Archive stored before terminal state (P127.25, BUGFIX)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Live run on bfc8eb6: 7/7 SUCCESS builds polled without `downloadUrl` (`hasDownloadUrl=false`). Code: `core-engine.ts` saved `done`, the adapter stored the ZIP afterwards; the client stops polling on the first terminal status. |
+| **Hypothesis** | Storing the ZIP before the terminal save removes the window. |
+| **Metric / acceptance** | Unit test: first terminal save carries `artifactId` (complete and partial). Live: SUCCESS builds with `hasDownloadUrl=true` = 100% on the next live run. |
+| **Scope** | `appBuilder/core-engine.ts`, `server/appBuilderAdapter.ts`, `server/projectRoutes.ts`, chat UI (`BuildFilesPanel`), tests. UI requested by the Navigator in the same patch. |
+| **Rollback criterion** | New failures in resume or cancel tests, or SUCCESS builds without download in the live run. |
+| **Result** | Unit tests: red before, green after. Live: NOT_RUN. |
+
 ## EXP-PROJECT-2 — Interface-aware unit generation (P127.20)
 
 | Field | Value |
