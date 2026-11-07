@@ -1,3 +1,13 @@
+## P127.30 — Standalone index.html (FEATURE + BUGFIX)
+
+**OBSERVED (screenshot from the user, `content://` URL in Android Chrome):** the delivered chess package showed an unstyled page, modal dialogs open, no board. Cause: sibling `style.css` / `main.js` are not reachable from `content://` and external `<script type="module" src>` is blocked on `file://`. In an emulated browser (jsdom, bundled) the same package renders 64 squares / 32 pieces, i.e. the failure was delivery, not only logic. The live harness served packages over HTTP and could not see this.
+
+**CHANGE:** deterministic single-file `index.html` + `source/`. **VERIFIED (local):** the real generated chess package, bundled by `buildStandaloneIndex`, runs from a single inline script in jsdom (64 squares, 32 pieces, style inlined, no errors); module semantics (default/named/re-exports/extension-less imports) executed in `node:vm`. **NOT_RUN:** real Chromium on `file://` / Android `content://`, live measurement.
+
+**NOT FIXED HERE (observed in same package):** move objects `{fromRow,toRow}` vs readers of `.row/.col`, AI treats pieces as strings; moves are rejected (`makeMove` returns false). Cross-file repair limits were raised; no contract-first generation yet.
+
+---
+
 ## P127.29 — Empty first screen and duplicate setup (BUGFIX)
 
 **OBSERVED:** chess ZIP (job 5f89cf2e): outcome SUCCESS, all 12 static checks green, no console errors; headless Chromium shows 0 pieces on load and 32 after New Game. `scene.js` constructor calls `initDOM`, `initBoardRenderer`, `loadSettings`, `updateUI` but never `renderBoard`; `main.js` then calls `initDOM` and `initBoardRenderer` again. **CAUSE (from code):** units are written separately and the build never executes the program, so a blank start screen is invisible to the static checks. **FIX:** duplicate-setup check and prompt contract (see CHANGELOG). **NOT FIXED:** a missing initial draw is not detected by any validator (only requested in the prompt); no build step runs the generated page, so SUCCESS still does not prove the program works. **Local:** unit tests; reproduction used Playwright on the delivered ZIP only; live builds `NOT_RUN`.

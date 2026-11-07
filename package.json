@@ -2,7 +2,7 @@
   "name": "biforge",
   "private": true,
   "version": "127",
-  "patch": "127.29",
+  "patch": "127.30",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -53,7 +53,7 @@
     "test:agents": "node --test tests/agents-contract.test.mjs",
     "test:governance": "node --test tests/governance-repo.test.mjs tests/governance-workflow-pins.test.mjs",
     "test:diagnostics": "node --test tests/diagnostics-ops.test.mjs",
-    "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode-contract.test.mjs tests/project-resume-lease.test.mjs tests/project-builder-recovery.test.mjs tests/project-user-value-live.test.mjs",
+    "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode-contract.test.mjs tests/project-resume-lease.test.mjs tests/project-builder-recovery.test.mjs tests/project-user-value-live.test.mjs tests/project-standalone.test.mjs",
     "test:project-diagnostics": "node --test tests/diagnostics-ops.test.mjs",
     "scripts:integrity": "node scripts/scripts-integrity.mjs",
     "eval:baseline": "node scripts/baseline-eval.mjs",

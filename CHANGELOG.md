@@ -1,3 +1,12 @@
+## [127.30] - FEATURE: every delivered program runs by simply opening index.html (no server)
+
+- `appBuilder/standalone.ts` (new): the delivered `index.html` is one self-contained file: local stylesheets inlined, local classic scripts inlined, all local ES modules compiled into one inline script (CommonJS registry, deterministic, no model call). Bare/URL imports (three.js via import map) stay real ES imports of one inline module script, which file:// allows. Unbundlable code (import.meta, top-level await, syntax errors) falls back to the original page with a warning in `report.standalone`.
+- ZIP layout: root `index.html` = standalone; editable sources under `source/`. `server/projectContinuation.ts` reads `source/` and ignores the generated root file.
+- `validator-static-site.ts`: `completeness` asks the TypeScript parser (error at end of file) instead of counting characters; an apostrophe in a comment made finished files look truncated (observed: chess `renderer.js`).
+- `core-engine.ts`: cross-file repair raised to 3 rounds x 3 files.
+- Live runner opens the package via `file://` (what a person does) instead of an HTTP server.
+- Tests: `tests/project-standalone.test.mjs` (real generated chess package as fixture, module execution in `node:vm`), recovery suite extended. Package patch `127.30`.
+
 ## [127.29] - BUGFIX: generated programs that load but show an empty first screen or run setup twice
 
 - `validator-static-site.ts`: `member-contracts` flags `x.initFoo()` / `setup*` / `bind*` / `create*` calls made after `new X()` when the constructor of X already calls `this.initFoo()` (observed in two builds: `game.init()` from `main.js`; `scene.initDOM()` + `scene.initBoardRenderer()` rebuilding the DOM). Findings enter the existing bounded cross-file repair.
