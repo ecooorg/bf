@@ -1,3 +1,7 @@
+## [127.30a] - Test fixture moved to one flat file
+
+- `tests/fixture-standalone-chess.json` replaces the nested `tests/fixtures/standalone-chess/` folder (nested folders are not allowed); `project-standalone.test.mjs` reads it. Delete the old folder. Package patch `127.30a`.
+
 ## [127.30] - FEATURE: every delivered program runs by simply opening index.html (no server)
 
 - `appBuilder/standalone.ts` (new): the delivered `index.html` is one self-contained file: local stylesheets inlined, local classic scripts inlined, all local ES modules compiled into one inline script (CommonJS registry, deterministic, no model call). Bare/URL imports (three.js via import map) stay real ES imports of one inline module script, which file:// allows. Unbundlable code (import.meta, top-level await, syntax errors) falls back to the original page with a warning in `report.standalone`.
