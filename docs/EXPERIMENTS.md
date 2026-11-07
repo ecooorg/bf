@@ -1,5 +1,19 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-7 — Open the built page in a sandboxed browser and repair what throws (P127.32, BEHAVIOUR)
+
+| Field | Value |
+|---|---|
+| **Owner authorisation** | Navigator, session 2026-11-07: "да. запускай" in reply to the request to run generated code in Project Mode (AGENTS.md: running generated code needs explicit owner authorisation). Scope of the authorisation: a sandboxed headless browser opening the built page. Not given: any change of the deployment image or hosting configuration. |
+| **Problem and evidence** | Job after P127.31 (commit a3932a4, 3D board program, outcome PARTIAL `validators_failed: refs`). Opening the delivered page in headless Chromium with a stub of the 3D library logged `Initialization failed: TypeError: scene.add is not a function` at `setupLights`, 0 frames rendered, status text visible, canvas empty (matches the user's screenshot). The cause is a cross-file shape mismatch (a factory returns an object, the caller uses it as the scene) that none of 12 static validators can see (type-contracts: ok, no issues). Earlier builds in the same log window (mazes, race, board) also ended without any run; `runtimeVerified` is false in every report. |
+| **Hypothesis** | Opening the page once and feeding the thrown error (message plus the first stack frames, mapped to project files) into the existing bounded cross-file repair lets the model fix errors that only appear at run time, and an error that stays is reported instead of a green static result. |
+| **Baseline** | Offline replay on the delivered sources: 1 uncaught initialisation error, 0 frames. Live: runtime errors found by the build = 0 of 6 builds (nothing ran); n too small for a rate. |
+| **Metric / acceptance** | Tests: a fake runtime port with an error drives one repair and the report ends with `runtimeVerified=true` only when the second run is clean; an unavailable or absent port leaves every report exactly as before (`runtimeVerified=false`, no new validator); request policy of the runner blocks every host except two script CDNs; a real headless run of the delivered sources reproduces the error. Live (same prompt set as `project-user-value`, deployed with the browser installed): pages opened without an uncaught error >= 50% of builds that finished, measured against the 0 recorded by the independent runner at 127.31. |
+| **Scope** | `appBuilder/core-ports.ts`, `appBuilder/core-engine.ts`, `appBuilder/index.ts`, `server/appBuilderRuntimeCheck.ts` (new), `server/appBuilderAdapter.ts`, `tests/project-builder-recovery.test.mjs`, generated inventories, patch records. No prompt rewrite beyond one sentence in the cross-file repair prompt. No scenario words in code or tests. |
+| **Safety** | Off unless `PROJECT_RUNTIME_CHECK=true` and a Chromium for Playwright exists on the host; otherwise the build behaves exactly as before. Fresh browser context per check, one check at a time, hard time limit, service workers and downloads blocked, the page is served from memory on a reserved never-resolving origin, only two script CDN hosts may be reached, everything else is aborted. `--no-sandbox` only with `RUNTIME_CHECK_NO_SANDBOX=true`. |
+| **Rollback criterion** | Any build that was complete before is reported failed because of an environment error (browser missing, GPU absent, CDN unreachable) instead of "not run"; or live clean-open rate is not above the 127.31 value: unset `PROJECT_RUNTIME_CHECK` (no redeploy needed) and revert P127.32. One corrective patch allowed, then stop or revert. |
+| **Result** | Local tests and one real browser run: see TECHNICAL_REPORT. Live: NOT_RUN. User value: NOT_RUN. |
+
 ## EXP-PROJECT-6 — Keep a usable model plan (P127.31, BUGFIX)
 
 | Field | Value |
