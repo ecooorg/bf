@@ -1,3 +1,7 @@
+## [127.26a] - MAINTENANCE: Project Mode user-value workflow is manual-only
+
+- `project-user-value.yml`: removed the `workflow_run`, `pull_request` and `push` triggers; only `workflow_dispatch` remains (Navigator request). Test updated. Package patch `127.26a`.
+
 ## [127.26] - EXPERIMENT: entry HTML first, scripts and styles written against its real ids
 
 - `stack-static-site.ts`: `domFirstPlan` (applied to every plan, also model-made ones): the HTML depends on no script or style; every script and style depends on it. Superseded HTML dependency lines in `expandedPlanFromBrief` removed.
