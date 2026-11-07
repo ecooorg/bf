@@ -148,3 +148,43 @@ export function domFirstPlan(plan: Plan): Plan {
   const order = topoSort(units);
   return order ? { ...plan, units, order } : plan;
 }
+
+const THREE_VERSION = '0.160.0';
+const THREE_IMPORTMAP = `{\n  "imports": {\n    "three": "https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.js",\n    "three/addons/": "https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/examples/jsm/"\n  }\n}`;
+
+/**
+ * P127.28: generated 3D projects import three.js from several different URLs/versions (some without a module
+ * build, e.g. cdnjs r128 `three.module.js` or `three.min.js`) or as bare `'three'` with no import map. Any failing
+ * import stops the whole module graph, so the game never starts. Normalise every three.js import to the bare
+ * specifier and make sure the entry HTML carries one pinned import map. Returns the paths that changed.
+ */
+export function normalizeThreeSetup(files: Map<string, string>): string[] {
+  const changed: string[] = [];
+  let usesThree = false;
+  const spec = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])((?:https?:)?\/\/[^'"]*three[^'"]*|three(?:\/[^'"]*)?)\2/g;
+  for (const [path, src] of files) {
+    if (!/\.(?:m?js)$/i.test(path)) continue;
+    const out = src.replace(spec, (_m, pre: string, q: string, url: string) => {
+      let next = url;
+      if (/^(?:https?:)?\/\//.test(url)) {
+        if (!/(?:^|[/@.-])three(?:[/@.-]|$)/i.test(url)) return _m;
+        const addon = /\/examples\/jsm\/(.+)$/.exec(url);
+        next = addon ? `three/addons/${addon[1]}` : 'three';
+      }
+      if (next === 'three' || next.startsWith('three/')) usesThree = true;
+      return `${pre}${q}${next}${q}`;
+    });
+    if (out !== src) { files.set(path, out); changed.push(path); }
+    else if (/\bfrom\s*['"]three(?:\/[^'"]*)?['"]/.test(src)) usesThree = true;
+  }
+  if (!usesThree) return changed;
+  for (const [path, html] of files) {
+    if (!/\.html?$/i.test(path) || !/<script\b[^>]*type=["']module["']/i.test(html)) continue;
+    if (/<script\b[^>]*type=["']importmap["'][^>]*>[\s\S]*?"three"/i.test(html)) continue;
+    const tag = `<script type="importmap">\n${THREE_IMPORTMAP}\n</script>\n`;
+    const at = html.search(/<script\b/i);
+    const next = at >= 0 ? html.slice(0, at) + tag + html.slice(at) : html.replace(/<\/head>/i, `${tag}</head>`);
+    if (next !== html) { files.set(path, next); changed.push(path); }
+  }
+  return changed;
+}

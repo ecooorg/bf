@@ -7,7 +7,7 @@ import { parseFileMarkers } from './core-markers.ts';
 import { validatePlan, repairPackagePath, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
-import { templatePlan, ensureMultiFileStaticPlan, expandedPlanFromBrief, domFirstPlan } from './stack-static-site.ts';
+import { templatePlan, ensureMultiFileStaticPlan, expandedPlanFromBrief, domFirstPlan, normalizeThreeSetup } from './stack-static-site.ts';
 import {
   buildIntentPrompt,
   parseIntentBrief,
@@ -497,6 +497,12 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     // P127.10: if HTML is a self-contained app and modular assets are unreachable, drop them
     // before scoring so SUCCESS reflects the runnable package (orphans are recorded on the report).
     const contentMap = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+    // P127.28: one pinned three.js import map and bare 'three' specifiers everywhere.
+    const threeChanged = normalizeThreeSetup(contentMap);
+    if (threeChanged.length) {
+      for (const p of threeChanged) { const f = files.get(p); if (f) files.set(p, { ...f, content: contentMap.get(p)! }); }
+      event(ports, input.jobId, 'three_normalized', { paths: threeChanged });
+    }
     droppedOrphanedFiles = dropUnreachableOrphansIfSelfContained(contentMap);
     if (droppedOrphanedFiles.length) {
       for (const p of droppedOrphanedFiles) files.delete(p);
@@ -823,6 +829,12 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   const outcome = status === 'complete' ? 'SUCCESS' as const : status === 'partial' ? 'PARTIAL' as const : 'FAILED' as const;
   const failedStage = status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage);
   const note = failureReason ?? (templateUsed ? `plan_fallback_used: ${templateUsed}` : undefined);
+  {
+    // P127.28: repairs may have reintroduced mixed three.js imports; normalise the final package once more.
+    const finalMap = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+    const changed = normalizeThreeSetup(finalMap);
+    for (const p of changed) { const f = files.get(p); if (f) files.set(p, { ...f, content: finalMap.get(p)! }); }
+  }
   const orphanedFiles = orphanedPathsFromReachability(validators.find((v) => v.name === 'reachability'));
   const report: BuildReport = {
     schemaVersion: SCHEMA_VERSION,
