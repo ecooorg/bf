@@ -2,7 +2,7 @@
 import { SCHEMA_VERSION, type Plan, type Spec, type Unit } from './core-types.ts';
 import { sha256 } from './core-cache.ts';
 import type { IntentBrief } from './intent-brief.ts';
-import { topoSort } from './core-plan.ts';
+import { topoSort, repairPackagePath } from './core-plan.ts';
 import { estimateComplexity, targetModulesFor } from './intent-brief.ts';
 
 export const STATIC_SITE_ID = 'static_site';
@@ -29,7 +29,7 @@ export function templatePlan(spec: Spec): Plan {
  */
 export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
   const modules = brief.suggestedModules.length
-    ? [...brief.suggestedModules]
+    ? brief.suggestedModules.map((m) => ({ ...m, path: repairPackagePath(m.path) }))
     : [
         { id: 'style', path: 'style.css', purpose: 'Theme' },
         { id: 'main', path: 'main.js', purpose: 'Entry' },

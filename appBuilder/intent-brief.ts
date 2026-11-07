@@ -4,6 +4,7 @@
  */
 
 import { SCHEMA_VERSION, type Spec } from './core-types.ts';
+import { repairPackagePath } from './core-plan.ts';
 
 export type IntentComplexity = 'trivial' | 'simple' | 'standard' | 'ambitious';
 
@@ -130,7 +131,7 @@ export function parseIntentBrief(text: string, userText: string): IntentBrief {
   for (const m of modulesIn.slice(0, 40)) {
     if (!m || typeof m !== 'object') continue;
     const row = m as Record<string, unknown>;
-    const path = str(row.path);
+    const path = repairPackagePath(str(row.path));
     const id = str(row.id) || path.replace(/\W+/g, '_').slice(0, 32);
     const purpose = str(row.purpose) || id;
     // Project policy: flat package only — no nested directories.
@@ -209,7 +210,7 @@ export function briefHintsFromSpec(spec: { goal?: string; title?: string; featur
   if (complexity) base.complexity = complexity;
   if (targetModules) base.targetModules = targetModules;
   if (modulePaths.length) {
-    base.suggestedModules = modulePaths.map((path) => ({
+    base.suggestedModules = modulePaths.map(repairPackagePath).map((path) => ({
       id: path.replace(/\W+/g, '_').slice(0, 40),
       path,
       purpose: path,

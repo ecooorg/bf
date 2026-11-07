@@ -594,6 +594,52 @@ export function validateMemberContracts(files: FileMap): ReportValidator {
     };
     visit(sf);
   }
+  // P127.27: imported `export const NAME = { ... }` objects — NAME.key must exist (e.g. TILE_TYPES.PATH vs EMPTY).
+  const constKeys = new Map<string, Map<string, Set<string>>>();
+  for (const [path, sf] of parsed) {
+    const m = new Map<string, Set<string>>();
+    for (const st of sf.statements) {
+      if (!ts.isVariableStatement(st) || !st.modifiers?.some((x) => x.kind === ts.SyntaxKind.ExportKeyword)) continue;
+      for (const d of st.declarationList.declarations) {
+        if (!ts.isIdentifier(d.name) || !d.initializer || !ts.isObjectLiteralExpression(d.initializer)) continue;
+        const keys = new Set<string>();
+        let plain = true;
+        for (const p of d.initializer.properties) {
+          if (ts.isSpreadAssignment(p) || !p.name || ts.isComputedPropertyName(p.name)) { plain = false; break; }
+          keys.add(p.name.getText(sf).replace(/^['"]|['"]$/g, ''));
+        }
+        if (plain && keys.size) m.set(d.name.text, keys);
+      }
+    }
+    constKeys.set(path, m);
+  }
+  for (const [path, sf] of parsed) {
+    const local = new Map<string, { file: string; name: string }>();
+    for (const st of sf.statements) {
+      if (!ts.isImportDeclaration(st) || !ts.isStringLiteral(st.moduleSpecifier)) continue;
+      const target = resolve(path, st.moduleSpecifier.text);
+      const nb = st.importClause?.namedBindings;
+      if (!target || !nb || !ts.isNamedImports(nb)) continue;
+      for (const el of nb.elements) {
+        const imported = (el.propertyName ?? el.name).text;
+        if (constKeys.get(target)?.has(imported)) local.set(el.name.text, { file: target, name: imported });
+      }
+    }
+    if (!local.size) continue;
+    const seen = new Set<string>();
+    const visitConst = (node: ts.Node) => {
+      if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.expression) && ts.isIdentifier(node.name)) {
+        const meta = local.get(node.expression.text);
+        const keys = meta && constKeys.get(meta.file)?.get(meta.name);
+        if (meta && keys && !keys.has(node.name.text)) {
+          const msg = `unknown constant '${node.expression.text}.${node.name.text}' (${meta.name} in ${meta.file} has: ${[...keys].join(', ')})`;
+          if (!seen.has(msg)) { seen.add(msg); issues.push({ path, message: msg }); }
+        }
+      }
+      ts.forEachChild(node, visitConst);
+    };
+    visitConst(sf);
+  }
   return result('member-contracts', issues);
 }
 

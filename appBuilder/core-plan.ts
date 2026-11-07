@@ -45,6 +45,20 @@ export function isSafePath(p: string): boolean {
   return true;
 }
 
+/**
+ * P127.27: models sometimes emit module ids ("audio_js") as paths. Restore the extension
+ * ("audio.js") when the final segment has no dot and ends with a known extension suffix.
+ */
+export function repairPackagePath(p: string): string {
+  if (typeof p !== 'string') return p;
+  const parts = p.replace(/\\/g, '/').split('/');
+  const last = parts.pop() ?? '';
+  if (!last || last.includes('.')) return p;
+  const m = /^(.+)_(js|mjs|css|html|json|md|txt)$/i.exec(last);
+  if (!m) return p;
+  return [...parts, `${m[1]}.${m[2].toLowerCase()}`].join('/');
+}
+
 /** New static_site plan units must be top-level files only (no subfolders). */
 export function isFlatPackagePath(p: string): boolean {
   return typeof p === 'string' && isSafePath(p) && !p.includes('/');
