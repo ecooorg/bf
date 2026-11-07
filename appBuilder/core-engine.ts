@@ -400,6 +400,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     for (const id of state.plan.order) {
       if (options.signal?.aborted || (options.isCancelled && await options.isCancelled())) { cancelled = true; failureReason = 'cancelled'; break; }
       const unit = byId.get(id)!; unit.status = 'running'; unit.attempts++;
+      await save(); // P127.25: persist 'running' so the UI can show the file in progress
       event(ports, input.jobId, 'unit_started', { unitId: id, path: unit.path });
       const key = makeCacheKey({ unitInput: { spec, unit: { ...unit, status: undefined, attempts: undefined, cacheKey: undefined, resultRef: undefined } }, promptVersion: options.promptVersion, modelId: options.modelId ?? profile.id });
       const cached = await ports.store.getUnitResult(key);
@@ -837,6 +838,17 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     ...(note ? { failureReason: note } : {}),
     ...(failedStage ? { failedStage } : {}),
   };
+  // P127.25: the archive is packed and stored BEFORE the terminal state is saved, so a client that sees
+  // done/failed/cancelled always finds the artifact (no "finished but no download yet" window).
+  const archive = files.size ? await packZip([...files].map(([path, f]) => ({ path, content: f.content })), report) : null;
+  if (archive && archive.byteLength && !cancelled) {
+    try {
+      state.artifactId = await ports.store.putArtifact(input.jobId, archive, { filename: 'app-source.zip', contentType: 'application/zip' });
+    } catch (e) {
+      // Left unset on purpose: the adapter retries and owns the artifact_save_failed handling.
+      event(ports, input.jobId, 'artifact_store_deferred', { reason: String((e as Error)?.message ?? e).slice(0, 200) }, 'warn');
+    }
+  }
   // Hard gate: never mark job done when outcome is not SUCCESS.
   state.status = cancelled ? 'cancelled' : status === 'complete' ? 'done' : 'failed';
   if (failureReason && !state.error) state.error = { code: cancelled ? 'cancelled' : (failureReason.startsWith('invalid_spec') ? 'invalid_spec' : (files.size === 0 ? 'empty_artifact' : 'build_incomplete')), message: failureReason.slice(0, 300), detail: { stage: state.stage, callsUsed: state.callsUsed, callsBudget: budget, failedStage: status === 'complete' ? undefined : (state.stage === 'done' ? (files.size ? 'check' : 'code') : state.stage), orphanedFiles: orphanedFiles.length ? orphanedFiles : undefined } };
@@ -844,7 +856,6 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
   await save();
   event(ports, input.jobId, 'job_done', { status, outcome, goalImplemented: report.goalImplemented, runtimeVerified: false, orphanedCount: orphanedFiles.length });
-  const archive = files.size ? await packZip([...files].map(([path, f]) => ({ path, content: f.content })), report) : null;
   if (report.outcome === 'SUCCESS' && (!archive || !archive.byteLength)) {
     report.outcome = 'FAILED';
     report.status = 'failed';
