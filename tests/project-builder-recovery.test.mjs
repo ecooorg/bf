@@ -515,3 +515,26 @@ test('P127.27: member-contracts flags unknown keys of imported constant objects'
   files.set('maze.js', "import { TILE } from './constants.js';\nexport const a = TILE.WALL + TILE.EMPTY;");
   assert.equal(validateMemberContracts(files).ok, true);
 });
+
+test('P127.28: mixed three.js imports become one bare specifier plus one pinned import map', async () => {
+  const { normalizeThreeSetup } = await import('../appBuilder/stack-static-site.ts');
+  const files = new Map([
+    ['index.html', '<html><head></head><body><script type="module" src="main.js"></script></body></html>'],
+    ['a.js', "import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';"],
+    ['b.js', "import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';"],
+    ['c.js', "import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';\nimport * as THREE from \"three\";"],
+    ['d.js', "import { x } from './a.js';\nimport confetti from 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.module.mjs';"],
+  ]);
+  const changed = normalizeThreeSetup(files);
+  assert.ok(['a.js', 'b.js', 'c.js', 'index.html'].every((p) => changed.includes(p)));
+  assert.ok(!changed.includes('d.js'), 'non-three imports are untouched');
+  assert.match(files.get('a.js'), /from 'three';/);
+  assert.match(files.get('b.js'), /from 'three';/);
+  assert.match(files.get('c.js'), /from 'three\/addons\/controls\/OrbitControls\.js'/);
+  const html = files.get('index.html');
+  assert.equal((html.match(/type="importmap"/g) || []).length, 1);
+  assert.ok(html.indexOf('importmap') < html.indexOf('type="module"'), 'import map precedes the module script');
+  assert.deepEqual(normalizeThreeSetup(files), [], 'idempotent');
+  const none = new Map([['index.html', '<script type="module" src="m.js"></script>'], ['m.js', 'export {};']]);
+  assert.deepEqual(normalizeThreeSetup(none), [], 'projects without three.js are untouched');
+});
