@@ -573,3 +573,77 @@ test('P127.30 a finished build ships a standalone index.html and keeps the edita
   assert.equal(r.report.standalone?.built, true);
   assert.ok(w.events.some((e) => e.type === 'standalone_index'));
 });
+
+// P127.31 — a model plan that is sound in substance is kept even when references are named by file or form a cycle.
+const planUnit = (id, path, dependsOn = []) => ({ id, kind: 'file', path, purpose: id, dependsOn, exports: [], contract: `${id} contract`, maxOutputTokens: 1500, status: 'pending', attempts: 0 });
+// Same graph shape as the plan the planner returned in the 2026-11-07 log: ids without extension, dependsOn and order
+// naming files, one dangling-by-name reference per unit, and a two-unit cycle between the entry script and a leaf script.
+const namedByFilePlan = () => ({
+  schemaVersion: 1, specHash: 'x',
+  units: [
+    planUnit('page', 'page.html', ['sheet.css', 'core.js']),
+    planUnit('sheet', 'sheet.css'),
+    planUnit('view', 'view.js', ['lib.js']),
+    planUnit('lib', 'lib.js'),
+    planUnit('rules', 'rules.js', ['data.js']),
+    planUnit('data', 'data.js'),
+    planUnit('ctl', 'ctl.js', ['core.js']),
+    planUnit('core', 'core.js', ['view.js', 'rules.js', 'ctl.js']),
+  ],
+  order: ['lib.js', 'data.js', 'rules.js', 'view.js', 'core.js', 'ctl.js', 'sheet.css', 'page.html'],
+});
+
+test('P127.31 a plan whose dependsOn/order name files and contain a cycle is repaired, not discarded', async () => {
+  const { validatePlan, repairPlanReferences } = await import('../appBuilder/core-plan.ts');
+  const raw = namedByFilePlan();
+  assert.equal(validatePlan(raw).ok, false, 'fixture reproduces the rejected plan');
+  const fixed = repairPlanReferences(raw);
+  const checked = validatePlan(fixed);
+  assert.equal(checked.ok, true, checked.issues.map((i) => i.message).join('; '));
+  assert.deepEqual(fixed.units.map((u) => u.id), raw.units.map((u) => u.id), 'no unit is added, removed or renamed');
+  assert.ok(fixed.units.every((u, i) => u.contract === raw.units[i].contract && u.path === raw.units[i].path), 'contracts and paths are the model\'s own');
+  const byId = new Map(fixed.units.map((u) => [u.id, u]));
+  assert.deepEqual(byId.get('page').dependsOn, ['sheet', 'core'], 'file names resolve to unit ids');
+  assert.deepEqual(byId.get('core').dependsOn, ['view', 'rules', 'ctl'], 'the unit with the most dependencies keeps all of them');
+  assert.deepEqual(byId.get('ctl').dependsOn, [], 'the cycle is broken at the least-connected unit');
+  const pos = (id) => checked.order.indexOf(id);
+  assert.ok(['view', 'rules', 'ctl'].every((d) => pos(d) < pos('core')), 'the entry script is generated after the modules it uses');
+  assert.deepEqual(raw, namedByFilePlan(), 'the input plan is not mutated');
+});
+
+test('P127.31 unusable plans are still rejected after repair', async () => {
+  const { validatePlan, repairPlanReferences } = await import('../appBuilder/core-plan.ts');
+  const ok = (plan, profile) => validatePlan(repairPlanReferences(plan), profile).ok;
+  const base = () => ({ schemaVersion: 1, specHash: 'x', units: [planUnit('a', 'a.js'), planUnit('b', 'b.css')], order: ['a', 'b'] });
+  assert.equal(ok(base()), true);
+  assert.equal(ok({ ...base(), units: [] }), false, 'no units');
+  assert.equal(ok({ ...base(), units: [planUnit('a', '../a.js'), planUnit('b', 'b.css')] }), false, 'unsafe path');
+  assert.equal(ok({ ...base(), units: [planUnit('a', 'same.js'), planUnit('b', 'same.js')] }), false, 'duplicate path');
+  assert.equal(ok({ ...base(), units: [planUnit('a', 'a.js'), planUnit('a', 'b.css')] }), false, 'duplicate unit id');
+  assert.equal(ok(base(), { maxUnits: 1 }), false, 'too many units');
+  assert.equal(ok({ ...base(), schemaVersion: 2 }), false, 'unsupported schema version');
+  const dangling = base(); dangling.units[0].dependsOn = ['nothing.js'];
+  assert.equal(ok(dangling), true, 'a hint that names no unit is dropped, not fatal');
+  assert.deepEqual(repairPlanReferences(dangling).units[0].dependsOn, []);
+  const selfRef = base(); selfRef.units[1].dependsOn = ['b', 'b.css'];
+  assert.deepEqual(repairPlanReferences(selfRef).units[1].dependsOn, [], 'a unit never depends on itself');
+});
+
+test('P127.31 a build keeps the model plan when only the reference naming was off (no template fallback)', async () => {
+  const w = world(); const m = w.model(0); const orig = m.complete.bind(m);
+  m.complete = async (a) => {
+    if (a.role === 'planner' && /Create a Plan JSON/.test(a.prompt || '')) {
+      return { text: JSON.stringify({
+        schemaVersion: 1, specHash: 'x',
+        units: [planUnit('sheet', 'style.css'), planUnit('core', 'app.js'), planUnit('page', 'index.html', ['style.css', 'app.js']), planUnit('readme', 'README.md', ['index.html'])],
+        order: ['style.css', 'app.js', 'index.html', 'README.md'],
+      }), finishReason: 'stop', modelId: 'fake' };
+    }
+    return orig(a);
+  };
+  const r = await runBuild({ ...input, jobId: 'job-p31' }, w.ports(m));
+  assert.ok(!w.events.some((e) => e.type === 'plan_fallback'), 'no template fallback');
+  assert.ok(!w.events.some((e) => e.type === 'plan_validate_failed'), 'the repaired plan validates');
+  assert.deepEqual(r.report.units.map((u) => u.id).sort(), ['core', 'page', 'readme', 'sheet'], 'the model\'s own unit ids are built');
+  assert.equal(r.report.units[0].id, 'page', 'entry HTML still goes first');
+});
