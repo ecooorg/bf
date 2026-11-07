@@ -29,6 +29,21 @@
 | **Result** | Live run d88b819 (deployed==repo): PRODUCT_PASS 0/5 (bar >=3: NOT MET); mismatches 1/5 (bar <=1: met); module-contracts reappeared in 1 build. n=5, single run. |
 | **Decision** | REVERTED in P127.22 per rollback criterion. No further corrective on this hypothesis. |
 
+## EXP-PROJECT-4 — Cross-file diagnostics and bounded repair (P127.23)
+
+| Field | Value |
+|---|---|
+| **Date** | 2026-11-07 |
+| **Patch** | P127.23 — EXPERIMENT |
+| **Problem and evidence** | Live runs 69e46f6, 24173ab, d88b819: PRODUCT_PASS 0/5, 1/5, 0/5; dominant failures are cross-file contract defects with no repair path (module-contracts) or partial coverage (member-contracts). |
+| **Hypothesis** | Detecting cross-file mismatches with the TypeScript checker and repairing the offending file against the real interfaces (bounded: 2 rounds x 2 files, strict-improvement acceptance) converts a material share of PARTIAL builds into working packages and removes false SUCCESS. |
+| **Baseline** | Same prompts: PRODUCT_PASS 1/5 (24173ab, best) and 0/5 (d88b819); 10-prompt x 2-run baseline does not exist yet — the first run of the new suite on this commit is the new baseline for later patches. |
+| **Metric / acceptance** | Product pass rate over 10 prompts x 2 runs on the new commit >= 30% (3+ of 10 distinct scenarios passing in at least one run) AND SUCCESS-vs-human mismatches <= 2 of 20. Infra failures excluded and reported. |
+| **Rollback criterion** | If PRODUCT_PASS rate < 15% (< 3 of 20 runs) the repair step is reverted; the validator may stay as a reporting-only check. |
+| **Scope** | `validator-static-site.ts`, `core-engine.ts` (repair step), `core-prompts.ts`, tests, live workflow automation. |
+| **Result** | NOT_RUN |
+| **Decision** | PENDING automatic live run after deploy |
+
 ## EXP-PROJECT-LIVE-1 — Live Project Mode baseline (P127.19)
 
 | Field | Value |
