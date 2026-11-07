@@ -127,6 +127,8 @@ export interface BuildReport {
   orphanedFiles?: string[];
   /** Orphans removed deterministically because the entry HTML is self-contained (P127.10). */
   droppedOrphanedFiles?: string[];
+  /** P127.30: index.html is a self-contained build that runs when opened directly; sources are under source/. */
+  standalone?: { built: boolean; mode: string; modules: number; externals: string[]; warnings: string[] };
   files: ReportFile[];
   units: ReportUnit[];
   validators: ReportValidator[];

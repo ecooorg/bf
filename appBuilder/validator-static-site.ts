@@ -403,12 +403,11 @@ export function validateCompleteness(files: FileMap): ReportValidator {
     if (!src || !src.trim()) continue;
     const trimmed = src.replace(/\s+$/, '');
     if (/\.(?:m?js|cjs|ts|tsx)$/i.test(path)) {
-      const braces = balance(src, '{', '}');
-      const parens = balance(src, '(', ')');
-      const brackets = balance(src, '[', ']');
-      if (braces > 0) issues.push({ path, message: `likely truncated: ${braces} unclosed '{'` });
-      if (parens > 0) issues.push({ path, message: `likely truncated: ${parens} unclosed '('` });
-      if (brackets > 0) issues.push({ path, message: `likely truncated: ${brackets} unclosed '['` });
+      // P127.30: ask the real parser instead of counting characters (comments with an apostrophe, regex literals and
+      // template strings made the counter report truncation in complete files). A cut-off file fails AT its end.
+      const parsed = ts.transpileModule(src, { fileName: path, reportDiagnostics: true, compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ESNext, allowJs: true } });
+      const atEnd = (parsed.diagnostics ?? []).find((d) => d.category === ts.DiagnosticCategory.Error && (d.start ?? 0) >= src.trimEnd().length - 2);
+      if (atEnd) issues.push({ path, message: `likely truncated: ${ts.flattenDiagnosticMessageText(atEnd.messageText, ' ').slice(0, 80)} at end of file` });
       if (/(?:\bfunction\b|\bconst\b|\blet\b|\breturn\b|\bimport\b|\bexport\b|\bif\s*\(|\belse\b)\s*$/.test(trimmed)) {
         issues.push({ path, message: 'likely truncated: file ends mid-statement' });
       }

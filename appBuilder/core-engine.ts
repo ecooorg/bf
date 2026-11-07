@@ -7,6 +7,7 @@ import { parseFileMarkers } from './core-markers.ts';
 import { validatePlan, repairPackagePath, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
+import { buildStandaloneIndex, STANDALONE_SOURCE_DIR } from './standalone.ts';
 import { templatePlan, ensureMultiFileStaticPlan, expandedPlanFromBrief, domFirstPlan, normalizeThreeSetup } from './stack-static-site.ts';
 import {
   buildIntentPrompt,
@@ -758,13 +759,13 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     }
   }
 
-  // P127.23: bounded cross-file repair (module-contracts / type-contracts / member-contracts), max 2 rounds x 2 files.
+  // P127.23: bounded cross-file repair (module-contracts / type-contracts / member-contracts), max 3 rounds x 3 files.
   // Accept only if no previously-passing validator breaks and the combined cross-file issue count strictly drops.
   const CROSS = ['module-contracts', 'type-contracts', 'member-contracts'];
   const crossIssues = (vs: BuildReport['validators']) => vs.filter((v) => CROSS.includes(v.name)).flatMap((v) => v.issues);
-  for (let round = 0; round < 2; round++) {
+  for (let round = 0; round < 3; round++) {
     if (!(files.size > 0 && allFilesDone && !cancelled && !options.signal?.aborted && crossIssues(validators).length && state.callsUsed < budget)) break;
-    const targets = [...new Set(crossIssues(validators).map((i) => i.path).filter((p): p is string => Boolean(p) && files.has(p as string) && /\.(?:m?js|html?)$/i.test(p as string)))].slice(0, 2);
+    const targets = [...new Set(crossIssues(validators).map((i) => i.path).filter((p): p is string => Boolean(p) && files.has(p as string) && /\.(?:m?js|html?)$/i.test(p as string)))].slice(0, 3);
     let progressed = false;
     for (const targetPath of targets) {
       if (state.callsUsed >= budget || cancelled || options.signal?.aborted) break;
@@ -858,7 +859,18 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   };
   // P127.25: the archive is packed and stored BEFORE the terminal state is saved, so a client that sees
   // done/failed/cancelled always finds the artifact (no "finished but no download yet" window).
-  const archive = files.size ? await packZip([...files].map(([path, f]) => ({ path, content: f.content })), report) : null;
+  // P127.30: the delivered index.html must run by simply opening it (file:// / Android content://), so it is a
+  // self-contained build; the editable multi-file sources are kept under source/.
+  let packFiles = [...files].map(([path, f]) => ({ path, content: f.content }));
+  const standalone = files.size ? buildStandaloneIndex(new Map([...files].map(([p, f]) => [p, f.content] as [string, string]))) : null;
+  if (standalone) {
+    report.standalone = { built: standalone.changed, mode: standalone.mode, modules: standalone.modules, externals: standalone.externals, warnings: standalone.warnings };
+    if (standalone.changed) {
+      packFiles = [{ path: 'index.html', content: standalone.html }, ...packFiles.map((f) => ({ path: `${STANDALONE_SOURCE_DIR}${f.path}`, content: f.content }))];
+    }
+    event(ports, input.jobId, 'standalone_index', { built: standalone.changed, mode: standalone.mode, modules: standalone.modules, warnings: standalone.warnings.slice(0, 5) }, standalone.warnings.length ? 'warn' : 'info');
+  }
+  const archive = files.size ? await packZip(packFiles, report) : null;
   if (archive && archive.byteLength && !cancelled) {
     try {
       state.artifactId = await ports.store.putArtifact(input.jobId, archive, { filename: 'app-source.zip', contentType: 'application/zip' });
