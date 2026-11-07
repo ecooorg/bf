@@ -337,15 +337,6 @@ test('P127.17 applyBriefToSpec embeds MUST acceptance', () => {
 
 import { exportedNames, interfaceBlock } from '../appBuilder/core-prompts.ts';
 
-test('P127.20 exportedNames reads real exports and interfaceBlock lists them for later units', () => {
-  const src = 'export const A = 1;\nexport function b() {}\nexport class C {}\nconst d = 1, e = 2;\nexport { d, e as f };\nexport default function () {}\n';
-  assert.deepEqual(exportedNames(src).sort(), ['A', 'C', 'b', 'd', 'default', 'f']);
-  const block = interfaceBlock(new Map([['lib.js', { content: src }], ['style.css', { content: 'x' }], ['plain.js', { content: 'var z = 1;' }]]));
-  assert.match(block, /lib\.js: exports A, b, C, d, f, default/);
-  assert.match(block, /plain\.js: exports nothing/);
-  assert.ok(!block.includes('style.css'));
-});
-
 test('P127.20 entry script is planned after every other script and the plan stays acyclic', () => {
   const spec = { schemaVersion: 1, title: 'T', goal: 'g', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] };
   const brief = { ...fallbackIntentBrief('a todo list'), complexity: 'standard', targetModules: 6, suggestedModules: [
@@ -356,4 +347,63 @@ test('P127.20 entry script is planned after every other script and the plan stay
   assert.ok(main.dependsOn.includes('cards'));
   // game would depend on the first script (main) by name; the entry must not also depend on it (no cycle)
   assert.ok(!(main.dependsOn.includes('game') && plan.units.find((u) => u.id === 'game').dependsOn.includes('main')));
+});
+
+import { exportSurface } from '../appBuilder/core-prompts.ts';
+import { validateTypeContracts } from '../appBuilder/validator-static-site.ts';
+
+test('P127.23 exportedNames/exportSurface/interfaceBlock describe real signatures', () => {
+  const src = 'export function renderBoard(cards, onClick = null) {}\nexport class Player { constructor(x, y) {} move(dx) {} #p() {} }\nexport const MAX = 3;\nconst tick = (a, b) => 1;\nfunction helper(z) {}\nexport { tick, helper as h };\nexport default function () {}\n';
+  assert.deepEqual(exportSurface(src), ['renderBoard(cards, onClick = null)', 'class Player { constructor(x, y); move(dx) }', 'MAX', 'tick(a, b)', 'h(z)', 'default']);
+  assert.deepEqual(exportedNames('export const A = 1;\nexport { A as B };').sort(), ['A', 'B']);
+  const block = interfaceBlock(new Map([['lib.js', { content: src }], ['style.css', { content: 'x' }], ['plain.js', { content: 'var z = 1;' }]]));
+  assert.match(block, /lib\.js: exports renderBoard\(cards, onClick = null\); class Player/);
+  assert.match(block, /plain\.js: exports nothing/);
+  assert.ok(!block.includes('style.css'));
+});
+
+test('P127.23 type-contracts flags cross-file mismatches and ignores DOM/platform typing', () => {
+  const bad = validateTypeContracts(new Map([
+    ['logic.js', 'export function a(x) { return x; }\nexport class Player { move() {} }\n'],
+    ['game.js', "import { a, gone } from './logic.js';\nimport { Player } from './logic.js';\nclass G { constructor() { this.p = new Player(); } go() { this.p.reset(); a(1, 2, 3); } }\n"],
+  ]));
+  assert.equal(bad.ok, false);
+  const msgs = bad.issues.map((i) => i.message).join(' | ');
+  assert.match(msgs, /no exported member 'gone'/);
+  assert.match(msgs, /'reset' does not exist on type 'Player'/);
+  assert.match(msgs, /Expected 0-1 arguments, but got 3/);
+  const good = validateTypeContracts(new Map([['a.js', 'export const n = 1;'], ['b.js', "import { n } from './a.js'; document.getElementById('x').value = n; [1].map((v) => v + 1);"]]));
+  assert.equal(good.ok, true);
+  assert.ok(REQUIRED_VALIDATORS.includes('type-contracts'));
+});
+
+test('P127.23 cross-file repair fixes a bad import with one bounded model call and never breaks other validators', async () => {
+  const w = world();
+  const base = w.model(0);
+  const html = '<!doctype html><html><head><link rel="stylesheet" href="style.css"></head><body><canvas id="c"></canvas><script type="module" src="app.js"></script></body></html>';
+  const pad = '\n' + ('// pad ' + 'x'.repeat(900) + '\n').repeat(6);
+  let repairCalls = 0;
+  const model = { async complete(a) {
+    if (a.role === 'planner') {
+      if (/units|plan|schemaVersion/i.test(a.prompt || '') && !(a.prompt || '').includes('Create a focused') && !/User request \(plain language\)|expandedGoal/i.test(a.prompt || '') && !/app_builder\.intent/i.test(a.system || '')) {
+        const u = (id, path, dependsOn) => ({ id, kind: 'file', path, purpose: id, dependsOn, exports: [], contract: id, maxOutputTokens: 3000, status: 'pending', attempts: 0 });
+        return { text: JSON.stringify({ schemaVersion: 1, units: [u('style', 'style.css', []), u('util', 'util.js', []), u('app', 'app.js', ['util']), u('index', 'index.html', ['style', 'app'])], order: ['style', 'util', 'app', 'index'], specHash: 'test' }), finishReason: 'stop', modelId: 'fake' };
+      }
+      return base.complete(a);
+    }
+    if (/Fix cross-file contract defects in app\.js/.test(a.prompt)) {
+      repairCalls++;
+      return { text: formatFileMarker('app.js', "import { start } from './util.js';\naddEventListener('keydown', () => start());\nstart();" + pad), finishReason: 'stop', modelId: 'fake' };
+    }
+    const path = JSON.parse(/Implement unit (\{.*?\}) for spec/s.exec(a.prompt)[1]).path;
+    const content = path === 'util.js' ? 'export function start() { return 1; }' + pad
+      : path === 'app.js' ? "import { begin } from './util.js';\naddEventListener('keydown', () => begin());\nbegin();" + pad
+      : path === 'index.html' ? html : 'body{margin:0}';
+    return { text: formatFileMarker(path, content), finishReason: 'stop', modelId: 'fake' };
+  } };
+  const r = await runBuild({ ...input, jobId: 'job-x1' }, w.ports(model));
+  assert.equal(repairCalls, 1);
+  assert.ok(w.events.some((e) => e.type === 'cross_file_repair_accepted'), JSON.stringify(w.events.filter((e) => /repair/.test(e.type))));
+  const failing = r.report.validators.filter((v) => !v.ok).map((v) => `${v.name}:${v.issues.map((i) => i.message).join(';')}`);
+  assert.deepEqual(failing.filter((f) => /^(module|type|member)-contracts/.test(f)), []);
 });
