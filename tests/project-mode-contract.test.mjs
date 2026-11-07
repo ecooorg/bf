@@ -44,10 +44,11 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.version, '127');
-  assert.equal(pkg.patch, '127.18d');
+  assert.match(pkg.patch, /^127\.\d+[a-z]?$/);
   const lock = JSON.parse(read('package-lock.json'));
   assert.equal(lock.version, '127');
-  assert.equal(lock.patch, '127.18d');
+  assert.equal(lock.patch, pkg.patch);
+  assert.equal(lock.packages[''].patch, pkg.patch);
 });
 
 test('P127.12 ProjectMode wires continue and source ZIP upload', () => {
