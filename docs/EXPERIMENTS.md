@@ -1,5 +1,20 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-LIVE-1 — Live Project Mode baseline (P127.19)
+
+| Field | Value |
+|---|---|
+| **Date** | 2026-11-07 |
+| **Patch** | P127.19 — measurement instrument only; no answer-path change |
+| **Type** | EXPERIMENT |
+| **Problem and evidence** | P127.6–P127.18 changed Project Mode with no live before/after measurement (see TECHNICAL_REPORT: live rebuild NOT_RUN). The P127.18 workflow scores fixed fixtures. |
+| **Hypothesis** | A live run (real build, real browser, screenshot judge) separates working packages from false SUCCESS and exposes infra failures separately. |
+| **Baseline** | Run the workflow once on the current deploy (all scenarios), then repeat on a deploy of the pre-P127.17 commit for comparison. Record both here. |
+| **Metric / acceptance** | Per scenario: PRODUCT_PASS / PRODUCT_FAIL / INFRA_FAIL; product pass rate; SUCCESS-vs-human mismatches. Thresholds are set only after the baseline (UV_MIN_PASS_RATE). |
+| **Scope** | `scripts/project-user-value-live.mjs`, `config/project-user-value-prompts.json`, workflow job, test. |
+| **Result** | NOT_RUN |
+| **Decision** | PENDING baseline; prompt set needs independent review (C127 rule 7). |
+
 ## EXP-PROJECT-1 — Project build reliability (P127.5)
 
 | Field | Value |
