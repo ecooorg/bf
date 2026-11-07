@@ -56,30 +56,15 @@ export function exportedNames(source: string): string[] {
 }
 
 /** P127.20: exact interface of modules generated so far, so later units import only what exists. */
-export function domContract(source: string): { ids: string[]; classes: string[] } {
-  const ids = new Set<string>();
-  const classes = new Set<string>();
-  for (const m of source.matchAll(/\sid\s*=\s*["']([^"']+)["']/gi)) ids.add(m[1].trim());
-  for (const m of source.matchAll(/\sclass\s*=\s*["']([^"']+)["']/gi)) for (const c of m[1].split(/\s+/)) if (c) classes.add(c);
-  return { ids: [...ids].slice(0, 80), classes: [...classes].slice(0, 120) };
-}
-
 export function interfaceBlock(files: Map<string, { content: string }>): string {
   const lines: string[] = [];
-  const dom: string[] = [];
-  for (const [path, f] of files) {
-    if (!/\.html?$/i.test(path)) continue;
-    const c = domContract(f.content);
-    dom.push(`- ${path}: ids [${c.ids.join(', ')}]; classes [${c.classes.join(', ')}]`);
-  }
   for (const [path, f] of files) {
     if (!/\.m?js$/i.test(path)) continue;
     const names = exportedNames(f.content).slice(0, 30);
     lines.push(`- ${path}: ${names.length ? `exports ${names.join(', ')}` : 'exports nothing (plain script; do not import from it)'}`);
     if (lines.length >= 24) break;
   }
-  const domText = dom.length ? `\nACTUAL page markup (authoritative; style and script ONLY these ids/classes, do not invent selectors for elements that are not listed):\n${dom.join('\n')}\n` : '';
-  return domText + (lines.length
+  return lines.length
     ? `\nACTUAL interfaces of files already generated (authoritative; import ONLY these names from these files, use named imports exactly as listed, and never reference files or media assets that are not in the plan):\n${lines.join('\n')}\n`
-    : '');
+    : '';
 }

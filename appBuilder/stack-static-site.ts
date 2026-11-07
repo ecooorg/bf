@@ -92,13 +92,6 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     u.dependsOn = (u.dependsOn || []).filter((d) => known.has(d) && d !== u.id);
   }
 
-  // P127.21: stylesheets are generated after the page they style, so selectors follow the real ids/classes.
-  const htmlIds = units.filter((u) => /\.html?$/i.test(u.path || '')).map((u) => u.id);
-  for (const u of units) {
-    if (/\.html?$/i.test(u.path || '')) u.dependsOn = u.dependsOn.filter((d) => !cssIds.includes(d));
-    else if (/\.css$/i.test(u.path || '')) u.dependsOn = [...new Set([...u.dependsOn, ...htmlIds])];
-  }
-
   // P127.20: the entry script is generated after every other script, so its imports can follow their real exports.
   for (const u of units) {
     if (!/\.js$/i.test(u.path || '') || !/^(main|app|index)$/.test(u.id)) continue;
