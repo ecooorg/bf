@@ -31,3 +31,10 @@ test('P127.23 live workflow is automatic, input-free and waits for the deployed 
   assert.ok(!/inputs\./.test(wf), 'no manual inputs are required or read');
   assert.ok(!/vars\.EVAL_BASE_URL/.test(wf));
 });
+
+test('P127.24 live gate compares against the last measured commit, not just the previous commit', () => {
+  assert.ok(!/HEAD~1/.test(wf));
+  assert.match(wf, /actions\/artifacts\?name=project-user-value-live/);
+  assert.match(wf, /fetch-depth: 0/);
+  assert.match(wf, /actions: read/);
+});
