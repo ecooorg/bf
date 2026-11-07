@@ -52,6 +52,20 @@
 | **Result** | Live run d88b819 (deployed==repo): PRODUCT_PASS 0/5 (bar >=3: NOT MET); mismatches 1/5 (bar <=1: met); module-contracts reappeared in 1 build. n=5, single run. |
 | **Decision** | REVERTED in P127.22 per rollback criterion. No further corrective on this hypothesis. |
 
+## EXP-PROJECT-5 — Standalone index.html (P127.30)
+
+| Field | Value |
+|---|---|
+| **Date** | 2026-11-07 |
+| **Patch** | P127.30 — FEATURE (delivery) |
+| **Problem and evidence** | User screenshot: opening the delivered package from the Android file manager (`content://`) shows an unstyled, non-running page; external module scripts and sibling files are not available there. All earlier live measurements opened packages over HTTP and could not detect this. |
+| **Hypothesis** | One self-contained index.html (CSS + all scripts inline, sources in `source/`) makes the page render and run when opened directly. |
+| **Baseline** | Inferred, not measured: every multi-file package with `type=module` scripts renders nothing useful on `file://`/`content://` (0 of N). The live runner now opens `file://`, so the next automatic run is the first real measurement. |
+| **Metric / acceptance** | Live run (10 prompts x 2): `file://` open renders content (RENDERS) in >= 90% of packages that have a downloadable package, and no `Unexpected token 'export'` / module-load errors. Logic correctness is measured separately (PRODUCT_PASS). |
+| **Rollback criterion** | If the standalone build changes behaviour of a previously working package (a package that passes under HTTP fails standalone), the bundler falls back to `unchanged` automatically; if > 10% fall back, investigate before keeping. |
+| **Result** | NOT_RUN (offline evidence: real chess package renders 64 squares / 32 pieces from the single file in jsdom) |
+| **Decision** | PENDING automatic live run |
+
 ## EXP-PROJECT-4 — Cross-file diagnostics and bounded repair (P127.23)
 
 | Field | Value |
