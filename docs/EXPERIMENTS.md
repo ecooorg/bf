@@ -1,5 +1,17 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-DOM — Entry HTML first (P127.26, EXPERIMENT)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Live run bfc8eb6: `dom-wiring` failed in 3/20 builds; Navigator session 2026-11-07: 3/6 builds (ids such as `current`, `btn-nitro`, `hud-*` absent from the HTML); repair rejected `no_improvement`. |
+| **Hypothesis** | Generating the HTML first and giving scripts and styles its real ids removes most dom-wiring failures. |
+| **Baseline** | commit bfc8eb6, 20 live runs: dom-wiring failures 3/20; reachability 4/20; refs 0/20; module-contracts 1/20; PRODUCT_PASS 1/20. |
+| **Metric / acceptance** | Same live set on the deployed commit: dom-wiring failures <= 1/20 AND reachability + refs + module-contracts failures not above 5/20 combined AND PRODUCT_PASS >= 1/20. |
+| **Scope** | `appBuilder/stack-static-site.ts`, `core-prompts.ts`, `core-engine.ts`, tests. No scenario words in code; no new language-specific regex. Deletion: HTML dependency lines in `expandedPlanFromBrief`. |
+| **Rollback criterion** | Acceptance not met: revert P127.26. One corrective patch allowed (for example HTML told which scripts are modules), then stop or revert. |
+| **Result** | NOT_RUN (needs the deployed commit and the live workflow). |
+
 ## EXP-PROJECT-RACE — Archive stored before terminal state (P127.25, BUGFIX)
 
 | Field | Value |
