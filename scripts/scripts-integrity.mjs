@@ -65,6 +65,7 @@ const ALLOW = new Set([
   'version-metadata.mjs',
   'workflow-preflight.mjs',
   'write-build-stamp.mjs',
+  'project-user-value-eval.mjs',
 ]);
 
 if (!existsSync(scriptsDir)) {
