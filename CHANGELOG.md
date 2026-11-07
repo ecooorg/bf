@@ -1,3 +1,12 @@
+## [127.32] - BEHAVIOUR: Project Mode opens the built page in a sandboxed browser and repairs what throws
+
+- `appBuilder/core-ports.ts`, `index.ts`: optional `RuntimePort` (`check(files)` returns `ran` and issues; `ran: false` means "not checked").
+- `appBuilder/core-engine.ts`: when the host supplies the port and every script parses, the page is opened once; an uncaught error becomes a `runtime-smoke` validator with issues on the project files named in the stack. It joins the existing bounded cross-file repair (max 3 rounds x 3 files, trials are re-opened, accepted only if nothing that passed breaks and the issue count drops). An error that stays keeps the build PARTIAL (`validators_failed: runtime-smoke`). `runtimeVerified` is true only when the page was opened and nothing threw. No port, or `ran: false`, leaves the report exactly as before. One sentence added to the cross-file repair prompt for `runtime:` issues.
+- `server/appBuilderRuntimeCheck.ts` (new): headless Chromium through Playwright, loaded lazily. Page served from memory on `https://app.invalid`; only `cdn.jsdelivr.net` and `cdnjs.cloudflare.com` over https may be reached, every other request is aborted; fresh context per check, one check at a time, 25 s limit, service workers/downloads/popups blocked; `--no-sandbox` only with `RUNTIME_CHECK_NO_SANDBOX=true`. Browser/GPU/network noise is ignored. `server/appBuilderAdapter.ts` wires it only when `PROJECT_RUNTIME_CHECK=true`.
+- `.env.example`: `PROJECT_RUNTIME_CHECK`, `RUNTIME_CHECK_NO_SANDBOX` (default off).
+- Tests (`project-builder-recovery`): repair then verified, error survives repair, port not run or crashing changes nothing, request policy and error mapping, and a real browser run (explicit skip when no browser exists).
+- Owner authorisation to run generated code: Navigator, session 2026-11-07. Experiment record: `docs/EXPERIMENTS.md` EXP-PROJECT-7. Package patch `127.32`.
+
 ## [127.31] - BUGFIX: a usable model plan is no longer thrown away because of how its references are named
 
 - `appBuilder/core-plan.ts`: new `repairPlanReferences` (pure). `dependsOn` and `order` entries are resolved by unit id, file path or file stem; entries that name no unit and self-references are dropped; a dependency cycle is broken at its least-connected unit; `order` is rebuilt. Units, paths and contracts are never added, removed or renamed, so plans with no units, unsafe or duplicate paths, duplicate ids, too many units or a wrong schema version are still rejected. The empty dependency loop in `validatePlan` is removed.
