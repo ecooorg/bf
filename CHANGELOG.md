@@ -1,3 +1,11 @@
+## [127.25] - BUGFIX: terminal build state visible before the ZIP existed; per-file progress and downloads
+
+- `core-engine.ts`: the archive is packed and stored before the terminal state is saved, and `running` is saved when a unit starts. A client that sees done/failed now always finds the ZIP.
+- `appBuilderAdapter.ts`: adapter stores the archive only as a retry; `publicJob` returns `files` (ready / working / pending / failed); `readBuildFile` serves one finished file (from the stored ZIP, else the unit result; only paths of the job's own finished units).
+- `projectRoutes.ts`: `GET /api/projects/:projectId/code/build/:jobId/file?path=`.
+- UI: `BuildFilesPanel` in the project chat: green = ready (per-file Download), red = in progress, grey = waiting; "Download all as ZIP" when the archive exists.
+- Tests: `project-builder-recovery`, `project-mode-contract`. Package patch `127.25`.
+
 ## [127.24] - BUGFIX: live workflow gate looked at one commit only
 
 - `project-user-value.yml`: the gate diffs against the commit of the newest `project-user-value-live` artifact (last measured commit) instead of `HEAD~1`; no earlier measurement means run. Job gets `actions: read`, full checkout depth.

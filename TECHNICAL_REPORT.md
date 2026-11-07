@@ -1,3 +1,9 @@
+## P127.25 — Artifact before terminal state; per-file progress (BUGFIX)
+
+**OBSERVED:** live report (commit bfc8eb6): 7/7 SUCCESS builds had no `downloadUrl` when polled (`hasDownloadUrl=false`); the engine saved `done` before the adapter stored the ZIP. **FIX:** store the ZIP first; expose per-file state and per-file download. **Local:** new tests fail on the old engine and pass on the new one; `test:core` and `vite build` PASS. **NOT_RUN:** deployed behaviour, user value, browser e2e (none exists for the project chat; contract test checks `data-testid`s only).
+
+---
+
 ## P127.24 — Live gate fix (BUGFIX)
 
 **OBSERVED:** workflow_run job for head 45938c3 ended after the gate step; no later steps ran (diff of HEAD~1..HEAD matched nothing). **CAUSE (inferred from the log):** multi-commit upload. **FIX:** compare with the last measured commit via the newest live artifact. **Local:** tests PASS; behaviour on GitHub NOT_RUN.
