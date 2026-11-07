@@ -90,10 +90,21 @@ export interface ClockPort {
   sleep(ms: number, signal?: AbortSignal): Promise<void>;
 }
 
+/**
+ * P127.32: optional port that opens the built page once in a sandboxed browser and reports what threw.
+ * `ran: false` means "not checked" (no browser, disabled, crashed); it never means the page is fine or broken.
+ */
+export interface RuntimeIssue { path?: string; message: string }
+export interface RuntimeResult { ran: boolean; issues: RuntimeIssue[]; reason?: string }
+export interface RuntimePort {
+  check(files: Map<string, string>, options?: { signal?: AbortSignal }): Promise<RuntimeResult>;
+}
+
 /** Bundle passed into the engine. */
 export interface Ports {
   model: ModelPort;
   store: StorePort;
   events: EventPort;
   clock: ClockPort;
+  runtime?: RuntimePort;
 }

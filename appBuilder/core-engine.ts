@@ -765,9 +765,37 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     }
   }
 
+  // P127.32: open the page once in a sandboxed browser (port supplied by the host) and treat what throws as a cross-file defect.
+  // Only when the port exists and every script parses; "not run" (no browser, disabled, crashed) adds nothing to the report.
+  const runtimeValidator = async (map: Map<string, string>): Promise<BuildReport['validators'][number] | null> => {
+    if (!ports.runtime) return null;
+    try {
+      const res = await ports.runtime.check(map, { signal: options.signal });
+      if (!res?.ran) { event(ports, input.jobId, 'runtime_check_skipped', { reason: String(res?.reason ?? 'not_run').slice(0, 200) }); return null; }
+      return { name: 'runtime-smoke', ok: res.issues.length === 0, issues: res.issues.slice(0, 12) };
+    } catch (e) {
+      event(ports, input.jobId, 'runtime_check_skipped', { reason: String((e as Error)?.message ?? e).slice(0, 200) }, 'warn');
+      return null;
+    }
+  };
+  const validateAll = async (map: Map<string, string>): Promise<BuildReport['validators']> => {
+    const staticResult = runStaticValidators(map, state.spec);
+    if (!staticResult.some((v) => v.name === 'js-syntax' && v.ok)) return staticResult;
+    const rt = await runtimeValidator(map);
+    return rt ? [...staticResult, rt] : staticResult;
+  };
+  if (ports.runtime && files.size > 0 && allFilesDone && !cancelled && !options.signal?.aborted && validators.some((v) => v.name === 'js-syntax' && v.ok)) {
+    const rt = await runtimeValidator(new Map([...files].map(([p, f]) => [p, f.content] as [string, string])));
+    if (rt) {
+      validators = [...validators.filter((v) => v.name !== 'runtime-smoke'), rt];
+      event(ports, input.jobId, 'runtime_checked', { ok: rt.ok, issueCount: rt.issues.length, issues: rt.issues.slice(0, 4).map((i) => `${i.path ?? '?'}: ${i.message}`.slice(0, 220)) }, rt.ok ? 'info' : 'warn');
+    }
+  }
+
   // P127.23: bounded cross-file repair (module-contracts / type-contracts / member-contracts), max 3 rounds x 3 files.
   // Accept only if no previously-passing validator breaks and the combined cross-file issue count strictly drops.
-  const CROSS = ['module-contracts', 'type-contracts', 'member-contracts'];
+  // P127.32: runtime-smoke issues take part in the same repair and every trial is re-opened in the browser.
+  const CROSS = ['module-contracts', 'type-contracts', 'member-contracts', 'runtime-smoke'];
   const crossIssues = (vs: BuildReport['validators']) => vs.filter((v) => CROSS.includes(v.name)).flatMap((v) => v.issues);
   for (let round = 0; round < 3; round++) {
     if (!(files.size > 0 && allFilesDone && !cancelled && !options.signal?.aborted && crossIssues(validators).length && state.callsUsed < budget)) break;
@@ -785,6 +813,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       const others = new Map([...files].filter(([p]) => p !== targetPath));
       const repairPrompt =
         `Fix cross-file contract defects in ${targetPath} only. Make every import, call and member access match the REAL interfaces of the other files; if something it needs does not exist there, implement a minimal version locally in this file. Do not invent new files.\n` +
+        (issuesForFile.some((m) => m.startsWith('runtime:')) ? `Lines starting with "runtime:" are errors thrown when the page was opened in a browser; the cause can be how this file uses a value returned by another file (its shape), not only the line named.\n` : '') +
         `Current problems:\n- ${issuesForFile.join('\n- ')}\n` +
         interfaceBlock(others) +
         repairSourceBlock(targetPath, entry.content) +
@@ -797,7 +826,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       if (repairDiscardsSource(entry.content, found.content)) { event(ports, input.jobId, 'cross_file_repair_rejected', { path: targetPath, reason: 'destructive_shrink' }, 'warn'); continue; }
       const trial = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
       trial.set(targetPath, found.content);
-      const trialValidators = runStaticValidators(trial, state.spec);
+      const trialValidators = await validateAll(trial);
       const afterCount = crossIssues(trialValidators).length;
       const newlyBroken = trialValidators.filter((v) => !v.ok && previouslyOk.has(v.name)).map((v) => v.name);
       if (newlyBroken.length || afterCount >= beforeCount) {
@@ -812,6 +841,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     if (!progressed) break;
   }
 
+  const runtimeRan = validators.some((v) => v.name === 'runtime-smoke');
   const checksDeclared = [...REQUIRED_VALIDATORS];
   const checksRun = validators.map((v) => v.name);
   const ran = new Set(checksRun);
@@ -849,7 +879,8 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     status,
     outcome,
     goalImplemented,
-    runtimeVerified: false,
+    // P127.32: true only when the page was opened in a browser and nothing threw; static results never set it.
+    runtimeVerified: runtimeRan && validators.every((v) => v.name !== 'runtime-smoke' || v.ok),
     ...(orphanedFiles.length ? { orphanedFiles } : {}),
     ...(droppedOrphanedFiles.length ? { droppedOrphanedFiles } : {}),
     files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })),
@@ -891,7 +922,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   else if (failureReason && state.error && !state.error.message) state.error.message = failureReason.slice(0, 300);
   state.stage = 'done'; state.report = report; state.updatedAt = new Date(ports.clock.now()).toISOString(); state.heartbeatAt = state.updatedAt;
   await save();
-  event(ports, input.jobId, 'job_done', { status, outcome, goalImplemented: report.goalImplemented, runtimeVerified: false, orphanedCount: orphanedFiles.length });
+  event(ports, input.jobId, 'job_done', { status, outcome, goalImplemented: report.goalImplemented, runtimeVerified: report.runtimeVerified, orphanedCount: orphanedFiles.length });
   if (report.outcome === 'SUCCESS' && (!archive || !archive.byteLength)) {
     report.outcome = 'FAILED';
     report.status = 'failed';

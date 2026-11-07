@@ -42,6 +42,9 @@ export {
   type EventPayload,
   type EventPort,
   type ClockPort,
+  type RuntimeIssue,
+  type RuntimeResult,
+  type RuntimePort,
   type Ports,
 } from './core-ports.ts';
 
