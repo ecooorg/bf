@@ -1,3 +1,11 @@
+## [127.23] - EXPERIMENT: cross-file type diagnostics + bounded repair; zero-input live workflow
+
+- `validator-static-site.ts`: `type-contracts` (TypeScript checkJs on generated JS; only mismatches declared in other project files: missing exports, unknown members of project classes, wrong call arity). Counted as required.
+- `core-engine.ts`: bounded cross-file repair (module/type/member contracts), max 2 rounds x 2 files, accepted only if nothing that passed breaks and the issue count drops. Previously module-contracts had no repair.
+- `core-prompts.ts`: later units see real export signatures (parameters, class members), not only names.
+- Live workflow: fixed URL, no inputs, runs after Core CI on main when Project Mode code changed, waits for the deployed commit itself, 10 prompts x 2 runs, per-scenario summary. `baseline-eval.yml` URL default.
+- Tests updated/added. Package patch `127.23`.
+
 ## [127.22] - Revert P127.21 (EXP-PROJECT-3 failed its pre-registered bar)
 
 - `stack-static-site.ts`, `core-prompts.ts`, `project-builder-recovery.test.mjs` restored to the P127.20 state (HTML again after CSS; no DOM contract in prompts).

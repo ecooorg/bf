@@ -1,3 +1,15 @@
+## P127.23 — Cross-file diagnostics and repair (EXPERIMENT)
+
+**OBSERVED:** live runs 69e46f6 / 24173ab / d88b819: 0/5, 1/5, 0/5. Remaining failures are cross-file contract defects (missing exports, `player.reset` not defined on the class, wrong arity, `onTick` misuse); `module-contracts` had no repair, `member-contracts` only handled `const x = new Foo()`. Literature (CodeTeam, CoCoGen, repair-loop studies) points to compiler/static feedback with bounded repair, not more prompt hints.
+
+**EVIDENCE OF DETECTION (offline, 10 real packages from live runs):** type-contracts flags concrete defects in 8/10, including the exact `Player.reset` / wrong-arity cases behind observed page errors and packages that were reported SUCCESS but failed the human check; 2 packages clean. Manual check of a sampled finding: real (`renderBoard` called with 2 args, declared with 1).
+
+**LIMITS:** n=10 packages for detection; no live measurement of repair success; stricter validator can lower the SUCCESS count (intended: fewer false SUCCESS); does not cover runtime-only state mismatches or blank canvases.
+
+**Local:** unit + integration tests PASS; live NOT_RUN.
+
+---
+
 ## P127.22 — Revert P127.21 (EXPERIMENT outcome)
 
 **OBSERVED (live run, commit d88b819 = repo, 5 scenarios):** PRODUCT_PASS 0/5 (bar >=3/5), SUCCESS-vs-human mismatches 1/5 (bar <=1/5). Failures now: `module-contracts` back in 1 build (missing export), runtime API mismatches between files (`onTick`/`player.reset` not a function), `null.value` DOM reads, `completeness`, `reachability`. Previous run (P127.20): 1/5. n=5 per run: the difference 1/5 vs 0/5 is within noise, but the pre-registered rule is applied as written.
