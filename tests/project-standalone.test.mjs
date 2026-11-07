@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import path from 'node:path';
 import vm from 'node:vm';
 import JSZip from 'jszip';
 import { buildStandaloneIndex, continuationPathMap } from '../appBuilder/standalone.ts';
 import { validateCompleteness } from '../appBuilder/validator-static-site.ts';
 import { runBuild, formatFileMarker, SCHEMA_VERSION } from '../appBuilder/index.ts';
 
-const fixtureDir = 'tests/fixtures/standalone-chess';
-const loadFixture = () => new Map(fs.readdirSync(fixtureDir).map((f) => [f, fs.readFileSync(path.join(fixtureDir, f), 'utf8')]));
+// One flat JSON file (path -> content): a real generated chess package; no nested folders (repo rule).
+const fixtureFiles = JSON.parse(fs.readFileSync('tests/fixture-standalone-chess.json', 'utf8'));
+const loadFixture = () => new Map(Object.entries(fixtureFiles));
 
 /** Tiny DOM so the bundled script can really execute in node:vm. */
 function runInlineScripts(html, extraGlobals = {}) {
@@ -79,7 +79,7 @@ test('P127.30 local fetch() is reported because it cannot work without a server'
 });
 
 test('P127.30 completeness no longer calls a finished file truncated because of an apostrophe in a comment', () => {
-  const src = fs.readFileSync(path.join(fixtureDir, 'renderer.js'), 'utf8');
+  const src = fixtureFiles['renderer.js'];
   assert.ok(/king's/.test(src), 'fixture still contains the comment that used to confuse the counter');
   assert.deepEqual(validateCompleteness(new Map([['renderer.js', src]])).issues, []);
   const cut = validateCompleteness(new Map([['x.js', 'export function f() {\n  if (a) {\n    return 1;\n']]));
