@@ -1,3 +1,10 @@
+## [127.27] - BUGFIX: generated games did not run (extension-less file names, mismatched constants); less clutter in Project replies
+
+- `core-plan.ts`: `repairPackagePath` turns module ids used as paths (`audio_js`) into file names (`audio.js`). Applied to model plans (`core-engine.ts`), intent-brief module paths and spec features (`intent-brief.ts`) and `expandedPlanFromBrief` (`stack-static-site.ts`). Observed: a 24-module build shipped 19 files without `.js`, none imported by `main.js`.
+- `validator-static-site.ts`: `member-contracts` also checks `NAME.key` on imported `export const NAME = {...}` objects (observed: `TILE_TYPES.PATH` / `COLORS.WALL` not defined in `constants.js`); findings enter the existing bounded cross-file repair.
+- `ProjectChat.tsx`, `ProjectMode.tsx`, `ProjectNoviceWizard.tsx`: removed the "validation was only partial" banner and the manual deploy instructions from build results (Navigator request). The ZIP download stays.
+- Tests: `project-builder-recovery` (path repair, constant keys), `project-mode-contract` (no banner or instructions). Package patch `127.27`.
+
 ## [127.26a] - MAINTENANCE: Project Mode user-value workflow is manual-only
 
 - `project-user-value.yml`: removed the `workflow_run`, `pull_request` and `push` triggers; only `workflow_dispatch` remains (Navigator request). Test updated. Package patch `127.26a`.
