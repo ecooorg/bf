@@ -1,3 +1,9 @@
+## P127.26 — DOM-first generation (EXPERIMENT)
+
+**OBSERVED:** live run bfc8eb6: `dom-wiring` failed in 3/20 builds (memory-r1, calc-r1, memory-r2) and in 3/6 of the Navigator's own builds (script asked for ids the HTML did not have; repair rejected as `no_improvement`). **CAUSE (from code):** the HTML was generated after the scripts, so scripts invented ids. **CHANGE:** HTML first; scripts and styles receive its real ids. **Local:** `test:core`, `tsc` PASS. **NOT_RUN:** live run, user value; the risk that HTML written without the scripts' exports loads them wrongly (`refs`, `reachability`, `module-contracts`) is unmeasured.
+
+---
+
 ## P127.25 — Artifact before terminal state; per-file progress (BUGFIX)
 
 **OBSERVED:** live report (commit bfc8eb6): 7/7 SUCCESS builds had no `downloadUrl` when polled (`hasDownloadUrl=false`); the engine saved `done` before the adapter stored the ZIP. **FIX:** store the ZIP first; expose per-file state and per-file download. **Local:** new tests fail on the old engine and pass on the new one; `test:core` and `vite build` PASS. **NOT_RUN:** deployed behaviour, user value, browser e2e (none exists for the project chat; contract test checks `data-testid`s only).

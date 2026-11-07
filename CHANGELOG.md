@@ -1,3 +1,10 @@
+## [127.26] - EXPERIMENT: entry HTML first, scripts and styles written against its real ids
+
+- `stack-static-site.ts`: `domFirstPlan` (applied to every plan, also model-made ones): the HTML depends on no script or style; every script and style depends on it. Superseded HTML dependency lines in `expandedPlanFromBrief` removed.
+- `core-prompts.ts`: `domBlock` (real ids and classes of the generated HTML, authoritative) for scripts and styles; `htmlPlanBlock` (planned files, load all with `type="module"`, ids on controlled elements, no inline handlers) for the HTML.
+- `core-engine.ts`: applies `domFirstPlan` after planning; passes the blocks to unit prompts; event `plan_dom_first`.
+- Tests: `project-builder-recovery` (order, prompts, integration; the recovery test no longer assumes `index` is the third unit). Requires P127.25. Package patch `127.26`.
+
 ## [127.25] - BUGFIX: terminal build state visible before the ZIP existed; per-file progress and downloads
 
 - `core-engine.ts`: the archive is packed and stored before the terminal state is saved, and `running` is saved when a unit starts. A client that sees done/failed now always finds the ZIP.
