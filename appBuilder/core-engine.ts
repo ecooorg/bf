@@ -353,6 +353,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     event(ports, input.jobId, 'spec_accepted', { title: accepted.title, acceptanceCount: accepted.acceptance.length, stack: accepted.stack, coerced: validated && validated.ok ? validated.coerced : [] });
     if (!intentBrief) intentBrief = fallbackIntentBrief(accepted.goal || accepted.title || '');
     accepted = applyBriefToSpec(accepted, intentBrief);
+    state.spec = accepted; await save();
     event(ports, input.jobId, 'spec_brief_applied', { complexity: intentBrief.complexity, acceptanceCount: accepted.acceptance.length, targetModules: intentBrief.targetModules });
 
     }
