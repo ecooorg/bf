@@ -1,3 +1,10 @@
+## [127.31] - BUGFIX: a usable model plan is no longer thrown away because of how its references are named
+
+- `appBuilder/core-plan.ts`: new `repairPlanReferences` (pure). `dependsOn` and `order` entries are resolved by unit id, file path or file stem; entries that name no unit and self-references are dropped; a dependency cycle is broken at its least-connected unit; `order` is rebuilt. Units, paths and contracts are never added, removed or renamed, so plans with no units, unsafe or duplicate paths, duplicate ids, too many units or a wrong schema version are still rejected. The empty dependency loop in `validatePlan` is removed.
+- `appBuilder/core-engine.ts`: applied to the model plan before `validatePlan`; event `plan_references_repaired` when anything changed.
+- Observed (job 71621f10, commit c39688e): the planner's plan had unit ids without extension but `dependsOn`/`order` with file names and a two-script cycle; `validatePlan` returned 16 issues, the generic template replaced the plan, the entry script was written before three of its modules, and the delivered program drew an empty board strip with no pieces (outcome PARTIAL, `plan_fallback`).
+- Tests: `project-builder-recovery` (replay of that graph with neutral names, still-rejected plans, build without template fallback). Experiment record: `docs/EXPERIMENTS.md` EXP-PROJECT-6. Package patch `127.31`.
+
 ## [127.30a] - Test fixture moved to one flat file
 
 - `tests/fixture-standalone-chess.json` replaces the nested `tests/fixtures/standalone-chess/` folder (nested folders are not allowed); `project-standalone.test.mjs` reads it. Delete the old folder. Package patch `127.30a`.
