@@ -407,3 +407,49 @@ test('P127.23 cross-file repair fixes a bad import with one bounded model call a
   const failing = r.report.validators.filter((v) => !v.ok).map((v) => `${v.name}:${v.issues.map((i) => i.message).join(';')}`);
   assert.deepEqual(failing.filter((f) => /^(module|type|member)-contracts/.test(f)), []);
 });
+
+// P127.25: terminal state must never be visible before the artifact exists; per-file progress for the UI.
+test('P127.25: first terminal save already carries the artifact (complete and partial builds)', async () => {
+  for (const failAt of [0, 3]) {
+    const w = world(); const saves = [];
+    const base = w.ports(w.model(failAt));
+    const ports = { ...base, store: { ...base.store, async saveJob(s) { saves.push({ status: s.status, artifactId: s.artifactId ?? null }); return base.store.saveJob(s); }, async putArtifact(...a) { saves.push({ putArtifact: true }); return base.store.putArtifact(...a); } } };
+    const r = await runBuild(input, ports);
+    assert.ok(r.archive, 'archive built');
+    const firstTerminal = saves.findIndex((s) => ['done', 'failed', 'cancelled'].includes(s.status));
+    const put = saves.findIndex((s) => s.putArtifact);
+    assert.ok(put >= 0 && put < firstTerminal, `artifact stored before first terminal save (failAt=${failAt})`);
+    assert.equal(saves[firstTerminal].artifactId, 'a');
+  }
+});
+
+test('P127.25: running unit is persisted so the UI can show it in progress', async () => {
+  const w = world(); const seen = [];
+  const base = w.ports(w.model(0));
+  const ports = { ...base, store: { ...base.store, async saveJob(s) { for (const u of s.plan?.units ?? []) if (u.status === 'running') seen.push(u.path); return base.store.saveJob(s); } } };
+  await runBuild(input, ports);
+  assert.ok(seen.length >= 1, 'a running unit was visible in a saved state');
+});
+
+test('P127.25: publicBuildFiles maps unit status to ready/working/pending/failed; only ready has a download url', async () => {
+  const { publicBuildFiles } = await import('../server/appBuilderAdapter.ts');
+  const mk = (status, unitStatus) => ({ id: 'j'.repeat(8), projectId: 'p1', status, plan: { units: [
+    { id: 'a', path: 'a.js', status: 'done' }, { id: 'b', path: 'b.js', status: unitStatus }, { id: 'c', path: 'c.js', status: 'pending' }, { id: 'n', status: 'done' },
+  ] } });
+  const live = publicBuildFiles(mk('running', 'running'));
+  assert.deepEqual(live.map((f) => f.state), ['ready', 'working', 'pending']);
+  assert.match(live[0].downloadUrl, /code\/build\/.+\/file\?path=a\.js$/);
+  assert.equal(live[1].downloadUrl, undefined);
+  assert.equal(publicBuildFiles(mk('failed', 'failed'))[1].state, 'failed');
+  assert.equal(publicBuildFiles(mk('failed', 'running'))[1].state, 'pending', 'a stale running unit of a finished job is not shown as in progress');
+});
+
+test('P127.25: readBuildFile serves only finished unit paths, preferring the stored ZIP', async () => {
+  const { readBuildFile } = await import('../server/appBuilderAdapter.ts');
+  const { default: JSZip } = await import('jszip');
+  const zip = new JSZip(); zip.file('a.js', 'repaired'); const bytes = await zip.generateAsync({ type: 'uint8array' });
+  const job = { id: 'j', projectId: 'p', status: 'done', artifactId: 'z', plan: { units: [{ id: 'a', path: 'a.js', status: 'done' }, { id: 'b', path: 'b.js', status: 'running' }] } };
+  assert.equal(await readBuildFile(job, 'a.js', {}, async () => bytes), 'repaired');
+  assert.equal(await readBuildFile(job, 'b.js', {}, async () => bytes), null, 'unfinished file is not served');
+  assert.equal(await readBuildFile(job, '../../etc/passwd', {}, async () => bytes), null, 'paths outside the plan are not served');
+});

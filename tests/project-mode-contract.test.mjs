@@ -135,3 +135,12 @@ test('P127.17b plan paths stay flat (no nested folders)', () => {
   assert.doesNotMatch(intent, /js\/main\.js/);
   assert.match(plan, /isFlatPackagePath|segments\.length > 2/);
 });
+
+test('P127.25: project chat shows per-file build progress with download controls', async () => {
+  const { readFileSync } = await import('node:fs');
+  const chat = readFileSync(new URL('../src/ProjectChat.tsx', import.meta.url), 'utf8');
+  const panel = readFileSync(new URL('../src/BuildFilesPanel.tsx', import.meta.url), 'utf8');
+  assert.match(chat, /<BuildFilesPanel/);
+  for (const id of ['build-files', 'build-file', 'build-file-download', 'build-files-archive']) assert.match(panel, new RegExp(`data-testid="${id}"`));
+  assert.match(panel, /ready:\s*'#2fbf71'/); assert.match(panel, /working:\s*'#e5484d'/);
+});
