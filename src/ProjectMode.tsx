@@ -14,7 +14,6 @@ import { UserGuideModal } from './UserGuide.tsx';
 import { ProjectNoviceWizard } from './ProjectNoviceWizard.tsx';
 import { ProjectChat } from './ProjectChat.tsx';
 import { downloadViaFetch } from './downloadFile.ts';
-import { manualDeployInstructions } from './projectAppBuilder.ts';
 import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
 
 type Project = { id: string; name: string; status: string; state: Record<string, unknown>; state_version: number; updated_at?: string };
@@ -714,7 +713,6 @@ export default function ProjectMode() {
                   <a href={programResult.downloadUrl} style={{ color: '#9ac7ff' }} onClick={(e) => { e.preventDefault(); void downloadViaFetch(programResult.downloadUrl!, `${selected?.name || 'program'}-source.zip`).catch((err) => setError(String(err.message || err))); }}>Download generated program (.zip)</a>
                   {isDriveConfigured() && <button type="button" style={{ ...styles.button, minHeight: 32 }} disabled={driveBusy} onClick={() => void saveProgramToDrive()}>Save ZIP to Google Drive</button>}
                 </p>}
-                {programResult.downloadUrl && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12, color: '#8fa6c2', marginTop: 8 }}>{manualDeployInstructions(selected?.name || 'project', { stack: (programResult as { stack?: string }).stack })}</pre>}
                 {programResult.note && <p style={{ fontSize: 13 }}>{programResult.note}</p>}
               </div>}
               

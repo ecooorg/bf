@@ -4,7 +4,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { downloadViaFetch } from './downloadFile.ts';
-import { manualDeployInstructions, suggestProjectName } from './projectAppBuilder.ts';
+import { suggestProjectName } from './projectAppBuilder.ts';
 import { waitForProjectBuild, type BuildJobResult } from './projectBuildJob.ts';
 import { BuildFilesPanel, type BuildFileView } from './BuildFilesPanel.tsx';
 
@@ -266,13 +266,11 @@ export function ProjectChat({
       if (outcome === 'SUCCESS' || result.goalImplemented === true) {
         lines.push(kind === 'continue' ? 'Updated source ZIP is ready.' : 'Source ZIP is ready.');
       } else if (outcome === 'PARTIAL') {
-        lines.push('A ZIP is available, but validation was only partial. Review before use.');
+        // P127.27: no banner for partial builds; the ZIP link is enough.
       } else {
         lines.push('A ZIP may be available, but the build did not fully succeed.');
       }
       if (result.note) lines.push(result.note);
-      lines.push('');
-      lines.push(manualDeployInstructions(projectName || 'project', { stack: result.stack }));
       lines.push('');
       lines.push('Reply here to change the program (for example: add a pause button).');
     } else {

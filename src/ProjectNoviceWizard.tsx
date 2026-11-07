@@ -10,7 +10,6 @@ import {
   emptyNoviceAnswers,
   passportFromNoviceAnswers,
   buildGoalFromNoviceAnswers,
-  manualDeployInstructions,
   suggestProjectName,
   type NoviceAnswers,
 } from './projectAppBuilder.ts';
@@ -90,7 +89,6 @@ export function ProjectNoviceWizard({
   const canNextIdea = answers.idea.trim().length >= 8;
   const passportPreview = useMemo(() => passportFromNoviceAnswers(answers), [answers]);
   const buildGoal = useMemo(() => buildGoalFromNoviceAnswers(answers), [answers]);
-  const deployText = useMemo(() => manualDeployInstructions(projectName || suggestProjectName(answers.idea)), [projectName, answers.idea]);
 
   const set = <K extends keyof NoviceAnswers>(key: K, value: NoviceAnswers[K]) =>
     setAnswers((prev) => ({ ...prev, [key]: value }));
@@ -318,19 +316,6 @@ export function ProjectNoviceWizard({
               </a>
             </p>
           )}
-          <pre
-            style={{
-              whiteSpace: 'pre-wrap',
-              fontSize: 13,
-              background: '#07111f',
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid #25405e',
-              color: '#c5d4e8',
-            }}
-          >
-            {deployText}
-          </pre>
           <p style={S.muted}>
             Open the project in the list below for more analysis or another build.
           </p>
