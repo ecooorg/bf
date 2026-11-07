@@ -13,9 +13,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import http from 'node:http';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const env = process.env;
@@ -51,28 +50,16 @@ async function api(method, url, body, { raw = false } = {}) {
   return { status: res.status, json, text: text.slice(0, 300) };
 }
 
-/* ---------- static server for the downloaded package ---------- */
-function serveDir(dir) {
-  const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
-  const srv = http.createServer((req, res) => {
-    const rel = decodeURIComponent((req.url || '/').split('?')[0]);
-    const file = path.join(dir, rel.endsWith('/') ? rel + 'index.html' : rel);
-    if (!file.startsWith(dir) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end('nf'); return; }
-    res.writeHead(200, { 'content-type': types[path.extname(file)] || 'application/octet-stream' });
-    fs.createReadStream(file).pipe(res);
-  });
-  return new Promise((resolve) => srv.listen(0, '127.0.0.1', () => resolve({ srv, url: `http://127.0.0.1:${srv.address().port}/` })));
-}
-
 /* ---------- runtime check: what a person sees when opening the package ---------- */
 async function runtimeCheck(browser, dir, shotPrefix) {
-  const { srv, url } = await serveDir(dir);
+  // P127.30: open the package exactly like a person does (double-click / file manager): file://, no web server.
+  const url = pathToFileURL(path.join(dir, 'index.html')).href;
   const out = { opened: false, pageErrors: [], consoleErrors: [], failedRequests: [], visibleText: 0, canvases: 0, canvasDrawn: null, controls: 0, reactsToInput: false, animatedWithoutInput: false, screenshots: [] };
   const ctx = await browser.newContext({ viewport: { width: 1024, height: 768 }, hasTouch: true });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => out.pageErrors.push(String(e.message).slice(0, 200)));
   page.on('console', (m) => { if (m.type() === 'error') out.consoleErrors.push(m.text().slice(0, 200)); });
-  page.on('response', (r) => { if (r.status() >= 400) out.failedRequests.push(`${r.status()} ${r.url().replace(url, '/')}`); });
+  page.on('response', (r) => { if (r.status() >= 400) out.failedRequests.push(`${r.status()} ${r.url().replace(url, 'index.html')}`); });
   const snap = async () => {
     const png = await page.screenshot();
     const state = await page.evaluate(() => {
@@ -103,7 +90,7 @@ async function runtimeCheck(browser, dir, shotPrefix) {
     out.canvasDrawn = c.state.drawn.length ? c.state.drawn.some((d) => d === true) : null;
     for (const [n, s] of [['before', a], ['after', c]]) { const f = `${shotPrefix}-${n}.png`; fs.writeFileSync(f, s.png); out.screenshots.push(f); }
   } catch (e) { out.error = String(e.message).slice(0, 200); }
-  await ctx.close(); srv.close();
+  await ctx.close();
   out.rendersSomething = out.opened && (out.visibleText > 20 || out.canvasDrawn === true);
   out.noRuntimeErrors = out.pageErrors.length === 0 && out.failedRequests.length === 0;
   return out;
