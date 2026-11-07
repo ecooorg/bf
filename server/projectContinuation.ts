@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { readArtifactBytes } from './artifactRepository.ts';
+import { continuationPathMap } from '../appBuilder/standalone.ts';
 
 export const MAX_CONTINUATION_FILES = 80;
 export const MAX_CONTINUATION_CHARS = 80_000;
@@ -13,10 +14,14 @@ export async function loadContinuationSource(projectId: string, artifactId: stri
   const zip = await JSZip.loadAsync(Buffer.from(artifact.data), { checkCRC32: true });
   const files: ContinuationSource['files'] = [];
   let chars = 0;
-  for (const [path, entry] of Object.entries(zip.files)) {
+  // P127.30: a delivered ZIP has a generated standalone index.html at the root and the editable sources in source/.
+  const pathMap = continuationPathMap(Object.entries(zip.files).filter(([, e]) => !e.dir).map(([p]) => p));
+  for (const [zipPath, entry] of Object.entries(zip.files)) {
     if (entry.dir) continue;
-    if (path.startsWith('/') || path.split('/').some((part) => part === '..') || path.includes('\\')) {
-      throw Object.assign(new Error(`Unsafe path in source archive: ${path}`), { code: 'INVALID_SOURCE_ARCHIVE' });
+    const path = pathMap.get(zipPath);
+    if (path === undefined) continue;
+    if (zipPath.startsWith('/') || zipPath.split('/').some((part) => part === '..') || zipPath.includes('\\')) {
+      throw Object.assign(new Error(`Unsafe path in source archive: ${zipPath}`), { code: 'INVALID_SOURCE_ARCHIVE' });
     }
     if (files.length >= MAX_CONTINUATION_FILES) throw Object.assign(new Error(`Source archive exceeds ${MAX_CONTINUATION_FILES} files`), { code: 'CONTINUATION_LIMIT' });
     const bytes = await entry.async('uint8array');
