@@ -12,6 +12,20 @@
 | **Metric / acceptance** | Re-run the same 5 prompts on the deployed new commit: module-contracts failures <= 2/5 AND PRODUCT_PASS >= 2/5. |
 | **Scope** | `appBuilder/core-prompts.ts`, `core-engine.ts` (context only), `stack-static-site.ts` (entry dependencies), tests. No new regex on user language; no scenario words in code. |
 | **Rollback criterion** | If acceptance is not met, revert P127.20. One corrective patch is allowed (e.g. targeted module-contract repair), then stop or revert (C127 rule 3). |
+| **Result** | Live run, commit 24173ab (deployed==repo): module-contracts failures 0/5 (bar <=2: MET); SUCCESS builds 3/5 (was 0/5); PRODUCT_PASS 1/5 (bar >=2: NOT MET); 2 SUCCESS-vs-human mismatches (timer, arcade). n=5, single run. |
+| **Decision** | Keep: the targeted defect is gone and a full revert would restore 5/5 broken builds. The pass bar was not met, so no USER_VALUE label; follow-up EXP-PROJECT-3 (the one corrective). |
+
+## EXP-PROJECT-3 — Style the real page (P127.21)
+
+| Field | Value |
+|---|---|
+| **Date** | 2026-11-07 |
+| **Patch** | P127.21 — EXPERIMENT (corrective to EXP-PROJECT-2; last one allowed before stop or revert) |
+| **Problem and evidence** | Live run 24173ab: SUCCESS builds fail the human check; timer screenshot shows CSS/HTML class mismatch (stylesheet generated before the page). |
+| **Hypothesis** | Generating HTML before CSS and passing real ids/classes to later units fixes mis-styled pages. |
+| **Baseline** | Same 5 prompts, 24173ab: PRODUCT_PASS 1/5, SUCCESS-vs-human mismatches 2/5. |
+| **Metric / acceptance** | Same 5 prompts on the deployed new commit: PRODUCT_PASS >= 3/5 AND mismatches <= 1/5. |
+| **Rollback criterion** | If not met: revert P127.21; no further corrective on this hypothesis. |
 | **Result** | NOT_RUN |
 | **Decision** | PENDING live re-measure |
 
