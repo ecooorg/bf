@@ -24,8 +24,9 @@ test('P127.23 live runner needs no input: fixed default URL, lists scenarios off
   assert.match(r.stdout, /uv-calc/);
 });
 
-test('P127.23 live workflow is automatic, input-free and waits for the deployed commit', () => {
-  assert.match(wf, /workflow_run:/);
+test('P127.26a live workflow is manual-only, input-free and waits for the deployed commit', () => {
+  assert.match(wf, /\n  workflow_dispatch:/);
+  for (const t of ['workflow_run:', 'pull_request:', 'push:', 'schedule:']) assert.ok(!new RegExp(`\\n  ${t}`).test(wf), `no automatic trigger ${t}`);
   assert.match(wf, /EVAL_BASE_URL: https:\/\/biforge\.onrender\.com/);
   assert.match(wf, /UV_EXPECTED_SHA: \$\{\{ github\.event\.workflow_run\.head_sha \|\| github\.sha \}\}/);
   assert.ok(!/inputs\./.test(wf), 'no manual inputs are required or read');
