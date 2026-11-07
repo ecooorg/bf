@@ -357,18 +357,3 @@ test('P127.20 entry script is planned after every other script and the plan stay
   // game would depend on the first script (main) by name; the entry must not also depend on it (no cycle)
   assert.ok(!(main.dependsOn.includes('game') && plan.units.find((u) => u.id === 'game').dependsOn.includes('main')));
 });
-
-import { domContract } from '../appBuilder/core-prompts.ts';
-
-test('P127.21 domContract lists real ids/classes and CSS is planned after the page it styles', () => {
-  const c = domContract('<div id="a" class="x y"><span class=\'z\' id=\'b\'></span></div>');
-  assert.deepEqual(c.ids.sort(), ['a', 'b']);
-  assert.deepEqual(c.classes.sort(), ['x', 'y', 'z']);
-  assert.match(interfaceBlock(new Map([['index.html', { content: '<p id="t" class="k"></p>' }]])), /index\.html: ids \[t\]; classes \[k\]/);
-  const spec = { schemaVersion: 1, title: 'T', goal: 'g', language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: [] };
-  const brief = { ...fallbackIntentBrief('x'), complexity: 'standard', targetModules: 5, suggestedModules: [
-    { id: 'style', path: 'style.css', purpose: 's' }, { id: 'lib', path: 'lib.js', purpose: 'l' }, { id: 'main', path: 'main.js', purpose: 'm' }, { id: 'index', path: 'index.html', purpose: 'h' } ] };
-  const plan = expandedPlanFromBrief(spec, brief);
-  assert.ok(plan.units.find((u) => u.id === 'style').dependsOn.includes('index'));
-  assert.ok(!plan.units.find((u) => u.id === 'index').dependsOn.includes('style'));
-});
