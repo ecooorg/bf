@@ -1,3 +1,13 @@
+## P127.20 — Interface-aware generation (EXPERIMENT)
+
+**OBSERVED (live run P127.19, deployed commit 69e46f6, 5 scenarios):** product pass 0/5. All 5 builds ended PARTIAL with `validators_failed: module-contracts` (importer names a symbol the sibling file does not export; page throws at load); one also referenced a missing media file (`refs`); one produced no downloadable package (cause UNKNOWN, job facts now recorded). The screenshot judge did not run (HTTP 404 on its model id).
+
+**HYPOTHESIS:** units were generated knowing only a free-text contract of siblings; giving each later unit the real exports of earlier files, and generating the entry script last, removes most module-contract failures.
+
+**CHANGE / LIMITS:** see CHANGELOG. Not a repair step: a module generated before a sibling it imports can still mismatch. **Local:** unit tests PASS; live re-measure NOT_RUN. Not labelled USER_VALUE until the live comparison exists.
+
+---
+
 ## P127.19 — Live Project Mode user-value run (MEASUREMENT)
 
 **Type:** EXPERIMENT (instrument). **OBSERVED:** the P127.18 workflow scored two hand-made fixtures and could not detect regressions of the live product.

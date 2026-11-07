@@ -1,3 +1,10 @@
+## [127.20] - EXPERIMENT: generate against actual module interfaces; live runner fixes
+
+- `core-prompts.ts`: `exportedNames` / `interfaceBlock`; `core-engine.ts` appends the real exports of already generated scripts to every later unit's prompt.
+- `stack-static-site.ts`: entry script (`main`/`app`/`index`) depends on all other scripts so it is generated last.
+- `project-user-value-live.mjs`: judge tries model ids from `config/model-sources.json` and reports the HTTP error; raw job facts (download url, error) are recorded.
+- Tests added to `project-builder-recovery.test.mjs`. Package patch `127.20`.
+
 ## [127.19] - Live Project Mode user-value run (real deploy, real browser)
 
 - `scripts/project-user-value-live.mjs`: login → create project → real staged build → poll → download ZIP → open in headless Chromium (render, runtime errors, 404s, reaction to clicks/keys/taps) → optional screenshot judge (Gemini, `GEMINI_API_KEY`).
