@@ -2,12 +2,12 @@
 import { SCHEMA_VERSION, type BuildInput, type BuildReport, type JobState, type Plan, type Spec, type Unit } from './core-types.ts';
 import { isModelError, type Ports } from './core-ports.ts';
 import { makeCacheKey, sha256 } from './core-cache.ts';
-import { promptFor, interfaceBlock } from './core-prompts.ts';
+import { promptFor, interfaceBlock, domBlock, htmlPlanBlock } from './core-prompts.ts';
 import { parseFileMarkers } from './core-markers.ts';
 import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
-import { templatePlan, ensureMultiFileStaticPlan, expandedPlanFromBrief } from './stack-static-site.ts';
+import { templatePlan, ensureMultiFileStaticPlan, expandedPlanFromBrief, domFirstPlan } from './stack-static-site.ts';
 import {
   buildIntentPrompt,
   parseIntentBrief,
@@ -392,6 +392,11 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       if (!checked.ok) throw new Error(checked.issues.map((i) => i.message).join('; ') || 'invalid_forced_multifile_plan');
       event(ports, input.jobId, 'plan_coerced', { coerced: multi.coerced, unitCount: plan.units.length });
     }
+    {
+      const ordered = domFirstPlan(plan);
+      const recheck = ordered === plan ? checked : validatePlan(ordered, profile);
+      if (ordered !== plan && recheck.ok) { plan = ordered; checked = recheck; event(ports, input.jobId, 'plan_dom_first', { unitCount: plan.units.length }); }
+    }
     state.plan = { ...plan, order: checked.order ?? plan.order }; await save();
     }
 
@@ -407,7 +412,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       let content = cached?.content;
       let modelId: string | undefined = undefined;
       if (!content) {
-        const unitContext = `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.${interfaceBlock(files)}`;
+        const unitContext = `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.${interfaceBlock(files)}${/\.html?$/i.test(unit.path || '') ? htmlPlanBlock(state.plan.units, unit.id) : domBlock(files)}`;
         const output = await call('coder', unitContext, undefined, unit.path);
         if (!output) {
           if (cancelled || options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; unit.status = 'pending'; await save(); break; }

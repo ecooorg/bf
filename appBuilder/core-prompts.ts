@@ -108,3 +108,27 @@ export function interfaceBlock(files: Map<string, { content: string }>): string 
     ? `\nACTUAL interfaces of files already generated (authoritative; import ONLY these names, call them with EXACTLY these parameters, use only the listed class members, and never reference files or media assets that are not in the plan):\n${lines.join('\n')}\n`
     : '';
 }
+
+const attrValues = (html: string, attr: 'id' | 'class'): string[] => {
+  const out = new Set<string>();
+  for (const m of html.matchAll(new RegExp(`\\b${attr}\\s*=\\s*["']([^"']+)["']`, 'gi'))) for (const v of m[1].split(/\s+/)) if (/^[\w-]{1,60}$/.test(v)) out.add(v);
+  return [...out];
+};
+
+/** P127.25b: the real ids/classes of the generated HTML, for scripts and styles written after it. Empty when there is no HTML yet. */
+export function domBlock(files: Map<string, { content: string }>): string {
+  const parts: string[] = [];
+  for (const [path, f] of files) {
+    if (!/\.html?$/i.test(path)) continue;
+    const ids = attrValues(f.content, 'id'); const classes = attrValues(f.content, 'class').slice(0, 80);
+    parts.push(`${path}: ids [${ids.join(', ')}]; classes [${classes.join(', ')}]`);
+  }
+  if (!parts.length) return '';
+  return `\n\nDOM CONTRACT (taken from the generated HTML; authoritative):\n${parts.join('\n')}\nUse ONLY these ids with getElementById / querySelector and only these classes in selectors; do not invent others. If an element you need is missing, create it with document.createElement and append it instead of assuming it exists. Scripts are loaded as <script type="module">.`;
+}
+
+/** P127.25b: instructions for the entry HTML, which is written before the scripts and styles. */
+export function htmlPlanBlock(units: Array<{ id: string; path?: string | null; purpose?: string }>, selfId: string): string {
+  const others = units.filter((u) => u.id !== selfId && u.path && !/\.html?$/i.test(u.path)).map((u) => `- ${u.path}: ${String(u.purpose || '').slice(0, 120)}`);
+  return `\n\nThis HTML is generated BEFORE the scripts and styles; they will be written against its ids and classes. Planned files:\n${others.join('\n') || '- (none)'}\nLoad every planned .css with <link rel="stylesheet" href="..."> and every planned .js with <script type="module" src="...">, relative paths only. Give every element a script will control or read (buttons, canvas, inputs, score or status text, panels) a unique descriptive id. No inline on* handlers and no inline scripts.`;
+}

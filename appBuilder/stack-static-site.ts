@@ -2,6 +2,7 @@
 import { SCHEMA_VERSION, type Plan, type Spec, type Unit } from './core-types.ts';
 import { sha256 } from './core-cache.ts';
 import type { IntentBrief } from './intent-brief.ts';
+import { topoSort } from './core-plan.ts';
 import { estimateComplexity, targetModulesFor } from './intent-brief.ts';
 
 export const STATIC_SITE_ID = 'static_site';
@@ -59,9 +60,7 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     const isHtml = /\.html?$/i.test(m.path);
     const id = m.id.replace(/\W+/g, '_').slice(0, 40) || 'u';
     const dependsOn: string[] = [];
-    if (isHtml) {
-      dependsOn.push(...cssIds, ...jsIds.slice(0, 8));
-    }
+    // P127.25b: HTML has no dependency on scripts or styles (domFirstPlan makes them depend on it).
     if (isJs && jsIds.length) {
       if (id !== jsIds[0] && /main|index|app|game/.test(id)) dependsOn.push(jsIds[0]);
     }
@@ -129,4 +128,23 @@ export function ensureMultiFileStaticPlan(plan: Plan, spec: Spec, brief?: Intent
     return { plan: templatePlan(spec), coerced: ['plan:force_multifile_static'] };
   }
   return { plan, coerced: [] };
+}
+
+/**
+ * P127.25b: the entry HTML is generated first and carries no dependency on scripts or styles; every script and style
+ * depends on it, so they are written against the ids and classes that really exist. Applied to every plan, whoever made it.
+ */
+export function domFirstPlan(plan: Plan): Plan {
+  const isHtml = (u: Unit) => /\.html?$/i.test(u.path || '');
+  const isCode = (u: Unit) => /\.(js|css)$/i.test(u.path || '');
+  const entry = plan.units.find((u) => /^index\.html?$/i.test(u.path || '')) ?? plan.units.find(isHtml);
+  if (!entry) return plan;
+  const codeIds = new Set(plan.units.filter(isCode).map((u) => u.id));
+  const units = plan.units.map((u): Unit => {
+    if (isHtml(u)) return { ...u, dependsOn: (u.dependsOn || []).filter((d) => !codeIds.has(d)) };
+    if (isCode(u) && !(u.dependsOn || []).includes(entry.id)) return { ...u, dependsOn: [entry.id, ...(u.dependsOn || [])] };
+    return u;
+  });
+  const order = topoSort(units);
+  return order ? { ...plan, units, order } : plan;
 }
