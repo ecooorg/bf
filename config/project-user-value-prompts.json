@@ -1,17 +1,100 @@
 {
-  "version": "uv-live-1",
+  "version": "uv-live-2",
   "authoredBy": "assistant-draft (P127.19) — Navigator or another session MUST review/replace before results count as independent evidence (C127 rule 7)",
   "note": "Neutral everyday requests. Do not copy words from these into code, prompts or tests (C127 rule 6). Failures become eval data.",
   "scenarios": [
-    { "id": "uv-list", "request": "A to-do list app I can use on my phone: add tasks, tick them off, delete them, and it remembers them when I come back.",
-      "mustObserve": ["I can type a task and add it to a visible list", "I can mark a task as done and the change is visible", "I can delete a task"] },
-    { "id": "uv-memory", "request": "A memory card matching game with a grid of face-down cards, a move counter and a way to restart.",
-      "mustObserve": ["A grid of cards is visible", "Clicking a card reveals something", "A move counter or score is visible", "There is a restart control"] },
-    { "id": "uv-convert", "request": "A unit converter for length, weight and temperature where I type a number and see the result immediately.",
-      "mustObserve": ["There is an input for a number", "I can choose units or categories", "A converted result is shown"] },
-    { "id": "uv-timer", "request": "A study timer with start, pause and reset buttons and a big countdown display.",
-      "mustObserve": ["A large time display is visible", "Start, pause and reset controls exist", "The display changes after pressing start"] },
-    { "id": "uv-arcade", "request": "A small arcade game where I steer something with the keyboard or by touch, avoid obstacles, and see my score.",
-      "mustObserve": ["A playfield is visible", "Something responds to keyboard or touch input", "Obstacles or hazards are visible", "A score is visible"] }
+    {
+      "id": "uv-list",
+      "request": "A to-do list app I can use on my phone: add tasks, tick them off, delete them, and it remembers them when I come back.",
+      "mustObserve": [
+        "I can type a task and add it to a visible list",
+        "I can mark a task as done and the change is visible",
+        "I can delete a task"
+      ]
+    },
+    {
+      "id": "uv-memory",
+      "request": "A memory card matching game with a grid of face-down cards, a move counter and a way to restart.",
+      "mustObserve": [
+        "A grid of cards is visible",
+        "Clicking a card reveals something",
+        "A move counter or score is visible",
+        "There is a restart control"
+      ]
+    },
+    {
+      "id": "uv-convert",
+      "request": "A unit converter for length, weight and temperature where I type a number and see the result immediately.",
+      "mustObserve": [
+        "There is an input for a number",
+        "I can choose units or categories",
+        "A converted result is shown"
+      ]
+    },
+    {
+      "id": "uv-timer",
+      "request": "A study timer with start, pause and reset buttons and a big countdown display.",
+      "mustObserve": [
+        "A large time display is visible",
+        "Start, pause and reset controls exist",
+        "The display changes after pressing start"
+      ]
+    },
+    {
+      "id": "uv-arcade",
+      "request": "A small arcade game where I steer something with the keyboard or by touch, avoid obstacles, and see my score.",
+      "mustObserve": [
+        "A playfield is visible",
+        "Something responds to keyboard or touch input",
+        "Obstacles or hazards are visible",
+        "A score is visible"
+      ]
+    },
+    {
+      "id": "uv-quiz",
+      "request": "A multiple-choice quiz about general knowledge: show one question at a time, let me pick an answer, tell me if it was right, and show my score at the end.",
+      "mustObserve": [
+        "A question with several answer choices is visible",
+        "Choosing an answer gives visible feedback",
+        "A score or progress indicator is visible"
+      ]
+    },
+    {
+      "id": "uv-draw",
+      "request": "A simple drawing pad where I can draw with the mouse or finger, pick a colour and clear the canvas.",
+      "mustObserve": [
+        "A drawing area is visible",
+        "There is a way to choose a colour",
+        "There is a clear control"
+      ]
+    },
+    {
+      "id": "uv-budget",
+      "request": "An expense tracker where I add an amount, a category and a note, see the list of expenses and the total, and delete an entry.",
+      "mustObserve": [
+        "Inputs for amount and category exist",
+        "Added entries appear in a list",
+        "A total is visible",
+        "Entries can be deleted"
+      ]
+    },
+    {
+      "id": "uv-guess",
+      "request": "A number guessing game: the computer picks a secret number, I type guesses, it says higher or lower, and counts my attempts.",
+      "mustObserve": [
+        "An input for a guess is visible",
+        "Feedback such as higher or lower is shown",
+        "An attempts counter is visible"
+      ]
+    },
+    {
+      "id": "uv-calc",
+      "request": "A calculator with digits, basic operations, a clear button and a display that shows what I typed and the result.",
+      "mustObserve": [
+        "Digit buttons are visible",
+        "Operation buttons are visible",
+        "A display shows entered values or the result"
+      ]
+    }
   ]
 }
