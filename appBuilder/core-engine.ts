@@ -745,6 +745,53 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     }
   }
 
+  // P127.23: bounded cross-file repair (module-contracts / type-contracts / member-contracts), max 2 rounds x 2 files.
+  // Accept only if no previously-passing validator breaks and the combined cross-file issue count strictly drops.
+  const CROSS = ['module-contracts', 'type-contracts', 'member-contracts'];
+  const crossIssues = (vs: BuildReport['validators']) => vs.filter((v) => CROSS.includes(v.name)).flatMap((v) => v.issues);
+  for (let round = 0; round < 2; round++) {
+    if (!(files.size > 0 && allFilesDone && !cancelled && !options.signal?.aborted && crossIssues(validators).length && state.callsUsed < budget)) break;
+    const targets = [...new Set(crossIssues(validators).map((i) => i.path).filter((p): p is string => Boolean(p) && files.has(p as string) && /\.(?:m?js|html?)$/i.test(p as string)))].slice(0, 2);
+    let progressed = false;
+    for (const targetPath of targets) {
+      if (state.callsUsed >= budget || cancelled || options.signal?.aborted) break;
+      const entry = files.get(targetPath);
+      if (!entry) continue;
+      const issuesForFile = crossIssues(validators).filter((i) => i.path === targetPath).map((i) => i.message);
+      if (!issuesForFile.length) continue;
+      const beforeCount = crossIssues(validators).length;
+      const previouslyOk = new Set(validators.filter((v) => v.ok).map((v) => v.name));
+      event(ports, input.jobId, 'cross_file_repair', { path: targetPath, round, issues: issuesForFile.slice(0, 8), callsUsed: state.callsUsed, callsBudget: budget }, 'warn');
+      const others = new Map([...files].filter(([p]) => p !== targetPath));
+      const repairPrompt =
+        `Fix cross-file contract defects in ${targetPath} only. Make every import, call and member access match the REAL interfaces of the other files; if something it needs does not exist there, implement a minimal version locally in this file. Do not invent new files.\n` +
+        `Current problems:\n- ${issuesForFile.join('\n- ')}\n` +
+        interfaceBlock(others) +
+        repairSourceBlock(targetPath, entry.content) +
+        `Reply with the COMPLETE corrected file for path ${targetPath} in the required marker block. Keep all behavior; change only what the problems require.`;
+      const repaired = await call('coder', repairPrompt, undefined, targetPath);
+      if (!repaired) continue;
+      const parsed = parseFileMarkers(repaired.text, targetPath);
+      const found = parsed.files.find((f) => f.path === targetPath);
+      if (!found || parsed.truncated) { event(ports, input.jobId, 'cross_file_repair_rejected', { path: targetPath, reason: parsed.truncated ? 'truncated' : 'path_missing' }, 'warn'); continue; }
+      if (repairDiscardsSource(entry.content, found.content)) { event(ports, input.jobId, 'cross_file_repair_rejected', { path: targetPath, reason: 'destructive_shrink' }, 'warn'); continue; }
+      const trial = new Map([...files].map(([p, f]) => [p, f.content] as [string, string]));
+      trial.set(targetPath, found.content);
+      const trialValidators = runStaticValidators(trial, state.spec);
+      const afterCount = crossIssues(trialValidators).length;
+      const newlyBroken = trialValidators.filter((v) => !v.ok && previouslyOk.has(v.name)).map((v) => v.name);
+      if (newlyBroken.length || afterCount >= beforeCount) {
+        event(ports, input.jobId, 'cross_file_repair_rejected', { path: targetPath, reason: newlyBroken.length ? `broke_validators:${newlyBroken.join(',')}` : 'no_improvement', beforeCount, afterCount }, 'warn');
+        continue;
+      }
+      files.set(targetPath, { content: found.content, unitId: entry.unitId });
+      validators = trialValidators;
+      progressed = true;
+      event(ports, input.jobId, 'cross_file_repair_accepted', { path: targetPath, beforeCount, afterCount, callsUsed: state.callsUsed });
+    }
+    if (!progressed) break;
+  }
+
   const checksDeclared = [...REQUIRED_VALIDATORS];
   const checksRun = validators.map((v) => v.name);
   const ran = new Set(checksRun);

@@ -18,6 +18,7 @@ export const REQUIRED_VALIDATORS = [
   'reachability',
   'completeness',
   'member-contracts',
+  'type-contracts',
 ] as const;
 type Issue = ReportValidator['issues'][number];
 const result = (name: string, issues: Issue[]): ReportValidator => ({ name, ok: issues.length === 0, issues });
@@ -623,6 +624,73 @@ export function dropUnreachableOrphansIfSelfContained(files: FileMap): string[] 
   return dropped;
 }
 
+/**
+ * P127.23: cross-file type diagnostics for plain JS (checkJs). Reports only mismatches whose declaration lives in
+ * another generated project file: missing named exports, unknown members of project classes/objects, wrong call arity.
+ * Platform/DOM typing noise is ignored. Advisory (not in REQUIRED_VALIDATORS); drives bounded repair.
+ */
+export function validateTypeContracts(files: FileMap): ReportValidator {
+  const issues: Issue[] = [];
+  const jsPaths = [...files.keys()].filter((p) => /\.m?js$/i.test(p));
+  if (jsPaths.length < 2) return result('type-contracts', issues);
+  try {
+    const virtual = new Map<string, string>(jsPaths.map((p) => [`/${p}`, files.get(p)!]));
+    const options: ts.CompilerOptions = {
+      allowJs: true, checkJs: true, noEmit: true, skipLibCheck: true, strict: false, noImplicitAny: false,
+      target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Node10,
+      lib: ['lib.es2020.d.ts', 'lib.dom.d.ts'], types: [],
+    };
+    const host = ts.createCompilerHost(options, true);
+    const baseGet = host.getSourceFile.bind(host);
+    const baseExists = host.fileExists.bind(host);
+    const baseRead = host.readFile.bind(host);
+    host.getSourceFile = (name, lang, onErr, shouldCreate) =>
+      virtual.has(name) ? ts.createSourceFile(name, virtual.get(name)!, lang, true, ts.ScriptKind.JS) : baseGet(name, lang, onErr, shouldCreate);
+    host.fileExists = (name) => virtual.has(name) || baseExists(name);
+    host.readFile = (name) => virtual.get(name) ?? baseRead(name);
+    const program = ts.createProgram([...virtual.keys()], options, host);
+    const checker = program.getTypeChecker();
+    const inProject = (sf: ts.SourceFile | undefined) => Boolean(sf && virtual.has(sf.fileName));
+    const declaredInProject = (sym: ts.Symbol | undefined): boolean => {
+      if (!sym) return false;
+      const target = sym.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(sym) : sym;
+      return (target.declarations ?? []).some((d) => inProject(d.getSourceFile()));
+    };
+    const tokenAt = (sf: ts.SourceFile, pos: number): ts.Node => {
+      let found: ts.Node = sf;
+      const visit = (n: ts.Node) => { if (pos >= n.getStart(sf) && pos < n.getEnd()) { found = n; ts.forEachChild(n, visit); } };
+      ts.forEachChild(sf, visit);
+      return found;
+    };
+    for (const name of virtual.keys()) {
+      const sf = program.getSourceFile(name);
+      if (!sf) continue;
+      for (const d of program.getSemanticDiagnostics(sf)) {
+        if (d.start === undefined || issues.length >= 12) continue;
+        const node = tokenAt(sf, d.start);
+        let keep = false;
+        if (d.code === 2305 || d.code === 2614 || d.code === 2724) keep = true;
+        else if (d.code === 2339) {
+          const pa = ts.isPropertyAccessExpression(node.parent) ? node.parent : ts.isPropertyAccessExpression(node) ? node : null;
+          const type = pa ? checker.getTypeAtLocation(pa.expression) : null;
+          keep = Boolean(type && !(type.flags & ts.TypeFlags.Any) && declaredInProject(type.getSymbol()));
+        } else if (d.code === 2554 || d.code === 2555) {
+          let cur: ts.Node | undefined = node;
+          while (cur && !ts.isCallExpression(cur) && !ts.isNewExpression(cur)) cur = cur.parent;
+          const callee = cur ? (cur as ts.CallExpression).expression : null;
+          keep = Boolean(callee && declaredInProject(checker.getSymbolAtLocation(callee)));
+        }
+        if (!keep) continue;
+        const line = sf.getLineAndCharacterOfPosition(d.start).line + 1;
+        issues.push({ path: name.slice(1), message: `line ${line}: ${ts.flattenDiagnosticMessageText(d.messageText, ' ').slice(0, 200)}` });
+      }
+    }
+  } catch {
+    return result('type-contracts', []); // diagnostics are advisory; never fail a build because the checker crashed
+  }
+  return result('type-contracts', issues);
+}
+
 export function runStaticValidators(files: FileMap, spec: Spec | null): ReportValidator[] {
   return [
     validateHtml(files),
@@ -636,5 +704,6 @@ export function runStaticValidators(files: FileMap, spec: Spec | null): ReportVa
     validateReachability(files),
     validateCompleteness(files),
     validateMemberContracts(files),
+    validateTypeContracts(files),
   ];
 }

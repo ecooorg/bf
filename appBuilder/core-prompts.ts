@@ -1,3 +1,4 @@
+import ts from 'typescript';
 /** Versioned prompts; changing wording that affects output must bump the version. */
 import type { ModelRole } from './core-types.ts';
 import { PROMPT_VERSION } from './core-cache.ts';
@@ -55,16 +56,55 @@ export function exportedNames(source: string): string[] {
   return [...names];
 }
 
-/** P127.20: exact interface of modules generated so far, so later units import only what exists. */
+/** P127.23: exported surface with parameter lists / class members, so callers match real signatures. */
+export function exportSurface(source: string): string[] {
+  const sf = ts.createSourceFile('m.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const out: string[] = [];
+  const params = (ps: ts.NodeArray<ts.ParameterDeclaration>) => ps.map((p) => p.getText(sf).replace(/\s+/g, ' ').slice(0, 40)).join(', ');
+  const exported = (n: ts.Node) => ts.canHaveModifiers(n) && Boolean(ts.getModifiers(n)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword));
+  const local = new Map<string, string>();
+  const describeClass = (c: ts.ClassDeclaration) => {
+    const members: string[] = [];
+    for (const m of c.members) {
+      if (ts.isMethodDeclaration(m) || ts.isGetAccessor(m)) { const n = m.name.getText(sf); if (!n.startsWith('#')) members.push(ts.isMethodDeclaration(m) ? `${n}(${params(m.parameters)})` : n); }
+      else if (ts.isConstructorDeclaration(m)) members.unshift(`constructor(${params(m.parameters)})`);
+    }
+    return `class ${c.name?.getText(sf) ?? 'default'} { ${members.slice(0, 20).join('; ')} }`;
+  };
+  for (const st of sf.statements) {
+    if (ts.isFunctionDeclaration(st) && st.name) local.set(st.name.text, `${st.name.text}(${params(st.parameters)})`);
+    else if (ts.isClassDeclaration(st) && st.name) local.set(st.name.text, describeClass(st));
+    else if (ts.isVariableStatement(st)) for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name)) {
+      local.set(d.name.text, d.initializer && (ts.isArrowFunction(d.initializer) || ts.isFunctionExpression(d.initializer)) ? `${d.name.text}(${params(d.initializer.parameters)})` : d.name.text);
+    }
+  }
+  for (const st of sf.statements) {
+    if ((ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st)) && exported(st)) {
+      out.push(st.name ? local.get(st.name.text)! : 'default');
+    } else if (ts.isVariableStatement(st) && exported(st)) {
+      for (const d of st.declarationList.declarations) if (ts.isIdentifier(d.name)) out.push(local.get(d.name.text)!);
+    } else if (ts.isExportDeclaration(st)) {
+      if (st.exportClause && ts.isNamedExports(st.exportClause) && !st.moduleSpecifier) {
+        for (const e of st.exportClause.elements) { const orig = (e.propertyName ?? e.name).text; const d = local.get(orig); out.push(d && orig !== e.name.text ? d.replace(orig, e.name.text) : (d ?? e.name.text)); }
+      }
+    } else if (ts.isExportAssignment(st)) {
+      out.push('default');
+    }
+  }
+  return out;
+}
+
+/** P127.20/23: exact interface of modules generated so far, so later units import and call only what exists. */
 export function interfaceBlock(files: Map<string, { content: string }>): string {
   const lines: string[] = [];
   for (const [path, f] of files) {
     if (!/\.m?js$/i.test(path)) continue;
-    const names = exportedNames(f.content).slice(0, 30);
-    lines.push(`- ${path}: ${names.length ? `exports ${names.join(', ')}` : 'exports nothing (plain script; do not import from it)'}`);
+    let surface: string[] = [];
+    try { surface = exportSurface(f.content).slice(0, 30); } catch { surface = exportedNames(f.content); }
+    lines.push(`- ${path}: ${surface.length ? `exports ${surface.join('; ')}` : 'exports nothing (plain script; do not import from it)'}`);
     if (lines.length >= 24) break;
   }
   return lines.length
-    ? `\nACTUAL interfaces of files already generated (authoritative; import ONLY these names from these files, use named imports exactly as listed, and never reference files or media assets that are not in the plan):\n${lines.join('\n')}\n`
+    ? `\nACTUAL interfaces of files already generated (authoritative; import ONLY these names, call them with EXACTLY these parameters, use only the listed class members, and never reference files or media assets that are not in the plan):\n${lines.join('\n')}\n`
     : '';
 }
