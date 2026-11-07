@@ -1,5 +1,20 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-2 — Interface-aware unit generation (P127.20)
+
+| Field | Value |
+|---|---|
+| **Date** | 2026-11-07 |
+| **Patch** | P127.20 — EXPERIMENT (answer path: Project Mode code units) |
+| **Problem and evidence** | Live run (EXP-PROJECT-LIVE-1, commit 69e46f6): 0/5 PRODUCT_PASS; 5/5 builds PARTIAL with `module-contracts` (e.g. importer expects an export a sibling file does not provide; page throws at load). |
+| **Hypothesis** | Passing each unit the actual exports of already generated scripts, and generating the entry script after all others, removes most cross-file import mismatches. |
+| **Baseline** | Same 5 prompts, commit 69e46f6: PRODUCT_PASS 0/5, module-contracts failures 5/5, judge NOT_RUN (404). |
+| **Metric / acceptance** | Re-run the same 5 prompts on the deployed new commit: module-contracts failures <= 2/5 AND PRODUCT_PASS >= 2/5. |
+| **Scope** | `appBuilder/core-prompts.ts`, `core-engine.ts` (context only), `stack-static-site.ts` (entry dependencies), tests. No new regex on user language; no scenario words in code. |
+| **Rollback criterion** | If acceptance is not met, revert P127.20. One corrective patch is allowed (e.g. targeted module-contract repair), then stop or revert (C127 rule 3). |
+| **Result** | NOT_RUN |
+| **Decision** | PENDING live re-measure |
+
 ## EXP-PROJECT-LIVE-1 — Live Project Mode baseline (P127.19)
 
 | Field | Value |
