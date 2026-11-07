@@ -1,3 +1,9 @@
+## P127.28 — Mixed three.js imports (BUGFIX)
+
+**OBSERVED:** logs 2026-11-07 11:01: tractor-racing ZIP (job 5da5ba63) — syntax valid, exports/imports between local files consistent, but nine modules import three.js from five different specifiers/versions and `index.html` has no import map. **CAUSE (from code):** each unit is generated separately; nothing aligned the three.js source across files. **FIX:** deterministic normalisation (see CHANGELOG). **NOT FIXED:** `flora.js` / `trees.js` are unreachable (reachability stays failed, outcome PARTIAL). **Local:** unit tests only; browser run of the generated game `NOT_RUN`; whether the game then runs correctly is unverified.
+
+---
+
 ## P127.27 — Generated games did not run (BUGFIX)
 
 **OBSERVED:** logs 2026-11-07 (commit 14d1825): the racing game ZIP had 19 files named `audio_js`, `car_js`, … (no extension, `orphanedFiles` in the report); the maze game had `TILE_TYPES.PATH` and `COLORS.WALL` used but not defined, `'S'`/`'E'` compared with numeric tiles, and `game.init()` called twice. **CAUSE (from code):** module ids reached `path` unchanged; `member-contracts` covered only class members. **FIX:** path repair and constant-key check (see CHANGELOG). **NOT FIXED:** string-vs-numeric tile comparison and double `init()`. **Local:** see test results in the delivery message; live Project builds `NOT_RUN`; browser run of generated games `NOT_RUN`.

@@ -1,3 +1,9 @@
+## [127.28] - BUGFIX: generated 3D games failed to start because of mixed three.js imports
+
+- `stack-static-site.ts`: `normalizeThreeSetup` rewrites every three.js import (any CDN URL or version, including URLs with no module build) to bare `'three'` / `'three/addons/…'` and adds one pinned import map (three@0.160.0, jsdelivr) before the first script of the entry HTML. Idempotent; projects without three.js are untouched.
+- `core-engine.ts`: applied before validation and once more on the final package (repairs may reintroduce mixed imports); event `three_normalized`.
+- Observed: a tractor-racing ZIP imported three.js from five different sources (bare `'three'` with no import map, cdnjs r128 `three.module.js` and `three.min.js`, jsdelivr 0.158 and 0.160); one failing import stops the whole module graph. Test: `project-builder-recovery`. Package patch `127.28`.
+
 ## [127.27] - BUGFIX: generated games did not run (extension-less file names, mismatched constants); less clutter in Project replies
 
 - `core-plan.ts`: `repairPackagePath` turns module ids used as paths (`audio_js`) into file names (`audio.js`). Applied to model plans (`core-engine.ts`), intent-brief module paths and spec features (`intent-brief.ts`) and `expandedPlanFromBrief` (`stack-static-site.ts`). Observed: a 24-module build shipped 19 files without `.js`, none imported by `main.js`.
