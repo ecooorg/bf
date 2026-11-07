@@ -38,7 +38,7 @@ import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from '.
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact, inspectArtifact, listArtifactVersions, listProjectArtifactVersions, ArtifactFormatError } from './artifactRepository.ts';
 import { buildContinuationTask, loadContinuationSource } from './projectContinuation.ts';
-import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
+import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, readBuildFile, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
 import { pipelineArchitectOutcome } from '../appBuilder/architectOutcome.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, defaultPassport } from './contracts.ts';
@@ -415,6 +415,20 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       const job = await createStorePort().loadJob(req.params.jobId);
       if (!job || job.projectId !== req.params.projectId) return res.status(404).json({ success: false, error: 'Build job not found', code: 'NOT_FOUND' });
       res.json({ success: true, data: publicJob(job, job.projectId) });
+    } catch (error) { projectError(res, error); }
+  });
+  app.get('/api/projects/:projectId/code/build/:jobId/file', async (req, res) => {
+    if (!stagedEnabled() || !jobIdParam(req.params.jobId)) return res.status(404).json({ success: false, error: 'Build job not found', code: 'NOT_FOUND' });
+    try {
+      const job = await createStorePort().loadJob(req.params.jobId);
+      const path = typeof req.query.path === 'string' ? req.query.path : '';
+      if (!job || job.projectId !== req.params.projectId || !path) return res.status(404).json({ success: false, error: 'Build file not found', code: 'NOT_FOUND' });
+      const content = await readBuildFile(job, path, {}, async (id) => { const a = await readArtifactBytes(id); return a && (a as any).project_id === job.projectId ? new Uint8Array((a as any).data) : null; });
+      if (content === null) return res.status(404).json({ success: false, error: 'Build file not found', code: 'NOT_FOUND' });
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', contentDisposition(path.split('/').pop() || 'file.txt'));
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.send(Buffer.from(content, 'utf8'));
     } catch (error) { projectError(res, error); }
   });
   app.post('/api/projects/:projectId/code/build/:jobId/cancel', async (req, res) => {

@@ -196,8 +196,13 @@ export async function executeJob(deps: AdapterDeps, jobId: string): Promise<void
     const result = await runBuild(input, ports, { modelId: deps.modelId ?? process.env.APP_BUILDER_MODEL_ID ?? 'router', resumeFrom: job, signal: ac.signal, isCancelled: async () => (await store.loadJob(jobId))?.status === 'cancelled' });
     if (result.archive && result.state.status !== 'cancelled') {
       try {
-        const artifactId = await store.putArtifact(jobId, result.archive, { filename: 'app-source.zip', contentType: 'application/zip' });
-        result.state.artifactId = artifactId; await store.saveJob(result.state); await linkDiagnosticArtifact(jobId, artifactId);
+        // P127.25: the engine normally stores the archive before the terminal save; this path is only the retry.
+        let artifactId = result.state.artifactId;
+        if (!artifactId) {
+          artifactId = await store.putArtifact(jobId, result.archive, { filename: 'app-source.zip', contentType: 'application/zip' });
+          result.state.artifactId = artifactId; await store.saveJob(result.state);
+        }
+        await linkDiagnosticArtifact(jobId, artifactId);
       } catch (e) {
         void recordApplicationLog({ level: 'error', component: 'app-builder', event: 'artifact_save_failed', operationId: jobId, message: 'Build archive could not be stored', error: e, details: { projectId: result.state.projectId, status: result.state.status } });
         result.state.error = { code: 'artifact_save_failed', message: String((e as Error)?.message ?? e).slice(0, 200) };
@@ -251,9 +256,11 @@ export function publicJob(j: JobState, projectId: string) {
     j.artifactId && (outcome === 'SUCCESS' || outcome === 'PARTIAL' || j.status === 'done')
       ? `/api/projects/${encodeURIComponent(projectId)}/artifacts/${encodeURIComponent(j.artifactId)}/download`
       : undefined;
+  const files = publicBuildFiles(j);
   return {
     jobId: j.id,
     status: j.status,
+    files,
     stage: j.stage,
     units,
     callsUsed: j.callsUsed,
@@ -286,4 +293,35 @@ export async function buildReportForDiagnostics(jobId?: string, deps: Pick<Adapt
     const r = jobId ? await pool.query('SELECT id,report FROM app_build_jobs WHERE id=$1 AND report IS NOT NULL', [jobId]) : await pool.query('SELECT id,report FROM app_build_jobs WHERE report IS NOT NULL ORDER BY updated_at DESC LIMIT 1');
     return r.rows[0] ? [{ path: 'build/build-report.json', text: JSON.stringify({ jobId: r.rows[0].id, ...r.rows[0].report }, null, 2) }] : [];
   } catch { return []; }
+}
+
+export type BuildFileState = 'ready' | 'working' | 'pending' | 'failed';
+export interface PublicBuildFile { path: string; state: BuildFileState; downloadUrl?: string }
+
+/** P127.25: per-file progress for the UI. ready = generated and downloadable, working = being generated now. */
+export function publicBuildFiles(j: JobState): PublicBuildFile[] {
+  const terminal = ['done', 'failed', 'cancelled'].includes(j.status);
+  const out: PublicBuildFile[] = [];
+  for (const u of j.plan?.units ?? []) {
+    if (!u.path) continue;
+    const state: BuildFileState = u.status === 'done' ? 'ready' : u.status === 'failed' ? 'failed' : (u.status === 'running' && !terminal) ? 'working' : 'pending';
+    out.push({ path: u.path, state, ...(state === 'ready' ? { downloadUrl: `/api/projects/${encodeURIComponent(j.projectId)}/code/build/${encodeURIComponent(j.id)}/file?path=${encodeURIComponent(u.path)}` } : {}) });
+  }
+  return out;
+}
+
+/** Content of one finished file: from the stored ZIP once the job is finished (includes repairs), else from the unit result. */
+export async function readBuildFile(job: JobState, path: string, deps: Pick<AdapterDeps, 'getPoolFn'> = {}, readZip?: (artifactId: string) => Promise<Uint8Array | null>): Promise<string | null> {
+  const unit = (job.plan?.units ?? []).find((u) => u.path === path && u.status === 'done');
+  if (!unit) return null; // only paths of the job's own finished units are served
+  if (job.artifactId && readZip) {
+    const zipBytes = await readZip(job.artifactId);
+    if (zipBytes) {
+      const { default: JSZip } = await import('jszip');
+      const entry = (await JSZip.loadAsync(zipBytes)).file(path);
+      if (entry) return entry.async('string');
+    }
+  }
+  if (!unit.cacheKey) return null;
+  return (await createStorePort(deps).getUnitResult(unit.cacheKey))?.content ?? null;
 }
