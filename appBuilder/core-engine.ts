@@ -4,7 +4,7 @@ import { isModelError, type Ports } from './core-ports.ts';
 import { makeCacheKey, sha256 } from './core-cache.ts';
 import { promptFor, interfaceBlock, domBlock, htmlPlanBlock } from './core-prompts.ts';
 import { parseFileMarkers } from './core-markers.ts';
-import { validatePlan, repairPackagePath, type PlanValidationResult } from './core-plan.ts';
+import { validatePlan, repairPackagePath, repairPlanReferences, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
 import { packZip } from './pack-zip.ts';
 import { buildStandaloneIndex, STANDALONE_SOURCE_DIR } from './standalone.ts';
@@ -374,6 +374,12 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     }, planParsed.ok ? 'info' : 'warn');
     let plan = planParsed.ok && planParsed.value != null && typeof planParsed.value === 'object' ? (planParsed.value as Plan) : null;
     if (plan && Array.isArray(plan.units)) for (const u of plan.units) if (u && typeof u.path === 'string') u.path = repairPackagePath(u.path);
+    if (plan && Array.isArray(plan.units)) {
+      // P127.31: keep a plan that is sound in substance when dependsOn/order name files instead of unit ids or form a cycle.
+      const before = JSON.stringify([plan.units.map((u) => u?.dependsOn ?? []), plan.order ?? []]);
+      plan = repairPlanReferences(plan);
+      if (JSON.stringify([plan.units.map((u) => u?.dependsOn ?? []), plan.order]) !== before) event(ports, input.jobId, 'plan_references_repaired', { unitCount: plan.units.length });
+    }
     let checked: PlanValidationResult = plan ? validatePlan(plan, profile) : { ok: false, issues: [{ code: 'schema_version', message: failureReason ?? (!('error' in planParsed) ? 'invalid_plan' : `unparseable_plan:${planParsed.error}`) }] };
     if (!checked.ok) {
       event(ports, input.jobId, 'plan_validate_failed', { issues: checked.issues.map((i) => ({ code: i.code, message: i.message })), callsUsed: state.callsUsed }, 'warn');

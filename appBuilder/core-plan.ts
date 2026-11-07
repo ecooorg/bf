@@ -59,6 +59,69 @@ export function repairPackagePath(p: string): string {
   return [...parts, `${m[1]}.${m[2].toLowerCase()}`].join('/');
 }
 
+/**
+ * P127.31: `dependsOn` and `order` only say which unit is written before which. Models name them inconsistently
+ * (unit ids such as `board`, references such as `board.js`), and sometimes make two units depend on each other.
+ * Rejecting such a plan replaced a usable plan with the generic template. Instead: resolve each reference by unit id,
+ * file path or file stem; drop hints that name no unit and self-references; break a dependency cycle at the
+ * least-connected unit; rebuild `order`. Units, paths and contracts are never added, removed or renamed, so plans that
+ * are unusable for other reasons (no units, unsafe/duplicate paths, too many units) still fail `validatePlan`.
+ * Pure: the input plan is not modified.
+ */
+export function repairPlanReferences(plan: Plan): Plan {
+  if (!plan || !Array.isArray(plan.units) || plan.units.length === 0) return plan;
+  const named = plan.units.filter((u): u is Unit => Boolean(u) && typeof u.id === 'string' && u.id.length > 0);
+  const refToId = new Map<string, string>();
+  const claim = (key: unknown, id: string) => { if (typeof key === 'string' && key && !refToId.has(key)) refToId.set(key, id); };
+  for (const u of named) claim(u.id, u.id);
+  for (const u of named) claim(u.path, u.id);
+  for (const u of named) claim(typeof u.path === 'string' ? u.path.replace(/\.[^./]+$/, '') : '', u.id);
+  const resolve = (ref: unknown): string | undefined =>
+    typeof ref === 'string' ? refToId.get(ref) ?? refToId.get(repairPackagePath(ref)) : undefined;
+
+  const units = plan.units.map((u): Unit => {
+    if (!u || typeof u.id !== 'string' || !u.id) return u;
+    const deps: string[] = [];
+    for (const ref of Array.isArray(u.dependsOn) ? u.dependsOn : []) {
+      const id = resolve(ref);
+      if (id && id !== u.id && !deps.includes(id)) deps.push(id);
+    }
+    return { ...u, dependsOn: deps };
+  });
+
+  // Break cycles: cut one edge at a time, at the unit with the fewest dependencies (ties: the later one in the plan).
+  const depsOf = new Map(units.filter((u) => u && typeof u.id === 'string' && u.id).map((u) => [u.id, u]));
+  const reaches = (from: string, to: string): boolean => {
+    const seen = new Set<string>();
+    const stack = [...(depsOf.get(from)?.dependsOn ?? [])];
+    while (stack.length) {
+      const id = stack.pop()!;
+      if (id === to) return true;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      stack.push(...(depsOf.get(id)?.dependsOn ?? []));
+    }
+    return false;
+  };
+  for (let guard = units.length * units.length; guard > 0 && topoSort([...depsOf.values()]) === null; guard--) {
+    const onCycle = [...depsOf.values()].filter((u) => reaches(u.id, u.id));
+    if (!onCycle.length) break;
+    let pick = onCycle[0];
+    for (const u of onCycle) if (u.dependsOn.length <= pick.dependsOn.length) pick = u;
+    const cut = pick.dependsOn.find((d) => reaches(d, pick.id) || d === pick.id);
+    if (!cut) break;
+    pick.dependsOn = pick.dependsOn.filter((d) => d !== cut);
+  }
+
+  const order: string[] = [];
+  for (const ref of Array.isArray(plan.order) ? plan.order : []) {
+    const id = resolve(ref);
+    if (id && !order.includes(id)) order.push(id);
+  }
+  for (const id of depsOf.keys()) if (!order.includes(id)) order.push(id);
+  return { ...plan, units, order };
+}
+
 /** New static_site plan units must be top-level files only (no subfolders). */
 export function isFlatPackagePath(p: string): boolean {
   return typeof p === 'string' && isSafePath(p) && !p.includes('/');
@@ -170,12 +233,6 @@ export function validatePlan(plan: unknown, profile?: Pick<Profile, 'maxUnits'>)
         });
       } else {
         paths.set(u.path, u.id);
-      }
-    }
-
-    for (const d of u.dependsOn || []) {
-      if (!byId.has(d) && !p.units.some((x) => x.id === d)) {
-        // may appear later in array; check after loop
       }
     }
   }
