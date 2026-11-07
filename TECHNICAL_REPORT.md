@@ -1,3 +1,9 @@
+## P127.29 — Empty first screen and duplicate setup (BUGFIX)
+
+**OBSERVED:** chess ZIP (job 5f89cf2e): outcome SUCCESS, all 12 static checks green, no console errors; headless Chromium shows 0 pieces on load and 32 after New Game. `scene.js` constructor calls `initDOM`, `initBoardRenderer`, `loadSettings`, `updateUI` but never `renderBoard`; `main.js` then calls `initDOM` and `initBoardRenderer` again. **CAUSE (from code):** units are written separately and the build never executes the program, so a blank start screen is invisible to the static checks. **FIX:** duplicate-setup check and prompt contract (see CHANGELOG). **NOT FIXED:** a missing initial draw is not detected by any validator (only requested in the prompt); no build step runs the generated page, so SUCCESS still does not prove the program works. **Local:** unit tests; reproduction used Playwright on the delivered ZIP only; live builds `NOT_RUN`.
+
+---
+
 ## P127.28 — Mixed three.js imports (BUGFIX)
 
 **OBSERVED:** logs 2026-11-07 11:01: tractor-racing ZIP (job 5da5ba63) — syntax valid, exports/imports between local files consistent, but nine modules import three.js from five different specifiers/versions and `index.html` has no import map. **CAUSE (from code):** each unit is generated separately; nothing aligned the three.js source across files. **FIX:** deterministic normalisation (see CHANGELOG). **NOT FIXED:** `flora.js` / `trees.js` are unreachable (reachability stays failed, outcome PARTIAL). **Local:** unit tests only; browser run of the generated game `NOT_RUN`; whether the game then runs correctly is unverified.

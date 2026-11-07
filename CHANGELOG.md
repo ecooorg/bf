@@ -1,3 +1,9 @@
+## [127.29] - BUGFIX: generated programs that load but show an empty first screen or run setup twice
+
+- `validator-static-site.ts`: `member-contracts` flags `x.initFoo()` / `setup*` / `bind*` / `create*` calls made after `new X()` when the constructor of X already calls `this.initFoo()` (observed in two builds: `game.init()` from `main.js`; `scene.initDOM()` + `scene.initBoardRenderer()` rebuilding the DOM). Findings enter the existing bounded cross-file repair.
+- `core-prompts.ts`: coder prompt carries a startup contract (constructor draws the initial state at once; no duplicate setup calls).
+- Observed: a chess ZIP reported SUCCESS and loaded without errors, but showed an empty board (0 pieces) until New Game was pressed (32 pieces afterwards); reproduced in headless Chromium. `runtimeVerified` stays false: nothing in the build runs the program. Tests: `project-builder-recovery`. Package patch `127.29`.
+
 ## [127.28] - BUGFIX: generated 3D games failed to start because of mixed three.js imports
 
 - `stack-static-site.ts`: `normalizeThreeSetup` rewrites every three.js import (any CDN URL or version, including URLs with no module build) to bare `'three'` / `'three/addons/…'` and adds one pinned import map (three@0.160.0, jsdelivr) before the first script of the entry HTML. Idempotent; projects without three.js are untouched.
