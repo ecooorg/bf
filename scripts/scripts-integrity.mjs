@@ -66,6 +66,7 @@ const ALLOW = new Set([
   'workflow-preflight.mjs',
   'write-build-stamp.mjs',
   'project-user-value-eval.mjs',
+  'project-user-value-live.mjs',
 ]);
 
 if (!existsSync(scriptsDir)) {
