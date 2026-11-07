@@ -92,6 +92,15 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     u.dependsOn = (u.dependsOn || []).filter((d) => known.has(d) && d !== u.id);
   }
 
+  // P127.20: the entry script is generated after every other script, so its imports can follow their real exports.
+  for (const u of units) {
+    if (!/\.js$/i.test(u.path || '') || !/^(main|app|index)$/.test(u.id)) continue;
+    for (const other of units) {
+      if (other.id === u.id || !/\.js$/i.test(other.path || '') || other.dependsOn.includes(u.id) || u.dependsOn.includes(other.id)) continue;
+      u.dependsOn.push(other.id);
+    }
+  }
+
   const order = units.map((u) => u.id);
   return { schemaVersion: SCHEMA_VERSION, specHash: sha256(JSON.stringify(spec)), units, order };
 }

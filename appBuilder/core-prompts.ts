@@ -40,3 +40,31 @@ If this unit is the entry HTML, link every CSS/JS file from the plan with relati
 
 Return exactly one complete file block and nothing else. First line: ${header} exactly. Then the complete file content. Last line MUST be <<<END>>> (required). Do not add code fences or text outside the block.`, version: PROMPT_VERSION };
 }
+
+/** P127.20: names a JS module actually exports (syntax-level scan; no execution). */
+export function exportedNames(source: string): string[] {
+  const names = new Set<string>();
+  for (const m of source.matchAll(/^\s*export\s+(?:async\s+)?(?:function\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/gm)) names.add(m[1]);
+  for (const m of source.matchAll(/^\s*export\s*\{([^}]*)\}/gm)) {
+    for (const part of m[1].split(',')) {
+      const name = part.trim().split(/\s+as\s+/i).pop()?.trim();
+      if (name && /^[A-Za-z_$][\w$]*$/.test(name)) names.add(name);
+    }
+  }
+  if (/^\s*export\s+default\b/m.test(source)) names.add('default');
+  return [...names];
+}
+
+/** P127.20: exact interface of modules generated so far, so later units import only what exists. */
+export function interfaceBlock(files: Map<string, { content: string }>): string {
+  const lines: string[] = [];
+  for (const [path, f] of files) {
+    if (!/\.m?js$/i.test(path)) continue;
+    const names = exportedNames(f.content).slice(0, 30);
+    lines.push(`- ${path}: ${names.length ? `exports ${names.join(', ')}` : 'exports nothing (plain script; do not import from it)'}`);
+    if (lines.length >= 24) break;
+  }
+  return lines.length
+    ? `\nACTUAL interfaces of files already generated (authoritative; import ONLY these names from these files, use named imports exactly as listed, and never reference files or media assets that are not in the plan):\n${lines.join('\n')}\n`
+    : '';
+}

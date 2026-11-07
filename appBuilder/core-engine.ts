@@ -2,7 +2,7 @@
 import { SCHEMA_VERSION, type BuildInput, type BuildReport, type JobState, type Plan, type Spec, type Unit } from './core-types.ts';
 import { isModelError, type Ports } from './core-ports.ts';
 import { makeCacheKey, sha256 } from './core-cache.ts';
-import { promptFor } from './core-prompts.ts';
+import { promptFor, interfaceBlock } from './core-prompts.ts';
 import { parseFileMarkers } from './core-markers.ts';
 import { validatePlan, type PlanValidationResult } from './core-plan.ts';
 import { conservativeProfile } from './profile-default.ts';
@@ -406,7 +406,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       let content = cached?.content;
       let modelId: string | undefined = undefined;
       if (!content) {
-        const unitContext = `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.`;
+        const unitContext = `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.${interfaceBlock(files)}`;
         const output = await call('coder', unitContext, undefined, unit.path);
         if (!output) {
           if (cancelled || options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; unit.status = 'pending'; await save(); break; }
