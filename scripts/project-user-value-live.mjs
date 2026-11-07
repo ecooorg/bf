@@ -5,7 +5,9 @@
  *            -> open the package in headless Chromium -> interact -> optional independent LLM judge.
  * Reports (never mixes): INFRA failures (login/API/quota/timeout) vs PRODUCT outcomes (what the person got).
  * Evidence honesty (G5): anything not executed is NOT_RUN. Deployed commit is compared with GITHUB_SHA, never assumed.
- * Env: EVAL_BASE_URL (required), APP_PASSWORD|EVAL_APP_PASSWORD, GEMINI_API_KEY (judge, optional),
+ * Zero-input defaults: EVAL_BASE_URL=https://biforge.onrender.com, UV_REPEATS=2, waits for the deploy of UV_EXPECTED_SHA (if set).
+ *      `--list` prints scenarios and exits (no network).
+ * Env: EVAL_BASE_URL (optional), UV_REPEATS, UV_EXPECTED_SHA, UV_DEPLOY_WAIT_MS, APP_PASSWORD|EVAL_APP_PASSWORD, GEMINI_API_KEY (judge, optional),
  *      UV_SCENARIOS (comma ids), UV_BUILD_TIMEOUT_MS (default 720000), UV_MIN_PASS_RATE (default 0 = measure only),
  *      UV_JUDGE_MODEL (optional; else ids from config/model-sources.json are tried in order), UV_OUT_DIR (default artifacts/project-user-value-live)
  */
@@ -17,7 +19,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const env = process.env;
-const BASE = String(env.EVAL_BASE_URL || '').replace(/\/+$/, '');
+const BASE = String(env.EVAL_BASE_URL || 'https://biforge.onrender.com').replace(/\/+$/, '');
+const REPEATS = Math.max(1, Number(env.UV_REPEATS) || 2);
+const EXPECTED_SHA = String(env.UV_EXPECTED_SHA || '').trim();
+const DEPLOY_WAIT_MS = Number(env.UV_DEPLOY_WAIT_MS) || 25 * 60_000;
 const PASSWORD = env.EVAL_APP_PASSWORD || env.APP_PASSWORD || '';
 const OUT = path.resolve(root, env.UV_OUT_DIR || 'artifacts/project-user-value-live');
 const BUILD_TIMEOUT = Number(env.UV_BUILD_TIMEOUT_MS) || 720_000;
@@ -126,11 +131,27 @@ async function judge(scenario, rt) {
   } catch (e) { return { status: 'NOT_RUN', reason: String(e.message).slice(0, 120) }; }
 }
 
+/* ---------- wait until the deployed commit is the one under test (no manual /health check) ---------- */
+async function waitForDeploy() {
+  const t0 = Date.now(); let last = { version: 'unknown', commit: 'unknown' };
+  for (;;) {
+    try {
+      const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 60_000);
+      const h = await fetch(`${BASE}/health`, { signal: ctl.signal }).then((x) => x.json()); clearTimeout(timer);
+      last = { version: h.version ?? 'unknown', commit: h.commit ?? 'unknown' };
+    } catch { /* cold start or deploy in progress */ }
+    const match = !EXPECTED_SHA || (last.commit !== 'unknown' && (EXPECTED_SHA.startsWith(String(last.commit).slice(0, 7)) || String(last.commit).startsWith(EXPECTED_SHA.slice(0, 7))));
+    if (match) return last;
+    if (Date.now() - t0 > DEPLOY_WAIT_MS) return { ...last, waitFailed: `deployed commit ${last.commit} never matched ${EXPECTED_SHA.slice(0, 7)} within ${Math.round(DEPLOY_WAIT_MS / 60000)} min (deploy not live or health unreachable)` };
+    console.log(`waiting for deploy: live=${last.commit} want=${EXPECTED_SHA.slice(0, 7)}`); await sleep(30_000);
+  }
+}
+
 /* ---------- one scenario ---------- */
-async function runScenario(browser, scenario) {
+async function runScenario(browser, scenario, tag) {
   const t0 = Date.now();
-  const dir = path.join(OUT, scenario.id); fs.mkdirSync(path.join(dir, 'pkg'), { recursive: true });
-  const rec = { id: scenario.id, request: scenario.request, class: 'UNKNOWN', build: {}, runtime: null, judge: null };
+  const dir = path.join(OUT, tag); fs.mkdirSync(path.join(dir, 'pkg'), { recursive: true });
+  const rec = { id: tag, scenario: scenario.id, request: scenario.request, class: 'UNKNOWN', build: {}, runtime: null, judge: null };
   try {
     const proj = await api('POST', '/api/projects', { name: `uv-${scenario.id}-${Date.now()}`, state: { passport: { status: 'confirmed', projectType: 'web_app', goal: scenario.request, users: '', inputsOutputs: '', constraints: '', securityData: '', successCriteria: '', budget: { calls: 100, tokens: 500000, executorRuns: 0 }, executor: 'manual', humanLevel: 'supervised' } } });
     const pid = proj.json?.data?.id;
@@ -179,6 +200,7 @@ function markdown(rep) {
     `Product pass: **${rep.summary.productPass}/${rep.summary.productRuns}** · infra failures: ${rep.summary.infra} (reported separately, not counted as product failures)`, '',
     '| Scenario | Class | Build outcome | Calls | Renders | No errors | Reacts | Judge | Mismatch |', '|---|---|---|---|---|---|---|---|---|'];
   for (const r of rep.results) L.push(`| ${r.id} | ${r.class} | ${r.build.outcome ?? '-'} | ${r.build.callsUsed ?? '-'}/${r.build.callsBudget ?? '-'} | ${r.runtime?.rendersSomething ?? '-'} | ${r.runtime?.noRuntimeErrors ?? '-'} | ${r.runtime?.reactsToInput ?? '-'} | ${r.judge?.status === 'RUN' ? `${r.judge.yes}/${r.judge.total}, useful ${r.judge.useful}` : r.judge?.status ?? '-'} | ${r.honestyMismatch ?? ''} |`);
+  if (rep.byScenario) { L.push('', '## Per scenario (repeats)'); for (const [id, cs] of Object.entries(rep.byScenario)) L.push(`- ${id}: ${cs.map((c) => c.replace('PRODUCT_', '')).join(', ')}`); }
   L.push('', '## Details');
   for (const r of rep.results) L.push(`- **${r.id}** ${r.class}${r.error ? ` — ${r.error}` : ''}${r.build.failureReason ? ` — failureReason: ${String(r.build.failureReason).slice(0, 200)}` : ''}${r.runtime?.pageErrors?.length ? ` — pageErrors: ${r.runtime.pageErrors.slice(0, 2).join(' | ')}` : ''}${r.judge?.why ? ` — judge: ${r.judge.why}` : ''}`);
   L.push('', 'Interpretation: runtime checks are generic signals (rendered, no errors, reacts to input); the judge only sees screenshots. A pass is evidence for these scenarios on this commit, not a general guarantee. Prompt set authorship is stated in config/project-user-value-prompts.json.');
@@ -186,14 +208,19 @@ function markdown(rep) {
 }
 
 async function main() {
-  if (!BASE) { console.error('EVAL_BASE_URL is required'); process.exit(2); }
-  fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(OUT, { recursive: true });
   const cfg = JSON.parse(fs.readFileSync(path.join(root, 'config/project-user-value-prompts.json'), 'utf8'));
   const want = String(env.UV_SCENARIOS || '').split(',').map((s) => s.trim()).filter(Boolean);
   const scenarios = cfg.scenarios.filter((s) => !want.length || want.includes(s.id));
-  const h = await fetch(`${BASE}/health`).then((r) => r.json()).catch(() => ({}));
-  const deployed = { version: h.version ?? 'unknown', commit: h.commit ?? 'unknown' };
-  const repoCommit = env.GITHUB_SHA || '';
+  if (process.argv.includes('--list')) { console.log(scenarios.map((s) => s.id).join('\n')); console.log(`base=${BASE} repeats=${REPEATS}`); process.exit(0); }
+  fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(OUT, { recursive: true });
+  const deployed = await waitForDeploy();
+  if (deployed.waitFailed) {
+    const rep = { mode: 'live', baseUrl: BASE, deployed, repoCommit: EXPECTED_SHA, commitMatch: false, summary: { productRuns: 0, productPass: 0, infra: 1, runnerErrors: 0 }, results: [{ id: 'deploy', class: 'INFRA_FAIL', build: {}, error: deployed.waitFailed }] };
+    fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(rep, null, 2)); fs.writeFileSync(path.join(OUT, 'report.md'), markdown(rep));
+    console.log(markdown(rep)); if (env.GITHUB_STEP_SUMMARY) fs.appendFileSync(env.GITHUB_STEP_SUMMARY, markdown(rep) + '\n');
+    process.exit(1);
+  }
+  const repoCommit = EXPECTED_SHA || env.GITHUB_SHA || '';
   const commitMatch = !repoCommit || deployed.commit === 'unknown' ? 'UNKNOWN' : String(deployed.commit).startsWith(repoCommit.slice(0, 7)) || repoCommit.startsWith(String(deployed.commit).slice(0, 7));
   const login = PASSWORD ? await api('POST', '/api/login', { password: PASSWORD }) : { status: 0, json: null, text: 'no password' };
   const { chromium } = await import('playwright');
@@ -201,11 +228,11 @@ async function main() {
   const results = [];
   if (!PASSWORD || login.json?.authenticated !== true && login.json?.success !== true) {
     for (const s of scenarios) results.push({ id: s.id, request: s.request, class: 'INFRA_FAIL', build: {}, error: `login failed http=${login.status} ${login.text}` });
-  } else for (const s of scenarios) { console.log(`▶ ${s.id}`); results.push(await runScenario(browser, s)); console.log(`  → ${results.at(-1).class}`); }
+  } else for (let n = 1; n <= REPEATS; n++) for (const s of scenarios) { const tag = `${s.id}-r${n}`; console.log(`▶ ${tag}`); results.push(await runScenario(browser, s, tag)); console.log(`  → ${results.at(-1).class}`); }
   await browser.close();
   const productRuns = results.filter((r) => r.class.startsWith('PRODUCT')).length;
   const productPass = results.filter((r) => r.class === 'PRODUCT_PASS').length;
-  const rep = { mode: 'live', baseUrl: BASE, deployed, repoCommit, commitMatch, promptSet: { version: cfg.version, authoredBy: cfg.authoredBy }, judgeModel: env.GEMINI_API_KEY ? JUDGE_MODELS.join(' → ') : null, summary: { productRuns, productPass, infra: results.filter((r) => r.class === 'INFRA_FAIL').length, runnerErrors: results.filter((r) => r.class === 'RUNNER_ERROR').length }, results };
+  const rep = { mode: 'live', baseUrl: BASE, deployed, repoCommit, commitMatch, promptSet: { version: cfg.version, authoredBy: cfg.authoredBy }, judgeModel: env.GEMINI_API_KEY ? JUDGE_MODELS.join(' → ') : null, byScenario: Object.fromEntries([...new Set(results.map((r) => r.scenario).filter(Boolean))].map((id) => [id, results.filter((r) => r.scenario === id).map((r) => r.class)])), summary: { productRuns, productPass, infra: results.filter((r) => r.class === 'INFRA_FAIL').length, runnerErrors: results.filter((r) => r.class === 'RUNNER_ERROR').length }, results };
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(rep, null, 2));
   fs.writeFileSync(path.join(OUT, 'report.md'), markdown(rep));
   console.log(markdown(rep));
