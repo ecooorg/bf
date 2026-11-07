@@ -1,5 +1,17 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-6 — Keep a usable model plan (P127.31, BUGFIX)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Navigator session 2026-11-07, commit c39688e, job 71621f10: the planner returned a usable plan (9 files) whose unit ids have no extension (`index`, `board`) while `dependsOn` and `order` name files (`style.css`, `game.js`). `validatePlan` rejected it (16 issues: `missing_dep`, `unknown_unit_in_order`, plus a two-unit cycle between the entry script and the input script), the template fallback replaced it, the entry script was generated before three of the modules it must use and became a stub, and the build ended PARTIAL (`plan_fallback`). The delivered page showed an empty board strip and no pieces (screenshot). |
+| **Hypothesis** | Dependencies are generation-order hints. Resolving a reference by unit id, file path or file stem, dropping hints that name nothing and breaking a dependency cycle at its least-connected unit keeps a model plan that is sound in substance, so the entry script is generated after the modules it imports and the generic fallback is used only for plans that are really unusable (no units, unsafe or duplicate paths, too many units). |
+| **Baseline** | Replay of the logged plan shape (neutral names, same graph): `validatePlan` ok=false, 16 issues; build outcome PARTIAL with `plan_fallback`. Live: this log window had 6 builds, 1 hit `plan_validate_failed` (1/6); n is too small for a rate. |
+| **Metric / acceptance** | Unit tests: the replayed plan validates, keeps its own units and contracts, the entry unit runs after every unit it depends on; unusable plans (empty, unsafe path, duplicate path, too many units) are still rejected. Live (next automatic run, same prompt set): `plan_fallback` events <= 1/20 builds. |
+| **Scope** | `appBuilder/core-plan.ts`, `appBuilder/core-engine.ts`, `tests/project-builder-recovery.test.mjs`, patch records. No change to prompts, validators, the fallback plans or any model call. No scenario words in code or tests; no regex on user language. Deletion: the empty dependency loop in `validatePlan`. |
+| **Rollback criterion** | Any rejected-plan case above is accepted, or live `plan_fallback` is not lower than the 2026-11-07 window: revert P127.31. One corrective patch allowed, then stop or revert. |
+| **Result** | Unit tests: red before, green after (see TECHNICAL_REPORT). Live: NOT_RUN. User value: NOT_RUN. |
+
 ## EXP-PROJECT-DOM — Entry HTML first (P127.26, EXPERIMENT)
 
 | Field | Value |
