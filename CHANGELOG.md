@@ -1,3 +1,9 @@
+## [127.24] - BUGFIX: live workflow gate looked at one commit only
+
+- `project-user-value.yml`: the gate diffs against the commit of the newest `project-user-value-live` artifact (last measured commit) instead of `HEAD~1`; no earlier measurement means run. Job gets `actions: read`, full checkout depth.
+- Observed: a push whose Project Mode files were not in the last commit skipped the whole live run.
+- Package patch `127.24`.
+
 ## [127.23] - EXPERIMENT: cross-file type diagnostics + bounded repair; zero-input live workflow
 
 - `validator-static-site.ts`: `type-contracts` (TypeScript checkJs on generated JS; only mismatches declared in other project files: missing exports, unknown members of project classes, wrong call arity). Counted as required.

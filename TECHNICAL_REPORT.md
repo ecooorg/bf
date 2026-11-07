@@ -1,3 +1,9 @@
+## P127.24 — Live gate fix (BUGFIX)
+
+**OBSERVED:** workflow_run job for head 45938c3 ended after the gate step; no later steps ran (diff of HEAD~1..HEAD matched nothing). **CAUSE (inferred from the log):** multi-commit upload. **FIX:** compare with the last measured commit via the newest live artifact. **Local:** tests PASS; behaviour on GitHub NOT_RUN.
+
+---
+
 ## P127.23 — Cross-file diagnostics and repair (EXPERIMENT)
 
 **OBSERVED:** live runs 69e46f6 / 24173ab / d88b819: 0/5, 1/5, 0/5. Remaining failures are cross-file contract defects (missing exports, `player.reset` not defined on the class, wrong arity, `onTick` misuse); `module-contracts` had no repair, `member-contracts` only handled `const x = new Foo()`. Literature (CodeTeam, CoCoGen, repair-loop studies) points to compiler/static feedback with bounded repair, not more prompt hints.
