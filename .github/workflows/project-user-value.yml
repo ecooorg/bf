@@ -1,28 +1,16 @@
-# P127.18 — Project Mode user-value (human-simulator) evaluation.
-# Job 1 (offline) is a rubric SELF-TEST on fixed fixtures; it is not evidence about the live product.
-# Job 2 (live, manual dispatch only — never per patch) builds real projects on the deployed instance,
-# opens the ZIP in headless Chromium and records product outcomes separately from infrastructure failures.
+# P127.18/23 — Project Mode user-value evaluation. Zero input required.
+# offline-human-sim: rubric SELF-TEST on fixed fixtures (not evidence about the live product).
+# live-project-mode: real builds on https://biforge.onrender.com, real Chromium, 10 neutral prompts x 2 runs.
+#   Starts automatically after Core CI succeeds on main when Project Mode code changed (or manually, no inputs);
+#   waits by itself until the deployed commit equals the commit under test; reports PRODUCT results and INFRA failures separately.
 name: Project Mode — User Value (Human Simulator)
 
 on:
   workflow_dispatch:
-    inputs:
-      run_live:
-        description: 'Also run the LIVE suite against the deployed instance (real model, real browser)'
-        type: boolean
-        default: true
-      base_url:
-        description: 'Deployed base URL (empty = repository variable EVAL_BASE_URL)'
-        required: false
-        default: ''
-      scenarios:
-        description: 'Comma-separated scenario ids from config/project-user-value-prompts.json (empty = all)'
-        required: false
-        default: ''
-      min_pass_rate:
-        description: 'Fail the run below this product pass rate, 0..1 (0 = measure only; set after a baseline exists)'
-        required: false
-        default: '0'
+  workflow_run:
+    workflows: ['Core CI — Full Project Verification']
+    types: [completed]
+    branches: [main]
   pull_request:
     paths:
       - 'appBuilder/**'
@@ -46,7 +34,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: project-user-value-${{ github.ref }}
+  group: project-user-value-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -55,6 +43,7 @@ env:
 jobs:
   offline-human-sim:
     name: Offline human-simulator suite
+    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -87,29 +76,45 @@ jobs:
 
   live-project-mode:
     name: Live Project Mode (deployed instance)
-    if: github.event_name == 'workflow_dispatch' && inputs.run_live
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 240
     env:
-      EVAL_BASE_URL: ${{ inputs.base_url || vars.EVAL_BASE_URL }}
+      EVAL_BASE_URL: https://biforge.onrender.com
       APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      UV_SCENARIOS: ${{ inputs.scenarios }}
-      UV_MIN_PASS_RATE: ${{ inputs.min_pass_rate }}
+      UV_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      UV_REPEATS: '2'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 2
+      - name: Decide whether Project Mode changed
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if git diff --name-only HEAD~1 HEAD | grep -E '^(appBuilder/|server/(appBuilder|project)|src/Project|config/project-user-value|scripts/project-user-value-live)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo "No Project Mode changes in this commit; live run skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version-file: '.nvmrc'
           cache: npm
       - name: Install
+        if: steps.gate.outputs.run == 'true'
         run: npm ci --ignore-scripts
       - name: Install Chromium
+        if: steps.gate.outputs.run == 'true'
         run: npx playwright install --with-deps chromium
-      - name: Live run
+      - name: Live run (waits for the deploy, then measures)
+        if: steps.gate.outputs.run == 'true'
         run: node scripts/project-user-value-live.mjs
       - name: Upload live report, screenshots and packages
-        if: always()
+        if: always() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: project-user-value-live

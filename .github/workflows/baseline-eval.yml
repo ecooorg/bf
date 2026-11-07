@@ -56,7 +56,7 @@ jobs:
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           EVAL_APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
-          EVAL_BASE_URL: ${{ inputs.base_url }}
+          EVAL_BASE_URL: ${{ inputs.base_url || 'https://biforge.onrender.com' }}
           EVAL_CONFIGS: ${{ inputs.configs }}
           EVAL_INCLUDE_C: ${{ inputs.include_c }}
           EVAL_GEMINI_GAP_MS: '12000'
