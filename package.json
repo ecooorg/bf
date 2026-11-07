@@ -2,7 +2,7 @@
   "name": "biforge",
   "private": true,
   "version": "127",
-  "patch": "127.18e",
+  "patch": "127.19",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -34,7 +34,7 @@
     "context:select": "node scripts/contextSelect.mjs",
     "docs:check": "npm run docs:integrity && node scripts/docsCheckInventories.mjs && node scripts/statusGraph.mjs --check && node scripts/capabilityGenerateGraph.mjs --check && node scripts/api-contract-coverage.mjs",
     "acceptance:report": "node scripts/acceptanceReport.mjs",
-    "test:app-builder": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs",
+    "test:app-builder": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs tests/project-user-value-live.test.mjs",
     "patch:quality-report": "node scripts/patch-quality-report.mjs",
     "status:graph": "node scripts/statusGraph.mjs",
     "schema:validate": "node scripts/schemaValidate.mjs",
@@ -53,11 +53,12 @@
     "test:agents": "node --test tests/agents-contract.test.mjs",
     "test:governance": "node --test tests/governance-repo.test.mjs tests/governance-workflow-pins.test.mjs",
     "test:diagnostics": "node --test tests/diagnostics-ops.test.mjs",
-    "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode-contract.test.mjs tests/project-resume-lease.test.mjs tests/project-builder-recovery.test.mjs",
+    "test:project": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-mode-contract.test.mjs tests/project-resume-lease.test.mjs tests/project-builder-recovery.test.mjs tests/project-user-value-live.test.mjs",
     "test:project-diagnostics": "node --test tests/diagnostics-ops.test.mjs",
     "scripts:integrity": "node scripts/scripts-integrity.mjs",
     "eval:baseline": "node scripts/baseline-eval.mjs",
-    "test:project-user-value": "node scripts/project-user-value-eval.mjs"
+    "test:project-user-value": "node scripts/project-user-value-eval.mjs",
+    "test:project-user-value-live": "node scripts/project-user-value-live.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

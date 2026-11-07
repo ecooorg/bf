@@ -1,3 +1,13 @@
+## P127.19 — Live Project Mode user-value run (MEASUREMENT)
+
+**Type:** EXPERIMENT (instrument). **OBSERVED:** the P127.18 workflow scored two hand-made fixtures and could not detect regressions of the live product.
+
+**CHANGE:** live runner + prompt set + manual workflow job (see CHANGELOG). **LIMITS:** prompts are an assistant draft (not independent); runtime checks are generic signals; judge sees screenshots only; deployed commit may differ from repo HEAD (recorded).
+
+**VERIFICATION:** syntax + config/arg tests local; the live run itself **NOT_RUN** here (needs deploy, secrets, Chromium).
+
+---
+
 ## P127.18e — Resume keeps intent complexity (BUGFIX)
 
 **OBSERVED (CI run 42318255324):** `project-builder-recovery` tests 1–2 failed (`partial` vs `complete`). Cause: resumed job inferred complexity from an unmodified saved spec → `stub_size`/`stub_modules` adequacy failure.

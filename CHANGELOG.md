@@ -1,3 +1,11 @@
+## [127.19] - Live Project Mode user-value run (real deploy, real browser)
+
+- `scripts/project-user-value-live.mjs`: login → create project → real staged build → poll → download ZIP → open in headless Chromium (render, runtime errors, 404s, reaction to clicks/keys/taps) → optional screenshot judge (Gemini, `GEMINI_API_KEY`).
+- Reports PRODUCT outcomes and INFRA failures separately; records deployed commit vs `GITHUB_SHA`; flags SUCCESS-but-failed-human-check mismatches.
+- `config/project-user-value-prompts.json`: neutral prompt set (draft, authorship stated; Navigator review required).
+- Workflow `project-user-value.yml`: new manual-dispatch `live-project-mode` job (not per patch); offline job relabelled as rubric self-test.
+- Package patch `127.19`.
+
 ## [127.18e] - BUGFIX: persist brief-applied spec so resume keeps complexity
 
 - `core-engine.ts`: `state.spec` now stores the spec after `applyBriefToSpec` (was saved before it, so resumed jobs lost `complexity:`/`targetModules:` and re-scored as ambitious → `goal_not_adequate`).
