@@ -647,3 +647,96 @@ test('P127.31 a build keeps the model plan when only the reference naming was of
   assert.deepEqual(r.report.units.map((u) => u.id).sort(), ['core', 'page', 'readme', 'sheet'], 'the model\'s own unit ids are built');
   assert.equal(r.report.units[0].id, 'page', 'entry HTML still goes first');
 });
+
+// P127.32 — open the built page in a sandboxed browser; what throws joins the bounded cross-file repair.
+// The "repair" returns the current source with a marker appended, so the repair guard sees a faithful rewrite.
+const runtimeModel = (w, suffix) => {
+  const m = w.model(0); const orig = m.complete.bind(m);
+  m.complete = async (a) => {
+    if (a.role === 'coder' && /Fix cross-file contract defects in app\.js/.test(a.prompt || '')) {
+      const cur = /BEGIN CURRENT SOURCE app\.js -----\n([\s\S]*?)\n----- END CURRENT SOURCE/.exec(a.prompt)?.[1] ?? '';
+      return { text: formatFileMarker('app.js', cur + suffix), finishReason: 'stop', modelId: 'fake' };
+    }
+    return orig(a);
+  };
+  return m;
+};
+const fakeRuntime = (isBroken) => { const seen = []; return { seen, async check(files) {
+  seen.push([...files.keys()].length);
+  return isBroken(files) ? { ran: true, issues: [{ path: 'app.js', message: 'runtime: boom (at app.js:1)' }] } : { ran: true, issues: [] };
+} }; };
+
+test('P127.32 a thrown runtime error is repaired once and only then runtimeVerified is true', async () => {
+  const w = world();
+  const rt = fakeRuntime((files) => !files.get('app.js').includes('repaired'));
+  const r = await runBuild({ ...input, jobId: 'job-rt1' }, { ...w.ports(runtimeModel(w, '\nvoid "repaired";')), runtime: rt });
+  assert.ok(w.events.some((e) => e.type === 'runtime_checked' && e.data?.ok === false), 'the first open found the error');
+  assert.ok(w.events.some((e) => e.type === 'cross_file_repair_accepted'), JSON.stringify(w.events.filter((e) => /repair|runtime/.test(e.type)).map((e) => [e.type, e.data])));
+  assert.ok(rt.seen.length >= 2, 'the repaired files were opened again');
+  assert.equal(r.report.runtimeVerified, true);
+  assert.equal(r.report.validators.find((v) => v.name === 'runtime-smoke')?.ok, true);
+  assert.equal(r.report.goalImplemented, true);
+});
+
+test('P127.32 an error that survives repair is reported, never a green result', async () => {
+  const w = world(); const rt = fakeRuntime(() => true);
+  const r = await runBuild({ ...input, jobId: 'job-rt2' }, { ...w.ports(runtimeModel(w, '\nvoid 0;')), runtime: rt });
+  assert.equal(r.report.runtimeVerified, false);
+  assert.equal(r.report.goalImplemented, false);
+  assert.equal(r.report.outcome, 'PARTIAL');
+  assert.match(String(r.report.failureReason), /runtime-smoke/);
+});
+
+test('P127.32 a port that did not run (no browser, disabled) changes nothing', async () => {
+  const base = world(); const a = await runBuild({ ...input, jobId: 'job-rt3a' }, base.ports(base.model(0)));
+  const w = world(); const rt = { async check() { return { ran: false, issues: [], reason: 'playwright_unavailable' }; } };
+  const b = await runBuild({ ...input, jobId: 'job-rt3b' }, { ...w.ports(w.model(0)), runtime: rt });
+  assert.deepEqual(b.report.validators.map((v) => v.name), a.report.validators.map((v) => v.name));
+  assert.equal(b.report.runtimeVerified, false);
+  assert.equal(b.report.outcome, a.report.outcome);
+  assert.ok(w.events.some((e) => e.type === 'runtime_check_skipped'));
+  const thrower = { async check() { throw new Error('browser crashed'); } };
+  const w2 = world(); const c = await runBuild({ ...input, jobId: 'job-rt3c' }, { ...w2.ports(w2.model(0)), runtime: thrower });
+  assert.equal(c.report.outcome, a.report.outcome, 'a crashing port is "not run", not a page defect');
+});
+
+test('P127.32 runner request policy: project files from memory, two script CDNs, nothing else', async () => {
+  const { requestPolicy, runtimeIssuesFromErrors, RUNTIME_ORIGIN } = await import('../server/appBuilderRuntimeCheck.ts');
+  const files = new Map([['index.html', '<p>x</p>'], ['app.js', 'let a=1;']]);
+  assert.equal(requestPolicy(`${RUNTIME_ORIGIN}/index.html`, files).action, 'serve');
+  assert.equal(requestPolicy(`${RUNTIME_ORIGIN}/`, files).action, 'serve');
+  assert.equal(requestPolicy(`${RUNTIME_ORIGIN}/missing.js`, files).action, 'block');
+  assert.equal(requestPolicy('https://cdn.jsdelivr.net/npm/x@1.0.0/x.js', files).action, 'allow');
+  assert.equal(requestPolicy('https://cdnjs.cloudflare.com/ajax/libs/x/1/x.js', files).action, 'allow');
+  for (const u of ['http://cdn.jsdelivr.net/x.js', 'https://evil.example/x.js', 'https://cdn.jsdelivr.net.evil.example/x.js', 'file:///etc/passwd', 'http://169.254.169.254/latest/meta-data', 'ws://localhost:1/', 'not a url']) {
+    assert.equal(requestPolicy(u, files).action, 'block', u);
+  }
+  // error text -> issues on the project files named in the stack; browser noise is ignored
+  const names = new Set(['a.js', 'b.js']);
+  const stack = `TypeError: x.add is not a function\n    at f (${RUNTIME_ORIGIN}/a.js:4:9)\n    at g (${RUNTIME_ORIGIN}/b.js:10:2)\n    at h (${RUNTIME_ORIGIN}/other.js:1:1)`;
+  const issues = runtimeIssuesFromErrors([stack, 'Failed to load resource: net::ERR_BLOCKED_BY_CLIENT', 'Error creating WebGL context'], names);
+  assert.deepEqual(issues.map((i) => i.path).sort(), ['a.js', 'b.js']);
+  assert.ok(issues.every((i) => i.message.startsWith('runtime: TypeError: x.add is not a function (at a.js:4 <- b.js:10)')));
+  assert.deepEqual(runtimeIssuesFromErrors(['Failed to load resource: 404'], names), []);
+  assert.deepEqual(runtimeIssuesFromErrors(['Uncaught Error: boom'], names), [{ message: 'runtime: Uncaught Error: boom' }], 'no project frame: issue without a path');
+});
+
+test('P127.32 runner opens a real page in a browser and reports what throws (explicit skip if no browser)', async (t) => {
+  const { createRuntimePort } = await import('../server/appBuilderRuntimeCheck.ts');
+  const port = createRuntimePort();
+  const ok = await port.check(new Map([['index.html', '<!doctype html><body><p id="a">hi</p><script src="app.js"></script></body>'], ['app.js', 'document.getElementById("a").textContent="ok";']]));
+  if (!ok.ran) { t.skip(`NOT_RUN: ${ok.reason}`); return; }
+  assert.deepEqual(ok.issues, []);
+  const bad = await port.check(new Map([['index.html', '<!doctype html><body><script type="module" src="main.js"></script></body>'], ['main.js', 'import { make } from "./lib.js";\nconst s = make();\ns.add(1);'], ['lib.js', 'export function make() { return { scene: {} }; }']]));
+  assert.equal(bad.ran, true);
+  assert.ok(bad.issues.some((i) => i.path === 'main.js' && /s\.add is not a function/.test(i.message)), JSON.stringify(bad.issues));
+  // a page that tries to reach a server of its own must not get through: a TCP listener counts connection attempts
+  const net = await import('node:net'); let hits = 0;
+  const srv = net.createServer((sock) => { hits++; sock.destroy(); });
+  await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+  const url = `https://127.0.0.1:${srv.address().port}/steal`;
+  const probe = await port.check(new Map([['index.html', `<!doctype html><body><script>fetch(${JSON.stringify(url)}).catch(()=>{});new Image().src=${JSON.stringify(url)};</script></body>`]]));
+  await new Promise((r) => srv.close(r));
+  assert.equal(probe.ran, true);
+  assert.equal(hits, 0, 'no connection from the generated page reached a host outside the policy');
+});
