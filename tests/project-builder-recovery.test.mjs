@@ -269,7 +269,7 @@ test('P127.9 completeness: truncated JS with unclosed brace fails', () => {
   ]);
   const result = validateCompleteness(files);
   assert.equal(result.ok, false);
-  assert.ok(result.issues.some((i) => i.path === 'app.js' && /unclosed/i.test(i.message)));
+  assert.ok(result.issues.some((i) => i.path === 'app.js' && /likely truncated/i.test(i.message)));
 });
 
 test('P127.9/P127.11 SUCCESS report sets runtimeVerified false', async () => {
@@ -555,4 +555,21 @@ test('P127.28: unit prompt states the startup contract (initial draw, no duplica
   const p = promptFor('coder', 'ctx', 'scene.js').prompt;
   assert.match(p, /Startup contract/);
   assert.match(p, /draws its initial state at once/);
+});
+
+import JSZip from 'jszip';
+
+test('P127.30 a finished build ships a standalone index.html and keeps the editable sources under source/', async () => {
+  const w = world();
+  const r = await runBuild({ ...input, jobId: 'job-sa1' }, w.ports(w.model(0)));
+  assert.ok(r.archive && r.archive.byteLength > 0);
+  const zip = await JSZip.loadAsync(r.archive);
+  const names = Object.keys(zip.files);
+  const idx = await zip.file('index.html').async('string');
+  assert.ok(!/<script[^>]*\bsrc="(?!https?:)/i.test(idx), 'root index.html has no local script reference');
+  assert.ok(!/<link[^>]*stylesheet[^>]*href="(?!https?:)/i.test(idx), 'root index.html has no local stylesheet reference');
+  assert.ok(names.includes('source/index.html'));
+  assert.ok(names.some((n) => /^source\/.+\.js$/.test(n)), 'sources are kept');
+  assert.equal(r.report.standalone?.built, true);
+  assert.ok(w.events.some((e) => e.type === 'standalone_index'));
 });
