@@ -1,3 +1,13 @@
+## P127.21 — Style the real page (EXPERIMENT)
+
+**OBSERVED (live run, commit 24173ab = repo, 5 scenarios):** vs baseline 69e46f6: `module-contracts` failures 5/5 → 0/5; SUCCESS 0/5 → 3/5; PRODUCT_PASS 0/5 → 1/5. Two of three SUCCESS builds failed the human check (study timer: black disc, no time shown, settings panel always open — screenshot confirms CSS written for classes the HTML does not have; arcade: blank playfield). Also: list app linked a missing `app.js` (404); converter failed `completeness`.
+
+**HYPOTHESIS:** CSS was generated before the HTML it styles, so selectors were guessed; generating HTML first and passing its real ids/classes fixes unstyled/mis-styled pages.
+
+**LIMITS:** n=5, one run, noisy judge; does not address blank canvas games, `completeness`, or the missing-file link. **Local:** unit tests + tsc PASS; live re-measure NOT_RUN.
+
+---
+
 ## P127.20 — Interface-aware generation (EXPERIMENT)
 
 **OBSERVED (live run P127.19, deployed commit 69e46f6, 5 scenarios):** product pass 0/5. All 5 builds ended PARTIAL with `validators_failed: module-contracts` (importer names a symbol the sibling file does not export; page throws at load); one also referenced a missing media file (`refs`); one produced no downloadable package (cause UNKNOWN, job facts now recorded). The screenshot judge did not run (HTTP 404 on its model id).

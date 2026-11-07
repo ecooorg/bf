@@ -1,3 +1,9 @@
+## [127.21] - EXPERIMENT: style the real page (CSS after HTML, DOM contract in prompts)
+
+- `stack-static-site.ts`: HTML no longer waits for CSS; CSS depends on the HTML unit.
+- `core-prompts.ts`: `domContract`; `interfaceBlock` now also lists the actual ids/classes of generated HTML.
+- Test added. Package patch `127.21`.
+
 ## [127.20] - EXPERIMENT: generate against actual module interfaces; live runner fixes
 
 - `core-prompts.ts`: `exportedNames` / `interfaceBlock`; `core-engine.ts` appends the real exports of already generated scripts to every later unit's prompt.
