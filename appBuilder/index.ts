@@ -104,6 +104,7 @@ export {
   fallbackIntentBrief,
   applyBriefToSpec,
   assessGoalAdequacy,
+  briefHintsFromSpec,
   buildIntentPrompt,
   type IntentBrief,
   type IntentComplexity,

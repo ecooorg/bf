@@ -14,6 +14,7 @@ import {
   fallbackIntentBrief,
   applyBriefToSpec,
   assessGoalAdequacy,
+  briefHintsFromSpec,
   type IntentBrief,
 } from './intent-brief.ts';
 import {
@@ -356,6 +357,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
 
     }
     const spec = state.spec!;
+    if (!intentBrief && state.spec) intentBrief = briefHintsFromSpec(state.spec);
     if (!state.plan?.units.length) {
 
     state.stage = 'plan'; state.error = null; await save(); event(ports, input.jobId, 'stage_changed', { stage: 'plan' });
@@ -752,7 +754,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   if (files.size === 0 && !failureReason) failureReason = cancelled ? 'cancelled' : 'empty_artifact';
   if (allFilesDone && files.size > 0 && !validatorsOk && !failureReason) failureReason = `validators_failed: ${validators.filter((v) => !v.ok).map((v) => v.name).join(', ') || checksNotRun.join(', ') || 'not run'}`;
   // P127.17: static validators are necessary but not sufficient for user-facing SUCCESS.
-  if (!intentBrief) intentBrief = fallbackIntentBrief(state.spec?.goal || state.spec?.title || '');
+  if (!intentBrief) intentBrief = briefHintsFromSpec(state.spec);
   const contentMapForAdequacy = new Map([...files].map(([path, f]) => [path, f.content] as [string, string]));
   const adequacy = assessGoalAdequacy(contentMapForAdequacy, intentBrief, { planFallback: planFallbackUsed || Boolean(templateUsed) });
   if (!adequacy.adequate && validatorsOk) {

@@ -190,6 +190,35 @@ export type AdequacyResult = {
  * Heuristic goal adequacy: ambitious/standard requests cannot SUCCESS as tiny stubs.
  * Does not claim runtime proof — only blocks false SUCCESS.
  */
+
+/** Recover complexity / module budget stored on Spec.features by applyBriefToSpec (resume-safe). */
+export function briefHintsFromSpec(spec: { goal?: string; title?: string; features?: string[] } | null | undefined): IntentBrief {
+  const features = Array.isArray(spec?.features) ? spec!.features! : [];
+  let complexity: IntentComplexity | null = null;
+  let targetModules: number | null = null;
+  const modulePaths: string[] = [];
+  for (const f of features) {
+    const c = /^complexity:(trivial|simple|standard|ambitious)$/.exec(f);
+    if (c) complexity = c[1] as IntentComplexity;
+    const t = /^targetModules:(\d+)$/.exec(f);
+    if (t) targetModules = Math.min(48, Math.max(1, Number(t[1])));
+    const m = /^module:(.+)$/.exec(f);
+    if (m) modulePaths.push(m[1]);
+  }
+  const base = fallbackIntentBrief(spec?.goal || spec?.title || '');
+  if (complexity) base.complexity = complexity;
+  if (targetModules) base.targetModules = targetModules;
+  if (modulePaths.length) {
+    base.suggestedModules = modulePaths.map((path) => ({
+      id: path.replace(/\W+/g, '_').slice(0, 40),
+      path,
+      purpose: path,
+    }));
+  }
+  // Prefer machine complexity from features over re-estimating from expanded goal text (e.g. "Tetris").
+  return base;
+}
+
 export function assessGoalAdequacy(
   files: Map<string, string>,
   brief: IntentBrief,
