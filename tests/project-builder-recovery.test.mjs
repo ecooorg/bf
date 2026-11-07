@@ -538,3 +538,21 @@ test('P127.28: mixed three.js imports become one bare specifier plus one pinned 
   const none = new Map([['index.html', '<script type="module" src="m.js"></script>'], ['m.js', 'export {};']]);
   assert.deepEqual(normalizeThreeSetup(none), [], 'projects without three.js are untouched');
 });
+
+test('P127.28: member-contracts flags setup methods called again after the constructor already ran them', () => {
+  const cls = 'export class Scene {\n  constructor() { this.initDOM(); this.initBoard(); this.run(); }\n  initDOM() {}\n  initBoard() {}\n  run() {}\n}';
+  const bad = new Map([['scene.js', cls], ['main.js', "import { Scene } from './scene.js';\nconst s = new Scene();\ns.initDOM();\ns.initBoard();\ns.run();"]]);
+  const v = validateMemberContracts(bad);
+  assert.equal(v.ok, false);
+  assert.equal(v.issues.length, 2, 'init* calls flagged, run() is not a setup method');
+  assert.match(v.issues[0].message, /already calls this\.initDOM\(\)/);
+  const good = new Map([['scene.js', cls], ['main.js', "import { Scene } from './scene.js';\nconst s = new Scene();\ns.run();"]]);
+  assert.equal(validateMemberContracts(good).ok, true);
+});
+
+test('P127.28: unit prompt states the startup contract (initial draw, no duplicate setup)', async () => {
+  const { promptFor } = await import('../appBuilder/core-prompts.ts');
+  const p = promptFor('coder', 'ctx', 'scene.js').prompt;
+  assert.match(p, /Startup contract/);
+  assert.match(p, /draws its initial state at once/);
+});
