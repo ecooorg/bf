@@ -1,10 +1,28 @@
 # P127.18 — Project Mode user-value (human-simulator) evaluation.
-# Offline fixtures only by default: does not call live models.
-# This is NOT the same as Core CI unit tests; it rejects SUCCESS-on-stub packages.
+# Job 1 (offline) is a rubric SELF-TEST on fixed fixtures; it is not evidence about the live product.
+# Job 2 (live, manual dispatch only — never per patch) builds real projects on the deployed instance,
+# opens the ZIP in headless Chromium and records product outcomes separately from infrastructure failures.
 name: Project Mode — User Value (Human Simulator)
 
 on:
   workflow_dispatch:
+    inputs:
+      run_live:
+        description: 'Also run the LIVE suite against the deployed instance (real model, real browser)'
+        type: boolean
+        default: true
+      base_url:
+        description: 'Deployed base URL (empty = repository variable EVAL_BASE_URL)'
+        required: false
+        default: ''
+      scenarios:
+        description: 'Comma-separated scenario ids from config/project-user-value-prompts.json (empty = all)'
+        required: false
+        default: ''
+      min_pass_rate:
+        description: 'Fail the run below this product pass rate, 0..1 (0 = measure only; set after a baseline exists)'
+        required: false
+        default: '0'
   pull_request:
     paths:
       - 'appBuilder/**'
@@ -65,4 +83,35 @@ jobs:
             artifacts/project-user-value-report.json
             artifacts/project-user-value-report.md
             artifacts/project-user-value/**
+          if-no-files-found: warn
+
+  live-project-mode:
+    name: Live Project Mode (deployed instance)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_live
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      EVAL_BASE_URL: ${{ inputs.base_url || vars.EVAL_BASE_URL }}
+      APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      UV_SCENARIOS: ${{ inputs.scenarios }}
+      UV_MIN_PASS_RATE: ${{ inputs.min_pass_rate }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - name: Install
+        run: npm ci --ignore-scripts
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Live run
+        run: node scripts/project-user-value-live.mjs
+      - name: Upload live report, screenshots and packages
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: project-user-value-live
+          path: artifacts/project-user-value-live/**
           if-no-files-found: warn
