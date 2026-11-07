@@ -1,3 +1,11 @@
+## P127.18e — Resume keeps intent complexity (BUGFIX)
+
+**OBSERVED (CI run 42318255324):** `project-builder-recovery` tests 1–2 failed (`partial` vs `complete`). Cause: resumed job inferred complexity from an unmodified saved spec → `stub_size`/`stub_modules` adequacy failure.
+
+**CHANGE:** persist spec after brief application. **Local:** `test:project` 37/37 PASS; `test:core`, typecheck, full DAG NOT_RUN.
+
+---
+
 ## P127.17b — Flat package paths (2026-11-06)
 
 **OBSERVED:** Project policy forbids nested folders in packages; P127.17 used `js/*.js` paths.

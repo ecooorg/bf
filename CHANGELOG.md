@@ -1,3 +1,9 @@
+## [127.18e] - BUGFIX: persist brief-applied spec so resume keeps complexity
+
+- `core-engine.ts`: `state.spec` now stores the spec after `applyBriefToSpec` (was saved before it, so resumed jobs lost `complexity:`/`targetModules:` and re-scored as ambitious → `goal_not_adequate`).
+- `project-mode-contract.test.mjs`: patch id derived from `package.json`, not hard-coded.
+- Package patch `127.18e`.
+
 ## [127.17b] - Flat package paths only (no nested folders)
 
 - Intent suggested modules and expanded plans use top-level files only (`main.js`, `scene.js`, …).
