@@ -104,7 +104,7 @@ test('recovery: interrupted on unit three, resume reuses completed units without
   const first = await runBuild(input, w.ports(w.model(3)));
   assert.equal(first.report.status, 'partial'); assert.equal(first.report.goalImplemented, false);
   assert.deepEqual(first.report.units.map((u) => u.status), ['done', 'done', 'failed']);
-  assert.ok(w.events.some((e) => e.type === 'unit_failed' && e.unitId === 'index'));
+  assert.ok(w.events.some((e) => e.type === 'unit_failed' && e.unitId === first.report.units[2].id), 'the third unit in run order failed');
   const saved = await w.store.loadJob('job-r1');
   assert.equal(saved.status, 'failed'); assert.ok(saved.spec && saved.plan);
   const plannerBefore = w.calls.planner, coderBefore = w.calls.coder;
@@ -452,4 +452,38 @@ test('P127.25: readBuildFile serves only finished unit paths, preferring the sto
   assert.equal(await readBuildFile(job, 'a.js', {}, async () => bytes), 'repaired');
   assert.equal(await readBuildFile(job, 'b.js', {}, async () => bytes), null, 'unfinished file is not served');
   assert.equal(await readBuildFile(job, '../../etc/passwd', {}, async () => bytes), null, 'paths outside the plan are not served');
+});
+
+// P127.25b: entry HTML first; scripts and styles are written against its real ids.
+test('P127.25b: domFirstPlan puts the HTML first and makes every script and style depend on it', async () => {
+  const { domFirstPlan } = await import('../appBuilder/stack-static-site.ts');
+  const u = (id, path, dependsOn) => ({ id, kind: 'file', path, purpose: id, dependsOn, exports: [], contract: '', maxOutputTokens: 100, status: 'pending', attempts: 0 });
+  const plan = { schemaVersion: 1, specHash: 'x', units: [u('style', 'style.css', []), u('game', 'game.js', []), u('main', 'main.js', ['game']), u('index', 'index.html', ['style', 'game', 'main']), u('readme', 'README.md', ['index'])], order: [] };
+  const out = domFirstPlan(plan);
+  assert.equal(out.order[0], 'index');
+  assert.deepEqual(out.units.find((x) => x.id === 'index').dependsOn, []);
+  for (const id of ['style', 'game', 'main']) assert.ok(out.units.find((x) => x.id === id).dependsOn.includes('index'), `${id} depends on index`);
+  assert.ok(out.order.indexOf('game') < out.order.indexOf('main'), 'script-to-script order is kept');
+  const noHtml = { ...plan, units: plan.units.filter((x) => x.id !== 'index') };
+  assert.equal(domFirstPlan(noHtml), noHtml, 'plans without HTML are untouched');
+});
+
+test('P127.25b: scripts see the real HTML ids; the HTML sees the planned files', async () => {
+  const { domBlock, htmlPlanBlock } = await import('../appBuilder/core-prompts.ts');
+  const files = new Map([['index.html', { content: '<div id="board" class="grid big"></div><button id="start">go</button>' }], ['a.js', { content: 'let id="nope"' }]]);
+  const b = domBlock(files);
+  assert.match(b, /ids \[board, start\]/); assert.match(b, /classes \[grid, big\]/); assert.doesNotMatch(b, /nope/);
+  assert.equal(domBlock(new Map([['a.js', { content: '' }]])), '');
+  const h = htmlPlanBlock([{ id: 'index', path: 'index.html', purpose: 'shell' }, { id: 'game', path: 'game.js', purpose: 'loop' }], 'index');
+  assert.match(h, /game\.js: loop/); assert.doesNotMatch(h, /- index\.html/);
+});
+
+test('P127.25b: in a real build the HTML is generated first and later prompts carry its ids', async () => {
+  const w = world(); const prompts = [];
+  const m = w.model(0); const orig = m.complete.bind(m);
+  m.complete = async (a) => { if (a.role === 'coder') prompts.push(a.prompt); return orig(a); };
+  const r = await runBuild(input, w.ports(m));
+  assert.equal(r.report.units[0].id, 'index');
+  assert.doesNotMatch(prompts[0], /DOM CONTRACT/); assert.match(prompts[0], /generated BEFORE the scripts/);
+  assert.ok(prompts.slice(1).every((p) => /DOM CONTRACT/.test(p)));
 });
