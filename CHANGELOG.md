@@ -1,3 +1,10 @@
+## [127.33] - BEHAVIOUR: names two files must agree on (validator `name-contracts`)
+
+- `appBuilder/validator-static-site.ts`: new `validateNameContracts`, required for SUCCESS. (a) A CSS rule that needs a second class (`.a.b`) where `b` appears in no script or markup (whole word, or prefix of a composed name such as `state-` + n) is reported on the script that uses the other class most. (b) A script or stylesheet that names a local picture, sound or font file that is not in the package is reported once per file (a package holds text files only). Issues start with `name:`.
+- `appBuilder/core-engine.ts`: `name-contracts` joins the bounded cross-file repair; stylesheets can be repair targets; one sentence added to the repair prompt for `name:` lines.
+- Observed (three builds, commit 9387144, all SUCCESS with 12/12 validators ok, all unusable): stylesheet styled `.square.light`/`.dark` while the script set `white`/`black` (invisible board); stylesheet showed a slide only with `.slide.active`, never set (blank slides) and six picture files that cannot exist; a handler read `dataset.row` while the renderer wrote `dataset.pos` (browser check only); piece type names `p` vs `pawn` (no check finds it).
+- Tests: `project-builder-recovery` (3 new). Experiment record `docs/EXPERIMENTS.md` EXP-PROJECT-8. Package patch `127.33`.
+
 ## [127.32] - BEHAVIOUR: Project Mode opens the built page in a sandboxed browser and repairs what throws
 
 - `appBuilder/core-ports.ts`, `index.ts`: optional `RuntimePort` (`check(files)` returns `ran` and issues; `ran: false` means "not checked").
