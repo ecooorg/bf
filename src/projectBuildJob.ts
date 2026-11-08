@@ -22,7 +22,10 @@ export type BuildJobResult = {
     checksDeclared?: string[];
     checksRun?: string[];
     checksNotRun?: string[];
+    humanBrief?: string;
   } | null;
+  /** P127.34: short plan text when available on the job. */
+  humanBrief?: string;
   diagnosticsUrl?: string;
   note?: string;
   taskId?: string;

@@ -69,6 +69,13 @@ export default function ProjectMode() {
   const [programGoal, setProgramGoal] = useState('');
   const [continueGoal, setContinueGoal] = useState('');
   const [continueArtifactId, setContinueArtifactId] = useState('');
+  /** P127.34: human brief card before code generation. */
+  const [briefPreview, setBriefPreview] = useState<{
+    humanBrief: string;
+    title: string;
+    goal: string;
+    userNotes: string;
+  } | null>(null);
   const zipUploadRef = useRef<HTMLInputElement>(null);
   const [driveConnected, setDriveConnected] = useState(() => isMirrorConnected());
   const [driveBusy, setDriveBusy] = useState(false);
@@ -228,15 +235,46 @@ export default function ProjectMode() {
     const r = await post<NonNullable<typeof lastRun> & { changes: unknown[] }>('analyze', { task: combinedTask });
     setLastRun(r); setTask(''); return `Analysis done: ${r.changes.length} proposed change(s). Review them below.`;
   });
-  const buildProgram = () => act(async () => {
+  /** Step 1: only the human brief — no code yet. */
+  const prepareProgramBrief = () => act(async () => {
+    const goal = programGoal.trim();
+    if (!goal) throw new Error('Describe the program first.');
+    const preview = await api<{ humanBrief: string; title: string; complexity?: string }>(
+      `/api/projects/${encodeURIComponent(selected!.id)}/code/build/preview`,
+      { method: 'POST', body: JSON.stringify({ goal }) },
+    );
+    setBriefPreview({
+      humanBrief: preview.humanBrief,
+      title: preview.title || 'Program',
+      goal,
+      userNotes: '',
+    });
+    return 'Review the plan below. Confirm to start building, or add notes and confirm.';
+  });
+
+  /** Step 2: user confirmed the brief — start the real build. */
+  const confirmProgramBuild = () => act(async () => {
+    if (!briefPreview) throw new Error('Prepare the plan first.');
     buildStartedAtRef.current = Date.now();
-    const started = await api<BuildJobResult & { taskId?: string; codeTask?: any; stack?: string }>(`/api/projects/${encodeURIComponent(selected!.id)}/code/build`, { method: 'POST', body: JSON.stringify({ goal: programGoal }) });
+    const body: Record<string, string> = {
+      goal: briefPreview.goal,
+      approvedBrief: briefPreview.humanBrief,
+    };
+    if (briefPreview.userNotes.trim()) body.userNotes = briefPreview.userNotes.trim();
+    const started = await api<BuildJobResult & { taskId?: string; codeTask?: any; stack?: string }>(
+      `/api/projects/${encodeURIComponent(selected!.id)}/code/build`,
+      { method: 'POST', body: JSON.stringify(body) },
+    );
+    setBriefPreview(null);
     if (started.jobId) updateBuildProgress(started);
     const r = started.jobId ? await waitForProjectBuild(selected!.id, started, updateBuildProgress) : started;
     if (started.jobId) updateBuildProgress(r);
-    setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build' }); setProgramGoal('');
+    setProgramResult({ ...r, taskId: r.taskId || r.jobId || 'build' });
+    setProgramGoal('');
     await loadExtras(selected!.id);
-    return r.downloadUrl ? (r.note?.startsWith('WARNING') ? r.note : 'Program source generated; download is ready.') : (r.note || 'No downloadable source was produced. Check project settings and try again.');
+    return r.downloadUrl
+      ? (r.note?.startsWith('WARNING') ? r.note : 'Program source generated; download is ready.')
+      : (r.note || 'No downloadable source was produced. Check project settings and try again.');
   });
   const zipArtifacts = artifacts.filter((a) => /\.zip$/i.test(a.filename));
   const continueProgram = () => act(async () => {
@@ -702,10 +740,45 @@ export default function ProjectMode() {
             <details aria-label="Create a program" style={{ margin: '16px 0', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}>
               <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#9fd8ff', minHeight: 44, display: 'flex', alignItems: 'center' }}>Create a new program</summary>
               <div style={{ marginTop: 10 }}>
-              <p style={{ fontSize: 13, color: '#8fa6c2' }}>Describe a game, browser tool, or small program. BiForge generates validated source files and offers a ZIP download. Generated code is not executed on the BiForge server; review it before running.</p>
-              <textarea aria-label="Program description" value={programGoal} onChange={e => setProgramGoal(e.target.value)} rows={3} maxLength={4000} placeholder="Example: Create a playable Tetris game with keyboard controls, score, restart, and responsive layout." style={{ ...styles.input, minHeight: 0, fontSize: 14 }} />
-              <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || (capabilities !== null && !capabilities.programZip)} onClick={() => void buildProgram()}>Create program</button>
-              {!programGoal.trim() && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program to enable this button. The source pipeline can generate a ZIP without changing project permissions.</p>}
+              <p style={{ fontSize: 13, color: '#8fa6c2' }}>Describe a game, browser tool, or small program. First you will see a short plan to confirm; only then BiForge builds the source ZIP. Generated code is not executed on the BiForge server; review it before running.</p>
+              <textarea aria-label="Program description" value={programGoal} onChange={e => setProgramGoal(e.target.value)} rows={3} maxLength={4000} placeholder="Example: Create a playable Tetris game with keyboard controls, score, restart, and responsive layout." style={{ ...styles.input, minHeight: 0, fontSize: 14 }} disabled={!!briefPreview} />
+              {!briefPreview && (
+                <button type="button" style={{ ...styles.button, marginTop: 8 }} disabled={busy || !programGoal.trim() || (capabilities !== null && !capabilities.programZip)} onClick={() => void prepareProgramBrief()} data-testid="project-prepare-program">
+                  Prepare plan
+                </button>
+              )}
+              {briefPreview && (
+                <div data-testid="project-brief-card" role="region" aria-label="Program plan to confirm" style={{ marginTop: 12, padding: 14, border: '1px solid #3d7fc4', borderRadius: 10, background: '#0b2545', color: '#e6edf7' }}>
+                  <p style={{ margin: '0 0 8px', fontWeight: 600, fontSize: 15 }}>Check the plan before building</p>
+                  <p style={{ margin: '0 0 10px', fontSize: 14, lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>{briefPreview.humanBrief}</p>
+                  <label style={{ display: 'block', fontSize: 12, color: '#8fa6c2', marginBottom: 4 }}>What to change (optional)</label>
+                  <textarea
+                    aria-label="Notes on the plan"
+                    data-testid="project-brief-notes"
+                    value={briefPreview.userNotes}
+                    onChange={(e) => setBriefPreview({ ...briefPreview, userNotes: e.target.value })}
+                    rows={2}
+                    maxLength={2000}
+                    placeholder="Example: no sound, only click moves, Russian UI labels"
+                    style={{ ...styles.input, minHeight: 0, fontSize: 13, width: '100%', boxSizing: 'border-box' }}
+                  />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                    <button type="button" style={styles.button} disabled={busy} onClick={() => void confirmProgramBuild()} data-testid="project-confirm-build">
+                      Confirm and build
+                    </button>
+                    <button
+                      type="button"
+                      style={{ ...styles.button, background: 'transparent', border: '1px solid #3d7fc4' }}
+                      disabled={busy}
+                      onClick={() => setBriefPreview(null)}
+                      data-testid="project-cancel-brief"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </div>
+              )}
+              {!programGoal.trim() && !briefPreview && <p style={{ fontSize: 12, color: '#8fa6c2' }}>Describe the program, then prepare a short plan to confirm before the build starts.</p>}
               <p style={{ fontSize: 12, color: '#8fa6c2' }}>Generated source is checked for safety but is never run on BiForge servers — download and review it yourself.</p>
               {programResult && <div style={{ marginTop: 12, borderTop: '1px solid #1f4f86', paddingTop: 10 }} data-testid="project-program-result">
                 <strong>{programResult.downloadUrl ? 'Source ready' : 'Latest build'}</strong>

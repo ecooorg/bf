@@ -25,6 +25,16 @@ type ChatMessage = {
   downloadUrl?: string;
   downloadName?: string;
   at: number;
+  /** P127.34: this message is a brief awaiting confirm/cancel. */
+  briefPending?: boolean;
+};
+
+type PendingBrief = {
+  goal: string;
+  humanBrief: string;
+  title: string;
+  userNotes: string;
+  projectId: string;
 };
 
 async function api<T>(url: string, init: RequestInit = {}): Promise<T> {
@@ -165,6 +175,7 @@ export function ProjectChat({
   const [projectId, setProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>('');
   const [baseArtifactId, setBaseArtifactId] = useState<string | null>(null);
+  const [pendingBrief, setPendingBrief] = useState<PendingBrief | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -172,7 +183,15 @@ export function ProjectChat({
   }, [messages, statusLine]);
 
   const push = (msg: Omit<ChatMessage, 'id' | 'at'> & { id?: string }) => {
-    const full: ChatMessage = { id: msg.id || newId(), at: Date.now(), role: msg.role, text: msg.text, downloadUrl: msg.downloadUrl, downloadName: msg.downloadName };
+    const full: ChatMessage = {
+      id: msg.id || newId(),
+      at: Date.now(),
+      role: msg.role,
+      text: msg.text,
+      downloadUrl: msg.downloadUrl,
+      downloadName: msg.downloadName,
+      briefPending: msg.briefPending,
+    };
     setMessages((m) => [...m, full]);
     return full;
   };
@@ -215,11 +234,18 @@ export function ProjectChat({
     return fresh;
   };
 
-  const runBuild = async (pid: string, goal: string) => {
+  const runBuild = async (
+    pid: string,
+    goal: string,
+    opts?: { approvedBrief?: string; userNotes?: string },
+  ) => {
     setStatusLine('Building…');
+    const body: Record<string, string> = { goal };
+    if (opts?.approvedBrief) body.approvedBrief = opts.approvedBrief;
+    if (opts?.userNotes) body.userNotes = opts.userNotes;
     const started = await api<BuildJobResult>(`/api/projects/${encodeURIComponent(pid)}/code/build`, {
       method: 'POST',
-      body: JSON.stringify({ goal }),
+      body: JSON.stringify(body),
     });
     const result = started.jobId
       ? await waitForProjectBuild(pid, started, (job) => {
@@ -235,6 +261,35 @@ export function ProjectChat({
       : started;
     setStatusLine('');
     return result;
+  };
+
+  const confirmPendingBrief = async () => {
+    if (!pendingBrief || busy) return;
+    setBusy(true);
+    try {
+      setPendingBrief(null);
+      setMessages((m) => m.map((msg) => (msg.briefPending ? { ...msg, briefPending: false } : msg)));
+      push({ role: 'user', text: 'Confirm and build' });
+      const result = await runBuild(pendingBrief.projectId, pendingBrief.goal, {
+        approvedBrief: pendingBrief.humanBrief,
+        userNotes: pendingBrief.userNotes.trim() || undefined,
+      });
+      if (result.downloadUrl) {
+        const newest = await latestZipArtifactId(pendingBrief.projectId);
+        if (newest) setBaseArtifactId(newest);
+      }
+      replyFromResult(result, 'build');
+    } catch (e) {
+      push({ role: 'assistant', text: String((e as Error).message || e) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const cancelPendingBrief = () => {
+    setPendingBrief(null);
+    setMessages((m) => m.map((msg) => (msg.briefPending ? { ...msg, briefPending: false } : msg)));
+    push({ role: 'assistant', text: 'Build cancelled. Describe the program again when you are ready.' });
   };
 
   const runContinue = async (pid: string, goal: string, artifactId: string) => {
@@ -298,24 +353,46 @@ export function ProjectChat({
     setBusy(true);
     try {
       const project = await ensureProject(text);
-      let result: BuildJobResult;
-      if (!baseArtifactId) {
-        const existing = await latestZipArtifactId(project.id);
-        if (existing && projectId) {
-          result = await runContinue(project.id, text, existing);
-          setBaseArtifactId(existing);
-        } else {
-          result = await runBuild(project.id, text);
+      // Continue path: already have a ZIP — no brief gate (change request).
+      if (baseArtifactId) {
+        const result = await runContinue(project.id, text, baseArtifactId);
+        if (result.downloadUrl) {
+          const newest = await latestZipArtifactId(project.id);
+          if (newest) setBaseArtifactId(newest);
         }
-      } else {
-        result = await runContinue(project.id, text, baseArtifactId);
+        replyFromResult(result, 'continue');
+        return;
       }
-      if (result.downloadUrl) {
-        // Prefer newest zip after build for the next turn.
-        const newest = await latestZipArtifactId(project.id);
-        if (newest) setBaseArtifactId(newest);
+      const existing = await latestZipArtifactId(project.id);
+      if (existing && projectId) {
+        setBaseArtifactId(existing);
+        const result = await runContinue(project.id, text, existing);
+        if (result.downloadUrl) {
+          const newest = await latestZipArtifactId(project.id);
+          if (newest) setBaseArtifactId(newest);
+        }
+        replyFromResult(result, 'continue');
+        return;
       }
-      replyFromResult(result, baseArtifactId ? 'continue' : 'build');
+      // P127.34: first build — show human brief card; do not start code until confirm.
+      setStatusLine('Preparing plan…');
+      const preview = await api<{ humanBrief: string; title: string }>(
+        `/api/projects/${encodeURIComponent(project.id)}/code/build/preview`,
+        { method: 'POST', body: JSON.stringify({ goal: text }) },
+      );
+      setStatusLine('');
+      setPendingBrief({
+        goal: text,
+        humanBrief: preview.humanBrief,
+        title: preview.title || 'Program',
+        userNotes: '',
+        projectId: project.id,
+      });
+      push({
+        role: 'assistant',
+        text: `${preview.humanBrief}\n\nConfirm to build, or cancel and rephrase.`,
+        briefPending: true,
+      });
     } catch (e) {
       setStatusLine('');
       push({ role: 'assistant', text: String((e as Error).message || e) });
@@ -338,6 +415,7 @@ export function ProjectChat({
     setProjectId(null);
     setProjectName('');
     setBaseArtifactId(null);
+    setPendingBrief(null);
     setInput('');
     setStatusLine('');
   };
@@ -375,6 +453,53 @@ export function ProjectChat({
               >
                 Download source ZIP
               </a>
+            )}
+            {m.briefPending && pendingBrief && (
+              <div data-testid="project-chat-brief-card" style={{ marginTop: 10 }}>
+                <label style={{ display: 'block', fontSize: 12, color: '#8fa6c2', marginBottom: 4 }}>
+                  What to change (optional)
+                </label>
+                <textarea
+                  aria-label="Notes on the plan"
+                  data-testid="project-chat-brief-notes"
+                  value={pendingBrief.userNotes}
+                  onChange={(e) => setPendingBrief({ ...pendingBrief, userNotes: e.target.value })}
+                  rows={2}
+                  maxLength={2000}
+                  disabled={busy}
+                  placeholder="Example: only click moves, no AI opponent"
+                  style={{ ...S.input, width: '100%', boxSizing: 'border-box', minHeight: 48 }}
+                />
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                  <button
+                    type="button"
+                    data-testid="project-chat-confirm-build"
+                    disabled={busy}
+                    onClick={() => void confirmPendingBrief()}
+                    style={{
+                      minHeight: 40,
+                      padding: '8px 14px',
+                      borderRadius: 8,
+                      border: '1px solid #78baff',
+                      background: '#12345a',
+                      color: '#e6edf7',
+                      cursor: busy ? 'wait' : 'pointer',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Confirm and build
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="project-chat-cancel-brief"
+                    disabled={busy}
+                    onClick={cancelPendingBrief}
+                    style={S.ghost}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         ))}
