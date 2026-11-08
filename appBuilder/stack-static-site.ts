@@ -95,12 +95,14 @@ export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']>
         'Controls: on-screen buttons and/or pointer/touch that move the player; keyboard may be extra, never the only input',
         'All draw positions for player and obstacles must stay inside the canvas pixel bounds',
         'If using world/camera coordinates, convert to screen before draw; keep the player sprite visible',
+        'Safe spawn: player must not overlap obstacles at start; ~1s collision grace after Start/Restart; never game-over on the start frame',
         'app.js MUST start itself (init/main at bottom); index.html loads style.css and app.js as module',
       ],
       smoke: [
         { id: 'no-throw', assert: 'no uncaught exception during load and first paint' },
         { id: 'player-visible', assert: 'player is drawn within the canvas on first frames' },
         { id: 'touch-or-buttons', assert: 'movement works without a physical keyboard' },
+        { id: 'no-instant-gameover', assert: 'after Start, game stays playable for at least ~2s without forced game-over' },
       ],
       budgets: { maxFiles: 3, maxTotalBytes: 18000 },
     };
