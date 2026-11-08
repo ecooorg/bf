@@ -546,7 +546,23 @@ export default function ProjectMode() {
             window.location.href = '/';
           }}
         />
-        <button type="button" className="ghost" data-testid="architect-new-conversation" title="Start a conversation in Conversational mode" onClick={() => { try { sessionStorage.setItem('biforge-start-mode', 'Simple'); sessionStorage.setItem('biforge-new-conversation', '1'); } catch {} window.location.href = '/'; }}>
+        <button
+          type="button"
+          className="ghost"
+          data-testid="project-new-project"
+          title="Start a new project in Project Mode"
+          onClick={() => {
+            setSelected(null);
+            setViewMode('advanced');
+            setShowGuidedStart(false);
+            setName('');
+            setGoal('');
+            setProgramResult(null);
+            setBriefPreview(null);
+            setError('');
+            setNotice('Enter a name below to create a new project.');
+          }}
+        >
           <Plus size={14} /> <span className="lbl">New</span>
         </button>
         <button type="button" className="ghost" data-testid="architect-conversation-history" title="Open conversation history in the conversation workspace" onClick={() => { try { sessionStorage.setItem('biforge-start-mode', 'Simple'); sessionStorage.setItem('biforge-open-history', '1'); } catch {} window.location.href = '/'; }}>
@@ -704,8 +720,8 @@ export default function ProjectMode() {
         <button type="button" aria-label="Close message" onClick={() => { setError(''); setNotice(''); }} style={{ background: 'none', border: 0, color: 'inherit', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
       </div></div>}
     {enabled === null || authenticated === null ? <StateNotice kind="loading">Checking session…</StateNotice> : !enabled ? <StateNotice kind="unavailable">Project Mode is disabled in the server configuration. <a href="/" style={styles.link}>Back to Simple Mode</a>.</StateNotice> : !authenticated ? <form onSubmit={login} style={{ maxWidth: 420, display: 'grid', gap: 12 }}><h2>Sign in</h2><label htmlFor="project-password">App password</label><input id="project-password" style={styles.input} type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /><button style={styles.button} disabled={busy}>Sign in</button></form> : <>
-            {!selected && !showGuidedStart && (
-      <div style={{ margin: '12px 0 24px' }}>
+            {viewMode === 'advanced' && !selected && !showGuidedStart && (
+      <div style={{ margin: '12px 0 24px' }} data-testid="project-create-form">
         <p style={{ fontSize: 13, color: '#8fa6c2', margin: '0 0 8px' }}>
           Create a project by name, or use the guided start for a short questionnaire and optional ZIP build.
           <button type="button" style={{ ...styles.button, marginLeft: 8, minHeight: 32, padding: '4px 10px' }} onClick={() => setShowGuidedStart(true)}>Guided start</button>
@@ -718,7 +734,7 @@ export default function ProjectMode() {
       </div>
       )}
 
-      <div className={selected ? 'project-workspace-layout is-open' : 'project-workspace-layout'} style={{ display: 'grid', gridTemplateColumns: selected ? 'minmax(220px, 0.72fr) minmax(0, 2fr)' : 'minmax(0, 1fr)', gap: 24, alignItems: 'start' }}>
+      {viewMode === 'advanced' && <div className={selected ? 'project-workspace-layout is-open' : 'project-workspace-layout'} style={{ display: 'grid', gridTemplateColumns: selected ? 'minmax(220px, 0.72fr) minmax(0, 2fr)' : 'minmax(0, 1fr)', gap: 24, alignItems: 'start' }}>
         <section className="project-list-panel"><h2>Projects</h2>{projects.length === 0 ? <div style={{ padding: 16, border: '1px dashed #25405e', borderRadius: 8 }}><strong>Create your first project</strong><p style={{ color: '#8fa6c2', fontSize: 13 }}>Describe what you want to build, generate a source ZIP, then download or improve it.</p></div> : <ul style={{ paddingLeft: 20 }}>{projects.map(p => <li key={p.id} style={{ margin: '12px 0', display: 'flex', gap: 8 }}><button style={{ ...styles.button, flex: 1, textAlign: 'left', borderColor: selected?.id === p.id ? '#78baff' : '#3d7fc4' }} onClick={async () => { try { const full = await api<Project>(`/api/projects/${encodeURIComponent(p.id)}`); setSelected(full); setStateText(JSON.stringify(full.state ?? {}, null, 2)); setActiveTab('journal'); setError(''); } catch (e) { setError(String((e as Error).message || e)); } }}><strong>{p.name}</strong><br /><small>{p.status} · version {p.state_version}</small></button><details style={{ position: 'relative' }}><summary aria-label={`More actions for ${p.name}`} title="More actions" style={{ ...styles.button, padding: '10px 12px', listStyle: 'none' }}>⋯</summary><div style={{ position: 'absolute', right: 0, top: 46, zIndex: 5, background: '#10243a', border: '1px solid #3d7fc4', padding: 6, borderRadius: 8 }}><button type="button" style={{ ...styles.button, borderColor: '#a33', color: '#ffb4b4' }} disabled={busy} onClick={() => void removeProject(p)}>Delete project</button></div></details></li>)}</ul>}</section>
         <section className="project-detail-panel">{selected ? <><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><div><h2 style={{ margin: 0, fontSize: 20 }}>{selected.name}</h2></div><button type="button" style={{ ...styles.button, minHeight: 36 }} onClick={() => { setSelected(null); setActiveTab('journal'); }}>All projects</button></div>{driveBar}{passport && <section style={{ margin: '0 0 16px', padding: 12, border: '1px solid #1f4f86', borderRadius: 8 }}><h3 style={{ marginTop: 0 }}>Project description <small style={{ color: passport.status === 'confirmed' ? '#7fe0a8' : '#e6c07a' }}>({passport.status === 'confirmed' ? 'confirmed' : 'not confirmed yet'})</small></h3><div style={{ display: 'grid', gap: 8 }}>
           {([['goal', 'Goal']] as const).map(([k, label]) => <label key={k} style={{ display: 'grid', gap: 4, fontSize: 13 }}>{label}<textarea value={passport[k]} onChange={e => setPassport({ ...passport, [k]: e.target.value })} rows={2} style={{ ...styles.input, minHeight: 0, fontSize: 14 }} /></label>)}
