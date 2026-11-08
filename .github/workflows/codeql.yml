@@ -1,6 +1,6 @@
-# Advanced CodeQL — resilient to transient GitHub bundle CDN failures (HTTP 504).
-# If the repository still uses "Default setup" under Settings → Code security,
-# switch to Advanced setup so this workflow is the sole CodeQL job.
+# Advanced CodeQL — pinned SHAs (governance) + tolerate bundle CDN 504.
+# If Default setup still runs as "(dynamic)", turn it off under
+# Settings → Code security → Code scanning, and use this workflow only.
 name: CodeQL
 
 on:
@@ -9,7 +9,6 @@ on:
   pull_request:
     branches: [main, master]
   schedule:
-    # Weekly; avoids competing with every push when the bundle CDN is flaky
     - cron: '25 4 * * 1'
   workflow_dispatch:
 
@@ -21,7 +20,6 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
-    # Bundle download outages (504) must not block the product pipeline.
     continue-on-error: true
     permissions:
       actions: read
@@ -37,20 +35,19 @@ jobs:
             build-mode: none
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4/v7 pin used by Core CI
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        id: codeql-init
+        continue-on-error: true
+        uses: github/codeql-action/init@66b39da20ccc656acc90dd27ea30f5d458ec33ce # v3.28.19
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
-        # init is where the bundle is downloaded; tolerate CDN 5xx
-        continue-on-error: true
-        id: codeql-init
 
       - name: Perform CodeQL Analysis
         if: steps.codeql-init.outcome == 'success'
-        uses: github/codeql-action/analyze@v3
+        continue-on-error: true
+        uses: github/codeql-action/analyze@66b39da20ccc656acc90dd27ea30f5d458ec33ce # v3.28.19
         with:
           category: "/language:${{ matrix.language }}"
-        continue-on-error: true
