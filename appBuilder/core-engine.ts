@@ -16,6 +16,7 @@ import {
   applyBriefToSpec,
   assessGoalAdequacy,
   briefHintsFromSpec,
+  buildHumanBrief,
   type IntentBrief,
 } from './intent-brief.ts';
 import {
@@ -354,8 +355,22 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     event(ports, input.jobId, 'spec_accepted', { title: accepted.title, acceptanceCount: accepted.acceptance.length, stack: accepted.stack, coerced: validated && validated.ok ? validated.coerced : [] });
     if (!intentBrief) intentBrief = fallbackIntentBrief(accepted.goal || accepted.title || '');
     accepted = applyBriefToSpec(accepted, intentBrief);
+    // P127.34: human brief for the user (understanding check); machine contracts live on the plan/manifest.
+    accepted.humanBrief = buildHumanBrief(intentBrief, {
+      title: accepted.title,
+      maxFiles: Math.min(3, intentBrief.targetModules || 3),
+    });
     state.spec = accepted; await save();
-    event(ports, input.jobId, 'spec_brief_applied', { complexity: intentBrief.complexity, acceptanceCount: accepted.acceptance.length, targetModules: intentBrief.targetModules });
+    event(ports, input.jobId, 'spec_brief_applied', {
+      complexity: intentBrief.complexity,
+      acceptanceCount: accepted.acceptance.length,
+      targetModules: intentBrief.targetModules,
+      humanBriefChars: accepted.humanBrief.length,
+    });
+    event(ports, input.jobId, 'human_brief_ready', {
+      humanBrief: accepted.humanBrief,
+      title: accepted.title,
+    });
 
     }
     const spec = state.spec!;
@@ -420,7 +435,11 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       let content = cached?.content;
       let modelId: string | undefined = undefined;
       if (!content) {
-        const unitContext = `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}. Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.${interfaceBlock(files)}${/\.html?$/i.test(unit.path || '') ? htmlPlanBlock(state.plan.units, unit.id) : domBlock(files)}`;
+        const sharedBlock =
+          state.plan?.shared && (state.plan.shared.types || state.plan.shared.wiring)
+            ? `\nSHARED CONTRACTS (mandatory — use these shapes and ownership rules in this unit):\n${JSON.stringify(state.plan.shared)}\n`
+            : '';
+        const unitContext = `Implement unit ${JSON.stringify(unit)} for spec ${JSON.stringify(spec)}.${sharedBlock}Dependencies contracts only: ${JSON.stringify(unit.dependsOn.map((dep) => byId.get(dep)).map((u) => ({ id: u?.id, contract: u?.contract })))}. Output exactly one marker block for path ${unit.path}.${interfaceBlock(files)}${/\.html?$/i.test(unit.path || '') ? htmlPlanBlock(state.plan.units, unit.id) : domBlock(files)}`;
         const output = await call('coder', unitContext, undefined, unit.path);
         if (!output) {
           if (cancelled || options.signal?.aborted) { cancelled = true; failureReason = 'cancelled'; unit.status = 'pending'; await save(); break; }
@@ -874,6 +893,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     for (const p of changed) { const f = files.get(p); if (f) files.set(p, { ...f, content: finalMap.get(p)! }); }
   }
   const orphanedFiles = orphanedPathsFromReachability(validators.find((v) => v.name === 'reachability'));
+  const humanBrief = state.spec?.humanBrief;
   const report: BuildReport = {
     schemaVersion: SCHEMA_VERSION,
     jobId: input.jobId,
@@ -884,6 +904,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
     runtimeVerified: runtimeRan && validators.every((v) => v.name !== 'runtime-smoke' || v.ok),
     ...(orphanedFiles.length ? { orphanedFiles } : {}),
     ...(droppedOrphanedFiles.length ? { droppedOrphanedFiles } : {}),
+    ...(humanBrief ? { humanBrief } : {}),
     files: [...files].map(([path, f]) => ({ path, bytes: new TextEncoder().encode(f.content).byteLength, sha256: sha256(f.content), unitId: f.unitId })),
     units: unitReports,
     validators,
@@ -900,11 +921,33 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   // P127.30: the delivered index.html must run by simply opening it (file:// / Android content://), so it is a
   // self-contained build; the editable multi-file sources are kept under source/.
   let packFiles = [...files].map(([path, f]) => ({ path, content: f.content }));
+  // P127.34: machine-readable manifest (not executed by the program) for user download / pipeline audit.
+  if (state.plan || state.spec) {
+    const manifest = {
+      schemaVersion: SCHEMA_VERSION,
+      title: state.spec?.title ?? '',
+      goal: state.spec?.goal ?? '',
+      brief: humanBrief ?? '',
+      nonGoals: state.spec?.nonGoals ?? [],
+      acceptance: state.spec?.acceptance ?? [],
+      files: (state.plan?.units ?? [])
+        .filter((u) => u.kind === 'file' && u.path)
+        .map((u) => ({ id: u.id, path: u.path, purpose: u.purpose, exports: u.exports, contract: u.contract })),
+      order: state.plan?.order ?? [],
+      shared: state.plan?.shared ?? null,
+    };
+    packFiles.push({ path: 'manifest.json', content: `${JSON.stringify(manifest, null, 2)}\n` });
+  }
   const standalone = files.size ? buildStandaloneIndex(new Map([...files].map(([p, f]) => [p, f.content] as [string, string]))) : null;
   if (standalone) {
     report.standalone = { built: standalone.changed, mode: standalone.mode, modules: standalone.modules, externals: standalone.externals, warnings: standalone.warnings };
     if (standalone.changed) {
-      packFiles = [{ path: 'index.html', content: standalone.html }, ...packFiles.map((f) => ({ path: `${STANDALONE_SOURCE_DIR}${f.path}`, content: f.content }))];
+      packFiles = [
+        { path: 'index.html', content: standalone.html },
+        ...packFiles.map((f) =>
+          f.path === 'manifest.json' ? f : { path: `${STANDALONE_SOURCE_DIR}${f.path}`, content: f.content },
+        ),
+      ];
     }
     event(ports, input.jobId, 'standalone_index', { built: standalone.changed, mode: standalone.mode, modules: standalone.modules, warnings: standalone.warnings.slice(0, 5) }, standalone.warnings.length ? 'warn' : 'info');
   }

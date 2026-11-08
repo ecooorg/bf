@@ -16,12 +16,85 @@ function unit(id: string, path: string, purpose: string, dependsOn: string[], co
 /** Default plan used when model planning fails. Files open by double-click: no build tools, no CDN. */
 export function templatePlan(spec: Spec): Plan {
   const units = [
-    unit('style', 'style.css', `Styles for: ${spec.goal}`, [], 'CSS classes/ids used by index.html', 1500),
-    unit('app', 'app.js', `Behaviour for: ${spec.goal}`, [], 'Plain browser JS; uses DOM ids from index.html; no imports', 4096),
-    unit('index', 'index.html', `Entry page for: ${spec.title}`, ['style', 'app'], 'Links style.css and app.js (relative paths); minimal markup, no large inline script', 1500),
-    unit('readme', 'README.md', 'How to open and use the project', ['index'], 'Short usage notes', 600),
+    unit(
+      'style',
+      'style.css',
+      `Styles for: ${spec.goal}`,
+      [],
+      'CSS for layout and UI only. Classes/ids referenced from index.html and app.js (e.g. .square, .selected, #status, #reset-btn). No JS.',
+      1500,
+    ),
+    unit(
+      'app',
+      'app.js',
+      `Behaviour for: ${spec.goal}`,
+      [],
+      'Single module owns all state, DOM paint, and input. Use consistent object shapes (never mix string codes with objects for the same entity). Constructors render initial UI immediately. No other runtime JS files.',
+      6000,
+    ),
+    unit(
+      'index',
+      'index.html',
+      `Entry page for: ${spec.title}`,
+      ['style', 'app'],
+      'Shell only: #status, main board/list container, #reset-btn when relevant. Link style.css and app.js as <script type="module" src="app.js">. No inline game logic.',
+      1500,
+    ),
   ];
-  return { schemaVersion: SCHEMA_VERSION, specHash: sha256(JSON.stringify(spec)), units, order: units.map((u) => u.id) };
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    specHash: sha256(JSON.stringify(spec)),
+    units,
+    order: units.map((u) => u.id),
+    shared: defaultSharedForCompact(spec),
+  };
+}
+
+/** P127.34 — shared contracts for the compact 3-file template (one owner of state+DOM). */
+export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']> {
+  const goal = `${spec.goal || ''} ${spec.title || ''}`.toLowerCase();
+  const boardLike = /chess|board|checkers|draughts|tic.?tac|grid|cell|piece|шахмат/.test(goal);
+  if (boardLike) {
+    return {
+      types: {
+        Color: { enum: ['white', 'black'] },
+        Piece: {
+          type: 'object',
+          required: ['type', 'color'],
+          properties: { type: { type: 'string' }, color: { type: 'string' } },
+        },
+        Coord: {
+          type: 'object',
+          required: ['row', 'col'],
+          properties: { row: { type: 'integer' }, col: { type: 'integer' } },
+        },
+      },
+      wiring: [
+        'Only app.js writes to the board DOM and status text',
+        'Piece is always {type, color}, never a single letter',
+        'Coord is always {row, col} with integers 0..7 (or board size)',
+        'index.html loads style.css and app.js as module; no other runtime JS',
+      ],
+      smoke: [
+        { id: 'board-cells', assert: 'board container has the expected number of cells after load' },
+        { id: 'no-throw', assert: 'no uncaught exception during load and first paint' },
+        { id: 'status', assert: 'status element is non-empty' },
+      ],
+      budgets: { maxFiles: 3, maxTotalBytes: 16000 },
+    };
+  }
+  return {
+    types: {},
+    wiring: [
+      'Only app.js owns application state and DOM updates',
+      'index.html loads style.css and app.js as module; no other runtime JS',
+    ],
+    smoke: [
+      { id: 'no-throw', assert: 'no uncaught exception during load and first paint' },
+      { id: 'visible-ui', assert: 'primary UI root is present and non-empty' },
+    ],
+    budgets: { maxFiles: 3, maxTotalBytes: 16000 },
+  };
 }
 
 /**
@@ -47,7 +120,8 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     modules.push({ id: 'index', path: 'index.html', purpose: 'Entry HTML linking assets' });
   }
 
-  const cap = Math.min(40, Math.max(3, brief.targetModules || targetModulesFor(brief.complexity)));
+  // P127.34: hard cap — never expand to dozens of files for free-tier model reliability.
+  const cap = Math.min(8, Math.max(3, brief.targetModules || targetModulesFor(brief.complexity)));
   const trimmed = modules.slice(0, cap);
 
   const units: Unit[] = [];
@@ -79,13 +153,6 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
     if (isCss) cssIds.push(id);
   }
 
-  if (!units.some((u) => u.path === 'README.md')) {
-    const indexId = units.find((u) => /\.html?$/i.test(u.path || ''))?.id;
-    units.push(
-      unit('readme', 'README.md', 'How to open and what the program should do', indexId ? [indexId] : [], 'Usage matching the expanded goal', 800),
-    );
-  }
-
   const known = new Set(units.map((u) => u.id));
   for (const u of units) {
     u.dependsOn = (u.dependsOn || []).filter((d) => known.has(d) && d !== u.id);
@@ -101,31 +168,54 @@ export function expandedPlanFromBrief(spec: Spec, brief: IntentBrief): Plan {
   }
 
   const order = units.map((u) => u.id);
-  return { schemaVersion: SCHEMA_VERSION, specHash: sha256(JSON.stringify(spec)), units, order };
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    specHash: sha256(JSON.stringify(spec)),
+    units,
+    order,
+    shared: defaultSharedForCompact(spec),
+  };
 }
 
 /**
- * P127.16/17: interactive / non-trivial goals must not ship as a single HTML unit.
+ * P127.16/17 + P127.34: interactive goals must not ship as a single HTML unit,
+ * but standard board/turn games prefer a compact 3-file plan (not 8–32 modules).
  */
 export function ensureMultiFileStaticPlan(plan: Plan, spec: Spec, brief?: IntentBrief): { plan: Plan; coerced: string[] } {
   const files = plan.units.filter((u) => u.kind === 'file' && typeof u.path === 'string');
   const paths = files.map((u) => String(u.path).toLowerCase());
   const onlyOneHtml = files.length === 1 && /\.html?$/.test(paths[0] || '');
   const hasJs = paths.some((p) => p.endsWith('.js'));
+  const hasCss = paths.some((p) => p.endsWith('.css'));
   const complexity = brief?.complexity ?? estimateComplexity(`${spec.goal || ''} ${spec.title || ''}`);
   const interactive = complexity === 'standard' || complexity === 'ambitious' || onlyOneHtml;
 
-  if (brief && (brief.complexity === 'ambitious' || brief.complexity === 'standard')) {
-    if (files.length < 8 || onlyOneHtml || !hasJs) {
+  // Already a healthy compact package (html + js [+ css]) — keep it; attach shared if missing.
+  if (!onlyOneHtml && hasJs && files.length >= 2 && files.length <= 4 && complexity !== 'ambitious') {
+    if (!plan.shared) {
+      return { plan: { ...plan, shared: defaultSharedForCompact(spec) }, coerced: ['plan:attach_shared_compact'] };
+    }
+    return { plan, coerced: [] };
+  }
+
+  // Ambitious / large worlds may still expand; standard no longer forces 8+ files.
+  if (brief && brief.complexity === 'ambitious') {
+    if (files.length < 4 || onlyOneHtml || !hasJs) {
       return { plan: expandedPlanFromBrief(spec, brief), coerced: ['plan:expand_from_intent_brief'] };
     }
   }
 
   if (onlyOneHtml || (interactive && !hasJs) || (interactive && files.length < 2)) {
-    if (brief && brief.complexity !== 'trivial') {
-      return { plan: expandedPlanFromBrief(spec, brief), coerced: ['plan:force_multifile_from_brief'] };
-    }
-    return { plan: templatePlan(spec), coerced: ['plan:force_multifile_static'] };
+    // P127.34: compact template first (3 files + shared contracts).
+    return { plan: templatePlan(spec), coerced: ['plan:force_compact_static'] };
+  }
+
+  if (!hasCss && interactive && files.length <= 2) {
+    return { plan: templatePlan(spec), coerced: ['plan:force_compact_static_css'] };
+  }
+
+  if (!plan.shared && files.length <= 4) {
+    return { plan: { ...plan, shared: defaultSharedForCompact(spec) }, coerced: ['plan:attach_shared_compact'] };
   }
   return { plan, coerced: [] };
 }

@@ -38,14 +38,18 @@ export function estimateComplexity(text: string): IntentComplexity {
   return t.trim().length < 40 ? 'trivial' : 'simple';
 }
 
+/**
+ * P127.34 — Prefer compact packages so shared data shapes stay consistent.
+ * Ambitious (3D/world) may still use more modules; board/turn games stay small.
+ */
 export function targetModulesFor(complexity: IntentComplexity): number {
   switch (complexity) {
     case 'ambitious':
-      return 24;
+      return 8;
     case 'standard':
-      return 12;
+      return 3;
     case 'simple':
-      return 6;
+      return 3;
     default:
       return 3;
   }
@@ -73,24 +77,20 @@ export function fallbackIntentBrief(userText: string): IntentBrief {
 
   if (complexity === 'standard' || complexity === 'ambitious') {
     mustHave.push('Primary interaction works (input changes visible state)');
-    mustHave.push('Ongoing animation or update loop if the request implies motion');
-    shouldHave.push('Clear separation of scene, entities, and input');
-    suggestedModules.push(
-      { id: 'input', path: 'input.js', purpose: 'Keyboard/touch input state' },
-      { id: 'scene', path: 'scene.js', purpose: 'Scene setup and draw/update orchestration' },
-      { id: 'entities', path: 'entities.js', purpose: 'Entities described by the user request' },
-    );
+    // P127.34: do not force animation loops on turn-based board games.
+    if (/animat|loop|race|fly|simulat|3d|particle/i.test(goal)) {
+      mustHave.push('Ongoing animation or update loop if the request implies motion');
+    }
+    shouldHave.push('Consistent data shapes across the few source files');
   }
   if (complexity === 'ambitious') {
-    mustHave.push('Multiple cooperating modules (not one tiny script)');
     mustHave.push('Scene complexity beyond a single rectangle and a single circle');
     notSuccessIf.push('Total app logic under ~4KB when the request is ambitious');
     notSuccessIf.push('Missing any must-have capability listed in this brief');
     suggestedModules.push(
-      { id: 'render', path: 'render.js', purpose: 'Drawing / camera / perspective helpers' },
-      { id: 'world', path: 'world.js', purpose: 'World or level layout data and helpers' },
-      { id: 'ui', path: 'ui.js', purpose: 'HUD and on-screen controls' },
-      { id: 'util', path: 'util.js', purpose: 'Shared math/helpers' },
+      { id: 'scene', path: 'scene.js', purpose: 'Scene setup and draw/update orchestration' },
+      { id: 'input', path: 'input.js', purpose: 'Keyboard/touch input state' },
+      { id: 'entities', path: 'entities.js', purpose: 'Entities described by the user request' },
     );
   }
 
@@ -146,11 +146,12 @@ export function parseIntentBrief(text: string, userText: string): IntentBrief {
     shouldHave: strArr(o.shouldHave).length ? strArr(o.shouldHave) : base.shouldHave,
     notSuccessIf: strArr(o.notSuccessIf).length ? strArr(o.notSuccessIf) : base.notSuccessIf,
     complexity,
-    targetModules: Math.max(
-      targetModulesFor(complexity),
-      Math.min(48, Number(o.targetModules) || base.targetModules),
+    // P127.34: prefer the compact budget; do not inflate toward 12–32 modules.
+    targetModules: Math.min(
+      12,
+      Math.max(3, Number(o.targetModules) || targetModulesFor(complexity)),
     ),
-    suggestedModules: suggestedModules.length >= 3 ? suggestedModules : base.suggestedModules,
+    suggestedModules: suggestedModules.length >= 3 ? suggestedModules.slice(0, 8) : base.suggestedModules,
   };
 }
 
@@ -234,10 +235,11 @@ export function assessGoalAdequacy(
       moduleCount++;
     }
   }
+  // P127.34: one solid app.js is enough for standard board/turn games; do not demand multi-module sprawl.
   const minJs =
-    brief.complexity === 'ambitious' ? 12000 : brief.complexity === 'standard' ? 5000 : brief.complexity === 'simple' ? 800 : 0;
+    brief.complexity === 'ambitious' ? 8000 : brief.complexity === 'standard' ? 2500 : brief.complexity === 'simple' ? 600 : 0;
   const minModules =
-    brief.complexity === 'ambitious' ? 4 : brief.complexity === 'standard' ? 2 : 1;
+    brief.complexity === 'ambitious' ? 2 : 1;
 
   if (jsBytes < minJs) {
     issues.push(`stub_size: js ${jsBytes}B < minimum ${minJs}B for complexity=${brief.complexity}`);
@@ -245,9 +247,7 @@ export function assessGoalAdequacy(
   if (moduleCount < minModules) {
     issues.push(`stub_modules: ${moduleCount} js files < minimum ${minModules} for complexity=${brief.complexity}`);
   }
-  if (opts?.planFallback && (brief.complexity === 'ambitious' || brief.complexity === 'standard')) {
-    issues.push('plan_fallback: model plan was invalid; template/expanded plan used — treat as incomplete relative to user intent');
-  }
+  // Compact template / coerced plans are intentional in P127.34 — do not mark them inadequate solely for fallback.
 
   // Keyword presence from must-have themes (lightweight)
   const blob = [...files.values()].join('\n').toLowerCase();
@@ -285,12 +285,46 @@ Return ONLY a JSON object with:
 - shouldHave: string[] (optional improvements)
 - notSuccessIf: string[] (explicit stub patterns that must NOT count as success)
 - complexity: "trivial"|"simple"|"standard"|"ambitious"
-- targetModules: number (how many small source files are appropriate; ambitious often 16–32)
-- suggestedModules: array of {id, path, purpose} with flat paths only: scene.js, style.css, index.html (no subfolders) — each file small (roughly 3–12KB of source), one responsibility
+- targetModules: number (prefer 3 for board/turn games and simple tools; at most 8 unless the user asked for a large 3D/world simulation)
+- suggestedModules: array of {id, path, purpose} with flat paths only — prefer style.css, app.js, index.html for standard games (no subfolders)
 
 Rules:
-- Prefer many small modules over one large file.
+- Prefer a compact package (about 3 files) so data shapes stay consistent across the program.
+- Only suggest many modules when the user explicitly needs a large 3D/world simulation.
 - Interactive games and simulations are at least "standard"; 3D, city, racing, rich worlds are "ambitious".
 - notSuccessIf must include empty geometric placeholders when the user asked for a recognizable scene or game.`,
   };
+}
+
+/**
+ * P127.34 — Human-facing brief (8–12 lines). User checks understanding; pipeline uses the machine manifest.
+ */
+export function buildHumanBrief(
+  brief: IntentBrief,
+  opts?: { title?: string; maxFiles?: number },
+): string {
+  const title = (opts?.title || '').trim();
+  const maxFiles = opts?.maxFiles ?? Math.min(3, brief.targetModules || 3);
+  const must = brief.mustHave.slice(0, 5);
+  const avoid = brief.notSuccessIf.slice(0, 3);
+  const lines: string[] = [];
+  lines.push(
+    title
+      ? `Сделаю: ${title}.`
+      : `Сделаю: ${brief.expandedGoal.split(/[.!?]/)[0]?.trim() || 'небольшую программу в браузере'}.`,
+  );
+  lines.push('');
+  lines.push('Что будет:');
+  for (const m of must) lines.push(`• ${m}`);
+  if (avoid.length) {
+    lines.push('');
+    lines.push('Не будет:');
+    for (const n of avoid) lines.push(`• ${n}`);
+  }
+  lines.push('');
+  lines.push(
+    `Состав: около ${maxFiles} файлов, одна страница, без внешних библиотек (если вы их не просили).`,
+  );
+  lines.push('После сборки откройте index.html и проверьте пункты выше.');
+  return lines.join('\n').slice(0, 2000);
 }

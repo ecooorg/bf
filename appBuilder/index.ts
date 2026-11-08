@@ -109,8 +109,13 @@ export {
   assessGoalAdequacy,
   briefHintsFromSpec,
   buildIntentPrompt,
+  buildHumanBrief,
   type IntentBrief,
   type IntentComplexity,
   type AdequacyResult,
 } from './intent-brief.ts';
-export { expandedPlanFromBrief, ensureMultiFileStaticPlan } from './stack-static-site.ts';
+export {
+  expandedPlanFromBrief,
+  ensureMultiFileStaticPlan,
+  defaultSharedForCompact,
+} from './stack-static-site.ts';

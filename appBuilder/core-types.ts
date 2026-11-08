@@ -23,6 +23,25 @@ export interface Spec {
   features: string[];
   nonGoals: string[];
   acceptance: string[];
+  /**
+   * P127.34 — Short human-readable summary (8–12 lines) of what will be built.
+   * Shown to the user so they can check understanding; not executed by the program.
+   */
+  humanBrief?: string;
+}
+
+/**
+ * P127.34 — Shared contracts attached to a Plan so every unit uses the same data shapes
+ * and ownership rules. Machine-readable; also emitted as manifest.json in the ZIP.
+ */
+export interface PlanShared {
+  /** Shared data shapes (JSON-schema-like objects or short string descriptions). */
+  types?: Record<string, unknown>;
+  /** Who owns state/DOM and how modules connect (short imperative lines). */
+  wiring?: string[];
+  /** Minimal runtime checks the package should satisfy after load. */
+  smoke?: Array<{ id: string; assert: string }>;
+  budgets?: { maxFiles?: number; maxTotalBytes?: number };
 }
 
 /** One work unit (today: typically one file). */
@@ -49,6 +68,8 @@ export interface Plan {
   units: Unit[];
   /** Topological order of unit ids. */
   order: string[];
+  /** P127.34 — shared types/wiring/smoke/budgets for compact consistent builds. */
+  shared?: PlanShared;
 }
 
 /** Capability profile derived from model registry (or conservative default). */
@@ -129,6 +150,8 @@ export interface BuildReport {
   droppedOrphanedFiles?: string[];
   /** P127.30: index.html is a self-contained build that runs when opened directly; sources are under source/. */
   standalone?: { built: boolean; mode: string; modules: number; externals: string[]; warnings: string[] };
+  /** P127.34 — human-facing summary of what was planned (same text as Spec.humanBrief when present). */
+  humanBrief?: string;
   files: ReportFile[];
   units: ReportUnit[];
   validators: ReportValidator[];
