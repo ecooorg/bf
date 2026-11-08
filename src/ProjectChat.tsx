@@ -180,6 +180,8 @@ export function ProjectChat({
   const [projectName, setProjectName] = useState<string>('');
   const [baseArtifactId, setBaseArtifactId] = useState<string | null>(null);
   const [pendingBrief, setPendingBrief] = useState<PendingBrief | null>(null);
+  /** Locks the plan card the moment Confirm is pressed (optimistic UI). */
+  const [planLocked, setPlanLocked] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -275,26 +277,32 @@ export function ProjectChat({
     return result;
   };
 
+  const collapseBriefMessages = (confirmed: PendingBrief) => {
+    setPlanLocked(true);
+    setPendingBrief(null);
+    setMessages((m) =>
+      m.map((msg) =>
+        msg.briefPending || msg.briefCollapsed
+          ? {
+              ...msg,
+              briefPending: false,
+              briefCollapsed: true,
+              briefFull: confirmed.humanBrief,
+              // Replace the whole card text with a single line (do not append).
+              text: briefOneLine(confirmed),
+            }
+          : msg,
+      ),
+    );
+  };
+
   const confirmPendingBrief = async () => {
-    if (!pendingBrief || busy) return;
+    if (!pendingBrief || busy || planLocked) return;
     const confirmed = pendingBrief;
+    // Optimistic: collapse card and hide Confirm before the network round-trip.
+    collapseBriefMessages(confirmed);
     setBusy(true);
     try {
-      // Collapse the large plan card to one line immediately after confirm.
-      setMessages((m) =>
-        m.map((msg) =>
-          msg.briefPending
-            ? {
-                ...msg,
-                briefPending: false,
-                briefCollapsed: true,
-                briefFull: confirmed.humanBrief,
-                text: briefOneLine(confirmed),
-              }
-            : msg,
-        ),
-      );
-      setPendingBrief(null);
       push({ role: 'user', text: 'Confirm and build' });
       const result = await runBuild(confirmed.projectId, confirmed.goal, {
         approvedBrief: confirmed.humanBrief,
@@ -313,6 +321,7 @@ export function ProjectChat({
   };
 
   const cancelPendingBrief = () => {
+    setPlanLocked(false);
     setPendingBrief(null);
     setMessages((m) => m.map((msg) => (msg.briefPending ? { ...msg, briefPending: false } : msg)));
     push({ role: 'assistant', text: 'Build cancelled. Describe the program again when you are ready.' });
@@ -407,6 +416,7 @@ export function ProjectChat({
         { method: 'POST', body: JSON.stringify({ goal: text }) },
       );
       setStatusLine('');
+      setPlanLocked(false);
       setPendingBrief({
         goal: text,
         humanBrief: preview.humanBrief,
@@ -442,6 +452,7 @@ export function ProjectChat({
     setProjectName('');
     setBaseArtifactId(null);
     setPendingBrief(null);
+    setPlanLocked(false);
     setInput('');
     setStatusLine('');
   };
@@ -485,16 +496,9 @@ export function ProjectChat({
             data-testid={m.briefCollapsed ? 'project-chat-brief-collapsed' : m.briefPending ? 'project-chat-brief-open' : undefined}
           >
             {m.briefCollapsed ? (
-              <details style={{ margin: 0 }}>
-                <summary style={{ cursor: 'pointer', listStyle: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {m.text}
-                </summary>
-                {m.briefFull ? (
-                  <pre style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap', fontSize: 13, color: '#c5d4e8', fontFamily: 'inherit' }}>
-                    {m.briefFull}
-                  </pre>
-                ) : null}
-              </details>
+              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={m.briefFull || m.text}>
+                {m.text}
+              </div>
             ) : (
               m.text
             )}
@@ -510,7 +514,7 @@ export function ProjectChat({
                 Download source ZIP
               </a>
             )}
-            {m.briefPending && pendingBrief && (
+            {m.briefPending && pendingBrief && !planLocked && (
               <div data-testid="project-chat-brief-card" style={{ marginTop: 10 }}>
                 <label style={{ display: 'block', fontSize: 12, color: '#8fa6c2', marginBottom: 4 }}>
                   What to change (optional)
@@ -530,7 +534,7 @@ export function ProjectChat({
                   <button
                     type="button"
                     data-testid="project-chat-confirm-build"
-                    disabled={busy}
+                    disabled={busy || planLocked}
                     onClick={() => void confirmPendingBrief()}
                     style={{
                       minHeight: 40,
