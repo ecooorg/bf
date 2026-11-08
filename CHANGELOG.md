@@ -1,3 +1,10 @@
+## [127.43] - BEHAVIOUR: procedural visual quality in genre templates (step 1)
+
+- Strengthen standard templates: large high-contrast player/obstacles, phone HUD, canvas/CSS only (no image/audio files yet).
+- Coder prompt + action Plan.shared: procedural look rules; forbid CDN/binary assets by default (static_site.v11).
+- Fixed genre Unicode matchers for non-Latin short requests.
+- Scope: appBuilder/intent-brief.ts, core-prompts.ts, stack-static-site.ts, core-cache.ts. Patch 127.43.
+
 ## [127.42] - RELIABILITY: CodeQL workflow tolerates bundle CDN 504
 
 - CodeQL init failed with HTTP 504 downloading codeql-bundle (GitHub tool CDN), not product code.

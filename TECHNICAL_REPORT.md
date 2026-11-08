@@ -1,3 +1,9 @@
+## P127.43 — Procedural template quality step (BEHAVIOUR)
+
+- **OBSERVED:** Games could run with touch but look empty or unreadable; risk of jumping to image/3D assets too early.
+- **CHANGE:** Template view/forbidden lines require procedural readable scenes; prompts ban binary assets and CDN by default.
+- **NOT_RUN:** Live rebuild of side-flight after deploy.
+
 ## P127.42 — CodeQL CDN 504 resilience (RELIABILITY)
 
 - **OBSERVED:** CodeQL job Unable to download and extract CodeQL CLI: HTTP 504 on codeql-bundle-v2.27.4.
