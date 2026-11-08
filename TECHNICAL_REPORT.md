@@ -1,3 +1,13 @@
+## P127.34 — Compact plan, human brief, shared contracts (FEATURE, EXP-PROJECT-9)
+
+**OBSERVED (session 2026-11-08, sample app-source.zip + project logs):** chess build used ~12 modules; Board/Rules/Render/Input disagreed on piece and coordinate shapes; outcome PARTIAL, program non-functional despite mostly green static validators.
+**CHANGE:** see CHANGELOG and EXP-PROJECT-9. Planner/intent budgets prefer ~3 files; `ensureMultiFileStaticPlan` no longer expands standard goals to 8+ modules; `Plan.shared` + coder SHARED CONTRACTS; `humanBrief` + `manifest.json` in package; event `human_brief_ready`.
+**LOCAL:** recovery tests updated for compact coercion and new P127.34 cases; full `npm test` / deploy NOT_RUN in this sandbox (no full node_modules of the product tree).
+**NOT_RUN:** live Project Mode build of mini-chess after deploy; UI display of human brief (host may already show Spec fields — not changed in this patch); user value.
+**KNOWN, NOT FIXED:** vocabulary mismatches inside a single large `app.js` can still occur; runtime browser check still depends on host Playwright; UI may not yet surface `human_brief_ready` until a small follow-up.
+
+---
+
 ## P127.33 — Name contracts between files (BEHAVIOUR, EXP-PROJECT-8)
 
 **OBSERVED (logs 2026-11-07 18:40-19:00, commit 9387144, patch 127.32 deployed; three delivered packages opened in headless Chromium here):** three jobs ended `SUCCESS`, `goalImplemented=true`, 12/12 validators ok, `runtimeVerified=false`. (1) Board program A: 64 squares and no pieces; the engine names piece types `p`, `r` while the renderer's table is keyed `pawn`, `rook`; engine move validation is a stub ("placeholder"). (2) Board program B: renderer sets classes `white`/`black`, stylesheet styles `.square.light`/`.square.dark`, so squares are transparent; renderer writes `data-pos`, input handler reads `data-row`/`data-col` (first tap throws `Cannot read properties of undefined (reading 'NaN')`, found by the P127.32 runner on the sources). (3) Presentation: stylesheet shows `.slide.active` only, no script sets `active`, every slide is at opacity 0; six `img/elephantN.jpg` files are named in the data script and cannot exist. Render logs for all three jobs: `runtime_check_skipped: browser_unavailable ... /opt/render/.cache/ms-playwright/chromium_headless_shell-1243/...` (the flag is on, Chromium is not installed; instance memory limit 512 MB per process-boot log).

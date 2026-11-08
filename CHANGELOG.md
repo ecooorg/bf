@@ -1,3 +1,9 @@
+## [127.34] - FEATURE: compact project builds with human brief card + machine manifest
+
+- **Problem:** Multi-unit generation for games produced incompatible data shapes; no user gate before code generation.
+- **Change (P127.34):** Compact 3-file plans + `Plan.shared`. Preview API `POST .../code/build/preview`; UI card in Project Mode and Project Chat (`Prepare plan` → confirm → build with `approvedBrief`/`userNotes`). `manifest.json` in ZIP; coder SHARED CONTRACTS.
+- Scope: `appBuilder/*`, `server/appBuilderAdapter.ts`, `server/projectRoutes.ts`, `src/ProjectMode.tsx`, `src/ProjectChat.tsx`, `src/projectBuildJob.ts`, tests, docs. Package patch `127.34`.
+
 ## [127.33] - BEHAVIOUR: names two files must agree on (validator `name-contracts`)
 
 - `appBuilder/validator-static-site.ts`: new `validateNameContracts`, required for SUCCESS. (a) A CSS rule that needs a second class (`.a.b`) where `b` appears in no script or markup (whole word, or prefix of a composed name such as `state-` + n) is reported on the script that uses the other class most. (b) A script or stylesheet that names a local picture, sound or font file that is not in the package is reported once per file (a package holds text files only). Issues start with `name:`.
