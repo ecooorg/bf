@@ -1,3 +1,8 @@
+## [127.35] - BEHAVIOUR: offline bootstrap + Project UI focus
+
+- **Problem:** Generated chess opened as local content:// / file:// but board was empty: app.js exported initGame without calling it; CSS used .square.white/.black while JS set .light/.dark (name-contracts PARTIAL). Project chat still showed create-project form and project list under the composer. Header New left Project Mode for Simple conversation.
+- **Change (P127.35):** standalone.ts auto-invokes common entry exports (initGame/init/main/...) after module load so offline index.html paints on open. Coder prompt + compact shared contracts require offline local page, matching CSS class names, and self-start of app.js. Project Mode chat hides create form and project list (viewMode === advanced only); New clears selection and stays in Project Mode for a new project. Prompt version static_site.v7. Package patch 127.35.
+
 ## [127.34] - FEATURE: compact project builds with human brief card + machine manifest
 
 - **Problem:** Multi-unit generation for games produced incompatible data shapes; no user gate before code generation.
