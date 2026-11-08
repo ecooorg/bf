@@ -213,7 +213,9 @@ export async function previewBuildBrief(
       prompt: ip.prompt,
       maxOutputTokens: 1200,
     });
-    if (result?.text) brief = parseIntentBrief(result.text, taskText);
+    if (result && !('code' in result) && typeof result.text === 'string' && result.text.trim()) {
+      brief = parseIntentBrief(result.text, taskText);
+    }
   } catch (e) {
     void recordApplicationLog({
       level: 'warn',
