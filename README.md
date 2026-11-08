@@ -12,4 +12,6 @@ BiForge helps users converse, solve expert problems, and turn software goals int
 
 Specialist details live in `docs/ARCHITECTURE.md`, `docs/API_CONTRACTS.md`, `docs/TESTING_AND_ACCEPTANCE.md`, `docs/USER_VALUE_EVALUATION.md`, `docs/SECURITY_AND_PRIVACY.md`, `docs/OPERATIONS_AND_RELEASES.md`, `docs/DATA_AND_ARTIFACTS.md`, and `docs/DECISIONS.md`. 
 
-`docs/VIX-CONCEPT.md` is long-horizon strategic context, not authorization for immediate work. Machine schemas and generated inventories are data for tools, not competing prose sources of truth.
+`docs/VIX-CONCEPT.md` is long-horizon strategic context, not authorization for immediate work. 
+
+Machine schemas and generated inventories are data for tools, not competing prose sources of truth.
