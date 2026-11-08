@@ -1,3 +1,9 @@
+## P127.42 — CodeQL CDN 504 resilience (RELIABILITY)
+
+- **OBSERVED:** CodeQL job Unable to download and extract CodeQL CLI: HTTP 504 on codeql-bundle-v2.27.4.
+- **CHANGE:** Advanced workflow with continue-on-error; analyze only if init succeeds.
+- **NOT_RUN:** Live CodeQL after GitHub CDN recovers; disable Default setup in repo Settings if both run.
+
 ## P127.41 — CI green for P127.40 intent (BUGFIX)
 
 - **OBSERVED:** CI failed on lint:copy (Cyrillic in intent-brief) and tests expecting intent v1 / targetModules>=8.

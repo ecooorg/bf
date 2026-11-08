@@ -1,3 +1,9 @@
+## [127.42] - RELIABILITY: CodeQL workflow tolerates bundle CDN 504
+
+- CodeQL init failed with HTTP 504 downloading codeql-bundle (GitHub tool CDN), not product code.
+- Add advanced `.github/workflows/codeql.yml`: continue-on-error on job/init/analyze; weekly schedule; pin action v3; skip analyze when init fails.
+- Scope: `.github/workflows/codeql.yml`. Patch 127.42.
+
 ## [127.41] - BUGFIX: CI after genre-template intent (tests + lint:copy)
 
 - lint:copy: removed raw Cyrillic from intent-brief genre matchers (unicode escapes).
