@@ -131,22 +131,22 @@ const GENRE_TEMPLATES: GenreTemplate[] = [
 /** Pick one genre template from short user text (deterministic). */
 export function selectGenreTemplate(userText: string): GenreTemplate {
   const t = (userText || '').toLowerCase();
-  if (/chess|checker|draught|tic.?tac|board|шахмат|шашк|клеток/.test(t)) {
+  if (/chess|checker|draught|tic.?tac|board|\\u0448\\u0430\\u0445\\u043c\\u0430\\u0442|\\u0448\\u0430\\u0448\\u043a|\\u043a\\u043b\\u0435\\u0442\\u043e\\u043a/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'board-turn')!;
   }
-  if (/flappy|jump|tap.?game|прыж/.test(t)) {
+  if (/flappy|jump|tap.?game|\\u043f\\u0440\\u044b\\u0436/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'tap-survive')!;
   }
-  if (/plane|flight|fly|aviator|самол|city|город|skyline|pilot/.test(t)) {
+  if (/plane|flight|fly|aviator|\\u0441\\u0430\\u043c\\u043e\\u043b|city|\\u0433\\u043e\\u0440\\u043e\\u0434|skyline|pilot/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'side-flight')!;
   }
-  if (/race|racing|car|road|lane|drive|tractor|гонк|машин|трактор|дорога/.test(t)) {
+  if (/race|racing|car|road|lane|drive|tractor|\\u0433\\u043e\\u043d\\u043a|\\u043c\\u0430\\u0448\\u0438\\u043d|\\u0442\\u0440\\u0430\\u043a\\u0442\\u043e\\u0440|\\u0434\\u043e\\u0440\\u043e\\u0433\\u0430/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'lane-dodge')!;
   }
   if (/todo|timer|calc|counter|list|form|note|tool|convert/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'simple-tool')!;
   }
-  if (/game|play|arcade|игр/.test(t)) {
+  if (/game|play|arcade|\\u0438\\u0433\\u0440/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'tap-survive')!;
   }
   return GENRE_TEMPLATES.find((x) => x.id === 'generic-interactive')!;
