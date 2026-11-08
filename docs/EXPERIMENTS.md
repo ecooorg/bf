@@ -1,5 +1,17 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-9 — Compact plan + human brief + shared contracts (P127.34, FEATURE)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Session 2026-11-08: chess job `06171406-…` produced 12 units with incompatible shapes (Board stores letter codes; rules expect `{type,color}`; serialize returns string vs array; Coord `{r,c}` vs `{row,col}`). Validators mostly green, `goalImplemented=false`, program unusable. Root cause: plan prose contracts + independent multi-unit generation without a shared data model. |
+| **Hypothesis** | Preferring a compact 3-file plan with one owner of state+DOM, attaching machine-readable `Plan.shared` (types/wiring/smoke), injecting those contracts into every coder prompt, and exposing a short human brief before/with the build reduces shape divergence enough that a mini chess (or similar board game) opens and accepts a move. |
+| **Baseline** | Live chess-class builds in the log window: multi-module PARTIAL / unusable (see app-source.zip sample). Unit tests: prior ensureMultiFile forced expand to many modules for standard goals. |
+| **Metric / acceptance** | Unit: compact chess-like plan ≤4 files with `shared`; single-HTML interactive coerces to compact template; `buildHumanBrief` is short and free of internal jargon; ambitious goals still expand but ≤8 files. Live (next deploy, prompt «классические шахматы»): delivered ZIP has ≤4 runtime files + `manifest.json`, opens with visible board, at least one legal click-move works; `human_brief_ready` appears in logs. |
+| **Scope** | `appBuilder/core-types.ts`, `intent-brief.ts`, `stack-static-site.ts`, `core-prompts.ts`, `core-cache.ts`, `core-engine.ts`, `index.ts`, `tests/project-builder-recovery.test.mjs`, patch records. No UI mount/routing change in this patch (brief is on Spec/report/events for host to surface). |
+| **Rollback criterion** | Compact builds systematically under-implement stated goals vs multi-module baseline, or live chess-class still unusable after one corrective patch: revert P127.34. |
+| **Result** | Unit tests: see TECHNICAL_REPORT. Live: NOT_RUN. User value: NOT_RUN. |
+
 ## EXP-PROJECT-8 — Names that two files must agree on (P127.33, BEHAVIOUR)
 
 | Field | Value |
