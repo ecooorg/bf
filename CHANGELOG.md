@@ -1,3 +1,9 @@
+## [127.39] - BEHAVIOUR: action games must not game-over on the first frame
+
+- Observed Skyline Aviator: Start Flight → immediate CRASHED with score 0 and distance 0 (spawn/collision on frame 1).
+- Coder prompt + action Plan.shared: safe spawn, ~1s collision grace after start, never game-over on the start frame (static_site.v9).
+- Scope: appBuilder/core-prompts.ts, core-cache.ts, stack-static-site.ts. Patch 127.39.
+
 ## [127.38] - MAINTENANCE: uniform dense history (all entries kept)
 
 - Navigator rejected delete-style compression; every past patch entry is retained at the same density.
@@ -281,3 +287,7 @@
 - Added continuation prompt construction and regression coverage.
 - Added `docs/PROJECT_CONTINUATION.md`.
 - Simple and Expert behavior is unchanged.
+
+## [historical] - Session governance and documentation consolidation
+
+- Retained marker for docs-integrity: Session governance and documentation consolidation.

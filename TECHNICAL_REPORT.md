@@ -1,3 +1,9 @@
+## P127.39 — No instant game-over for action games (BEHAVIOUR)
+
+- **OBSERVED:** Skyline Aviator opened, Start Flight, then CRASHED with score 0 / distance 0mm; CLIMB/DIVE present but no playable segment.
+- **CHANGE:** Prompt + shared contracts require free-space spawn, collision grace after start, no game-over on start frame (static_site.v9).
+- **NOT_RUN:** Live rebuild of Skyline after deploy.
+
 ## P127.38 — Uniform dense history (MAINTENANCE)
 
 - **OBSERVED:** Prior compression dropped or unevenly shortened history; entry sizes still varied.
