@@ -1,3 +1,10 @@
+## [127.44] - BUGFIX: pin CodeQL workflow actions to full commit SHAs
+
+- Core CI failed governance-workflow-pins: codeql.yml used mutable actions/checkout@v4 and codeql-action@v3.
+- Pin checkout and codeql-action init/analyze to full SHAs; keep continue-on-error for CDN 504.
+- CodeQL "(dynamic)" jobs are Default setup — still subject to GitHub 504; disable Default if only Advanced is wanted.
+- Scope: .github/workflows/codeql.yml. Patch 127.44.
+
 ## [127.43] - BEHAVIOUR: procedural visual quality in genre templates (step 1)
 
 - Strengthen standard templates: large high-contrast player/obstacles, phone HUD, canvas/CSS only (no image/audio files yet).

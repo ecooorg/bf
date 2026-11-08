@@ -1,3 +1,9 @@
+## P127.44 — Pin CodeQL workflow actions (BUGFIX)
+
+- **OBSERVED:** workflow-action-pins FAIL on codeql.yml @v4/@v3; CodeQL dynamic jobs still 504 on bundle download.
+- **CHANGE:** Full SHA pins matching repo governance; continue-on-error retained.
+- **NOT_RUN:** Live CodeQL after CDN recovery.
+
 ## P127.43 — Procedural template quality step (BEHAVIOUR)
 
 - **OBSERVED:** Games could run with touch but look empty or unreadable; risk of jumping to image/3D assets too early.
