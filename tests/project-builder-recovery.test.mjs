@@ -309,16 +309,17 @@ test('P127.16 template plan is already multi-file', () => {
 });
 
 test('P127.17 ambitious brief rejects tiny stub via assessGoalAdequacy', () => {
-  const brief = fallbackIntentBrief('3D racing game through a city with traffic');
+  // P127.40: explicit 3D stays ambitious but package stays compact (<=5 modules).
+  const brief = fallbackIntentBrief('3D racing game through a city with traffic using three.js');
   assert.equal(brief.complexity, 'ambitious');
-  assert.ok(brief.targetModules >= 8);
+  assert.ok(brief.targetModules >= 3 && brief.targetModules <= 5);
   const files = new Map([
     ['index.html', '<!doctype html><canvas></canvas><script src="app.js"></script>'],
     ['app.js', 'const c=document.querySelector("canvas");c.getContext("2d");'],
   ]);
   const a = assessGoalAdequacy(files, brief);
   assert.equal(a.adequate, false);
-  assert.ok(a.issues.some((i) => /stub_size|stub_modules|stub_theme/.test(i)));
+  assert.ok(a.issues.some((i) => /stub_size|stub_modules|stub_theme|stub_controls|stub_loop/.test(i)));
 });
 
 test('P127.17 expandedPlanFromBrief yields several modules for ambitious goals', () => {
@@ -351,7 +352,7 @@ test('P127.34 buildHumanBrief is short and user-facing', async () => {
   const brief = fallbackIntentBrief('classic chess');
   const text = buildHumanBrief(brief, { title: 'Mini Chess', maxFiles: 3 });
   assert.ok(text.length > 40 && text.length < 2000);
-  assert.match(text, /I will build|What you will get|Package:/);
+  assert.match(text, /I will build|What you will see|How you control|Package:/);
   assert.doesNotMatch(text, /serialize|unitId|dependsOn/);
 });
 

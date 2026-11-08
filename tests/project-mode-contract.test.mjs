@@ -126,7 +126,7 @@ test('P127.17 intent stage and goal adequacy wired in engine', () => {
   assert.match(engine, /buildIntentPrompt/);
   assert.match(engine, /assessGoalAdequacy/);
   assert.match(engine, /goal_adequacy_failed/);
-  assert.match(intent, /app_builder\.intent\.v1/);
+  assert.match(intent, /app_builder\.intent\.v2/);
   assert.match(intent, /expandedGoal/);
 });
 
