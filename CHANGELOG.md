@@ -1,3 +1,10 @@
+## [127.40] - BEHAVIOUR: genre templates + mobile-first intent contract
+
+- Short requests are filled with a standard genre template (view, touch controls, consequences) instead of inventing heavy 3D.
+- Default device is phone/tablet: touch only; no keyboard, mouse, or desktop assumptions unless the user asks.
+- Intent prompt v2; complexity demoted from ambitious unless heavy tech is explicit; human brief shows see/control/happen blocks.
+- Scope: appBuilder/intent-brief.ts, core-prompts.ts, stack-static-site.ts, core-cache.ts. Patch 127.40.
+
 ## [127.39] - BEHAVIOUR: action games must not game-over on the first frame
 
 - Observed Skyline Aviator: Start Flight → immediate CRASHED with score 0 and distance 0 (spawn/collision on frame 1).

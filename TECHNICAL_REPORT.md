@@ -1,3 +1,9 @@
+## P127.40 — Genre templates and mobile-first defaults (BEHAVIOUR)
+
+- **OBSERVED:** Brief city/flight requests became unstable pseudo-3D; keyboard-oriented controls; PARTIAL packages.
+- **CHANGE:** selectGenreTemplate + contractFromTemplate; intent v2; mobile-only default device; coder/shared wiring aligned (static_site.v10).
+- **NOT_RUN:** Live rebuild of city flight after deploy.
+
 ## P127.39 — No instant game-over for action games (BEHAVIOUR)
 
 - **OBSERVED:** Skyline Aviator opened, Start Flight, then CRASHED with score 0 / distance 0mm; CLIMB/DIVE present but no playable segment.
