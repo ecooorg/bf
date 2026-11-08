@@ -290,10 +290,13 @@ test('P127.16 ensureMultiFileStaticPlan expands single HTML interactive plans', 
     order: ['index_html'],
   };
   const out = ensureMultiFileStaticPlan(single, spec);
-  assert.ok(out.coerced.includes('plan:force_multifile_static'));
+  // P127.34: compact 3-file template (not a large multi-module expand).
+  assert.ok(out.coerced.some((c) => /force_compact_static|force_multifile/.test(c)));
   assert.ok(out.plan.units.some((u) => u.path === 'app.js'));
   assert.ok(out.plan.units.some((u) => u.path === 'index.html'));
   assert.ok(out.plan.units.length >= 3);
+  assert.ok(out.plan.units.length <= 4);
+  assert.ok(out.plan.shared);
 });
 
 test('P127.16 template plan is already multi-file', () => {
@@ -302,12 +305,13 @@ test('P127.16 template plan is already multi-file', () => {
   const out = ensureMultiFileStaticPlan(t, spec);
   assert.equal(out.coerced.length, 0);
   assert.ok(t.units.some((u) => u.path === 'app.js'));
+  assert.ok(t.shared);
 });
 
 test('P127.17 ambitious brief rejects tiny stub via assessGoalAdequacy', () => {
   const brief = fallbackIntentBrief('3D racing game through a city with traffic');
   assert.equal(brief.complexity, 'ambitious');
-  assert.ok(brief.targetModules >= 16);
+  assert.ok(brief.targetModules >= 8);
   const files = new Map([
     ['index.html', '<!doctype html><canvas></canvas><script src="app.js"></script>'],
     ['app.js', 'const c=document.querySelector("canvas");c.getContext("2d");'],
@@ -317,15 +321,38 @@ test('P127.17 ambitious brief rejects tiny stub via assessGoalAdequacy', () => {
   assert.ok(a.issues.some((i) => /stub_size|stub_modules|stub_theme/.test(i)));
 });
 
-test('P127.17 expandedPlanFromBrief yields many small modules', () => {
+test('P127.17 expandedPlanFromBrief yields several modules for ambitious goals', () => {
   const brief = fallbackIntentBrief('animals walking in a forest game');
   const spec = { schemaVersion: 1, title: 'Forest', goal: brief.expandedGoal, language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: brief.mustHave };
   const plan = expandedPlanFromBrief(spec, brief);
-  assert.ok(plan.units.length >= 5, `units ${plan.units.length}`);
+  assert.ok(plan.units.length >= 3, `units ${plan.units.length}`);
+  assert.ok(plan.units.length <= 8, `units capped ${plan.units.length}`);
   assert.ok(plan.units.every((u) => u.path && u.path.length < 80));
   const coerced = ensureMultiFileStaticPlan({ schemaVersion: 1, specHash: 'x', units: [{ id: 'i', kind: 'file', path: 'index.html', purpose: 'x', dependsOn: [], exports: [], contract: '', maxOutputTokens: 1000, status: 'pending', attempts: 0 }], order: ['i'] }, spec, brief);
   assert.ok(coerced.coerced.length >= 1);
-  assert.ok(coerced.plan.units.length >= 5);
+  assert.ok(coerced.plan.units.length >= 3);
+});
+
+test('P127.34 compact chess-like plan stays at 3 files with shared contracts', () => {
+  const brief = fallbackIntentBrief('classic chess game two players click to move');
+  assert.ok(brief.targetModules <= 3);
+  const spec = { schemaVersion: 1, title: 'Mini Chess', goal: brief.expandedGoal, language: 'en', stack: 'static_site', features: [], nonGoals: [], acceptance: brief.mustHave };
+  const plan = templatePlan(spec);
+  assert.equal(plan.units.filter((u) => u.path && !/readme/i.test(u.path)).length, 3);
+  assert.ok(plan.shared?.types);
+  assert.ok(plan.shared?.wiring?.length);
+  const out = ensureMultiFileStaticPlan(plan, spec, brief);
+  assert.ok(out.plan.units.length <= 4);
+  assert.ok(out.plan.shared);
+});
+
+test('P127.34 buildHumanBrief is short and user-facing', async () => {
+  const { buildHumanBrief } = await import('../appBuilder/intent-brief.ts');
+  const brief = fallbackIntentBrief('classic chess');
+  const text = buildHumanBrief(brief, { title: 'Mini Chess', maxFiles: 3 });
+  assert.ok(text.length > 40 && text.length < 2000);
+  assert.match(text, /Сделаю|Что будет|Состав/);
+  assert.doesNotMatch(text, /serialize|unitId|dependsOn/);
 });
 
 test('P127.17 applyBriefToSpec embeds MUST acceptance', () => {
