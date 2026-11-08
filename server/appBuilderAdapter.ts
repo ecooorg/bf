@@ -1,6 +1,6 @@
 /** P93.3: connects the App Builder core ports to routeCall, PostgreSQL, artifacts and diagnostics. Active only with APP_BUILDER_ENGINE=staged. */
 import crypto from 'node:crypto';
-import { runBuild, SCHEMA_VERSION, type BuildInput, type ClockPort, type EventPayload, type EventPort, type JobState, type ModelPort, type ModelResult, type Ports, type StorePort } from '../appBuilder/index.ts';
+import { runBuild, SCHEMA_VERSION, buildHumanBrief, buildIntentPrompt, parseIntentBrief, fallbackIntentBrief, type BuildInput, type ClockPort, type EventPayload, type EventPort, type JobState, type ModelPort, type ModelResult, type Ports, type StorePort } from '../appBuilder/index.ts';
 import { runtimePortFromEnv } from './appBuilderRuntimeCheck.ts';
 import type { ProviderAdapter } from './adapter.ts';
 import { registryForGeminiCascade, type RegistryEntry } from './modelRegistry.ts';
@@ -184,6 +184,71 @@ export async function startStagedBuild(deps: AdapterDeps, input: { projectId: st
   return { jobId };
 }
 
+/**
+ * P127.34 — Preview only: intent + human brief. No plan, no code, no ZIP.
+ * The user confirms (or amends) this text in the UI before startStagedBuild runs.
+ */
+export async function previewBuildBrief(
+  deps: AdapterDeps,
+  input: { projectId: string; taskText: string },
+): Promise<{ humanBrief: string; title: string; complexity: string; mustHave: string[]; notSuccessIf: string[] }> {
+  const taskText = String(input.taskText || '').trim().slice(0, 8000);
+  if (!taskText) throw new Error('goal is required');
+  const previewId = `preview_${crypto.randomUUID()}`;
+  void recordApplicationLog({
+    level: 'info',
+    component: 'app-builder',
+    event: 'build_preview_started',
+    operationId: previewId,
+    message: 'Build preview (human brief) started',
+    details: { projectId: input.projectId, taskChars: taskText.length },
+  });
+  let brief = fallbackIntentBrief(taskText);
+  try {
+    const model = createModelPort(deps, input.projectId, previewId);
+    const ip = buildIntentPrompt(taskText);
+    const result = await model.complete({
+      role: 'planner',
+      system: ip.system,
+      prompt: ip.prompt,
+      maxOutputTokens: 1200,
+    });
+    if (result?.text) brief = parseIntentBrief(result.text, taskText);
+  } catch (e) {
+    void recordApplicationLog({
+      level: 'warn',
+      component: 'app-builder',
+      event: 'build_preview_model_failed',
+      operationId: previewId,
+      message: 'Preview model call failed; using fallback brief',
+      details: { reason: String((e as Error)?.message ?? e).slice(0, 200) },
+    });
+  }
+  const title =
+    taskText.split(/[.!?\n]/).map((s) => s.trim()).find(Boolean)?.slice(0, 80) || 'Program';
+  const humanBrief = buildHumanBrief(brief, { title, maxFiles: Math.min(3, brief.targetModules || 3) });
+  void recordApplicationLog({
+    level: 'info',
+    component: 'app-builder',
+    event: 'build_preview_ready',
+    operationId: previewId,
+    message: 'Build preview ready',
+    details: {
+      projectId: input.projectId,
+      complexity: brief.complexity,
+      humanBriefChars: humanBrief.length,
+      targetModules: brief.targetModules,
+    },
+  });
+  return {
+    humanBrief,
+    title,
+    complexity: brief.complexity,
+    mustHave: brief.mustHave.slice(0, 8),
+    notSuccessIf: brief.notSuccessIf.slice(0, 6),
+  };
+}
+
 /** Runs (or resumes) a job; completed units come from app_build_unit_results and cost no model calls. */
 export async function executeJob(deps: AdapterDeps, jobId: string): Promise<void> {
   if (running.has(jobId)) return; running.add(jobId);
@@ -279,10 +344,14 @@ export function publicJob(j: JobState, projectId: string) {
           checksRun: j.report.checksRun,
           checksNotRun: j.report.checksNotRun,
           validators: j.report.validators,
+          ...(j.report.humanBrief ? { humanBrief: j.report.humanBrief } : {}),
         }
       : null,
     diagnosticsUrl: `/api/projects/diagnostics/export?jobId=${encodeURIComponent(j.id)}`,
     ...(downloadUrl ? { downloadUrl } : {}),
+    ...(j.spec?.humanBrief || j.report?.humanBrief
+      ? { humanBrief: j.spec?.humanBrief || j.report?.humanBrief }
+      : {}),
     updatedAt: j.updatedAt,
   };
 }

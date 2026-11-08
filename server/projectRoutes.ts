@@ -38,7 +38,7 @@ import { createTask, getTask, listRuns, listTaskEvents, transitionTask } from '.
 import { getPool } from './database.ts';
 import { readArtifact, readArtifactBytes, saveArtifact, inspectArtifact, listArtifactVersions, listProjectArtifactVersions, ArtifactFormatError } from './artifactRepository.ts';
 import { buildContinuationTask, loadContinuationSource } from './projectContinuation.ts';
-import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, readBuildFile, resumeStaleJobs, buildReportForDiagnostics, type AdapterDeps } from './appBuilderAdapter.ts';
+import { stagedEnabled, legacyAppBuilderAllowed, startStagedBuild, cancelStagedBuild, createStorePort, publicJob, readBuildFile, resumeStaleJobs, buildReportForDiagnostics, previewBuildBrief, type AdapterDeps } from './appBuilderAdapter.ts';
 import { pipelineArchitectOutcome } from '../appBuilder/architectOutcome.ts';
 import { runAppBuilderPipeline, irFromPlainAnswers } from './appBuilderIndex.ts';
 import { createProjectRequestSchema, updateProjectStateRequestSchema, projectListLimitQuerySchema, stateVersionsLimitQuerySchema, defaultPassport } from './contracts.ts';
@@ -516,6 +516,35 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
     } catch (error) { projectError(res, error); }
   });
 
+  /** P127.34: human brief only — no code generation. UI shows this card before starting the build. */
+  app.post('/api/projects/:projectId/code/build/preview', async (req, res) => {
+    const operationId = newOperationId();
+    res.setHeader('X-BiForge-Operation-Id', operationId);
+    try {
+      const input = z.object({
+        goal: z.string().trim().min(1).max(8000),
+      }).strict().parse(req.body);
+      const project = await getProject(req.params.projectId);
+      if (!project) return res.status(404).json({ success: false, error: 'Project not found', code: 'NOT_FOUND' });
+      const passport = (project.state as any)?.passport;
+      if (passport?.status !== 'confirmed') {
+        return res.status(409).json({ success: false, error: 'Confirm the project passport before creating software.', code: 'PASSPORT_NOT_CONFIRMED' });
+      }
+      if (!stagedEnabled()) {
+        return res.status(409).json({ success: false, error: 'Staged App Builder is disabled on this server (APP_BUILDER_ENGINE).', code: 'STAGED_DISABLED' });
+      }
+      const deps = stagedDeps();
+      if (!deps || !ai) {
+        return res.status(503).json({ success: false, error: 'App Builder is not configured.', code: 'STAGED_UNAVAILABLE' });
+      }
+      const preview = await previewBuildBrief(deps, { projectId: project.id, taskText: input.goal });
+      return res.status(200).json({ success: true, data: preview });
+    } catch (e: any) {
+      if (e?.name === 'ZodError') return res.status(400).json({ success: false, error: e.errors?.[0]?.message || 'Invalid body', code: 'VALIDATION' });
+      return res.status(500).json({ success: false, error: String(e?.message || e).slice(0, 300), code: 'PREVIEW_FAILED' });
+    }
+  });
+
   app.post('/api/projects/:projectId/code/build', async (req, res) => {
     const operationId = newOperationId(); const startedAt = Date.now();
     res.setHeader('X-BiForge-Operation-Id', operationId);
@@ -525,6 +554,10 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
       const input = z.object({
         goal: z.string().trim().min(1).max(8000),
         constraints: z.string().trim().max(4000).optional(),
+        /** P127.34: brief the user confirmed in the UI (optional but preferred). */
+        approvedBrief: z.string().trim().max(4000).optional(),
+        /** Optional user corrections after reading the brief. */
+        userNotes: z.string().trim().max(2000).optional(),
         idempotency_key: z.string().trim().min(1).max(200).optional(),
         engine: z.enum(['staged', 'pipeline', 'legacy', 'model_patch']).optional(),
         ir: z.record(z.string(), z.unknown()).optional(),
@@ -585,7 +618,12 @@ export function registerProjectRoutes(app: Express, deps: ProjectRouteDeps): voi
         if (!deps || !ai) {
           return res.status(503).json({ success: false, error: 'Staged App Builder has no model adapters configured.', code: 'STAGED_UNAVAILABLE' });
         }
-        const taskText = [input.goal, input.constraints ? `Constraints: ${input.constraints}` : ''].filter(Boolean).join('\n');
+        const taskText = [
+          input.goal,
+          input.constraints ? `Constraints: ${input.constraints}` : '',
+          input.approvedBrief ? `User-confirmed brief:\n${input.approvedBrief}` : '',
+          input.userNotes ? `User notes on the brief:\n${input.userNotes}` : '',
+        ].filter(Boolean).join('\n\n');
         const started = await startStagedBuild(deps, { projectId: project.id, userId: 'owner', taskText });
         res.setHeader('X-BiForge-Operation-Id', started.jobId);
         return res.status(202).json({ success: true, data: { jobId: started.jobId, engine: 'staged', operationId: started.jobId, statusUrl: `/api/projects/${encodeURIComponent(project.id)}/code/build/${started.jobId}` } });
