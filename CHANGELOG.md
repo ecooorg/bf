@@ -1,3 +1,9 @@
+## [127.41] - BUGFIX: CI after genre-template intent (tests + lint:copy)
+
+- lint:copy: removed raw Cyrillic from intent-brief genre matchers (unicode escapes).
+- Tests: ambitious brief expects compact targetModules (3–5) and intent prompt v2; human-brief assert matches see/control sections.
+- Scope: appBuilder/intent-brief.ts, tests/project-builder-recovery.test.mjs, tests/project-mode-contract.test.mjs. Patch 127.41.
+
 ## [127.40] - BEHAVIOUR: genre templates + mobile-first intent contract
 
 - Short requests are filled with a standard genre template (view, touch controls, consequences) instead of inventing heavy 3D.

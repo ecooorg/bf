@@ -1,3 +1,9 @@
+## P127.41 — CI green for P127.40 intent (BUGFIX)
+
+- **OBSERVED:** CI failed on lint:copy (Cyrillic in intent-brief) and tests expecting intent v1 / targetModules>=8.
+- **CHANGE:** Unicode escapes for non-Latin genre cues; tests aligned to compact mobile templates.
+- **NOT_RUN:** None beyond CI.
+
 ## P127.40 — Genre templates and mobile-first defaults (BEHAVIOUR)
 
 - **OBSERVED:** Brief city/flight requests became unstable pseudo-3D; keyboard-oriented controls; PARTIAL packages.
