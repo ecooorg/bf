@@ -92,7 +92,7 @@ export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']>
       types: {},
       wiring: [
         'Offline local page only; canvas game playable on a phone without a keyboard',
-        'Controls: on-screen buttons and/or pointer/touch that move the player; keyboard may be extra, never the only input',
+        'Default device phone/tablet: on-screen buttons and/or pointer/touch move the player; never keyboard-only; no mouse required',
         'All draw positions for player and obstacles must stay inside the canvas pixel bounds',
         'If using world/camera coordinates, convert to screen before draw; keep the player sprite visible',
         'Safe spawn: player must not overlap obstacles at start; ~1s collision grace after Start/Restart; never game-over on the start frame',
@@ -113,7 +113,7 @@ export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']>
       'Offline local page only: open index.html from a folder; no server, no network',
       'Only app.js owns application state and DOM updates',
       'app.js MUST start itself (call init/main at bottom or DOMContentLoaded)',
-      'Interactive controls must work with touch/pointer on a phone, not keyboard alone',
+      'Default device phone/tablet: touch/pointer controls only required; never keyboard or mouse',
       'index.html loads style.css and app.js as module; no other runtime JS',
     ],
     smoke: [
