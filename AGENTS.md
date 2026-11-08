@@ -116,8 +116,8 @@ BiForge succeeds when a real user completes a meaningful task and receives a cor
 | Assistant rules, hard gates, session protocol, obligation map | `AGENTS.md` | Does not replace product requirements or claim implementation status. |
 | Normative product outcomes, agent behavior, requirements, acceptance | `TECHNICAL_SPECIFICATION.md` | Changes to mandatory user outcomes need explicit owner approval. |
 | Ordered programme plan, phases | `ROADMAP.md` | Preserve history. Re-evaluate each session; do not blindly execute a stale next task. |
-| Factual implementation state and evidence | `TECHNICAL_REPORT.md` | Report only what evidence supports; append at the top. |
-| Patch history | `CHANGELOG.md` | Add at the top; do not rewrite prior entries. |
+| Factual implementation state and evidence | `TECHNICAL_REPORT.md` | Report only what evidence supports; **append at the top**. **MUST NOT** rewrite prior sections. Each new section **MUST** be maximally concise (see §5 History density). |
+| Patch history | `CHANGELOG.md` | **Append only** at the top. **MUST NOT** rewrite, compress, or delete prior entries. Each **new** entry **MUST** be maximally concise (see §5 History density). |
 | Architecture | `docs/ARCHITECTURE.md` | Must agree with spec and source. |
 | API behavior | `docs/API_CONTRACTS.md` | Verify against routes and tests. |
 | Test strategy and acceptance | `docs/TESTING_AND_ACCEPTANCE.md` | Tests are evidence, not the product outcome. |
@@ -168,7 +168,7 @@ Detailed `REQ-*` criteria live in `TECHNICAL_SPECIFICATION.md`. This map must no
 | `BIO-005` | Architect: useful validated downloadable artifact on success; honest SUCCESS/PARTIAL/FAILED otherwise. | Spec §§7.1, 10.2; `REQ-GEN-*`; `REQ-UI-001` | Real artifact, validators, download policy, recovery. |
 | `BIO-006` | User outcomes primary; tests/CI/deploy reported separately. | `REQ-TEST-001`; testing docs | Evidence labeled by type and commit. |
 | `BIO-007` | Requirements stay traceable; none silently dropped. | Spec + `ROADMAP.md` | No orphan requirements/stages. |
-| `BIO-008` | Preserve completed stages and historical evidence; add status, do not rewrite the past. | Roadmap, report, changelog, user-value docs | Additive history. |
+| `BIO-008` | Preserve completed stages and historical evidence; add status, do not rewrite the past. New changelog/report lines must stay maximally short (see §5 History density). | Roadmap, report, changelog, user-value docs | Additive + dense history. |
 | `BIO-009` | Each session reconstructs state and chooses its own task; prior assistants do not bind the next. | This file + roadmap | Task derived from current gaps. |
 
 New obligations need owner approval before becoming normative.
@@ -238,7 +238,23 @@ Mandatory tests and gates for **this** change always apply; P4 is extra standalo
 - Historical **records** stay; obsolete **test code/fixtures** may be retired under minimalism rules after reference/CI checks.  
 - English-only maintained repo artifacts; do not narrow product language support without approval.
 
+### History density (binding — changelog and technical report)
+
+**MUST NOT** rewrite, edit, merge, or delete existing entries/sections in `CHANGELOG.md` or `TECHNICAL_REPORT.md`. History is append-only.
+
+**MUST** keep every **new** entry maximally concise. Long narrative, log dumps, and repeated context are forbidden in these two files.
+
+| File | Hard limit for each **new** entry |
+|---|---|
+| `CHANGELOG.md` | **1–5 sentences** (bullets), including the header as a separate line. Cover problem → change → scope/patch id. No log dumps, no multi-paragraph prose. Target roughly the same length for every patch. |
+| `TECHNICAL_REPORT.md` | **1–5 sentences** total. Prefer **OBSERVED** / **CHANGE** / **NOT_RUN** / **KNOWN** one-liners (omit empty labels). No full log paste; cite commit/job id in a short phrase. Same density for every patch section. |
+
+**MUST NOT** omit a required top entry for a delivered patch (empty history is a violation).  
+**MUST NOT** “make up for” density by rewriting older entries — fix only the new entry you add.  
+Bulk compression of past history requires **explicit Navigator approval** in that session; it is not a standing assistant task.
+
 ---
+
 
 ## 6. Repository minimalism and test lifecycle
 
