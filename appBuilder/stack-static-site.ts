@@ -53,7 +53,7 @@ export function templatePlan(spec: Spec): Plan {
 /** P127.34 — shared contracts for the compact 3-file template (one owner of state+DOM). */
 export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']> {
   const goal = `${spec.goal || ''} ${spec.title || ''}`.toLowerCase();
-  const boardLike = /chess|board|checkers|draughts|tic.?tac|grid|cell|piece|шахмат/.test(goal);
+  const boardLike = /chess|board|checkers|draughts|tic.?tac|grid|cell|piece/.test(goal);
   if (boardLike) {
     return {
       types: {

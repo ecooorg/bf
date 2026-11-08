@@ -310,21 +310,21 @@ export function buildHumanBrief(
   const lines: string[] = [];
   lines.push(
     title
-      ? `Сделаю: ${title}.`
-      : `Сделаю: ${brief.expandedGoal.split(/[.!?]/)[0]?.trim() || 'небольшую программу в браузере'}.`,
+      ? `I will build: ${title}.`
+      : `I will build: ${brief.expandedGoal.split(/[.!?]/)[0]?.trim() || 'a small browser program'}.`,
   );
   lines.push('');
-  lines.push('Что будет:');
+  lines.push('What you will get:');
   for (const m of must) lines.push(`• ${m}`);
   if (avoid.length) {
     lines.push('');
-    lines.push('Не будет:');
+    lines.push('What will not be included:');
     for (const n of avoid) lines.push(`• ${n}`);
   }
   lines.push('');
   lines.push(
-    `Состав: около ${maxFiles} файлов, одна страница, без внешних библиотек (если вы их не просили).`,
+    `Package: about ${maxFiles} files, one page, no external libraries unless you asked for them.`,
   );
-  lines.push('После сборки откройте index.html и проверьте пункты выше.');
+  lines.push('After the build, open index.html and check the points above.');
   return lines.join('\n').slice(0, 2000);
 }
