@@ -1,5 +1,17 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-PROJECT-8 — Names that two files must agree on (P127.33, BEHAVIOUR)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Navigator session 2026-11-07, commit 9387144 (127.32), three builds, all `SUCCESS` with 12 of 12 validators ok and `runtimeVerified=false`, all unusable when opened (delivered `index.html` opened in headless Chromium, screenshots). (1) The stylesheet only styles `.square.light`/`.square.dark` and `.square.selected`, the script gives squares the classes `white`/`black`/`highlight`: the board is transparent and invisible. (2) The stylesheet shows a slide only as `.slide.active`, no script ever sets `active`: every slide has opacity 0. (3) Scripts name six picture files (`img/…jpg`); a package holds text files only, so none exist (`ERR_FILE_NOT_FOUND`). A fourth defect in the same builds (a click handler reads `dataset.row` while the renderer wrote `dataset.pos`) throws on the first tap and is found only by the browser check. A fifth (the piece type names `p` in the engine and `pawn` in the renderer: board, no pieces) is silent and found by no check below. |
+| **Hypothesis** | Two mechanical checks on names shared between files, reported as one validator `name-contracts` and sent into the existing bounded cross-file repair: (a) a CSS rule that needs a second class (`.a.b`) where `b` appears in no script or markup (as a whole word, or as the prefix of a composed name), (b) a script or stylesheet that names a local picture, sound or font file that is not in the package. They catch (1), (2), (3) in the replayed builds and are not triggered by the same files after the defect is removed. |
+| **Baseline** | Replay of the three delivered packages: `name-contracts` does not exist; 0 of 3 flagged. Live: 3 of 3 builds SUCCESS and unusable in this log window (n=3). |
+| **Metric / acceptance** | Tests: each defect above flagged with the defect in place and not flagged after it is removed; dynamic prefix names, single-class rules, data/external URLs and files present in the package are not flagged; an integration build repairs a missing-asset reference through the cross-file repair. Replay: the three delivered packages give >= 3 issues in total and the two non-defective neutral fixtures give 0. Live (same prompt set, runtime check enabled): builds that finish `SUCCESS` and open with something visible >= 60%, versus 0 of 3 now; false `PARTIAL` (working program held back by this validator) observed in <= 1 of 10 builds. |
+| **Scope** | `appBuilder/validator-static-site.ts`, `appBuilder/core-engine.ts` (CROSS list, CSS targets, one prompt sentence), `tests/project-builder-recovery.test.mjs`, patch records. No scenario words in code or tests (neutral names only). Deletion: none; the validator is added to `REQUIRED_VALIDATORS`. |
+| **Rollback criterion** | Any program that worked before is held back by a flagged name that is in fact set dynamically (false `PARTIAL`), or live visible-and-`SUCCESS` rate is not above 0 of 3: revert P127.33. One corrective patch allowed, then stop or revert. |
+| **Result** | Unit tests and replay: see TECHNICAL_REPORT. Live: NOT_RUN. User value: NOT_RUN. |
+
 ## EXP-PROJECT-7 — Open the built page in a sandboxed browser and repair what throws (P127.32, BEHAVIOUR)
 
 | Field | Value |
