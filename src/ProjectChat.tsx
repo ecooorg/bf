@@ -27,6 +27,10 @@ type ChatMessage = {
   at: number;
   /** P127.34: this message is a brief awaiting confirm/cancel. */
   briefPending?: boolean;
+  /** P127.35: brief was confirmed — show one line instead of the full card. */
+  briefCollapsed?: boolean;
+  /** Full brief text kept for optional expand after collapse. */
+  briefFull?: string;
 };
 
 type PendingBrief = {
@@ -191,9 +195,17 @@ export function ProjectChat({
       downloadUrl: msg.downloadUrl,
       downloadName: msg.downloadName,
       briefPending: msg.briefPending,
+      briefCollapsed: msg.briefCollapsed,
+      briefFull: msg.briefFull,
     };
     setMessages((m) => [...m, full]);
     return full;
+  };
+
+  const briefOneLine = (brief: PendingBrief): string => {
+    const first = brief.humanBrief.split('\n').map((s) => s.trim()).find(Boolean) || brief.title || brief.goal;
+    const short = first.length > 90 ? `${first.slice(0, 87)}…` : first;
+    return `Plan confirmed · ${short}`;
   };
 
   const latestZipArtifactId = async (pid: string): Promise<string | null> => {
@@ -265,17 +277,31 @@ export function ProjectChat({
 
   const confirmPendingBrief = async () => {
     if (!pendingBrief || busy) return;
+    const confirmed = pendingBrief;
     setBusy(true);
     try {
+      // Collapse the large plan card to one line immediately after confirm.
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.briefPending
+            ? {
+                ...msg,
+                briefPending: false,
+                briefCollapsed: true,
+                briefFull: confirmed.humanBrief,
+                text: briefOneLine(confirmed),
+              }
+            : msg,
+        ),
+      );
       setPendingBrief(null);
-      setMessages((m) => m.map((msg) => (msg.briefPending ? { ...msg, briefPending: false } : msg)));
       push({ role: 'user', text: 'Confirm and build' });
-      const result = await runBuild(pendingBrief.projectId, pendingBrief.goal, {
-        approvedBrief: pendingBrief.humanBrief,
-        userNotes: pendingBrief.userNotes.trim() || undefined,
+      const result = await runBuild(confirmed.projectId, confirmed.goal, {
+        approvedBrief: confirmed.humanBrief,
+        userNotes: confirmed.userNotes.trim() || undefined,
       });
       if (result.downloadUrl) {
-        const newest = await latestZipArtifactId(pendingBrief.projectId);
+        const newest = await latestZipArtifactId(confirmed.projectId);
         if (newest) setBaseArtifactId(newest);
       }
       replyFromResult(result, 'build');
@@ -440,8 +466,38 @@ export function ProjectChat({
 
       <div style={S.transcript} aria-live="polite">
         {messages.map((m) => (
-          <div key={m.id} style={m.role === 'user' ? S.bubbleUser : S.bubbleAssistant}>
-            {m.text}
+          <div
+            key={m.id}
+            style={
+              m.briefCollapsed
+                ? {
+                    ...S.bubbleAssistant,
+                    padding: '6px 12px',
+                    fontSize: 13,
+                    color: '#8fa6c2',
+                    borderColor: '#25405e',
+                    maxWidth: '100%',
+                  }
+                : m.role === 'user'
+                  ? S.bubbleUser
+                  : S.bubbleAssistant
+            }
+            data-testid={m.briefCollapsed ? 'project-chat-brief-collapsed' : m.briefPending ? 'project-chat-brief-open' : undefined}
+          >
+            {m.briefCollapsed ? (
+              <details style={{ margin: 0 }}>
+                <summary style={{ cursor: 'pointer', listStyle: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {m.text}
+                </summary>
+                {m.briefFull ? (
+                  <pre style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap', fontSize: 13, color: '#c5d4e8', fontFamily: 'inherit' }}>
+                    {m.briefFull}
+                  </pre>
+                ) : null}
+              </details>
+            ) : (
+              m.text
+            )}
             {m.downloadUrl && (
               <a
                 href={m.downloadUrl}

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CircleHelp, Cloud, CloudUpload, MoreHorizontal, Plus, History as HistoryIcon, X } from 'lucide-react';
 import ProjectDelivery from './ProjectDelivery.tsx';
-import { describeCapabilities, PROJECT_SCOPE_TEXT, type Capabilities } from './projectCapabilities.ts';
+import { type Capabilities } from './projectCapabilities.ts';
 import { BusyHint, StateNotice, driveLabel, driveTitle } from './uiStates.tsx';
 import { approvalKindLabel, blockedReasonLabel, planStatusLabel, taskStateLabel } from './projectLabels.ts';
 import { WorkspacePanel, isFolderPickerSupported, PICK_FOLDER_EVENT } from './WorkspacePanel.tsx';
@@ -609,18 +609,6 @@ export default function ProjectMode() {
     </header>
     <UserGuideModal open={showUserGuide} onClose={() => setShowUserGuide(false)} />
     <main style={styles.page}><section style={styles.panel}>
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8fa6c2' }}>BiForge</div>
-        <h1 style={{ margin: '6px 0' }}>Project workspace</h1>
-        <p style={{ marginTop: 0, color: '#8fa6c2' }}>
-          Build a project step by step or use the full workspace. You control every change and publish the ZIP yourself.
-        </p>
-        <details data-testid="project-capabilities" style={{ marginTop: 6, fontSize: 13, color: '#8fa6c2' }}>
-          <summary style={{ cursor: 'pointer' }}>What is available here</summary>
-          <p style={{ margin: '6px 0' }}>{PROJECT_SCOPE_TEXT}</p>
-          {describeCapabilities(capabilities).filter(r => !r.on && r.label !== 'Writing to GitHub').map(r => <StateNotice key={r.label} kind="unavailable"><strong>{r.label}: not available</strong> — {r.note}</StateNotice>)}
-        </details>
-      </div>
     {buildProgress && (() => {
       const job = buildProgress.job;
       const code = typeof job.error === 'object' && job.error ? (job.error as any).code : '';
