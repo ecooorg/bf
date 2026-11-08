@@ -48,80 +48,101 @@ const GENRE_TEMPLATES: GenreTemplate[] = [
     id: 'lane-dodge',
     label: 'lane dodge / road',
     view: [
-      'Road or path with clear lanes or a corridor',
-      'Player vehicle or character near the bottom or center',
-      'Obstacles approaching; score or distance on screen',
+      'Full-screen canvas: sky/ground gradient, road with lane marks (canvas paths only, no image files)',
+      'Player vehicle as a large clear shape near bottom; about 12-18% of canvas width',
+      'Obstacles as contrasting blocks; at least two visible while playing',
+      'Large HUD score/distance readable on a phone',
     ],
     controls: [
-      'Swipe or tap left/right (or large on-screen buttons) to change lane or steer',
-      'Forward motion is automatic',
+      'Swipe or large on-screen left/right buttons (touch target about 48px+)',
+      'Forward motion automatic',
     ],
     consequences: [
-      'Hitting an obstacle ends the run and shows restart',
+      'Hit obstacle -> game-over overlay + Restart',
       'Score increases with time or distance',
       'About 1s collision grace after start',
     ],
-    forbidden: ['keyboard-only control', 'CDN or 3D engine', 'empty field with no obstacles'],
+    forbidden: [
+      'keyboard-only control',
+      'CDN or 3D engine',
+      'empty field with no obstacles',
+      'tiny unreadable player',
+      'image/sound files (procedural canvas only)',
+    ],
   },
   {
     id: 'side-flight',
     label: 'side / forward flight',
     view: [
-      'Sky and simple city or ground silhouettes',
-      'Plane or flyer clearly visible',
-      'Score or distance readable',
+      'Sky gradient + simple building/ground silhouettes as rectangles/polygons (no images, no three.js)',
+      'Plane as a large recognizable triangle/body; always on-screen',
+      'Obstacles high-contrast against the sky',
+      'Score/distance HUD with large type',
     ],
     controls: [
-      'Drag finger or use large on-screen controls to move left/right (and up/down if needed)',
-      'Forward flight is automatic',
+      'Finger drag or large on-screen pads (touch targets about 48px+)',
+      'Forward flight automatic',
     ],
     consequences: [
-      'Collision with obstacle ends the flight and shows restart',
+      'Collision -> game-over + Restart',
       'Score from distance or time',
-      'About 1s collision grace after start',
+      'About 1s collision grace after start; never game-over on the start frame',
     ],
-    forbidden: ['three.js/WebGL/CDN', 'keyboard-only control', 'instant game-over on start frame'],
+    forbidden: [
+      'three.js/WebGL/CDN',
+      'keyboard-only control',
+      'instant game-over on start frame',
+      'solid color screen with no readable plane or buildings',
+      'image/sound files (procedural canvas only)',
+    ],
   },
   {
     id: 'board-turn',
     label: 'board / turn-based',
     view: [
-      'Grid or board with distinct cells',
-      'Pieces or marks readable on cells',
-      'Turn or status text',
+      'Grid with alternating cell colors; board fills most of the phone width',
+      'Pieces as large unicode or simple shapes (not tiny dots)',
+      'Turn/status line above or below the board',
     ],
-    controls: ['Tap a cell or piece to select; tap a target to move or place'],
+    controls: ['Tap piece then tap target cell (or tap empty cell to place)'],
     consequences: [
-      'Illegal moves rejected or ignored with clear feedback',
-      'Turn switches when a legal action completes',
-      'Game-end state when rules say so (if applicable)',
+      'Illegal moves rejected with visible feedback',
+      'Turn switches after a legal action',
+      'Game-end message when rules say so',
     ],
-    forbidden: ['keyboard required', 'blank board with no pieces when the game needs them'],
+    forbidden: ['keyboard required', 'blank board with no pieces when the game needs them', 'image files required'],
   },
   {
     id: 'tap-survive',
     label: 'tap to survive',
-    view: ['Moving hazards or gaps', 'Player figure clearly visible', 'Score on screen'],
-    controls: ['Tap/hold anywhere (or one large button) performs the main action'],
+    view: [
+      'Moving hazards as simple high-contrast shapes',
+      'Player figure large and always visible while playing',
+      'Score HUD large enough for a phone',
+    ],
+    controls: ['Tap or hold anywhere (or one large button) for the main action'],
     consequences: [
-      'Miss or hit hazard ends the run with restart',
+      'Hit hazard or miss -> game-over + Restart',
       'Score from survival time or passes',
       'Short grace after start',
     ],
-    forbidden: ['keyboard-only control', 'no visible player'],
+    forbidden: ['keyboard-only control', 'no visible player', 'image/sound files required'],
   },
   {
     id: 'simple-tool',
     label: 'simple tool / form',
-    view: ['Clear title and main controls', 'Result or list area always visible'],
-    controls: ['Tap buttons and fields; on-screen keyboard only if text entry is required'],
+    view: [
+      'Clear title and primary buttons large enough for thumbs',
+      'Result area always visible without horizontal scroll',
+    ],
+    controls: ['Tap buttons and fields; system keyboard only if text entry is required'],
     consequences: ['Each primary action updates the visible result immediately'],
     forbidden: ['blank page', 'controls that do nothing'],
   },
   {
     id: 'generic-interactive',
     label: 'generic interactive',
-    view: ['Primary content matches the user theme', 'Status or feedback text'],
+    view: ['Primary content matches the user theme using CSS/canvas shapes', 'Status or feedback text'],
     controls: ['All actions work by touch on a small screen'],
     consequences: ['User action produces a visible result'],
     forbidden: ['keyboard-only control', 'blank page'],
@@ -131,22 +152,22 @@ const GENRE_TEMPLATES: GenreTemplate[] = [
 /** Pick one genre template from short user text (deterministic). */
 export function selectGenreTemplate(userText: string): GenreTemplate {
   const t = (userText || '').toLowerCase();
-  if (/chess|checker|draught|tic.?tac|board|\\u0448\\u0430\\u0445\\u043c\\u0430\\u0442|\\u0448\\u0430\\u0448\\u043a|\\u043a\\u043b\\u0435\\u0442\\u043e\\u043a/.test(t)) {
+  if (/chess|checker|draught|tic.?tac|board|\u0448\u0430\u0445\u043c\u0430\u0442|\u0448\u0430\u0448\u043a|\u043a\u043b\u0435\u0442\u043e\u043a/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'board-turn')!;
   }
-  if (/flappy|jump|tap.?game|\\u043f\\u0440\\u044b\\u0436/.test(t)) {
+  if (/flappy|jump|tap.?game|\u043f\u0440\u044b\u0436/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'tap-survive')!;
   }
-  if (/plane|flight|fly|aviator|\\u0441\\u0430\\u043c\\u043e\\u043b|city|\\u0433\\u043e\\u0440\\u043e\\u0434|skyline|pilot/.test(t)) {
+  if (/plane|flight|fly|aviator|\u0441\u0430\u043c\u043e\u043b|city|\u0433\u043e\u0440\u043e\u0434|skyline|pilot/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'side-flight')!;
   }
-  if (/race|racing|car|road|lane|drive|tractor|\\u0433\\u043e\\u043d\\u043a|\\u043c\\u0430\\u0448\\u0438\\u043d|\\u0442\\u0440\\u0430\\u043a\\u0442\\u043e\\u0440|\\u0434\\u043e\\u0440\\u043e\\u0433\\u0430/.test(t)) {
+  if (/race|racing|car|road|lane|drive|tractor|\u0433\u043e\u043d\u043a|\u043c\u0430\u0448\u0438\u043d|\u0442\u0440\u0430\u043a\u0442\u043e\u0440|\u0434\u043e\u0440\u043e\u0433\u0430/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'lane-dodge')!;
   }
   if (/todo|timer|calc|counter|list|form|note|tool|convert/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'simple-tool')!;
   }
-  if (/game|play|arcade|\\u0438\\u0433\\u0440/.test(t)) {
+  if (/game|play|arcade|\u0438\u0433\u0440/.test(t)) {
     return GENRE_TEMPLATES.find((x) => x.id === 'tap-survive')!;
   }
   return GENRE_TEMPLATES.find((x) => x.id === 'generic-interactive')!;
