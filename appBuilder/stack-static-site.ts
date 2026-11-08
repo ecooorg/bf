@@ -54,6 +54,7 @@ export function templatePlan(spec: Spec): Plan {
 export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']> {
   const goal = `${spec.goal || ''} ${spec.title || ''}`.toLowerCase();
   const boardLike = /chess|board|checkers|draughts|tic.?tac|grid|cell|piece/.test(goal);
+  const actionLike = /race|racing|car|drive|tractor|plane|fly|flappy|runner|shoot|arcade|canvas|road|lane/.test(goal);
   if (boardLike) {
     return {
       types: {
@@ -86,12 +87,31 @@ export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']>
       budgets: { maxFiles: 3, maxTotalBytes: 16000 },
     };
   }
+  if (actionLike) {
+    return {
+      types: {},
+      wiring: [
+        'Offline local page only; canvas game playable on a phone without a keyboard',
+        'Controls: on-screen buttons and/or pointer/touch that move the player; keyboard may be extra, never the only input',
+        'All draw positions for player and obstacles must stay inside the canvas pixel bounds',
+        'If using world/camera coordinates, convert to screen before draw; keep the player sprite visible',
+        'app.js MUST start itself (init/main at bottom); index.html loads style.css and app.js as module',
+      ],
+      smoke: [
+        { id: 'no-throw', assert: 'no uncaught exception during load and first paint' },
+        { id: 'player-visible', assert: 'player is drawn within the canvas on first frames' },
+        { id: 'touch-or-buttons', assert: 'movement works without a physical keyboard' },
+      ],
+      budgets: { maxFiles: 3, maxTotalBytes: 18000 },
+    };
+  }
   return {
     types: {},
     wiring: [
       'Offline local page only: open index.html from a folder; no server, no network',
       'Only app.js owns application state and DOM updates',
       'app.js MUST start itself (call init/main at bottom or DOMContentLoaded)',
+      'Interactive controls must work with touch/pointer on a phone, not keyboard alone',
       'index.html loads style.css and app.js as module; no other runtime JS',
     ],
     smoke: [
