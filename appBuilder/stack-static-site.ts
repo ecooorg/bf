@@ -70,9 +70,12 @@ export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']>
         },
       },
       wiring: [
+        'Offline local page only: open index.html from a folder; no server, no network',
         'Only app.js writes to the board DOM and status text',
         'Piece is always {type, color}, never a single letter',
         'Coord is always {row, col} with integers 0..7 (or board size)',
+        'Square CSS classes MUST be .square.light and .square.dark (never .white/.black for squares)',
+        'app.js MUST call initGame() or init() at the bottom so the board is drawn on load',
         'index.html loads style.css and app.js as module; no other runtime JS',
       ],
       smoke: [
@@ -86,7 +89,9 @@ export function defaultSharedForCompact(spec: Spec): NonNullable<Plan['shared']>
   return {
     types: {},
     wiring: [
+      'Offline local page only: open index.html from a folder; no server, no network',
       'Only app.js owns application state and DOM updates',
+      'app.js MUST start itself (call init/main at bottom or DOMContentLoaded)',
       'index.html loads style.css and app.js as module; no other runtime JS',
     ],
     smoke: [

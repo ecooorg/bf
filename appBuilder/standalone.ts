@@ -112,7 +112,22 @@ function __load(path) {
   __defs[path].call(m.exports, m, m.exports, function (spec) { return __req(path, spec); });
   return m.exports;
 }
-${JSON.stringify(entries)}.forEach(__load);
+// P127.35: after loading entry modules, call a common bootstrap export if the author
+// only exported initGame/main/start and never invoked it (file:// / content://).
+function __boot(exp) {
+  if (!exp || typeof exp !== "object") return;
+  var names = ["initGame", "init", "main", "start", "boot", "setup", "run"];
+  for (var i = 0; i < names.length; i++) {
+    if (typeof exp[names[i]] === "function") {
+      try { exp[names[i]](); } catch (e) {}
+      return;
+    }
+  }
+  if (typeof exp.default === "function") {
+    try { exp.default(); } catch (e) {}
+  }
+}
+${JSON.stringify(entries)}.forEach(function (path) { __boot(__load(path)); });
 })();`;
   return { body, header };
 }
