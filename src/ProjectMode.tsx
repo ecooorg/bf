@@ -860,7 +860,7 @@ export default function ProjectMode() {
             {activeTab === 'data' && <section><h3>Advanced project data</h3><p style={{ color: '#8fa6c2', fontSize: 13 }}>Edit raw project JSON only if you know the format. Invalid changes can break the project.</p><label htmlFor="project-state">Project JSON</label><textarea id="project-state" value={stateText} onChange={e => setStateText(e.target.value)} spellCheck={false} style={{ ...styles.input, minHeight: 260, fontFamily: 'ui-monospace, monospace', fontSize: 14, margin: '8px 0 12px' }} /><button type="button" style={styles.button} disabled={busy} onClick={() => void saveState()}>Save project data</button></section>}
           </section> : <StateNotice kind="unavailable">Confirm the project description to enable analysis.</StateNotice>}
           </> : <StateNotice kind="empty">Select a project to see its details.</StateNotice>}</section>
-      </div>
+      </div>}
     </>}
 
     {budgetModal && (
