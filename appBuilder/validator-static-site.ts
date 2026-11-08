@@ -19,6 +19,7 @@ export const REQUIRED_VALIDATORS = [
   'completeness',
   'member-contracts',
   'type-contracts',
+  'name-contracts',
 ] as const;
 type Issue = ReportValidator['issues'][number];
 const result = (name: string, issues: Issue[]): ReportValidator => ({ name, ok: issues.length === 0, issues });
@@ -752,6 +753,79 @@ export function validateTypeContracts(files: FileMap): ReportValidator {
   return result('type-contracts', issues);
 }
 
+/**
+ * P127.33: names two files must agree on (EXP-PROJECT-8). Reports, as `name:` issues attached to the script that
+ * builds the element: (a) a CSS rule that needs a second class (`.a.b`) where `b` appears in no script or markup as a
+ * whole word or as the prefix of a composed name; (b) a script or stylesheet naming a local picture, sound or font
+ * file that is not in the package (a package holds text files only). Drives the bounded cross-file repair.
+ */
+export function validateNameContracts(files: FileMap): ReportValidator {
+  const issues: Issue[] = [];
+  const seen = new Set<string>();
+  const add = (path: string, message: string) => { const k = `${path}|${message}`; if (!seen.has(k) && issues.length < 8) { seen.add(k); issues.push({ path, message }); } };
+  const jsPaths = [...files.keys()].filter((p) => /\.m?js$/i.test(p));
+  const htmlPaths = [...files.keys()].filter((p) => /\.html?$/i.test(p));
+  const cssFiles = [...files].filter(([p]) => /\.css$/i.test(p));
+  const noComments = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // (a) classes
+  const styleBlocks = htmlPaths.flatMap((p) => [...files.get(p)!.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi)].map((m) => [p, m[1]] as [string, string]));
+  const cssSources: Array<[string, string]> = [...cssFiles.map(([p, c]) => [p, c] as [string, string]), ...styleBlocks];
+  const used = [...jsPaths.map((p) => files.get(p)!), ...htmlPaths.map((p) => files.get(p)!.replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, ''))].join('\n');
+  const esc = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const isUsed = (t: string): boolean => {
+    if (new RegExp(`(?<![\\w-])${esc(t)}(?![\\w-])`).test(used)) return true;
+    const prefix = t.includes('-') ? t.slice(0, t.lastIndexOf('-') + 1) : '';
+    return prefix.length >= 3 && used.includes(prefix);
+  };
+  // The script that uses the class most is the one that builds the element (a comment elsewhere must not win).
+  const owner = (cls: string): string | undefined => {
+    const re = new RegExp(`(?<![\\w-])${esc(cls)}(?![\\w-])`, 'g');
+    const count = (t: string) => (t.match(re) ?? []).length;
+    const ranked = [...jsPaths, ...htmlPaths]
+      .map((p) => [p, count(/\.html?$/i.test(p) ? files.get(p)!.replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '') : files.get(p)!)] as [string, number])
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => (/\.html?$/i.test(a[0]) ? 1 : 0) - (/\.html?$/i.test(b[0]) ? 1 : 0) || b[1] - a[1]);
+    return ranked[0]?.[0];
+  };
+  if (jsPaths.length) {
+    for (const [cssPath, raw] of cssSources) {
+      for (const m of noComments(raw).matchAll(/([^{}]+)\{/g)) {
+        const prelude = m[1].trim();
+        if (prelude.startsWith('@')) continue;
+        for (const chain of prelude.matchAll(/(?:\.-?[_a-zA-Z][\w-]*){2,}/g)) {
+          const classes = chain[0].split('.').filter(Boolean);
+          const setOnes = classes.filter(isUsed);
+          if (!setOnes.length) continue;
+          for (const cls of classes.filter((c) => !isUsed(c))) {
+            const path = owner(setOnes[0]);
+            if (path) add(path, `name: ${cssPath} styles ".${setOnes[0]}.${cls}" but no script or markup ever uses the class "${cls}" (scripts name it differently or never set it)`);
+          }
+        }
+      }
+    }
+  }
+
+  // (b) local media files
+  const MEDIA = 'png|jpe?g|gif|webp|avif|bmp|ico|svg|mp3|wav|ogg|m4a|aac|flac|mp4|webm|woff2?|ttf|otf';
+  const norm = (p: string): string | null => { const out: string[] = []; for (const part of p.split('/')) { if (!part || part === '.') continue; if (part === '..') { if (!out.length) return null; out.pop(); } else out.push(part); } return out.join('/'); };
+  const dirOf = (p: string) => p.includes('/') ? p.slice(0, p.lastIndexOf('/') + 1) : '';
+  const refRe = new RegExp(`(["'\`(])\\s*([^"'\`()\\s\${}<>]+?\\.(?:${MEDIA}))(?:[?#][^"'\`()\\s]*)?\\s*["'\`)]`, 'gi');
+  for (const [path, content] of files) {
+    const isJs = /\.m?js$/i.test(path); const isCss = /\.css$/i.test(path);
+    if (!isJs && !isCss) continue;
+    const missing: string[] = [];
+    for (const m of (isCss ? noComments(content) : content).matchAll(refRe)) {
+      const ref = m[2];
+      if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(ref)) continue;
+      const candidates = (isCss ? [dirOf(path)] : ['', dirOf(path)]).map((base) => norm(ref.startsWith('/') ? ref : base + ref)).filter((x): x is string => x !== null);
+      if (!candidates.some((c) => files.has(c)) && !missing.includes(ref)) missing.push(ref);
+    }
+    if (missing.length) add(path, `name: ${path} names ${missing.length} file${missing.length > 1 ? 's' : ''} that ${missing.length > 1 ? 'are' : 'is'} not in the package (a package holds text files only: draw them with CSS or inline SVG, or drop them): ${missing.slice(0, 4).map((x) => `"${x}"`).join(', ')}${missing.length > 4 ? ` (+${missing.length - 4} more)` : ''}`);
+  }
+  return result('name-contracts', issues);
+}
+
 export function runStaticValidators(files: FileMap, spec: Spec | null): ReportValidator[] {
   return [
     validateHtml(files),
@@ -766,5 +840,6 @@ export function runStaticValidators(files: FileMap, spec: Spec | null): ReportVa
     validateCompleteness(files),
     validateMemberContracts(files),
     validateTypeContracts(files),
+    validateNameContracts(files),
   ];
 }

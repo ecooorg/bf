@@ -795,11 +795,11 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
   // P127.23: bounded cross-file repair (module-contracts / type-contracts / member-contracts), max 3 rounds x 3 files.
   // Accept only if no previously-passing validator breaks and the combined cross-file issue count strictly drops.
   // P127.32: runtime-smoke issues take part in the same repair and every trial is re-opened in the browser.
-  const CROSS = ['module-contracts', 'type-contracts', 'member-contracts', 'runtime-smoke'];
+  const CROSS = ['module-contracts', 'type-contracts', 'member-contracts', 'runtime-smoke', 'name-contracts'];
   const crossIssues = (vs: BuildReport['validators']) => vs.filter((v) => CROSS.includes(v.name)).flatMap((v) => v.issues);
   for (let round = 0; round < 3; round++) {
     if (!(files.size > 0 && allFilesDone && !cancelled && !options.signal?.aborted && crossIssues(validators).length && state.callsUsed < budget)) break;
-    const targets = [...new Set(crossIssues(validators).map((i) => i.path).filter((p): p is string => Boolean(p) && files.has(p as string) && /\.(?:m?js|html?)$/i.test(p as string)))].slice(0, 3);
+    const targets = [...new Set(crossIssues(validators).map((i) => i.path).filter((p): p is string => Boolean(p) && files.has(p as string) && /\.(?:m?js|html?|css)$/i.test(p as string)))].slice(0, 3);
     let progressed = false;
     for (const targetPath of targets) {
       if (state.callsUsed >= budget || cancelled || options.signal?.aborted) break;
@@ -813,6 +813,7 @@ export async function runBuild(input: BuildInput, ports: Ports, options: EngineO
       const others = new Map([...files].filter(([p]) => p !== targetPath));
       const repairPrompt =
         `Fix cross-file contract defects in ${targetPath} only. Make every import, call and member access match the REAL interfaces of the other files; if something it needs does not exist there, implement a minimal version locally in this file. Do not invent new files.\n` +
+        (issuesForFile.some((m) => m.startsWith('name:')) ? `Lines starting with "name:" mean two files disagree on a name (a CSS class that scripts never set, a file that is not in the package). Make them agree, preferably by changing this file; for a missing picture or sound draw it with CSS or inline SVG, or leave it out.\n` : '') +
         (issuesForFile.some((m) => m.startsWith('runtime:')) ? `Lines starting with "runtime:" are errors thrown when the page was opened in a browser; the cause can be how this file uses a value returned by another file (its shape), not only the line named.\n` : '') +
         `Current problems:\n- ${issuesForFile.join('\n- ')}\n` +
         interfaceBlock(others) +
