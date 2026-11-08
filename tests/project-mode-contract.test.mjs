@@ -106,11 +106,12 @@ test('P127.15 Project Mode defaults to chat surface', () => {
   assert.match(chat, /Download source ZIP/);
 });
 
-test('P127.16 plan.v5 and truncation recovery are wired in appBuilder', () => {
+test('P127.16 plan prompt version and truncation recovery are wired in appBuilder', () => {
   const prompts = read('appBuilder/core-prompts.ts');
   const engine = read('appBuilder/core-engine.ts');
   const stack = read('appBuilder/stack-static-site.ts');
-  assert.match(prompts, /app_builder\.plan\.v5/);
+  // P127.34 bumped plan prompt to v6 (compact-first planning).
+  assert.match(prompts, /app_builder\.plan\.v6/);
   assert.match(prompts, /Never put the whole game/);
   assert.match(stack, /ensureMultiFileStaticPlan/);
   assert.match(engine, /ensureMultiFileStaticPlan/);

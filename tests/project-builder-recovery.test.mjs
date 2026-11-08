@@ -351,7 +351,7 @@ test('P127.34 buildHumanBrief is short and user-facing', async () => {
   const brief = fallbackIntentBrief('classic chess');
   const text = buildHumanBrief(brief, { title: 'Mini Chess', maxFiles: 3 });
   assert.ok(text.length > 40 && text.length < 2000);
-  assert.match(text, /Сделаю|Что будет|Состав/);
+  assert.match(text, /I will build|What you will get|Package:/);
   assert.doesNotMatch(text, /serialize|unitId|dependsOn/);
 });
 
