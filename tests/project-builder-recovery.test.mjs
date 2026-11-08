@@ -740,3 +740,59 @@ test('P127.32 runner opens a real page in a browser and reports what throws (exp
   assert.equal(probe.ran, true);
   assert.equal(hits, 0, 'no connection from the generated page reached a host outside the policy');
 });
+
+// P127.33 — names two files must agree on: a CSS class that nothing sets, a local media file that does not exist.
+test('P127.33 name-contracts: a CSS rule that needs a class nothing sets is flagged on the script that builds the element', async () => {
+  const { validateNameContracts } = await import('../appBuilder/validator-static-site.ts');
+  const css = '.item{opacity:0}.item.on{opacity:1}.item.state-a{color:red}.cell.light{color:#eee}.cell.dark{color:#111}.solo{color:red}';
+  const page = '<!doctype html><body><main id="m"></main><script type="module" src="a.js"></script></body>';
+  const broken = new Map([['index.html', page], ['style.css', css], ['a.js', 'const el = document.createElement("div"); el.className = "item" + (" state-" + 1); document.body.append(el);\nconst c = document.createElement("i"); c.className = `cell ${1 ? "white" : "black"} highlight`;']]);
+  const r = validateNameContracts(broken);
+  assert.equal(r.ok, false);
+  assert.ok(r.issues.every((i) => i.path === 'a.js'), JSON.stringify(r.issues));
+  const said = r.issues.map((i) => i.message).join('\n');
+  assert.match(said, /"on"/); assert.match(said, /"light"/); assert.match(said, /"dark"/);
+  assert.doesNotMatch(said, /"solo"/, 'a rule with one class is not a contract between two names');
+  assert.doesNotMatch(said, /state-a/, 'a composed name is not flagged');
+  assert.ok(r.issues.every((i) => i.message.startsWith('name:')));
+  const fixed = new Map(broken); fixed.set('a.js', 'const el = document.createElement("div"); el.className = "item"; el.classList.add("on"); const k = "state-" + 1;\nconst c = document.createElement("i"); c.className = `cell ${1 ? "light" : "dark"}`;');
+  const ok = validateNameContracts(fixed);
+  assert.equal(ok.ok, true, JSON.stringify(ok.issues));
+  const whole = new Map(broken); whole.set('a.js', 'el.className = "cell"; el.classList.add("highlight");'); // "light" only inside "highlight"
+  assert.match(validateNameContracts(whole).issues.map((i) => i.message).join('\n'), /"light"/, 'whole words only');
+});
+
+test('P127.33 name-contracts: a local media file that is not in the package is flagged, present files, data and external urls are not', async () => {
+  const { validateNameContracts } = await import('../appBuilder/validator-static-site.ts');
+  const files = new Map([
+    ['index.html', '<!doctype html><body><script type="module" src="js/a.js"></script></body>'],
+    ['style.css', 'body{background:url(img/bg.png)} .x{background:url("data:image/png;base64,AAAA")} .y{background:url(https://cdn.example/z.png)}'],
+    ['js/a.js', 'const a = new Image(); a.src = "../img/pic.jpg"; const b = new Audio(\'beep.mp3\'); const c = "data:image/png;base64,AAAA"; const d = "https://cdn.example/q.png"; const e = `${base}/f.png`;'],
+  ]);
+  const r = validateNameContracts(files);
+  const said = r.issues.map((i) => `${i.path}: ${i.message}`).join('\n');
+  assert.match(said, /style\.css: .*img\/bg\.png/); assert.match(said, /js\/a\.js: .*\.\.\/img\/pic\.jpg/); assert.match(said, /js\/a\.js: .*beep\.mp3/);
+  assert.doesNotMatch(said, /cdn\.example|data:|f\.png/);
+  const withFiles = new Map(files); withFiles.set('img/bg.png', ''); withFiles.set('img/pic.jpg', ''); withFiles.set('js/beep.mp3', '');
+  assert.equal(validateNameContracts(withFiles).ok, true);
+});
+
+test('P127.33 name-contracts is a required validator and a missing-file reference is repaired through the cross-file repair', async () => {
+  assert.ok(REQUIRED_VALIDATORS.includes('name-contracts'));
+  const w = world(); const m = w.model(0); const orig = m.complete.bind(m);
+  m.complete = async (a) => {
+    const p = a.prompt || '';
+    if (a.role === 'coder' && /Fix cross-file contract defects in app\.js/.test(p)) {
+      const cur = /BEGIN CURRENT SOURCE app\.js -----\n([\s\S]*?)\n----- END CURRENT SOURCE/.exec(p)?.[1] ?? '';
+      assert.match(p, /name:/); assert.match(p, /Lines starting with "name:"/);
+      return { text: formatFileMarker('app.js', cur.replace('pic.png', 'data:image/svg+xml,%3Csvg/%3E')), finishReason: 'stop', modelId: 'fake' };
+    }
+    const r = await orig(a);
+    if (a.role === 'coder' && /Implement unit/.test(p) && /"path":"app\.js"/.test(p) && r?.text) return { ...r, text: r.text.replace(/<<<END>>>\s*$/, 'const im = new Image(); im.src = "pic.png";\n<<<END>>>') };
+    return r;
+  };
+  const r = await runBuild({ ...input, jobId: 'job-p33' }, w.ports(m));
+  assert.ok(w.events.some((e) => e.type === 'cross_file_repair_accepted'), JSON.stringify(w.events.filter((e) => /repair/.test(e.type)).map((e) => [e.type, e.data])));
+  assert.equal(r.report.validators.find((v) => v.name === 'name-contracts')?.ok, true);
+  assert.equal(r.report.goalImplemented, true);
+});
