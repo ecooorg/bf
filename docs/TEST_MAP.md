@@ -4,7 +4,7 @@
 
 | Category file | Product zone | When to edit |
 |---------------|--------------|--------------|
-| `agents-contract.test.mjs` | ModeMenu, App/Project chrome, routes, labels, All Logs menu wiring | UI agent switch, More menu, rename modes |
+| `agents-contract.test.mjs` | ModeMenu, App/Project chrome, routes, labels, All Logs menu wiring | UI agent switch, More menu, rename modes; ImmoFinder module (pure logic, pipeline with fakes, wiring) |
 | `conversation-simple-direct.test.mjs` | Simple Direct prompt/handler | Simple conversation path |
 | `search-retrieval.test.mjs` + `search-decoupling.test.mjs` | Search, planner, Simple vs search | Retrieval / follow-up |
 | `providers-models.test.mjs` | Model router, cascades, budgets | Provider/router behaviour |

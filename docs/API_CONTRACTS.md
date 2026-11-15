@@ -42,6 +42,8 @@ The table below is generated from `docs/generated-route-inventory.json`. It prev
 | `POST` | `/api/analyze-full` | `server/compatibilityRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/attach` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/conversation` | `server.ts` | Source inventory only; detailed request/response schema pending |
+| `GET` | `/api/diagnostics/all-logs` | `server.ts` | Source inventory only; detailed request/response schema pending |
+| `POST` | `/api/diagnostics/client-render` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/diagnostics/session-log` | `server.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/evpi` | `server/compatibilityRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/expand` | `server.ts` | Source inventory only; detailed request/response schema pending |
@@ -62,19 +64,22 @@ The table below is generated from `docs/generated-route-inventory.json`. It prev
 | `POST` | `/api/projects/:projectId/analyze` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/approvals` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/projects/:projectId/approvals/:approvalId/decision` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `GET` | `/api/projects/:projectId/artifact-versions` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/artifacts` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/artifacts/:artifactId` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/artifacts/:artifactId/download` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
-| `GET` | `/api/projects/:projectId/artifact-versions` | `server/projectRoutes.ts` | All immutable artifact versions scoped to the selected project |
-| `GET` | `/api/projects/:projectId/artifacts/:artifactId/versions` | `server/projectRoutes.ts` | Version history for one project-owned artifact |
-| `GET` | `/api/projects/:projectId/artifacts/:artifactId/inspect?version=N` | `server/projectRoutes.ts` | Integrity status, manifest preview, and ZIP entry listing for a selected version |
-| `GET` | `/api/projects/:projectId/artifacts/:artifactId/download?version=N` | `server/projectRoutes.ts` | Downloads selected immutable version; omitted version means latest |
+| `GET` | `/api/projects/:projectId/artifacts/:artifactId/inspect` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `GET` | `/api/projects/:projectId/artifacts/:artifactId/versions` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `POST` | `/api/projects/:projectId/artifacts/upload` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/budgets/:scope/:scopeId` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `PUT` | `/api/projects/:projectId/budgets/:scope/:scopeId` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/code` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/projects/:projectId/code/build` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `GET` | `/api/projects/:projectId/code/build/:jobId` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/projects/:projectId/code/build/:jobId/cancel` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `GET` | `/api/projects/:projectId/code/build/:jobId/file` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `POST` | `/api/projects/:projectId/code/build/preview` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
+| `POST` | `/api/projects/:projectId/code/continue` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/projects/:projectId/code/manual` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/projects/:projectId/decisions` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
 | `POST` | `/api/projects/:projectId/items/review` | `server/projectRoutes.ts` | Source inventory only; detailed request/response schema pending |
@@ -136,3 +141,5 @@ All routes behind app auth; English errors. Not implemented in 128.1a (verify ag
 - `PATCH /api/immofinder/listings/:id` → manual `status` change only.
 - `POST /api/immofinder/run` → enqueue a run (`dryRun` optional); accepts app session or `X-Immofinder-Secret` for cron; returns run id.
 - `GET /api/immofinder/runs/latest` → counts, filtered-by-reason, errors, estimated cost, Drive link.
+
+Implemented in 128.1: all four routes above. Cron may call `POST /api/immofinder/run` with header `X-Immofinder-Secret` (timing-safe compare with `IMMOFINDER_RUN_SECRET`, min 16 chars); session calls need same-origin. Responses: 202 `{runId}`, 409 `RUN_IN_PROGRESS`, 401, 403 `CSRF_ORIGIN`, 503 `DATABASE_UNAVAILABLE`.

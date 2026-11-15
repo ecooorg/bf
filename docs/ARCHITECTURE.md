@@ -92,3 +92,7 @@ Older architecture discussions and audit findings were consolidated during docum
 ## ImmoFinder GR module (P128, planned)
 
 Separate workspace, not an agent. `server/immofinder/` (sources, normalise, dedupe, filters, scoring, osint, draft, verify, export) with routes `/api/immofinder/*`; one pipeline for UI "Run now" and scheduled runs through the existing job queue/worker. Reuses Gemini adapter and key pool, auth and budgets; web search uses the configured provider (Serper in the carousel when keyed). Static data (communes, stop-list, sources) lives in `config/immofinder.json` and must be copied to `dist-server/config` by the build step when the loader lands. Frontend: `ImmoFinder` button on the home screen and an `ImmoFinder*` workspace component. Server-side Drive export and Telegram are new server integrations: existing `src/drive*` is browser-side and unusable in a cron run. Status: design only; nothing implemented in 128.1a.
+
+### ImmoFinder status (P128.1)
+
+Implemented: flat files `server/immofinder{Core,Fetcher,Pipeline,Store,Delivery,Routes}.ts` (the repo keeps `server/` flat), `src/ImmoFinder.tsx` (route `/immofinder`, home card `start-immofinder`), `.github/workflows/immofinder-cron.yml`. The run is an in-process async job guarded by `immofinder_runs` (one open run, 30-minute expiry) instead of the job queue. Source parsing is generic (same-site object links, page text, Gemini extraction verified against the text); unverified on live markup.
