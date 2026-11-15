@@ -1,5 +1,17 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-IMMO-1 — Verified-evidence extraction of private short-term-rental owners (P128.x, USER_VALUE)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Owner's months of portal searches yield nothing: agencies dominate and select tenants opaquely. Owner found current flat via a private listing. Evidence is owner-reported (OBSERVED by owner, not measured here). |
+| **Hypothesis** | Niche holiday-rental catalogues, filtered by a fixed commune whitelist, room count and agency stop-list, then LLM-classified with evidence quotes and verified deterministically against fetched text, give ≥ 3 real private-owner listings per run-week with zero fabricated contact data. |
+| **Baseline** | `NOT_RUN` — no pipeline exists. A frozen fixture set of fetched listing pages (≥ 30, saved by the first fetch patch, labelled by the Navigator, not by the coding session) is the dev set; holdout is labelled separately by the Navigator. |
+| **Metric / acceptance** | (a) ≥ 3 distinct listings in whitelist, ≥ 3 rooms, not on stop-list, with working listing URL on the first live run; (b) fabricated phone/email/owner name = 0 (every stored contact value appears verbatim in a stored source text, checked in unit tests and per run); (c) Navigator-labelled private-owner precision ≥ 70% on the dev set; (d) every run reports found / filtered-by-reason / errors / estimated cost. |
+| **Files in scope** | `server/immofinder/*`, routes under `/api/immofinder`, migration for `immofinder_*` tables, `src/ImmoFinder*.tsx`, `config/immofinder.json`, existing category suites per `docs/TEST_MAP.md`. |
+| **Rollback criterion** | Fabricated contact > 0 in any run, or precision < 50% on holdout after one corrective patch: disable the module by config flag and stop. |
+| **Result** | `NOT_RUN` |
+
 ## EXP-PROJECT-9 — Compact plan + human brief + shared contracts (P127.34, FEATURE)
 
 | Field | Value |

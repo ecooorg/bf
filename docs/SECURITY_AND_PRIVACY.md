@@ -66,3 +66,7 @@ Verify unauthorized access, cross-user/project access, invalid paths, expired/mi
 ## Response security headers
 
 The global Express middleware applies `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), geolocation=()`, and `X-Frame-Options: DENY` to all responses. `Strict-Transport-Security: max-age=31536000; includeSubDomains` is emitted only when `NODE_ENV=production`; the deployment must terminate public HTTPS correctly for browsers to honor it. `X-Powered-By` is disabled. A Content-Security-Policy is not enabled yet: report-only policy and compatibility checks for the Vite bundle, PWA and Drive integration remain open.
+
+## ImmoFinder GR (P128)
+
+Owner accepted: polite scraping of niche catalogues (honest User-Agent, per-host delay, moderate frequency, robots.txt respected), cold outreach by the owner only, Apify/Airbnb and Facebook deferred. The module never sends messages. Stored personal data is limited to what is needed for contact (name, phone, email, site) from open sources, with evidence URL; it is not published and not logged in full (redact). Run endpoint requires auth or a secret from env (never committed). Anything beyond Swiss law/ToS "in reasonable bounds" is raised to the Navigator before implementation. Model output is untrusted data: structured JSON only, verified against fetched text (REQ-IMMO-003); fetched page text is treated as untrusted input to prompts.

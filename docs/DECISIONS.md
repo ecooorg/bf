@@ -1,3 +1,7 @@
+## D-2026-11-15-01 — ImmoFinder GR: in-repo TypeScript module, Postgres, no Python
+
+**Owner decision (2026-11-15), spec v128.** A separate module (button on the home screen, own workspace; not Simple/Expert/Architect and not a fourth agent: `BIO-001` is unchanged). Implemented as `server/immofinder/` inside the existing Express/Postgres/Gemini stack; reuses auth, Gemini key pool, budgets and the job queue; no Python service, no isolated sub-agent context. Postgres is the source of truth; Google Drive and Telegram are outputs. Letters are drafts only and are never sent. Owner accepted: scraping niche catalogues politely, cold outreach by the owner from drafts, storing only contact-relevant personal data, deferring Apify/Airbnb and Facebook to a later phase. Hosts with several objects are kept. Client workspace and Drive client stay (D-2026-11-05-01).
+
 ## D-2026-11-04-02 — Source policy: no Russian or Belarusian authority-controlled domains in evidence
 
 > **Retired documentation paths (P126.20+):** Mentions of cycle/audit reports (C12x_*, WEB_SEARCH_REMEDIATION, INFORMATION_QUALITY_WORKFLOW, RENDER_ENV_CONTRACT, old MODEL_* inventory files) are historical. Current authority is the AGENTS.md Single-source-of-truth map and the remaining canonical docs/ files.

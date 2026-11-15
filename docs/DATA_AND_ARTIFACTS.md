@@ -43,3 +43,6 @@ Checked-in, non-secret configuration under `config/`:
 
 Do not put API keys or tokens in these files.
 
+## ImmoFinder data (planned, P128; no migration in 128.1a)
+
+`immofinder_listings`: id uuid, canonical_key unique, source_urls jsonb, source_ids jsonb, municipality, property_name, rooms_text, rooms_estimated, description_de, description_ru, owner_name, direct_phone, direct_email, personal_website, contact_evidence jsonb (value, quote, url), osint_notes, contact_status (`found`|`not_found`|`platform_only`), contact_advice, draft_message_de, photo_urls jsonb, listing_url, status (`NEW`|`CONTACTED`|`REPLIED`|`REJECTED`), first_seen_at, last_seen_at, updated_at, raw jsonb. `immofinder_runs`: id, started_at, finished_at, trigger, sources jsonb, counts jsonb, errors jsonb, est_cost, dry_run. Later `immofinder_events` for status/contact history. Drive export: folder `ImmoFinder GR` with `listings.csv`, `listings.json`, `drafts/` text files per listing; personal data is not published.
