@@ -1,3 +1,9 @@
+## [128.1] - EXPERIMENT: ImmoFinder GR Phase 1 backend, UI and scheduler (EXP-IMMO-1)
+
+- Add flat `server/immofinder*.ts` (polite fetch, filters, verified extraction, dedupe, universal German draft), migration 020, `/api/immofinder/*`, home button + `/immofinder` workspace, Drive/Telegram delivery, 3-hourly cron workflow.
+- Fix CI regression from 128.1a: P127.11 test no longer hard-codes major 127.
+- Scope: server, src, migrations, config, workflow, tests/agents-contract. Patch 128.1.
+
 ## [128.1a] - MAINTENANCE: ImmoFinder GR module — documentation and preparation
 
 - Owner-approved ImmoFinder GR (private short-term-rental owners in Graubünden → long-term lease drafts) is specified; cycle C128 starts.

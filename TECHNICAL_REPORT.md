@@ -1,3 +1,10 @@
+## P128.1 — ImmoFinder GR Phase 1 (EXPERIMENT)
+
+- **OBSERVED:** Core CI on 128.1a failed only because P127.11 asserted major 127; local run of the CI DAG reproduced it.
+- **CHANGE:** Pipeline, API, UI, Drive/Telegram, cron added; contacts accepted only from fetched text, model facts only with verbatim quote.
+- **NOT_RUN:** Live fetch of any source (parsers are generic and unverified on real markup), live Gemini, Drive, Telegram, browser e2e, user value.
+- **KNOWN:** Run executes in-process with a 30-minute single-flight guard, not through the job queue.
+
 ## P128.1a — ImmoFinder GR documentation and preparation (MAINTENANCE)
 
 - **OBSERVED:** Base 127.44 archive has no ImmoFinder code, route, table or UI; Drive client is browser-side only, no Telegram code.

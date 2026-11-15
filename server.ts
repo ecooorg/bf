@@ -42,6 +42,7 @@ import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './serve
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { registerAuthRoutes } from './server/authRoutes.ts';
 import { registerProjectRoutes } from './server/projectRoutes.ts';
+import { registerImmoFinderRoutes } from './server/immofinderRoutes.ts';
 import { registerOpsRoutes } from './server/opsRoutes.ts';
 import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
@@ -262,6 +263,18 @@ async function callCodeAuthor(input: { packageMd: string; pkg: import('./server/
   return routed.response.output;
 }
 
+/** ImmoFinder: one structured extraction call through the existing Router (LIGHT Gemini cascade). */
+async function callImmoLlm(system: string, prompt: string): Promise<unknown> {
+  if (!ai) throw new Error('MODEL_NOT_CONFIGURED: GEMINI_API_KEY is not configured');
+  const registry = registryForGeminiCascade('LIGHT').filter((entry) => entry.capabilities.includes('json_output'));
+  const routed = await routeCall({ requestId: `immofinder-${Date.now()}`, system, prompt, json: true, maxOutputTokens: 2048, metadata: { role: 'immofinder' } }, {
+    registry, adapters: { gemini: createGeminiAdapter(ai as any) }, state: codeRouterState, required: ['json_output'], maxCalls: Math.min(3, Math.max(1, registry.length)), timeoutMs: 60_000,
+    sensitivity: 'normal', paidApproved: [], deadlineAt: Date.now() + 65_000,
+  });
+  if (routed.status !== 'ok' || !routed.response) throw new Error(`IMMOFINDER_LLM_UNAVAILABLE: ${routed.decision.reason ?? routed.response?.errorClass ?? 'no response'}`);
+  return routed.response.output;
+}
+
 // Attachments: images and scanned PDFs wait here (memory only, a few minutes) until the model has looked at them.
 const nativeCache = new NativeFileCache();
 const attachLimiter = makeWindowLimiter(30, 10 * 60 * 1000);
@@ -438,6 +451,9 @@ registerProjectRoutes(app, {
   ai,
   codeRouterState,
 });
+
+// ImmoFinder GR module: server/immofinder*.ts (P128.1)
+registerImmoFinderRoutes(app, { authenticated, appAuthEnabled: APP_AUTH_ENABLED, llm: ai ? callImmoLlm : null });
 
 
 const BASE_SYSTEM = `You are BiForge's language-model interface. The current user request and task-specific prompt define what to do. Answer that request using the supplied conversation, attachments, retrieved evidence and tools when relevant. Follow the requested output schema exactly. Preserve relevant facts, numbers, units, dates, caveats and source-supported details. Do not invent facts or claim searches, tool calls or verification that did not occur. Distinguish evidence from assumptions when material. Respect safety requirements and the user's language. Answer in the user's language; do not cite or rely on state-controlled outlets of Russia and Belarus; prefer international and regional sources.`;

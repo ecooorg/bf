@@ -730,3 +730,5 @@ Implemented: project-scoped continuation endpoint using a verified prior ZIP, bo
 - Phase 2: OSINT, personalised drafts, more sources (appa.ch, commune pages, agritourism), dedupe across sources, history events.
 - Phase 3: Apify/Airbnb, Facebook, soft price hint, better Russian translation.
 - Open inputs from the Navigator: Telegram bot token + chat id, Google service account (the folder `ImmoFinder GR` is created by the module and shared to a given email), `IMMOFINDER_RUN_SECRET`; Gemini and Serper keys come from the existing carousel.
+
+- 128.1 (EXPERIMENT): Phase 1 code shipped; live evidence `NOT_RUN`. Acceptance per EXP-IMMO-1 is checked on the first live run.
