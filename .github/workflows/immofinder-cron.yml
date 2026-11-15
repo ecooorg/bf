@@ -1,0 +1,21 @@
+name: ImmoFinder scheduled run
+on:
+  schedule:
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call protected run endpoint
+        env:
+          IMMOFINDER_BASE_URL: ${{ secrets.IMMOFINDER_BASE_URL }}
+          IMMOFINDER_RUN_SECRET: ${{ secrets.IMMOFINDER_RUN_SECRET }}
+        run: |
+          if [ -z "$IMMOFINDER_BASE_URL" ] || [ -z "$IMMOFINDER_RUN_SECRET" ]; then echo "IMMOFINDER_BASE_URL / IMMOFINDER_RUN_SECRET not configured; skipping."; exit 0; fi
+          code=$(curl -sS -o /tmp/out.json -w '%{http_code}' -X POST "$IMMOFINDER_BASE_URL/api/immofinder/run" -H "X-Immofinder-Secret: $IMMOFINDER_RUN_SECRET" -H 'Content-Type: application/json' -d '{}')
+          echo "HTTP $code"; cat /tmp/out.json; echo
+          [ "$code" = "202" ] || [ "$code" = "409" ]
