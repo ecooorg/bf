@@ -40,7 +40,7 @@ jobs:
       - name: Initialize CodeQL
         id: codeql-init
         continue-on-error: true
-        uses: github/codeql-action/init@66b39da20ccc656acc90dd27ea30f5d458ec33ce # v3.28.19
+        uses: github/codeql-action/init@fca7ace96b7d713c7035871441bd52efbe39e27e # v3.28.19
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
