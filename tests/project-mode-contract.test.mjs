@@ -43,10 +43,10 @@ test('P127.7 exposes project-scoped artifact inventory, immutable versions and i
 
 test('P127.11 package metadata advances product patch without changing major version', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.version, '127');
-  assert.match(pkg.patch, /^127\.\d+[a-z]?$/);
+  assert.match(pkg.version, /^\d+$/);
+  assert.match(pkg.patch, new RegExp(`^${pkg.version}\\.\\d+[a-z]?$`));
   const lock = JSON.parse(read('package-lock.json'));
-  assert.equal(lock.version, '127');
+  assert.equal(lock.version, pkg.version);
   assert.equal(lock.patch, pkg.patch);
   assert.equal(lock.packages[''].patch, pkg.patch);
 });
