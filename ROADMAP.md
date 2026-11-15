@@ -722,3 +722,11 @@ This roadmap is the sole authoritative sequence. Update it in place when the Nav
 ## P127.6 — Existing project continuation
 
 Implemented: project-scoped continuation endpoint using a verified prior ZIP, bounded source context, unsafe-path rejection, and a new staged build job. Remaining: repository-aware patch application and UI selection of prior versions.
+
+## C128 — ImmoFinder GR (owner-approved spec v128, 2026-11-15)
+
+- Status: spec and design recorded in 128.1a (`TECHNICAL_SPECIFICATION.md` P128, `docs/DECISIONS.md` D-2026-11-15-01, `docs/EXPERIMENTS.md` EXP-IMMO-1). Code `NOT_STARTED`.
+- Phase 1 (MVP): workspace + home button, 1–2 sources, whitelist/rooms/stop-list filters, Postgres, Drive CSV/JSON, Telegram, universal draft, anti-fabrication verifier, dry-run, cost estimate, cron endpoint.
+- Phase 2: OSINT, personalised drafts, more sources (appa.ch, commune pages, agritourism), dedupe across sources, history events.
+- Phase 3: Apify/Airbnb, Facebook, soft price hint, better Russian translation.
+- Open inputs from the Navigator: Telegram bot token + chat id, Google service account (the folder `ImmoFinder GR` is created by the module and shared to a given email), `IMMOFINDER_RUN_SECRET`; Gemini and Serper keys come from the existing carousel.

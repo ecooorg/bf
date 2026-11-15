@@ -1,3 +1,9 @@
+## P128.1a — ImmoFinder GR documentation and preparation (MAINTENANCE)
+
+- **OBSERVED:** Base 127.44 archive has no ImmoFinder code, route, table or UI; Drive client is browser-side only, no Telegram code.
+- **CHANGE:** Module design, schema, API, safeguards and EXP-IMMO-1 recorded; whitelist/stop-list config added.
+- **NOT_RUN:** Install, typecheck, CI, live fetch, any user-value check.
+
 ## P127.44 — Pin CodeQL workflow actions (BUGFIX)
 
 - **OBSERVED:** workflow-action-pins FAIL on codeql.yml @v4/@v3; CodeQL dynamic jobs still 504 on bundle download.

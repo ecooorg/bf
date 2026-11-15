@@ -1,3 +1,9 @@
+## [128.1a] - MAINTENANCE: ImmoFinder GR module — documentation and preparation
+
+- Owner-approved ImmoFinder GR (private short-term-rental owners in Graubünden → long-term lease drafts) is specified; cycle C128 starts.
+- Add spec/roadmap/architecture/API/data/security/decision/experiment entries and `config/immofinder.json` (whitelist, stop-list, sources); no runtime code.
+- Scope: docs, config, version metadata. Patch 128.1a.
+
 ## [127.44] - BUGFIX: pin CodeQL workflow actions to full commit SHAs
 
 - Core CI failed governance-workflow-pins: codeql.yml used mutable actions/checkout@v4 and codeql-action@v3.
