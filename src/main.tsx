@@ -14,6 +14,8 @@ const isProject = ['/project', '/project-legacy', '/architect'].some((path) =>
 
 /** Project Mode is a separate chunk — Simple Mode (/) must not wait for it to parse. */
 const ProjectMode = lazy(() => import('./ProjectMode.tsx'));
+const ImmoFinder = lazy(() => import('./ImmoFinder.tsx'));
+const isImmo = window.location.pathname === '/immofinder' || window.location.pathname.startsWith('/immofinder/');
 
 function ProjectRoot() {
   return (
@@ -32,10 +34,14 @@ function ProjectRoot() {
   );
 }
 
-const Root = isProject ? ProjectRoot : App;
+function ImmoRoot() {
+  return <Suspense fallback={<div className="shell"><div className="empty"><h1>ImmoFinder</h1><p>Loading…</p></div></div>}><ImmoFinder /></Suspense>;
+}
+
+const Root = isImmo ? ImmoRoot : isProject ? ProjectRoot : App;
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ErrorBoundary label={isProject ? 'Project' : 'BiForge'}><Root /></ErrorBoundary>
+    <ErrorBoundary label={isImmo ? 'ImmoFinder' : isProject ? 'Project' : 'BiForge'}><Root /></ErrorBoundary>
   </React.StrictMode>
 );
