@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "municipalities": ["Chur","Haldenstein","Trimmis","Untervaz","Zizers","Igis","Landquart","Maienfeld","Fläsch","Jenins","Malans","Grüsch","Seewis-Pardisla","Schiers","Felsberg","Domat/Ems","Tamins","Trin","Flims","Laax","Versam","Valendas","Castrisch","Ilanz","Bonaduz","Rhäzüns","Rothenbrunnen","Rodels","Realta","Cazis","Thusis","Maladers","Churwalden","Parpan","Valbella","Lenzerheide","Passugg","Araschgen","Praden","Tschiertschen","Castiel","Lüen","St. Peter-Molinis","Peist"],
+  "stopAgencies": ["Interhome","Holidu","Belvilla","e-domizil","GriwaRent","Mountain Flair"],
+  "minRooms": 3,
+  "sources": [
+    { "id": "happyholiday", "url": "https://www.happyholiday.ch/area/graubuenden", "phase": 1 },
+    { "id": "traum-ferienwohnungen", "url": "https://www.traum-ferienwohnungen.ch", "phase": 1 },
+    { "id": "graubuenden", "url": "https://www.graubuenden.ch", "phase": 1 },
+    { "id": "appa", "url": "https://www.appa.ch", "phase": 2 },
+    { "id": "landwirtschaft-gr", "url": "https://www.landwirtschaft-gr.ch", "phase": 2 }
+  ],
+  "fetch": { "userAgent": "BiForge-ImmoFinder (polite; contact owner)", "perHostDelayMs": 2000, "respectRobotsTxt": true },
+  "schedule": { "cron": "0 */3 * * *" }
+}
