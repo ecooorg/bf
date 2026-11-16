@@ -1,7 +1,7 @@
-## [128.14] - EXPERIMENT: Immofinder contact-enrichment diagnostic logs (EXP-IMMO-1)
+## [128.15] - EXPERIMENT: Contact search progress on screen (EXP-IMMO-1)
 
-- Structured application logs for **Find contacts for saved**: start (queued, budget), per-item (hit, notes, host, hasPhone/hasEmail — no full numbers), errors, budget exhausted, done (checked/found/errors/durationMs), fatal. Pipeline enrichment items also logged. Rejected calls log ENRICHMENT_OFF / NO_SERPER.
-- Scope: server/immofinderRoutes.ts, server/immofinderPipeline.ts, package.json, package-lock.json. Patch 128.14.
+- UI shows a live **Contact search in progress…** panel (checked/queued, found, current listing) while **Find contacts for saved** runs; polls `GET /api/immofinder/enrich-status` every 2s; final message when done. Button disabled during the job.
+- Scope: server/immofinderRoutes.ts, src/ImmoFinder.tsx, package.json, package-lock.json. Patch 128.15.
 
 ## [128.13] - EXPERIMENT: Always enrich listings without phone/email (EXP-IMMO-1)
 

@@ -1,8 +1,8 @@
-## P128.14 — Immofinder enrichment diagnostic logging (EXPERIMENT)
+## P128.15 — Enrich-existing progress UI (EXPERIMENT)
 
-- **CHANGE:** JSON console.info/warn lines with type prefix `immofinder_enrich_*` for batch and pipeline contact search so all-logs / application-logs show whether Serper ran and outcomes.
-- **NOT_RUN:** Log volume under 200-card batch on production.
-- **PRIVACY:** Logs include municipality/property title and booleans hasPhone/hasEmail; raw phone/email values are not written.
+- **CHANGE:** In-process enrichJobStatus + GET enrich-status; ImmoFinder banner polls while running.
+- **NOT_RUN:** Multi-instance Render (status is process-local).
+- **LIMIT:** Progress resets on server restart mid-job.
 
 ## P128.13 — Enrich every listing missing phone and email (EXPERIMENT)
 
