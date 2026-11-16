@@ -64,7 +64,7 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
 // ---- P128.1 ImmoFinder GR (module logic, pipeline with fake fetch/LLM, UI wiring) ----
 import { formatListingsText, listingsTable, exportDrive, checkDrive } from '../server/immofinderDelivery.ts';
 import { generateKeyPairSync } from 'node:crypto';
-import { nonListingReason, isSpecificLink } from '../server/immofinderCore.ts';
+import { classifyType, contactAdvice, draftMessage as draftMsg, matchMunicipality as matchMuni, nonListingReason, isSpecificLink } from '../server/immofinderCore.ts';
 import { parseDriveFolderId, formatZurich, defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
 import { communesForRun, buildQueries, pickItems } from '../server/immofinderDiscovery.ts';
 import { cutAtMarkers, slugVariants, agencyQuoteCounts, matchMunicipality, parseRooms, registrationForbidden, verifyQuote, extractContacts, draftMessage, candidateLinks, canonicalKey } from '../server/immofinderCore.ts';
@@ -283,4 +283,26 @@ test('P128.7 non-listing pages are rejected; specific links detected; UI contras
   assert.match(ui, /\.immo-btn\{background:#1457b8!important;color:#fff!important/); assert.match(ui, /data-testid="all-logs-menu-item"/); assert.match(ui, /downloadAllLogs/);
   assert.match(ui, /setInterval\(\(\) => \{ setTick\(Date\.now\(\)\); void loadRun\(\)/, 'polling only reads the small run status');
   assert.match(read('server/projectDiagnostics.ts'), /immofinder\\\/\(runs\\\/latest\|listings\)/);
+});
+
+test('P128.8 type split, extra rejects, municipality from URL, type-specific letters and contact advice, ferienhausmiete source', async () => {
+  assert.equal(nonListingReason('3 bis 3.5 Zimmer | Immobilien zum Kauf', 'https://www.immoscout24.ch/de/immobilien/kaufen/ort-trimmis?nrf=3'), 'for_sale');
+  assert.equal(nonListingReason('Moderne Attikawohnungen mit grosser Terrasse', 'https://www.home.ch/de/mieten/wohnung/in-maienfeld/zimmer-4.0-5.0'), 'list_or_search_page');
+  assert.equal(nonListingReason('Moderne Attikawohnungen mit Terrasse', 'https://example.ch/projekt'), 'development_project');
+  assert.equal(nonListingReason('wg zimmer in Tamins, ems, flims', 'https://www.facebook.com/groups/1/posts/2'), 'shared_room');
+  assert.equal(nonListingReason('Ferienwohnungen Chesa Sur in Lenzerheide', 'https://happyholiday.ch/haus/chesa-sur-graubuenden-in-lenzerheide/'), null, 'holiday hosts with several flats stay');
+  assert.equal(nonListingReason('3.5 Zimmer-Wohnung in Chur', 'https://flatfox.ch/de/wohnung/7000-chur/123456/'), null);
+  assert.equal(matchMuni('https://www.immoscout24.ch/de/wohnung/mieten/ort-lueen', ['Lüen', 'Zizers']), 'Lüen');
+  assert.equal(classifyType('Ferienhaus Carrera', 'https://www.surselva.info/ukv/house/x', ''), 'holiday_owner');
+  assert.equal(classifyType('3.5-Zimmer-Wohnung in Thusis', 'https://www.facebook.com/groups/1/posts/2', 'Wohnung zu vermieten'), 'long_term_offer');
+  assert.match(contactAdvice('https://www.facebook.com/groups/1/posts/2', 'long_term_offer'), /Messenger/);
+  assert.match(contactAdvice('https://flatfox.ch/x', 'long_term_offer'), /contact form/);
+  const direct = draftMsg({ propertyName: '3.5-Zimmer-Wohnung', municipality: 'Thusis', type: 'long_term_offer', rooms: 3.5 });
+  assert.match(direct, /Inserat/); assert.ok(!/Ihre Ferienwohnung|Vorteile/.test(direct) && !/ß|CHF/.test(direct));
+  assert.match(draftMsg({ municipality: 'Chur', type: 'holiday_owner' }), /Ihre Ferienwohnung/);
+  const fhm = immoCfg.sources.find((s) => s.id === 'ferienhausmiete');
+  assert.ok(new RegExp(fhm.detailPattern).test('https://www.ferienhausmiete.de/45141.htm') && !new RegExp(fhm.detailPattern).test('https://www.ferienhausmiete.de/blog/'));
+  assert.ok(fhm.indexUrls.length >= 5);
+  const ui = read('src/ImmoFinder.tsx'); assert.match(ui, /immofinder-tabs/); assert.match(ui, /api\/immofinder\/cleanup/);
+  assert.match(read('migrations/024_immofinder_types.sql'), /listing_type/);
 });
