@@ -1,3 +1,10 @@
+## [128.10] - EXPERIMENT: ImmoFinder quality gates, no translation, long background runs (EXP-IMMO-1)
+
+- Quality filters (saved in settings): max monthly rent CHF (default 2000), max listing age days (default 180), reject night/week/season prices, optional require price, reject seeker posts, optional require direct contact. Parsed price/date stored on the listing when found.
+- Russian translation removed from the model schema, UI, Telegram, email and Drive text. Listing text stays in the original language (usually German); UI copy stays English.
+- One search cycle is server-side, fire-and-forget (HTTP 202), wall-clock up to 30 minutes; AI extraction retries with 2/3/5/10 minute back-off when the model fails, while time remains. Closing the browser does not stop the run; schedule mode already runs via cron + secret.
+- Scope: server/immofinder{Core,Pipeline,Settings,Delivery}.ts, src/ImmoFinder{,Settings}.tsx, config/immofinder.json, package.json, package-lock.json. Patch 128.10.
+
 ## [128.9] - EXPERIMENT: ImmoFinder public-source contact enrichment (EXP-IMMO-1)
 
 - After a listing is already kept, if it still has no direct phone/email, an optional enrichment stage runs secondary Serper queries (property name + commune + verified owner name) and, when a reverse-image provider is supplied, public reverse-image lookups on listing photos. Candidate public pages are fetched with the existing polite fetcher; contacts are taken only from page text / tel: / mailto: (never invented).

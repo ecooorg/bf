@@ -1,3 +1,9 @@
+## P128.10 — ImmoFinder quality gates and background runs (EXPERIMENT)
+
+- **CHANGE:** Configurable quality gates (monthly rent cap, listing age, seeker filter, optional contact/price required); no LLM translation; 30-minute run deadline with AI back-off retries; settings UI for quality fields.
+- **NOT_RUN:** Live precision of price/date parsing on real Graubünden pages, long 30-minute production runs under load, owner response rate after filters.
+- **RISK:** Strict `requirePrice` / `requireContact` can zero the result set on portals that hide both; defaults keep them off except monthly-only and seeker rejection.
+
 ## P128.9 — ImmoFinder public-source contact enrichment (EXPERIMENT)
 
 - **PROBLEM:** Most kept listings (Facebook groups, Booking/Airbnb-class hosts, portal pages) have no direct phone/email; the pipeline correctly left them as `platform_only` but did not try further public sources.
