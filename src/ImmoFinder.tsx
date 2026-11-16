@@ -182,7 +182,7 @@ export default function ImmoFinder() {
                 </details>
               )}
             </>
-          ) : <p style={{ margin: '6px 0' }}>No search yet. Press “New search” to start — it keeps running on the server (up to 30 minutes) even if you close this tab.</p>}
+          ) : <p style={{ margin: '6px 0' }}>No search yet. Press “New search”. The run continues on the server if you close this tab.</p>}
         </section>
       )}
 

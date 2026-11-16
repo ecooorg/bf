@@ -3,7 +3,11 @@ import { useCallback, useEffect, useState } from 'react';
 type S = {
   schedule: { mode: 'manual' | 'hours' | 'daily'; everyHours: number; dailyAt: string };
   delivery: { telegram: boolean; email: boolean; emailTo: string; emailContent: 'new' | 'all'; drive: boolean; driveFolderId: string; notifyWhenEmpty: boolean };
-  search: { minRooms: number; communes: string[]; sources: Record<string, boolean>; maxAiPages: number };
+  search: {
+    minRooms: number; communes: string[]; sources: Record<string, boolean>; maxAiPages: number;
+    maxMonthlyRentChf?: number; maxListingAgeDays?: number; requirePrice?: boolean;
+    rejectNonMonthly?: boolean; rejectSeekerPosts?: boolean; requireContact?: boolean;
+  };
 };
 type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccount?: string };
 const SOURCES: [string, string][] = [['happyholiday', 'HappyHoliday.ch'], ['ferienhausmiete', 'Ferienhausmiete.de'], ['graubuenden', 'Graubünden.ch'], ['search', 'Web search by commune (any site, Facebook/Airbnb via search snippets)']];
