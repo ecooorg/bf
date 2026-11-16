@@ -1,3 +1,9 @@
+## P128.6 — ImmoFinder header, Drive, email mode (EXPERIMENT)
+
+- **OBSERVED:** owner screenshot of run 16.11.2026 03:07: Drive HTTP 403 "Service Accounts do not have storage quota" for the native Sheet upload of 128.2; email sent; 21 listings.
+- **CHANGE:** see CHANGELOG 128.6.
+- **NOT_RUN:** live Drive update (needs the two files, folder sharing and the Sheets/Docs APIs), header on the phone, email with the "all" mode.
+
 ## P128.5 — ImmoFinder settings (EXPERIMENT)
 
 - **CHANGE:** server-side schedule decision (`isDue`, Swiss time), per-channel delivery, scope applied per run, AI-call cap; settings UI.

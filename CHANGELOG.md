@@ -1,3 +1,10 @@
+## [128.6] - EXPERIMENT: ImmoFinder header menu, Drive fix, email content mode, found date (EXP-IMMO-1)
+
+- ImmoFinder now has the standard top bar (commit badge, mode menu, "New search"); the mode menu shows "ImmoFinder" and leads to Simple, Expert, Project or the agent selection.
+- Drive: Google rejects every file creation by a service account (HTTP 403 "Service Accounts do not have storage quota", also for native Sheets/Docs). The export now only refreshes a Google Sheet "ImmoFinder listings" and a Google Doc "ImmoFinder drafts" that the owner creates once in the folder (Sheets and Docs APIs). Folder ID: Settings field, then `IMMOFINDER_DRIVE_FOLDER_ID`, then `config/immofinder.json` default. "Check Drive" button and the service account address shown in Settings.
+- Email: choice "only new results" or "all results so far (newest first)". Every result in email, Telegram, Sheet, Doc and the app shows the date and time found (Swiss time).
+- Scope: server/immofinder{Delivery,Routes,Settings}.ts, src/ImmoFinder{,Settings}.tsx, src/ModeMenu.tsx, config, tests/agents-contract. Patch 128.6.
+
 ## [128.5] - EXPERIMENT: ImmoFinder settings in the app (EXP-IMMO-1)
 
 - Settings panel on the ImmoFinder page: automatic search (manual only / every 3, 6, 12 hours / daily at a chosen Swiss time), delivery channels (Telegram, email, Google Drive, any combination; test buttons; "message me when nothing new"), search scope (minimum rooms, sources on/off, communes), AI cost guard (pages analysed per search).
