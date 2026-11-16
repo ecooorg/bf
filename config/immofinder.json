@@ -171,5 +171,13 @@
       "google.com"
     ]
   },
-  "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT"
+  "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
+  "contactEnrichment": {
+    "enabled": true,
+    "maxExtraSearchesPerRun": 25,
+    "maxReverseImagePerRun": 8,
+    "maxCandidatePagesPerListing": 3,
+    "useReverseImage": true,
+    "useSecondarySearch": true
+  }
 }
