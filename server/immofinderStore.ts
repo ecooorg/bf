@@ -115,3 +115,19 @@ export async function lastRealRunAt(): Promise<Date | null> {
   const p = await getPool(); const r = await p.query('SELECT max(started_at) AS t FROM immofinder_runs WHERE dry_run = false');
   return r.rows[0]?.t ? new Date(r.rows[0].t) : null;
 }
+
+/** In-process cancel flags for active Immofinder runs (lost on process restart — acceptable). */
+const cancelFlags = new Set<string>();
+export function requestRunCancel(runId: string): void { if (runId) cancelFlags.add(runId); }
+export function isRunCancelled(runId: string): boolean { return cancelFlags.has(runId); }
+export function clearRunCancel(runId: string): void { cancelFlags.delete(runId); }
+
+/** Mark the open run finished as cancelled (no delivery). */
+export async function finishRunCancelled(id: string, counts: Record<string, number> = {}) {
+  const p = await getPool();
+  clearRunCancel(id);
+  await p.query(
+    `UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, progress = $4::jsonb WHERE id = $1 AND finished_at IS NULL`,
+    [id, JSON.stringify(counts), JSON.stringify([{ code: 'cancelled', detail: 'Stopped by user' }]), JSON.stringify({ stage: 'done', text: 'Stopped by user', counts })],
+  );
+}

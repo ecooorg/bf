@@ -35,6 +35,8 @@ export interface PipelineDeps {
    * When omitted, enrichment still runs secondary text search.
    */
   reverseImageSearch?: (imageUrl: string) => Promise<SearchHit[]>;
+  /** When true, the pipeline stops between items and returns what it has. */
+  shouldCancel?: () => boolean;
 }
 export interface ProgressEvent { stage: 'catalogue' | 'search'; text: string; current?: number; total?: number; counts: Record<string, number> }
 export interface RunResult {
@@ -115,6 +117,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
     const stage: ProgressEvent['stage'] = src.id === 'search' ? 'search' : 'catalogue'; let idx = 0;
     const pages: { url: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; snippet: boolean }[] = [];
     for (const it of items) {
+      if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
       const known = await deps.store.findByUrl(it.url);
       if (known && fresh(known.last_seen_at)) { if (!opts.dryRun) await deps.store.touch(known.id); res.counts.skipped_known++; continue; }
@@ -220,6 +223,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
     }
   }
 
+  if (deps.shouldCancel?.()) { res.errors.push({ source: 'run', code: 'cancelled', detail: 'Stopped by user' }); res.estCostUsd = 0; return res; }
   // 1) Configured catalogue sources.
   for (const src of cfg.sources.filter((s) => s.phase === 1)) {
     res.counts.sources++;
@@ -247,6 +251,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
     await processItems(src, links.map((url) => ({ url })), maxPages);
   }
 
+  if (deps.shouldCancel?.()) { res.errors.push({ source: 'run', code: 'cancelled', detail: 'Stopped by user' }); return res; }
   // 2) Web-search discovery per commune (any site; social/booking portals are used from the search snippet only).
   const d = cfg.discovery;
   if (d?.enabled) {

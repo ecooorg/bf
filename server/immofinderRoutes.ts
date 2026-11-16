@@ -6,7 +6,7 @@ import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, finishRun, getSettings, hiddenCount, lastRealRunAt, latestRun, listListings, loadImmoConfig, realRunCount, saveProgress, saveSettings, setStatus, startRun } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel } from './immofinderStore.ts';
 
 export interface ImmoRouteDeps {
   authenticated: (req: Request) => boolean;
@@ -82,6 +82,19 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     } catch { return res.status(500).json({ success: false, error: 'Test failed', code: 'IMMOFINDER_FAILED' }); }
   });
 
+
+  app.post('/api/immofinder/stop', json, async (_req, res) => {
+    try {
+      const latest = await latestRun();
+      if (!latest || latest.finished_at) return res.json({ success: true, stopped: false, reason: 'no_active_run' });
+      requestRunCancel(String(latest.id));
+      await finishRunCancelled(String(latest.id), latest.counts || {});
+      return res.json({ success: true, stopped: true, runId: latest.id });
+    } catch {
+      return res.status(500).json({ success: false, error: 'Could not stop run', code: 'IMMOFINDER_FAILED' });
+    }
+  });
+
   app.post('/api/immofinder/run', json, async (req, res) => {
     const dryRun = req.body?.dryRun === true; const trigger = (req as any).immoCron ? 'schedule' : 'manual';
     let settings; try { settings = await getSettings(loadImmoConfig()); } catch { return res.status(500).json({ success: false, error: 'Settings unavailable', code: 'IMMOFINDER_FAILED' }); }
@@ -105,7 +118,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       try {
         const cfg = applySettings(loadImmoConfig(), settings);
         try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
-        result = await runPipeline({ config: cfg, fetchPage: createPoliteFetch(cfg), llm: dryRun ? null : deps.llm, store: createPgStore(), onProgress: push, maxLlmCalls: settings.search.maxAiPages, search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null, cycle: await realRunCount() }, { dryRun });
+        result = await runPipeline({ config: cfg, fetchPage: createPoliteFetch(cfg), llm: dryRun ? null : deps.llm, store: createPgStore(), onProgress: push, maxLlmCalls: settings.search.maxAiPages, search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null, cycle: await realRunCount(), shouldCancel: () => isRunCancelled(runId!) }, { dryRun });
         errors.push(...result.errors);
         if (!dryRun) {
           const dl = settings.delivery; const notify = result.counts.new > 0 || dl.notifyWhenEmpty;
@@ -121,7 +134,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           } else delivery.email = 'off';
         }
       } catch (e) { errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) }); }
-      try { await finishRun(runId!, result, errors, delivery); await saveProgress(runId!, { stage: 'done', text: 'Finished', counts: result?.counts ?? {}, log }); } catch { /* run row stays open; the 30-minute guard releases it */ }
+      try {
+          if (isRunCancelled(runId!)) { await finishRunCancelled(runId!, result?.counts ?? {}); }
+          else { await finishRun(runId!, result, errors, delivery); await saveProgress(runId!, { stage: 'done', text: result?.errors?.some((e) => e.code === 'cancelled') ? 'Stopped by user' : 'Finished', counts: result?.counts ?? {}, log }); }
+          clearRunCancel(runId!);
+        } catch { /* run row stays open; the 30-minute guard releases it */ }
     })();
   });
 }
