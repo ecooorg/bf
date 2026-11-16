@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 
 type S = {
   schedule: { mode: 'manual' | 'hours' | 'daily'; everyHours: number; dailyAt: string };
-  delivery: { telegram: boolean; email: boolean; emailTo: string; drive: boolean; notifyWhenEmpty: boolean };
+  delivery: { telegram: boolean; email: boolean; emailTo: string; emailContent: 'new' | 'all'; drive: boolean; driveFolderId: string; notifyWhenEmpty: boolean };
   search: { minRooms: number; communes: string[]; sources: Record<string, boolean>; maxAiPages: number };
 };
-type Channels = { telegram: boolean; email: boolean; drive: boolean };
+type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccount?: string };
 const SOURCES: [string, string][] = [['happyholiday', 'HappyHoliday.ch'], ['ferienhausmiete', 'Ferienhausmiete.de'], ['graubuenden', 'Graubünden.ch'], ['search', 'Web search by commune (any site, Facebook/Airbnb via search snippets)']];
 const box: React.CSSProperties = { border: '1px solid #243a57', borderRadius: 12, padding: 12, marginBottom: 12 };
 const chip = (on: boolean): React.CSSProperties => ({ display: 'inline-block', padding: '3px 10px', margin: '0 6px 6px 0', borderRadius: 999, border: '1px solid #2d8cff', background: on ? '#2d8cff' : 'transparent', color: '#fff', fontSize: 13, cursor: 'pointer' });
@@ -26,7 +26,7 @@ export function summarize(s: S | null): string {
 
 export default function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }) {
   const [s, setS] = useState<S | null>(null);
-  const [channels, setChannels] = useState<Channels>({ telegram: false, email: false, drive: false });
+  const [channels, setChannels] = useState<Channels>({ telegram: false, email: false, drive: false, driveAccount: '' });
   const [communes, setCommunes] = useState<string[]>([]);
   const [note, setNote] = useState('');
   const [dirty, setDirty] = useState(false);
@@ -42,7 +42,7 @@ export default function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) =
     try { const r = await api('/api/immofinder/settings', { method: 'PUT', body: JSON.stringify(s) }); setS(r.settings); setChannels(r.channels); setDirty(false); setNote('Saved. Changes apply to the next search.'); onChanged?.(r.settings); }
     catch (e) { setNote((e as Error).message); }
   };
-  const test = async (channel: 'telegram' | 'email') => {
+  const test = async (channel: 'telegram' | 'email' | 'drive') => {
     setNote('Sending test…');
     try { if (dirty) await save(); const r = await api('/api/immofinder/settings/test', { method: 'POST', body: JSON.stringify({ channel }) }); setNote(`Test ${channel}: ${r.result}`); } catch (e) { setNote((e as Error).message); }
   };
@@ -66,8 +66,27 @@ export default function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) =
         <strong>2 · Send new results to</strong>
         <label style={{ display: 'block', margin: '6px 0' }}><input type="checkbox" checked={s.delivery.telegram} onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, telegram: e.target.checked } }))} /> Telegram{ready(channels.telegram, 'TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID')} {s.delivery.telegram && <button type="button" onClick={() => void test('telegram')}>Send test</button>}</label>
         <label style={{ display: 'block', margin: '6px 0' }}><input type="checkbox" checked={s.delivery.email} onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, email: e.target.checked } }))} /> Email{ready(channels.email, 'RESEND_API_KEY')}</label>
-        {s.delivery.email && <div style={{ marginLeft: 22 }}><input type="email" placeholder="you@example.com" value={s.delivery.emailTo} onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, emailTo: e.target.value } }))} /> <button type="button" onClick={() => void test('email')}>Send test</button></div>}
+        {s.delivery.email && <div style={{ marginLeft: 22 }}><input type="email" placeholder="you@example.com" value={s.delivery.emailTo} onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, emailTo: e.target.value } }))} /> <button type="button" onClick={() => void test('email')}>Send test</button>
+          <div data-testid="immofinder-email-content" style={{ marginTop: 6 }}>
+            <label style={{ display: 'block' }}><input type="radio" name="immo-email-content" checked={s.delivery.emailContent !== 'all'} onChange={() => upd((x) => ({ ...x, delivery: { ...x.delivery, emailContent: 'new' } }))} /> Only new results of this search</label>
+            <label style={{ display: 'block' }}><input type="radio" name="immo-email-content" checked={s.delivery.emailContent === 'all'} onChange={() => upd((x) => ({ ...x, delivery: { ...x.delivery, emailContent: 'all' } }))} /> All results found so far (newest first)</label>
+          </div></div>}
         <label style={{ display: 'block', margin: '6px 0' }}><input type="checkbox" checked={s.delivery.drive} onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, drive: e.target.checked } }))} /> Google Drive (Sheet and Doc with all listings){ready(channels.drive, 'GOOGLE_SERVICE_ACCOUNT_JSON')}</label>
+        {s.delivery.drive && (
+          <div style={{ marginLeft: 22, fontSize: 14 }}>
+            <label>Drive folder (link or ID) <input type="text" style={{ width: '100%' }} placeholder="default from server configuration" value={s.delivery.driveFolderId} onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, driveFolderId: e.target.value } }))} /></label>
+            <button type="button" onClick={() => void test('drive')}>Check Drive</button>
+            <details style={{ marginTop: 6 }}><summary>One-time Drive setup</summary>
+              <ol style={{ paddingLeft: 18 }}>
+                <li>Share the folder with {channels.driveAccount ? <code>{channels.driveAccount}</code> : 'the service account'} as Editor.</li>
+                <li>In the folder create a Google Sheet “ImmoFinder listings”.</li>
+                <li>In the same folder create a Google Doc “ImmoFinder drafts”.</li>
+                <li>In Google Cloud enable the Google Sheets API and the Google Docs API for the project.</li>
+                <li>Press “Check Drive”. Each search then refreshes the Sheet and the Doc.</li>
+              </ol>
+            </details>
+          </div>
+        )}
         <label style={{ display: 'block', margin: '6px 0' }}><input type="checkbox" checked={s.delivery.notifyWhenEmpty} onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, notifyWhenEmpty: e.target.checked } }))} /> Also message me when nothing new was found</label>
       </div>
 

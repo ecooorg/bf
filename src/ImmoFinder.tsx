@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import ImmoFinderSettings, { summarize } from './ImmoFinderSettings.tsx';
+import { ModeMenu } from './ModeMenu.tsx';
+import { CommitBadge } from './CommitBadge.tsx';
+import { Plus } from 'lucide-react';
 
 type Listing = {
-  id: string; status: string; municipality: string; property_name: string; title_ru: string; rooms_estimated: string | number; description_de: string; description_ru: string;
+  first_seen_at: string; id: string; status: string; municipality: string; property_name: string; title_ru: string; rooms_estimated: string | number; description_de: string; description_ru: string;
   listing_url: string; photo_urls: string[]; source_urls: string[]; source_ids: string[]; private_signals: string[]; contact_status: string; contact_advice: string;
   direct_phone: string | null; direct_email: string | null; owner_name: string | null; draft_message_de: string;
 };
@@ -26,6 +29,7 @@ async function api(path: string, init?: RequestInit) {
   if (!r.ok) throw new Error(r.status === 401 ? 'Please sign in on the home page first.' : String(body?.error || `Request failed (${r.status})`));
   return body;
 }
+const fmtFound = (iso: string) => (iso ? new Date(iso).toLocaleString('de-CH', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
 const fmtDur = (s: number) => `${Math.floor(s / 60)}:${String(Math.max(0, Math.floor(s % 60))).padStart(2, '0')}`;
 const card: React.CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 16, marginBottom: 14 };
 const chip: React.CSSProperties = { display: 'inline-block', padding: '2px 10px', borderRadius: 999, background: '#13263f', color: '#cfe6ff', fontSize: 13, marginRight: 6, marginBottom: 4 };
@@ -68,10 +72,22 @@ export default function ImmoFinder() {
   const driveUrl = run?.delivery?.driveUrl;
   const filtered = Object.entries((run?.counts?.filtered as Record<string, number>) || {});
 
+  const goHome = (mode?: string) => {
+    try { if (mode) sessionStorage.setItem('biforge-start-mode', mode); else sessionStorage.removeItem('biforge-start-mode'); } catch { /* ignore */ }
+    window.location.href = '/';
+  };
+
   return (
+    <>
+    <header className="header project-app-header" style={{ justifyContent: 'flex-end' }} data-testid="immofinder-header">
+      <div className="header-actions has-mode">
+        <CommitBadge />
+        <ModeMenu current="Simple" currentLabel="ImmoFinder" projectEnabled onSelect={(m) => goHome(m)} onOverview={() => goHome()} />
+        <button type="button" className="ghost" data-testid="immofinder-header-new" title="Start a new search" aria-label="New search" disabled={busy} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); void start(); }}><Plus size={14} /> <span className="lbl">New search</span></button>
+      </div>
+    </header>
     <div className="shell" data-testid="immofinder-root" style={{ padding: 16, maxWidth: 920, margin: '0 auto' }}>
       <style>{'@keyframes immospin{to{transform:rotate(360deg)}}'}</style>
-      <p style={{ margin: '0 0 8px' }}><a href="/">← BiForge home</a></p>
       <h1 style={{ margin: '0 0 4px' }}>ImmoFinder GR</h1>
       <p style={{ color: '#8fa6c2', marginTop: 0 }}>Finds private owners of holiday flats (3+ rooms) in Graubünden and prepares a long-term lease letter. Letters are never sent automatically.</p>
 
@@ -154,6 +170,7 @@ export default function ImmoFinder() {
       {items.map((l) => (
         <article key={l.id} style={card} data-testid="immofinder-card">
           <h3 style={{ margin: '0 0 6px' }}>{l.property_name}</h3>
+          <p style={{ margin: '0 0 6px', fontSize: 13, color: '#8fa6c2' }} data-testid="immofinder-found-at">Found: {fmtFound(l.first_seen_at)}</p>
           <div><span style={chip}>📍 {l.municipality}</span><span style={chip}>🚪 {l.rooms_estimated} rooms</span>{l.source_ids.map((s) => <span key={s} style={chip}>{SOURCE_LABEL[s] || s}</span>)}
             {l.private_signals.includes('platform_says_private') && <span style={chip}>listed as private</span>}{l.private_signals.includes('snippet_only') && <span style={chip}>from search snippet</span>}</div>
           {l.title_ru && <p style={{ color: '#9fd8ff', margin: '8px 0 2px' }}>{l.title_ru}</p>}
@@ -172,5 +189,6 @@ export default function ImmoFinder() {
         </article>
       ))}
     </div>
+    </>
   );
 }

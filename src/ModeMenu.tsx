@@ -25,6 +25,8 @@ export function ModeMenu(props: {
   onSelect: (mode: AppMode) => void;
   /** Return to the start screen with the three mode cards. */
   onOverview: () => void;
+  /** Module screens that are not an agent (ImmoFinder) show their own name and select no agent. */
+  currentLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -61,14 +63,14 @@ export function ModeMenu(props: {
         onClick={() => setOpen((v) => !v)}
       >
         <Layers size={14} className="mode-btn-icon" />
-        <span className="lbl">{AGENT_LABEL[props.current]}</span>
+        <span className="lbl">{props.currentLabel ?? AGENT_LABEL[props.current]}</span>
         <ChevronDown size={12} />
       </button>
       {open && (
         <div className="mode-menu-list" role="menu" aria-label="Agents">
           {ITEMS.map((it) => {
             const disabled = it.mode === 'Project' && !props.projectEnabled;
-            const selected = it.mode === props.current;
+            const selected = !props.currentLabel && it.mode === props.current;
             return (
               <button
                 key={it.mode}
