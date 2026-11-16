@@ -1,3 +1,9 @@
+## P128.14 — Immofinder enrichment diagnostic logging (EXPERIMENT)
+
+- **CHANGE:** JSON console.info/warn lines with type prefix `immofinder_enrich_*` for batch and pipeline contact search so all-logs / application-logs show whether Serper ran and outcomes.
+- **NOT_RUN:** Log volume under 200-card batch on production.
+- **PRIVACY:** Logs include municipality/property title and booleans hasPhone/hasEmail; raw phone/email values are not written.
+
 ## P128.13 — Enrich every listing missing phone and email (EXPERIMENT)
 
 - **CHANGE:** Dropped `contact_status <> found` gate; whitespace-only phone/email treated as empty; batch enrich budget scales with queued rows.

@@ -1,3 +1,8 @@
+## [128.14] - EXPERIMENT: Immofinder contact-enrichment diagnostic logs (EXP-IMMO-1)
+
+- Structured application logs for **Find contacts for saved**: start (queued, budget), per-item (hit, notes, host, hasPhone/hasEmail — no full numbers), errors, budget exhausted, done (checked/found/errors/durationMs), fatal. Pipeline enrichment items also logged. Rejected calls log ENRICHMENT_OFF / NO_SERPER.
+- Scope: server/immofinderRoutes.ts, server/immofinderPipeline.ts, package.json, package-lock.json. Patch 128.14.
+
 ## [128.13] - EXPERIMENT: Always enrich listings without phone/email (EXP-IMMO-1)
 
 - Contact search selection is based only on missing direct phone **and** missing email (trim empty). `contact_status` no longer blocks enrichment. Applies to live pipeline keeps and to **Find contacts for saved** (all visible cards without phone/email, higher Serper budget for the batch pass).
