@@ -1,3 +1,9 @@
+## P128.8 — ImmoFinder types and cleanup (EXPERIMENT)
+
+- **OBSERVED (owner export, 40 objects, run 16.11 12:31 on 128.7):** about 20 of 40 were search pages, wanted ads, hotels or similar; only 2 had a contact (both from owner directories: Ferienhausmiete, Surselva); all 40 letters opened with "Ihre Ferienwohnung"; a list page from home.ch and a WG room passed the 128.7 filters; one commune was taken from the snippet instead of the URL.
+- **OBSERVED (page fetch):** ferienhausmiete.de object pages are `/<id>.htm`; the Graubünden page lists about 12 of 41 objects, the rest sit under region pages `r<id>`; the filter "Langzeitmiete möglich" exists on the site.
+- **NOT_RUN:** live crawl of the region pages, precision after cleanup, letters for direct offers in real use.
+
 ## P128.7 — ImmoFinder quality and layout (EXPERIMENT)
 
 - **OBSERVED (logs 2026-11-16 07:14 UTC and owner export of 24 rows):** about 12 of 24 rows were not an owner's offer (search pages, a seeker's post, hotels/guesthouse, portal list pages); only 2 rows had a contact; polling produced about 320 of 540 log lines; `button:disabled` global rule made blue buttons unreadable. Warnings not caused by this module: pg SSL-mode notice on every boot, MaxListenersExceededWarning (4 times since 2026-11-14), diagnostics overall WARN only because no artifacts exist.

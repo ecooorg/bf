@@ -1,3 +1,12 @@
+## [128.8] - EXPERIMENT: ImmoFinder listing types, cleanup, more owner-directory pages (EXP-IMMO-1)
+
+- Two result types (owner decision 2026-11-16): holiday owners (cold approach for a long-term lease) and direct long-term offers by private persons (reply to the ad). Tabs in the list; each type has its own German letter; Facebook posts get "Open post" and the advice to message the poster in Messenger.
+- New rejects: sale ads, shared rooms (WG), developer projects with several flats, more search-page URL patterns (home.ch, immoscout filters). Commune named in the URL or title overrides one guessed from a snippet (ü/ö/ä spellings included).
+- Cleanup: saved results that current filters would reject are hidden (not deleted); automatic at the start of every search and by the button "Clean up list" (`POST /api/immofinder/cleanup`).
+- Ferienhausmiete: object pages are matched by `/<id>.htm` and seven region pages are crawled (Flims-Laax, Surselva, Chur, Lenzerheide, Thusis, Savognin, Klosters). Pages that mention long-term rental get the chip "long-term mentioned".
+- Sign-in link on 401. Migration 024.
+- Scope: migration 024, config, server/immofinder{Core,Pipeline,Store,Routes,Delivery}.ts, src/ImmoFinder.tsx, tests/agents-contract. Patch 128.8.
+
 ## [128.7] - EXPERIMENT: ImmoFinder sheet layout, header menu, contrast, result quality (EXP-IMMO-1)
 
 - Sheet: one column, one cell per object (name, commune, rooms, status, found date, contact, link, photos, RU and DE description); no letter drafts (they stay in the Doc "ImmoFinder drafts"); wrapped text, wide column, bold header.
