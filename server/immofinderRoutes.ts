@@ -231,7 +231,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     }
   });
 
-  app.post('/api/immofinder/cleanup, json, async (_req, res) => {
+  app.post('/api/immofinder/cleanup', json, async (_req, res) => {
     try { res.json({ success: true, hidden: await cleanupStored() }); } catch { res.status(500).json({ success: false, error: 'Cleanup failed', code: 'IMMOFINDER_FAILED' }); }
   });
 
