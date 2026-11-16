@@ -73,7 +73,17 @@
       "id": "ferienhausmiete",
       "url": "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/graubuenden/r521",
       "phase": 1,
-      "maxDetailPages": 30
+      "maxDetailPages": 60,
+      "detailPattern": "^https://www\\.ferienhausmiete\\.de/\\d+\\.htm$",
+      "indexUrls": [
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/flims-laax-falera/r4331",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/surselva/r4325",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/chur/r4328",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/lenzerheide-valbella/r4334",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/thusis/r29817",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/savognin-umland/r4339",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/klosters/r4333"
+      ]
     },
     {
       "id": "graubuenden",
