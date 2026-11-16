@@ -6,7 +6,7 @@ import { CommitBadge } from './CommitBadge.tsx';
 import { MoreHorizontal, Plus } from 'lucide-react';
 
 type Listing = {
-  first_seen_at: string; id: string; status: string; municipality: string; property_name: string; title_ru: string; rooms_estimated: string | number; description_de: string; description_ru: string;
+  listing_type?: string; first_seen_at: string; id: string; status: string; municipality: string; property_name: string; title_ru: string; rooms_estimated: string | number; description_de: string; description_ru: string;
   listing_url: string; photo_urls: string[]; source_urls: string[]; source_ids: string[]; private_signals: string[]; contact_status: string; contact_advice: string;
   direct_phone: string | null; direct_email: string | null; owner_name: string | null; draft_message_de: string;
 };
@@ -43,13 +43,15 @@ export default function ImmoFinder() {
   const [starting, setStarting] = useState(false);
   const [dry, setDry] = useState(false);
   const [tick, setTick] = useState(Date.now());
+  const [tab, setTab] = useState<'all' | 'long_term_offer' | 'holiday_owner'>('all');
+  const [hidden, setHidden] = useState(0);
   const [summary, setSummary] = useState('loading…');
   const onSettings = useCallback((s: any) => setSummary(summarize(s)), []);
 
   const running = Boolean(run && !run.finished_at && Date.now() - new Date(run.started_at).getTime() < 30 * 60 * 1000);
 
   const loadList = useCallback(async () => {
-    try { const l = await api(`/api/immofinder/listings${filter ? `?status=${filter}` : ''}`); setItems(l.listings || []); setMsg(''); } catch (e) { setMsg((e as Error).message); }
+    try { const l = await api(`/api/immofinder/listings${filter ? `?status=${filter}` : ''}`); setItems(l.listings || []); setHidden(l.hidden || 0); setMsg(''); } catch (e) { setMsg((e as Error).message); }
   }, [filter]);
   const loadRun = useCallback(async () => {
     try { const r = await api('/api/immofinder/runs/latest'); setRun(r.run || null); } catch (e) { setMsg((e as Error).message); }
@@ -73,6 +75,7 @@ export default function ImmoFinder() {
     try { await api('/api/immofinder/run', { method: 'POST', body: JSON.stringify({ dryRun: dry }) }); await load(); }
     catch (e) { setStarting(false); setMsg((e as Error).message); }
   };
+  const cleanup = async () => { try { const r = await api('/api/immofinder/cleanup', { method: 'POST', body: '{}' }); setMsg(`Hid ${r.hidden} saved results that are not suitable.`); await loadList(); } catch (e) { setMsg((e as Error).message); } };
   const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
 
   const pr = run?.progress || {};
@@ -80,6 +83,7 @@ export default function ImmoFinder() {
   const elapsed = run ? ((run.finished_at ? new Date(run.finished_at).getTime() : tick) - new Date(run.started_at).getTime()) / 1000 : 0;
   const pct = pr.total ? Math.min(100, Math.round(((pr.current || 0) / pr.total) * 100)) : null;
   const busy = running || starting;
+  const shown = items.filter((x) => tab === 'all' || (tab === 'long_term_offer' ? x.listing_type === 'long_term_offer' : x.listing_type !== 'long_term_offer'));
   const driveUrl = run?.delivery?.driveUrl;
   const filtered = Object.entries((run?.counts?.filtered as Record<string, number>) || {});
 
@@ -126,7 +130,7 @@ export default function ImmoFinder() {
         <div style={{ marginTop: 12 }}><ImmoFinderSettings onChanged={onSettings} /></div>
       </details>
 
-      {msg && <p role="status" data-testid="immofinder-message" style={{ color: '#ffd28a' }}>{msg}</p>}
+      {msg && <p role="status" data-testid="immofinder-message" style={{ color: '#ffd28a' }}>{msg} {/sign in/i.test(msg) && <a href="/" className="immo-btn small">Sign in</a>}</p>}
 
       {busy && (
         <section style={{ ...card, borderColor: '#2d8cff' }} data-testid="immofinder-live" aria-live="polite">
@@ -182,16 +186,23 @@ export default function ImmoFinder() {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0' }}>
-        <h2 style={{ margin: 0 }}>Listings ({items.length})</h2>
+        <h2 style={{ margin: 0 }}>Listings ({shown.length})</h2>
         <label style={{ marginLeft: 'auto', fontSize: 14 }}>Show <select data-testid="immofinder-status-filter" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="">all</option>{STATUSES.map((s) => <option key={s} value={s}>{s.toLowerCase()}</option>)}</select></label>
       </div>
-      {items.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
-      {items.map((l) => (
+      <div role="tablist" data-testid="immofinder-tabs" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '4px 0 10px' }}>
+        {([['all', 'All', items.length], ['long_term_offer', 'Direct offers (reply to the ad)', items.filter((x) => x.listing_type === 'long_term_offer').length], ['holiday_owner', 'Holiday owners (ask for long-term)', items.filter((x) => x.listing_type !== 'long_term_offer').length]] as const).map(([id, label, n]) => (
+          <button key={id} type="button" role="tab" aria-selected={tab === id} className="immo-btn small" style={{ opacity: tab === id ? 1 : 0.6 }} onClick={() => setTab(id)}>{label} · {n}</button>
+        ))}
+        {hidden > 0 && <span style={{ fontSize: 13, color: '#8fa6c2', alignSelf: 'center' }}>{hidden} hidden as not suitable</span>}
+        <button type="button" className="ghost" onClick={() => void cleanup()} style={{ fontSize: 13 }}>Clean up list</button>
+      </div>
+      {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
+      {shown.map((l) => (
         <article key={l.id} style={card} data-testid="immofinder-card">
           <h3 style={{ margin: '0 0 6px' }}>{l.property_name}</h3>
           <p style={{ margin: '0 0 6px', fontSize: 13, color: '#8fa6c2' }} data-testid="immofinder-found-at">Found: {fmtFound(l.first_seen_at)}</p>
           <div><span style={chip}>📍 {l.municipality}</span><span style={chip}>🚪 {l.rooms_estimated} rooms</span>{l.source_ids.map((s) => <span key={s} style={chip}>{SOURCE_LABEL[s] || s}</span>)}
-            {l.private_signals.includes('platform_says_private') && <span style={chip}>listed as private</span>}{l.private_signals.includes('snippet_only') && <span style={chip}>from search snippet</span>}{l.private_signals.includes('generic_link') && <span style={chip}>link opens a search or group page</span>}</div>
+            <span style={chip}>{l.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'}</span>{l.private_signals.includes('long_term_possible') && <span style={chip}>long-term mentioned</span>}{l.private_signals.includes('platform_says_private') && <span style={chip}>listed as private</span>}{l.private_signals.includes('snippet_only') && <span style={chip}>from search snippet</span>}{l.private_signals.includes('generic_link') && <span style={chip}>link opens a search or group page</span>}</div>
           {l.title_ru && <p style={{ color: '#9fd8ff', margin: '8px 0 2px' }}>{l.title_ru}</p>}
           {l.description_ru && <p style={{ color: '#9fd8ff', margin: '2px 0' }}>{l.description_ru}</p>}
           {l.description_de && <p style={{ margin: '4px 0', fontSize: 14, color: '#b9cce6' }}>{l.description_de}</p>}
@@ -199,7 +210,7 @@ export default function ImmoFinder() {
             <strong>Contact: </strong>{l.contact_status === 'found' ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ') : <em>no direct contact found yet. {l.contact_advice}</em>}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <a href={l.listing_url} target="_blank" rel="noopener noreferrer" className="immo-btn small">Open listing</a>
+            <a href={l.listing_url} target="_blank" rel="noopener noreferrer" className="immo-btn small">{/facebook\.com/.test(l.listing_url) ? 'Open post' : 'Open listing'}</a>
             {l.photo_urls.slice(0, 3).map((u, i) => <a key={u} href={u} target="_blank" rel="noopener noreferrer" style={{ ...chip, textDecoration: 'none' }}>Photo {i + 1}</a>)}
             <button type="button" onClick={() => void navigator.clipboard?.writeText(l.draft_message_de)}>Copy German letter</button>
             <label style={{ marginLeft: 'auto', fontSize: 14 }}>Status <select value={l.status} onChange={(e) => void setStatus(l.id, e.target.value)}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select></label>
