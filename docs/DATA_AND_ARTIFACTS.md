@@ -52,3 +52,5 @@ Implemented in `migrations/020_immofinder.sql` (128.1): adds `title_ru`, `rooms_
 `migrations/021_immofinder_seen.sql` (128.2): `immofinder_seen(url pk, source_id, decision, reason, checked_at)` caches rejected pages for `limits.recheckAfterDays`. Drive export in 128.2: Google Sheet "ImmoFinder listings" and Doc "ImmoFinder drafts" replace the CSV/JSON/TXT files of 128.1.
 
 `migrations/022_immofinder_progress.sql` (128.4): `immofinder_runs.progress` jsonb. `migrations/023_immofinder_settings.sql` (128.5): `immofinder_settings(id 'main', data jsonb, updated_at)` holding schedule, delivery and search-scope settings; the email address is stored there, secrets never.
+
+`migrations/024_immofinder_types.sql` (128.8): `immofinder_listings.listing_type`, `hidden`, `hide_reason`. Hidden rows are excluded from the app list, email, Telegram, Sheet and Doc.

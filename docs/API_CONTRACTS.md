@@ -147,3 +147,5 @@ Implemented in 128.1: all four routes above. Cron may call `POST /api/immofinder
 Settings (128.5), same auth and same-origin rules: `GET /api/immofinder/settings` → `{settings, channels:{telegram,email,drive}, communes, timezone}` (booleans only, no secrets); `PUT /api/immofinder/settings` → validated and saved settings (invalid fields fall back to defaults); `POST /api/immofinder/settings/test` body `{channel:'telegram'|'email'}` → `{result}`. A cron call to `POST /api/immofinder/run` returns 200 `{skipped:'manual_only'|'not_due'}` when no search is due.
 
 128.6: `GET /api/immofinder/settings` also returns `channels.driveAccount` (service account address, not a secret); `POST /api/immofinder/settings/test` accepts `channel:'drive'` (read-only readiness check). Settings gain `delivery.emailContent` (`new`|`all`) and `delivery.driveFolderId` (URL or ID, stored as ID).
+
+128.8: `POST /api/immofinder/cleanup` → `{hidden:n}` (hides saved rows that fail the current filters); `GET /api/immofinder/listings` also returns `hidden` (count) and each listing has `listing_type` (`holiday_owner`|`long_term_offer`).
