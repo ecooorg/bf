@@ -107,7 +107,7 @@ export default function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) =
         <label style={{ display: 'block', margin: '6px 0' }}>Analyse at most <select value={s.search.maxAiPages} onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, maxAiPages: Number(e.target.value) } }))}>{[20, 40, 60, 100, 200].map((n) => <option key={n} value={n}>{n}</option>)}</select> pages with AI per search (about $0.002 each; the rest is checked with simple rules)</label>
       </div>
 
-      <button type="button" data-testid="immofinder-settings-save" onClick={save} disabled={!dirty} style={{ padding: '10px 18px', fontSize: 16, borderRadius: 10, border: 0, background: dirty ? '#2d8cff' : '#33506f', color: '#fff' }}>{dirty ? 'Save settings' : 'Saved'}</button>
+      <button type="button" data-testid="immofinder-settings-save" onClick={save} disabled={!dirty} className="immo-btn" style={{ padding: '10px 18px', fontSize: 16 }}>{dirty ? 'Save settings' : 'Saved'}</button>
       {note && <p role="status" style={{ marginTop: 8 }}>{note}</p>}
     </div>
   );

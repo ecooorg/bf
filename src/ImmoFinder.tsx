@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { downloadAllLogs } from './allLogs.ts';
 import ImmoFinderSettings, { summarize } from './ImmoFinderSettings.tsx';
 import { ModeMenu } from './ModeMenu.tsx';
 import { CommitBadge } from './CommitBadge.tsx';
-import { Plus } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 
 type Listing = {
   first_seen_at: string; id: string; status: string; municipality: string; property_name: string; title_ru: string; rooms_estimated: string | number; description_de: string; description_ru: string;
@@ -47,14 +48,24 @@ export default function ImmoFinder() {
 
   const running = Boolean(run && !run.finished_at && Date.now() - new Date(run.started_at).getTime() < 30 * 60 * 1000);
 
-  const load = useCallback(async () => {
-    try {
-      const [l, r] = await Promise.all([api(`/api/immofinder/listings${filter ? `?status=${filter}` : ''}`), api('/api/immofinder/runs/latest')]);
-      setItems(l.listings || []); setRun(r.run || null); setMsg('');
-    } catch (e) { setMsg((e as Error).message); }
+  const loadList = useCallback(async () => {
+    try { const l = await api(`/api/immofinder/listings${filter ? `?status=${filter}` : ''}`); setItems(l.listings || []); setMsg(''); } catch (e) { setMsg((e as Error).message); }
   }, [filter]);
+  const loadRun = useCallback(async () => {
+    try { const r = await api('/api/immofinder/runs/latest'); setRun(r.run || null); } catch (e) { setMsg((e as Error).message); }
+  }, []);
+  const load = useCallback(async () => { await Promise.all([loadList(), loadRun()]); }, [loadList, loadRun]);
+  const wasRunning = useRef(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => { if (!running && !starting) return; const t = setInterval(() => { setTick(Date.now()); void load(); }, 2000); return () => clearInterval(t); }, [running, starting, load]);
+  // While a search runs only the small status call is polled; the list reloads once when the run ends.
+  useEffect(() => { if (!running && !starting) return; const t = setInterval(() => { setTick(Date.now()); void loadRun(); }, 2500); return () => clearInterval(t); }, [running, starting, loadRun]);
+  useEffect(() => { if (wasRunning.current && !running) void loadList(); wasRunning.current = running; }, [running, loadList]);
+  useEffect(() => {
+    if (!moreOpen) return; const h = (e: MouseEvent) => { if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false); };
+    document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h);
+  }, [moreOpen]);
   useEffect(() => { if (starting && running) setStarting(false); }, [starting, running]);
 
   const start = async () => {
@@ -84,16 +95,24 @@ export default function ImmoFinder() {
         <CommitBadge />
         <ModeMenu current="Simple" currentLabel="ImmoFinder" projectEnabled onSelect={(m) => goHome(m)} onOverview={() => goHome()} />
         <button type="button" className="ghost" data-testid="immofinder-header-new" title="Start a new search" aria-label="New search" disabled={busy} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); void start(); }}><Plus size={14} /> <span className="lbl">New search</span></button>
+        <div className="hdr-more-wrap" ref={moreRef}>
+          <button type="button" className="ghost hdr-more-btn" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)} title="Program logs"><MoreHorizontal size={14} /> <span className="lbl">More</span></button>
+          {moreOpen && (
+            <div className="hdr-secondary open" role="menu">
+              <button type="button" className="ghost" role="menuitem" data-testid="all-logs-menu-item" onClick={() => { setMoreOpen(false); void downloadAllLogs().catch((e) => window.alert(String(e?.message || e))); }}>All Logs</button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
     <div className="shell" data-testid="immofinder-root" style={{ padding: 16, maxWidth: 920, margin: '0 auto' }}>
-      <style>{'@keyframes immospin{to{transform:rotate(360deg)}}'}</style>
+      <style>{'@keyframes immospin{to{transform:rotate(360deg)}} .immo-btn{background:#1457b8!important;color:#fff!important;border:1px solid #7db8ff!important;font-weight:700;border-radius:10px;text-decoration:none;display:inline-block;cursor:pointer} .immo-btn:disabled{background:#2a4766!important;color:#f2f7ff!important;border-color:#5a7ea6!important;opacity:1} .immo-btn.small{padding:4px 12px;font-size:13px;margin-right:6px}'}</style>
       <h1 style={{ margin: '0 0 4px' }}>ImmoFinder GR</h1>
       <p style={{ color: '#8fa6c2', marginTop: 0 }}>Finds private owners of holiday flats (3+ rooms) in Graubünden and prepares a long-term lease letter. Letters are never sent automatically.</p>
 
       <section style={card}>
         <button type="button" data-testid="immofinder-run" onClick={start} disabled={busy}
-          style={{ width: '100%', padding: '16px 12px', fontSize: 20, fontWeight: 700, borderRadius: 12, border: 0, cursor: busy ? 'default' : 'pointer', background: busy ? '#33506f' : '#2d8cff', color: '#fff' }}>
+          className="immo-btn" style={{ width: '100%', padding: '16px 12px', fontSize: 20, cursor: busy ? 'default' : 'pointer' }}>
           {busy ? 'Search is running…' : '🔍 New search'}
         </button>
         <label style={{ display: 'block', marginTop: 10, fontSize: 14, color: '#9fb4cf' }}>
@@ -172,7 +191,7 @@ export default function ImmoFinder() {
           <h3 style={{ margin: '0 0 6px' }}>{l.property_name}</h3>
           <p style={{ margin: '0 0 6px', fontSize: 13, color: '#8fa6c2' }} data-testid="immofinder-found-at">Found: {fmtFound(l.first_seen_at)}</p>
           <div><span style={chip}>📍 {l.municipality}</span><span style={chip}>🚪 {l.rooms_estimated} rooms</span>{l.source_ids.map((s) => <span key={s} style={chip}>{SOURCE_LABEL[s] || s}</span>)}
-            {l.private_signals.includes('platform_says_private') && <span style={chip}>listed as private</span>}{l.private_signals.includes('snippet_only') && <span style={chip}>from search snippet</span>}</div>
+            {l.private_signals.includes('platform_says_private') && <span style={chip}>listed as private</span>}{l.private_signals.includes('snippet_only') && <span style={chip}>from search snippet</span>}{l.private_signals.includes('generic_link') && <span style={chip}>link opens a search or group page</span>}</div>
           {l.title_ru && <p style={{ color: '#9fd8ff', margin: '8px 0 2px' }}>{l.title_ru}</p>}
           {l.description_ru && <p style={{ color: '#9fd8ff', margin: '2px 0' }}>{l.description_ru}</p>}
           {l.description_de && <p style={{ margin: '4px 0', fontSize: 14, color: '#b9cce6' }}>{l.description_de}</p>}
@@ -180,7 +199,7 @@ export default function ImmoFinder() {
             <strong>Contact: </strong>{l.contact_status === 'found' ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ') : <em>no direct contact found yet. {l.contact_advice}</em>}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <a href={l.listing_url} target="_blank" rel="noopener noreferrer" style={{ ...chip, textDecoration: 'none', background: '#1d4f8f' }}>Open listing</a>
+            <a href={l.listing_url} target="_blank" rel="noopener noreferrer" className="immo-btn small">Open listing</a>
             {l.photo_urls.slice(0, 3).map((u, i) => <a key={u} href={u} target="_blank" rel="noopener noreferrer" style={{ ...chip, textDecoration: 'none' }}>Photo {i + 1}</a>)}
             <button type="button" onClick={() => void navigator.clipboard?.writeText(l.draft_message_de)}>Copy German letter</button>
             <label style={{ marginLeft: 'auto', fontSize: 14 }}>Status <select value={l.status} onChange={(e) => void setStatus(l.id, e.target.value)}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select></label>
