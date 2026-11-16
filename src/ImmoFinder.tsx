@@ -47,6 +47,7 @@ export default function ImmoFinder() {
   const [tab, setTab] = useState<'all' | 'long_term_offer' | 'holiday_owner'>('all');
   const [hidden, setHidden] = useState(0);
   const [summary, setSummary] = useState('loading…');
+  const [enrichJob, setEnrichJob] = useState<{ running?: boolean; queued?: number; checked?: number; found?: number; errors?: number; message?: string; current?: string; finishedAt?: number | null } | null>(null);
   const onSettings = useCallback((s: any) => setSummary(summarize(s)), []);
 
   const running = Boolean(run && !run.finished_at && Date.now() - new Date(run.started_at).getTime() < 30 * 60 * 1000);
@@ -70,6 +71,19 @@ export default function ImmoFinder() {
     document.addEventListener('mousedown', h); return () => document.removeEventListener('mousedown', h);
   }, [moreOpen]);
   useEffect(() => { if (starting && running) setStarting(false); }, [starting, running]);
+  useEffect(() => {
+    if (!enrichJob?.running) return;
+    const t = setInterval(() => {
+      void api('/api/immofinder/enrich-status').then((r) => {
+        setEnrichJob(r.job || null);
+        if (r.job && !r.job.running) {
+          setMsg(r.job.message || 'Contact search finished.');
+          void loadList();
+        }
+      }).catch(() => {});
+    }, 2000);
+    return () => clearInterval(t);
+  }, [enrichJob?.running, loadList]);
 
   const start = async () => {
     setStarting(true); setMsg('');
@@ -87,13 +101,12 @@ export default function ImmoFinder() {
   };
   const cleanup = async () => { try { const r = await api('/api/immofinder/cleanup', { method: 'POST', body: '{}' }); setMsg(`Hid ${r.hidden} saved results that are not suitable.`); await loadList(); } catch (e) { setMsg((e as Error).message); } };
   const enrichExisting = async () => {
-    setMsg('Searching contacts for saved listings…');
+    setMsg('');
     try {
-      const r = await api('/api/immofinder/enrich-existing', { method: 'POST', body: JSON.stringify({ limit: 40 }) });
-      setMsg(`Contact search started for ${r.queued} saved listings without phone/email. Refresh the list in a few minutes.`);
-      // soft refresh later
-      setTimeout(() => { void loadList(); }, 15000);
-    } catch (e) { setMsg((e as Error).message); }
+      const r = await api('/api/immofinder/enrich-existing', { method: 'POST', body: JSON.stringify({ limit: 200 }) });
+      setEnrichJob({ running: true, queued: r.queued, checked: 0, found: 0, message: r.queued ? `Contact search started for ${r.queued} listings…` : 'No listings without phone or email' });
+      if (!r.queued) setMsg('No saved listings without phone or email.');
+    } catch (e) { setMsg((e as Error).message); setEnrichJob(null); }
   };
   const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
 
@@ -211,6 +224,21 @@ export default function ImmoFinder() {
         </section>
       )}
 
+      {(enrichJob?.running || (enrichJob?.message && enrichJob.finishedAt)) && (
+        <div data-testid="immofinder-enrich-progress" style={{ ...card, borderColor: enrichJob?.running ? '#2d8cff' : '#243a57', marginBottom: 12 }}>
+          <strong>{enrichJob?.running ? 'Contact search in progress…' : 'Contact search finished'}</strong>
+          <p style={{ margin: '6px 0', color: '#cfe6ff' }}>{enrichJob?.message}</p>
+          {enrichJob?.running && (
+            <p style={{ margin: 0, fontSize: 13, color: '#8fa6c2' }}>
+              {enrichJob.checked || 0}/{enrichJob.queued || 0} checked · {enrichJob.found || 0} contacts found
+              {enrichJob.current ? ` · now: ${enrichJob.current}` : ''}
+            </p>
+          )}
+          {!enrichJob?.running && enrichJob?.found != null && (
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: '#8fa6c2' }}>Found {enrichJob.found} · checked {enrichJob.checked}</p>
+          )}
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0' }}>
         <h2 style={{ margin: 0 }}>Listings ({shown.length})</h2>
         <label style={{ marginLeft: 'auto', fontSize: 14 }}>Show <select data-testid="immofinder-status-filter" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="">all</option>{STATUSES.map((s) => <option key={s} value={s}>{s.toLowerCase()}</option>)}</select></label>
@@ -220,7 +248,7 @@ export default function ImmoFinder() {
           <button key={id} type="button" role="tab" aria-selected={tab === id} className="immo-btn small" style={{ opacity: tab === id ? 1 : 0.6 }} onClick={() => setTab(id)}>{label} · {n}</button>
         ))}
         {hidden > 0 && <span style={{ fontSize: 13, color: '#8fa6c2', alignSelf: 'center' }}>{hidden} hidden as not suitable</span>}
-        <button type="button" className="ghost" data-testid="immofinder-enrich-existing" onClick={() => void enrichExisting()} style={{ fontSize: 13 }}>Find contacts for saved</button>
+        <button type="button" className="ghost" data-testid="immofinder-enrich-existing" disabled={!!enrichJob?.running} onClick={() => void enrichExisting()} style={{ fontSize: 13 }}>{enrichJob?.running ? "Searching contacts…" : "Find contacts for saved"}</button>
         <button type="button" className="ghost" onClick={() => void cleanup()} style={{ fontSize: 13 }}>Clean up list</button>
       </div>
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
