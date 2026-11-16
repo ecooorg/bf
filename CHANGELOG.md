@@ -1,3 +1,12 @@
+## [128.7] - EXPERIMENT: ImmoFinder sheet layout, header menu, contrast, result quality (EXP-IMMO-1)
+
+- Sheet: one column, one cell per object (name, commune, rooms, status, found date, contact, link, photos, RU and DE description); no letter drafts (they stay in the Doc "ImmoFinder drafts"); wrapped text, wide column, bold header.
+- ImmoFinder header has a More menu with "All Logs" (same item as Project mode), so logs can be downloaded without leaving the module.
+- Buttons: new `.immo-btn` style (white on dark blue, forced over the global `button:disabled` rule that made the text unreadable) for New search, Save settings, Open listing.
+- Result quality, from the owner's 24-row export: search/list pages (immoscout, homegate, airbnb, cozycozy, homematch), wanted ads ("Suche ..."), hotels and guesthouses are rejected before saving (reasons `list_or_search_page`, `wanted_ad`, `hotel_or_guesthouse`); a kept result whose link is a group or generic page gets the chip "link opens a search or group page".
+- Log noise: UI polling used 60% of the log lines; while a search runs only the small status call is polled (every 2.5 s), the list reloads once at the end, and successful polling requests are not logged.
+- Scope: server/immofinder{Core,Pipeline,Delivery}.ts, server/projectDiagnostics.ts, src/ImmoFinder{,Settings}.tsx, tests/agents-contract. Patch 128.7.
+
 ## [128.6] - EXPERIMENT: ImmoFinder header menu, Drive fix, email content mode, found date (EXP-IMMO-1)
 
 - ImmoFinder now has the standard top bar (commit badge, mode menu, "New search"); the mode menu shows "ImmoFinder" and leads to Simple, Expert, Project or the agent selection.

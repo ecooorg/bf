@@ -1,3 +1,8 @@
+## P128.7 — ImmoFinder quality and layout (EXPERIMENT)
+
+- **OBSERVED (logs 2026-11-16 07:14 UTC and owner export of 24 rows):** about 12 of 24 rows were not an owner's offer (search pages, a seeker's post, hotels/guesthouse, portal list pages); only 2 rows had a contact; polling produced about 320 of 540 log lines; `button:disabled` global rule made blue buttons unreadable. Warnings not caused by this module: pg SSL-mode notice on every boot, MaxListenersExceededWarning (4 times since 2026-11-14), diagnostics overall WARN only because no artifacts exist.
+- **NOT_RUN:** live Sheet formatting, precision after the new filters, phone rendering.
+
 ## P128.6 — ImmoFinder header, Drive, email mode (EXPERIMENT)
 
 - **OBSERVED:** owner screenshot of run 16.11.2026 03:07: Drive HTTP 403 "Service Accounts do not have storage quota" for the native Sheet upload of 128.2; email sent; 21 listings.
