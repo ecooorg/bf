@@ -147,3 +147,25 @@ export function agencyQuoteCounts(quote: string | null, platformHost: string): b
   const host = norm(platformHost.replace(/^www\./, '').split('.')[0]);
   return /(immobilien|treuhand|verwaltung|agentur|property management|reisebuero|reisebüro|gmbh|\bag\b|vermittlung)/i.test(quote) && !(host && norm(quote).includes(host));
 }
+
+const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste)/i;
+const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-/i;
+const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen)\b/i;
+const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz)\b/i;
+
+/** Pages that are not an owner's offer: search/list pages, wanted ads, hotels and guesthouses. Checked on title and URL only. */
+export function nonListingReason(title: string, url: string): 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | null {
+  const t = String(title ?? '').trim();
+  if (WANTED.test(t)) return 'wanted_ad';
+  if (LIST_TITLE.test(t) || LIST_URL.test(url)) return 'list_or_search_page';
+  if (HOTEL.test(t)) return 'hotel_or_guesthouse';
+  return null;
+}
+
+/** True when the URL points at one concrete ad (an ID or a long slug), not at a group or generic page. */
+export function isSpecificLink(url: string): boolean {
+  let u: URL; try { u = new URL(url); } catch { return false; }
+  const p = u.pathname;
+  if (/facebook\.com$/.test(u.hostname.replace(/^www\./, '')) || /facebook\.com$/.test(u.hostname)) return /\/(marketplace\/item|posts|permalink|videos|photo)\b/.test(p) || /story_fbid|fbid/.test(u.search);
+  return /\d{5,}/.test(p) || /[a-z0-9]+(-[a-z0-9]+){3,}/i.test(p.split('/').filter(Boolean).pop() || '');
+}

@@ -65,6 +65,7 @@ export function requestDiagnosticsMiddleware(req: any, res: any, next: () => voi
   const started = Date.now(); res.setHeader('x-request-id', requestId);
   res.on('finish', () => {
     const details = { method: String(req.method || '').slice(0, 12), path: String(req.path || '/').split('?')[0].slice(0, 180), statusCode: Number(res.statusCode) || 0, durationMs: Math.max(0, Date.now() - started), responseBytes: Number(res.getHeader('content-length')) || undefined };
+    if (details.method === 'GET' && details.statusCode < 400 && /^\/api\/immofinder\/(runs\/latest|listings)$/.test(details.path)) return; // UI polling during a search would flood the log
     const level = details.statusCode >= 500 ? 'error' : details.statusCode >= 400 ? 'warn' : 'info';
     const entry = { timestamp: new Date().toISOString(), level, component: 'http', event: 'request_complete', requestId, details };
     applicationLines.push(entry); if (applicationLines.length > MAX_APPLICATION_LINES) applicationLines.splice(0, applicationLines.length - MAX_APPLICATION_LINES);

@@ -1,5 +1,5 @@
 import { hostOf, buildQueries, pickItems, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, agencyQuoteCounts, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, pageMeta, parseRooms, registrationForbidden, verifyQuote } from './immofinderCore.ts';
+import { type ImmoConfig, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, pageMeta, parseRooms, registrationForbidden, verifyQuote } from './immofinderCore.ts';
 
 export interface ListingRecord {
   canonical_key: string; listing_url: string; source_urls: string[]; source_ids: string[]; photo_urls: string[]; municipality: string; property_name: string;
@@ -118,12 +118,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
         drop(reason); say(stage, `✖ ${reason}${detail ? ` (${detail.slice(0, 40)})` : ''}: ${meta.title.slice(0, 60)}`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, kept: false, reason, detail: detail?.slice(0, 120) });
         if (!opts.dryRun) await deps.store.markSeen(url, src.id, 'filtered', reason);
       };
+      const nl = nonListingReason(meta.title, url); if (nl) { await deny(nl); continue; }
       if (!ex.single) { await deny('not_single_listing'); continue; }
       if (ex.agency) { await deny('agency', ex.agency); continue; }
       if (!ex.municipality) { await deny('municipality_not_whitelisted'); continue; }
       if (!ex.rooms) { await deny('rooms_unknown'); continue; }
       if (ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
       if (ex.regForbidden) { await deny('registration_forbidden'); continue; }
+      if (!isSpecificLink(url)) ex.signals.push('generic_link');
       const phones = c.phones.filter((p) => (phoneUse.get(`${host}|${p}`) || 0) < 3);
       const evidence = [...phones.slice(0, 1).map((v) => ({ type: 'phone', value: v, url })), ...c.emails.slice(0, 1).map((v) => ({ type: 'email', value: v, url }))];
       const rec: ListingRecord = {

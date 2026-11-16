@@ -49,12 +49,15 @@ async function driveToken(sa: { client_email: string; private_key: string }, f: 
   const d: any = await r.json(); if (!d.access_token) throw new Error('Google token request failed (check GOOGLE_SERVICE_ACCOUNT_JSON)'); return d.access_token;
 }
 
+/** One cell per object (readable on a phone): everything except the letter draft, newest first. */
 export function listingsTable(rows: any[]): string[][] {
-  const cols: [string, (r: any) => unknown][] = [['found_at', (r) => formatZurich(r.first_seen_at)], ['status', (r) => r.status], ['municipality', (r) => r.municipality], ['property_name', (r) => r.property_name], ['rooms', (r) => r.rooms_estimated],
-    ['contact_status', (r) => r.contact_status], ['phone', (r) => r.direct_phone], ['email', (r) => r.direct_email], ['owner_name', (r) => r.owner_name], ['listing_url', (r) => r.listing_url],
-    ['photos', (r) => (r.photo_urls || []).join(' ')], ['sources', (r) => (r.source_urls || []).join(' ')], ['description_de', (r) => r.description_de], ['description_ru', (r) => r.description_ru], ['contact_advice', (r) => r.contact_advice], ['draft_message_de', (r) => r.draft_message_de]];
-  const cell = (v: unknown) => String(v ?? '').slice(0, 45000);
-  return [cols.map(([n]) => n), ...[...rows].sort((a, b) => new Date(b.first_seen_at).getTime() - new Date(a.first_seen_at).getTime()).map((r) => cols.map(([, fn]) => cell(fn(r))))];
+  const cell = (r: any) => [
+    `${r.property_name}`, `📍 ${r.municipality} · ${r.rooms_estimated} rooms · ${r.status}`, `Found: ${formatZurich(r.first_seen_at)}`,
+    [r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).length ? `Contact: ${[r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).join(' · ')}` : `Contact: not found. ${String(r.contact_advice || '').slice(0, 160)}`,
+    `Link: ${r.listing_url}`, (r.photo_urls || []).length ? `Photos: ${(r.photo_urls || []).slice(0, 3).join(' ')}` : '', (r.source_urls || []).length > 1 ? `Other sources: ${(r.source_urls || []).slice(1).join(' ')}` : '',
+    r.description_ru ? `RU: ${r.description_ru}` : '', r.description_de ? `DE: ${r.description_de}` : '',
+  ].filter(Boolean).join('\n').slice(0, 45000);
+  return [['ImmoFinder objects (newest first)'], ...[...rows].sort((a, b) => new Date(b.first_seen_at).getTime() - new Date(a.first_seen_at).getTime()).map((r) => [cell(r)])];
 }
 
 export const SHEET_NAME = 'ImmoFinder listings'; export const DOC_NAME = 'ImmoFinder drafts';
@@ -89,6 +92,14 @@ export async function exportDrive(rows: any[], folderId: string, f: typeof fetch
     const sh = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values`;
     let r = await f(`${sh}/A1:ZZ10000:clear`, { method: 'POST', headers: J, body: '{}' }); if (!r.ok) throw new Error(`Sheets clear HTTP ${r.status} (enable the Google Sheets API)`);
     r = await f(`${sh}/A1?valueInputOption=RAW`, { method: 'PUT', headers: J, body: JSON.stringify({ values: listingsTable(rows) }) }); if (!r.ok) throw new Error(`Sheets write HTTP ${r.status}`);
+    try { // wrap text and a wide column so one object reads like a card; formatting problems never fail the export
+      const meta: any = await (await f(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=sheets.properties.sheetId`, { headers: H })).json(); const gid = meta?.sheets?.[0]?.properties?.sheetId ?? 0;
+      await f(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: [
+        { repeatCell: { range: { sheetId: gid, startColumnIndex: 0, endColumnIndex: 1 }, cell: { userEnteredFormat: { wrapStrategy: 'WRAP', verticalAlignment: 'TOP' } }, fields: 'userEnteredFormat(wrapStrategy,verticalAlignment)' } },
+        { updateDimensionProperties: { range: { sheetId: gid, dimension: 'COLUMNS', startIndex: 0, endIndex: 1 }, properties: { pixelSize: 560 }, fields: 'pixelSize' } },
+        { repeatCell: { range: { sheetId: gid, startRowIndex: 0, endRowIndex: 1 }, cell: { userEnteredFormat: { textFormat: { bold: true } } }, fields: 'userEnteredFormat.textFormat.bold' } },
+      ] }) });
+    } catch { /* ignore */ }
     const dd = `https://docs.googleapis.com/v1/documents/${docId}`;
     const doc: any = await (await f(dd, { headers: H })).json();
     const end = Number(doc?.body?.content?.at(-1)?.endIndex ?? 1);
