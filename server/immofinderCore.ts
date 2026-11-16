@@ -8,6 +8,17 @@ export interface ImmoConfig {
   estCostPerSearchUsd?: number;
   driveFolderId?: string;
   discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; snippetOnlyHosts: string[]; skipHosts: string[] };
+  /** Optional public-source contact enrichment (secondary search + optional reverse image). Default off when omitted. */
+  contactEnrichment?: {
+    enabled: boolean;
+    maxExtraSearchesPerRun?: number;
+    maxReverseImagePerRun?: number;
+    maxCandidatePagesPerListing?: number;
+    useReverseImage?: boolean;
+    useSecondarySearch?: boolean;
+    skipHosts?: string[];
+    snippetOnlyHosts?: string[];
+  };
 }
 
 export function norm(s: string): string {

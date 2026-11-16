@@ -1,5 +1,6 @@
 import { hostOf, buildQueries, pickItems, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, pageMeta, parseRooms, registrationForbidden, verifyQuote } from './immofinderCore.ts';
+import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
   listing_type: ListingType; canonical_key: string; listing_url: string; source_urls: string[]; source_ids: string[]; photo_urls: string[]; municipality: string; property_name: string;
@@ -29,6 +30,11 @@ export interface PipelineDeps {
   /** Cost guard: after this many model calls the rest of the run uses the deterministic fallback. */
   maxLlmCalls?: number;
   now?: () => number;
+  /**
+   * Optional reverse-image search (public pages only).
+   * When omitted, enrichment still runs secondary text search.
+   */
+  reverseImageSearch?: (imageUrl: string) => Promise<SearchHit[]>;
 }
 export interface ProgressEvent { stage: 'catalogue' | 'search'; text: string; current?: number; total?: number; counts: Record<string, number> }
 export interface RunResult {
@@ -75,10 +81,15 @@ interface SrcMeta { id: string; cutMarkers?: string[]; privateTitleHint?: string
 
 export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean }): Promise<RunResult> {
   const { config: cfg } = deps; const now = deps.now ?? Date.now;
-  const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, search_queries: 0, kept: 0, new: 0, updated: 0, llm_calls: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0 };
+  const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, search_queries: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0 };
   const drop = (r: string) => { res.filtered[r] = (res.filtered[r] || 0) + 1; };
   const say = (stage: ProgressEvent['stage'], text: string, current?: number, total?: number) => { try { deps.onProgress?.({ stage, text, current, total, counts: { ...res.counts } }); } catch { /* progress must never break a run */ } };
   const fresh = (iso: string) => now() - new Date(iso).getTime() < cfg.limits.recheckAfterDays * 86400000;
+  const enrichCfg = resolveEnrichmentConfig(cfg);
+  const enrichBudget = {
+    searchesLeft: enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0,
+    reverseImageLeft: enrichCfg.enabled ? enrichCfg.maxReverseImagePerRun : 0,
+  };
 
   /** Fetch (or take the search snippet), extract, filter and persist a batch of candidate URLs of one source. */
   async function processItems(src: SrcMeta, items: Item[], maxPages: number) {
@@ -141,7 +152,44 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
       };
       res.counts.kept++; say(stage, `✔ match: ${ex.name.slice(0, 60)} (${ex.municipality})`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
       if (opts.dryRun) continue;
-      const r = await deps.store.upsert(rec); res.counts[r]++; if (r === 'new') res.newListings.push(rec);
+
+      // Contact enrichment (public sources only). Never drops the listing.
+      let finalRec = rec;
+      if (
+        enrichCfg.enabled &&
+        rec.contact_status !== 'found' &&
+        deps.search &&
+        (enrichBudget.searchesLeft > 0 || enrichBudget.reverseImageLeft > 0)
+      ) {
+        const input: EnrichmentInput = {
+          listingUrl: url,
+          propertyName: ex.name,
+          municipality: ex.municipality!,
+          ownerName: ex.owner,
+          photoUrls: meta.photos,
+          existingPhones: phones,
+          existingEmails: c.emails,
+          platformDomains: cfg.platformDomains,
+        };
+        try {
+          const enrichment = await enrichContacts(input, {
+            config: enrichCfg,
+            search: deps.search,
+            fetchPage: deps.fetchPage,
+            reverseImageSearch: deps.reverseImageSearch,
+            budget: enrichBudget,
+          });
+          finalRec = applyEnrichmentToRecord(rec, enrichment, rec.contact_advice);
+          if (enrichment.evidence.length) {
+            res.counts.enriched = (res.counts.enriched || 0) + 1;
+            say(stage, `☎ enriched: ${ex.name.slice(0, 50)} (+${enrichment.evidence.length})`);
+          }
+        } catch (e) {
+          finalRec = { ...rec, raw: { ...rec.raw, enrichment_error: String((e as Error)?.message || e).slice(0, 160) } };
+        }
+      }
+
+      const r = await deps.store.upsert(finalRec); res.counts[r]++; if (r === 'new') res.newListings.push(finalRec);
     }
   }
 
@@ -188,6 +236,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
       await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), d.maxPagesPerRun);
     }
   }
-  res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + res.counts.search_queries * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
+  const extraSearches = Math.max(0, (enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0) - enrichBudget.searchesLeft);
+  res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + (res.counts.search_queries + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
   return res;
 }
