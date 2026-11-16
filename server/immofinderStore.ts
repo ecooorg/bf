@@ -77,17 +77,18 @@ export async function setStatus(id: string, status: string): Promise<boolean> {
 }
 
 /** Saved rows still without a direct phone or email (and not hidden). */
-export async function listListingsNeedingContact(limit = 80): Promise<any[]> {
+export async function listListingsNeedingContact(limit = 200): Promise<any[]> {
   const p = await getPool();
+  // Any visible card without a usable phone AND without a usable email must be enriched.
+  // contact_status is ignored: a wrong "found" without phone/email still gets a retry.
   const r = await p.query(
     `SELECT * FROM immofinder_listings
      WHERE hidden = false
-       AND (direct_phone IS NULL OR direct_phone = '')
-       AND (direct_email IS NULL OR direct_email = '')
-       AND coalesce(contact_status, '') <> 'found'
+       AND (direct_phone IS NULL OR btrim(direct_phone) = '')
+       AND (direct_email IS NULL OR btrim(direct_email) = '')
      ORDER BY last_seen_at DESC
      LIMIT $1`,
-    [Math.min(Math.max(limit, 1), 200)],
+    [Math.min(Math.max(limit, 1), 500)],
   );
   return r.rows;
 }

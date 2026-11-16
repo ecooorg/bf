@@ -66,16 +66,17 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       if (!process.env.SERPER_API_KEY) {
         return res.status(400).json({ success: false, error: 'SERPER_API_KEY is required for contact search', code: 'NO_SERPER' });
       }
-      const limit = Math.min(Math.max(Number(req.body?.limit) || 40, 1), 100);
+      const limit = Math.min(Math.max(Number(req.body?.limit) || 200, 1), 500);
       const rows = await listListingsNeedingContact(limit);
-      res.status(202).json({ success: true, queued: rows.length, limit });
+      res.status(202).json({ success: true, queued: rows.length, limit, rule: "missing_phone_and_email" });
 
       void (async () => {
         const search = createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10);
         const fetchPage = createPoliteFetch(cfg);
+        // Dedicated pass: enough budget to cover every queued card (not the smaller per-search cap).
         const budget = {
-          searchesLeft: enrichCfg.maxExtraSearchesPerRun,
-          reverseImageLeft: enrichCfg.maxReverseImagePerRun,
+          searchesLeft: Math.max(enrichCfg.maxExtraSearchesPerRun, rows.length * 3),
+          reverseImageLeft: Math.max(enrichCfg.maxReverseImagePerRun, rows.length),
         };
         let found = 0; let checked = 0;
         for (const row of rows) {

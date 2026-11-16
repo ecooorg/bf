@@ -185,9 +185,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
 
       // Contact enrichment (public sources only). Never drops the listing.
       let finalRec = rec;
+      // Always try public contact search when the card has neither phone nor email.
       if (
         enrichCfg.enabled &&
-        rec.contact_status !== 'found' &&
+        !(rec.direct_phone || rec.direct_email) &&
         deps.search &&
         (enrichBudget.searchesLeft > 0 || enrichBudget.reverseImageLeft > 0)
       ) {
