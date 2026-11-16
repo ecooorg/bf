@@ -1,3 +1,10 @@
+## [128.9] - EXPERIMENT: ImmoFinder public-source contact enrichment (EXP-IMMO-1)
+
+- After a listing is already kept, if it still has no direct phone/email, an optional enrichment stage runs secondary Serper queries (property name + commune + verified owner name) and, when a reverse-image provider is supplied, public reverse-image lookups on listing photos. Candidate public pages are fetched with the existing polite fetcher; contacts are taken only from page text / tel: / mailto: (never invented).
+- Listings without contacts are still stored and remain visible; enrichment failure never drops a listing. Feature is on by default via `config/immofinder.json` → `contactEnrichment.enabled: true` (budget: 25 extra searches and 8 reverse-image calls per run).
+- New module `server/immofinderContactEnrichment.ts`; small hooks in Core (config type), Pipeline (post-keep enrichment + `counts.enriched`), config. No new environment variables; reuses `SERPER_API_KEY`. Reverse image is best-effort and skipped when no provider is passed.
+- Scope: server/immofinderContactEnrichment.ts (new), server/immofinder{Core,Pipeline}.ts, config/immofinder.json. Patch 128.9.
+
 ## [128.8] - EXPERIMENT: ImmoFinder listing types, cleanup, more owner-directory pages (EXP-IMMO-1)
 
 - Two result types (owner decision 2026-11-16): holiday owners (cold approach for a long-term lease) and direct long-term offers by private persons (reply to the ad). Tabs in the list; each type has its own German letter; Facebook posts get "Open post" and the advice to message the poster in Messenger.

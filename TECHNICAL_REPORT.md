@@ -1,3 +1,10 @@
+## P128.9 — ImmoFinder public-source contact enrichment (EXPERIMENT)
+
+- **PROBLEM:** Most kept listings (Facebook groups, Booking/Airbnb-class hosts, portal pages) have no direct phone/email; the pipeline correctly left them as `platform_only` but did not try further public sources.
+- **CHANGE:** Post-keep enrichment only: secondary Serper queries and optional reverse-image on public photos; evidence copied from public pages only; `contact_status` upgraded only when evidence exists; listings without contacts remain stored. Config `contactEnrichment` (enabled by default). Count `enriched` in run results.
+- **NOT_RUN:** Live enrichment on production Serper quota, reverse-image provider integration, precision of secondary-search contacts against labelled data, cost impact over several days.
+- **RISK / LIMIT:** Extra Serper spend bounded by `maxExtraSearchesPerRun` (25). Reverse image does nothing until a provider is wired into `PipelineDeps.reverseImageSearch`. No authenticated or paywalled sources.
+
 ## P128.8 — ImmoFinder types and cleanup (EXPERIMENT)
 
 - **OBSERVED (owner export, 40 objects, run 16.11 12:31 on 128.7):** about 20 of 40 were search pages, wanted ads, hotels or similar; only 2 had a contact (both from owner directories: Ferienhausmiete, Surselva); all 40 letters opened with "Ihre Ferienwohnung"; a list page from home.ch and a WG room passed the 128.7 filters; one commune was taken from the snippet instead of the URL.
