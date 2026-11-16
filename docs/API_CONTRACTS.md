@@ -143,3 +143,5 @@ All routes behind app auth; English errors. Not implemented in 128.1a (verify ag
 - `GET /api/immofinder/runs/latest` → counts, filtered-by-reason, errors, estimated cost, Drive link.
 
 Implemented in 128.1: all four routes above. Cron may call `POST /api/immofinder/run` with header `X-Immofinder-Secret` (timing-safe compare with `IMMOFINDER_RUN_SECRET`, min 16 chars); session calls need same-origin. Responses: 202 `{runId}`, 409 `RUN_IN_PROGRESS`, 401, 403 `CSRF_ORIGIN`, 503 `DATABASE_UNAVAILABLE`.
+
+Settings (128.5), same auth and same-origin rules: `GET /api/immofinder/settings` → `{settings, channels:{telegram,email,drive}, communes, timezone}` (booleans only, no secrets); `PUT /api/immofinder/settings` → validated and saved settings (invalid fields fall back to defaults); `POST /api/immofinder/settings/test` body `{channel:'telegram'|'email'}` → `{result}`. A cron call to `POST /api/immofinder/run` returns 200 `{skipped:'manual_only'|'not_due'}` when no search is due.
