@@ -6,7 +6,7 @@ import { CommitBadge } from './CommitBadge.tsx';
 import { MoreHorizontal, Plus } from 'lucide-react';
 
 type Listing = {
-  listing_type?: string; first_seen_at: string; id: string; status: string; municipality: string; property_name: string; title_ru: string; rooms_estimated: string | number; description_de: string; description_ru: string;
+  listing_type?: string; first_seen_at: string; id: string; status: string; municipality: string; property_name: string; rooms_estimated: string | number; description_de: string; rent_monthly_chf?: number | null; pricing_unit?: string | null; listed_at?: string | null;
   listing_url: string; photo_urls: string[]; source_urls: string[]; source_ids: string[]; private_signals: string[]; contact_status: string; contact_advice: string;
   direct_phone: string | null; direct_email: string | null; owner_name: string | null; draft_message_de: string;
 };
@@ -21,6 +21,7 @@ const STAGES: Record<string, string> = { catalogue: 'Step 1 of 3 · Checking ren
 const REASONS: Record<string, string> = {
   not_single_listing: 'not a single property page', agency: 'agency or manager', municipality_not_whitelisted: 'outside the target communes', rooms_unknown: 'room count not stated',
   rooms_below_min: 'fewer than 3 rooms', registration_forbidden: 'permanent registration not allowed',
+  price_above_max: 'monthly rent above your limit', price_not_monthly: 'price is per night/week/season', price_unknown: 'price not stated', stale_listing: 'listing too old', seeker_post: 'looking for a flat (not an offer)', contact_required: 'no direct contact',
 };
 const SOURCE_LABEL: Record<string, string> = { happyholiday: 'HappyHoliday', ferienhausmiete: 'Ferienhausmiete', graubuenden: 'Graubünden.ch', search: 'Web search' };
 
@@ -181,7 +182,7 @@ export default function ImmoFinder() {
                 </details>
               )}
             </>
-          ) : <p style={{ margin: '6px 0' }}>No search yet. Press “New search” to start the first one.</p>}
+          ) : <p style={{ margin: '6px 0' }}>No search yet. Press “New search” to start — it keeps running on the server (up to 30 minutes) even if you close this tab.</p>}
         </section>
       )}
 
@@ -203,8 +204,7 @@ export default function ImmoFinder() {
           <p style={{ margin: '0 0 6px', fontSize: 13, color: '#8fa6c2' }} data-testid="immofinder-found-at">Found: {fmtFound(l.first_seen_at)}</p>
           <div><span style={chip}>📍 {l.municipality}</span><span style={chip}>🚪 {l.rooms_estimated} rooms</span>{l.source_ids.map((s) => <span key={s} style={chip}>{SOURCE_LABEL[s] || s}</span>)}
             <span style={chip}>{l.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'}</span>{l.private_signals.includes('long_term_possible') && <span style={chip}>long-term mentioned</span>}{l.private_signals.includes('platform_says_private') && <span style={chip}>listed as private</span>}{l.private_signals.includes('snippet_only') && <span style={chip}>from search snippet</span>}{l.private_signals.includes('generic_link') && <span style={chip}>link opens a search or group page</span>}</div>
-          {l.title_ru && <p style={{ color: '#9fd8ff', margin: '8px 0 2px' }}>{l.title_ru}</p>}
-          {l.description_ru && <p style={{ color: '#9fd8ff', margin: '2px 0' }}>{l.description_ru}</p>}
+          {l.rent_monthly_chf != null && <span style={chip}>CHF {l.rent_monthly_chf}/mo</span>}
           {l.description_de && <p style={{ margin: '4px 0', fontSize: 14, color: '#b9cce6' }}>{l.description_de}</p>}
           <p style={{ margin: '8px 0' }}>
             <strong>Contact: </strong>{l.contact_status === 'found' ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ') : <em>no direct contact found yet. {l.contact_advice}</em>}

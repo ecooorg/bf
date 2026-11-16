@@ -104,7 +104,25 @@ export default function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) =
 
       <div style={box}>
         <strong>4 · Cost guard</strong>
-        <label style={{ display: 'block', margin: '6px 0' }}>Analyse at most <select value={s.search.maxAiPages} onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, maxAiPages: Number(e.target.value) } }))}>{[20, 40, 60, 100, 200].map((n) => <option key={n} value={n}>{n}</option>)}</select> pages with AI per search (about $0.002 each; the rest is checked with simple rules)</label>
+        
+        <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid #243a57' }}>
+          <strong>Quality filters</strong>
+          <label style={{ display: 'block', margin: '6px 0' }}>Max monthly rent (CHF)
+            <input type="number" min={200} max={10000} step={50} value={s.search.maxMonthlyRentChf ?? 2000}
+              onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, maxMonthlyRentChf: Number(e.target.value) } }))}
+              style={{ width: 100, marginLeft: 8 }} />
+          </label>
+          <label style={{ display: 'block', margin: '6px 0' }}>Max listing age (days, 0 = no limit)
+            <input type="number" min={0} max={3650} step={30} value={s.search.maxListingAgeDays ?? 180}
+              onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, maxListingAgeDays: Number(e.target.value) } }))}
+              style={{ width: 100, marginLeft: 8 }} />
+          </label>
+          <label style={{ display: 'block', margin: '4px 0 4px 0' }}><input type="checkbox" checked={s.search.rejectNonMonthly !== false} onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, rejectNonMonthly: e.target.checked } }))} /> Reject prices per night / week / season (keep monthly only)</label>
+          <label style={{ display: 'block', margin: '4px 0' }}><input type="checkbox" checked={!!s.search.requirePrice} onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requirePrice: e.target.checked } }))} /> Require a stated price</label>
+          <label style={{ display: 'block', margin: '4px 0' }}><input type="checkbox" checked={s.search.rejectSeekerPosts !== false} onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, rejectSeekerPosts: e.target.checked } }))} /> Reject “looking for a flat” posts (seekers)</label>
+          <label style={{ display: 'block', margin: '4px 0' }}><input type="checkbox" checked={!!s.search.requireContact} onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requireContact: e.target.checked } }))} /> Require direct phone or email</label>
+        </div>
+<label style={{ display: 'block', margin: '6px 0' }}>Analyse at most <select value={s.search.maxAiPages} onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, maxAiPages: Number(e.target.value) } }))}>{[20, 40, 60, 100, 200].map((n) => <option key={n} value={n}>{n}</option>)}</select> pages with AI per search (about $0.002 each; the rest is checked with simple rules)</label>
       </div>
 
       <button type="button" data-testid="immofinder-settings-save" onClick={save} disabled={!dirty} className="immo-btn" style={{ padding: '10px 18px', fontSize: 16 }}>{dirty ? 'Save settings' : 'Saved'}</button>
