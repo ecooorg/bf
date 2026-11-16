@@ -61,9 +61,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       const cfg = loadImmoConfig();
       const enrichCfg = resolveEnrichmentConfig(cfg);
       if (!enrichCfg.enabled) {
+        console.warn(JSON.stringify({ type: 'immofinder_enrich_existing_rejected', code: 'ENRICHMENT_OFF' }));
         return res.status(400).json({ success: false, error: 'Contact enrichment is disabled in config', code: 'ENRICHMENT_OFF' });
       }
       if (!process.env.SERPER_API_KEY) {
+        console.warn(JSON.stringify({ type: 'immofinder_enrich_existing_rejected', code: 'NO_SERPER' }));
         return res.status(400).json({ success: false, error: 'SERPER_API_KEY is required for contact search', code: 'NO_SERPER' });
       }
       const limit = Math.min(Math.max(Number(req.body?.limit) || 200, 1), 500);
@@ -71,6 +73,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       res.status(202).json({ success: true, queued: rows.length, limit, rule: "missing_phone_and_email" });
 
       void (async () => {
+        const started = Date.now();
         const search = createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10);
         const fetchPage = createPoliteFetch(cfg);
         // Dedicated pass: enough budget to cover every queued card (not the smaller per-search cap).
@@ -78,9 +81,25 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           searchesLeft: Math.max(enrichCfg.maxExtraSearchesPerRun, rows.length * 3),
           reverseImageLeft: Math.max(enrichCfg.maxReverseImagePerRun, rows.length),
         };
-        let found = 0; let checked = 0;
+        console.info(JSON.stringify({
+          type: 'immofinder_enrich_existing_start',
+          queued: rows.length,
+          limit,
+          budgetSearches: budget.searchesLeft,
+          budgetReverseImage: budget.reverseImageLeft,
+          hasSerper: Boolean(process.env.SERPER_API_KEY),
+          enrichmentEnabled: enrichCfg.enabled,
+        }));
+        let found = 0; let checked = 0; let errors = 0;
         for (const row of rows) {
-          if (budget.searchesLeft <= 0 && budget.reverseImageLeft <= 0) break;
+          if (budget.searchesLeft <= 0 && budget.reverseImageLeft <= 0) {
+            console.warn(JSON.stringify({
+              type: 'immofinder_enrich_existing_budget_exhausted',
+              checked, found, remaining: rows.length - checked,
+              searchesLeft: budget.searchesLeft, reverseImageLeft: budget.reverseImageLeft,
+            }));
+            break;
+          }
           checked++;
           const evidence = Array.isArray(row.contact_evidence) ? row.contact_evidence : [];
           const input: EnrichmentInput = {
@@ -117,14 +136,51 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
               contact_advice: merged.contact_advice,
               raw: merged.raw,
             });
-            if (enrichment.evidence.length) found++;
-          } catch {
-            /* continue next listing */
+            const hit = enrichment.evidence.length > 0;
+            if (hit) found++;
+            console.info(JSON.stringify({
+              type: 'immofinder_enrich_existing_item',
+              index: checked,
+              total: rows.length,
+              id: String(row.id).slice(0, 36),
+              municipality: String(row.municipality || '').slice(0, 40),
+              propertyName: String(row.property_name || '').slice(0, 60),
+              listingHost: (() => { try { return new URL(String(row.listing_url || '')).hostname; } catch { return ''; } })(),
+              hit,
+              evidenceCount: enrichment.evidence.length,
+              hasPhone: Boolean(merged.direct_phone),
+              hasEmail: Boolean(merged.direct_email),
+              notes: (enrichment.notes || []).slice(0, 6),
+              cost: enrichment.cost || {},
+              searchesLeft: budget.searchesLeft,
+            }));
+          } catch (e) {
+            errors++;
+            console.warn(JSON.stringify({
+              type: 'immofinder_enrich_existing_item_error',
+              index: checked,
+              id: String(row.id).slice(0, 36),
+              municipality: String(row.municipality || '').slice(0, 40),
+              error: String((e as Error)?.message || e).slice(0, 180),
+            }));
           }
         }
-        // progress is not a full run; nothing else to finish
-        void found; void checked;
-      })();
+        console.info(JSON.stringify({
+          type: 'immofinder_enrich_existing_done',
+          queued: rows.length,
+          checked,
+          found,
+          errors,
+          durationMs: Date.now() - started,
+          searchesLeft: budget.searchesLeft,
+          reverseImageLeft: budget.reverseImageLeft,
+        }));
+      })().catch((e) => {
+        console.error(JSON.stringify({
+          type: 'immofinder_enrich_existing_fatal',
+          error: String((e as Error)?.message || e).slice(0, 200),
+        }));
+      });
     } catch (e) {
       return res.status(500).json({ success: false, error: String((e as Error)?.message || e).slice(0, 160), code: 'IMMOFINDER_FAILED' });
     }

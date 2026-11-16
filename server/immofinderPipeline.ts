@@ -215,6 +215,15 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
             res.counts.enriched = (res.counts.enriched || 0) + 1;
             say(stage, `☎ enriched: ${ex.name.slice(0, 50)} (+${enrichment.evidence.length})`);
           }
+          console.info(JSON.stringify({
+            type: 'immofinder_enrich_pipeline_item',
+            hit: enrichment.evidence.length > 0,
+            evidenceCount: enrichment.evidence.length,
+            municipality: (ex.municipality || '').slice(0, 40),
+            propertyName: ex.name.slice(0, 60),
+            notes: (enrichment.notes || []).slice(0, 6),
+            searchesLeft: enrichBudget.searchesLeft,
+          }));
         } catch (e) {
           finalRec = { ...rec, raw: { ...rec.raw, enrichment_error: String((e as Error)?.message || e).slice(0, 160) } };
         }
