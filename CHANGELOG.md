@@ -1,3 +1,8 @@
+## [128.16] - EXPERIMENT: Stronger Immofinder contact search queries (EXP-IMMO-1)
+
+- Stronger public contact enrichment: Swiss directory queries (`site:local.ch`, `site:search.ch`), more CH contact keywords, portal exclusions, up to 5 Serper queries per listing, candidate URLs ranked (directories / .ch / Impressum first), deeper extraction near Kontakt/Telefon windows, richer notes (`q:…`, `candidates_N`).
+- Scope: server/immofinderContactEnrichment.ts, package.json, package-lock.json. Patch 128.16.
+
 ## [128.15] - EXPERIMENT: Contact search progress on screen (EXP-IMMO-1)
 
 - UI shows a live **Contact search in progress…** panel (checked/queued, found, current listing) while **Find contacts for saved** runs; polls `GET /api/immofinder/enrich-status` every 2s; final message when done. Button disabled during the job.

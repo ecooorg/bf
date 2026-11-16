@@ -1,3 +1,9 @@
+## P128.16 — Stronger contact enrichment queries (EXPERIMENT)
+
+- **CHANGE:** buildSecondaryQueries expanded; scoreCandidateUrl ranking; extractContactsEnhanced keyword windows; more queries/candidates per listing.
+- **NOT_RUN:** Live hit-rate on the current 14 contactless saved rows after redeploy.
+- **COST:** Up to ~5 Serper queries × listings in a batch (still capped by enrich budget).
+
 ## P128.15 — Enrich-existing progress UI (EXPERIMENT)
 
 - **CHANGE:** In-process enrichJobStatus + GET enrich-status; ImmoFinder banner polls while running.
