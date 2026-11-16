@@ -1,3 +1,8 @@
+## [128.13] - EXPERIMENT: Always enrich listings without phone/email (EXP-IMMO-1)
+
+- Contact search selection is based only on missing direct phone **and** missing email (trim empty). `contact_status` no longer blocks enrichment. Applies to live pipeline keeps and to **Find contacts for saved** (all visible cards without phone/email, higher Serper budget for the batch pass).
+- Scope: server/immofinder{Store,Pipeline,Routes}.ts, package.json, package-lock.json. Patch 128.13.
+
 ## [128.12] - EXPERIMENT: Re-enrich contacts on saved listings (EXP-IMMO-1)
 
 - New action **Find contacts for saved**: `POST /api/immofinder/enrich-existing` runs public-source contact enrichment on up to 40 already saved listings that still lack phone and email (does not delete anything). UI button next to Clean up list.

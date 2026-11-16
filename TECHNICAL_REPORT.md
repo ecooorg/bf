@@ -1,3 +1,9 @@
+## P128.13 — Enrich every listing missing phone and email (EXPERIMENT)
+
+- **CHANGE:** Dropped `contact_status <> found` gate; whitespace-only phone/email treated as empty; batch enrich budget scales with queued rows.
+- **NOT_RUN:** Live hit rate after re-running Find contacts for saved on the current DB.
+- **RISK:** More Serper calls per batch (up to ~3 × number of contactless cards).
+
 ## P128.12 — Enrich contacts on existing Immofinder listings (EXPERIMENT)
 
 - **CHANGE:** Batch enrichment endpoint for saved rows without direct contact; cooperative with Serper budget from config.contactEnrichment.
