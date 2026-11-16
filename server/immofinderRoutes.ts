@@ -3,8 +3,8 @@ import express, { type Express, type Request } from 'express';
 import { isSameOrigin } from './security.ts';
 import { createPoliteFetch } from './immofinderFetcher.ts';
 import { runPipeline } from './immofinderPipeline.ts';
-import { channelStatus, exportDrive, sendEmail, sendTelegram } from './immofinderDelivery.ts';
-import { TIMEZONE, applySettings, isDue } from './immofinderSettings.ts';
+import { channelStatus, checkDrive, exportDrive, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
+import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
 import { STATUSES, createPgStore, finishRun, getSettings, lastRealRunAt, latestRun, listListings, loadImmoConfig, realRunCount, saveProgress, saveSettings, setStatus, startRun } from './immofinderStore.ts';
 
@@ -20,6 +20,11 @@ function secretOk(req: Request): boolean {
   if (!want || want.length < 16 || !got) return false;
   const a = Buffer.from(want); const b = Buffer.from(got);
   return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+/** Folder precedence: saved setting, then env, then the config default. */
+function driveFolder(saved: string): string {
+  return saved || parseDriveFolderId(process.env.IMMOFINDER_DRIVE_FOLDER_ID) || parseDriveFolderId(loadImmoConfig().driveFolderId);
 }
 
 export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): void {
@@ -68,6 +73,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       const s = await getSettings(loadImmoConfig());
       if (channel === 'telegram') return res.json({ success: true, result: await sendTelegram('ImmoFinder test message: Telegram delivery works.') });
       if (channel === 'email') return res.json({ success: true, result: s.delivery.emailTo ? await sendEmail(s.delivery.emailTo, 'ImmoFinder test message', 'ImmoFinder test message: email delivery works.') : 'skipped: save an email address first' });
+      if (channel === 'drive') return res.json({ success: true, result: await checkDrive(driveFolder(s.delivery.driveFolderId)) });
       return res.status(400).json({ success: false, error: 'Unknown channel', code: 'INVALID_REQUEST' });
     } catch { return res.status(500).json({ success: false, error: 'Test failed', code: 'IMMOFINDER_FAILED' }); }
   });
@@ -98,11 +104,16 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         errors.push(...result.errors);
         if (!dryRun) {
           const dl = settings.delivery; const notify = result.counts.new > 0 || dl.notifyWhenEmpty;
-          if (dl.drive) { push({ stage: 'delivery', text: 'Saving results to Google Drive', counts: result.counts }, true); const d = await exportDrive(await listListings(null)); delivery.drive = d.status; if (d.url) delivery.driveUrl = d.url; } else delivery.drive = 'off';
-          const top = result.newListings.slice(0, 8).map((l) => `• ${l.property_name} (${l.municipality}, ${l.rooms_estimated} rooms)\n${l.listing_url}${l.direct_phone || l.direct_email ? `\n${[l.direct_phone, l.direct_email].filter(Boolean).join(' · ')}` : ''}`).join('\n\n');
-          const text = `ImmoFinder: ${result.counts.new} new, ${result.counts.updated} updated, ${result.counts.kept} matched.${top ? `\n\n${top}` : ''}${delivery.driveUrl ? `\n\nDrive: ${delivery.driveUrl}` : ''}`;
-          if (dl.telegram) { push({ stage: 'delivery', text: 'Sending Telegram message', counts: result.counts }, true); delivery.telegram = notify ? await sendTelegram(text) : 'skipped: nothing new'; } else delivery.telegram = 'off';
-          if (dl.email && dl.emailTo) { push({ stage: 'delivery', text: 'Sending email', counts: result.counts }, true); delivery.email = notify ? await sendEmail(dl.emailTo, `ImmoFinder: ${result.counts.new} new listings`, text) : 'skipped: nothing new'; } else delivery.email = 'off';
+          const all = await listListings(null); const newKeys = new Set(result.newListings.map((l) => l.canonical_key)); const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
+          if (dl.drive) { push({ stage: 'delivery', text: 'Updating the Google Sheet and Doc in Drive', counts: result.counts }, true); const d = await exportDrive(all, driveFolder(dl.driveFolderId)); delivery.drive = d.status; if (d.url) delivery.driveUrl = d.url; } else delivery.drive = 'off';
+          const head = `ImmoFinder: ${result.counts.new} new, ${result.counts.updated} updated, ${result.counts.kept} matched.`;
+          if (dl.telegram) { push({ stage: 'delivery', text: 'Sending Telegram message', counts: result.counts }, true); delivery.telegram = notify ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl })) : 'skipped: nothing new'; } else delivery.telegram = 'off';
+          if (dl.email && dl.emailTo) {
+            push({ stage: 'delivery', text: 'Sending email', counts: result.counts }, true);
+            const allMode = dl.emailContent === 'all';
+            delivery.email = notify ? await sendEmail(dl.emailTo, allMode ? `ImmoFinder: all ${all.length} listings (${result.counts.new} new)` : `ImmoFinder: ${result.counts.new} new listings`,
+              formatListingsText(allMode ? all : fresh, { heading: allMode ? `${head}\nAll listings found so far (${all.length}), newest first:` : head, limit: allMode ? 60 : 30, driveUrl: delivery.driveUrl })) : 'skipped: nothing new';
+          } else delivery.email = 'off';
         }
       } catch (e) { errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) }); }
       try { await finishRun(runId!, result, errors, delivery); await saveProgress(runId!, { stage: 'done', text: 'Finished', counts: result?.counts ?? {}, log }); } catch { /* run row stays open; the 30-minute guard releases it */ }

@@ -6,6 +6,7 @@ export interface ImmoConfig {
   limits: { maxDetailPagesPerSource: number; recheckAfterDays: number; fetchTimeoutMs: number; maxPageBytes: number };
   estCostPerLlmCallUsd: number;
   estCostPerSearchUsd?: number;
+  driveFolderId?: string;
   discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; snippetOnlyHosts: string[]; skipHosts: string[] };
 }
 

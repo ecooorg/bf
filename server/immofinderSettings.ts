@@ -5,19 +5,31 @@ export const TIMEZONE = 'Europe/Zurich';
 
 export interface ImmoSettings {
   schedule: { mode: 'manual' | 'hours' | 'daily'; everyHours: 3 | 6 | 12; dailyAt: string };
-  delivery: { telegram: boolean; email: boolean; emailTo: string; drive: boolean; notifyWhenEmpty: boolean };
+  delivery: { telegram: boolean; email: boolean; emailTo: string; emailContent: 'new' | 'all'; drive: boolean; driveFolderId: string; notifyWhenEmpty: boolean };
   search: { minRooms: number; communes: string[]; sources: Record<string, boolean>; maxAiPages: number };
 }
 
 export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
   return {
     schedule: { mode: 'manual', everyHours: 3, dailyAt: '06:00' },
-    delivery: { telegram: true, email: false, emailTo: '', drive: true, notifyWhenEmpty: false },
+    delivery: { telegram: true, email: false, emailTo: '', emailContent: 'new', drive: true, driveFolderId: '', notifyWhenEmpty: false },
     search: { minRooms: cfg.minRooms, communes: [...cfg.municipalities], sources: Object.fromEntries(SOURCE_IDS.map((s) => [s, true])), maxAiPages: 60 },
   };
 }
 
 const bool = (v: unknown, d: boolean) => (typeof v === 'boolean' ? v : d);
+
+/** Accepts a Drive folder URL or a bare ID; returns the ID or ''. */
+export function parseDriveFolderId(v: unknown): string {
+  const s = String(v ?? '').trim(); const m = /\/folders\/([\w-]{20,})/.exec(s) || /^([\w-]{20,})$/.exec(s);
+  return m ? m[1] : '';
+}
+
+/** "16.11.2026, 03:07" in Swiss time. */
+export function formatZurich(d: Date | string): string {
+  const x = typeof d === 'string' ? new Date(d) : d; if (Number.isNaN(x.getTime())) return '';
+  return new Intl.DateTimeFormat('de-CH', { timeZone: TIMEZONE, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(x);
+}
 
 /** Validates untrusted input; anything invalid falls back to the default for that field. */
 export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
@@ -33,7 +45,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const sources = Object.fromEntries(SOURCE_IDS.map((id) => [id, bool(se.sources?.[id], true)]));
   return {
     schedule: { mode, everyHours, dailyAt },
-    delivery: { telegram: bool(dl.telegram, d.delivery.telegram), email: bool(dl.email, false) && Boolean(emailTo), emailTo, drive: bool(dl.drive, d.delivery.drive), notifyWhenEmpty: bool(dl.notifyWhenEmpty, false) },
+    delivery: { telegram: bool(dl.telegram, d.delivery.telegram), email: bool(dl.email, false) && Boolean(emailTo), emailTo, emailContent: dl.emailContent === 'all' ? 'all' : 'new', drive: bool(dl.drive, d.delivery.drive), driveFolderId: parseDriveFolderId(dl.driveFolderId), notifyWhenEmpty: bool(dl.notifyWhenEmpty, false) },
     search: { minRooms, communes: communes.length ? communes : d.search.communes, sources, maxAiPages },
   };
 }
