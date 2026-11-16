@@ -86,6 +86,15 @@ export default function ImmoFinder() {
     } catch (e) { setMsg((e as Error).message); }
   };
   const cleanup = async () => { try { const r = await api('/api/immofinder/cleanup', { method: 'POST', body: '{}' }); setMsg(`Hid ${r.hidden} saved results that are not suitable.`); await loadList(); } catch (e) { setMsg((e as Error).message); } };
+  const enrichExisting = async () => {
+    setMsg('Searching contacts for saved listings…');
+    try {
+      const r = await api('/api/immofinder/enrich-existing', { method: 'POST', body: JSON.stringify({ limit: 40 }) });
+      setMsg(`Contact search started for ${r.queued} saved listings without phone/email. Refresh the list in a few minutes.`);
+      // soft refresh later
+      setTimeout(() => { void loadList(); }, 15000);
+    } catch (e) { setMsg((e as Error).message); }
+  };
   const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
 
   const pr = run?.progress || {};
@@ -211,6 +220,7 @@ export default function ImmoFinder() {
           <button key={id} type="button" role="tab" aria-selected={tab === id} className="immo-btn small" style={{ opacity: tab === id ? 1 : 0.6 }} onClick={() => setTab(id)}>{label} · {n}</button>
         ))}
         {hidden > 0 && <span style={{ fontSize: 13, color: '#8fa6c2', alignSelf: 'center' }}>{hidden} hidden as not suitable</span>}
+        <button type="button" className="ghost" data-testid="immofinder-enrich-existing" onClick={() => void enrichExisting()} style={{ fontSize: 13 }}>Find contacts for saved</button>
         <button type="button" className="ghost" onClick={() => void cleanup()} style={{ fontSize: 13 }}>Clean up list</button>
       </div>
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
