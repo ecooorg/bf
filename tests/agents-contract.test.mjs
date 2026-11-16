@@ -62,7 +62,9 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
 });
 
 // ---- P128.1 ImmoFinder GR (module logic, pipeline with fake fetch/LLM, UI wiring) ----
-import { matchMunicipality, parseRooms, registrationForbidden, verifyQuote, extractContacts, draftMessage, candidateLinks, canonicalKey } from '../server/immofinderCore.ts';
+import { defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
+import { communesForRun, buildQueries, pickItems } from '../server/immofinderDiscovery.ts';
+import { cutAtMarkers, slugVariants, agencyQuoteCounts, matchMunicipality, parseRooms, registrationForbidden, verifyQuote, extractContacts, draftMessage, candidateLinks, canonicalKey } from '../server/immofinderCore.ts';
 import { runPipeline } from '../server/immofinderPipeline.ts';
 
 const immoCfg = JSON.parse(read('config/immofinder.json'));
@@ -106,7 +108,8 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
     'https://t.example/ferienwohnung/3': immoPage('Studio Davos', '<p>Studio in Davos, 1.5 Zimmer.</p>'),
   };
   const saved = [];
-  const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; } };
+  const seenDb = new Map();
+  const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async (u) => seenDb.get(u) || null, markSeen: async (u) => { seenDb.set(u, { checked_at: new Date().toISOString() }); } };
   const llm = async (_s, prompt) => prompt.includes('Chesa Alba')
     ? { single_property: true, property_name: 'Chesa Alba', municipality_quote: 'Chesa Alba in Churwalden', rooms_quote: '4.5 Zimmer', owner_name: 'Fritz Erfunden', owner_name_quote: 'Fritz Erfunden', is_agency_or_manager: false, agency_quote: null, registration_forbidden_quote: null, summary_de: 'Wohnung in Churwalden', title_ru: 'Chesa Alba', summary_ru: 'Квартира в Churwalden' }
     : { single_property: true, property_name: null, municipality_quote: null, rooms_quote: null, owner_name: null, owner_name_quote: null, is_agency_or_manager: false, agency_quote: null, registration_forbidden_quote: null, summary_de: '', title_ru: '', summary_ru: '' };
@@ -131,7 +134,100 @@ test('P128.1 empty source is reported, not silent; UI, route and cron wiring exi
   const app = read('src/App.tsx');
   assert.match(app, /data-testid="start-immofinder"/);
   const ui = read('src/ImmoFinder.tsx');
-  for (const id of ['immofinder-root', 'immofinder-run', 'immofinder-status-filter', 'immofinder-card', 'immofinder-last-run']) assert.match(ui, new RegExp(id));
+  for (const id of ['immofinder-root', 'immofinder-run', 'immofinder-status-filter', 'immofinder-card', 'immofinder-last-run', 'immofinder-live']) assert.match(ui, new RegExp(id));
   assert.match(read('server.ts'), /registerImmoFinderRoutes\(app/);
   assert.match(read('.github/workflows/immofinder-cron.yml'), /api\/immofinder\/run/);
+});
+
+test('P128.2 footer cut, slug variants, agency flag needs a business-form quote, pattern-only links, city pages, seen cache', async () => {
+  assert.equal(cutAtMarkers(`${'x'.repeat(400)} Andere Häuser Camuns Laax`, ['Andere Häuser']).includes('Camuns'), false);
+  assert.deepEqual(slugVariants('Fläsch'), ['flaesch', 'flasch']);
+  assert.equal(slugVariants('Domat/Ems')[0], 'domat-ems');
+  assert.equal(agencyQuoteCounts('Alpweg 21, 4900 Langenthal', 'happyholiday.ch'), false);
+  assert.equal(agencyQuoteCounts('Muster Immobilien AG', 'happyholiday.ch'), true);
+  assert.equal(agencyQuoteCounts('HappyHoliday Immobilien GmbH', 'happyholiday.ch'), false);
+  const html = '<a href="/haus/a-graubuenden-in-chur/">1</a><a href="/haus/b-sardinien-in-alghero/">2</a><a href="/city/chur/">3</a>';
+  assert.deepEqual(candidateLinks(html, 'https://h.example/x', 10, /\/haus\/[^/]+-graubuenden-in-[^/]+\/?$/), ['https://h.example/haus/a-graubuenden-in-chur/']);
+  const cfg = { ...immoCfg, municipalities: ['Chur', 'Zizers'], sources: [{ id: 'h', url: 'https://h.example/area/', phase: 1, cityUrl: 'https://h.example/city/{slug}/', detailPattern: '^https://h\\.example/haus/[^/]+-graubuenden-in-[^/]+/?$', privateTitleHint: 'von privat' }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
+  const pages = {
+    'https://h.example/area/': '<html></html>',
+    'https://h.example/city/chur/': '<a href="/haus/chesa-x-graubuenden-in-chur/">x</a>',
+    'https://h.example/haus/chesa-x-graubuenden-in-chur/': immoPage('Chesa X in Chur – von privat', '<p>Chesa X in Chur, 4 Zimmer. Wohnzimmer. Andere Häuser Laax 9 Zimmer</p>'),
+  };
+  let fetched = 0; const saved = []; const seen = new Map();
+  const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async (u) => seen.get(u) || null, markSeen: async (u) => { seen.set(u, { checked_at: new Date().toISOString() }); } };
+  const fetchPage = async (u) => { fetched++; return pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }; };
+  const res = await runPipeline({ config: cfg, fetchPage, llm: null, store }, { dryRun: true });
+  assert.equal(res.counts.index_pages, 2);
+  assert.equal(res.counts.candidates, 1);
+  assert.equal(res.counts.kept, 1);
+  assert.ok(res.preview[0].detail.includes('platform_says_private'));
+  assert.equal(res.preview[0].title.includes('Chesa X'), true);
+});
+
+test('P128.3 discovery: commune rotation, host policy, snippet-only portals, owner pages fetched, dedupe, no key = reported', async () => {
+  assert.deepEqual(communesForRun(['a', 'b', 'c', 'd'], 3, 0), ['a', 'b', 'c']);
+  assert.deepEqual(communesForRun(['a', 'b', 'c', 'd'], 3, 1), ['d', 'a', 'b']);
+  const cfg = { ...immoCfg, municipalities: ['Chur', 'Zizers'], sources: [], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 }, discovery: { ...immoCfg.discovery, communesPerRun: 1, queries: ['Ferienwohnung {commune} privat'], maxPagesPerRun: 10 } };
+  assert.deepEqual(buildQueries(cfg, 1), ['Ferienwohnung Zizers privat']);
+  const hits = [
+    { title: 'Interhome Chur', link: 'https://www.interhome.ch/x', snippet: 'Interhome' },
+    { title: 'Wikipedia', link: 'https://de.wikipedia.org/wiki/Chur', snippet: '' },
+    { title: 'Ferienwohnung Chur 4 Zimmer von privat', link: 'https://www.facebook.com/marketplace/item/1', snippet: 'Schöne 4 Zimmer Wohnung in Chur, Tel 079 123 45 67' },
+    { title: 'Chesa Mia', link: 'https://chesa-mia.example/', snippet: '' },
+    { title: 'dup', link: 'https://chesa-mia.example/', snippet: '' },
+  ];
+  const items = pickItems(hits, cfg);
+  assert.deepEqual(items.map((i) => [i.host, i.snippetOnly]), [['facebook.com', true], ['chesa-mia.example', false]]);
+  const pages = { 'https://chesa-mia.example/': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung. Tel 081 222 33 44, mia@chesa-mia.example</p>') };
+  const saved = [];
+  const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async () => null, markSeen: async () => {} };
+  const fetchPage = async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 403, body: '' });
+  const search = async () => hits;
+  const res = await runPipeline({ config: cfg, fetchPage, llm: null, store, search, cycle: 0 }, { dryRun: false });
+  assert.equal(res.counts.search_queries, 2 - 1);
+  assert.equal(res.counts.snippet_only, 1);
+  assert.equal(res.counts.kept, 2);
+  const fb = saved.find((r) => r.listing_url.includes('facebook'));
+  assert.ok(fb.private_signals.includes('snippet_only') && fb.direct_phone && fb.photo_urls.length === 0);
+  assert.equal(saved.find((r) => r.listing_url.includes('chesa-mia')).direct_email, 'mia@chesa-mia.example');
+  const nokey = await runPipeline({ config: cfg, fetchPage, llm: null, store, search: null }, { dryRun: true });
+  assert.equal(nokey.errors[0].code, 'discovery_skipped');
+});
+
+test('P128.4 pipeline reports live progress with stage, text and counters', async () => {
+  const cfg = { ...immoCfg, municipalities: ['Chur'], discovery: { ...immoCfg.discovery, communesPerRun: 1, queries: ['q {commune}'] }, sources: [{ id: 'h', url: 'https://h.example/area/', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
+  const pages = { 'https://h.example/area/': '<a href="/ferienwohnung/1">a</a>', 'https://h.example/ferienwohnung/1': immoPage('Chesa A', '<p>Chesa A in Chur, 4 Zimmer</p>') };
+  const ev = [];
+  const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
+  await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }), llm: null, store, search: async () => [], onProgress: (e) => { ev.push(e); if (ev.length === 2) throw new Error('progress must not break runs'); } }, { dryRun: true });
+  assert.ok(ev.some((e) => e.stage === 'catalogue' && /reading 1\/1/.test(e.text)));
+  assert.ok(ev.some((e) => e.stage === 'search' && /Searching: q Chur/.test(e.text)));
+  assert.ok(ev.some((e) => /match: Chesa A/.test(e.text)) && ev.at(-1).counts.kept === 1);
+});
+
+test('P128.5 settings: invalid input falls back, scope applies to config, schedule due logic (Swiss time)', async () => {
+  const d = defaultSettings(immoCfg);
+  assert.equal(d.schedule.mode, 'manual');
+  const s = sanitizeSettings({ schedule: { mode: 'hours', everyHours: 5, dailyAt: '25:99' }, delivery: { email: true, emailTo: 'bad address', telegram: false }, search: { minRooms: 99, communes: ['Chur', 'Atlantis'], maxAiPages: 7, sources: { search: false } } }, immoCfg);
+  assert.equal(s.schedule.everyHours, 3); assert.equal(s.schedule.dailyAt, '06:00');
+  assert.equal(s.delivery.email, false, 'email stays off without a valid address'); assert.equal(s.delivery.telegram, false);
+  assert.deepEqual(s.search.communes, ['Chur']); assert.equal(s.search.minRooms, 3); assert.equal(s.search.maxAiPages, 60);
+  const eff = applySettings(immoCfg, s);
+  assert.deepEqual(eff.municipalities, ['Chur']); assert.equal(eff.discovery.enabled, false);
+  assert.equal(sanitizeSettings({ search: { communes: [] } }, immoCfg).search.communes.length, immoCfg.municipalities.length);
+  const now = new Date('2026-11-16T11:07:00Z');
+  assert.equal(isDue({ mode: 'manual', everyHours: 3, dailyAt: '06:00' }, null, now), false);
+  assert.equal(isDue({ mode: 'hours', everyHours: 3, dailyAt: '06:00' }, new Date('2026-11-16T08:07:00Z'), now), true);
+  assert.equal(isDue({ mode: 'hours', everyHours: 3, dailyAt: '06:00' }, new Date('2026-11-16T09:30:00Z'), now), false);
+  const daily = { mode: 'daily', everyHours: 3, dailyAt: '06:00' };
+  assert.equal(isDue(daily, new Date('2026-11-15T05:10:00Z'), new Date('2026-11-16T04:30:00Z')), false, '05:30 Swiss time is before 06:00');
+  assert.equal(isDue(daily, new Date('2026-11-15T05:10:00Z'), new Date('2026-11-16T05:07:00Z')), true, '06:07 Swiss time, last run yesterday');
+  assert.equal(isDue(daily, new Date('2026-11-16T05:10:00Z'), new Date('2026-11-16T09:00:00Z')), false, 'already ran today after 06:00');
+  const cap = []; const pages = { 'https://c.example/a': '<a href="/ferienwohnung/1">1</a><a href="/ferienwohnung/2">2</a><a href="/ferienwohnung/3">3</a>', 'https://c.example/ferienwohnung/1': immoPage('A Chur', '<p>A in Chur 4 Zimmer</p>'), 'https://c.example/ferienwohnung/2': immoPage('B Chur', '<p>B in Chur 4 Zimmer</p>'), 'https://c.example/ferienwohnung/3': immoPage('C Chur', '<p>C in Chur 4 Zimmer</p>') };
+  const llm = async () => { cap.push(1); return { single_property: true, property_name: null, municipality_quote: null, rooms_quote: null, owner_name: null, owner_name_quote: null, is_agency_or_manager: false, agency_quote: null, registration_forbidden_quote: null, summary_de: '', title_ru: '', summary_ru: '' }; };
+  const cfg = { ...immoCfg, municipalities: ['Chur'], discovery: { ...immoCfg.discovery, enabled: false }, sources: [{ id: 'c', url: 'https://c.example/a', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
+  const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
+  const res = await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }), llm, store, maxLlmCalls: 2 }, { dryRun: false });
+  assert.equal(cap.length, 2); assert.ok(res.errors.some((e) => e.code === 'ai_budget_reached')); assert.equal(res.counts.kept, 1, 'only the page past the cap is read by rules (the two AI pages had no verifiable rooms)');
 });
