@@ -172,6 +172,15 @@
     ]
   },
   "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
+  "quality": {
+    "maxMonthlyRentChf": 2000,
+    "maxListingAgeDays": 180,
+    "requirePrice": false,
+    "rejectNonMonthly": true,
+    "rejectSeekerPosts": true,
+    "requireContact": false
+  },
+  "runMaxDurationMs": 1800000,
   "contactEnrichment": {
     "enabled": true,
     "maxExtraSearchesPerRun": 25,
