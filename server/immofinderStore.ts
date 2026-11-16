@@ -75,6 +75,58 @@ export async function setStatus(id: string, status: string): Promise<boolean> {
   const r = await p.query('UPDATE immofinder_listings SET status = $2, updated_at = now() WHERE id = $1', [id, status]);
   return r.rowCount > 0;
 }
+
+/** Saved rows still without a direct phone or email (and not hidden). */
+export async function listListingsNeedingContact(limit = 80): Promise<any[]> {
+  const p = await getPool();
+  const r = await p.query(
+    `SELECT * FROM immofinder_listings
+     WHERE hidden = false
+       AND (direct_phone IS NULL OR direct_phone = '')
+       AND (direct_email IS NULL OR direct_email = '')
+       AND coalesce(contact_status, '') <> 'found'
+     ORDER BY last_seen_at DESC
+     LIMIT $1`,
+    [Math.min(Math.max(limit, 1), 200)],
+  );
+  return r.rows;
+}
+
+/** Patch contact fields on an existing listing (enrichment pass). */
+export async function updateListingContacts(
+  id: string,
+  fields: {
+    direct_phone: string | null;
+    direct_email: string | null;
+    contact_evidence: unknown;
+    contact_status: string;
+    contact_advice: string;
+    raw?: unknown;
+  },
+): Promise<void> {
+  const p = await getPool();
+  await p.query(
+    `UPDATE immofinder_listings SET
+       direct_phone = COALESCE($2, direct_phone),
+       direct_email = COALESCE($3, direct_email),
+       contact_evidence = $4::jsonb,
+       contact_status = $5,
+       contact_advice = $6,
+       raw = CASE WHEN $7::jsonb IS NULL THEN raw ELSE $7::jsonb END,
+       updated_at = now()
+     WHERE id = $1`,
+    [
+      id,
+      fields.direct_phone,
+      fields.direct_email,
+      JSON.stringify(fields.contact_evidence ?? []),
+      fields.contact_status,
+      fields.contact_advice ?? '',
+      fields.raw != null ? JSON.stringify(fields.raw) : null,
+    ],
+  );
+}
+
 export async function startRun(trigger: string, dryRun: boolean): Promise<string | null> {
   const p = await getPool();
   const busy = await p.query(`SELECT 1 FROM immofinder_runs WHERE finished_at IS NULL AND started_at > now() - interval '30 minutes' LIMIT 1`);

@@ -6,7 +6,8 @@ import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ImmoRouteDeps {
   authenticated: (req: Request) => boolean;
@@ -51,6 +52,81 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     if (!(STATUSES as readonly string[]).includes(status) || !/^[0-9a-f-]{36}$/i.test(req.params.id)) return res.status(400).json({ success: false, error: 'Invalid id or status', code: 'INVALID_REQUEST' });
     try { return (await setStatus(req.params.id, status)) ? res.json({ success: true }) : res.status(404).json({ success: false, error: 'Listing not found', code: 'NOT_FOUND' }); }
     catch { return res.status(500).json({ success: false, error: 'Update failed', code: 'IMMOFINDER_FAILED' }); }
+  });
+
+
+  /** Re-run public contact enrichment on already saved listings that still lack phone/email. */
+  app.post('/api/immofinder/enrich-existing', json, async (req, res) => {
+    try {
+      const cfg = loadImmoConfig();
+      const enrichCfg = resolveEnrichmentConfig(cfg);
+      if (!enrichCfg.enabled) {
+        return res.status(400).json({ success: false, error: 'Contact enrichment is disabled in config', code: 'ENRICHMENT_OFF' });
+      }
+      if (!process.env.SERPER_API_KEY) {
+        return res.status(400).json({ success: false, error: 'SERPER_API_KEY is required for contact search', code: 'NO_SERPER' });
+      }
+      const limit = Math.min(Math.max(Number(req.body?.limit) || 40, 1), 100);
+      const rows = await listListingsNeedingContact(limit);
+      res.status(202).json({ success: true, queued: rows.length, limit });
+
+      void (async () => {
+        const search = createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10);
+        const fetchPage = createPoliteFetch(cfg);
+        const budget = {
+          searchesLeft: enrichCfg.maxExtraSearchesPerRun,
+          reverseImageLeft: enrichCfg.maxReverseImagePerRun,
+        };
+        let found = 0; let checked = 0;
+        for (const row of rows) {
+          if (budget.searchesLeft <= 0 && budget.reverseImageLeft <= 0) break;
+          checked++;
+          const evidence = Array.isArray(row.contact_evidence) ? row.contact_evidence : [];
+          const input: EnrichmentInput = {
+            listingUrl: row.listing_url,
+            propertyName: row.property_name || '',
+            municipality: row.municipality || '',
+            ownerName: row.owner_name || null,
+            photoUrls: Array.isArray(row.photo_urls) ? row.photo_urls : [],
+            existingPhones: row.direct_phone ? [row.direct_phone] : [],
+            existingEmails: row.direct_email ? [row.direct_email] : [],
+            platformDomains: cfg.platformDomains || [],
+          };
+          try {
+            const enrichment = await enrichContacts(input, {
+              config: enrichCfg,
+              search,
+              fetchPage,
+              budget,
+            });
+            const base = {
+              direct_phone: row.direct_phone || null,
+              direct_email: row.direct_email || null,
+              contact_evidence: evidence,
+              contact_status: (row.contact_status || 'platform_only') as 'found' | 'not_found' | 'platform_only',
+              contact_advice: row.contact_advice || '',
+              raw: (row.raw && typeof row.raw === 'object') ? row.raw : {},
+            };
+            const merged = applyEnrichmentToRecord(base, enrichment, row.contact_advice || '');
+            await updateListingContacts(String(row.id), {
+              direct_phone: merged.direct_phone,
+              direct_email: merged.direct_email,
+              contact_evidence: merged.contact_evidence,
+              contact_status: merged.contact_status,
+              contact_advice: merged.contact_advice,
+              raw: merged.raw,
+            });
+            if (enrichment.evidence.length) found++;
+          } catch {
+            /* continue next listing */
+          }
+        }
+        // progress is not a full run; nothing else to finish
+        void found; void checked;
+      })();
+    } catch (e) {
+      return res.status(500).json({ success: false, error: String((e as Error)?.message || e).slice(0, 160), code: 'IMMOFINDER_FAILED' });
+    }
   });
 
   app.post('/api/immofinder/cleanup', json, async (_req, res) => {
