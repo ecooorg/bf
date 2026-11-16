@@ -1,3 +1,9 @@
+## P128.11 — ImmoFinder stop search (EXPERIMENT)
+
+- **CHANGE:** In-process cancel flag per run id; stop endpoint; pipeline cooperative cancel; UI Stop button.
+- **NOT_RUN:** Stop mid-LLM-call (cancels on next item boundary), multi-instance cancel across replicas.
+- **LIMIT:** Cancel flags are process-local; a different server instance will not see the flag (single Render instance is the usual case).
+
 ## P128.10 — ImmoFinder quality gates and background runs (EXPERIMENT)
 
 - **CHANGE:** Configurable quality gates (monthly rent cap, listing age, seeker filter, optional contact/price required); no LLM translation; 30-minute run deadline with AI back-off retries; settings UI for quality fields.

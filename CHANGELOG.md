@@ -1,3 +1,8 @@
+## [128.11] - EXPERIMENT: ImmoFinder stop search button (EXP-IMMO-1)
+
+- Stop search: `POST /api/immofinder/stop` cancels the active run; pipeline checks `shouldCancel` between items and returns early. UI shows **Stop search** while a run is in progress (header + main). Results already saved stay kept.
+- Scope: server/immofinder{Routes,Store,Pipeline}.ts, src/ImmoFinder.tsx, package.json, package-lock.json. Patch 128.11.
+
 ## [128.10] - EXPERIMENT: ImmoFinder quality gates, no translation, long background runs (EXP-IMMO-1)
 
 - Quality filters (saved in settings): max monthly rent CHF (default 2000), max listing age days (default 180), reject night/week/season prices, optional require price, reject seeker posts, optional require direct contact. Parsed price/date stored on the listing when found.
