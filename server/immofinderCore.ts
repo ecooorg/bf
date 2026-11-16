@@ -1,10 +1,12 @@
 /** ImmoFinder GR — pure logic (no I/O): matching, filters, verification, drafts. Every stored fact must be verifiable in fetched text. */
 export interface ImmoConfig {
   municipalities: string[]; stopAgencies: string[]; minRooms: number; platformDomains: string[];
-  sources: { id: string; url: string; phase: number }[];
+  sources: { id: string; url: string; phase: number; cityUrl?: string; detailPattern?: string; cutMarkers?: string[]; privateTitleHint?: string; maxDetailPages?: number }[];
   fetch: { userAgent: string; perHostDelayMs: number; respectRobotsTxt: boolean };
   limits: { maxDetailPagesPerSource: number; recheckAfterDays: number; fetchTimeoutMs: number; maxPageBytes: number };
   estCostPerLlmCallUsd: number;
+  estCostPerSearchUsd?: number;
+  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; snippetOnlyHosts: string[]; skipHosts: string[] };
 }
 
 export function norm(s: string): string {
@@ -81,12 +83,13 @@ const DETAIL_HINT = /ferienwohnung|ferienhaus|unterkunft|objekt|detail|chalet|ch
 const SKIP = /login|register|agb|impressum|datenschutz|kontakt|contact|blog|news|\.(?:pdf|zip|jpe?g|png|gif|svg|css|js)(?:\?|$)/i;
 
 /** Same-site links that look like object pages, hinted ones first, deduplicated. */
-export function candidateLinks(html: string, base: string, max: number): string[] {
+export function candidateLinks(html: string, base: string, max: number, pattern?: RegExp): string[] {
   let host = ''; try { host = new URL(base).hostname.replace(/^www\./, ''); } catch { return []; }
   const seen = new Set<string>(); const hinted: string[] = []; const other: string[] = [];
   for (const m of html.matchAll(/<a[^>]+href=["']([^"'#][^"']*)["']/gi)) {
     const u = abs(m[1], base); if (!u || seen.has(u)) continue;
     const h = new URL(u).hostname.replace(/^www\./, ''); if (h !== host && !h.endsWith(`.${host}`)) continue;
+    if (pattern) { if (pattern.test(u)) { seen.add(u); hinted.push(u); } continue; }
     if (SKIP.test(u) || new URL(u).pathname.length < 4 || u === base) continue;
     seen.add(u); (DETAIL_HINT.test(u) ? hinted : other).push(u);
   }
@@ -122,3 +125,24 @@ export function draftMessage(f: { ownerName?: string | null; propertyName?: stri
 }
 
 export function csvEscape(v: unknown): string { const s = String(v ?? ''); return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+
+/** Cut site footer / "other listings" noise: text from the first marker found after the first 300 characters is dropped. */
+export function cutAtMarkers(text: string, markers: string[] = []): string {
+  let cut = text.length;
+  for (const m of markers) { const i = text.indexOf(m, 300); if (i > 0 && i < cut) cut = i; }
+  return text.slice(0, cut);
+}
+
+/** Slug variants for city index pages: "Fläsch" -> flaesch, flasch; "Domat/Ems" -> domat-ems. */
+export function slugVariants(name: string): string[] {
+  const a = name.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const b = norm(name).replace(/ /g, '-');
+  return [...new Set([a, b])].filter(Boolean);
+}
+
+/** An LLM "agency" flag counts only when its quote names a business form; platform boilerplate is not an agency signal. */
+export function agencyQuoteCounts(quote: string | null, platformHost: string): boolean {
+  if (!quote) return false;
+  const host = norm(platformHost.replace(/^www\./, '').split('.')[0]);
+  return /(immobilien|treuhand|verwaltung|agentur|property management|reisebuero|reisebüro|gmbh|\bag\b|vermittlung)/i.test(quote) && !(host && norm(quote).includes(host));
+}

@@ -12,6 +12,20 @@ export async function sendTelegram(text: string, fetchImpl: typeof fetch = fetch
   } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 80).replace(token, '***')}`; }
 }
 
+export function channelStatus() {
+  return { telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID), email: Boolean(process.env.RESEND_API_KEY), drive: Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_JSON) };
+}
+
+/** Email through the Resend HTTP API (RESEND_API_KEY). The free sender onboarding@resend.dev delivers only to the Resend account owner's address. */
+export async function sendEmail(to: string, subject: string, text: string, fetchImpl: typeof fetch = fetch): Promise<string> {
+  const key = process.env.RESEND_API_KEY; if (!key) return 'skipped: RESEND_API_KEY not set';
+  try {
+    const r = await fetchImpl('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: process.env.IMMOFINDER_EMAIL_FROM || 'ImmoFinder <onboarding@resend.dev>', to: [to], subject, text }) });
+    return r.ok ? 'sent' : `error: HTTP ${r.status} ${(await r.text()).replace(/\s+/g, ' ').slice(0, 120).split(key).join('***')}`;
+  } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 80).split(key).join('***')}`; }
+}
+
 const b64u = (b: Buffer | string) => Buffer.from(b).toString('base64url');
 async function driveToken(sa: { client_email: string; private_key: string }, f: typeof fetch): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
@@ -43,17 +57,18 @@ export async function exportDrive(rows: any[], f: typeof fetch = fetch): Promise
         if (share) await f(`${api}/files/${folder}/permissions`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'user', role: 'writer', emailAddress: share }) });
       }
     }
-    const files: [string, string, string][] = [['listings.csv', 'text/csv', listingsCsv(rows)], ['listings.json', 'application/json', JSON.stringify(rows, null, 2)],
-      ['drafts.txt', 'text/plain', rows.map((r) => `### ${r.property_name} (${r.municipality}) — ${r.listing_url}\n\n${r.draft_message_de}\n`).join('\n\n')]];
-    for (const [name, type, body] of files) {
+    // Service accounts have no storage quota for ordinary files, so write native Google Sheets/Docs (converted from CSV/text); old copies are replaced.
+    const files: [string, string, string, string][] = [
+      ['ImmoFinder listings', 'application/vnd.google-apps.spreadsheet', 'text/csv', listingsCsv(rows)],
+      ['ImmoFinder drafts', 'application/vnd.google-apps.document', 'text/plain', rows.map((r) => `${r.property_name} (${r.municipality})\n${r.listing_url}\n\n${r.draft_message_de}\n\n----------------------------------------\n`).join('\n')],
+    ];
+    for (const [name, nativeType, srcType, body] of files) {
       const q = encodeURIComponent(`name='${name}' and '${folder}' in parents and trashed=false`);
-      const id = ((await (await f(`${api}/files?q=${q}&fields=files(id)`, { headers: H })).json()) as any).files?.[0]?.id;
+      for (const old of ((await (await f(`${api}/files?q=${q}&fields=files(id)`, { headers: H })).json()) as any).files || []) await f(`${api}/files/${old.id}`, { method: 'DELETE', headers: H });
       const bnd = 'immo' + crypto.randomBytes(8).toString('hex');
-      const meta = id ? {} : { name, parents: [folder] };
-      const multipart = `--${bnd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(meta)}\r\n--${bnd}\r\nContent-Type: ${type}; charset=UTF-8\r\n\r\n${body}\r\n--${bnd}--`;
-      const url = id ? `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart` : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-      const r = await f(url, { method: id ? 'PATCH' : 'POST', headers: { ...H, 'Content-Type': `multipart/related; boundary=${bnd}` }, body: multipart });
-      if (!r.ok) throw new Error(`upload ${name} HTTP ${r.status}`);
+      const multipart = `--${bnd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({ name, parents: [folder], mimeType: nativeType })}\r\n--${bnd}\r\nContent-Type: ${srcType}; charset=UTF-8\r\n\r\n${body}\r\n--${bnd}--`;
+      const r = await f('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { ...H, 'Content-Type': `multipart/related; boundary=${bnd}` }, body: multipart });
+      if (!r.ok) throw new Error(`upload ${name} HTTP ${r.status} ${(await r.text()).replace(/\s+/g, ' ').slice(0, 140)}`);
     }
     return { status: 'exported', url: `https://drive.google.com/drive/folders/${folder}` };
   } catch (e) { return { status: `error: ${String((e as Error)?.message || e).slice(0, 120)}` }; }

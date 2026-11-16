@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
 import type { ImmoConfig } from './immofinderCore.ts';
+import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
 
 export function loadImmoConfig(): ImmoConfig {
@@ -24,6 +25,14 @@ export function createPgStore(): ImmoStore {
       return r.rows[0] ? { id: r.rows[0].id, last_seen_at: new Date(r.rows[0].last_seen_at).toISOString() } : null;
     },
     async touch(id) { const p = await getPool(); await p.query('UPDATE immofinder_listings SET last_seen_at = now() WHERE id = $1', [id]); },
+    async getSeen(url) {
+      const p = await getPool(); const r = await p.query('SELECT checked_at FROM immofinder_seen WHERE url = $1', [url]);
+      return r.rows[0] ? { checked_at: new Date(r.rows[0].checked_at).toISOString() } : null;
+    },
+    async markSeen(url, sourceId, decision, reason) {
+      const p = await getPool();
+      await p.query('INSERT INTO immofinder_seen (url, source_id, decision, reason) VALUES ($1,$2,$3,$4) ON CONFLICT (url) DO UPDATE SET decision = $3, reason = $4, checked_at = now()', [url, sourceId, decision, reason]);
+    },
     async upsert(rec: ListingRecord) {
       const p = await getPool();
       const ex = await p.query('SELECT id, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name FROM immofinder_listings WHERE canonical_key = $1', [rec.canonical_key]);
@@ -64,9 +73,33 @@ export async function startRun(trigger: string, dryRun: boolean): Promise<string
 export async function finishRun(id: string, res: RunResult | null, errors: unknown[], delivery: unknown) {
   const p = await getPool();
   await p.query('UPDATE immofinder_runs SET finished_at = now(), counts = $2::jsonb, errors = $3::jsonb, est_cost_usd = $4, delivery = $5::jsonb, sources = $6::jsonb WHERE id = $1',
-    [id, j({ ...(res?.counts ?? {}), filtered: res?.filtered ?? {} }), j(errors), res?.estCostUsd ?? 0, j(delivery), j(res?.preview.slice(0, 60) ?? [])]);
+    [id, j({ ...(res?.counts ?? {}), filtered: res?.filtered ?? {} }), j(errors), res?.estCostUsd ?? 0, j(delivery), j(res?.preview.slice(0, 200) ?? [])]);
 }
 export async function latestRun() {
   const p = await getPool();
   return (await p.query('SELECT * FROM immofinder_runs ORDER BY started_at DESC LIMIT 1')).rows[0] ?? null;
+}
+
+export async function realRunCount(): Promise<number> {
+  const p = await getPool();
+  return Number((await p.query('SELECT count(*)::int AS n FROM immofinder_runs WHERE dry_run = false')).rows[0]?.n ?? 0);
+}
+
+export async function saveProgress(id: string, progress: unknown) {
+  const p = await getPool();
+  await p.query('UPDATE immofinder_runs SET progress = $2::jsonb WHERE id = $1', [id, JSON.stringify(progress ?? {})]);
+}
+
+export async function getSettings(cfg: ImmoConfig): Promise<ImmoSettings> {
+  const p = await getPool(); const r = await p.query("SELECT data FROM immofinder_settings WHERE id = 'main'");
+  return r.rows[0] ? sanitizeSettings(r.rows[0].data, cfg) : defaultSettings(cfg);
+}
+export async function saveSettings(cfg: ImmoConfig, input: unknown): Promise<ImmoSettings> {
+  const s = sanitizeSettings(input, cfg); const p = await getPool();
+  await p.query("INSERT INTO immofinder_settings (id, data) VALUES ('main', $1::jsonb) ON CONFLICT (id) DO UPDATE SET data = $1::jsonb, updated_at = now()", [JSON.stringify(s)]);
+  return s;
+}
+export async function lastRealRunAt(): Promise<Date | null> {
+  const p = await getPool(); const r = await p.query('SELECT max(started_at) AS t FROM immofinder_runs WHERE dry_run = false');
+  return r.rows[0]?.t ? new Date(r.rows[0].t) : null;
 }
