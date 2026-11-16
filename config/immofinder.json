@@ -58,18 +58,33 @@
   "sources": [
     {
       "id": "happyholiday",
-      "url": "https://www.happyholiday.ch/area/graubuenden",
-      "phase": 1
+      "url": "https://happyholiday.ch/area/graubuenden/",
+      "phase": 1,
+      "cityUrl": "https://happyholiday.ch/city/{slug}/",
+      "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
+      "cutMarkers": [
+        "Andere Häuser",
+        "Ausgewählte Unterkünfte"
+      ],
+      "privateTitleHint": "von privat",
+      "maxDetailPages": 80
     },
     {
-      "id": "traum-ferienwohnungen",
-      "url": "https://www.traum-ferienwohnungen.ch",
-      "phase": 1
+      "id": "ferienhausmiete",
+      "url": "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/graubuenden/r521",
+      "phase": 1,
+      "maxDetailPages": 30
     },
     {
       "id": "graubuenden",
       "url": "https://www.graubuenden.ch",
-      "phase": 1
+      "phase": 1,
+      "maxDetailPages": 20
+    },
+    {
+      "id": "traum-ferienwohnungen",
+      "url": "https://www.traum-ferienwohnungen.ch",
+      "phase": 2
     },
     {
       "id": "appa",
@@ -103,5 +118,47 @@
     "fetchTimeoutMs": 15000,
     "maxPageBytes": 1500000
   },
-  "estCostPerLlmCallUsd": 0.002
+  "estCostPerLlmCallUsd": 0.002,
+  "estCostPerSearchUsd": 0.001,
+  "discovery": {
+    "enabled": true,
+    "communesPerRun": 5,
+    "resultsPerQuery": 10,
+    "maxPagesPerRun": 40,
+    "queries": [
+      "Ferienwohnung {commune} von privat 3 Zimmer Vermieter",
+      "Ferienhaus {commune} Privatvermieter direkt Eigentümer",
+      "{commune} Ferienwohnung Vermieter Kontakt Telefon Zimmer",
+      "site:facebook.com {commune} Ferienwohnung vermieten Zimmer"
+    ],
+    "snippetOnlyHosts": [
+      "facebook.com",
+      "instagram.com",
+      "airbnb.ch",
+      "airbnb.com",
+      "booking.com",
+      "vrbo.com",
+      "fewo-direkt.ch",
+      "tripadvisor.ch",
+      "tripadvisor.com",
+      "homegate.ch",
+      "immoscout24.ch",
+      "comparis.ch",
+      "anibis.ch",
+      "tutti.ch"
+    ],
+    "skipHosts": [
+      "wikipedia.org",
+      "youtube.com",
+      "pinterest.com",
+      "reddit.com",
+      "graubuenden.ch",
+      "myswitzerland.com",
+      "holidu.ch",
+      "holidu.com",
+      "trivago.ch",
+      "kayak.ch",
+      "google.com"
+    ]
+  }
 }
