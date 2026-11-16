@@ -62,7 +62,9 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
 });
 
 // ---- P128.1 ImmoFinder GR (module logic, pipeline with fake fetch/LLM, UI wiring) ----
-import { defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
+import { formatListingsText, listingsTable, exportDrive, checkDrive } from '../server/immofinderDelivery.ts';
+import { generateKeyPairSync } from 'node:crypto';
+import { parseDriveFolderId, formatZurich, defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
 import { communesForRun, buildQueries, pickItems } from '../server/immofinderDiscovery.ts';
 import { cutAtMarkers, slugVariants, agencyQuoteCounts, matchMunicipality, parseRooms, registrationForbidden, verifyQuote, extractContacts, draftMessage, candidateLinks, canonicalKey } from '../server/immofinderCore.ts';
 import { runPipeline } from '../server/immofinderPipeline.ts';
@@ -230,4 +232,39 @@ test('P128.5 settings: invalid input falls back, scope applies to config, schedu
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
   const res = await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }), llm, store, maxLlmCalls: 2 }, { dryRun: false });
   assert.equal(cap.length, 2); assert.ok(res.errors.some((e) => e.code === 'ai_budget_reached')); assert.equal(res.counts.kept, 1, 'only the page past the cap is read by rules (the two AI pages had no verifiable rooms)');
+});
+
+test('P128.6 email content mode, found date/time, Drive folder id, Drive writes existing Sheet/Doc only, header menu', async () => {
+  const s = sanitizeSettings({ delivery: { emailContent: 'all', driveFolderId: 'https://drive.google.com/drive/folders/199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT?usp=sharing' } }, immoCfg);
+  assert.equal(s.delivery.emailContent, 'all'); assert.equal(s.delivery.driveFolderId, '199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT');
+  assert.equal(sanitizeSettings({ delivery: { emailContent: 'x', driveFolderId: 'bad' } }, immoCfg).delivery.emailContent, 'new');
+  assert.equal(parseDriveFolderId('nonsense'), ''); assert.equal(immoCfg.driveFolderId, '199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT');
+  assert.match(formatZurich('2026-11-16T02:07:36Z'), /16\.11\.2026.*03:07/);
+  const rows = [{ property_name: 'Old', municipality: 'Chur', rooms_estimated: 3, first_seen_at: '2026-11-10T10:00:00Z', listing_url: 'https://a.example/1', status: 'CONTACTED', photo_urls: [], source_urls: [] },
+    { property_name: 'New', municipality: 'Chur', rooms_estimated: 4, first_seen_at: '2026-11-16T02:07:36Z', listing_url: 'https://a.example/2', direct_phone: '+41811234567', status: 'NEW', photo_urls: [], source_urls: [] }];
+  const txt = formatListingsText(rows, { heading: 'H', limit: 10 });
+  assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first'); assert.match(txt, /Found: 16\.11\.2026.*03:07/); assert.match(txt, /Status: CONTACTED/);
+  const tab = listingsTable(rows); assert.equal(tab[0][0], 'found_at'); assert.equal(tab[1][3], 'New');
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+  process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ client_email: 'sa@p.iam.gserviceaccount.com', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }) });
+  const calls = []; let haveDoc = true;
+  const fake = async (url, init = {}) => {
+    const u = String(url); calls.push(`${init.method || 'GET'} ${u.split('?')[0]}`);
+    const ok = (b) => ({ ok: true, status: 200, json: async () => b, text: async () => '' });
+    if (u.includes('oauth2')) return ok({ access_token: 't' });
+    if (u.includes('/drive/v3/files/199C')) return ok({ id: '199C' });
+    if (u.includes('/drive/v3/files?')) return ok({ files: u.includes('document') && !haveDoc ? [] : [{ id: 'F1' }] });
+    if (u.includes('docs.googleapis.com') && !init.method) return ok({ body: { content: [{ endIndex: 40 }] } });
+    return ok({});
+  };
+  const folder = '199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT';
+  const good = await exportDrive(rows, folder, fake);
+  assert.equal(good.status, 'exported');
+  assert.ok(calls.some((c) => c.startsWith('PUT https://sheets.googleapis.com')) && calls.some((c) => c.includes(':batchUpdate')));
+  assert.ok(!calls.some((c) => c === 'POST https://www.googleapis.com/upload/drive/v3/files'), 'never tries to create files');
+  haveDoc = false;
+  assert.match(await checkDrive(folder, fake), /missing in the folder.*ImmoFinder drafts/);
+  delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  const ui = read('src/ImmoFinder.tsx'); assert.match(ui, /data-testid="immofinder-header"/); assert.match(ui, /ModeMenu/); assert.match(ui, /immofinder-found-at/);
+  assert.match(read('src/ImmoFinderSettings.tsx'), /immofinder-email-content/);
 });
