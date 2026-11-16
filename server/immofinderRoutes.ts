@@ -9,6 +9,29 @@ import { createSerperSearch } from './immofinderDiscovery.ts';
 import { STATUSES, createPgStore, cleanupStored, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
+/** In-process status for the contact re-enrich job (shown in the UI). */
+const enrichJobStatus: {
+  running: boolean;
+  startedAt: number | null;
+  finishedAt: number | null;
+  queued: number;
+  checked: number;
+  found: number;
+  errors: number;
+  current: string;
+  message: string;
+} = {
+  running: false,
+  startedAt: null,
+  finishedAt: null,
+  queued: 0,
+  checked: 0,
+  found: 0,
+  errors: 0,
+  current: '',
+  message: '',
+};
+
 export interface ImmoRouteDeps {
   authenticated: (req: Request) => boolean;
   appAuthEnabled: boolean;
@@ -55,6 +78,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   });
 
 
+  app.get('/api/immofinder/enrich-status', async (_req, res) => {
+    res.json({ success: true, job: { ...enrichJobStatus } });
+  });
+
   /** Re-run public contact enrichment on already saved listings that still lack phone/email. */
   app.post('/api/immofinder/enrich-existing', json, async (req, res) => {
     try {
@@ -68,15 +95,28 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         console.warn(JSON.stringify({ type: 'immofinder_enrich_existing_rejected', code: 'NO_SERPER' }));
         return res.status(400).json({ success: false, error: 'SERPER_API_KEY is required for contact search', code: 'NO_SERPER' });
       }
+      if (enrichJobStatus.running) {
+        return res.status(409).json({ success: false, error: 'Contact search is already running', code: 'ENRICH_IN_PROGRESS', job: { ...enrichJobStatus } });
+      }
       const limit = Math.min(Math.max(Number(req.body?.limit) || 200, 1), 500);
       const rows = await listListingsNeedingContact(limit);
-      res.status(202).json({ success: true, queued: rows.length, limit, rule: "missing_phone_and_email" });
+      res.status(202).json({ success: true, queued: rows.length, limit, rule: 'missing_phone_and_email' });
 
       void (async () => {
         const started = Date.now();
+        enrichJobStatus.running = true;
+        enrichJobStatus.startedAt = started;
+        enrichJobStatus.finishedAt = null;
+        enrichJobStatus.queued = rows.length;
+        enrichJobStatus.checked = 0;
+        enrichJobStatus.found = 0;
+        enrichJobStatus.errors = 0;
+        enrichJobStatus.current = '';
+        enrichJobStatus.message = rows.length
+          ? `Contact search started for ${rows.length} listings…`
+          : 'No listings without phone or email';
         const search = createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10);
         const fetchPage = createPoliteFetch(cfg);
-        // Dedicated pass: enough budget to cover every queued card (not the smaller per-search cap).
         const budget = {
           searchesLeft: Math.max(enrichCfg.maxExtraSearchesPerRun, rows.length * 3),
           reverseImageLeft: Math.max(enrichCfg.maxReverseImagePerRun, rows.length),
@@ -88,19 +128,18 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           budgetSearches: budget.searchesLeft,
           budgetReverseImage: budget.reverseImageLeft,
           hasSerper: Boolean(process.env.SERPER_API_KEY),
-          enrichmentEnabled: enrichCfg.enabled,
         }));
         let found = 0; let checked = 0; let errors = 0;
         for (const row of rows) {
           if (budget.searchesLeft <= 0 && budget.reverseImageLeft <= 0) {
-            console.warn(JSON.stringify({
-              type: 'immofinder_enrich_existing_budget_exhausted',
-              checked, found, remaining: rows.length - checked,
-              searchesLeft: budget.searchesLeft, reverseImageLeft: budget.reverseImageLeft,
-            }));
+            console.warn(JSON.stringify({ type: 'immofinder_enrich_existing_budget_exhausted', checked, found, remaining: rows.length - checked }));
+            enrichJobStatus.message = `Budget exhausted after ${checked}/${rows.length}`;
             break;
           }
           checked++;
+          enrichJobStatus.checked = checked;
+          enrichJobStatus.current = `${String(row.property_name || '').slice(0, 40)} · ${String(row.municipality || '')}`;
+          enrichJobStatus.message = `Searching contacts ${checked}/${rows.length}…`;
           const evidence = Array.isArray(row.contact_evidence) ? row.contact_evidence : [];
           const input: EnrichmentInput = {
             listingUrl: row.listing_url,
@@ -138,6 +177,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             });
             const hit = enrichment.evidence.length > 0;
             if (hit) found++;
+            enrichJobStatus.found = found;
             console.info(JSON.stringify({
               type: 'immofinder_enrich_existing_item',
               index: checked,
@@ -145,26 +185,30 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
               id: String(row.id).slice(0, 36),
               municipality: String(row.municipality || '').slice(0, 40),
               propertyName: String(row.property_name || '').slice(0, 60),
-              listingHost: (() => { try { return new URL(String(row.listing_url || '')).hostname; } catch { return ''; } })(),
               hit,
               evidenceCount: enrichment.evidence.length,
               hasPhone: Boolean(merged.direct_phone),
               hasEmail: Boolean(merged.direct_email),
               notes: (enrichment.notes || []).slice(0, 6),
-              cost: enrichment.cost || {},
-              searchesLeft: budget.searchesLeft,
             }));
           } catch (e) {
             errors++;
+            enrichJobStatus.errors = errors;
             console.warn(JSON.stringify({
               type: 'immofinder_enrich_existing_item_error',
               index: checked,
               id: String(row.id).slice(0, 36),
-              municipality: String(row.municipality || '').slice(0, 40),
               error: String((e as Error)?.message || e).slice(0, 180),
             }));
           }
         }
+        enrichJobStatus.running = false;
+        enrichJobStatus.finishedAt = Date.now();
+        enrichJobStatus.checked = checked;
+        enrichJobStatus.found = found;
+        enrichJobStatus.errors = errors;
+        enrichJobStatus.current = '';
+        enrichJobStatus.message = `Contact search finished: checked ${checked}, found ${found}` + (errors ? `, errors ${errors}` : '');
         console.info(JSON.stringify({
           type: 'immofinder_enrich_existing_done',
           queued: rows.length,
@@ -172,10 +216,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           found,
           errors,
           durationMs: Date.now() - started,
-          searchesLeft: budget.searchesLeft,
-          reverseImageLeft: budget.reverseImageLeft,
         }));
       })().catch((e) => {
+        enrichJobStatus.running = false;
+        enrichJobStatus.finishedAt = Date.now();
+        enrichJobStatus.message = `Contact search failed: ${String((e as Error)?.message || e).slice(0, 120)}`;
         console.error(JSON.stringify({
           type: 'immofinder_enrich_existing_fatal',
           error: String((e as Error)?.message || e).slice(0, 200),
@@ -186,7 +231,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     }
   });
 
-  app.post('/api/immofinder/cleanup', json, async (_req, res) => {
+  app.post('/api/immofinder/cleanup, json, async (_req, res) => {
     try { res.json({ success: true, hidden: await cleanupStored() }); } catch { res.status(500).json({ success: false, error: 'Cleanup failed', code: 'IMMOFINDER_FAILED' }); }
   });
 
