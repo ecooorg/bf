@@ -1,3 +1,8 @@
+## [128.12] - EXPERIMENT: Re-enrich contacts on saved listings (EXP-IMMO-1)
+
+- New action **Find contacts for saved**: `POST /api/immofinder/enrich-existing` runs public-source contact enrichment on up to 40 already saved listings that still lack phone and email (does not delete anything). UI button next to Clean up list.
+- Scope: server/immofinder{Routes,Store}.ts, src/ImmoFinder.tsx, package.json, package-lock.json. Patch 128.12.
+
 ## [128.11] - EXPERIMENT: ImmoFinder stop search button (EXP-IMMO-1)
 
 - Stop search: `POST /api/immofinder/stop` cancels the active run; pipeline checks `shouldCancel` between items and returns early. UI shows **Stop search** while a run is in progress (header + main). Results already saved stay kept.

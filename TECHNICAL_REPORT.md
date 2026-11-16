@@ -1,3 +1,9 @@
+## P128.12 — Enrich contacts on existing Immofinder listings (EXPERIMENT)
+
+- **CHANGE:** Batch enrichment endpoint for saved rows without direct contact; cooperative with Serper budget from config.contactEnrichment.
+- **NOT_RUN:** Hit rate on the current 24 saved holiday-owner rows; Drive refresh after enrichment-only pass (Drive still updates only on full search completion).
+- **LIMIT:** Runs async after HTTP 202; UI shows a short message and refreshes list after 15s — long batches may need a manual refresh.
+
 ## P128.11 — ImmoFinder stop search (EXPERIMENT)
 
 - **CHANGE:** In-process cancel flag per run id; stop endpoint; pipeline cooperative cancel; UI Stop button.
