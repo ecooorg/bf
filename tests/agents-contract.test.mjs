@@ -64,6 +64,7 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
 // ---- P128.1 ImmoFinder GR (module logic, pipeline with fake fetch/LLM, UI wiring) ----
 import { formatListingsText, listingsTable, exportDrive, checkDrive } from '../server/immofinderDelivery.ts';
 import { generateKeyPairSync } from 'node:crypto';
+import { nonListingReason, isSpecificLink } from '../server/immofinderCore.ts';
 import { parseDriveFolderId, formatZurich, defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
 import { communesForRun, buildQueries, pickItems } from '../server/immofinderDiscovery.ts';
 import { cutAtMarkers, slugVariants, agencyQuoteCounts, matchMunicipality, parseRooms, registrationForbidden, verifyQuote, extractContacts, draftMessage, candidateLinks, canonicalKey } from '../server/immofinderCore.ts';
@@ -244,7 +245,7 @@ test('P128.6 email content mode, found date/time, Drive folder id, Drive writes 
     { property_name: 'New', municipality: 'Chur', rooms_estimated: 4, first_seen_at: '2026-11-16T02:07:36Z', listing_url: 'https://a.example/2', direct_phone: '+41811234567', status: 'NEW', photo_urls: [], source_urls: [] }];
   const txt = formatListingsText(rows, { heading: 'H', limit: 10 });
   assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first'); assert.match(txt, /Found: 16\.11\.2026.*03:07/); assert.match(txt, /Status: CONTACTED/);
-  const tab = listingsTable(rows); assert.equal(tab[0][0], 'found_at'); assert.equal(tab[1][3], 'New');
+  const tab = listingsTable(rows); assert.equal(tab.length, 3); assert.ok(tab.every((r) => r.length === 1), 'one column'); assert.match(tab[1][0], /^New\n.*Chur.*4 rooms.*NEW\nFound: 16\.11\.2026.*03:07/s); assert.ok(!/Betreff|Guten Tag/.test(tab.flat().join('')), 'no letter drafts in the sheet');
   const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
   process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ client_email: 'sa@p.iam.gserviceaccount.com', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }) });
   const calls = []; let haveDoc = true;
@@ -267,4 +268,19 @@ test('P128.6 email content mode, found date/time, Drive folder id, Drive writes 
   delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   const ui = read('src/ImmoFinder.tsx'); assert.match(ui, /data-testid="immofinder-header"/); assert.match(ui, /ModeMenu/); assert.match(ui, /immofinder-found-at/);
   assert.match(read('src/ImmoFinderSettings.tsx'), /immofinder-email-content/);
+});
+
+test('P128.7 non-listing pages are rejected; specific links detected; UI contrast, More menu and quiet polling', async () => {
+  const bad = [['Alle Inserate in 7126 (Castrisch)', 'https://www.homegate.ch/mieten/wohnobjekt/plz-7126/trefferliste', 'list_or_search_page'], ['Ferienunterkünfte in Castrisch', 'https://www.airbnb.ch/x/stays', 'list_or_search_page'],
+    ['Wohnungen mit Balkon mieten in Rothenbrunnen', 'https://www.immoscout24.ch/de/wohnung/mieten/ort-rothenbrunnen?an=400', 'list_or_search_page'], ['Suche dringend eine Wohnung in Landquart', 'https://www.facebook.com/groups/1/posts/2', 'wanted_ad'],
+    ['Pension Versam: Zimmer & Fewo', 'https://www.pension-zimmer.ch/pension-versam.html', 'hotel_or_guesthouse'], ['3.5-Zimmer-Wohnung', 'https://homematch.ch/de/mieten/immobilien/plz-7403-rhaezuens/3-zimmer', 'list_or_search_page']];
+  for (const [title, url, want] of bad) assert.equal(nonListingReason(title, url), want, title);
+  assert.equal(nonListingReason('Ferienhaus Scoldasu in Lenzerheide', 'https://happyholiday.ch/haus/ferienhaus-scoldasu-graubuenden-in-lenzerheide/'), null);
+  assert.equal(nonListingReason('3.5-Zimmer-Wohnung in Thusis', 'https://www.facebook.com/groups/179401345726919/posts/2547662738900756'), null);
+  assert.equal(isSpecificLink('https://www.facebook.com/groups/179401345726919/'), false); assert.equal(isSpecificLink('https://www.facebook.com/groups/1794013457/posts/2547662738900756'), true);
+  assert.equal(isSpecificLink('https://flatfox.ch/de/wohnung/7403-rhazuns/86136483/'), true); assert.equal(isSpecificLink('https://www.immoscout24.ch/de/immobilien'), false);
+  const ui = read('src/ImmoFinder.tsx');
+  assert.match(ui, /\.immo-btn\{background:#1457b8!important;color:#fff!important/); assert.match(ui, /data-testid="all-logs-menu-item"/); assert.match(ui, /downloadAllLogs/);
+  assert.match(ui, /setInterval\(\(\) => \{ setTick\(Date\.now\(\)\); void loadRun\(\)/, 'polling only reads the small run status');
+  assert.match(read('server/projectDiagnostics.ts'), /immofinder\\\/\(runs\\\/latest\|listings\)/);
 });
