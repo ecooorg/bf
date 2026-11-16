@@ -55,7 +55,7 @@ export function listingsTable(rows: any[]): string[][] {
     `${r.property_name}`, `📍 ${r.municipality} · ${r.rooms_estimated} rooms · ${r.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'} · ${r.status}`, `Found: ${formatZurich(r.first_seen_at)}`,
     [r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).length ? `Contact: ${[r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).join(' · ')}` : `Contact: not found. ${String(r.contact_advice || '').slice(0, 160)}`,
     `Link: ${r.listing_url}`, (r.photo_urls || []).length ? `Photos: ${(r.photo_urls || []).slice(0, 3).join(' ')}` : '', (r.source_urls || []).length > 1 ? `Other sources: ${(r.source_urls || []).slice(1).join(' ')}` : '',
-    r.description_ru ? `RU: ${r.description_ru}` : '', r.description_de ? `DE: ${r.description_de}` : '',
+    r.description_de ? `Text: ${r.description_de}` : '',
   ].filter(Boolean).join('\n').slice(0, 45000);
   return [['ImmoFinder objects (newest first)'], ...[...rows].sort((a, b) => new Date(b.first_seen_at).getTime() - new Date(a.first_seen_at).getTime()).map((r) => [cell(r)])];
 }

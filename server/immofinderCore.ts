@@ -19,6 +19,17 @@ export interface ImmoConfig {
     skipHosts?: string[];
     snippetOnlyHosts?: string[];
   };
+  /** Default quality gates (overridden by saved user settings per run). */
+  quality?: {
+    maxMonthlyRentChf?: number;
+    maxListingAgeDays?: number;
+    requirePrice?: boolean;
+    rejectNonMonthly?: boolean;
+    rejectSeekerPosts?: boolean;
+    requireContact?: boolean;
+  };
+  /** Hard wall-clock limit for one search cycle (ms). Default 30 minutes. */
+  runMaxDurationMs?: number;
 }
 
 export function norm(s: string): string {
@@ -218,4 +229,140 @@ export function isSpecificLink(url: string): boolean {
   const p = u.pathname;
   if (/facebook\.com$/.test(u.hostname.replace(/^www\./, '')) || /facebook\.com$/.test(u.hostname)) return /\/(marketplace\/item|posts|permalink|videos|photo)\b/.test(p) || /story_fbid|fbid/.test(u.search);
   return /\d{5,}/.test(p) || /[a-z0-9]+(-[a-z0-9]+){3,}/i.test(p.split('/').filter(Boolean).pop() || '');
+}
+
+
+// ---------------------------------------------------------------------------
+// Quality gates: monthly rent, listing age, seeker posts
+// ---------------------------------------------------------------------------
+
+export type PricingUnit = 'night' | 'week' | 'month' | 'season' | 'unknown';
+
+export interface ParsedPrice {
+  amount: number;
+  unit: PricingUnit;
+  /** Approximate CHF per calendar month when conversion is unambiguous; else null. */
+  monthlyChf: number | null;
+  quote: string;
+}
+
+/** Parse a rent figure and its period from listing text. Never invents amounts. */
+export function parsePrice(text: string): ParsedPrice | null {
+  const t = String(text ?? '');
+  const re = /(\d{1,3}(?:[\'\s]\d{3})*|\d+)(?:[.,](\d{1,2}))?\s*(?:CHF|Fr\.?|SFr\.?|CHF\.?|€|EUR)?\s*(?:\/|\s+pro\s+|\s+per\s+|\s+)\s*(Nacht|night|Woche|week|Monat|month|Monate|Tag|day|Saison|season)?/gi;
+  let best: ParsedPrice | null = null;
+  for (const m of t.matchAll(re)) {
+    const whole = m[0];
+    const amount = Number(String(m[1]).replace(/[\'\s]/g, '') + (m[2] ? '.' + m[2] : ''));
+    if (!(amount > 0 && amount < 100000)) continue;
+    const uRaw = (m[3] || '').toLowerCase();
+    let unit: PricingUnit = 'unknown';
+    if (/nacht|night|tag|day/.test(uRaw)) unit = 'night';
+    else if (/woche|week/.test(uRaw)) unit = 'week';
+    else if (/monat|month/.test(uRaw)) unit = 'month';
+    else if (/saison|season/.test(uRaw)) unit = 'season';
+    // Heuristic: large round numbers near "Miete" without unit → month
+    if (unit === 'unknown' && amount >= 400 && amount <= 6000 && /miete|rent|kalt|warm/i.test(t.slice(Math.max(0, (m.index || 0) - 40), (m.index || 0) + whole.length + 40))) {
+      unit = 'month';
+    }
+    let monthlyChf: number | null = null;
+    if (unit === 'month') monthlyChf = amount;
+    else if (unit === 'week') monthlyChf = Math.round(amount * (52 / 12));
+    else if (unit === 'night') monthlyChf = Math.round(amount * 30);
+    // season → unknown monthly
+    const cand: ParsedPrice = { amount, unit, monthlyChf, quote: whole.slice(0, 80) };
+    // Prefer explicit month
+    if (!best || (cand.unit === 'month' && best.unit !== 'month') || (cand.monthlyChf != null && (best.monthlyChf == null || cand.monthlyChf < best.monthlyChf))) best = cand;
+  }
+  return best;
+}
+
+/** Extract a plausible publication / update date from page text or URL. */
+export function parseListedAt(text: string, url?: string): Date | null {
+  const t = String(text ?? '');
+  const now = Date.now();
+  const candidates: Date[] = [];
+  // ISO
+  for (const m of t.matchAll(/\b(20\d{2})-(\d{2})-(\d{2})\b/g)) {
+    const d = new Date(`${m[1]}-${m[2]}-${m[3]}T12:00:00Z`);
+    if (!Number.isNaN(d.getTime()) && d.getTime() <= now + 86400000) candidates.push(d);
+  }
+  // Swiss / DE: dd.mm.yyyy
+  for (const m of t.matchAll(/\b(\d{1,2})\.(\d{1,2})\.(20\d{2})\b/g)) {
+    const d = new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]), 12));
+    if (!Number.isNaN(d.getTime()) && d.getTime() <= now + 86400000) candidates.push(d);
+  }
+  // Relative: "vor 3 Tagen", "vor 2 Wochen", "vor 1 Monat"
+  const rel = /vor\s+(\d+)\s+(Tag|Tagen|Woche|Wochen|Monat|Monaten|Jahr|Jahren)/i.exec(t);
+  if (rel) {
+    const n = Number(rel[1]); const u = rel[2].toLowerCase();
+    const d = new Date();
+    if (/tag/.test(u)) d.setDate(d.getDate() - n);
+    else if (/woche/.test(u)) d.setDate(d.getDate() - n * 7);
+    else if (/monat/.test(u)) d.setMonth(d.getMonth() - n);
+    else if (/jahr/.test(u)) d.setFullYear(d.getFullYear() - n);
+    candidates.push(d);
+  }
+  if (!candidates.length) return null;
+  // Prefer the most recent plausible date (not future)
+  candidates.sort((a, b) => b.getTime() - a.getTime());
+  return candidates[0];
+}
+
+/** True when the post is from someone *looking for* a flat, not offering one. */
+export function isSeekerPost(title: string, text: string): boolean {
+  const h = `${title}\n${String(text).slice(0, 1500)}`.toLowerCase();
+  const seek = /(suche|suchen|gesucht|looking for|nachmieter gesucht|wohnung gesucht|dringend suche)/i.test(h);
+  const offer = /(zu vermieten|vermieten|vermiete|anzubieten|for rent|available|frei ab|ab dem \d)/i.test(h);
+  if (seek && !offer) return true;
+  // "Suche Nachmieter" is owner; "Suche Wohnung" is seeker
+  if (/\bsuche\b/i.test(h) && /wohnung|haus|zimmer/i.test(h) && !/nachmieter|mieter/i.test(h)) return true;
+  return false;
+}
+
+export interface QualitySettings {
+  maxMonthlyRentChf: number;
+  maxListingAgeDays: number;
+  requirePrice: boolean;
+  rejectNonMonthly: boolean;
+  rejectSeekerPosts: boolean;
+  requireContact: boolean;
+}
+
+export const DEFAULT_QUALITY: QualitySettings = {
+  maxMonthlyRentChf: 2000,
+  maxListingAgeDays: 180,
+  requirePrice: false,
+  rejectNonMonthly: true,
+  rejectSeekerPosts: true,
+  requireContact: false,
+};
+
+/** Returns a filter reason or null if the listing may be kept. */
+export function qualityRejectReason(
+  q: QualitySettings,
+  price: ParsedPrice | null,
+  listedAt: Date | null,
+  seeker: boolean,
+  hasContact: boolean,
+  nowMs: number = Date.now(),
+): string | null {
+  if (q.rejectSeekerPosts && seeker) return 'seeker_post';
+  if (q.requireContact && !hasContact) return 'contact_required';
+  if (price) {
+    if (q.rejectNonMonthly && price.unit !== 'month' && price.unit !== 'unknown') {
+      // week/night/season explicit → reject unless monthly equivalent is within cap AND unit is week converted? User asked to reject weekly 2000
+      if (price.unit === 'week' || price.unit === 'night' || price.unit === 'season') return 'price_not_monthly';
+    }
+    if (price.monthlyChf != null && price.monthlyChf > q.maxMonthlyRentChf) return 'price_above_max';
+    // unknown unit with high amount likely not monthly under 2000 for holiday - if amount > max and unit unknown, reject
+    if (price.unit === 'unknown' && price.amount > q.maxMonthlyRentChf) return 'price_above_max';
+  } else if (q.requirePrice) {
+    return 'price_unknown';
+  }
+  if (listedAt && q.maxListingAgeDays > 0) {
+    const ageDays = (nowMs - listedAt.getTime()) / 86400000;
+    if (ageDays > q.maxListingAgeDays) return 'stale_listing';
+  }
+  return null;
 }
