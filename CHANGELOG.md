@@ -1,3 +1,34 @@
+## [128.5] - EXPERIMENT: ImmoFinder settings in the app (EXP-IMMO-1)
+
+- Settings panel on the ImmoFinder page: automatic search (manual only / every 3, 6, 12 hours / daily at a chosen Swiss time), delivery channels (Telegram, email, Google Drive, any combination; test buttons; "message me when nothing new"), search scope (minimum rooms, sources on/off, communes), AI cost guard (pages analysed per search).
+- Settings are stored in Postgres (migration 023). GitHub Actions now ticks hourly; the server decides from the saved settings whether a search is due (default: manual only).
+- Email through the Resend HTTP API (`RESEND_API_KEY`, optional `IMMOFINDER_EMAIL_FROM`).
+- Routes: `GET/PUT /api/immofinder/settings`, `POST /api/immofinder/settings/test`.
+- Scope: migration 023, server/immofinder{Settings,Store,Delivery,Routes,Pipeline}.ts, src/ImmoFinderSettings.tsx, workflow, tests/agents-contract. Patch 128.5.
+
+## [128.4] - EXPERIMENT: ImmoFinder live progress and clearer screen (EXP-IMMO-1)
+
+- The server stores live progress of a running search (migration 022): step, current page or query, counters and the last 14 log lines; the screen polls it every 2 seconds.
+- Screen: one big "New search" button; while running a live panel with spinner, step "1 of 3 / 2 of 3 / 3 of 3", elapsed time, progress bar, counters and a scrolling log of what is being read, rejected or matched; after a run a plain-language summary instead of raw counters; listing cards with chips, "Open listing", "Copy German letter".
+- A search started elsewhere (cron or another tab) is shown as running when the page is opened.
+- Scope: migration 022, server/immofinder{Pipeline,Store,Routes}.ts, src/ImmoFinder.tsx, tests/agents-contract. Patch 128.4.
+
+## [128.3] - EXPERIMENT: ImmoFinder web-search discovery per commune (EXP-IMMO-1)
+
+- New stage after catalogue sources: Serper (Google, CH/de) queries per whitelist commune, 5 communes per run in rotation (all 44 covered in ~9 runs), 4 query templates incl. private-owner wording and Facebook.
+- Hits from any site are examined with the same pipeline (fetched owner/personal pages, verified quotes, filters). Facebook, Instagram, Airbnb, Booking, Vrbo, Homegate, ImmoScout24, Comparis, Anibis, Tutti, Tripadvisor are never fetched: only the search snippet is used (`snippet_only`). A page that cannot be fetched (robots, 403) falls back to its snippet.
+- Agency hosts and generic sites are skipped; per-run page cap 40; run summary shows queries and snippet-only count; cost estimate includes searches.
+- Cumulative patch: contains all files of 128.1a, 128.1, 128.2 and 128.3 relative to base 127.44.
+
+## [128.2] - EXPERIMENT: ImmoFinder source quality, Drive fix, run transparency (EXP-IMMO-1)
+
+- HappyHoliday: one index page per whitelist commune, only Graubünden object URLs, footer and "other listings" text cut, "von privat" title kept as a private-owner signal.
+- An LLM "agency" flag now counts only when its quote names a business form; platform address text no longer rejects listings.
+- New cache `immofinder_seen` (migration 021): rejected pages are not sent to the model again for 7 days (cost control).
+- Drive export writes a native Google Sheet and Doc (service accounts have no quota for ordinary files; 403 in 128.1).
+- UI lists every page examined in the last run with its decision and reason. New source ferienhausmiete.de; traum-ferienwohnungen.ch moved to phase 2.
+- Scope: config, migration, server/immofinder*.ts, src/ImmoFinder.tsx, tests/agents-contract. Patch 128.2.
+
 ## [128.1] - EXPERIMENT: ImmoFinder GR Phase 1 backend, UI and scheduler (EXP-IMMO-1)
 
 - Add flat `server/immofinder*.ts` (polite fetch, filters, verified extraction, dedupe, universal German draft), migration 020, `/api/immofinder/*`, home button + `/immofinder` workspace, Drive/Telegram delivery, 3-hourly cron workflow.

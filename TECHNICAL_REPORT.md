@@ -1,3 +1,27 @@
+## P128.5 — ImmoFinder settings (EXPERIMENT)
+
+- **CHANGE:** server-side schedule decision (`isDue`, Swiss time), per-channel delivery, scope applied per run, AI-call cap; settings UI.
+- **NOT_RUN:** Resend email delivery, schedule firing from the hourly workflow, settings screen on the phone, Telegram/Drive tests from the buttons.
+- **KNOWN:** the default is manual-only, so the former 3-hourly automatic run stops until the owner picks a schedule.
+
+## P128.4 — ImmoFinder live progress (EXPERIMENT)
+
+- **OBSERVED:** owner screenshots showed a frozen "Running…" line with zeros until the run ended, and no obvious start control.
+- **CHANGE:** progress events from the pipeline are stored in `immofinder_runs.progress` and rendered live.
+- **NOT_RUN:** browser rendering on the phone, real run timing, polling load on Render.
+
+## P128.3 — ImmoFinder discovery via search (EXPERIMENT)
+
+- **CHANGE:** `server/immofinderDiscovery.ts`, discovery stage in the pipeline, config `discovery`, UI counts, tests.
+- **NOT_RUN:** live Serper queries, real Facebook/Airbnb snippets, precision of owner-page extraction, cost per day (estimate: 20 searches + <= 40 model calls per run).
+- **RISK:** search snippets are short, so rooms/municipality are often unknown and rejected; generic pages (portals, blogs) cost model calls until the seen-cache learns them.
+
+## P128.2 — ImmoFinder source quality (EXPERIMENT)
+
+- **OBSERVED (owner run 2026-11-15):** 89 pages fetched, 1 listing matched; 60 rejected as not a single listing, 18-19 as agency, 9-10 outside the whitelist; Drive upload HTTP 403; est. cost $0.178 per run; happyholiday page read via fetch: `von privat` title, platform footer with its own phone/address, "Andere Häuser" block, no owner contact.
+- **CHANGE:** see CHANGELOG 128.2.
+- **NOT_RUN:** live fetch of city pages and ferienhausmiete.de, Drive native upload, precision against labelled data.
+
 ## P128.1 — ImmoFinder GR Phase 1 (EXPERIMENT)
 
 - **OBSERVED:** Core CI on 128.1a failed only because P127.11 asserted major 127; local run of the CI DAG reproduced it.
