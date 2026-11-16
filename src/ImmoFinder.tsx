@@ -76,6 +76,15 @@ export default function ImmoFinder() {
     try { await api('/api/immofinder/run', { method: 'POST', body: JSON.stringify({ dryRun: dry }) }); await load(); }
     catch (e) { setStarting(false); setMsg((e as Error).message); }
   };
+  const stop = async () => {
+    setMsg('');
+    try {
+      const r = await api('/api/immofinder/stop', { method: 'POST', body: '{}' });
+      setMsg(r.stopped ? 'Search stop requested.' : 'No active search to stop.');
+      setStarting(false);
+      await load();
+    } catch (e) { setMsg((e as Error).message); }
+  };
   const cleanup = async () => { try { const r = await api('/api/immofinder/cleanup', { method: 'POST', body: '{}' }); setMsg(`Hid ${r.hidden} saved results that are not suitable.`); await loadList(); } catch (e) { setMsg((e as Error).message); } };
   const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
 
@@ -100,6 +109,7 @@ export default function ImmoFinder() {
         <CommitBadge />
         <ModeMenu current="Simple" currentLabel="ImmoFinder" projectEnabled onSelect={(m) => goHome(m)} onOverview={() => goHome()} />
         <button type="button" className="ghost" data-testid="immofinder-header-new" title="Start a new search" aria-label="New search" disabled={busy} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); void start(); }}><Plus size={14} /> <span className="lbl">New search</span></button>
+        {busy && <button type="button" className="ghost" data-testid="immofinder-header-stop" title="Stop search" aria-label="Stop search" onClick={() => void stop()}>Stop</button>}
         <div className="hdr-more-wrap" ref={moreRef}>
           <button type="button" className="ghost hdr-more-btn" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)} title="Program logs"><MoreHorizontal size={14} /> <span className="lbl">More</span></button>
           {moreOpen && (
@@ -120,6 +130,12 @@ export default function ImmoFinder() {
           className="immo-btn" style={{ width: '100%', padding: '16px 12px', fontSize: 20, cursor: busy ? 'default' : 'pointer' }}>
           {busy ? 'Search is running…' : '🔍 New search'}
         </button>
+        {busy && (
+          <button type="button" data-testid="immofinder-stop" className="immo-btn" onClick={() => void stop()}
+            style={{ width: '100%', marginTop: 8, padding: '12px', fontSize: 16, background: '#3a1d1d', borderColor: '#8b3a3a' }}>
+            Stop search
+          </button>
+        )}
         <label style={{ display: 'block', marginTop: 10, fontSize: 14, color: '#9fb4cf' }}>
           <input type="checkbox" checked={dry} onChange={(e) => setDry(e.target.checked)} disabled={busy} /> Test run: quick check without AI, nothing is saved
         </label>
