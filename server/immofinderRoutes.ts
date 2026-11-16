@@ -6,7 +6,7 @@ import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, finishRun, getSettings, lastRealRunAt, latestRun, listListings, loadImmoConfig, realRunCount, saveProgress, saveSettings, setStatus, startRun } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, finishRun, getSettings, hiddenCount, lastRealRunAt, latestRun, listListings, loadImmoConfig, realRunCount, saveProgress, saveSettings, setStatus, startRun } from './immofinderStore.ts';
 
 export interface ImmoRouteDeps {
   authenticated: (req: Request) => boolean;
@@ -42,7 +42,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   app.get('/api/immofinder/listings', async (req, res) => {
     try {
       const s = String(req.query.status || '').toUpperCase();
-      res.json({ success: true, listings: await listListings((STATUSES as readonly string[]).includes(s) ? s : null) });
+      res.json({ success: true, listings: await listListings((STATUSES as readonly string[]).includes(s) ? s : null), hidden: await hiddenCount() });
     } catch (e) { res.status(500).json({ success: false, error: 'Listings unavailable', code: 'IMMOFINDER_FAILED' }); }
   });
 
@@ -51,6 +51,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     if (!(STATUSES as readonly string[]).includes(status) || !/^[0-9a-f-]{36}$/i.test(req.params.id)) return res.status(400).json({ success: false, error: 'Invalid id or status', code: 'INVALID_REQUEST' });
     try { return (await setStatus(req.params.id, status)) ? res.json({ success: true }) : res.status(404).json({ success: false, error: 'Listing not found', code: 'NOT_FOUND' }); }
     catch { return res.status(500).json({ success: false, error: 'Update failed', code: 'IMMOFINDER_FAILED' }); }
+  });
+
+  app.post('/api/immofinder/cleanup', json, async (_req, res) => {
+    try { res.json({ success: true, hidden: await cleanupStored() }); } catch { res.status(500).json({ success: false, error: 'Cleanup failed', code: 'IMMOFINDER_FAILED' }); }
   });
 
   app.get('/api/immofinder/runs/latest', async (_req, res) => {
@@ -100,6 +104,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       const errors: unknown[] = []; let result = null as Awaited<ReturnType<typeof runPipeline>> | null; const delivery: Record<string, string> = {};
       try {
         const cfg = applySettings(loadImmoConfig(), settings);
+        try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
         result = await runPipeline({ config: cfg, fetchPage: createPoliteFetch(cfg), llm: dryRun ? null : deps.llm, store: createPgStore(), onProgress: push, maxLlmCalls: settings.search.maxAiPages, search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null, cycle: await realRunCount() }, { dryRun });
         errors.push(...result.errors);
         if (!dryRun) {

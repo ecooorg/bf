@@ -1,7 +1,7 @@
 /** ImmoFinder GR — pure logic (no I/O): matching, filters, verification, drafts. Every stored fact must be verifiable in fetched text. */
 export interface ImmoConfig {
   municipalities: string[]; stopAgencies: string[]; minRooms: number; platformDomains: string[];
-  sources: { id: string; url: string; phase: number; cityUrl?: string; detailPattern?: string; cutMarkers?: string[]; privateTitleHint?: string; maxDetailPages?: number }[];
+  sources: { id: string; url: string; phase: number; cityUrl?: string; detailPattern?: string; cutMarkers?: string[]; privateTitleHint?: string; maxDetailPages?: number; indexUrls?: string[] }[];
   fetch: { userAgent: string; perHostDelayMs: number; respectRobotsTxt: boolean };
   limits: { maxDetailPagesPerSource: number; recheckAfterDays: number; fetchTimeoutMs: number; maxPageBytes: number };
   estCostPerLlmCallUsd: number;
@@ -19,8 +19,10 @@ export function matchMunicipality(text: string, list: string[]): string | null {
   const hay = ` ${norm(text)} `;
   let best: string | null = null;
   for (const m of list) {
-    const n = norm(m);
-    if (n && hay.includes(` ${n} `) && (!best || n.length > norm(best).length)) best = m;
+    const translit = norm(m.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue'));
+    for (const n of new Set([norm(m), translit])) {
+      if (n && hay.includes(` ${n} `) && (!best || n.length > norm(best).length)) best = m;
+    }
   }
   return best;
 }
@@ -110,16 +112,45 @@ export function extractContacts(text: string, platformDomains: string[]): { phon
 
 export const CONTACT_ADVICE = 'No direct contact found in the listing. Try: search the property name plus municipality on local.ch or search.ch; look for an imprint (Impressum) or own website of the host; use the platform message form; check the municipal tourist office; a short paid subscription to a holiday-rental directory with owner details may reveal the contact.';
 
-/** Universal German draft (Schweizer Hochdeutsch, no "ß"). Uses only verified facts; never states an amount; never sent. */
-export function draftMessage(f: { ownerName?: string | null; propertyName?: string; municipality: string }): string {
+export type ListingType = 'holiday_owner' | 'long_term_offer';
+const HOLIDAY = /ferien|holiday|chalet|unterkunft|airbnb\.|booking\.com|happyholiday|ferienhausmiete|surselva\.info|vrbo|cozycozy/i;
+/** Holiday-rental owner (cold approach for a long-term lease) or an ordinary long-term offer (reply to the ad). */
+export function classifyType(title: string, url: string, text: string): ListingType {
+  return HOLIDAY.test(`${title} ${url} ${String(text).slice(0, 400)}`) ? 'holiday_owner' : 'long_term_offer';
+}
+
+export const LONG_TERM_HINT = /(langzeitmiete|langzeit|ganzj[aä]hrig|dauermiete|unbefristet)/i;
+
+/** Where to reach the advertiser, by host and type, when no direct contact was found. */
+export function contactAdvice(url: string, type: ListingType): string {
+  let h = ''; try { h = new URL(url).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
+  if (/facebook\.com$/.test(h)) return 'Open the post and message the poster in Facebook Messenger (Facebook login required).';
+  if (type === 'long_term_offer') return 'Use the contact form or message button on the listing page.';
+  if (/airbnb|booking|vrbo|cozycozy|tripadvisor/.test(h)) return 'Message the host through the platform; the holiday listing page rarely shows a phone number. A search for the property name plus municipality may find the owner\'s own site.';
+  return CONTACT_ADVICE;
+}
+
+/** German draft (Schweizer Hochdeutsch, no "ß"). Uses only verified facts; never states an amount; never sent. */
+export function draftMessage(f: { ownerName?: string | null; propertyName?: string; municipality: string; type?: ListingType; rooms?: number }): string {
   const greet = f.ownerName ? `Guten Tag ${f.ownerName}` : 'Guten Tag';
+  const me = 'Zu mir: Ich habe ein festes Einkommen in der Schweiz, einen sauberen Betreibungsregisterauszug und eine Privathaftpflichtversicherung. Gerne lege ich Ihnen die Unterlagen vor.';
+  if (f.type === 'long_term_offer') {
+    return [
+      `Betreff: Interesse an Ihrer ${f.rooms ? `${f.rooms}-Zimmer-` : ''}Wohnung in ${f.municipality}`, '',
+      `${greet},`, '',
+      `ich habe Ihr Inserat${f.propertyName ? ` «${f.propertyName}»` : ''} in ${f.municipality} gesehen und interessiere mich sehr für die Wohnung. Ich suche eine Wohnung für langfristige Miete, gerne ab drei Jahren.`, '',
+      me, '',
+      'Ist die Wohnung noch frei? Gerne komme ich zu einer Besichtigung vorbei oder rufe Sie kurz an. Über eine Rückmeldung würde ich mich sehr freuen.', '',
+      'Freundliche Grüsse', '[Ihr Name]', '[Ihre Telefonnummer]',
+    ].join('\n');
+  }
   const obj = f.propertyName ? `Ihre Ferienwohnung «${f.propertyName}»` : 'Ihre Ferienwohnung';
   return [
     `Betreff: Anfrage zur langfristigen Miete – ${f.propertyName || 'Ferienwohnung'} in ${f.municipality}`, '',
     `${greet},`, '',
     `ich bin auf ${obj} in ${f.municipality} aufmerksam geworden und möchte anfragen, ob für Sie eine langfristige Vermietung ab drei Jahren denkbar wäre.`, '',
     'Für Sie hätte das einige Vorteile: keine Leerstände zwischen den Buchungen, keine Plattformkommissionen, kein Aufwand für Gästewechsel und Reinigung, und eine Mieterschaft, die mit der Wohnung sorgfältig umgeht.', '',
-    'Zu mir: Ich habe ein festes Einkommen in der Schweiz, einen sauberen Betreibungsregisterauszug und eine Privathaftpflichtversicherung. Gerne lege ich Ihnen die Unterlagen vor.', '',
+    me, '',
     'Falls Sie sich das grundsätzlich vorstellen können, melde ich mich gerne für ein kurzes Telefonat oder einen Besichtigungstermin. Über eine Rückmeldung würde ich mich sehr freuen.', '',
     'Freundliche Grüsse', '[Ihr Name]', '[Ihre Telefonnummer]',
   ].join('\n');
@@ -154,10 +185,18 @@ const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen)\b/i;
 const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz)\b/i;
 
 /** Pages that are not an owner's offer: search/list pages, wanted ads, hotels and guesthouses. Checked on title and URL only. */
-export function nonListingReason(title: string, url: string): 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | null {
+export type NonListing = 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | 'for_sale' | 'shared_room' | 'development_project';
+const FOR_SALE = /(zum kauf|zu verkaufen|\bkaufen\b|eigentumswohnung|\bverkauf\b)/i;
+const SHARED = /(\bwg\b|wohngemeinschaft|\bzwischenmiete\b|\buntermiete\b|zimmer in (einer )?(wg|wohnung))/i;
+const DEVELOPMENT = /(?<!ferien)wohnungen\b/i;
+const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\//i;
+export function nonListingReason(title: string, url: string): NonListing | null {
   const t = String(title ?? '').trim();
   if (WANTED.test(t)) return 'wanted_ad';
-  if (LIST_TITLE.test(t) || LIST_URL.test(url)) return 'list_or_search_page';
+  if (FOR_SALE.test(t) || /\/kaufen\//i.test(url)) return 'for_sale';
+  if (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url)) return 'list_or_search_page';
+  if (SHARED.test(t)) return 'shared_room';
+  if (DEVELOPMENT.test(t)) return 'development_project';
   if (HOTEL.test(t)) return 'hotel_or_guesthouse';
   return null;
 }

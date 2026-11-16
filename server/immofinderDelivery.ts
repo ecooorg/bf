@@ -31,7 +31,7 @@ export async function sendEmail(to: string, subject: string, text: string, fetch
 export function formatListingsText(rows: any[], opts: { heading: string; limit: number; driveUrl?: string }): string {
   const sorted = [...rows].sort((a, b) => new Date(b.first_seen_at).getTime() - new Date(a.first_seen_at).getTime());
   const body = sorted.slice(0, opts.limit).map((r) => [
-    `• ${r.property_name} (${r.municipality}, ${r.rooms_estimated} rooms)`, `  Found: ${formatZurich(r.first_seen_at)}`, `  ${r.listing_url}`,
+    `• ${r.property_name} (${r.municipality}, ${r.rooms_estimated} rooms, ${r.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'})`, `  Found: ${formatZurich(r.first_seen_at)}`, `  ${r.listing_url}`,
     [r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).length ? `  Contact: ${[r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).join(' · ')}` : '', r.status && r.status !== 'NEW' ? `  Status: ${r.status}` : '',
   ].filter(Boolean).join('\n')).join('\n\n');
   const more = sorted.length > opts.limit ? `\n\n…and ${sorted.length - opts.limit} more in the app.` : '';
@@ -52,7 +52,7 @@ async function driveToken(sa: { client_email: string; private_key: string }, f: 
 /** One cell per object (readable on a phone): everything except the letter draft, newest first. */
 export function listingsTable(rows: any[]): string[][] {
   const cell = (r: any) => [
-    `${r.property_name}`, `📍 ${r.municipality} · ${r.rooms_estimated} rooms · ${r.status}`, `Found: ${formatZurich(r.first_seen_at)}`,
+    `${r.property_name}`, `📍 ${r.municipality} · ${r.rooms_estimated} rooms · ${r.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'} · ${r.status}`, `Found: ${formatZurich(r.first_seen_at)}`,
     [r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).length ? `Contact: ${[r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).join(' · ')}` : `Contact: not found. ${String(r.contact_advice || '').slice(0, 160)}`,
     `Link: ${r.listing_url}`, (r.photo_urls || []).length ? `Photos: ${(r.photo_urls || []).slice(0, 3).join(' ')}` : '', (r.source_urls || []).length > 1 ? `Other sources: ${(r.source_urls || []).slice(1).join(' ')}` : '',
     r.description_ru ? `RU: ${r.description_ru}` : '', r.description_de ? `DE: ${r.description_de}` : '',

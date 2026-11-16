@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
-import type { ImmoConfig } from './immofinderCore.ts';
+import { type ImmoConfig, nonListingReason } from './immofinderCore.ts';
 import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
 
@@ -43,11 +43,11 @@ export function createPgStore(): ImmoStore {
           [o.id, j(uniq([...o.source_urls, ...rec.source_urls])), j(uniq([...o.source_ids, ...rec.source_ids])), j(o.photo_urls?.length ? o.photo_urls : rec.photo_urls), rec.direct_phone, rec.direct_email, rec.owner_name]);
         return 'updated';
       }
-      await p.query(`INSERT INTO immofinder_listings (canonical_key, source_urls, source_ids, listing_url, photo_urls, municipality, property_name, rooms_text, rooms_estimated, rooms_basis,
+      await p.query(`INSERT INTO immofinder_listings (listing_type, canonical_key, source_urls, source_ids, listing_url, photo_urls, municipality, property_name, rooms_text, rooms_estimated, rooms_basis,
         description_de, description_ru, title_ru, owner_name, direct_phone, direct_email, contact_evidence, contact_status, contact_advice, private_signals, draft_message_de, raw)
-        VALUES ($1,$2::jsonb,$3::jsonb,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18,$19,$20::jsonb,$21,$22::jsonb)`,
+        VALUES ($23,$1,$2::jsonb,$3::jsonb,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18,$19,$20::jsonb,$21,$22::jsonb)`,
         [rec.canonical_key, j(rec.source_urls), j(rec.source_ids), rec.listing_url, j(rec.photo_urls), rec.municipality, rec.property_name, rec.rooms_text, rec.rooms_estimated, rec.rooms_basis,
-          rec.description_de, rec.description_ru, rec.title_ru, rec.owner_name, rec.direct_phone, rec.direct_email, j(rec.contact_evidence), rec.contact_status, rec.contact_advice, j(rec.private_signals), rec.draft_message_de, j(rec.raw)]);
+          rec.description_de, rec.description_ru, rec.title_ru, rec.owner_name, rec.direct_phone, rec.direct_email, j(rec.contact_evidence), rec.contact_status, rec.contact_advice, j(rec.private_signals), rec.draft_message_de, j(rec.raw), rec.listing_type]);
       return 'new';
     },
   };
@@ -55,8 +55,20 @@ export function createPgStore(): ImmoStore {
 
 export async function listListings(status: string | null) {
   const p = await getPool();
-  const r = await p.query(`SELECT * FROM immofinder_listings WHERE ($1::text IS NULL OR status = $1) ORDER BY (status = 'NEW') DESC, last_seen_at DESC LIMIT 200`, [status]);
+  const r = await p.query(`SELECT * FROM immofinder_listings WHERE hidden = false AND ($1::text IS NULL OR status = $1) ORDER BY (status = 'NEW') DESC, last_seen_at DESC LIMIT 200`, [status]);
   return r.rows;
+}
+export async function hiddenCount(): Promise<number> {
+  const p = await getPool(); return Number((await p.query('SELECT count(*)::int AS n FROM immofinder_listings WHERE hidden = true')).rows[0]?.n ?? 0);
+}
+/** Hides saved rows that the current filters would reject (search pages, hotels, wanted ads ...). Rows stay in the database. */
+export async function cleanupStored(): Promise<number> {
+  const p = await getPool(); const r = await p.query('SELECT id, property_name, listing_url FROM immofinder_listings WHERE hidden = false'); let n = 0;
+  for (const row of r.rows) {
+    const why = nonListingReason(row.property_name, row.listing_url); if (!why) continue;
+    await p.query('UPDATE immofinder_listings SET hidden = true, hide_reason = $2, updated_at = now() WHERE id = $1', [row.id, why]); n++;
+  }
+  return n;
 }
 export async function setStatus(id: string, status: string): Promise<boolean> {
   const p = await getPool();

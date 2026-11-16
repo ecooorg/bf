@@ -1,8 +1,8 @@
 import { hostOf, buildQueries, pickItems, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, pageMeta, parseRooms, registrationForbidden, verifyQuote } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, pageMeta, parseRooms, registrationForbidden, verifyQuote } from './immofinderCore.ts';
 
 export interface ListingRecord {
-  canonical_key: string; listing_url: string; source_urls: string[]; source_ids: string[]; photo_urls: string[]; municipality: string; property_name: string;
+  listing_type: ListingType; canonical_key: string; listing_url: string; source_urls: string[]; source_ids: string[]; photo_urls: string[]; municipality: string; property_name: string;
   rooms_text: string; rooms_estimated: number; rooms_basis: string; description_de: string; description_ru: string; title_ru: string; owner_name: string | null;
   direct_phone: string | null; direct_email: string | null; contact_evidence: { type: string; value: string; url: string }[]; contact_status: 'found' | 'not_found' | 'platform_only';
   contact_advice: string; private_signals: string[]; draft_message_de: string; raw: Record<string, unknown>;
@@ -126,13 +126,18 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
       if (ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
       if (ex.regForbidden) { await deny('registration_forbidden'); continue; }
       if (!isSpecificLink(url)) ex.signals.push('generic_link');
+      // The commune named in the URL or title wins over one guessed from a snippet.
+      const urlMuni = matchMunicipality(`${decodeURIComponent(url).replace(/[-_/.?=&]/g, ' ')} ${meta.title}`, cfg.municipalities);
+      if (urlMuni && urlMuni !== ex.municipality) { ex.municipality = urlMuni; ex.signals.push('municipality_from_url'); }
+      const type = classifyType(meta.title, url, pages[i].text);
+      if (LONG_TERM_HINT.test(pages[i].text.slice(0, 6000))) ex.signals.push('long_term_possible');
       const phones = c.phones.filter((p) => (phoneUse.get(`${host}|${p}`) || 0) < 3);
       const evidence = [...phones.slice(0, 1).map((v) => ({ type: 'phone', value: v, url })), ...c.emails.slice(0, 1).map((v) => ({ type: 'email', value: v, url }))];
       const rec: ListingRecord = {
-        canonical_key: canonicalKey(ex.name, ex.municipality), listing_url: url, source_urls: [url], source_ids: [src.id], photo_urls: meta.photos, municipality: ex.municipality, property_name: ex.name,
+        listing_type: type, canonical_key: canonicalKey(ex.name, ex.municipality), listing_url: url, source_urls: [url], source_ids: [src.id], photo_urls: meta.photos, municipality: ex.municipality, property_name: ex.name,
         rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis, description_de: ex.summaryDe, description_ru: ex.summaryRu, title_ru: ex.titleRu, owner_name: ex.owner,
         direct_phone: phones[0] ?? null, direct_email: c.emails[0] ?? null, contact_evidence: evidence, contact_status: evidence.length ? 'found' : 'platform_only',
-        contact_advice: evidence.length ? '' : CONTACT_ADVICE, private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id },
+        contact_advice: evidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id },
       };
       res.counts.kept++; say(stage, `✔ match: ${ex.name.slice(0, 60)} (${ex.municipality})`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
       if (opts.dryRun) continue;
@@ -145,6 +150,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
     res.counts.sources++;
     const pattern = src.detailPattern ? new RegExp(src.detailPattern) : undefined;
     const indexHtml: { url: string; body: string }[] = [];
+    for (const extra of src.indexUrls ?? []) { const r = await deps.fetchPage(extra).catch(() => ({ ok: false, status: 0, body: '' })); if (r.ok) indexHtml.push({ url: extra, body: r.body }); }
     say('catalogue', `${src.id}: loading index page`);
     const first = await deps.fetchPage(src.url).catch((e) => ({ ok: false, status: 0, body: String(e?.message || e) }));
     if (!first.ok) res.errors.push({ source: src.id, code: 'source_fetch_failed', detail: `status ${first.status}` }); else indexHtml.push({ url: src.url, body: first.body });
