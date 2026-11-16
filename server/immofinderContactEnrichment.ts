@@ -54,7 +54,7 @@ export const DEFAULT_CONTACT_ENRICHMENT: ContactEnrichmentConfig = {
   enabled: true,
   maxExtraSearchesPerRun: 25,
   maxReverseImagePerRun: 8,
-  maxCandidatePagesPerListing: 3,
+  maxCandidatePagesPerListing: 4,
   skipHosts: [
     'wikipedia.org',
     'youtube.com',
@@ -156,28 +156,69 @@ export interface EnrichmentDeps {
 
 /** Secondary text queries that stay within normal web-search behaviour. */
 export function buildSecondaryQueries(input: EnrichmentInput): string[] {
-  const name = (input.propertyName || '').trim();
+  const name = (input.propertyName || '').trim().replace(/\s+/g, ' ').slice(0, 80);
   const muni = (input.municipality || '').trim();
   const owner = (input.ownerName || '').trim();
-  if (!name || !muni) return [];
+  if (!muni) return [];
 
-  const base = [
-    `"${name}" ${muni} (Telefon OR Tel OR "von privat" OR Eigentümer OR Vermieter OR Kontakt)`,
-    `"${name}" ${muni} (Impressum OR "contact us" OR "rufen Sie" OR Handynummer)`,
-    `"${name}" ${muni} (Chalet OR Chesa OR Ferienwohnung OR Ferienhaus) -booking -airbnb -homegate -immoscout`,
-  ];
+  const portalNeg = '-booking.com -airbnb -homegate -immoscout24 -comparis -interhome -e-domizil -fewo-direkt';
+  const contactOr = '(Telefon OR Tel. OR Handy OR Mobil OR WhatsApp OR Kontakt OR Impressum OR Vermieter OR "von privat")';
+  const qs: string[] = [];
 
-  if (owner && owner.length >= 3 && !/^(familie|family|herr|frau|mr|mrs|the)$/i.test(owner)) {
-    base.push(`"${owner}" ${muni} (Ferienwohnung OR Chalet OR Chesa OR Telefon OR Tel)`);
-    base.push(`"${owner}" ${muni} (Impressum OR Kontakt)`);
+  // Swiss public directories first when we have a person-like owner name.
+  if (owner && owner.length >= 3 && !/^(familie|family|herr|frau|mr|mrs|the|privat)$/i.test(owner)) {
+    qs.push(`site:local.ch "${owner}" ${muni}`);
+    qs.push(`site:search.ch "${owner}" ${muni}`);
+    qs.push(`"${owner}" ${muni} ${contactOr} ${portalNeg}`);
+    qs.push(`"${owner}" ${muni} (Ferienwohnung OR Ferienhaus OR Chalet OR Chesa OR Wohnung)`);
   }
 
-  // Prefer unique-looking names; drop very generic ones to avoid noise.
-  const generic = /^(ferienwohnung|ferienhaus|wohnung|apartment|chalet|haus|unterkunft)\b/i;
-  if (generic.test(name) && name.split(/\s+/).length < 3) {
-    return base.slice(0, 1); // only the most specific query
+  if (name) {
+    qs.push(`"${name}" ${muni} ${contactOr} ${portalNeg}`);
+    qs.push(`"${name}" ${muni} (Impressum OR "Kontakt" OR Handynummer OR "rufen Sie") ${portalNeg}`);
+    qs.push(`"${name}" ${muni} (Chalet OR Chesa OR Ferienwohnung OR Ferienhaus) ${portalNeg}`);
+    // Unquoted soft query when the title is long/noisy
+    if (name.length > 24) {
+      const short = name.split(/[–\-|:,(]/)[0].trim().slice(0, 40);
+      if (short.length >= 4) qs.push(`${short} ${muni} ${contactOr} ${portalNeg}`);
+    }
   }
-  return base;
+
+  // Long-term / Nachmieter style
+  if (/nachmieter|zu vermieten|vermiete|wohnungsangebot/i.test(name)) {
+    qs.push(`${muni} (Nachmieter OR "zu vermieten") ${contactOr} ${portalNeg}`);
+  }
+
+  // Deduplicate while preserving order
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const q of qs) {
+    const k = q.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(q);
+  }
+
+  // Prefer unique-looking names; if title is very generic keep directory + one text query
+  const generic = /^(ferienwohnung|ferienhaus|wohnung|apartment|chalet|haus|unterkunft|\d)/i;
+  if (name && generic.test(name) && name.split(/\s+/).length < 3 && !owner) {
+    return out.slice(0, 2);
+  }
+  return out.slice(0, 6);
+}
+
+/** Prefer Swiss owner sites and directories over big portals when ranking Serper hits. */
+export function scoreCandidateUrl(url: string): number {
+  const h = hostOf(url);
+  if (!h) return -100;
+  let s = 0;
+  if (/(^|\.)local\.ch$|(^|\.)search\.ch$|(^|\.)directories\.ch$/i.test(h)) s += 50;
+  if (/\.ch$/i.test(h)) s += 15;
+  if (/(booking|airbnb|homegate|immoscout|comparis|interhome|e-domizil|fewo-direkt|tripadvisor|expedia)/i.test(h)) s -= 40;
+  if (/(facebook|instagram|youtube|tiktok)/i.test(h)) s -= 10;
+  // Prefer contact/impressum paths
+  if (/impressum|kontakt|contact|about/i.test(url)) s += 20;
+  return s;
 }
 
 // ---------------------------------------------------------------------------
@@ -231,8 +272,31 @@ export function extractContactsEnhanced(
   base.phones.forEach((p) => phones.add(p));
   base.emails.forEach((e) => emails.add(e));
 
-  // 3) Light preference: if a phone/email sits near contact keywords, we still
-  //    just return the value — ranking is left to the caller.
+  // 3) Extra pass on Kontakt/Impressum windows in plain text
+  const windows: string[] = [];
+  const lower = text.toLowerCase();
+  for (const key of ['kontakt', 'impressum', 'telefon', 'tel.', 'handy', 'mobil', 'whatsapp', 'e-mail', 'email', 'vermieter']) {
+    let from = 0;
+    while (from < lower.length) {
+      const i = lower.indexOf(key, from);
+      if (i < 0) break;
+      windows.push(text.slice(Math.max(0, i - 40), Math.min(text.length, i + 120)));
+      from = i + key.length;
+      if (windows.length > 12) break;
+    }
+    if (windows.length > 12) break;
+  }
+  for (const w of windows) {
+    for (const m of w.matchAll(PHONE_RE)) {
+      const p = normPhone(m[0]);
+      if (p.length >= 10) phones.add(p);
+    }
+    for (const m of w.matchAll(EMAIL_RE)) {
+      const e = m[0].toLowerCase();
+      if (!platformDomains.some((d) => e.endsWith(`@${d}`) || e.endsWith(`.${d}`))) emails.add(e);
+    }
+  }
+
   return {
     phones: [...phones],
     emails: [...emails],
@@ -302,8 +366,10 @@ export async function enrichContacts(
 
   // ---- A) Secondary text search ------------------------------------------------
   if (deps.config.useSecondarySearch && deps.budget.searchesLeft > 0) {
-    const queries = buildSecondaryQueries(input).slice(0, 3);
+    const queries = buildSecondaryQueries(input).slice(0, 5);
+    result.notes.push(`queries_${queries.length}`);
     for (const q of queries) {
+      result.notes.push(`q:${q.slice(0, 90)}`);
       if (deps.budget.searchesLeft <= 0) break;
       deps.budget.searchesLeft--;
       result.cost.searches++;
@@ -318,7 +384,9 @@ export async function enrichContacts(
       const candidates = hits
         .map((h) => h.link)
         .filter((u) => isUsableCandidate(u, deps.config, listingHost) && !seenUrls.has(u))
-        .slice(0, deps.config.maxCandidatePagesPerListing);
+        .sort((a, b) => scoreCandidateUrl(b) - scoreCandidateUrl(a))
+        .slice(0, Math.max(deps.config.maxCandidatePagesPerListing, 4));
+      result.notes.push(`candidates_${candidates.length}`);
 
       for (const url of candidates) {
         seenUrls.add(url);
@@ -386,7 +454,9 @@ export async function enrichContacts(
       const candidates = hits
         .map((h) => h.link)
         .filter((u) => isUsableCandidate(u, deps.config, listingHost) && !seenUrls.has(u))
-        .slice(0, deps.config.maxCandidatePagesPerListing);
+        .sort((a, b) => scoreCandidateUrl(b) - scoreCandidateUrl(a))
+        .slice(0, Math.max(deps.config.maxCandidatePagesPerListing, 4));
+      result.notes.push(`candidates_${candidates.length}`);
 
       for (const url of candidates) {
         seenUrls.add(url);
