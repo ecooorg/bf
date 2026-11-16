@@ -74,3 +74,5 @@ Owner accepted: polite scraping of niche catalogues (honest User-Agent, per-host
 ImmoFinder discovery (128.3): web search through Serper (`SERPER_API_KEY`, already used by the search carousel). Social, booking and classified portals (`discovery.snippetOnlyHosts`) are never fetched; only the public search snippet is used, so no login, no scraping of those services. All other hosts go through the polite fetcher (robots.txt, delay). Personal data from search snippets is limited to contact values copied verbatim from the snippet or page.
 
 ImmoFinder email (128.5): sent through Resend with `RESEND_API_KEY` from the environment; the recipient is a single address saved in settings (validated, no lists). Settings endpoints return channel readiness as booleans only. Error strings from providers are truncated and the key is redacted.
+
+ImmoFinder Drive (128.6): the service account only edits two files the owner created and shared; it never creates files and holds no copy of data beyond them. The service account address is shown in Settings; the key stays in `GOOGLE_SERVICE_ACCOUNT_JSON`.
