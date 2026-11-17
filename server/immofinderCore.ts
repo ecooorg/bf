@@ -366,41 +366,112 @@ export interface ParsedPrice {
 }
 
 /** Parse a rent figure and its period from listing text. Never invents amounts.
- * Requires currency (CHF/Fr/€) or a clear period word; ignores bare "7 Tage" / "2 Wochen" (min-stay) and random integers. */
+ * Swiss formats: CHF 1'200.– / Fr. 1.200 / 1200 CHF / mtl. / /Mt. / pro Monat / Mietpreis.
+ * Requires currency (CHF/Fr/€) or a clear period word; ignores bare min-stay numbers. */
 export function parsePrice(text: string): ParsedPrice | null {
   const t = String(text ?? '');
-  // Prefer matches that include currency OR an explicit period after the number
-  const re = /(\d{1,3}(?:[\'\s]\d{3})*|\d+)(?:[.,](\d{1,2}))?\s*(CHF|Fr\.?|SFr\.?|€|EUR)?\s*(?:\/|\s+pro\s+|\s+per\s+|\s+)?\s*(Nacht|night|Woche|week|Monat|month|Monate|Tag|day|Saison|season)?\b/gi;
-  let best: ParsedPrice | null = null;
-  for (const m of t.matchAll(re)) {
-    const whole = m[0];
-    const amount = Number(String(m[1]).replace(/[\'\s]/g, '') + (m[2] ? '.' + m[2] : ''));
-    if (!(amount > 0 && amount < 100000)) continue;
-    const currency = (m[3] || '').trim();
-    const uRaw = (m[4] || '').toLowerCase();
-    // Reject pure duration phrases without currency (e.g. "7 Tage", "2 Wochen" as min stay)
-    if (!currency && !uRaw) continue;
-    if (!currency && /^(tag|tage|nacht|nächte|woche|wochen)$/i.test(uRaw) && amount <= 30) continue;
+  if (!t.trim()) return null;
+
+  const parseAmount = (raw: string, frac?: string) => {
+    // CH: 1'200 or 1.200 as thousands; keep comma/dot decimals only when 1–2 digits
+    let whole = String(raw).replace(/['\s]/g, '');
+    if (/^\d{1,2}\.\d{3}$/.test(whole)) whole = whole.replace(/\./g, '');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(whole)) whole = whole.replace(/\./g, '');
+    const n = Number(whole + (frac ? '.' + frac : ''));
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  type Hit = { amount: number; unit: PricingUnit; currency: boolean; quote: string; idx: number };
+  const hits: Hit[] = [];
+
+  const reCur =
+    /(?:(CHF|Fr\.?\s?|SFr\.?|EUR|€)\s*)?(\d{1,3}(?:['\.]\d{3})+|\d{3,5})(?:[.,](\d{1,2}))?\s*(?:\.–|\.-|–|-)?\s*(CHF|Fr\.?|SFr\.?|EUR|€)?(?:\s*(?:\/|pro|per|im)?\s*(Nacht|Nächte|night|Woche|Wochen|week|Monat|Monate|month|mtl\.?|Mt\.?|Tag|Tage|day|Saison|season))?/gi;
+  for (const m of t.matchAll(reCur)) {
+    const cur = (m[1] || m[4] || '').trim();
+    const amount = parseAmount(m[2], m[3]);
+    if (!(amount >= 50 && amount < 100000)) continue;
+    if (!cur && !m[5]) continue;
+    const uRaw = (m[5] || '').toLowerCase();
     let unit: PricingUnit = 'unknown';
     if (/nacht|night|tag|day/.test(uRaw)) unit = 'night';
     else if (/woche|week/.test(uRaw)) unit = 'week';
-    else if (/monat|month/.test(uRaw)) unit = 'month';
+    else if (/monat|month|mtl|mt\.?/.test(uRaw)) unit = 'month';
     else if (/saison|season/.test(uRaw)) unit = 'season';
-    // Heuristic: amount with currency near "Miete" without unit → month
-    const ctx = t.slice(Math.max(0, (m.index || 0) - 40), (m.index || 0) + whole.length + 40);
-    if (unit === 'unknown' && currency && amount >= 400 && amount <= 6000 && /miete|rent|kalt|warm/i.test(ctx)) {
-      unit = 'month';
+    hits.push({ amount, unit, currency: Boolean(cur), quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
+  }
+
+  const reLabel =
+    /(?:Mietpreis|Nettomiete|Nettomietzins|Bruttomiete|Monatsmiete|Warmmiete|Kaltmiete|Monatszins|Mietzins)\s*[:=]?\s*(CHF|Fr\.?|SFr\.?|€|EUR)?\s*(\d{1,3}(?:['\.]\d{3})+|\d{3,5})(?:[.,](\d{1,2}))?/gi;
+  for (const m of t.matchAll(reLabel)) {
+    const amount = parseAmount(m[2], m[3]);
+    if (!(amount >= 200 && amount < 100000)) continue;
+    hits.push({
+      amount,
+      unit: 'month',
+      currency: Boolean(m[1]),
+      quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80),
+      idx: m.index || 0,
+    });
+  }
+
+  let best: ParsedPrice | null = null;
+  const score = (c: ParsedPrice) =>
+    (c.unit === 'month' ? 100 : c.unit === 'week' ? 50 : c.unit === 'night' ? 20 : 10) +
+    (/CHF|Fr|€|EUR/i.test(c.quote) ? 30 : 0) +
+    (c.monthlyChf != null ? 5 : 0);
+
+  for (const h of hits) {
+    if (h.amount < 80 && h.unit !== 'night') continue;
+    const ctx = t.slice(Math.max(0, h.idx - 50), h.idx + h.quote.length + 50);
+    let unit = h.unit;
+    if (unit === 'unknown') {
+      if (/pro\s*woche|\/\s*woche|weekly/i.test(ctx)) unit = 'week';
+      else if (/pro\s*nacht|\/\s*nacht|per\s*night/i.test(ctx)) unit = 'night';
+      else if (/pro\s*monat|\/\s*monat|mtl\.?|monatlich|nettomiete|warmmiete|kaltmiete|mietzins/i.test(ctx)) unit = 'month';
+      else if (h.currency && h.amount >= 400 && h.amount <= 8000 && /miete|rent|preis|chf|fr\./i.test(ctx)) unit = 'month';
     }
-    // Prefer currency-bearing matches
-    if (!currency && unit === 'unknown') continue;
+    if (/pro\s*woche|\/\s*wo\b/i.test(ctx)) unit = 'week';
+    if (/pro\s*nacht|\/\s*nacht/i.test(ctx)) unit = 'night';
+    if (!h.currency && unit === 'unknown') continue;
+
     let monthlyChf: number | null = null;
-    if (unit === 'month') monthlyChf = amount;
-    else if (unit === 'week') monthlyChf = Math.round(amount * (52 / 12));
-    else if (unit === 'night') monthlyChf = Math.round(amount * 30);
-    const cand: ParsedPrice = { amount, unit, monthlyChf, quote: whole.slice(0, 80) };
-    if (!best || (cand.unit === 'month' && best.unit !== 'month') || (Boolean(currency) && !best.quote.match(/CHF|Fr|€|EUR/i)) || (cand.monthlyChf != null && (best.monthlyChf == null || cand.monthlyChf < best.monthlyChf))) best = cand;
+    if (unit === 'month') monthlyChf = h.amount;
+    else if (unit === 'week') monthlyChf = Math.round(h.amount * (52 / 12));
+    else if (unit === 'night') monthlyChf = Math.round(h.amount * 30);
+
+    const cand: ParsedPrice = { amount: h.amount, unit, monthlyChf, quote: h.quote };
+    if (!best || score(cand) > score(best)) best = cand;
   }
   return best;
+}
+
+/** Prefer a verified LLM price_quote; else keyword windows; else head of page text. */
+export function resolveListingPrice(pageText: string, priceQuote: string | null | undefined): ParsedPrice | null {
+  const full = String(pageText ?? '');
+  if (priceQuote && priceQuote.trim().length >= 3) {
+    const q = priceQuote.trim();
+    // verifyQuote may be strict; still try parse on the quote alone when it looks like a price
+    if (/CHF|Fr\.?|SFr|€|EUR|\d{3,}/i.test(q)) {
+      const fromQuote = parsePrice(q) || parsePrice(`${q} CHF`);
+      if (fromQuote) return fromQuote;
+    }
+  }
+  const windows: string[] = [];
+  const lower = full.toLowerCase();
+  for (const key of ['mietpreis', 'nettomiete', 'nettomietzins', 'monatsmiete', 'mietzins', 'warmmiete', 'preis', 'chf', 'fr.']) {
+    let from = 0;
+    while (windows.length < 10) {
+      const i = lower.indexOf(key, from);
+      if (i < 0) break;
+      windows.push(full.slice(Math.max(0, i - 40), i + 100));
+      from = i + key.length;
+    }
+  }
+  for (const w of windows) {
+    const p = parsePrice(w);
+    if (p) return p;
+  }
+  return parsePrice(full.slice(0, 10000));
 }
 
 /** Extract a plausible publication / update date from page text or URL. */

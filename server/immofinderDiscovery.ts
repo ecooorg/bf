@@ -13,9 +13,18 @@ export function communesForRun(all: string[], perRun: number, cycle: number): st
   return Array.from({ length: n }, (_, i) => all[(start + i) % all.length]);
 }
 
-export function buildQueries(cfg: ImmoConfig, cycle: number): string[] {
+export function buildQueries(cfg: ImmoConfig, cycle: number, opts?: { allCommunes?: boolean }): string[] {
   const d = cfg.discovery; if (!d?.enabled) return [];
-  return communesForRun(cfg.municipalities, d.communesPerRun, cycle).flatMap((c) => d.queries.map((q) => q.replace('{commune}', c)));
+  // Full coverage: every whitelist commune, but only the highest-yield query templates (cost/time).
+  // Scheduled rotation still uses communesPerRun + full query list for depth over several days.
+  const per = opts?.allCommunes ? Math.max(cfg.municipalities.length, 1) : d.communesPerRun;
+  const startCycle = opts?.allCommunes ? 0 : cycle;
+  let use = d.queries;
+  if (opts?.allCommunes) {
+    const prefer = d.queries.filter((q) => /facebook|privat|Eigentümer|Vermieter Kontakt/i.test(q)).slice(0, 3);
+    use = prefer.length ? prefer : d.queries.slice(0, 2);
+  }
+  return communesForRun(cfg.municipalities, per, startCycle).flatMap((c) => use.map((q) => q.replace('{commune}', c)));
 }
 
 /** Search hits -> items to examine. Agency hosts are skipped; hosts that must not be fetched (social/booking portals) are used from the search snippet only.
