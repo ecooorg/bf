@@ -161,7 +161,8 @@ test('P128.2 footer cut, slug variants, agency flag needs a business-form quote,
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async (u) => seen.get(u) || null, markSeen: async (u) => { seen.set(u, { checked_at: new Date().toISOString() }); } };
   const fetchPage = async (u) => { fetched++; return pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }; };
   const res = await runPipeline({ config: cfg, fetchPage, llm: null, store }, { dryRun: true });
-  assert.equal(res.counts.index_pages, 2);
+  // cityUrl path only records successful commune index pages; Zizers has no fixture page → 1
+  assert.equal(res.counts.index_pages, 1);
   assert.equal(res.counts.candidates, 1);
   assert.equal(res.counts.kept, 1);
   assert.ok(res.preview[0].detail.includes('platform_says_private'));
