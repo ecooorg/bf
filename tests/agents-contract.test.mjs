@@ -246,7 +246,12 @@ test('P128.6 email content mode, found date/time, Drive folder id, Drive writes 
     { property_name: 'New', municipality: 'Chur', rooms_estimated: 4, first_seen_at: '2026-11-16T02:07:36Z', listing_url: 'https://a.example/2', direct_phone: '+41811234567', status: 'NEW', photo_urls: [], source_urls: [] }];
   const txt = formatListingsText(rows, { heading: 'H', limit: 10 });
   assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first'); assert.match(txt, /Found: 16\.11\.2026.*03:07/); assert.match(txt, /Status: CONTACTED/);
-  const tab = listingsTable(rows); assert.equal(tab.length, 3); assert.ok(tab.every((r) => r.length === 1), 'one column'); assert.match(tab[1][0], /^New\n.*Chur.*4 rooms.*NEW\nFound: 16\.11\.2026.*03:07/s); assert.ok(!/Betreff|Guten Tag/.test(tab.flat().join('')), 'no letter drafts in the sheet');
+  assert.match(txt, /📍 Chur · .* · 4 rooms · \+41811234567/);
+  const tab = listingsTable(rows); assert.equal(tab.length, 3); assert.ok(tab.every((r) => r.length === 1), 'one column');
+  assert.match(tab[1][0], /📍 Chur · .* · 4 rooms · \+41811234567/);
+  assert.match(tab[1][0], /Found: 16\.11\.2026.*03:07/);
+  assert.ok(tab[1][0].includes('New') || /4 rooms/.test(tab[1][0]), 'newest card first');
+  assert.ok(!/Betreff|Guten Tag/.test(tab.flat().join('')), 'no letter drafts in the sheet');
   const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
   process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ client_email: 'sa@p.iam.gserviceaccount.com', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }) });
   const calls = []; let haveDoc = true;
