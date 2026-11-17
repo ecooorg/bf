@@ -1,4 +1,20 @@
-# EXPERIMENTS — measurement ledger (C127)
+# EXPERIMENTS — measurement ledger (C129 Quality Search)
+
+> **Phase shift (C129):** ImmoFinder **searcher construction is complete** (sources, waves, geo, contacts, price extraction, settings, Drive/email).  
+> From **P129 / C129** the programme is **quality of search**: denser private long-term leads, commune coverage over a day (carousel), better prices/contacts, less junk — not new product scaffolding.
+
+## EXP-IMMO-3 — Hourly commune carousel (P129.0, USER_VALUE)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Full burst over 44 communes in one run is expensive and still under-filled cards; Navigator needs steady private leads over a day. Discussion 2026-11-17: agent may work for 24h; 2 communes/hour via Google + model extract is enough. |
+| **Hypothesis** | `wave=carousel` + `profile=carousel` + `carouselCommunesPerRun=2` + `cycle=realRunCount` covers all whitelist communes in ~22 hourly ticks; Serper+LLM extract without catalogues per tick raises kept/private density vs one noisy full run. Model router carousel remains the LLM failover. |
+| **Baseline** | P128 full run: ~7 objects, many price n/a, discovery limited historically to 5 communes. |
+| **Metric / acceptance** | (a) One carousel tick touches ≤ carouselCommunesPerRun communes in search queries; (b) over 22+ scheduled ticks all enabled communes appear in progress/search lines; (c) tick finishes without multi-minute AI waits; (d) new listings still pass geo/agency gates; (e) price_quote path fills rent when page text has CHF. |
+| **Files in scope** | server/immofinder{Pipeline,Routes,Settings}.ts, src/ImmoFinder{,Settings}.tsx, config/immofinder.json, docs/C129_QUALITY_SEARCH.md, docs/EXPERIMENTS.md, CHANGELOG.md, TECHNICAL_REPORT.md, package.json. |
+| **Rollback criterion** | Carousel produces zero discovery queries or skips all communes for >3 ticks: revert profile default to burst / wave full. |
+| **Result** | `NOT_RUN` (needs hourly schedule + Navigator). |
+
 
 ## EXP-IMMO-2 — Priority-first search stages + contact/geo quality (P128.21, USER_VALUE)
 
