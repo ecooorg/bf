@@ -1,3 +1,8 @@
+## [128.21.4] - Listing cards + lint:copy CI
+
+- CI red was lint:copy only (ImmoFinder Stage-1 help >24 words); shortened. Cards (UI, Drive sheet, Docs, email/Telegram): first line place · price · rooms · contacts; then short object text; then direct object link (flags list/group URLs).
+- Scope: src/ImmoFinder.tsx, server/immofinderDelivery.ts, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## [128.21.3] - Search early-stop too aggressive; rank in-zone SERP first
 
 - Search consecutive non-keep stop raised 12→48 (catalogues stay ~14). pickItems ranks whitelist-commune hits before unknown/outside so good private ads are not cut by an early bad streak. Addresses Stage-1 run with 0 new and source_early_stop on web search.

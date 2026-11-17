@@ -1,3 +1,9 @@
+## P128.21.4 — lint:copy + listing card layout
+
+- **OBSERVED:** CI FAIL only on lint:copy (Stage 1 help >24 words). Tests 912/918 pass, 0 failed.
+- **CHANGE:** Short Stage-1 help. formatListingCard for UI/Drive/Docs/email: place·price·rooms·contact → text → direct link.
+- **SCOPE:** src/ImmoFinder.tsx, server/immofinderDelivery.ts, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## P128.21.3 — Search early-stop + SERP ranking
 
 - **OBSERVED:** Stage-1 5m25s: kept new=0; source_early_stop on search after 12 consecutive non-keeps; 20 outside communes rejected.
