@@ -284,7 +284,11 @@ export default function ImmoFinder() {
           <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, lineHeight: 1.35 }} data-testid="immofinder-card-headline">
             📍 {l.municipality}
             {' · '}
-            {l.rent_monthly_chf != null ? `CHF ${l.rent_monthly_chf}${l.pricing_unit === 'week' ? '/wk' : l.pricing_unit === 'night' ? '/night' : '/mo'}` : 'price n/a'}
+            {l.rent_monthly_chf != null
+              ? `CHF ${l.rent_monthly_chf}${l.pricing_unit === 'week' ? '/wk' : l.pricing_unit === 'night' ? '/night' : '/mo'}`
+              : (typeof (l as any).raw?.price?.quote === 'string' && (l as any).raw.price.quote.trim()
+                ? String((l as any).raw.price.quote).replace(/\s+/g, ' ').trim().slice(0, 48)
+                : 'price n/a')}
             {' · '}
             {l.rooms_estimated} rooms
             {' · '}
