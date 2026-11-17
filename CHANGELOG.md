@@ -1,3 +1,8 @@
+## [129.3] - Price period always explicit on cards
+
+- formatPriceLine / UI: CHF amount + per night|week|month|season; never show night rate as bare monthly.
+- Quote without period word gets `(per …)` or `(period unclear)`.
+
 ## [129.2] - Price quote on cards + regex + diagnostics
 
 - C: parsePrice accepts `2850.- CHF` and `ab CHF 1'790`.
