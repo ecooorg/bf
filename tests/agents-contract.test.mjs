@@ -213,9 +213,9 @@ test('P128.4 pipeline reports live progress with stage, text and counters', asyn
 
 test('P128.5 settings: invalid input falls back, scope applies to config, schedule due logic (Swiss time)', async () => {
   const d = defaultSettings(immoCfg);
-  assert.equal(d.schedule.mode, 'manual');
+  assert.equal(d.schedule.mode, 'hours');
   const s = sanitizeSettings({ schedule: { mode: 'hours', everyHours: 5, dailyAt: '25:99' }, delivery: { email: true, emailTo: 'bad address', telegram: false }, search: { minRooms: 99, communes: ['Chur', 'Atlantis'], maxAiPages: 7, sources: { search: false } } }, immoCfg);
-  assert.equal(s.schedule.everyHours, 3); assert.equal(s.schedule.dailyAt, '06:00');
+  assert.equal(s.schedule.everyHours, 1); assert.equal(s.schedule.dailyAt, '06:00');
   assert.equal(s.delivery.email, false, 'email stays off without a valid address'); assert.equal(s.delivery.telegram, false);
   assert.deepEqual(s.search.communes, ['Chur']); assert.equal(s.search.minRooms, 3); assert.equal(s.search.maxAiPages, 60);
   const eff = applySettings(immoCfg, s);
