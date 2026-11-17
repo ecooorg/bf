@@ -46,6 +46,11 @@ function secretOk(req: Request): boolean {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+/** Cron call shape (POST /api/immofinder/run with X-Immofinder-Secret). Lets it past the global session gate only; the secret itself is verified in registerImmoFinderRoutes. */
+export function isImmoCronCall(req: Request): boolean {
+  return req.method === 'POST' && req.path === '/api/immofinder/run' && Boolean(req.get('x-immofinder-secret'));
+}
+
 /** Folder precedence: saved setting, then env, then the config default. */
 function driveFolder(saved: string): string {
   return saved || parseDriveFolderId(process.env.IMMOFINDER_DRIVE_FOLDER_ID) || parseDriveFolderId(loadImmoConfig().driveFolderId);
