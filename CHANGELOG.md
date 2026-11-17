@@ -1,3 +1,8 @@
+## [129.4] - Built-in hourly ImmoFinder schedule
+
+- Default schedule: every 1 hour (not manual). In-process tick every ~10 min starts carousel when due — no external cron required.
+- External X-Immofinder-Secret cron remains optional.
+
 ## [129.3] - Price period always explicit on cards
 
 - formatPriceLine / UI: CHF amount + per night|week|month|season; never show night rate as bare monthly.
