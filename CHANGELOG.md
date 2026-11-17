@@ -1,3 +1,9 @@
+## [129.2] - Price quote on cards + regex + diagnostics
+
+- C: parsePrice accepts `2850.- CHF` and `ab CHF 1'790`.
+- F: formatPriceLine / UI show raw price quote when monthly CHF missing.
+- A: `immofinder_price_diag` console log when price missing or price_* reject (snippet around CHF/Miete).
+
 ## [129.1] - CI patch format + reject seeker/aggregator junk
 
 - package.patch format `129.1` (P127.11 regex). Stronger seeker detection (Suche/Wer hat/zu mieten); Nestoria-style list URLs rejected; skipHosts nestoria/immowelt.
