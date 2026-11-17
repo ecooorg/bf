@@ -1,3 +1,8 @@
+## [128.21.2] - CI: package-lock patch + P128.1 empty-source contract
+
+- package-lock.json patch 128.20→128.21 (P127.11). P128.1 disables discovery in the empty-catalogue fixture so source_no_candidates is asserted without discovery_skipped ordering noise.
+- Scope: package-lock.json, tests/agents-contract.test.mjs, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## [128.21.1] - Fix ImmoFinder tests + search-first priority (EXP-IMMO-2)
 
 - Fix full-mode double-run of the same discovery queries (search_queries inflated); restore progress text `Searching:`. Priority wave runs web search first (highest in-zone private yield), then phase-1 catalogues. agents-contract P128.2 expects 1 city index page under city-first. package patch 128.21.

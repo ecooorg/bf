@@ -1,3 +1,9 @@
+## P128.21.2 — CI red: lock patch + empty-source test
+
+- **OBSERVED:** P127.11 expected lock.patch 128.21 got 128.20; P128.1 expected source_no_candidates got discovery_skipped (search-first order).
+- **CHANGE:** package-lock patch fields; P128.1 discovery.enabled=false + errors.some(source_no_candidates).
+- **SCOPE:** package-lock.json, tests/agents-contract.test.mjs, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## P128.21.1 — Test fix + search-first priority
 
 - **OBSERVED:** CI red: P128.2 index_pages 1≠2 (city-first), P128.3 search_queries 2≠1 (full mode re-ran same queries), P128.4 progress label.
