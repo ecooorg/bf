@@ -1,3 +1,8 @@
+## [129.0.1] - CI: P128.3 wave pin + docs allowlist
+
+- P128.3 runPipeline uses wave=priority so search_queries stays 1 under commune rotation (full mode allCommunes was double-counting).
+- Removed docs/C129_QUALITY_SEARCH.md (not on prose allowlist); C129 ops notes live in docs/EXPERIMENTS.md.
+
 ## [129.0] - C129 Quality Search — commune carousel
 
 - Phase shift: searcher construction closed; quality programme opens (carousel profile, 2 communes/tick, Serper+LLM extract, catalogues skipped on carousel).

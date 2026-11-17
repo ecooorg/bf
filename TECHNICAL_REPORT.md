@@ -2,7 +2,7 @@
 
 - **PHASE:** End of “build the searcher”; start of quality optimisation.
 - **CHANGE:** `wave=carousel`, settings profile carousel (default), N communes/tick via existing `communesForRun`+`cycle`, skip catalogues on carousel ticks, documentation for successors.
-- **SCOPE:** immofinder Pipeline/Routes/Settings, ImmoFinder UI, docs/C129_QUALITY_SEARCH.md, EXPERIMENTS, CHANGELOG, package 129.0.
+- **SCOPE:** immofinder Pipeline/Routes/Settings, ImmoFinder UI, docs/EXPERIMENTS.md (C129 section), EXPERIMENTS, CHANGELOG, package 129.0.
 
 ## P128.21.4 — lint:copy + listing card layout
 
