@@ -451,7 +451,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
           Swiss time
         </label>
         {s.schedule.mode !== 'manual' && (
-          <p style={hint}>Server checks hourly; a due run starts in that window.</p>
+          <p style={hint}>App checks about every 10 min; a due hour-run starts in that window (no external cron).</p>
         )}
       </div>
 
