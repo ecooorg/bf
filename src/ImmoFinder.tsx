@@ -85,7 +85,7 @@ export default function ImmoFinder() {
     return () => clearInterval(t);
   }, [enrichJob?.running, loadList]);
 
-  const start = async (wave: 'priority' | 'extended' | 'full' = 'full') => {
+  const start = async (wave: 'priority' | 'extended' | 'full' | 'carousel' = 'full') => {
     setStarting(true); setMsg('');
     try { await api('/api/immofinder/run', { method: 'POST', body: JSON.stringify({ dryRun: dry, wave }) }); await load(); }
     catch (e) { setStarting(false); setMsg((e as Error).message); }
@@ -163,14 +163,18 @@ export default function ImmoFinder() {
           {busy ? 'Search is running…' : '🔍 Full search (both stages)'}
         </button>
         {!busy && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+            <button type="button" data-testid="immofinder-run-carousel" onClick={() => void start('carousel')} disabled={busy}
+              className="immo-btn" style={{ flex: 1, minWidth: 140, padding: '12px 8px', fontSize: 15 }}>
+              Carousel tick (2 communes)
+            </button>
             <button type="button" data-testid="immofinder-run-priority" onClick={() => void start('priority')} disabled={busy}
-              className="immo-btn" style={{ flex: 1, padding: '12px 8px', fontSize: 15 }}>
-              Stage 1 only (~10 min, high-value)
+              className="immo-btn" style={{ flex: 1, minWidth: 140, padding: '12px 8px', fontSize: 15 }}>
+              Stage 1 only
             </button>
             <button type="button" data-testid="immofinder-run-extended" onClick={() => void start('extended')} disabled={busy}
-              className="immo-btn" style={{ flex: 1, padding: '12px 8px', fontSize: 15 }}>
-              Stage 2 only (extended)
+              className="immo-btn" style={{ flex: 1, minWidth: 140, padding: '12px 8px', fontSize: 15 }}>
+              Stage 2 only
             </button>
           </div>
         )}
@@ -183,7 +187,7 @@ export default function ImmoFinder() {
         <label style={{ display: 'block', marginTop: 10, fontSize: 14, color: '#9fb4cf' }}>
           <input type="checkbox" checked={dry} onChange={(e) => setDry(e.target.checked)} disabled={busy} /> Test run: quick check without AI, nothing is saved
         </label>
-        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Stage 1 (~10 min): best sources first. Stage 2: wider search. Full runs both.</p>}
+        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Carousel: next communes this hour. Stage 1 / Full: burst modes. Prefer carousel on a schedule.</p>}
       </section>
 
       <details style={card}>

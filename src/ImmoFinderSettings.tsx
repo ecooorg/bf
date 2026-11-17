@@ -19,6 +19,8 @@ type S = {
     rejectSeekerPosts: boolean;
     requireContact: boolean;
     defaultWave: 'priority' | 'full';
+    profile: 'carousel' | 'burst';
+    carouselCommunesPerRun: number;
   };
 };
 type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccount?: string };
@@ -61,7 +63,8 @@ export function summarize(s: S): string {
   ].filter(Boolean).join(', ') || 'no delivery';
   const price = s.search.limitPrice ? `max CHF ${s.search.maxMonthlyRentChf}` : 'no price cap';
   const n = s.search.communes?.length ?? 0;
-  return `${sched} · ${send} · ${s.search.minRooms}+ rooms · ${n} communes · ${price}`;
+  const prof = s.search.profile === 'burst' ? 'burst' : 'carousel';
+  return `${prof} · ${sched} · ${send} · ${s.search.minRooms}+ rooms · ${n} communes · ${price}`;
 }
 
 export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }) {
@@ -237,7 +240,42 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
 
       {/* 2 · Sources */}
       <div style={box}>
-        <strong>2 · Sources (Stage 1 prioritises the top rows)</strong>
+        <strong>2 · Search profile (C129 quality)</strong>
+        <p style={hint}>Carousel: 2 communes per scheduled hour via Google + model extract. Burst: manual Stage 1 / Full.</p>
+        <label style={labelBlock}>
+          <input
+            type="radio"
+            name="immo-profile"
+            checked={(s.search.profile || 'carousel') === 'carousel'}
+            onChange={() => upd((x) => ({ ...x, search: { ...x.search, profile: 'carousel' } }))}
+            data-testid="immofinder-profile-carousel"
+          />{' '}
+          Carousel (quality over a day)
+        </label>
+        <label style={labelBlock}>
+          Communes per carousel tick{' '}
+          <select
+            value={s.search.carouselCommunesPerRun || 2}
+            disabled={(s.search.profile || 'carousel') !== 'carousel'}
+            onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, carouselCommunesPerRun: Number(e.target.value) } }))}
+          >
+            {[1, 2, 3, 4].map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+        </label>
+        <label style={labelBlock}>
+          <input
+            type="radio"
+            name="immo-profile"
+            checked={s.search.profile === 'burst'}
+            onChange={() => upd((x) => ({ ...x, search: { ...x.search, profile: 'burst' } }))}
+            data-testid="immofinder-profile-burst"
+          />{' '}
+          Burst (manual Stage 1 / Full, wide coverage)
+        </label>
+
+        <strong style={{ display: 'block', marginTop: 12 }}>Sources (Stage 1 prioritises the top rows)</strong>
         <p style={hint}>
           Web search runs first (Facebook, owner sites). Keep it on for best coverage.
         </p>
@@ -391,7 +429,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             disabled={s.schedule.mode !== 'hours'}
             onChange={(e) => upd((x) => ({ ...x, schedule: { ...x.schedule, everyHours: Number(e.target.value) as 3 | 6 | 12 } }))}
           >
-            {[3, 6, 12].map((h) => (
+            {[1, 3, 6, 12].map((h) => (
               <option key={h} value={h}>{h} h</option>
             ))}
           </select>
