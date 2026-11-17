@@ -1,3 +1,8 @@
+## [128.17] - EXPERIMENT: Immofinder schedule/cron diagnostic logs (EXP-IMMO-1)
+
+- Log every `POST /api/immofinder/run`: `immofinder_run_request` (schedule vs session, secret present/configured), `immofinder_schedule_tick` (mode, dailyAt, due, skipped, lastRealRunAt), accept/reject codes. New `GET /api/immofinder/schedule-status` for live due diagnosis. Cron workflow fails on unexpected HTTP so misconfigured secrets surface in Actions.
+- Scope: server/immofinderRoutes.ts, .github/workflows/immofinder-cron.yml, package.json, package-lock.json. Patch 128.17.
+
 ## [128.16] - EXPERIMENT: Stronger Immofinder contact search queries (EXP-IMMO-1)
 
 - Stronger public contact enrichment: Swiss directory queries (`site:local.ch`, `site:search.ch`), more CH contact keywords, portal exclusions, up to 5 Serper queries per listing, candidate URLs ranked (directories / .ch / Impressum first), deeper extraction near Kontakt/Telefon windows, richer notes (`q:…`, `candidates_N`).

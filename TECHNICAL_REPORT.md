@@ -1,3 +1,9 @@
+## P128.17 — Schedule tick diagnostics (EXPERIMENT)
+
+- **CHANGE:** Structured logs for cron auth and isDue decisions; schedule-status endpoint; stricter cron workflow exit codes.
+- **NOT_RUN:** Next hourly GitHub Actions tick after secrets fix.
+- **NOTE:** If app logs show no `immofinder_run_request` at :07 UTC, the request never reached Render (Actions secrets/URL).
+
 ## P128.16 — Stronger contact enrichment queries (EXPERIMENT)
 
 - **CHANGE:** buildSecondaryQueries expanded; scoreCandidateUrl ranking; extractContactsEnhanced keyword windows; more queries/candidates per listing.
