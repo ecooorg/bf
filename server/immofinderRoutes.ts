@@ -338,13 +338,17 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   app.post('/api/immofinder/run', json, async (req, res) => {
     const dryRun = req.body?.dryRun === true;
-    let defaultWave = 'full';
+    let defaultWave: 'priority' | 'extended' | 'full' | 'carousel' = 'carousel';
     try {
       const st = await getSettings(loadImmoConfig());
-      if (st.search?.defaultWave === 'priority') defaultWave = 'priority';
-    } catch { /* keep full */ }
+      if (st.search?.profile === 'carousel') defaultWave = 'carousel';
+      else if (st.search?.defaultWave === 'priority') defaultWave = 'priority';
+      else defaultWave = 'full';
+    } catch { /* keep carousel as C129 default */ }
     const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
-    const wave = (waveRaw === 'priority' || waveRaw === 'extended' || waveRaw === 'full') ? (waveRaw as 'priority' | 'extended' | 'full') : 'full';
+    const wave = (waveRaw === 'priority' || waveRaw === 'extended' || waveRaw === 'full' || waveRaw === 'carousel')
+      ? (waveRaw as 'priority' | 'extended' | 'full' | 'carousel')
+      : 'full';
     const trigger = (req as any).immoCron ? 'schedule' : 'manual';
     let settings; try { settings = await getSettings(loadImmoConfig()); } catch { return res.status(500).json({ success: false, error: 'Settings unavailable', code: 'IMMOFINDER_FAILED' }); }
     if (trigger === 'schedule') {
@@ -396,8 +400,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         const cfg = applySettings(loadImmoConfig(), settings);
         try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
         const dl = settings.delivery;
-        const deliverWave = async (wave: 'priority' | 'extended', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
-          const label = wave === 'priority' ? 'Priority (first 10 min)' : 'Extended';
+        const deliverWave = async (wave: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
+          const label = wave === 'priority' || wave === 'carousel' ? (wave === 'carousel' ? 'Carousel (commune slice)' : 'Priority (first 10 min)') : 'Extended';
           const all = await listListings(null);
           const newKeys = new Set(newInWave.map((l) => l.canonical_key));
           const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));

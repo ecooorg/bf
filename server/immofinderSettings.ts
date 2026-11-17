@@ -5,7 +5,7 @@ export const SOURCE_IDS = ['search', 'ferienhausmiete', 'happyholiday', 'landwir
 export const TIMEZONE = 'Europe/Zurich';
 
 export interface ImmoSettings {
-  schedule: { mode: 'manual' | 'hours' | 'daily'; everyHours: 3 | 6 | 12; dailyAt: string };
+  schedule: { mode: 'manual' | 'hours' | 'daily'; everyHours: 1 | 3 | 6 | 12; dailyAt: string };
   delivery: { telegram: boolean; email: boolean; emailTo: string; emailContent: 'new' | 'all'; drive: boolean; driveFolderId: string; notifyWhenEmpty: boolean };
   search: {
     minRooms: number;
@@ -22,6 +22,9 @@ export interface ImmoSettings {
     requireContact: boolean;
     /** Scheduled / default manual wave when not chosen on the main screen. */
     defaultWave: 'priority' | 'full';
+    /** carousel = 2 communes/tick quality mode (C129); burst = manual Stage1/Full coverage. */
+    profile: 'carousel' | 'burst';
+    carouselCommunesPerRun: number;
   };
 }
 
@@ -43,6 +46,8 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       rejectSeekerPosts: true,
       requireContact: false,
       defaultWave: 'priority',
+      profile: 'carousel',
+      carouselCommunesPerRun: 2,
     },
   };
 }
@@ -68,7 +73,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const d = defaultSettings(cfg); const i = input && typeof input === 'object' ? input : {};
   const s = i.schedule ?? {}; const dl = i.delivery ?? {}; const se = i.search ?? {};
   const mode = ['manual', 'hours', 'daily'].includes(s.mode) ? s.mode : d.schedule.mode;
-  const everyHours = [3, 6, 12].includes(Number(s.everyHours)) ? (Number(s.everyHours) as 3 | 6 | 12) : d.schedule.everyHours;
+  const everyHours = [1, 3, 6, 12].includes(Number(s.everyHours)) ? (Number(s.everyHours) as 1 | 3 | 6 | 12) : d.schedule.everyHours;
   const dailyAt = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(s.dailyAt ?? '')) ? String(s.dailyAt) : d.schedule.dailyAt;
   const emailTo = typeof dl.emailTo === 'string' && /^[^\s@,;]{1,64}@[^\s@,;]{1,120}\.[^\s@,;]{2,}$/.test(dl.emailTo.trim()) ? dl.emailTo.trim().slice(0, 190) : '';
   const communes = Array.isArray(se.communes) ? cfg.municipalities.filter((m) => se.communes.includes(m)) : d.search.communes;
@@ -91,17 +96,30 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       rejectSeekerPosts: bool(se.rejectSeekerPosts, d.search.rejectSeekerPosts),
       requireContact: bool(se.requireContact, d.search.requireContact),
       defaultWave: se.defaultWave === 'full' ? 'full' : 'priority',
+      profile: se.profile === 'burst' ? 'burst' : 'carousel',
+      carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 1, 12, d.search.carouselCommunesPerRun),
     },
   };
 }
 
 export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
+  const discovery = cfg.discovery
+    ? {
+        ...cfg.discovery,
+        enabled: cfg.discovery.enabled && s.search.sources.search !== false,
+        // C129 carousel: few communes per scheduled tick so 44 are covered over ~1 day at hourly cadence.
+        communesPerRun:
+          s.search.profile === 'carousel'
+            ? s.search.carouselCommunesPerRun
+            : Math.max(cfg.discovery.communesPerRun, s.search.communes.length > 0 ? Math.min(44, s.search.communes.length) : cfg.discovery.communesPerRun),
+      }
+    : cfg.discovery;
   return {
     ...cfg,
     minRooms: s.search.minRooms,
     municipalities: cfg.municipalities.filter((m) => s.search.communes.includes(m)),
     sources: cfg.sources.filter((src) => src.phase !== 1 || s.search.sources[src.id] !== false),
-    discovery: cfg.discovery ? { ...cfg.discovery, enabled: cfg.discovery.enabled && s.search.sources.search !== false } : cfg.discovery,
+    discovery,
     quality: {
       maxMonthlyRentChf: s.search.limitPrice ? s.search.maxMonthlyRentChf : 0,
       maxListingAgeDays: s.search.maxListingAgeDays,
