@@ -318,9 +318,9 @@ export function agencyQuoteCounts(quote: string | null, platformHost: string): b
   return /(immobilien|treuhand|verwaltung|agentur|property management|reisebuero|reisebüro|gmbh|\bag\b|vermittlung)/i.test(quote) && !(host && norm(quote).includes(host));
 }
 
-const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in)/i;
-const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-|\/mieten\/plz-/i;
-const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen)\b/i;
+const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in|.*immobilie\. h[aä]user zu vermieten|.*properties mieten)/i;
+const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-|\/mieten\/plz-|\/immobilien\/mieten\/|nestoria\.|immowelt\.|immoscout24\./i;
+const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen|wer hat)\b/i;
 const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz)\b/i;
 
 /** Pages that are not an owner's offer: search/list pages, wanted ads, hotels and guesthouses. Checked on title and URL only. */
@@ -510,11 +510,15 @@ export function parseListedAt(text: string, url?: string): Date | null {
  * Uses word boundaries so "Besucher" / "Besuchen Sie die Region" do not trigger. */
 export function isSeekerPost(title: string, text: string): boolean {
   const h = `${title}\n${String(text).slice(0, 1500)}`.toLowerCase();
-  const offer = /\b(zu vermieten|vermieten|vermiete|anzubieten|for rent|available|frei ab|ab dem \d|wir vermieten|privat vermietet)\b/i.test(h);
+  // Strong offer language wins only when it is not "zu mieten" seeker phrasing
+  const offer = /\b(zu vermieten|wir vermieten|vermiete(?!n gesucht)|anzubieten|for rent|privat vermietet)\b/i.test(h)
+    && !/\b(suche|suchen|gesucht|looking for)\b/i.test(h);
   if (offer) return false;
-  // Explicit seeker phrases (word-bounded)
   if (/\b(wohnung gesucht|haus gesucht|zimmer gesucht|suche wohnung|suche haus|suche zimmer|wir suchen (eine )?wohnung|ich suche (eine )?wohnung|looking for (a )?(flat|apartment|house)|nachmieter gesucht)\b/i.test(h)) return true;
-  // Leading "Suche ..." title that is not "Suche Nachmieter"
+  // "Suche ganz dringend … Wohnung … zu mieten" / "Wer hat eine … Wohnung"
+  if (/\bsuche\b/i.test(h) && /(wohnung|zimmer|haus)/i.test(h) && !/nachmieter|mieter gesucht/i.test(h)) return true;
+  if (/\bwer hat\b/i.test(h) && /(wohnung|zimmer|haus)/i.test(h)) return true;
+  if (/\bzu mieten\b/i.test(h) && /\b(suche|suchen|dringend|gesucht)\b/i.test(h)) return true;
   if (/^\s*suche\b/i.test(title) && /wohnung|haus|zimmer/i.test(title) && !/nachmieter|mieter/i.test(title)) return true;
   return false;
 }
@@ -533,7 +537,7 @@ export const DEFAULT_QUALITY: QualitySettings = {
   maxListingAgeDays: 180,
   requirePrice: false,
   rejectNonMonthly: false, // holiday rentals are often night/week; monthly long-term is rare on these portals
-  rejectSeekerPosts: false, // detector still has residual false positives; prefer recall for owner offers
+  rejectSeekerPosts: true, // C129: carousel SERP is full of "Suche Wohnung" — reject by default
   requireContact: false,
 };
 
