@@ -1,5 +1,17 @@
 # EXPERIMENTS — measurement ledger (C127)
 
+## EXP-IMMO-2 — Priority-first search stages + contact/geo quality (P128.21, USER_VALUE)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Logs 128-20: candidates=512, fetched=76, llm=75, kept=1; 38/75 municipality_not_whitelisted after LLM (Scuol/Engadin); search stage barely started; PDF shows fake phones (+41000000000) and garbage emails. Recommendations: first 10 min must capture majority of valuable private listings; productive sources first; stages runnable separately. |
+| **Hypothesis** | (1) Early geo prefilter on URL + title/snippet + post-fetch text before LLM, (2) consecutive-bad early-stop per source, (3) web-search slice inside priority wave, (4) plausible contact filters, (5) explicit wave modes priority|extended|full with UI controls — raise kept/private density in first 10 min and cut wasted LLM on out-of-zone pages. |
+| **Baseline** | Run 93df10a9 / ff9355c7: kept≈1 over ~30 min; many geo rejects after LLM; search incomplete. |
+| **Metric / acceptance** | (a) Stage-1-only run finishes ≤12 min and produces ≥ previous full-run kept count on same commune set when re-run within a day; (b) skipped_geo before LLM increases vs post-LLM municipality rejects; (c) zero stored contacts matching isPlausibleSwissPhone/Email false cases; (d) sourceStats present on every run; (e) Navigator can start Stage 1 only from UI. |
+| **Files in scope** | server/immofinder{Core,Pipeline,Routes}.ts, src/ImmoFinder.tsx, tests/immofinder-quality.test.mjs, docs/EXPERIMENTS.md, CHANGELOG.md, TECHNICAL_REPORT.md. |
+| **Rollback criterion** | Fabricated contact stored, or Stage-1 kept collapses vs baseline without geo improvement: revert P128.21. |
+| **Result** | `NOT_RUN` (needs live deploy + Navigator verification). |
+
 ## EXP-IMMO-1 — Verified-evidence extraction of private short-term-rental owners (P128.x, USER_VALUE)
 
 | Field | Value |
