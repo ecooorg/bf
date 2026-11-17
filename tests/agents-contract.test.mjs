@@ -131,9 +131,9 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
 });
 
 test('P128.1 empty source is reported, not silent; UI, route and cron wiring exist', async () => {
-  const cfg = { ...immoCfg, sources: [{ id: 'x', url: 'https://x.example/', phase: 1 }] };
+  const cfg = { ...immoCfg, sources: [{ id: 'x', url: 'https://x.example/', phase: 1 }], discovery: { ...immoCfg.discovery, enabled: false } };
   const res = await runPipeline({ config: cfg, fetchPage: async () => ({ ok: true, status: 200, body: '<html></html>' }), llm: null, store: {} }, { dryRun: true });
-  assert.equal(res.errors[0].code, 'source_no_candidates');
+  assert.ok(res.errors.some((e) => e.code === 'source_no_candidates'), JSON.stringify(res.errors));
   const app = read('src/App.tsx');
   assert.match(app, /data-testid="start-immofinder"/);
   const ui = read('src/ImmoFinder.tsx');
