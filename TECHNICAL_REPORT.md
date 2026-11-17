@@ -1,3 +1,10 @@
+## P128.20 — Dual-wave ImmoFinder search (priority 10 min + extended) (EXPERIMENT)
+
+- **OBSERVED:** 128.19 run used full 30 min on Scuol/Engadin happyholiday links and graubuenden/traum marketing pages; search barely started; 38/75 preview rejects were out-of-zone after LLM.
+- **CHANGE:** Wave A (priorityWaveMs 10 min) only high-yield catalogues with city-first indexes; placeFromUrl prefilter; onWaveComplete early delivery. Wave B: Serper discovery + phase≥2. Dropped graubuenden/traum/appa from config.
+- **NOT_RUN:** Live Render dual delivery (Drive/email twice) after deploy.
+- **SCOPE:** server/immofinder{Core,Pipeline,Routes,Settings}.ts, config/immofinder.json, package.json, package-lock.json, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## P128.19 — ImmoFinder search recall (catalogues, aliases, filters) (EXPERIMENT)
 
 - **OBSERVED:** After the first run, catalogues always re-hit the same first maxDetailPages links (slice before seen); soft rejects stayed blocked for 7 days; phase-2 sources never ran; St. Peter / Seewis aliases and rooms/price/seeker detectors dropped real private holiday offers.

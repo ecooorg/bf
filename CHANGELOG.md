@@ -1,3 +1,8 @@
+## [128.20] - ImmoFinder dual-wave search: priority 10 min then extended (EXP-IMMO-1)
+
+- Priority wave (~10 min): ferienhausmiete + happyholiday commune pages only; early URL geo-filter skips out-of-zone places before fetch/LLM; mid-wave delivery to Drive/email/Telegram. Extended wave: web search + low-priority sources with remaining time up to 30 min, second delivery. Removed graubuenden/traum/appa catalogues that burned budget on non-listings.
+- Scope: server/immofinder{Core,Pipeline,Routes,Settings}.ts, config/immofinder.json, package.json, package-lock.json, CHANGELOG.md, TECHNICAL_REPORT.md. Patch 128.20.
+
 ## [128.19] - ImmoFinder search recall: catalogues beyond first N, aliases, filters (EXP-IMMO-1)
 
 - Catalogues no longer slice to maxDetailPages before the seen check, so later runs reach links beyond the first 60/80. Soft quality rejects recheck after 1 day (hard rejects keep full TTL). Phase-2 sources run after phase 1. Municipality aliases (St. Peter, Seewis, …), rooms ("3 1/2", "Zimmer: 3"), seeker/list/price detectors tightened; monthly rent cap applies only to explicit monthly prices. Final FUNNEL progress line.
