@@ -3,6 +3,16 @@
 > **Phase shift (C129):** ImmoFinder **searcher construction is complete** (sources, waves, geo, contacts, price extraction, settings, Drive/email).  
 > From **P129 / C129** the programme is **quality of search**: denser private long-term leads, commune coverage over a day (carousel), better prices/contacts, less junk — not new product scaffolding.
 
+## C129 operating modes (quality phase)
+
+| Profile / wave | Intent |
+|---|---|
+| **carousel** (default schedule) | Next N communes (default 2) via Serper + model extract; catalogues skipped on the tick; cycle = realRunCount. |
+| **priority / extended / full** | Burst modes for manual wide coverage. |
+
+Serper = live URLs; LLM via model router = extract only. Prefer quality metrics over new scaffolding.
+
+
 ## EXP-IMMO-3 — Hourly commune carousel (P129.0, USER_VALUE)
 
 | Field | Value |
