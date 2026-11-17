@@ -1,3 +1,9 @@
+## P128.21.3 — Search early-stop + SERP ranking
+
+- **OBSERVED:** Stage-1 5m25s: kept new=0; source_early_stop on search after 12 consecutive non-keeps; 20 outside communes rejected.
+- **CHANGE:** consecutiveStopFor(search)=48; pickItems sort in-zone title/URL first.
+- **SCOPE:** server/immofinderDiscovery.ts, server/immofinderPipeline.ts, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## P128.21.2 — CI red: lock patch + empty-source test
 
 - **OBSERVED:** P127.11 expected lock.patch 128.21 got 128.20; P128.1 expected source_no_candidates got discovery_skipped (search-first order).

@@ -1,3 +1,8 @@
+## [128.21.3] - Search early-stop too aggressive; rank in-zone SERP first
+
+- Search consecutive non-keep stop raised 12→48 (catalogues stay ~14). pickItems ranks whitelist-commune hits before unknown/outside so good private ads are not cut by an early bad streak. Addresses Stage-1 run with 0 new and source_early_stop on web search.
+- Scope: server/immofinderDiscovery.ts, server/immofinderPipeline.ts, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## [128.21.2] - CI: package-lock patch + P128.1 empty-source contract
 
 - package-lock.json patch 128.20→128.21 (P127.11). P128.1 disables discovery in the empty-catalogue fixture so source_no_candidates is asserted without discovery_skipped ordering noise.
