@@ -483,12 +483,14 @@ export function qualityRejectReason(
     if (q.rejectNonMonthly && (price.unit === 'week' || price.unit === 'night' || price.unit === 'season')) {
       return 'price_not_monthly';
     }
-    // Cap applies only to explicit monthly (or unknown that looks monthly)
-    if (price.unit === 'month' && price.monthlyChf != null && price.monthlyChf > q.maxMonthlyRentChf) {
-      return 'price_above_max';
-    }
-    if (price.unit === 'unknown' && price.amount > q.maxMonthlyRentChf) {
-      return 'price_above_max';
+    // Cap applies only when maxMonthlyRentChf > 0 (0 = unlimited)
+    if (q.maxMonthlyRentChf > 0) {
+      if (price.unit === 'month' && price.monthlyChf != null && price.monthlyChf > q.maxMonthlyRentChf) {
+        return 'price_above_max';
+      }
+      if (price.unit === 'unknown' && price.amount > q.maxMonthlyRentChf) {
+        return 'price_above_max';
+      }
     }
     // Night/week: do not convert and reject by monthly equivalent when rejectNonMonthly is off
   } else if (q.requirePrice) {

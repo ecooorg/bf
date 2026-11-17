@@ -1,7 +1,7 @@
 import type { ImmoConfig } from './immofinderCore.ts';
 import { DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
 
-export const SOURCE_IDS = ['ferienhausmiete', 'happyholiday', 'landwirtschaft-gr', 'search'] as const;
+export const SOURCE_IDS = ['search', 'ferienhausmiete', 'happyholiday', 'landwirtschaft-gr'] as const;
 export const TIMEZONE = 'Europe/Zurich';
 
 export interface ImmoSettings {
@@ -12,12 +12,16 @@ export interface ImmoSettings {
     communes: string[];
     sources: Record<string, boolean>;
     maxAiPages: number;
+    /** When false, maxMonthlyRentChf is ignored (no price cap). */
+    limitPrice: boolean;
     maxMonthlyRentChf: number;
     maxListingAgeDays: number;
     requirePrice: boolean;
     rejectNonMonthly: boolean;
     rejectSeekerPosts: boolean;
     requireContact: boolean;
+    /** Scheduled / default manual wave when not chosen on the main screen. */
+    defaultWave: 'priority' | 'full';
   };
 }
 
@@ -30,13 +34,15 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       minRooms: cfg.minRooms,
       communes: [...cfg.municipalities],
       sources: Object.fromEntries(SOURCE_IDS.map((s) => [s, true])),
-      maxAiPages: 60,
-      maxMonthlyRentChf: q.maxMonthlyRentChf,
+      maxAiPages: 100,
+      limitPrice: false,
+      maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf, 3000),
       maxListingAgeDays: q.maxListingAgeDays,
-      requirePrice: q.requirePrice,
-      rejectNonMonthly: q.rejectNonMonthly,
-      rejectSeekerPosts: q.rejectSeekerPosts,
-      requireContact: q.requireContact,
+      requirePrice: false,
+      rejectNonMonthly: false,
+      rejectSeekerPosts: true,
+      requireContact: false,
+      defaultWave: 'priority',
     },
   };
 }
@@ -77,12 +83,14 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       communes: communes.length ? communes : d.search.communes,
       sources,
       maxAiPages,
+      limitPrice: bool(se.limitPrice, d.search.limitPrice),
       maxMonthlyRentChf: clampInt(se.maxMonthlyRentChf, 200, 10000, d.search.maxMonthlyRentChf),
       maxListingAgeDays: clampInt(se.maxListingAgeDays, 0, 3650, d.search.maxListingAgeDays),
       requirePrice: bool(se.requirePrice, d.search.requirePrice),
       rejectNonMonthly: bool(se.rejectNonMonthly, d.search.rejectNonMonthly),
       rejectSeekerPosts: bool(se.rejectSeekerPosts, d.search.rejectSeekerPosts),
       requireContact: bool(se.requireContact, d.search.requireContact),
+      defaultWave: se.defaultWave === 'full' ? 'full' : 'priority',
     },
   };
 }
@@ -95,7 +103,7 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
     sources: cfg.sources.filter((src) => src.phase !== 1 || s.search.sources[src.id] !== false),
     discovery: cfg.discovery ? { ...cfg.discovery, enabled: cfg.discovery.enabled && s.search.sources.search !== false } : cfg.discovery,
     quality: {
-      maxMonthlyRentChf: s.search.maxMonthlyRentChf,
+      maxMonthlyRentChf: s.search.limitPrice ? s.search.maxMonthlyRentChf : 0,
       maxListingAgeDays: s.search.maxListingAgeDays,
       requirePrice: s.search.requirePrice,
       rejectNonMonthly: s.search.rejectNonMonthly,

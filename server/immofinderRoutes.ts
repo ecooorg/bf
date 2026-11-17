@@ -338,7 +338,12 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   app.post('/api/immofinder/run', json, async (req, res) => {
     const dryRun = req.body?.dryRun === true;
-    const waveRaw = String(req.body?.wave || 'full').toLowerCase();
+    let defaultWave = 'full';
+    try {
+      const st = await getSettings(loadImmoConfig());
+      if (st.search?.defaultWave === 'priority') defaultWave = 'priority';
+    } catch { /* keep full */ }
+    const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
     const wave = (waveRaw === 'priority' || waveRaw === 'extended' || waveRaw === 'full') ? (waveRaw as 'priority' | 'extended' | 'full') : 'full';
     const trigger = (req as any).immoCron ? 'schedule' : 'manual';
     let settings; try { settings = await getSettings(loadImmoConfig()); } catch { return res.status(500).json({ success: false, error: 'Settings unavailable', code: 'IMMOFINDER_FAILED' }); }
