@@ -27,13 +27,57 @@ export async function sendEmail(to: string, subject: string, text: string, fetch
   } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 80).split(key).join('***')}`; }
 }
 
-/** Plain-text listing block shared by email and Telegram; every entry carries the date and time it was found (Swiss time). */
+/** First line: place · price · rooms · contacts. Then short object text and a direct object URL only. */
+export function formatPriceLine(r: any): string {
+  if (r.rent_monthly_chf != null && Number.isFinite(Number(r.rent_monthly_chf))) {
+    const unit = r.pricing_unit === 'week' ? '/wk' : r.pricing_unit === 'night' ? '/night' : '/mo';
+    return `CHF ${r.rent_monthly_chf}${unit}`;
+  }
+  if (r.pricing_unit && r.pricing_unit !== 'unknown') return String(r.pricing_unit);
+  return 'price n/a';
+}
+
+export function formatContactLine(r: any): string {
+  const parts = [r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).map(String);
+  if (parts.length) return parts.join(' · ');
+  return 'no direct contact';
+}
+
+/** Prefer the object URL; flag marketplace/group/search pages that are not a single listing. */
+export function formatDirectLink(r: any): string {
+  const url = String(r.listing_url || '').trim();
+  if (!url) return 'Link: (missing)';
+  // Heuristic mirrors isSpecificLink: facebook group roots and bare commune search pages are weak.
+  let specific = true;
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '');
+    const path = u.pathname || '';
+    if (host.endsWith('facebook.com')) {
+      specific = /\/(marketplace\/item|posts|permalink|videos|photo)\b/.test(path) || /story_fbid|fbid/.test(u.search);
+    } else if (/\/(city|area|suche|search|liste|marktplatz)\/?$/i.test(path) || path.split('/').filter(Boolean).length <= 1) {
+      specific = /\d{5,}/.test(path) || /[a-z0-9]+(-[a-z0-9]+){3,}/i.test(path.split('/').filter(Boolean).pop() || '');
+    }
+  } catch { /* keep url */ }
+  return specific ? `Link: ${url}` : `Link (may open a list/group, not one object): ${url}`;
+}
+
+/** Compact card used on screen, Drive sheet cell, Docs, email and Telegram. */
+export function formatListingCard(r: any): string {
+  const place = r.municipality || '?';
+  const rooms = r.rooms_estimated != null ? `${r.rooms_estimated} rooms` : 'rooms n/a';
+  const line1 = `📍 ${place} · ${formatPriceLine(r)} · ${rooms} · ${formatContactLine(r)}`;
+  const name = String(r.property_name || '').trim();
+  const desc = String(r.description_de || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+  const about = [name && name !== place ? name : '', desc].filter(Boolean).join(' — ').slice(0, 220);
+  const when = r.first_seen_at ? `Found: ${formatZurich(r.first_seen_at)}` : '';
+  return [line1, about, formatDirectLink(r), when].filter(Boolean).join('\n');
+}
+
+/** Plain-text listing block shared by email and Telegram. */
 export function formatListingsText(rows: any[], opts: { heading: string; limit: number; driveUrl?: string }): string {
   const sorted = [...rows].sort((a, b) => new Date(b.first_seen_at).getTime() - new Date(a.first_seen_at).getTime());
-  const body = sorted.slice(0, opts.limit).map((r) => [
-    `• ${r.property_name} (${r.municipality}, ${r.rooms_estimated} rooms, ${r.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'})`, `  Found: ${formatZurich(r.first_seen_at)}`, `  ${r.listing_url}`,
-    [r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).length ? `  Contact: ${[r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).join(' · ')}` : '', r.status && r.status !== 'NEW' ? `  Status: ${r.status}` : '',
-  ].filter(Boolean).join('\n')).join('\n\n');
+  const body = sorted.slice(0, opts.limit).map((r) => formatListingCard(r)).join('\n\n');
   const more = sorted.length > opts.limit ? `\n\n…and ${sorted.length - opts.limit} more in the app.` : '';
   return `${opts.heading}${body ? `\n\n${body}` : ''}${more}${opts.driveUrl ? `\n\nDrive: ${opts.driveUrl}` : ''}`;
 }
@@ -49,14 +93,9 @@ async function driveToken(sa: { client_email: string; private_key: string }, f: 
   const d: any = await r.json(); if (!d.access_token) throw new Error('Google token request failed (check GOOGLE_SERVICE_ACCOUNT_JSON)'); return d.access_token;
 }
 
-/** One cell per object (readable on a phone): everything except the letter draft, newest first. */
+/** One cell per object (phone-friendly): place · price · rooms · contact first, then short text + direct link. */
 export function listingsTable(rows: any[]): string[][] {
-  const cell = (r: any) => [
-    `${r.property_name}`, `📍 ${r.municipality} · ${r.rooms_estimated} rooms · ${r.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'} · ${r.status}`, `Found: ${formatZurich(r.first_seen_at)}`,
-    [r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).length ? `Contact: ${[r.owner_name, r.direct_phone, r.direct_email].filter(Boolean).join(' · ')}` : `Contact: not found. ${String(r.contact_advice || '').slice(0, 160)}`,
-    `Link: ${r.listing_url}`, (r.photo_urls || []).length ? `Photos: ${(r.photo_urls || []).slice(0, 3).join(' ')}` : '', (r.source_urls || []).length > 1 ? `Other sources: ${(r.source_urls || []).slice(1).join(' ')}` : '',
-    r.description_de ? `Text: ${r.description_de}` : '',
-  ].filter(Boolean).join('\n').slice(0, 45000);
+  const cell = (r: any) => formatListingCard(r).slice(0, 45000);
   return [['ImmoFinder objects (newest first)'], ...[...rows].sort((a, b) => new Date(b.first_seen_at).getTime() - new Date(a.first_seen_at).getTime()).map((r) => [cell(r)])];
 }
 
@@ -105,7 +144,7 @@ export async function exportDrive(rows: any[], folderId: string, f: typeof fetch
     const end = Number(doc?.body?.content?.at(-1)?.endIndex ?? 1);
     if (!doc?.body) throw new Error('Docs read failed (enable the Google Docs API)');
     const text = [...rows].sort((a, b) => new Date(b.first_seen_at).getTime() - new Date(a.first_seen_at).getTime())
-      .map((x) => `${x.property_name} (${x.municipality}) — found ${formatZurich(x.first_seen_at)}\n${x.listing_url}\n\n${x.draft_message_de}\n\n----------------------------------------\n`).join('\n') || 'No listings yet.';
+      .map((x) => `${formatListingCard(x)}\n\nDraft:\n${x.draft_message_de || ''}\n\n----------------------------------------\n`).join('\n') || 'No listings yet.';
     const requests: any[] = []; if (end > 2) requests.push({ deleteContentRange: { range: { startIndex: 1, endIndex: end - 1 } } });
     requests.push({ insertText: { location: { index: 1 }, text } });
     r = await f(`${dd}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests }) }); if (!r.ok) throw new Error(`Docs write HTTP ${r.status}`);
