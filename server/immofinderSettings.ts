@@ -1,7 +1,7 @@
 import type { ImmoConfig } from './immofinderCore.ts';
 import { DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
 
-export const SOURCE_IDS = ['happyholiday', 'ferienhausmiete', 'graubuenden', 'search'] as const;
+export const SOURCE_IDS = ['happyholiday', 'ferienhausmiete', 'graubuenden', 'traum-ferienwohnungen', 'appa', 'landwirtschaft-gr', 'search'] as const;
 export const TIMEZONE = 'Europe/Zurich';
 
 export interface ImmoSettings {

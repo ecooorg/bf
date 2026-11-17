@@ -26,8 +26,8 @@ export function createPgStore(): ImmoStore {
     },
     async touch(id) { const p = await getPool(); await p.query('UPDATE immofinder_listings SET last_seen_at = now() WHERE id = $1', [id]); },
     async getSeen(url) {
-      const p = await getPool(); const r = await p.query('SELECT checked_at FROM immofinder_seen WHERE url = $1', [url]);
-      return r.rows[0] ? { checked_at: new Date(r.rows[0].checked_at).toISOString() } : null;
+      const p = await getPool(); const r = await p.query('SELECT checked_at, decision, reason FROM immofinder_seen WHERE url = $1', [url]);
+      return r.rows[0] ? { checked_at: new Date(r.rows[0].checked_at).toISOString(), decision: r.rows[0].decision, reason: r.rows[0].reason } : null;
     },
     async markSeen(url, sourceId, decision, reason) {
       const p = await getPool();

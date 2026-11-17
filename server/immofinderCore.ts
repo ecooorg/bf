@@ -36,24 +36,65 @@ export function norm(s: string): string {
   return String(s ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
+/**
+ * Aliases → canonical municipality from config.
+ * Sites often write short forms (St. Peter, Sankt Peter, Seewis) for whitelist entries
+ * that use compound official names (St. Peter-Molinis, Seewis-Pardisla).
+ */
+const MUNICIPALITY_ALIASES: Record<string, string[]> = {
+  'St. Peter-Molinis': ['st peter', 'sankt peter', 'st peter-molinis', 'st peter molinis', 'st peter-pagig', 'st peter pagig', 'molinis', 'pagig'],
+  'Seewis-Pardisla': ['seewis', 'seewis-pardisla', 'seewis pardisla', 'pardisla'],
+  'Domat/Ems': ['domat', 'domat ems', 'domat/ems', 'ems'],
+  'Churwalden': ['churwalden'],
+  'Lenzerheide': ['lenzerheide', 'valbella', 'parpan'],
+  'Flims': ['flims', 'fidaz'],
+  'Laax': ['laax'],
+  'Trimmis': ['trimmis'],
+  'Igis': ['igis', 'landquart-igis'],
+};
+
 /** Whole-word match of a whitelist commune in text; longest commune wins. Returns the canonical config spelling. */
 export function matchMunicipality(text: string, list: string[]): string | null {
   const hay = ` ${norm(text)} `;
   let best: string | null = null;
+  let bestLen = 0;
   for (const m of list) {
     const translit = norm(m.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue'));
-    for (const n of new Set([norm(m), translit])) {
-      if (n && hay.includes(` ${n} `) && (!best || n.length > norm(best).length)) best = m;
+    const variants = new Set([norm(m), translit]);
+    const aliases = MUNICIPALITY_ALIASES[m];
+    if (aliases) for (const a of aliases) variants.add(norm(a));
+    for (const n of variants) {
+      if (n && hay.includes(` ${n} `) && n.length > bestLen) {
+        best = m;
+        bestLen = n.length;
+      }
+    }
+  }
+  if (!best) {
+    for (const [canonical, aliases] of Object.entries(MUNICIPALITY_ALIASES)) {
+      if (!list.includes(canonical)) continue;
+      for (const a of aliases) {
+        const n = norm(a);
+        if (n && hay.includes(` ${n} `) && n.length > bestLen) {
+          best = canonical;
+          bestLen = n.length;
+        }
+      }
     }
   }
   return best;
 }
 
-/** Swiss "Zimmer" count from a (verified) quote: 3, 3.5, 4½, "3-Zimmer". Bedrooms fall back to bedrooms + 1. */
+/** Swiss "Zimmer" count from a (verified) quote: 3, 3.5, 4½, "3 1/2 Zi.", "Zimmer: 3". Bedrooms fall back to bedrooms + 1. */
 export function parseRooms(text: string): { rooms: number; basis: 'zimmer' | 'bedrooms' } | null {
-  const t = String(text ?? '').replace(/½/g, '.5').replace(/,(\d)/g, '.$1');
-  const z = [...t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:zimmer|zi\b|rooms?|pieces?|-?zimmerwohnung)/gi)].map((m) => Number(m[1])).filter((n) => n > 0 && n < 20);
-  if (z.length) return { rooms: Math.max(...z), basis: 'zimmer' };
+  let t = String(text ?? '').replace(/½/g, '.5').replace(/,(\d)/g, '.$1');
+  // "3 1/2" or "3 1/2 Zi." → 3.5
+  t = t.replace(/(\d{1,2})\s+1\/2/g, '$1.5');
+  // "Zimmer: 3" / "Zimmer 3.5"
+  const labeled = [...t.matchAll(/(?:zimmer|zi\.?|rooms?|pieces?)\s*[:=]?\s*(\d{1,2}(?:\.\d)?)/gi)].map((m) => Number(m[1])).filter((n) => n > 0 && n < 20);
+  const z = [...t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:zimmer|zi\b|zi\.|rooms?|pieces?|-?zimmerwohnung)/gi)].map((m) => Number(m[1])).filter((n) => n > 0 && n < 20);
+  const allZ = [...labeled, ...z];
+  if (allZ.length) return { rooms: Math.max(...allZ), basis: 'zimmer' };
   const b = [...t.matchAll(/(\d{1,2})\s*[- ]?\s*(?:schlafzimmer|bedrooms?)/gi)].map((m) => Number(m[1])).filter((n) => n > 0 && n < 15);
   return b.length ? { rooms: Math.max(...b) + 1, basis: 'bedrooms' } : null;
 }
@@ -201,8 +242,8 @@ export function agencyQuoteCounts(quote: string | null, platformHost: string): b
   return /(immobilien|treuhand|verwaltung|agentur|property management|reisebuero|reisebüro|gmbh|\bag\b|vermittlung)/i.test(quote) && !(host && norm(quote).includes(host));
 }
 
-const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste)/i;
-const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-/i;
+const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in)/i;
+const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-|\/mieten\/plz-/i;
 const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen)\b/i;
 const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz)\b/i;
 
@@ -210,7 +251,8 @@ const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasth
 export type NonListing = 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | 'for_sale' | 'shared_room' | 'development_project';
 const FOR_SALE = /(zum kauf|zu verkaufen|\bkaufen\b|eigentumswohnung|\bverkauf\b)/i;
 const SHARED = /(\bwg\b|wohngemeinschaft|\bzwischenmiete\b|\buntermiete\b|zimmer in (einer )?(wg|wohnung))/i;
-const DEVELOPMENT = /(?<!ferien)wohnungen\b/i;
+// Only multi-unit / project language, not "Ferienwohnungen" or a single "3.5 Zimmer Wohnung"
+const DEVELOPMENT = /\b(neubau|neubauprojekt|wohnüberbauung|überbauung|eigentumswohnungen|wohnungen zum verkauf|\d{2,}\s*wohnungen)\b/i;
 const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\//i;
 export function nonListingReason(title: string, url: string): NonListing | null {
   const t = String(title ?? '').trim();
@@ -246,33 +288,40 @@ export interface ParsedPrice {
   quote: string;
 }
 
-/** Parse a rent figure and its period from listing text. Never invents amounts. */
+/** Parse a rent figure and its period from listing text. Never invents amounts.
+ * Requires currency (CHF/Fr/€) or a clear period word; ignores bare "7 Tage" / "2 Wochen" (min-stay) and random integers. */
 export function parsePrice(text: string): ParsedPrice | null {
   const t = String(text ?? '');
-  const re = /(\d{1,3}(?:[\'\s]\d{3})*|\d+)(?:[.,](\d{1,2}))?\s*(?:CHF|Fr\.?|SFr\.?|CHF\.?|€|EUR)?\s*(?:\/|\s+pro\s+|\s+per\s+|\s+)\s*(Nacht|night|Woche|week|Monat|month|Monate|Tag|day|Saison|season)?/gi;
+  // Prefer matches that include currency OR an explicit period after the number
+  const re = /(\d{1,3}(?:[\'\s]\d{3})*|\d+)(?:[.,](\d{1,2}))?\s*(CHF|Fr\.?|SFr\.?|€|EUR)?\s*(?:\/|\s+pro\s+|\s+per\s+|\s+)?\s*(Nacht|night|Woche|week|Monat|month|Monate|Tag|day|Saison|season)?\b/gi;
   let best: ParsedPrice | null = null;
   for (const m of t.matchAll(re)) {
     const whole = m[0];
     const amount = Number(String(m[1]).replace(/[\'\s]/g, '') + (m[2] ? '.' + m[2] : ''));
     if (!(amount > 0 && amount < 100000)) continue;
-    const uRaw = (m[3] || '').toLowerCase();
+    const currency = (m[3] || '').trim();
+    const uRaw = (m[4] || '').toLowerCase();
+    // Reject pure duration phrases without currency (e.g. "7 Tage", "2 Wochen" as min stay)
+    if (!currency && !uRaw) continue;
+    if (!currency && /^(tag|tage|nacht|nächte|woche|wochen)$/i.test(uRaw) && amount <= 30) continue;
     let unit: PricingUnit = 'unknown';
     if (/nacht|night|tag|day/.test(uRaw)) unit = 'night';
     else if (/woche|week/.test(uRaw)) unit = 'week';
     else if (/monat|month/.test(uRaw)) unit = 'month';
     else if (/saison|season/.test(uRaw)) unit = 'season';
-    // Heuristic: large round numbers near "Miete" without unit → month
-    if (unit === 'unknown' && amount >= 400 && amount <= 6000 && /miete|rent|kalt|warm/i.test(t.slice(Math.max(0, (m.index || 0) - 40), (m.index || 0) + whole.length + 40))) {
+    // Heuristic: amount with currency near "Miete" without unit → month
+    const ctx = t.slice(Math.max(0, (m.index || 0) - 40), (m.index || 0) + whole.length + 40);
+    if (unit === 'unknown' && currency && amount >= 400 && amount <= 6000 && /miete|rent|kalt|warm/i.test(ctx)) {
       unit = 'month';
     }
+    // Prefer currency-bearing matches
+    if (!currency && unit === 'unknown') continue;
     let monthlyChf: number | null = null;
     if (unit === 'month') monthlyChf = amount;
     else if (unit === 'week') monthlyChf = Math.round(amount * (52 / 12));
     else if (unit === 'night') monthlyChf = Math.round(amount * 30);
-    // season → unknown monthly
     const cand: ParsedPrice = { amount, unit, monthlyChf, quote: whole.slice(0, 80) };
-    // Prefer explicit month
-    if (!best || (cand.unit === 'month' && best.unit !== 'month') || (cand.monthlyChf != null && (best.monthlyChf == null || cand.monthlyChf < best.monthlyChf))) best = cand;
+    if (!best || (cand.unit === 'month' && best.unit !== 'month') || (Boolean(currency) && !best.quote.match(/CHF|Fr|€|EUR/i)) || (cand.monthlyChf != null && (best.monthlyChf == null || cand.monthlyChf < best.monthlyChf))) best = cand;
   }
   return best;
 }
@@ -309,14 +358,16 @@ export function parseListedAt(text: string, url?: string): Date | null {
   return candidates[0];
 }
 
-/** True when the post is from someone *looking for* a flat, not offering one. */
+/** True when the post is from someone *looking for* a flat, not offering one.
+ * Uses word boundaries so "Besucher" / "Besuchen Sie die Region" do not trigger. */
 export function isSeekerPost(title: string, text: string): boolean {
   const h = `${title}\n${String(text).slice(0, 1500)}`.toLowerCase();
-  const seek = /(suche|suchen|gesucht|looking for|nachmieter gesucht|wohnung gesucht|dringend suche)/i.test(h);
-  const offer = /(zu vermieten|vermieten|vermiete|anzubieten|for rent|available|frei ab|ab dem \d)/i.test(h);
-  if (seek && !offer) return true;
-  // "Suche Nachmieter" is owner; "Suche Wohnung" is seeker
-  if (/\bsuche\b/i.test(h) && /wohnung|haus|zimmer/i.test(h) && !/nachmieter|mieter/i.test(h)) return true;
+  const offer = /\b(zu vermieten|vermieten|vermiete|anzubieten|for rent|available|frei ab|ab dem \d|wir vermieten|privat vermietet)\b/i.test(h);
+  if (offer) return false;
+  // Explicit seeker phrases (word-bounded)
+  if (/\b(wohnung gesucht|haus gesucht|zimmer gesucht|suche wohnung|suche haus|suche zimmer|wir suchen (eine )?wohnung|ich suche (eine )?wohnung|looking for (a )?(flat|apartment|house)|nachmieter gesucht)\b/i.test(h)) return true;
+  // Leading "Suche ..." title that is not "Suche Nachmieter"
+  if (/^\s*suche\b/i.test(title) && /wohnung|haus|zimmer/i.test(title) && !/nachmieter|mieter/i.test(title)) return true;
   return false;
 }
 
@@ -333,12 +384,14 @@ export const DEFAULT_QUALITY: QualitySettings = {
   maxMonthlyRentChf: 2000,
   maxListingAgeDays: 180,
   requirePrice: false,
-  rejectNonMonthly: true,
-  rejectSeekerPosts: true,
+  rejectNonMonthly: false, // holiday rentals are often night/week; monthly long-term is rare on these portals
+  rejectSeekerPosts: false, // detector still has residual false positives; prefer recall for owner offers
   requireContact: false,
 };
 
-/** Returns a filter reason or null if the listing may be kept. */
+/** Returns a filter reason or null if the listing may be kept.
+ * Max rent is applied only to explicit monthly prices (or unknown large amounts with currency).
+ * Night/week prices are rejected only when rejectNonMonthly is on; otherwise they pass the amount gate. */
 export function qualityRejectReason(
   q: QualitySettings,
   price: ParsedPrice | null,
@@ -350,13 +403,17 @@ export function qualityRejectReason(
   if (q.rejectSeekerPosts && seeker) return 'seeker_post';
   if (q.requireContact && !hasContact) return 'contact_required';
   if (price) {
-    if (q.rejectNonMonthly && price.unit !== 'month' && price.unit !== 'unknown') {
-      // week/night/season explicit → reject unless monthly equivalent is within cap AND unit is week converted? User asked to reject weekly 2000
-      if (price.unit === 'week' || price.unit === 'night' || price.unit === 'season') return 'price_not_monthly';
+    if (q.rejectNonMonthly && (price.unit === 'week' || price.unit === 'night' || price.unit === 'season')) {
+      return 'price_not_monthly';
     }
-    if (price.monthlyChf != null && price.monthlyChf > q.maxMonthlyRentChf) return 'price_above_max';
-    // unknown unit with high amount likely not monthly under 2000 for holiday - if amount > max and unit unknown, reject
-    if (price.unit === 'unknown' && price.amount > q.maxMonthlyRentChf) return 'price_above_max';
+    // Cap applies only to explicit monthly (or unknown that looks monthly)
+    if (price.unit === 'month' && price.monthlyChf != null && price.monthlyChf > q.maxMonthlyRentChf) {
+      return 'price_above_max';
+    }
+    if (price.unit === 'unknown' && price.amount > q.maxMonthlyRentChf) {
+      return 'price_above_max';
+    }
+    // Night/week: do not convert and reject by monthly equivalent when rejectNonMonthly is off
   } else if (q.requirePrice) {
     return 'price_unknown';
   }

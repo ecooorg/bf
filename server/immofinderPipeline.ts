@@ -12,7 +12,7 @@ export interface ImmoStore {
   findByUrl(url: string): Promise<{ id: string; last_seen_at: string } | null>;
   touch(id: string): Promise<void>;
   upsert(rec: ListingRecord): Promise<'new' | 'updated'>;
-  getSeen(url: string): Promise<{ checked_at: string } | null>;
+  getSeen(url: string): Promise<{ checked_at: string; decision?: string; reason?: string } | null>;
   markSeen(url: string, sourceId: string, decision: string, reason: string): Promise<void>;
 }
 export interface PipelineDeps {
@@ -122,7 +122,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
       const known = await deps.store.findByUrl(it.url);
       if (known && fresh(known.last_seen_at)) { if (!opts.dryRun) await deps.store.touch(known.id); res.counts.skipped_known++; continue; }
       const seen = await deps.store.getSeen(it.url);
-      if (seen && fresh(seen.checked_at)) { res.counts.skipped_seen++; continue; }
+      if (seen) {
+        // Soft quality rejects (rooms/price/municipality/seeker) recheck after 1 day so filter changes take effect;
+        // hard rejects (list pages, for_sale, agency, non-listing) keep full recheckAfterDays.
+        const soft = /^(rooms_|price_|municipality_|seeker_|min_rooms)/i.test(seen.reason || '') || seen.decision === 'filtered' && /^(rooms|price|municipality|seeker)/i.test(seen.reason || '');
+        const ttlDays = soft ? 1 : cfg.limits.recheckAfterDays;
+        const isFresh = now() - new Date(seen.checked_at).getTime() < ttlDays * 86400000;
+        if (isFresh) { res.counts.skipped_seen++; continue; }
+      }
       const host = hostOf(it.url); idx++; say(stage, `${src.id}: reading ${idx}/${items.length} · ${host}${new URL(it.url).pathname.slice(0, 50)}`, idx, items.length); let text = ''; let meta: ReturnType<typeof pageMeta>; let snippet = false;
       const fromSnippet = () => { snippet = true; res.counts.snippet_only++; meta = { title: it.hit!.title, description: it.hit!.snippet, photos: [] }; text = `${it.hit!.title}\n${it.hit!.snippet}`; };
       if (it.snippetOnly && it.hit) fromSnippet();
@@ -256,13 +263,45 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
     }
     res.counts.index_pages += indexHtml.length;
     const maxPages = src.maxDetailPages ?? cfg.limits.maxDetailPagesPerSource;
-    const links = [...new Set(indexHtml.flatMap((p) => candidateLinks(p.body, p.url, 500, pattern)))].slice(0, maxPages);
+    // Collect a wide candidate pool; processItems skips already-seen/known and stops after maxPages *new* pages.
+    // Previously we sliced to maxPages before the seen check, so later runs always re-hit the same first N links.
+    const links = [...new Set(indexHtml.flatMap((p) => candidateLinks(p.body, p.url, 500, pattern)))];
+    if (!links.length) { if (indexHtml.length) res.errors.push({ source: src.id, code: 'source_no_candidates', detail: 'no object links found on the index pages (markup change or script-rendered page)' }); continue; }
+    await processItems(src, links.map((url) => ({ url })), maxPages);
+  }
+
+  // Phase-2 catalogue sources (lower priority; run after phase 1 while budget remains).
+  for (const src of cfg.sources.filter((s) => s.phase === 2)) {
+    if (deps.shouldCancel?.()) break;
+    if (timeLeft() < 60_000) { res.errors.push({ source: src.id, code: 'run_time_budget', detail: '30 minute cycle limit reached before phase 2' }); break; }
+    res.counts.sources++;
+    const pattern = src.detailPattern ? new RegExp(src.detailPattern) : undefined;
+    const indexHtml: { url: string; body: string }[] = [];
+    for (const extra of src.indexUrls ?? []) { const r = await deps.fetchPage(extra).catch(() => ({ ok: false, status: 0, body: '' })); if (r.ok) indexHtml.push({ url: extra, body: r.body }); }
+    say('catalogue', `${src.id}: loading index page (phase 2)`);
+    const first = await deps.fetchPage(src.url).catch((e) => ({ ok: false, status: 0, body: String(e?.message || e) }));
+    if (!first.ok) res.errors.push({ source: src.id, code: 'source_fetch_failed', detail: `status ${first.status}` }); else indexHtml.push({ url: src.url, body: first.body });
+    if (src.cityUrl) {
+      let ci = 0;
+      for (const m of cfg.municipalities) {
+        if (timeLeft() < 45_000) break;
+        say('catalogue', `${src.id}: commune page ${m} (${++ci}/${cfg.municipalities.length})`, ci, cfg.municipalities.length);
+        for (const slug of slugVariants(m)) {
+          const u = src.cityUrl.replace('{slug}', slug);
+          const r = await deps.fetchPage(u).catch(() => ({ ok: false, status: 0, body: '' }));
+          if (r.ok) { indexHtml.push({ url: u, body: r.body }); break; }
+        }
+      }
+    }
+    res.counts.index_pages += indexHtml.length;
+    const maxPages = src.maxDetailPages ?? cfg.limits.maxDetailPagesPerSource;
+    const links = [...new Set(indexHtml.flatMap((p) => candidateLinks(p.body, p.url, 500, pattern)))];
     if (!links.length) { if (indexHtml.length) res.errors.push({ source: src.id, code: 'source_no_candidates', detail: 'no object links found on the index pages (markup change or script-rendered page)' }); continue; }
     await processItems(src, links.map((url) => ({ url })), maxPages);
   }
 
   if (deps.shouldCancel?.()) { res.errors.push({ source: 'run', code: 'cancelled', detail: 'Stopped by user' }); return res; }
-  // 2) Web-search discovery per commune (any site; social/booking portals are used from the search snippet only).
+  // 3) Web-search discovery per commune (any site; social/booking portals are used from the search snippet only).
   const d = cfg.discovery;
   if (d?.enabled) {
     if (!deps.search) res.errors.push({ source: 'search', code: 'discovery_skipped', detail: 'SERPER_API_KEY is not set' });
@@ -281,5 +320,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean })
   const extraSearches = Math.max(0, (enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0) - enrichBudget.searchesLeft);
   res.newListings.sort((a, b) => Number(b.contact_status === 'found') - Number(a.contact_status === 'found'));
   res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + (res.counts.search_queries + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
+  // Final funnel line for console / progress (candidates → skipped → fetched → filtered → kept)
+  const filt = Object.entries(res.filtered).map(([k, v]) => `${k}=${v}`).join(' ') || 'none';
+  const c = res.counts;
+  say('catalogue', `FUNNEL candidates=${c.candidates} skipped_known=${c.skipped_known} skipped_seen=${c.skipped_seen} fetched=${c.fetched} snippet=${c.snippet_only} llm=${c.llm_calls} kept=${c.kept} new=${c.new} filtered: ${filt}`);
   return res;
 }
