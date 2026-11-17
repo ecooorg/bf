@@ -130,7 +130,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     if (!s) { s = { id, candidates: 0, fetched: 0, llm: 0, kept: 0, new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0 }; sourceStatMap.set(id, s); }
     return s;
   };
-  const CONSECUTIVE_BAD_STOP = 12; // stop source early after this many consecutive non-keeps (geo/junk/agency/llm fail)
+  // Catalogues: stop after a short bad streak (marketing pages). Search SERP is mixed — need a much higher bar.
+  const consecutiveStopFor = (id: string) => (id === 'search' ? 48 : 14);
   const llmWithRetry = deps.llm
     ? async (system: string, prompt: string) => {
         const delays = [0, 120_000, 180_000, 300_000, 600_000]; // 0, 2m, 3m, 5m, 10m
@@ -157,10 +158,11 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     for (const it of items) {
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
-      if (st.consecutiveBad >= CONSECUTIVE_BAD_STOP) {
+      const stopAt = consecutiveStopFor(src.id);
+      if (st.consecutiveBad >= stopAt) {
         st.stoppedEarly = true;
-        res.errors.push({ source: src.id, code: 'source_early_stop', detail: `${CONSECUTIVE_BAD_STOP} consecutive non-keeps; skipping rest of source` });
-        say(stage, `${src.id}: early stop after ${CONSECUTIVE_BAD_STOP} consecutive bad results`);
+        res.errors.push({ source: src.id, code: 'source_early_stop', detail: `${stopAt} consecutive non-keeps; skipping rest of source` });
+        say(stage, `${src.id}: early stop after ${stopAt} consecutive bad results`);
         break;
       }
       const known = await deps.store.findByUrl(it.url);
