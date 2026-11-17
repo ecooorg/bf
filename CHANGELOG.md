@@ -1,3 +1,8 @@
+## [128.21] - ImmoFinder priority stages, early geo, contact quality (EXP-IMMO-2)
+
+- Wave modes: priority | extended | full (API `wave`, UI Stage 1 / Stage 2 / Full). Priority (~10 min) runs phase-1 catalogues then a capped web-search slice so valuable private hits arrive early; extended continues search + phase≥2. Per-source stats + consecutive-bad early-stop. Early geo: URL + title/snippet + post-fetch text before LLM. Plausible Swiss phone/email filters drop placeholders (+41000000000, random locals).
+- Scope: server/immofinderCore.ts, server/immofinderPipeline.ts, server/immofinderRoutes.ts, src/ImmoFinder.tsx, tests/immofinder-quality.test.mjs, docs/EXPERIMENTS.md, CHANGELOG.md, TECHNICAL_REPORT.md. Patch 128.21.
+
 ## [128.20] - ImmoFinder dual-wave search: priority 10 min then extended (EXP-IMMO-1)
 
 - Priority wave (~10 min): ferienhausmiete + happyholiday commune pages only; early URL geo-filter skips out-of-zone places before fetch/LLM; mid-wave delivery to Drive/email/Telegram. Extended wave: web search + low-priority sources with remaining time up to 30 min, second delivery. Removed graubuenden/traum/appa catalogues that burned budget on non-listings.

@@ -1,3 +1,10 @@
+## P128.21 — Priority stages, early geo, contact quality (EXP-IMMO-2)
+
+- **OBSERVED:** Same class of waste as P128.20 logs: geo rejects after LLM, search starved, fake contacts in PDF.
+- **CHANGE:** `wave` = priority|extended|full; Stage-1 UI/API; early placeFromTitleOrSnippet + post-fetch geo before LLM; consecutive-bad source stop; sourceStats; isPlausibleSwissPhone/Email; priority wave includes capped search slice.
+- **NOT_RUN:** Live Stage-1 vs full kept ratio after deploy.
+- **SCOPE:** server/immofinder{Core,Pipeline,Routes}.ts, src/ImmoFinder.tsx, tests/immofinder-quality.test.mjs, docs/EXPERIMENTS.md, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## P128.20 — Dual-wave ImmoFinder search (priority 10 min + extended) (EXPERIMENT)
 
 - **OBSERVED:** 128.19 run used full 30 min on Scuol/Engadin happyholiday links and graubuenden/traum marketing pages; search barely started; 38/75 preview rejects were out-of-zone after LLM.
