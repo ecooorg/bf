@@ -85,9 +85,9 @@ export default function ImmoFinder() {
     return () => clearInterval(t);
   }, [enrichJob?.running, loadList]);
 
-  const start = async () => {
+  const start = async (wave: 'priority' | 'extended' | 'full' = 'full') => {
     setStarting(true); setMsg('');
-    try { await api('/api/immofinder/run', { method: 'POST', body: JSON.stringify({ dryRun: dry }) }); await load(); }
+    try { await api('/api/immofinder/run', { method: 'POST', body: JSON.stringify({ dryRun: dry, wave }) }); await load(); }
     catch (e) { setStarting(false); setMsg((e as Error).message); }
   };
   const stop = async () => {
@@ -130,7 +130,7 @@ export default function ImmoFinder() {
       <div className="header-actions has-mode">
         <CommitBadge />
         <ModeMenu current="Simple" currentLabel="ImmoFinder" projectEnabled onSelect={(m) => goHome(m)} onOverview={() => goHome()} />
-        <button type="button" className="ghost" data-testid="immofinder-header-new" title="Start a new search" aria-label="New search" disabled={busy} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); void start(); }}><Plus size={14} /> <span className="lbl">New search</span></button>
+        <button type="button" className="ghost" data-testid="immofinder-header-new" title="Start a new search" aria-label="New search" disabled={busy} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); void start('full'); }}><Plus size={14} /> <span className="lbl">New search</span></button>
         {busy && <button type="button" className="ghost" data-testid="immofinder-header-stop" title="Stop search" aria-label="Stop search" onClick={() => void stop()}>Stop</button>}
         <div className="hdr-more-wrap" ref={moreRef}>
           <button type="button" className="ghost hdr-more-btn" aria-expanded={moreOpen} onClick={() => setMoreOpen((v) => !v)} title="Program logs"><MoreHorizontal size={14} /> <span className="lbl">More</span></button>
@@ -148,10 +148,22 @@ export default function ImmoFinder() {
       <p style={{ color: '#8fa6c2', marginTop: 0 }}>Finds private owners of holiday flats (3+ rooms) in Graubünden and prepares a long-term lease letter. Letters are never sent automatically.</p>
 
       <section style={card}>
-        <button type="button" data-testid="immofinder-run" onClick={start} disabled={busy}
+        <button type="button" data-testid="immofinder-run" onClick={() => void start('full')} disabled={busy}
           className="immo-btn" style={{ width: '100%', padding: '16px 12px', fontSize: 20, cursor: busy ? 'default' : 'pointer' }}>
-          {busy ? 'Search is running…' : '🔍 New search'}
+          {busy ? 'Search is running…' : '🔍 Full search (both stages)'}
         </button>
+        {!busy && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button type="button" data-testid="immofinder-run-priority" onClick={() => void start('priority')} disabled={busy}
+              className="immo-btn" style={{ flex: 1, padding: '12px 8px', fontSize: 15 }}>
+              Stage 1 only (~10 min, high-value)
+            </button>
+            <button type="button" data-testid="immofinder-run-extended" onClick={() => void start('extended')} disabled={busy}
+              className="immo-btn" style={{ flex: 1, padding: '12px 8px', fontSize: 15 }}>
+              Stage 2 only (extended)
+            </button>
+          </div>
+        )}
         {busy && (
           <button type="button" data-testid="immofinder-stop" className="immo-btn" onClick={() => void stop()}
             style={{ width: '100%', marginTop: 8, padding: '12px', fontSize: 16, background: '#3a1d1d', borderColor: '#8b3a3a' }}>
@@ -161,7 +173,7 @@ export default function ImmoFinder() {
         <label style={{ display: 'block', marginTop: 10, fontSize: 14, color: '#9fb4cf' }}>
           <input type="checkbox" checked={dry} onChange={(e) => setDry(e.target.checked)} disabled={busy} /> Test run: quick check without AI, nothing is saved
         </label>
-        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>A full search takes about 5–10 minutes. You can leave this page open and watch the progress, or come back later.</p>}
+        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Stage 1 aims to capture the majority of valuable private listings in ~10 minutes. Stage 2 continues discovery and lower-priority sources. Full run does both.</p>}
       </section>
 
       <details style={card}>
