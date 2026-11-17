@@ -306,3 +306,45 @@ test('P128.8 type split, extra rejects, municipality from URL, type-specific let
   const ui = read('src/ImmoFinder.tsx'); assert.match(ui, /immofinder-tabs/); assert.match(ui, /api\/immofinder\/cleanup/);
   assert.match(read('migrations/024_immofinder_types.sql'), /listing_type/);
 });
+
+// ---- P128.18 ImmoFinder cron must pass the global session gate (secret is checked by the ImmoFinder middleware) ----
+test('ImmoFinder cron POST with a valid secret and no session reaches the route; every other unauthenticated call stays 401', async () => {
+  const { default: express } = await import('express');
+  const { registerImmoFinderRoutes, isImmoCronCall } = await import('../server/immofinderRoutes.ts');
+  const saved = { s: process.env.IMMOFINDER_RUN_SECRET, d: process.env.DATABASE_URL };
+  const secret = 'cron-secret-0123456789';
+  process.env.IMMOFINDER_RUN_SECRET = secret; delete process.env.DATABASE_URL;
+  const app = express();
+  app.use((req, res, next) => { // same shape as the global /api gate in server.ts
+    if (!req.path.startsWith('/api/')) return next();
+    if (isImmoCronCall(req)) return next();
+    return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
+  });
+  registerImmoFinderRoutes(app, { authenticated: () => false, appAuthEnabled: true, llm: null });
+  const server = app.listen(0);
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const call = async (method, p, headers = {}) => { const r = await fetch(base + p, { method, headers: { 'content-type': 'application/json', ...headers }, body: method === 'POST' ? '{}' : undefined }); return { status: r.status, body: await r.json() }; };
+    const ok = await call('POST', '/api/immofinder/run', { 'x-immofinder-secret': secret });
+    assert.equal(ok.status, 503, 'valid secret must get past both auth layers (503 only because no DATABASE_URL in this test)');
+    assert.equal(ok.body.code, 'DATABASE_UNAVAILABLE');
+    assert.equal((await call('POST', '/api/immofinder/run', { 'x-immofinder-secret': secret + 'x' })).status, 401, 'wrong secret');
+    assert.equal((await call('POST', '/api/immofinder/run')).status, 401, 'no secret and no session');
+    assert.equal((await call('GET', '/api/immofinder/listings', { 'x-immofinder-secret': secret })).status, 401, 'secret must not open other ImmoFinder routes');
+    assert.equal((await call('POST', '/api/immofinder/enrich-existing', { 'x-immofinder-secret': secret })).status, 401, 'secret must not open other ImmoFinder POST routes');
+  } finally {
+    await new Promise((r) => server.close(r));
+    if (saved.s === undefined) delete process.env.IMMOFINDER_RUN_SECRET; else process.env.IMMOFINDER_RUN_SECRET = saved.s;
+    if (saved.d !== undefined) process.env.DATABASE_URL = saved.d;
+  }
+});
+
+test('server.ts lets the ImmoFinder cron call through the global /api auth gate before the session check', () => {
+  const src = read('server.ts');
+  const gate = src.indexOf('// Auth middleware for /api/*');
+  const cron = src.indexOf('isImmoCronCall(req)', gate);
+  const session = src.indexOf('if (!authenticated(req))', gate);
+  const routes = src.indexOf('registerImmoFinderRoutes(app,');
+  assert.ok(gate > 0 && cron > gate && session > cron, 'cron exemption must sit inside the global gate, before the session check');
+  assert.ok(routes > session, 'ImmoFinder routes are registered after the global gate');
+});
