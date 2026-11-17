@@ -68,3 +68,11 @@ test('pickItems ranks whitelist commune hits before distant resorts', () => {
   assert.match(disc, /return out\.sort/);
   assert.match(disc, /scuol|engadin/);
 });
+
+test('P129 carousel wave and profile defaults exist in source', () => {
+  const pipe = read('server/immofinderPipeline.ts');
+  const set = read('server/immofinderSettings.ts');
+  assert.match(pipe, /carousel/);
+  assert.match(set, /profile: 'carousel'/);
+  assert.match(set, /carouselCommunesPerRun/);
+});
