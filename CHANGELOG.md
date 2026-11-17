@@ -1,3 +1,7 @@
+## [129.5] - Internal schedule off under node:test
+
+- Skip in-process ImmoFinder hourly timer when NODE_TEST_CONTEXT / NODE_ENV=test / IMMOFINDER_DISABLE_INTERNAL_SCHEDULE=1 (fixes agents-contract 60s timeout).
+
 ## [129.4] - Built-in hourly ImmoFinder schedule
 
 - Default schedule: every 1 hour (not manual). In-process tick every ~10 min starts carousel when due — no external cron required.
