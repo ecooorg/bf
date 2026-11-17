@@ -1,3 +1,8 @@
+## [128.18] - EXPERIMENT: Immofinder cron passes the global /api auth gate (EXP-IMMO-1)
+
+- Scheduled `POST /api/immofinder/run` got 401 from the global session gate in server.ts before its secret was checked, so no scheduled search ever started. The gate now lets exactly that call (POST, that path, `X-Immofinder-Secret` present) through; the secret is still verified by the ImmoFinder middleware.
+- Scope: server.ts, server/immofinderRoutes.ts, tests/agents-contract.test.mjs, package.json, package-lock.json. Patch 128.18.
+
 ## [128.17] - EXPERIMENT: Immofinder schedule/cron diagnostic logs (EXP-IMMO-1)
 
 - Log every `POST /api/immofinder/run`: `immofinder_run_request` (schedule vs session, secret present/configured), `immofinder_schedule_tick` (mode, dailyAt, due, skipped, lastRealRunAt), accept/reject codes. New `GET /api/immofinder/schedule-status` for live due diagnosis. Cron workflow fails on unexpected HTTP so misconfigured secrets surface in Actions.

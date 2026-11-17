@@ -1,3 +1,9 @@
+## P128.18 — Cron passes global auth gate (EXPERIMENT)
+
+- **OBSERVED:** Actions tick got HTTP 401 at 05:24:42Z; app log shows the request but no `immofinder_run_request`; global `/api` gate in server.ts runs before the route's secret check.
+- **CHANGE:** `isImmoCronCall` exempts only POST `/api/immofinder/run` with the secret header; contract + HTTP tests added.
+- **NOT_RUN:** Live tick on Render after deploy.
+
 ## P128.17 — Schedule tick diagnostics (EXPERIMENT)
 
 - **CHANGE:** Structured logs for cron auth and isDue decisions; schedule-status endpoint; stricter cron workflow exit codes.

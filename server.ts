@@ -42,7 +42,7 @@ import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './serve
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { registerAuthRoutes } from './server/authRoutes.ts';
 import { registerProjectRoutes } from './server/projectRoutes.ts';
-import { registerImmoFinderRoutes } from './server/immofinderRoutes.ts';
+import { registerImmoFinderRoutes, isImmoCronCall } from './server/immofinderRoutes.ts';
 import { registerOpsRoutes } from './server/opsRoutes.ts';
 import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
@@ -399,6 +399,7 @@ registerAuthRoutes(app, {
 app.use((req, res, next) => {
   if (!req.path.startsWith('/api/')) return next();
   if (req.path === '/api/health' || req.path === '/api/session' || req.path === '/api/login' || req.path === '/api/logout') return next();
+  if (isImmoCronCall(req)) return next(); // secret is verified (timing-safe) by the ImmoFinder middleware; a bad secret still gets 401 there
   if (!authenticated(req)) {
     return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
   }
