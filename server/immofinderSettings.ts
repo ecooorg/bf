@@ -31,7 +31,7 @@ export interface ImmoSettings {
 export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
   const q = { ...DEFAULT_QUALITY, ...(cfg.quality || {}) };
   return {
-    schedule: { mode: 'manual', everyHours: 3, dailyAt: '06:00' },
+    schedule: { mode: 'hours', everyHours: 1, dailyAt: '06:00' },
     delivery: { telegram: true, email: false, emailTo: '', emailContent: 'new', drive: true, driveFolderId: '', notifyWhenEmpty: false },
     search: {
       minRooms: cfg.minRooms,

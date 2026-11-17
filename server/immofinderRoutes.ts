@@ -329,7 +329,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         due,
         reason: due ? 'due' : (settings.schedule.mode === 'manual' ? 'manual_only' : 'not_due'),
         secretConfigured: Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16),
-        note: 'GitHub Actions must POST /api/immofinder/run hourly with X-Immofinder-Secret; this endpoint only reports due state.',
+        note: 'In-process scheduler checks about every 10 minutes when schedule.mode is hours/daily. External cron is optional.',
       });
     } catch (e) {
       res.status(500).json({ success: false, error: String((e as Error)?.message || e).slice(0, 160) });
@@ -464,4 +464,133 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         } catch { /* run row stays open; the 30-minute guard releases it */ }
     })();
   });
+
+  // --- In-process schedule (default hourly carousel; no external cron required) ---
+  // Checks every 10 minutes; isDue() enforces everyHours / dailyAt. Manual mode still disables auto-runs.
+  const g = globalThis as unknown as { __immoInternalScheduleStarted?: boolean };
+  if (!g.__immoInternalScheduleStarted) {
+    g.__immoInternalScheduleStarted = true;
+    const CHECK_MS = 10 * 60 * 1000;
+    const bootDelayMs = 75_000;
+    const internalTick = async () => {
+      try {
+        if (!process.env.DATABASE_URL) return;
+        const settings = await getSettings(loadImmoConfig());
+        const lastAt = await lastRealRunAt();
+        const now = new Date();
+        const due = isDue(settings.schedule, lastAt, now);
+        console.info(JSON.stringify({
+          type: 'immofinder_schedule_tick',
+          trigger: 'internal',
+          mode: settings.schedule.mode,
+          everyHours: settings.schedule.everyHours,
+          dailyAt: settings.schedule.dailyAt,
+          timezone: TIMEZONE,
+          due,
+          skipped: due ? null : (settings.schedule.mode === 'manual' ? 'manual_only' : 'not_due'),
+          lastRealRunAt: lastAt ? lastAt.toISOString() : null,
+          now: now.toISOString(),
+        }));
+        if (!due) return;
+
+        let wave: 'priority' | 'extended' | 'full' | 'carousel' = 'carousel';
+        if (settings.search?.profile === 'carousel') wave = 'carousel';
+        else if (settings.search?.defaultWave === 'priority') wave = 'priority';
+        else wave = 'full';
+
+        const dryRun = false;
+        const trigger = 'schedule';
+        let runId: string | null = null;
+        try { runId = await startRun(trigger, dryRun); } catch (e) {
+          console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'START_FAILED', trigger: 'internal', detail: String((e as Error)?.message || e).slice(0, 120) }));
+          return;
+        }
+        if (!runId) {
+          console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'RUN_IN_PROGRESS', trigger: 'internal' }));
+          return;
+        }
+        console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger: 'internal', runId, dryRun, wave }));
+
+        void (async () => {
+          const log: { t: number; text: string }[] = [];
+          let lastSave = 0;
+          let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number> } = { stage: 'catalogue', text: 'Scheduled carousel starting' };
+          const push = (e: typeof ev, force = false) => {
+            ev = e; log.push({ t: Date.now(), text: e.text }); if (log.length > 40) log.shift();
+            const n = Date.now(); if (!force && n - lastSave < 700) return; lastSave = n;
+            void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, log }).catch(() => {});
+          };
+          push(ev, true);
+          const errors: unknown[] = [];
+          let result = null as Awaited<ReturnType<typeof runPipeline>> | null;
+          const delivery: Record<string, string> = {};
+          try {
+            const cfg = applySettings(loadImmoConfig(), settings);
+            try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* optional */ }
+            const dl = settings.delivery;
+            const deliverWave = async (w: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
+              const label = w === 'carousel' ? 'Carousel (scheduled)' : w === 'priority' ? 'Priority' : 'Extended';
+              const all = await listListings(null);
+              const newKeys = new Set(newInWave.map((l) => l.canonical_key));
+              const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
+              const notify = fresh.length > 0 || dl.notifyWhenEmpty;
+              push({ stage: 'delivery', text: `${label}: delivering ${fresh.length} new`, counts }, true);
+              if (dl.drive) {
+                const d = await exportDrive(all, driveFolder(dl.driveFolderId));
+                delivery.drive = d.status;
+                if (d.url) delivery.driveUrl = d.url;
+              } else delivery.drive = 'off';
+              const head = `ImmoFinder ${label}: ${fresh.length} new · kept=${counts.kept ?? 0}`;
+              if (dl.telegram) {
+                delivery.telegram = notify
+                  ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
+                  : 'skipped: nothing new';
+              } else delivery.telegram = 'off';
+              if (dl.email && dl.emailTo) {
+                delivery.email = notify
+                  ? await sendEmail(dl.emailTo, `ImmoFinder ${label}: ${fresh.length} new`, formatListingsText(fresh, { heading: head, limit: 30, driveUrl: delivery.driveUrl }))
+                  : 'skipped: nothing new';
+              } else delivery.email = 'off';
+            };
+            result = await runPipeline({
+              config: cfg,
+              fetchPage: createPoliteFetch(cfg),
+              llm: deps.llm,
+              store: createPgStore(),
+              onProgress: push,
+              maxLlmCalls: settings.search.maxAiPages,
+              search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
+              cycle: await realRunCount(),
+              shouldCancel: () => isRunCancelled(runId!),
+              onWaveComplete: async ({ wave: w, newInWave, counts }) => {
+                try { await deliverWave(w, newInWave, counts); }
+                catch (e) { errors.push({ code: `${w}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
+              },
+            }, { dryRun: false, wave });
+            errors.push(...(result.errors || []));
+            if (dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
+              await deliverWave('extended', [], result.counts);
+            }
+          } catch (e) {
+            errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) });
+          }
+          try {
+            if (isRunCancelled(runId!)) await finishRunCancelled(runId!, result?.counts ?? {});
+            else {
+              await finishRun(runId!, result, errors, delivery);
+              await saveProgress(runId!, { stage: 'done', text: 'Finished', counts: result?.counts ?? {}, log });
+            }
+            clearRunCancel(runId!);
+          } catch { /* 30-min guard */ }
+        })();
+      } catch (e) {
+        console.warn(JSON.stringify({ type: 'immofinder_schedule_tick', trigger: 'internal', error: String((e as Error)?.message || e).slice(0, 160) }));
+      }
+    };
+    setTimeout(() => {
+      void internalTick();
+      setInterval(() => { void internalTick(); }, CHECK_MS);
+      console.info(JSON.stringify({ type: 'immofinder_internal_schedule_started', checkEveryMin: 10, bootDelaySec: bootDelayMs / 1000 }));
+    }, bootDelayMs);
+  }
 }
