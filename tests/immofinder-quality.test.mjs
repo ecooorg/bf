@@ -33,7 +33,8 @@ test('pipeline supports wave modes priority|extended|full', () => {
   assert.match(pipe, /waveMode/);
   assert.match(pipe, /wavesRun/);
   assert.match(pipe, /sourceStats/);
-  assert.match(pipe, /CONSECUTIVE_BAD_STOP/);
+  assert.match(pipe, /consecutiveStopFor/);
+  assert.match(pipe, /id === 'search'/);
   assert.match(pipe, /placeFromTitleOrSnippet/);
   assert.match(pipe, /priority-search|extended-search/);
 });
@@ -60,4 +61,10 @@ test('config keeps phase-1 productive catalogues first', () => {
   assert.ok(phase1.length >= 1);
   assert.equal(phase1[0].id, 'ferienhausmiete');
   assert.ok(cfg.priorityWaveMs >= 600000);
+});
+
+test('pickItems ranks whitelist commune hits before distant resorts', () => {
+  const disc = read('server/immofinderDiscovery.ts');
+  assert.match(disc, /return out\.sort/);
+  assert.match(disc, /scuol|engadin/);
 });
