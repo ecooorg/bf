@@ -414,6 +414,22 @@ export function parsePrice(text: string): ParsedPrice | null {
     });
   }
 
+  // C: trailing "2850.- CHF" / "1'790.– Fr" and leading "ab CHF 1'790.–"
+  const reTrail =
+    /(\d{1,3}(?:['\.]\d{3})+|\d{3,5})(?:[.,](\d{1,2}))?\s*(?:\.\-|\.–|–|-)?\s*(CHF|Fr\.?|SFr\.?|EUR|€)\b/gi;
+  for (const m of t.matchAll(reTrail)) {
+    const amount = parseAmount(m[1], m[2]);
+    if (!(amount >= 50 && amount < 100000)) continue;
+    hits.push({ amount, unit: 'unknown', currency: true, quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
+  }
+  const reAb =
+    /\bab\s*(CHF|Fr\.?|SFr\.?|EUR|€)\s*(\d{1,3}(?:['\.]\d{3})+|\d{3,5})(?:[.,](\d{1,2}))?/gi;
+  for (const m of t.matchAll(reAb)) {
+    const amount = parseAmount(m[2], m[3]);
+    if (!(amount >= 50 && amount < 100000)) continue;
+    hits.push({ amount, unit: 'unknown', currency: true, quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
+  }
+
   let best: ParsedPrice | null = null;
   const score = (c: ParsedPrice) =>
     (c.unit === 'month' ? 100 : c.unit === 'week' ? 50 : c.unit === 'night' ? 20 : 10) +
@@ -472,6 +488,21 @@ export function resolveListingPrice(pageText: string, priceQuote: string | null 
     if (p) return p;
   }
   return parsePrice(full.slice(0, 10000));
+}
+
+
+/** Window of page text around a price keyword (for diagnostics when parse fails). */
+export function priceDiagSnippet(text: string, maxLen = 360): string | null {
+  const full = String(text ?? '');
+  if (!full.trim()) return null;
+  const lower = full.toLowerCase();
+  let bestI = -1;
+  for (const key of ['chf', 'fr.', 'sfr', 'miete', 'preis', '€', 'eur', 'netto']) {
+    const i = lower.indexOf(key);
+    if (i >= 0 && (bestI < 0 || i < bestI)) bestI = i;
+  }
+  if (bestI < 0) return null;
+  return full.slice(Math.max(0, bestI - 80), bestI + 200).replace(/\s+/g, ' ').trim().slice(0, maxLen);
 }
 
 /** Extract a plausible publication / update date from page text or URL. */

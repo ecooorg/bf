@@ -1,5 +1,5 @@
 import { hostOf, buildQueries, pickItems, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, parseListedAt, isSeekerPost, qualityRejectReason, DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, qualityRejectReason, DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
@@ -302,21 +302,38 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const phones = c.phones.filter((p) => (phoneUse.get(`${host}|${p}`) || 0) < 3);
       const evidence = [...phones.slice(0, 1).map((v) => ({ type: 'phone', value: v, url })), ...c.emails.slice(0, 1).map((v) => ({ type: 'email', value: v, url }))];
       const pageText = pages[i].text;
-      const price = resolveListingPrice(`${meta.title}\n${pageText}`, ex.priceQuote);
+      const priceHay = `${meta.title}\n${pageText}`;
+      const price = resolveListingPrice(priceHay, ex.priceQuote);
       const listedAt = parseListedAt(`${meta.title}\n${pageText.slice(0, 4000)}`, url);
       const seeker = isSeekerPost(meta.title, pageText);
       if (seeker) ex.signals.push('seeker_post');
       const qReason = qualityRejectReason(quality, price, listedAt, seeker, evidence.length > 0, now());
+      // A: diagnostics when price missing or reject is price_*
+      if (!price || qReason === 'price_unknown' || qReason === 'price_above_max' || (price && price.monthlyChf == null)) {
+        try {
+          console.log(JSON.stringify({
+            type: 'immofinder_price_diag',
+            url: url.slice(0, 180),
+            source: src.id,
+            municipality: ex.municipality,
+            priceQuoteLlm: ex.priceQuote,
+            parsed: price,
+            qReason: qReason || null,
+            snippet: priceDiagSnippet(priceHay),
+          }));
+        } catch { /* never break run */ }
+      }
       if (qReason) { await deny(qReason, price?.quote || listedAt?.toISOString()); continue; }
       const rec: ListingRecord = {
         listing_type: type, canonical_key: canonicalKey(ex.name, ex.municipality), listing_url: url, source_urls: [url], source_ids: [src.id], photo_urls: meta.photos, municipality: ex.municipality, property_name: ex.name,
         rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis, description_de: ex.summaryDe, description_ru: '', title_ru: '', owner_name: ex.owner,
         rent_monthly_chf: price?.monthlyChf ?? null, pricing_unit: price?.unit ?? null, listed_at: listedAt ? listedAt.toISOString() : null,
         direct_phone: phones[0] ?? null, direct_email: c.emails[0] ?? null, contact_evidence: evidence, contact_status: evidence.length ? 'found' : 'platform_only',
-        contact_advice: evidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, listed_at: listedAt ? listedAt.toISOString() : null },
+        contact_advice: evidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null },
       };
       res.counts.kept++; st.kept++; st.consecutiveBad = 0;
-      say(stage, `✔ match: ${ex.name.slice(0, 60)} (${ex.municipality})`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
+      const priceNote = price?.monthlyChf != null ? `CHF ${price.monthlyChf}` : (price?.quote ? price.quote.slice(0, 24) : 'no price');
+      say(stage, `✔ match: ${ex.name.slice(0, 50)} (${ex.municipality}) · ${priceNote}`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
       if (opts.dryRun) continue;
 
       // Contact enrichment (public sources only). Never drops the listing.

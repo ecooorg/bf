@@ -33,6 +33,13 @@ export function formatPriceLine(r: any): string {
     const unit = r.pricing_unit === 'week' ? '/wk' : r.pricing_unit === 'night' ? '/night' : '/mo';
     return `CHF ${r.rent_monthly_chf}${unit}`;
   }
+  // F: show verified quote even when unit/monthly conversion is unknown
+  const quote = String(r.raw?.price?.quote || r.price_quote || '').replace(/\s+/g, ' ').trim();
+  if (quote.length >= 3 && /\d/.test(quote)) return quote.slice(0, 48);
+  if (r.raw?.price?.amount != null && Number.isFinite(Number(r.raw.price.amount))) {
+    const u = r.pricing_unit && r.pricing_unit !== 'unknown' ? ` ${r.pricing_unit}` : '';
+    return `${r.raw.price.amount}${u}`.slice(0, 40);
+  }
   if (r.pricing_unit && r.pricing_unit !== 'unknown') return String(r.pricing_unit);
   return 'price n/a';
 }
