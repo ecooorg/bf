@@ -25,10 +25,10 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 
 /** High-value first; labels match Stage-1 productivity for private long-term leads. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
-  { id: 'search', label: 'Web search (Facebook & owner sites)', hint: 'Highest yield for private ads with direct contact', priority: true },
-  { id: 'ferienhausmiete', label: 'Ferienhausmiete.de', hint: 'Owner holiday flats in whitelist communes', priority: true },
-  { id: 'happyholiday', label: 'HappyHoliday.ch', hint: 'Catalogue — often lower private-contact rate', priority: false },
-  { id: 'landwirtschaft-gr', label: 'Other catalogue sources', hint: 'Extended wave / lower priority indexes', priority: false },
+  { id: 'search', label: 'Web search (Facebook & owner sites)', hint: 'Best source for private ads with direct contact', priority: true },
+  { id: 'ferienhausmiete', label: 'Ferienhausmiete.de', hint: 'Owner holiday flats in target communes', priority: true },
+  { id: 'happyholiday', label: 'HappyHoliday.ch', hint: 'Catalogue — fewer private contacts', priority: false },
+  { id: 'landwirtschaft-gr', label: 'Other catalogue sources', hint: 'Extended wave, lower priority', priority: false },
 ];
 
 const box: React.CSSProperties = { border: '1px solid #243a57', borderRadius: 12, padding: 12, marginBottom: 12 };
@@ -140,7 +140,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
       {/* 1 · Where & size */}
       <div style={box}>
         <strong>1 · Where and size</strong>
-        <p style={hint}>Whitelist communes and minimum rooms. Leave price unlimited unless you need a hard cap.</p>
+        <p style={hint}>Communes and min rooms. Leave price unlimited unless you need a hard cap.</p>
         <label style={labelBlock}>
           Minimum rooms{' '}
           <select
@@ -239,8 +239,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
       <div style={box}>
         <strong>2 · Sources (Stage 1 prioritises the top rows)</strong>
         <p style={hint}>
-          Web search is processed first while budget is free — that is where most private Facebook and owner-site leads appear.
-          Keep it on for maximum coverage.
+          Web search runs first (Facebook, owner sites). Keep it on for best coverage.
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
@@ -280,7 +279,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             <option value="full">Full (Stage 1 + Stage 2)</option>
           </select>
         </label>
-        <p style={hint}>Manual buttons on the main screen still override this for one run.</p>
+        <p style={hint}>Main-screen buttons still override this for one run.</p>
       </div>
 
       {/* 3 · Delivery */}
@@ -363,7 +362,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             checked={s.delivery.notifyWhenEmpty}
             onChange={(e) => upd((x) => ({ ...x, delivery: { ...x.delivery, notifyWhenEmpty: e.target.checked } }))}
           />{' '}
-          Also message me when nothing new was found
+          Also notify when nothing new was found
         </label>
       </div>
 
@@ -414,7 +413,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
           Swiss time
         </label>
         {s.schedule.mode !== 'manual' && (
-          <p style={hint}>Server checks about once an hour; a due run starts within that window.</p>
+          <p style={hint}>Server checks hourly; a due run starts in that window.</p>
         )}
       </div>
 
@@ -425,7 +424,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
         </button>
         {showAdvanced && (
           <div style={{ marginTop: 10 }}>
-            <p style={hint}>Defaults favour private owner leads. Tighten only if the list is too noisy.</p>
+            <p style={hint}>Defaults favour private leads. Tighten only if results are noisy.</p>
             <label style={labelBlock}>
               <input
                 type="checkbox"
@@ -440,7 +439,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 checked={!!s.search.requireContact}
                 onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requireContact: e.target.checked } }))}
               />{' '}
-              Require direct phone or email (drops Messenger-only FB posts)
+              Require phone or email (drops Messenger-only posts)
             </label>
             <label style={labelBlock}>
               <input
