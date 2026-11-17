@@ -251,8 +251,9 @@ const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasth
 export type NonListing = 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | 'for_sale' | 'shared_room' | 'development_project';
 const FOR_SALE = /(zum kauf|zu verkaufen|\bkaufen\b|eigentumswohnung|\bverkauf\b)/i;
 const SHARED = /(\bwg\b|wohngemeinschaft|\bzwischenmiete\b|\buntermiete\b|zimmer in (einer )?(wg|wohnung))/i;
-// Only multi-unit / project language, not "Ferienwohnungen" or a single "3.5 Zimmer Wohnung"
-const DEVELOPMENT = /\b(neubau|neubauprojekt|wohnüberbauung|überbauung|eigentumswohnungen|wohnungen zum verkauf|\d{2,}\s*wohnungen)\b/i;
+// Multi-unit / project language. Holiday hosts with several flats ("Ferienwohnungen") stay; singular "Wohnung" stays.
+const DEVELOPMENT = /\b(neubau|neubauprojekt|wohn[uü]berbauung|[uü]berbauung|eigentumswohnungen|wohnungen zum verkauf|\d{2,}\s*wohnungen)\b|\b[A-Za-zäöüÄÖÜ]*wohnungen\b/i;
+const FERIEN_WOHNUNGEN = /\bferien[- ]?wohnungen\b/i;
 const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\//i;
 export function nonListingReason(title: string, url: string): NonListing | null {
   const t = String(title ?? '').trim();
@@ -260,7 +261,7 @@ export function nonListingReason(title: string, url: string): NonListing | null 
   if (FOR_SALE.test(t) || /\/kaufen\//i.test(url)) return 'for_sale';
   if (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url)) return 'list_or_search_page';
   if (SHARED.test(t)) return 'shared_room';
-  if (DEVELOPMENT.test(t)) return 'development_project';
+  if (DEVELOPMENT.test(t) && !FERIEN_WOHNUNGEN.test(t)) return 'development_project';
   if (HOTEL.test(t)) return 'hotel_or_guesthouse';
   return null;
 }
