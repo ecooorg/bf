@@ -92,7 +92,7 @@
   ],
   "fetch": {
     "userAgent": "BiForge-ImmoFinder (polite; contact owner)",
-    "perHostDelayMs": 2000,
+    "perHostDelayMs": 1500,
     "respectRobotsTxt": true
   },
   "schedule": {
@@ -108,7 +108,7 @@
   "limits": {
     "maxDetailPagesPerSource": 30,
     "recheckAfterDays": 7,
-    "fetchTimeoutMs": 15000,
+    "fetchTimeoutMs": 10000,
     "maxPageBytes": 1500000
   },
   "estCostPerLlmCallUsd": 0.002,
