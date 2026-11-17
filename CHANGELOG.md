@@ -1,3 +1,7 @@
+## [129.1] - CI patch format + reject seeker/aggregator junk
+
+- package.patch format `129.1` (P127.11 regex). Stronger seeker detection (Suche/Wer hat/zu mieten); Nestoria-style list URLs rejected; skipHosts nestoria/immowelt.
+
 ## [129.0.1] - CI: P128.3 wave pin + docs allowlist
 
 - P128.3 runPipeline uses wave=priority so search_queries stays 1 under commune rotation (full mode allCommunes was double-counting).
