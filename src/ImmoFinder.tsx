@@ -100,6 +100,16 @@ export default function ImmoFinder() {
     } catch (e) { setMsg((e as Error).message); }
   };
   const cleanup = async () => { try { const r = await api('/api/immofinder/cleanup', { method: 'POST', body: '{}' }); setMsg(`Hid ${r.hidden} saved results that are not suitable.`); await loadList(); } catch (e) { setMsg((e as Error).message); } };
+  const resetAll = async () => {
+    if (!window.confirm('Delete ALL saved listings and the seen-cache? Drive sheet will be cleared. This cannot be undone.')) return;
+    setMsg('');
+    try {
+      const r = await api('/api/immofinder/reset', { method: 'POST', body: JSON.stringify({ clearDrive: true }) });
+      const w = r.wipe || {};
+      setMsg(`Reset: removed ${w.listings ?? 0} listings, ${w.seen ?? 0} seen URLs. Drive: ${r.drive?.status || 'n/a'}.`);
+      await load();
+    } catch (e) { setMsg((e as Error).message); }
+  };
   const enrichExisting = async () => {
     setMsg('');
     try {
@@ -262,6 +272,7 @@ export default function ImmoFinder() {
         {hidden > 0 && <span style={{ fontSize: 13, color: '#8fa6c2', alignSelf: 'center' }}>{hidden} hidden as not suitable</span>}
         <button type="button" className="ghost" data-testid="immofinder-enrich-existing" disabled={!!enrichJob?.running} onClick={() => void enrichExisting()} style={{ fontSize: 13 }}>{enrichJob?.running ? "Searching contacts…" : "Find contacts for saved"}</button>
         <button type="button" className="ghost" onClick={() => void cleanup()} style={{ fontSize: 13 }}>Clean up list</button>
+        <button type="button" className="ghost" data-testid="immofinder-reset" onClick={() => void resetAll()} style={{ fontSize: 13, color: '#ffb4b4' }} disabled={busy}>Delete all & reset</button>
       </div>
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
       {shown.map((l) => (
