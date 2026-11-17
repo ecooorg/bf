@@ -27,20 +27,46 @@ export async function sendEmail(to: string, subject: string, text: string, fetch
   } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 80).split(key).join('***')}`; }
 }
 
-/** First line: place · price · rooms · contacts. Then short object text and a direct object URL only. */
+/** Human-readable rent period for cards (never hide night/week as bare CHF). */
+export function pricePeriodLabel(unit: string | null | undefined): string | null {
+  const u = String(unit || '').toLowerCase();
+  if (u === 'night' || u === 'day') return 'per night';
+  if (u === 'week') return 'per week';
+  if (u === 'month') return 'per month';
+  if (u === 'season') return 'per season';
+  return null;
+}
+
+/** First line price: amount + explicit period. Prefer listing amount/unit over converted monthly. */
 export function formatPriceLine(r: any): string {
-  if (r.rent_monthly_chf != null && Number.isFinite(Number(r.rent_monthly_chf))) {
-    const unit = r.pricing_unit === 'week' ? '/wk' : r.pricing_unit === 'night' ? '/night' : '/mo';
-    return `CHF ${r.rent_monthly_chf}${unit}`;
-  }
-  // F: show verified quote even when unit/monthly conversion is unknown
+  const unit = String(r.pricing_unit || r.raw?.price?.unit || '').toLowerCase() || 'unknown';
+  const period = pricePeriodLabel(unit);
+  const rawAmount = r.raw?.price?.amount;
+  const amount =
+    rawAmount != null && Number.isFinite(Number(rawAmount))
+      ? Number(rawAmount)
+      : null;
   const quote = String(r.raw?.price?.quote || r.price_quote || '').replace(/\s+/g, ' ').trim();
-  if (quote.length >= 3 && /\d/.test(quote)) return quote.slice(0, 48);
-  if (r.raw?.price?.amount != null && Number.isFinite(Number(r.raw.price.amount))) {
-    const u = r.pricing_unit && r.pricing_unit !== 'unknown' ? ` ${r.pricing_unit}` : '';
-    return `${r.raw.price.amount}${u}`.slice(0, 40);
+
+  // Known period + original amount (night 119, week 1750, month 1600)
+  if (amount != null && period) {
+    return `CHF ${amount} ${period}`;
   }
-  if (r.pricing_unit && r.pricing_unit !== 'unknown') return String(r.pricing_unit);
+  // Explicit monthly field only when unit is month (do not show night×30 as "per month")
+  if (unit === 'month' && r.rent_monthly_chf != null && Number.isFinite(Number(r.rent_monthly_chf))) {
+    return `CHF ${r.rent_monthly_chf} per month`;
+  }
+  // Quote from page, annotate period if missing in the quote text
+  if (quote.length >= 3 && /\d/.test(quote)) {
+    const hasPeriodWord = /per\s+(night|week|month|season)|\/(mo|wk|night)|\b(nacht|nächte|tag|tage|woche|wochen|monat|mtl\.?|season|saison)\b/i.test(quote);
+    if (period && !hasPeriodWord) return `${quote.slice(0, 36)} (${period})`;
+    if (!period && !hasPeriodWord) return `${quote.slice(0, 36)} (period unclear)`;
+    return quote.slice(0, 48);
+  }
+  if (amount != null) {
+    return period ? `CHF ${amount} ${period}` : `CHF ${amount} (period unclear)`;
+  }
+  if (period) return period;
   return 'price n/a';
 }
 
