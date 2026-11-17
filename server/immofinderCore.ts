@@ -119,6 +119,22 @@ export function placeFromUrl(url: string, list: string[]): { matched: string | n
   return { matched: null, outside: false, hint: null };
 }
 
+/**
+ * Cheap pre-LLM geo check on title + first part of page text / search snippet.
+ * If a clear non-whitelist place is named and no whitelist commune appears, treat as outside.
+ * Conservative: only outside when an explicit known-outside pattern appears.
+ */
+export function placeFromTitleOrSnippet(title: string, snippet: string, list: string[]): { matched: string | null; outside: boolean; hint: string | null } {
+  const head = `${title || ''} ${snippet || ''}`.slice(0, 800);
+  const m = matchMunicipality(head, list);
+  if (m) return { matched: m, outside: false, hint: m };
+  // Strong outside signals common in GR tourism pages (Engadin, Scuol, Samnaun, …)
+  const OUTSIDE = /\b(scuol|engadin|samnaun|sils|silvaplana|st\.?\s*moritz|pontresina|zuoz|madulain|celerina|samedan|zernez|guarda|arosa(?!\s*[-–]?chur)|davos|klosters|val\s*müstair|poschiavo|brusio)\b/i;
+  const om = OUTSIDE.exec(head);
+  if (om) return { matched: null, outside: true, hint: om[1] };
+  return { matched: null, outside: false, hint: null };
+}
+
 export function parseRooms(text: string): { rooms: number; basis: 'zimmer' | 'bedrooms' } | null {
   let t = String(text ?? '').replace(/½/g, '.5').replace(/,(\d)/g, '.$1');
   // "3 1/2" or "3 1/2 Zi." → 3.5
@@ -199,10 +215,37 @@ const PHONE = /(?:\+41|0041)\s?\(?0?\)?\s?\d{2}[\s.]?\d{3}[\s.]?\d{2}[\s.]?\d{2}
 const EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 export function normPhone(p: string): string { const d = p.replace(/[^\d+]/g, '').replace(/^0041/, '+41').replace(/^0(?=\d{9}$)/, '+41'); return d; }
 
+/** Reject placeholder / fabricated / non-Swiss-looking numbers (e.g. +41000000000, all-zeros, sequential junk). */
+export function isPlausibleSwissPhone(p: string): boolean {
+  const d = normPhone(p);
+  if (!/^\+41\d{9}$/.test(d)) return false;
+  const local = d.slice(3); // 9 digits after +41
+  if (/^0+$/.test(local) || /^1+$/.test(local) || /^(\d)\1{8}$/.test(local)) return false;
+  if (/^0{3,}/.test(local) || /0{5,}/.test(local)) return false;
+  // Common fake patterns seen in listings
+  if (local === '000000000' || local === '123456789' || local === '111111111') return false;
+  return true;
+}
+
+/** Reject obviously garbage emails (random strings, placeholder domains, image-like). */
+export function isPlausibleEmail(e: string): boolean {
+  const s = e.toLowerCase().trim();
+  if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(s)) return false;
+  if (/\.(png|jpe?g|gif|webp|svg)$/.test(s)) return false;
+  const local = s.split('@')[0] || '';
+  if (local.length < 2 || local.length > 64) return false;
+  // High entropy random-looking local parts (many consecutive consonants / digits without vowels)
+  if (/^[0-9._+-]+$/.test(local) && local.length >= 6) return false;
+  if (/k@[0-9a-z.\-]+/.test(s) && local.length <= 2) return false; // e.g. k@48g9-...
+  if (/(noreply|no-reply|donotreply|example|test|placeholder|fake|invalid)@/i.test(s)) return false;
+  return true;
+}
+
 /** Deterministic contact extraction: values are copied from the text, never produced by a model. */
 export function extractContacts(text: string, platformDomains: string[]): { phones: string[]; emails: string[] } {
-  const emails = [...new Set((text.match(EMAIL) || []).map((e) => e.toLowerCase()))].filter((e) => !platformDomains.some((d) => e.endsWith(`@${d}`) || e.endsWith(`.${d}`)) && !/\.(png|jpe?g|gif|webp)$/.test(e));
-  const phones = [...new Set((text.match(PHONE) || []).map(normPhone))];
+  const emails = [...new Set((text.match(EMAIL) || []).map((e) => e.toLowerCase()))]
+    .filter((e) => !platformDomains.some((d) => e.endsWith(`@${d}`) || e.endsWith(`.${d}`)) && isPlausibleEmail(e));
+  const phones = [...new Set((text.match(PHONE) || []).map(normPhone))].filter(isPlausibleSwissPhone);
   return { phones, emails };
 }
 

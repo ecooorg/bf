@@ -320,7 +320,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   });
 
   app.post('/api/immofinder/run', json, async (req, res) => {
-    const dryRun = req.body?.dryRun === true; const trigger = (req as any).immoCron ? 'schedule' : 'manual';
+    const dryRun = req.body?.dryRun === true;
+    const waveRaw = String(req.body?.wave || 'full').toLowerCase();
+    const wave = (waveRaw === 'priority' || waveRaw === 'extended' || waveRaw === 'full') ? (waveRaw as 'priority' | 'extended' | 'full') : 'full';
+    const trigger = (req as any).immoCron ? 'schedule' : 'manual';
     let settings; try { settings = await getSettings(loadImmoConfig()); } catch { return res.status(500).json({ success: false, error: 'Settings unavailable', code: 'IMMOFINDER_FAILED' }); }
     if (trigger === 'schedule') {
       let lastAt: Date | null = null;
@@ -356,8 +359,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'RUN_IN_PROGRESS', trigger }));
       return res.status(409).json({ success: false, error: 'A run is already in progress', code: 'RUN_IN_PROGRESS' });
     }
-    console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger, runId, dryRun }));
-    res.status(202).json({ success: true, runId, dryRun });
+    console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger, runId, dryRun, wave }));
+    res.status(202).json({ success: true, runId, dryRun, wave });
     void (async () => {
       const log: { t: number; text: string }[] = []; let lastSave = 0; let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number> } = { stage: 'catalogue', text: 'Starting' };
       const push = (e: typeof ev, force = false) => {
@@ -421,7 +424,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             try { await deliverWave(wave, newInWave, counts); }
             catch (e) { errors.push({ code: `${wave}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
           },
-        }, { dryRun });
+        }, { dryRun, wave });
         errors.push(...(result.errors || []));
         // Safety net: if waves produced nothing and notifyWhenEmpty, still one summary delivery
         if (!dryRun && dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
