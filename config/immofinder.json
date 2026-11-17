@@ -115,14 +115,16 @@
   "estCostPerSearchUsd": 0.001,
   "discovery": {
     "enabled": true,
-    "communesPerRun": 5,
+    "communesPerRun": 44,
     "resultsPerQuery": 10,
-    "maxPagesPerRun": 40,
+    "maxPagesPerRun": 120,
     "queries": [
       "Ferienwohnung {commune} von privat 3 Zimmer Vermieter",
       "Ferienhaus {commune} Privatvermieter direkt Eigentümer",
       "{commune} Ferienwohnung Vermieter Kontakt Telefon Zimmer",
-      "site:facebook.com {commune} Ferienwohnung vermieten Zimmer"
+      "site:facebook.com {commune} Ferienwohnung vermieten Zimmer",
+      "{commune} 3.5 Zimmer Wohnung zu vermieten privat Facebook",
+      "{commune} Wohnung mieten von privat Eigentümer Telefon"
     ],
     "snippetOnlyHosts": [
       "facebook.com",
@@ -151,7 +153,11 @@
       "holidu.com",
       "trivago.ch",
       "kayak.ch",
-      "google.com"
+      "google.com",
+      "booking.com",
+      "booking.ch",
+      "expedia.com",
+      "hotels.com"
     ]
   },
   "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
