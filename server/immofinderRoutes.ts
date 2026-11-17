@@ -467,8 +467,13 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   // --- In-process schedule (default hourly carousel; no external cron required) ---
   // Checks every 10 minutes; isDue() enforces everyHours / dailyAt. Manual mode still disables auto-runs.
+  // Do not start timers under node:test / explicit disable — they keep the event loop alive and time out CI.
+  const scheduleDisabled =
+    process.env.IMMOFINDER_DISABLE_INTERNAL_SCHEDULE === '1' ||
+    process.env.NODE_ENV === 'test' ||
+    Boolean(process.env.NODE_TEST_CONTEXT);
   const g = globalThis as unknown as { __immoInternalScheduleStarted?: boolean };
-  if (!g.__immoInternalScheduleStarted) {
+  if (!scheduleDisabled && !g.__immoInternalScheduleStarted) {
     g.__immoInternalScheduleStarted = true;
     const CHECK_MS = 10 * 60 * 1000;
     const bootDelayMs = 75_000;
