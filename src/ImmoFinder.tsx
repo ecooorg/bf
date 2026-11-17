@@ -284,11 +284,29 @@ export default function ImmoFinder() {
           <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, lineHeight: 1.35 }} data-testid="immofinder-card-headline">
             📍 {l.municipality}
             {' · '}
-            {l.rent_monthly_chf != null
-              ? `CHF ${l.rent_monthly_chf}${l.pricing_unit === 'week' ? '/wk' : l.pricing_unit === 'night' ? '/night' : '/mo'}`
-              : (typeof (l as any).raw?.price?.quote === 'string' && (l as any).raw.price.quote.trim()
-                ? String((l as any).raw.price.quote).replace(/\s+/g, ' ').trim().slice(0, 48)
-                : 'price n/a')}
+            {(() => {
+              const unit = String(l.pricing_unit || (l as any).raw?.price?.unit || '').toLowerCase();
+              const period =
+                unit === 'night' || unit === 'day' ? 'per night'
+                : unit === 'week' ? 'per week'
+                : unit === 'month' ? 'per month'
+                : unit === 'season' ? 'per season'
+                : null;
+              const rawAmt = (l as any).raw?.price?.amount;
+              const amount = rawAmt != null && Number.isFinite(Number(rawAmt)) ? Number(rawAmt) : null;
+              const quote = typeof (l as any).raw?.price?.quote === 'string'
+                ? String((l as any).raw.price.quote).replace(/\s+/g, ' ').trim() : '';
+              if (amount != null && period) return `CHF ${amount} ${period}`;
+              if (unit === 'month' && l.rent_monthly_chf != null) return `CHF ${l.rent_monthly_chf} per month`;
+              if (quote.length >= 3 && /\d/.test(quote)) {
+                const hasPw = /per\s+(night|week|month)|\/(mo|wk|night)|\b(nacht|tag|woche|monat|saison)\b/i.test(quote);
+                if (period && !hasPw) return `${quote.slice(0, 36)} (${period})`;
+                if (!period && !hasPw) return `${quote.slice(0, 36)} (period unclear)`;
+                return quote.slice(0, 48);
+              }
+              if (amount != null) return period ? `CHF ${amount} ${period}` : `CHF ${amount} (period unclear)`;
+              return 'price n/a';
+            })()}
             {' · '}
             {l.rooms_estimated} rooms
             {' · '}
