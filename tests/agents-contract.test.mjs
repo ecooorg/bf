@@ -188,8 +188,9 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async () => null, markSeen: async () => {} };
   const fetchPage = async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 403, body: '' });
   const search = async () => hits;
-  const res = await runPipeline({ config: cfg, fetchPage, llm: null, store, search, cycle: 0 }, { dryRun: false });
-  assert.equal(res.counts.search_queries, 2 - 1);
+  // Priority wave only: one commune from cycle (not full allCommunes).
+  const res = await runPipeline({ config: cfg, fetchPage, llm: null, store, search, cycle: 0 }, { dryRun: false, wave: 'priority' });
+  assert.equal(res.counts.search_queries, 1);
   assert.equal(res.counts.snippet_only, 1);
   assert.equal(res.counts.kept, 2);
   const fb = saved.find((r) => r.listing_url.includes('facebook'));
