@@ -70,6 +70,19 @@ export async function cleanupStored(): Promise<number> {
   }
   return n;
 }
+
+/** Hard reset: delete every listing, seen-cache and progress so the next run starts empty. */
+export async function wipeAllListings(): Promise<{ listings: number; seen: number; progress: number }> {
+  const p = await getPool();
+  const listings = Number((await p.query('SELECT count(*)::int AS n FROM immofinder_listings')).rows[0]?.n ?? 0);
+  const seen = Number((await p.query('SELECT count(*)::int AS n FROM immofinder_seen')).rows[0]?.n ?? 0);
+  let progress = 0;
+  try { progress = Number((await p.query('SELECT count(*)::int AS n FROM immofinder_progress')).rows[0]?.n ?? 0); } catch { /* table may be absent on old deploys */ }
+  await p.query('DELETE FROM immofinder_listings');
+  await p.query('DELETE FROM immofinder_seen');
+  try { await p.query('DELETE FROM immofinder_progress'); } catch { /* optional */ }
+  return { listings, seen, progress };
+}
 export async function setStatus(id: string, status: string): Promise<boolean> {
   const p = await getPool();
   const r = await p.query('UPDATE immofinder_listings SET status = $2, updated_at = now() WHERE id = $1', [id, status]);

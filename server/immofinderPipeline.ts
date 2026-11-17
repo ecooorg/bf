@@ -132,17 +132,37 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   };
   // Catalogues: stop after a short bad streak (marketing pages). Search SERP is mixed — need a much higher bar.
   const consecutiveStopFor = (id: string) => (id === 'search' ? 48 : 14);
+  /** Hard cap per LLM attempt — never sleep minutes between retries (UI looked frozen). */
+  const STEP_MS = 10_000;
+  const withStepTimeout = async <T,>(label: string, work: () => Promise<T>): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        work(),
+        new Promise<T>((_, rej) => {
+          timer = setTimeout(() => rej(new Error(`step_timeout:${label}`)), STEP_MS);
+        }),
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
   const llmWithRetry = deps.llm
     ? async (system: string, prompt: string) => {
-        const delays = [0, 120_000, 180_000, 300_000, 600_000]; // 0, 2m, 3m, 5m, 10m
+        // One quick retry only (≤2s); then skip this page so the run keeps moving.
         let lastErr: unknown;
-        for (let i = 0; i < delays.length; i++) {
-          if (timeLeft() < 60_000) break;
-          if (delays[i] > 0) {
-            say('catalogue', `Waiting ${Math.round(delays[i] / 60000)} min before retrying AI (${i}/${delays.length - 1})`);
-            await new Promise((r) => setTimeout(r, Math.min(delays[i], Math.max(0, timeLeft() - 60_000))));
+        for (let i = 0; i < 2; i++) {
+          if (timeLeft() < 15_000) break;
+          if (i > 0) {
+            say('catalogue', `AI retry once (2s), then skip page`);
+            await new Promise((r) => setTimeout(r, 2_000));
           }
-          try { return await deps.llm!(system, prompt); } catch (e) { lastErr = e; }
+          try {
+            return await withStepTimeout('llm', () => deps.llm!(system, prompt));
+          } catch (e) {
+            lastErr = e;
+            if (String((e as Error)?.message || e).startsWith('step_timeout:')) break;
+          }
         }
         throw lastErr instanceof Error ? lastErr : new Error(String(lastErr || 'llm_failed'));
       }
@@ -211,7 +231,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const fromSnippet = () => { snippet = true; res.counts.snippet_only++; meta = { title: it.hit!.title, description: it.hit!.snippet, photos: [] }; text = `${it.hit!.title}\n${it.hit!.snippet}`; };
       if (it.snippetOnly && it.hit) fromSnippet();
       else {
-        const pg = await deps.fetchPage(it.url).catch(() => ({ ok: false, status: 0, body: '' }));
+        let pg: { ok: boolean; status: number; body: string };
+        try {
+          pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
+        } catch {
+          pg = { ok: false, status: 0, body: 'step_timeout' };
+          res.errors.push({ source: src.id, code: 'step_timeout', detail: `fetch >${STEP_MS}ms ${it.url}`.slice(0, 200) });
+          say(stage, `skip slow page (>${Math.round(STEP_MS / 1000)}s): ${hostOf(it.url)}`);
+        }
         if (pg.ok) { res.counts.fetched++; st.fetched++; text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers); meta = pageMeta(pg.body, it.url); }
         else if (it.hit) fromSnippet();
         else { res.errors.push({ source: src.id, code: 'detail_fetch_failed', detail: `${pg.status} ${it.url}`.slice(0, 200) }); st.consecutiveBad++; continue; }
@@ -421,10 +448,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       res.counts.search_queries++;
       discoveryQueryOffset++;
       say('search', `Searching: ${q}`, ++qi, slice.length);
-      try { hits.push(...(await deps.search(q)).slice(0, d.resultsPerQuery)); }
-      catch (e) {
-        res.errors.push({ source: 'search', code: 'search_failed', detail: String((e as Error)?.message || e).slice(0, 100) });
-        if (res.errors.filter((x) => x.code === 'search_failed').length >= 3) break;
+      try {
+        const batch = await withStepTimeout('serper', () => deps.search!(q));
+        hits.push(...batch.slice(0, d.resultsPerQuery));
+      } catch (e) {
+        const msg = String((e as Error)?.message || e).slice(0, 100);
+        res.errors.push({ source: 'search', code: msg.startsWith('step_timeout:') ? 'step_timeout' : 'search_failed', detail: msg });
+        say('search', msg.startsWith('step_timeout:') ? `skip slow search (>10s): ${q.slice(0, 50)}` : `search failed: ${msg.slice(0, 40)}`);
+        if (res.errors.filter((x) => x.code === 'search_failed' || x.code === 'step_timeout').length >= 5) break;
       }
     }
     if (!hits.length && slice.length === 0) return;

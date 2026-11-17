@@ -3,10 +3,10 @@ import express, { type Express, type Request } from 'express';
 import { isSameOrigin } from './security.ts';
 import { createPoliteFetch } from './immofinderFetcher.ts';
 import { runPipeline } from './immofinderPipeline.ts';
-import { channelStatus, checkDrive, exportDrive, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
+import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
@@ -256,6 +256,23 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   app.post('/api/immofinder/cleanup', json, async (_req, res) => {
     try { res.json({ success: true, hidden: await cleanupStored() }); } catch { res.status(500).json({ success: false, error: 'Cleanup failed', code: 'IMMOFINDER_FAILED' }); }
+  });
+
+  /** Delete all listings + seen cache (+ progress); optionally clear Drive Sheet/Doc. */
+  app.post('/api/immofinder/reset', json, async (req, res) => {
+    try {
+      const wipe = await wipeAllListings();
+      let drive: { status: string; url?: string } | undefined;
+      const cfg = loadImmoConfig();
+      const settings = await getSettings(cfg);
+      const folder = driveFolder(settings.delivery?.driveFolderId || cfg.driveFolderId || '');
+      if (req.body?.clearDrive !== false && folder) {
+        drive = await clearDriveExport(folder);
+      }
+      res.json({ success: true, wipe, drive: drive || { status: 'skipped' } });
+    } catch (e) {
+      res.status(500).json({ success: false, error: String((e as Error)?.message || e).slice(0, 200), code: 'IMMOFINDER_FAILED' });
+    }
   });
 
   app.get('/api/immofinder/runs/latest', async (_req, res) => {

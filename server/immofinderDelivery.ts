@@ -120,6 +120,29 @@ async function resolveDrive(folderId: string, f: typeof fetch) {
 }
 
 /** Read-only readiness check used by the settings "Check" button. */
+
+/** Overwrite Sheet + Doc with an empty baseline so Drive matches a wiped DB. */
+export async function clearDriveExport(folderId: string, f: typeof fetch = fetch): Promise<{ status: string; url?: string }> {
+  try {
+    const { H, sheetId, docId } = await resolveDrive(folderId, f); const J = { ...H, 'Content-Type': 'application/json' };
+    const sh = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values`;
+    let r = await f(`${sh}/A1?valueInputOption=RAW`, { method: 'PUT', headers: J, body: JSON.stringify({ values: [['ImmoFinder objects (newest first)'], ['(cleared — no listings yet)']] }) });
+    if (!r.ok) throw new Error(`Sheets clear HTTP ${r.status}`);
+    const dd = `https://docs.googleapis.com/v1/documents/${docId}`;
+    const doc: any = await (await f(dd, { headers: H })).json();
+    const end = Number(doc?.body?.content?.at(-1)?.endIndex ?? 1);
+    if (!doc?.body) throw new Error('Docs read failed');
+    const requests: any[] = [];
+    if (end > 2) requests.push({ deleteContentRange: { range: { startIndex: 1, endIndex: end - 1 } } });
+    requests.push({ insertText: { location: { index: 1 }, text: 'ImmoFinder drafts — cleared. No listings yet.\n' } });
+    r = await f(`${dd}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests }) });
+    if (!r.ok) throw new Error(`Docs clear HTTP ${r.status}`);
+    return { status: 'cleared', url: `https://drive.google.com/drive/folders/${folderId}` };
+  } catch (e) {
+    return { status: `error: ${String((e as Error)?.message || e).slice(0, 300)}` };
+  }
+}
+
 export async function checkDrive(folderId: string, f: typeof fetch = fetch): Promise<string> {
   try { await resolveDrive(folderId, f); return 'ready: folder and both files found'; } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 400)}`; }
 }
