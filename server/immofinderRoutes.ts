@@ -54,10 +54,28 @@ function driveFolder(saved: string): string {
 export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): void {
   const json = express.json({ limit: '10kb' });
   app.use('/api/immofinder', (req, res, next) => {
-    const cron = req.method === 'POST' && req.path === '/run' && secretOk(req);
+    const isRunPost = req.method === 'POST' && req.path === '/run';
+    const hasSecretHeader = Boolean(String(req.get('x-immofinder-secret') || ''));
+    const secretConfigured = Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16);
+    const cron = isRunPost && secretOk(req);
+    if (isRunPost) {
+      console.info(JSON.stringify({
+        type: 'immofinder_run_request',
+        via: cron ? 'schedule_secret' : (hasSecretHeader ? 'bad_or_short_secret' : 'session'),
+        secretHeaderPresent: hasSecretHeader,
+        secretConfigured,
+        cronAuth: cron,
+      }));
+    }
     if (!cron) {
-      if (!deps.appAuthEnabled || !deps.authenticated(req)) return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
-      if (req.method !== 'GET') { const o = req.get('origin'); if (!o || !isSameOrigin(o, req.get('host'), req.protocol)) return res.status(403).json({ success: false, error: 'Same-origin request required', code: 'CSRF_ORIGIN' }); }
+      if (!deps.appAuthEnabled || !deps.authenticated(req)) {
+        if (isRunPost) console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'UNAUTHORIZED', secretHeaderPresent: hasSecretHeader, secretConfigured }));
+        return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
+      }
+      if (req.method !== 'GET') { const o = req.get('origin'); if (!o || !isSameOrigin(o, req.get('host'), req.protocol)) {
+        if (isRunPost) console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'CSRF_ORIGIN' }));
+        return res.status(403).json({ success: false, error: 'Same-origin request required', code: 'CSRF_ORIGIN' });
+      } }
     }
     if (!process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Database is not configured', code: 'DATABASE_UNAVAILABLE' });
     (req as any).immoCron = cron; next();
@@ -273,16 +291,67 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     }
   });
 
+  /** Diagnostics: is a scheduled search due right now? (no side effects) */
+  app.get('/api/immofinder/schedule-status', async (_req, res) => {
+    try {
+      const settings = await getSettings(loadImmoConfig());
+      const lastAt = await lastRealRunAt();
+      const now = new Date();
+      const due = isDue(settings.schedule, lastAt, now);
+      res.json({
+        success: true,
+        timezone: TIMEZONE,
+        now: now.toISOString(),
+        schedule: settings.schedule,
+        lastRealRunAt: lastAt ? lastAt.toISOString() : null,
+        due,
+        reason: due ? 'due' : (settings.schedule.mode === 'manual' ? 'manual_only' : 'not_due'),
+        secretConfigured: Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16),
+        note: 'GitHub Actions must POST /api/immofinder/run hourly with X-Immofinder-Secret; this endpoint only reports due state.',
+      });
+    } catch (e) {
+      res.status(500).json({ success: false, error: String((e as Error)?.message || e).slice(0, 160) });
+    }
+  });
+
   app.post('/api/immofinder/run', json, async (req, res) => {
     const dryRun = req.body?.dryRun === true; const trigger = (req as any).immoCron ? 'schedule' : 'manual';
     let settings; try { settings = await getSettings(loadImmoConfig()); } catch { return res.status(500).json({ success: false, error: 'Settings unavailable', code: 'IMMOFINDER_FAILED' }); }
     if (trigger === 'schedule') {
-      let due = false; try { due = isDue(settings.schedule, await lastRealRunAt(), new Date()); } catch { /* treated as not due */ }
-      if (!due) return res.json({ success: true, skipped: settings.schedule.mode === 'manual' ? 'manual_only' : 'not_due' });
+      let lastAt: Date | null = null;
+      let due = false;
+      let dueError: string | null = null;
+      try {
+        lastAt = await lastRealRunAt();
+        due = isDue(settings.schedule, lastAt, new Date());
+      } catch (e) {
+        dueError = String((e as Error)?.message || e).slice(0, 120);
+      }
+      const skipped = !due ? (settings.schedule.mode === 'manual' ? 'manual_only' : 'not_due') : null;
+      console.info(JSON.stringify({
+        type: 'immofinder_schedule_tick',
+        trigger: 'schedule',
+        mode: settings.schedule.mode,
+        everyHours: settings.schedule.everyHours,
+        dailyAt: settings.schedule.dailyAt,
+        timezone: TIMEZONE,
+        due,
+        skipped,
+        lastRealRunAt: lastAt ? lastAt.toISOString() : null,
+        now: new Date().toISOString(),
+        dueError,
+      }));
+      if (!due) return res.json({ success: true, skipped: skipped || 'not_due' });
+    } else {
+      console.info(JSON.stringify({ type: 'immofinder_run_start', trigger: 'manual', dryRun }));
     }
     let runId: string | null;
     try { runId = await startRun(trigger, dryRun); } catch { return res.status(500).json({ success: false, error: 'Could not start run', code: 'IMMOFINDER_FAILED' }); }
-    if (!runId) return res.status(409).json({ success: false, error: 'A run is already in progress', code: 'RUN_IN_PROGRESS' });
+    if (!runId) {
+      console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'RUN_IN_PROGRESS', trigger }));
+      return res.status(409).json({ success: false, error: 'A run is already in progress', code: 'RUN_IN_PROGRESS' });
+    }
+    console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger, runId, dryRun }));
     res.status(202).json({ success: true, runId, dryRun });
     void (async () => {
       const log: { t: number; text: string }[] = []; let lastSave = 0; let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number> } = { stage: 'catalogue', text: 'Starting' };
