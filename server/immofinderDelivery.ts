@@ -71,7 +71,8 @@ export function formatListingCard(r: any): string {
   const desc = String(r.description_de || '').replace(/\s+/g, ' ').trim().slice(0, 180);
   const about = [name && name !== place ? name : '', desc].filter(Boolean).join(' — ').slice(0, 220);
   const when = r.first_seen_at ? `Found: ${formatZurich(r.first_seen_at)}` : '';
-  return [line1, about, formatDirectLink(r), when].filter(Boolean).join('\n');
+  const status = r.status && r.status !== 'NEW' ? `Status: ${r.status}` : '';
+  return [line1, about, formatDirectLink(r), when, status].filter(Boolean).join('\n');
 }
 
 /** Plain-text listing block shared by email and Telegram. */
