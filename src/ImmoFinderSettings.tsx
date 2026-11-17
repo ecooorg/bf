@@ -46,6 +46,24 @@ async function api(path: string, init?: RequestInit) {
   return body;
 }
 
+
+/** One-line summary for the Settings header on the main screen. */
+export function summarize(s: S): string {
+  if (!s) return '';
+  const sched =
+    s.schedule.mode === 'manual' ? 'manual only'
+    : s.schedule.mode === 'hours' ? `every ${s.schedule.everyHours}h`
+    : `daily ${s.schedule.dailyAt}`;
+  const send = [
+    s.delivery.telegram ? 'Telegram' : null,
+    s.delivery.email ? 'email' : null,
+    s.delivery.drive ? 'Drive' : null,
+  ].filter(Boolean).join(', ') || 'no delivery';
+  const price = s.search.limitPrice ? `max CHF ${s.search.maxMonthlyRentChf}` : 'no price cap';
+  const n = s.search.communes?.length ?? 0;
+  return `${sched} · ${send} · ${s.search.minRooms}+ rooms · ${n} communes · ${price}`;
+}
+
 export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }) {
   const [s, setS] = useState<S | null>(null);
   const [channels, setChannels] = useState<Channels>({ telegram: false, email: false, drive: false });
@@ -482,3 +500,5 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
     </div>
   );
 }
+
+export default ImmoFinderSettings;
