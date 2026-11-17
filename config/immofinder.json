@@ -57,23 +57,10 @@
   "minRooms": 3,
   "sources": [
     {
-      "id": "happyholiday",
-      "url": "https://happyholiday.ch/area/graubuenden/",
-      "phase": 1,
-      "cityUrl": "https://happyholiday.ch/city/{slug}/",
-      "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
-      "cutMarkers": [
-        "Andere Häuser",
-        "Ausgewählte Unterkünfte"
-      ],
-      "privateTitleHint": "von privat",
-      "maxDetailPages": 80
-    },
-    {
       "id": "ferienhausmiete",
       "url": "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/graubuenden/r521",
       "phase": 1,
-      "maxDetailPages": 60,
+      "maxDetailPages": 80,
       "detailPattern": "^https://www\\.ferienhausmiete\\.de/\\d+\\.htm$",
       "indexUrls": [
         "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/flims-laax-falera/r4331",
@@ -84,25 +71,23 @@
       ]
     },
     {
-      "id": "graubuenden",
-      "url": "https://www.graubuenden.ch",
+      "id": "happyholiday",
+      "url": "https://happyholiday.ch/area/graubuenden/",
       "phase": 1,
-      "maxDetailPages": 20
-    },
-    {
-      "id": "traum-ferienwohnungen",
-      "url": "https://www.traum-ferienwohnungen.ch",
-      "phase": 2
-    },
-    {
-      "id": "appa",
-      "url": "https://www.appa.ch",
-      "phase": 2
+      "cityUrl": "https://happyholiday.ch/city/{slug}/",
+      "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
+      "cutMarkers": [
+        "Andere Häuser",
+        "Ausgewählte Unterkünfte"
+      ],
+      "privateTitleHint": "von privat",
+      "maxDetailPages": 60
     },
     {
       "id": "landwirtschaft-gr",
       "url": "https://www.landwirtschaft-gr.ch",
-      "phase": 2
+      "phase": 3,
+      "maxDetailPages": 15
     }
   ],
   "fetch": {
@@ -186,5 +171,6 @@
     "maxCandidatePagesPerListing": 3,
     "useReverseImage": true,
     "useSecondarySearch": true
-  }
+  },
+  "priorityWaveMs": 600000
 }
