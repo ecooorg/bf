@@ -1,3 +1,10 @@
+## P128.21.1 — Test fix + search-first priority
+
+- **OBSERVED:** CI red: P128.2 index_pages 1≠2 (city-first), P128.3 search_queries 2≠1 (full mode re-ran same queries), P128.4 progress label.
+- **CHANGE:** discoveryQueryOffset; progress `Searching:`; priority order = search then phase-1; test expects 1 index page.
+- **NOT_RUN:** Live Stage-1 yield after deploy.
+- **SCOPE:** server/immofinderPipeline.ts, tests/agents-contract.test.mjs, package.json, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## P128.21 — Priority stages, early geo, contact quality (EXP-IMMO-2)
 
 - **OBSERVED:** Same class of waste as P128.20 logs: geo rejects after LLM, search starved, fake contacts in PDF.

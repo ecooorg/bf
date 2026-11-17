@@ -1,3 +1,8 @@
+## [128.21.1] - Fix ImmoFinder tests + search-first priority (EXP-IMMO-2)
+
+- Fix full-mode double-run of the same discovery queries (search_queries inflated); restore progress text `Searching:`. Priority wave runs web search first (highest in-zone private yield), then phase-1 catalogues. agents-contract P128.2 expects 1 city index page under city-first. package patch 128.21.
+- Scope: server/immofinderPipeline.ts, tests/agents-contract.test.mjs, package.json, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## [128.21] - ImmoFinder priority stages, early geo, contact quality (EXP-IMMO-2)
 
 - Wave modes: priority | extended | full (API `wave`, UI Stage 1 / Stage 2 / Full). Priority (~10 min) runs phase-1 catalogues then a capped web-search slice so valuable private hits arrive early; extended continues search + phase≥2. Per-source stats + consecutive-bad early-stop. Early geo: URL + title/snippet + post-fetch text before LLM. Plausible Swiss phone/email filters drop placeholders (+41000000000, random locals).
