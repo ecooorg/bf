@@ -1,3 +1,9 @@
+## P129.0 — C129 Quality Search (carousel)
+
+- **PHASE:** End of “build the searcher”; start of quality optimisation.
+- **CHANGE:** `wave=carousel`, settings profile carousel (default), N communes/tick via existing `communesForRun`+`cycle`, skip catalogues on carousel ticks, documentation for successors.
+- **SCOPE:** immofinder Pipeline/Routes/Settings, ImmoFinder UI, docs/C129_QUALITY_SEARCH.md, EXPERIMENTS, CHANGELOG, package 129.0.
+
 ## P128.21.4 — lint:copy + listing card layout
 
 - **OBSERVED:** CI FAIL only on lint:copy (Stage 1 help >24 words). Tests 912/918 pass, 0 failed.

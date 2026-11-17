@@ -1,3 +1,9 @@
+## [129.0] - C129 Quality Search — commune carousel
+
+- Phase shift: searcher construction closed; quality programme opens (carousel profile, 2 communes/tick, Serper+LLM extract, catalogues skipped on carousel).
+- Settings `profile` carousel|burst, `carouselCommunesPerRun`; UI + main-screen Carousel tick; docs/C129_QUALITY_SEARCH.md + EXP-IMMO-3.
+- Version 129 / patch 129.0.
+
 ## [128.21.4] - Listing cards + lint:copy CI
 
 - CI red was lint:copy only (ImmoFinder Stage-1 help >24 words); shortened. Cards (UI, Drive sheet, Docs, email/Telegram): first line place · price · rooms · contacts; then short object text; then direct object link (flags list/group URLs).
