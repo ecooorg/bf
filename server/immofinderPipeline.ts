@@ -400,8 +400,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     await processItems(src, ranked.map((url) => ({ url })), maxPages);
   }
 
-  /** Run discovery search queries (used in priority and/or extended depending on waveMode). */
-  async function runDiscoverySearch(label: string, maxQueries?: number, maxPages?: number) {
+  /** Run discovery search queries. `discoveryQueryOffset` skips already-run queries in full mode so priority+extended do not repeat. */
+  let discoveryQueryOffset = 0;
+  async function runDiscoverySearch(maxQueries?: number, maxPages?: number) {
     const d = cfg.discovery;
     if (!d?.enabled) return;
     if (!deps.search) {
@@ -411,20 +412,25 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     if (timeLeft() < 45_000) return;
     const hits: SearchHit[] = [];
     const qs = buildQueries(cfg, deps.cycle ?? 0);
-    const limitQ = maxQueries != null ? Math.min(maxQueries, qs.length) : qs.length;
+    const slice = qs.slice(discoveryQueryOffset, maxQueries != null ? discoveryQueryOffset + maxQueries : undefined);
     let qi = 0;
-    for (const q of qs.slice(0, limitQ)) {
+    for (const q of slice) {
       if (timeLeft() < 45_000 || deps.shouldCancel?.()) break;
-      res.counts.search_queries++; say('search', `${label}: ${q}`, ++qi, limitQ);
+      res.counts.search_queries++;
+      discoveryQueryOffset++;
+      say('search', `Searching: ${q}`, ++qi, slice.length);
       try { hits.push(...(await deps.search(q)).slice(0, d.resultsPerQuery)); }
       catch (e) {
         res.errors.push({ source: 'search', code: 'search_failed', detail: String((e as Error)?.message || e).slice(0, 100) });
         if (res.errors.filter((x) => x.code === 'search_failed').length >= 3) break;
       }
     }
+    if (!hits.length && slice.length === 0) return;
     const items = pickItems(hits, cfg);
-    res.counts.sources++;
-    await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), maxPages ?? d.maxPagesPerRun);
+    if (items.length) {
+      res.counts.sources++;
+      await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), maxPages ?? d.maxPagesPerRun);
+    }
   }
 
   // ----- WAVE A (priority, ~10 min): high-value catalogues first + early search slice -----
@@ -432,9 +438,13 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   if (waveMode === 'priority' || waveMode === 'full') {
     waveDeadline = priorityDeadline;
     res.wavesRun!.push('priority');
-    say('catalogue', `Priority wave started (up to ${Math.round(priorityMs / 60000)} min, mode=${waveMode}): phase-1 catalogues + early web search`);
+    say('catalogue', `Priority wave started (up to ${Math.round(priorityMs / 60000)} min, mode=${waveMode}): web search first, then phase-1 catalogues`);
     const markA = newBefore();
-    // Most productive catalogues first (config order of phase===1 is the priority order).
+    // Search first: live private ads (FB groups, owner sites) historically yield the most in-zone contacts.
+    if (priorityTimeLeft() > 60_000 && timeLeft() > 60_000) {
+      await runDiscoverySearch(16, 30);
+    }
+    // Then high-yield catalogues (config order of phase===1).
     for (const src of cfg.sources.filter((s) => s.phase === 1)) {
       if (deps.shouldCancel?.()) break;
       if (priorityTimeLeft() < 30_000) {
@@ -442,11 +452,6 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         break;
       }
       await runCatalogueSource(src, 'priority');
-    }
-    // Reserve remaining priority time for web search by target communes (high signal for private ads).
-    if (priorityTimeLeft() > 60_000 && timeLeft() > 60_000) {
-      // Cap queries/pages so catalogues still dominate the first minutes when both are enabled.
-      await runDiscoverySearch('priority-search', 12, 25);
     }
     const priorityNew = res.newListings.slice(markA);
     res.priorityNewListings = priorityNew;
@@ -467,10 +472,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     say('search', `Extended wave started (${Math.max(0, Math.round(timeLeft() / 60000))} min left, mode=${waveMode})`);
     const markB = newBefore();
     // Full discovery when running extended-only or when full and time remains.
+    // Continue from discoveryQueryOffset so full mode does not repeat priority queries.
     if (timeLeft() > 60_000) {
-      const already = res.counts.search_queries || 0;
-      // If priority already ran a slice, continue with remaining queries; if extended-only, run full.
-      await runDiscoverySearch('extended-search', waveMode === 'extended' ? undefined : Math.max(0, 40 - already), cfg.discovery?.maxPagesPerRun);
+      await runDiscoverySearch(undefined, cfg.discovery?.maxPagesPerRun);
     }
     for (const src of cfg.sources.filter((s) => s.phase >= 2)) {
       if (deps.shouldCancel?.() || timeLeft() < 60_000) break;
