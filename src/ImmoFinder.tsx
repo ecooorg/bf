@@ -173,7 +173,7 @@ export default function ImmoFinder() {
         <label style={{ display: 'block', marginTop: 10, fontSize: 14, color: '#9fb4cf' }}>
           <input type="checkbox" checked={dry} onChange={(e) => setDry(e.target.checked)} disabled={busy} /> Test run: quick check without AI, nothing is saved
         </label>
-        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Stage 1 aims to capture the majority of valuable private listings in ~10 minutes. Stage 2 continues discovery and lower-priority sources. Full run does both.</p>}
+        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Stage 1 (~10 min): best sources first. Stage 2: wider search. Full runs both.</p>}
       </section>
 
       <details style={card}>
@@ -266,14 +266,26 @@ export default function ImmoFinder() {
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
       {shown.map((l) => (
         <article key={l.id} style={card} data-testid="immofinder-card">
-          <h3 style={{ margin: '0 0 6px' }}>{l.property_name}</h3>
-          <p style={{ margin: '0 0 6px', fontSize: 13, color: '#8fa6c2' }} data-testid="immofinder-found-at">Found: {fmtFound(l.first_seen_at)}</p>
-          <div><span style={chip}>📍 {l.municipality}</span><span style={chip}>🚪 {l.rooms_estimated} rooms</span>{l.source_ids.map((s) => <span key={s} style={chip}>{SOURCE_LABEL[s] || s}</span>)}
-            <span style={chip}>{l.listing_type === 'long_term_offer' ? 'direct offer' : 'holiday owner'}</span>{l.private_signals.includes('long_term_possible') && <span style={chip}>long-term mentioned</span>}{l.private_signals.includes('platform_says_private') && <span style={chip}>listed as private</span>}{l.private_signals.includes('snippet_only') && <span style={chip}>from search snippet</span>}{l.private_signals.includes('generic_link') && <span style={chip}>link opens a search or group page</span>}</div>
-          {l.rent_monthly_chf != null && <span style={chip}>CHF {l.rent_monthly_chf}/mo</span>}
-          {l.description_de && <p style={{ margin: '4px 0', fontSize: 14, color: '#b9cce6' }}>{l.description_de}</p>}
-          <p style={{ margin: '8px 0' }}>
-            <strong>Contact: </strong>{l.contact_status === 'found' ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ') : <em>no direct contact found yet. {l.contact_advice}</em>}
+          <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, lineHeight: 1.35 }} data-testid="immofinder-card-headline">
+            📍 {l.municipality}
+            {' · '}
+            {l.rent_monthly_chf != null ? `CHF ${l.rent_monthly_chf}${l.pricing_unit === 'week' ? '/wk' : l.pricing_unit === 'night' ? '/night' : '/mo'}` : 'price n/a'}
+            {' · '}
+            {l.rooms_estimated} rooms
+            {' · '}
+            {l.contact_status === 'found'
+              ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ')
+              : 'no direct contact'}
+          </p>
+          <p style={{ margin: '0 0 4px', fontSize: 14, color: '#cfe6ff' }}>
+            {[l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 220)}
+          </p>
+          <p style={{ margin: '0 0 8px', fontSize: 13 }} data-testid="immofinder-found-at">
+            <a href={l.listing_url} target="_blank" rel="noopener noreferrer" style={{ color: '#7db8ff', wordBreak: 'break-all' }}>
+              {l.listing_url}
+            </a>
+            {l.private_signals.includes('generic_link') && <span style={{ color: '#ffd28a' }}> (list/group page — not a single object)</span>}
+            <span style={{ color: '#8fa6c2' }}> · found {fmtFound(l.first_seen_at)}</span>
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <a href={l.listing_url} target="_blank" rel="noopener noreferrer" className="immo-btn small">{/facebook\.com/.test(l.listing_url) ? 'Open post' : 'Open listing'}</a>
