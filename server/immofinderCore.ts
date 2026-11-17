@@ -30,6 +30,8 @@ export interface ImmoConfig {
   };
   /** Hard wall-clock limit for one search cycle (ms). Default 30 minutes. */
   runMaxDurationMs?: number;
+  /** First-wave budget for high-value catalogue sources (ms). Default 10 minutes. */
+  priorityWaveMs?: number;
 }
 
 export function norm(s: string): string {
@@ -86,6 +88,37 @@ export function matchMunicipality(text: string, list: string[]): string | null {
 }
 
 /** Swiss "Zimmer" count from a (verified) quote: 3, 3.5, 4½, "3 1/2 Zi.", "Zimmer: 3". Bedrooms fall back to bedrooms + 1. */
+
+/**
+ * Place hint from a listing URL (e.g. happyholiday …-in-scuol, path segments).
+ * Returns canonical whitelist name when the hint matches; if the URL clearly names a
+ * non-whitelist place, returns { outside: true } so the pipeline can skip before fetch/LLM.
+ */
+export function placeFromUrl(url: string, list: string[]): { matched: string | null; outside: boolean; hint: string | null } {
+  let path = '';
+  try { path = decodeURIComponent(new URL(url).pathname); } catch { return { matched: null, outside: false, hint: null }; }
+  const raw = path.replace(/[-_/.]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const inSlug = /-in-([a-z0-9äöü\-]+)/i.exec(path);
+  const hints: string[] = [];
+  if (inSlug) hints.push(inSlug[1].replace(/-/g, ' '));
+  // last meaningful path segment as fallback
+  const seg = path.split('/').filter(Boolean).pop() || '';
+  if (seg && seg.length > 3) hints.push(seg.replace(/[-_]/g, ' '));
+  for (const h of hints) {
+    const m = matchMunicipality(h, list);
+    if (m) return { matched: m, outside: false, hint: h };
+  }
+  // If URL has an explicit -in-{place} and it did not match whitelist → outside zone
+  if (inSlug) {
+    const h = inSlug[1].replace(/-/g, ' ');
+    // Only treat as outside when the slug looks like a place name (not a generic token)
+    if (h.length >= 3 && !/^(haus|wohnung|ferien|detail|objekt|ch|de)$/i.test(h)) {
+      return { matched: null, outside: true, hint: h };
+    }
+  }
+  return { matched: null, outside: false, hint: null };
+}
+
 export function parseRooms(text: string): { rooms: number; basis: 'zimmer' | 'bedrooms' } | null {
   let t = String(text ?? '').replace(/½/g, '.5').replace(/,(\d)/g, '.$1');
   // "3 1/2" or "3 1/2 Zi." → 3.5

@@ -361,7 +361,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     void (async () => {
       const log: { t: number; text: string }[] = []; let lastSave = 0; let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number> } = { stage: 'catalogue', text: 'Starting' };
       const push = (e: typeof ev, force = false) => {
-        ev = e; log.push({ t: Date.now(), text: e.text }); if (log.length > 14) log.shift();
+        ev = e; log.push({ t: Date.now(), text: e.text }); if (log.length > 40) log.shift();
         const n = Date.now(); if (!force && n - lastSave < 700) return; lastSave = n;
         void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, log }).catch(() => {});
       };
@@ -370,20 +370,62 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       try {
         const cfg = applySettings(loadImmoConfig(), settings);
         try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
-        result = await runPipeline({ config: cfg, fetchPage: createPoliteFetch(cfg), llm: dryRun ? null : deps.llm, store: createPgStore(), onProgress: push, maxLlmCalls: settings.search.maxAiPages, search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null, cycle: await realRunCount(), shouldCancel: () => isRunCancelled(runId!) }, { dryRun });
-        errors.push(...result.errors);
-        if (!dryRun) {
-          const dl = settings.delivery; const notify = result.counts.new > 0 || dl.notifyWhenEmpty;
-          const all = await listListings(null); const newKeys = new Set(result.newListings.map((l) => l.canonical_key)); const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
-          if (dl.drive) { push({ stage: 'delivery', text: 'Updating the Google Sheet and Doc in Drive', counts: result.counts }, true); const d = await exportDrive(all, driveFolder(dl.driveFolderId)); delivery.drive = d.status; if (d.url) delivery.driveUrl = d.url; } else delivery.drive = 'off';
-          const head = `ImmoFinder: ${result.counts.new} new, ${result.counts.updated} updated, ${result.counts.kept} matched.`;
-          if (dl.telegram) { push({ stage: 'delivery', text: 'Sending Telegram message', counts: result.counts }, true); delivery.telegram = notify ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl })) : 'skipped: nothing new'; } else delivery.telegram = 'off';
+        const dl = settings.delivery;
+        const deliverWave = async (wave: 'priority' | 'extended', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
+          const label = wave === 'priority' ? 'Priority (first 10 min)' : 'Extended';
+          const all = await listListings(null);
+          const newKeys = new Set(newInWave.map((l) => l.canonical_key));
+          const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
+          const notify = fresh.length > 0 || dl.notifyWhenEmpty;
+          push({ stage: 'delivery', text: `${label}: delivering ${fresh.length} new (Drive / email / Telegram)`, counts }, true);
+          if (dl.drive) {
+            const d = await exportDrive(all, driveFolder(dl.driveFolderId));
+            delivery.drive = d.status;
+            if (d.url) delivery.driveUrl = d.url;
+            delivery[`${wave}_drive`] = d.status;
+          } else delivery.drive = 'off';
+          const head = `ImmoFinder ${label}: ${fresh.length} new in this wave · kept=${counts.kept ?? 0} · fetched=${counts.fetched ?? 0}`;
+          if (dl.telegram) {
+            delivery[`${wave}_telegram`] = notify
+              ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
+              : 'skipped: nothing new';
+            delivery.telegram = delivery[`${wave}_telegram`];
+          } else delivery.telegram = 'off';
           if (dl.email && dl.emailTo) {
-            push({ stage: 'delivery', text: 'Sending email', counts: result.counts }, true);
             const allMode = dl.emailContent === 'all';
-            delivery.email = notify ? await sendEmail(dl.emailTo, allMode ? `ImmoFinder: all ${all.length} listings (${result.counts.new} new)` : `ImmoFinder: ${result.counts.new} new listings`,
-              formatListingsText(allMode ? all : fresh, { heading: allMode ? `${head}\nAll listings found so far (${all.length}), newest first:` : head, limit: allMode ? 60 : 30, driveUrl: delivery.driveUrl })) : 'skipped: nothing new';
+            delivery[`${wave}_email`] = notify
+              ? await sendEmail(
+                dl.emailTo,
+                allMode ? `ImmoFinder ${label}: all ${all.length} listings (${fresh.length} new in wave)` : `ImmoFinder ${label}: ${fresh.length} new listings`,
+                formatListingsText(allMode ? all : fresh, {
+                  heading: allMode ? `${head}\nAll listings found so far (${all.length}), newest first:` : head,
+                  limit: allMode ? 60 : 30,
+                  driveUrl: delivery.driveUrl,
+                }),
+              )
+              : 'skipped: nothing new';
+            delivery.email = delivery[`${wave}_email`];
           } else delivery.email = 'off';
+        };
+        result = await runPipeline({
+          config: cfg,
+          fetchPage: createPoliteFetch(cfg),
+          llm: dryRun ? null : deps.llm,
+          store: createPgStore(),
+          onProgress: push,
+          maxLlmCalls: settings.search.maxAiPages,
+          search: process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null,
+          cycle: await realRunCount(),
+          shouldCancel: () => isRunCancelled(runId!),
+          onWaveComplete: dryRun ? undefined : async ({ wave, newInWave, counts }) => {
+            try { await deliverWave(wave, newInWave, counts); }
+            catch (e) { errors.push({ code: `${wave}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
+          },
+        }, { dryRun });
+        errors.push(...(result.errors || []));
+        // Safety net: if waves produced nothing and notifyWhenEmpty, still one summary delivery
+        if (!dryRun && dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
+          await deliverWave('extended', [], result.counts);
         }
       } catch (e) { errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) }); }
       try {
