@@ -34,7 +34,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       minRooms: cfg.minRooms,
       communes: [...cfg.municipalities],
       sources: Object.fromEntries(SOURCE_IDS.map((s) => [s, true])),
-      maxAiPages: 100,
+      maxAiPages: 60,
       limitPrice: false,
       maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf, 3000),
       maxListingAgeDays: q.maxListingAgeDays,
