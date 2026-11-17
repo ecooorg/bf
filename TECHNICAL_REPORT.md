@@ -1,3 +1,10 @@
+## P128.19 — ImmoFinder search recall (catalogues, aliases, filters) (EXPERIMENT)
+
+- **OBSERVED:** After the first run, catalogues always re-hit the same first maxDetailPages links (slice before seen); soft rejects stayed blocked for 7 days; phase-2 sources never ran; St. Peter / Seewis aliases and rooms/price/seeker detectors dropped real private holiday offers.
+- **CHANGE:** Wide candidate pool then skip-seen up to maxDetailPages; soft-reject TTL 1 day; phase 2 after phase 1; municipality aliases; rooms/price/seeker/list fixes; monthly cap only on explicit monthly; FUNNEL progress line; defaults favour recall for night/week holiday pricing.
+- **NOT_RUN:** Live Render run after deploy; measured kept/candidates vs 128.18 on the same communes.
+- **SCOPE:** server/immofinder{Core,Pipeline,Store,Settings}.ts, config/immofinder.json, package.json, package-lock.json, CHANGELOG.md, TECHNICAL_REPORT.md.
+
 ## P128.18 — Cron passes global auth gate (EXPERIMENT)
 
 - **OBSERVED:** Actions tick got HTTP 401 at 05:24:42Z; app log shows the request but no `immofinder_run_request`; global `/api` gate in server.ts runs before the route's secret check.

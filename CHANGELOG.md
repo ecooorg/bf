@@ -1,3 +1,8 @@
+## [128.19] - ImmoFinder search recall: catalogues beyond first N, aliases, filters (EXP-IMMO-1)
+
+- Catalogues no longer slice to maxDetailPages before the seen check, so later runs reach links beyond the first 60/80. Soft quality rejects recheck after 1 day (hard rejects keep full TTL). Phase-2 sources run after phase 1. Municipality aliases (St. Peter, Seewis, …), rooms ("3 1/2", "Zimmer: 3"), seeker/list/price detectors tightened; monthly rent cap applies only to explicit monthly prices. Final FUNNEL progress line.
+- Scope: server/immofinderCore.ts, server/immofinderPipeline.ts, server/immofinderStore.ts, server/immofinderSettings.ts, config/immofinder.json, package.json, package-lock.json, CHANGELOG.md, TECHNICAL_REPORT.md. Patch 128.19.
+
 ## [128.18] - EXPERIMENT: Immofinder cron passes the global /api auth gate (EXP-IMMO-1)
 
 - Scheduled `POST /api/immofinder/run` got 401 from the global session gate in server.ts before its secret was checked, so no scheduled search ever started. The gate now lets exactly that call (POST, that path, `X-Immofinder-Secret` present) through; the secret is still verified by the ImmoFinder middleware.
