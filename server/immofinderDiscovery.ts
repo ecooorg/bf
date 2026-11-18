@@ -27,7 +27,12 @@ export function buildQueries(
   opts?: { allCommunes?: boolean; families?: QueryFamily[] },
 ): string[] {
   const d = cfg.discovery; if (!d?.enabled) return [];
-  const families = opts?.families?.length ? opts.families : (['private', 'portals'] as QueryFamily[]);
+  const families: QueryFamily[] = opts?.families?.length
+    ? opts.families
+    : [
+        ...((d.queries || []).length ? (['private'] as QueryFamily[]) : []),
+        ...((d.portalQueries || []).length ? (['portals'] as QueryFamily[]) : []),
+      ];
   const per = opts?.allCommunes ? Math.max(cfg.municipalities.length, 1) : d.communesPerRun;
   const startCycle = opts?.allCommunes ? 0 : cycle;
   const communes = communesForRun(cfg.municipalities, per, startCycle);
@@ -82,9 +87,13 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig): DiscoveryItem[] {
 
 /** Serper.dev Google search (Switzerland, German). Uses SERPER_API_KEY; never logs the key. */
 export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
+  // Serper returns HTTP 400 when num is outside 1..10 (or query empty).
+  const n = Math.max(1, Math.min(10, Number(num) || 10));
   return async function search(q: string): Promise<SearchHit[]> {
     const key = String(process.env.SERPER_API_KEY || '').trim(); if (!key) throw new Error('SERPER_API_KEY not set');
-    const r = await fetchImpl('https://google.serper.dev/search', { method: 'POST', headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ q, gl: 'ch', hl: 'de', num }) });
+    const query = String(q || '').trim();
+    if (!query) return [];
+    const r = await fetchImpl('https://google.serper.dev/search', { method: 'POST', headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ q: query, gl: 'ch', hl: 'de', num: n }) });
     if (!r.ok) throw new Error(`Serper HTTP ${r.status}`);
     const d: any = await r.json();
     return (d.organic || []).map((o: any) => ({ title: String(o.title || ''), link: String(o.link || ''), snippet: String(o.snippet || '') })).filter((h: SearchHit) => h.link);

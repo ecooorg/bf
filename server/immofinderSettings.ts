@@ -79,7 +79,13 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const communes = Array.isArray(se.communes) ? cfg.municipalities.filter((m) => se.communes.includes(m)) : d.search.communes;
   const minRooms = Number.isInteger(Number(se.minRooms)) && Number(se.minRooms) >= 1 && Number(se.minRooms) <= 8 ? Number(se.minRooms) : d.search.minRooms;
   const maxAiPages = [20, 40, 60, 100, 200].includes(Number(se.maxAiPages)) ? Number(se.maxAiPages) : d.search.maxAiPages;
-  const sources = Object.fromEntries(SOURCE_IDS.map((id) => [id, bool(se.sources?.[id], true)]));
+  const srcIn = (se.sources || {}) as Record<string, unknown>;
+  const sources = Object.fromEntries(SOURCE_IDS.map((id) => {
+    if (Object.prototype.hasOwnProperty.call(srcIn, id)) return [id, bool(srcIn[id], true)];
+    // If caller only toggled `search: false`, keep discovery off (legacy test + "disable web search").
+    if (id === 'swiss-portals' && srcIn.search === false) return [id, false];
+    return [id, true];
+  }));
   return {
     schedule: { mode, everyHours, dailyAt },
     delivery: { telegram: bool(dl.telegram, d.delivery.telegram), email: bool(dl.email, false) && Boolean(emailTo), emailTo, emailContent: dl.emailContent === 'all' ? 'all' : 'new', drive: bool(dl.drive, d.delivery.drive), driveFolderId: parseDriveFolderId(dl.driveFolderId), notifyWhenEmpty: bool(dl.notifyWhenEmpty, false) },

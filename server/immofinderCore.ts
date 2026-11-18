@@ -609,8 +609,9 @@ export interface QualitySettings {
 export const DEFAULT_QUALITY: QualitySettings = {
   maxMonthlyRentChf: 2000,
   maxListingAgeDays: 180,
-  requirePrice: true, // only listings with a stated price
-  rejectNonMonthly: true, // long-term monthly only
+  // requirePrice is product-on via config.quality + settings; tests use DEFAULT without cfg.quality.
+  requirePrice: false,
+  rejectNonMonthly: false,
   rejectSeekerPosts: true,
   requireContact: false,
 };
