@@ -1,3 +1,21 @@
+## [129.9] - Swiss portals (private + price only) + Sources cleanup
+
+- Sources: Homegate, ImmoScout24, Flatfox, Newhome, Tutti, Anibis, Petitesannonces, Immobilier, Acheter-Louer, Immostreet, Home, iCasa, Urbanhome via site: discovery (portalQueries).
+- Quality: requirePrice + rejectNonMonthly default on; looksLikeAgencyListing drops AG/GmbH/Makler unless "von privat".
+- Settings Sources panel: only "Web search (Facebook & private)" and "Swiss portals …"; removed Ferienhausmiete / HappyHoliday / Other catalogue.
+- Holiday catalogues removed from active config.sources (discovery-only pipeline).
+- Portal hosts are fetched (not snippet-only) so monthly rent and contact can be extracted.
+- Cumulative with 129.8: curly-quote price parse, Nachmieter = offer, higher search early-stop.
+
+## [129.8] - Quality search: price parse, Nachmieter, discovery
+
+- parsePrice: normalize curly quotes (1’570) and thin spaces; detect month from inkl. NK / per month / wider context window.
+- isSeekerPost: "Nachmieter gesucht" is an offer in CH (successor tenant), not a seeker reject.
+- discovery: more long-term private / Facebook / Anibis-Tutti / Nachmieter queries; resultsPerQuery 15; broader skipHosts (booking, cozycozy, realadvisor, airbnb, …).
+- stopAgencies: Booking, Airbnb, Vrbo, Cozycozy, HomeToGo, Fewo-Direkt.
+- search consecutive early-stop 48 → 64; allCommunes prefers long-term templates.
+- contactEnrichment budget slightly higher (35 searches / 10 reverse-image).
+
 ## [129.7] - Drive Sheet/Doc match the screen; no letters in exports
 
 - Sheet and Doc now show the same card as the app (src/immoCard.ts): headline, text, link + list warning, found time, Open button, Photo 1-3, status, dark colours; same rows in the same order as the screen.
