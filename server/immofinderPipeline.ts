@@ -1,4 +1,4 @@
-import { hostOf, buildQueries, pickItems, type SearchHit } from './immofinderDiscovery.ts';
+import { hostOf, buildQueries, pickItems, communesForRun, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, looksLikeAgencyListing, type QualitySettings } from './immofinderCore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
@@ -458,6 +458,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
 
   /** Run discovery search queries. `discoveryQueryOffset` skips already-run queries in full mode so priority+extended do not repeat. */
   let discoveryQueryOffset = 0;
+  /** Filled before carousel discovery so progress text can name the communes. */
+  let carouselCommunesSlot: string[] = [];
   const serperMinIntervalMs = Math.max(0, Number(cfg.discovery?.serperMinIntervalMs ?? 1500) || 1500);
   const serperMaxPerMinute = Math.max(1, Number(cfg.discovery?.serperMaxPerMinute ?? 40) || 40);
   const serperTimestamps: number[] = [];
@@ -500,8 +502,11 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       : qs.slice(discoveryQueryOffset, discoveryQueryOffset + maxQueries);
     let qi = 0;
     let consecutiveSearchFails = 0;
+    const communeHint = waveMode === 'carousel' && carouselCommunesSlot.length
+      ? ` [${carouselCommunesSlot.join(', ')}]`
+      : waveMode === 'full' ? ' [all communes]' : '';
     say('search', finishAll
-      ? `Discovery: ${slice.length} queries (all sources for this commune slice, paced for Serper)`
+      ? `Discovery${communeHint}: ${slice.length} queries (all selected sources, Serper-paced)`
       : `Discovery: up to ${slice.length} queries`);
     for (const q of slice) {
       if (deps.shouldCancel?.()) break;
@@ -551,9 +556,21 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   if (waveMode === 'priority' || waveMode === 'full' || waveMode === 'carousel') {
     waveDeadline = priorityDeadline;
     res.wavesRun!.push(waveMode === 'carousel' ? 'carousel' : 'priority');
+    // Carousel: name the communes in this tick so the live UI title is meaningful.
+    const carouselCommunes =
+      waveMode === 'carousel'
+        ? communesForRun(cfg.municipalities, cfg.discovery?.communesPerRun ?? 2, deps.cycle ?? 0)
+        : [];
+    carouselCommunesSlot = carouselCommunes;
+    const carouselLabel = carouselCommunes.length
+      ? carouselCommunes.join(', ')
+      : 'this commune slice';
     say('catalogue', waveMode === 'carousel'
-      ? `Carousel tick started (cycle=${deps.cycle ?? 0}): all private+portal queries for this commune slice, paced for Serper (no query cap)`
+      ? `Carousel: ${carouselLabel} — all selected sources (cycle ${deps.cycle ?? 0})`
       : `Priority wave started (up to ${Math.round(priorityMs / 60000)} min, mode=${waveMode}): web search first, then phase-1 catalogues`);
+    if (waveMode === 'carousel') {
+      say('search', `Carousel communes: ${carouselLabel}`);
+    }
     const markA = newBefore();
     // Search first: live private ads (FB groups, owner sites) historically yield the most in-zone contacts.
     if (waveMode === 'carousel') {

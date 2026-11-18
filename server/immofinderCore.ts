@@ -467,7 +467,56 @@ export function parsePrice(text: string): ParsedPrice | null {
     hits.push({ amount, unit: 'unknown', currency: true, quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
   }
 
-  let best: ParsedPrice | null = null;
+
+  // D: bare Swiss amounts often written without currency on FB/Tutti — "1510.-" / "1 235.-" / "1500.- /Monat"
+  const reBare =
+    /(?<![A-Za-z0-9])(\d{1,2}[\s']\d{3}|\d{3,4})(?:[.,](\d{2}))?\s*(?:\.–|\.-|–|-)?(?:\s*(?:\/|pro|per)?\s*(Monat|mtl\.?|Mt\.?|month|Woche|week|Nacht|night))?/gi;
+  for (const m of t.matchAll(reBare)) {
+    const rawWhole = m[1].replace(/\s+/g, "'");
+    const amount = parseAmount(rawWhole, m[2]);
+    if (!(amount >= 400 && amount <= 8000)) continue; // long-term rent band without currency
+    const uRaw = (m[3] || '').toLowerCase();
+    let unit: PricingUnit = 'unknown';
+    if (/nacht|night/.test(uRaw)) unit = 'night';
+    else if (/woche|week/.test(uRaw)) unit = 'week';
+    else if (/monat|mtl|mt\.?|month/.test(uRaw)) unit = 'month';
+    const ctx = t.slice(Math.max(0, (m.index || 0) - 40), (m.index || 0) + m[0].length + 40);
+    const hasRentWord = /miete|rent|preis|chf|fr\.?|zimmer|wohnung|nachmieter|vermieten|warm|kalt|nk\b|parkplatz/i.test(ctx);
+    // CH classifieds often write only "1510.-" next to rooms; treat classic .- amounts in rent band as month.
+    if (unit === 'unknown' && /(?:\.|–)\s*$|\.–|\.-/.test(m[0]) && amount >= 700 && amount <= 3500) unit = 'month';
+    if (!hasRentWord && unit === 'unknown') continue;
+    if (unit === 'unknown' && hasRentWord && amount >= 700 && amount <= 3500) unit = 'month';
+    hits.push({ amount, unit, currency: false, quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
+  }
+
+  // E: "fr. 1235" / "Fr 1'400" / "fr 1 235" (currency before amount, lowercase)
+  const reFrFirst =
+    /(?:CHF|Fr\.?|SFr\.?|fr\.?)\s*(\d{1,3}(?:[\s']\d{3})+|\d{3,5})(?:[.,](\d{1,2}))?/gi;
+  for (const m of t.matchAll(reFrFirst)) {
+    const amount = parseAmount(m[1].replace(/\s+/g, "'"), m[2]);
+    if (!(amount >= 50 && amount < 100000)) continue;
+    hits.push({ amount, unit: 'unknown', currency: true, quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
+  }
+
+  // F: JSON-LD / meta-ish "price": 1500 or "price":"1500.00"
+  const reJson =
+    /"price"\s*:\s*"?(CHF\s*)?(\d{3,5})(?:[.,](\d{2}))?"?/gi;
+  for (const m of t.matchAll(reJson)) {
+    const amount = parseAmount(m[2], m[3]);
+    if (!(amount >= 200 && amount <= 15000)) continue;
+    hits.push({ amount, unit: 'month', currency: Boolean(m[1]), quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
+  }
+
+  // G: "Miete 1'500" / "Miete: 1500" without CHF
+  const reMiete =
+    /(?:Miete|Mietzins|Nettomiete|Warmmiete|Kaltmiete|Monatsmiete|Loyer)\s*[:=]?\s*(?:CHF|Fr\.?|SFr\.?)?\s*(\d{1,3}(?:[\s']\d{3})+|\d{3,5})(?:[.,](\d{1,2}))?/gi;
+  for (const m of t.matchAll(reMiete)) {
+    const amount = parseAmount(m[1].replace(/\s+/g, "'"), m[2]);
+    if (!(amount >= 200 && amount < 100000)) continue;
+    hits.push({ amount, unit: 'month', currency: true, quote: m[0].replace(/\s+/g, ' ').trim().slice(0, 80), idx: m.index || 0 });
+  }
+
+    let best: ParsedPrice | null = null;
   const score = (c: ParsedPrice) =>
     (c.unit === 'month' ? 100 : c.unit === 'week' ? 50 : c.unit === 'night' ? 20 : 10) +
     (/CHF|Fr|€|EUR/i.test(c.quote) ? 30 : 0) +
@@ -475,13 +524,13 @@ export function parsePrice(text: string): ParsedPrice | null {
 
   for (const h of hits) {
     if (h.amount < 80 && h.unit !== 'night') continue;
-    const ctx = t.slice(Math.max(0, h.idx - 50), h.idx + h.quote.length + 50);
+    const ctx = t.slice(Math.max(0, h.idx - 90), h.idx + h.quote.length + 90);
     let unit = h.unit;
     if (unit === 'unknown') {
       if (/pro\s*woche|\/\s*woche|weekly/i.test(ctx)) unit = 'week';
       else if (/pro\s*nacht|\/\s*nacht|per\s*night|\/\s*night/i.test(ctx)) unit = 'night';
       else if (/pro\s*monat|\/\s*monat|per\s*month|mtl\.?|monatlich|nettomiete|warmmiete|kaltmiete|mietzins|inkl\.?\s*(nk|nebenkosten|utilities)|incl\.?\s*(nk|nebenkosten|utilities)/i.test(ctx)) unit = 'month';
-      else if (h.currency && h.amount >= 400 && h.amount <= 8000 && /miete|rent|preis|chf|fr\./i.test(ctx)) unit = 'month';
+      else if (h.amount >= 400 && h.amount <= 8000 && /miete|rent|preis|chf|fr\.?|zimmer|wohnung|nachmieter|vermieten/i.test(ctx)) unit = 'month';
     }
     if (/pro\s*woche|\/\s*wo\b/i.test(ctx)) unit = 'week';
     if (/pro\s*nacht|\/\s*nacht|per\s*night/i.test(ctx)) unit = 'night';
