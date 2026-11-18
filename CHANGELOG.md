@@ -1,3 +1,7 @@
+## [129.14] - Drive status "exported" when Sheet+Doc both OK
+
+- exportDrive: clean dual write returns status `exported` (not `exported (sheet: updated; doc: updated)`); notes only for missing file or plain-text fallback (P128.6).
+
 ## [129.13] - Carousel: no query-count budget; Serper time pacing
 
 - Carousel runs every private + portal template for its commune slice (finishAll); no maxQueries=12 cap.
