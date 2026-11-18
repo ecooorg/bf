@@ -1,3 +1,10 @@
+## [129.6] - Conservative junk rejects only
+
+- Hard-drop non-specific Facebook (_join_, group root); keep /posts/ and marketplace.
+- Reject realadvisor average/list URLs and «mittlere Mietpreis» titles.
+- Reject clear foreign DE region markers (Sauerland/Eslohe) and rooms >= 12 (group houses).
+- Does not tighten price/unit/contact rules that feed good long-term FB hits.
+
 ## [129.5] - Internal schedule off under node:test
 
 - Skip in-process ImmoFinder hourly timer when NODE_TEST_CONTEXT / NODE_ENV=test / IMMOFINDER_DISABLE_INTERNAL_SCHEDULE=1 (fixes agents-contract 60s timeout).
