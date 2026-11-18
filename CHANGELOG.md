@@ -1,3 +1,8 @@
+## [129.7] - Drive Sheet/Doc match the screen; no letters in exports
+
+- Sheet and Doc now show the same card as the app (src/immoCard.ts): headline, text, link + list warning, found time, Open button, Photo 1-3, status, dark colours; same rows in the same order as the screen.
+- Doc no longer contains letter drafts; screen no longer has "Read the German letter" (Copy German letter stays).
+
 ## [129.6] - Conservative junk rejects only
 
 - Hard-drop non-specific Facebook (_join_, group root); keep /posts/ and marketplace.

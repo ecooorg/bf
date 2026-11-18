@@ -27,6 +27,7 @@
     "appBuilder/**/*.ts",
     "src/support.ts",
     "src/numberValidator.ts",
-    "src/config.ts"
+    "src/config.ts",
+    "src/immoCard.ts"
   ]
 }

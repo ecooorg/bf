@@ -1,3 +1,10 @@
+## P129.7 — Drive export = screen card
+
+- **OBSERVED:** Sheet/Doc used another price/contact/link/sort logic, plain text, and Doc carried letters.
+- **CHANGE:** one pure card model (`src/immoCard.ts`) feeds screen, Sheet and Doc; rich Sheets/Docs formatting; letters removed from Doc; screen letter reader removed. Plain-text fallback if formatting is rejected.
+- **NOT_RUN:** live Google Sheets/Docs API call (fake fetch only).
+- **SCOPE:** src/immoCard.ts, src/ImmoFinder.tsx, server/immofinderDelivery.ts, tests/agents-contract.test.mjs, tsconfig.server.json, docs/architecture-boundary-rules.json, CHANGELOG.md, package.json/lock.
+
 ## P129.0 — C129 Quality Search (carousel)
 
 - **PHASE:** End of “build the searcher”; start of quality optimisation.
