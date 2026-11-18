@@ -1,5 +1,5 @@
 import { hostOf, buildQueries, pickItems, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, qualityRejectReason, DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
@@ -292,8 +292,15 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (!ex.municipality) { await deny('municipality_not_whitelisted'); continue; }
       if (!ex.rooms) { await deny('rooms_unknown'); continue; }
       if (ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
+      // Group houses / hostels mis-parsed as 15–68 rooms — never a private 3.5-room flat
+      if (ex.rooms.rooms >= 12) { await deny('rooms_too_many', String(ex.rooms.rooms)); continue; }
       if (ex.regForbidden) { await deny('registration_forbidden'); continue; }
-      if (!isSpecificLink(url)) ex.signals.push('generic_link');
+      // FB group root / _join_ are not one ad (keeps /posts/ and marketplace item URLs)
+      if (!isSpecificLink(url)) {
+        if (/facebook\.com/i.test(url)) { await deny('not_single_listing', 'non_specific_facebook'); continue; }
+        ex.signals.push('generic_link');
+      }
+      if (clearOutOfCantonRegion(pages[i].text)) { await deny('municipality_not_whitelisted', 'foreign_region_markers'); continue; }
       // The commune named in the URL or title wins over one guessed from a snippet.
       const urlMuni = matchMunicipality(`${decodeURIComponent(url).replace(/[-_/.?=&]/g, ' ')} ${meta.title}`, cfg.municipalities);
       if (urlMuni && urlMuni !== ex.municipality) { ex.municipality = urlMuni; ex.signals.push('municipality_from_url'); }

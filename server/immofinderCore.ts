@@ -318,10 +318,10 @@ export function agencyQuoteCounts(quote: string | null, platformHost: string): b
   return /(immobilien|treuhand|verwaltung|agentur|property management|reisebuero|reisebüro|gmbh|\bag\b|vermittlung)/i.test(quote) && !(host && norm(quote).includes(host));
 }
 
-const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in|.*immobilie\. h[aä]user zu vermieten|.*properties mieten)/i;
-const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-|\/mieten\/plz-|\/immobilien\/mieten\/|nestoria\.|immowelt\.|immoscout24\./i;
+const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in|.*immobilie\. h[aä]user zu vermieten|.*properties mieten)|mittlere(r)?\s+mietpreis|durchschnittliche[r]?\s+mietpreis/i;
+const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-|\/mieten\/plz-|\/immobilien\/mieten\/|nestoria\.|immowelt\.|immoscout24\.|realadvisor\.[a-z.]+\/.*\/mieten\/|\/mieten\/\d{4}-[^/]+\/wohnung(\/\d+-zimmer)?\/?$/i;
 const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen|wer hat)\b/i;
-const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz)\b/i;
+const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz|gruppenhaus|gruppenh[aä]user)\b/i;
 
 /** Pages that are not an owner's offer: search/list pages, wanted ads, hotels and guesthouses. Checked on title and URL only. */
 export type NonListing = 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | 'for_sale' | 'shared_room' | 'development_project';
@@ -346,8 +346,26 @@ export function nonListingReason(title: string, url: string): NonListing | null 
 export function isSpecificLink(url: string): boolean {
   let u: URL; try { u = new URL(url); } catch { return false; }
   const p = u.pathname;
-  if (/facebook\.com$/.test(u.hostname.replace(/^www\./, '')) || /facebook\.com$/.test(u.hostname)) return /\/(marketplace\/item|posts|permalink|videos|photo)\b/.test(p) || /story_fbid|fbid/.test(u.search);
+  const host = u.hostname.replace(/^www\./, '');
+  if (/facebook\.com$/.test(host)) {
+    // Join prompts and bare group roots are not a single ad.
+    if (/\/_join_/i.test(p) || /\/groups\/\d+\/?$/i.test(p)) return false;
+    return /\/(marketplace\/item|posts|permalink|videos|photo)\b/.test(p) || /story_fbid|fbid/.test(u.search);
+  }
   return /\d{5,}/.test(p) || /[a-z0-9]+(-[a-z0-9]+){3,}/i.test(p.split('/').filter(Boolean).pop() || '');
+}
+
+/**
+ * Obvious non-Graubünden / non-CH places in page text (name collisions like Felsberg DE).
+ * Only strong foreign markers — does not reject CH pages that merely mention "Deutschland".
+ */
+export function clearOutOfCantonRegion(text: string): boolean {
+  const h = String(text || '').slice(0, 4000).toLowerCase();
+  if (!h.trim()) return false;
+  // German holiday regions that collided with GR commune names in production
+  if (/\b(sauerland|eslohe|nordrhein-westfalen|nrw|niedersachsen|mecklenburg|schleswig-holstein)\b/i.test(h)) return true;
+  if (/\b(bayern|baden-w[uü]rttemberg)\b/i.test(h) && !/\b(schweiz|graub[uü]nden|grisons|b[uü]ndner)\b/i.test(h)) return true;
+  return false;
 }
 
 
