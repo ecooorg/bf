@@ -26,11 +26,10 @@ type S = {
 type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccount?: string };
 
 /** High-value first; labels match Stage-1 productivity for private long-term leads. */
+/** High-value first. Only private long-term leads with a stated price. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
-  { id: 'search', label: 'Web search (Facebook & owner sites)', hint: 'Best source for private ads with direct contact', priority: true },
-  { id: 'ferienhausmiete', label: 'Ferienhausmiete.de', hint: 'Owner holiday flats in target communes', priority: true },
-  { id: 'happyholiday', label: 'HappyHoliday.ch', hint: 'Catalogue — fewer private contacts', priority: false },
-  { id: 'landwirtschaft-gr', label: 'Other catalogue sources', hint: 'Extended wave, lower priority', priority: false },
+  { id: 'search', label: 'Web search (Facebook & private)', hint: 'Facebook groups, Nachmieter, direct owner ads', priority: true },
+  { id: 'swiss-portals', label: 'Swiss portals (Homegate, ImmoScout24, …)', hint: '13 CH sites — private listings with price only; agencies dropped', priority: true },
 ];
 
 const box: React.CSSProperties = { border: '1px solid #243a57', borderRadius: 12, padding: 12, marginBottom: 12 };
@@ -277,7 +276,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
 
         <strong style={{ display: 'block', marginTop: 12 }}>Sources (Stage 1 prioritises the top rows)</strong>
         <p style={hint}>
-          Web search runs first (Facebook, owner sites). Keep it on for best coverage.
+          Web search + Swiss portals (Homegate, ImmoScout24, Flatfox, Tutti, Anibis, Newhome, …). Only private ads with a stated price are kept; agencies and priceless ads are dropped.
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;

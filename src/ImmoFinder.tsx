@@ -24,7 +24,7 @@ const REASONS: Record<string, string> = {
   rooms_below_min: 'fewer than 3 rooms', registration_forbidden: 'permanent registration not allowed',
   price_above_max: 'monthly rent above your limit', price_not_monthly: 'price is per night/week/season', price_unknown: 'price not stated', stale_listing: 'listing too old', seeker_post: 'looking for a flat (not an offer)', contact_required: 'no direct contact',
 };
-const SOURCE_LABEL: Record<string, string> = { happyholiday: 'HappyHoliday', ferienhausmiete: 'Ferienhausmiete', graubuenden: 'Graubünden.ch', search: 'Web search' };
+const SOURCE_LABEL: Record<string, string> = { search: 'Web search', 'swiss-portals': 'Swiss portals', homegate: 'Homegate', immoscout24: 'ImmoScout24', flatfox: 'Flatfox', tutti: 'Tutti', anibis: 'Anibis', newhome: 'Newhome' };
 
 async function api(path: string, init?: RequestInit) {
   const r = await fetch(path, { credentials: 'same-origin', ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } });
