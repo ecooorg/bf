@@ -9,6 +9,7 @@ type S = {
   search: {
     minRooms: number;
     communes: string[];
+    municipalityGroups: { group1: boolean; group2: boolean };
     sources: Record<string, boolean>;
     maxAiPages: number;
     limitPrice: boolean;
@@ -43,6 +44,20 @@ const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean 
   { id: 'portal-icasa', label: 'ICasa', hint: 'site:icasa.ch', priority: true },
   { id: 'portal-urbanhome', label: 'UrbanHome', hint: 'site:urbanhome.ch', priority: true },
 ];
+
+
+/** Fixed 22+22 groups — keep chips in sync with group checkboxes. */
+const GROUP1_COMMUNES = ["Chur", "Haldenstein", "Trimmis", "Untervaz", "Zizers", "Igis", "Landquart", "Felsberg", "Domat/Ems", "Tamins", "Trin", "Flims", "Bonaduz", "Rhäzüns", "Cazis", "Thusis", "Maladers", "Churwalden", "Passugg", "Araschgen", "Praden", "Tschiertschen"];
+const GROUP2_COMMUNES = ["Maienfeld", "Fläsch", "Jenins", "Malans", "Grüsch", "Seewis-Pardisla", "Schiers", "Laax", "Versam", "Valendas", "Castrisch", "Ilanz", "Rothenbrunnen", "Rodels", "Realta", "Parpan", "Valbella", "Lenzerheide", "Castiel", "Lüen", "St. Peter-Molinis", "Peist"];
+function communesForGroups(g: { group1?: boolean; group2?: boolean }, all: string[]): string[] {
+  const g1on = g?.group1 !== false;
+  const g2on = g?.group2 !== false;
+  const set = new Set<string>();
+  if (g1on) GROUP1_COMMUNES.forEach((m) => set.add(m));
+  if (g2on) GROUP2_COMMUNES.forEach((m) => set.add(m));
+  // Preserve order from full list
+  return all.filter((m) => set.has(m));
+}
 
 const box: React.CSSProperties = { border: '1px solid #243a57', borderRadius: 12, padding: 12, marginBottom: 12 };
 const chip = (on: boolean): React.CSSProperties => ({
@@ -202,16 +217,21 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               type="checkbox"
               checked={s.search.municipalityGroups?.group1 !== false}
               onChange={(e) =>
-                upd((x) => ({
-                  ...x,
-                  search: {
-                    ...x.search,
-                    municipalityGroups: {
-                      group1: e.target.checked,
-                      group2: x.search.municipalityGroups?.group2 !== false,
+                upd((x) => {
+                  const municipalityGroups = {
+                    group1: e.target.checked,
+                    group2: x.search.municipalityGroups?.group2 !== false,
+                  };
+                  const base = communes.length ? communes : x.search.communes;
+                  return {
+                    ...x,
+                    search: {
+                      ...x.search,
+                      municipalityGroups,
+                      communes: communesForGroups(municipalityGroups, base.length ? base : [...GROUP1_COMMUNES, ...GROUP2_COMMUNES]),
                     },
-                  },
-                }))
+                  };
+                })
               }
               data-testid="immofinder-group1"
             />{' '}
@@ -222,16 +242,21 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               type="checkbox"
               checked={s.search.municipalityGroups?.group2 !== false}
               onChange={(e) =>
-                upd((x) => ({
-                  ...x,
-                  search: {
-                    ...x.search,
-                    municipalityGroups: {
-                      group1: x.search.municipalityGroups?.group1 !== false,
-                      group2: e.target.checked,
+                upd((x) => {
+                  const municipalityGroups = {
+                    group1: x.search.municipalityGroups?.group1 !== false,
+                    group2: e.target.checked,
+                  };
+                  const base = communes.length ? communes : x.search.communes;
+                  return {
+                    ...x,
+                    search: {
+                      ...x.search,
+                      municipalityGroups,
+                      communes: communesForGroups(municipalityGroups, base.length ? base : [...GROUP1_COMMUNES, ...GROUP2_COMMUNES]),
                     },
-                  },
-                }))
+                  };
+                })
               }
               data-testid="immofinder-group2"
             />{' '}
@@ -247,7 +272,18 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               type="button"
               className="ghost"
               style={{ fontSize: 12, marginRight: 8 }}
-              onClick={() => upd((x) => ({ ...x, search: { ...x.search, communes: [...communes] } }))}
+              onClick={() =>
+                upd((x) => ({
+                  ...x,
+                  search: {
+                    ...x.search,
+                    communes: communesForGroups(
+                      x.search.municipalityGroups || { group1: true, group2: true },
+                      communes.length ? communes : [...GROUP1_COMMUNES, ...GROUP2_COMMUNES],
+                    ),
+                  },
+                }))
+              }
             >
               Select all
             </button>
@@ -261,13 +297,17 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             </button>
             <div style={{ marginTop: 6 }}>
               {(communes.length ? communes : s.search.communes).map((m) => {
-                const on = s.search.communes.includes(m);
+                const inGroup = communesForGroups(
+                  s.search.municipalityGroups || { group1: true, group2: true },
+                  [m],
+                ).includes(m);
+                const on = inGroup && s.search.communes.includes(m);
                 return (
                   <span
                     key={m}
                     role="button"
                     tabIndex={0}
-                    style={chip(on)}
+                    style={{ ...chip(on), opacity: inGroup ? 1 : 0.35 }}
                     onClick={() =>
                       upd((x) => ({
                         ...x,
