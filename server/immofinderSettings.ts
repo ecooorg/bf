@@ -1,7 +1,7 @@
 import type { ImmoConfig } from './immofinderCore.ts';
 import { DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
 
-export const SOURCE_IDS = ['search', 'ferienhausmiete', 'happyholiday', 'landwirtschaft-gr'] as const;
+export const SOURCE_IDS = ['search', 'swiss-portals'] as const;
 export const TIMEZONE = 'Europe/Zurich';
 
 export interface ImmoSettings {
@@ -38,11 +38,11 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       communes: [...cfg.municipalities],
       sources: Object.fromEntries(SOURCE_IDS.map((s) => [s, true])),
       maxAiPages: 60,
-      limitPrice: false,
-      maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf, 3000),
+      limitPrice: true,
+      maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf || 2000, 2000),
       maxListingAgeDays: q.maxListingAgeDays,
-      requirePrice: false,
-      rejectNonMonthly: false,
+      requirePrice: true,
+      rejectNonMonthly: true,
       rejectSeekerPosts: true,
       requireContact: false,
       defaultWave: 'priority',
@@ -103,22 +103,28 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
 }
 
 export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
+  const wantPrivate = s.search.sources.search !== false;
+  const wantPortals = s.search.sources['swiss-portals'] !== false;
   const discovery = cfg.discovery
     ? {
         ...cfg.discovery,
-        enabled: cfg.discovery.enabled && s.search.sources.search !== false,
-        // C129 carousel: few communes per scheduled tick so 44 are covered over ~1 day at hourly cadence.
+        // Discovery runs when either private web search or Swiss portals is enabled.
+        enabled: cfg.discovery.enabled && (wantPrivate || wantPortals),
         communesPerRun:
           s.search.profile === 'carousel'
             ? s.search.carouselCommunesPerRun
             : Math.max(cfg.discovery.communesPerRun, s.search.communes.length > 0 ? Math.min(44, s.search.communes.length) : cfg.discovery.communesPerRun),
+        // Restrict query families to what the user toggled in Sources.
+        queries: wantPrivate ? (cfg.discovery.queries || []) : [],
+        portalQueries: wantPortals ? (cfg.discovery.portalQueries || []) : [],
       }
     : cfg.discovery;
   return {
     ...cfg,
     minRooms: s.search.minRooms,
     municipalities: cfg.municipalities.filter((m) => s.search.communes.includes(m)),
-    sources: cfg.sources.filter((src) => src.phase !== 1 || s.search.sources[src.id] !== false),
+    // Catalogue sources removed from product surface; discovery-only.
+    sources: cfg.sources.filter((src) => s.search.sources[src.id] !== false),
     discovery,
     quality: {
       maxMonthlyRentChf: s.search.limitPrice ? s.search.maxMonthlyRentChf : 0,

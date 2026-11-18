@@ -1,5 +1,5 @@
 import { hostOf, buildQueries, pickItems, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, looksLikeAgencyListing, type QualitySettings } from './immofinderCore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
@@ -133,7 +133,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     return s;
   };
   // Catalogues: stop after a short bad streak (marketing pages). Search SERP is mixed — need a much higher bar.
-  const consecutiveStopFor = (id: string) => (id === 'search' ? 48 : 14);
+  const consecutiveStopFor = (id: string) => (id === 'search' ? 64 : 14);
   /** Hard cap per LLM attempt — never sleep minutes between retries (UI looked frozen). */
   const STEP_MS = 10_000;
   const withStepTimeout = async <T,>(label: string, work: () => Promise<T>): Promise<T> => {
@@ -289,6 +289,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const nl = nonListingReason(meta.title, url); if (nl) { await deny(nl); continue; }
       if (!ex.single) { await deny('not_single_listing'); continue; }
       if (ex.agency) { await deny('agency', ex.agency); continue; }
+      if (looksLikeAgencyListing(meta.title, pages[i].text)) { await deny('agency', 'agency_language'); continue; }
       if (!ex.municipality) { await deny('municipality_not_whitelisted'); continue; }
       if (!ex.rooms) { await deny('rooms_unknown'); continue; }
       if (ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
@@ -467,7 +468,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     if (timeLeft() < 45_000) return;
     const hits: SearchHit[] = [];
     const coverAll = waveMode === 'full' || waveMode === 'extended'; // carousel never covers all communes in one tick
-    const qs = buildQueries(cfg, deps.cycle ?? 0, { allCommunes: coverAll });
+    const families: ('private' | 'portals')[] = [];
+    if ((cfg.discovery?.queries || []).length) families.push('private');
+    if ((cfg.discovery?.portalQueries || []).length) families.push('portals');
+    const qs = buildQueries(cfg, deps.cycle ?? 0, { allCommunes: coverAll, families: families.length ? families : undefined });
     const slice = qs.slice(discoveryQueryOffset, maxQueries != null ? discoveryQueryOffset + maxQueries : undefined);
     let qi = 0;
     for (const q of slice) {

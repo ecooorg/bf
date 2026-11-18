@@ -7,7 +7,7 @@ export interface ImmoConfig {
   estCostPerLlmCallUsd: number;
   estCostPerSearchUsd?: number;
   driveFolderId?: string;
-  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; snippetOnlyHosts: string[]; skipHosts: string[] };
+  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; snippetOnlyHosts: string[]; skipHosts: string[] };
   /** Optional public-source contact enrichment (secondary search + optional reverse image). Default off when omitted. */
   contactEnrichment?: {
     enabled: boolean;
@@ -152,6 +152,18 @@ export function isStopAgency(text: string, agencies: string[]): string | null {
   const hay = ` ${norm(text)} `;
   for (const a of agencies) { const n = norm(a); if (n && hay.includes(` ${n} `)) return a; }
   return null;
+}
+
+/** Swiss portal / classifieds: reject professional landlords (AG, GmbH, Makler) unless clearly "von privat". */
+export function looksLikeAgencyListing(title: string, text: string): boolean {
+  const h = `${title}\n${String(text).slice(0, 4000)}`.toLowerCase();
+  const privat = /\b(von privat|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt von privat|private anbieterin|private anbieter)\b/i.test(h);
+  if (privat) return false;
+  if (/\b(immobilien\s*(ag|gmbh|genossenschaft)|makler|treuhand|property management|hausverwaltung|wohnungsverwaltung|vermittlung)\b/i.test(h)) return true;
+  if (/\b(anbieter|vermieter|kontakt)\s*[:\s][^\n]{0,60}\b(ag|gmbh|sàrl|sarl|sa)\b/i.test(h)) return true;
+  // Company-style email on the listing often means agency
+  if (/@[a-z0-9.-]+\.(ch|com)\b/i.test(h) && /\b(immobilien|makler|treuhand|verwaltung|agency|properties)\b/i.test(h)) return true;
+  return false;
 }
 
 /** Quote is verified only if it appears verbatim (whitespace/case-insensitive) in the source text. */
@@ -387,7 +399,11 @@ export interface ParsedPrice {
  * Swiss formats: CHF 1'200.– / Fr. 1.200 / 1200 CHF / mtl. / /Mt. / pro Monat / Mietpreis.
  * Requires currency (CHF/Fr/€) or a clear period word; ignores bare min-stay numbers. */
 export function parsePrice(text: string): ParsedPrice | null {
-  const t = String(text ?? '');
+  // Normalize curly/smart quotes and thin spaces so CH prices like CHF 1’570 parse.
+  const t = String(text ?? '')
+    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"')
+    .replace(/[\u00A0\u202F\u2009]/g, ' ');
   if (!t.trim()) return null;
 
   const parseAmount = (raw: string, frac?: string) => {
@@ -460,12 +476,19 @@ export function parsePrice(text: string): ParsedPrice | null {
     let unit = h.unit;
     if (unit === 'unknown') {
       if (/pro\s*woche|\/\s*woche|weekly/i.test(ctx)) unit = 'week';
-      else if (/pro\s*nacht|\/\s*nacht|per\s*night/i.test(ctx)) unit = 'night';
-      else if (/pro\s*monat|\/\s*monat|mtl\.?|monatlich|nettomiete|warmmiete|kaltmiete|mietzins/i.test(ctx)) unit = 'month';
+      else if (/pro\s*nacht|\/\s*nacht|per\s*night|\/\s*night/i.test(ctx)) unit = 'night';
+      else if (/pro\s*monat|\/\s*monat|per\s*month|mtl\.?|monatlich|nettomiete|warmmiete|kaltmiete|mietzins|inkl\.?\s*(nk|nebenkosten|utilities)|incl\.?\s*(nk|nebenkosten|utilities)/i.test(ctx)) unit = 'month';
       else if (h.currency && h.amount >= 400 && h.amount <= 8000 && /miete|rent|preis|chf|fr\./i.test(ctx)) unit = 'month';
     }
     if (/pro\s*woche|\/\s*wo\b/i.test(ctx)) unit = 'week';
-    if (/pro\s*nacht|\/\s*nacht/i.test(ctx)) unit = 'night';
+    if (/pro\s*nacht|\/\s*nacht|per\s*night/i.test(ctx)) unit = 'night';
+    // Wider window often has "pro Monat" / "inkl. NK" just outside ±50 chars
+    if (unit === 'unknown') {
+      const wide = t.slice(Math.max(0, h.idx - 120), h.idx + h.quote.length + 120);
+      if (/pro\s*monat|\/\s*monat|per\s*month|monatlich|mtl\.?|inkl\.?\s*(nk|nebenkosten)|incl\.?\s*(utilities|nk)/i.test(wide)) unit = 'month';
+      else if (/pro\s*nacht|per\s*night|\/\s*nacht/i.test(wide)) unit = 'night';
+      else if (/pro\s*woche|per\s*week/i.test(wide)) unit = 'week';
+    }
     if (!h.currency && unit === 'unknown') continue;
 
     let monthlyChf: number | null = null;
@@ -559,11 +582,13 @@ export function parseListedAt(text: string, url?: string): Date | null {
  * Uses word boundaries so "Besucher" / "Besuchen Sie die Region" do not trigger. */
 export function isSeekerPost(title: string, text: string): boolean {
   const h = `${title}\n${String(text).slice(0, 1500)}`.toLowerCase();
-  // Strong offer language wins only when it is not "zu mieten" seeker phrasing
-  const offer = /\b(zu vermieten|wir vermieten|vermiete(?!n gesucht)|anzubieten|for rent|privat vermietet)\b/i.test(h)
-    && !/\b(suche|suchen|gesucht|looking for)\b/i.test(h);
+  // CH market: "Nachmieter gesucht" = current tenant / landlord seeking a successor = OFFER, not seeker.
+  if (/\bnachmieter\s+gesucht\b/i.test(h) && !/\b(suche\s+wohnung|wohnung\s+gesucht|ich\s+suche)\b/i.test(h)) return false;
+  // Strong offer language wins only when it is not pure seeker phrasing
+  const offer = /\b(zu vermieten|wir vermieten|vermiete(?!n gesucht)|anzubieten|for rent|privat vermietet|nachmieter gesucht)\b/i.test(h)
+    && !/\b(suche wohnung|wohnung gesucht|ich suche|wir suchen)\b/i.test(h);
   if (offer) return false;
-  if (/\b(wohnung gesucht|haus gesucht|zimmer gesucht|suche wohnung|suche haus|suche zimmer|wir suchen (eine )?wohnung|ich suche (eine )?wohnung|looking for (a )?(flat|apartment|house)|nachmieter gesucht)\b/i.test(h)) return true;
+  if (/\b(wohnung gesucht|haus gesucht|zimmer gesucht|suche wohnung|suche haus|suche zimmer|wir suchen (eine )?wohnung|ich suche (eine )?wohnung|looking for (a )?(flat|apartment|house))\b/i.test(h)) return true;
   // "Suche ganz dringend … Wohnung … zu mieten" / "Wer hat eine … Wohnung"
   if (/\bsuche\b/i.test(h) && /(wohnung|zimmer|haus)/i.test(h) && !/nachmieter|mieter gesucht/i.test(h)) return true;
   if (/\bwer hat\b/i.test(h) && /(wohnung|zimmer|haus)/i.test(h)) return true;
@@ -584,9 +609,9 @@ export interface QualitySettings {
 export const DEFAULT_QUALITY: QualitySettings = {
   maxMonthlyRentChf: 2000,
   maxListingAgeDays: 180,
-  requirePrice: false,
-  rejectNonMonthly: false, // holiday rentals are often night/week; monthly long-term is rare on these portals
-  rejectSeekerPosts: true, // C129: carousel SERP is full of "Suche Wohnung" — reject by default
+  requirePrice: true, // only listings with a stated price
+  rejectNonMonthly: true, // long-term monthly only
+  rejectSeekerPosts: true,
   requireContact: false,
 };
 
