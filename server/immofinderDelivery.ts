@@ -325,9 +325,8 @@ export async function exportDrive(rows: any[], folderId: string, f: typeof fetch
         r = await f(`${sh}/values/A1:ZZ10000:clear`, { method: 'POST', headers: J, body: '{}' }); if (!r.ok) throw new Error(`Sheets clear HTTP ${r.status} (enable the Google Sheets API)`);
         r = await f(`${sh}/values/A1?valueInputOption=RAW`, { method: 'PUT', headers: J, body: JSON.stringify({ values: listingsTable(rows) }) }); if (!r.ok) throw new Error(`Sheets write HTTP ${r.status}`);
         notes.push(`sheet: plain text (formatting rejected, ${why})`);
-      } else {
-        notes.push('sheet: updated');
       }
+      // success: no note (status stays plain "exported" when both files write cleanly)
     } else {
       notes.push(`sheet: missing "${SHEET_NAME}" — create it in the folder (${SETUP_HINT})`);
     }
@@ -345,15 +344,13 @@ export async function exportDrive(rows: any[], folderId: string, f: typeof fetch
         plain.push({ insertText: { location: { index: 1 }, text: `Listings (${rows.length})\n\n${text}\n` } });
         r = await f(`${dd}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: plain }) }); if (!r.ok) throw new Error(`Docs write HTTP ${r.status}`);
         notes.push(`doc: plain text (formatting rejected, ${why})`);
-      } else {
-        notes.push('doc: updated');
       }
+      // success: no note
     } else {
       notes.push(`doc: missing "${DOC_NAME}" — create it in the folder and share with the service account as Editor`);
     }
-    const ok = Boolean(sheetId || docId);
+    // Full success → "exported". Partial / plain-text fallback → "exported (…notes…)".
     const status = notes.length ? `exported (${notes.join('; ')})` : 'exported';
-    // If only one file exists, still report success so Sheet is not blocked by a missing Doc.
     return { status, url: `https://drive.google.com/drive/folders/${folderId}` };
   } catch (e) { return { status: `error: ${String((e as Error)?.message || e).slice(0, 300)}` }; }
 }
