@@ -178,7 +178,7 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
   const hits = [
     { title: 'Interhome Chur', link: 'https://www.interhome.ch/x', snippet: 'Interhome' },
     { title: 'Wikipedia', link: 'https://de.wikipedia.org/wiki/Chur', snippet: '' },
-    { title: 'Ferienwohnung Chur 4 Zimmer von privat', link: 'https://www.facebook.com/marketplace/item/1', snippet: 'Schöne 4 Zimmer Wohnung in Chur, Tel 079 123 45 67' },
+    { title: 'Ferienwohnung Chur 4 Zimmer von privat', link: 'https://www.facebook.com/marketplace/item/1', snippet: 'Schöne 4 Zimmer Wohnung in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
     { title: 'Chesa Mia', link: 'https://chesa-mia.example/', snippet: '' },
     { title: 'dup', link: 'https://chesa-mia.example/', snippet: '' },
   ];
