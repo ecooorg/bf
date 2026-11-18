@@ -1,3 +1,8 @@
+## [129.17] - Carousel commune names in step title
+
+- ProgressEvent.communes carried through saveProgress into the live UI.
+- Step title becomes `Step 2 of 3 · Searching the web by commune: Praden, Tschiertschen` for the active carousel slice (not only in the log lines).
+
 ## [129.16] - Group chips, carousel commune title, stronger price parse
 
 - Typecheck: `municipalityGroups` on Settings client type S.
