@@ -52,44 +52,20 @@
     "Belvilla",
     "e-domizil",
     "GriwaRent",
-    "Mountain Flair"
+    "Mountain Flair",
+    "Booking.com",
+    "Booking",
+    "Airbnb",
+    "Vrbo",
+    "Fewo-Direkt",
+    "HomeToGo",
+    "Cozycozy",
+    "Traum-Ferienwohnungen",
+    "Comparis",
+    "Homegate Partner"
   ],
   "minRooms": 3,
-  "sources": [
-    {
-      "id": "ferienhausmiete",
-      "url": "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/graubuenden/r521",
-      "phase": 1,
-      "maxDetailPages": 80,
-      "detailPattern": "^https://www\\.ferienhausmiete\\.de/\\d+\\.htm$",
-      "indexUrls": [
-        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/flims-laax-falera/r4331",
-        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/surselva/r4325",
-        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/chur/r4328",
-        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/lenzerheide-valbella/r4334",
-        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/thusis/r29817"
-      ]
-    },
-    {
-      "id": "happyholiday",
-      "url": "https://happyholiday.ch/area/graubuenden/",
-      "phase": 1,
-      "cityUrl": "https://happyholiday.ch/city/{slug}/",
-      "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
-      "cutMarkers": [
-        "Andere Häuser",
-        "Ausgewählte Unterkünfte"
-      ],
-      "privateTitleHint": "von privat",
-      "maxDetailPages": 60
-    },
-    {
-      "id": "landwirtschaft-gr",
-      "url": "https://www.landwirtschaft-gr.ch",
-      "phase": 3,
-      "maxDetailPages": 15
-    }
-  ],
+  "sources": [],
   "fetch": {
     "userAgent": "BiForge-ImmoFinder (polite; contact owner)",
     "perHostDelayMs": 1500,
@@ -103,7 +79,20 @@
     "traum-ferienwohnungen.ch",
     "graubuenden.ch",
     "appa.ch",
-    "landwirtschaft-gr.ch"
+    "landwirtschaft-gr.ch",
+    "immoscout24.ch",
+    "homegate.ch",
+    "newhome.ch",
+    "flatfox.ch",
+    "tutti.ch",
+    "anibis.ch",
+    "petitesannonces.ch",
+    "immobilier.ch",
+    "acheter-louer.ch",
+    "immostreet.ch",
+    "home.ch",
+    "icasa.ch",
+    "urbanhome.ch"
   ],
   "limits": {
     "maxDetailPagesPerSource": 30,
@@ -116,15 +105,15 @@
   "discovery": {
     "enabled": true,
     "communesPerRun": 44,
-    "resultsPerQuery": 10,
-    "maxPagesPerRun": 120,
+    "resultsPerQuery": 15,
+    "maxPagesPerRun": 150,
     "queries": [
-      "Ferienwohnung {commune} von privat 3 Zimmer Vermieter",
-      "Ferienhaus {commune} Privatvermieter direkt Eigentümer",
-      "{commune} Ferienwohnung Vermieter Kontakt Telefon Zimmer",
-      "site:facebook.com {commune} Ferienwohnung vermieten Zimmer",
-      "{commune} 3.5 Zimmer Wohnung zu vermieten privat Facebook",
-      "{commune} Wohnung mieten von privat Eigentümer Telefon"
+      "{commune} Wohnung zu vermieten privat OR Eigentümer 3 Zimmer",
+      "{commune} 3.5 Zimmer ab sofort privat OR Nachmieter",
+      "{commune} Nachmieter gesucht Wohnung 3 OR 3.5 OR 4",
+      "site:facebook.com/groups {commune} (Wohnung OR 3.5 OR 4.5) (vermieten OR zu vermieten OR Nachmieter)",
+      "{commune} Wohnung mieten von privat Telefon OR Handy OR WhatsApp",
+      "Ferienwohnung {commune} von privat Vermieter Kontakt"
     ],
     "snippetOnlyHosts": [
       "facebook.com",
@@ -135,12 +124,7 @@
       "vrbo.com",
       "fewo-direkt.ch",
       "tripadvisor.ch",
-      "tripadvisor.com",
-      "homegate.ch",
-      "immoscout24.ch",
-      "comparis.ch",
-      "anibis.ch",
-      "tutti.ch"
+      "tripadvisor.com"
     ],
     "skipHosts": [
       "wikipedia.org",
@@ -153,6 +137,7 @@
       "holidu.com",
       "trivago.ch",
       "kayak.ch",
+      "kayak.com",
       "google.com",
       "booking.com",
       "booking.ch",
@@ -161,14 +146,63 @@
       "nestoria.ch",
       "nestoria.com",
       "immowelt.ch",
-      "newhome.ch"
+      "cozycozy.com",
+      "cozycozy.ch",
+      "realadvisor.ch",
+      "realadvisor.com",
+      "airbnb.ch",
+      "airbnb.com",
+      "vrbo.com",
+      "homeaway.com",
+      "fewo-direkt.ch",
+      "fewo-direkt.de",
+      "traum-ferienwohnungen.de",
+      "traum-ferienwohnungen.ch",
+      "interhome.ch",
+      "interhome.com",
+      "belvilla.com",
+      "e-domizil.ch",
+      "hometogo.ch",
+      "hometogo.com",
+      "check24.de",
+      "comparis.ch"
+    ],
+    "portalQueries": [
+      "site:homegate.ch {commune} Wohnung mieten privat OR Eigentümer",
+      "site:immoscout24.ch {commune} Wohnung mieten 3 Zimmer",
+      "site:flatfox.ch {commune} Wohnung mieten",
+      "site:newhome.ch {commune} Wohnung mieten",
+      "site:tutti.ch {commune} Wohnung mieten privat",
+      "site:anibis.ch {commune} Wohnung mieten privat",
+      "site:petitesannonces.ch {commune} location appartement",
+      "site:immobilier.ch {commune} location",
+      "site:urbanhome.ch {commune} mieten Wohnung",
+      "site:home.ch {commune} mieten Wohnung",
+      "site:icasa.ch {commune} mieten Wohnung",
+      "site:immostreet.ch {commune} mieten Wohnung",
+      "site:acheter-louer.ch {commune} location"
+    ],
+    "portalHosts": [
+      "immoscout24.ch",
+      "homegate.ch",
+      "newhome.ch",
+      "flatfox.ch",
+      "tutti.ch",
+      "anibis.ch",
+      "petitesannonces.ch",
+      "immobilier.ch",
+      "acheter-louer.ch",
+      "immostreet.ch",
+      "home.ch",
+      "icasa.ch",
+      "urbanhome.ch"
     ]
   },
   "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
   "quality": {
     "maxMonthlyRentChf": 2000,
     "maxListingAgeDays": 180,
-    "requirePrice": false,
+    "requirePrice": true,
     "rejectNonMonthly": true,
     "rejectSeekerPosts": true,
     "requireContact": false
@@ -176,9 +210,9 @@
   "runMaxDurationMs": 1800000,
   "contactEnrichment": {
     "enabled": true,
-    "maxExtraSearchesPerRun": 25,
-    "maxReverseImagePerRun": 8,
-    "maxCandidatePagesPerListing": 3,
+    "maxExtraSearchesPerRun": 35,
+    "maxReverseImagePerRun": 10,
+    "maxCandidatePagesPerListing": 4,
     "useReverseImage": true,
     "useSecondarySearch": true
   },
