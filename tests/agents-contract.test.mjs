@@ -62,7 +62,8 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
 });
 
 // ---- P128.1 ImmoFinder GR (module logic, pipeline with fake fetch/LLM, UI wiring) ----
-import { formatListingsText, listingsTable, exportDrive, checkDrive } from '../server/immofinderDelivery.ts';
+import { formatListingsText, listingsTable, exportDrive, checkDrive, buildSheetRequests, buildDocRequests } from '../server/immofinderDelivery.ts';
+import { immoCardModel, immoLinkLine } from '../src/immoCard.ts';
 import { generateKeyPairSync } from 'node:crypto';
 import { classifyType, contactAdvice, draftMessage as draftMsg, matchMunicipality as matchMuni, nonListingReason, isSpecificLink } from '../server/immofinderCore.ts';
 import { parseDriveFolderId, formatZurich, defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
@@ -244,14 +245,14 @@ test('P128.6 email content mode, found date/time, Drive folder id, Drive writes 
   assert.equal(parseDriveFolderId('nonsense'), ''); assert.equal(immoCfg.driveFolderId, '199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT');
   assert.match(formatZurich('2026-11-16T02:07:36Z'), /16\.11\.2026.*03:07/);
   const rows = [{ property_name: 'Old', municipality: 'Chur', rooms_estimated: 3, first_seen_at: '2026-11-10T10:00:00Z', listing_url: 'https://a.example/1', status: 'CONTACTED', photo_urls: [], source_urls: [] },
-    { property_name: 'New', municipality: 'Chur', rooms_estimated: 4, first_seen_at: '2026-11-16T02:07:36Z', listing_url: 'https://a.example/2', direct_phone: '+41811234567', status: 'NEW', photo_urls: [], source_urls: [] }];
+    { property_name: 'New', municipality: 'Chur', rooms_estimated: 4, first_seen_at: '2026-11-16T02:07:36Z', listing_url: 'https://a.example/2', direct_phone: '+41811234567', contact_status: 'found', status: 'NEW', photo_urls: [], source_urls: [] }];
   const txt = formatListingsText(rows, { heading: 'H', limit: 10 });
   assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first'); assert.match(txt, /Found: 16\.11\.2026.*03:07/); assert.match(txt, /Status: CONTACTED/);
   assert.match(txt, /📍 Chur · .* · 4 rooms · \+41811234567/);
   const tab = listingsTable(rows); assert.equal(tab.length, 3); assert.ok(tab.every((r) => r.length === 1), 'one column');
-  assert.match(tab[1][0], /📍 Chur · .* · 4 rooms · \+41811234567/);
-  assert.match(tab[1][0], /Found: 16\.11\.2026.*03:07/);
-  assert.ok(tab[1][0].includes('New') || /4 rooms/.test(tab[1][0]), 'newest card first');
+  assert.match(tab[2][0], /📍 Chur · .* · 4 rooms · \+41811234567/);
+  assert.match(tab[2][0], /found 16\.11\.2026.*03:07/);
+  assert.match(tab[1][0], /Chur · .* · 3 rooms · no direct contact/, 'sheet keeps the order of the screen (rows as given), not a re-sort');
   assert.ok(!/Betreff|Guten Tag/.test(tab.flat().join('')), 'no letter drafts in the sheet');
   const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
   process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ client_email: 'sa@p.iam.gserviceaccount.com', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }) });
@@ -268,13 +269,40 @@ test('P128.6 email content mode, found date/time, Drive folder id, Drive writes 
   const folder = '199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT';
   const good = await exportDrive(rows, folder, fake);
   assert.equal(good.status, 'exported');
-  assert.ok(calls.some((c) => c.startsWith('PUT https://sheets.googleapis.com')) && calls.some((c) => c.includes(':batchUpdate')));
+  assert.ok(calls.some((c) => c.startsWith('POST https://sheets.googleapis.com') && c.includes(':batchUpdate')), 'sheet is written with formatting');
+  assert.ok(calls.some((c) => c.startsWith('POST https://docs.googleapis.com') && c.includes(':batchUpdate')), 'doc is written with formatting');
   assert.ok(!calls.some((c) => c === 'POST https://www.googleapis.com/upload/drive/v3/files'), 'never tries to create files');
   haveDoc = false;
   assert.match(await checkDrive(folder, fake), /missing in the folder.*ImmoFinder drafts/);
   delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   const ui = read('src/ImmoFinder.tsx'); assert.match(ui, /data-testid="immofinder-header"/); assert.match(ui, /ModeMenu/); assert.match(ui, /immofinder-found-at/);
   assert.match(read('src/ImmoFinderSettings.tsx'), /immofinder-email-content/);
+});
+
+test('P129.7 screen, Sheet and Doc show the same cards (shared model), no letters, no German-letter reader on screen', () => {
+  const rows = [
+    { id: 'a', property_name: '3 1/2 ZI- Wohnung', description_de: 'Zu vermieten in Schiers. '.repeat(12), municipality: 'Schiers', rooms_estimated: '3.5', pricing_unit: 'month', rent_monthly_chf: 1450, listing_url: 'https://www.facebook.com/groups/1/posts/2/', photo_urls: [], private_signals: [], contact_status: 'found', direct_phone: '+41814140008', first_seen_at: '2026-11-17T20:37:00Z', status: 'NEW', raw: { price: { amount: 1450, unit: 'month' } }, draft_message_de: 'Betreff: Geheimer Brief' },
+    { id: 'b', property_name: 'Casa Calanda', description_de: 'Geräumige Attikawohnung', municipality: 'Jenins', rooms_estimated: '5.0', pricing_unit: 'night', listing_url: 'https://heidiholiday.ch/', photo_urls: ['https://i.example/1.jpg', 'https://i.example/2.jpg', 'https://i.example/3.jpg', 'https://i.example/4.jpg'], private_signals: ['generic_link'], contact_status: 'found', owner_name: 'v. koenig', direct_phone: '+41794175102', first_seen_at: '2026-11-17T17:52:00Z', status: 'CONTACTED', raw: { price: { amount: 365, unit: 'night' } }, draft_message_de: 'Betreff: Geheimer Brief' }];
+  const [a, b] = rows.map(immoCardModel);
+  assert.equal(a.headline, '📍 Schiers · CHF 1450 per month · 3.5 rooms · +41814140008');
+  assert.equal(b.headline, '📍 Jenins · CHF 365 per night · 5.0 rooms · v. koenig · +41794175102');
+  assert.equal(a.openLabel, 'Open post'); assert.equal(b.openLabel, 'Open listing');
+  assert.equal(a.about.length <= 220, true); assert.equal(b.photos.length, 3);
+  assert.equal(immoLinkLine(b), 'https://heidiholiday.ch/ (list/group page — not a single object) · found 17.11.2026, 18:52');
+  const sheet = buildSheetRequests(rows, 7); const cells = sheet.requests.find((q) => q.updateCells?.rows).updateCells.rows.flatMap((r) => r.values.map((v) => v.userEnteredValue?.stringValue).filter(Boolean));
+  const docReq = buildDocRequests(rows, 40); const docText = docReq.find((q) => q.insertText).insertText.text;
+  for (const k of [a, b]) {
+    for (const part of [k.headline, k.about, immoLinkLine(k), k.openLabel, `Status  ${k.status}`]) assert.ok(cells.includes(part), `sheet has: ${part}`);
+    for (const part of [k.headline, k.about, immoLinkLine(k), k.openLabel, k.status, ...k.photos.map((p) => p.label)]) assert.ok(docText.includes(part), `doc has: ${part}`);
+  }
+  assert.ok(docText.indexOf(a.headline) < docText.indexOf(b.headline) && cells.indexOf(a.headline) < cells.indexOf(b.headline), 'order of rows is kept');
+  const links = JSON.stringify(sheet.requests) + JSON.stringify(docReq);
+  assert.ok(links.includes('https://i.example/3.jpg') && !links.includes('https://i.example/4.jpg'), 'up to three photo links');
+  assert.ok(!/Betreff|Geheimer Brief|Guten Tag/.test(links + docText), 'no letters in Sheet or Doc');
+  assert.ok(buildSheetRequests([], 7).requests.length > 0 && buildDocRequests([], 2).some((q) => q.insertText));
+  const ui = read('src/ImmoFinder.tsx');
+  assert.match(ui, /immoCardModel/); assert.match(ui, /Copy German letter/); assert.ok(!/Read the German letter/.test(ui));
+  assert.match(read('server/immofinderDelivery.ts'), /immoCardModel/);
 });
 
 test('P128.7 non-listing pages are rejected; specific links detected; UI contrast, More menu and quiet polling', async () => {
