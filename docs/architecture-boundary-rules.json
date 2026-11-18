@@ -67,6 +67,11 @@
       "reason": "Support contacts / distress markers; listed in tsconfig.server.json include"
     },
     {
+      "from": "server/immofinderDelivery.ts",
+      "to": "src/immoCard.ts",
+      "reason": "One pure listing-card model so the ImmoFinder screen and the Drive Sheet/Doc export cannot drift; no DOM or Node APIs; listed in tsconfig.server.json include"
+    },
+    {
       "from": "src/config.ts",
       "to": "package.json",
       "reason": "Single source of truth for APP_VERSION and APP_PATCH per AGENTS.md; Vite plugin injects only these fields into the client bundle"
@@ -74,7 +79,7 @@
   ],
   "notes": [
     "src must not import server (client bundle isolation).",
-    "server may only reach src via the three exceptions above until a dedicated shared/ package exists.",
+    "server may only reach src via the exceptions above until a dedicated shared/ package exists.",
     "appBuilder must not import server or src; adapters live in server/ and inject ports.",
     "New cross-layer edges require an allowedExceptions entry or a rule change approved by the Navigator."
   ]
