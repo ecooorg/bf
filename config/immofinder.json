@@ -306,7 +306,7 @@
     "maxMonthlyRentChf": 2000,
     "maxListingAgeDays": 180,
     "requirePrice": true,
-    "rejectNonMonthly": true,
+    "rejectNonMonthly": false,
     "rejectSeekerPosts": true,
     "requireContact": false
   },
