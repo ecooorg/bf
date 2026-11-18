@@ -1,3 +1,11 @@
+## [129.15] - Groups, per-source toggles, two search buttons, finish-all
+
+- CI: checkDrive again reports `missing in the folder: … ImmoFinder drafts` when Doc is absent (P128.6).
+- Municipality groups: two fixed sets of 22 (Group 1 Rhine/Chur, Group 2 Prättigau/Surselva/south); Settings checkboxes control which groups run.
+- Sources: individual checkboxes for web search + each of 13 Swiss portals; applySettings filters portalQueries by host.
+- UI: only Carousel and Full search buttons; both discovery modes run finishAll (no query-count cap); full uses full run deadline.
+- runMaxDurationMs 45 min; Serper pacing unchanged.
+
 ## [129.14] - Drive status "exported" when Sheet+Doc both OK
 
 - exportDrive: clean dual write returns status `exported` (not `exported (sheet: updated; doc: updated)`); notes only for missing file or plain-text fallback (P128.6).
