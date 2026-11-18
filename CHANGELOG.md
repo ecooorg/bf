@@ -1,3 +1,12 @@
+## [129.18] - Quality keep filters (list/agency/seeker/price); short-term stays
+
+- List/search/join URLs dropped earlier in pickItems and at keep (not_single_listing); reduces fetch queue without cutting Serper templates.
+- Agency: Betterhomes, Wincasa, anbieter.* mailboxes, 0800 hotlines; "Nachmieter gesucht" still treated as private signal.
+- Seeker: "Wohnung gesucht" / budget-seeking without offer.
+- parsePrice: spaced thousands "1 235 fr" → 1235; score prefers full rent over parking fragments.
+- Geo: Felsberg + Eslohe/Sauerland/Deutschland without CH markers.
+- rejectNonMonthly remains false — short-term stays keepable with night/week unit.
+
 ## [129.17] - Carousel commune names in step title
 
 - ProgressEvent.communes carried through saveProgress into the live UI.
