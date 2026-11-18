@@ -272,11 +272,15 @@ async function resolveDrive(folderId: string, f: typeof fetch) {
   if (!meta.ok) throw new Error(`folder not accessible (HTTP ${meta.status}): share it with ${sa.client_email} as Editor`);
   const find = async (name: string, mime: string) => {
     const q = encodeURIComponent(`'${folderId}' in parents and name='${name}' and mimeType='${mime}' and trashed=false`);
-    return (((await (await f(`${api}/files?q=${q}&fields=files(id)&supportsAllDrives=true&includeItemsFromAllDrives=true`, { headers: H })).json()) as any).files || [])[0]?.id as string | undefined;
+    return (((await (await f(`${api}/files?q=${q}&fields=files(id,name)&supportsAllDrives=true&includeItemsFromAllDrives=true`, { headers: H })).json()) as any).files || [])[0]?.id as string | undefined;
   };
-  const sheetId = await find(SHEET_NAME, 'application/vnd.google-apps.spreadsheet'); const docId = await find(DOC_NAME, 'application/vnd.google-apps.document');
-  if (!sheetId || !docId) throw new Error(`missing in the folder: ${[!sheetId && `Google Sheet "${SHEET_NAME}"`, !docId && `Google Doc "${DOC_NAME}"`].filter(Boolean).join(' and ')}. ${SETUP_HINT}`);
-  return { H, sheetId, docId };
+  const sheetId = await find(SHEET_NAME, 'application/vnd.google-apps.spreadsheet');
+  const docId = await find(DOC_NAME, 'application/vnd.google-apps.document');
+  // Allow partial export: update whichever file exists. Service accounts still cannot create files in personal Drive.
+  if (!sheetId && !docId) {
+    throw new Error(`missing in the folder: Google Sheet "${SHEET_NAME}" and Google Doc "${DOC_NAME}". ${SETUP_HINT}`);
+  }
+  return { H, sheetId: sheetId || null, docId: docId || null, saEmail: String(sa.client_email || '') };
 }
 
 /** Read-only readiness check used by the settings "Check" button. */
@@ -288,7 +292,13 @@ export async function clearDriveExport(folderId: string, f: typeof fetch = fetch
 }
 
 export async function checkDrive(folderId: string, f: typeof fetch = fetch): Promise<string> {
-  try { await resolveDrive(folderId, f); return 'ready: folder and both files found'; } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 400)}`; }
+  try {
+    const r = await resolveDrive(folderId, f);
+    const parts = [r.sheetId ? 'Sheet ok' : `Sheet "${SHEET_NAME}" missing`, r.docId ? 'Doc ok' : `Doc "${DOC_NAME}" missing`];
+    if (!r.sheetId && !r.docId) return `error: ${parts.join('; ')}. ${SETUP_HINT}`;
+    if (!r.sheetId || !r.docId) return `partial: ${parts.join('; ')}. ${SETUP_HINT}`;
+    return 'ready: folder and both files found';
+  } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 400)}`; }
 }
 
 /**
@@ -300,35 +310,50 @@ export async function exportDrive(rows: any[], folderId: string, f: typeof fetch
   try {
     const { H, sheetId, docId } = await resolveDrive(folderId, f); const J = { ...H, 'Content-Type': 'application/json' };
     const notes: string[] = [];
-    // --- Sheet
-    const sh = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}`;
-    let gid = 0; let rowCount = 1000; let columnCount = 26;
-    try {
-      const meta: any = await (await f(`${sh}?fields=sheets.properties(sheetId,gridProperties)`, { headers: H })).json();
-      const pr = meta?.sheets?.[0]?.properties; gid = pr?.sheetId ?? 0; rowCount = pr?.gridProperties?.rowCount ?? rowCount; columnCount = pr?.gridProperties?.columnCount ?? columnCount;
-    } catch { /* defaults */ }
-    const sheetPlan = buildSheetRequests(rows, gid, { rowCount, columnCount, emptyNote });
-    let r = await f(`${sh}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: sheetPlan.requests }) });
-    if (!r.ok) { // rich layout rejected: still deliver the same content as plain text, one cell per card
-      const why = `HTTP ${r.status}`;
-      r = await f(`${sh}/values/A1:ZZ10000:clear`, { method: 'POST', headers: J, body: '{}' }); if (!r.ok) throw new Error(`Sheets clear HTTP ${r.status} (enable the Google Sheets API)`);
-      r = await f(`${sh}/values/A1?valueInputOption=RAW`, { method: 'PUT', headers: J, body: JSON.stringify({ values: listingsTable(rows) }) }); if (!r.ok) throw new Error(`Sheets write HTTP ${r.status}`);
-      notes.push(`sheet: plain text (formatting rejected, ${why})`);
+    // --- Sheet (independent of Doc)
+    if (sheetId) {
+      const sh = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}`;
+      let gid = 0; let rowCount = 1000; let columnCount = 26;
+      try {
+        const meta: any = await (await f(`${sh}?fields=sheets.properties(sheetId,gridProperties)`, { headers: H })).json();
+        const pr = meta?.sheets?.[0]?.properties; gid = pr?.sheetId ?? 0; rowCount = pr?.gridProperties?.rowCount ?? rowCount; columnCount = pr?.gridProperties?.columnCount ?? columnCount;
+      } catch { /* defaults */ }
+      const sheetPlan = buildSheetRequests(rows, gid, { rowCount, columnCount, emptyNote });
+      let r = await f(`${sh}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: sheetPlan.requests }) });
+      if (!r.ok) {
+        const why = `HTTP ${r.status}`;
+        r = await f(`${sh}/values/A1:ZZ10000:clear`, { method: 'POST', headers: J, body: '{}' }); if (!r.ok) throw new Error(`Sheets clear HTTP ${r.status} (enable the Google Sheets API)`);
+        r = await f(`${sh}/values/A1?valueInputOption=RAW`, { method: 'PUT', headers: J, body: JSON.stringify({ values: listingsTable(rows) }) }); if (!r.ok) throw new Error(`Sheets write HTTP ${r.status}`);
+        notes.push(`sheet: plain text (formatting rejected, ${why})`);
+      } else {
+        notes.push('sheet: updated');
+      }
+    } else {
+      notes.push(`sheet: missing "${SHEET_NAME}" — create it in the folder (${SETUP_HINT})`);
     }
-    // --- Doc
-    const dd = `https://docs.googleapis.com/v1/documents/${docId}`;
-    const doc: any = await (await f(dd, { headers: H })).json();
-    const end = Number(doc?.body?.content?.at(-1)?.endIndex ?? 1);
-    if (!doc?.body) throw new Error('Docs read failed (enable the Google Docs API)');
-    r = await f(`${dd}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: buildDocRequests(rows, end, { emptyNote }) }) });
-    if (!r.ok) {
-      const why = `HTTP ${r.status}`;
-      const text = (rows.length ? rows.map((x) => immoCardPlainText(immoCardModel(x))).join('\n\n') : (emptyNote || 'No listings yet.'));
-      const plain: any[] = []; if (end > 2) plain.push({ deleteContentRange: { range: { startIndex: 1, endIndex: end - 1 } } });
-      plain.push({ insertText: { location: { index: 1 }, text: `Listings (${rows.length})\n\n${text}\n` } });
-      r = await f(`${dd}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: plain }) }); if (!r.ok) throw new Error(`Docs write HTTP ${r.status}`);
-      notes.push(`doc: plain text (formatting rejected, ${why})`);
+    // --- Doc (independent of Sheet)
+    if (docId) {
+      const dd = `https://docs.googleapis.com/v1/documents/${docId}`;
+      const doc: any = await (await f(dd, { headers: H })).json();
+      const end = Number(doc?.body?.content?.at(-1)?.endIndex ?? 1);
+      if (!doc?.body) throw new Error('Docs read failed (enable the Google Docs API)');
+      let r = await f(`${dd}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: buildDocRequests(rows, end, { emptyNote }) }) });
+      if (!r.ok) {
+        const why = `HTTP ${r.status}`;
+        const text = (rows.length ? rows.map((x) => immoCardPlainText(immoCardModel(x))).join('\n\n') : (emptyNote || 'No listings yet.'));
+        const plain: any[] = []; if (end > 2) plain.push({ deleteContentRange: { range: { startIndex: 1, endIndex: end - 1 } } });
+        plain.push({ insertText: { location: { index: 1 }, text: `Listings (${rows.length})\n\n${text}\n` } });
+        r = await f(`${dd}:batchUpdate`, { method: 'POST', headers: J, body: JSON.stringify({ requests: plain }) }); if (!r.ok) throw new Error(`Docs write HTTP ${r.status}`);
+        notes.push(`doc: plain text (formatting rejected, ${why})`);
+      } else {
+        notes.push('doc: updated');
+      }
+    } else {
+      notes.push(`doc: missing "${DOC_NAME}" — create it in the folder and share with the service account as Editor`);
     }
-    return { status: notes.length ? `exported (${notes.join('; ')})` : 'exported', url: `https://drive.google.com/drive/folders/${folderId}` };
+    const ok = Boolean(sheetId || docId);
+    const status = notes.length ? `exported (${notes.join('; ')})` : 'exported';
+    // If only one file exists, still report success so Sheet is not blocked by a missing Doc.
+    return { status, url: `https://drive.google.com/drive/folders/${folderId}` };
   } catch (e) { return { status: `error: ${String((e as Error)?.message || e).slice(0, 300)}` }; }
 }
