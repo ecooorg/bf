@@ -65,7 +65,41 @@
     "Homegate Partner"
   ],
   "minRooms": 3,
-  "sources": [],
+  "sources": [
+    {
+      "id": "ferienhausmiete",
+      "url": "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/graubuenden/r521",
+      "phase": 3,
+      "maxDetailPages": 40,
+      "detailPattern": "^https://www\\.ferienhausmiete\\.de/\\d+\\.htm$",
+      "indexUrls": [
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/flims-laax-falera/r4331",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/surselva/r4325",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/chur/r4328",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/lenzerheide-valbella/r4334",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/thusis/r29817"
+      ]
+    },
+    {
+      "id": "happyholiday",
+      "url": "https://happyholiday.ch/area/graubuenden/",
+      "phase": 3,
+      "cityUrl": "https://happyholiday.ch/city/{slug}/",
+      "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
+      "cutMarkers": [
+        "Andere Häuser",
+        "Ausgewählte Unterkünfte"
+      ],
+      "privateTitleHint": "von privat",
+      "maxDetailPages": 30
+    },
+    {
+      "id": "landwirtschaft-gr",
+      "url": "https://www.landwirtschaft-gr.ch",
+      "phase": 3,
+      "maxDetailPages": 15
+    }
+  ],
   "fetch": {
     "userAgent": "BiForge-ImmoFinder (polite; contact owner)",
     "perHostDelayMs": 1500,
@@ -105,7 +139,7 @@
   "discovery": {
     "enabled": true,
     "communesPerRun": 44,
-    "resultsPerQuery": 15,
+    "resultsPerQuery": 10,
     "maxPagesPerRun": 150,
     "queries": [
       "{commune} Wohnung zu vermieten privat OR Eigentümer 3 Zimmer",
