@@ -43,7 +43,7 @@ export interface PipelineDeps {
    */
   onWaveComplete?: (info: { wave: 'priority' | 'extended' | 'carousel'; newInWave: ListingRecord[]; counts: Record<string, number> }) => void | Promise<void>;
 }
-export interface ProgressEvent { stage: 'catalogue' | 'search' | 'delivery'; text: string; current?: number; total?: number; counts: Record<string, number> }
+export interface ProgressEvent { stage: 'catalogue' | 'search' | 'delivery'; text: string; current?: number; total?: number; counts: Record<string, number>; /** Communes in this carousel tick (shown in UI step title). */ communes?: string[] }
 export interface SourceStats {
   id: string;
   candidates: number;
@@ -114,7 +114,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const waveMode: RunWave = opts.wave === 'priority' || opts.wave === 'extended' || opts.wave === 'carousel' ? opts.wave : 'full';
   const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0, sourceStats: [], wavesRun: [] };
   const drop = (r: string) => { res.filtered[r] = (res.filtered[r] || 0) + 1; };
-  const say = (stage: ProgressEvent['stage'], text: string, current?: number, total?: number) => { try { deps.onProgress?.({ stage, text, current, total, counts: { ...res.counts } }); } catch { /* progress must never break a run */ } };
+  /** Communes for the current carousel tick — attached to every progress event for the UI title. */
+  let carouselCommunesSlot: string[] = [];
+  const say = (stage: ProgressEvent['stage'], text: string, current?: number, total?: number) => { try { deps.onProgress?.({ stage, text, current, total, counts: { ...res.counts }, communes: carouselCommunesSlot.length ? carouselCommunesSlot : undefined }); } catch { /* progress must never break a run */ } };
   const fresh = (iso: string) => now() - new Date(iso).getTime() < cfg.limits.recheckAfterDays * 86400000;
   const enrichCfg = resolveEnrichmentConfig(cfg);
   const enrichBudget = {
@@ -458,8 +460,6 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
 
   /** Run discovery search queries. `discoveryQueryOffset` skips already-run queries in full mode so priority+extended do not repeat. */
   let discoveryQueryOffset = 0;
-  /** Filled before carousel discovery so progress text can name the communes. */
-  let carouselCommunesSlot: string[] = [];
   const serperMinIntervalMs = Math.max(0, Number(cfg.discovery?.serperMinIntervalMs ?? 1500) || 1500);
   const serperMaxPerMinute = Math.max(1, Number(cfg.discovery?.serperMaxPerMinute ?? 40) || 40);
   const serperTimestamps: number[] = [];
@@ -562,6 +562,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         ? communesForRun(cfg.municipalities, cfg.discovery?.communesPerRun ?? 2, deps.cycle ?? 0)
         : [];
     carouselCommunesSlot = carouselCommunes;
+    
     const carouselLabel = carouselCommunes.length
       ? carouselCommunes.join(', ')
       : 'this commune slice';

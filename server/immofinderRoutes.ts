@@ -388,11 +388,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     console.info(JSON.stringify({ type: 'immofinder_run_accepted', trigger, runId, dryRun, wave }));
     res.status(202).json({ success: true, runId, dryRun, wave });
     void (async () => {
-      const log: { t: number; text: string }[] = []; let lastSave = 0; let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number> } = { stage: 'catalogue', text: 'Starting' };
+      const log: { t: number; text: string }[] = []; let lastSave = 0; let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number>; communes?: string[] } = { stage: 'catalogue', text: 'Starting' };
       const push = (e: typeof ev, force = false) => {
         ev = e; log.push({ t: Date.now(), text: e.text }); if (log.length > 40) log.shift();
         const n = Date.now(); if (!force && n - lastSave < 700) return; lastSave = n;
-        void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, log }).catch(() => {});
+        void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, communes: e.communes, log }).catch(() => {});
       };
       push(ev, true);
       const errors: unknown[] = []; let result = null as Awaited<ReturnType<typeof runPipeline>> | null; const delivery: Record<string, string> = {};
@@ -519,11 +519,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         void (async () => {
           const log: { t: number; text: string }[] = [];
           let lastSave = 0;
-          let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number> } = { stage: 'catalogue', text: 'Scheduled carousel starting' };
+          let ev: { stage: string; text: string; current?: number; total?: number; counts?: Record<string, number>; communes?: string[] } = { stage: 'catalogue', text: 'Scheduled carousel starting' };
           const push = (e: typeof ev, force = false) => {
             ev = e; log.push({ t: Date.now(), text: e.text }); if (log.length > 40) log.shift();
             const n = Date.now(); if (!force && n - lastSave < 700) return; lastSave = n;
-            void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, log }).catch(() => {});
+            void saveProgress(runId!, { stage: e.stage, text: e.text, current: e.current, total: e.total, counts: e.counts ?? {}, communes: e.communes, log }).catch(() => {});
           };
           push(ev, true);
           const errors: unknown[] = [];
