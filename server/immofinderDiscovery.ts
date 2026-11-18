@@ -1,4 +1,4 @@
-import { type ImmoConfig, isStopAgency } from './immofinderCore.ts';
+import { type ImmoConfig, isStopAgency, nonListingReason, isSpecificLink } from './immofinderCore.ts';
 
 export interface SearchHit { title: string; link: string; snippet: string }
 export interface DiscoveryItem { url: string; host: string; hit: SearchHit; snippetOnly: boolean }
@@ -62,6 +62,14 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig): DiscoveryItem[] {
     if (!/^https?:\/\//i.test(h.link) || seen.has(h.link)) continue;
     const host = hostOf(h.link); if (!host) continue;
     if (hostMatches(host, d.skipHosts) || isStopAgency(host.replace(/[.-]/g, ' '), cfg.stopAgencies)) continue;
+    // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
+    if (nonListingReason(h.title || '', h.link)) continue;
+    if (!isSpecificLink(h.link)) {
+      // Owner microsites without an ID are rare but valid; portals/FB roots/lists are not.
+      const dropHost = hostMatches(host, portalHosts)
+        || /facebook\.com$|booking\.com$|cozycozy\.|rentola\.|happyholiday\.|ferienhausmiete\.|airbnb\.|vrbo\./i.test(host);
+      if (dropHost) continue;
+    }
     seen.add(h.link);
     // Portal detail pages: fetch. Social/booking: snippet only.
     const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
