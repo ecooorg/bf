@@ -4,6 +4,7 @@ import ImmoFinderSettings, { summarize } from './ImmoFinderSettings.tsx';
 import { ModeMenu } from './ModeMenu.tsx';
 import { CommitBadge } from './CommitBadge.tsx';
 import { MoreHorizontal, Plus } from 'lucide-react';
+import { IMMO_COLORS, immoCardModel } from './immoCard.ts';
 
 type Listing = {
   listing_type?: string; first_seen_at: string; id: string; status: string; municipality: string; property_name: string; rooms_estimated: string | number; description_de: string; rent_monthly_chf?: number | null; pricing_unit?: string | null; listed_at?: string | null;
@@ -31,7 +32,6 @@ async function api(path: string, init?: RequestInit) {
   if (!r.ok) throw new Error(r.status === 401 ? 'Please sign in on the home page first.' : String(body?.error || `Request failed (${r.status})`));
   return body;
 }
-const fmtFound = (iso: string) => (iso ? new Date(iso).toLocaleString('de-CH', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
 const fmtDur = (s: number) => `${Math.floor(s / 60)}:${String(Math.max(0, Math.floor(s % 60))).padStart(2, '0')}`;
 const card: React.CSSProperties = { border: '1px solid #243a57', borderRadius: 14, background: '#0b1626', padding: 16, marginBottom: 14 };
 const chip: React.CSSProperties = { display: 'inline-block', padding: '2px 10px', borderRadius: 999, background: '#13263f', color: '#cfe6ff', fontSize: 13, marginRight: 6, marginBottom: 4 };
@@ -279,60 +279,26 @@ export default function ImmoFinder() {
         <button type="button" className="ghost" data-testid="immofinder-reset" onClick={() => void resetAll()} style={{ fontSize: 13, color: '#ffb4b4' }} disabled={busy}>Delete all & reset</button>
       </div>
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
-      {shown.map((l) => (
+      {shown.map((l) => {
+        const k = immoCardModel(l);
+        return (
         <article key={l.id} style={card} data-testid="immofinder-card">
-          <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, lineHeight: 1.35 }} data-testid="immofinder-card-headline">
-            📍 {l.municipality}
-            {' · '}
-            {(() => {
-              const unit = String(l.pricing_unit || (l as any).raw?.price?.unit || '').toLowerCase();
-              const period =
-                unit === 'night' || unit === 'day' ? 'per night'
-                : unit === 'week' ? 'per week'
-                : unit === 'month' ? 'per month'
-                : unit === 'season' ? 'per season'
-                : null;
-              const rawAmt = (l as any).raw?.price?.amount;
-              const amount = rawAmt != null && Number.isFinite(Number(rawAmt)) ? Number(rawAmt) : null;
-              const quote = typeof (l as any).raw?.price?.quote === 'string'
-                ? String((l as any).raw.price.quote).replace(/\s+/g, ' ').trim() : '';
-              if (amount != null && period) return `CHF ${amount} ${period}`;
-              if (unit === 'month' && l.rent_monthly_chf != null) return `CHF ${l.rent_monthly_chf} per month`;
-              if (quote.length >= 3 && /\d/.test(quote)) {
-                const hasPw = /per\s+(night|week|month)|\/(mo|wk|night)|\b(nacht|tag|woche|monat|saison)\b/i.test(quote);
-                if (period && !hasPw) return `${quote.slice(0, 36)} (${period})`;
-                if (!period && !hasPw) return `${quote.slice(0, 36)} (period unclear)`;
-                return quote.slice(0, 48);
-              }
-              if (amount != null) return period ? `CHF ${amount} ${period}` : `CHF ${amount} (period unclear)`;
-              return 'price n/a';
-            })()}
-            {' · '}
-            {l.rooms_estimated} rooms
-            {' · '}
-            {l.contact_status === 'found'
-              ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ')
-              : 'no direct contact'}
-          </p>
-          <p style={{ margin: '0 0 4px', fontSize: 14, color: '#cfe6ff' }}>
-            {[l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 220)}
-          </p>
+          <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, lineHeight: 1.35 }} data-testid="immofinder-card-headline">{k.headline}</p>
+          <p style={{ margin: '0 0 4px', fontSize: 14, color: IMMO_COLORS.about }}>{k.about}</p>
           <p style={{ margin: '0 0 8px', fontSize: 13 }} data-testid="immofinder-found-at">
-            <a href={l.listing_url} target="_blank" rel="noopener noreferrer" style={{ color: '#7db8ff', wordBreak: 'break-all' }}>
-              {l.listing_url}
-            </a>
-            {l.private_signals.includes('generic_link') && <span style={{ color: '#ffd28a' }}> (list/group page — not a single object)</span>}
-            <span style={{ color: '#8fa6c2' }}> · found {fmtFound(l.first_seen_at)}</span>
+            <a href={k.url} target="_blank" rel="noopener noreferrer" style={{ color: IMMO_COLORS.link, wordBreak: 'break-all' }}>{k.url}</a>
+            {k.linkNote && <span style={{ color: IMMO_COLORS.warn }}> {k.linkNote}</span>}
+            {k.found && <span style={{ color: IMMO_COLORS.muted }}> · {k.found}</span>}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <a href={l.listing_url} target="_blank" rel="noopener noreferrer" className="immo-btn small">{/facebook\.com/.test(l.listing_url) ? 'Open post' : 'Open listing'}</a>
-            {l.photo_urls.slice(0, 3).map((u, i) => <a key={u} href={u} target="_blank" rel="noopener noreferrer" style={{ ...chip, textDecoration: 'none' }}>Photo {i + 1}</a>)}
+            <a href={k.url} target="_blank" rel="noopener noreferrer" className="immo-btn small">{k.openLabel}</a>
+            {k.photos.map((p) => <a key={p.url} href={p.url} target="_blank" rel="noopener noreferrer" style={{ ...chip, textDecoration: 'none' }}>{p.label}</a>)}
             <button type="button" onClick={() => void navigator.clipboard?.writeText(l.draft_message_de)}>Copy German letter</button>
             <label style={{ marginLeft: 'auto', fontSize: 14 }}>Status <select value={l.status} onChange={(e) => void setStatus(l.id, e.target.value)}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select></label>
           </div>
-          <details style={{ marginTop: 8 }}><summary>Read the German letter</summary><pre style={{ whiteSpace: 'pre-wrap', fontSize: 13 }}>{l.draft_message_de}</pre></details>
         </article>
-      ))}
+        );
+      })}
     </div>
     </>
   );
