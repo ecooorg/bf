@@ -1,13 +1,16 @@
 /** ImmoFinder GR — pure logic (no I/O): matching, filters, verification, drafts. Every stored fact must be verifiable in fetched text. */
 export interface ImmoConfig {
-  municipalities: string[]; stopAgencies: string[]; minRooms: number; platformDomains: string[];
+  municipalities: string[];
+  /** Two fixed 22-commune groups for Settings toggles. */
+  municipalityGroups?: { group1: { label: string; municipalities: string[] }; group2: { label: string; municipalities: string[] } };
+  stopAgencies: string[]; minRooms: number; platformDomains: string[];
   sources: { id: string; url: string; phase: number; cityUrl?: string; detailPattern?: string; cutMarkers?: string[]; privateTitleHint?: string; maxDetailPages?: number; indexUrls?: string[] }[];
   fetch: { userAgent: string; perHostDelayMs: number; respectRobotsTxt: boolean };
   limits: { maxDetailPagesPerSource: number; recheckAfterDays: number; fetchTimeoutMs: number; maxPageBytes: number };
   estCostPerLlmCallUsd: number;
   estCostPerSearchUsd?: number;
   driveFolderId?: string;
-  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; snippetOnlyHosts: string[]; skipHosts: string[]; /** Min delay between Serper calls (rate limit). */ serperMinIntervalMs?: number; /** Soft cap on Serper calls per rolling minute. */ serperMaxPerMinute?: number };
+  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; portalSources?: { id: string; label: string; host: string }[]; snippetOnlyHosts: string[]; skipHosts: string[]; /** Min delay between Serper calls (rate limit). */ serperMinIntervalMs?: number; /** Soft cap on Serper calls per rolling minute. */ serperMaxPerMinute?: number };
   /** Optional public-source contact enrichment (secondary search + optional reverse image). Default off when omitted. */
   contactEnrichment?: {
     enabled: boolean;

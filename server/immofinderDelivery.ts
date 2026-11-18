@@ -294,9 +294,11 @@ export async function clearDriveExport(folderId: string, f: typeof fetch = fetch
 export async function checkDrive(folderId: string, f: typeof fetch = fetch): Promise<string> {
   try {
     const r = await resolveDrive(folderId, f);
-    const parts = [r.sheetId ? 'Sheet ok' : `Sheet "${SHEET_NAME}" missing`, r.docId ? 'Doc ok' : `Doc "${DOC_NAME}" missing`];
-    if (!r.sheetId && !r.docId) return `error: ${parts.join('; ')}. ${SETUP_HINT}`;
-    if (!r.sheetId || !r.docId) return `partial: ${parts.join('; ')}. ${SETUP_HINT}`;
+    const missing: string[] = [];
+    if (!r.sheetId) missing.push(`Google Sheet "${SHEET_NAME}"`);
+    if (!r.docId) missing.push(`Google Doc "${DOC_NAME}"`);
+    // Keep the historic "missing in the folder" phrase so P128.6 / UI checks stay stable.
+    if (missing.length) return `error: missing in the folder: ${missing.join(' and ')}. ${SETUP_HINT}`;
     return 'ready: folder and both files found';
   } catch (e) { return `error: ${String((e as Error)?.message || e).slice(0, 400)}`; }
 }

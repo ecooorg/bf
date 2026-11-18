@@ -37,17 +37,9 @@ export function buildQueries(
   const startCycle = opts?.allCommunes ? 0 : cycle;
   const communes = communesForRun(cfg.municipalities, per, startCycle);
 
+  // Full list of enabled templates — no truncation (Carousel and Full both finish every selected source).
   let privateT = families.includes('private') ? [...(d.queries || [])] : [];
   let portalT = families.includes('portals') ? [...(d.portalQueries || [])] : [];
-  if (opts?.allCommunes) {
-    if (privateT.length) {
-      const prefer = privateT.filter((q) =>
-        /facebook|privat|Eigentümer|Vermieter Kontakt|Nachmieter|zu vermieten|anibis|tutti/i.test(q)
-      ).slice(0, 4);
-      privateT = prefer.length ? prefer : privateT.slice(0, 3);
-    }
-    if (portalT.length) portalT = portalT.slice(0, 8);
-  }
   // Interleave private and portal templates so site: portals are not starved behind a long private queue.
   const templates: string[] = [];
   const n = Math.max(privateT.length, portalT.length);

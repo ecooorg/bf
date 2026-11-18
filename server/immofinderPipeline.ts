@@ -510,9 +510,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         res.errors.push({ source: 'search', code: 'run_time_budget', detail: `stopped with ${slice.length - qi} queries left` });
         break;
       }
-      if (finishAll && timeLeft() < 15_000) {
-        // Hard run deadline almost hit — still try to finish remaining with pacing, but note it.
-        res.errors.push({ source: 'search', code: 'run_time_budget_soft', detail: `near wall-clock end; continuing remaining ${slice.length - qi} queries` });
+      if (finishAll && timeLeft() < 15_000 && qi === 0) {
+        res.errors.push({ source: 'search', code: 'run_time_budget_soft', detail: `near wall-clock end at start; will still attempt ${slice.length} queries` });
       }
       await paceSerper();
       res.counts.search_queries++;
@@ -565,24 +564,37 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         const pageBudget = Math.max(cfg.discovery?.maxPagesPerRun ?? 80, 80);
         await runDiscoverySearch(undefined, pageBudget, { finishAll: true });
       }
+    } else if (waveMode === 'full') {
+      // Full search: every private + portal query for ALL enabled communes; pace Serper; do not truncate sources.
+      waveDeadline = runDeadline;
+      if (timeLeft() > 30_000) {
+        await runDiscoverySearch(undefined, Math.max(cfg.discovery?.maxPagesPerRun ?? 120, 120), { finishAll: true });
+      }
     } else if (priorityTimeLeft() > 60_000 && timeLeft() > 60_000) {
-      // Priority / full Stage 1: still capped query slices; extended wave continues the offset.
-      const qBudget = waveMode === 'full' ? 48 : 24;
-      const pageBudget = waveMode === 'full' ? 60 : 30;
-      await runDiscoverySearch(qBudget, pageBudget, { finishAll: false });
+      // Legacy priority Stage 1 only (no UI button): capped slice.
+      await runDiscoverySearch(24, 30, { finishAll: false });
     }
-    // Catalogues: skip on carousel ticks (Serper+LLM quality pass on 2 communes only).
-    if (waveMode !== 'carousel') {
+    // Catalogues: skip on carousel. On full, run all enabled catalogues without a short priority cutoff.
+    if (waveMode === 'carousel') {
+      say('catalogue', 'Carousel tick: catalogues skipped (web search + extract only)');
+    } else if (waveMode === 'full') {
+      for (const src of cfg.sources.filter((s) => s.phase === 1)) {
+        if (deps.shouldCancel?.()) break;
+        if (timeLeft() < 60_000) {
+          res.errors.push({ source: src.id, code: 'run_time_budget', detail: 'run wall-clock near end before catalogue' });
+          break;
+        }
+        await runCatalogueSource(src, 'full');
+      }
+    } else {
       for (const src of cfg.sources.filter((s) => s.phase === 1)) {
         if (deps.shouldCancel?.()) break;
         if (priorityTimeLeft() < 30_000) {
-          res.errors.push({ source: src.id, code: 'priority_wave_budget', detail: 'priority 10 min budget reached' });
+          res.errors.push({ source: src.id, code: 'priority_wave_budget', detail: 'priority wave budget reached' });
           break;
         }
         await runCatalogueSource(src, 'priority');
       }
-    } else {
-      say('catalogue', 'Carousel tick: catalogues skipped (web search + extract only)');
     }
     const priorityNew = res.newListings.slice(markA);
     res.priorityNewListings = priorityNew;

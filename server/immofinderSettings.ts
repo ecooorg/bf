@@ -1,7 +1,22 @@
 import type { ImmoConfig } from './immofinderCore.ts';
 import { DEFAULT_QUALITY, type QualitySettings } from './immofinderCore.ts';
 
-export const SOURCE_IDS = ['search', 'swiss-portals'] as const;
+export const SOURCE_IDS = [
+  'search',
+  'portal-immoscout24',
+  'portal-homegate',
+  'portal-newhome',
+  'portal-flatfox',
+  'portal-tutti',
+  'portal-anibis',
+  'portal-petitesannonces',
+  'portal-immobilier',
+  'portal-acheter-louer',
+  'portal-immostreet',
+  'portal-home',
+  'portal-icasa',
+  'portal-urbanhome',
+] as const;
 export const TIMEZONE = 'Europe/Zurich';
 
 export interface ImmoSettings {
@@ -10,6 +25,8 @@ export interface ImmoSettings {
   search: {
     minRooms: number;
     communes: string[];
+    /** Which of the two 22-commune groups participate in search. */
+    municipalityGroups: { group1: boolean; group2: boolean };
     sources: Record<string, boolean>;
     maxAiPages: number;
     /** When false, maxMonthlyRentChf is ignored (no price cap). */
@@ -22,7 +39,7 @@ export interface ImmoSettings {
     requireContact: boolean;
     /** Scheduled / default manual wave when not chosen on the main screen. */
     defaultWave: 'priority' | 'full';
-    /** carousel = 2 communes/tick quality mode (C129); burst = manual Stage1/Full coverage. */
+    /** carousel = commune-slice tick; burst unused for UI (only carousel + full remain). */
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
   };
@@ -36,7 +53,12 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
     search: {
       minRooms: cfg.minRooms,
       communes: [...cfg.municipalities],
-      sources: Object.fromEntries(SOURCE_IDS.map((s) => [s, true])),
+      municipalityGroups: { group1: true, group2: true },
+      sources: Object.fromEntries([
+        ...SOURCE_IDS.map((s) => [s, true] as const),
+        // Catalogue source ids (if present in config) default off — discovery portals are the product surface.
+        ...(cfg.sources || []).map((src) => [src.id, false] as const),
+      ]),
       maxAiPages: 60,
       limitPrice: true,
       maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf || 2000, 2000),
@@ -45,7 +67,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       rejectNonMonthly: true,
       rejectSeekerPosts: true,
       requireContact: false,
-      defaultWave: 'priority',
+      defaultWave: 'full',
       profile: 'carousel',
       carouselCommunesPerRun: 2,
     },
@@ -80,18 +102,40 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const minRooms = Number.isInteger(Number(se.minRooms)) && Number(se.minRooms) >= 1 && Number(se.minRooms) <= 8 ? Number(se.minRooms) : d.search.minRooms;
   const maxAiPages = [20, 40, 60, 100, 200].includes(Number(se.maxAiPages)) ? Number(se.maxAiPages) : d.search.maxAiPages;
   const srcIn = (se.sources || {}) as Record<string, unknown>;
-  const sources = Object.fromEntries(SOURCE_IDS.map((id) => {
-    if (Object.prototype.hasOwnProperty.call(srcIn, id)) return [id, bool(srcIn[id], true)];
-    // If caller only toggled `search: false`, keep discovery off (legacy test + "disable web search").
-    if (id === 'swiss-portals' && srcIn.search === false) return [id, false];
-    return [id, true];
-  }));
+  const catalogueIds = (cfg.sources || []).map((s) => s.id);
+  const allIds = Array.from(new Set<string>([...SOURCE_IDS, ...catalogueIds, ...Object.keys(srcIn)]));
+  const sources: Record<string, boolean> = {};
+  for (const id of allIds) {
+    if (Object.prototype.hasOwnProperty.call(srcIn, id)) sources[id] = bool(srcIn[id], true);
+    else if ((SOURCE_IDS as readonly string[]).includes(id)) sources[id] = true;
+    else sources[id] = false; // catalogue defaults off
+  }
+  // Legacy master toggle: swiss-portals on/off → every portal-* source
+  if (Object.prototype.hasOwnProperty.call(srcIn, 'swiss-portals')) {
+    const on = bool(srcIn['swiss-portals'], true);
+    for (const id of SOURCE_IDS) if (id.startsWith('portal-')) sources[id] = on;
+  }
+  // Legacy: search false used to mean all discovery off
+  if (srcIn.search === false && !Object.keys(srcIn).some((k) => k.startsWith('portal-'))) {
+    for (const id of SOURCE_IDS) if (id.startsWith('portal-')) sources[id] = false;
+  }
+  const mgIn = (se.municipalityGroups || {}) as Record<string, unknown>;
+  const municipalityGroups = {
+    group1: bool(mgIn.group1, true),
+    group2: bool(mgIn.group2, true),
+  };
+  // If neither group is checked, fall back to both (never empty search set by accident)
+  if (!municipalityGroups.group1 && !municipalityGroups.group2) {
+    municipalityGroups.group1 = true;
+    municipalityGroups.group2 = true;
+  }
   return {
     schedule: { mode, everyHours, dailyAt },
     delivery: { telegram: bool(dl.telegram, d.delivery.telegram), email: bool(dl.email, false) && Boolean(emailTo), emailTo, emailContent: dl.emailContent === 'all' ? 'all' : 'new', drive: bool(dl.drive, d.delivery.drive), driveFolderId: parseDriveFolderId(dl.driveFolderId), notifyWhenEmpty: bool(dl.notifyWhenEmpty, false) },
     search: {
       minRooms,
       communes: communes.length ? communes : d.search.communes,
+      municipalityGroups,
       sources,
       maxAiPages,
       limitPrice: bool(se.limitPrice, d.search.limitPrice),
@@ -110,26 +154,57 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
 
 export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
   const wantPrivate = s.search.sources.search !== false;
-  const wantPortals = s.search.sources['swiss-portals'] !== false;
+  const portalMeta = (cfg.discovery as any)?.portalSources as { id: string; host: string }[] | undefined;
+  const enabledPortalHosts = new Set<string>();
+  if (portalMeta?.length) {
+    for (const p of portalMeta) {
+      if (s.search.sources[p.id] !== false) enabledPortalHosts.add(p.host.replace(/^www\./, ''));
+    }
+  } else {
+    // Fallback: any portal-* true → keep all portalQueries
+    for (const [id, on] of Object.entries(s.search.sources)) {
+      if (id.startsWith('portal-') && on !== false) enabledPortalHosts.add('*');
+    }
+  }
+  const filterPortalQueries = (qs: string[]) => {
+    if (!qs.length) return [];
+    if (enabledPortalHosts.has('*')) return qs;
+    if (!enabledPortalHosts.size) return [];
+    return qs.filter((q) => {
+      const m = /site:([a-z0-9.-]+)/i.exec(q);
+      if (!m) return true;
+      const host = m[1].replace(/^www\./, '');
+      return [...enabledPortalHosts].some((h) => host === h || host.endsWith('.' + h) || h.endsWith('.' + host));
+    });
+  };
+  const portalQueries = filterPortalQueries(cfg.discovery?.portalQueries || []);
+  const wantPortals = portalQueries.length > 0;
+  // Municipalities: intersection of chip selection and enabled groups
+  const groups = (cfg as any).municipalityGroups as { group1?: { municipalities: string[] }; group2?: { municipalities: string[] } } | undefined;
+  const allowed = new Set<string>();
+  if (groups) {
+    if (s.search.municipalityGroups?.group1 !== false) (groups.group1?.municipalities || []).forEach((m) => allowed.add(m));
+    if (s.search.municipalityGroups?.group2 !== false) (groups.group2?.municipalities || []).forEach((m) => allowed.add(m));
+  } else {
+    cfg.municipalities.forEach((m) => allowed.add(m));
+  }
+  const municipalities = cfg.municipalities.filter((m) => s.search.communes.includes(m) && allowed.has(m));
   const discovery = cfg.discovery
     ? {
         ...cfg.discovery,
-        // Discovery runs when either private web search or Swiss portals is enabled.
         enabled: cfg.discovery.enabled && (wantPrivate || wantPortals),
         communesPerRun:
           s.search.profile === 'carousel'
             ? s.search.carouselCommunesPerRun
-            : Math.max(cfg.discovery.communesPerRun, s.search.communes.length > 0 ? Math.min(44, s.search.communes.length) : cfg.discovery.communesPerRun),
-        // Restrict query families to what the user toggled in Sources.
+            : Math.max(cfg.discovery.communesPerRun, municipalities.length > 0 ? Math.min(44, municipalities.length) : cfg.discovery.communesPerRun),
         queries: wantPrivate ? (cfg.discovery.queries || []) : [],
-        portalQueries: wantPortals ? (cfg.discovery.portalQueries || []) : [],
+        portalQueries,
       }
     : cfg.discovery;
   return {
     ...cfg,
     minRooms: s.search.minRooms,
-    municipalities: cfg.municipalities.filter((m) => s.search.communes.includes(m)),
-    // Catalogue sources removed from product surface; discovery-only.
+    municipalities: municipalities.length ? municipalities : cfg.municipalities.filter((m) => allowed.has(m)),
     sources: cfg.sources.filter((src) => s.search.sources[src.id] !== false),
     discovery,
     quality: {
