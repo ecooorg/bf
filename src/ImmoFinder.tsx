@@ -12,13 +12,24 @@ type Listing = {
   direct_phone: string | null; direct_email: string | null; owner_name: string | null; draft_message_de: string;
 };
 type Preview = { url: string; title: string; source: string; municipality: string | null; rooms: number | null; kept: boolean; reason?: string; detail?: string };
-type Progress = { stage?: string; text?: string; current?: number; total?: number; counts?: Record<string, number>; log?: { t: number; text: string }[] };
+type Progress = { stage?: string; text?: string; current?: number; total?: number; counts?: Record<string, number>; communes?: string[]; log?: { t: number; text: string }[] };
 type Run = {
   sources?: Preview[]; progress?: Progress; started_at: string; finished_at: string | null; trigger: string; dry_run: boolean; counts: Record<string, any>;
   errors: { code: string; source?: string; detail?: string }[]; est_cost_usd: string; delivery: Record<string, string>;
 } | null;
 const STATUSES = ['NEW', 'CONTACTED', 'REPLIED', 'REJECTED'];
 const STAGES: Record<string, string> = { catalogue: 'Step 1 of 3 · Checking rental catalogues', search: 'Step 2 of 3 · Searching the web by commune', delivery: 'Step 3 of 3 · Saving and notifying', done: 'Finished' };
+/** Step title: for search/carousel append the commune names from progress.communes. */
+function stageHeading(stage?: string, communes?: string[]): string {
+  const list = (communes || []).map((c) => String(c).trim()).filter(Boolean);
+  if (stage === 'search' && list.length) {
+    return `Step 2 of 3 · Searching the web by commune: ${list.join(', ')}`;
+  }
+  if (stage === 'catalogue' && list.length) {
+    return `Step 1 of 3 · Checking catalogues (${list.join(', ')})`;
+  }
+  return STAGES[stage || 'catalogue'] || 'Working';
+}
 const REASONS: Record<string, string> = {
   not_single_listing: 'not a single property page', agency: 'agency or manager', municipality_not_whitelisted: 'outside the target communes', rooms_unknown: 'room count not stated',
   rooms_below_min: 'fewer than 3 rooms', registration_forbidden: 'permanent registration not allowed',
@@ -195,7 +206,7 @@ export default function ImmoFinder() {
         <section style={{ ...card, borderColor: '#2d8cff' }} data-testid="immofinder-live" aria-live="polite">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ width: 18, height: 18, border: '3px solid #2d8cff', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'immospin 0.9s linear infinite' }} />
-            <strong>{STAGES[pr.stage || 'catalogue'] || 'Working'}</strong>
+            <strong data-testid="immofinder-stage-title">{stageHeading(pr.stage, pr.communes)}</strong>
             <span style={{ marginLeft: 'auto', color: '#8fa6c2' }}>{run ? fmtDur(elapsed) : '0:00'}</span>
           </div>
           <p style={{ margin: '10px 0 6px', wordBreak: 'break-word' }}>{pr.text || 'Starting…'}</p>
