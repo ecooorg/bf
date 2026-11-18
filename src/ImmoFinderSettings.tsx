@@ -28,8 +28,20 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 /** High-value first; labels match Stage-1 productivity for private long-term leads. */
 /** High-value first. Only private long-term leads with a stated price. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
-  { id: 'search', label: 'Web search (Facebook & private)', hint: 'Facebook groups, Nachmieter, direct owner ads', priority: true },
-  { id: 'swiss-portals', label: 'Swiss portals (Homegate, ImmoScout24, …)', hint: '13 CH sites — private listings with price only; agencies dropped', priority: true },
+  { id: 'search', label: 'Web search (Facebook & private)', hint: 'Facebook groups, Nachmieter, direct owner ads via Google', priority: true },
+  { id: 'portal-immoscout24', label: 'ImmoScout24', hint: 'site:immoscout24.ch', priority: true },
+  { id: 'portal-homegate', label: 'Homegate', hint: 'site:homegate.ch', priority: true },
+  { id: 'portal-newhome', label: 'Newhome', hint: 'site:newhome.ch', priority: true },
+  { id: 'portal-flatfox', label: 'Flatfox', hint: 'site:flatfox.ch', priority: true },
+  { id: 'portal-tutti', label: 'Tutti', hint: 'site:tutti.ch', priority: true },
+  { id: 'portal-anibis', label: 'Anibis', hint: 'site:anibis.ch', priority: true },
+  { id: 'portal-petitesannonces', label: 'Petites Annonces', hint: 'site:petitesannonces.ch', priority: true },
+  { id: 'portal-immobilier', label: 'Immobilier.ch', hint: 'site:immobilier.ch', priority: true },
+  { id: 'portal-acheter-louer', label: 'Acheter-Louer', hint: 'site:acheter-louer.ch', priority: true },
+  { id: 'portal-immostreet', label: 'ImmoStreet', hint: 'site:immostreet.ch', priority: true },
+  { id: 'portal-home', label: 'Home.ch', hint: 'site:home.ch', priority: true },
+  { id: 'portal-icasa', label: 'ICasa', hint: 'site:icasa.ch', priority: true },
+  { id: 'portal-urbanhome', label: 'UrbanHome', hint: 'site:urbanhome.ch', priority: true },
 ];
 
 const box: React.CSSProperties = { border: '1px solid #243a57', borderRadius: 12, padding: 12, marginBottom: 12 };
@@ -182,6 +194,50 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
           <p style={{ ...hint, marginLeft: 22 }}>No price cap — better recall for private long-term offers.</p>
         )}
 
+        <div style={{ margin: '10px 0 8px' }}>
+          <strong>Municipality groups</strong>
+          <p style={hint}>Only checked groups take part in Carousel and Full search.</p>
+          <label style={labelBlock}>
+            <input
+              type="checkbox"
+              checked={s.search.municipalityGroups?.group1 !== false}
+              onChange={(e) =>
+                upd((x) => ({
+                  ...x,
+                  search: {
+                    ...x.search,
+                    municipalityGroups: {
+                      group1: e.target.checked,
+                      group2: x.search.municipalityGroups?.group2 !== false,
+                    },
+                  },
+                }))
+              }
+              data-testid="immofinder-group1"
+            />{' '}
+            Group 1 (22) — Chur / Rhine belt (Haldenstein…Tschiertschen)
+          </label>
+          <label style={labelBlock}>
+            <input
+              type="checkbox"
+              checked={s.search.municipalityGroups?.group2 !== false}
+              onChange={(e) =>
+                upd((x) => ({
+                  ...x,
+                  search: {
+                    ...x.search,
+                    municipalityGroups: {
+                      group1: x.search.municipalityGroups?.group1 !== false,
+                      group2: e.target.checked,
+                    },
+                  },
+                }))
+              }
+              data-testid="immofinder-group2"
+            />{' '}
+            Group 2 (22) — Prättigau / Surselva / south (Maienfeld…Peist)
+          </label>
+        </div>
         <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setShowCommunes((v) => !v)}>
           Communes ({selectedCommunes} of {allCommunes || selectedCommunes} selected)
         </button>
@@ -312,8 +368,8 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             }
             data-testid="immofinder-default-wave"
           >
-            <option value="priority">Stage 1 only (~10 min, best sources)</option>
-            <option value="full">Full (Stage 1 + Stage 2)</option>
+            <option value="full">Full search (all selected sources)</option>
+            <option value="priority">Legacy Stage 1 only</option>
           </select>
         </label>
         <p style={hint}>Main-screen buttons still override this for one run.</p>

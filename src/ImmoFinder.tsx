@@ -24,7 +24,7 @@ const REASONS: Record<string, string> = {
   rooms_below_min: 'fewer than 3 rooms', registration_forbidden: 'permanent registration not allowed',
   price_above_max: 'monthly rent above your limit', price_not_monthly: 'price is per night/week/season', price_unknown: 'price not stated', stale_listing: 'listing too old', seeker_post: 'looking for a flat (not an offer)', contact_required: 'no direct contact',
 };
-const SOURCE_LABEL: Record<string, string> = { search: 'Web search', 'swiss-portals': 'Swiss portals', homegate: 'Homegate', immoscout24: 'ImmoScout24', flatfox: 'Flatfox', tutti: 'Tutti', anibis: 'Anibis', newhome: 'Newhome' };
+const SOURCE_LABEL: Record<string, string> = { search: 'Web search', 'portal-homegate': 'Homegate', 'portal-immoscout24': 'ImmoScout24', 'portal-flatfox': 'Flatfox', 'portal-tutti': 'Tutti', 'portal-anibis': 'Anibis', 'portal-newhome': 'Newhome', 'portal-petitesannonces': 'Petites Annonces', 'portal-immobilier': 'Immobilier.ch', 'portal-acheter-louer': 'Acheter-Louer', 'portal-immostreet': 'ImmoStreet', 'portal-home': 'Home.ch', 'portal-icasa': 'ICasa', 'portal-urbanhome': 'UrbanHome' };
 
 async function api(path: string, init?: RequestInit) {
   const r = await fetch(path, { credentials: 'same-origin', ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } });
@@ -158,25 +158,19 @@ export default function ImmoFinder() {
       <p style={{ color: '#8fa6c2', marginTop: 0 }}>Finds private owners of holiday flats (3+ rooms) in Graubünden and prepares a long-term lease letter. Letters are never sent automatically.</p>
 
       <section style={card}>
-        <button type="button" data-testid="immofinder-run" onClick={() => void start('full')} disabled={busy}
-          className="immo-btn" style={{ width: '100%', padding: '16px 12px', fontSize: 20, cursor: busy ? 'default' : 'pointer' }}>
-          {busy ? 'Search is running…' : '🔍 Full search (both stages)'}
-        </button>
-        {!busy && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+        {!busy ? (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button type="button" data-testid="immofinder-run-carousel" onClick={() => void start('carousel')} disabled={busy}
-              className="immo-btn" style={{ flex: 1, minWidth: 140, padding: '12px 8px', fontSize: 15 }}>
-              Carousel tick (2 communes)
+              className="immo-btn" style={{ flex: 1, minWidth: 160, padding: '16px 12px', fontSize: 17 }}>
+              🔄 Carousel
             </button>
-            <button type="button" data-testid="immofinder-run-priority" onClick={() => void start('priority')} disabled={busy}
-              className="immo-btn" style={{ flex: 1, minWidth: 140, padding: '12px 8px', fontSize: 15 }}>
-              Stage 1 only
-            </button>
-            <button type="button" data-testid="immofinder-run-extended" onClick={() => void start('extended')} disabled={busy}
-              className="immo-btn" style={{ flex: 1, minWidth: 140, padding: '12px 8px', fontSize: 15 }}>
-              Stage 2 only
+            <button type="button" data-testid="immofinder-run" onClick={() => void start('full')} disabled={busy}
+              className="immo-btn" style={{ flex: 1, minWidth: 160, padding: '16px 12px', fontSize: 17 }}>
+              🔍 Full search
             </button>
           </div>
+        ) : (
+          <p style={{ margin: '0 0 8px', fontSize: 15, color: '#9fb4cf' }}>Search is running… finishes all selected sources (Serper-paced).</p>
         )}
         {busy && (
           <button type="button" data-testid="immofinder-stop" className="immo-btn" onClick={() => void stop()}
@@ -187,7 +181,7 @@ export default function ImmoFinder() {
         <label style={{ display: 'block', marginTop: 10, fontSize: 14, color: '#9fb4cf' }}>
           <input type="checkbox" checked={dry} onChange={(e) => setDry(e.target.checked)} disabled={busy} /> Test run: quick check without AI, nothing is saved
         </label>
-        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Carousel: next communes this hour. Stage 1 / Full: burst modes. Prefer carousel on a schedule.</p>}
+        {!busy && <p style={{ margin: '8px 0 0', fontSize: 13, color: '#8fa6c2' }}>Carousel: next commune slice × all selected sources. Full: all enabled communes × all selected sources. Both run to completion.</p>}
       </section>
 
       <details style={card}>
