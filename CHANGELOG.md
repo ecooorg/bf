@@ -1,3 +1,9 @@
+## [129.12] - Drive: update Sheet even if Doc is missing
+
+- exportDrive no longer fails closed when only one of Sheet/Doc is in the folder: writes the file that exists and reports the missing one in status.
+- checkDrive returns partial when only Sheet or only Doc is found.
+- Does not create files (service accounts still cannot create in personal My Drive).
+
 ## [129.11] - P128.3 FB snippet needs monthly price under requirePrice
 
 - agents-contract P128.3: Facebook marketplace fixture snippet includes CHF monthly rent so requirePrice (config.quality) keeps it alongside the owner page (kept=2).
