@@ -1,3 +1,10 @@
+## [129.16] - Group chips, carousel commune title, stronger price parse
+
+- Typecheck: `municipalityGroups` on Settings client type S.
+- Group checkboxes rewrite `communes` and dim chips outside the selected group(s).
+- Carousel live title lists the communes in this tick (`Carousel: Flims, Trin — …`).
+- parsePrice: bare `1510.-`, spaced thousands, Fr-first, JSON-LD price, Miete-without-CHF; wider context; month assumption in long-term band near rent words.
+
 ## [129.15] - Groups, per-source toggles, two search buttons, finish-all
 
 - CI: checkDrive again reports `missing in the folder: … ImmoFinder drafts` when Doc is absent (P128.6).
