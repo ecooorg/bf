@@ -107,7 +107,7 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
   const cfg = { ...immoCfg, sources: [{ id: 't', url: 'https://t.example/area', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
   const pages = {
     'https://t.example/area': immoPage('Index', '<a href="/ferienwohnung/1">a</a><a href="/ferienwohnung/2">b</a><a href="/ferienwohnung/3">c</a>'),
-    'https://t.example/ferienwohnung/1': immoPage('Chesa Alba', '<p>Chesa Alba in Churwalden, 4.5 Zimmer Wohnung. Kontakt: Hans Muster, hans@example.org, 081 111 22 33.</p>'),
+    'https://t.example/ferienwohnung/1': immoPage('Chesa Alba', '<p>Chesa Alba in Churwalden, 4.5 Zimmer Wohnung. Nettomiete CHF 1\'200 pro Monat. Kontakt: Hans Muster, hans@example.org, 081 111 22 33.</p>'),
     'https://t.example/ferienwohnung/2': immoPage('Interhome Haus', '<p>Interhome Ferienhaus in Chur, 5 Zimmer.</p>'),
     'https://t.example/ferienwohnung/3': immoPage('Studio Davos', '<p>Studio in Davos, 1.5 Zimmer.</p>'),
   };
@@ -156,7 +156,7 @@ test('P128.2 footer cut, slug variants, agency flag needs a business-form quote,
   const pages = {
     'https://h.example/area/': '<html></html>',
     'https://h.example/city/chur/': '<a href="/haus/chesa-x-graubuenden-in-chur/">x</a>',
-    'https://h.example/haus/chesa-x-graubuenden-in-chur/': immoPage('Chesa X in Chur – von privat', '<p>Chesa X in Chur, 4 Zimmer. Wohnzimmer. Andere Häuser Laax 9 Zimmer</p>'),
+    'https://h.example/haus/chesa-x-graubuenden-in-chur/': immoPage('Chesa X in Chur – von privat', '<p>Chesa X in Chur, 4 Zimmer. Mietzins CHF 1\'350 pro Monat. Wohnzimmer. Andere Häuser Laax 9 Zimmer</p>'),
   };
   let fetched = 0; const saved = []; const seen = new Map();
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async (u) => seen.get(u) || null, markSeen: async (u) => { seen.set(u, { checked_at: new Date().toISOString() }); } };
@@ -173,7 +173,7 @@ test('P128.2 footer cut, slug variants, agency flag needs a business-form quote,
 test('P128.3 discovery: commune rotation, host policy, snippet-only portals, owner pages fetched, dedupe, no key = reported', async () => {
   assert.deepEqual(communesForRun(['a', 'b', 'c', 'd'], 3, 0), ['a', 'b', 'c']);
   assert.deepEqual(communesForRun(['a', 'b', 'c', 'd'], 3, 1), ['d', 'a', 'b']);
-  const cfg = { ...immoCfg, municipalities: ['Chur', 'Zizers'], sources: [], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 }, discovery: { ...immoCfg.discovery, communesPerRun: 1, queries: ['Ferienwohnung {commune} privat'], maxPagesPerRun: 10 } };
+  const cfg = { ...immoCfg, municipalities: ['Chur', 'Zizers'], sources: [], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 }, discovery: { ...immoCfg.discovery, communesPerRun: 1, queries: ['Ferienwohnung {commune} privat'], portalQueries: [], maxPagesPerRun: 10 } };
   assert.deepEqual(buildQueries(cfg, 1), ['Ferienwohnung Zizers privat']);
   const hits = [
     { title: 'Interhome Chur', link: 'https://www.interhome.ch/x', snippet: 'Interhome' },
@@ -184,7 +184,7 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
   ];
   const items = pickItems(hits, cfg);
   assert.deepEqual(items.map((i) => [i.host, i.snippetOnly]), [['facebook.com', true], ['chesa-mia.example', false]]);
-  const pages = { 'https://chesa-mia.example/': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung. Tel 081 222 33 44, mia@chesa-mia.example</p>') };
+  const pages = { 'https://chesa-mia.example/': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung. CHF 1\'800 pro Monat. Tel 081 222 33 44, mia@chesa-mia.example</p>') };
   const saved = [];
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async () => null, markSeen: async () => {} };
   const fetchPage = async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 403, body: '' });
@@ -203,7 +203,7 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
 
 test('P128.4 pipeline reports live progress with stage, text and counters', async () => {
   const cfg = { ...immoCfg, municipalities: ['Chur'], discovery: { ...immoCfg.discovery, communesPerRun: 1, queries: ['q {commune}'] }, sources: [{ id: 'h', url: 'https://h.example/area/', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
-  const pages = { 'https://h.example/area/': '<a href="/ferienwohnung/1">a</a>', 'https://h.example/ferienwohnung/1': immoPage('Chesa A', '<p>Chesa A in Chur, 4 Zimmer</p>') };
+  const pages = { 'https://h.example/area/': '<a href="/ferienwohnung/1">a</a>', 'https://h.example/ferienwohnung/1': immoPage('Chesa A', '<p>Chesa A in Chur, 4 Zimmer. Mietzins CHF 1\'100 pro Monat.</p>') };
   const ev = [];
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
   await runPipeline({ config: cfg, fetchPage: async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 404, body: '' }), llm: null, store, search: async () => [], onProgress: (e) => { ev.push(e); if (ev.length === 2) throw new Error('progress must not break runs'); } }, { dryRun: true });
@@ -230,7 +230,7 @@ test('P128.5 settings: invalid input falls back, scope applies to config, schedu
   assert.equal(isDue(daily, new Date('2026-11-15T05:10:00Z'), new Date('2026-11-16T04:30:00Z')), false, '05:30 Swiss time is before 06:00');
   assert.equal(isDue(daily, new Date('2026-11-15T05:10:00Z'), new Date('2026-11-16T05:07:00Z')), true, '06:07 Swiss time, last run yesterday');
   assert.equal(isDue(daily, new Date('2026-11-16T05:10:00Z'), new Date('2026-11-16T09:00:00Z')), false, 'already ran today after 06:00');
-  const cap = []; const pages = { 'https://c.example/a': '<a href="/ferienwohnung/1">1</a><a href="/ferienwohnung/2">2</a><a href="/ferienwohnung/3">3</a>', 'https://c.example/ferienwohnung/1': immoPage('A Chur', '<p>A in Chur 4 Zimmer</p>'), 'https://c.example/ferienwohnung/2': immoPage('B Chur', '<p>B in Chur 4 Zimmer</p>'), 'https://c.example/ferienwohnung/3': immoPage('C Chur', '<p>C in Chur 4 Zimmer</p>') };
+  const cap = []; const pages = { 'https://c.example/a': '<a href="/ferienwohnung/1">1</a><a href="/ferienwohnung/2">2</a><a href="/ferienwohnung/3">3</a>', 'https://c.example/ferienwohnung/1': immoPage('A Chur', '<p>A in Chur 4 Zimmer. CHF 900 pro Monat</p>'), 'https://c.example/ferienwohnung/2': immoPage('B Chur', '<p>B in Chur 4 Zimmer. CHF 950 pro Monat</p>'), 'https://c.example/ferienwohnung/3': immoPage('C Chur', '<p>C in Chur 4 Zimmer. CHF 1\'000 pro Monat</p>') };
   const llm = async () => { cap.push(1); return { single_property: true, property_name: null, municipality_quote: null, rooms_quote: null, owner_name: null, owner_name_quote: null, is_agency_or_manager: false, agency_quote: null, registration_forbidden_quote: null, summary_de: '', title_ru: '', summary_ru: '' }; };
   const cfg = { ...immoCfg, municipalities: ['Chur'], discovery: { ...immoCfg.discovery, enabled: false }, sources: [{ id: 'c', url: 'https://c.example/a', phase: 1 }], fetch: { ...immoCfg.fetch, perHostDelayMs: 0 } };
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async () => 'new', getSeen: async () => null, markSeen: async () => {} };
