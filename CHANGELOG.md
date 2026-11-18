@@ -1,3 +1,10 @@
+## [129.19] - Render keep-alive every 12–14 min
+
+- Ping public URL every 12–14 min (under free-tier ~15 min idle).
+- First ping 30–90s after boot; always hits `/api/health`; logs each ok/fail.
+- Fallback base URL if `RENDER_EXTERNAL_URL` missing in production.
+- Retries in 45–75s on failure so one miss cannot open a 15+ min gap.
+
 ## [129.18] - Quality keep filters (list/agency/seeker/price); short-term stays
 
 - List/search/join URLs dropped earlier in pickItems and at keep (not_single_listing); reduces fetch queue without cutting Serper templates.
