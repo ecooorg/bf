@@ -230,7 +230,9 @@
       "home.ch",
       "icasa.ch",
       "urbanhome.ch"
-    ]
+    ],
+    "serperMinIntervalMs": 1500,
+    "serperMaxPerMinute": 40
   },
   "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
   "quality": {
