@@ -232,7 +232,74 @@
       "urbanhome.ch"
     ],
     "serperMinIntervalMs": 1500,
-    "serperMaxPerMinute": 40
+    "serperMaxPerMinute": 40,
+    "portalSources": [
+      {
+        "id": "portal-immoscout24",
+        "label": "ImmoScout24",
+        "host": "immoscout24.ch"
+      },
+      {
+        "id": "portal-homegate",
+        "label": "Homegate",
+        "host": "homegate.ch"
+      },
+      {
+        "id": "portal-newhome",
+        "label": "Newhome",
+        "host": "newhome.ch"
+      },
+      {
+        "id": "portal-flatfox",
+        "label": "Flatfox",
+        "host": "flatfox.ch"
+      },
+      {
+        "id": "portal-tutti",
+        "label": "Tutti",
+        "host": "tutti.ch"
+      },
+      {
+        "id": "portal-anibis",
+        "label": "Anibis",
+        "host": "anibis.ch"
+      },
+      {
+        "id": "portal-petitesannonces",
+        "label": "Petites Annonces",
+        "host": "petitesannonces.ch"
+      },
+      {
+        "id": "portal-immobilier",
+        "label": "Immobilier.ch",
+        "host": "immobilier.ch"
+      },
+      {
+        "id": "portal-acheter-louer",
+        "label": "Acheter-Louer",
+        "host": "acheter-louer.ch"
+      },
+      {
+        "id": "portal-immostreet",
+        "label": "ImmoStreet",
+        "host": "immostreet.ch"
+      },
+      {
+        "id": "portal-home",
+        "label": "Home.ch",
+        "host": "home.ch"
+      },
+      {
+        "id": "portal-icasa",
+        "label": "ICasa",
+        "host": "icasa.ch"
+      },
+      {
+        "id": "portal-urbanhome",
+        "label": "UrbanHome",
+        "host": "urbanhome.ch"
+      }
+    ]
   },
   "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
   "quality": {
@@ -243,7 +310,7 @@
     "rejectSeekerPosts": true,
     "requireContact": false
   },
-  "runMaxDurationMs": 1800000,
+  "runMaxDurationMs": 2700000,
   "contactEnrichment": {
     "enabled": true,
     "maxExtraSearchesPerRun": 35,
@@ -252,5 +319,61 @@
     "useReverseImage": true,
     "useSecondarySearch": true
   },
-  "priorityWaveMs": 600000
+  "priorityWaveMs": 1200000,
+  "municipalityGroups": {
+    "group1": {
+      "label": "Group 1 (Rhine / Chur belt)",
+      "municipalities": [
+        "Chur",
+        "Haldenstein",
+        "Trimmis",
+        "Untervaz",
+        "Zizers",
+        "Igis",
+        "Landquart",
+        "Felsberg",
+        "Domat/Ems",
+        "Tamins",
+        "Trin",
+        "Flims",
+        "Bonaduz",
+        "Rhäzüns",
+        "Cazis",
+        "Thusis",
+        "Maladers",
+        "Churwalden",
+        "Passugg",
+        "Araschgen",
+        "Praden",
+        "Tschiertschen"
+      ]
+    },
+    "group2": {
+      "label": "Group 2 (Prättigau / Surselva / south)",
+      "municipalities": [
+        "Maienfeld",
+        "Fläsch",
+        "Jenins",
+        "Malans",
+        "Grüsch",
+        "Seewis-Pardisla",
+        "Schiers",
+        "Laax",
+        "Versam",
+        "Valendas",
+        "Castrisch",
+        "Ilanz",
+        "Rothenbrunnen",
+        "Rodels",
+        "Realta",
+        "Parpan",
+        "Valbella",
+        "Lenzerheide",
+        "Castiel",
+        "Lüen",
+        "St. Peter-Molinis",
+        "Peist"
+      ]
+    }
+  }
 }
