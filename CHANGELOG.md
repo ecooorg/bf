@@ -1,3 +1,7 @@
+## [129.11] - P128.3 FB snippet needs monthly price under requirePrice
+
+- agents-contract P128.3: Facebook marketplace fixture snippet includes CHF monthly rent so requirePrice (config.quality) keeps it alongside the owner page (kept=2).
+
 ## [129.10] - CI green + Serper HTTP 400
 
 - Serper: clamp `num` to 1..10 (API returns 400 above 10); skip empty queries; resultsPerQuery back to 10.
