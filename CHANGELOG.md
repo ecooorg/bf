@@ -1,3 +1,11 @@
+## [129.13] - Carousel: no query-count budget; Serper time pacing
+
+- Carousel runs every private + portal template for its commune slice (finishAll); no maxQueries=12 cap.
+- Wave deadline for carousel = full runMaxDurationMs (not 10 min priority cap).
+- Serper paced by serperMinIntervalMs (default 1.5s) and serperMaxPerMinute (default 40); back-off on 400/429.
+- Discovery templates interleaved (private/portal) so site: portals are not always after a long private queue.
+- Priority/full Stage 1 still uses query slices; extended continues via discoveryQueryOffset.
+
 ## [129.12] - Drive: update Sheet even if Doc is missing
 
 - exportDrive no longer fails closed when only one of Sheet/Doc is in the folder: writes the file that exists and reports the missing one in status.
