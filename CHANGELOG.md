@@ -1,3 +1,12 @@
+## [129.10] - CI green + Serper HTTP 400
+
+- Serper: clamp `num` to 1..10 (API returns 400 above 10); skip empty queries; resultsPerQuery back to 10.
+- discovery buildQueries: default families only from non-empty query lists (portalQueries empty → no site: noise in tests).
+- Settings: if only `search: false` is sent, swiss-portals stays off (discovery disabled).
+- Restore phase-3 catalogue sources (ferienhausmiete / happyholiday) for contracts; UI still only search + swiss-portals.
+- DEFAULT_QUALITY.requirePrice false; product still requirePrice via config.quality + settings default true.
+- agents-contract fixtures: monthly CHF on keep pages; package-lock patch synced to 129.10.
+
 ## [129.9] - Swiss portals (private + price only) + Sources cleanup
 
 - Sources: Homegate, ImmoScout24, Flatfox, Newhome, Tutti, Anibis, Petitesannonces, Immobilier, Acheter-Louer, Immostreet, Home, iCasa, Urbanhome via site: discovery (portalQueries).
