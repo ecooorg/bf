@@ -7,7 +7,7 @@ export interface ImmoConfig {
   estCostPerLlmCallUsd: number;
   estCostPerSearchUsd?: number;
   driveFolderId?: string;
-  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; snippetOnlyHosts: string[]; skipHosts: string[] };
+  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; snippetOnlyHosts: string[]; skipHosts: string[]; /** Min delay between Serper calls (rate limit). */ serperMinIntervalMs?: number; /** Soft cap on Serper calls per rolling minute. */ serperMaxPerMinute?: number };
   /** Optional public-source contact enrichment (secondary search + optional reverse image). Default off when omitted. */
   contactEnrichment?: {
     enabled: boolean;

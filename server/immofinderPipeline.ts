@@ -458,42 +458,92 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
 
   /** Run discovery search queries. `discoveryQueryOffset` skips already-run queries in full mode so priority+extended do not repeat. */
   let discoveryQueryOffset = 0;
-  async function runDiscoverySearch(maxQueries?: number, maxPages?: number) {
+  const serperMinIntervalMs = Math.max(0, Number(cfg.discovery?.serperMinIntervalMs ?? 1500) || 1500);
+  const serperMaxPerMinute = Math.max(1, Number(cfg.discovery?.serperMaxPerMinute ?? 40) || 40);
+  const serperTimestamps: number[] = [];
+  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+  /** Pace Serper to stay under rolling per-minute and min-interval limits (no hard query-count budget). */
+  async function paceSerper() {
+    const nowMs = (deps.now ?? Date.now)();
+    // Drop timestamps older than 60s
+    while (serperTimestamps.length && nowMs - serperTimestamps[0] > 60_000) serperTimestamps.shift();
+    if (serperTimestamps.length >= serperMaxPerMinute) {
+      const wait = 60_000 - (nowMs - serperTimestamps[0]) + 50;
+      if (wait > 0) {
+        say('search', `Serper rate limit: waiting ${Math.ceil(wait / 1000)}s (${serperMaxPerMinute}/min)`);
+        await sleep(wait);
+      }
+    }
+    const last = serperTimestamps.length ? serperTimestamps[serperTimestamps.length - 1] : 0;
+    const since = (deps.now ?? Date.now)() - last;
+    if (last && since < serperMinIntervalMs) await sleep(serperMinIntervalMs - since);
+  }
+  async function runDiscoverySearch(maxQueries?: number, maxPages?: number, opts?: { finishAll?: boolean }) {
     const d = cfg.discovery;
     if (!d?.enabled) return;
     if (!deps.search) {
       res.errors.push({ source: 'search', code: 'discovery_skipped', detail: 'SERPER_API_KEY is not set' });
       return;
     }
-    if (timeLeft() < 45_000) return;
+    // finishAll (carousel): keep going until every query for this commune slice is done, only stop on cancel / hard run wall.
+    const finishAll = Boolean(opts?.finishAll);
+    if (!finishAll && timeLeft() < 45_000) return;
     const hits: SearchHit[] = [];
     const coverAll = waveMode === 'full' || waveMode === 'extended'; // carousel never covers all communes in one tick
     const families: ('private' | 'portals')[] = [];
     if ((cfg.discovery?.queries || []).length) families.push('private');
     if ((cfg.discovery?.portalQueries || []).length) families.push('portals');
     const qs = buildQueries(cfg, deps.cycle ?? 0, { allCommunes: coverAll, families: families.length ? families : undefined });
-    const slice = qs.slice(discoveryQueryOffset, maxQueries != null ? discoveryQueryOffset + maxQueries : undefined);
+    // Carousel / finishAll: no maxQueries — every template × commune in the slice must run.
+    const slice = finishAll || maxQueries == null
+      ? qs.slice(discoveryQueryOffset)
+      : qs.slice(discoveryQueryOffset, discoveryQueryOffset + maxQueries);
     let qi = 0;
+    let consecutiveSearchFails = 0;
+    say('search', finishAll
+      ? `Discovery: ${slice.length} queries (all sources for this commune slice, paced for Serper)`
+      : `Discovery: up to ${slice.length} queries`);
     for (const q of slice) {
-      if (timeLeft() < 45_000 || deps.shouldCancel?.()) break;
+      if (deps.shouldCancel?.()) break;
+      // Soft wall: only abort mid-list when not finishAll; carousel must complete the slice.
+      if (!finishAll && timeLeft() < 45_000) {
+        res.errors.push({ source: 'search', code: 'run_time_budget', detail: `stopped with ${slice.length - qi} queries left` });
+        break;
+      }
+      if (finishAll && timeLeft() < 15_000) {
+        // Hard run deadline almost hit — still try to finish remaining with pacing, but note it.
+        res.errors.push({ source: 'search', code: 'run_time_budget_soft', detail: `near wall-clock end; continuing remaining ${slice.length - qi} queries` });
+      }
+      await paceSerper();
       res.counts.search_queries++;
       discoveryQueryOffset++;
       say('search', `Searching: ${q}`, ++qi, slice.length);
       try {
         const batch = await withStepTimeout('serper', () => deps.search!(q));
+        serperTimestamps.push((deps.now ?? Date.now)());
         hits.push(...batch.slice(0, d.resultsPerQuery));
+        consecutiveSearchFails = 0;
       } catch (e) {
         const msg = String((e as Error)?.message || e).slice(0, 100);
         res.errors.push({ source: 'search', code: msg.startsWith('step_timeout:') ? 'step_timeout' : 'search_failed', detail: msg });
         say('search', msg.startsWith('step_timeout:') ? `skip slow search (>10s): ${q.slice(0, 50)}` : `search failed: ${msg.slice(0, 40)}`);
-        if (res.errors.filter((x) => x.code === 'search_failed' || x.code === 'step_timeout').length >= 5) break;
+        consecutiveSearchFails++;
+        // Back off on 400/429-style bursts; do not abort the whole carousel after 5 fails.
+        if (/429|400|rate/i.test(msg)) await sleep(Math.min(15_000, serperMinIntervalMs * 3));
+        if (!finishAll && consecutiveSearchFails >= 5) break;
+        if (finishAll && consecutiveSearchFails >= 20) {
+          res.errors.push({ source: 'search', code: 'search_abort', detail: '20 consecutive Serper failures' });
+          break;
+        }
       }
     }
     if (!hits.length && slice.length === 0) return;
     const items = pickItems(hits, cfg);
     if (items.length) {
       res.counts.sources++;
-      await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), maxPages ?? d.maxPagesPerRun);
+      // Carousel: allow more detail pages when all sources were queried.
+      const pages = maxPages ?? (finishAll ? Math.max(d.maxPagesPerRun, 80) : d.maxPagesPerRun);
+      await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), pages);
     }
   }
 
@@ -503,15 +553,23 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     waveDeadline = priorityDeadline;
     res.wavesRun!.push(waveMode === 'carousel' ? 'carousel' : 'priority');
     say('catalogue', waveMode === 'carousel'
-      ? `Carousel tick started (cycle=${deps.cycle ?? 0}, up to ${Math.round(priorityMs / 60000)} min): web search for this commune slice only`
+      ? `Carousel tick started (cycle=${deps.cycle ?? 0}): all private+portal queries for this commune slice, paced for Serper (no query cap)`
       : `Priority wave started (up to ${Math.round(priorityMs / 60000)} min, mode=${waveMode}): web search first, then phase-1 catalogues`);
     const markA = newBefore();
     // Search first: live private ads (FB groups, owner sites) historically yield the most in-zone contacts.
-    if (priorityTimeLeft() > 60_000 && timeLeft() > 60_000) {
-      // Full mode: large query pool (all communes). Take a big first slice in Stage 1, rest in Stage 2.
-      const qBudget = waveMode === 'full' ? 48 : waveMode === 'carousel' ? 12 : 24;
-      const pageBudget = waveMode === 'full' ? 60 : waveMode === 'carousel' ? 24 : 30;
-      await runDiscoverySearch(qBudget, pageBudget);
+    if (waveMode === 'carousel') {
+      // Carousel: no query-count budget. Run every private + portal template for this commune slice.
+      // Duration grows with Serper pacing (serperMinIntervalMs / serperMaxPerMinute); wave uses full run deadline.
+      waveDeadline = runDeadline;
+      if (timeLeft() > 30_000) {
+        const pageBudget = Math.max(cfg.discovery?.maxPagesPerRun ?? 80, 80);
+        await runDiscoverySearch(undefined, pageBudget, { finishAll: true });
+      }
+    } else if (priorityTimeLeft() > 60_000 && timeLeft() > 60_000) {
+      // Priority / full Stage 1: still capped query slices; extended wave continues the offset.
+      const qBudget = waveMode === 'full' ? 48 : 24;
+      const pageBudget = waveMode === 'full' ? 60 : 30;
+      await runDiscoverySearch(qBudget, pageBudget, { finishAll: false });
     }
     // Catalogues: skip on carousel ticks (Serper+LLM quality pass on 2 communes only).
     if (waveMode !== 'carousel') {

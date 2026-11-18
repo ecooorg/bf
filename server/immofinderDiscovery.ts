@@ -37,23 +37,26 @@ export function buildQueries(
   const startCycle = opts?.allCommunes ? 0 : cycle;
   const communes = communesForRun(cfg.municipalities, per, startCycle);
 
-  const templates: string[] = [];
-  if (families.includes('private')) {
-    let use = d.queries || [];
-    if (opts?.allCommunes) {
-      const prefer = use.filter((q) =>
+  let privateT = families.includes('private') ? [...(d.queries || [])] : [];
+  let portalT = families.includes('portals') ? [...(d.portalQueries || [])] : [];
+  if (opts?.allCommunes) {
+    if (privateT.length) {
+      const prefer = privateT.filter((q) =>
         /facebook|privat|Eigentümer|Vermieter Kontakt|Nachmieter|zu vermieten|anibis|tutti/i.test(q)
       ).slice(0, 4);
-      use = prefer.length ? prefer : use.slice(0, 3);
+      privateT = prefer.length ? prefer : privateT.slice(0, 3);
     }
-    templates.push(...use);
+    if (portalT.length) portalT = portalT.slice(0, 8);
   }
-  if (families.includes('portals')) {
-    let portals = d.portalQueries || [];
-    if (opts?.allCommunes) portals = portals.slice(0, 6);
-    templates.push(...portals);
+  // Interleave private and portal templates so site: portals are not starved behind a long private queue.
+  const templates: string[] = [];
+  const n = Math.max(privateT.length, portalT.length);
+  for (let i = 0; i < n; i++) {
+    if (i < privateT.length) templates.push(privateT[i]);
+    if (i < portalT.length) templates.push(portalT[i]);
   }
   if (!templates.length) return [];
+  // Per commune: all templates (fair). Carousel uses a small commune slice; full mode uses all communes.
   return communes.flatMap((c) => templates.map((q) => q.replace(/\{commune\}/g, c)));
 }
 
