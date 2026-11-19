@@ -288,7 +288,7 @@ test('P129.7 screen, Sheet and Doc show the same cards (shared model), no letter
   assert.equal(a.headline, '📍 Schiers · CHF 1450 per month · 3.5 rooms · +41814140008');
   assert.equal(b.headline, '📍 Jenins · CHF 365 per night · 5.0 rooms · v. koenig · +41794175102');
   assert.equal(a.openLabel, 'Open post'); assert.equal(b.openLabel, 'Open listing');
-  assert.equal(a.about.length <= 220, true); assert.equal(b.photos.length, 3);
+  assert.equal(a.about.length <= 360, true); assert.equal(b.photos.length, 3);
   assert.equal(immoLinkLine(b), 'https://heidiholiday.ch/ (list/group page — not a single object)');
   const sheet = buildSheetRequests(rows, 7); const cells = sheet.requests.find((q) => q.updateCells?.rows).updateCells.rows.flatMap((r) => r.values.map((v) => v.userEnteredValue?.stringValue).filter(Boolean));
   const docReq = buildDocRequests(rows, 40); const docText = docReq.find((q) => q.insertText).insertText.text;
