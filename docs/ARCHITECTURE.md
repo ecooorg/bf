@@ -172,7 +172,8 @@ Do not treat rising `kept` with rising manual Delete as success.
 - Pipeline stores `raw.evidence_text` / `raw.evidence_kind` and runs the credibility gate before keep
 - Recheck filters apply the same gate on stored rows
 - Card `about` prefers `raw.evidence_text` when present
-- Screenshots: not required in the first evidence-first slice; excerpt is the mandatory proof channel
+- Screenshots: optional via `raw.evidence_screenshot_url` when a capture exists; excerpt is the mandatory proof channel
+- Drive Doc/Sheet and email/Telegram plain text append **Source text** / **Source capture** under each listing when evidence is stored (P129.31)
 
 ### Explicit non-priorities
 
