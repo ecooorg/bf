@@ -96,3 +96,53 @@ test('diagnostics include card completeness and per-source quality', () => {
   assert.match(diag, /weakHosts/);
   assert.match(routes, /search_quality_summary/);
 });
+
+test('parseListedAt covers labelled DE dates, relative phrases and meta preference', async () => {
+  const { parseListedAt, pageMeta } = await import('../server/immofinderCore.ts');
+  const d1 = parseListedAt('Inseriert am: 03.11.2026 · Chur', undefined, null);
+  assert.ok(d1);
+  assert.equal(d1.getUTCFullYear(), 2026);
+  assert.equal(d1.getUTCMonth(), 10);
+  assert.equal(d1.getUTCDate(), 3);
+  const d2 = parseListedAt('Wohnung in Chur, vor 5 Tagen online', undefined, null);
+  assert.ok(d2);
+  const days = (Date.now() - d2.getTime()) / 86400000;
+  assert.ok(days >= 4.5 && days <= 6);
+  const declared = parseListedAt('random 01.01.2020 text', undefined, '2026-11-12T10:00:00Z');
+  assert.ok(declared);
+  assert.equal(declared.toISOString().slice(0, 10), '2026-11-12');
+  const meta = pageMeta('<html><head><meta property="article:published_time" content="2026-10-01T08:00:00Z"/><title>Test</title></head></html>', 'https://example.ch/x');
+  assert.equal(meta.published, '2026-10-01T08:00:00Z');
+});
+
+test('card model and exports show published date only (not search found time)', async () => {
+  const { immoCardModel, immoDatesText, immoLinkLine } = await import('../src/immoCard.ts');
+  const card = immoCardModel({
+    municipality: 'Chur',
+    property_name: '3.5 Zi',
+    description_de: 'hell',
+    rooms_estimated: 3.5,
+    listing_url: 'https://example.ch/listing/1',
+    first_seen_at: '2026-11-19T09:00:00Z',
+    listed_at: '2026-11-03T12:00:00Z',
+    status: 'NEW',
+  });
+  assert.match(card.published, /published/);
+  assert.match(card.published, /03\.11\.2026|3\.11\.2026/);
+  assert.equal(immoDatesText(card), card.published);
+  assert.ok(!immoLinkLine(card).includes('found'));
+  assert.ok(immoLinkLine(card).includes('published') || immoLinkLine(card).includes(card.published.replace(/^published\s+/, '')));
+  const noDate = immoCardModel({
+    municipality: 'Chur', listing_url: 'https://example.ch/2', first_seen_at: '2026-11-19T09:00:00Z', status: 'NEW',
+  });
+  assert.equal(noDate.published, '');
+  assert.equal(immoDatesText(noDate), '');
+  assert.ok(!immoLinkLine(noDate).includes('found'));
+});
+
+test('UI does not render search found date on cards', () => {
+  const ui = read('src/ImmoFinder.tsx');
+  assert.match(ui, /immofinder-published/);
+  // The found span must not be rendered next to the URL line any more.
+  assert.ok(!/k\.found && <span/.test(ui));
+});
