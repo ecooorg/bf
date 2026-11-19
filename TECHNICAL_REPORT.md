@@ -1,3 +1,10 @@
+## P129.25 — Unavailable filter + CI green for date line
+
+- **OBSERVED:** CI red on agents-contract (expected "Found:" after 129.24) and package-lock still on 129.23a; many cards for offline portal pages.
+- **CHANGE:** `isListingUnavailable`; pipeline deny + refresh hide; no-cache fetch; contract tests + lock patch 129.25.
+- **NOT_RUN:** live fetch of all 124 production URLs from this sandbox (no DB access); Facebook remains mostly unfetched.
+- **SCOPE:** immofinderCore/Pipeline/Refresh/Store/Fetcher, agents-contract, immofinder-quality tests, package.json/lock, CHANGELOG, TECHNICAL_REPORT.
+
 ## P129.24 — Source publication date only; richer date extraction
 
 - **OBSERVED:** Cards and exports still showed only search ("found") time; `raw.listed_at` was rarely filled. Recheck of ~119 rows: ~76% pages not fetched (Facebook/robots/blocks), only a handful of dates added.

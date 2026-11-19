@@ -1,3 +1,10 @@
+## [129.25] - Hide unavailable listings; CI for published-only dates
+
+- Detect portal offline phrases ("nicht verfügbar" / "no longer available") at ingest and on Recheck list; hide with reason `listing_unavailable`.
+- Recheck persists hide via `updateListingContacts`; fetch uses Cache-Control no-cache.
+- Contract tests expect publication date only (no search "Found" line); package-lock patch synced to 129.25.
+- BUGFIX; live recheck quality still depends on portals returning HTML (Facebook often blocked).
+
 ## [129.24] - Source publish date on cards; stronger date parse
 
 - Cards, Sheet/Doc, email/Telegram show only the source publication date (`published dd.mm.yyyy`); search/discovery time is no longer rendered.
