@@ -178,7 +178,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     const st = getStat(src.id);
     st.candidates += items.length;
     const stage: ProgressEvent['stage'] = src.id === 'search' ? 'search' : 'catalogue'; let idx = 0;
-    const pages: { url: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; snippet: boolean }[] = [];
+    const pages: { url: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; snippet: boolean; hitDate?: string | null }[] = [];
     for (const it of items) {
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
@@ -322,7 +322,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const pageText = pages[i].text;
       const priceHay = `${meta.title}\n${pageText}`;
       const price = resolveListingPrice(priceHay, ex.priceQuote);
-      const hitDate = (pages[i] as any).hitDate || meta.published || null;
+      const hitDate = pages[i].hitDate || meta.published || null;
       const listedAt = parseListedAt(
         `${meta.title}\n${pageText.slice(0, 12000)}\n${ex.listedAtQuote || ''}\n${hitDate || ''}`,
         url,
