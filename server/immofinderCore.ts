@@ -207,9 +207,22 @@ export function pageMeta(html: string, base: string): { title: string; descripti
   for (const m of html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+\.(?:jpe?g|png|webp)(?:\?[^"']*)?)["']/gi)) {
     const u = abs(m[1], base); if (u && !/logo|icon|sprite|avatar|flag|pixel/i.test(u)) photos.add(u); if (photos.size >= 6) break;
   }
-  // Publication date declared by the page itself (meta tag or JSON-LD); language independent.
-  const published = meta('article:published_time') || meta('datePublished') || meta('og:article:published_time')
-    || /"(?:datePublished|datePosted)"\s*:\s*"([^"]{8,40})"/i.exec(html)?.[1] || /itemprop=["'](?:datePublished|datePosted)["'][^>]*content=["']([^"']{8,40})["']/i.exec(html)?.[1] || null;
+  // Publication date declared by the page itself (meta / JSON-LD / microdata); language independent.
+  // Prefer explicit article times, then broader schema.org / Open Graph variants, then Facebook utime.
+  let published =
+    meta('article:published_time') || meta('article:modified_time') || meta('datePublished') || meta('og:article:published_time')
+    || meta('og:updated_time') || meta('publish-date') || meta('pubdate') || meta('date') || meta('DC.date.issued')
+    || /"(?:datePublished|datePosted|dateCreated|uploadDate|dateModified)"\s*:\s*"([^"]{8,40})"/i.exec(html)?.[1]
+    || /itemprop=["'](?:datePublished|datePosted|dateCreated)["'][^>]*content=["']([^"']{8,40})["']/i.exec(html)?.[1]
+    || /content=["']([^"']{8,40})["'][^>]*itemprop=["'](?:datePublished|datePosted|dateCreated)["']/i.exec(html)?.[1]
+    || null;
+  if (!published) {
+    const ut = /data-utime=["'](\d{9,12})["']/i.exec(html)?.[1] || /"creation_time"\s*:\s*(\d{9,12})/i.exec(html)?.[1];
+    if (ut) {
+      const sec = Number(ut);
+      if (sec > 1e9 && sec < 2e10) published = new Date(sec * 1000).toISOString();
+    }
+  }
   return { title, description: htmlToText(meta('og:description') || meta('description')), photos: [...photos], published };
 }
 
@@ -613,41 +626,104 @@ export function priceDiagSnippet(text: string, maxLen = 360): string | null {
   return full.slice(Math.max(0, bestI - 80), bestI + 200).replace(/\s+/g, ' ').trim().slice(0, maxLen);
 }
 
-/** Extract a plausible publication / update date from page text or URL. */
+/** Extract a plausible publication / update date from page text or URL.
+ * Declared meta/JSON-LD wins. Then labelled dates near publication keywords, then bare dates,
+ * then relative phrases (DE/FR/IT/EN). Prefer the most recent plausible past date. */
 export function parseListedAt(text: string, url?: string, declared?: string | null): Date | null {
-  // A date declared by the page (meta / JSON-LD) beats dates guessed from the visible text.
   if (declared) {
     const d = new Date(String(declared).trim());
     if (!Number.isNaN(d.getTime()) && d.getTime() <= Date.now() + 86400000 && d.getUTCFullYear() >= 2000) return d;
   }
   const t = String(text ?? '');
   const now = Date.now();
-  const candidates: Date[] = [];
-  // ISO
-  for (const m of t.matchAll(/\b(20\d{2})-(\d{2})-(\d{2})\b/g)) {
-    const d = new Date(`${m[1]}-${m[2]}-${m[3]}T12:00:00Z`);
-    if (!Number.isNaN(d.getTime()) && d.getTime() <= now + 86400000) candidates.push(d);
+  const maxFuture = now + 86400000;
+  const candidates: { d: Date; score: number }[] = [];
+  const push = (d: Date, score: number) => {
+    if (Number.isNaN(d.getTime()) || d.getTime() > maxFuture || d.getUTCFullYear() < 2000) return;
+    candidates.push({ d, score });
+  };
+
+  // Labelled absolute dates near publication / insert keywords (DE/FR/IT/EN + CH portals).
+  const labelRe = /(?:publiziert|veröffentlicht|veroffentlicht|online\s+seit|online\s+ab|inseriert(?:\s+am)?|erstellt(?:\s+am)?|eingestellt(?:\s+am)?|aktualisiert(?:\s+am)?|posted(?:\s+on)?|published(?:\s+on)?|date\s*posted|date\s*published|inserted(?:\s+on)?|mise\s+en\s+ligne|publié(?:\s+le)?|inserito(?:\s+il)?|pubblicato(?:\s+il)?|online\s+since|available\s+since)\s*[:\-]?\s*/gi;
+  let lm: RegExpExecArray | null;
+  while ((lm = labelRe.exec(t)) !== null) {
+    const slice = t.slice(lm.index, lm.index + 80);
+    // ISO after label
+    const iso = /\b(20\d{2})-(\d{2})-(\d{2})\b/.exec(slice);
+    if (iso) push(new Date(`${iso[1]}-${iso[2]}-${iso[3]}T12:00:00Z`), 30);
+    // dd.mm.yyyy / dd/mm/yyyy / dd-mm-yyyy
+    const dmy = /\b(\d{1,2})[./\-](\d{1,2})[./\-](20\d{2})\b/.exec(slice);
+    if (dmy) push(new Date(Date.UTC(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]), 12)), 30);
   }
-  // Swiss / DE: dd.mm.yyyy
+
+  // Bare ISO anywhere in the window
+  for (const m of t.matchAll(/\b(20\d{2})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/g)) {
+    const d = m[4]
+      ? new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6] || '00'}Z`)
+      : new Date(`${m[1]}-${m[2]}-${m[3]}T12:00:00Z`);
+    push(d, 10);
+  }
+  // Bare Swiss / DE: dd.mm.yyyy
   for (const m of t.matchAll(/\b(\d{1,2})\.(\d{1,2})\.(20\d{2})\b/g)) {
-    const d = new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]), 12));
-    if (!Number.isNaN(d.getTime()) && d.getTime() <= now + 86400000) candidates.push(d);
+    push(new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]), 12)), 10);
   }
-  // Relative: "vor 3 Tagen", "vor 2 Wochen", "vor 1 Monat"
-  const rel = /vor\s+(\d+)\s+(Tag|Tagen|Woche|Wochen|Monat|Monaten|Jahr|Jahren)/i.exec(t);
-  if (rel) {
-    const n = Number(rel[1]); const u = rel[2].toLowerCase();
+  // Bare slash form dd/mm/yyyy (common on FR/IT CH sites)
+  for (const m of t.matchAll(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g)) {
+    push(new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]), 12)), 8);
+  }
+
+  // Relative: DE "vor 3 Tagen", FR "il y a 3 jours", IT "3 giorni fa", EN "3 days ago"
+  const relDe = /vor\s+(\d+)\s+(Tag|Tagen|Woche|Wochen|Monat|Monaten|Jahr|Jahren)/i.exec(t);
+  if (relDe) {
+    const n = Number(relDe[1]); const u = relDe[2].toLowerCase();
     const d = new Date();
     if (/tag/.test(u)) d.setDate(d.getDate() - n);
     else if (/woche/.test(u)) d.setDate(d.getDate() - n * 7);
     else if (/monat/.test(u)) d.setMonth(d.getMonth() - n);
     else if (/jahr/.test(u)) d.setFullYear(d.getFullYear() - n);
-    candidates.push(d);
+    push(d, 20);
   }
+  const relFr = /il\s+y\s+a\s+(\d+)\s+(jour|jours|semaine|semaines|mois|an|ans)/i.exec(t);
+  if (relFr) {
+    const n = Number(relFr[1]); const u = relFr[2].toLowerCase();
+    const d = new Date();
+    if (/jour/.test(u)) d.setDate(d.getDate() - n);
+    else if (/semaine/.test(u)) d.setDate(d.getDate() - n * 7);
+    else if (/mois/.test(u)) d.setMonth(d.getMonth() - n);
+    else if (/an/.test(u)) d.setFullYear(d.getFullYear() - n);
+    push(d, 20);
+  }
+  const relIt = /(\d+)\s+(giorno|giorni|settimana|settimane|mese|mesi|anno|anni)\s+fa/i.exec(t);
+  if (relIt) {
+    const n = Number(relIt[1]); const u = relIt[2].toLowerCase();
+    const d = new Date();
+    if (/giorn/.test(u)) d.setDate(d.getDate() - n);
+    else if (/settiman/.test(u)) d.setDate(d.getDate() - n * 7);
+    else if (/mes/.test(u)) d.setMonth(d.getMonth() - n);
+    else if (/ann/.test(u)) d.setFullYear(d.getFullYear() - n);
+    push(d, 20);
+  }
+  const relEn = /(\d+)\s+(day|days|week|weeks|month|months|year|years)\s+ago/i.exec(t);
+  if (relEn) {
+    const n = Number(relEn[1]); const u = relEn[2].toLowerCase();
+    const d = new Date();
+    if (/day/.test(u)) d.setDate(d.getDate() - n);
+    else if (/week/.test(u)) d.setDate(d.getDate() - n * 7);
+    else if (/month/.test(u)) d.setMonth(d.getMonth() - n);
+    else if (/year/.test(u)) d.setFullYear(d.getFullYear() - n);
+    push(d, 20);
+  }
+  // "heute" / "gestern" / "heute online"
+  if (/\bheute\b/i.test(t) && /online|inseriert|publiziert|veröffentlicht|posted/i.test(t)) {
+    const d = new Date(); d.setHours(12, 0, 0, 0); push(d, 15);
+  }
+  if (/\bgestern\b/i.test(t) && /online|inseriert|publiziert|veröffentlicht|posted/i.test(t)) {
+    const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(12, 0, 0, 0); push(d, 15);
+  }
+
   if (!candidates.length) return null;
-  // Prefer the most recent plausible date (not future)
-  candidates.sort((a, b) => b.getTime() - a.getTime());
-  return candidates[0];
+  candidates.sort((a, b) => b.score - a.score || b.d.getTime() - a.d.getTime());
+  return candidates[0].d;
 }
 
 /** Detailed publication-date extraction used by recheck diagnostics. Declared page metadata is preferred. */

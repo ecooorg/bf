@@ -48,7 +48,7 @@ async function readPage(row: any, deps: RefreshDeps): Promise<Parsed> {
     if (!pg.ok) return out;
     out.fetched = true;
     const text = htmlToText(pg.body); const meta = pageMeta(pg.body, url);
-    const hay = `${meta.title}\n${text.slice(0, 4000)}`;
+    const hay = `${meta.title}\n${text.slice(0, 12000)}`;
     const d = parseListedAtDetailed(hay, url, meta.published);
     out.date = d.date; out.dateSource = d.source;
     if (!d.date) out.dateHint = dateDiagSnippet(text);

@@ -317,7 +317,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const pageText = pages[i].text;
       const priceHay = `${meta.title}\n${pageText}`;
       const price = resolveListingPrice(priceHay, ex.priceQuote);
-      const listedAt = parseListedAt(`${meta.title}\n${pageText.slice(0, 4000)}`, url, meta.published);
+      const listedAt = parseListedAt(`${meta.title}\n${pageText.slice(0, 12000)}`, url, meta.published);
       const seeker = isSeekerPost(meta.title, pageText);
       if (seeker) ex.signals.push('seeker_post');
       const qReason = qualityRejectReason(quality, price, listedAt, seeker, evidence.length > 0, now());
