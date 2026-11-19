@@ -17,7 +17,6 @@ type Run = {
   sources?: Preview[]; progress?: Progress; started_at: string; finished_at: string | null; trigger: string; dry_run: boolean; counts: Record<string, any>;
   errors: { code: string; source?: string; detail?: string }[]; est_cost_usd: string; delivery: Record<string, string>;
 } | null;
-const STATUSES = ['NEW', 'CONTACTED', 'REPLIED', 'REJECTED'];
 const STAGES: Record<string, string> = { catalogue: 'Step 1 of 3 · Checking rental catalogues', search: 'Step 2 of 3 · Searching the web by commune', delivery: 'Step 3 of 3 · Saving and notifying', done: 'Finished' };
 /** Step title: for search/carousel append the commune names from progress.communes. */
 function stageHeading(stage?: string, communes?: string[]): string {
@@ -158,7 +157,12 @@ export default function ImmoFinder() {
       setListRefreshInfo(`Recheck list failed: ${(e as Error).message}`);
     } finally { setListRefreshBusy(false); }
   };
-  const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
+  const deleteCard = async (id: string) => {
+    try {
+      await api(`/api/immofinder/listings/${id}`, { method: 'DELETE' });
+      await load();
+    } catch (e) { setMsg((e as Error).message); }
+  };
 
   const pr = run?.progress || {};
   const c = (running ? pr.counts : run?.counts) || {};
@@ -369,8 +373,24 @@ export default function ImmoFinder() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <a href={k.url} target="_blank" rel="noopener noreferrer" className="immo-btn small">{k.openLabel}</a>
             {k.photos.map((p) => <a key={p.url} href={p.url} target="_blank" rel="noopener noreferrer" style={{ ...chip, textDecoration: 'none' }}>{p.label}</a>)}
-            <button type="button" onClick={() => void navigator.clipboard?.writeText(l.draft_message_de)}>Copy German letter</button>
-            <label style={{ marginLeft: 'auto', fontSize: 14 }}>Status <select value={l.status} onChange={(e) => void setStatus(l.id, e.target.value)}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select></label>
+            <button
+              type="button"
+              data-testid="immofinder-delete"
+              onClick={() => { if (window.confirm('Удалить это объявление из базы навсегда?')) void deleteCard(l.id); }}
+              style={{
+                marginLeft: 'auto',
+                background: '#8b1a1a',
+                border: '1px solid #e07070',
+                color: '#fff',
+                borderRadius: 999,
+                padding: '6px 14px',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Удалить
+            </button>
           </div>
         </article>
         );
