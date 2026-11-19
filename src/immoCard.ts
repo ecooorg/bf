@@ -18,9 +18,9 @@ export type ImmoCard = {
   url: string;
   /** Warning shown right after the URL, or '' when the link is one object. */
   linkNote: string;
-  /** "found 17.11.2026, 21:37" or '' */
+  /** Search/discovery time — kept for diagnostics only; not shown on cards or in exports (owner: source publication date only). */
   found: string;
-  /** "published 12.11.2026" (date the ad was published, when the page states it) or '' */
+  /** "published 12.11.2026" — date the ad was published on the source, when extractable; '' otherwise. */
   published: string;
   openLabel: 'Open post' | 'Open listing';
   photos: { label: string; url: string }[];
@@ -81,9 +81,9 @@ export function immoPublishedText(l: ImmoCardInput): string {
   return d ? `published ${d}` : '';
 }
 
-/** "published 12.11.2026 · found 17.11.2026, 21:37", either part omitted when unknown. */
+/** Card/export date line: publication date only (search/discovery time is not shown). */
 export function immoDatesText(c: Pick<ImmoCard, 'published' | 'found'>): string {
-  return [c.published, c.found].filter(Boolean).join(' · ');
+  return c.published || '';
 }
 
 export function immoCardModel(l: ImmoCardInput): ImmoCard {
@@ -95,6 +95,7 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
     about: [l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 220).replace(/\s+/g, ' ').trim(),
     url,
     linkNote: (l.private_signals || []).includes('generic_link') ? IMMO_LINK_NOTE : '',
+    // Diagnostics only — never rendered on card / sheet / doc / telegram (owner request: source publish date, not search time).
     found: l.first_seen_at ? `found ${immoFormatFound(l.first_seen_at)}` : '',
     published: immoPublishedText(l),
     openLabel: /facebook\.com/.test(url) ? 'Open post' : 'Open listing',

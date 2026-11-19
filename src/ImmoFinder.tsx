@@ -364,7 +364,6 @@ export default function ImmoFinder() {
             <a href={k.url} target="_blank" rel="noopener noreferrer" style={{ color: IMMO_COLORS.link, wordBreak: 'break-all' }}>{k.url}</a>
             {k.linkNote && <span style={{ color: IMMO_COLORS.warn }}> {k.linkNote}</span>}
             {k.published && <span data-testid="immofinder-published" style={{ color: IMMO_COLORS.muted }}> · {k.published}</span>}
-            {k.found && <span style={{ color: IMMO_COLORS.muted }}> · {k.found}</span>}
             {view === 'all' && l.hidden && <span style={{ color: IMMO_COLORS.warn }}> · hidden{l.hide_reason ? `: ${l.hide_reason}` : ''}</span>}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
