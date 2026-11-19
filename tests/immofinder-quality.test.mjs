@@ -269,3 +269,24 @@ test('pipeline stores evidence_text and runs credibilityRejectReason', () => {
   const card = read('src/immoCard.ts');
   assert.match(card, /evidence_text/);
 });
+
+
+test('immoEvidenceBlock and exports include source text when raw.evidence_text is set', async () => {
+  const { immoCardModel, immoEvidenceBlock, immoCardPlainText } = await import('../src/immoCard.ts');
+  const row = {
+    municipality: 'Chur', property_name: '3.5 Zi', description_de: 'Short',
+    rooms_estimated: 3.5, listing_url: 'https://example.com/a',
+    photo_urls: [], private_signals: [], status: 'NEW',
+    raw: { evidence_text: 'Miete CHF 1\'750.– pro Monat in Chur. Parkplatz optional.', evidence_kind: 'page_text' },
+  };
+  const k = immoCardModel(row);
+  assert.ok(k.evidenceText.includes('1\'750'));
+  const block = immoEvidenceBlock(k);
+  assert.match(block, /Source text \(page text\)/);
+  assert.match(block, /Parkplatz optional/);
+  const plain = immoCardPlainText(k);
+  assert.match(plain, /Source text/);
+  assert.ok(!/Status:/.test(plain));
+  const del = read('server/immofinderDelivery.ts');
+  assert.match(del, /immoEvidenceBlock/);
+});
