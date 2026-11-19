@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
-import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice } from './immofinderCore.ts';
+import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice } from './immofinderCore.ts';
 import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
 
@@ -103,6 +103,7 @@ export async function recheckStored(): Promise<{ checked: number; hidden: number
     if (!why && !isSpecificLink(url) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) {
       why = 'list_or_search_page';
     }
+    if (!why && isListingUnavailable(title, text)) why = 'listing_unavailable';
     if (!why && isSeekerPost(title, text)) why = 'seeker_post';
     if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
     if (!why && looksLikeAgencyListing(title, text)) why = 'agency';
@@ -203,6 +204,8 @@ export async function updateListingContacts(
     contact_status: string;
     contact_advice: string;
     raw?: unknown;
+    hidden?: boolean;
+    hide_reason?: string | null;
   },
 ): Promise<void> {
   const p = await getPool();
@@ -214,6 +217,8 @@ export async function updateListingContacts(
        contact_status = $5,
        contact_advice = $6,
        raw = CASE WHEN $7::jsonb IS NULL THEN raw ELSE $7::jsonb END,
+       hidden = CASE WHEN $8::boolean IS NULL THEN hidden ELSE $8::boolean END,
+       hide_reason = CASE WHEN $8::boolean IS TRUE THEN COALESCE($9, hide_reason) WHEN $8::boolean IS FALSE THEN NULL ELSE hide_reason END,
        updated_at = now()
      WHERE id = $1`,
     [
@@ -224,6 +229,8 @@ export async function updateListingContacts(
       fields.contact_status,
       fields.contact_advice ?? '',
       fields.raw != null ? JSON.stringify(fields.raw) : null,
+      fields.hidden == null ? null : Boolean(fields.hidden),
+      fields.hide_reason ?? null,
     ],
   );
 }

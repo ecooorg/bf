@@ -793,6 +793,30 @@ export const DEFAULT_QUALITY: QualitySettings = {
 /** Returns a filter reason or null if the listing may be kept.
  * Max rent is applied only to explicit monthly prices (or unknown large amounts with currency).
  * Night/week prices are rejected only when rejectNonMonthly is on; otherwise they pass the amount gate. */
+
+/** True when the ad page clearly states the object is no longer available / removed.
+ * Used at ingest and on recheck so stale portal cards are not kept as active listings. */
+export function isListingUnavailable(title: string, text: string): boolean {
+  const h = `${title}\n${String(text ?? '').slice(0, 8000)}`.toLowerCase();
+  if (!h.trim()) return false;
+  // German (CH portals: Flatfox, Homegate, ImmoScout, Tutti, iCasa, …)
+  if (/dieses objekt ist leider gerade nicht verfügbar/.test(h)) return true;
+  if (/dieses inserat ist nicht mehr verfügbar/.test(h)) return true;
+  if (/objekt ist (leider )?(gerade )?nicht (mehr )?verfügbar/.test(h)) return true;
+  if (/inserat ist nicht mehr verfügbar/.test(h)) return true;
+  if (/anzeige (wurde )?(wurde )?gelöscht|anzeige nicht (mehr )?verfügbar/.test(h)) return true;
+  if (/nicht mehr online|nicht mehr aktiv|inserat abgelaufen|inserat beendet/.test(h)) return true;
+  if (/wohnung (ist )?(leider )?(schon )?vermietet|bereits vermietet|schon vergeben/.test(h) && /nicht verfügbar|nicht mehr/.test(h)) return true;
+  // English
+  if (/this (listing|ad|property|object) is (no longer|not) available/.test(h)) return true;
+  if (/listing (has been )?(removed|deleted|expired)/.test(h)) return true;
+  // French / Italian (CH)
+  if (/n['']est plus disponible|annonce (n['']est )?plus disponible|oggetto non (più )?disponibile/.test(h)) return true;
+  // HTTP-ish soft pages
+  if (/page not found|404 not found|inserzione non trovata/.test(h) && h.length < 1500) return true;
+  return false;
+}
+
 export function qualityRejectReason(
   q: QualitySettings,
   price: ParsedPrice | null,

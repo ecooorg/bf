@@ -7,7 +7,14 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
   async function get(url: string, timeout = cfg.limits.fetchTimeoutMs) {
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeout);
     try {
-      const r = await fetchImpl(url, { headers: { 'User-Agent': cfg.fetch.userAgent, Accept: 'text/html,*/*;q=0.5', 'Accept-Language': 'de-CH,de;q=0.9,en;q=0.5' }, signal: ctrl.signal, redirect: 'follow' });
+      const r = await fetchImpl(url, { headers: {
+        'User-Agent': cfg.fetch.userAgent,
+        Accept: 'text/html,*/*;q=0.5',
+        'Accept-Language': 'de-CH,de;q=0.9,en;q=0.5',
+        // Force origin response for recheck freshness (avoid stale CDN "available" pages).
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      }, signal: ctrl.signal, redirect: 'follow', cache: 'no-store' as RequestCache });
       const buf = (await r.text()).slice(0, cfg.limits.maxPageBytes);
       return { ok: r.ok, status: r.status, body: buf };
     } finally { clearTimeout(t); }

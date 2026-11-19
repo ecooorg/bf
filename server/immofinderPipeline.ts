@@ -1,5 +1,5 @@
 import { hostOf, buildQueries, pickItems, communesForRun, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, looksLikeAgencyListing, type QualitySettings } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, looksLikeAgencyListing, type QualitySettings } from './immofinderCore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
@@ -320,6 +320,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const listedAt = parseListedAt(`${meta.title}\n${pageText.slice(0, 12000)}`, url, meta.published);
       const seeker = isSeekerPost(meta.title, pageText);
       if (seeker) ex.signals.push('seeker_post');
+      if (isListingUnavailable(meta.title, pageText)) { await deny('listing_unavailable', 'page_states_unavailable'); continue; }
       const qReason = qualityRejectReason(quality, price, listedAt, seeker, evidence.length > 0, now());
       // A: diagnostics when price missing or reject is price_*
       if (!price || qReason === 'price_unknown' || qReason === 'price_above_max' || (price && price.monthlyChf == null)) {

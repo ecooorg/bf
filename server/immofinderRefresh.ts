@@ -4,18 +4,18 @@
  * so it runs against fakes in tests. Rows are only ever completed, never emptied: a missing date or contact on the page
  * keeps what is stored.
  */
-import { extractContacts, htmlToText, pageMeta, parseListedAtDetailed, dateDiagSnippet } from './immofinderCore.ts';
+import { extractContacts, htmlToText, pageMeta, parseListedAtDetailed, dateDiagSnippet, isListingUnavailable } from './immofinderCore.ts';
 import { applyEnrichmentToRecord, type EnrichmentInput, type EnrichmentResult } from './immofinderContactEnrichment.ts';
 import { cardFields, completenessSummary, safeUrlSample } from './immofinderDiag.ts';
 
 export interface RefreshStatus {
   running: boolean; startedAt: number | null; finishedAt: number | null; phase: 'idle' | 'reading' | 'searching' | 'done';
-  queued: number; checked: number; datesAdded: number; datesChanged: number; contactsAdded: number; enrichedFound: number; contactSearches: number;
+  queued: number; checked: number; datesAdded: number; datesChanged: number; contactsAdded: number; unavailableHidden: number; enrichedFound: number; contactSearches: number;
   unreachable: number; errors: number; current: string; message: string; webSearch: 'on' | 'off';
 }
 
 export const newRefreshStatus = (): RefreshStatus => ({
-  running: false, startedAt: null, finishedAt: null, phase: 'idle', queued: 0, checked: 0, datesAdded: 0, datesChanged: 0, contactsAdded: 0,
+  running: false, startedAt: null, finishedAt: null, phase: 'idle', queued: 0, checked: 0, datesAdded: 0, datesChanged: 0, contactsAdded: 0, unavailableHidden: 0,
   enrichedFound: 0, contactSearches: 0, unreachable: 0, errors: 0, current: '', message: '', webSearch: 'off',
 });
 
@@ -33,7 +33,7 @@ export interface RefreshDeps {
   shouldStop?: () => boolean;
 }
 
-interface Parsed { id: string; row: any; http: number; fetched: boolean; date: Date | null; dateSource: 'declared' | 'text' | 'none'; phones: string[]; emails: string[]; error?: string; dateHint: string | null }
+interface Parsed { id: string; row: any; http: number; fetched: boolean; date: Date | null; dateSource: 'declared' | 'text' | 'none'; phones: string[]; emails: string[]; error?: string; dateHint: string | null; unavailable?: boolean }
 
 const obj = (v: unknown): Record<string, any> => (v && typeof v === 'object' && !Array.isArray(v) ? { ...(v as Record<string, any>) } : {});
 const hostOf = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
@@ -52,6 +52,7 @@ async function readPage(row: any, deps: RefreshDeps): Promise<Parsed> {
     const d = parseListedAtDetailed(hay, url, meta.published);
     out.date = d.date; out.dateSource = d.source;
     if (!d.date) out.dateHint = dateDiagSnippet(text);
+    out.unavailable = isListingUnavailable(meta.title, text);
     const c = extractContacts(text, deps.platformDomains);
     out.phones = c.phones; out.emails = c.emails;
   } catch (e) { out.error = String((e as Error)?.message || e).slice(0, 120); }
@@ -93,13 +94,36 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
       const prevRaw = obj(row.raw);
       const hadDate = Boolean(prevRaw.listed_at);
       const raw: Record<string, unknown> = { ...prevRaw };
+      const host = hostOf(String(row.listing_url));
+      if (p.unavailable) {
+        raw.unavailable = true;
+        raw.unavailable_at = now().toISOString();
+        status.unavailableHidden++;
+        await deps.update(p.id, {
+          direct_phone: row.direct_phone || null,
+          direct_email: row.direct_email || null,
+          contact_evidence: row.contact_evidence ?? [],
+          contact_status: row.contact_status || 'platform_only',
+          contact_advice: String(row.contact_advice || ''),
+          raw,
+          hidden: true,
+          hide_reason: 'listing_unavailable',
+        } as any);
+        after.push({ ...row, hidden: true, hide_reason: 'listing_unavailable', raw });
+        deps.log('info', 'recheck_refresh_item', {
+          index: i, total: parsed.length, id: String(row.id).slice(0, 8), host, source: cardFields(row).source,
+          http: p.http, fetched: p.fetched, hidden: true, date: 'unavailable', dateSource: p.dateSource,
+          pagePhones: 0, pageEmails: 0, hadContact: Boolean(row.direct_phone || row.direct_email),
+          hasContact: Boolean(row.direct_phone || row.direct_email), enrich: 'skipped_unavailable', enrichSearches: status.contactSearches,
+        });
+        continue;
+      }
       let dateNote = 'kept';
       if (p.date) {
         const iso = p.date.toISOString();
         if (!hadDate) { status.datesAdded++; dateNote = 'added'; } else if (String(prevRaw.listed_at).slice(0, 10) !== iso.slice(0, 10)) { status.datesChanged++; dateNote = 'changed'; }
         raw.listed_at = iso; raw.listed_at_source = p.dateSource;
       }
-      const host = hostOf(String(row.listing_url));
       const phones = p.phones.filter((ph) => (phoneUse.get(`${host}|${ph}`) || 0) < 3);
       let phone: string | null = row.direct_phone || null; let email: string | null = row.direct_email || null;
       const evidence: { type: string; value: string; url: string }[] = Array.isArray(row.contact_evidence) ? [...row.contact_evidence] : [];
@@ -138,7 +162,7 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
     }
   }
   status.running = false; status.finishedAt = Date.now(); status.phase = 'done'; status.current = '';
-  status.message = `Done: ${parsed.length} checked · dates added ${status.datesAdded}${status.datesChanged ? `, updated ${status.datesChanged}` : ''} · contacts added ${status.contactsAdded} · contact searches ${status.contactSearches}` +
+  status.message = `Done: ${parsed.length} checked · dates added ${status.datesAdded}${status.datesChanged ? `, updated ${status.datesChanged}` : ''} · unavailable ${status.unavailableHidden} · contacts added ${status.contactsAdded} · contact searches ${status.contactSearches}` +
     (status.unreachable ? ` · page not readable ${status.unreachable}` : '') + (status.webSearch === 'off' ? ' · web contact search off' : '') + (status.errors ? ` · errors ${status.errors}` : '');
   deps.log('info', 'recheck_refresh_done', {
     queued: rows.length, checked: parsed.length, datesAdded: status.datesAdded, datesChanged: status.datesChanged, contactsAdded: status.contactsAdded, enrichedFound: status.enrichedFound, contactSearches: status.contactSearches,
