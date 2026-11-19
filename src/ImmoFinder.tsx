@@ -110,24 +110,13 @@ export default function ImmoFinder() {
       await load();
     } catch (e) { setMsg((e as Error).message); }
   };
-  const cleanup = async () => { try { const r = await api('/api/immofinder/cleanup', { method: 'POST', body: '{}' }); setMsg(`Hid ${r.hidden} saved results that are not suitable.`); await loadList(); } catch (e) { setMsg((e as Error).message); } };
-  const resetAll = async () => {
-    if (!window.confirm('Delete ALL saved listings and the seen-cache? Drive sheet will be cleared. This cannot be undone.')) return;
-    setMsg('');
+  const recheck = async () => {
     try {
-      const r = await api('/api/immofinder/reset', { method: 'POST', body: JSON.stringify({ clearDrive: true }) });
-      const w = r.wipe || {};
-      setMsg(`Reset: removed ${w.listings ?? 0} listings, ${w.seen ?? 0} seen URLs. Drive: ${r.drive?.status || 'n/a'}.`);
-      await load();
+      setMsg('Rechecking saved listings…');
+      const r = await api('/api/immofinder/recheck', { method: 'POST', body: '{}' });
+      setMsg(`Rechecked ${r.checked}: hid ${r.hidden} unsuitable, fixed price on ${r.priceFixed}.`);
+      await loadList();
     } catch (e) { setMsg((e as Error).message); }
-  };
-  const enrichExisting = async () => {
-    setMsg('');
-    try {
-      const r = await api('/api/immofinder/enrich-existing', { method: 'POST', body: JSON.stringify({ limit: 200 }) });
-      setEnrichJob({ running: true, queued: r.queued, checked: 0, found: 0, message: r.queued ? `Contact search started for ${r.queued} listings…` : 'No listings without phone or email' });
-      if (!r.queued) setMsg('No saved listings without phone or email.');
-    } catch (e) { setMsg((e as Error).message); setEnrichJob(null); }
   };
   const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
 
@@ -279,9 +268,7 @@ export default function ImmoFinder() {
           <button key={id} type="button" role="tab" aria-selected={tab === id} className="immo-btn small" style={{ opacity: tab === id ? 1 : 0.6 }} onClick={() => setTab(id)}>{label} · {n}</button>
         ))}
         {hidden > 0 && <span style={{ fontSize: 13, color: '#8fa6c2', alignSelf: 'center' }}>{hidden} hidden as not suitable</span>}
-        <button type="button" className="ghost" data-testid="immofinder-enrich-existing" disabled={!!enrichJob?.running} onClick={() => void enrichExisting()} style={{ fontSize: 13 }}>{enrichJob?.running ? "Searching contacts…" : "Find contacts for saved"}</button>
-        <button type="button" className="ghost" onClick={() => void cleanup()} style={{ fontSize: 13 }}>Clean up list</button>
-        <button type="button" className="ghost" data-testid="immofinder-reset" onClick={() => void resetAll()} style={{ fontSize: 13, color: '#ffb4b4' }} disabled={busy}>Delete all & reset</button>
+        <button type="button" className="ghost" data-testid="immofinder-recheck" onClick={() => void recheck()} style={{ fontSize: 13 }} disabled={busy}>Recheck list</button>
       </div>
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
       {shown.map((l) => {
