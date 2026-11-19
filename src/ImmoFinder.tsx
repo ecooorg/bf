@@ -31,7 +31,7 @@ function stageHeading(stage?: string, communes?: string[]): string {
   return STAGES[stage || 'catalogue'] || 'Working';
 }
 const REASONS: Record<string, string> = {
-  not_single_listing: 'not a single property page', agency: 'agency or manager', municipality_not_whitelisted: 'outside the target communes', rooms_unknown: 'room count not stated',
+  not_single_listing: 'not a single property page', agency: 'agency or manager', municipality_not_whitelisted: 'outside the target communes', rooms_unknown: 'room count not stated', listing_unavailable: 'listing no longer available on source',
   rooms_below_min: 'fewer than 3 rooms', registration_forbidden: 'permanent registration not allowed',
   price_above_max: 'monthly rent above your limit', price_not_monthly: 'price is per night/week/season', price_unknown: 'price not stated', stale_listing: 'listing too old', seeker_post: 'looking for a flat (not an offer)', contact_required: 'no direct contact',
 };
