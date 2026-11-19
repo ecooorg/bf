@@ -376,7 +376,7 @@ export default function ImmoFinder() {
             <button
               type="button"
               data-testid="immofinder-delete"
-              onClick={() => { if (window.confirm('Удалить это объявление из базы навсегда?')) void deleteCard(l.id); }}
+              onClick={() => { if (window.confirm('Delete this listing from the database permanently?')) void deleteCard(l.id); }}
               style={{
                 marginLeft: 'auto',
                 background: '#8b1a1a',
@@ -389,7 +389,7 @@ export default function ImmoFinder() {
                 cursor: 'pointer',
               }}
             >
-              Удалить
+              Delete
             </button>
           </div>
         </article>
