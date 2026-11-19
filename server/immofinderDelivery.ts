@@ -107,8 +107,7 @@ export function formatListingCard(r: any): string {
   const published = immoFormatDate(r.listed_at ?? r.raw?.listed_at);
   // Source publication date only (search/discovery time is not exported).
   const when = published ? `Published: ${published}` : '';
-  const status = r.status && r.status !== 'NEW' ? `Status: ${r.status}` : '';
-  return [line1, about, formatDirectLink(r), when, status].filter(Boolean).join('\n');
+  return [line1, about, formatDirectLink(r), when].filter(Boolean).join('\n');
 }
 
 /** Plain-text listing block shared by email and Telegram. */
@@ -149,7 +148,7 @@ const rowPx = (text: string, pt: number, bold = false) => Math.round(wrapLines(t
 
 /**
  * Sheet layout: one card = headline / description / link line / buttons row / spacer, painted like the app screen
- * (dark card, bold headline, light-blue text, blue "Open" button, chips for photos, status). Pure function: returns Sheets API requests.
+ * (dark card, bold headline, light-blue text, blue "Open" button, chips for photos). Pure function: returns Sheets API requests.
  */
 export function buildSheetRequests(rows: any[], gid: number, opts: { rowCount?: number; columnCount?: number; emptyNote?: string } = {}): { requests: any[]; totalRows: number } {
   const cards = rows.map((r) => immoCardModel(r));
@@ -174,9 +173,8 @@ export function buildSheetRequests(rows: any[], gid: number, opts: { rowCount?: 
     if (k.published) runs.push({ startIndex: at, format: { ...lineFont, foregroundColor: hex(C.muted), underline: false } });
     r = push(wide(line, { textFormat: { ...lineFont, foregroundColor: hex(C.link) } }, runs, C.card), rowPx(line, 10)); merges.push([r, r + 1, 0, 6]);
     const btn = (label: string, url: string, open: boolean) => ({ userEnteredValue: { stringValue: label }, userEnteredFormat: base(open ? C.btnBg : C.chipBg, { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontFamily: FONT, fontSize: 10, bold: open, underline: false, foregroundColor: hex(open ? C.btnText : C.chipText), ...(url ? { link: { uri: url } } : {}) } }) });
-    const statusText = `Status  ${k.status}`;
     const cells = [btn(k.openLabel, k.url, true), ...[0, 1, 2].map((i) => (k.photos[i] ? btn(k.photos[i].label, k.photos[i].url, false) : blank(C.card))),
-      { userEnteredValue: { stringValue: statusText }, userEnteredFormat: base(C.card, { horizontalAlignment: 'RIGHT', verticalAlignment: 'MIDDLE', textFormat: { fontFamily: FONT, fontSize: 11, foregroundColor: hex(C.text) } }), textFormatRuns: [{ startIndex: 0, format: { fontFamily: FONT, fontSize: 11, foregroundColor: hex(C.text), bold: false } }, { startIndex: 8, format: { fontFamily: FONT, fontSize: 11, foregroundColor: hex(C.text), bold: true } }] }, blank(C.card)];
+      blank(C.card), blank(C.card)];
     r = push(cells, 34); merges.push([r, r + 1, 4, 6]);
     borders.push({ r0: top, r1: r + 1, c0: 0, c1: 6, color: C.border }, { r0: r, r1: r + 1, c0: 0, c1: 1, color: C.btnBorder });
     push(Array.from({ length: 6 }, () => blank(C.page)), 12);
@@ -218,7 +216,6 @@ export function buildDocRequests(rows: any[], endIndex: number, opts: { emptyNot
     paras.push({ card: true, segs: ls });
     const bs: Seg[] = [{ t: `${NB}${k.openLabel}${NB}`, fg: C.btnText, bg: C.btnBg, bold: true, pt: 10, link: k.url || undefined }];
     for (const p of k.photos) bs.push({ t: '  ', pt: 10 }, { t: `${NB}${p.label}${NB}`, fg: C.chipText, bg: C.chipBg, pt: 10, link: p.url });
-    bs.push({ t: '    Status  ', pt: 11 }, { t: k.status, bold: true, pt: 11 });
     paras.push({ card: true, segs: bs });
     paras.push({ segs: [{ t: '', pt: 6 }], spaceBelow: 0 });
   }

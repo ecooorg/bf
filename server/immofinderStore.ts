@@ -179,6 +179,13 @@ export async function wipeAllListings(): Promise<{ listings: number; seen: numbe
   try { await p.query('DELETE FROM immofinder_progress'); } catch { /* optional */ }
   return { listings, seen, progress };
 }
+/** Hard-delete one listing by id. Returns true if a row was removed. */
+export async function deleteListing(id: string): Promise<boolean> {
+  const p = await getPool();
+  const r = await p.query('DELETE FROM immofinder_listings WHERE id = $1', [id]);
+  return (r.rowCount ?? 0) > 0;
+}
+
 export async function setStatus(id: string, status: string): Promise<boolean> {
   const p = await getPool();
   const r = await p.query('UPDATE immofinder_listings SET status = $2, updated_at = now() WHERE id = $1', [id, status]);

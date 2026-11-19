@@ -6,7 +6,7 @@ import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
 import { immoLog, completenessSummary } from './immofinderDiag.ts';
@@ -105,6 +105,17 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     catch { return res.status(500).json({ success: false, error: 'Update failed', code: 'IMMOFINDER_FAILED' }); }
   });
 
+
+  app.delete('/api/immofinder/listings/:id', async (req, res) => {
+    if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) return res.status(400).json({ success: false, error: 'Invalid id', code: 'INVALID_REQUEST' });
+    try {
+      return (await deleteListing(req.params.id))
+        ? res.json({ success: true })
+        : res.status(404).json({ success: false, error: 'Not found', code: 'NOT_FOUND' });
+    } catch (e) {
+      res.status(500).json({ success: false, error: String((e as Error)?.message || e).slice(0, 160), code: 'IMMOFINDER_FAILED' });
+    }
+  });
 
   app.get('/api/immofinder/enrich-status', async (_req, res) => {
     res.json({ success: true, job: { ...enrichJobStatus } });
