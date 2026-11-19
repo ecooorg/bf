@@ -629,8 +629,71 @@ export function priceDiagSnippet(text: string, maxLen = 360): string | null {
 /** Extract a plausible publication / update date from page text or URL.
  * Declared meta/JSON-LD wins. Then labelled dates near publication keywords, then bare dates,
  * then relative phrases (DE/FR/IT/EN). Prefer the most recent plausible past date. */
+
+/** Coerce Serper / portal date strings ("2 days ago", "vor 3 Tagen", "15. Nov 2026") into a Date. */
+export function coerceDeclaredDate(raw: string | null | undefined): Date | null {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  // Absolute ISO / parseable
+  const direct = new Date(s);
+  if (!Number.isNaN(direct.getTime()) && direct.getUTCFullYear() >= 2000 && direct.getTime() <= Date.now() + 86400000) return direct;
+  // dd.mm.yyyy
+  const dmy = /^(\d{1,2})\.(\d{1,2})\.(20\d{2})$/.exec(s);
+  if (dmy) {
+    const d = new Date(Date.UTC(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]), 12));
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  // "15. Nov 2026" / "15 Nov 2026" / "Nov 15, 2026"
+  const months: Record<string, number> = { jan:0, january:0, januar:0, feb:1, february:1, februar:1, mar:2, märz:2, maerz:2, march:2, apr:3, april:3, may:4, mai:4, jun:5, juni:5, june:5, jul:6, juli:6, july:6, aug:7, august:7, sep:8, sept:8, september:8, oct:9, okt:9, october:9, oktober:9, nov:10, november:10, dec:11, dez:11, december:11, dezember:11 };
+  const mon = s.match(/(\d{1,2})[\.\s]+([A-Za-zäöüÄÖÜ]+)[\.\s,]+(20\d{2})/);
+  if (mon) {
+    const mi = months[mon[2].toLowerCase()];
+    if (mi != null) {
+      const d = new Date(Date.UTC(Number(mon[3]), mi, Number(mon[1]), 12));
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+  }
+  const monEn = s.match(/([A-Za-z]+)\s+(\d{1,2}),?\s+(20\d{2})/);
+  if (monEn) {
+    const mi = months[monEn[1].toLowerCase()];
+    if (mi != null) {
+      const d = new Date(Date.UTC(Number(monEn[3]), mi, Number(monEn[2]), 12));
+      if (!Number.isNaN(d.getTime())) return d;
+    }
+  }
+  // Relative EN: "2 days ago", "1 week ago", "3 hours ago"
+  const en = /(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago/i.exec(s);
+  if (en) {
+    const n = Number(en[1]); const u = en[2].toLowerCase();
+    const d = new Date();
+    if (u.startsWith('second') || u.startsWith('minute') || u.startsWith('hour')) { /* same day */ }
+    else if (u.startsWith('day')) d.setDate(d.getDate() - n);
+    else if (u.startsWith('week')) d.setDate(d.getDate() - n * 7);
+    else if (u.startsWith('month')) d.setMonth(d.getMonth() - n);
+    else if (u.startsWith('year')) d.setFullYear(d.getFullYear() - n);
+    return d;
+  }
+  // Relative DE already handled in body; also "vor 3 Tagen" as sole declared
+  const de = /vor\s+(\d+)\s+(Tag|Tagen|Woche|Wochen|Monat|Monaten|Jahr|Jahren)/i.exec(s);
+  if (de) {
+    const n = Number(de[1]); const u = de[2].toLowerCase();
+    const d = new Date();
+    if (/tag/.test(u)) d.setDate(d.getDate() - n);
+    else if (/woche/.test(u)) d.setDate(d.getDate() - n * 7);
+    else if (/monat/.test(u)) d.setMonth(d.getMonth() - n);
+    else if (/jahr/.test(u)) d.setFullYear(d.getFullYear() - n);
+    return d;
+  }
+  if (/^heute$/i.test(s) || /^today$/i.test(s)) { const d = new Date(); d.setHours(12,0,0,0); return d; }
+  if (/^gestern$/i.test(s) || /^yesterday$/i.test(s)) { const d = new Date(); d.setDate(d.getDate()-1); d.setHours(12,0,0,0); return d; }
+  return null;
+}
+
 export function parseListedAt(text: string, url?: string, declared?: string | null): Date | null {
   if (declared) {
+    const coerced = coerceDeclaredDate(declared);
+    if (coerced) return coerced;
     const d = new Date(String(declared).trim());
     if (!Number.isNaN(d.getTime()) && d.getTime() <= Date.now() + 86400000 && d.getUTCFullYear() >= 2000) return d;
   }
@@ -729,6 +792,8 @@ export function parseListedAt(text: string, url?: string, declared?: string | nu
 /** Detailed publication-date extraction used by recheck diagnostics. Declared page metadata is preferred. */
 export function parseListedAtDetailed(text: string, url?: string, declared?: string | null): { date: Date | null; source: 'declared' | 'text' | 'none' } {
   if (declared) {
+    const coerced = coerceDeclaredDate(declared);
+    if (coerced) return { date: coerced, source: 'declared' };
     const d = new Date(String(declared).trim());
     if (!Number.isNaN(d.getTime()) && d.getTime() <= Date.now() + 86400000 && d.getUTCFullYear() >= 2000) {
       return { date: d, source: 'declared' };

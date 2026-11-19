@@ -1,6 +1,6 @@
 import { type ImmoConfig, isStopAgency, nonListingReason, isSpecificLink } from './immofinderCore.ts';
 
-export interface SearchHit { title: string; link: string; snippet: string }
+export interface SearchHit { title: string; link: string; snippet: string; /** Serper/organic date string when present, e.g. "2 days ago" or "15.11.2026". */ date?: string | null }
 export interface DiscoveryItem { url: string; host: string; hit: SearchHit; snippetOnly: boolean }
 
 export const hostOf = (u: string): string => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } };
@@ -99,6 +99,6 @@ export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
     const r = await fetchImpl('https://google.serper.dev/search', { method: 'POST', headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ q: query, gl: 'ch', hl: 'de', num: n }) });
     if (!r.ok) throw new Error(`Serper HTTP ${r.status}`);
     const d: any = await r.json();
-    return (d.organic || []).map((o: any) => ({ title: String(o.title || ''), link: String(o.link || ''), snippet: String(o.snippet || '') })).filter((h: SearchHit) => h.link);
+    return (d.organic || []).map((o: any) => ({ title: String(o.title || ''), link: String(o.link || ''), snippet: String(o.snippet || ''), date: o.date != null ? String(o.date) : (o.datePublished != null ? String(o.datePublished) : null) })).filter((h: SearchHit) => h.link);
   };
 }

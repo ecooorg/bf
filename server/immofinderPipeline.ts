@@ -232,7 +232,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         }
       }
       const host = hostOf(it.url); idx++; say(stage, `${src.id}: reading ${idx}/${items.length} · ${host}${new URL(it.url).pathname.slice(0, 50)}`, idx, items.length); let text = ''; let meta: ReturnType<typeof pageMeta>; let snippet = false;
-      const fromSnippet = () => { snippet = true; res.counts.snippet_only++; meta = { title: it.hit!.title, description: it.hit!.snippet, photos: [], published: null }; text = `${it.hit!.title}\n${it.hit!.snippet}`; };
+      const fromSnippet = () => {
+        snippet = true; res.counts.snippet_only++;
+        const hitDate = (it.hit as any)?.date ? String((it.hit as any).date) : '';
+        meta = { title: it.hit!.title, description: it.hit!.snippet, photos: [], published: hitDate || null };
+        text = `${it.hit!.title}\n${it.hit!.snippet}${hitDate ? `\n${hitDate}` : ''}`;
+      };
       if (it.snippetOnly && it.hit) fromSnippet();
       else {
         let pg: { ok: boolean; status: number; body: string };
@@ -272,7 +277,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (src.privateTitleHint && meta!.title.toLowerCase().includes(src.privateTitleHint.toLowerCase())) ex.signals.push('platform_says_private');
       if (snippet) ex.signals.push('snippet_only');
       res.counts.llm_calls += llmCalls; st.llm += llmCalls; if (err) { res.errors.push({ source: src.id, code: 'llm_failed', detail: err }); st.consecutiveBad++; }
-      pages.push({ url: it.url, host, meta: meta!, text, ex, snippet });
+      pages.push({ url: it.url, host, meta: meta!, text, ex, snippet, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null });
     }
     // Phones repeated on several pages of one host belong to the platform, not to an owner.
     const phoneUse = new Map<string, number>();
@@ -317,10 +322,11 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const pageText = pages[i].text;
       const priceHay = `${meta.title}\n${pageText}`;
       const price = resolveListingPrice(priceHay, ex.priceQuote);
+      const hitDate = (pages[i] as any).hitDate || meta.published || null;
       const listedAt = parseListedAt(
-        `${meta.title}\n${pageText.slice(0, 12000)}\n${ex.listedAtQuote || ''}`,
+        `${meta.title}\n${pageText.slice(0, 12000)}\n${ex.listedAtQuote || ''}\n${hitDate || ''}`,
         url,
-        meta.published || ex.listedAtQuote || null,
+        meta.published || ex.listedAtQuote || hitDate || null,
       );
       const seeker = isSeekerPost(meta.title, pageText);
       if (seeker) ex.signals.push('seeker_post');
