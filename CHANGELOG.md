@@ -1,3 +1,11 @@
+## [129.35] - KeepAlive: hard cadence so Render cannot sleep on hung health
+
+- Next ping is always scheduled on a timer (11–13 min); a hung `/api/health` no longer blocks the loop until after the idle window.
+- Each visit has a 15s request timeout and 25s total budget; overlapping visits are skipped.
+- First ping 20–60s after boot; failures retry in 30–60s.
+- Addresses free-tier sleep after long ImmoFinder/email delivery blocked the previous sequential KeepAlive loop.
+- BUGFIX.
+
 ## [129.34] - Email delivery respects "new" vs "all"
 
 - Manual run and scheduled/internal run both honor `delivery.emailContent`.
