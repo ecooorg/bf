@@ -1,3 +1,10 @@
+## [129.31] - Source evidence under each listing in Drive Doc/Sheet
+
+- Card model exposes `evidenceText` / `evidenceKind` / `evidenceScreenshotUrl` from `raw`.
+- Google Sheet, Google Doc, email/Telegram plain text append **Source text** (and **Source capture** when URL present) under each listing.
+- Screen cards show the same source excerpt when it differs from the short about line.
+- USER_VALUE; requires listings saved with `raw.evidence_text` (P129.30+ search).
+
 ## [129.30] - ImmoFinder evidence-first credibility gate
 
 - Architecture: English section **ImmoFinder search result quality** (evidence-first product contract).
