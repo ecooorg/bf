@@ -1,3 +1,10 @@
+## [129.26] - Persist listing publish date on update; use LLM date quote
+
+- Root cause: upsert on existing canonical_key never wrote `raw.listed_at` (only touch URLs/contacts), so dates found on a later pass were discarded.
+- Root cause: LLM schema asked for `listed_at_quote` but extract() ignored it.
+- Fix: merge `raw` (listed_at, price) on upsert update; pass listed_at_quote into parseListedAt; prompt explicitly for publication date phrases.
+- BUGFIX; existing rows still need Recheck list or a new search pass to fill dates.
+
 ## [129.25] - Hide unavailable listings; CI for published-only dates
 
 - Detect portal offline phrases ("nicht verfügbar" / "no longer available") at ingest and on Recheck list; hide with reason `listing_unavailable`.

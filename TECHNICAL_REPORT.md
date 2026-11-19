@@ -1,3 +1,10 @@
+## P129.26 — Why publish dates never stuck
+
+- **OBSERVED:** Export of 106 cards shows only 6 with `published …`. Display path works when `raw.listed_at` exists.
+- **ROOT CAUSE:** (1) `upsert` update branch did not touch `raw`, so a second fetch that found a date never saved it. (2) `listed_at_quote` from LLM was requested in SCHEMA but never read into Extract / parseListedAt.
+- **CHANGE:** merge raw on update; wire listed_at_quote; SYSTEM prompt for date phrases.
+- **LIMIT:** Facebook/snippet-only and 403 portals still often have no date in HTML — those cards stay without published until the source exposes one.
+
 ## P129.25 — Unavailable filter + CI green for date line
 
 - **OBSERVED:** CI red on agents-contract (expected "Found:" after 129.24) and package-lock still on 129.23a; many cards for offline portal pages.
