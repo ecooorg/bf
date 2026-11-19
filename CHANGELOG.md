@@ -1,18 +1,9 @@
-## [129.19] - Render keep-alive every 12–14 min
+## [129.20] - Recheck list; safer price years; hide junk on recheck
 
-- Ping public URL every 12–14 min (under free-tier ~15 min idle).
-- First ping 30–90s after boot; always hits `/api/health`; logs each ok/fail.
-- Fallback base URL if `RENDER_EXTERNAL_URL` missing in production.
-- Retries in 45–75s on failure so one miss cannot open a 15+ min gap.
-
-## [129.18] - Quality keep filters (list/agency/seeker/price); short-term stays
-
-- List/search/join URLs dropped earlier in pickItems and at keep (not_single_listing); reduces fetch queue without cutting Serper templates.
-- Agency: Betterhomes, Wincasa, anbieter.* mailboxes, 0800 hotlines; "Nachmieter gesucht" still treated as private signal.
-- Seeker: "Wohnung gesucht" / budget-seeking without offer.
-- parsePrice: spaced thousands "1 235 fr" → 1235; score prefers full rent over parking fragments.
-- Geo: Felsberg + Eslohe/Sauerland/Deutschland without CH markers.
-- rejectNonMonthly remains false — short-term stays keepable with night/week unit.
+- Single **Recheck list** button replaces Find contacts / Clean up / Delete all & reset.
+- `POST /api/immofinder/recheck` re-applies current filters on saved rows (list/seeker/geo/agency/rooms) and re-parses prices from stored text without external LLM/search.
+- parsePrice: do not treat calendar years 2020–2035 next to ab/per/verfügbar as rent; prefer full amounts (1'300 over 300).
+- LIST_URL_MORE: preise.html, /liste, booking hotel, gruppenhaus, _join_.
 
 ## [129.17] - Carousel commune names in step title
 
