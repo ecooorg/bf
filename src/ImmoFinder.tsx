@@ -53,6 +53,8 @@ export default function ImmoFinder() {
   const [view, setView] = useState<'current' | 'hidden' | 'all'>('current');
   const [recheckBusy, setRecheckBusy] = useState(false);
   const [recheckInfo, setRecheckInfo] = useState('');
+  const [listRefreshBusy, setListRefreshBusy] = useState(false);
+  const [listRefreshInfo, setListRefreshInfo] = useState('');
   const [msg, setMsg] = useState('');
   const [starting, setStarting] = useState(false);
   const [dry, setDry] = useState(false);
@@ -135,6 +137,26 @@ export default function ImmoFinder() {
     } finally {
       setRecheckBusy(false);
     }
+  };
+  const recheckList = async () => {
+    if (listRefreshBusy) return;
+    setListRefreshBusy(true); setListRefreshInfo('Rechecking dates and contacts for all saved listings…');
+    try {
+      const start = await api('/api/immofinder/recheck-list', { method: 'POST', body: '{}' });
+      setListRefreshInfo(`Queued ${start.queued} listings. Refreshing dates and contacts…`);
+      let finished = false;
+      while (!finished) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const s = await api('/api/immofinder/recheck-list-status');
+        const job = s.job || {};
+        setListRefreshInfo(job.message || `Checked ${job.checked || 0}/${job.queued || start.queued}…`);
+        finished = !job.running && Boolean(job.finishedAt);
+        if (finished) setListRefreshInfo(job.message || 'Recheck list complete.');
+      }
+      await loadList();
+    } catch (e) {
+      setListRefreshInfo(`Recheck list failed: ${(e as Error).message}`);
+    } finally { setListRefreshBusy(false); }
   };
   const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
 
@@ -308,13 +330,18 @@ export default function ImmoFinder() {
         <button
           type="button"
           className="ghost"
-          data-testid="immofinder-recheck"
+          data-testid="immofinder-recheck-filters"
           onClick={() => void recheck()}
           style={{ fontSize: 13 }}
           disabled={busy || recheckBusy}
         >
-          {recheckBusy ? 'Rechecking…' : 'Recheck list'}
+          {recheckBusy ? 'Rechecking…' : 'Recheck filters'}
         </button>
+        <button type="button" className="ghost" data-testid="immofinder-recheck-list"
+          onClick={() => void recheckList()} style={{ fontSize: 13 }} disabled={busy || listRefreshBusy}>
+          {listRefreshBusy ? 'Rechecking list…' : 'Recheck list'}
+        </button>
+        {listRefreshInfo && <span data-testid="immofinder-recheck-list-status" style={{ fontSize: 13, color: listRefreshBusy ? '#8ec8ff' : '#8fa6c2', alignSelf: 'center', maxWidth: 420 }}>{listRefreshInfo}</span>}
         {recheckInfo && (
           <span data-testid="immofinder-recheck-status" style={{ fontSize: 13, color: recheckBusy ? '#8ec8ff' : '#8fa6c2', alignSelf: 'center', maxWidth: 420 }}>
             {recheckInfo}
