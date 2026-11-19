@@ -1,18 +1,9 @@
-## [129.35] - KeepAlive: hard cadence so Render cannot sleep on hung health
+## [129.36] - No duplicate Source text in cards / Drive exports
 
-- Next ping is always scheduled on a timer (11–13 min); a hung `/api/health` no longer blocks the loop until after the idle window.
-- Each visit has a 15s request timeout and 25s total budget; overlapping visits are skipped.
-- First ping 20–60s after boot; failures retry in 30–60s.
-- Addresses free-tier sleep after long ImmoFinder/email delivery blocked the previous sequential KeepAlive loop.
-- BUGFIX.
-
-## [129.34] - Email delivery respects "new" vs "all"
-
-- Manual run and scheduled/internal run both honor `delivery.emailContent`.
-- `all`: email body is every visible listing (up to 60), even when the wave found zero new.
-- `new`: only listings first seen in that wave (previous behavior).
-- Telegram stays wave-new only; Drive still exports the full list.
-- BUGFIX.
+- `immoEvidenceBlock` omits source text when it is the same (or near-duplicate) of the card about line.
+- Real `evidence_screenshot_url` still appears as Source capture.
+- Screen UI uses the same redundancy check.
+- USER_VALUE; stops filling Doc/Sheet with repeated snippet text.
 
 ## [129.32] - Fix missing evidence-first imports in pipeline
 
