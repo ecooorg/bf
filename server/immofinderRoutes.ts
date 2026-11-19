@@ -6,8 +6,10 @@ import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
+import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
+import { immoLog, completenessSummary } from './immofinderDiag.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -31,6 +33,8 @@ const enrichJobStatus: {
   current: '',
   message: '',
 };
+
+const refreshStatus: RefreshStatus = newRefreshStatus();
 
 export interface ImmoRouteDeps {
   authenticated: (req: Request) => boolean;
@@ -260,6 +264,41 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   });
 
   /** Re-check all visible listings with current parsers/filters; hide junk and fix prices when possible. */
+  app.get('/api/immofinder/recheck-list-status', async (_req, res) => {
+    res.json({ success: true, job: { ...refreshStatus } });
+  });
+
+  /** Recheck dates and contact details on every stored listing, including hidden rows. */
+  app.post('/api/immofinder/recheck-list', json, async (_req, res) => {
+    if (refreshStatus.running) return res.status(409).json({ success: false, error: 'Recheck list is already running', code: 'RECHECK_IN_PROGRESS' });
+    try {
+      const cfg = loadImmoConfig();
+      const rows = await listListingsForRefresh();
+      const fetchPage = createPoliteFetch(cfg);
+      const enrichCfg = resolveEnrichmentConfig(cfg);
+      const search = process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null;
+      res.status(202).json({ success: true, queued: rows.length });
+      void runRefreshJob(rows, {
+        fetchPage,
+        platformDomains: cfg.platformDomains || [],
+        enrich: enrichCfg.enabled && search ? (input) => enrichContacts(input, {
+          config: enrichCfg, search, fetchPage, budget: { searchesLeft: Math.max(enrichCfg.maxExtraSearchesPerRun, 4), reverseImageLeft: 0 },
+        }) : undefined,
+        update: updateListingContacts,
+        log: (level, event, details) => {
+          const payload = { type: `immofinder_${event}`, ...details };
+          if (level === 'error') console.error(JSON.stringify(payload)); else if (level === 'warn') console.warn(JSON.stringify(payload)); else console.info(JSON.stringify(payload));
+        },
+      }, refreshStatus).catch((e) => {
+        refreshStatus.running = false; refreshStatus.phase = 'done'; refreshStatus.finishedAt = Date.now();
+        refreshStatus.errors++; refreshStatus.message = `Recheck failed: ${String((e as Error)?.message || e).slice(0, 120)}`;
+        console.error(JSON.stringify({ type: 'immofinder_recheck_list_fatal', error: refreshStatus.message }));
+      });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: String((e as Error)?.message || e).slice(0, 160), code: 'IMMOFINDER_FAILED' });
+    }
+  });
+
   app.post('/api/immofinder/recheck', json, async (_req, res) => {
     try {
       const result = await recheckStored();
@@ -465,6 +504,17 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           },
         }, { dryRun, wave });
         errors.push(...(result.errors || []));
+        try {
+          const saved = await listListings(null, { includeHidden: true });
+          immoLog('info', 'search_quality_summary', {
+            runId, wave, counts: result.counts, filtered: result.filtered, errors: result.errors?.length || 0,
+            sourceStats: result.sourceStats || [], wavesRun: result.wavesRun || [],
+            completeness: completenessSummary(saved),
+            previewSamples: (result.preview || []).slice(0, 8).map((x) => ({ host: (() => { try { return new URL(x.url).hostname; } catch { return 'unknown'; } })(), kept: x.kept, reason: x.reason, detail: String(x.detail || '').slice(0, 100) })),
+          }, 'Search quality and saved-card completeness summary');
+        } catch (diagError) {
+          immoLog('warn', 'search_quality_summary_failed', { runId, error: String((diagError as Error)?.message || diagError).slice(0, 120) });
+        }
         // Safety net: if waves produced nothing and notifyWhenEmpty, still one summary delivery
         if (!dryRun && dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
           await deliverWave('extended', [], result.counts);

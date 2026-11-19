@@ -64,6 +64,12 @@ export async function listListings(status: string | null, opts?: { includeHidden
   );
   return r.rows;
 }
+/** All saved rows for background refresh; deliberately unbounded (UI list is capped separately). */
+export async function listListingsForRefresh() {
+  const p = await getPool();
+  const r = await p.query('SELECT * FROM immofinder_listings ORDER BY last_seen_at DESC');
+  return r.rows;
+}
 export async function hiddenCount(): Promise<number> {
   const p = await getPool(); return Number((await p.query('SELECT count(*)::int AS n FROM immofinder_listings WHERE hidden = true')).rows[0]?.n ?? 0);
 }
