@@ -97,4 +97,87 @@ Separate workspace, not an agent. `server/immofinder/` (sources, normalise, dedu
 
 Implemented: flat files `server/immofinder{Core,Fetcher,Pipeline,Store,Delivery,Routes}.ts` (the repo keeps `server/` flat), `src/ImmoFinder.tsx` (route `/immofinder`, home card `start-immofinder`), `.github/workflows/immofinder-cron.yml`. The run is an in-process async job guarded by `immofinder_runs` (one open run, 30-minute expiry) instead of the job queue. Source parsing is generic (same-site object links, page text, Gemini extraction verified against the text); unverified on live markup.
 
-ImmoFinder discovery (128.3): `server/immofinderDiscovery.ts` builds per-commune queries (rotation by finished real runs), picks hits (host policy) and feeds them to the same extraction/filter/persist function as catalogue sources.
+ImmoFinder discovery (128.3): `server/immofinderDiscovery.ts` builds per-commune queries (rotation by finished real runs), picks hits (host policy) and feeds them to the same extraction/filter/persist function as catalogue sources. Product quality contract: see **ImmoFinder search result quality** below.
+
+## ImmoFinder search result quality
+
+**Status:** product contract (architecture). Does not redefine TECHNICAL_SPECIFICATION; records what *counts as value* for ImmoFinder users and which implementation directions are allowed. Written after P128–P129 operations showed that green subsystems (parsers, CI, individual fields) still produced feeds users could not trust without heavy manual cleanup.
+
+### User goal (source of truth)
+
+The user needs **current long-term rental listings** (GR / configured communes) that are **believable and actionable** (open, call, write).
+
+Success is not “many cards” or “fields populated”, but:
+
+1. `current` only contains objects that exist as **one listing** in the source.
+2. What the card shows is **consistent** with that source (place, rooms, price, contact are not a collage of unrelated signals).
+3. If the agent cannot reliably parse the page, it still delivers the **listing as evidence** (verbatim excerpt and/or screenshot later), not a reconstructed pretty card from search scraps.
+
+Acceptance from the user side: share of cards that do not need Delete for junk or false glue. Metrics such as `kept`, CI green, or “date can parse” are secondary.
+
+### Anti-pattern already observed
+
+The pipeline was optimized **per component**: publish date, unavailable hide, contacts, UI contracts. In aggregate this produced **field collage** (title from one signal, municipality from URL, rooms from the model, phone from page chrome). After all component fixes, a sample of “new” cards still had near-zero value: mismatched title/body, wrong prices/contacts, missing dates, seeker/sale/holiday mixed with real rentals.
+
+**Conclusion:** component correctness ≠ feed value. Further isolated parser patches without changing the publish contract repeat the same failure mode.
+
+### Access limits (not fixed by better analysis)
+
+- **Facebook** (large share of candidates): without login/API often 403 or empty shell; Serper snippet-only is not the ad page.
+- Some portals block bots; recheck runs show a majority of URLs unreachable.
+- Where there is **no HTML**, LLM/regex cannot create trust. Honest policy: `evidence: snippet|link_only` or do not emit a full card.
+
+Where HTML **is** available, the bottleneck is **parse + publish policy** — the area this contract targets.
+
+### Target model: evidence-first
+
+| Required | Secondary |
+|----------|-----------|
+| Stable `listing_url` | Structured fields (price, rooms, phone, date) |
+| **Evidence**: verbatim page/snippet excerpt (screenshot optional later) | Only when confirmed against evidence |
+| Explicit `evidence_kind`: `page_text` / `snippet` / `link_only` | Otherwise do not present fields as fact |
+
+Rules:
+
+1. Do not treat a free paraphrase as the only body text when an excerpt exists — prefer **verbatim evidence**.
+2. Structured fields only when grounded in evidence (substring / quote verify), not “the model said so”.
+3. On field conflict (rooms title vs body, municipality vs evidence) — **do not average**: drop/hide with `hide_reason` or show evidence without false confidence.
+4. Strip platform/junk contacts (`support@` portals, `+4100…` placeholders) rather than showing them as owners.
+
+### Consistency gate (before `kept` / before `current`)
+
+Logical barrier (implemented in pipeline + recheck filters):
+
+- Offer to rent, not seeker demand; not pure sale; not pure holiday/night tourism when the product is long-term rent;
+- Single object, not a list/search page;
+- Municipality consistent with whitelist and evidence text;
+- Rooms/price not in hard conflict with evidence;
+- Otherwise: no keep into `current`, or immediate hide with machine `hide_reason`.
+
+**Prefer a few credible cards over dozens of partial ones.**
+
+### Metrics that matter
+
+| Metric | Why |
+|--------|-----|
+| Credible keeps / fewer user Deletes | Real value |
+| Share of cards with stored `evidence_text` | Proof coverage |
+| Fields verified against evidence | Honesty of structure |
+
+Do not treat rising `kept` with rising manual Delete as success.
+
+### Implementation landmarks (P129.30+)
+
+- `buildEvidenceText`, `credibilityRejectReason`, `priceFromEvidence`, `isPlatformOrJunkContact` in `server/immofinderCore.ts`
+- Pipeline stores `raw.evidence_text` / `raw.evidence_kind` and runs the credibility gate before keep
+- Recheck filters apply the same gate on stored rows
+- Card `about` prefers `raw.evidence_text` when present
+- Screenshots: not required in the first evidence-first slice; excerpt is the mandatory proof channel
+
+### Explicit non-priorities
+
+- Another `parseListedAt` pass without evidence-first
+- Filling every field at any cost (including chrome emails)
+- Facebook API for third-party groups as the default plan
+
+
