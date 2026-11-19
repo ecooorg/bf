@@ -154,3 +154,26 @@ test('isListingUnavailable detects CH portal offline phrases', async () => {
   assert.equal(isListingUnavailable('Nice flat', '3.5 Zimmer Wohnung in Chur zu vermieten, CHF 1500'), false);
   assert.equal(isListingUnavailable('', 'This listing is no longer available'), true);
 });
+
+test('coerceDeclaredDate parses Serper-style relative and absolute dates', async () => {
+  const { coerceDeclaredDate, parseListedAt } = await import('../server/immofinderCore.ts');
+  const d1 = coerceDeclaredDate('2 days ago');
+  assert.ok(d1);
+  const days = (Date.now() - d1.getTime()) / 86400000;
+  assert.ok(days >= 1.5 && days <= 3);
+  const d2 = coerceDeclaredDate('15.11.2026');
+  assert.ok(d2);
+  assert.equal(d2.getUTCFullYear(), 2026);
+  assert.equal(d2.getUTCMonth(), 10);
+  assert.equal(d2.getUTCDate(), 15);
+  const d3 = parseListedAt('Wohnung in Chur', undefined, 'vor 5 Tagen');
+  assert.ok(d3);
+  const d4 = coerceDeclaredDate('heute');
+  assert.ok(d4);
+});
+
+test('SearchHit carries optional date from Serper mapping', () => {
+  const disc = read('server/immofinderDiscovery.ts');
+  assert.match(disc, /date\?:/);
+  assert.match(disc, /o\.date/);
+});
