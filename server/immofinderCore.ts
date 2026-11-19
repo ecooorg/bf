@@ -932,8 +932,14 @@ export function buildEvidenceText(title: string, pageText: string, maxLen = 4000
 
 export function isHolidayOrTourismListing(title: string, text: string, url: string): boolean {
   const hay = `${title}\n${text}\n${url}`.toLowerCase();
-  if (/jahresmiete|ganzjährig|ganzjaehrig|langfrist|nachmieter|unbefristet|1\s*jahr|12\s*monat/i.test(hay)) return false;
-  return /ferienwohnung|ferienhaus|\bfewo\b|holiday apartment|ferienhausmiete|happyholiday|heidiholiday|bedandbreakfast\.|booking\.com|\/ukv\/house|pro\s*nacht|per\s*night|nachtpreis|wochenweise/i.test(hay);
+  // Explicit long-term / monthly rent language wins over path names like /ferienwohnung/ used by many CH sites for all flats.
+  const monthlyRent = /pro\s*monat|\/\s*monat|nettomiete|bruttomiete|mietzins|jahresmiete|ganzj[äae]hrig|langfrist|nachmieter|unbefristet|1\s*jahr|12\s*monat/i.test(hay);
+  const nightly = /pro\s*nacht|per\s*night|nachtpreis|wochenweise|ab\s*chf\s*\d+\s*\/\s*nacht/i.test(hay);
+  if (monthlyRent && !nightly) return false;
+  if (/happyholiday|heidiholiday|ferienhausmiete|bedandbreakfast\.|booking\.com|\/ukv\/house/i.test(hay)) return true;
+  if (/\bferienhaus\b|\bfewo\b|holiday apartment|nachtpreis|pro\s*nacht|per\s*night|wochenweise/i.test(hay) && !monthlyRent) return true;
+  if (/\bferienwohnung\b/i.test(hay) && !monthlyRent) return true;
+  return false;
 }
 
 export function isForSaleListing(title: string, text: string, url: string): boolean {
