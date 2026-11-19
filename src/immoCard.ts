@@ -25,6 +25,14 @@ export type ImmoCard = {
   openLabel: 'Open post' | 'Open listing';
   photos: { label: string; url: string }[];
   status: string;
+  /**
+   * Verbatim source excerpt for Drive Doc/Sheet (and plain exports). Empty when none was stored.
+   * Label line is built by immoEvidenceBlock().
+   */
+  evidenceText: string;
+  evidenceKind: '' | 'page_text' | 'snippet' | 'link_only';
+  /** Public URL of a page capture when the pipeline stored one. */
+  evidenceScreenshotUrl: string;
 };
 
 /** Screen palette (same values as the inline styles of the ImmoFinder screen). */
@@ -95,6 +103,9 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
   const aboutCore = evidence
     ? evidence.slice(0, 360)
     : [l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 280);
+  const kindRaw = l.raw?.evidence_kind;
+  const evidenceKind = (kindRaw === 'page_text' || kindRaw === 'snippet' || kindRaw === 'link_only') ? kindRaw : (evidence ? 'page_text' : '');
+  const shot = typeof l.raw?.evidence_screenshot_url === 'string' ? String(l.raw.evidence_screenshot_url).trim() : '';
   return {
     headline: `📍 ${l.municipality || '?'} · ${immoPriceText(l)} · ${rooms} · ${contact || 'no direct contact'}`,
     about: aboutCore.replace(/\s+/g, ' ').trim(),
@@ -106,6 +117,9 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
     openLabel: /facebook\.com/.test(url) ? 'Open post' : 'Open listing',
     photos: (l.photo_urls || []).slice(0, 3).map((u, i) => ({ label: `Photo ${i + 1}`, url: u })),
     status: String(l.status || 'NEW'),
+    evidenceText: evidence.slice(0, 6000),
+    evidenceKind: evidenceKind as ImmoCard['evidenceKind'],
+    evidenceScreenshotUrl: shot,
   };
 }
 
@@ -116,6 +130,25 @@ export function immoLinkLine(c: ImmoCard): string {
 }
 
 /** Plain-text fallback of one card (used when rich formatting is unavailable). No letters. */
+/** Label + body for the source evidence block under a listing (Doc / Sheet / plain). */
+export function immoEvidenceBlock(c: ImmoCard): string {
+  const parts: string[] = [];
+  if (c.evidenceScreenshotUrl) {
+    parts.push(`Source capture: ${c.evidenceScreenshotUrl}`);
+  }
+  if (c.evidenceText) {
+    const kind =
+      c.evidenceKind === 'snippet' ? 'search snippet' :
+      c.evidenceKind === 'link_only' ? 'link only' :
+      c.evidenceKind === 'page_text' ? 'page text' : 'source';
+    parts.push(`Source text (${kind}):`);
+    parts.push(c.evidenceText);
+  }
+  return parts.join('\n');
+}
+
 export function immoCardPlainText(c: ImmoCard): string {
-  return [c.headline, c.about, immoLinkLine(c), [c.openLabel, ...c.photos.map((p) => p.label)].join(' · '), `Status: ${c.status}`].filter(Boolean).join('\n');
+  const actions = [c.openLabel, ...c.photos.map((p) => p.label)].join(' · ');
+  const evidence = immoEvidenceBlock(c);
+  return [c.headline, c.about, immoLinkLine(c), actions, evidence].filter(Boolean).join('\n');
 }
