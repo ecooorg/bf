@@ -74,10 +74,15 @@ export async function hiddenCount(): Promise<number> {
  * hide list/seeker/foreign/agency junk; re-parse price from stored text when possible.
  * Does not delete rows and does not call external search/LLM.
  */
+/**
+ * Re-apply current quality rules to every visible saved listing:
+ * hide list/seeker/foreign/agency junk; re-parse price into raw.price when possible.
+ * Prices live in raw JSONB (no rent_monthly_chf column). No external search/LLM.
+ */
 export async function recheckStored(): Promise<{ checked: number; hidden: number; priceFixed: number }> {
   const p = await getPool();
   const r = await p.query(
-    `SELECT id, property_name, listing_url, description_de, rent_monthly_chf, pricing_unit, rooms_estimated, owner_name, direct_phone, direct_email, raw, municipality
+    `SELECT id, property_name, listing_url, description_de, rooms_estimated, owner_name, direct_phone, direct_email, raw, municipality
      FROM immofinder_listings WHERE hidden = false`,
   );
   let hidden = 0;
@@ -95,7 +100,6 @@ export async function recheckStored(): Promise<{ checked: number; hidden: number
     if (!why && isSeekerPost(title, text)) why = 'seeker_post';
     if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
     if (!why && looksLikeAgencyListing(title, text)) why = 'agency';
-    // Group houses mis-tagged as 12+ rooms
     const rooms = Number(row.rooms_estimated);
     if (!why && Number.isFinite(rooms) && rooms >= 12) why = 'rooms_too_many';
 
@@ -106,25 +110,35 @@ export async function recheckStored(): Promise<{ checked: number; hidden: number
     }
 
     const price = resolveListingPrice(hay, null) || parsePrice(hay);
-    if (price && price.amount >= 400) {
-      const unit = price.unit === 'unknown' ? (price.monthlyChf ? 'month' : row.pricing_unit) : price.unit;
-      const monthly = price.unit === 'month' ? price.amount : price.monthlyChf;
-      const prev = row.rent_monthly_chf != null ? Number(row.rent_monthly_chf) : null;
-      // Fix only when we clearly improve: missing price, or previous was a year/fragment (2026, 300 vs 1300)
-      const prevBad =
-        prev == null ||
-        (prev >= 2020 && prev <= 2035) ||
-        (price.amount >= 800 && prev < 400) ||
-        (price.amount >= 1000 && prev > 0 && prev < 500 && price.amount >= prev * 2);
-      if (prevBad && (monthly != null || price.amount)) {
-        const rent = monthly != null ? monthly : price.amount;
-        await p.query(
-          `UPDATE immofinder_listings SET rent_monthly_chf = $2, pricing_unit = $3, updated_at = now() WHERE id = $1`,
-          [row.id, rent, unit || 'month'],
-        );
-        priceFixed++;
-      }
-    }
+    if (!price || !(price.amount >= 400)) continue;
+
+    const prevRaw = row.raw && typeof row.raw === 'object' ? row.raw : {};
+    const prevPrice = prevRaw.price && typeof prevRaw.price === 'object' ? prevRaw.price : {};
+    const prevAmt = prevPrice.amount != null ? Number(prevPrice.amount) : null;
+    const unit = price.unit === 'unknown' ? (price.monthlyChf != null ? 'month' : String(prevPrice.unit || 'unknown')) : price.unit;
+    const nextAmt = price.amount;
+
+    const prevBad =
+      prevAmt == null ||
+      !Number.isFinite(prevAmt) ||
+      (prevAmt >= 2020 && prevAmt <= 2035) ||
+      (nextAmt >= 800 && prevAmt < 400) ||
+      (nextAmt >= 1000 && prevAmt > 0 && prevAmt < 500 && nextAmt >= prevAmt * 2);
+
+    if (!prevBad) continue;
+
+    const nextPrice = {
+      amount: nextAmt,
+      unit,
+      monthlyChf: price.monthlyChf ?? (unit === 'month' ? nextAmt : null),
+      quote: price.quote || prevPrice.quote || '',
+    };
+    const nextRaw = { ...prevRaw, price: nextPrice };
+    await p.query(
+      `UPDATE immofinder_listings SET raw = $2::jsonb, updated_at = now() WHERE id = $1`,
+      [row.id, JSON.stringify(nextRaw)],
+    );
+    priceFixed++;
   }
   return { checked: r.rows.length, hidden, priceFixed };
 }

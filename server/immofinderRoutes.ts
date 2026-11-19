@@ -263,8 +263,10 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     try {
       const result = await recheckStored();
       res.json({ success: true, ...result });
-    } catch {
-      res.status(500).json({ success: false, error: 'Recheck failed', code: 'IMMOFINDER_FAILED' });
+    } catch (e) {
+      const detail = String((e as Error)?.message || e).replace(/\s+/g, ' ').slice(0, 160);
+      console.error(JSON.stringify({ type: 'immofinder_recheck_failed', detail }));
+      res.status(500).json({ success: false, error: detail || 'Recheck failed', code: 'IMMOFINDER_FAILED' });
     }
   });
 
