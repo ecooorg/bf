@@ -1,14 +1,9 @@
-## [129.27a] - Typecheck: pages.hitDate
+## [129.28] - Delete button on cards; remove letter and status UI
 
-- Add `hitDate?` to the pipeline pages element type (TS2353 from 129.27).
-- BUGFIX only.
-
-## [129.27] - Serper result dates become listing publish dates
-
-- Serper organic `date` was dropped; now stored on SearchHit and used as `listed_at` (incl. snippet-only Facebook).
-- `coerceDeclaredDate` parses "2 days ago", "vor 3 Tagen", "15. Nov 2026" into absolute dates.
-- Existing cards still need a new search or Recheck list to pick up dates.
-- BUGFIX; Facebook HTML without Serper date remains undated.
+- Red **Удалить** on each card (right, opposite Open post/listing) hard-deletes the row from `immofinder_listings`.
+- Removed **Copy German letter** and **Status** control from the card footer.
+- Sheet/Doc no longer show Status; contracts updated.
+- USER_VALUE + BUGFIX layout.
 
 ## [129.26] - Persist listing publish date on update; use LLM date quote
 
