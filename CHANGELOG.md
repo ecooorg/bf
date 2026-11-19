@@ -1,3 +1,10 @@
+## [129.24] - Source publish date on cards; stronger date parse
+
+- Cards, Sheet/Doc, email/Telegram show only the source publication date (`published dd.mm.yyyy`); search/discovery time is no longer rendered.
+- Stronger `pageMeta` / `parseListedAt`: more meta/JSON-LD keys, Facebook utime, labelled DE/FR/IT/EN dates, relative phrases; date text window 12k chars.
+- Recheck uses the same parser so a later Recheck list can fill missing `raw.listed_at`.
+- BUGFIX + USER_VALUE; live portal recheck quality NOT_RUN until deploy + Recheck list.
+
 ## [129.23a] - Recheck CI repair and diagnostics integration
 
 - Export detailed publication-date parsing and privacy-filtered date snippets; add recheck contracts to the existing agents category suite.

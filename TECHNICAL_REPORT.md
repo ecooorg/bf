@@ -1,3 +1,10 @@
+## P129.24 — Source publication date only; richer date extraction
+
+- **OBSERVED:** Cards and exports still showed only search ("found") time; `raw.listed_at` was rarely filled. Recheck of ~119 rows: ~76% pages not fetched (Facebook/robots/blocks), only a handful of dates added.
+- **CHANGE:** UI/export date line = publication only; `pageMeta` + `parseListedAt` cover more portals/languages; wider text window; tests for labelled dates and card rendering.
+- **NOT_RUN:** Full npm install + typecheck + test:core in this archive (no node_modules); live Recheck list after deploy.
+- **SCOPE:** src/immoCard.ts, src/ImmoFinder.tsx, server/immofinder{Core,Delivery,Pipeline,Refresh}.ts, tests/immofinder-quality.test.mjs, CHANGELOG.md, package.json.
+
 ## P129.23a — Recheck CI repair and rule-compliant patch
 
 - **OBSERVED:** CI run `44494067893` failed on missing `dateDiagSnippet` and `parseListedAtDetailed` exports.
