@@ -76,3 +76,23 @@ test('P129 carousel wave and profile defaults exist in source', () => {
   assert.match(set, /profile: 'carousel'/);
   assert.match(set, /carouselCommunesPerRun/);
 });
+
+test('recheck list refresh module and UI/API wiring exist', () => {
+  const refresh = read('server/immofinderRefresh.ts');
+  const routes = read('server/immofinderRoutes.ts');
+  const ui = read('src/ImmoFinder.tsx');
+  assert.match(refresh, /runRefreshJob/);
+  assert.match(refresh, /parseListedAtDetailed/);
+  assert.match(refresh, /recheck_refresh_item/);
+  assert.match(routes, /\/api\/immofinder\/recheck-list/);
+  assert.match(ui, /immofinder-recheck-list/);
+  assert.match(ui, /Recheck list/);
+});
+
+test('diagnostics include card completeness and per-source quality', () => {
+  const diag = read('server/immofinderDiag.ts');
+  const routes = read('server/immofinderRoutes.ts');
+  assert.match(diag, /completenessSummary/);
+  assert.match(diag, /weakHosts/);
+  assert.match(routes, /search_quality_summary/);
+});
