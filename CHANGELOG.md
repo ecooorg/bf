@@ -1,9 +1,9 @@
-## [129.31] - Source evidence under each listing in Drive Doc/Sheet
+## [129.32] - Fix missing evidence-first imports in pipeline
 
-- Card model exposes `evidenceText` / `evidenceKind` / `evidenceScreenshotUrl` from `raw`.
-- Google Sheet, Google Doc, email/Telegram plain text append **Source text** (and **Source capture** when URL present) under each listing.
-- Screen cards show the same source excerpt when it differs from the short about line.
-- USER_VALUE; requires listings saved with `raw.evidence_text` (P129.30+ search).
+- `immofinderPipeline.ts` now imports `buildEvidenceText`, `credibilityRejectReason`, `priceFromEvidence`, `isPlatformOrJunkContact`, `EvidenceKind` (runtime/TS break from 129.30 body without imports).
+- Includes 129.31 evidence export surfaces (card model, Drive Doc/Sheet, screen).
+- BUGFIX CI/Render.
+- Contract P129.7 allows longer about (evidence excerpt up to 360).
 
 ## [129.30] - ImmoFinder evidence-first credibility gate
 
