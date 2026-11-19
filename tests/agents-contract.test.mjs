@@ -65,7 +65,7 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
 import { formatListingsText, listingsTable, exportDrive, checkDrive, buildSheetRequests, buildDocRequests } from '../server/immofinderDelivery.ts';
 import { immoCardModel, immoLinkLine } from '../src/immoCard.ts';
 import { generateKeyPairSync } from 'node:crypto';
-import { classifyType, contactAdvice, draftMessage as draftMsg, matchMunicipality as matchMuni, nonListingReason, isSpecificLink } from '../server/immofinderCore.ts';
+import { classifyType, contactAdvice, draftMessage as draftMsg, matchMunicipality as matchMuni, nonListingReason, isSpecificLink, parseListedAt, pageMeta } from '../server/immofinderCore.ts';
 import { parseDriveFolderId, formatZurich, defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
 import { communesForRun, buildQueries, pickItems } from '../server/immofinderDiscovery.ts';
 import { cutAtMarkers, slugVariants, agencyQuoteCounts, matchMunicipality, parseRooms, registrationForbidden, verifyQuote, extractContacts, draftMessage, candidateLinks, canonicalKey } from '../server/immofinderCore.ts';
@@ -303,6 +303,31 @@ test('P129.7 screen, Sheet and Doc show the same cards (shared model), no letter
   const ui = read('src/ImmoFinder.tsx');
   assert.match(ui, /immoCardModel/); assert.match(ui, /Copy German letter/); assert.ok(!/Read the German letter/.test(ui));
   assert.match(read('server/immofinderDelivery.ts'), /immoCardModel/);
+});
+
+test('P129.23 Show menu = current | hidden | all (default current); publication date on screen, Sheet, Doc and email', () => {
+  const ui = read('src/ImmoFinder.tsx');
+  const sel = /data-testid="immofinder-status-filter"[\s\S]*?<\/select>/.exec(ui)[0];
+  assert.deepEqual([...sel.matchAll(/<option value="(\w+)">(\w+)<\/option>/g)].map((m) => [m[1], m[2]]), [['current', 'current'], ['hidden', 'hidden'], ['all', 'all']]);
+  assert.match(ui, /useState<'current' \| 'hidden' \| 'all'>\('current'\)/);
+  assert.match(read('server/immofinderRoutes.ts'), /includeHidden: scope === 'all'/);
+  const row = { id: 'p', property_name: 'Haus', municipality: 'Chur', rooms_estimated: 4, listing_url: 'https://a.example/9', photo_urls: [], private_signals: [], first_seen_at: '2026-11-17T20:37:00Z', status: 'NEW', raw: { listed_at: '2026-11-12T12:00:00.000Z' } };
+  const k = immoCardModel(row);
+  assert.equal(k.published, 'published 12.11.2026');
+  assert.equal(immoLinkLine(k), 'https://a.example/9 · published 12.11.2026 · found 17.11.2026, 21:37');
+  assert.equal(immoCardModel({ ...row, raw: {} }).published, '');
+  assert.equal(immoLinkLine(immoCardModel({ ...row, raw: {} })), 'https://a.example/9 · found 17.11.2026, 21:37', 'no date = nothing shown');
+  assert.match(formatListingsText([row], { heading: 'H', limit: 5 }), /Published: 12\.11\.2026 · Found: 17\.11\.2026/);
+  assert.ok(!/Published:/.test(formatListingsText([{ ...row, raw: {} }], { heading: 'H', limit: 5 })));
+  assert.ok(buildSheetRequests([row], 7).requests.find((q) => q.updateCells?.rows).updateCells.rows.flatMap((r) => r.values.map((v) => v.userEnteredValue?.stringValue)).includes(immoLinkLine(k)));
+  assert.ok(buildDocRequests([row], 40).find((q) => q.insertText).insertText.text.includes('published 12.11.2026'));
+  assert.match(ui, /immofinder-published/);
+  const html = '<html><head><meta property="article:published_time" content="2026-10-30T08:15:00+01:00"><title>x</title></head><body>Aktualisiert 05.11.2026</body></html>';
+  assert.equal(pageMeta(html, 'https://a.example/').published, '2026-10-30T08:15:00+01:00');
+  assert.equal(parseListedAt('Aktualisiert 05.11.2026', 'https://a.example/', '2026-10-30T08:15:00+01:00').toISOString().slice(0, 10), '2026-10-30', 'declared date wins over text dates');
+  assert.equal(pageMeta('<script type="application/ld+json">{"datePosted":"2026-10-01"}</script>', 'https://a.example/').published, '2026-10-01');
+  assert.equal(parseListedAt('Inserat vom 03.11.2026', 'https://a.example/', null).toISOString().slice(0, 10), '2026-11-03');
+  assert.equal(parseListedAt('nothing here', 'https://a.example/', 'not a date'), null);
 });
 
 test('P128.7 non-listing pages are rejected; specific links detected; UI contrast, More menu and quiet polling', async () => {
