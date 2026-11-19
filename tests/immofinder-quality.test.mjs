@@ -281,12 +281,15 @@ test('immoEvidenceBlock and exports include source text when raw.evidence_text i
   };
   const k = immoCardModel(row);
   assert.ok(k.evidenceText.includes('1\'750'));
-  const block = immoEvidenceBlock(k);
-  assert.match(block, /Source text \(page text\)/);
-  assert.match(block, /Parkplatz optional/);
-  const plain = immoCardPlainText(k);
-  assert.match(plain, /Source text/);
-  assert.ok(!/Status:/.test(plain));
+  // Same text as about → redundant, no Source text block
+  assert.equal(immoEvidenceBlock(k), '');
+  const rich = immoCardModel({
+    ...row,
+    description_de: 'Short blurb only',
+    raw: { evidence_text: 'Full page body with Miete CHF 1\'750.– and Tel 081 111 22 33 and many extra details about the flat in Chur near the station.', evidence_kind: 'page_text' },
+  });
+  assert.match(immoEvidenceBlock(rich), /Source text/);
+  assert.ok(!/Status:/.test(immoCardPlainText(k)));
   const del = read('server/immofinderDelivery.ts');
   assert.match(del, /immoEvidenceBlock/);
 });
