@@ -90,9 +90,14 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
   const contact = l.contact_status === 'found' ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ') : '';
   const rooms = l.rooms_estimated != null && String(l.rooms_estimated) !== '' ? `${l.rooms_estimated} rooms` : 'rooms n/a';
   const url = String(l.listing_url || '').trim();
+  // Prefer stored evidence excerpt (verbatim page/snippet) over a short paraphrase alone.
+  const evidence = typeof l.raw?.evidence_text === 'string' ? String(l.raw.evidence_text).replace(/\s+/g, ' ').trim() : '';
+  const aboutCore = evidence
+    ? evidence.slice(0, 360)
+    : [l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 280);
   return {
     headline: `📍 ${l.municipality || '?'} · ${immoPriceText(l)} · ${rooms} · ${contact || 'no direct contact'}`,
-    about: [l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 220).replace(/\s+/g, ' ').trim(),
+    about: aboutCore.replace(/\s+/g, ' ').trim(),
     url,
     linkNote: (l.private_signals || []).includes('generic_link') ? IMMO_LINK_NOTE : '',
     // Diagnostics only — never rendered on card / sheet / doc / telegram (owner request: source publish date, not search time).
