@@ -1,3 +1,9 @@
+## [129.22] - Recheck 500 fix (price in raw); lint:copy
+
+- recheckStored no longer SELECTs missing rent_monthly_chf/pricing_unit columns; updates `raw.price` instead.
+- Recheck API returns the real error detail on failure.
+- Shortened hidden-list copy for lint:copy (≤24 words).
+
 ## [129.21] - Recheck status + Hidden in Show filter; CI P128.8
 
 - Recheck list shows live status (Rechecking… / Done: checked N, hid M, price fixed K).
