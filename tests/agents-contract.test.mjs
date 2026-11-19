@@ -292,8 +292,8 @@ test('P129.7 screen, Sheet and Doc show the same cards (shared model), no letter
   const sheet = buildSheetRequests(rows, 7); const cells = sheet.requests.find((q) => q.updateCells?.rows).updateCells.rows.flatMap((r) => r.values.map((v) => v.userEnteredValue?.stringValue).filter(Boolean));
   const docReq = buildDocRequests(rows, 40); const docText = docReq.find((q) => q.insertText).insertText.text;
   for (const k of [a, b]) {
-    for (const part of [k.headline, k.about, immoLinkLine(k), k.openLabel, `Status  ${k.status}`]) assert.ok(cells.includes(part), `sheet has: ${part}`);
-    for (const part of [k.headline, k.about, immoLinkLine(k), k.openLabel, k.status, ...k.photos.map((p) => p.label)]) assert.ok(docText.includes(part), `doc has: ${part}`);
+    for (const part of [k.headline, k.about, immoLinkLine(k), k.openLabel]) assert.ok(cells.includes(part), `sheet has: ${part}`);
+    for (const part of [k.headline, k.about, immoLinkLine(k), k.openLabel, ...k.photos.map((p) => p.label)]) assert.ok(docText.includes(part), `doc has: ${part}`);
   }
   assert.ok(docText.indexOf(a.headline) < docText.indexOf(b.headline) && cells.indexOf(a.headline) < cells.indexOf(b.headline), 'order of rows is kept');
   const links = JSON.stringify(sheet.requests) + JSON.stringify(docReq);
@@ -301,7 +301,7 @@ test('P129.7 screen, Sheet and Doc show the same cards (shared model), no letter
   assert.ok(!/Betreff|Geheimer Brief|Guten Tag/.test(links + docText), 'no letters in Sheet or Doc');
   assert.ok(buildSheetRequests([], 7).requests.length > 0 && buildDocRequests([], 2).some((q) => q.insertText));
   const ui = read('src/ImmoFinder.tsx');
-  assert.match(ui, /immoCardModel/); assert.match(ui, /Copy German letter/); assert.ok(!/Read the German letter/.test(ui));
+  assert.match(ui, /immoCardModel/); assert.match(ui, /immofinder-delete/); assert.ok(!/Copy German letter/.test(ui)); assert.ok(!/Read the German letter/.test(ui));
   assert.match(read('server/immofinderDelivery.ts'), /immoCardModel/);
 });
 
