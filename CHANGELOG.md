@@ -1,8 +1,9 @@
-## [129.33] - Holiday gate: monthly rent is not tourism
+## [129.34] - Email delivery respects "new" vs "all"
 
-- `isHolidayOrTourismListing` no longer rejects listings solely because the URL/path contains `ferienwohnung` when the text states monthly rent (Nettomiete / pro Monat / Mietzins).
-- Pure Ferienhaus / nightly / tourism hosts still rejected.
-- Fixes agents-contract P128.1/3/4/5 kept counts (0 instead of expected).
+- Manual run and scheduled/internal run both honor `delivery.emailContent`.
+- `all`: email body is every visible listing (up to 60), even when the wave found zero new.
+- `new`: only listings first seen in that wave (previous behavior).
+- Telegram stays wave-new only; Drive still exports the full list.
 - BUGFIX.
 
 ## [129.32] - Fix missing evidence-first imports in pipeline
