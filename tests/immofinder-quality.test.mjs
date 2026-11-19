@@ -177,3 +177,95 @@ test('SearchHit carries optional date from Serper mapping', () => {
   assert.match(disc, /date\?:/);
   assert.match(disc, /o\.date/);
 });
+
+
+test('credibility gate rejects seeker, sale, holiday, rooms conflict', async () => {
+  const {
+    credibilityRejectReason,
+    buildEvidenceText,
+    isForSaleListing,
+    isHolidayOrTourismListing,
+    roomsEvidenceConflict,
+    isPlatformOrJunkContact,
+    priceFromEvidence,
+  } = await import('../server/immofinderCore.ts');
+
+  assert.equal(
+    credibilityRejectReason({
+      title: 'Zu vermieten gesucht: Haus in Grüsch',
+      evidenceText: 'Wir suchen ein Haus 4.5 Zimmer in Grüsch',
+      url: 'https://www.facebook.com/groups/1/posts/2/',
+      municipality: 'Grüsch',
+      roomsEstimated: 5,
+      price: null,
+      phone: null,
+      email: null,
+      evidenceKind: 'snippet',
+      municipalities: ['Grüsch', 'Chur'],
+      allowSnippet: true,
+    }),
+    'seeker_post',
+  );
+
+  assert.equal(isForSaleListing('9 Rooms house to buy', 'For sale in Haldenstein', 'https://icasa.ch/x-zu-kaufen-y'), true);
+  assert.equal(
+    credibilityRejectReason({
+      title: '9 Rooms Single-house to buy',
+      evidenceText: 'Haus zu kaufen in Haldenstein',
+      url: 'https://icasa.ch/9-zimmer-einfamilienhaus-zu-kaufen-haldenstein',
+      municipality: 'Haldenstein',
+      roomsEstimated: 9,
+      price: null,
+      phone: null,
+      email: null,
+      evidenceKind: 'page_text',
+      municipalities: ['Haldenstein', 'Chur'],
+      allowSnippet: true,
+    }),
+    'for_sale',
+  );
+
+  assert.equal(
+    isHolidayOrTourismListing('Ferienwohnung Jenins', 'pro Nacht CHF 120', 'https://shop.heidiland.com/x'),
+    true,
+  );
+
+  assert.equal(
+    roomsEvidenceConflict('5.5 Zimmer Wohnung', 'Schöne 2.5 Zimmer Wohnung mit Balkon, 65m2, Miete CHF 1320'),
+    true,
+  );
+
+  assert.equal(isPlatformOrJunkContact('support@immoswipe.ch', null), true);
+  assert.equal(isPlatformOrJunkContact(null, '+41001045992'), true);
+  assert.equal(isPlatformOrJunkContact('owner@example.ch', '+41791234567'), false);
+
+  const ev = buildEvidenceText('Wohnung Chur', 'Miete CHF 1\'750.– pro Monat. 3.5 Zimmer in Chur.');
+  const price = priceFromEvidence(ev, null);
+  assert.ok(price && price.amount >= 1700);
+
+  assert.equal(
+    credibilityRejectReason({
+      title: '3.5 Zimmer in Chur',
+      evidenceText: 'Schöne 3.5-Zimmer-Wohnung in Chur ab 1. Dezember. Miete CHF 1750 pro Monat. Tel +41791234567',
+      url: 'https://www.facebook.com/groups/1/posts/99/',
+      municipality: 'Chur',
+      roomsEstimated: 3.5,
+      price,
+      phone: '+41791234567',
+      email: null,
+      evidenceKind: 'snippet',
+      municipalities: ['Chur', 'Igis'],
+      allowSnippet: true,
+    }),
+    null,
+  );
+});
+
+test('pipeline stores evidence_text and runs credibilityRejectReason', () => {
+  const pipe = read('server/immofinderPipeline.ts');
+  assert.match(pipe, /credibilityRejectReason/);
+  assert.match(pipe, /evidence_text/);
+  assert.match(pipe, /buildEvidenceText/);
+  const card = read('src/immoCard.ts');
+  assert.match(card, /evidence_text/);
+});
