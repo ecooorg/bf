@@ -1,3 +1,9 @@
+## [129.23a] - Recheck CI repair and diagnostics integration
+
+- Export detailed publication-date parsing and privacy-filtered date snippets; add recheck contracts to the existing agents category suite.
+- Integrate recheck list, completeness diagnostics, graph and experiment/history records.
+- BUGFIX; live listing quality NOT_RUN.
+
 ## [129.23] - Show menu current/hidden/all; publication date on cards
 
 - Show menu on the ImmoFinder screen has three items: **current** (default, hidden rows excluded), **hidden**, **all** (`GET /api/immofinder/listings?scope=all`); status filters removed from the menu.

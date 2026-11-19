@@ -1,3 +1,9 @@
+## P129.23a — Recheck CI repair and rule-compliant patch
+
+- **OBSERVED:** CI run `44494067893` failed on missing `dateDiagSnippet` and `parseListedAtDetailed` exports.
+- **CHANGE:** Add exports; merge contracts into category suite; complete experiment/history/version/graph records.
+- **NOT_RUN:** Full CI, live recheck quality, deployment.
+
 ## P129.23 — Show menu + publication date
 
 - **OBSERVED:** Show menu had 6 items incl. status filters; cards carried only the search ("found") date although `raw.listed_at` was already parsed.
