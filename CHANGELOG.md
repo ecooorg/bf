@@ -1,3 +1,9 @@
+## [129.21] - Recheck status + Hidden in Show filter; CI P128.8
+
+- Recheck list shows live status (Rechecking… / Done: checked N, hid M, price fixed K).
+- Show dropdown includes **hidden (N)**; can open hidden cards; link from "N hidden as not suitable".
+- P128.8 accepts `/api/immofinder/recheck` in UI contract.
+
 ## [129.20] - Recheck list; safer price years; hide junk on recheck
 
 - Single **Recheck list** button replaces Find contacts / Clean up / Delete all & reset.
