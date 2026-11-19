@@ -1,3 +1,8 @@
+## [129.27a] - Typecheck: pages.hitDate
+
+- Add `hitDate?` to the pipeline pages element type (TS2353 from 129.27).
+- BUGFIX only.
+
 ## [129.27] - Serper result dates become listing publish dates
 
 - Serper organic `date` was dropped; now stored on SearchHit and used as `listed_at` (incl. snippet-only Facebook).
