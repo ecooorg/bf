@@ -35,12 +35,20 @@ export function createPgStore(): ImmoStore {
     },
     async upsert(rec: ListingRecord) {
       const p = await getPool();
-      const ex = await p.query('SELECT id, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name FROM immofinder_listings WHERE canonical_key = $1', [rec.canonical_key]);
+      const ex = await p.query('SELECT id, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name, raw FROM immofinder_listings WHERE canonical_key = $1', [rec.canonical_key]);
       if (ex.rows[0]) {
         const o = ex.rows[0]; const uniq = (a: unknown[]) => [...new Set(a)];
+        // Merge raw so a later pass can fill listed_at / price without wiping earlier enrichment.
+        const prevRaw = o.raw && typeof o.raw === 'object' && !Array.isArray(o.raw) ? o.raw : {};
+        const nextRaw = { ...prevRaw, ...(rec.raw && typeof rec.raw === 'object' ? rec.raw : {}) };
+        if (prevRaw.listed_at && !nextRaw.listed_at) nextRaw.listed_at = prevRaw.listed_at;
+        if (prevRaw.price && !nextRaw.price) nextRaw.price = prevRaw.price;
         await p.query(`UPDATE immofinder_listings SET source_urls = $2::jsonb, source_ids = $3::jsonb, photo_urls = $4::jsonb, last_seen_at = now(), updated_at = now(),
-          direct_phone = COALESCE(direct_phone, $5), direct_email = COALESCE(direct_email, $6), owner_name = COALESCE(owner_name, $7) WHERE id = $1`,
-          [o.id, j(uniq([...o.source_urls, ...rec.source_urls])), j(uniq([...o.source_ids, ...rec.source_ids])), j(o.photo_urls?.length ? o.photo_urls : rec.photo_urls), rec.direct_phone, rec.direct_email, rec.owner_name]);
+          direct_phone = COALESCE(direct_phone, $5), direct_email = COALESCE(direct_email, $6), owner_name = COALESCE(owner_name, $7),
+          raw = $8::jsonb,
+          description_de = CASE WHEN length(coalesce($9,'')) > length(coalesce(description_de,'')) THEN $9 ELSE description_de END
+          WHERE id = $1`,
+          [o.id, j(uniq([...o.source_urls, ...rec.source_urls])), j(uniq([...o.source_ids, ...rec.source_ids])), j(o.photo_urls?.length ? o.photo_urls : rec.photo_urls), rec.direct_phone, rec.direct_email, rec.owner_name, j(nextRaw), rec.description_de || '']);
         return 'updated';
       }
       await p.query(`INSERT INTO immofinder_listings (listing_type, canonical_key, source_urls, source_ids, listing_url, photo_urls, municipality, property_name, rooms_text, rooms_estimated, rooms_basis,
