@@ -130,13 +130,46 @@ export function immoLinkLine(c: ImmoCard): string {
 }
 
 /** Plain-text fallback of one card (used when rich formatting is unavailable). No letters. */
-/** Label + body for the source evidence block under a listing (Doc / Sheet / plain). */
+/** Collapse whitespace for comparing about vs evidence. */
+export function immoTextFingerprint(s: string): string {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[^a-z0-9äöüàèéêëïìôùâçß]+/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * True when evidence is only a duplicate (or near-duplicate) of the short about line.
+ * In that case exporting "Source text" adds noise without new information.
+ */
+export function immoEvidenceIsRedundant(about: string, evidenceText: string): boolean {
+  const e = immoTextFingerprint(evidenceText);
+  const a = immoTextFingerprint(about);
+  if (!e) return true;
+  if (!a) return false;
+  if (e === a) return true;
+  // Evidence is the about text repeated / slightly extended by the same snippet.
+  if (e.startsWith(a) && e.length <= a.length + 40) return true;
+  if (a.startsWith(e) && a.length <= e.length + 40) return true;
+  // High overlap: about contained in evidence and evidence not much longer
+  if (e.includes(a) && e.length < a.length * 1.35 + 30) return true;
+  if (a.includes(e) && a.length < e.length * 1.35 + 30) return true;
+  return false;
+}
+
+/**
+ * Evidence block under a listing (Doc / Sheet / plain).
+ * - Screenshot URL only when a real capture was stored.
+ * - Source text only when it adds information beyond the card "about" line (no duplicate paste).
+ */
 export function immoEvidenceBlock(c: ImmoCard): string {
   const parts: string[] = [];
   if (c.evidenceScreenshotUrl) {
     parts.push(`Source capture: ${c.evidenceScreenshotUrl}`);
   }
-  if (c.evidenceText) {
+  if (c.evidenceText && !immoEvidenceIsRedundant(c.about, c.evidenceText)) {
     const kind =
       c.evidenceKind === 'snippet' ? 'search snippet' :
       c.evidenceKind === 'link_only' ? 'link only' :

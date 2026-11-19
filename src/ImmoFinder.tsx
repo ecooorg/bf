@@ -4,7 +4,7 @@ import ImmoFinderSettings, { summarize } from './ImmoFinderSettings.tsx';
 import { ModeMenu } from './ModeMenu.tsx';
 import { CommitBadge } from './CommitBadge.tsx';
 import { MoreHorizontal, Plus } from 'lucide-react';
-import { IMMO_COLORS, immoCardModel } from './immoCard.ts';
+import { IMMO_COLORS, immoCardModel, immoEvidenceIsRedundant } from './immoCard.ts';
 
 type Listing = {
   listing_type?: string; first_seen_at: string; id: string; status: string; municipality: string; property_name: string; rooms_estimated: string | number; description_de: string; rent_monthly_chf?: number | null; pricing_unit?: string | null; listed_at?: string | null; hidden?: boolean; hide_reason?: string; raw?: any;
@@ -364,7 +364,7 @@ export default function ImmoFinder() {
         <article key={l.id} style={card} data-testid="immofinder-card">
           <p style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, lineHeight: 1.35 }} data-testid="immofinder-card-headline">{k.headline}</p>
           <p style={{ margin: '0 0 4px', fontSize: 14, color: IMMO_COLORS.about }}>{k.about}</p>
-          {k.evidenceText && k.evidenceText !== k.about && (
+          {k.evidenceText && !immoEvidenceIsRedundant(k.about, k.evidenceText) && (
             <pre data-testid="immofinder-evidence" style={{ margin: '0 0 8px', padding: 10, fontSize: 12, lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: IMMO_COLORS.muted, background: '#13263f', borderRadius: 8, maxHeight: 220, overflow: 'auto' }}>
               {k.evidenceKind ? `Source text (${k.evidenceKind === 'snippet' ? 'search snippet' : k.evidenceKind === 'page_text' ? 'page text' : k.evidenceKind}):\n` : 'Source text:\n'}{k.evidenceText}
             </pre>
