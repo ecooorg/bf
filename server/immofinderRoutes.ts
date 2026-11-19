@@ -89,7 +89,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   app.get('/api/immofinder/listings', async (req, res) => {
     try {
       const s = String(req.query.status || '').toUpperCase();
-      res.json({ success: true, listings: await listListings((STATUSES as readonly string[]).includes(s) ? s : null, { onlyHidden: String(req.query.scope || '') === 'hidden' }), hidden: await hiddenCount() });
+      const scope = String(req.query.scope || '');
+      res.json({ success: true, listings: await listListings((STATUSES as readonly string[]).includes(s) ? s : null, { onlyHidden: scope === 'hidden', includeHidden: scope === 'all' }), hidden: await hiddenCount() });
     } catch (e) { res.status(500).json({ success: false, error: 'Listings unavailable', code: 'IMMOFINDER_FAILED' }); }
   });
 

@@ -232,7 +232,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         }
       }
       const host = hostOf(it.url); idx++; say(stage, `${src.id}: reading ${idx}/${items.length} · ${host}${new URL(it.url).pathname.slice(0, 50)}`, idx, items.length); let text = ''; let meta: ReturnType<typeof pageMeta>; let snippet = false;
-      const fromSnippet = () => { snippet = true; res.counts.snippet_only++; meta = { title: it.hit!.title, description: it.hit!.snippet, photos: [] }; text = `${it.hit!.title}\n${it.hit!.snippet}`; };
+      const fromSnippet = () => { snippet = true; res.counts.snippet_only++; meta = { title: it.hit!.title, description: it.hit!.snippet, photos: [], published: null }; text = `${it.hit!.title}\n${it.hit!.snippet}`; };
       if (it.snippetOnly && it.hit) fromSnippet();
       else {
         let pg: { ok: boolean; status: number; body: string };
@@ -317,7 +317,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const pageText = pages[i].text;
       const priceHay = `${meta.title}\n${pageText}`;
       const price = resolveListingPrice(priceHay, ex.priceQuote);
-      const listedAt = parseListedAt(`${meta.title}\n${pageText.slice(0, 4000)}`, url);
+      const listedAt = parseListedAt(`${meta.title}\n${pageText.slice(0, 4000)}`, url, meta.published);
       const seeker = isSeekerPost(meta.title, pageText);
       if (seeker) ex.signals.push('seeker_post');
       const qReason = qualityRejectReason(quality, price, listedAt, seeker, evidence.length > 0, now());

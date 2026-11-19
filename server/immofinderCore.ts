@@ -198,7 +198,7 @@ function abs(href: string, base: string): string | null {
   try { const u = new URL(href, base); if (!/^https?:$/.test(u.protocol)) return null; u.hash = ''; return u.toString(); } catch { return null; }
 }
 
-export function pageMeta(html: string, base: string): { title: string; description: string; photos: string[] } {
+export function pageMeta(html: string, base: string): { title: string; description: string; photos: string[]; published?: string | null } {
   const meta = (k: string) => (new RegExp(`<meta[^>]+(?:property|name)=["']${k}["'][^>]*content=["']([^"']*)["']`, 'i').exec(html) || new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]*(?:property|name)=["']${k}["']`, 'i').exec(html))?.[1] ?? '';
   const title = htmlToText(meta('og:title') || /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] || '');
   const photos = new Set<string>();
@@ -206,7 +206,10 @@ export function pageMeta(html: string, base: string): { title: string; descripti
   for (const m of html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+\.(?:jpe?g|png|webp)(?:\?[^"']*)?)["']/gi)) {
     const u = abs(m[1], base); if (u && !/logo|icon|sprite|avatar|flag|pixel/i.test(u)) photos.add(u); if (photos.size >= 6) break;
   }
-  return { title, description: htmlToText(meta('og:description') || meta('description')), photos: [...photos] };
+  // Publication date declared by the page itself (meta tag or JSON-LD); language independent.
+  const published = meta('article:published_time') || meta('datePublished') || meta('og:article:published_time')
+    || /"(?:datePublished|datePosted)"\s*:\s*"([^"]{8,40})"/i.exec(html)?.[1] || /itemprop=["'](?:datePublished|datePosted)["'][^>]*content=["']([^"']{8,40})["']/i.exec(html)?.[1] || null;
+  return { title, description: htmlToText(meta('og:description') || meta('description')), photos: [...photos], published };
 }
 
 const DETAIL_HINT = /ferienwohnung|ferienhaus|unterkunft|objekt|detail|chalet|chesa|haus|wohnung|accommodation|apartment|listing|\/\d{3,}/i;
@@ -610,7 +613,12 @@ export function priceDiagSnippet(text: string, maxLen = 360): string | null {
 }
 
 /** Extract a plausible publication / update date from page text or URL. */
-export function parseListedAt(text: string, url?: string): Date | null {
+export function parseListedAt(text: string, url?: string, declared?: string | null): Date | null {
+  // A date declared by the page (meta / JSON-LD) beats dates guessed from the visible text.
+  if (declared) {
+    const d = new Date(String(declared).trim());
+    if (!Number.isNaN(d.getTime()) && d.getTime() <= Date.now() + 86400000 && d.getUTCFullYear() >= 2000) return d;
+  }
   const t = String(text ?? '');
   const now = Date.now();
   const candidates: Date[] = [];

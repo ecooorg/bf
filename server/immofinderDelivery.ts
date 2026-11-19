@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { formatZurich } from './immofinderSettings.ts';
-import { IMMO_COLORS as C, immoCardModel, immoCardPlainText, immoLinkLine } from '../src/immoCard.ts';
+import { IMMO_COLORS as C, immoCardModel, immoCardPlainText, immoDatesText, immoFormatDate, immoLinkLine } from '../src/immoCard.ts';
 
 export async function sendTelegram(text: string, fetchImpl: typeof fetch = fetch): Promise<string> {
   const token = process.env.TELEGRAM_BOT_TOKEN; const chat = process.env.TELEGRAM_CHAT_ID;
@@ -104,7 +104,8 @@ export function formatListingCard(r: any): string {
   const name = String(r.property_name || '').trim();
   const desc = String(r.description_de || '').replace(/\s+/g, ' ').trim().slice(0, 180);
   const about = [name && name !== place ? name : '', desc].filter(Boolean).join(' — ').slice(0, 220);
-  const when = r.first_seen_at ? `Found: ${formatZurich(r.first_seen_at)}` : '';
+  const published = immoFormatDate(r.listed_at ?? r.raw?.listed_at);
+  const when = [published ? `Published: ${published}` : '', r.first_seen_at ? `Found: ${formatZurich(r.first_seen_at)}` : ''].filter(Boolean).join(' · ');
   const status = r.status && r.status !== 'NEW' ? `Status: ${r.status}` : '';
   return [line1, about, formatDirectLink(r), when, status].filter(Boolean).join('\n');
 }
@@ -169,7 +170,7 @@ export function buildSheetRequests(rows: any[], gid: number, opts: { rowCount?: 
     const runs: any[] = [{ startIndex: 0, format: { ...lineFont, foregroundColor: hex(C.link), underline: false, ...(k.url ? { link: { uri: k.url } } : {}) } }];
     let at = k.url.length;
     if (k.linkNote) { runs.push({ startIndex: at, format: { ...lineFont, foregroundColor: hex(C.warn), underline: false } }); at += k.linkNote.length + 1; }
-    if (k.found) runs.push({ startIndex: at, format: { ...lineFont, foregroundColor: hex(C.muted), underline: false } });
+    if (k.found || k.published) runs.push({ startIndex: at, format: { ...lineFont, foregroundColor: hex(C.muted), underline: false } });
     r = push(wide(line, { textFormat: { ...lineFont, foregroundColor: hex(C.link) } }, runs, C.card), rowPx(line, 10)); merges.push([r, r + 1, 0, 6]);
     const btn = (label: string, url: string, open: boolean) => ({ userEnteredValue: { stringValue: label }, userEnteredFormat: base(open ? C.btnBg : C.chipBg, { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE', textFormat: { fontFamily: FONT, fontSize: 10, bold: open, underline: false, foregroundColor: hex(open ? C.btnText : C.chipText), ...(url ? { link: { uri: url } } : {}) } }) });
     const statusText = `Status  ${k.status}`;
@@ -212,7 +213,7 @@ export function buildDocRequests(rows: any[], endIndex: number, opts: { emptyNot
     if (k.about) paras.push({ card: true, segs: [{ t: k.about, fg: C.about, pt: 10.5 }] });
     const ls: Seg[] = [{ t: k.url, fg: C.link, pt: 10, link: k.url || undefined }];
     if (k.linkNote) ls.push({ t: ` ${k.linkNote}`, fg: C.warn, pt: 10 });
-    if (k.found) ls.push({ t: ` · ${k.found}`, fg: C.muted, pt: 10 });
+    if (k.found || k.published) ls.push({ t: ` · ${immoDatesText(k)}`, fg: C.muted, pt: 10 });
     paras.push({ card: true, segs: ls });
     const bs: Seg[] = [{ t: `${NB}${k.openLabel}${NB}`, fg: C.btnText, bg: C.btnBg, bold: true, pt: 10, link: k.url || undefined }];
     for (const p of k.photos) bs.push({ t: '  ', pt: 10 }, { t: `${NB}${p.label}${NB}`, fg: C.chipText, bg: C.chipBg, pt: 10, link: p.url });
