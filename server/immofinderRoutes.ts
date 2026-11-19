@@ -467,8 +467,12 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           const all = await listListings(null);
           const newKeys = new Set(newInWave.map((l) => l.canonical_key));
           const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
-          const notify = fresh.length > 0 || dl.notifyWhenEmpty;
-          push({ stage: 'delivery', text: `${label}: delivering ${fresh.length} new (Drive / email / Telegram)`, counts }, true);
+          // emailContent: 'new' = only this wave; 'all' = every visible listing (setting in Delivery).
+          const emailAllMode = dl.emailContent === 'all';
+          const emailRows = emailAllMode ? all : fresh;
+          const notifyTelegram = fresh.length > 0 || dl.notifyWhenEmpty;
+          const notifyEmail = emailRows.length > 0 || dl.notifyWhenEmpty;
+          push({ stage: 'delivery', text: `${label}: email=${emailAllMode ? `all ${emailRows.length}` : `${fresh.length} new`} · telegram=${fresh.length} new`, counts }, true);
           if (dl.drive) {
             const d = await exportDrive(all, driveFolder(dl.driveFolderId));
             delivery.drive = d.status;
@@ -477,24 +481,27 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           } else delivery.drive = 'off';
           const head = `ImmoFinder ${label}: ${fresh.length} new in this wave · kept=${counts.kept ?? 0} · fetched=${counts.fetched ?? 0}`;
           if (dl.telegram) {
-            delivery[`${wave}_telegram`] = notify
+            delivery[`${wave}_telegram`] = notifyTelegram
               ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
               : 'skipped: nothing new';
             delivery.telegram = delivery[`${wave}_telegram`];
           } else delivery.telegram = 'off';
           if (dl.email && dl.emailTo) {
-            const allMode = dl.emailContent === 'all';
-            delivery[`${wave}_email`] = notify
+            delivery[`${wave}_email`] = notifyEmail
               ? await sendEmail(
                 dl.emailTo,
-                allMode ? `ImmoFinder ${label}: all ${all.length} listings (${fresh.length} new in wave)` : `ImmoFinder ${label}: ${fresh.length} new listings`,
-                formatListingsText(allMode ? all : fresh, {
-                  heading: allMode ? `${head}\nAll listings found so far (${all.length}), newest first:` : head,
-                  limit: allMode ? 60 : 30,
+                emailAllMode
+                  ? `ImmoFinder ${label}: all ${emailRows.length} listings (${fresh.length} new in wave)`
+                  : `ImmoFinder ${label}: ${fresh.length} new listings`,
+                formatListingsText(emailRows, {
+                  heading: emailAllMode
+                    ? `${head}\nAll current listings (${emailRows.length}), newest first:`
+                    : head,
+                  limit: emailAllMode ? 60 : 30,
                   driveUrl: delivery.driveUrl,
                 }),
               )
-              : 'skipped: nothing new';
+              : (emailAllMode ? 'skipped: no listings' : 'skipped: nothing new');
             delivery.email = delivery[`${wave}_email`];
           } else delivery.email = 'off';
         };
@@ -611,8 +618,11 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
               const all = await listListings(null);
               const newKeys = new Set(newInWave.map((l) => l.canonical_key));
               const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
-              const notify = fresh.length > 0 || dl.notifyWhenEmpty;
-              push({ stage: 'delivery', text: `${label}: delivering ${fresh.length} new`, counts }, true);
+              const emailAllMode = dl.emailContent === 'all';
+              const emailRows = emailAllMode ? all : fresh;
+              const notifyTelegram = fresh.length > 0 || dl.notifyWhenEmpty;
+              const notifyEmail = emailRows.length > 0 || dl.notifyWhenEmpty;
+              push({ stage: 'delivery', text: `${label}: email=${emailAllMode ? `all ${emailRows.length}` : `${fresh.length} new`}`, counts }, true);
               if (dl.drive) {
                 const d = await exportDrive(all, driveFolder(dl.driveFolderId));
                 delivery.drive = d.status;
@@ -620,14 +630,24 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
               } else delivery.drive = 'off';
               const head = `ImmoFinder ${label}: ${fresh.length} new · kept=${counts.kept ?? 0}`;
               if (dl.telegram) {
-                delivery.telegram = notify
+                delivery.telegram = notifyTelegram
                   ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
                   : 'skipped: nothing new';
               } else delivery.telegram = 'off';
               if (dl.email && dl.emailTo) {
-                delivery.email = notify
-                  ? await sendEmail(dl.emailTo, `ImmoFinder ${label}: ${fresh.length} new`, formatListingsText(fresh, { heading: head, limit: 30, driveUrl: delivery.driveUrl }))
-                  : 'skipped: nothing new';
+                delivery.email = notifyEmail
+                  ? await sendEmail(
+                    dl.emailTo,
+                    emailAllMode
+                      ? `ImmoFinder ${label}: all ${emailRows.length} listings (${fresh.length} new)`
+                      : `ImmoFinder ${label}: ${fresh.length} new`,
+                    formatListingsText(emailRows, {
+                      heading: emailAllMode ? `${head}\nAll current listings (${emailRows.length}), newest first:` : head,
+                      limit: emailAllMode ? 60 : 30,
+                      driveUrl: delivery.driveUrl,
+                    }),
+                  )
+                  : (emailAllMode ? 'skipped: no listings' : 'skipped: nothing new');
               } else delivery.email = 'off';
             };
             result = await runPipeline({
