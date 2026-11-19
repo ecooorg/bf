@@ -9,7 +9,7 @@ export type ImmoCardInput = {
   rooms_estimated?: string | number | null; rent_monthly_chf?: number | null; pricing_unit?: string | null;
   listing_url?: string | null; photo_urls?: string[] | null; private_signals?: string[] | null;
   contact_status?: string | null; owner_name?: string | null; direct_phone?: string | null; direct_email?: string | null;
-  first_seen_at?: string | Date | null; status?: string | null; raw?: any;
+  first_seen_at?: string | Date | null; listed_at?: string | Date | null; status?: string | null; raw?: any;
 };
 
 export type ImmoCard = {
@@ -20,6 +20,8 @@ export type ImmoCard = {
   linkNote: string;
   /** "found 17.11.2026, 21:37" or '' */
   found: string;
+  /** "published 12.11.2026" (date the ad was published, when the page states it) or '' */
+  published: string;
   openLabel: 'Open post' | 'Open listing';
   photos: { label: string; url: string }[];
   status: string;
@@ -39,6 +41,14 @@ export function immoFormatFound(v: string | Date | null | undefined): string {
   const d = typeof v === 'string' ? new Date(v) : v;
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleString('de-CH', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+}
+
+/** "12.11.2026" (date only, Swiss local time); '' when missing or invalid. */
+export function immoFormatDate(v: string | Date | null | undefined): string {
+  if (!v) return '';
+  const d = typeof v === 'string' ? new Date(v) : v;
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 /** Price with an explicit period; never shows a night/week rate as a bare monthly amount. */
@@ -65,6 +75,17 @@ export function immoPriceText(l: ImmoCardInput): string {
   return 'price n/a';
 }
 
+/** Publication date of the ad: `listed_at` (pipeline record) or `raw.listed_at` (stored row). '' when the page gave none. */
+export function immoPublishedText(l: ImmoCardInput): string {
+  const d = immoFormatDate(l.listed_at ?? l.raw?.listed_at);
+  return d ? `published ${d}` : '';
+}
+
+/** "published 12.11.2026 · found 17.11.2026, 21:37", either part omitted when unknown. */
+export function immoDatesText(c: Pick<ImmoCard, 'published' | 'found'>): string {
+  return [c.published, c.found].filter(Boolean).join(' · ');
+}
+
 export function immoCardModel(l: ImmoCardInput): ImmoCard {
   const contact = l.contact_status === 'found' ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ') : '';
   const rooms = l.rooms_estimated != null && String(l.rooms_estimated) !== '' ? `${l.rooms_estimated} rooms` : 'rooms n/a';
@@ -75,15 +96,17 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
     url,
     linkNote: (l.private_signals || []).includes('generic_link') ? IMMO_LINK_NOTE : '',
     found: l.first_seen_at ? `found ${immoFormatFound(l.first_seen_at)}` : '',
+    published: immoPublishedText(l),
     openLabel: /facebook\.com/.test(url) ? 'Open post' : 'Open listing',
     photos: (l.photo_urls || []).slice(0, 3).map((u, i) => ({ label: `Photo ${i + 1}`, url: u })),
     status: String(l.status || 'NEW'),
   };
 }
 
-/** The line under the description: URL, optional warning, found date. Same pieces and order as on screen. */
+/** The line under the description: URL, optional warning, publication and found dates. Same pieces and order as on screen. */
 export function immoLinkLine(c: ImmoCard): string {
-  return `${c.url}${c.linkNote ? ` ${c.linkNote}` : ''}${c.found ? ` · ${c.found}` : ''}`;
+  const dates = immoDatesText(c);
+  return `${c.url}${c.linkNote ? ` ${c.linkNote}` : ''}${dates ? ` · ${dates}` : ''}`;
 }
 
 /** Plain-text fallback of one card (used when rich formatting is unavailable). No letters. */

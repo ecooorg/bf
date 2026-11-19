@@ -7,7 +7,7 @@ import { MoreHorizontal, Plus } from 'lucide-react';
 import { IMMO_COLORS, immoCardModel } from './immoCard.ts';
 
 type Listing = {
-  listing_type?: string; first_seen_at: string; id: string; status: string; municipality: string; property_name: string; rooms_estimated: string | number; description_de: string; rent_monthly_chf?: number | null; pricing_unit?: string | null; listed_at?: string | null;
+  listing_type?: string; first_seen_at: string; id: string; status: string; municipality: string; property_name: string; rooms_estimated: string | number; description_de: string; rent_monthly_chf?: number | null; pricing_unit?: string | null; listed_at?: string | null; hidden?: boolean; hide_reason?: string; raw?: any;
   listing_url: string; photo_urls: string[]; source_urls: string[]; source_ids: string[]; private_signals: string[]; contact_status: string; contact_advice: string;
   direct_phone: string | null; direct_email: string | null; owner_name: string | null; draft_message_de: string;
 };
@@ -50,8 +50,7 @@ const chip: React.CSSProperties = { display: 'inline-block', padding: '2px 10px'
 export default function ImmoFinder() {
   const [items, setItems] = useState<Listing[]>([]);
   const [run, setRun] = useState<Run>(null);
-  const [filter, setFilter] = useState('');
-  const [listScope, setListScope] = useState<'active' | 'hidden'>('active');
+  const [view, setView] = useState<'current' | 'hidden' | 'all'>('current');
   const [recheckBusy, setRecheckBusy] = useState(false);
   const [recheckInfo, setRecheckInfo] = useState('');
   const [msg, setMsg] = useState('');
@@ -68,15 +67,11 @@ export default function ImmoFinder() {
 
   const loadList = useCallback(async () => {
     try {
-      const q = new URLSearchParams();
-      if (filter) q.set('status', filter);
-      if (listScope === 'hidden') q.set('scope', 'hidden');
-      const qs = q.toString();
-      const l = await api(`/api/immofinder/listings${qs ? `?${qs}` : ''}`);
+      const l = await api(`/api/immofinder/listings${view === 'current' ? '' : `?scope=${view}`}`);
       setItems(l.listings || []);
       setHidden(l.hidden || 0);
     } catch (e) { setMsg((e as Error).message); }
-  }, [filter, listScope]);
+  }, [view]);
   const loadRun = useCallback(async () => {
     try { const r = await api('/api/immofinder/runs/latest'); setRun(r.run || null); } catch (e) { setMsg((e as Error).message); }
   }, []);
@@ -283,20 +278,16 @@ export default function ImmoFinder() {
         </div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0' }}>
-        <h2 style={{ margin: 0 }}>Listings ({shown.length}){listScope === 'hidden' ? ' · hidden' : ''}</h2>
+        <h2 style={{ margin: 0 }}>Listings ({shown.length}){view === 'current' ? '' : ` · ${view}`}</h2>
         <label style={{ marginLeft: 'auto', fontSize: 14 }}>Show{' '}
           <select
             data-testid="immofinder-status-filter"
-            value={listScope === 'hidden' ? 'hidden' : (filter || 'all')}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v === 'hidden') { setListScope('hidden'); setFilter(''); }
-              else { setListScope('active'); setFilter(v === 'all' ? '' : v); }
-            }}
+            value={view}
+            onChange={(e) => setView(e.target.value as 'current' | 'hidden' | 'all')}
           >
+            <option value="current">current</option>
+            <option value="hidden">hidden</option>
             <option value="all">all</option>
-            {STATUSES.map((s) => <option key={s} value={s}>{s.toLowerCase()}</option>)}
-            <option value="hidden">hidden ({hidden})</option>
           </select>
         </label>
       </div>
@@ -304,14 +295,14 @@ export default function ImmoFinder() {
         {([['all', 'All', items.length], ['long_term_offer', 'Direct offers (reply to the ad)', items.filter((x) => x.listing_type === 'long_term_offer').length], ['holiday_owner', 'Holiday owners (ask for long-term)', items.filter((x) => x.listing_type !== 'long_term_offer').length]] as const).map(([id, label, n]) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} className="immo-btn small" style={{ opacity: tab === id ? 1 : 0.6 }} onClick={() => setTab(id)}>{label} · {n}</button>
         ))}
-        {hidden > 0 && listScope !== 'hidden' && (
-          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => { setListScope('hidden'); setFilter(''); }}>
+        {hidden > 0 && view === 'current' && (
+          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setView('hidden')}>
             {hidden} hidden as not suitable — view
           </button>
         )}
-        {listScope === 'hidden' && (
-          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setListScope('active')}>
-            Back to active list
+        {view !== 'current' && (
+          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setView('current')}>
+            Back to current list
           </button>
         )}
         <button
@@ -330,9 +321,9 @@ export default function ImmoFinder() {
           </span>
         )}
       </div>
-      {listScope === 'hidden' && (
+      {view !== 'current' && (
         <p style={{ margin: '0 0 10px', fontSize: 13, color: '#8fa6c2' }}>
-          Hidden listings only. Still stored; not in the active list.
+          {view === 'hidden' ? 'Hidden listings only. Still stored; not in the current list.' : 'Current and hidden listings together.'}
         </p>
       )}
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
@@ -345,7 +336,9 @@ export default function ImmoFinder() {
           <p style={{ margin: '0 0 8px', fontSize: 13 }} data-testid="immofinder-found-at">
             <a href={k.url} target="_blank" rel="noopener noreferrer" style={{ color: IMMO_COLORS.link, wordBreak: 'break-all' }}>{k.url}</a>
             {k.linkNote && <span style={{ color: IMMO_COLORS.warn }}> {k.linkNote}</span>}
+            {k.published && <span data-testid="immofinder-published" style={{ color: IMMO_COLORS.muted }}> · {k.published}</span>}
             {k.found && <span style={{ color: IMMO_COLORS.muted }}> · {k.found}</span>}
+            {view === 'all' && l.hidden && <span style={{ color: IMMO_COLORS.warn }}> · hidden{l.hide_reason ? `: ${l.hide_reason}` : ''}</span>}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <a href={k.url} target="_blank" rel="noopener noreferrer" className="immo-btn small">{k.openLabel}</a>
