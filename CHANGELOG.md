@@ -1,3 +1,10 @@
+## [129.33] - Holiday gate: monthly rent is not tourism
+
+- `isHolidayOrTourismListing` no longer rejects listings solely because the URL/path contains `ferienwohnung` when the text states monthly rent (Nettomiete / pro Monat / Mietzins).
+- Pure Ferienhaus / nightly / tourism hosts still rejected.
+- Fixes agents-contract P128.1/3/4/5 kept counts (0 instead of expected).
+- BUGFIX.
+
 ## [129.32] - Fix missing evidence-first imports in pipeline
 
 - `immofinderPipeline.ts` now imports `buildEvidenceText`, `credibilityRejectReason`, `priceFromEvidence`, `isPlatformOrJunkContact`, `EvidenceKind` (runtime/TS break from 129.30 body without imports).
