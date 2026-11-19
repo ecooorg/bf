@@ -1,31 +1,31 @@
 {
  "schemaVersion": 1,
  "kind": "capability-graph",
- "generatedAt": "2026-11-04T08:32:25.764Z",
+ "generatedAt": "2026-11-19T09:19:59.821Z",
  "generator": "scripts/capabilityGenerateGraph.mjs",
  "summary": {
-  "nodeCount": 493,
-  "edgeCount": 1019,
+  "nodeCount": 479,
+  "edgeCount": 876,
   "nodeCounts": {
-   "check": 30,
+   "check": 18,
    "env": 71,
    "evidence": 1,
    "migration": 19,
-   "module": 233,
+   "module": 231,
    "route": 86,
    "side_effect": 52,
    "state": 1
   },
   "edgeCounts": {
-   "covers": 375,
-   "produces_evidence_under": 11,
-   "needs": 21,
+   "covers": 183,
+   "produces_evidence_under": 10,
+   "needs": 16,
    "modifies": 19,
-   "depends_on": 455,
+   "depends_on": 510,
    "exposes": 86,
    "produces": 52
   },
-  "unknownNodes": 46,
+  "unknownNodes": 19,
   "staleNodes": 0,
   "inventoriesPresent": {
    "moduleMap": true,
@@ -192,52 +192,6 @@
    "sourceInventory": "verification-manifest.json"
   },
   {
-   "id": "check:test:bx06:api",
-   "type": "check",
-   "label": "test:bx06:api",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "ci"
-    ],
-    "critical": false,
-    "needs": [
-     "db-migrate"
-    ]
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:carousel-unit",
-   "type": "check",
-   "label": "test:carousel-unit",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:compact-ci-artifacts",
-   "type": "check",
-   "label": "test:compact-ci-artifacts",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
    "id": "check:test:core",
    "type": "check",
    "label": "test:core",
@@ -257,86 +211,6 @@
    "sourceInventory": "verification-manifest.json"
   },
   {
-   "id": "check:test:database",
-   "type": "check",
-   "label": "test:database",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:database:live",
-   "type": "check",
-   "label": "test:database:live",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "ci"
-    ],
-    "critical": false,
-    "needs": [
-     "db-migrate"
-    ]
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:files",
-   "type": "check",
-   "label": "test:files",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": true,
-    "needs": [
-     "critical-router-selection",
-     "critical-router-policy-call-limit",
-     "critical-gemini-timeout"
-    ]
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:gates",
-   "type": "check",
-   "label": "test:gates",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:integrations",
-   "type": "check",
-   "label": "test:integrations",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
    "id": "check:test:models",
    "type": "check",
    "label": "test:models",
@@ -352,21 +226,6 @@
      "critical-router-policy-call-limit",
      "critical-gemini-timeout"
     ]
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:pipeline",
-   "type": "check",
-   "label": "test:pipeline",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
    },
    "sourceInventory": "verification-manifest.json"
   },
@@ -408,51 +267,6 @@
    "id": "check:test:security",
    "type": "check",
    "label": "test:security",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:turn",
-   "type": "check",
-   "label": "test:turn",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:web",
-   "type": "check",
-   "label": "test:web",
-   "status": "known",
-   "refs": {
-    "profiles": [
-     "check",
-     "ci"
-    ],
-    "critical": false,
-    "needs": []
-   },
-   "sourceInventory": "verification-manifest.json"
-  },
-  {
-   "id": "check:test:workspace",
-   "type": "check",
-   "label": "test:workspace",
    "status": "known",
    "refs": {
     "profiles": [
@@ -1872,7 +1686,7 @@
     "lines": 77
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/core-cache.ts",
@@ -1885,7 +1699,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/core-engine.ts",
@@ -1895,10 +1709,10 @@
    "refs": {
     "path": "appBuilder/core-engine.ts",
     "layer": "appBuilder",
-    "lines": 603
+    "lines": 983
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/core-markers.ts",
@@ -1911,7 +1725,7 @@
     "lines": 122
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/core-plan.ts",
@@ -1921,10 +1735,10 @@
    "refs": {
     "path": "appBuilder/core-plan.ts",
     "layer": "appBuilder",
-    "lines": 224
+    "lines": 300
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/core-ports.ts",
@@ -1934,10 +1748,10 @@
    "refs": {
     "path": "appBuilder/core-ports.ts",
     "layer": "appBuilder",
-    "lines": 100
+    "lines": 111
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/core-prompts.ts",
@@ -1947,10 +1761,10 @@
    "refs": {
     "path": "appBuilder/core-prompts.ts",
     "layer": "appBuilder",
-    "lines": 30
+    "lines": 141
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/core-types.ts",
@@ -1960,10 +1774,10 @@
    "refs": {
     "path": "appBuilder/core-types.ts",
     "layer": "appBuilder",
-    "lines": 166
+    "lines": 200
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/index.ts",
@@ -1973,10 +1787,23 @@
    "refs": {
     "path": "appBuilder/index.ts",
     "layer": "appBuilder",
-    "lines": 84
+    "lines": 122
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:appBuilder/intent-brief.ts",
+   "type": "module",
+   "label": "appBuilder/intent-brief.ts",
+   "status": "known",
+   "refs": {
+    "path": "appBuilder/intent-brief.ts",
+    "layer": "appBuilder",
+    "lines": 540
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/pack-zip.ts",
@@ -1989,7 +1816,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/profile-default.ts",
@@ -2002,7 +1829,7 @@
     "lines": 40
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/stack-static-site.ts",
@@ -2012,10 +1839,23 @@
    "refs": {
     "path": "appBuilder/stack-static-site.ts",
     "layer": "appBuilder",
-    "lines": 23
+    "lines": 310
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:appBuilder/standalone.ts",
+   "type": "module",
+   "label": "appBuilder/standalone.ts",
+   "status": "known",
+   "refs": {
+    "path": "appBuilder/standalone.ts",
+    "layer": "appBuilder",
+    "lines": 230
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:appBuilder/validator-static-site.ts",
@@ -2025,10 +1865,10 @@
    "refs": {
     "path": "appBuilder/validator-static-site.ts",
     "layer": "appBuilder",
-    "lines": 235
+    "lines": 846
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:package.json",
@@ -2039,17 +1879,7 @@
     "path": "package.json"
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
-  },
-  {
-   "id": "module:scripts/architect-dual-compare.mjs",
-   "type": "module",
-   "label": "scripts/architect-dual-compare.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/architect-dual-compare.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:scripts/architectureCheckBoundaries.mjs",
@@ -2072,62 +1902,12 @@
    "sourceInventory": "generated-check-graph.json"
   },
   {
-   "id": "module:scripts/backup-restore-check.mjs",
+   "id": "module:scripts/baseline-eval.mjs",
    "type": "module",
-   "label": "scripts/backup-restore-check.mjs",
+   "label": "scripts/baseline-eval.mjs",
    "status": "unknown",
    "refs": {
-    "path": "scripts/backup-restore-check.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/boundedRepairLibP108.mjs",
-   "type": "module",
-   "label": "scripts/boundedRepairLibP108.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/boundedRepairLibP108.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/capabilityGenerateGraph.mjs",
-   "type": "module",
-   "label": "scripts/capabilityGenerateGraph.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/capabilityGenerateGraph.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/capabilityGraphLib.mjs",
-   "type": "module",
-   "label": "scripts/capabilityGraphLib.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/capabilityGraphLib.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/carousel-live-smoke.mjs",
-   "type": "module",
-   "label": "scripts/carousel-live-smoke.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/carousel-live-smoke.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/carousel-render-probe.mjs",
-   "type": "module",
-   "label": "scripts/carousel-render-probe.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/carousel-render-probe.mjs"
+    "path": "scripts/baseline-eval.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -2142,62 +1922,12 @@
    "sourceInventory": "generated-check-graph.json"
   },
   {
-   "id": "module:scripts/ci-evidence-gate.mjs",
-   "type": "module",
-   "label": "scripts/ci-evidence-gate.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/ci-evidence-gate.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/ci-run-history.mjs",
-   "type": "module",
-   "label": "scripts/ci-run-history.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/ci-run-history.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
    "id": "module:scripts/ci-summary.mjs",
    "type": "module",
    "label": "scripts/ci-summary.mjs",
    "status": "unknown",
    "refs": {
     "path": "scripts/ci-summary.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/contextSelectLib.mjs",
-   "type": "module",
-   "label": "scripts/contextSelectLib.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/contextSelectLib.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/dagLib.mjs",
-   "type": "module",
-   "label": "scripts/dagLib.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/dagLib.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/diagnostics-summary.mjs",
-   "type": "module",
-   "label": "scripts/diagnostics-summary.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/diagnostics-summary.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -2242,52 +1972,12 @@
    "sourceInventory": "generated-check-graph.json"
   },
   {
-   "id": "module:scripts/evidence-to-markdown.mjs",
-   "type": "module",
-   "label": "scripts/evidence-to-markdown.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/evidence-to-markdown.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/evidenceLib.mjs",
-   "type": "module",
-   "label": "scripts/evidenceLib.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/evidenceLib.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/faultInjectionLibP108.mjs",
-   "type": "module",
-   "label": "scripts/faultInjectionLibP108.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/faultInjectionLibP108.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
    "id": "module:scripts/golden-eval.mjs",
    "type": "module",
    "label": "scripts/golden-eval.mjs",
    "status": "unknown",
    "refs": {
     "path": "scripts/golden-eval.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/intentContractLib.mjs",
-   "type": "module",
-   "label": "scripts/intentContractLib.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/intentContractLib.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -2322,82 +2012,12 @@
    "sourceInventory": "generated-check-graph.json"
   },
   {
-   "id": "module:scripts/neon-migration-preflight.mjs",
-   "type": "module",
-   "label": "scripts/neon-migration-preflight.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/neon-migration-preflight.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/neon-migration-verify.mjs",
-   "type": "module",
-   "label": "scripts/neon-migration-verify.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/neon-migration-verify.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/p117-3-live-retest.mjs",
-   "type": "module",
-   "label": "scripts/p117-3-live-retest.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/p117-3-live-retest.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/p118-architect-live-lib.mjs",
-   "type": "module",
-   "label": "scripts/p118-architect-live-lib.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/p118-architect-live-lib.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/p118-architect-live.mjs",
-   "type": "module",
-   "label": "scripts/p118-architect-live.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/p118-architect-live.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/p120-e2e-preflight.mjs",
-   "type": "module",
-   "label": "scripts/p120-e2e-preflight.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/p120-e2e-preflight.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
    "id": "module:scripts/patch-pack.mjs",
    "type": "module",
    "label": "scripts/patch-pack.mjs",
    "status": "unknown",
    "refs": {
     "path": "scripts/patch-pack.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/patch-quality-report.mjs",
-   "type": "module",
-   "label": "scripts/patch-quality-report.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/patch-quality-report.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -2412,62 +2032,22 @@
    "sourceInventory": "generated-check-graph.json"
   },
   {
-   "id": "module:scripts/run-dag.mjs",
+   "id": "module:scripts/project-user-value-live.mjs",
    "type": "module",
-   "label": "scripts/run-dag.mjs",
+   "label": "scripts/project-user-value-live.mjs",
    "status": "unknown",
    "refs": {
-    "path": "scripts/run-dag.mjs"
+    "path": "scripts/project-user-value-live.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
   {
-   "id": "module:scripts/schemaValidate.mjs",
+   "id": "module:scripts/scripts-integrity.mjs",
    "type": "module",
-   "label": "scripts/schemaValidate.mjs",
+   "label": "scripts/scripts-integrity.mjs",
    "status": "unknown",
    "refs": {
-    "path": "scripts/schemaValidate.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/staging-drills.mjs",
-   "type": "module",
-   "label": "scripts/staging-drills.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/staging-drills.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/statusGraph.mjs",
-   "type": "module",
-   "label": "scripts/statusGraph.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/statusGraph.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/verify-connections.mjs",
-   "type": "module",
-   "label": "scripts/verify-connections.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/verify-connections.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
-  },
-  {
-   "id": "module:scripts/version-metadata.mjs",
-   "type": "module",
-   "label": "scripts/version-metadata.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "scripts/version-metadata.mjs"
+    "path": "scripts/scripts-integrity.mjs"
    },
    "sourceInventory": "generated-check-graph.json"
   },
@@ -2489,10 +2069,10 @@
    "refs": {
     "path": "server.ts",
     "layer": "server",
-    "lines": 2517
+    "lines": 2839
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/adapter.ts",
@@ -2505,7 +2085,7 @@
     "lines": 91
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/agentRouting.ts",
@@ -2518,7 +2098,20 @@
     "lines": 54
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/allLogs.ts",
+   "type": "module",
+   "label": "server/allLogs.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/allLogs.ts",
+    "layer": "server",
+    "lines": 217
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/analysisService.ts",
@@ -2531,7 +2124,7 @@
     "lines": 121
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/appBuilderAdapter.ts",
@@ -2541,10 +2134,10 @@
    "refs": {
     "path": "server/appBuilderAdapter.ts",
     "layer": "server",
-    "lines": 262
+    "lines": 400
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/appBuilderIndex.ts",
@@ -2557,7 +2150,7 @@
     "lines": 4
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/appBuilderIr.ts",
@@ -2570,7 +2163,7 @@
     "lines": 79
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/appBuilderPipeline.ts",
@@ -2583,7 +2176,20 @@
     "lines": 170
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/appBuilderRuntimeCheck.ts",
+   "type": "module",
+   "label": "server/appBuilderRuntimeCheck.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/appBuilderRuntimeCheck.ts",
+    "layer": "server",
+    "lines": 133
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/appBuilderScaffolds.ts",
@@ -2596,7 +2202,7 @@
     "lines": 377
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/artifactFormat.ts",
@@ -2609,7 +2215,7 @@
     "lines": 129
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/artifactRepository.ts",
@@ -2619,10 +2225,10 @@
    "refs": {
     "path": "server/artifactRepository.ts",
     "layer": "server",
-    "lines": 196
+    "lines": 211
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/auditCatalog.ts",
@@ -2635,7 +2241,7 @@
     "lines": 37
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/authRoutes.ts",
@@ -2648,7 +2254,7 @@
     "lines": 106
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/briefWriter.ts",
@@ -2661,7 +2267,7 @@
     "lines": 101
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/budget.ts",
@@ -2674,7 +2280,7 @@
     "lines": 52
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/codeExecutor.ts",
@@ -2687,7 +2293,7 @@
     "lines": 514
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/codeTaskService.ts",
@@ -2700,7 +2306,7 @@
     "lines": 951
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/compatibilityRoutes.ts",
@@ -2713,7 +2319,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/contextBuilder.ts",
@@ -2726,7 +2332,7 @@
     "lines": 81
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/contracts.ts",
@@ -2739,7 +2345,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/conversationalAgent.ts",
@@ -2752,7 +2358,7 @@
     "lines": 55
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/conversationDiagnostics.ts",
@@ -2762,10 +2368,10 @@
    "refs": {
     "path": "server/conversationDiagnostics.ts",
     "layer": "server",
-    "lines": 49
+    "lines": 58
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/conversationMode.ts",
@@ -2778,7 +2384,20 @@
     "lines": 47
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/conversationPayload.ts",
+   "type": "module",
+   "label": "server/conversationPayload.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/conversationPayload.ts",
+    "layer": "server",
+    "lines": 49
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/database.ts",
@@ -2791,7 +2410,7 @@
     "lines": 47
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/diagnosticsConfig.ts",
@@ -2804,7 +2423,7 @@
     "lines": 78
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/documents.ts",
@@ -2817,7 +2436,7 @@
     "lines": 293
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/domainIds.ts",
@@ -2830,7 +2449,7 @@
     "lines": 54
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/epistemicVerifier.ts",
@@ -2843,7 +2462,7 @@
     "lines": 156
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/expertAgent.ts",
@@ -2856,7 +2475,7 @@
     "lines": 85
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/expertContracts.ts",
@@ -2869,7 +2488,7 @@
     "lines": 321
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/fakeProvider.ts",
@@ -2882,7 +2501,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/files.ts",
@@ -2895,7 +2514,7 @@
     "lines": 421
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/gateEngine.ts",
@@ -2908,7 +2527,7 @@
     "lines": 181
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/gateService.ts",
@@ -2921,7 +2540,7 @@
     "lines": 182
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/geminiAdapter.ts",
@@ -2934,7 +2553,7 @@
     "lines": 73
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/geminiKeyPool.ts",
@@ -2947,7 +2566,7 @@
     "lines": 166
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/githubIntegration.ts",
@@ -2960,7 +2579,7 @@
     "lines": 371
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/goldenEval.ts",
@@ -2973,7 +2592,7 @@
     "lines": 168
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/healthRoutes.ts",
@@ -2986,7 +2605,150 @@
     "lines": 50
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderContactEnrichment.ts",
+   "type": "module",
+   "label": "server/immofinderContactEnrichment.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderContactEnrichment.ts",
+    "layer": "server",
+    "lines": 539
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderCore.ts",
+   "type": "module",
+   "label": "server/immofinderCore.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderCore.ts",
+    "layer": "server",
+    "lines": 752
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderDelivery.ts",
+   "type": "module",
+   "label": "server/immofinderDelivery.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderDelivery.ts",
+    "layer": "server",
+    "lines": 360
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderDiag.ts",
+   "type": "module",
+   "label": "server/immofinderDiag.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderDiag.ts",
+    "layer": "server",
+    "lines": 95
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderDiscovery.ts",
+   "type": "module",
+   "label": "server/immofinderDiscovery.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderDiscovery.ts",
+    "layer": "server",
+    "lines": 105
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderFetcher.ts",
+   "type": "module",
+   "label": "server/immofinderFetcher.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderFetcher.ts",
+    "layer": "server",
+    "lines": 33
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderPipeline.ts",
+   "type": "module",
+   "label": "server/immofinderPipeline.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderPipeline.ts",
+    "layer": "server",
+    "lines": 666
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderRefresh.ts",
+   "type": "module",
+   "label": "server/immofinderRefresh.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderRefresh.ts",
+    "layer": "server",
+    "lines": 149
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderRoutes.ts",
+   "type": "module",
+   "label": "server/immofinderRoutes.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderRoutes.ts",
+    "layer": "server",
+    "lines": 664
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderSettings.ts",
+   "type": "module",
+   "label": "server/immofinderSettings.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderSettings.ts",
+    "layer": "server",
+    "lines": 236
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/immofinderStore.ts",
+   "type": "module",
+   "label": "server/immofinderStore.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderStore.ts",
+    "layer": "server",
+    "lines": 287
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/intentFlags.ts",
@@ -2999,7 +2761,7 @@
     "lines": 134
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/keepAlive.ts",
@@ -3009,10 +2771,10 @@
    "refs": {
     "path": "server/keepAlive.ts",
     "layer": "server",
-    "lines": 130
+    "lines": 159
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/keyPool.ts",
@@ -3025,7 +2787,7 @@
     "lines": 116
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/latencyPolicy.ts",
@@ -3038,7 +2800,7 @@
     "lines": 93
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/ledger.ts",
@@ -3051,7 +2813,7 @@
     "lines": 28
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/llmLatencyConfig.ts",
@@ -3064,7 +2826,7 @@
     "lines": 38
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/modelAvailability.ts",
@@ -3077,7 +2839,7 @@
     "lines": 37
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/modelCarousel.ts",
@@ -3090,7 +2852,7 @@
     "lines": 285
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/modelHealth.ts",
@@ -3103,7 +2865,7 @@
     "lines": 95
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/modelRateLimit.ts",
@@ -3116,7 +2878,7 @@
     "lines": 111
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/modelRegistry.ts",
@@ -3129,7 +2891,7 @@
     "lines": 110
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/modelSourcesCatalog.ts",
@@ -3142,7 +2904,20 @@
     "lines": 92
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/nationalAuthorities.ts",
+   "type": "module",
+   "label": "server/nationalAuthorities.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/nationalAuthorities.ts",
+    "layer": "server",
+    "lines": 65
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/openaiCompatAdapter.ts",
@@ -3155,7 +2930,7 @@
     "lines": 86
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/opsMetrics.ts",
@@ -3168,7 +2943,7 @@
     "lines": 190
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/opsRoutes.ts",
@@ -3181,7 +2956,7 @@
     "lines": 65
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/planMachine.ts",
@@ -3194,7 +2969,7 @@
     "lines": 137
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/planService.ts",
@@ -3207,7 +2982,7 @@
     "lines": 341
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/processLifecycle.ts",
@@ -3220,7 +2995,7 @@
     "lines": 76
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/projectCapabilities.ts",
@@ -3233,7 +3008,20 @@
     "lines": 29
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/projectContinuation.ts",
+   "type": "module",
+   "label": "server/projectContinuation.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/projectContinuation.ts",
+    "layer": "server",
+    "lines": 51
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/projectDiagnostics.ts",
@@ -3243,10 +3031,10 @@
    "refs": {
     "path": "server/projectDiagnostics.ts",
     "layer": "server",
-    "lines": 356
+    "lines": 370
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/projectRepository.ts",
@@ -3259,7 +3047,7 @@
     "lines": 169
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/projectRoutes.ts",
@@ -3269,10 +3057,10 @@
    "refs": {
     "path": "server/projectRoutes.ts",
     "layer": "server",
-    "lines": 905
+    "lines": 1068
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/promptCore.ts",
@@ -3285,7 +3073,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/promptPacks.ts",
@@ -3298,7 +3086,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/providerMonitor.ts",
@@ -3311,7 +3099,7 @@
     "lines": 219
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/queryFidelity.ts",
@@ -3324,7 +3112,7 @@
     "lines": 189
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/queueMachine.ts",
@@ -3337,7 +3125,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/queueService.ts",
@@ -3350,7 +3138,7 @@
     "lines": 127
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/reasoningState.ts",
@@ -3363,7 +3151,7 @@
     "lines": 230
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/redact.ts",
@@ -3376,7 +3164,7 @@
     "lines": 120
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/repairLoop.ts",
@@ -3389,7 +3177,7 @@
     "lines": 138
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/reviewer.ts",
@@ -3402,7 +3190,7 @@
     "lines": 148
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/routeDecisions.ts",
@@ -3415,7 +3203,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/router.ts",
@@ -3428,7 +3216,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/searchCarousel.ts",
@@ -3441,7 +3229,7 @@
     "lines": 176
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/security.ts",
@@ -3454,7 +3242,7 @@
     "lines": 91
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/securityHeaders.ts",
@@ -3467,7 +3255,33 @@
     "lines": 14
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/simpleConversationDiagnostics.ts",
+   "type": "module",
+   "label": "server/simpleConversationDiagnostics.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/simpleConversationDiagnostics.ts",
+    "layer": "server",
+    "lines": 102
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:server/simpleDirectConversation.ts",
+   "type": "module",
+   "label": "server/simpleDirectConversation.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/simpleDirectConversation.ts",
+    "layer": "server",
+    "lines": 104
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/sourceHealth.ts",
@@ -3480,7 +3294,7 @@
     "lines": 107
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/sourcePolicy.ts",
@@ -3490,10 +3304,10 @@
    "refs": {
     "path": "server/sourcePolicy.ts",
     "layer": "server",
-    "lines": 94
+    "lines": 107
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/sourceTrust.ts",
@@ -3506,7 +3320,7 @@
     "lines": 96
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/statePipeline.ts",
@@ -3519,7 +3333,7 @@
     "lines": 145
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/stateService.ts",
@@ -3532,7 +3346,7 @@
     "lines": 35
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/taskMachine.ts",
@@ -3545,7 +3359,7 @@
     "lines": 103
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/taskService.ts",
@@ -3558,7 +3372,7 @@
     "lines": 286
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/turnFocus.ts",
@@ -3571,7 +3385,7 @@
     "lines": 56
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/untrustedData.ts",
@@ -3584,7 +3398,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/weatherConnector.ts",
@@ -3597,7 +3411,7 @@
     "lines": 261
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/webSearch.ts",
@@ -3607,10 +3421,10 @@
    "refs": {
     "path": "server/webSearch.ts",
     "layer": "server",
-    "lines": 1611
+    "lines": 2224
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:server/worker.ts",
@@ -3623,7 +3437,20 @@
     "lines": 87
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:src/allLogs.ts",
+   "type": "module",
+   "label": "src/allLogs.ts",
+   "status": "known",
+   "refs": {
+    "path": "src/allLogs.ts",
+    "layer": "src",
+    "lines": 27
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/analyticalIntegrity.ts",
@@ -3636,7 +3463,7 @@
     "lines": 461
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/App.tsx",
@@ -3646,10 +3473,10 @@
    "refs": {
     "path": "src/App.tsx",
     "layer": "src",
-    "lines": 721
+    "lines": 726
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/appApi.ts",
@@ -3659,10 +3486,10 @@
    "refs": {
     "path": "src/appApi.ts",
     "layer": "src",
-    "lines": 45
+    "lines": 48
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/AppHeader.tsx",
@@ -3672,23 +3499,10 @@
    "refs": {
     "path": "src/AppHeader.tsx",
     "layer": "src",
-    "lines": 225
+    "lines": 215
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
-  },
-  {
-   "id": "module:src/ArchitectLab.tsx",
-   "type": "module",
-   "label": "src/ArchitectLab.tsx",
-   "status": "known",
-   "refs": {
-    "path": "src/ArchitectLab.tsx",
-    "layer": "src",
-    "lines": 299
-   },
-   "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/architectNote.ts",
@@ -3701,20 +3515,7 @@
     "lines": 28
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
-  },
-  {
-   "id": "module:src/ArchitectShellHeader.tsx",
-   "type": "module",
-   "label": "src/ArchitectShellHeader.tsx",
-   "status": "known",
-   "refs": {
-    "path": "src/ArchitectShellHeader.tsx",
-    "layer": "src",
-    "lines": 134
-   },
-   "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/attachments.ts",
@@ -3727,7 +3528,7 @@
     "lines": 224
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/AutoGrow.tsx",
@@ -3740,7 +3541,7 @@
     "lines": 85
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/autosave.ts",
@@ -3753,7 +3554,7 @@
     "lines": 18
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/briefView.ts",
@@ -3766,7 +3567,7 @@
     "lines": 42
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/brier.ts",
@@ -3779,7 +3580,33 @@
     "lines": 22
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:src/BuildFilesPanel.tsx",
+   "type": "module",
+   "label": "src/BuildFilesPanel.tsx",
+   "status": "known",
+   "refs": {
+    "path": "src/BuildFilesPanel.tsx",
+    "layer": "src",
+    "lines": 34
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:src/CommitBadge.tsx",
+   "type": "module",
+   "label": "src/CommitBadge.tsx",
+   "status": "known",
+   "refs": {
+    "path": "src/CommitBadge.tsx",
+    "layer": "src",
+    "lines": 33
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/config.ts",
@@ -3792,7 +3619,7 @@
     "lines": 20
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ConversationFiles.tsx",
@@ -3805,7 +3632,7 @@
     "lines": 618
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/conversationRoutes.ts",
@@ -3818,7 +3645,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ConversationScreens.tsx",
@@ -3828,10 +3655,10 @@
    "refs": {
     "path": "src/ConversationScreens.tsx",
     "layer": "src",
-    "lines": 449
+    "lines": 510
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/decision.ts",
@@ -3844,7 +3671,7 @@
     "lines": 590
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/decisionDocument.ts",
@@ -3857,7 +3684,7 @@
     "lines": 63
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/downloadFile.ts",
@@ -3870,7 +3697,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/driveClient.ts",
@@ -3883,7 +3710,7 @@
     "lines": 185
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/driveExport.ts",
@@ -3896,7 +3723,7 @@
     "lines": 44
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/driveMerge.ts",
@@ -3909,7 +3736,7 @@
     "lines": 142
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/driveMirror.ts",
@@ -3922,7 +3749,7 @@
     "lines": 326
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/driveSync.ts",
@@ -3935,7 +3762,7 @@
     "lines": 90
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/emergencyDiagnostics.ts",
@@ -3948,7 +3775,7 @@
     "lines": 125
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/en.ts",
@@ -3961,7 +3788,7 @@
     "lines": 51
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ErrorBoundary.tsx",
@@ -3974,7 +3801,7 @@
     "lines": 30
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/errors.ts",
@@ -3987,7 +3814,7 @@
     "lines": 45
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/evpi.ts",
@@ -4000,7 +3827,7 @@
     "lines": 76
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/expertContext.ts",
@@ -4013,7 +3840,7 @@
     "lines": 42
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/expertHistory.ts",
@@ -4026,7 +3853,7 @@
     "lines": 26
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/expertNav.ts",
@@ -4039,7 +3866,7 @@
     "lines": 52
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ExpertNav.tsx",
@@ -4052,7 +3879,7 @@
     "lines": 87
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ExpertStepScreens.tsx",
@@ -4065,7 +3892,7 @@
     "lines": 1756
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/expertWorkflow.ts",
@@ -4078,7 +3905,7 @@
     "lines": 226
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/exportName.ts",
@@ -4091,7 +3918,7 @@
     "lines": 7
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/exportZip.ts",
@@ -4104,7 +3931,7 @@
     "lines": 114
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/finalDecisionDocument.ts",
@@ -4117,7 +3944,7 @@
     "lines": 648
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/HistoryPanel.tsx",
@@ -4130,7 +3957,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/icsBuilder.ts",
@@ -4143,7 +3970,46 @@
     "lines": 57
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:src/immoCard.ts",
+   "type": "module",
+   "label": "src/immoCard.ts",
+   "status": "known",
+   "refs": {
+    "path": "src/immoCard.ts",
+    "layer": "src",
+    "lines": 116
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:src/ImmoFinder.tsx",
+   "type": "module",
+   "label": "src/ImmoFinder.tsx",
+   "status": "known",
+   "refs": {
+    "path": "src/ImmoFinder.tsx",
+    "layer": "src",
+    "lines": 383
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:src/ImmoFinderSettings.tsx",
+   "type": "module",
+   "label": "src/ImmoFinderSettings.tsx",
+   "status": "known",
+   "refs": {
+    "path": "src/ImmoFinderSettings.tsx",
+    "layer": "src",
+    "lines": 637
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/index.css",
@@ -4154,7 +4020,7 @@
     "path": "src/index.css"
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/libraryExport.ts",
@@ -4167,7 +4033,7 @@
     "lines": 82
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/main.tsx",
@@ -4177,10 +4043,10 @@
    "refs": {
     "path": "src/main.tsx",
     "layer": "src",
-    "lines": 47
+    "lines": 48
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ModeMenu.tsx",
@@ -4190,10 +4056,10 @@
    "refs": {
     "path": "src/ModeMenu.tsx",
     "layer": "src",
-    "lines": 108
+    "lines": 110
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/numberValidator.ts",
@@ -4206,7 +4072,7 @@
     "lines": 319
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/OfflineIndicator.tsx",
@@ -4219,7 +4085,7 @@
     "lines": 31
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/programFiles.ts",
@@ -4232,7 +4098,7 @@
     "lines": 356
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/projectAppBuilder.ts",
@@ -4242,10 +4108,10 @@
    "refs": {
     "path": "src/projectAppBuilder.ts",
     "layer": "src",
-    "lines": 176
+    "lines": 195
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/projectBuildJob.ts",
@@ -4255,10 +4121,10 @@
    "refs": {
     "path": "src/projectBuildJob.ts",
     "layer": "src",
-    "lines": 93
+    "lines": 97
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/projectCapabilities.ts",
@@ -4271,7 +4137,20 @@
     "lines": 31
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+  },
+  {
+   "id": "module:src/ProjectChat.tsx",
+   "type": "module",
+   "label": "src/ProjectChat.tsx",
+   "status": "known",
+   "refs": {
+    "path": "src/ProjectChat.tsx",
+    "layer": "src",
+    "lines": 604
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ProjectDelivery.tsx",
@@ -4284,7 +4163,7 @@
     "lines": 348
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/projectDeliveryModel.ts",
@@ -4297,7 +4176,7 @@
     "lines": 201
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/projectLabels.ts",
@@ -4310,7 +4189,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ProjectMode.tsx",
@@ -4320,10 +4199,10 @@
    "refs": {
     "path": "src/ProjectMode.tsx",
     "layer": "src",
-    "lines": 707
+    "lines": 880
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ProjectNoviceWizard.tsx",
@@ -4333,10 +4212,10 @@
    "refs": {
     "path": "src/ProjectNoviceWizard.tsx",
     "layer": "src",
-    "lines": 350
+    "lines": 335
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ProjectPathChooser.tsx",
@@ -4349,7 +4228,7 @@
     "lines": 72
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/sha256Export.ts",
@@ -4362,7 +4241,7 @@
     "lines": 36
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/storage.ts",
@@ -4375,7 +4254,7 @@
     "lines": 425
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/support.ts",
@@ -4388,7 +4267,7 @@
     "lines": 64
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/triage.ts",
@@ -4401,7 +4280,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/ui.ts",
@@ -4414,7 +4293,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/uiStates.tsx",
@@ -4427,7 +4306,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/uiTerms.ts",
@@ -4440,7 +4319,7 @@
     "lines": 27
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/useDrive.ts",
@@ -4453,7 +4332,7 @@
     "lines": 133
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/usePWAInstall.ts",
@@ -4466,7 +4345,7 @@
     "lines": 63
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/UserGuide.tsx",
@@ -4479,7 +4358,7 @@
     "lines": 185
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/changeset.ts",
@@ -4492,7 +4371,7 @@
     "lines": 520
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/changeSetParse.ts",
@@ -4505,7 +4384,7 @@
     "lines": 102
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/classify.ts",
@@ -4518,7 +4397,7 @@
     "lines": 318
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/context.ts",
@@ -4531,7 +4410,7 @@
     "lines": 199
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/diff.ts",
@@ -4544,7 +4423,7 @@
     "lines": 115
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/exportZip.ts",
@@ -4557,7 +4436,7 @@
     "lines": 238
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/extract.ts",
@@ -4570,7 +4449,7 @@
     "lines": 557
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/hash.ts",
@@ -4583,7 +4462,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/idbStore.ts",
@@ -4596,7 +4475,7 @@
     "lines": 179
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/index.ts",
@@ -4609,7 +4488,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/ingest.ts",
@@ -4622,7 +4501,7 @@
     "lines": 333
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/memoryStore.ts",
@@ -4635,7 +4514,7 @@
     "lines": 138
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/paths.ts",
@@ -4648,7 +4527,7 @@
     "lines": 136
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/persistIngest.ts",
@@ -4661,7 +4540,7 @@
     "lines": 86
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/tar.ts",
@@ -4674,7 +4553,7 @@
     "lines": 120
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/workspace/types.ts",
@@ -4687,7 +4566,7 @@
     "lines": 152
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/WorkspaceChangeSetCard.tsx",
@@ -4700,7 +4579,7 @@
     "lines": 191
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:src/WorkspacePanel.tsx",
@@ -4713,17 +4592,7 @@
     "lines": 564
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
-  },
-  {
-   "id": "module:tests/_prompts.mjs",
-   "type": "module",
-   "label": "tests/_prompts.mjs",
-   "status": "unknown",
-   "refs": {
-    "path": "tests/_prompts.mjs"
-   },
-   "sourceInventory": "generated-check-graph.json"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "module:tests/_sources.mjs",
@@ -4746,7 +4615,7 @@
     "lines": 43
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-04T08:32:25.646Z"
+   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
   },
   {
    "id": "route:DELETE /api/projects/:projectId",
@@ -6524,7 +6393,47 @@
   },
   {
    "from": "check:critical-app-builder-recovery",
+   "to": "module:appBuilder/core-plan.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
+   "to": "module:appBuilder/core-prompts.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
    "to": "module:appBuilder/index.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
+   "to": "module:appBuilder/intent-brief.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
+   "to": "module:appBuilder/stack-static-site.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
+   "to": "module:appBuilder/validator-static-site.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
+   "to": "module:server/appBuilderAdapter.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
+   "to": "module:server/appBuilderRuntimeCheck.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:critical-app-builder-recovery",
+   "to": "module:server/projectContinuation.ts",
    "relation": "covers"
   },
   {
@@ -6838,6 +6747,16 @@
    "relation": "covers"
   },
   {
+   "from": "check:docs-integrity",
+   "to": "module:scripts/scripts-integrity.mjs",
+   "relation": "covers"
+  },
+  {
+   "from": "check:lint:copy",
+   "to": "module:scripts/baseline-eval.mjs",
+   "relation": "covers"
+  },
+  {
    "from": "check:lint:copy",
    "to": "module:scripts/evidence-collect.mjs",
    "relation": "covers"
@@ -6845,11 +6764,6 @@
   {
    "from": "check:lint:copy",
    "to": "module:scripts/lint-copy.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:lint:copy",
-   "to": "module:scripts/p117-3-live-retest.mjs",
    "relation": "covers"
   },
   {
@@ -6895,6 +6809,11 @@
   {
    "from": "check:lint:copy",
    "to": "module:server/reasoningState.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:lint:copy",
+   "to": "module:server/simpleDirectConversation.ts",
    "relation": "covers"
   },
   {
@@ -6959,22 +6878,12 @@
   },
   {
    "from": "check:test:app-builder",
-   "to": "module:appBuilder/architectOutcome.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:app-builder",
-   "to": "module:appBuilder/core-markers.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:app-builder",
    "to": "module:appBuilder/core-plan.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:app-builder",
-   "to": "module:appBuilder/core-types.ts",
+   "to": "module:appBuilder/core-prompts.ts",
    "relation": "covers"
   },
   {
@@ -6984,17 +6893,22 @@
   },
   {
    "from": "check:test:app-builder",
-   "to": "module:scripts/architectureLib.mjs",
+   "to": "module:appBuilder/intent-brief.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:app-builder",
-   "to": "module:scripts/p118-architect-live-lib.mjs",
+   "to": "module:appBuilder/stack-static-site.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:app-builder",
-   "to": "module:scripts/p118-architect-live.mjs",
+   "to": "module:appBuilder/validator-static-site.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:app-builder",
+   "to": "module:scripts/project-user-value-live.mjs",
    "relation": "covers"
   },
   {
@@ -7004,267 +6918,12 @@
   },
   {
    "from": "check:test:app-builder",
-   "to": "module:server/appBuilderIndex.ts",
+   "to": "module:server/appBuilderRuntimeCheck.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:app-builder",
-   "to": "module:server/modelRegistry.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:app-builder",
-   "to": "module:server/router.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "check:db-migrate",
-   "relation": "needs"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:scripts/backup-restore-check.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/briefWriter.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/codeExecutor.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/codeTaskService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/database.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/gateEngine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/githubIntegration.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/healthRoutes.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/opsMetrics.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/projectCapabilities.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/projectRepository.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/repairLoop.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:server/reviewer.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:src/projectCapabilities.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:src/ProjectDelivery.tsx",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:src/projectDeliveryModel.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:src/projectLabels.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:src/uiStates.tsx",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:bx06:api",
-   "to": "module:tests/_sources.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:scripts/carousel-live-smoke.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:scripts/carousel-render-probe.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:server/keyPool.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:server/modelCarousel.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:server/modelRegistry.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:server/modelSourcesCatalog.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:server/router.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:carousel-unit",
-   "to": "module:server/sourceHealth.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:appBuilder/core-cache.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:appBuilder/core-engine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:appBuilder/core-prompts.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/boundedRepairLibP108.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/capabilityGenerateGraph.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/capabilityGraphLib.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/ci-evidence-gate.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/ci-run-history.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/ci-summary.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/contextSelectLib.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/dagLib.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/diagnostics-summary.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/evidenceLib.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/faultInjectionLibP108.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/intentContractLib.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/patch-quality-report.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/run-dag.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/schemaValidate.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:scripts/statusGraph.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:server/contextBuilder.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:server/githubIntegration.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:compact-ci-artifacts",
-   "to": "module:src/config.ts",
+   "to": "module:server/projectContinuation.ts",
    "relation": "covers"
   },
   {
@@ -7294,112 +6953,62 @@
   },
   {
    "from": "check:test:core",
+   "to": "module:appBuilder/core-plan.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
    "to": "module:appBuilder/core-prompts.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/architect-dual-compare.mjs",
+   "to": "module:appBuilder/index.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/check-version.mjs",
+   "to": "module:appBuilder/intent-brief.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/docs-integrity.mjs",
+   "to": "module:appBuilder/stack-static-site.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/lint-copy.mjs",
+   "to": "module:appBuilder/validator-static-site.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/migrate.mjs",
+   "to": "module:scripts/baseline-eval.mjs",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/neon-migration-preflight.mjs",
+   "to": "module:server/allLogs.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/neon-migration-verify.mjs",
+   "to": "module:server/appBuilderAdapter.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/p120-e2e-preflight.mjs",
+   "to": "module:server/appBuilderRuntimeCheck.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/patch-tools.mjs",
+   "to": "module:server/artifactRepository.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:scripts/version-metadata.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/agentRouting.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/authRoutes.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/compatibilityRoutes.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/contextBuilder.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/contracts.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/conversationalAgent.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/conversationDiagnostics.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/conversationMode.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/diagnosticsConfig.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/epistemicVerifier.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/expertAgent.ts",
+   "to": "module:server/fakeProvider.ts",
    "relation": "covers"
   },
   {
@@ -7409,32 +7018,52 @@
   },
   {
    "from": "check:test:core",
-   "to": "module:server/healthRoutes.ts",
+   "to": "module:server/immofinderCore.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:server/intentFlags.ts",
+   "to": "module:server/immofinderDelivery.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:server/llmLatencyConfig.ts",
+   "to": "module:server/immofinderDiag.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:server/modelRateLimit.ts",
+   "to": "module:server/immofinderDiscovery.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:server/opsRoutes.ts",
+   "to": "module:server/immofinderPipeline.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:server/processLifecycle.ts",
+   "to": "module:server/immofinderRefresh.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/immofinderRoutes.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/immofinderSettings.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/projectContinuation.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/projectDiagnostics.ts",
    "relation": "covers"
   },
   {
@@ -7444,27 +7073,12 @@
   },
   {
    "from": "check:test:core",
-   "to": "module:server/promptCore.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/promptPacks.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/queryFidelity.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/reasoningState.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
    "to": "module:server/redact.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/router.ts",
    "relation": "covers"
   },
   {
@@ -7479,22 +7093,7 @@
   },
   {
    "from": "check:test:core",
-   "to": "module:server/sourcePolicy.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/sourceTrust.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/statePipeline.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:server/weatherConnector.ts",
+   "to": "module:server/simpleDirectConversation.ts",
    "relation": "covers"
   },
   {
@@ -7504,487 +7103,17 @@
   },
   {
    "from": "check:test:core",
-   "to": "module:src/brier.ts",
+   "to": "module:src/allLogs.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
-   "to": "module:src/config.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/conversationRoutes.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/decision.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/emergencyDiagnostics.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/en.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/errors.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/evpi.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/expertContext.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/expertHistory.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/expertNav.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/icsBuilder.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/numberValidator.ts",
+   "to": "module:src/immoCard.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
    "to": "module:src/projectAppBuilder.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/projectBuildJob.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/sha256Export.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/triage.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/ui.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:src/uiTerms.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:tests/_prompts.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:core",
-   "to": "module:tests/_sources.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/analysisService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/artifactRepository.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/budget.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/codeTaskService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/contracts.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/database.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/fakeProvider.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/gateEngine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/gateService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/healthRoutes.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/ledger.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/modelHealth.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/modelRegistry.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/planMachine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/planService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/projectRepository.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/queueMachine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/queueService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/router.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/stateService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/taskMachine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/taskService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database",
-   "to": "module:server/worker.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "check:db-migrate",
-   "relation": "needs"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/analysisService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/artifactRepository.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/budget.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/codeTaskService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/contracts.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/database.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/fakeProvider.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/gateEngine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/gateService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/healthRoutes.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/ledger.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/modelHealth.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/modelRegistry.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/planMachine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/planService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/projectRepository.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/queueMachine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/queueService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/router.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/stateService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/taskMachine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/taskService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:database:live",
-   "to": "module:server/worker.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "check:critical-gemini-timeout",
-   "relation": "needs"
-  },
-  {
-   "from": "check:test:files",
-   "to": "check:critical-router-policy-call-limit",
-   "relation": "needs"
-  },
-  {
-   "from": "check:test:files",
-   "to": "check:critical-router-selection",
-   "relation": "needs"
-  },
-  {
-   "from": "check:test:files",
-   "to": "evidence:schema",
-   "relation": "produces_evidence_under"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:scripts/evidence-to-markdown.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:server/documents.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:server/files.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:src/config.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:src/decision.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:src/exportName.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:src/exportZip.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:src/libraryExport.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:src/storage.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:files",
-   "to": "module:src/useDrive.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:gates",
-   "to": "module:scripts/staging-drills.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:gates",
-   "to": "module:server/gateEngine.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:scripts/verify-connections.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:server/artifactRepository.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:server/fakeProvider.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:server/githubIntegration.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:server/ledger.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:server/modelRegistry.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:server/router.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:src/autosave.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:src/driveClient.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:src/driveExport.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:src/driveMerge.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:src/driveMirror.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:integrations",
-   "to": "module:src/driveSync.ts",
    "relation": "covers"
   },
   {
@@ -8084,11 +7213,6 @@
   },
   {
    "from": "check:test:models",
-   "to": "module:server/modelAvailability.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:models",
    "to": "module:server/modelHealth.ts",
    "relation": "covers"
   },
@@ -8143,86 +7267,6 @@
    "relation": "covers"
   },
   {
-   "from": "check:test:pipeline",
-   "to": "module:server/appBuilderPipeline.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:server/contextBuilder.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:server/contracts.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:server/conversationMode.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:server/expertAgent.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:server/intentFlags.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:server/promptCore.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:server/statePipeline.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:src/briefView.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:src/config.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:src/driveClient.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:src/driveMirror.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:src/support.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:src/useDrive.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:tests/_prompts.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:pipeline",
-   "to": "module:tests/_sources.mjs",
-   "relation": "covers"
-  },
-  {
    "from": "check:test:project",
    "to": "check:critical-gemini-timeout",
    "relation": "needs"
@@ -8244,117 +7288,82 @@
   },
   {
    "from": "check:test:project",
-   "to": "module:scripts/backup-restore-check.mjs",
+   "to": "module:appBuilder/core-engine.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/briefWriter.ts",
+   "to": "module:appBuilder/core-plan.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/codeExecutor.ts",
+   "to": "module:appBuilder/core-prompts.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/codeTaskService.ts",
+   "to": "module:appBuilder/index.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/database.ts",
+   "to": "module:appBuilder/intent-brief.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/gateEngine.ts",
+   "to": "module:appBuilder/stack-static-site.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/githubIntegration.ts",
+   "to": "module:appBuilder/standalone.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/healthRoutes.ts",
+   "to": "module:appBuilder/validator-static-site.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/opsMetrics.ts",
+   "to": "module:scripts/project-user-value-live.mjs",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/projectCapabilities.ts",
+   "to": "module:server/appBuilderAdapter.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/projectRepository.ts",
+   "to": "module:server/appBuilderRuntimeCheck.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/repairLoop.ts",
+   "to": "module:server/artifactRepository.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:server/reviewer.ts",
+   "to": "module:server/projectContinuation.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:src/projectBuildJob.ts",
+   "to": "module:server/projectRoutes.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project",
-   "to": "module:src/projectCapabilities.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:project",
-   "to": "module:src/ProjectDelivery.tsx",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:project",
-   "to": "module:src/projectDeliveryModel.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:project",
-   "to": "module:src/projectLabels.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:project",
-   "to": "module:src/uiStates.tsx",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:project",
-   "to": "module:tests/_sources.mjs",
+   "to": "module:src/projectAppBuilder.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:project-diagnostics",
-   "to": "module:appBuilder/core-types.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:project-diagnostics",
-   "to": "module:scripts/ci-summary.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:project-diagnostics",
-   "to": "module:scripts/patch-tools.mjs",
+   "to": "module:server/allLogs.ts",
    "relation": "covers"
   },
   {
@@ -8364,22 +7373,7 @@
   },
   {
    "from": "check:test:project-diagnostics",
-   "to": "module:server/projectRoutes.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:security",
-   "to": "module:server/auditCatalog.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:security",
-   "to": "module:server/codeTaskService.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:security",
-   "to": "module:server/githubIntegration.ts",
+   "to": "module:src/allLogs.ts",
    "relation": "covers"
   },
   {
@@ -8389,122 +7383,7 @@
   },
   {
    "from": "check:test:security",
-   "to": "module:server/security.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:security",
    "to": "module:server/securityHeaders.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:security",
-   "to": "module:server/untrustedData.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:turn",
-   "to": "module:server/latencyPolicy.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:turn",
-   "to": "module:server/turnFocus.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:turn",
-   "to": "module:tests/_prompts.mjs",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:web",
-   "to": "module:server/epistemicVerifier.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:web",
-   "to": "module:server/expertAgent.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:web",
-   "to": "module:server/reasoningState.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:web",
-   "to": "module:server/securityHeaders.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:web",
-   "to": "module:server/webSearch.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/changeset.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/changeSetParse.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/classify.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/context.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/exportZip.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/extract.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/hash.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/idbStore.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/ingest.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/memoryStore.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/paths.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/persistIngest.ts",
-   "relation": "covers"
-  },
-  {
-   "from": "check:test:workspace",
-   "to": "module:src/workspace/types.ts",
    "relation": "covers"
   },
   {
@@ -8669,6 +7548,11 @@
   },
   {
    "from": "module:appBuilder/core-engine.ts",
+   "to": "module:appBuilder/intent-brief.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:appBuilder/core-engine.ts",
    "to": "module:appBuilder/pack-zip.ts",
    "relation": "depends_on"
   },
@@ -8680,6 +7564,11 @@
   {
    "from": "module:appBuilder/core-engine.ts",
    "to": "module:appBuilder/stack-static-site.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:appBuilder/core-engine.ts",
+   "to": "module:appBuilder/standalone.ts",
    "relation": "depends_on"
   },
   {
@@ -8754,6 +7643,11 @@
   },
   {
    "from": "module:appBuilder/index.ts",
+   "to": "module:appBuilder/intent-brief.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:appBuilder/index.ts",
    "to": "module:appBuilder/pack-zip.ts",
    "relation": "depends_on"
   },
@@ -8773,6 +7667,16 @@
    "relation": "depends_on"
   },
   {
+   "from": "module:appBuilder/intent-brief.ts",
+   "to": "module:appBuilder/core-plan.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:appBuilder/intent-brief.ts",
+   "to": "module:appBuilder/core-types.ts",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:appBuilder/pack-zip.ts",
    "to": "module:appBuilder/core-types.ts",
    "relation": "depends_on"
@@ -8789,7 +7693,17 @@
   },
   {
    "from": "module:appBuilder/stack-static-site.ts",
+   "to": "module:appBuilder/core-plan.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:appBuilder/stack-static-site.ts",
    "to": "module:appBuilder/core-types.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:appBuilder/stack-static-site.ts",
+   "to": "module:appBuilder/intent-brief.ts",
    "relation": "depends_on"
   },
   {
@@ -8810,6 +7724,11 @@
   {
    "from": "module:server.ts",
    "to": "module:server/agentRouting.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server.ts",
+   "to": "module:server/allLogs.ts",
    "relation": "depends_on"
   },
   {
@@ -8915,6 +7834,11 @@
   {
    "from": "module:server.ts",
    "to": "module:server/healthRoutes.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server.ts",
+   "to": "module:server/immofinderRoutes.ts",
    "relation": "depends_on"
   },
   {
@@ -9025,6 +7949,16 @@
   {
    "from": "module:server.ts",
    "to": "module:server/securityHeaders.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server.ts",
+   "to": "module:server/simpleConversationDiagnostics.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server.ts",
+   "to": "module:server/simpleDirectConversation.ts",
    "relation": "depends_on"
   },
   {
@@ -9193,6 +8127,21 @@
    "relation": "depends_on"
   },
   {
+   "from": "module:server/allLogs.ts",
+   "to": "module:server/conversationDiagnostics.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/allLogs.ts",
+   "to": "module:server/projectDiagnostics.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/allLogs.ts",
+   "to": "module:server/redact.ts",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:server/analysisService.ts",
    "to": "module:server/adapter.ts",
    "relation": "depends_on"
@@ -9279,6 +8228,11 @@
   },
   {
    "from": "module:server/appBuilderAdapter.ts",
+   "to": "module:server/appBuilderRuntimeCheck.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/appBuilderAdapter.ts",
    "to": "module:server/artifactRepository.ts",
    "relation": "depends_on"
   },
@@ -9330,6 +8284,11 @@
   {
    "from": "module:server/appBuilderPipeline.ts",
    "to": "module:server/artifactFormat.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/appBuilderRuntimeCheck.ts",
+   "to": "module:appBuilder/index.ts",
    "relation": "depends_on"
   },
   {
@@ -9598,6 +8557,151 @@
    "relation": "exposes"
   },
   {
+   "from": "module:server/immofinderContactEnrichment.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderContactEnrichment.ts",
+   "to": "module:server/immofinderDiscovery.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderDelivery.ts",
+   "to": "module:server/immofinderSettings.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderDelivery.ts",
+   "to": "module:src/immoCard.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderDiag.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderDiag.ts",
+   "to": "module:server/projectDiagnostics.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderDiscovery.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderFetcher.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderPipeline.ts",
+   "to": "module:server/immofinderContactEnrichment.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderPipeline.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderPipeline.ts",
+   "to": "module:server/immofinderDiscovery.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRefresh.ts",
+   "to": "module:server/immofinderContactEnrichment.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRefresh.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRefresh.ts",
+   "to": "module:server/immofinderDiag.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderContactEnrichment.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderDelivery.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderDiag.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderDiscovery.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderFetcher.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderPipeline.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderRefresh.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderSettings.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderStore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/security.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderSettings.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderStore.ts",
+   "to": "module:server/database.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderStore.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderStore.ts",
+   "to": "module:server/immofinderPipeline.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderStore.ts",
+   "to": "module:server/immofinderSettings.ts",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:server/ledger.ts",
    "to": "module:server/database.ts",
    "relation": "depends_on"
@@ -9690,6 +8794,16 @@
   {
    "from": "module:server/projectCapabilities.ts",
    "to": "module:server/githubIntegration.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/projectContinuation.ts",
+   "to": "module:appBuilder/standalone.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/projectContinuation.ts",
+   "to": "module:server/artifactRepository.ts",
    "relation": "depends_on"
   },
   {
@@ -9805,6 +8919,11 @@
   {
    "from": "module:server/projectRoutes.ts",
    "to": "module:server/projectCapabilities.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
+   "to": "module:server/projectContinuation.ts",
    "relation": "depends_on"
   },
   {
@@ -10194,6 +9313,11 @@
   },
   {
    "from": "module:server/webSearch.ts",
+   "to": "module:server/nationalAuthorities.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/webSearch.ts",
    "to": "module:server/queryFidelity.ts",
    "relation": "depends_on"
   },
@@ -10474,6 +9598,16 @@
   },
   {
    "from": "module:src/AppHeader.tsx",
+   "to": "module:src/allLogs.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/AppHeader.tsx",
+   "to": "module:src/CommitBadge.tsx",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/AppHeader.tsx",
    "to": "module:src/config.ts",
    "relation": "depends_on"
   },
@@ -10498,46 +9632,6 @@
    "relation": "depends_on"
   },
   {
-   "from": "module:src/ArchitectLab.tsx",
-   "to": "module:src/ArchitectShellHeader.tsx",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ArchitectLab.tsx",
-   "to": "module:src/ErrorBoundary.tsx",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ArchitectLab.tsx",
-   "to": "module:src/projectBuildJob.ts",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ArchitectShellHeader.tsx",
-   "to": "module:src/driveClient.ts",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ArchitectShellHeader.tsx",
-   "to": "module:src/driveMirror.ts",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ArchitectShellHeader.tsx",
-   "to": "module:src/ModeMenu.tsx",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ArchitectShellHeader.tsx",
-   "to": "module:src/uiStates.tsx",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ArchitectShellHeader.tsx",
-   "to": "module:src/UserGuide.tsx",
-   "relation": "depends_on"
-  },
-  {
    "from": "module:src/attachments.ts",
    "to": "module:src/errors.ts",
    "relation": "depends_on"
@@ -10545,6 +9639,11 @@
   {
    "from": "module:src/briefView.ts",
    "to": "module:src/decision.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/BuildFilesPanel.tsx",
+   "to": "module:src/downloadFile.ts",
    "relation": "depends_on"
   },
   {
@@ -10968,6 +10067,31 @@
    "relation": "depends_on"
   },
   {
+   "from": "module:src/ImmoFinder.tsx",
+   "to": "module:src/allLogs.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ImmoFinder.tsx",
+   "to": "module:src/CommitBadge.tsx",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ImmoFinder.tsx",
+   "to": "module:src/immoCard.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ImmoFinder.tsx",
+   "to": "module:src/ImmoFinderSettings.tsx",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ImmoFinder.tsx",
+   "to": "module:src/ModeMenu.tsx",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:src/libraryExport.ts",
    "to": "module:src/attachments.ts",
    "relation": "depends_on"
@@ -11028,6 +10152,26 @@
    "relation": "depends_on"
   },
   {
+   "from": "module:src/ProjectChat.tsx",
+   "to": "module:src/BuildFilesPanel.tsx",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ProjectChat.tsx",
+   "to": "module:src/downloadFile.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ProjectChat.tsx",
+   "to": "module:src/projectAppBuilder.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ProjectChat.tsx",
+   "to": "module:src/projectBuildJob.ts",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:src/ProjectDelivery.tsx",
    "to": "module:src/projectCapabilities.ts",
    "relation": "depends_on"
@@ -11045,6 +10189,16 @@
   {
    "from": "module:src/projectDeliveryModel.ts",
    "to": "module:src/projectCapabilities.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ProjectMode.tsx",
+   "to": "module:src/allLogs.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ProjectMode.tsx",
+   "to": "module:src/CommitBadge.tsx",
    "relation": "depends_on"
   },
   {
@@ -11069,17 +10223,17 @@
   },
   {
    "from": "module:src/ProjectMode.tsx",
-   "to": "module:src/projectAppBuilder.ts",
-   "relation": "depends_on"
-  },
-  {
-   "from": "module:src/ProjectMode.tsx",
    "to": "module:src/projectBuildJob.ts",
    "relation": "depends_on"
   },
   {
    "from": "module:src/ProjectMode.tsx",
    "to": "module:src/projectCapabilities.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:src/ProjectMode.tsx",
+   "to": "module:src/ProjectChat.tsx",
    "relation": "depends_on"
   },
   {

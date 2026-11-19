@@ -3,6 +3,19 @@
 > **Phase shift (C129):** ImmoFinder **searcher construction is complete** (sources, waves, geo, contacts, price extraction, settings, Drive/email).  
 > From **P129 / C129** the programme is **quality of search**: denser private long-term leads, commune coverage over a day (carousel), better prices/contacts, less junk — not new product scaffolding.
 
+## EXP-IMMO-4 — Recheck stored listings for date/contact completeness (P129.23a, EXPERIMENT)
+
+| Field | Value |
+|---|---|
+| **Problem and evidence** | Stored cards can have missing/stale publication dates or contacts; prior Recheck only reapplied stored filters and parsed prices. |
+| **Hypothesis** | Refetching each saved listing, parsing declared/text dates and page contacts, then searching publicly only when contacts remain absent will improve completeness without deleting existing values. |
+| **Baseline** | Current stored-card completeness and date/contact counts are captured at job start; dev-set and live baseline `NOT_RUN`. |
+| **Metric / acceptance** | Per-run completeness before/after; date/contact additions; source/host gaps; no data loss on fetch failure; CI test contracts pass. Dev-set before/after and live completeness gain `NOT_RUN`. |
+| **Files in scope** | `server/immofinderCore.ts`, `server/immofinderRefresh.ts`, `server/immofinderDiag.ts`, `server/immofinderRoutes.ts`, `server/immofinderStore.ts`, `src/ImmoFinder.tsx`, `tests/agents-contract.test.mjs`, generated graph, history/version files. |
+| **Rollback criterion** | Any existing date/contact is erased by an unsuccessful recheck, or recheck updates the wrong listing; revert refresh path. |
+| **Result** | `NOT_RUN` (live deploy and real listing sample required). |
+
+
 ## C129 operating modes (quality phase)
 
 | Profile / wave | Intent |

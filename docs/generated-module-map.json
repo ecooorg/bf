@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-04T08:32:25.646Z",
+  "generatedAt": "2026-11-19T09:21:39.209Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "bf-main",
+  "root": "bf-work",
   "summary": {
-    "moduleCount": 185,
-    "edgeCount": 455,
+    "moduleCount": 210,
+    "edgeCount": 510,
     "cycleCount": 0,
-    "totalLines": 35305
+    "totalLines": 45191
   },
   "cycles": [],
   "layers": {
-    "server": 88,
-    "src": 83,
-    "other": 14
+    "server": 106,
+    "src": 88,
+    "other": 16
   },
   "modules": [
     {
@@ -34,7 +34,7 @@
     {
       "path": "appBuilder/core-engine.ts",
       "layer": "appBuilder",
-      "lines": 603,
+      "lines": 983,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-markers.ts",
@@ -42,9 +42,11 @@
         "appBuilder/core-ports.ts",
         "appBuilder/core-prompts.ts",
         "appBuilder/core-types.ts",
+        "appBuilder/intent-brief.ts",
         "appBuilder/pack-zip.ts",
         "appBuilder/profile-default.ts",
         "appBuilder/stack-static-site.ts",
+        "appBuilder/standalone.ts",
         "appBuilder/validator-static-site.ts"
       ],
       "fanIn": 1
@@ -61,16 +63,16 @@
     {
       "path": "appBuilder/core-plan.ts",
       "layer": "appBuilder",
-      "lines": 224,
+      "lines": 300,
       "imports": [
         "appBuilder/core-types.ts"
       ],
-      "fanIn": 4
+      "fanIn": 6
     },
     {
       "path": "appBuilder/core-ports.ts",
       "layer": "appBuilder",
-      "lines": 100,
+      "lines": 111,
       "imports": [
         "appBuilder/core-types.ts"
       ],
@@ -79,7 +81,7 @@
     {
       "path": "appBuilder/core-prompts.ts",
       "layer": "appBuilder",
-      "lines": 30,
+      "lines": 141,
       "imports": [
         "appBuilder/core-cache.ts",
         "appBuilder/core-types.ts"
@@ -89,14 +91,14 @@
     {
       "path": "appBuilder/core-types.ts",
       "layer": "appBuilder",
-      "lines": 166,
+      "lines": 200,
       "imports": [],
-      "fanIn": 10
+      "fanIn": 11
     },
     {
       "path": "appBuilder/index.ts",
       "layer": "appBuilder",
-      "lines": 84,
+      "lines": 122,
       "imports": [
         "appBuilder/architectOutcome.ts",
         "appBuilder/core-cache.ts",
@@ -106,12 +108,23 @@
         "appBuilder/core-ports.ts",
         "appBuilder/core-prompts.ts",
         "appBuilder/core-types.ts",
+        "appBuilder/intent-brief.ts",
         "appBuilder/pack-zip.ts",
         "appBuilder/profile-default.ts",
         "appBuilder/stack-static-site.ts",
         "appBuilder/validator-static-site.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
+    },
+    {
+      "path": "appBuilder/intent-brief.ts",
+      "layer": "appBuilder",
+      "lines": 540,
+      "imports": [
+        "appBuilder/core-plan.ts",
+        "appBuilder/core-types.ts"
+      ],
+      "fanIn": 3
     },
     {
       "path": "appBuilder/pack-zip.ts",
@@ -134,17 +147,26 @@
     {
       "path": "appBuilder/stack-static-site.ts",
       "layer": "appBuilder",
-      "lines": 23,
+      "lines": 310,
       "imports": [
         "appBuilder/core-cache.ts",
-        "appBuilder/core-types.ts"
+        "appBuilder/core-plan.ts",
+        "appBuilder/core-types.ts",
+        "appBuilder/intent-brief.ts"
       ],
       "fanIn": 3
     },
     {
+      "path": "appBuilder/standalone.ts",
+      "layer": "appBuilder",
+      "lines": 230,
+      "imports": [],
+      "fanIn": 2
+    },
+    {
       "path": "appBuilder/validator-static-site.ts",
       "layer": "appBuilder",
-      "lines": 235,
+      "lines": 846,
       "imports": [
         "appBuilder/core-plan.ts",
         "appBuilder/core-types.ts",
@@ -155,9 +177,10 @@
     {
       "path": "server.ts",
       "layer": "server",
-      "lines": 2517,
+      "lines": 2839,
       "imports": [
         "server/agentRouting.ts",
+        "server/allLogs.ts",
         "server/analysisService.ts",
         "server/artifactRepository.ts",
         "server/authRoutes.ts",
@@ -179,6 +202,7 @@
         "server/geminiKeyPool.ts",
         "server/githubIntegration.ts",
         "server/healthRoutes.ts",
+        "server/immofinderRoutes.ts",
         "server/intentFlags.ts",
         "server/keepAlive.ts",
         "server/keyPool.ts",
@@ -201,6 +225,8 @@
         "server/searchCarousel.ts",
         "server/security.ts",
         "server/securityHeaders.ts",
+        "server/simpleConversationDiagnostics.ts",
+        "server/simpleDirectConversation.ts",
         "server/sourceHealth.ts",
         "server/taskService.ts",
         "server/turnFocus.ts",
@@ -232,6 +258,17 @@
       "fanIn": 1
     },
     {
+      "path": "server/allLogs.ts",
+      "layer": "server",
+      "lines": 217,
+      "imports": [
+        "server/conversationDiagnostics.ts",
+        "server/projectDiagnostics.ts",
+        "server/redact.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/analysisService.ts",
       "layer": "server",
       "lines": 121,
@@ -257,10 +294,11 @@
     {
       "path": "server/appBuilderAdapter.ts",
       "layer": "server",
-      "lines": 262,
+      "lines": 400,
       "imports": [
         "appBuilder/index.ts",
         "server/adapter.ts",
+        "server/appBuilderRuntimeCheck.ts",
         "server/artifactRepository.ts",
         "server/database.ts",
         "server/modelRegistry.ts",
@@ -299,6 +337,15 @@
       "fanIn": 1
     },
     {
+      "path": "server/appBuilderRuntimeCheck.ts",
+      "layer": "server",
+      "lines": 133,
+      "imports": [
+        "appBuilder/index.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/appBuilderScaffolds.ts",
       "layer": "server",
       "lines": 377,
@@ -317,12 +364,12 @@
     {
       "path": "server/artifactRepository.ts",
       "layer": "server",
-      "lines": 196,
+      "lines": 211,
       "imports": [
         "server/artifactFormat.ts",
         "server/database.ts"
       ],
-      "fanIn": 6
+      "fanIn": 7
     },
     {
       "path": "server/auditCatalog.ts",
@@ -415,13 +462,13 @@
     {
       "path": "server/conversationDiagnostics.ts",
       "layer": "server",
-      "lines": 49,
+      "lines": 58,
       "imports": [
         "server/diagnosticsConfig.ts",
         "server/processLifecycle.ts",
         "server/projectDiagnostics.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/conversationMode.ts",
@@ -429,6 +476,13 @@
       "lines": 47,
       "imports": [],
       "fanIn": 6
+    },
+    {
+      "path": "server/conversationPayload.ts",
+      "layer": "server",
+      "lines": 49,
+      "imports": [],
+      "fanIn": 0
     },
     {
       "path": "server/conversationalAgent.ts",
@@ -445,7 +499,7 @@
       "layer": "server",
       "lines": 47,
       "imports": [],
-      "fanIn": 17
+      "fanIn": 18
     },
     {
       "path": "server/diagnosticsConfig.ts",
@@ -577,6 +631,122 @@
       "fanIn": 1
     },
     {
+      "path": "server/immofinderContactEnrichment.ts",
+      "layer": "server",
+      "lines": 539,
+      "imports": [
+        "server/immofinderCore.ts",
+        "server/immofinderDiscovery.ts"
+      ],
+      "fanIn": 3
+    },
+    {
+      "path": "server/immofinderCore.ts",
+      "layer": "server",
+      "lines": 753,
+      "imports": [],
+      "fanIn": 8
+    },
+    {
+      "path": "server/immofinderDelivery.ts",
+      "layer": "server",
+      "lines": 360,
+      "imports": [
+        "server/immofinderSettings.ts",
+        "src/immoCard.ts"
+      ],
+      "fanIn": 1
+    },
+    {
+      "path": "server/immofinderDiag.ts",
+      "layer": "server",
+      "lines": 95,
+      "imports": [
+        "server/immofinderCore.ts",
+        "server/projectDiagnostics.ts"
+      ],
+      "fanIn": 2
+    },
+    {
+      "path": "server/immofinderDiscovery.ts",
+      "layer": "server",
+      "lines": 105,
+      "imports": [
+        "server/immofinderCore.ts"
+      ],
+      "fanIn": 3
+    },
+    {
+      "path": "server/immofinderFetcher.ts",
+      "layer": "server",
+      "lines": 33,
+      "imports": [
+        "server/immofinderCore.ts"
+      ],
+      "fanIn": 1
+    },
+    {
+      "path": "server/immofinderPipeline.ts",
+      "layer": "server",
+      "lines": 666,
+      "imports": [
+        "server/immofinderContactEnrichment.ts",
+        "server/immofinderCore.ts",
+        "server/immofinderDiscovery.ts"
+      ],
+      "fanIn": 2
+    },
+    {
+      "path": "server/immofinderRefresh.ts",
+      "layer": "server",
+      "lines": 149,
+      "imports": [
+        "server/immofinderContactEnrichment.ts",
+        "server/immofinderCore.ts",
+        "server/immofinderDiag.ts"
+      ],
+      "fanIn": 1
+    },
+    {
+      "path": "server/immofinderRoutes.ts",
+      "layer": "server",
+      "lines": 664,
+      "imports": [
+        "server/immofinderContactEnrichment.ts",
+        "server/immofinderDelivery.ts",
+        "server/immofinderDiag.ts",
+        "server/immofinderDiscovery.ts",
+        "server/immofinderFetcher.ts",
+        "server/immofinderPipeline.ts",
+        "server/immofinderRefresh.ts",
+        "server/immofinderSettings.ts",
+        "server/immofinderStore.ts",
+        "server/security.ts"
+      ],
+      "fanIn": 1
+    },
+    {
+      "path": "server/immofinderSettings.ts",
+      "layer": "server",
+      "lines": 236,
+      "imports": [
+        "server/immofinderCore.ts"
+      ],
+      "fanIn": 3
+    },
+    {
+      "path": "server/immofinderStore.ts",
+      "layer": "server",
+      "lines": 287,
+      "imports": [
+        "server/database.ts",
+        "server/immofinderCore.ts",
+        "server/immofinderPipeline.ts",
+        "server/immofinderSettings.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/intentFlags.ts",
       "layer": "server",
       "lines": 134,
@@ -586,7 +756,7 @@
     {
       "path": "server/keepAlive.ts",
       "layer": "server",
-      "lines": 130,
+      "lines": 159,
       "imports": [],
       "fanIn": 1
     },
@@ -676,6 +846,13 @@
       "fanIn": 0
     },
     {
+      "path": "server/nationalAuthorities.ts",
+      "layer": "server",
+      "lines": 65,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "server/openaiCompatAdapter.ts",
       "layer": "server",
       "lines": 86,
@@ -735,15 +912,25 @@
       "fanIn": 3
     },
     {
+      "path": "server/projectContinuation.ts",
+      "layer": "server",
+      "lines": 51,
+      "imports": [
+        "appBuilder/standalone.ts",
+        "server/artifactRepository.ts"
+      ],
+      "fanIn": 1
+    },
+    {
       "path": "server/projectDiagnostics.ts",
       "layer": "server",
-      "lines": 356,
+      "lines": 370,
       "imports": [
         "server/artifactRepository.ts",
         "server/database.ts",
         "server/redact.ts"
       ],
-      "fanIn": 4
+      "fanIn": 6
     },
     {
       "path": "server/projectRepository.ts",
@@ -758,7 +945,7 @@
     {
       "path": "server/projectRoutes.ts",
       "layer": "server",
-      "lines": 905,
+      "lines": 1068,
       "imports": [
         "appBuilder/architectOutcome.ts",
         "server/analysisService.ts",
@@ -778,6 +965,7 @@
         "server/openaiCompatAdapter.ts",
         "server/planService.ts",
         "server/projectCapabilities.ts",
+        "server/projectContinuation.ts",
         "server/projectDiagnostics.ts",
         "server/projectRepository.ts",
         "server/router.ts",
@@ -850,7 +1038,7 @@
       "imports": [
         "server/keyPool.ts"
       ],
-      "fanIn": 2
+      "fanIn": 3
     },
     {
       "path": "server/repairLoop.ts",
@@ -899,12 +1087,26 @@
       "layer": "server",
       "lines": 91,
       "imports": [],
-      "fanIn": 3
+      "fanIn": 4
     },
     {
       "path": "server/securityHeaders.ts",
       "layer": "server",
       "lines": 14,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
+      "path": "server/simpleConversationDiagnostics.ts",
+      "layer": "server",
+      "lines": 102,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
+      "path": "server/simpleDirectConversation.ts",
+      "layer": "server",
+      "lines": 104,
       "imports": [],
       "fanIn": 1
     },
@@ -918,7 +1120,7 @@
     {
       "path": "server/sourcePolicy.ts",
       "layer": "server",
-      "lines": 94,
+      "lines": 107,
       "imports": [],
       "fanIn": 1
     },
@@ -991,8 +1193,9 @@
     {
       "path": "server/webSearch.ts",
       "layer": "server",
-      "lines": 1611,
+      "lines": 2224,
       "imports": [
+        "server/nationalAuthorities.ts",
         "server/queryFidelity.ts",
         "server/sourcePolicy.ts",
         "server/sourceTrust.ts",
@@ -1015,7 +1218,7 @@
     {
       "path": "src/App.tsx",
       "layer": "src",
-      "lines": 721,
+      "lines": 726,
       "imports": [
         "src/AppHeader.tsx",
         "src/AutoGrow.tsx",
@@ -1066,36 +1269,14 @@
     {
       "path": "src/AppHeader.tsx",
       "layer": "src",
-      "lines": 225,
+      "lines": 215,
       "imports": [
+        "src/CommitBadge.tsx",
         "src/ModeMenu.tsx",
         "src/WorkspacePanel.tsx",
+        "src/allLogs.ts",
         "src/config.ts",
         "src/decision.ts",
-        "src/uiStates.tsx"
-      ],
-      "fanIn": 1
-    },
-    {
-      "path": "src/ArchitectLab.tsx",
-      "layer": "src",
-      "lines": 299,
-      "imports": [
-        "src/ArchitectShellHeader.tsx",
-        "src/ErrorBoundary.tsx",
-        "src/projectBuildJob.ts"
-      ],
-      "fanIn": 0
-    },
-    {
-      "path": "src/ArchitectShellHeader.tsx",
-      "layer": "src",
-      "lines": 134,
-      "imports": [
-        "src/ModeMenu.tsx",
-        "src/UserGuide.tsx",
-        "src/driveClient.ts",
-        "src/driveMirror.ts",
         "src/uiStates.tsx"
       ],
       "fanIn": 1
@@ -1104,6 +1285,22 @@
       "path": "src/AutoGrow.tsx",
       "layer": "src",
       "lines": 85,
+      "imports": [],
+      "fanIn": 3
+    },
+    {
+      "path": "src/BuildFilesPanel.tsx",
+      "layer": "src",
+      "lines": 34,
+      "imports": [
+        "src/downloadFile.ts"
+      ],
+      "fanIn": 1
+    },
+    {
+      "path": "src/CommitBadge.tsx",
+      "layer": "src",
+      "lines": 33,
       "imports": [],
       "fanIn": 3
     },
@@ -1126,7 +1323,7 @@
     {
       "path": "src/ConversationScreens.tsx",
       "layer": "src",
-      "lines": 449,
+      "lines": 510,
       "imports": [
         "src/AutoGrow.tsx",
         "src/ConversationFiles.tsx",
@@ -1151,7 +1348,7 @@
       "imports": [
         "src/emergencyDiagnostics.ts"
       ],
-      "fanIn": 3
+      "fanIn": 2
     },
     {
       "path": "src/ExpertNav.tsx",
@@ -1216,9 +1413,29 @@
       "fanIn": 2
     },
     {
+      "path": "src/ImmoFinder.tsx",
+      "layer": "src",
+      "lines": 383,
+      "imports": [
+        "src/CommitBadge.tsx",
+        "src/ImmoFinderSettings.tsx",
+        "src/ModeMenu.tsx",
+        "src/allLogs.ts",
+        "src/immoCard.ts"
+      ],
+      "fanIn": 0
+    },
+    {
+      "path": "src/ImmoFinderSettings.tsx",
+      "layer": "src",
+      "lines": 637,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "src/ModeMenu.tsx",
       "layer": "src",
-      "lines": 108,
+      "lines": 110,
       "imports": [],
       "fanIn": 5
     },
@@ -1228,6 +1445,18 @@
       "lines": 31,
       "imports": [],
       "fanIn": 0
+    },
+    {
+      "path": "src/ProjectChat.tsx",
+      "layer": "src",
+      "lines": 604,
+      "imports": [
+        "src/BuildFilesPanel.tsx",
+        "src/downloadFile.ts",
+        "src/projectAppBuilder.ts",
+        "src/projectBuildJob.ts"
+      ],
+      "fanIn": 1
     },
     {
       "path": "src/ProjectDelivery.tsx",
@@ -1243,17 +1472,19 @@
     {
       "path": "src/ProjectMode.tsx",
       "layer": "src",
-      "lines": 707,
+      "lines": 880,
       "imports": [
+        "src/CommitBadge.tsx",
         "src/ModeMenu.tsx",
+        "src/ProjectChat.tsx",
         "src/ProjectDelivery.tsx",
         "src/ProjectNoviceWizard.tsx",
         "src/UserGuide.tsx",
         "src/WorkspacePanel.tsx",
+        "src/allLogs.ts",
         "src/downloadFile.ts",
         "src/driveClient.ts",
         "src/driveMirror.ts",
-        "src/projectAppBuilder.ts",
         "src/projectBuildJob.ts",
         "src/projectCapabilities.ts",
         "src/projectLabels.ts",
@@ -1264,7 +1495,7 @@
     {
       "path": "src/ProjectNoviceWizard.tsx",
       "layer": "src",
-      "lines": 350,
+      "lines": 335,
       "imports": [
         "src/downloadFile.ts",
         "src/projectAppBuilder.ts"
@@ -1285,7 +1516,7 @@
       "layer": "src",
       "lines": 185,
       "imports": [],
-      "fanIn": 4
+      "fanIn": 3
     },
     {
       "path": "src/WorkspaceChangeSetCard.tsx",
@@ -1316,6 +1547,13 @@
       "fanIn": 4
     },
     {
+      "path": "src/allLogs.ts",
+      "layer": "src",
+      "lines": 27,
+      "imports": [],
+      "fanIn": 3
+    },
+    {
       "path": "src/analyticalIntegrity.ts",
       "layer": "src",
       "lines": 461,
@@ -1328,7 +1566,7 @@
     {
       "path": "src/appApi.ts",
       "layer": "src",
-      "lines": 45,
+      "lines": 48,
       "imports": [
         "src/decision.ts",
         "src/errors.ts",
@@ -1416,7 +1654,7 @@
       "layer": "src",
       "lines": 12,
       "imports": [],
-      "fanIn": 2
+      "fanIn": 4
     },
     {
       "path": "src/driveClient.ts",
@@ -1425,7 +1663,7 @@
       "imports": [
         "src/driveMerge.ts"
       ],
-      "fanIn": 9
+      "fanIn": 8
     },
     {
       "path": "src/driveExport.ts",
@@ -1452,7 +1690,7 @@
       "imports": [
         "src/driveClient.ts"
       ],
-      "fanIn": 8
+      "fanIn": 7
     },
     {
       "path": "src/driveSync.ts",
@@ -1568,6 +1806,13 @@
       "fanIn": 2
     },
     {
+      "path": "src/immoCard.ts",
+      "layer": "src",
+      "lines": 116,
+      "imports": [],
+      "fanIn": 2
+    },
+    {
       "path": "src/libraryExport.ts",
       "layer": "src",
       "lines": 82,
@@ -1583,7 +1828,7 @@
     {
       "path": "src/main.tsx",
       "layer": "src",
-      "lines": 47,
+      "lines": 48,
       "imports": [
         "src/App.tsx",
         "src/ErrorBoundary.tsx",
@@ -1612,14 +1857,14 @@
     {
       "path": "src/projectAppBuilder.ts",
       "layer": "src",
-      "lines": 176,
+      "lines": 195,
       "imports": [],
       "fanIn": 3
     },
     {
       "path": "src/projectBuildJob.ts",
       "layer": "src",
-      "lines": 93,
+      "lines": 97,
       "imports": [
         "src/architectNote.ts"
       ],
@@ -1690,7 +1935,7 @@
       "layer": "src",
       "lines": 41,
       "imports": [],
-      "fanIn": 8
+      "fanIn": 7
     },
     {
       "path": "src/uiTerms.ts",
@@ -1876,23 +2121,23 @@
   "topFanIn": [
     {
       "path": "server/database.ts",
-      "count": 17
+      "count": 18
     },
     {
       "path": "src/decision.ts",
       "count": 17
     },
     {
+      "path": "appBuilder/core-types.ts",
+      "count": 11
+    },
+    {
       "path": "src/workspace/types.ts",
       "count": 11
     },
     {
-      "path": "appBuilder/core-types.ts",
-      "count": 10
-    },
-    {
-      "path": "src/driveClient.ts",
-      "count": 9
+      "path": "server/immofinderCore.ts",
+      "count": 8
     },
     {
       "path": "src/attachments.ts",
@@ -1903,19 +2148,27 @@
       "count": 8
     },
     {
-      "path": "src/driveMirror.ts",
+      "path": "src/driveClient.ts",
       "count": 8
     },
     {
-      "path": "src/uiStates.tsx",
-      "count": 8
+      "path": "server/artifactRepository.ts",
+      "count": 7
     },
     {
       "path": "server/router.ts",
       "count": 7
     },
     {
-      "path": "server/artifactRepository.ts",
+      "path": "src/driveMirror.ts",
+      "count": 7
+    },
+    {
+      "path": "src/uiStates.tsx",
+      "count": 7
+    },
+    {
+      "path": "appBuilder/core-plan.ts",
       "count": 6
     },
     {
@@ -1928,6 +2181,10 @@
     },
     {
       "path": "server/gateEngine.ts",
+      "count": 6
+    },
+    {
+      "path": "server/projectDiagnostics.ts",
       "count": 6
     },
     {
@@ -1961,60 +2218,72 @@
     {
       "path": "src/ModeMenu.tsx",
       "count": 5
-    },
-    {
-      "path": "src/ui.ts",
-      "count": 5
-    },
-    {
-      "path": "src/workspace/hash.ts",
-      "count": 5
-    },
-    {
-      "path": "appBuilder/core-cache.ts",
-      "count": 4
     }
   ],
   "largest": [
     {
       "path": "server.ts",
-      "lines": 2517
+      "lines": 2839
+    },
+    {
+      "path": "server/webSearch.ts",
+      "lines": 2224
     },
     {
       "path": "src/ExpertStepScreens.tsx",
       "lines": 1756
     },
     {
-      "path": "server/webSearch.ts",
-      "lines": 1611
+      "path": "server/projectRoutes.ts",
+      "lines": 1068
+    },
+    {
+      "path": "appBuilder/core-engine.ts",
+      "lines": 983
     },
     {
       "path": "server/codeTaskService.ts",
       "lines": 951
     },
     {
-      "path": "server/projectRoutes.ts",
-      "lines": 905
+      "path": "src/ProjectMode.tsx",
+      "lines": 880
+    },
+    {
+      "path": "appBuilder/validator-static-site.ts",
+      "lines": 846
+    },
+    {
+      "path": "server/immofinderCore.ts",
+      "lines": 753
     },
     {
       "path": "src/App.tsx",
-      "lines": 721
+      "lines": 726
     },
     {
-      "path": "src/ProjectMode.tsx",
-      "lines": 707
+      "path": "server/immofinderPipeline.ts",
+      "lines": 666
+    },
+    {
+      "path": "server/immofinderRoutes.ts",
+      "lines": 664
     },
     {
       "path": "src/finalDecisionDocument.ts",
       "lines": 648
     },
     {
+      "path": "src/ImmoFinderSettings.tsx",
+      "lines": 637
+    },
+    {
       "path": "src/ConversationFiles.tsx",
       "lines": 618
     },
     {
-      "path": "appBuilder/core-engine.ts",
-      "lines": 603
+      "path": "src/ProjectChat.tsx",
+      "lines": 604
     },
     {
       "path": "src/decision.ts",
@@ -2029,6 +2298,14 @@
       "lines": 557
     },
     {
+      "path": "appBuilder/intent-brief.ts",
+      "lines": 540
+    },
+    {
+      "path": "server/immofinderContactEnrichment.ts",
+      "lines": 539
+    },
+    {
       "path": "src/workspace/changeset.ts",
       "lines": 520
     },
@@ -2037,44 +2314,12 @@
       "lines": 514
     },
     {
+      "path": "src/ConversationScreens.tsx",
+      "lines": 510
+    },
+    {
       "path": "src/analyticalIntegrity.ts",
       "lines": 461
-    },
-    {
-      "path": "src/ConversationScreens.tsx",
-      "lines": 449
-    },
-    {
-      "path": "src/storage.ts",
-      "lines": 425
-    },
-    {
-      "path": "server/files.ts",
-      "lines": 421
-    },
-    {
-      "path": "server/appBuilderScaffolds.ts",
-      "lines": 377
-    },
-    {
-      "path": "server/githubIntegration.ts",
-      "lines": 371
-    },
-    {
-      "path": "server/projectDiagnostics.ts",
-      "lines": 356
-    },
-    {
-      "path": "src/programFiles.ts",
-      "lines": 356
-    },
-    {
-      "path": "src/ProjectNoviceWizard.tsx",
-      "lines": 350
-    },
-    {
-      "path": "src/ProjectDelivery.tsx",
-      "lines": 348
     }
   ]
 }

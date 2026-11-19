@@ -296,8 +296,10 @@
         "server/geminiKeyPool.ts",
         "server/immofinderCore.ts",
         "server/immofinderDelivery.ts",
+        "server/immofinderDiag.ts",
         "server/immofinderDiscovery.ts",
         "server/immofinderPipeline.ts",
+        "server/immofinderRefresh.ts",
         "server/immofinderRoutes.ts",
         "server/immofinderSettings.ts",
         "server/projectContinuation.ts",
@@ -676,10 +678,16 @@
     "server/immofinderDelivery.ts": [
       "test:core"
     ],
+    "server/immofinderDiag.ts": [
+      "test:core"
+    ],
     "server/immofinderDiscovery.ts": [
       "test:core"
     ],
     "server/immofinderPipeline.ts": [
+      "test:core"
+    ],
+    "server/immofinderRefresh.ts": [
       "test:core"
     ],
     "server/immofinderRoutes.ts": [
