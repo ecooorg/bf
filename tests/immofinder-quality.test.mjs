@@ -146,3 +146,11 @@ test('UI does not render search found date on cards', () => {
   // The found span must not be rendered next to the URL line any more.
   assert.ok(!/k\.found && <span/.test(ui));
 });
+
+test('isListingUnavailable detects CH portal offline phrases', async () => {
+  const { isListingUnavailable } = await import('../server/immofinderCore.ts');
+  assert.equal(isListingUnavailable('', 'Dieses Objekt ist leider gerade nicht verfügbar.'), true);
+  assert.equal(isListingUnavailable('', 'Dieses Inserat ist nicht mehr verfügbar'), true);
+  assert.equal(isListingUnavailable('Nice flat', '3.5 Zimmer Wohnung in Chur zu vermieten, CHF 1500'), false);
+  assert.equal(isListingUnavailable('', 'This listing is no longer available'), true);
+});

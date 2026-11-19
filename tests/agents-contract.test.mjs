@@ -247,11 +247,11 @@ test('P128.6 email content mode, found date/time, Drive folder id, Drive writes 
   const rows = [{ property_name: 'Old', municipality: 'Chur', rooms_estimated: 3, first_seen_at: '2026-11-10T10:00:00Z', listing_url: 'https://a.example/1', status: 'CONTACTED', photo_urls: [], source_urls: [] },
     { property_name: 'New', municipality: 'Chur', rooms_estimated: 4, first_seen_at: '2026-11-16T02:07:36Z', listing_url: 'https://a.example/2', direct_phone: '+41811234567', contact_status: 'found', status: 'NEW', photo_urls: [], source_urls: [] }];
   const txt = formatListingsText(rows, { heading: 'H', limit: 10 });
-  assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first'); assert.match(txt, /Found: 16\.11\.2026.*03:07/); assert.match(txt, /Status: CONTACTED/);
+  assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first'); assert.match(txt, /Status: CONTACTED/);
   assert.match(txt, /📍 Chur · .* · 4 rooms · \+41811234567/);
   const tab = listingsTable(rows); assert.equal(tab.length, 3); assert.ok(tab.every((r) => r.length === 1), 'one column');
   assert.match(tab[2][0], /📍 Chur · .* · 4 rooms · \+41811234567/);
-  assert.match(tab[2][0], /found 16\.11\.2026.*03:07/);
+  assert.ok(!/found 16\.11\.2026/.test(tab[2][0]), 'search found time is not shown on cards');
   assert.match(tab[1][0], /Chur · .* · 3 rooms · no direct contact/, 'sheet keeps the order of the screen (rows as given), not a re-sort');
   assert.ok(!/Betreff|Guten Tag/.test(tab.flat().join('')), 'no letter drafts in the sheet');
   const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
@@ -288,7 +288,7 @@ test('P129.7 screen, Sheet and Doc show the same cards (shared model), no letter
   assert.equal(b.headline, '📍 Jenins · CHF 365 per night · 5.0 rooms · v. koenig · +41794175102');
   assert.equal(a.openLabel, 'Open post'); assert.equal(b.openLabel, 'Open listing');
   assert.equal(a.about.length <= 220, true); assert.equal(b.photos.length, 3);
-  assert.equal(immoLinkLine(b), 'https://heidiholiday.ch/ (list/group page — not a single object) · found 17.11.2026, 18:52');
+  assert.equal(immoLinkLine(b), 'https://heidiholiday.ch/ (list/group page — not a single object)');
   const sheet = buildSheetRequests(rows, 7); const cells = sheet.requests.find((q) => q.updateCells?.rows).updateCells.rows.flatMap((r) => r.values.map((v) => v.userEnteredValue?.stringValue).filter(Boolean));
   const docReq = buildDocRequests(rows, 40); const docText = docReq.find((q) => q.insertText).insertText.text;
   for (const k of [a, b]) {
@@ -314,10 +314,11 @@ test('P129.23 Show menu = current | hidden | all (default current); publication 
   const row = { id: 'p', property_name: 'Haus', municipality: 'Chur', rooms_estimated: 4, listing_url: 'https://a.example/9', photo_urls: [], private_signals: [], first_seen_at: '2026-11-17T20:37:00Z', status: 'NEW', raw: { listed_at: '2026-11-12T12:00:00.000Z' } };
   const k = immoCardModel(row);
   assert.equal(k.published, 'published 12.11.2026');
-  assert.equal(immoLinkLine(k), 'https://a.example/9 · published 12.11.2026 · found 17.11.2026, 21:37');
+  assert.equal(immoLinkLine(k), 'https://a.example/9 · published 12.11.2026');
   assert.equal(immoCardModel({ ...row, raw: {} }).published, '');
-  assert.equal(immoLinkLine(immoCardModel({ ...row, raw: {} })), 'https://a.example/9 · found 17.11.2026, 21:37', 'no date = nothing shown');
-  assert.match(formatListingsText([row], { heading: 'H', limit: 5 }), /Published: 12\.11\.2026 · Found: 17\.11\.2026/);
+  assert.equal(immoLinkLine(immoCardModel({ ...row, raw: {} })), 'https://a.example/9', 'no publication date = no date segment');
+  assert.match(formatListingsText([row], { heading: 'H', limit: 5 }), /Published: 12\.11\.2026/);
+  assert.ok(!/Found:/.test(formatListingsText([row], { heading: 'H', limit: 5 })), 'email export omits search found time');
   assert.ok(!/Published:/.test(formatListingsText([{ ...row, raw: {} }], { heading: 'H', limit: 5 })));
   assert.ok(buildSheetRequests([row], 7).requests.find((q) => q.updateCells?.rows).updateCells.rows.flatMap((r) => r.values.map((v) => v.userEnteredValue?.stringValue)).includes(immoLinkLine(k)));
   assert.ok(buildDocRequests([row], 40).find((q) => q.insertText).insertText.text.includes('published 12.11.2026'));
