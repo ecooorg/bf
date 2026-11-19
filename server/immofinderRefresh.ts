@@ -10,13 +10,13 @@ import { cardFields, completenessSummary, safeUrlSample } from './immofinderDiag
 
 export interface RefreshStatus {
   running: boolean; startedAt: number | null; finishedAt: number | null; phase: 'idle' | 'reading' | 'searching' | 'done';
-  queued: number; checked: number; datesAdded: number; datesChanged: number; contactsAdded: number; enrichedFound: number;
+  queued: number; checked: number; datesAdded: number; datesChanged: number; contactsAdded: number; enrichedFound: number; contactSearches: number;
   unreachable: number; errors: number; current: string; message: string; webSearch: 'on' | 'off';
 }
 
 export const newRefreshStatus = (): RefreshStatus => ({
   running: false, startedAt: null, finishedAt: null, phase: 'idle', queued: 0, checked: 0, datesAdded: 0, datesChanged: 0, contactsAdded: 0,
-  enrichedFound: 0, unreachable: 0, errors: 0, current: '', message: '', webSearch: 'off',
+  enrichedFound: 0, contactSearches: 0, unreachable: 0, errors: 0, current: '', message: '', webSearch: 'off',
 });
 
 export interface RefreshFields {
@@ -120,7 +120,7 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
             const en = await deps.enrich(input);
             rec = applyEnrichmentToRecord(rec, en, rec.contact_advice);
             enrichHit = en.evidence.length > 0; enrichNote = enrichHit ? 'found' : `none:${(en.notes || []).slice(0, 3).join('|')}`;
-            if (enrichHit) status.enrichedFound++;
+            if (enrichHit) status.enrichedFound++; status.contactSearches += Number(en.cost?.searches || 0);
           } catch (e) { enrichNote = `error:${String((e as Error)?.message || e).slice(0, 80)}`; }
         }
       }
@@ -130,7 +130,7 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
       after.push({ ...row, direct_phone: rec.direct_phone, direct_email: rec.direct_email, raw: rec.raw });
       deps.log('info', 'recheck_refresh_item', {
         index: i, total: parsed.length, id: String(row.id).slice(0, 8), host, source: cardFields(row).source, http: p.http, fetched: p.fetched, hidden: Boolean(row.hidden),
-        date: dateNote, dateSource: p.dateSource, pagePhones: p.phones.length, pageEmails: p.emails.length, hadContact, hasContact: Boolean(rec.direct_phone || rec.direct_email), enrich: enrichNote,
+        date: dateNote, dateSource: p.dateSource, pagePhones: p.phones.length, pageEmails: p.emails.length, hadContact, hasContact: Boolean(rec.direct_phone || rec.direct_email), enrich: enrichNote, enrichSearches: status.contactSearches,
       });
     } catch (e) {
       status.errors++; after.push(row);
@@ -138,10 +138,10 @@ export async function runRefreshJob(rows: any[], deps: RefreshDeps, status: Refr
     }
   }
   status.running = false; status.finishedAt = Date.now(); status.phase = 'done'; status.current = '';
-  status.message = `Done: ${parsed.length} checked · dates added ${status.datesAdded}${status.datesChanged ? `, updated ${status.datesChanged}` : ''} · contacts added ${status.contactsAdded}` +
+  status.message = `Done: ${parsed.length} checked · dates added ${status.datesAdded}${status.datesChanged ? `, updated ${status.datesChanged}` : ''} · contacts added ${status.contactsAdded} · contact searches ${status.contactSearches}` +
     (status.unreachable ? ` · page not readable ${status.unreachable}` : '') + (status.webSearch === 'off' ? ' · web contact search off' : '') + (status.errors ? ` · errors ${status.errors}` : '');
   deps.log('info', 'recheck_refresh_done', {
-    queued: rows.length, checked: parsed.length, datesAdded: status.datesAdded, datesChanged: status.datesChanged, contactsAdded: status.contactsAdded, enrichedFound: status.enrichedFound,
+    queued: rows.length, checked: parsed.length, datesAdded: status.datesAdded, datesChanged: status.datesChanged, contactsAdded: status.contactsAdded, enrichedFound: status.enrichedFound, contactSearches: status.contactSearches,
     unreachable: status.unreachable, errors: status.errors, failedByStatus, dateMissingSamples: dateHints, durationMs: Date.now() - t0,
     completenessBefore: before, completenessAfter: completenessSummary(after),
   });

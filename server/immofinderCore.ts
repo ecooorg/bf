@@ -195,6 +195,7 @@ export function htmlToText(html: string): string {
 }
 
 function abs(href: string, base: string): string | null {
+  if (!String(href ?? '').trim()) return null;
   try { const u = new URL(href, base); if (!/^https?:$/.test(u.protocol)) return null; u.hash = ''; return u.toString(); } catch { return null; }
 }
 
@@ -648,6 +649,32 @@ export function parseListedAt(text: string, url?: string, declared?: string | nu
   candidates.sort((a, b) => b.getTime() - a.getTime());
   return candidates[0];
 }
+
+/** Detailed publication-date extraction used by recheck diagnostics. Declared page metadata is preferred. */
+export function parseListedAtDetailed(text: string, url?: string, declared?: string | null): { date: Date | null; source: 'declared' | 'text' | 'none' } {
+  if (declared) {
+    const d = new Date(String(declared).trim());
+    if (!Number.isNaN(d.getTime()) && d.getTime() <= Date.now() + 86400000 && d.getUTCFullYear() >= 2000) {
+      return { date: d, source: 'declared' };
+    }
+  }
+  const date = parseListedAt(text, url, null);
+  return { date, source: date ? 'text' : 'none' };
+}
+
+
+/** Short, privacy-conscious diagnostic excerpt around likely publication-date wording. */
+export function dateDiagSnippet(text: string, maxLen = 240): string | null {
+  const full = String(text ?? '').replace(/\s+/g, ' ').trim();
+  if (!full) return null;
+  const patterns = [/(?:publiziert|veröffentlicht|posted|published|dateposted|datepublished|aktualisiert|updated|online seit|inserted|vor\s+\d+\s+(?:tag|woche|monat|jahr)[a-z]*)/i,
+    /\b20\d{2}-\d{2}-\d{2}\b/, /\b\d{1,2}\.\d{1,2}\.20\d{2}\b/];
+  let idx = -1;
+  for (const re of patterns) { const m = re.exec(full); if (m && (idx < 0 || m.index < idx)) idx = m.index; }
+  if (idx < 0) return null;
+  return full.slice(Math.max(0, idx - 60), Math.min(full.length, idx + 180)).replace(/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/gi, '[email]').replace(/(?:\+?\d[\d ()\/-]{7,}\d)/g, '[phone]').slice(0, maxLen);
+}
+
 
 /** True when the post is from someone *looking for* a flat, not offering one.
  * Uses word boundaries so "Besucher" / "Besuchen Sie die Region" do not trigger. */

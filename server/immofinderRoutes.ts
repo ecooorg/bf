@@ -277,18 +277,17 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       const fetchPage = createPoliteFetch(cfg);
       const enrichCfg = resolveEnrichmentConfig(cfg);
       const search = process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null;
+      // Enrichment limits are run-wide; sharing the budget prevents one search per saved row from multiplying costs.
+      const refreshSearchBudget = { searchesLeft: Math.max(0, Number(enrichCfg.maxExtraSearchesPerRun) || 0), reverseImageLeft: 0 };
       res.status(202).json({ success: true, queued: rows.length });
       void runRefreshJob(rows, {
         fetchPage,
         platformDomains: cfg.platformDomains || [],
         enrich: enrichCfg.enabled && search ? (input) => enrichContacts(input, {
-          config: enrichCfg, search, fetchPage, budget: { searchesLeft: Math.max(enrichCfg.maxExtraSearchesPerRun, 4), reverseImageLeft: 0 },
+          config: enrichCfg, search, fetchPage, budget: refreshSearchBudget,
         }) : undefined,
         update: updateListingContacts,
-        log: (level, event, details) => {
-          const payload = { type: `immofinder_${event}`, ...details };
-          if (level === 'error') console.error(JSON.stringify(payload)); else if (level === 'warn') console.warn(JSON.stringify(payload)); else console.info(JSON.stringify(payload));
-        },
+        log: (level, event, details) => immoLog(level, event, details),
       }, refreshStatus).catch((e) => {
         refreshStatus.running = false; refreshStatus.phase = 'done'; refreshStatus.finishedAt = Date.now();
         refreshStatus.errors++; refreshStatus.message = `Recheck failed: ${String((e as Error)?.message || e).slice(0, 120)}`;
