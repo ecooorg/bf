@@ -332,7 +332,7 @@ export default function ImmoFinder() {
       </div>
       {listScope === 'hidden' && (
         <p style={{ margin: '0 0 10px', fontSize: 13, color: '#8fa6c2' }}>
-          Showing hidden listings (not suitable by current filters). They stay in the database but are excluded from normal search results and Drive export of active cards.
+          Hidden listings only. Still stored; not in the active list.
         </p>
       )}
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
