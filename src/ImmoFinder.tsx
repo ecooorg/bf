@@ -51,6 +51,9 @@ export default function ImmoFinder() {
   const [items, setItems] = useState<Listing[]>([]);
   const [run, setRun] = useState<Run>(null);
   const [filter, setFilter] = useState('');
+  const [listScope, setListScope] = useState<'active' | 'hidden'>('active');
+  const [recheckBusy, setRecheckBusy] = useState(false);
+  const [recheckInfo, setRecheckInfo] = useState('');
   const [msg, setMsg] = useState('');
   const [starting, setStarting] = useState(false);
   const [dry, setDry] = useState(false);
@@ -64,8 +67,16 @@ export default function ImmoFinder() {
   const running = Boolean(run && !run.finished_at && Date.now() - new Date(run.started_at).getTime() < 30 * 60 * 1000);
 
   const loadList = useCallback(async () => {
-    try { const l = await api(`/api/immofinder/listings${filter ? `?status=${filter}` : ''}`); setItems(l.listings || []); setHidden(l.hidden || 0); setMsg(''); } catch (e) { setMsg((e as Error).message); }
-  }, [filter]);
+    try {
+      const q = new URLSearchParams();
+      if (filter) q.set('status', filter);
+      if (listScope === 'hidden') q.set('scope', 'hidden');
+      const qs = q.toString();
+      const l = await api(`/api/immofinder/listings${qs ? `?${qs}` : ''}`);
+      setItems(l.listings || []);
+      setHidden(l.hidden || 0);
+    } catch (e) { setMsg((e as Error).message); }
+  }, [filter, listScope]);
   const loadRun = useCallback(async () => {
     try { const r = await api('/api/immofinder/runs/latest'); setRun(r.run || null); } catch (e) { setMsg((e as Error).message); }
   }, []);
@@ -111,12 +122,24 @@ export default function ImmoFinder() {
     } catch (e) { setMsg((e as Error).message); }
   };
   const recheck = async () => {
+    if (recheckBusy) return;
+    setRecheckBusy(true);
+    setRecheckInfo('Rechecking… applying current filters and re-parsing prices');
+    setMsg('');
     try {
-      setMsg('Rechecking saved listings…');
       const r = await api('/api/immofinder/recheck', { method: 'POST', body: '{}' });
-      setMsg(`Rechecked ${r.checked}: hid ${r.hidden} unsuitable, fixed price on ${r.priceFixed}.`);
+      const info = `Done: checked ${r.checked}, hid ${r.hidden}, price fixed ${r.priceFixed}.` +
+        (r.hidden > 0 ? ' Open Show → hidden to see removed items.' : ' No extra rows needed hiding.');
+      setRecheckInfo(info);
+      setMsg(info);
       await loadList();
-    } catch (e) { setMsg((e as Error).message); }
+    } catch (e) {
+      const err = (e as Error).message;
+      setRecheckInfo(`Recheck failed: ${err}`);
+      setMsg(err);
+    } finally {
+      setRecheckBusy(false);
+    }
   };
   const setStatus = async (id: string, status: string) => { try { await api(`/api/immofinder/listings/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }); await load(); } catch (e) { setMsg((e as Error).message); } };
 
@@ -260,16 +283,58 @@ export default function ImmoFinder() {
         </div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0' }}>
-        <h2 style={{ margin: 0 }}>Listings ({shown.length})</h2>
-        <label style={{ marginLeft: 'auto', fontSize: 14 }}>Show <select data-testid="immofinder-status-filter" value={filter} onChange={(e) => setFilter(e.target.value)}><option value="">all</option>{STATUSES.map((s) => <option key={s} value={s}>{s.toLowerCase()}</option>)}</select></label>
+        <h2 style={{ margin: 0 }}>Listings ({shown.length}){listScope === 'hidden' ? ' · hidden' : ''}</h2>
+        <label style={{ marginLeft: 'auto', fontSize: 14 }}>Show{' '}
+          <select
+            data-testid="immofinder-status-filter"
+            value={listScope === 'hidden' ? 'hidden' : (filter || 'all')}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === 'hidden') { setListScope('hidden'); setFilter(''); }
+              else { setListScope('active'); setFilter(v === 'all' ? '' : v); }
+            }}
+          >
+            <option value="all">all</option>
+            {STATUSES.map((s) => <option key={s} value={s}>{s.toLowerCase()}</option>)}
+            <option value="hidden">hidden ({hidden})</option>
+          </select>
+        </label>
       </div>
       <div role="tablist" data-testid="immofinder-tabs" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '4px 0 10px' }}>
         {([['all', 'All', items.length], ['long_term_offer', 'Direct offers (reply to the ad)', items.filter((x) => x.listing_type === 'long_term_offer').length], ['holiday_owner', 'Holiday owners (ask for long-term)', items.filter((x) => x.listing_type !== 'long_term_offer').length]] as const).map(([id, label, n]) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} className="immo-btn small" style={{ opacity: tab === id ? 1 : 0.6 }} onClick={() => setTab(id)}>{label} · {n}</button>
         ))}
-        {hidden > 0 && <span style={{ fontSize: 13, color: '#8fa6c2', alignSelf: 'center' }}>{hidden} hidden as not suitable</span>}
-        <button type="button" className="ghost" data-testid="immofinder-recheck" onClick={() => void recheck()} style={{ fontSize: 13 }} disabled={busy}>Recheck list</button>
+        {hidden > 0 && listScope !== 'hidden' && (
+          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => { setListScope('hidden'); setFilter(''); }}>
+            {hidden} hidden as not suitable — view
+          </button>
+        )}
+        {listScope === 'hidden' && (
+          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setListScope('active')}>
+            Back to active list
+          </button>
+        )}
+        <button
+          type="button"
+          className="ghost"
+          data-testid="immofinder-recheck"
+          onClick={() => void recheck()}
+          style={{ fontSize: 13 }}
+          disabled={busy || recheckBusy}
+        >
+          {recheckBusy ? 'Rechecking…' : 'Recheck list'}
+        </button>
+        {recheckInfo && (
+          <span data-testid="immofinder-recheck-status" style={{ fontSize: 13, color: recheckBusy ? '#8ec8ff' : '#8fa6c2', alignSelf: 'center', maxWidth: 420 }}>
+            {recheckInfo}
+          </span>
+        )}
       </div>
+      {listScope === 'hidden' && (
+        <p style={{ margin: '0 0 10px', fontSize: 13, color: '#8fa6c2' }}>
+          Showing hidden listings (not suitable by current filters). They stay in the database but are excluded from normal search results and Drive export of active cards.
+        </p>
+      )}
       {shown.length === 0 && !msg && <p style={{ color: '#8fa6c2' }}>Nothing here yet. Matching listings appear in this list after a search.</p>}
       {shown.map((l) => {
         const k = immoCardModel(l);
