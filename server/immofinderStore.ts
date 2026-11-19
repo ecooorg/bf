@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
-import { type ImmoConfig, nonListingReason } from './immofinderCore.ts';
+import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice } from './immofinderCore.ts';
 import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
 
@@ -62,6 +62,67 @@ export async function hiddenCount(): Promise<number> {
   const p = await getPool(); return Number((await p.query('SELECT count(*)::int AS n FROM immofinder_listings WHERE hidden = true')).rows[0]?.n ?? 0);
 }
 /** Hides saved rows that the current filters would reject (search pages, hotels, wanted ads ...). Rows stay in the database. */
+
+/**
+ * Re-apply current quality rules to every visible saved listing:
+ * hide list/seeker/foreign/agency junk; re-parse price from stored text when possible.
+ * Does not delete rows and does not call external search/LLM.
+ */
+export async function recheckStored(): Promise<{ checked: number; hidden: number; priceFixed: number }> {
+  const p = await getPool();
+  const r = await p.query(
+    `SELECT id, property_name, listing_url, description_de, rent_monthly_chf, pricing_unit, rooms_estimated, owner_name, direct_phone, direct_email, raw, municipality
+     FROM immofinder_listings WHERE hidden = false`,
+  );
+  let hidden = 0;
+  let priceFixed = 0;
+  for (const row of r.rows) {
+    const title = String(row.property_name || '');
+    const url = String(row.listing_url || '');
+    const text = String(row.description_de || '');
+    const hay = `${title}\n${text}`;
+
+    let why: string | null = nonListingReason(title, url);
+    if (!why && !isSpecificLink(url) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) {
+      why = 'list_or_search_page';
+    }
+    if (!why && isSeekerPost(title, text)) why = 'seeker_post';
+    if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
+    if (!why && looksLikeAgencyListing(title, text)) why = 'agency';
+    // Group houses mis-tagged as 12+ rooms
+    const rooms = Number(row.rooms_estimated);
+    if (!why && Number.isFinite(rooms) && rooms >= 12) why = 'rooms_too_many';
+
+    if (why) {
+      await p.query('UPDATE immofinder_listings SET hidden = true, hide_reason = $2, updated_at = now() WHERE id = $1', [row.id, why]);
+      hidden++;
+      continue;
+    }
+
+    const price = resolveListingPrice(hay, null) || parsePrice(hay);
+    if (price && price.amount >= 400) {
+      const unit = price.unit === 'unknown' ? (price.monthlyChf ? 'month' : row.pricing_unit) : price.unit;
+      const monthly = price.unit === 'month' ? price.amount : price.monthlyChf;
+      const prev = row.rent_monthly_chf != null ? Number(row.rent_monthly_chf) : null;
+      // Fix only when we clearly improve: missing price, or previous was a year/fragment (2026, 300 vs 1300)
+      const prevBad =
+        prev == null ||
+        (prev >= 2020 && prev <= 2035) ||
+        (price.amount >= 800 && prev < 400) ||
+        (price.amount >= 1000 && prev > 0 && prev < 500 && price.amount >= prev * 2);
+      if (prevBad && (monthly != null || price.amount)) {
+        const rent = monthly != null ? monthly : price.amount;
+        await p.query(
+          `UPDATE immofinder_listings SET rent_monthly_chf = $2, pricing_unit = $3, updated_at = now() WHERE id = $1`,
+          [row.id, rent, unit || 'month'],
+        );
+        priceFixed++;
+      }
+    }
+  }
+  return { checked: r.rows.length, hidden, priceFixed };
+}
+
 export async function cleanupStored(): Promise<number> {
   const p = await getPool(); const r = await p.query('SELECT id, property_name, listing_url FROM immofinder_listings WHERE hidden = false'); let n = 0;
   for (const row of r.rows) {

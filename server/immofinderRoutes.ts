@@ -6,7 +6,7 @@ import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
-import { STATUSES, createPgStore, cleanupStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
+import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
@@ -256,6 +256,16 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   app.post('/api/immofinder/cleanup', json, async (_req, res) => {
     try { res.json({ success: true, hidden: await cleanupStored() }); } catch { res.status(500).json({ success: false, error: 'Cleanup failed', code: 'IMMOFINDER_FAILED' }); }
+  });
+
+  /** Re-check all visible listings with current parsers/filters; hide junk and fix prices when possible. */
+  app.post('/api/immofinder/recheck', json, async (_req, res) => {
+    try {
+      const result = await recheckStored();
+      res.json({ success: true, ...result });
+    } catch {
+      res.status(500).json({ success: false, error: 'Recheck failed', code: 'IMMOFINDER_FAILED' });
+    }
   });
 
   /** Delete all listings + seen cache (+ progress); optionally clear Drive Sheet/Doc. */

@@ -160,17 +160,12 @@ export function isStopAgency(text: string, agencies: string[]): string | null {
 /** Swiss portal / classifieds: reject professional landlords (AG, GmbH, Makler) unless clearly "von privat". */
 export function looksLikeAgencyListing(title: string, text: string): boolean {
   const h = `${title}\n${String(text).slice(0, 4000)}`.toLowerCase();
-  const privat = /\b(von privat|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt von privat|private anbieterin|private anbieter|nachmieter gesucht)\b/i.test(h);
+  const privat = /\b(von privat|privater vermieter|privatperson|direkt vom eigent[uü]mer|direkt von privat|private anbieterin|private anbieter)\b/i.test(h);
   if (privat) return false;
   if (/\b(immobilien\s*(ag|gmbh|genossenschaft)|makler|treuhand|property management|hausverwaltung|wohnungsverwaltung|vermittlung)\b/i.test(h)) return true;
   if (/\b(anbieter|vermieter|kontakt)\s*[:\s][^\n]{0,60}\b(ag|gmbh|sàrl|sarl|sa)\b/i.test(h)) return true;
-  // Named agencies seen in production keep
-  if (/\b(betterhomes|wincasa|homegate|interhome|schweizerische.*treuhand|immobilienwelten|umzugsexpress)\b/i.test(h)) return true;
-  // Platform relay / agency mailboxes
-  if (/@[a-z0-9.-]*anbieter\b/i.test(h) || /@anbieter\./i.test(h)) return true;
-  if (/@[a-z0-9.-]+\.(ch|com)\b/i.test(h) && /\b(immobilien|makler|treuhand|verwaltung|agency|properties|betterhomes|wincasa)\b/i.test(h)) return true;
-  // Toll-free / agency hotlines common in CH listings
-  if (/\+41\s*800\b|\b0800[\s\d]{6,}/.test(h) && /\b(miete|wohnung|immobilien)\b/i.test(h)) return true;
+  // Company-style email on the listing often means agency
+  if (/@[a-z0-9.-]+\.(ch|com)\b/i.test(h) && /\b(immobilien|makler|treuhand|verwaltung|agency|properties)\b/i.test(h)) return true;
   return false;
 }
 
@@ -350,7 +345,7 @@ const SHARED = /(\bwg\b|wohngemeinschaft|\bzwischenmiete\b|\buntermiete\b|zimmer
 // Multi-unit / project language. Holiday hosts with several flats ("Ferienwohnungen") stay; singular "Wohnung" stays.
 const DEVELOPMENT = /\b(neubau|neubauprojekt|wohn[uü]berbauung|[uü]berbauung|eigentumswohnungen|wohnungen zum verkauf|\d{2,}\s*wohnungen)\b|\b[A-Za-zäöüÄÖÜ]*wohnungen\b/i;
 const FERIEN_WOHNUNGEN = /\bferien[- ]?wohnungen\b/i;
-const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\/|\/liste(\/|$)|\/search(\/|$)|\/suchen(\/|$)|\/_join_|rentola\.|cozycozy\.|\/mieten\/chur\/?$|\/mieten\/[^/]+\/?$|\/de\/q\/|\/en\/rent\/(parking|industrial)/i;
+const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\/|\/preise\.html|\/liste(\/|$)|booking\.com\/hotel\/|gruppenhaus\.ch|\/_join_/i;
 export function nonListingReason(title: string, url: string): NonListing | null {
   const t = String(title ?? '').trim();
   if (WANTED.test(t)) return 'wanted_ad';
@@ -367,18 +362,11 @@ export function isSpecificLink(url: string): boolean {
   let u: URL; try { u = new URL(url); } catch { return false; }
   const p = u.pathname;
   const host = u.hostname.replace(/^www\./, '');
-  // Obvious index / search / join pages
-  if (/\/(liste|search|suchen)(\/|$)/i.test(p) || /\/_join_/i.test(p)) return false;
-  if (/rentola\.|cozycozy\./i.test(host) && !/\d{5,}/.test(p)) return false;
   if (/facebook\.com$/.test(host)) {
     // Join prompts and bare group roots are not a single ad.
     if (/\/_join_/i.test(p) || /\/groups\/\d+\/?$/i.test(p)) return false;
     return /\/(marketplace\/item|posts|permalink|videos|photo)\b/.test(p) || /story_fbid|fbid/.test(u.search);
   }
-  // Tutti search queries are not a single ad (/de/vi/ID is)
-  if (/tutti\.ch$/.test(host) && /\/de\/q\//i.test(p)) return false;
-  // newhome list pages
-  if (/newhome\.ch$/.test(host) && /\/liste/i.test(p)) return false;
   return /\d{5,}/.test(p) || /[a-z0-9]+(-[a-z0-9]+){3,}/i.test(p.split('/').filter(Boolean).pop() || '');
 }
 
@@ -392,8 +380,6 @@ export function clearOutOfCantonRegion(text: string): boolean {
   // German holiday regions that collided with GR commune names in production
   if (/\b(sauerland|eslohe|nordrhein-westfalen|nrw|niedersachsen|mecklenburg|schleswig-holstein)\b/i.test(h)) return true;
   if (/\b(bayern|baden-w[uü]rttemberg)\b/i.test(h) && !/\b(schweiz|graub[uü]nden|grisons|b[uü]ndner)\b/i.test(h)) return true;
-  // Name collision: Felsberg (Hessen/Sauerland) vs Felsberg GR
-  if (/\bfelsberg\b/i.test(h) && /\b(eslohe|sauerland|hessen|deutschland)\b/i.test(h) && !/\b(schweiz|graub[uü]nden|domat|chur)\b/i.test(h)) return true;
   return false;
 }
 
@@ -417,12 +403,10 @@ export interface ParsedPrice {
  * Requires currency (CHF/Fr/€) or a clear period word; ignores bare min-stay numbers. */
 export function parsePrice(text: string): ParsedPrice | null {
   // Normalize curly/smart quotes and thin spaces so CH prices like CHF 1’570 parse.
-  let t = String(text ?? '')
+  const t = String(text ?? '')
     .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
     .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g, '"')
     .replace(/[\u00A0\u202F\u2009]/g, ' ');
-  // "1 235 fr" / "1 235.-" → "1'235" so we never keep only the last three digits
-  t = t.replace(/(\d{1,2})\s+(\d{3})(?=\s*(?:[.,]\d{1,2})?(?:\s*(?:\.–|\.-|–|-))?\s*(?:fr\.?|chf|sfr\.?|€|eur|\.?–|\.-)?)/gi, "$1'$2");
   if (!t.trim()) return null;
 
   const parseAmount = (raw: string, frac?: string) => {
@@ -537,8 +521,8 @@ export function parsePrice(text: string): ParsedPrice | null {
     (c.unit === 'month' ? 100 : c.unit === 'week' ? 50 : c.unit === 'night' ? 20 : 10) +
     (/CHF|Fr|€|EUR/i.test(c.quote) ? 30 : 0) +
     (c.monthlyChf != null ? 5 : 0) +
-    // Prefer full rent (800–5000) over side amounts (parkplatz 60, "235" fragment)
-    (c.amount >= 800 && c.amount <= 5000 ? 20 : c.amount >= 400 && c.amount < 800 ? 5 : 0);
+    // Prefer full rent (800–5000) over fragments like "300" from "1'300"
+    (c.amount >= 800 && c.amount <= 5000 ? 25 : c.amount >= 400 && c.amount < 800 ? 5 : 0);
 
   for (const h of hits) {
     if (h.amount < 80 && h.unit !== 'night') continue;
@@ -566,6 +550,15 @@ export function parsePrice(text: string): ParsedPrice | null {
     else if (unit === 'week') monthlyChf = Math.round(h.amount * (52 / 12));
     else if (unit === 'night') monthlyChf = Math.round(h.amount * 30);
 
+    // Calendar years in "ab 01.11.2026" must not become rent (was keeping amount=2026).
+    if (h.amount >= 2020 && h.amount <= 2035) {
+      const near = t.slice(Math.max(0, h.idx - 30), h.idx + h.quote.length + 20);
+      if (/(?:^|\D)(20[2-3]\d)(?:\D|$)/.test(near) && /(?:per|ab|vom|verfügbar|bezug|frei|ab\s*dem|ab\s*sofort|\d{1,2}[./]\d{1,2}[./])/.test(near)) {
+        continue;
+      }
+      // Bare 2026 with no currency and no month/night word — skip
+      if (!h.currency && unit === 'unknown') continue;
+    }
     const cand: ParsedPrice = { amount: h.amount, unit, monthlyChf, quote: h.quote };
     if (!best || score(cand) > score(best)) best = cand;
   }
@@ -664,9 +657,6 @@ export function isSeekerPost(title: string, text: string): boolean {
   if (/\bwer hat\b/i.test(h) && /(wohnung|zimmer|haus)/i.test(h)) return true;
   if (/\bzu mieten\b/i.test(h) && /\b(suche|suchen|dringend|gesucht)\b/i.test(h)) return true;
   if (/^\s*suche\b/i.test(title) && /wohnung|haus|zimmer/i.test(title) && !/nachmieter|mieter/i.test(title)) return true;
-  // "Wohnung gesucht Chur/igis…" — demand, not offer
-  if (/\bwohnung\s+gesucht\b/i.test(h) && !/\b(nachmieter|mieter)\s+gesucht\b/i.test(h)) return true;
-  if (/\b(budget liegt|mein budget|max\.\s*miete)\b/i.test(h) && /\b(suche|gesucht|suchen)\b/i.test(h)) return true;
   return false;
 }
 
