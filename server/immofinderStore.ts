@@ -53,9 +53,15 @@ export function createPgStore(): ImmoStore {
   };
 }
 
-export async function listListings(status: string | null) {
+export async function listListings(status: string | null, opts?: { includeHidden?: boolean; onlyHidden?: boolean }) {
   const p = await getPool();
-  const r = await p.query(`SELECT * FROM immofinder_listings WHERE hidden = false AND ($1::text IS NULL OR status = $1) ORDER BY (status = 'NEW') DESC, last_seen_at DESC LIMIT 200`, [status]);
+  const onlyHidden = Boolean(opts?.onlyHidden);
+  const includeHidden = Boolean(opts?.includeHidden);
+  const hideClause = onlyHidden ? 'hidden = true' : includeHidden ? 'true' : 'hidden = false';
+  const r = await p.query(
+    `SELECT * FROM immofinder_listings WHERE (${hideClause}) AND ($1::text IS NULL OR status = $1) ORDER BY (status = 'NEW') DESC, last_seen_at DESC LIMIT 200`,
+    [status],
+  );
   return r.rows;
 }
 export async function hiddenCount(): Promise<number> {
