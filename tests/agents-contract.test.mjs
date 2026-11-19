@@ -247,7 +247,8 @@ test('P128.6 email content mode, found date/time, Drive folder id, Drive writes 
   const rows = [{ property_name: 'Old', municipality: 'Chur', rooms_estimated: 3, first_seen_at: '2026-11-10T10:00:00Z', listing_url: 'https://a.example/1', status: 'CONTACTED', photo_urls: [], source_urls: [] },
     { property_name: 'New', municipality: 'Chur', rooms_estimated: 4, first_seen_at: '2026-11-16T02:07:36Z', listing_url: 'https://a.example/2', direct_phone: '+41811234567', contact_status: 'found', status: 'NEW', photo_urls: [], source_urls: [] }];
   const txt = formatListingsText(rows, { heading: 'H', limit: 10 });
-  assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first'); assert.match(txt, /Status: CONTACTED/);
+  assert.ok(txt.indexOf('New') < txt.indexOf('Old'), 'newest first');
+  assert.ok(!/Status: CONTACTED/.test(txt), 'status removed from email text');
   assert.match(txt, /📍 Chur · .* · 4 rooms · \+41811234567/);
   const tab = listingsTable(rows); assert.equal(tab.length, 3); assert.ok(tab.every((r) => r.length === 1), 'one column');
   assert.match(tab[2][0], /📍 Chur · .* · 4 rooms · \+41811234567/);
