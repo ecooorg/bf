@@ -408,3 +408,50 @@ test('server.ts lets the ImmoFinder cron call through the global /api auth gate 
   assert.ok(gate > 0 && cron > gate && session > cron, 'cron exemption must sit inside the global gate, before the session check');
   assert.ok(routes > session, 'ImmoFinder routes are registered after the global gate');
 });
+
+
+test('P129.23a ImmoFinder recheck exports, wiring, and diagnostic completeness are present', () => {
+  const core = read('server/immofinderCore.ts');
+  const refresh = read('server/immofinderRefresh.ts');
+  const diag = read('server/immofinderDiag.ts');
+  const routes = read('server/immofinderRoutes.ts');
+  const ui = read('src/ImmoFinder.tsx');
+  assert.match(core, /export function parseListedAtDetailed/);
+  assert.match(core, /export function dateDiagSnippet/);
+  assert.match(refresh, /parseListedAtDetailed/);
+  assert.match(refresh, /recheck_refresh_item/);
+  assert.match(refresh, /contact searches \${status\.contactSearches}/);
+  assert.match(diag, /export function completenessSummary/);
+  assert.match(routes, /recheck-list-status/);
+  assert.match(routes, /recheck-list/);
+  assert.match(routes, /search_quality_summary/);
+  assert.match(routes, /log: \(level, event, details\) => immoLog/);
+  assert.match(routes, /refreshSearchBudget/);
+  assert.match(ui, /immofinder-recheck-list/);
+  assert.match(ui, /Recheck list/);
+});
+
+
+test('P129.23a refresh reads publication dates and contacts while preserving stored fields on fetch failure', async () => {
+  const { runRefreshJob, newRefreshStatus } = await import('../server/immofinderRefresh.ts');
+  const rows = [
+    { id: 'date-contact', listing_url: 'https://owner.example.ch/listing/1', property_name: 'Flat A', municipality: 'Chur', direct_phone: null, direct_email: null, contact_evidence: [], contact_status: 'not_found', contact_advice: '', raw: {} },
+    { id: 'preserve', listing_url: 'https://blocked.example.ch/listing/2', property_name: 'Flat B', municipality: 'Chur', direct_phone: '+41791234567', direct_email: null, contact_evidence: [], contact_status: 'found', contact_advice: '', raw: { listed_at: '2026-11-01T12:00:00.000Z' } },
+  ];
+  const saved = new Map(); const logs = [];
+  const status = newRefreshStatus();
+  assert.deepEqual(pageMeta('<meta name=\"datePublished\" content=\"2026-11-18\">', 'https://owner.example.ch/listing/1').photos, [], 'empty image metadata must not count as a photo');
+  await runRefreshJob(rows, {
+    fetchPage: async (url) => url.includes('owner.example') ? { ok: true, status: 200, body: '<meta name=\"datePublished\" content=\"2026-11-18\"><title>Flat A</title><p>Contact owner@flat.ch, phone +41 79 123 45 67</p>' } : { ok: false, status: 403, body: '' },
+    platformDomains: ['owner.example.ch'], update: async (id, fields) => saved.set(id, fields),
+    log: (level, event, details) => logs.push({ level, event, details }),
+  }, status);
+  assert.equal(saved.get('date-contact').raw.listed_at_source, 'declared');
+  assert.ok(saved.get('date-contact').raw.listed_at);
+  assert.equal(saved.get('date-contact').direct_email, 'owner@flat.ch');
+  assert.ok(saved.get('date-contact').direct_phone);
+  assert.equal(saved.get('preserve').direct_phone, rows[1].direct_phone);
+  assert.equal(saved.get('preserve').raw.listed_at, rows[1].raw.listed_at);
+  assert.equal(status.checked, 2); assert.equal(status.unreachable, 1);
+  assert.ok(logs.some((x) => x.event === 'recheck_refresh_done'));
+});
