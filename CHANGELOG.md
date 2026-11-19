@@ -1,3 +1,9 @@
+## [129.28a] - CI: English Delete label; no Status in email text contract
+
+- lint:copy forbids Cyrillic in src — button/confirm use English "Delete".
+- Contract no longer expects Status: CONTACTED in formatListingsText (status UI removed).
+- BUGFIX CI only.
+
 ## [129.28] - Delete button on cards; remove letter and status UI
 
 - Red **Удалить** on each card (right, opposite Open post/listing) hard-deletes the row from `immofinder_listings`.
