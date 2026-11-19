@@ -1,4 +1,4 @@
-# Advanced CodeQL — pinned SHAs (governance) + tolerate bundle CDN 504.
+# Advanced CodeQL — pinned SHAs (governance) + tolerate bundle CDN 504
 # If Default setup still runs as "(dynamic)", turn it off under
 # Settings → Code security → Code scanning, and use this workflow only.
 name: CodeQL
