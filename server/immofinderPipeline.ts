@@ -320,18 +320,43 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const phones = c.phones.filter((p) => (phoneUse.get(`${host}|${p}`) || 0) < 3);
       const evidence = [...phones.slice(0, 1).map((v) => ({ type: 'phone', value: v, url })), ...c.emails.slice(0, 1).map((v) => ({ type: 'email', value: v, url }))];
       const pageText = pages[i].text;
-      const priceHay = `${meta.title}\n${pageText}`;
-      const price = resolveListingPrice(priceHay, ex.priceQuote);
+      const evidenceKind: EvidenceKind = pages[i].snippet ? 'snippet' : (pageText.trim().length >= 80 ? 'page_text' : 'link_only');
+      const evidenceText = buildEvidenceText(meta.title, pageText, 4000);
+      const priceHay = evidenceText;
+      // Prefer prices that appear in evidence text over unverified LLM collage.
+      const price = priceFromEvidence(evidenceText, ex.priceQuote) || resolveListingPrice(priceHay, ex.priceQuote);
       const hitDate = pages[i].hitDate || meta.published || null;
       const listedAt = parseListedAt(
         `${meta.title}\n${pageText.slice(0, 12000)}\n${ex.listedAtQuote || ''}\n${hitDate || ''}`,
         url,
         meta.published || ex.listedAtQuote || hitDate || null,
       );
-      const seeker = isSeekerPost(meta.title, pageText);
+      const seeker = isSeekerPost(meta.title, evidenceText);
       if (seeker) ex.signals.push('seeker_post');
-      if (isListingUnavailable(meta.title, pageText)) { await deny('listing_unavailable', 'page_states_unavailable'); continue; }
-      const qReason = qualityRejectReason(quality, price, listedAt, seeker, evidence.length > 0, now());
+      if (isListingUnavailable(meta.title, evidenceText)) { await deny('listing_unavailable', 'page_states_unavailable'); continue; }
+      // Product gate: one coherent listing or drop (ARCHITECTURE: ImmoFinder search quality).
+      let phone0 = phones[0] ?? null;
+      let email0 = c.emails[0] ?? null;
+      if (isPlatformOrJunkContact(email0, phone0)) {
+        ex.signals.push('platform_contact_stripped');
+        email0 = isPlatformOrJunkContact(email0, null) ? null : email0;
+        phone0 = isPlatformOrJunkContact(null, phone0) ? null : phone0;
+      }
+      const credReason = credibilityRejectReason({
+        title: meta.title,
+        evidenceText,
+        url,
+        municipality: ex.municipality,
+        roomsEstimated: ex.rooms.rooms,
+        price,
+        phone: phone0,
+        email: email0,
+        evidenceKind,
+        municipalities: cfg.municipalities,
+        allowSnippet: true,
+      });
+      if (credReason) { await deny(credReason, evidenceKind); continue; }
+      const qReason = qualityRejectReason(quality, price, listedAt, seeker, !!(phone0 || email0), now());
       // A: diagnostics when price missing or reject is price_*
       if (!price || qReason === 'price_unknown' || qReason === 'price_above_max' || (price && price.monthlyChf == null)) {
         try {
@@ -348,12 +373,19 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         } catch { /* never break run */ }
       }
       if (qReason) { await deny(qReason, price?.quote || listedAt?.toISOString()); continue; }
+      // About text: prefer verified excerpt over free LLM paraphrase when summary is not grounded.
+      const summaryOk = ex.summaryDe && verifyQuote(evidenceText, ex.summaryDe.slice(0, 80));
+      const descriptionDe = (summaryOk ? ex.summaryDe : evidenceText.split('\n').slice(0, 6).join(' ').replace(/\s+/g, ' ').trim()).slice(0, 500);
+      const contactEvidence = [
+        ...(phone0 ? [{ type: 'phone' as const, value: phone0, url }] : []),
+        ...(email0 ? [{ type: 'email' as const, value: email0, url }] : []),
+      ];
       const rec: ListingRecord = {
         listing_type: type, canonical_key: canonicalKey(ex.name, ex.municipality), listing_url: url, source_urls: [url], source_ids: [src.id], photo_urls: meta.photos, municipality: ex.municipality, property_name: ex.name,
-        rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis, description_de: ex.summaryDe, description_ru: '', title_ru: '', owner_name: ex.owner,
+        rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis, description_de: descriptionDe, description_ru: '', title_ru: '', owner_name: ex.owner,
         rent_monthly_chf: price?.monthlyChf ?? null, pricing_unit: price?.unit ?? null, listed_at: listedAt ? listedAt.toISOString() : null,
-        direct_phone: phones[0] ?? null, direct_email: c.emails[0] ?? null, contact_evidence: evidence, contact_status: evidence.length ? 'found' : 'platform_only',
-        contact_advice: evidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null },
+        direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
+        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind },
       };
       res.counts.kept++; st.kept++; st.consecutiveBad = 0;
       const priceNote = price?.monthlyChf != null ? `CHF ${price.monthlyChf}` : (price?.quote ? price.quote.slice(0, 24) : 'no price');

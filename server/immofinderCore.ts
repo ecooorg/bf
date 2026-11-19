@@ -915,3 +915,127 @@ export function qualityRejectReason(
   }
   return null;
 }
+
+
+// ---------------------------------------------------------------------------
+// Evidence-first credibility (P129.30) — prefer whole listing proof over field collage
+// ---------------------------------------------------------------------------
+
+export type EvidenceKind = 'page_text' | 'snippet' | 'link_only';
+
+/** Verbatim excerpt for the user and for field verification (not an LLM paraphrase). */
+export function buildEvidenceText(title: string, pageText: string, maxLen = 4000): string {
+  const raw = `${String(title || '').trim()}\n${String(pageText || '').trim()}`.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  if (raw.length <= maxLen) return raw;
+  return raw.slice(0, maxLen).replace(/\s+\S*$/, '') + '…';
+}
+
+export function isHolidayOrTourismListing(title: string, text: string, url: string): boolean {
+  const hay = `${title}\n${text}\n${url}`.toLowerCase();
+  if (/jahresmiete|ganzjährig|ganzjaehrig|langfrist|nachmieter|unbefristet|1\s*jahr|12\s*monat/i.test(hay)) return false;
+  return /ferienwohnung|ferienhaus|\bfewo\b|holiday apartment|ferienhausmiete|happyholiday|heidiholiday|bedandbreakfast\.|booking\.com|\/ukv\/house|pro\s*nacht|per\s*night|nachtpreis|wochenweise/i.test(hay);
+}
+
+export function isForSaleListing(title: string, text: string, url: string): boolean {
+  const hay = `${title}\n${text}\n${url}`;
+  if (/flat-to-buy|zu-kaufen|einfamilienhaus-zu-kaufen|\/kaufen\//i.test(url)) return true;
+  const sale = /\b(zu\s+kaufen|to\s+buy|for\s+sale|verkauf\b|verkauft)\b/i.test(hay);
+  const rent = /\b(zu\s+vermieten|vermieten|nachmieter|miete\b|mietzins|rent\b)\b/i.test(hay);
+  return sale && !rent;
+}
+
+export function isPlatformOrJunkContact(email: string | null | undefined, phone: string | null | undefined): boolean {
+  const e = String(email || '').toLowerCase().trim();
+  if (e) {
+    if (/(immoswipe|noreply|no-reply|privacy@|dataprotection|landesbibliothek|uni-halle|volksblatt|churtourismus|heidiland|surselva|comparis|anbieter\.b$|support@immoswipe)/i.test(e)) return true;
+    if (/^(support|privacy|dataprotection|noreply)@/i.test(e)) return true;
+  }
+  const ph = String(phone || '').replace(/[\s()-]/g, '');
+  if (/^\+4100\d+/.test(ph)) return true;
+  return false;
+}
+
+/** True when title/snippet rooms and body rooms disagree by more than 1.0. */
+export function roomsEvidenceConflict(title: string, evidence: string): boolean {
+  const tr = parseRooms(title);
+  const br = parseRooms(evidence.slice(0, 2500));
+  if (!tr || !br) return false;
+  return Math.abs(tr.rooms - br.rooms) > 1.01;
+}
+
+/** Card municipality does not appear in evidence, but another whitelist place does. */
+export function municipalityEvidenceMismatch(cardMuni: string | null | undefined, evidence: string, list: string[]): boolean {
+  if (!cardMuni || !list?.length) return false;
+  const ev = evidence.toLowerCase();
+  const card = cardMuni.toLowerCase();
+  if (ev.includes(card)) return false;
+  const matched = matchMunicipality(evidence, list);
+  if (!matched) return false;
+  return matched.toLowerCase() !== card;
+}
+
+export interface CredibilityInput {
+  title: string;
+  evidenceText: string;
+  url: string;
+  municipality: string | null;
+  roomsEstimated: number | null;
+  price: ParsedPrice | null;
+  phone: string | null;
+  email: string | null;
+  evidenceKind: EvidenceKind;
+  municipalities: string[];
+  /** When true, link-only/snippet without page body is not auto-rejected (still runs content gates). */
+  allowSnippet?: boolean;
+}
+
+/**
+ * Final product gate: reject listings that would form a misleading collage card.
+ * Returns a stable hide/filter reason or null when the listing may be shown.
+ */
+export function credibilityRejectReason(c: CredibilityInput): string | null {
+  const title = c.title || '';
+  const ev = c.evidenceText || '';
+  const url = c.url || '';
+  const hay = `${title}\n${ev}`;
+
+  if (isListingUnavailable(title, ev)) return 'listing_unavailable';
+  // "Zu vermieten gesucht" = demand, but isSeekerPost treats "zu vermieten" as offer — catch it here.
+  if (/\bzu\s+vermieten\s+gesucht\b/i.test(hay) || /\b(wir\s+suchen|ich\s+suche)\b/i.test(hay) && /(wohnung|haus|zimmer)/i.test(hay)) {
+    return 'seeker_post';
+  }
+  if (isSeekerPost(title, ev)) return 'seeker_post';
+  if (isForSaleListing(title, ev, url)) return 'for_sale';
+  if (isHolidayOrTourismListing(title, ev, url)) return 'holiday_tourism';
+  if (looksLikeAgencyListing(title, ev)) return 'agency';
+
+  const nl = nonListingReason(title, url);
+  if (nl) return nl;
+
+  if (roomsEvidenceConflict(title, ev)) return 'rooms_conflict';
+  if (municipalityEvidenceMismatch(c.municipality, ev, c.municipalities || [])) return 'municipality_mismatch';
+
+  if (isPlatformOrJunkContact(c.email, c.phone)) {
+    // Platform contact alone does not kill a good listing, but clear the contact upstream; here reject only if contact was the only signal and required — leave to quality settings.
+  }
+
+  // Temporary / furnished short-stay noise common in GR search
+  if (/\btempor\w*\b|\bbefristet\s+auf\s+\d+\s*monat/i.test(hay) && /möbliert|mobliert|furnished/i.test(hay) && !/nachmieter|unbefristet|langfrist/i.test(hay)) {
+    return 'temporary_furnished';
+  }
+
+  if (c.evidenceKind === 'link_only' && !(c.allowSnippet)) return 'evidence_insufficient';
+
+  return null;
+}
+
+/** Prefer verified price from evidence text over an unverified LLM quote. */
+export function priceFromEvidence(evidence: string, llmQuote: string | null | undefined): ParsedPrice | null {
+  const fromEv = resolveListingPrice(evidence, null) || parsePrice(evidence);
+  if (fromEv) return fromEv;
+  if (llmQuote && verifyQuote(evidence, llmQuote)) {
+    return parsePrice(llmQuote) || parsePrice(`${llmQuote}\n${evidence.slice(0, 500)}`);
+  }
+  return parsePrice(evidence.slice(0, 8000));
+}
+

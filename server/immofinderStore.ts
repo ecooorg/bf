@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
-import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice } from './immofinderCore.ts';
+import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice, credibilityRejectReason, buildEvidenceText, isPlatformOrJunkContact } from './immofinderCore.ts';
 import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
 
@@ -101,34 +101,58 @@ export async function recheckStored(): Promise<{ checked: number; hidden: number
   );
   let hidden = 0;
   let priceFixed = 0;
+  const cfg = loadImmoConfig();
   for (const row of r.rows) {
     const title = String(row.property_name || '');
     const url = String(row.listing_url || '');
-    const text = String(row.description_de || '');
+    const prevRaw = row.raw && typeof row.raw === 'object' && !Array.isArray(row.raw) ? row.raw as Record<string, unknown> : {};
+    const text = String(prevRaw.evidence_text || row.description_de || '');
     const hay = `${title}\n${text}`;
+    const evidenceText = buildEvidenceText(title, text, 4000);
+    const evidenceKind = (prevRaw.evidence_kind as 'page_text' | 'snippet' | 'link_only') || (text.length >= 80 ? 'page_text' : 'snippet');
 
     let why: string | null = nonListingReason(title, url);
     if (!why && !isSpecificLink(url) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) {
       why = 'list_or_search_page';
     }
-    if (!why && isListingUnavailable(title, text)) why = 'listing_unavailable';
-    if (!why && isSeekerPost(title, text)) why = 'seeker_post';
     if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
-    if (!why && looksLikeAgencyListing(title, text)) why = 'agency';
     const rooms = Number(row.rooms_estimated);
     if (!why && Number.isFinite(rooms) && rooms >= 12) why = 'rooms_too_many';
+    if (!why) {
+      why = credibilityRejectReason({
+        title,
+        evidenceText,
+        url,
+        municipality: row.municipality || null,
+        roomsEstimated: Number.isFinite(rooms) ? rooms : null,
+        price: resolveListingPrice(evidenceText, null) || parsePrice(evidenceText),
+        phone: row.direct_phone || null,
+        email: row.direct_email || null,
+        evidenceKind,
+        municipalities: cfg.municipalities || [],
+        allowSnippet: true,
+      });
+    }
 
     if (why) {
       await p.query('UPDATE immofinder_listings SET hidden = true, hide_reason = $2, updated_at = now() WHERE id = $1', [row.id, why]);
       hidden++;
       continue;
     }
+    // Strip junk platform contacts in place
+    if (isPlatformOrJunkContact(row.direct_email, row.direct_phone)) {
+      await p.query(
+        `UPDATE immofinder_listings SET direct_email = CASE WHEN $2 THEN NULL ELSE direct_email END,
+          direct_phone = CASE WHEN $3 THEN NULL ELSE direct_phone END, updated_at = now() WHERE id = $1`,
+        [row.id, isPlatformOrJunkContact(row.direct_email, null), isPlatformOrJunkContact(null, row.direct_phone)],
+      );
+    }
 
     const price = resolveListingPrice(hay, null) || parsePrice(hay);
     if (!price || !(price.amount >= 400)) continue;
 
-    const prevRaw = row.raw && typeof row.raw === 'object' ? row.raw : {};
-    const prevPrice = prevRaw.price && typeof prevRaw.price === 'object' ? prevRaw.price : {};
+    const prevRawPrice = prevRaw;
+    const prevPrice = prevRawPrice.price && typeof prevRawPrice.price === 'object' ? prevRawPrice.price as any : {};
     const prevAmt = prevPrice.amount != null ? Number(prevPrice.amount) : null;
     const unit = price.unit === 'unknown' ? (price.monthlyChf != null ? 'month' : String(prevPrice.unit || 'unknown')) : price.unit;
     const nextAmt = price.amount;
@@ -148,7 +172,7 @@ export async function recheckStored(): Promise<{ checked: number; hidden: number
       monthlyChf: price.monthlyChf ?? (unit === 'month' ? nextAmt : null),
       quote: price.quote || prevPrice.quote || '',
     };
-    const nextRaw = { ...prevRaw, price: nextPrice };
+    const nextRaw = { ...prevRawPrice, price: nextPrice, evidence_text: prevRawPrice.evidence_text || evidenceText, evidence_kind: prevRawPrice.evidence_kind || evidenceKind };
     await p.query(
       `UPDATE immofinder_listings SET raw = $2::jsonb, updated_at = now() WHERE id = $1`,
       [row.id, JSON.stringify(nextRaw)],
