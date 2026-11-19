@@ -1,3 +1,11 @@
+## [129.30] - ImmoFinder evidence-first credibility gate
+
+- Architecture: English section **ImmoFinder search result quality** (evidence-first product contract).
+- `buildEvidenceText`, `credibilityRejectReason`, `priceFromEvidence`, platform-contact strip in `immofinderCore.ts`.
+- Pipeline: store `raw.evidence_text` / `evidence_kind`; reject seeker/sale/holiday/rooms/municipality conflicts before keep; prefer evidence for price and description.
+- Recheck filters apply the same credibility gate; card `about` prefers evidence excerpt.
+- USER_VALUE; fewer collage cards, more honest drops.
+
 ## [129.28a] - CI: English Delete label; no Status in email text contract
 
 - lint:copy forbids Cyrillic in src — button/confirm use English "Delete".
