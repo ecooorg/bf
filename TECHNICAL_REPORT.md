@@ -1,3 +1,10 @@
+## P129.23 — Show menu + publication date
+
+- **OBSERVED:** Show menu had 6 items incl. status filters; cards carried only the search ("found") date although `raw.listed_at` was already parsed.
+- **CHANGE:** menu = current/hidden/all (default current); `published` added to the shared card model, email text and Sheet/Doc; page-declared date (meta/JSON-LD) preferred in `parseListedAt`.
+- **NOT_RUN:** live Drive/email delivery and real portal pages; rows saved before 129.23 show a date only if `raw.listed_at` exists.
+- **SCOPE:** src/immoCard.ts, src/ImmoFinder.tsx, server/immofinder{Core,Delivery,Pipeline,Routes}.ts, tests/agents-contract.test.mjs, docs/API_CONTRACTS.md, CHANGELOG.md, package.json/lock.
+
 ## P129.7 — Drive export = screen card
 
 - **OBSERVED:** Sheet/Doc used another price/contact/link/sort logic, plain text, and Doc carried letters.

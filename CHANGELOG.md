@@ -1,3 +1,9 @@
+## [129.23] - Show menu current/hidden/all; publication date on cards
+
+- Show menu on the ImmoFinder screen has three items: **current** (default, hidden rows excluded), **hidden**, **all** (`GET /api/immofinder/listings?scope=all`); status filters removed from the menu.
+- Cards (screen, Drive Sheet/Doc, email/Telegram) show "published dd.mm.yyyy" before "found" when the page states it; `pageMeta` reads meta/JSON-LD `datePublished`/`datePosted` first, text dates stay as fallback.
+- USER_VALUE; live Drive/email/portal run NOT_RUN.
+
 ## [129.22] - Recheck 500 fix (price in raw); lint:copy
 
 - recheckStored no longer SELECTs missing rent_monthly_chf/pricing_unit columns; updates `raw.price` instead.
