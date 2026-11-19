@@ -137,7 +137,7 @@ The table below is generated from `docs/generated-route-inventory.json`. It prev
 
 All routes behind app auth; English errors. Not implemented in 128.1a (verify against routes before relying on them).
 
-- `GET /api/immofinder/listings?status=&municipality=` → cards (German fields, Russian translation fields, contact status, source URLs, photo URLs).
+- `GET /api/immofinder/listings?status=&municipality=` → cards (German fields, Russian translation fields, contact status, source URLs, photo URLs); `scope=hidden` returns only hidden rows, `scope=all` current and hidden together (default: current only). Publication date of the ad, when the page states it, is `raw.listed_at`.
 - `PATCH /api/immofinder/listings/:id` → manual `status` change only.
 - `POST /api/immofinder/run` → enqueue a run (`dryRun` optional); accepts app session or `X-Immofinder-Secret` for cron; returns run id.
 - `GET /api/immofinder/runs/latest` → counts, filtered-by-reason, errors, estimated cost, Drive link.
