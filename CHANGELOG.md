@@ -1,3 +1,10 @@
+## [129.38] - CI: formatHideLog import; discovery order test; TECHNICAL_REPORT 129.27–129.38
+
+- Import `formatHideLog` in pipeline (typecheck/build/Render).
+- P128.3 expects owner microsite before Facebook after portal-first ranking.
+- TECHNICAL_REPORT.md: session work from P129.27 through P129.38 (after last required P129.26).
+- BUGFIX + DOCS.
+
 ## [129.37] - Product precision gate + quality diagnostics
 
 - Hide unavailable (DE/EN Flatfox), for_sale even with rent collage, weak Facebook photo.php, stricter rooms/municipality conflicts.

@@ -1,3 +1,73 @@
+## P129.38 — CI/Render: formatHideLog import + discovery rank test
+
+- **FAIL:** typecheck/build `Cannot find name 'formatHideLog'` (used in deny path, missing from pipeline import). P128.3 expected FB before owner host after ranking change.
+- **CHANGE:** import `formatHideLog` in `immofinderPipeline.ts`; agents-contract expects owner microsite before Facebook snippet-only.
+- **BUGFIX.**
+
+## P129.37 — Product precision gate + quality diagnostics
+
+- **GOAL:** Fewer collage/junk cards; product-quality logs.
+- **CHANGE:** Stronger credibility gate — unavailable (DE/EN), for_sale even with rent fragment, weak Facebook `photo.php`, rooms/municipality conflicts, expanded platform contacts (betterhomes, be-homes, einwohnerkontrolle, …). Evidence footer chrome strip (Flatfox About us / Imprint). Discovery ranks Homegate/Tutti/Flatfox above FB snippet-only. Soft-seen expanded for credibility rejects.
+- **LOGS:** `immofinder_hide` one line per reject; `immofinder_product_quality_summary` with `credibility_denies`, `evidence_kind`, `credible_kept`. FUNNEL prints `credible_kept`.
+- **USER_VALUE.**
+
+## P129.36 — No duplicate Source text in exports
+
+- **OBSERVED:** Doc/Sheet repeated the same snippet as about under “Source text”.
+- **CHANGE:** `immoEvidenceIsRedundant` — omit Source text when near-duplicate of about; keep Source capture only if screenshot URL exists. Screen UI same rule.
+- **USER_VALUE.**
+
+## P129.35 — KeepAlive hard cadence
+
+- **OBSERVED:** Sequential KeepAlive waited on hung `/api/health` during long runs; Render free tier could sleep past ~15 min idle.
+- **CHANGE:** Independent schedule 11–13 min; 15s request / 25s visit budget; fast retry on failure. First ping 20–60s after boot.
+- **BUGFIX.**
+
+## P129.34 — Email content new vs all
+
+- **OBSERVED:** UI setting emailContent all/new ignored on schedule path; manual path still required “fresh” to notify.
+- **CHANGE:** Both deliverWave paths honor `delivery.emailContent`. `all` emails every visible listing (up to 60) even if wave had zero new. Telegram remains wave-new; Drive still full list.
+- **BUGFIX.**
+
+## P129.33 — Holiday gate vs monthly rent
+
+- **FAIL:** agents-contract kept=0 — `/ferienwohnung/` paths treated as tourism despite “pro Monat” / Nettomiete.
+- **CHANGE:** `isHolidayOrTourismListing` — monthly rent without night price is not tourism; pure Ferienhaus/nightly/tourism hosts still rejected.
+- **BUGFIX.**
+
+## P129.32 — Evidence-first import + about length contract
+
+- **FAIL:** Pipeline body called `buildEvidenceText` / `credibilityRejectReason` without imports → TS2304, Render red. P129.7 about length ≤220 vs 360 excerpt.
+- **CHANGE:** Full imports; contract allows about ≤360. Cumulative with evidence export surfaces.
+- **BUGFIX CI/Render.**
+
+## P129.31 — Source evidence under each listing in Drive
+
+- **CHANGE:** Card model exposes evidenceText/kind/screenshotUrl. Sheet, Doc, email/Telegram append Source text (and capture URL when present). Screen shows non-redundant excerpt.
+- **NOTE:** Later 129.36 stops emitting duplicate text; screenshots still optional/not captured.
+- **USER_VALUE.**
+
+## P129.30 — Evidence-first credibility (architecture → code)
+
+- **CHANGE:** English architecture section “ImmoFinder search result quality”. Runtime: `buildEvidenceText`, `credibilityRejectReason`, `priceFromEvidence`, platform-contact strip; pipeline stores `raw.evidence_text` / `evidence_kind`; prefer evidence for price/description; recheck applies same gate; card about prefers evidence.
+- **PRODUCT:** Prefer few coherent cards over many partial ones.
+- **USER_VALUE.**
+
+## P129.29 — Architecture quality contract (English)
+
+- **CHANGE:** Docs-only section on evidence-first, consistency gate, metrics (`credible_kept`), anti-collage fields, non-priorities. Russian draft not applied (project English-only docs).
+- **DOCS.**
+
+## P129.28 / 129.28a — Card Delete + CI Latin UI
+
+- **CHANGE:** Red Delete hard-removes listing from DB; remove Copy German letter / Status NEW blocks. 129.28a: English “Delete” (lint:copy forbids Cyrillic); contract no longer expects Status in email text.
+- **USER_VALUE / BUGFIX.**
+
+## P129.27 / 129.27a — Serper dates into listed_at
+
+- **CHANGE:** Map Serper organic `date` into SearchHit; coerce relative/absolute into `parseListedAt` / declared date path. 129.27a typecheck for hitDate on page type.
+- **USER_VALUE.**
+
 ## P129.26 — Why publish dates never stuck
 
 - **OBSERVED:** Export of 106 cards shows only 6 with `published …`. Display path works when `raw.listed_at` exists.
