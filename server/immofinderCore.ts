@@ -380,9 +380,10 @@ export function isSpecificLink(url: string): boolean {
   const p = u.pathname;
   const host = u.hostname.replace(/^www\./, '');
   if (/facebook\.com$/.test(host)) {
-    // Join prompts and bare group roots are not a single ad.
+    // Join prompts, bare group roots, and photo.php are not a single rental ad.
     if (/\/_join_/i.test(p) || /\/groups\/\d+\/?$/i.test(p)) return false;
-    return /\/(marketplace\/item|posts|permalink|videos|photo)\b/.test(p) || /story_fbid|fbid/.test(u.search);
+    if (/\/photo\.php/i.test(p) || /\/photos\//i.test(p)) return false;
+    return /\/(marketplace\/item|posts|permalink|videos)\b/.test(p) || /story_fbid/.test(u.search);
   }
   return /\d{5,}/.test(p) || /[a-z0-9]+(-[a-z0-9]+){3,}/i.test(p.split('/').filter(Boolean).pop() || '');
 }
@@ -879,6 +880,7 @@ export function isListingUnavailable(title: string, text: string): boolean {
   if (/n['']est plus disponible|annonce (n['']est )?plus disponible|oggetto non (più )?disponibile/.test(h)) return true;
   // HTTP-ish soft pages
   if (/page not found|404 not found|inserzione non trovata/.test(h) && h.length < 1500) return true;
+  if (/unfortunately,?\s*this listing is currently not available|this listing is currently not available|listing is not available/i.test(h)) return true;
   return false;
 }
 
@@ -917,22 +919,53 @@ export function qualityRejectReason(
 }
 
 
+
 // ---------------------------------------------------------------------------
-// Evidence-first credibility (P129.30) — prefer whole listing proof over field collage
+// Evidence-first credibility (P129.30+) — product precision + diagnostics
 // ---------------------------------------------------------------------------
 
 export type EvidenceKind = 'page_text' | 'snippet' | 'link_only';
 
+const EVIDENCE_FOOTER_MARKERS = [
+  'Flatfox AG',
+  'About us',
+  'Imprint',
+  'Data Policy',
+  'Privacy Settings',
+  'GTC',
+  '© Flatfox',
+  'Made in Switzerland',
+  'Ähnliche Objekte',
+  'Similar objects',
+  'Weitere Angebote',
+  'Alle Rechte vorbehalten',
+  'Cookie',
+  'Datenschutz',
+  'Impressum',
+];
+
+/** Strip common portal chrome so evidence is the ad body, not the site footer. */
+export function stripEvidenceChrome(text: string): string {
+  let s = String(text || '');
+  for (const m of EVIDENCE_FOOTER_MARKERS) {
+    const i = s.toLowerCase().indexOf(m.toLowerCase());
+    if (i > 80) s = s.slice(0, i);
+  }
+  // Flatfox / Tutti trailing nav blobs
+  s = s.replace(/(?:Post listing for free|Order debt extract|Termination of rental)[\s\S]*$/i, '');
+  return s.replace(/\n{3,}/g, '\n\n').trim();
+}
+
 /** Verbatim excerpt for the user and for field verification (not an LLM paraphrase). */
 export function buildEvidenceText(title: string, pageText: string, maxLen = 4000): string {
-  const raw = `${String(title || '').trim()}\n${String(pageText || '').trim()}`.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  const body = stripEvidenceChrome(String(pageText || ''));
+  const raw = `${String(title || '').trim()}\n${body}`.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   if (raw.length <= maxLen) return raw;
   return raw.slice(0, maxLen).replace(/\s+\S*$/, '') + '…';
 }
 
 export function isHolidayOrTourismListing(title: string, text: string, url: string): boolean {
   const hay = `${title}\n${text}\n${url}`.toLowerCase();
-  // Explicit long-term / monthly rent language wins over path names like /ferienwohnung/ used by many CH sites for all flats.
   const monthlyRent = /pro\s*monat|\/\s*monat|nettomiete|bruttomiete|mietzins|jahresmiete|ganzj[äae]hrig|langfrist|nachmieter|unbefristet|1\s*jahr|12\s*monat/i.test(hay);
   const nightly = /pro\s*nacht|per\s*night|nachtpreis|wochenweise|ab\s*chf\s*\d+\s*\/\s*nacht/i.test(hay);
   if (monthlyRent && !nightly) return false;
@@ -942,19 +975,24 @@ export function isHolidayOrTourismListing(title: string, text: string, url: stri
   return false;
 }
 
+/** Sale signal wins even when a rent fragment also appears in the collage. */
 export function isForSaleListing(title: string, text: string, url: string): boolean {
   const hay = `${title}\n${text}\n${url}`;
   if (/flat-to-buy|zu-kaufen|einfamilienhaus-zu-kaufen|\/kaufen\//i.test(url)) return true;
-  const sale = /\b(zu\s+kaufen|to\s+buy|for\s+sale|verkauf\b|verkauft)\b/i.test(hay);
-  const rent = /\b(zu\s+vermieten|vermieten|nachmieter|miete\b|mietzins|rent\b)\b/i.test(hay);
-  return sale && !rent;
+  if (/\b(zu\s+verkaufen|zum\s+verkauf|for\s+sale|to\s+buy|verkauft)\b/i.test(hay)) return true;
+  if (/\bverkauf(en|s|te)?\b/i.test(hay) && !/\b(verkauft\s+worden|nicht\s+verkaufen)\b/i.test(hay)) {
+    // "zu verkaufen" already caught; bare verkaufen with immobilien context
+    if (/\b(wohnung|haus|eigentum|objekt)\b/i.test(hay)) return true;
+  }
+  return false;
 }
 
 export function isPlatformOrJunkContact(email: string | null | undefined, phone: string | null | undefined): boolean {
   const e = String(email || '').toLowerCase().trim();
   if (e) {
-    if (/(immoswipe|noreply|no-reply|privacy@|dataprotection|landesbibliothek|uni-halle|volksblatt|churtourismus|heidiland|surselva|comparis|anbieter\.b$|support@immoswipe)/i.test(e)) return true;
-    if (/^(support|privacy|dataprotection|noreply)@/i.test(e)) return true;
+    if (/(immoswipe|noreply|no-reply|privacy@|dataprotection|landesbibliothek|uni-halle|volksblatt|churtourismus|heidiland|surselva|comparis|betterhomes|be-homes|semanta\.ai|hamilton\.ch|einwohnerkontrolle|warmesbett|privatanbieter)/i.test(e)) return true;
+    if (/^(support|privacy|dataprotection|noreply|jobs|business|info@be-homes|info@betterhomes)@/i.test(e)) return true;
+    if (/@.*\.(ai)$/i.test(e) && /business|support|info@/i.test(e)) return true;
   }
   const ph = String(phone || '').replace(/[\s()-]/g, '');
   if (/^\+4100\d+/.test(ph)) return true;
@@ -962,11 +1000,15 @@ export function isPlatformOrJunkContact(email: string | null | undefined, phone:
 }
 
 /** True when title/snippet rooms and body rooms disagree by more than 1.0. */
-export function roomsEvidenceConflict(title: string, evidence: string): boolean {
+export function roomsEvidenceConflict(title: string, evidence: string, roomsEstimated?: number | null): boolean {
   const tr = parseRooms(title);
-  const br = parseRooms(evidence.slice(0, 2500));
-  if (!tr || !br) return false;
-  return Math.abs(tr.rooms - br.rooms) > 1.01;
+  const br = parseRooms(String(evidence || '').slice(0, 3000));
+  if (tr && br && Math.abs(tr.rooms - br.rooms) > 1.01) return true;
+  if (roomsEstimated != null && Number.isFinite(roomsEstimated)) {
+    if (br && Math.abs(roomsEstimated - br.rooms) > 1.01) return true;
+    if (tr && Math.abs(roomsEstimated - tr.rooms) > 1.01) return true;
+  }
+  return false;
 }
 
 /** Card municipality does not appear in evidence, but another whitelist place does. */
@@ -975,9 +1017,26 @@ export function municipalityEvidenceMismatch(cardMuni: string | null | undefined
   const ev = evidence.toLowerCase();
   const card = cardMuni.toLowerCase();
   if (ev.includes(card)) return false;
+  // Also accept hyphen/slash variants (Domat/Ems)
+  const cardNorm = card.replace(/[/-]/g, ' ');
+  if (cardNorm.length > 3 && ev.replace(/[/-]/g, ' ').includes(cardNorm)) return false;
   const matched = matchMunicipality(evidence, list);
   if (!matched) return false;
   return matched.toLowerCase() !== card;
+}
+
+/** Facebook photo.php / bare photo albums are not usable listing posts. */
+export function isWeakFacebookListingUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (!/facebook\.com$/i.test(u.hostname.replace(/^www\./, '')) && !/\.facebook\.com$/i.test(u.hostname)) return false;
+    const p = u.pathname;
+    if (/\/photo\.php/i.test(p) || /\/photos\//i.test(p)) return true;
+    if (/fbid=/i.test(u.search) && /set=gm\./i.test(u.search) && !/\/posts\//i.test(p)) return true;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export interface CredibilityInput {
@@ -991,7 +1050,6 @@ export interface CredibilityInput {
   email: string | null;
   evidenceKind: EvidenceKind;
   municipalities: string[];
-  /** When true, link-only/snippet without page body is not auto-rejected (still runs content gates). */
   allowSnippet?: boolean;
 }
 
@@ -1005,9 +1063,10 @@ export function credibilityRejectReason(c: CredibilityInput): string | null {
   const url = c.url || '';
   const hay = `${title}\n${ev}`;
 
+  if (isWeakFacebookListingUrl(url)) return 'weak_facebook_url';
   if (isListingUnavailable(title, ev)) return 'listing_unavailable';
   // "Zu vermieten gesucht" = demand, but isSeekerPost treats "zu vermieten" as offer — catch it here.
-  if (/\bzu\s+vermieten\s+gesucht\b/i.test(hay) || /\b(wir\s+suchen|ich\s+suche)\b/i.test(hay) && /(wohnung|haus|zimmer)/i.test(hay)) {
+  if (/\bzu\s+vermieten\s+gesucht\b/i.test(hay) || (/\b(wir\s+suchen|ich\s+suche)\b/i.test(hay) && /(wohnung|haus|zimmer)/i.test(hay))) {
     return 'seeker_post';
   }
   if (isSeekerPost(title, ev)) return 'seeker_post';
@@ -1018,14 +1077,9 @@ export function credibilityRejectReason(c: CredibilityInput): string | null {
   const nl = nonListingReason(title, url);
   if (nl) return nl;
 
-  if (roomsEvidenceConflict(title, ev)) return 'rooms_conflict';
+  if (roomsEvidenceConflict(title, ev, c.roomsEstimated)) return 'rooms_conflict';
   if (municipalityEvidenceMismatch(c.municipality, ev, c.municipalities || [])) return 'municipality_mismatch';
 
-  if (isPlatformOrJunkContact(c.email, c.phone)) {
-    // Platform contact alone does not kill a good listing, but clear the contact upstream; here reject only if contact was the only signal and required — leave to quality settings.
-  }
-
-  // Temporary / furnished short-stay noise common in GR search
   if (/\btempor\w*\b|\bbefristet\s+auf\s+\d+\s*monat/i.test(hay) && /möbliert|mobliert|furnished/i.test(hay) && !/nachmieter|unbefristet|langfrist/i.test(hay)) {
     return 'temporary_furnished';
   }
@@ -1037,11 +1091,20 @@ export function credibilityRejectReason(c: CredibilityInput): string | null {
 
 /** Prefer verified price from evidence text over an unverified LLM quote. */
 export function priceFromEvidence(evidence: string, llmQuote: string | null | undefined): ParsedPrice | null {
-  const fromEv = resolveListingPrice(evidence, null) || parsePrice(evidence);
+  const cleaned = stripEvidenceChrome(evidence);
+  const fromEv = resolveListingPrice(cleaned, null) || parsePrice(cleaned);
   if (fromEv) return fromEv;
-  if (llmQuote && verifyQuote(evidence, llmQuote)) {
-    return parsePrice(llmQuote) || parsePrice(`${llmQuote}\n${evidence.slice(0, 500)}`);
+  if (llmQuote && verifyQuote(cleaned, llmQuote)) {
+    return parsePrice(llmQuote) || parsePrice(`${llmQuote}\n${cleaned.slice(0, 500)}`);
   }
-  return parsePrice(evidence.slice(0, 8000));
+  return parsePrice(cleaned.slice(0, 8000));
+}
+
+/** Structured one-line hide log for product diagnostics. */
+export function formatHideLog(opts: { reason: string; host?: string; title?: string; url?: string }): string {
+  const host = (opts.host || '').slice(0, 40);
+  const title = String(opts.title || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  const url = String(opts.url || '').slice(0, 120);
+  return JSON.stringify({ type: 'immofinder_hide', reason: opts.reason, host, title, url });
 }
 

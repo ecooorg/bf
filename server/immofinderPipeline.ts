@@ -290,7 +290,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         else if (reason === 'municipality_not_whitelisted') st.geo++;
         else st.junk++;
         st.consecutiveBad++;
-        drop(reason); say(stage, `✖ ${reason}${detail ? ` (${detail.slice(0, 40)})` : ''}: ${meta.title.slice(0, 60)}`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, kept: false, reason, detail: detail?.slice(0, 120) });
+        drop(reason);
+        try { console.log(formatHideLog({ reason, host, title: meta.title, url })); } catch { /* diag */ }
+        say(stage, `✖ ${reason}${detail ? ` (${detail.slice(0, 40)})` : ''}: ${meta.title.slice(0, 60)}`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, kept: false, reason, detail: detail?.slice(0, 120) });
         if (!opts.dryRun) await deps.store.markSeen(url, src.id, 'filtered', reason);
       };
       const nl = nonListingReason(meta.title, url); if (nl) { await deny(nl); continue; }
@@ -321,6 +323,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const evidence = [...phones.slice(0, 1).map((v) => ({ type: 'phone', value: v, url })), ...c.emails.slice(0, 1).map((v) => ({ type: 'email', value: v, url }))];
       const pageText = pages[i].text;
       const evidenceKind: EvidenceKind = pages[i].snippet ? 'snippet' : (pageText.trim().length >= 80 ? 'page_text' : 'link_only');
+      res.counts[`evidence_${evidenceKind}`] = (res.counts[`evidence_${evidenceKind}`] || 0) + 1;
       const evidenceText = buildEvidenceText(meta.title, pageText, 4000);
       const priceHay = evidenceText;
       // Prefer prices that appear in evidence text over unverified LLM collage.
@@ -387,7 +390,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
         contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind },
       };
-      res.counts.kept++; st.kept++; st.consecutiveBad = 0;
+      res.counts.kept++;
+      res.counts.credible_kept = (res.counts.credible_kept || 0) + 1;
+      st.kept++; st.consecutiveBad = 0;
       const priceNote = price?.monthlyChf != null ? `CHF ${price.monthlyChf}` : (price?.quote ? price.quote.slice(0, 24) : 'no price');
       say(stage, `✔ match: ${ex.name.slice(0, 50)} (${ex.municipality}) · ${priceNote}`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
       if (opts.dryRun) continue;
@@ -702,7 +707,29 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const filt = Object.entries(res.filtered).map(([k, v]) => `${k}=${v}`).join(' ') || 'none';
   const c = res.counts;
   const statsLine = (res.sourceStats || []).map((s) => `${s.id}:kept=${s.kept}/fetch=${s.fetched}/geo=${s.geo}/junk=${s.junk}${s.stoppedEarly ? '/STOP' : ''}`).join(' · ') || 'none';
-  say('catalogue', `FUNNEL candidates=${c.candidates} skipped_known=${c.skipped_known} skipped_seen=${c.skipped_seen} skipped_geo=${c.skipped_geo || 0} fetched=${c.fetched} snippet=${c.snippet_only} llm=${c.llm_calls} kept=${c.kept} new=${c.new} filtered: ${filt}`);
+  say('catalogue', `FUNNEL candidates=${c.candidates} skipped_known=${c.skipped_known} skipped_seen=${c.skipped_seen} skipped_geo=${c.skipped_geo || 0} fetched=${c.fetched} snippet=${c.snippet_only} llm=${c.llm_calls} kept=${c.kept} credible_kept=${c.credible_kept || 0} new=${c.new} filtered: ${filt}`);
   say('catalogue', `SOURCE_STATS ${statsLine}`);
+  const credibilityDenies: Record<string, number> = {};
+  for (const [k, v] of Object.entries(res.filtered)) {
+    if (/^(seeker_post|for_sale|holiday_tourism|listing_unavailable|rooms_conflict|municipality_mismatch|weak_facebook|temporary_furnished|agency|evidence_insufficient|not_single|shared_room|development|hotel)/i.test(k)) {
+      credibilityDenies[k] = v;
+    }
+  }
+  try {
+    console.log(JSON.stringify({
+      type: 'immofinder_product_quality_summary',
+      credible_kept: c.credible_kept || 0,
+      kept: c.kept || 0,
+      new: c.new || 0,
+      evidence_kind: {
+        page_text: c.evidence_page_text || 0,
+        snippet: c.evidence_snippet || 0,
+        link_only: c.evidence_link_only || 0,
+      },
+      credibility_denies: credibilityDenies,
+      filtered: res.filtered,
+      wave: opts.wave || 'full',
+    }));
+  } catch { /* diag only */ }
   return res;
 }

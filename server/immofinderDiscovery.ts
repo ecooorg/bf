@@ -78,12 +78,19 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig): DiscoveryItem[] {
   const list = cfg.municipalities || [];
   const score = (it: DiscoveryItem) => {
     const hay = `${it.url} ${it.hit?.title || ''} ${it.hit?.snippet || ''}`.toLowerCase();
+    let s = 1;
+    // Prefer Swiss portals we can fetch (Homegate, Tutti, Flatfox, …) over FB snippet-only.
+    if (portalHosts.some((ph) => it.host === ph || it.host.endsWith(`.${ph}`))) s = 0;
     for (const m of list) {
-      if (m && hay.includes(m.toLowerCase())) return 0;
+      if (m && hay.includes(m.toLowerCase())) s = Math.min(s, 0);
     }
-    if (portalHosts.some((ph) => it.host === ph || it.host.endsWith(`.${ph}`))) return 0;
-    if (/\b(scuol|engadin|samnaun|st\.?\s*moritz|davos|klosters|arosa|pontresina)\b/i.test(hay)) return 2;
-    return 1;
+    if (/homegate\.ch|tutti\.ch|immoscout24\.ch|flatfox\.ch|newhome\.ch/i.test(it.host)) s = Math.min(s, 0);
+    // Facebook / social snippet-only: de-prioritise so portal detail pages are examined first.
+    if (it.snippetOnly && /facebook\.com|instagram\.com/i.test(it.host)) s += 3;
+    if (/\b(scuol|engadin|samnaun|st\.?\s*moritz|davos|klosters|arosa|pontresina)\b/i.test(hay)) s += 2;
+    // Weak FB photo links should already be dropped by isSpecificLink; if present, bury them.
+    if (/\/photo\.php/i.test(it.url)) s += 5;
+    return s;
   };
   return out.sort((a, b) => score(a) - score(b));
 }
