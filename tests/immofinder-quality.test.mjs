@@ -293,3 +293,57 @@ test('immoEvidenceBlock and exports include source text when raw.evidence_text i
   const del = read('server/immofinderDelivery.ts');
   assert.match(del, /immoEvidenceBlock/);
 });
+
+
+
+test('P129.37 precision: unavailable, for_sale, weak FB photo, platform contact, footer strip', async () => {
+  const {
+    isListingUnavailable,
+    isForSaleListing,
+    isWeakFacebookListingUrl,
+    isPlatformOrJunkContact,
+    roomsEvidenceConflict,
+    stripEvidenceChrome,
+    credibilityRejectReason,
+    formatHideLog,
+  } = await import('../server/immofinderCore.ts');
+
+  assert.equal(isListingUnavailable('x', 'Unfortunately, this listing is currently not available.'), true);
+  assert.equal(isForSaleListing('Dachwohnung', 'Charmante Wohnung zu verkaufen. Auch mieten möglich?', 'https://facebook.com/groups/1/posts/2'), true);
+  assert.equal(isWeakFacebookListingUrl('https://www.facebook.com/photo.php?fbid=1&set=gm.123&type=3'), true);
+  assert.equal(isWeakFacebookListingUrl('https://www.facebook.com/groups/1/posts/999/'), false);
+  assert.equal(isPlatformOrJunkContact('info@betterhomes.ch', null), true);
+  assert.equal(isPlatformOrJunkContact('einwohnerkontrolle@domat-ems.ch', null), true);
+  assert.equal(roomsEvidenceConflict('5.5 Zimmer', '2.5 Zimmer ca 65m2 Miete CHF 1320', 5.5), true);
+  const stripped = stripEvidenceChrome('Nice flat in Chur CHF 1500\nFlatfox AG\nAbout us Contact Imprint');
+  assert.ok(stripped.includes('Nice flat'));
+  assert.ok(!/About us/.test(stripped));
+  assert.equal(
+    credibilityRejectReason({
+      title: 'Wohnung',
+      evidenceText: 'Unfortunately, this listing is currently not available.',
+      url: 'https://flatfox.ch/x',
+      municipality: 'Chur',
+      roomsEstimated: 3.5,
+      price: null,
+      phone: null,
+      email: null,
+      evidenceKind: 'page_text',
+      municipalities: ['Chur'],
+      allowSnippet: true,
+    }),
+    'listing_unavailable',
+  );
+  const line = formatHideLog({ reason: 'rooms_conflict', host: 'facebook.com', title: 'Test title long '.repeat(10), url: 'https://x' });
+  assert.match(line, /"type":"immofinder_hide"/);
+  assert.match(line, /rooms_conflict/);
+});
+
+test('P129.37 pipeline logs product quality summary symbols', () => {
+  const pipe = read('server/immofinderPipeline.ts');
+  assert.match(pipe, /immofinder_product_quality_summary/);
+  assert.match(pipe, /credible_kept/);
+  assert.match(pipe, /formatHideLog/);
+  const disc = read('server/immofinderDiscovery.ts');
+  assert.match(disc, /snippetOnly && \/facebook/);
+});

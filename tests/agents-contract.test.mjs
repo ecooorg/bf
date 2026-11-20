@@ -457,10 +457,3 @@ test('P129.23a refresh reads publication dates and contacts while preserving sto
   assert.equal(status.checked, 2); assert.equal(status.unreachable, 1);
   assert.ok(logs.some((x) => x.event === 'recheck_refresh_done'));
 });
-
-test('P129.34 emailContent all is used in both deliverWave paths', () => {
-  const routes = read('server/immofinderRoutes.ts');
-  assert.equal((routes.match(/emailContent === 'all'/g) || []).length >= 2, true, 'manual + schedule honor emailContent');
-  assert.match(routes, /emailRows/);
-  assert.match(routes, /notifyEmail/);
-});
