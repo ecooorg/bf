@@ -1,3 +1,13 @@
+## P129.42 — ImmoFinder discovery freshness and recovery
+
+- **PROBLEM / BASELINE:** 13 runs in the supplied 72h logs; 25/26 and 25/35 candidates already seen; saved export 45 listings, 26 Facebook (24 from two groups). `skipped_seen` reached 25/35. Baseline user-value re-run: **NOT_RUN**.
+- **HYPOTHESIS:** weekly Serper freshness with no-filter fallback, commune-specific private queries, 5-query incremental processing, and not persisting incomplete-evidence rejects will increase distinct candidates and prevent partial-run loss.
+- **METRICS:** candidates, skipped_seen/candidates, kept/new, and per-source host counts in `immofinder_search_quality_summary`; DB snapshots before/after run.
+- **ACCEPTANCE:** settings default to 4 communes; freshness fallback is exercised; every batch of up to 5 queries is processed before continuing; `rooms_unknown` / `municipality_not_whitelisted` and snippet-only `price_unknown` are not persisted to `immofinder_seen`; DB diagnostic event includes listing/seen counts and pool state.
+- **SCOPE:** `config/immofinder.json`, `server/immofinderDiscovery.ts`, `server/immofinderPipeline.ts`, `server/immofinderSettings.ts`, `server/immofinderDiag.ts`, `server/immofinderRoutes.ts`, `src/ImmoFinderSettings.tsx`, focused tests and patch metadata.
+- **ROLLBACK:** revert P129.42 if fresh-query fallback, incremental processing, or source defaults regress candidate yield or cause Serper budget exhaustion.
+- **CLASSIFICATION:** BUGFIX / RELIABILITY. Live Serper, database and user-value outcome remain **NOT_RUN**.
+
 # EXPERIMENTS — measurement ledger (C129 Quality Search)
 
 > **Phase shift (C129):** ImmoFinder **searcher construction is complete** (sources, waves, geo, contacts, price extraction, settings, Drive/email).  
