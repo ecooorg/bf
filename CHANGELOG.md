@@ -1,3 +1,10 @@
+## [129.39] - UI: remove offer-type tabs; Serper 400 diagnostics
+
+- Remove Direct offers / Holiday owners (and All) chips; toolbar is Hidden / Recheck filters / Recheck list.
+- Serper: sanitize/truncate query; include response body snippet on HTTP 400; longer failure text in UI log.
+- Full search kept=0 was driven by Serper HTTP 400 on all discovery queries + happyholiday catalogue correctly rejected as tourism.
+- USER_VALUE / BUGFIX.
+
 ## [129.38] - CI: formatHideLog import; discovery order test; TECHNICAL_REPORT 129.27–129.38
 
 - Import `formatHideLog` in pipeline (typecheck/build/Render).
