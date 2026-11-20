@@ -22,6 +22,11 @@ type S = {
     defaultWave: 'priority' | 'full';
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
+    privateQueryTemplates: number;
+    freshness: 'd' | 'w';
+    freshnessFallback: boolean;
+    enrichSearchesPerRun: number;
+    recheckContactSearch: boolean;
   };
 };
 type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccount?: string };
@@ -364,11 +369,11 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
         <label style={labelBlock}>
           Communes per carousel tick{' '}
           <select
-            value={s.search.carouselCommunesPerRun || 2}
+            value={s.search.carouselCommunesPerRun || 8}
             disabled={(s.search.profile || 'carousel') !== 'carousel'}
             onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, carouselCommunesPerRun: Number(e.target.value) } }))}
           >
-            {[1, 2, 3, 4].map((n) => (
+            {[1, 2, 4, 6, 8, 12].map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
@@ -627,6 +632,59 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 ))}
               </select>{' '}
               pages with AI per search
+            </label>
+            <label style={labelBlock}>
+              Private-search queries per commune{' '}
+              <select
+                value={s.search.privateQueryTemplates ?? 2}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, privateQueryTemplates: Number(e.target.value) } }))}
+                data-testid="immofinder-private-templates"
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <label style={labelBlock}>
+              Search freshness{' '}
+              <select
+                value={s.search.freshness || 'w'}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, freshness: e.target.value === 'd' ? 'd' : 'w' } }))}
+                data-testid="immofinder-freshness"
+              >
+                <option value="d">last day</option>
+                <option value="w">last week</option>
+              </select>
+            </label>
+            <label style={labelBlock}>
+              <input
+                type="checkbox"
+                checked={s.search.freshnessFallback === true}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, freshnessFallback: e.target.checked } }))}
+                data-testid="immofinder-freshness-fallback"
+              />{' '}
+              Repeat empty searches without freshness filter (doubles Serper use)
+            </label>
+            <label style={labelBlock}>
+              Contact searches per run (0 = off){' '}
+              <select
+                value={s.search.enrichSearchesPerRun ?? 6}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, enrichSearchesPerRun: Number(e.target.value) } }))}
+                data-testid="immofinder-enrich-searches"
+              >
+                {[0, 3, 6, 12, 25, 35].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <label style={labelBlock}>
+              <input
+                type="checkbox"
+                checked={s.search.recheckContactSearch === true}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, recheckContactSearch: e.target.checked } }))}
+                data-testid="immofinder-recheck-contact-search"
+              />{' '}
+              Search for contacts during Recheck list
             </label>
           </div>
         )}
