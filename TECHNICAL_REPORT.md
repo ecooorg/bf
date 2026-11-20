@@ -1,3 +1,7 @@
+## P129.44 — ImmoFinder spend control and lean defaults
+
+- **OBSERVED:** supplied logs show ~30 queries + up to 35 contact searches per hourly run, 21 new listings in ~11h, 125/145 recheck fetches HTTP 403. **CHANGE:** lean saved-and-reset defaults, real Serper call counters, no-rooms snippet skips the model, recheck contact search off. **NOT_RUN:** live spend and yield after deploy.
+
 ## P129.43a — CI TypeScript fix and install reliability
 
 - **EVIDENCE:** run #44729762057 failed with 11 TypeScript annotations; two discovery geo checks passed 2 args to a 3-arg helper. **CHANGE:** fix both calls and false-positive truthiness; add regression test, npm retries/cache, 15m install timeout and stage timings. **VERIFY:** npm ci timed out locally; typecheck, suites and hosted rerun NOT_RUN.

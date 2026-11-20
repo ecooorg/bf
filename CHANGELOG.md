@@ -1,3 +1,8 @@
+## P129.44 — ImmoFinder spend control and lean defaults
+
+- 17 hourly runs in ~11h found 21 new listings while spending ~30 discovery queries, up to 35 contact searches and ~26-43 model calls per run; recheck spent 70 searches for 0 contacts; unfiltered fallback calls were not counted.
+- Defaults now 6h cadence, 8 communes, 2 private templates, 40 AI pages, 6 contact searches, no recheck contact search, no automatic unfiltered fallback (all Settings controls, restored by Reset); real Serper calls counted (`serper_calls`, `serper_fallback`); snippets without rooms skip the model; snippet repeats deduplicated. RELIABILITY; live spend and yield NOT_RUN.
+
 ## P129.43a — CI TypeScript fix and install reliability
 
 - Fix both invalid geo-helper calls (restore the required 3-argument contract and require a matched commune); add regression coverage. CI: npm retry/cache/timing; bounded install and timed verification DAG.
