@@ -360,7 +360,7 @@ test('P129.43 defaults select four communes and only the productive discovery so
   const settings = read('server/immofinderSettings.ts');
   const routes = read('server/immofinderRoutes.ts');
   const ui = read('src/ImmoFinderSettings.tsx');
-  assert.match(settings, /carouselCommunesPerRun: 4/);
+  assert.match(settings, /carouselCommunesPerRun: 8/);
   assert.match(settings, /\['search', 'portal-tutti', 'portal-flatfox', 'portal-homegate'\]/);
   assert.match(routes, /\/api\/immofinder\/settings\/reset/);
   assert.match(routes, /saveSettings\(cfg, defaultSettings\(cfg\)\)/);
