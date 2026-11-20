@@ -1,3 +1,13 @@
+## P129.43 — Settings reset, CI contract repair, and higher-signal discovery
+
+- **PROBLEM / BASELINE:** Supplied 20 Nov logs show 38 queries, 20 candidates, 9 fetched pages, 9 snippet-only hits, 14 junk rejects, 5 geo rejects, 0 kept/new; persisted UI still shows 2 communes and all source checkboxes selected. CI log shows 7 `test:core` failures and 1 `test:project` failure. User-value baseline: **0 new / 1 run**.
+- **HYPOTHESIS:** A persisted “Reset to defaults” action is required because changing `defaultSettings()` cannot override DB-stored preferences. Defaulting to four communes and the four historically highest-yield discovery sources makes actual settings match intended defaults. More specific long-term rental queries plus unfiltered retry when fresh SERP results contain no specific listing link with a selected-commune signal should improve candidate relevance.
+- **METRICS:** Saved settings after reset (4 communes; search/Tutti/Flatfox/Homegate enabled only), candidates, usable links after pickItems plus selected-commune evidence, fetched, kept/new, rejection reasons, and CI DAG.
+- **ACCEPTANCE:** Reset persists exact defaults; 4 communes are used per carousel cycle; non-default sources remain off; CI `test:core` and `test:project` pass; no loosening of price/room/agency/geo credibility gates. Live Serper/DB user-value outcome: **NOT_RUN** until deployed.
+- **SCOPE:** ImmoFinder settings routes/UI, discovery query templates and fallback, evidence card/footer fixes, focused tests, package patch metadata.
+- **ROLLBACK:** Revert query/fallback changes if the usable-link rate or `kept/new` declines; reset action can be reverted independently.
+- **CLASSIFICATION:** BUGFIX / EXPERIMENT. No claim of production improvement without a post-deploy run.
+
 ## P129.42 — ImmoFinder discovery freshness and recovery
 
 - **PROBLEM / BASELINE:** 13 runs in the supplied 72h logs; 25/26 and 25/35 candidates already seen; saved export 45 listings, 26 Facebook (24 from two groups). `skipped_seen` reached 25/35. Baseline user-value re-run: **NOT_RUN**.
