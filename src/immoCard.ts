@@ -100,9 +100,8 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
   const url = String(l.listing_url || '').trim();
   // Prefer stored evidence excerpt (verbatim page/snippet) over a short paraphrase alone.
   const evidence = typeof l.raw?.evidence_text === 'string' ? String(l.raw.evidence_text).replace(/\s+/g, ' ').trim() : '';
-  const aboutCore = evidence
-    ? evidence.slice(0, 360)
-    : [l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 280);
+  const aboutCore = [l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 280)
+    || evidence.slice(0, 280);
   const kindRaw = l.raw?.evidence_kind;
   const evidenceKind = (kindRaw === 'page_text' || kindRaw === 'snippet' || kindRaw === 'link_only') ? kindRaw : (evidence ? 'page_text' : '');
   const shot = typeof l.raw?.evidence_screenshot_url === 'string' ? String(l.raw.evidence_screenshot_url).trim() : '';

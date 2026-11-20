@@ -135,6 +135,20 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
     }
   };
 
+  const resetToDefaults = async () => {
+    try {
+      const r = await api('/api/immofinder/settings/reset', { method: 'POST', body: '{}' });
+      setS(r.settings);
+      setChannels(r.channels);
+      setCommunes(r.communes || communes);
+      setDirty(false);
+      setNote('Default settings applied and saved.');
+      onChanged?.(r.settings);
+    } catch (e) {
+      setNote((e as Error).message);
+    }
+  };
+
   const test = async (channel: string) => {
     try {
       if (dirty) await save();
@@ -618,6 +632,16 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
         )}
       </div>
 
+      <button
+        type="button"
+        data-testid="immofinder-settings-reset"
+        onClick={() => void resetToDefaults()}
+        disabled={false}
+        className="immo-btn"
+        style={{ padding: '10px 18px', fontSize: 16, marginRight: 8 }}
+      >
+        Reset to defaults
+      </button>
       <button
         type="button"
         data-testid="immofinder-settings-save"
