@@ -58,8 +58,7 @@ export default function ImmoFinder() {
   const [starting, setStarting] = useState(false);
   const [dry, setDry] = useState(false);
   const [tick, setTick] = useState(Date.now());
-  const [tab, setTab] = useState<'all' | 'long_term_offer' | 'holiday_owner'>('all');
-  const [hidden, setHidden] = useState(0);
+    const [hidden, setHidden] = useState(0);
   const [summary, setSummary] = useState('loading…');
   const [enrichJob, setEnrichJob] = useState<{ running?: boolean; queued?: number; checked?: number; found?: number; errors?: number; message?: string; current?: string; finishedAt?: number | null } | null>(null);
   const onSettings = useCallback((s: any) => setSummary(summarize(s)), []);
@@ -169,7 +168,7 @@ export default function ImmoFinder() {
   const elapsed = run ? ((run.finished_at ? new Date(run.finished_at).getTime() : tick) - new Date(run.started_at).getTime()) / 1000 : 0;
   const pct = pr.total ? Math.min(100, Math.round(((pr.current || 0) / pr.total) * 100)) : null;
   const busy = running || starting;
-  const shown = items.filter((x) => tab === 'all' || (tab === 'long_term_offer' ? x.listing_type === 'long_term_offer' : x.listing_type !== 'long_term_offer'));
+  const shown = items;
   const driveUrl = run?.delivery?.driveUrl;
   const filtered = Object.entries((run?.counts?.filtered as Record<string, number>) || {});
 
@@ -317,23 +316,20 @@ export default function ImmoFinder() {
           </select>
         </label>
       </div>
-      <div role="tablist" data-testid="immofinder-tabs" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '4px 0 10px' }}>
-        {([['all', 'All', items.length], ['long_term_offer', 'Direct offers (reply to the ad)', items.filter((x) => x.listing_type === 'long_term_offer').length], ['holiday_owner', 'Holiday owners (ask for long-term)', items.filter((x) => x.listing_type !== 'long_term_offer').length]] as const).map(([id, label, n]) => (
-          <button key={id} type="button" role="tab" aria-selected={tab === id} className="immo-btn small" style={{ opacity: tab === id ? 1 : 0.6 }} onClick={() => setTab(id)}>{label} · {n}</button>
-        ))}
+      <div data-testid="immofinder-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '4px 0 10px', alignItems: 'center' }}>
         {hidden > 0 && view === 'current' && (
-          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setView('hidden')}>
+          <button type="button" className="immo-btn small" style={{ fontSize: 13 }} onClick={() => setView('hidden')}>
             {hidden} hidden as not suitable — view
           </button>
         )}
         {view !== 'current' && (
-          <button type="button" className="ghost" style={{ fontSize: 13 }} onClick={() => setView('current')}>
+          <button type="button" className="immo-btn small" style={{ fontSize: 13 }} onClick={() => setView('current')}>
             Back to current list
           </button>
         )}
         <button
           type="button"
-          className="ghost"
+          className="immo-btn small"
           data-testid="immofinder-recheck-filters"
           onClick={() => void recheck()}
           style={{ fontSize: 13 }}
@@ -341,7 +337,7 @@ export default function ImmoFinder() {
         >
           {recheckBusy ? 'Rechecking…' : 'Recheck filters'}
         </button>
-        <button type="button" className="ghost" data-testid="immofinder-recheck-list"
+        <button type="button" className="immo-btn small" data-testid="immofinder-recheck-list"
           onClick={() => void recheckList()} style={{ fontSize: 13 }} disabled={busy || listRefreshBusy}>
           {listRefreshBusy ? 'Rechecking list…' : 'Recheck list'}
         </button>
