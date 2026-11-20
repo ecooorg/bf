@@ -22,7 +22,7 @@ export interface PipelineDeps {
   llm: ((system: string, prompt: string) => Promise<unknown>) | null;
   store: ImmoStore;
   /** Web search for discovery (Serper); null disables discovery. */
-  search?: ((q: string) => Promise<SearchHit[]>) | null;
+  search?: ((q: string, options?: { tbs?: string }) => Promise<SearchHit[]>) | null;
   /** Number of finished real runs; rotates which communes discovery covers. */
   cycle?: number;
   /** Called often with a short human-readable status; must be cheap and must not throw. */
@@ -183,7 +183,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
       const stopAt = consecutiveStopFor(src.id);
-      if (st.consecutiveBad >= stopAt) {
+      if (src.id !== 'search' && st.consecutiveBad >= stopAt) {
         st.stoppedEarly = true;
         res.errors.push({ source: src.id, code: 'source_early_stop', detail: `${stopAt} consecutive non-keeps; skipping rest of source` });
         say(stage, `${src.id}: early stop after ${stopAt} consecutive bad results`);
@@ -193,11 +193,11 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (known && fresh(known.last_seen_at)) { if (!opts.dryRun) await deps.store.touch(known.id); res.counts.skipped_known++; continue; }
       const seen = await deps.store.getSeen(it.url);
       if (seen) {
-        // Soft quality rejects (rooms/price/municipality/seeker) recheck after 1 day so filter changes take effect;
+        // Soft quality rejects (rooms/price/municipality/seeker) recheck after 6h so new evidence can be tried;
         // hard rejects (list pages, for_sale, agency, non-listing) keep full recheckAfterDays.
         const soft = /^(rooms_|price_|municipality_|seeker_|min_rooms)/i.test(seen.reason || '') || seen.decision === 'filtered' && /^(rooms|price|municipality|seeker)/i.test(seen.reason || '');
-        const ttlDays = soft ? 1 : cfg.limits.recheckAfterDays;
-        const isFresh = now() - new Date(seen.checked_at).getTime() < ttlDays * 86400000;
+        const ttlMs = soft ? 6 * 60 * 60 * 1000 : cfg.limits.recheckAfterDays * 86400000;
+        const isFresh = now() - new Date(seen.checked_at).getTime() < ttlMs;
         if (isFresh) { res.counts.skipped_seen++; continue; }
       }
       // Skip URLs that clearly name a place outside the whitelist (no fetch, no LLM).
@@ -207,7 +207,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         st.geo++; st.consecutiveBad++;
         drop('municipality_not_whitelisted');
         res.preview.push({ url: it.url, title: (it.hit?.title || place.hint || it.url).slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: 'municipality_not_whitelisted', detail: `url_place:${place.hint}` });
-        if (!opts.dryRun) await deps.store.markSeen(it.url, src.id, 'filtered', 'municipality_not_whitelisted');
+        /* insufficient location evidence: do not poison seen */
         continue;
       }
       // Title / snippet geo prefilter (search hits and catalogue titles that already name a distant resort).
@@ -217,7 +217,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         st.geo++; st.consecutiveBad++;
         drop('municipality_not_whitelisted');
         res.preview.push({ url: it.url, title: (it.hit?.title || titleGeo.hint || it.url).slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: 'municipality_not_whitelisted', detail: `title_place:${titleGeo.hint}` });
-        if (!opts.dryRun) await deps.store.markSeen(it.url, src.id, 'filtered', 'municipality_not_whitelisted');
+        /* insufficient location evidence: do not poison seen */
         continue;
       }
       // Title from search hit can reject list pages before fetch
@@ -259,7 +259,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         st.geo++; st.consecutiveBad++;
         drop('municipality_not_whitelisted');
         res.preview.push({ url: it.url, title: meta!.title.slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: 'municipality_not_whitelisted', detail: `page_place:${pageGeo.hint}` });
-        if (!opts.dryRun) await deps.store.markSeen(it.url, src.id, 'filtered', 'municipality_not_whitelisted');
+        /* insufficient location evidence: do not poison seen */
         continue;
       }
       const nlEarly = nonListingReason(meta!.title, it.url);
@@ -293,7 +293,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         drop(reason);
         try { console.log(formatHideLog({ reason, host, title: meta.title, url })); } catch { /* diag */ }
         say(stage, `✖ ${reason}${detail ? ` (${detail.slice(0, 40)})` : ''}: ${meta.title.slice(0, 60)}`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, kept: false, reason, detail: detail?.slice(0, 120) });
-        if (!opts.dryRun) await deps.store.markSeen(url, src.id, 'filtered', reason);
+        if (!opts.dryRun && reason !== 'rooms_unknown' && reason !== 'municipality_not_whitelisted' && !(reason === 'price_unknown' && pages[i].snippet)) await deps.store.markSeen(url, src.id, 'filtered', reason);
       };
       const nl = nonListingReason(meta.title, url); if (nl) { await deny(nl); continue; }
       if (!ex.single) { await deny('not_single_listing'); continue; }
@@ -541,27 +541,42 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     // finishAll (carousel): keep going until every query for this commune slice is done, only stop on cancel / hard run wall.
     const finishAll = Boolean(opts?.finishAll);
     if (!finishAll && timeLeft() < 45_000) return;
-    const hits: SearchHit[] = [];
     const coverAll = waveMode === 'full' || waveMode === 'extended'; // carousel never covers all communes in one tick
     const families: ('private' | 'portals')[] = [];
     if ((cfg.discovery?.queries || []).length) families.push('private');
     if ((cfg.discovery?.portalQueries || []).length) families.push('portals');
     const qs = buildQueries(cfg, deps.cycle ?? 0, { allCommunes: coverAll, families: families.length ? families : undefined });
-    // Carousel / finishAll: no maxQueries — every template × commune in the slice must run.
     const slice = finishAll || maxQueries == null
       ? qs.slice(discoveryQueryOffset)
       : qs.slice(discoveryQueryOffset, discoveryQueryOffset + maxQueries);
     let qi = 0;
     let consecutiveSearchFails = 0;
+    let processedItems = 0;
+    const processedUrls = new Set<string>();
+    const pageLimit = maxPages ?? (finishAll ? Math.max(d.maxPagesPerRun, 80) : d.maxPagesPerRun);
     const communeHint = waveMode === 'carousel' && carouselCommunesSlot.length
       ? ` [${carouselCommunesSlot.join(', ')}]`
       : waveMode === 'full' ? ' [all communes]' : '';
     say('search', finishAll
-      ? `Discovery${communeHint}: ${slice.length} queries (all selected sources, Serper-paced)`
+      ? `Discovery${communeHint}: ${slice.length} queries (all selected sources, Serper-paced; process every 5 queries)`
       : `Discovery: up to ${slice.length} queries`);
+    let batchHits: SearchHit[] = [];
+    const flushBatch = async () => {
+      if (!batchHits.length || deps.shouldCancel?.()) { batchHits = []; return; }
+      const items = pickItems(batchHits, cfg).filter((it) => {
+        if (processedUrls.has(it.url)) return false;
+        processedUrls.add(it.url); return true;
+      });
+      batchHits = [];
+      const remaining = Math.max(0, pageLimit - processedItems);
+      if (items.length && remaining > 0) {
+        res.counts.sources++;
+        await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), remaining);
+        processedItems += Math.min(items.length, remaining);
+      }
+    };
     for (const q of slice) {
       if (deps.shouldCancel?.()) break;
-      // Soft wall: only abort mid-list when not finishAll; carousel must complete the slice.
       if (!finishAll && timeLeft() < 45_000) {
         res.errors.push({ source: 'search', code: 'run_time_budget', detail: `stopped with ${slice.length - qi} queries left` });
         break;
@@ -574,16 +589,33 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       discoveryQueryOffset++;
       say('search', `Searching: ${q}`, ++qi, slice.length);
       try {
-        const batch = await withStepTimeout('serper', () => deps.search!(q));
-        serperTimestamps.push((deps.now ?? Date.now)());
-        hits.push(...batch.slice(0, d.resultsPerQuery));
+        let batch: SearchHit[] = [];
+        let fallbackTried = false;
+        try {
+          batch = await withStepTimeout('serper', () => deps.search!(q, { tbs: 'qdr:w' }));
+          serperTimestamps.push((deps.now ?? Date.now)());
+        } catch (freshError) {
+          // Freshness filter is best-effort: retry the same query without tbs on provider rejection.
+          serperTimestamps.push((deps.now ?? Date.now)());
+          fallbackTried = true;
+          await paceSerper();
+          batch = await withStepTimeout('serper_fallback', () => deps.search!(q));
+          serperTimestamps.push((deps.now ?? Date.now)());
+          res.errors.push({ source: 'search', code: 'freshness_fallback', detail: String((freshError as Error)?.message || freshError).slice(0, 100) });
+        }
+        if (!batch.length && !fallbackTried) {
+          await paceSerper();
+          const fallback = await withStepTimeout('serper_fallback', () => deps.search!(q));
+          serperTimestamps.push((deps.now ?? Date.now)());
+          if (fallback.length) batch = fallback;
+        }
+        batchHits.push(...batch.slice(0, d.resultsPerQuery));
         consecutiveSearchFails = 0;
       } catch (e) {
         const msg = String((e as Error)?.message || e).slice(0, 100);
         res.errors.push({ source: 'search', code: msg.startsWith('step_timeout:') ? 'step_timeout' : 'search_failed', detail: msg });
         say('search', msg.startsWith('step_timeout:') ? `skip slow search (>10s): ${q.slice(0, 50)}` : `search failed: ${msg.slice(0, 160)}`);
         consecutiveSearchFails++;
-        // Back off on 400/429-style bursts; do not abort the whole carousel after 5 fails.
         if (/429|400|rate/i.test(msg)) await sleep(Math.min(15_000, serperMinIntervalMs * 3));
         if (!finishAll && consecutiveSearchFails >= 5) break;
         if (finishAll && consecutiveSearchFails >= 20) {
@@ -591,15 +623,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           break;
         }
       }
+      if (qi % 5 === 0) await flushBatch();
+      if (processedItems >= pageLimit) break;
     }
-    if (!hits.length && slice.length === 0) return;
-    const items = pickItems(hits, cfg);
-    if (items.length) {
-      res.counts.sources++;
-      // Carousel: allow more detail pages when all sources were queried.
-      const pages = maxPages ?? (finishAll ? Math.max(d.maxPagesPerRun, 80) : d.maxPagesPerRun);
-      await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), pages);
-    }
+    await flushBatch();
   }
 
   // ----- WAVE A (priority, ~10 min): high-value catalogues first + early search slice -----

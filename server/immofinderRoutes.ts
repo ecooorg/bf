@@ -18,7 +18,7 @@ import { createSerperSearch } from './immofinderDiscovery.ts';
 import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
-import { immoLog, completenessSummary } from './immofinderDiag.ts';
+import { immoLog, completenessSummary, immoDatabaseDiagnostics } from './immofinderDiag.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -470,6 +470,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       push(ev, true);
       const errors: unknown[] = []; let result = null as Awaited<ReturnType<typeof runPipeline>> | null; const delivery: Record<string, string> = {};
       try {
+        immoLog('info', 'database_diagnostics_start', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot before run');
         const cfg = applySettings(loadImmoConfig(), settings);
         try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
         const dl = settings.delivery;
@@ -531,6 +532,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             catch (e) { errors.push({ code: `${wave}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
           },
         }, { dryRun, wave });
+        immoLog('info', 'database_diagnostics_end', await immoDatabaseDiagnostics(), 'ImmoFinder database snapshot after run');
         errors.push(...(result.errors || []));
         try {
           const saved = await listListings(null, { includeHidden: true });
@@ -621,6 +623,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           let result = null as Awaited<ReturnType<typeof runPipeline>> | null;
           const delivery: Record<string, string> = {};
           try {
+            immoLog('info', 'database_diagnostics_start', await immoDatabaseDiagnostics(), 'Scheduled ImmoFinder database snapshot before run');
             const cfg = applySettings(loadImmoConfig(), settings);
             try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* optional */ }
             const dl = settings.delivery;
@@ -676,6 +679,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
                 catch (e) { errors.push({ code: `${w}_delivery_failed`, detail: String((e as Error)?.message || e).slice(0, 200) }); }
               },
             }, { dryRun: false, wave });
+            immoLog('info', 'database_diagnostics_end', await immoDatabaseDiagnostics(), 'Scheduled ImmoFinder database snapshot after run');
             errors.push(...(result.errors || []));
             if (dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
               await deliverWave('extended', [], result.counts);

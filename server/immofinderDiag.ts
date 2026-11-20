@@ -4,6 +4,7 @@
  * Events never carry page text beyond short snippets and never throw.
  */
 import { recordApplicationLog } from './projectDiagnostics.ts';
+import { getPool } from './database.ts';
 import { isSpecificLink } from './immofinderCore.ts';
 
 export type ImmoLogLevel = 'info' | 'warn' | 'error';
@@ -15,6 +16,29 @@ export function immoLog(level: ImmoLogLevel, event: string, details: Record<stri
     if (level === 'error') console.error(line); else if (level === 'warn') console.warn(line); else console.info(line);
     void recordApplicationLog({ level, component: 'immofinder', event, message: message || event, details }).catch(() => {});
   } catch { /* diagnostics must never break a run */ }
+}
+
+
+/** Secret-free database snapshot for ImmoFinder run diagnostics. */
+export async function immoDatabaseDiagnostics(): Promise<Record<string, unknown>> {
+  const started = Date.now();
+  try {
+    const pool = await getPool();
+    const [meta, listings, seen] = await Promise.all([
+      pool.query('SELECT current_database() AS database, now() AS database_time'),
+      pool.query('SELECT count(*)::int AS total, count(*) FILTER (WHERE hidden = false)::int AS visible, count(*) FILTER (WHERE hidden = true)::int AS hidden FROM immofinder_listings'),
+      pool.query('SELECT count(*)::int AS total, count(*) FILTER (WHERE checked_at > now() - interval \'24 hours\')::int AS checked_24h FROM immofinder_seen'),
+    ]);
+    return {
+      status: 'ok', database: meta.rows[0]?.database || null,
+      databaseTime: meta.rows[0]?.database_time || null,
+      listings: listings.rows[0] || {}, seen: seen.rows[0] || {},
+      pool: { total: pool.totalCount ?? null, idle: pool.idleCount ?? null, waiting: pool.waitingCount ?? null },
+      latencyMs: Date.now() - started,
+    };
+  } catch (error) {
+    return { status: 'error', latencyMs: Date.now() - started, error: String((error as Error)?.message || error).slice(0, 180) };
+  }
 }
 
 const hostOfUrl = (u: unknown): string => { try { return new URL(String(u)).hostname.replace(/^www\./, '').slice(0, 60); } catch { return 'unknown'; } };

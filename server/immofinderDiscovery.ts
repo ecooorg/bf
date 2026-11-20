@@ -110,14 +110,14 @@ export function sanitizeSerperQuery(q: string, maxLen = 380): string {
 export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
   // Serper returns HTTP 400 when num is outside 1..10 (or query empty).
   const n = Math.max(1, Math.min(10, Number(num) || 10));
-  return async function search(q: string): Promise<SearchHit[]> {
+  return async function search(q: string, options?: { tbs?: string }): Promise<SearchHit[]> {
     const key = String(process.env.SERPER_API_KEY || '').trim(); if (!key) throw new Error('SERPER_API_KEY not set');
     const query = sanitizeSerperQuery(q);
     if (!query) return [];
     const r = await fetchImpl('https://google.serper.dev/search', {
       method: 'POST',
       headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query, gl: 'ch', hl: 'de', num: n }),
+      body: JSON.stringify({ q: query, gl: 'ch', hl: 'de', num: n, ...(options?.tbs ? { tbs: options.tbs } : {}) }),
     });
     if (!r.ok) {
       let detail = '';

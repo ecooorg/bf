@@ -55,7 +55,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       communes: [...cfg.municipalities],
       municipalityGroups: { group1: true, group2: true },
       sources: Object.fromEntries([
-        ...SOURCE_IDS.map((s) => [s, true] as const),
+        ...SOURCE_IDS.map((s) => [s, ['search', 'portal-tutti', 'portal-flatfox', 'portal-homegate'].includes(s)] as const),
         // Catalogue source ids (if present in config) default off — discovery portals are the product surface.
         ...(cfg.sources || []).map((src) => [src.id, false] as const),
       ]),
@@ -69,7 +69,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       requireContact: false,
       defaultWave: 'carousel',
       profile: 'carousel',
-      carouselCommunesPerRun: 2,
+      carouselCommunesPerRun: 4,
     },
   };
 }
@@ -107,7 +107,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const sources: Record<string, boolean> = {};
   for (const id of allIds) {
     if (Object.prototype.hasOwnProperty.call(srcIn, id)) sources[id] = bool(srcIn[id], true);
-    else if ((SOURCE_IDS as readonly string[]).includes(id)) sources[id] = true;
+    else if ((SOURCE_IDS as readonly string[]).includes(id)) sources[id] = ['search', 'portal-tutti', 'portal-flatfox', 'portal-homegate'].includes(id);
     else sources[id] = false; // catalogue defaults off
   }
   // Legacy master toggle: swiss-portals on/off → every portal-* source
