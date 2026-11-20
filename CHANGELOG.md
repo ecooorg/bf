@@ -1,3 +1,11 @@
+## [129.40] - User-facing waves: Carousel vs Full only
+
+- Email/Telegram subjects no longer say "Priority (first 10 min)" / "Extended".
+- Labels: **Carousel** (scheduled/hourly commune slice) and **Full search** (all selected communes from settings).
+- Progress log lines match the same product language.
+- Search rules still come from current settings for both modes.
+- USER_VALUE.
+
 ## [129.39] - UI: remove offer-type tabs; Serper 400 diagnostics
 
 - Remove Direct offers / Holiday owners (and All) chips; toolbar is Hidden / Recheck filters / Recheck list.
