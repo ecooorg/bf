@@ -1,3 +1,11 @@
+## P129.42 — ImmoFinder discovery P0
+
+- **CHANGE:** weekly Serper freshness + no-filter fallback; fresh private query template; incremental processing per 5 queries; no `seen` write for incomplete location/rooms or snippet-only missing price; 6h soft TTL; DB snapshots before/after runs.
+- **DEFAULTS:** carousel 4 communes; checked sources: private search, Tutti, Flatfox, Homegate (based on supplied 45-listing export and host diagnostics).
+- **BASELINE:** 13 runs/72h; `skipped_seen` 25/35; 26/45 saved listings Facebook (24 from two groups). User-value rerun NOT_RUN.
+- **VERIFICATION:** TS/TSX syntax parse PASS; JSON + `version:check` PASS. `tsc --noEmit` BLOCKED (dependencies absent: `vite/client`); automated tests NOT_RUN (`tsx` unavailable). Hosted/live Serper and DB NOT_RUN.
+- **BUGFIX / RELIABILITY.**
+
 ## P129.38 — CI/Render: formatHideLog import + discovery rank test
 
 - **FAIL:** typecheck/build `Cannot find name 'formatHideLog'` (used in deny path, missing from pipeline import). P128.3 expected FB before owner host after ranking change.

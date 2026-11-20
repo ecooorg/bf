@@ -1,3 +1,11 @@
+## [129.42] - ImmoFinder P0 discovery + diagnostics
+
+- Weekly Serper freshness (`tbs=qdr:w`) with unfiltered fallback; private queries now include current move-in language and avoid the generic FB-group template.
+- Process search results every five queries; do not persist insufficient-evidence rejects in `immofinder_seen`; soft seen TTL is 6h.
+- Default carousel: 4 communes. Default checked discovery sources: private search, Tutti, Flatfox, Homegate.
+- Add before/after DB snapshots (listing/seen counts, latency, pool state) to ImmoFinder application diagnostics.
+- BUGFIX / RELIABILITY; live search/DB/user-value verification NOT_RUN.
+
 ## [129.41a] - CI/Render green: legacy priority wave types
 
 - Fix TS2367/TS2345/TS2322 in `server/immofinderRoutes.ts`: legacy `priority` only via string cast, normalized to carousel; `deliverWave` accepts the pipeline wave union.
