@@ -1,3 +1,10 @@
+## [129.41] - CI waveMode types; product modes carousel|full only
+
+- Fix TS2367 carousel comparison inside extended/full-only branch.
+- Settings/routes: defaultWave is carousel | full (legacy priority→carousel, extended→full).
+- UI start() accepts only carousel | full.
+- BUGFIX + product cleanup of outdated priority/extended product language.
+
 ## [129.40] - User-facing waves: Carousel vs Full only
 
 - Email/Telegram subjects no longer say "Priority (first 10 min)" / "Extended".
