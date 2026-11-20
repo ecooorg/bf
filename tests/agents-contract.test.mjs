@@ -365,7 +365,7 @@ test('P128.8 type split, extra rejects, municipality from URL, type-specific let
   const fhm = immoCfg.sources.find((s) => s.id === 'ferienhausmiete');
   assert.ok(new RegExp(fhm.detailPattern).test('https://www.ferienhausmiete.de/45141.htm') && !new RegExp(fhm.detailPattern).test('https://www.ferienhausmiete.de/blog/'));
   assert.ok(fhm.indexUrls.length >= 5);
-  const ui = read('src/ImmoFinder.tsx'); assert.match(ui, /immofinder-tabs/); assert.match(ui, /api\/immofinder\/(recheck|cleanup)/); assert.match(ui, /immofinder-recheck/);
+  const ui = read('src/ImmoFinder.tsx'); assert.match(ui, /immofinder-actions/); assert.match(ui, /api\/immofinder\/(recheck|cleanup)/); assert.match(ui, /immofinder-recheck/);
   assert.match(read('migrations/024_immofinder_types.sql'), /listing_type/);
 });
 

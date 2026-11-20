@@ -347,3 +347,11 @@ test('P129.37 pipeline logs product quality summary symbols', () => {
   const disc = read('server/immofinderDiscovery.ts');
   assert.match(disc, /snippetOnly && \/facebook/);
 });
+
+
+test('sanitizeSerperQuery trims and caps length', async () => {
+  const { sanitizeSerperQuery } = await import('../server/immofinderDiscovery.ts');
+  assert.equal(sanitizeSerperQuery('  a   b  '), 'a b');
+  assert.ok(sanitizeSerperQuery('x '.repeat(300)).length <= 380);
+  assert.ok(!/OR$/i.test(sanitizeSerperQuery('foo OR')));
+});
