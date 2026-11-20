@@ -32,15 +32,30 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+          cache-dependency-path: package-lock.json
       - name: Prepare log directory
         run: mkdir -p artifacts/ci-checks
       - name: Preflight (current files, scripts, version)
         shell: bash
         run: set -o pipefail; CI_LOGS_DIR=artifacts/ci-checks node scripts/workflow-preflight.mjs
+      - name: Configure npm retries
+        run: |
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set fetch-timeout 300000
+
       - name: Install dependencies
         id: deps
+        timeout-minutes: 15
         shell: bash
-        run: set -o pipefail; npm ci 2>&1 | tee artifacts/ci-checks/01-dependencies.log
+        run: |
+          set -o pipefail
+          start=$SECONDS
+          npm ci --no-audit --no-fund 2>&1 | tee artifacts/ci-checks/01-dependencies.log
+          status=${PIPESTATUS[0]}
+          echo "npm ci duration: $((SECONDS-start))s; exit: ${status}" | tee -a artifacts/ci-checks/01-dependencies.log
+          exit "$status"
 
       # One verification DAG (docs/verification-manifest.json, profile ci): critical probes, category suites,
       # db-migrate when DAG_TEST_DATABASE_URL is set, and production build. No per-patch or retired no-op test scripts.
@@ -49,7 +64,13 @@ jobs:
         if: steps.deps.outcome == 'success'
         timeout-minutes: 60
         shell: bash
-        run: set -o pipefail; node scripts/run-dag.mjs --profile ci 2>&1 | tee artifacts/ci-checks/02-verification-dag.log
+        run: |
+          set -o pipefail
+          start=$SECONDS
+          node scripts/run-dag.mjs --profile ci 2>&1 | tee artifacts/ci-checks/02-verification-dag.log
+          status=${PIPESTATUS[0]}
+          echo "Verification DAG duration: $((SECONDS-start))s; exit: ${status}" | tee -a artifacts/ci-checks/02-verification-dag.log
+          exit "$status"
         env:
           DAG_ALLOW_UNSAFE: 'true'
           DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
