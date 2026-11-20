@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 
 const cfg = JSON.parse(readFileSync(new URL('../config/immofinder.json', import.meta.url), 'utf8'));
 
-test('P129.42 defaults to four communes and only evidence-backed productive discovery sources', () => {
+test('P129.43 defaults to four communes and only evidence-backed productive discovery sources', () => {
   const settings = defaultSettings(cfg);
   assert.equal(settings.search.carouselCommunesPerRun, 4);
   assert.deepEqual(
@@ -38,6 +38,8 @@ test('pipeline batches discovery processing and avoids poisoning seen with insuf
   const source = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
   assert.match(source, /qi % 5 === 0/);
   assert.match(source, /tbs: 'qdr:w'/);
+  assert.match(source, /hasUsableFreshLink/);
+  assert.match(source, /placeFromTitleOrSnippet\(`\$\{hit\.title\}/);
   assert.match(source, /reason !== 'rooms_unknown'/);
   assert.match(source, /reason !== 'municipality_not_whitelisted'/);
   assert.match(source, /reason === 'price_unknown' && pages\[i\]\.snippet/);

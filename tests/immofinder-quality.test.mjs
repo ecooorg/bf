@@ -27,7 +27,7 @@ test('extractContacts filters fake phones and garbage emails', () => {
   assert.match(core, /isPlausibleEmail\(e\)/);
 });
 
-test('pipeline supports wave modes priority|extended|full', () => {
+test('pipeline supports carousel and full search waves', () => {
   const pipe = read('server/immofinderPipeline.ts');
   assert.match(pipe, /export type RunWave = 'priority' \| 'extended' \| 'full'/);
   assert.match(pipe, /waveMode/);
@@ -36,31 +36,31 @@ test('pipeline supports wave modes priority|extended|full', () => {
   assert.match(pipe, /consecutiveStopFor/);
   assert.match(pipe, /id === 'search'/);
   assert.match(pipe, /placeFromTitleOrSnippet/);
-  assert.match(pipe, /priority-search|extended-search/);
+  assert.match(pipe, /waveMode === 'carousel'/);
+  assert.match(pipe, /waveMode === 'full'/);
 });
 
-test('routes accept wave body parameter', () => {
+test('routes accept carousel and full wave body parameters', () => {
   const routes = read('server/immofinderRoutes.ts');
   assert.match(routes, /req\.body\?\.wave/);
-  assert.match(routes, /wave.*priority.*extended.*full/);
+  assert.match(routes, /wave.*carousel.*full/);
   assert.match(routes, /\{\s*dryRun,\s*wave\s*\}/);
 });
 
-test('UI exposes stage 1 / stage 2 / full run controls', () => {
+test('UI exposes carousel and full run controls', () => {
   const ui = read('src/ImmoFinder.tsx');
-  assert.match(ui, /immofinder-run-priority/);
-  assert.match(ui, /immofinder-run-extended/);
-  assert.match(ui, /start\('priority'\)/);
-  assert.match(ui, /start\('extended'\)/);
+  assert.match(ui, /immofinder-run-carousel/);
+  assert.match(ui, /start\('carousel'\)/);
   assert.match(ui, /start\('full'\)/);
 });
 
-test('config keeps phase-1 productive catalogues first', () => {
+test('config prioritises long-term Swiss rental discovery portals', () => {
   const cfg = JSON.parse(read('config/immofinder.json'));
-  const phase1 = cfg.sources.filter((s) => s.phase === 1);
-  assert.ok(phase1.length >= 1);
-  assert.equal(phase1[0].id, 'ferienhausmiete');
-  assert.ok(cfg.priorityWaveMs >= 600000);
+  const queries = cfg.discovery.portalQueries.join(' ');
+  assert.match(queries, /homegate\.ch/);
+  assert.match(queries, /flatfox\.ch/);
+  assert.match(queries, /tutti\.ch/);
+  assert.ok(cfg.discovery.communesPerRun >= 4);
 });
 
 test('pickItems ranks whitelist commune hits before distant resorts', () => {
@@ -281,8 +281,8 @@ test('immoEvidenceBlock and exports include source text when raw.evidence_text i
   };
   const k = immoCardModel(row);
   assert.ok(k.evidenceText.includes('1\'750'));
-  // Same text as about → redundant, no Source text block
-  assert.equal(immoEvidenceBlock(k), '');
+  // Full source evidence adds details beyond the short card description.
+  assert.match(immoEvidenceBlock(k), /Source text/);
   const rich = immoCardModel({
     ...row,
     description_de: 'Short blurb only',
@@ -354,4 +354,36 @@ test('sanitizeSerperQuery trims and caps length', async () => {
   assert.equal(sanitizeSerperQuery('  a   b  '), 'a b');
   assert.ok(sanitizeSerperQuery('x '.repeat(300)).length <= 380);
   assert.ok(!/OR$/i.test(sanitizeSerperQuery('foo OR')));
+});
+
+test('P129.43 defaults select four communes and only the productive discovery sources; reset endpoint persists them', () => {
+  const settings = read('server/immofinderSettings.ts');
+  const routes = read('server/immofinderRoutes.ts');
+  const ui = read('src/ImmoFinderSettings.tsx');
+  assert.match(settings, /carouselCommunesPerRun: 4/);
+  assert.match(settings, /\['search', 'portal-tutti', 'portal-flatfox', 'portal-homegate'\]/);
+  assert.match(routes, /\/api\/immofinder\/settings\/reset/);
+  assert.match(routes, /saveSettings\(cfg, defaultSettings\(cfg\)\)/);
+  assert.match(ui, /Reset to defaults/);
+  assert.match(ui, /immofinder-settings-reset/);
+});
+
+test('Serper freshness options are forwarded to the provider request', async () => {
+  const { createSerperSearch } = await import('../server/immofinderDiscovery.ts');
+  const previous = process.env.SERPER_API_KEY;
+  process.env.SERPER_API_KEY = 'test-key';
+  let sent = null;
+  try {
+    const search = createSerperSearch(async (_url, init) => {
+      sent = JSON.parse(String(init?.body || '{}'));
+      return new Response(JSON.stringify({ organic: [] }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }, 10);
+    await search('Chur Wohnung mieten', { tbs: 'qdr:w' });
+    assert.equal(sent.tbs, 'qdr:w');
+    await search('Chur Wohnung mieten');
+    assert.equal(Object.hasOwn(sent, 'tbs'), false);
+  } finally {
+    if (previous === undefined) delete process.env.SERPER_API_KEY;
+    else process.env.SERPER_API_KEY = previous;
+  }
 });
