@@ -102,7 +102,7 @@ export default function ImmoFinder() {
     return () => clearInterval(t);
   }, [enrichJob?.running, loadList]);
 
-  const start = async (wave: 'priority' | 'extended' | 'full' | 'carousel' = 'full') => {
+  const start = async (wave: 'full' | 'carousel' = 'full') => {
     setStarting(true); setMsg('');
     try { await api('/api/immofinder/run', { method: 'POST', body: JSON.stringify({ dryRun: dry, wave }) }); await load(); }
     catch (e) { setStarting(false); setMsg((e as Error).message); }
