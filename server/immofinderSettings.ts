@@ -37,8 +37,8 @@ export interface ImmoSettings {
     rejectNonMonthly: boolean;
     rejectSeekerPosts: boolean;
     requireContact: boolean;
-    /** Scheduled / default manual wave when not chosen on the main screen. */
-    defaultWave: 'priority' | 'full';
+    /** Scheduled / default manual wave: carousel (commune slice) or full (all selected communes). */
+    defaultWave: 'carousel' | 'full';
     /** carousel = commune-slice tick; burst unused for UI (only carousel + full remain). */
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
@@ -67,7 +67,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       rejectNonMonthly: true,
       rejectSeekerPosts: true,
       requireContact: false,
-      defaultWave: 'full',
+      defaultWave: 'carousel',
       profile: 'carousel',
       carouselCommunesPerRun: 2,
     },
@@ -145,7 +145,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       rejectNonMonthly: bool(se.rejectNonMonthly, d.search.rejectNonMonthly),
       rejectSeekerPosts: bool(se.rejectSeekerPosts, d.search.rejectSeekerPosts),
       requireContact: bool(se.requireContact, d.search.requireContact),
-      defaultWave: se.defaultWave === 'full' ? 'full' : 'priority',
+      defaultWave: se.defaultWave === 'full' ? 'full' : 'carousel',
       profile: se.profile === 'burst' ? 'burst' : 'carousel',
       carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 1, 12, d.search.carouselCommunesPerRun),
     },

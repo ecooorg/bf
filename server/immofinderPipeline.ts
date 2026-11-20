@@ -617,11 +617,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     const carouselLabel = carouselCommunes.length
       ? carouselCommunes.join(', ')
       : 'this commune slice';
+    const modeLabel = waveMode === 'carousel' ? 'Carousel' : 'Full search';
     say('catalogue', waveMode === 'carousel'
-      ? `Carousel: ${carouselLabel} — all selected sources (cycle ${deps.cycle ?? 0})`
-      : waveMode === 'carousel'
-        ? `Carousel started (settings communes slice, up to ${Math.round(priorityMs / 60000)} min): web search + catalogues`
-        : `Full search started (all selected communes, up to ${Math.round(priorityMs / 60000)} min phase): web search + catalogues`);
+      ? `Carousel: ${carouselLabel} — sources from settings (cycle ${deps.cycle ?? 0})`
+      : `Full search started (all selected communes from settings, up to ${Math.round(priorityMs / 60000)} min first phase): web search + catalogues`);
     if (waveMode === 'carousel') {
       say('search', `Carousel communes: ${carouselLabel}`);
     }
@@ -683,9 +682,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   if (waveMode === 'extended' || waveMode === 'full') {
     waveDeadline = runDeadline;
     res.wavesRun!.push('extended');
-    say('search', waveMode === 'carousel'
-      ? `Carousel finishing (${Math.max(0, Math.round(timeLeft() / 60000))} min left)`
-      : `Full search continuing (${Math.max(0, Math.round(timeLeft() / 60000))} min left, remaining communes/sources)`);
+    say('search', `Full search continuing (${Math.max(0, Math.round(timeLeft() / 60000))} min left, remaining communes/sources)`);
     const markB = newBefore();
     // Full discovery when running extended-only or when full and time remains.
     // Continue from discoveryQueryOffset so full mode does not repeat priority queries.
