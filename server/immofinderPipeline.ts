@@ -581,7 +581,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       } catch (e) {
         const msg = String((e as Error)?.message || e).slice(0, 100);
         res.errors.push({ source: 'search', code: msg.startsWith('step_timeout:') ? 'step_timeout' : 'search_failed', detail: msg });
-        say('search', msg.startsWith('step_timeout:') ? `skip slow search (>10s): ${q.slice(0, 50)}` : `search failed: ${msg.slice(0, 40)}`);
+        say('search', msg.startsWith('step_timeout:') ? `skip slow search (>10s): ${q.slice(0, 50)}` : `search failed: ${msg.slice(0, 160)}`);
         consecutiveSearchFails++;
         // Back off on 400/429-style bursts; do not abort the whole carousel after 5 fails.
         if (/429|400|rate/i.test(msg)) await sleep(Math.min(15_000, serperMinIntervalMs * 3));

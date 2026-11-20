@@ -96,16 +96,40 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig): DiscoveryItem[] {
 }
 
 /** Serper.dev Google search (Switzerland, German). Uses SERPER_API_KEY; never logs the key. */
+/** Cap query length and normalise whitespace — Serper returns HTTP 400 on empty/invalid or oversized q. */
+export function sanitizeSerperQuery(q: string, maxLen = 380): string {
+  let s = String(q || '').replace(/\s+/g, ' ').trim();
+  // Drop dangling operators that often appear after template truncation
+  s = s.replace(/\s+(OR|AND)\s*$/i, '').trim();
+  if (s.length > maxLen) {
+    s = s.slice(0, maxLen).replace(/\s+\S*$/, '').replace(/\s+(OR|AND)\s*$/i, '').trim();
+  }
+  return s;
+}
+
 export function createSerperSearch(fetchImpl: typeof fetch = fetch, num = 10) {
   // Serper returns HTTP 400 when num is outside 1..10 (or query empty).
   const n = Math.max(1, Math.min(10, Number(num) || 10));
   return async function search(q: string): Promise<SearchHit[]> {
     const key = String(process.env.SERPER_API_KEY || '').trim(); if (!key) throw new Error('SERPER_API_KEY not set');
-    const query = String(q || '').trim();
+    const query = sanitizeSerperQuery(q);
     if (!query) return [];
-    const r = await fetchImpl('https://google.serper.dev/search', { method: 'POST', headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ q: query, gl: 'ch', hl: 'de', num: n }) });
-    if (!r.ok) throw new Error(`Serper HTTP ${r.status}`);
+    const r = await fetchImpl('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q: query, gl: 'ch', hl: 'de', num: n }),
+    });
+    if (!r.ok) {
+      let detail = '';
+      try { detail = (await r.text()).slice(0, 180); } catch { /* ignore */ }
+      throw new Error(`Serper HTTP ${r.status}${detail ? `: ${detail}` : ''}`);
+    }
     const d: any = await r.json();
-    return (d.organic || []).map((o: any) => ({ title: String(o.title || ''), link: String(o.link || ''), snippet: String(o.snippet || ''), date: o.date != null ? String(o.date) : (o.datePublished != null ? String(o.datePublished) : null) })).filter((h: SearchHit) => h.link);
+    return (d.organic || []).map((o: any) => ({
+      title: String(o.title || ''),
+      link: String(o.link || ''),
+      snippet: String(o.snippet || ''),
+      date: o.date != null ? String(o.date) : (o.datePublished != null ? String(o.datePublished) : null),
+    })).filter((h: SearchHit) => h.link);
   };
 }
