@@ -1,3 +1,7 @@
+## P129.43a — CI TypeScript fix and install reliability
+
+- Fix both invalid geo-helper calls (restore the required 3-argument contract and require a matched commune); add regression coverage. CI: npm retry/cache/timing; bounded install and timed verification DAG.
+
 ## P129.43 — ImmoFinder reset defaults, CI and discovery precision
 - Added persisted **Reset to defaults** (4 communes; search/Tutti/Flatfox/Homegate); tightened long-term rental queries and no-fresh-link fallback; fixed evidence excerpt/footer handling; aligned CI contracts.
 

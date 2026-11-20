@@ -1,10 +1,6 @@
-## P129.42 — ImmoFinder discovery P0
+## P129.43a — CI TypeScript fix and install reliability
 
-- **CHANGE:** weekly Serper freshness + no-filter fallback; fresh private query template; incremental processing per 5 queries; no `seen` write for incomplete location/rooms or snippet-only missing price; 6h soft TTL; DB snapshots before/after runs.
-- **DEFAULTS:** carousel 4 communes; checked sources: private search, Tutti, Flatfox, Homegate (based on supplied 45-listing export and host diagnostics).
-- **BASELINE:** 13 runs/72h; `skipped_seen` 25/35; 26/45 saved listings Facebook (24 from two groups). User-value rerun NOT_RUN.
-- **VERIFICATION:** TS/TSX syntax parse PASS; JSON + `version:check` PASS. `tsc --noEmit` BLOCKED (dependencies absent: `vite/client`); automated tests NOT_RUN (`tsx` unavailable). Hosted/live Serper and DB NOT_RUN.
-- **BUGFIX / RELIABILITY.**
+- **EVIDENCE:** run #44729762057 failed with 11 TypeScript annotations; two discovery geo checks passed 2 args to a 3-arg helper. **CHANGE:** fix both calls and false-positive truthiness; add regression test, npm retries/cache, 15m install timeout and stage timings. **VERIFY:** npm ci timed out locally; typecheck, suites and hosted rerun NOT_RUN.
 
 ## P129.38 — CI/Render: formatHideLog import + discovery rank test
 
