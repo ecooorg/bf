@@ -1,3 +1,8 @@
+## [129.41a] - CI/Render green: legacy priority wave types
+
+- Fix TS2367/TS2345/TS2322 in `server/immofinderRoutes.ts`: legacy `priority` only via string cast, normalized to carousel; `deliverWave` accepts the pipeline wave union.
+- BUGFIX; no behaviour change.
+
 ## [129.41] - CI waveMode types; product modes carousel|full only
 
 - Fix TS2367 carousel comparison inside extended/full-only branch.
