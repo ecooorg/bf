@@ -30,19 +30,19 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 /** High-value first. Only private long-term leads with a stated price. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
   { id: 'search', label: 'Web search (Facebook & private)', hint: 'Facebook groups, Nachmieter, direct owner ads via Google', priority: true },
-  { id: 'portal-immoscout24', label: 'ImmoScout24', hint: 'site:immoscout24.ch', priority: true },
+  { id: 'portal-immoscout24', label: 'ImmoScout24', hint: 'site:immoscout24.ch', priority: false },
   { id: 'portal-homegate', label: 'Homegate', hint: 'site:homegate.ch', priority: true },
-  { id: 'portal-newhome', label: 'Newhome', hint: 'site:newhome.ch', priority: true },
+  { id: 'portal-newhome', label: 'Newhome', hint: 'site:newhome.ch', priority: false },
   { id: 'portal-flatfox', label: 'Flatfox', hint: 'site:flatfox.ch', priority: true },
   { id: 'portal-tutti', label: 'Tutti', hint: 'site:tutti.ch', priority: true },
-  { id: 'portal-anibis', label: 'Anibis', hint: 'site:anibis.ch', priority: true },
-  { id: 'portal-petitesannonces', label: 'Petites Annonces', hint: 'site:petitesannonces.ch', priority: true },
-  { id: 'portal-immobilier', label: 'Immobilier.ch', hint: 'site:immobilier.ch', priority: true },
-  { id: 'portal-acheter-louer', label: 'Acheter-Louer', hint: 'site:acheter-louer.ch', priority: true },
-  { id: 'portal-immostreet', label: 'ImmoStreet', hint: 'site:immostreet.ch', priority: true },
-  { id: 'portal-home', label: 'Home.ch', hint: 'site:home.ch', priority: true },
-  { id: 'portal-icasa', label: 'ICasa', hint: 'site:icasa.ch', priority: true },
-  { id: 'portal-urbanhome', label: 'UrbanHome', hint: 'site:urbanhome.ch', priority: true },
+  { id: 'portal-anibis', label: 'Anibis', hint: 'site:anibis.ch', priority: false },
+  { id: 'portal-petitesannonces', label: 'Petites Annonces', hint: 'site:petitesannonces.ch', priority: false },
+  { id: 'portal-immobilier', label: 'Immobilier.ch', hint: 'site:immobilier.ch', priority: false },
+  { id: 'portal-acheter-louer', label: 'Acheter-Louer', hint: 'site:acheter-louer.ch', priority: false },
+  { id: 'portal-immostreet', label: 'ImmoStreet', hint: 'site:immostreet.ch', priority: false },
+  { id: 'portal-home', label: 'Home.ch', hint: 'site:home.ch', priority: false },
+  { id: 'portal-icasa', label: 'ICasa', hint: 'site:icasa.ch', priority: false },
+  { id: 'portal-urbanhome', label: 'UrbanHome', hint: 'site:urbanhome.ch', priority: false },
 ];
 
 
