@@ -176,7 +176,8 @@ export function buildSecondaryQueries(input: EnrichmentInput): string[] {
   if (name) {
     qs.push(`"${name}" ${muni} ${contactOr} ${portalNeg}`);
     qs.push(`"${name}" ${muni} (Impressum OR "Kontakt" OR Handynummer OR "rufen Sie") ${portalNeg}`);
-    qs.push(`"${name}" ${muni} (Chalet OR Chesa OR Ferienwohnung OR Ferienhaus) ${portalNeg}`);
+    // Holiday-home wording only for house-style names; long-term rentals never match it (P129.44).
+    if (/\b(chesa|chalet|casa|ferienhaus|villa)\b/i.test(name)) qs.push(`"${name}" ${muni} (Chalet OR Chesa OR Ferienwohnung OR Ferienhaus) ${portalNeg}`);
     // Unquoted soft query when the title is long/noisy
     if (name.length > 24) {
       const short = name.split(/[–\-|:,(]/)[0].trim().slice(0, 40);

@@ -42,13 +42,23 @@ export interface ImmoSettings {
     /** carousel = commune-slice tick; burst unused for UI (only carousel + full remain). */
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
+    /** How many of the private-search templates run per commune (first N; 1..4). */
+    privateQueryTemplates: number;
+    /** Serper freshness window: d = last day, w = last week. */
+    freshness: 'd' | 'w';
+    /** Re-run a query without the freshness filter when it found nothing usable (doubles Serper cost). */
+    freshnessFallback: boolean;
+    /** Extra public contact searches per search run (0 = off). */
+    enrichSearchesPerRun: number;
+    /** Allow contact searches during Recheck list (they rarely add contacts). */
+    recheckContactSearch: boolean;
   };
 }
 
 export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
   const q = { ...DEFAULT_QUALITY, ...(cfg.quality || {}) };
   return {
-    schedule: { mode: 'hours', everyHours: 1, dailyAt: '06:00' },
+    schedule: { mode: 'hours', everyHours: 6, dailyAt: '06:00' },
     delivery: { telegram: true, email: false, emailTo: '', emailContent: 'new', drive: true, driveFolderId: '', notifyWhenEmpty: false },
     search: {
       minRooms: cfg.minRooms,
@@ -59,7 +69,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
         // Catalogue source ids (if present in config) default off — discovery portals are the product surface.
         ...(cfg.sources || []).map((src) => [src.id, false] as const),
       ]),
-      maxAiPages: 60,
+      maxAiPages: 40,
       limitPrice: true,
       maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf || 2000, 2000),
       maxListingAgeDays: q.maxListingAgeDays,
@@ -69,7 +79,12 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       requireContact: false,
       defaultWave: 'carousel',
       profile: 'carousel',
-      carouselCommunesPerRun: 4,
+      carouselCommunesPerRun: 8,
+      privateQueryTemplates: 2,
+      freshness: 'w',
+      freshnessFallback: false,
+      enrichSearchesPerRun: 6,
+      recheckContactSearch: false,
     },
   };
 }
@@ -148,6 +163,11 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       defaultWave: se.defaultWave === 'full' ? 'full' : 'carousel',
       profile: se.profile === 'burst' ? 'burst' : 'carousel',
       carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 1, 12, d.search.carouselCommunesPerRun),
+      privateQueryTemplates: clampInt(se.privateQueryTemplates, 1, 4, d.search.privateQueryTemplates),
+      freshness: se.freshness === 'd' ? 'd' : se.freshness === 'w' ? 'w' : d.search.freshness,
+      freshnessFallback: bool(se.freshnessFallback, d.search.freshnessFallback),
+      enrichSearchesPerRun: clampInt(se.enrichSearchesPerRun, 0, 35, d.search.enrichSearchesPerRun),
+      recheckContactSearch: bool(se.recheckContactSearch, d.search.recheckContactSearch),
     },
   };
 }
@@ -197,8 +217,10 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
           s.search.profile === 'carousel'
             ? s.search.carouselCommunesPerRun
             : Math.max(cfg.discovery.communesPerRun, municipalities.length > 0 ? Math.min(44, municipalities.length) : cfg.discovery.communesPerRun),
-        queries: wantPrivate ? (cfg.discovery.queries || []) : [],
+        queries: wantPrivate ? (cfg.discovery.queries || []).slice(0, s.search.privateQueryTemplates) : [],
         portalQueries,
+        freshness: s.search.freshness,
+        freshnessFallback: s.search.freshnessFallback,
       }
     : cfg.discovery;
   return {
@@ -207,6 +229,7 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
     municipalities: municipalities.length ? municipalities : cfg.municipalities.filter((m) => allowed.has(m)),
     sources: cfg.sources.filter((src) => s.search.sources[src.id] !== false),
     discovery,
+    contactEnrichment: cfg.contactEnrichment ? { ...cfg.contactEnrichment, maxExtraSearchesPerRun: s.search.enrichSearchesPerRun } : cfg.contactEnrichment,
     quality: {
       maxMonthlyRentChf: s.search.limitPrice ? s.search.maxMonthlyRentChf : 0,
       maxListingAgeDays: s.search.maxListingAgeDays,

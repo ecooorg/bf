@@ -1,5 +1,5 @@
 import { hostOf, buildQueries, pickItems, communesForRun, type SearchHit } from './immofinderDiscovery.ts';
-import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind } from './immofinderCore.ts';
+import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
@@ -112,7 +112,7 @@ export type RunWave = 'priority' | 'extended' | 'full' | 'carousel';
 export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; wave?: RunWave }): Promise<RunResult> {
   const { config: cfg } = deps; const now = deps.now ?? Date.now;
   const waveMode: RunWave = opts.wave === 'priority' || opts.wave === 'extended' || opts.wave === 'carousel' ? opts.wave : 'full';
-  const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0, sourceStats: [], wavesRun: [] };
+  const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, serper_calls: 0, serper_fallback: 0, llm_skipped_no_rooms: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0, sourceStats: [], wavesRun: [] };
   const drop = (r: string) => { res.filtered[r] = (res.filtered[r] || 0) + 1; };
   /** Communes for the current carousel tick — attached to every progress event for the UI title. */
   let carouselCommunesSlot: string[] = [];
@@ -235,8 +235,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const fromSnippet = () => {
         snippet = true; res.counts.snippet_only++;
         const hitDate = (it.hit as any)?.date ? String((it.hit as any).date) : '';
-        meta = { title: it.hit!.title, description: it.hit!.snippet, photos: [], published: hitDate || null };
-        text = `${it.hit!.title}\n${it.hit!.snippet}${hitDate ? `\n${hitDate}` : ''}`;
+        const snippetText = dedupeSnippetText(it.hit!.title, it.hit!.snippet);
+        meta = { title: it.hit!.title, description: snippetText, photos: [], published: hitDate || null };
+        text = `${it.hit!.title}\n${snippetText}${hitDate ? `\n${hitDate}` : ''}`;
       };
       if (it.snippetOnly && it.hit) fromSnippet();
       else {
@@ -268,6 +269,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         drop(nlEarly);
         res.preview.push({ url: it.url, title: meta!.title.slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: nlEarly, detail: 'prefilter_after_fetch' });
         if (!opts.dryRun) await deps.store.markSeen(it.url, src.id, 'filtered', nlEarly);
+        continue;
+      }
+      // A snippet without any parseable room count can only end as rooms_unknown (the model's room quote goes through the same parser): skip the model call, do not persist.
+      if (snippet && !parseRooms(`${meta!.title} ${text}`)) {
+        res.counts.llm_skipped_no_rooms = (res.counts.llm_skipped_no_rooms || 0) + 1;
+        st.junk++; st.consecutiveBad++;
+        drop('rooms_unknown');
+        res.preview.push({ url: it.url, title: meta!.title.slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: 'rooms_unknown', detail: 'prefilter_snippet_no_rooms' });
         continue;
       }
       const capped = deps.maxLlmCalls !== undefined && res.counts.llm_calls >= deps.maxLlmCalls;
@@ -591,29 +600,35 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       try {
         let batch: SearchHit[] = [];
         let fallbackTried = false;
+        const freshTbs = `qdr:${cfg.discovery?.freshness === 'd' ? 'd' : 'w'}`;
+        // Every provider call is counted (first call and fallback) so cost estimates match Serper credits.
+        const serperCall = async (label: string, opts?: { tbs?: string }) => {
+          res.counts.serper_calls = (res.counts.serper_calls || 0) + 1;
+          try { return await withStepTimeout(label, () => deps.search!(q, opts)); } finally { serperTimestamps.push((deps.now ?? Date.now)()); }
+        };
         try {
-          batch = await withStepTimeout('serper', () => deps.search!(q, { tbs: 'qdr:w' }));
-          serperTimestamps.push((deps.now ?? Date.now)());
+          batch = await serperCall('serper', { tbs: freshTbs });
         } catch (freshError) {
-          // Freshness filter is best-effort: retry the same query without tbs on provider rejection.
-          serperTimestamps.push((deps.now ?? Date.now)());
+          // Retry without tbs only when the provider rejected the request itself (HTTP 400); timeouts and rate limits would just repeat the cost.
+          const freshMsg = String((freshError as Error)?.message || freshError);
+          if (!/Serper HTTP 400/.test(freshMsg)) throw freshError;
           fallbackTried = true;
           await paceSerper();
-          batch = await withStepTimeout('serper_fallback', () => deps.search!(q));
-          serperTimestamps.push((deps.now ?? Date.now)());
-          res.errors.push({ source: 'search', code: 'freshness_fallback', detail: String((freshError as Error)?.message || freshError).slice(0, 100) });
+          res.counts.serper_fallback = (res.counts.serper_fallback || 0) + 1;
+          batch = await serperCall('serper_fallback');
+          res.errors.push({ source: 'search', code: 'freshness_fallback', detail: freshMsg.slice(0, 100) });
         }
         const hasUsableFreshLink = batch.some((hit) => {
           if (pickItems([hit], cfg).length === 0) return false;
           const geo = placeFromTitleOrSnippet(hit.title, `${hit.snippet} ${hit.link}`, cfg.municipalities);
           return geo.matched !== null && !geo.outside;
         });
-        if ((!batch.length || !hasUsableFreshLink) && !fallbackTried) {
+        if ((!batch.length || !hasUsableFreshLink) && !fallbackTried && cfg.discovery?.freshnessFallback === true) {
           // A non-empty freshness-filtered SERP can still be unusable (profiles, travel pages,
           // stale index pages). Retry without the date operator before abandoning this query.
           await paceSerper();
-          const fallback = await withStepTimeout('serper_fallback', () => deps.search!(q));
-          serperTimestamps.push((deps.now ?? Date.now)());
+          res.counts.serper_fallback = (res.counts.serper_fallback || 0) + 1;
+          const fallback = await serperCall('serper_fallback');
           const fallbackHasLocalListing = fallback.some((hit) => {
             if (pickItems([hit], cfg).length === 0) return false;
             const geo = placeFromTitleOrSnippet(hit.title, `${hit.snippet} ${hit.link}`, cfg.municipalities);
@@ -744,7 +759,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   res.sourceStats = [...sourceStatMap.values()].sort((a, b) => (b.kept - a.kept) || (b.fetched - a.fetched));
   const extraSearches = Math.max(0, (enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0) - enrichBudget.searchesLeft);
   res.newListings.sort((a, b) => Number(b.contact_status === 'found') - Number(a.contact_status === 'found'));
-  res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + (res.counts.search_queries + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
+  res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + ((res.counts.serper_calls || res.counts.search_queries) + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
   const filt = Object.entries(res.filtered).map(([k, v]) => `${k}=${v}`).join(' ') || 'none';
   const c = res.counts;
   const statsLine = (res.sourceStats || []).map((s) => `${s.id}:kept=${s.kept}/fetch=${s.fetched}/geo=${s.geo}/junk=${s.junk}${s.stoppedEarly ? '/STOP' : ''}`).join(' · ') || 'none';

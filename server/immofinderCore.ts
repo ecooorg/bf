@@ -10,7 +10,7 @@ export interface ImmoConfig {
   estCostPerLlmCallUsd: number;
   estCostPerSearchUsd?: number;
   driveFolderId?: string;
-  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; portalSources?: { id: string; label: string; host: string }[]; snippetOnlyHosts: string[]; skipHosts: string[]; /** Min delay between Serper calls (rate limit). */ serperMinIntervalMs?: number; /** Soft cap on Serper calls per rolling minute. */ serperMaxPerMinute?: number };
+  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; portalSources?: { id: string; label: string; host: string }[]; snippetOnlyHosts: string[]; skipHosts: string[]; /** Min delay between Serper calls (rate limit). */ serperMinIntervalMs?: number; /** Soft cap on Serper calls per rolling minute. */ serperMaxPerMinute?: number; /** Serper freshness window: d = day, w = week. Default w. */ freshness?: 'd' | 'w'; /** Re-run a query without the freshness filter when the filtered SERP has no usable link. Default off (doubles Serper cost). */ freshnessFallback?: boolean };
   /** Optional public-source contact enrichment (secondary search + optional reverse image). Default off when omitted. */
   contactEnrichment?: {
     enabled: boolean;
@@ -155,6 +155,23 @@ export function isStopAgency(text: string, agencies: string[]): string | null {
   const hay = ` ${norm(text)} `;
   for (const a of agencies) { const n = norm(a); if (n && hay.includes(` ${n} `)) return a; }
   return null;
+}
+
+/** Search snippets (esp. Facebook) often repeat the title two or three times; keep each distinct segment once so the model prompt carries no duplicate text. */
+export function dedupeSnippetText(title: string, snippet: string): string {
+  const seen = new Set<string>([norm(title)]);
+  const out: string[] = [];
+  // The title is already sent separately; drop verbatim repeats of it inside the snippet.
+  const t = String(title ?? '').replace(/\s*(\.{3}|…)\s*$/, '').trim();
+  const body = t.length >= 15 ? String(snippet ?? '').split(t).join(' ') : String(snippet ?? '');
+  for (const raw of body.split(/\s+—\s+|\s*\.{3}\s*|…\s*/)) {
+    const seg = raw.replace(/\s+/g, ' ').trim();
+    if (!seg) continue;
+    const k = norm(seg);
+    if (!k || seen.has(k)) continue;
+    seen.add(k); out.push(seg);
+  }
+  return out.join(' … ');
 }
 
 /** Swiss portal / classifieds: reject professional landlords (AG, GmbH, Makler) unless clearly "von privat". */

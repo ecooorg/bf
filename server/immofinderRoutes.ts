@@ -296,6 +296,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       const rows = await listListingsForRefresh();
       const fetchPage = createPoliteFetch(cfg);
       const enrichCfg = resolveEnrichmentConfig(cfg);
+      // Contact searches during Recheck rarely add contacts (P129.44); they run only when the saved setting allows them.
+      const allowRecheckSearch = (await getSettings(cfg)).search.recheckContactSearch === true;
       const search = process.env.SERPER_API_KEY ? createSerperSearch(fetch, cfg.discovery?.resultsPerQuery ?? 10) : null;
       // Enrichment limits are run-wide; sharing the budget prevents one search per saved row from multiplying costs.
       const refreshSearchBudget = { searchesLeft: Math.max(0, Number(enrichCfg.maxExtraSearchesPerRun) || 0), reverseImageLeft: 0 };
@@ -303,7 +305,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       void runRefreshJob(rows, {
         fetchPage,
         platformDomains: cfg.platformDomains || [],
-        enrich: enrichCfg.enabled && search ? (input) => enrichContacts(input, {
+        enrich: allowRecheckSearch && enrichCfg.enabled && search ? (input) => enrichContacts(input, {
           config: enrichCfg, search, fetchPage, budget: refreshSearchBudget,
         }) : undefined,
         update: updateListingContacts,
