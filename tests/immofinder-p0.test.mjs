@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultSettings, sanitizeSettings } from '../server/immofinderSettings.ts';
 import { createSerperSearch } from '../server/immofinderDiscovery.ts';
+import { placeFromTitleOrSnippet } from '../server/immofinderCore.ts';
 import { readFileSync } from 'node:fs';
 
 const cfg = JSON.parse(readFileSync(new URL('../config/immofinder.json', import.meta.url), 'utf8'));
@@ -29,6 +30,11 @@ test('Serper search sends weekly freshness filter when requested', async () => {
   delete process.env.SERPER_API_KEY;
 });
 
+test('geo helper requires title, snippet and municipality allowlist and matches only explicit local evidence', () => {
+  assert.deepEqual(placeFromTitleOrSnippet('3.5 Zimmer Wohnung', 'in Chur zu vermieten', ['Chur']), { matched: 'Chur', outside: false, hint: 'Chur' });
+  assert.equal(placeFromTitleOrSnippet('Wohnung zu vermieten', 'Graubünden', ['Chur']).matched, null);
+});
+
 test('discovery query set replaces generic Facebook group search with fresh-intent wording', () => {
   assert.ok(!cfg.discovery.queries.some((q) => q.startsWith('site:facebook.com/groups')));
   assert.ok(cfg.discovery.queries.some((q) => /ab sofort|per 1\. Dezember/.test(q)));
@@ -39,7 +45,8 @@ test('pipeline batches discovery processing and avoids poisoning seen with insuf
   assert.match(source, /qi % 5 === 0/);
   assert.match(source, /tbs: 'qdr:w'/);
   assert.match(source, /hasUsableFreshLink/);
-  assert.match(source, /placeFromTitleOrSnippet\(`\$\{hit\.title\}/);
+  assert.match(source, /placeFromTitleOrSnippet\(hit\.title, `\$\{hit\.snippet\} \${hit\.link}`, cfg\.municipalities\)/);
+  assert.match(source, /geo\.matched !== null && !geo\.outside/);
   assert.match(source, /reason !== 'rooms_unknown'/);
   assert.match(source, /reason !== 'municipality_not_whitelisted'/);
   assert.match(source, /reason === 'price_unknown' && pages\[i\]\.snippet/);
