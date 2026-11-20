@@ -13,7 +13,7 @@ function immofinderWaveLabel(wave: string): string {
   if (w === 'priority') return 'Full search'; // legacy internal phase name — not a separate product mode
   return 'Search';
 }
-import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
+import { TIMEZONE, applySettings, defaultSettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
 import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
@@ -360,6 +360,16 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     catch { res.status(500).json({ success: false, error: 'Settings could not be saved', code: 'IMMOFINDER_FAILED' }); }
   });
 
+  app.post('/api/immofinder/settings/reset', json, async (_req, res) => {
+    try {
+      const cfg = loadImmoConfig();
+      const settings = await saveSettings(cfg, defaultSettings(cfg));
+      res.json({ success: true, settings, channels: channelStatus(), communes: cfg.municipalities, timezone: TIMEZONE });
+    } catch {
+      res.status(500).json({ success: false, error: 'Default settings could not be applied', code: 'IMMOFINDER_FAILED' });
+    }
+  });
+
   app.post('/api/immofinder/settings/test', json, async (req, res) => {
     const channel = String(req.body?.channel || '');
     try {
@@ -409,7 +419,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
 
   app.post('/api/immofinder/run', json, async (req, res) => {
     const dryRun = req.body?.dryRun === true;
-    let defaultWave: 'full' | 'carousel' = 'carousel';
+    let defaultWave: 'carousel' | 'full' = 'carousel';
     try {
       const st = await getSettings(loadImmoConfig());
       if (st.search?.profile === 'carousel') defaultWave = 'carousel';
@@ -418,7 +428,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     } catch { /* keep carousel as C129 default */ }
     const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
     // Product modes: carousel | full. Legacy priority→carousel, extended→full.
-    const wave: 'full' | 'carousel' =
+    const wave: 'carousel' | 'full' =
       waveRaw === 'carousel' || waveRaw === 'priority' ? 'carousel' :
       waveRaw === 'full' || waveRaw === 'extended' ? 'full' :
       defaultWave;

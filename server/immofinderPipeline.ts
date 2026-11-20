@@ -603,11 +603,22 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           serperTimestamps.push((deps.now ?? Date.now)());
           res.errors.push({ source: 'search', code: 'freshness_fallback', detail: String((freshError as Error)?.message || freshError).slice(0, 100) });
         }
-        if (!batch.length && !fallbackTried) {
+        const hasUsableFreshLink = batch.some((hit) =>
+          pickItems([hit], cfg).length > 0
+          && Boolean(placeFromTitleOrSnippet(`${hit.title} ${hit.snippet} ${hit.link}`, cfg.municipalities)),
+        );
+        if ((!batch.length || !hasUsableFreshLink) && !fallbackTried) {
+          // A non-empty freshness-filtered SERP can still be unusable (profiles, travel pages,
+          // stale index pages). Retry without the date operator before abandoning this query.
           await paceSerper();
           const fallback = await withStepTimeout('serper_fallback', () => deps.search!(q));
           serperTimestamps.push((deps.now ?? Date.now)());
-          if (fallback.length) batch = fallback;
+          const fallbackHasLocalListing = fallback.some((hit) =>
+            pickItems([hit], cfg).length > 0
+            && Boolean(placeFromTitleOrSnippet(`${hit.title} ${hit.snippet} ${hit.link}`, cfg.municipalities)),
+          );
+          if (fallbackHasLocalListing) batch = fallback;
+          else res.errors.push({ source: 'search', code: 'freshness_relevance_fallback_empty', detail: 'Fresh and unfiltered SERPs had no specific listing with a selected municipality signal.' });
         }
         batchHits.push(...batch.slice(0, d.resultsPerQuery));
         consecutiveSearchFails = 0;

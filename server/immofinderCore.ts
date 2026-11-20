@@ -949,7 +949,7 @@ export function stripEvidenceChrome(text: string): string {
   let s = String(text || '');
   for (const m of EVIDENCE_FOOTER_MARKERS) {
     const i = s.toLowerCase().indexOf(m.toLowerCase());
-    if (i > 80) s = s.slice(0, i);
+    if (i > 20) s = s.slice(0, i);
   }
   // Flatfox / Tutti trailing nav blobs
   s = s.replace(/(?:Post listing for free|Order debt extract|Termination of rental)[\s\S]*$/i, '');
