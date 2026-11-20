@@ -253,7 +253,7 @@
     },
     {
       "id": "test:core",
-      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/governance-repo.test.mjs tests/agents-contract.test.mjs tests/diagnostics-ops.test.mjs tests/project-mode-contract.test.mjs tests/search-retrieval.test.mjs tests/security-headers.test.mjs tests/security-redact.test.mjs tests/governance-workflow-pins.test.mjs tests/providers-router-policy.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-simple-direct.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/search-decoupling.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/providers-fallback.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/eval-harness.test.mjs",
+      "command": "MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/governance-repo.test.mjs tests/agents-contract.test.mjs tests/immofinder-quality.test.mjs tests/immofinder-p0.test.mjs tests/diagnostics-ops.test.mjs tests/project-mode-contract.test.mjs tests/search-retrieval.test.mjs tests/security-headers.test.mjs tests/security-redact.test.mjs tests/governance-workflow-pins.test.mjs tests/providers-router-policy.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/conversation-simple-direct.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/search-decoupling.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/providers-fallback.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/project-builder-recovery.test.mjs && MODEL_MIN_INTERVAL_MS=0 node --import tsx --test --test-timeout=60000 tests/eval-harness.test.mjs",
       "needs": [
         "critical-router-selection",
         "critical-router-policy-call-limit",
@@ -270,6 +270,8 @@
         "tests/eval-harness.test.mjs",
         "tests/governance-repo.test.mjs",
         "tests/governance-workflow-pins.test.mjs",
+        "tests/immofinder-p0.test.mjs",
+        "tests/immofinder-quality.test.mjs",
         "tests/project-builder-recovery.test.mjs",
         "tests/project-mode-contract.test.mjs",
         "tests/providers-fallback.test.mjs",
@@ -294,6 +296,7 @@
         "server/artifactRepository.ts",
         "server/fakeProvider.ts",
         "server/geminiKeyPool.ts",
+        "server/immofinderContactEnrichment.ts",
         "server/immofinderCore.ts",
         "server/immofinderDelivery.ts",
         "server/immofinderDiag.ts",
@@ -671,6 +674,9 @@
       "critical-gemini-timeout",
       "critical-router-selection",
       "test:models"
+    ],
+    "server/immofinderContactEnrichment.ts": [
+      "test:core"
     ],
     "server/immofinderCore.ts": [
       "test:core"

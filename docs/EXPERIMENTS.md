@@ -1,3 +1,13 @@
+## P129.44 — ImmoFinder spend control and lean defaults
+
+- **PROBLEM / BASELINE:** Supplied 72h logs (17 hourly runs in ~11h, commit 3e8f5d7): ~28-32 discovery queries/run, up to 35 enrichment searches/run, 21 new / 24 kept listings in total, 9 of 17 runs with no new listing; 125/145 recheck fetches were HTTP 403 and two rechecks spent 70 searches for 0 contacts added. `search_queries` counts only the first Serper call, so unfiltered fallback calls are invisible. Live baseline re-run: **NOT_RUN**.
+- **HYPOTHESIS:** Fewer, cheaper runs (6h cadence, 2 private templates, 8 communes/tick), no automatic unfiltered fallback, a 6-search enrichment budget, no contact search in recheck and no model call for snippets without a parseable room count cut Serper and LLM spend by well over half with unchanged kept/new per day. A persisted reset restores these defaults.
+- **METRICS:** `serper_calls` and `serper_fallback` (new, in `immofinder_search_quality_summary`), `llm_calls`, `llm_skipped_no_rooms`, kept/new per day, communes covered per day.
+- **ACCEPTANCE:** defaults sanitize and reset to the lean values; fallback fires only when enabled; snippet without rooms makes no model call and is not persisted; recheck makes no contact search by default; real Serper calls are counted; no loosening of price/room/agency/geo gates. Live spend and yield: **NOT_RUN** until deployed.
+- **SCOPE:** `server/immofinder{Core,Settings,Pipeline,ContactEnrichment,Routes}.ts`, `src/ImmoFinderSettings.tsx`, existing immofinder test suites, patch metadata.
+- **ROLLBACK:** Revert if kept/new per day falls below the 21/24 baseline over a comparable window or commune coverage drops below one cycle per two days.
+- **CLASSIFICATION:** RELIABILITY (cost control). No claim of production improvement without a post-deploy run.
+
 ## P129.43 — Settings reset, CI contract repair, and higher-signal discovery
 
 - **PROBLEM / BASELINE:** Supplied 20 Nov logs show 38 queries, 20 candidates, 9 fetched pages, 9 snippet-only hits, 14 junk rejects, 5 geo rejects, 0 kept/new; persisted UI still shows 2 communes and all source checkboxes selected. CI log shows 7 `test:core` failures and 1 `test:project` failure. User-value baseline: **0 new / 1 run**.
