@@ -619,7 +619,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       : 'this commune slice';
     say('catalogue', waveMode === 'carousel'
       ? `Carousel: ${carouselLabel} — all selected sources (cycle ${deps.cycle ?? 0})`
-      : `Priority wave started (up to ${Math.round(priorityMs / 60000)} min, mode=${waveMode}): web search first, then phase-1 catalogues`);
+      : waveMode === 'carousel'
+        ? `Carousel started (settings communes slice, up to ${Math.round(priorityMs / 60000)} min): web search + catalogues`
+        : `Full search started (all selected communes, up to ${Math.round(priorityMs / 60000)} min phase): web search + catalogues`);
     if (waveMode === 'carousel') {
       say('search', `Carousel communes: ${carouselLabel}`);
     }
@@ -667,7 +669,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     }
     const priorityNew = res.newListings.slice(markA);
     res.priorityNewListings = priorityNew;
-    say('catalogue', `Priority wave done: ${priorityNew.length} new, kept=${res.counts.kept}, fetched=${res.counts.fetched}`);
+    say('catalogue', `${waveMode === 'carousel' ? 'Carousel' : 'Full search'} phase done: ${priorityNew.length} new, kept=${res.counts.kept}, fetched=${res.counts.fetched}`);
     try {
       await deps.onWaveComplete?.({ wave: waveMode === 'carousel' ? 'carousel' : 'priority', newInWave: priorityNew, counts: { ...res.counts } });
     } catch (e) {
@@ -681,7 +683,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   if (waveMode === 'extended' || waveMode === 'full') {
     waveDeadline = runDeadline;
     res.wavesRun!.push('extended');
-    say('search', `Extended wave started (${Math.max(0, Math.round(timeLeft() / 60000))} min left, mode=${waveMode})`);
+    say('search', waveMode === 'carousel'
+      ? `Carousel finishing (${Math.max(0, Math.round(timeLeft() / 60000))} min left)`
+      : `Full search continuing (${Math.max(0, Math.round(timeLeft() / 60000))} min left, remaining communes/sources)`);
     const markB = newBefore();
     // Full discovery when running extended-only or when full and time remains.
     // Continue from discoveryQueryOffset so full mode does not repeat priority queries.

@@ -4,6 +4,15 @@ import { isSameOrigin } from './security.ts';
 import { createPoliteFetch } from './immofinderFetcher.ts';
 import { runPipeline } from './immofinderPipeline.ts';
 import { channelStatus, checkDrive, exportDrive, clearDriveExport, formatListingsText, sendEmail, sendTelegram } from './immofinderDelivery.ts';
+
+/** User-facing run name: only Carousel vs Full (settings). Internal priority/extended map to these. */
+function immofinderWaveLabel(wave: string): string {
+  const w = String(wave || '').toLowerCase();
+  if (w === 'carousel') return 'Carousel';
+  if (w === 'full' || w === 'extended') return 'Full search';
+  if (w === 'priority') return 'Full search'; // legacy internal phase name — not a separate product mode
+  return 'Search';
+}
 import { TIMEZONE, applySettings, isDue, parseDriveFolderId } from './immofinderSettings.ts';
 import { createSerperSearch } from './immofinderDiscovery.ts';
 import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
@@ -463,7 +472,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
         const dl = settings.delivery;
         const deliverWave = async (wave: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
-          const label = wave === 'priority' || wave === 'carousel' ? (wave === 'carousel' ? 'Carousel (commune slice)' : 'Priority (first 10 min)') : 'Extended';
+          const label = immofinderWaveLabel(wave);
           const all = await listListings(null);
           const newKeys = new Set(newInWave.map((l) => l.canonical_key));
           const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
@@ -479,7 +488,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             if (d.url) delivery.driveUrl = d.url;
             delivery[`${wave}_drive`] = d.status;
           } else delivery.drive = 'off';
-          const head = `ImmoFinder ${label}: ${fresh.length} new in this wave · kept=${counts.kept ?? 0} · fetched=${counts.fetched ?? 0}`;
+          const head = `ImmoFinder ${label}: ${fresh.length} new · kept=${counts.kept ?? 0} · fetched=${counts.fetched ?? 0}`;
           if (dl.telegram) {
             delivery[`${wave}_telegram`] = notifyTelegram
               ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
@@ -614,7 +623,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* optional */ }
             const dl = settings.delivery;
             const deliverWave = async (w: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
-              const label = w === 'carousel' ? 'Carousel (scheduled)' : w === 'priority' ? 'Priority' : 'Extended';
+              const label = immofinderWaveLabel(w);
               const all = await listListings(null);
               const newKeys = new Set(newInWave.map((l) => l.canonical_key));
               const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
@@ -628,7 +637,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
                 delivery.drive = d.status;
                 if (d.url) delivery.driveUrl = d.url;
               } else delivery.drive = 'off';
-              const head = `ImmoFinder ${label}: ${fresh.length} new · kept=${counts.kept ?? 0}`;
+              const head = `ImmoFinder ${label}: ${fresh.length} new · kept=${counts.kept ?? 0} · fetched=${counts.fetched ?? 0}`;
               if (dl.telegram) {
                 delivery.telegram = notifyTelegram
                   ? await sendTelegram(formatListingsText(fresh, { heading: head, limit: 6, driveUrl: delivery.driveUrl }))
