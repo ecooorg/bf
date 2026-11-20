@@ -1,3 +1,13 @@
+## [129.37] - Product precision gate + quality diagnostics
+
+- Hide unavailable (DE/EN Flatfox), for_sale even with rent collage, weak Facebook photo.php, stricter rooms/municipality conflicts.
+- Broader platform/junk contacts (betterhomes, be-homes, einwohnerkontrolle, *.ai business…).
+- Evidence: strip portal footer chrome (Flatfox About us / Imprint / ©) before store/export.
+- Discovery: rank Homegate/Tutti/Flatfox ahead of Facebook snippet-only; bury photo.php.
+- Soft-seen expanded so credibility rejects can be re-tried on later runs.
+- Logs: `immofinder_hide` one line per reject; `immofinder_product_quality_summary` with credibility_denies, evidence_kind, credible_kept.
+- USER_VALUE.
+
 ## [129.36] - No duplicate Source text in cards / Drive exports
 
 - `immoEvidenceBlock` omits source text when it is the same (or near-duplicate) of the card about line.
