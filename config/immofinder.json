@@ -145,7 +145,6 @@
       "\"{commune}\" Graubünden (\"Wohnung\" OR \"Haus\") (\"zu vermieten\" OR \"Nachmieter\" OR \"ab sofort\") (\"privat\" OR \"von privat\" OR \"Eigentümer\") -kaufen -verkaufen -Ferienwohnung -Hotel",
       "\"{commune}\" Graubünden Mietwohnung (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") CHF Monat -kaufen -Ferienwohnung",
       "\"{commune}\" Graubünden Nachmieter Wohnung Miete CHF privat",
-      "site:facebook.com/groups \"{commune}\" Graubünden (\"Wohnung\" OR \"Haus\") (\"Nachmieter\" OR \"zu vermieten\")",
       "\"{commune}\" Graubünden Wohnung langfristig mieten privat (\"CHF\" OR \"Mietzins\") -Ferienwohnung -Hotel"
     ],
     "snippetOnlyHosts": [
