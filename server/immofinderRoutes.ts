@@ -413,7 +413,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     try {
       const st = await getSettings(loadImmoConfig());
       if (st.search?.profile === 'carousel') defaultWave = 'carousel';
-      else if (st.search?.defaultWave === 'priority') defaultWave = 'carousel';
+      else if ((st.search?.defaultWave as string) === 'priority') defaultWave = 'carousel'; // legacy value
       else defaultWave = 'full';
     } catch { /* keep carousel as C129 default */ }
     const waveRaw = String(req.body?.wave || defaultWave).toLowerCase();
@@ -473,7 +473,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         const cfg = applySettings(loadImmoConfig(), settings);
         try { const h = await cleanupStored(); if (h) push({ stage: 'catalogue', text: `Hid ${h} saved results that are not suitable`, counts: {} }, true); } catch { /* cleanup is optional */ }
         const dl = settings.delivery;
-        const deliverWave = async (wave: 'carousel' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
+        const deliverWave = async (wave: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
           const label = immofinderWaveLabel(wave);
           const all = await listListings(null);
           const newKeys = new Set(newInWave.map((l) => l.canonical_key));
@@ -589,9 +589,9 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         }));
         if (!due) return;
 
-        let wave: 'carousel' | 'extended' | 'full' | 'carousel' = 'carousel';
+        let wave: 'carousel' | 'full' = 'carousel';
         if (settings.search?.profile === 'carousel') wave = 'carousel';
-        else if (settings.search?.defaultWave === 'priority') wave = 'priority';
+        else if ((settings.search?.defaultWave as string) === 'priority') wave = 'carousel'; // legacy priority → carousel
         else wave = 'full';
 
         const dryRun = false;
