@@ -145,9 +145,9 @@
       "{commune} Wohnung zu vermieten privat OR Eigentümer 3 Zimmer",
       "{commune} 3.5 Zimmer ab sofort privat OR Nachmieter",
       "{commune} Nachmieter gesucht Wohnung 3 OR 3.5 OR 4",
-      "site:facebook.com/groups {commune} (Wohnung OR 3.5 OR 4.5) (vermieten OR zu vermieten OR Nachmieter)",
       "{commune} Wohnung mieten von privat Telefon OR Handy OR WhatsApp",
-      "Ferienwohnung {commune} von privat Vermieter Kontakt"
+      "Ferienwohnung {commune} von privat Vermieter Kontakt",
+      "{commune} Wohnung Nachmieter neu OR ab sofort OR \"per 1.\" 3.5 Zimmer privat"
     ],
     "snippetOnlyHosts": [
       "facebook.com",
