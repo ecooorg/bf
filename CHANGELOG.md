@@ -1,3 +1,6 @@
+## P129.43 — ImmoFinder reset defaults, CI and discovery precision
+- Added persisted **Reset to defaults** (4 communes; search/Tutti/Flatfox/Homegate); tightened long-term rental queries and no-fresh-link fallback; fixed evidence excerpt/footer handling; aligned CI contracts.
+
 ## [129.42] - ImmoFinder P0 discovery + diagnostics
 
 - Weekly Serper freshness (`tbs=qdr:w`) with unfiltered fallback; private queries now include current move-in language and avoid the generic FB-group template.
