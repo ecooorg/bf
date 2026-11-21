@@ -324,7 +324,7 @@ test('discovery performs one unrestricted Serper call per query, without a fresh
   assert.deepEqual(calls, [null]);
 });
 
-test('P129.52 snippet-only social results never reach the model or database and get a short seen TTL', async () => {
+test('P129.52 social feed snippets become provisional cards instead of being discarded', async () => {
   const hits = [
     { title: 'Wohnung zu vermieten in Chur', link: 'https://www.facebook.com/groups/1/posts/11/', snippet: 'Schöne Wohnung in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
     { title: '3.5 Zimmer Wohnung in Chur', link: 'https://www.facebook.com/groups/1/posts/12/', snippet: 'Zu vermieten in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
@@ -334,11 +334,12 @@ test('P129.52 snippet-only social results never reach the model or database and 
   const llm = async () => { llmCalls++; return null; };
   const res = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm, store, search: async () => hits, cycle: 0 }, { dryRun: false, wave: 'carousel' });
   assert.equal(res.counts.snippet_only, 2);
-  assert.equal(res.filtered.detail_page_not_verified, 2);
-  assert.equal(llmCalls, 0);
-  assert.equal(saved.length, 0);
-  assert.equal(marked.length, 2, 'rejected snippets are cached only as transient detail-page failures');
-  assert.ok(marked.every((x) => x.decision === 'filtered' && x.reason === 'detail_page_not_verified'));
+  assert.equal(res.counts.kept, 2);
+  assert.equal(llmCalls, 0, 'snippet evidence is parsed deterministically, without pretending a page was verified');
+  assert.equal(saved.length, 2);
+  assert.ok(saved.every((row) => row.raw.provisional === true && row.raw.evidence_kind === 'snippet'));
+  assert.ok(saved.every((row) => row.raw.evidence_confidence === 'low'));
+  assert.equal(marked.length, 0, 'potential social posts are not poisoned in the seen cache');
 });
 
 test('P129.51 a failed portal fetch cannot downgrade to a saved SERP snippet', async () => {
