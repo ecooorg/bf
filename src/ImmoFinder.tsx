@@ -198,7 +198,7 @@ export default function ImmoFinder() {
     <div className="shell" data-testid="immofinder-root" style={{ padding: 16, maxWidth: 920, margin: '0 auto' }}>
       <style>{'@keyframes immospin{to{transform:rotate(360deg)}} .immo-btn{background:#1457b8!important;color:#fff!important;border:1px solid #7db8ff!important;font-weight:700;border-radius:10px;text-decoration:none;display:inline-block;cursor:pointer} .immo-btn:disabled{background:#2a4766!important;color:#f2f7ff!important;border-color:#5a7ea6!important;opacity:1} .immo-btn.small{padding:4px 12px;font-size:13px;margin-right:6px}'}</style>
       <h1 style={{ margin: '0 0 4px' }}>ImmoFinder GR</h1>
-      <p style={{ color: '#8fa6c2', marginTop: 0 }}>Finds and verifies rental listings and private owner leads (3+ rooms) in the selected Graubünden communes, then prepares a long-term rental enquiry. Letters are never sent automatically.</p>
+      <p style={{ color: '#8fa6c2', marginTop: 0 }}>Finds rental listings and private-owner leads (3+ rooms) in Graubünden; prepares an enquiry. Nothing is sent automatically.</p>
 
       <section style={card}>
         {!busy ? (
