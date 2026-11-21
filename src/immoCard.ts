@@ -12,7 +12,7 @@
  */
 
 export type ImmoCardInput = {
-  municipality?: string | null; property_name?: string | null; description_de?: string | null;
+  municipality?: string | null; street_address?: string | null; property_name?: string | null; description_de?: string | null;
   rooms_estimated?: string | number | null; rent_monthly_chf?: number | null; pricing_unit?: string | null;
   listing_url?: string | null; photo_urls?: string[] | null; private_signals?: string[] | null;
   contact_status?: string | null; owner_name?: string | null; direct_phone?: string | null; direct_email?: string | null;
@@ -200,6 +200,8 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
       ? String(l.raw.evidence_text).replace(/\s+/g, ' ').trim()
       : '';
   const about = buildAbout(String(l.property_name || ''), String(l.description_de || ''), l.rooms_estimated);
+  const address = String(l.street_address || '').replace(/\s+/g, ' ').trim();
+  const aboutLine = [address, about].filter(Boolean).join(' · ').slice(0, 180);
   const kindRaw = l.raw?.evidence_kind;
   const evidenceKind =
     kindRaw === 'page_text' || kindRaw === 'snippet' || kindRaw === 'link_only'
@@ -213,7 +215,7 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
       : '';
   return {
     headline: `📍 ${l.municipality || '?'} · ${immoPriceText(l)} · ${rooms} · ${contact || 'no direct contact'}`,
-    about,
+    about: aboutLine,
     url,
     linkNote: (l.private_signals || []).includes('generic_link') ? IMMO_LINK_NOTE : '',
     found: l.first_seen_at ? `found ${immoFormatFound(l.first_seen_at)}` : '',
