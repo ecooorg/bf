@@ -125,23 +125,27 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
   };
 
   return async function fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string }> {
+    const startedAt = Date.now();
+    const logFetch = (event: string, details: Record<string, unknown> = {}) => { try { console.info(JSON.stringify({ type: 'immofinder_fetch_trace', event, requestedHost: (() => { try { return new URL(url).hostname; } catch { return 'invalid'; } })(), elapsedMs: Date.now() - startedAt, ...details })); } catch { /* diagnostics only */ } };
     let currentUrl = url; let redirected = false;
     let initial: URL;
-    try { initial = new URL(url); } catch { return { ok: false, status: 0, body: 'invalid URL', fetchMode: 'blocked_non_public' }; }
-    if (!/^https?:$/.test(initial.protocol)) return { ok: false, status: 0, body: 'unsupported protocol' };
+    try { initial = new URL(url); } catch { logFetch('rejected_invalid_url'); return { ok: false, status: 0, body: 'invalid URL', fetchMode: 'blocked_non_public' }; }
+    if (!/^https?:$/.test(initial.protocol)) { logFetch('rejected_protocol', { protocol: initial.protocol }); return { ok: false, status: 0, body: 'unsupported protocol' }; }
     let direct: { ok: boolean; status: number; body: string; finalUrl?: string; location?: string; fetchMode?: string } = { ok: false, status: 0, body: 'not fetched' };
     for (let hop = 0; hop <= 5; hop++) {
       let target: URL;
       try { target = new URL(currentUrl); } catch { return { ok: false, status: 0, body: 'invalid redirect URL', finalUrl: currentUrl, fetchMode: 'blocked_non_public_redirect' }; }
       if (!/^https?:$/.test(target.protocol) || !await isPublicTarget(currentUrl)) {
+        logFetch('blocked_non_public_target', { hop, protocol: target.protocol, host: target.hostname });
         return { ok: false, status: 0, body: 'blocked non-public target', finalUrl: currentUrl, fetchMode: redirected ? 'blocked_non_public_redirect' : 'blocked_non_public' };
       }
-      if (cfg.fetch.respectRobotsTxt && await disallowed(target)) return { ok: false, status: 403, body: 'blocked by robots.txt', finalUrl: currentUrl, fetchMode: 'robots_blocked' };
+      if (cfg.fetch.respectRobotsTxt && await disallowed(target)) { logFetch('blocked_robots_txt', { hop, host: target.host, path: target.pathname }); return { ok: false, status: 403, body: 'blocked by robots.txt', finalUrl: currentUrl, fetchMode: 'robots_blocked' }; }
       const wait = (last.get(target.host) || 0) + cfg.fetch.perHostDelayMs - Date.now(); if (wait > 0) await sleep(wait);
       last.set(target.host, Date.now());
       try { direct = await get(currentUrl, cfg.limits.fetchTimeoutMs, 'manual'); }
-      catch (e) { direct = { ok: false, status: 0, body: String((e as Error)?.message || e).slice(0, 120), finalUrl: currentUrl }; break; }
+      catch (e) { direct = { ok: false, status: 0, body: String((e as Error)?.message || e).slice(0, 240), finalUrl: currentUrl }; logFetch('direct_request_exception', { hop, host: target.host, errorName: (e as Error)?.name || typeof e, error: String((e as Error)?.message || e).slice(0, 240) }); break; }
       if (direct.status >= 300 && direct.status < 400 && direct.location) {
+        logFetch('redirect', { hop, status: direct.status, fromHost: target.host, locationHost: (() => { try { return new URL(direct.location!, currentUrl).hostname; } catch { return 'invalid'; } })() });
         if (hop === 5) return { ok: false, status: direct.status, body: 'redirect limit exceeded', finalUrl: currentUrl, fetchMode: 'redirect_limit' };
         try {
           const next = new URL(direct.location, currentUrl);
@@ -153,15 +157,19 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
       break;
     }
     const directTextChars = htmlToText(direct.body).trim().length;
+    logFetch('direct_result', { ok: direct.ok, status: direct.status, fetchMode: redirected ? 'direct_redirect' : 'direct', bodyChars: direct.body.length, textChars: directTextChars, finalHost: (() => { try { return new URL(direct.finalUrl || currentUrl).hostname; } catch { return 'invalid'; } })(), error: !direct.ok ? String(direct.body || '').slice(0, 240) : null });
     if (!direct.ok || directTextChars < 30) {
       if (direct.fetchMode?.startsWith('blocked_non_public') || direct.fetchMode === 'redirect_limit') return { ok: false, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: direct.fetchMode };
       const fallback = await jinaFallback(url);
       if (fallback) {
+        logFetch('jina_fallback_succeeded', { directStatus: direct.status, directTextChars, fallbackBodyChars: fallback.body.length, fallbackMode: fallback.fetchMode });
         try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_ok', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
         return fallback;
       }
+      logFetch('jina_fallback_failed', { directStatus: direct.status, directTextChars, directError: String(direct.body || '').slice(0, 240), fallbackConfigured: Boolean(process.env.JINA_READER_BASE_URL), fallbackKeyConfigured: Boolean(process.env.JINA_API_KEY) });
       try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_unavailable', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
     }
+    logFetch('fetch_completed', { ok: direct.ok, status: direct.status, bodyChars: direct.body.length, textChars: directTextChars, fetchMode: redirected ? 'direct_redirect' : 'direct' });
     return { ok: direct.ok, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: redirected ? 'direct_redirect' : 'direct' };
   };
 }
