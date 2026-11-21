@@ -23,6 +23,7 @@ import { exportRepairSnapshot, previewRepairOps, applyRepairBatch, runAutomaticR
 import { parseRepairFile } from './immofinderRepair.ts';
 import { publishGitHubListingsSnapshot, publishGitHubRunDiagnostics } from './immofinderSnapshot.ts';
 import { capturedImmoFinderTrace } from './projectDiagnostics.ts';
+import { persistImmoFinderRunDiagnostics, latestImmoFinderRunDiagnostics } from './immofinderRunDiagnostics.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -67,6 +68,11 @@ function secretOk(req: Request): boolean {
 /** Cron call shape (POST /api/immofinder/run with X-Immofinder-Secret). Lets it past the global session gate only; the secret itself is verified in registerImmoFinderRoutes. */
 export function isImmoCronCall(req: Request): boolean {
   return req.method === 'POST' && req.path === '/api/immofinder/run' && Boolean(req.get('x-immofinder-secret'));
+}
+
+/** Read-only diagnostics polling endpoint for GitHub Actions; the same timing-safe run secret protects it. */
+export function isImmoDiagnosticsCall(req: Request): boolean {
+  return req.method === 'GET' && req.path === '/api/immofinder/diagnostics/latest' && secretOk(req);
 }
 
 /** Folder precedence: saved setting, then env, then the config default. */
@@ -114,13 +120,15 @@ async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, erro
         preview: (result?.preview || []).slice(0, 120).map((p: any) => ({ url: cleanUrl(p.url), title: cleanText(p.title, 160), source: cleanText(p.source, 80), municipality: p.municipality || null, rooms: p.rooms ?? null, kept: Boolean(p.kept), reason: p.reason || null, detail: cleanText(p.detail, 180) })),
       },
     };
+    await persistImmoFinderRunDiagnostics(runId, report);
+    immoLog('info', 'immofinder_diagnostics_database_committed', { runId, traceId, eventCount: events.length }, 'Completed search diagnostics persisted for GitHub polling');
     const published = await publishGitHubRunDiagnostics(report, { runId });
     if (published.status === 'committed') {
       immoLog('info', 'immofinder_github_diagnostics_committed', { runId, traceId, paths: published.paths, eventCount: published.eventCount, commitSha: published.commitSha || null });
       return `committed:${published.eventCount}`;
     }
     immoLog('warn', 'immofinder_github_diagnostics_skipped', { runId, reason: published.reason || 'not_configured' });
-    return `skipped:${published.reason || 'not_configured'}`;
+    return `database:committed;github:skipped:${published.reason || 'not_configured'}`;
   } catch (e) {
     const detail = String((e as Error)?.message || e).slice(0, 180);
     immoLog('error', 'immofinder_github_diagnostics_failed', { runId, error: detail });
@@ -162,6 +170,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     const hasSecretHeader = Boolean(String(req.get('x-immofinder-secret') || ''));
     const secretConfigured = Boolean(process.env.IMMOFINDER_RUN_SECRET && process.env.IMMOFINDER_RUN_SECRET.length >= 16);
     const cron = isRunPost && secretOk(req);
+    const diagnosticsPoll = isImmoDiagnosticsCall(req);
     if (isRunPost) {
       console.info(JSON.stringify({
         type: 'immofinder_run_request',
@@ -171,7 +180,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         cronAuth: cron,
       }));
     }
-    if (!cron) {
+    if (!cron && !diagnosticsPoll) {
       if (!deps.appAuthEnabled || !deps.authenticated(req)) {
         if (isRunPost) console.warn(JSON.stringify({ type: 'immofinder_run_rejected', code: 'UNAUTHORIZED', secretHeaderPresent: hasSecretHeader, secretConfigured }));
         return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
@@ -182,7 +191,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       } }
     }
     if (!process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Database is not configured', code: 'DATABASE_UNAVAILABLE' });
-    (req as any).immoCron = cron;
+    (req as any).immoCron = cron || diagnosticsPoll;
     // First authenticated ImmoFinder request after deploy audits every currently visible saved row.
     // The write-time gate in the store handles all subsequently discovered/re-fetched cards.
     if (!repairBootstrap) repairBootstrap = (async () => {
@@ -201,6 +210,18 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     void repairBootstrap.finally(() => next());
   });
 
+
+  /** GitHub Actions polls this endpoint every five minutes and archives each newly completed run. */
+  app.get('/api/immofinder/diagnostics/latest', async (_req, res) => {
+    try {
+      const latest = await latestImmoFinderRunDiagnostics();
+      res.setHeader('Cache-Control', 'no-store, max-age=0');
+      if (!latest) return res.status(404).json({ success: false, error: 'No completed ImmoFinder diagnostics yet', code: 'DIAGNOSTICS_NOT_FOUND' });
+      return res.json({ success: true, report: latest.report, completedAt: latest.completedAt });
+    } catch (e) {
+      return res.status(503).json({ success: false, error: String((e as Error)?.message || e).slice(0, 180), code: 'DIAGNOSTICS_UNAVAILABLE' });
+    }
+  });
 
   // Assistant repair protocol: snapshot is intentionally complete (including saved contacts/evidence).
   app.get('/api/immofinder/export-snapshot', async (_req, res) => {
@@ -905,11 +926,12 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             if (isRunCancelled(runId!)) await finishRunCancelled(runId!, result?.counts ?? {});
             else await finishRun(runId!, result, errors, delivery);
           } catch { /* 30-min guard */ }
+          const diagnosticsStatus = await publishGitHubDiagnosticsAfterRun(runId!, result, errors);
           const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
           try {
             await saveProgress(runId!, {
               stage: 'done',
-              text: `${isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · GitHub snapshot ${snapshotStatus}`,
+              text: `${isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · diagnostics ${diagnosticsStatus} · GitHub snapshot ${snapshotStatus}`,
               counts: result?.counts ?? {},
               log,
             });
