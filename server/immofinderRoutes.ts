@@ -19,6 +19,8 @@ import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings,
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
 import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
+import { exportRepairSnapshot, previewRepairOps, applyRepairBatch, runAutomaticRepairAudit, applyBundledRepairBatches } from './immofinderRepairStore.ts';
+import { parseRepairFile } from './immofinderRepair.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -44,6 +46,7 @@ const enrichJobStatus: {
 };
 
 const refreshStatus: RefreshStatus = newRefreshStatus();
+let repairBootstrap: Promise<unknown> | null = null;
 
 export interface ImmoRouteDeps {
   authenticated: (req: Request) => boolean;
@@ -96,7 +99,79 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       } }
     }
     if (!process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Database is not configured', code: 'DATABASE_UNAVAILABLE' });
-    (req as any).immoCron = cron; next();
+    (req as any).immoCron = cron;
+    // First authenticated ImmoFinder request after deploy audits every currently visible saved row.
+    // The write-time gate in the store handles all subsequently discovered/re-fetched cards.
+    if (!repairBootstrap) repairBootstrap = (async () => {
+      const audit = await runAutomaticRepairAudit();
+      const bundled = await applyBundledRepairBatches();
+      immoLog('info', 'immofinder_repair_bootstrap', { audit, bundled });
+      return { audit, bundled };
+    })().catch((e) => {
+      immoLog('error', 'immofinder_repair_bootstrap_failed', { error: String((e as Error)?.message || e).slice(0, 240) });
+      return null;
+    });
+    void repairBootstrap.finally(() => next());
+  });
+
+
+  // Assistant repair protocol: snapshot is intentionally complete (including saved contacts/evidence).
+  app.get('/api/immofinder/export-snapshot', async (_req, res) => {
+    try {
+      const snapshot = await exportRepairSnapshot();
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.json({ success: true, meta: snapshot.meta, rows: snapshot.rows, listingsJsonl: snapshot.jsonl, repairQueue: snapshot.queue });
+    } catch (e) { res.status(500).json({ success: false, error: 'Snapshot export failed', code: 'SNAPSHOT_FAILED' }); }
+  });
+
+  app.post('/api/immofinder/repair/preview', express.json({ limit: '5mb' }), async (req, res) => {
+    try {
+      const result = await previewRepairOps(req.body, 'assistant_preview');
+      res.status(result.valid ? 200 : 400).json({ success: result.valid, ...result });
+    } catch { res.status(500).json({ success: false, error: 'Repair preview failed', code: 'REPAIR_PREVIEW_FAILED' }); }
+  });
+
+  app.post('/api/immofinder/repair/apply', express.json({ limit: '5mb' }), async (req, res) => {
+    try {
+      const parsed = parseRepairFile(JSON.stringify(req.body));
+      if (parsed.issues.length || parsed.batches.length !== 1) {
+        return res.status(400).json({ success: false, error: 'Expected one valid repair batch', issues: parsed.issues });
+      }
+      const batch = parsed.batches[0];
+      if (!batch.ops.length) return res.status(400).json({ success: false, error: 'Repair batch contains no operations' });
+      const result = await applyRepairBatch(batch, 'assistant_patch');
+      let publication: Record<string, string> = {};
+      if (result.applied && !result.duplicate) {
+        try {
+          const settings = await getSettings(loadImmoConfig());
+          const all = (await listListingsForRefresh()).filter((r: any) => !r.hidden);
+          let driveUrl: string | undefined;
+          if (settings.delivery.drive) {
+            const drive = await exportDrive(all, driveFolder(settings.delivery.driveFolderId));
+            publication.drive = drive.status; driveUrl = drive.url;
+          }
+          const heading = `ImmoFinder: ${all.length} quality-checked listings after Assistant repair`;
+          if (settings.delivery.email && settings.delivery.emailTo) {
+            publication.email = await sendEmail(settings.delivery.emailTo, 'ImmoFinder: verified listings updated', formatListingsText(all, { heading, limit: 60, driveUrl }));
+          }
+          if (settings.delivery.telegram) {
+            publication.telegram = await sendTelegram(formatListingsText(all, { heading, limit: 6, driveUrl }));
+          }
+        } catch (e) {
+          publication.error = String((e as Error)?.message || e).slice(0, 180);
+        }
+      }
+      immoLog('info', 'immofinder_repair_applied', { batchId: batch.batchId, summary: result.summary, duplicate: result.duplicate, publication });
+      return res.json({ success: true, ...result, publication });
+    } catch (e) { res.status(500).json({ success: false, error: 'Repair apply failed', code: 'REPAIR_APPLY_FAILED' }); }
+  });
+
+  app.post('/api/immofinder/repair/audit', json, async (_req, res) => {
+    try {
+      const result = await runAutomaticRepairAudit();
+      immoLog('info', 'immofinder_repair_audit', result);
+      return res.json({ success: true, ...result });
+    } catch { return res.status(500).json({ success: false, error: 'Automatic repair audit failed', code: 'REPAIR_AUDIT_FAILED' }); }
   });
 
   app.get('/api/immofinder/listings', async (req, res) => {
@@ -488,7 +563,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         const dl = settings.delivery;
         const deliverWave = async (wave: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
           const label = immofinderWaveLabel(wave);
-          const all = await listListings(null);
+          const all = (await listListingsForRefresh()).filter((r: any) => !r.hidden);
           const newKeys = new Set(newInWave.map((l) => l.canonical_key));
           const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
           // emailContent: 'new' = only this wave; 'all' = every visible listing (setting in Delivery).
@@ -651,7 +726,7 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             const dl = settings.delivery;
             const deliverWave = async (w: 'priority' | 'extended' | 'carousel', newInWave: { canonical_key: string }[], counts: Record<string, number>) => {
               const label = immofinderWaveLabel(w);
-              const all = await listListings(null);
+              const all = (await listListingsForRefresh()).filter((r: any) => !r.hidden);
               const newKeys = new Set(newInWave.map((l) => l.canonical_key));
               const fresh = all.filter((r: any) => newKeys.has(r.canonical_key));
               const emailAllMode = dl.emailContent === 'all';

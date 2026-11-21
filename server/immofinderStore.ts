@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
+import { sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
 import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice, credibilityRejectReason, buildEvidenceText, isPlatformOrJunkContact, formatHideLog } from './immofinderCore.ts';
 import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
@@ -33,8 +34,14 @@ export function createPgStore(): ImmoStore {
       const p = await getPool();
       await p.query('INSERT INTO immofinder_seen (url, source_id, decision, reason) VALUES ($1,$2,$3,$4) ON CONFLICT (url) DO UPDATE SET decision = $3, reason = $4, checked_at = now()', [url, sourceId, decision, reason]);
     },
-    async upsert(rec: ListingRecord) {
+    async upsert(input: ListingRecord) {
       const p = await getPool();
+      const sanitized = sanitizeNewRecord(input as unknown as Record<string, any>, ctxFromConfig(loadImmoConfig()));
+      const rec = sanitized.rec as unknown as ListingRecord & { hidden?: boolean; hide_reason?: string };
+      if (sanitized.notes.length || sanitized.hardReason) {
+        rec.raw = { ...(rec.raw || {}), write_time_quality: { notes: sanitized.notes, hardReason: sanitized.hardReason, rules: '129.47.1' } };
+        if (sanitized.hardReason) { rec.hidden = true; rec.hide_reason = sanitized.hardReason; }
+      }
       // Identity is the listing URL only. Never merge two different URLs into one card
       // (old canonical_key merge mixed description/price/contacts from unrelated ads).
       const ex = await p.query(
@@ -66,6 +73,8 @@ export function createPgStore(): ImmoStore {
             direct_email = COALESCE($12, direct_email),
             owner_name = COALESCE($13, owner_name),
             raw = $14::jsonb,
+            hidden = CASE WHEN $15::boolean THEN true ELSE hidden END,
+            hide_reason = CASE WHEN $15::boolean THEN $16 ELSE hide_reason END,
             last_seen_at = now(), updated_at = now()
            WHERE id = $1`,
           [
@@ -82,16 +91,17 @@ export function createPgStore(): ImmoStore {
             rec.direct_phone,
             rec.direct_email,
             rec.owner_name,
-            j(nextRaw),
+            j({ ...nextRaw, ...(sanitized.notes.length || sanitized.hardReason ? { write_time_quality: { notes: sanitized.notes, hardReason: sanitized.hardReason, rules: '129.47.1' } } : {}) }),
+            Boolean(sanitized.hardReason), sanitized.hardReason || '',
           ],
         );
         return 'updated';
       }
       await p.query(`INSERT INTO immofinder_listings (listing_type, canonical_key, source_urls, source_ids, listing_url, photo_urls, municipality, property_name, rooms_text, rooms_estimated, rooms_basis,
-        description_de, description_ru, title_ru, owner_name, direct_phone, direct_email, contact_evidence, contact_status, contact_advice, private_signals, draft_message_de, raw)
-        VALUES ($23,$1,$2::jsonb,$3::jsonb,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18,$19,$20::jsonb,$21,$22::jsonb)`,
+        description_de, description_ru, title_ru, owner_name, direct_phone, direct_email, contact_evidence, contact_status, contact_advice, private_signals, draft_message_de, raw, hidden, hide_reason)
+        VALUES ($23,$1,$2::jsonb,$3::jsonb,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18,$19,$20::jsonb,$21,$22::jsonb,$24,$25)`,
         [rec.canonical_key, j(rec.source_urls), j(rec.source_ids), rec.listing_url, j(rec.photo_urls), rec.municipality, rec.property_name, rec.rooms_text, rec.rooms_estimated, rec.rooms_basis,
-          rec.description_de, rec.description_ru, rec.title_ru, rec.owner_name, rec.direct_phone, rec.direct_email, j(rec.contact_evidence), rec.contact_status, rec.contact_advice, j(rec.private_signals), rec.draft_message_de, j(rec.raw), rec.listing_type]);
+          rec.description_de, rec.description_ru, rec.title_ru, rec.owner_name, rec.direct_phone, rec.direct_email, j(rec.contact_evidence), rec.contact_status, rec.contact_advice, j(rec.private_signals), rec.draft_message_de, j(rec.raw), rec.listing_type, Boolean(sanitized.hardReason), sanitized.hardReason || '']);
       return 'new';
     },
   };

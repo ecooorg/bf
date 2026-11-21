@@ -1,5 +1,6 @@
 import { hostOf, buildQueries, pickItems, communesForRun, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
+import { sanitizeNewRecord } from './immofinderRepair.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
@@ -456,7 +457,11 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         }
       }
 
-      const r = await deps.store.upsert(finalRec); res.counts[r]++; if (r === 'new') { res.newListings.push(finalRec); st.new++; }
+      const checked = sanitizeNewRecord(finalRec as unknown as Record<string, any>, { municipalities: cfg.municipalities || [] });
+      const safeRec = checked.rec as unknown as ListingRecord;
+      const r = await deps.store.upsert(safeRec); res.counts[r]++;
+      // A card rejected by the shared quality gate is stored hidden for recovery, never delivered.
+      if (r === 'new' && !checked.hardReason) { res.newListings.push(safeRec); st.new++; }
     }
   }
 
