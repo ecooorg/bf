@@ -388,7 +388,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (ex.rooms.rooms >= 12) { await deny('rooms_too_many', String(ex.rooms.rooms)); continue; }
       if (ex.regForbidden) { await deny('registration_forbidden'); continue; }
       // FB group root / _join_ / portal list URLs are not one ad; owner microsites without an ID still get a soft signal only.
-      if (!isSpecificLink(url) && !isPortalDetailLink(url, cfg)) {
+      if (!snippetEvidence && !isSpecificLink(url) && !isPortalDetailLink(url, cfg)) {
         if (/facebook\.com|newhome\.ch|tutti\.ch|homegate\.ch|immoscout24|flatfox|urbanhome|rentola|cozycozy|booking\.com|home\.ch/i.test(url)) {
           await deny('not_single_listing', 'non_specific_portal_or_social');
           continue;
