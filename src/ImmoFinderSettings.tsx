@@ -577,7 +577,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               />{' '}
               Require phone or email (drops Messenger-only posts)
             </label>
-            <div style={{ ...mutedText, marginTop: 6 }}>
+            <div style={{ marginTop: 6, fontSize: 13, opacity: 0.8 }}>
               Listings without a published price are kept and marked as price unknown. A known rent above the configured limit is still filtered.
             </div>
             <label style={labelBlock}>
