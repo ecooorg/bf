@@ -225,6 +225,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       // Skip URLs that clearly name a place outside the whitelist (no fetch, no LLM).
       const place = placeFromUrl(it.url, cfg.municipalities);
       if (place.outside) {
+        diag('candidate_rejected_prefetch', { source: src.id, url: safeDiagUrl(it.url), reason: 'municipality_not_whitelisted', stage: 'url_geo', placeHint: place.hint });
         res.counts.skipped_geo = (res.counts.skipped_geo || 0) + 1;
         st.geo++; st.consecutiveBad++;
         drop('municipality_not_whitelisted');
@@ -235,6 +236,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       // Title / snippet geo prefilter (search hits and catalogue titles that already name a distant resort).
       const titleGeo = placeFromTitleOrSnippet(it.hit?.title || '', it.hit?.snippet || '', cfg.municipalities);
       if (titleGeo.outside) {
+        diag('candidate_rejected_prefetch', { source: src.id, url: safeDiagUrl(it.url), reason: 'municipality_not_whitelisted', stage: 'title_snippet_geo', placeHint: titleGeo.hint });
         res.counts.skipped_geo = (res.counts.skipped_geo || 0) + 1;
         st.geo++; st.consecutiveBad++;
         drop('municipality_not_whitelisted');
@@ -246,6 +248,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (it.hit?.title) {
         const nlHit = nonListingReason(it.hit.title, it.url);
         if (nlHit) {
+          diag('candidate_rejected_prefetch', { source: src.id, url: safeDiagUrl(it.url), reason: nlHit, stage: 'search_title' });
           st.junk++; st.consecutiveBad++;
           drop(nlHit);
           res.preview.push({ url: it.url, title: it.hit.title.slice(0, 90), source: src.id, municipality: null, rooms: null, kept: false, reason: nlHit, detail: 'prefilter_title' });
@@ -832,10 +835,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   }
 
   res.sourceStats = [...sourceStatMap.values()].sort((a, b) => (b.kept - a.kept) || (b.fetched - a.fetched));
-  diag('run_completed', { durationMs: now() - diagnosticStartedAt, counts: res.counts, filtered: res.filtered, errors: res.errors, sourceStats: res.sourceStats, wavesRun: res.wavesRun, previewCount: res.preview.length, preview: res.preview.slice(0, 30).map((x) => ({ url: safeDiagUrl(x.url), source: x.source, title: safeDiagText(x.title, 160), kept: x.kept, reason: x.reason || null, detail: safeDiagText(x.detail, 200), municipality: x.municipality, rooms: x.rooms })), estimatedCostUsd: res.estCostUsd });
   const extraSearches = Math.max(0, (enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0) - enrichBudget.searchesLeft);
   res.newListings.sort((a, b) => Number(b.contact_status === 'found') - Number(a.contact_status === 'found'));
   res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + ((res.counts.serper_calls || res.counts.search_queries) + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
+  diag('run_completed', { durationMs: now() - diagnosticStartedAt, counts: res.counts, filtered: res.filtered, errors: res.errors, sourceStats: res.sourceStats, wavesRun: res.wavesRun, previewCount: res.preview.length, preview: res.preview.slice(0, 30).map((x) => ({ url: safeDiagUrl(x.url), source: x.source, title: safeDiagText(x.title, 160), kept: x.kept, reason: x.reason || null, detail: safeDiagText(x.detail, 200), municipality: x.municipality, rooms: x.rooms })), estimatedCostUsd: res.estCostUsd });
   const filt = Object.entries(res.filtered).map(([k, v]) => `${k}=${v}`).join(' ') || 'none';
   const c = res.counts;
   const statsLine = (res.sourceStats || []).map((s) => `${s.id}:kept=${s.kept}/fetch=${s.fetched}/geo=${s.geo}/junk=${s.junk}${s.stoppedEarly ? '/STOP' : ''}`).join(' · ') || 'none';
