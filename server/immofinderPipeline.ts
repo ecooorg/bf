@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { immoLog } from './immofinderDiag.ts';
 import { hostOf, buildQueries, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { sameListingUrlTarget, sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
@@ -110,7 +111,7 @@ async function extract(deps: PipelineDeps, text: string, meta: ReturnType<typeof
     summaryDe: String(out.summary_de ?? '').slice(0, 300), signals, llm: true, priceQuote: pq, listedAtQuote: q('listed_at_quote') } };
 }
 
-interface Item { url: string; hit?: SearchHit; snippetOnly?: boolean }
+interface Item { url: string; hit?: SearchHit; snippetOnly?: boolean; municipalityHint?: string | null }
 interface SrcMeta { id: string; cutMarkers?: string[]; privateTitleHint?: string }
 
 export type RunWave = 'priority' | 'extended' | 'full' | 'carousel';
@@ -121,7 +122,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const diagnosticStartedAt = now();
   const safeDiagText = (value: unknown, max = 500) => String(value ?? '').replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]').replace(/(?:\+?\d[\d\s().-]{6,}\d)/g, '[phone]').slice(0, max);
   const safeDiagUrl = (value: unknown) => { try { const u = new URL(String(value)); return u.hostname + u.pathname; } catch { return '[invalid-url]'; } };
-  const diag = (event: string, details: Record<string, unknown> = {}) => { try { console.info(JSON.stringify({ type: 'immofinder_trace', traceId: diagnosticRunId, event, at: new Date(now()).toISOString(), elapsedMs: Math.max(0, now() - diagnosticStartedAt), ...details })); } catch { /* diagnostics must never affect search */ } };
+  const diag = (event: string, details: Record<string, unknown> = {}) => { try { immoLog('info', 'trace', { type: 'immofinder_trace', traceId: diagnosticRunId, event, at: new Date(now()).toISOString(), elapsedMs: Math.max(0, now() - diagnosticStartedAt), ...details }); } catch { /* diagnostics must never affect search */ } };
   diag('run_started', { wave: opts.wave || 'full', dryRun: opts.dryRun, municipalities: cfg.municipalities, minRooms: cfg.minRooms, discoveryEnabled: Boolean(cfg.discovery?.enabled), privateQueryTemplates: cfg.discovery?.queries?.length || 0, portalQueryTemplates: cfg.discovery?.portalQueries?.length || 0, maxCandidatesPerQuery: cfg.discovery?.maxCandidatesPerQuery ?? 4, pageLimit: cfg.discovery?.maxPagesPerRun ?? null, runMaxDurationMs: cfg.runMaxDurationMs ?? null, llmEnabled: Boolean(deps.llm), searchEnabled: Boolean(deps.search), maxLlmCalls: deps.maxLlmCalls ?? null, sourceCount: cfg.sources.length });
   const waveMode: RunWave = opts.wave === 'priority' || opts.wave === 'extended' || opts.wave === 'carousel' ? opts.wave : 'full';
   const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, serper_calls: 0, serper_fallback: 0, llm_skipped_no_rooms: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0, sourceStats: [], wavesRun: [] };
@@ -266,20 +267,25 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         try { await deps.store.markSeen(it.url, src.id, 'filtered', reason); } catch { /* cache is advisory; do not abort discovery */ }
         say(stage, `✖ ${reason}: ${title.slice(0, 60)}`);
       };
-      // Social/search snippets are discovery hints only. They must never reach the model or database.
-      if (it.snippetOnly && it.hit) {
-        res.counts.snippet_only++;
-        await rejectUnverified('detail_page_not_verified', 'snippet_only_source');
-        continue;
-      }
+      // Social feeds may expose an ad only as a post/snippet. Preserve it as provisional evidence.
+      const snippetEvidence = Boolean(it.snippetOnly && it.hit);
+      if (snippetEvidence) res.counts.snippet_only++;
       let pg: { ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string };
       const fetchStartedAt = now();
-      try {
-        pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
-      } catch (fetchError) {
-        pg = { ok: false, status: 0, body: String((fetchError as Error)?.message || fetchError).slice(0, 240) };
-        res.errors.push({ source: src.id, code: 'step_timeout', detail: `fetch >${STEP_MS}ms ${it.url}`.slice(0, 200) });
-        say(stage, `skip slow page (>${Math.round(STEP_MS / 1000)}s): ${hostOf(it.url)}`);
+      if (snippetEvidence) {
+        const esc = (v: string) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        const title = String(it.hit?.title || '').slice(0, 300);
+        const snippet = String(it.hit?.snippet || '').slice(0, 3000);
+        pg = { ok: true, status: 200, body: `<html><head><title>${esc(title)}</title><meta name="description" content="${esc(snippet)}"></head><body><main>${esc(snippet)}</main></body></html>`, finalUrl: it.url, fetchMode: 'search_snippet' };
+        diag('candidate_snippet_used', { source: src.id, url: safeDiagUrl(it.url), host, title: safeDiagText(title, 180), snippet: safeDiagText(snippet, 700), municipalityHint: it.municipalityHint || null, evidenceConfidence: 'low' });
+      } else {
+        try {
+          pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
+        } catch (fetchError) {
+          pg = { ok: false, status: 0, body: String((fetchError as Error)?.message || fetchError).slice(0, 240) };
+          res.errors.push({ source: src.id, code: 'step_timeout', detail: `fetch >${STEP_MS}ms ${it.url}`.slice(0, 200) });
+          say(stage, `skip slow page (>${Math.round(STEP_MS / 1000)}s): ${hostOf(it.url)}`);
+        }
       }
       if (!pg.ok) {
         diag('candidate_fetch_failed', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || null, durationMs: now() - fetchStartedAt, error: safeDiagText(pg.body, 300), finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
@@ -292,8 +298,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         }
         continue;
       }
-      res.counts.fetched++; st.fetched++;
-      diag('candidate_fetch_succeeded', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || 'unknown', durationMs: now() - fetchStartedAt, bodyChars: String(pg.body || '').length, textChars: htmlToText(pg.body).trim().length, finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
+      if (!snippetEvidence) {
+        res.counts.fetched++; st.fetched++;
+        diag('candidate_fetch_succeeded', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || 'unknown', durationMs: now() - fetchStartedAt, bodyChars: String(pg.body || '').length, textChars: htmlToText(pg.body).trim().length, finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
+      }
       const fetchedUrl = String(pg.finalUrl || '').trim();
       if (fetchedUrl && !sameListingUrlTarget(it.url, fetchedUrl)) {
         diag('candidate_redirect_mismatch', { source: src.id, requestedUrl: safeDiagUrl(it.url), finalUrl: safeDiagUrl(fetchedUrl) });
@@ -305,13 +313,17 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       // remains the exact requested URL, while an explicitly different redirect is rejected.
       evidenceUrl = fetchedUrl || it.url;
       text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers);
-      if (text.trim().length < MIN_DIRECT_PAGE_TEXT_CHARS) {
+      if (text.trim().length < (snippetEvidence ? 18 : MIN_DIRECT_PAGE_TEXT_CHARS)) {
         diag('candidate_page_text_too_short', { source: src.id, url: safeDiagUrl(it.url), textChars: text.trim().length, bodyChars: String(pg.body || '').length, fetchMode: pg.fetchMode || 'direct' });
         await rejectUnverified('detail_page_evidence_too_short', `chars:${text.trim().length};mode:${pg.fetchMode || 'direct'}`);
         continue;
       }
       meta = pageMeta(pg.body, evidenceUrl);
-      // After the verified direct fetch: cheap geo / non-listing before spending an LLM call.
+      if (snippetEvidence && it.hit) {
+        meta.title = String(it.hit.title || meta.title).slice(0, 300);
+        meta.description = String(it.hit.snippet || '').slice(0, 500);
+      }
+      // After a verified page or provisional snippet: cheap geo / non-listing before spending an LLM call.
       const pageGeo = placeFromTitleOrSnippet(meta!.title, text.slice(0, 800), cfg.municipalities);
       if (pageGeo.outside) {
         res.counts.skipped_geo = (res.counts.skipped_geo || 0) + 1;
@@ -334,6 +346,15 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (timeLeft() < 30_000) { res.errors.push({ source: src.id, code: 'run_time_budget', detail: '30 minute cycle limit reached' }); break; }
       const extractionStartedAt = now();
       const { ex, llmCalls, err } = await extract(opts.dryRun || capped ? { ...deps, llm: null } : { ...deps, llm: llmWithRetry }, text, meta!, host);
+      if (snippetEvidence && !ex.municipality && it.municipalityHint) {
+        ex.municipality = it.municipalityHint;
+        ex.signals.push('municipality_from_search_query');
+      }
+      if (snippetEvidence && !ex.rooms) {
+        ex.rooms = { rooms: 0, basis: 'not_stated_in_search_snippet', quote: '' };
+        ex.signals.push('rooms_unverified');
+      }
+      if (snippetEvidence) ex.signals.push('provisional_search_snippet');
       diag('candidate_extracted', { source: src.id, url: safeDiagUrl(it.url), title: safeDiagText(meta!.title, 180), textChars: text.length, llmUsed: ex.llm, llmCalls, extractionDurationMs: now() - extractionStartedAt, llmError: err || null, single: ex.single, agencyDetected: Boolean(ex.agency), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, priceQuotePresent: Boolean(ex.priceQuote), listedAtQuotePresent: Boolean(ex.listedAtQuote), ownerVerified: Boolean(ex.owner), regForbidden: ex.regForbidden });
       if (src.privateTitleHint && meta!.title.toLowerCase().includes(src.privateTitleHint.toLowerCase())) ex.signals.push('platform_says_private');
       res.counts.llm_calls += llmCalls; st.llm += llmCalls; if (err) { res.errors.push({ source: src.id, code: 'llm_failed', detail: err }); st.consecutiveBad++; }
@@ -362,7 +383,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (looksLikeAgencyListing(meta.title, pages[i].text)) { await deny('agency', 'agency_language'); continue; }
       if (!ex.municipality) { await deny('municipality_not_whitelisted'); continue; }
       if (!ex.rooms) { await deny('rooms_unknown'); continue; }
-      if (ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
+      if (ex.rooms.rooms > 0 && ex.rooms.rooms < cfg.minRooms) { await deny('rooms_below_min', String(ex.rooms.rooms)); continue; }
       // Group houses / hostels mis-parsed as 15–68 rooms — never a private 3.5-room flat
       if (ex.rooms.rooms >= 12) { await deny('rooms_too_many', String(ex.rooms.rooms)); continue; }
       if (ex.regForbidden) { await deny('registration_forbidden'); continue; }
@@ -383,7 +404,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const phones = c.phones.filter((p) => (phoneUse.get(`${host}|${p}`) || 0) < 3);
       const evidence = [...phones.slice(0, 1).map((v) => ({ type: 'phone', value: v, url })), ...c.emails.slice(0, 1).map((v) => ({ type: 'email', value: v, url }))];
       const pageText = pages[i].text;
-      const evidenceKind: EvidenceKind = 'page_text';
+      const evidenceKind: EvidenceKind = snippetEvidence ? 'snippet' : 'page_text';
       res.counts[`evidence_${evidenceKind}`] = (res.counts[`evidence_${evidenceKind}`] || 0) + 1;
       const evidenceText = buildEvidenceText(meta.title, pageText, 4000);
       const priceHay = evidenceText;
@@ -418,11 +439,11 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         email: email0,
         evidenceKind,
         municipalities: cfg.municipalities,
-        allowSnippet: false,
+        allowSnippet: snippetEvidence,
         allowShortStay: shortStay,
       });
       if (credReason) { await deny(credReason, evidenceKind); continue; }
-      const shortStayReason = shortStayPreflightReason({ shortStay, price, url, evidenceKind, evidenceText });
+      const shortStayReason = snippetEvidence ? null : shortStayPreflightReason({ shortStay, price, url, evidenceKind, evidenceText });
       if (shortStayReason) { await deny(shortStayReason, evidenceKind); continue; }
       const qReason = qualityRejectReason(quality, price, listedAt, seeker, !!(phone0 || email0), now());
       // A: diagnostics when price missing or reject is price_*
@@ -457,7 +478,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis, street_address: ex.streetAddress, description_de: descriptionDe, description_ru: '', title_ru: '', owner_name: ex.owner,
         rent_monthly_chf: price?.monthlyChf ?? null, pricing_unit: price?.unit ?? null, listed_at: listedAt ? listedAt.toISOString() : null,
         direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
-        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, search_result_date: hitDate, address_quote: ex.streetAddress },
+        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, evidence_confidence: snippetEvidence ? 'low' : 'verified_page', provisional: snippetEvidence, search_result_date: hitDate, address_quote: ex.streetAddress },
       };
       if (opts.dryRun) {
         const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, ctxFromConfig(cfg));
@@ -670,6 +691,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       });
       return portal?.id || 'search';
     };
+    let currentQueryMunicipality: string | null = null;
     const flushBatch = async () => {
       if (!batchHits.length || deps.shouldCancel?.()) { batchHits = []; return; }
       const pickedForBatch = pickItems(batchHits, cfg);
@@ -681,12 +703,13 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       batchHits = [];
       if (items.length && remaining > 0) {
         res.counts.sources++;
-        await processItems({ id: currentSourceId }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), remaining);
+        await processItems({ id: currentSourceId }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly, municipalityHint: currentQueryMunicipality })), remaining);
         processedItems += Math.min(items.length, remaining);
       }
     };
     for (const q of slice) {
       if (deps.shouldCancel?.()) break;
+      currentQueryMunicipality = cfg.municipalities.find((m) => q.toLowerCase().includes(m.toLowerCase())) || null;
       currentSourceId = sourceIdForQuery(q);
       getStat(currentSourceId).queries++;
       if (!finishAll && timeLeft() < 45_000) {
