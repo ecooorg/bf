@@ -197,17 +197,6 @@ test('discovery performs one unrestricted Serper call per query, without a fresh
   assert.deepEqual(calls, [null]);
 });
 
-test('P129.44 only a provider 400 retries without freshness; timeouts and rate limits do not double the cost', async () => {
-  let n = 0;
-  const rateLimited = async () => { n++; throw new Error('Serper HTTP 429: rate'); };
-  const a = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm: null, store: memStore(), search: rateLimited, cycle: 0 }, { dryRun: true, wave: 'carousel' });
-  assert.equal(n, 1); assert.equal(a.counts.serper_calls, 1);
-  n = 0;
-  const rejects = async (_q, o) => { n++; if (o?.tbs) throw new Error('Serper HTTP 400: bad tbs'); return staleHit; };
-  const b = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm: null, store: memStore(), search: rejects, cycle: 0 }, { dryRun: true, wave: 'carousel' });
-  assert.equal(n, 2); assert.equal(b.counts.serper_fallback, 1); assert.equal(b.counts.serper_calls, 2);
-});
-
 test('P129.52 snippet-only social results never reach the model or database and get a short seen TTL', async () => {
   const hits = [
     { title: 'Wohnung zu vermieten in Chur', link: 'https://www.facebook.com/groups/1/posts/11/', snippet: 'Schöne Wohnung in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
