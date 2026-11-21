@@ -400,6 +400,24 @@ export function nonListingReason(title: string, url: string): NonListing | null 
   return null;
 }
 
+/** Recognise concrete detail routes on configured Swiss rental portals.
+ * Shared by discovery, write-time validation and stored-row audits.
+ * Decode defensively so malformed percent escapes cannot abort a search run. */
+export function isPortalDetailUrl(url: string, portalHosts: string[] = []): boolean {
+  let u: URL;
+  try { u = new URL(url); } catch { return false; }
+  const host = u.hostname.replace(/^www\./, '').toLowerCase();
+  if (!portalHosts.some((h) => host === h.toLowerCase() || host.endsWith(`.${h.toLowerCase()}`))) return false;
+  const parts = u.pathname.split('/').filter(Boolean).map((x) => {
+    try { return decodeURIComponent(x).toLowerCase(); } catch { return x.toLowerCase(); }
+  });
+  if (parts[0] && /^(de|fr|it|en)$/.test(parts[0])) parts.shift();
+  if (parts.length < 2) return false;
+  const generic = new Set(['search','suche','results','resultate','angebote','list','listing','rent','mieten','buy','kaufen','sale','map','karte','real-estate','immobilien','wohnung-mieten','wohnungen-mieten','flat','apartment','house']);
+  if (!parts[parts.length - 1] || generic.has(parts[parts.length - 1])) return false;
+  if (parts.some((p) => /^(search|suche|results|resultate|map|karte)$/.test(p))) return false;
+  return true;
+}
 /** True when the URL points at one concrete ad (an ID or a long slug), not at a group or generic page. */
 export function isSpecificLink(url: string): boolean {
   let u: URL; try { u = new URL(url); } catch { return false; }
