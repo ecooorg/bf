@@ -60,7 +60,14 @@ test('config prioritises long-term Swiss rental discovery portals', () => {
   assert.match(queries, /homegate\.ch/);
   assert.match(queries, /flatfox\.ch/);
   assert.match(queries, /tutti\.ch/);
-  assert.ok(cfg.discovery.communesPerRun >= 4);
+  assert.match(queries, /anibis\.ch/);
+  assert.match(queries, /newhome\.ch/);
+  assert.match(queries, /urbanhome\.ch/);
+  assert.match(queries, /petitesannonces\.ch/);
+  for (const host of ['properstar.ch', 'rentumo.ch', 'moving24.ch', 'homematch.ch', 'roomlala.de', 'bedandbreakfast.eu']) {
+    assert.ok(cfg.discovery.skipHosts.includes(host), `aggregator / short-stay host excluded: ${host}`);
+  }
+  assert.ok(cfg.discovery.communesPerRun >= 12);
 });
 
 test('pickItems ranks whitelist commune hits before distant resorts', () => {
@@ -357,16 +364,38 @@ test('sanitizeSerperQuery trims and caps length', async () => {
   assert.ok(!/OR$/i.test(sanitizeSerperQuery('foo OR')));
 });
 
-test('P129.43 defaults select four communes and only the productive discovery sources; reset endpoint persists them', () => {
-  const settings = read('server/immofinderSettings.ts');
+test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded quality-first cadence', async () => {
+  const { defaultSettings, applySettings } = await import('../server/immofinderSettings.ts');
+  const cfg = JSON.parse(read('config/immofinder.json'));
+  const defaults = defaultSettings(cfg);
   const routes = read('server/immofinderRoutes.ts');
   const ui = read('src/ImmoFinderSettings.tsx');
-  assert.match(settings, /carouselCommunesPerRun: 8/);
-  assert.match(settings, /\['search', 'portal-tutti', 'portal-flatfox', 'portal-homegate'\]/);
+
+  assert.equal(defaults.schedule.everyHours, 3);
+  assert.equal(defaults.search.minRooms, 3);
+  assert.equal(defaults.search.carouselCommunesPerRun, 12);
+  assert.equal(defaults.search.privateQueryTemplates, 4);
+  assert.equal(defaults.search.maxAiPages, 100);
+  assert.equal(defaults.search.enrichSearchesPerRun, 12);
+  assert.equal(defaults.search.requirePrice, true);
+  assert.equal(defaults.search.rejectNonMonthly, true);
+  assert.equal(defaults.search.rejectSeekerPosts, true);
+  assert.equal(defaults.search.requireContact, false);
+  assert.equal(defaults.search.maxMonthlyRentChf, 2000);
+  assert.equal(defaults.delivery.driveFolderId, cfg.driveFolderId);
+  assert.ok(Object.values(defaults.search.sources).filter(Boolean).length >= 14);
+
+  const applied = applySettings(cfg, defaults);
+  assert.equal(applied.discovery.portalQueries.length, cfg.discovery.portalQueries.length);
+  assert.equal(applied.discovery.communesPerRun, 12);
+  assert.equal(applied.discovery.queries.length, 4);
+
   assert.match(routes, /\/api\/immofinder\/settings\/reset/);
-  assert.match(routes, /saveSettings\(cfg, defaultSettings\(cfg\)\)/);
+  assert.match(routes, /const current = await getSettings\(cfg\)/);
+  assert.match(routes, /email: Boolean\(current\.delivery\.emailTo\)/);
   assert.match(ui, /Reset to defaults/);
   assert.match(ui, /immofinder-settings-reset/);
+  assert.doesNotMatch(ui, /immofinder-default-wave/);
 });
 
 test('Serper freshness options are forwarded to the provider request', async () => {
@@ -403,6 +432,64 @@ test('P129.47 repair protocol validates a closed operation whitelist and evidenc
   assert.equal(repair.amountInText(1800, 'CHF 1’500 pro Monat'), false);
 });
 
+test('P129.48 repair audit hides cards without verified monthly prices and writes evidence-backed price repairs', async () => {
+  const { auditRow, hardRejectReason, isPresentable, evaluateOp, sanitizeNewRecord, REPAIR_RULES_VERSION } = await import('../server/immofinderRepair.ts');
+  const ctx = { municipalities: ['Chur'] };
+  const missing = {
+    id: '123e4567-e89b-12d3-a456-426614174001',
+    listing_url: 'https://www.homegate.ch/mieten/4001234567',
+    municipality: 'Chur',
+    property_name: '3.5-Zimmer-Wohnung in Chur',
+    description_de: 'Helle Wohnung mit Balkon in Chur.',
+    rooms_estimated: 3.5,
+    rent_monthly_chf: null,
+    pricing_unit: null,
+    hidden: false,
+    raw: { evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. Helle Wohnung mit Balkon.' },
+  };
+  assert.equal(REPAIR_RULES_VERSION, `${JSON.parse(read('package.json')).patch}.1`);
+  assert.equal(hardRejectReason(missing, ctx), 'price_missing');
+  assert.equal(isPresentable(missing, ctx), false);
+  assert.equal(sanitizeNewRecord(missing, ctx).hardReason, 'price_missing');
+  assert.ok(auditRow(missing, ctx).ops.some((op) => op.op === 'hide' && op.reason === 'price_missing'));
+
+  const evidencePriced = {
+    ...missing,
+    id: '123e4567-e89b-12d3-a456-426614174002',
+    raw: { evidence_text: "3.5-Zimmer-Wohnung in Chur zu vermieten. Miete CHF 1'500 pro Monat." },
+  };
+  const audit = auditRow(evidencePriced, ctx);
+  assert.equal(audit.hardReason, null);
+  const priceOp = audit.ops.find((op) => op.op === 'set_price');
+  assert.ok(priceOp);
+  const applied = evaluateOp(priceOp, evidencePriced, ctx, { source: 'test', batchId: 'p12948-price-test' });
+  assert.equal(applied.status, 'applied');
+  assert.equal(applied.patch.rent_monthly_chf, 1500);
+  assert.equal(applied.patch.pricing_unit, 'month');
+
+  const unknownUnit = {
+    ...evidencePriced,
+    id: '123e4567-e89b-12d3-a456-426614174004',
+    rent_monthly_chf: null,
+    pricing_unit: 'unknown',
+    raw: {
+      evidence_text: "3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 2'900 pro Monat.",
+      price: { amount: 130, unit: 'unknown' },
+    },
+  };
+  const unknownAudit = auditRow(unknownUnit, ctx);
+  assert.equal(unknownAudit.hardReason, null);
+  assert.equal(unknownAudit.ops.find((op) => op.op === 'set_price')?.price.amount, 2900);
+
+  const weekly = {
+    ...evidencePriced,
+    id: '123e4567-e89b-12d3-a456-426614174003',
+    pricing_unit: 'week',
+    raw: { evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 800 pro Woche.', price: { amount: 800, unit: 'week' } },
+  };
+  assert.equal(hardRejectReason(weekly, ctx), 'non_monthly_price');
+});
+
 test('P129.47 All Logs contains the complete ImmoFinder snapshot and repair endpoints are authenticated', () => {
   const allLogs = read('server/allLogs.ts');
   const routes = read('server/immofinderRoutes.ts');
@@ -413,8 +500,13 @@ test('P129.47 All Logs contains the complete ImmoFinder snapshot and repair endp
   assert.match(routes, /\/api\/immofinder\/repair\/preview/);
   assert.match(routes, /\/api\/immofinder\/repair\/apply/);
   assert.match(routes, /runAutomaticRepairAudit/);
+  assert.match(routes, /publishQualityCheckedListings\('automatic repair audit'\)/);
+  assert.match(routes, /settings\.delivery\.email && settings\.delivery\.emailTo/);
+  assert.match(routes, /settings\.delivery\.drive/);
   assert.match(store, /FOR UPDATE/);
   assert.match(store, /ON CONFLICT \(batch_id\) DO NOTHING/);
+  assert.match(store, /patch\.rent_monthly_chf/);
+  assert.match(store, /patch\.pricing_unit/);
 });
 
 test('P129.47 write-time sanitation applies to every newly discovered or refreshed listing', () => {

@@ -212,13 +212,13 @@ test('P128.4 pipeline reports live progress with stage, text and counters', asyn
   assert.ok(ev.some((e) => /match: Chesa A/.test(e.text)) && ev.at(-1).counts.kept === 1);
 });
 
-test('P128.5 settings: invalid input falls back, scope applies to config, schedule due logic (Swiss time)', async () => {
+test('P129.48 settings: invalid input falls back to new defaults, scope applies, schedule due logic', async () => {
   const d = defaultSettings(immoCfg);
   assert.equal(d.schedule.mode, 'hours');
   const s = sanitizeSettings({ schedule: { mode: 'hours', everyHours: 5, dailyAt: '25:99' }, delivery: { email: true, emailTo: 'bad address', telegram: false }, search: { minRooms: 99, communes: ['Chur', 'Atlantis'], maxAiPages: 7, sources: { search: false } } }, immoCfg);
-  assert.equal(s.schedule.everyHours, 6); assert.equal(s.schedule.dailyAt, '06:00');
+  assert.equal(s.schedule.everyHours, 3); assert.equal(s.schedule.dailyAt, '06:00');
   assert.equal(s.delivery.email, false, 'email stays off without a valid address'); assert.equal(s.delivery.telegram, false);
-  assert.deepEqual(s.search.communes, ['Chur']); assert.equal(s.search.minRooms, 3); assert.equal(s.search.maxAiPages, 40);
+  assert.deepEqual(s.search.communes, ['Chur']); assert.equal(s.search.minRooms, 3); assert.equal(s.search.maxAiPages, 100);
   const eff = applySettings(immoCfg, s);
   assert.deepEqual(eff.municipalities, ['Chur']); assert.equal(eff.discovery.enabled, false);
   assert.equal(sanitizeSettings({ search: { communes: [] } }, immoCfg).search.communes.length, immoCfg.municipalities.length);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultSettings, sanitizeSettings, applySettings } from '../server/immofinderSettings.ts';
+import { defaultSettings, sanitizeSettings, applySettings, SOURCE_IDS } from '../server/immofinderSettings.ts';
 import { runPipeline } from '../server/immofinderPipeline.ts';
 import { dedupeSnippetText } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
@@ -10,14 +10,16 @@ import { readFileSync } from 'node:fs';
 
 const cfg = JSON.parse(readFileSync(new URL('../config/immofinder.json', import.meta.url), 'utf8'));
 
-test('P129.43 defaults to a small commune slice and only evidence-backed productive discovery sources', () => {
+test('P129.48 defaults enable all Swiss portals and private discovery across a larger carousel slice', () => {
   const settings = defaultSettings(cfg);
-  assert.equal(settings.search.carouselCommunesPerRun, 8);
+  assert.equal(settings.search.carouselCommunesPerRun, 12);
   assert.deepEqual(
     Object.entries(settings.search.sources).filter(([, enabled]) => enabled).map(([id]) => id).sort(),
-    ['portal-flatfox', 'portal-homegate', 'portal-tutti', 'search'].sort(),
+    [...SOURCE_IDS].sort(),
   );
-  assert.equal(sanitizeSettings({}, cfg).search.carouselCommunesPerRun, 8);
+  assert.equal(sanitizeSettings({}, cfg).search.carouselCommunesPerRun, 12);
+  assert.equal(settings.search.privateQueryTemplates, 4);
+  assert.equal(settings.schedule.everyHours, 3);
 });
 
 test('Serper search sends weekly freshness filter when requested', async () => {
@@ -74,24 +76,24 @@ const memStore = (saved = []) => ({ findByUrl: async () => null, touch: async ()
 const noPage = async () => ({ ok: false, status: 403, body: '' });
 const staleHit = [{ title: 'Wikipedia', link: 'https://de.wikipedia.org/wiki/Chur', snippet: '' }];
 
-test('P129.44 lean defaults are what Reset restores and sanitize clamps the new fields', () => {
+test('P129.48 quality-first defaults are what Reset restores and sanitize clamps the search fields', () => {
   const d = defaultSettings(cfg);
-  assert.equal(d.schedule.everyHours, 6);
-  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.freshness, d.search.freshnessFallback, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [8, 2, 'w', false, 6, false, 40]);
+  assert.equal(d.schedule.everyHours, 3);
+  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.freshness, d.search.freshnessFallback, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [12, 4, 'w', false, 12, false, 100]);
   const s = sanitizeSettings({ search: { privateQueryTemplates: 99, freshness: 'x', enrichSearchesPerRun: -4, freshnessFallback: 'yes', carouselCommunesPerRun: 50 } }, cfg);
-  assert.deepEqual([s.search.privateQueryTemplates, s.search.freshness, s.search.enrichSearchesPerRun, s.search.freshnessFallback, s.search.carouselCommunesPerRun], [2, 'w', 6, false, 8]);
+  assert.deepEqual([s.search.privateQueryTemplates, s.search.freshness, s.search.enrichSearchesPerRun, s.search.freshnessFallback, s.search.carouselCommunesPerRun], [4, 'w', 12, false, 12]);
   assert.equal(sanitizeSettings({ search: { privateQueryTemplates: 4, freshness: 'd', enrichSearchesPerRun: 0, freshnessFallback: true } }, cfg).search.privateQueryTemplates, 4);
 });
 
-test('P129.44 applySettings maps templates, freshness and enrichment budget into the run config', () => {
+test('P129.48 applySettings maps all private templates, freshness and enrichment budget into the run config', () => {
   const eff = applySettings(cfg, sanitizeSettings({ search: { privateQueryTemplates: 1, freshness: 'd', freshnessFallback: true, enrichSearchesPerRun: 3 } }, cfg));
   assert.equal(eff.discovery.queries.length, 1);
   assert.equal(eff.discovery.freshness, 'd');
   assert.equal(eff.discovery.freshnessFallback, true);
   assert.equal(eff.contactEnrichment.maxExtraSearchesPerRun, 3);
   const lean = applySettings(cfg, defaultSettings(cfg));
-  assert.equal(lean.discovery.queries.length, 2);
-  assert.equal(lean.contactEnrichment.maxExtraSearchesPerRun, 6);
+  assert.equal(lean.discovery.queries.length, 4);
+  assert.equal(lean.contactEnrichment.maxExtraSearchesPerRun, 12);
 });
 
 test('P129.44 snippet text keeps each distinct segment once', () => {
