@@ -1,3 +1,7 @@
+## P129.48 — ImmoFinder search defaults and CI contract
+
+- Implemented: expanded Swiss portal discovery, quality-first reset defaults, strict saved-card monthly-price audit with channel republish and env-example coverage fix. Hosted CI rerun and live result quality remain NOT_RUN.
+
 ## P129.47 — ImmoFinder database repair loop
 
 - Implemented: complete All Logs snapshot, authenticated snapshot/preview/apply API, idempotent batch ledger, bundled repair auto-apply, first-request audit, write-time sanitation and post-repair channel refresh. Live DB repair and user-facing delivery verification remain NOT_RUN.

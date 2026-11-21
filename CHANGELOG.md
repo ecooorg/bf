@@ -1,3 +1,7 @@
+## P129.48 — ImmoFinder search defaults and CI contract
+
+- Reset defaults now use all 13 Swiss portal queries plus private search, a 3-hour / 12-commune carousel, four private templates and stronger contact enrichment; removed duplicate depth control and excluded observed aggregators. Repair audit hides saved cards without a verified monthly price and persists evidence-backed price repairs; bootstrap republishes the cleaned list to configured Drive, e-mail and Telegram channels; CI env-example coverage restored. RELIABILITY / USER_VALUE.
+
 ## P129.47 — ImmoFinder database repair loop
 
 - All Logs now includes a complete saved-listing JSONL snapshot; authenticated snapshot, preview and idempotent apply APIs let the Assistant return evidence-bound repair batches; bundled repair batches auto-apply on first request. A deterministic quality audit and write-time sanitation gate saved, new and refetched cards; repaired lists republish to Drive, e-mail and Telegram. RELIABILITY / USER_VALUE.

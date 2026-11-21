@@ -1,3 +1,10 @@
+## P129.48 — ImmoFinder search defaults and CI contract
+
+- **OBSERVED:** CI run `44876820408` had 17 PASS / 1 FAIL (nine env names missing); snapshot had 86 cards / 67 visible, and offline audit simulation yields 37 safe hide ops (27 missing-price, 10 suspect/non-monthly).
+- **CHANGE:** Expanded 13-portal discovery and reset defaults; strict monthly-price audit hides weak saved cards, persists evidence-backed price repairs and republishes changed lists to configured channels.
+- **VERIFY:** docs integrity, env coverage, version metadata and TS syntax PASS; `immofinder-quality` 29 PASS, `immofinder-p0` 13 PASS, `agents-contract` 21 PASS / 2 BLOCKED (partial dependencies).
+- **NOT_RUN:** `npm ci` timed out; full typecheck/build and hosted rerun remain NOT_RUN; live search yield and screen / Telegram / e-mail / Drive delivery remain NOT_RUN.
+
 ## P129.47 — ImmoFinder assistant repair loop
 
 - **CHANGE:** Full DB snapshot + repair queue in All Logs; authenticated preview/apply; idempotent repair ledger and bundled repair-file auto-apply; first-request audit, write-time gate and post-repair Drive/e-mail/Telegram refresh. **VERIFY:** six TypeScript transpile syntax checks and test-file syntax `PASS`; `npm ci` timed out. **NOT_RUN:** typecheck, suites, build, live DB and user-surface verification.
