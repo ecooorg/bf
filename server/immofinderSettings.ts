@@ -74,7 +74,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf || 2000, 2000),
       maxListingAgeDays: q.maxListingAgeDays,
       requirePrice: true,
-      rejectNonMonthly: true,
+      rejectNonMonthly: false,
       rejectSeekerPosts: true,
       requireContact: false,
       defaultWave: 'carousel',

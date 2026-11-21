@@ -379,7 +379,7 @@ const SHARED = /(\bwg\b|wohngemeinschaft|\bzwischenmiete\b|\buntermiete\b|zimmer
 // Multi-unit / project language. Holiday hosts with several flats ("Ferienwohnungen") stay; singular "Wohnung" stays.
 const DEVELOPMENT = /\b(neubau|neubauprojekt|wohn[uü]berbauung|[uü]berbauung|eigentumswohnungen|wohnungen zum verkauf|\d{2,}\s*wohnungen)\b|\b[A-Za-zäöüÄÖÜ]*wohnungen\b/i;
 const FERIEN_WOHNUNGEN = /\bferien[- ]?wohnungen\b/i;
-const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\/|\/preise\.html|\/liste(\/|$)|booking\.com\/hotel\/|gruppenhaus\.ch|\/_join_/i;
+const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\/|\/preise\.html|\/liste(\/|$)|gruppenhaus\.ch|\/_join_/i;
 /** Hosts that are moving companies, SEO content farms or meta-search — never a single rental object. */
 const SERVICE_OR_AGGREGATOR_HOST =
   /(?:^|\.)(moving24|umzugsfirma-buchen|umzug|umzuege|rentumo|nestoria|immowelt|immoscout24|realadvisor|comparis|homegate\.ch\/rent\/list|anibis\.ch\/de\/c\/)\b/i;
@@ -575,15 +575,18 @@ export function parsePrice(text: string): ParsedPrice | null {
     if (unit === 'unknown') {
       if (/pro\s*woche|\/\s*woche|weekly/i.test(ctx)) unit = 'week';
       else if (/pro\s*nacht|\/\s*nacht|per\s*night|\/\s*night/i.test(ctx)) unit = 'night';
+      else if (/pro\s*saison|\/\s*saison|per\s*season|saisonal/i.test(ctx)) unit = 'season';
       else if (/pro\s*monat|\/\s*monat|per\s*month|mtl\.?|monatlich|nettomiete|warmmiete|kaltmiete|mietzins|inkl\.?\s*(nk|nebenkosten|utilities)|incl\.?\s*(nk|nebenkosten|utilities)/i.test(ctx)) unit = 'month';
       else if (h.amount >= 400 && h.amount <= 8000 && /miete|rent|preis|chf|fr\.?|zimmer|wohnung|nachmieter|vermieten/i.test(ctx)) unit = 'month';
     }
     if (/pro\s*woche|\/\s*wo\b/i.test(ctx)) unit = 'week';
     if (/pro\s*nacht|\/\s*nacht|per\s*night/i.test(ctx)) unit = 'night';
+    if (/pro\s*saison|\/\s*saison|per\s*season|saisonal/i.test(ctx)) unit = 'season';
     // Wider window often has "pro Monat" / "inkl. NK" just outside ±50 chars
     if (unit === 'unknown') {
       const wide = t.slice(Math.max(0, h.idx - 120), h.idx + h.quote.length + 120);
-      if (/pro\s*monat|\/\s*monat|per\s*month|monatlich|mtl\.?|inkl\.?\s*(nk|nebenkosten)|incl\.?\s*(utilities|nk)/i.test(wide)) unit = 'month';
+      if (/pro\s*saison|per\s*season|saisonal/i.test(wide)) unit = 'season';
+      else if (/pro\s*monat|\/\s*monat|per\s*month|monatlich|mtl\.?|inkl\.?\s*(nk|nebenkosten)|incl\.?\s*(utilities|nk)/i.test(wide)) unit = 'month';
       else if (/pro\s*nacht|per\s*night|\/\s*nacht/i.test(wide)) unit = 'night';
       else if (/pro\s*woche|per\s*week/i.test(wide)) unit = 'week';
     }
@@ -947,6 +950,47 @@ export function qualityRejectReason(
 
 
 // ---------------------------------------------------------------------------
+/** Detects temporary/holiday inventory separately from long-term rental offers. */
+const SHORT_STAY_HINT = /\b(ferien(?:wohnung|haus|unterkunft)|holiday\s+(?:rental|home)|saison\w*|kurzzeit\w*|kurzfristig|wochenweise|nachtweise|ferienzeit)\b/i;
+const SHORT_STAY_HOST = /\b(airbnb|booking|vrbo|interhome|belvilla|e-domizil|fewo-direkt|traum-ferienwohnungen)\b/i;
+export function isShortStayListing(title: string, url: string, text: string, price: ParsedPrice | null): boolean {
+  let host = '';
+  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch { /* invalid URLs fail the link gate separately */ }
+  return Boolean(price && ['night', 'week', 'season'].includes(price.unit)) ||
+    SHORT_STAY_HOST.test(host) ||
+    SHORT_STAY_HINT.test(`${title} ${String(text || '').slice(0, 5000)}`);
+}
+
+/** Short-stay inventory requires a fetched detail page, a concrete URL and an explicit amount + period. */
+export function shortStayPreflightReason(input: {
+  shortStay: boolean; price: ParsedPrice | null; url: string; evidenceKind: 'page_text' | 'snippet' | 'link_only'; evidenceText?: string;
+}): string | null {
+  if (!input.shortStay) return null;
+  if (!input.price || input.price.unit === 'unknown' || !input.price.quote || !/\d/.test(input.price.quote)) return 'short_stay_price_period_required';
+  const source = String(input.evidenceText || input.price.quote);
+  const quote = String(input.price.quote);
+  const quoteAt = source.toLowerCase().indexOf(quote.toLowerCase());
+  const context = quoteAt >= 0 ? source.slice(Math.max(0, quoteAt - 90), quoteAt + quote.length + 90) : quote;
+  const explicitPeriod = input.price.unit === 'month'
+    ? /monat|mtl\.?|month|monthly|per\s+month|\/\s*mo\b/i.test(context)
+    : input.price.unit === 'week'
+      ? /woche|week|weekly|per\s+week/i.test(context)
+      : input.price.unit === 'night'
+        ? /nacht|nächte|night|tag|day|per\s+(night|day)/i.test(context)
+        : input.price.unit === 'season'
+          ? /saison|season|stagione/i.test(context)
+          : false;
+  if (!explicitPeriod) return 'short_stay_price_period_required';
+  if (!isSpecificLink(input.url)) return 'short_stay_specific_link_required';
+  if (input.evidenceKind !== 'page_text') return 'short_stay_page_evidence_required';
+  return null;
+}
+
+/** A short-stay card is not deliverable until a real advertiser phone or e-mail is attached. */
+export function shortStayContactReason(shortStay: boolean, phone: string | null | undefined, email: string | null | undefined): string | null {
+  return shortStay && !(String(phone || '').trim() || String(email || '').trim()) ? 'short_stay_contact_required' : null;
+}
+
 // Evidence-first credibility (P129.30+) — product precision + diagnostics
 // ---------------------------------------------------------------------------
 
@@ -1077,6 +1121,8 @@ export interface CredibilityInput {
   evidenceKind: EvidenceKind;
   municipalities: string[];
   allowSnippet?: boolean;
+  /** Permit holiday/temporary rental detail pages; the caller must enforce strict price/contact/link gates. */
+  allowShortStay?: boolean;
 }
 
 /**
@@ -1126,7 +1172,7 @@ export function credibilityRejectReason(c: CredibilityInput): string | null {
   }
   if (isSeekerPost(title, ev)) return 'seeker_post';
   if (isForSaleListing(title, ev, url)) return 'for_sale';
-  if (isHolidayOrTourismListing(title, ev, url)) return 'holiday_tourism';
+  if (isHolidayOrTourismListing(title, ev, url) && !c.allowShortStay) return 'holiday_tourism';
   if (looksLikeAgencyListing(title, ev)) return 'agency';
 
   const nl = nonListingReason(title, url);

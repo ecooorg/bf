@@ -21,6 +21,7 @@ import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinde
 import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
 import { exportRepairSnapshot, previewRepairOps, applyRepairBatch, runAutomaticRepairAudit, applyBundledRepairBatches } from './immofinderRepairStore.ts';
 import { parseRepairFile } from './immofinderRepair.ts';
+import { publishGitHubListingsSnapshot } from './immofinderSnapshot.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -70,6 +71,28 @@ export function isImmoCronCall(req: Request): boolean {
 /** Folder precedence: saved setting, then env, then the config default. */
 function driveFolder(saved: string): string {
   return saved || parseDriveFolderId(process.env.IMMOFINDER_DRIVE_FOLDER_ID) || parseDriveFolderId(loadImmoConfig().driveFolderId);
+}
+
+async function publishGitHubSnapshotAfterRun(runId: string): Promise<string> {
+  try {
+    const rows = await listListingsForRefresh(); // complete table: visible + hidden, all contact/evidence fields
+    const result = await publishGitHubListingsSnapshot(rows as unknown as Record<string, unknown>[], {
+      runId,
+      completedAt: new Date().toISOString(),
+    });
+    if (result.status === 'committed') {
+      immoLog('info', 'immofinder_github_snapshot_committed', {
+        runId, path: result.path, rowCount: result.rowCount, commitSha: result.commitSha || null,
+      }, 'Encrypted full listing database committed to GitHub');
+      return `committed:${result.rowCount}`;
+    }
+    immoLog('warn', 'immofinder_github_snapshot_skipped', { runId, reason: result.reason || 'not_configured' });
+    return `skipped:${result.reason || 'not_configured'}`;
+  } catch (e) {
+    const detail = String((e as Error)?.message || e).slice(0, 160);
+    immoLog('error', 'immofinder_github_snapshot_failed', { runId, error: detail });
+    return `failed:${detail}`;
+  }
 }
 
 async function publishQualityCheckedListings(reason: string): Promise<Record<string, string>> {
@@ -678,10 +701,19 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         }
       } catch (e) { errors.push({ code: 'run_failed', detail: String((e as Error)?.message || e).slice(0, 200) }); }
       try {
-          if (isRunCancelled(runId!)) { await finishRunCancelled(runId!, result?.counts ?? {}); }
-          else { await finishRun(runId!, result, errors, delivery); await saveProgress(runId!, { stage: 'done', text: result?.errors?.some((e) => e.code === 'cancelled') ? 'Stopped by user' : 'Finished', counts: result?.counts ?? {}, log }); }
-          clearRunCancel(runId!);
-        } catch { /* run row stays open; the 30-minute guard releases it */ }
+        if (isRunCancelled(runId!)) await finishRunCancelled(runId!, result?.counts ?? {});
+        else await finishRun(runId!, result, errors, delivery);
+      } catch { /* run row stays open; the 30-minute guard releases it */ }
+      const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
+      try {
+        await saveProgress(runId!, {
+          stage: 'done',
+          text: `${result?.errors?.some((e) => e.code === 'cancelled') || isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · GitHub snapshot ${snapshotStatus}`,
+          counts: result?.counts ?? {},
+          log,
+        });
+        clearRunCancel(runId!);
+      } catch { /* progress is best-effort; snapshot is already handled */ }
     })();
   });
 
@@ -837,12 +869,18 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
           }
           try {
             if (isRunCancelled(runId!)) await finishRunCancelled(runId!, result?.counts ?? {});
-            else {
-              await finishRun(runId!, result, errors, delivery);
-              await saveProgress(runId!, { stage: 'done', text: 'Finished', counts: result?.counts ?? {}, log });
-            }
-            clearRunCancel(runId!);
+            else await finishRun(runId!, result, errors, delivery);
           } catch { /* 30-min guard */ }
+          const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
+          try {
+            await saveProgress(runId!, {
+              stage: 'done',
+              text: `${isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · GitHub snapshot ${snapshotStatus}`,
+              counts: result?.counts ?? {},
+              log,
+            });
+            clearRunCancel(runId!);
+          } catch { /* progress is best-effort; snapshot is already handled */ }
         })();
       } catch (e) {
         console.warn(JSON.stringify({ type: 'immofinder_schedule_tick', trigger: 'internal', error: String((e as Error)?.message || e).slice(0, 160) }));

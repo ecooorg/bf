@@ -16,6 +16,8 @@ import {
   clearOutOfCantonRegion,
   credibilityRejectReason,
   fieldCollageMismatch,
+  isShortStayListing,
+  shortStayPreflightReason,
   isPlatformOrJunkContact,
   isSpecificLink,
   municipalityEvidenceMismatch,
@@ -26,7 +28,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.49.1';
+export const REPAIR_RULES_VERSION = '129.50.1';
 
 export const REPAIR_OPS = ['hide', 'unhide', 'delete', 'clear_contact', 'set_price', 'mark_collage'] as const;
 export type RepairOpName = (typeof REPAIR_OPS)[number];
@@ -296,11 +298,13 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   if (!why && roomsEvidenceConflict(title, pageEvidence, Number.isFinite(rooms) ? rooms : null)) why = 'rooms_conflict';
   if (!why && municipalityEvidenceMismatch(row.municipality, pageEvidence, ctx.municipalities)) why = 'municipality_mismatch';
 
-  // Require one unambiguous monthly rent on the fetched page. Multiple non-side
-  // amounts (e.g. card price vs description price) are not silently resolved.
+  // Require one unambiguous, period-labelled price on the fetched detail page.
+  // Seasonal/night/week offers are allowed, but only with their own period and verified contact.
+  let pagePrice = resolveListingPrice(pageEvidence, null) || parsePrice(pageEvidence);
+  const shortStay = isShortStayListing(title, url, pageEvidence, pagePrice);
   if (!why) {
     const rentCandidates = [...new Map(priceCandidates(pageEvidence)
-      .filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= 400 && c.amount <= 9000)
+      .filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= (c.unit === 'night' ? 50 : c.unit === 'week' || c.unit === 'season' ? 100 : 400) && c.amount <= 100000)
       .map((c) => [`${c.amount}:${c.unit}`, c])).values()];
     const hasStoredPrice = raw.price?.amount != null || row.rent_monthly_chf != null;
     if (rentCandidates.length > 1) why = 'price_ambiguous_on_detail_page';
@@ -309,16 +313,22 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
 
   if (!why) {
     const evidenceText = buildEvidenceText(title, pageEvidence, 4000);
+    pagePrice = resolveListingPrice(evidenceText, null) || parsePrice(evidenceText);
     why = credibilityRejectReason({
       title, evidenceText, url,
       municipality: row.municipality || null,
       roomsEstimated: Number.isFinite(rooms) ? rooms : null,
-      price: resolveListingPrice(evidenceText, null) || parsePrice(evidenceText),
-      phone: null, email: null, // contacts are repaired (cleared), never a reason to hide the whole card
+      price: pagePrice,
+      phone: null, email: null,
       evidenceKind: 'page_text',
       municipalities: ctx.municipalities,
       allowSnippet: false,
+      allowShortStay: shortStay,
     });
+  }
+  if (!why) {
+    const preflight = shortStayPreflightReason({ shortStay, price: pagePrice, url, evidenceKind: 'page_text', evidenceText: pageEvidence });
+    if (preflight) why = preflight;
   }
   if (!why) {
     const pv = priceVerdict(row);
@@ -330,7 +340,11 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
       const unit = pv.status === 'repair'
         ? pv.price.unit
         : (['month', 'week', 'night', 'season'].includes(rawUnit) ? rawUnit : rowUnit);
-      if (unit !== 'month') why = 'non_monthly_price';
+      if (!shortStay && unit !== 'month') why = 'non_monthly_price';
+      if (shortStay) {
+        const contacts = contactVerdict(row);
+        if (contacts.phone !== 'verified' && contacts.email !== 'verified') why = 'short_stay_contact_required';
+      }
     }
   }
   return why;
@@ -419,7 +433,10 @@ export function snapshotLine(row: Row, ctx: AuditContext, opts: { redact?: boole
   return {
     id: row.id,
     listing_url: row.listing_url,
+    source_urls: Array.isArray(row.source_urls) ? row.source_urls : [],
     municipality: row.municipality || null,
+    street_address: row.street_address ? m(String(row.street_address)) : null,
+    personal_website: row.personal_website || null,
     property_name: m(String(row.property_name || '')),
     description_de: m(String(row.description_de || '')),
     rooms_estimated: row.rooms_estimated != null && row.rooms_estimated !== '' ? Number(row.rooms_estimated) : null,
