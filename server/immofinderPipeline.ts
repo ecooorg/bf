@@ -1,6 +1,6 @@
 import { hostOf, buildQueries, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
-import { sameListingUrlTarget, sanitizeNewRecord } from './immofinderRepair.ts';
+import { sameListingUrlTarget, sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 
 export interface ListingRecord {
@@ -440,7 +440,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, search_result_date: hitDate, address_quote: ex.streetAddress },
       };
       if (opts.dryRun) {
-        const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, { municipalities: cfg.municipalities || [] });
+        const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, ctxFromConfig(cfg));
         if (dryChecked.hardReason) { await deny(dryChecked.hardReason, 'write_gate'); continue; }
         res.counts.kept++; res.counts.credible_kept = (res.counts.credible_kept || 0) + 1;
         st.kept++; st.consecutiveBad = 0;
@@ -499,7 +499,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
 
       const shortStayContactFailure = shortStayContactReason(shortStay, finalRec.direct_phone, finalRec.direct_email);
       if (shortStayContactFailure) { await deny(shortStayContactFailure, 'no_verified_direct_phone_or_email'); continue; }
-      const checked = sanitizeNewRecord(finalRec as unknown as Record<string, any>, { municipalities: cfg.municipalities || [] });
+      const checked = sanitizeNewRecord(finalRec as unknown as Record<string, any>, ctxFromConfig(cfg));
       if (checked.hardReason) { await deny(checked.hardReason, 'write_gate'); continue; }
       const safeRec = checked.rec as unknown as ListingRecord;
       const r = await deps.store.upsert(safeRec);

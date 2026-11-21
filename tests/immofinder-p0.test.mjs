@@ -46,7 +46,7 @@ test('seen-cache entries from older rule versions are invalidated once', () => {
   assert.equal(decodeSeenReason('not_single_listing'), null);
   assert.equal(decodeSeenReason('129.51.1::not_single_listing'), null);
   assert.equal(decodeSeenReason(encodeSeenReason('not_single_listing')), 'not_single_listing');
-  assert.equal(REPAIR_RULES_VERSION, '129.53.3');
+  assert.equal(REPAIR_RULES_VERSION, '129.53.4');
   const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
   assert.match(store, /decodeSeenReason\(r\.rows\[0\]\.reason\)/);
   assert.match(store, /encodeSeenReason\(reason\)/);
@@ -210,6 +210,23 @@ test('Swiss listings with net and gross rent remain eligible and gross rent is p
   const url = 'https://www.homegate.ch/mieten/4001234567';
   const row = { listing_url: url, property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rent_monthly_chf: 1800, pricing_unit: 'month', raw: { price: { amount: 1800, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: url } };
   assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null);
+});
+test('pipeline uses the configured portal allowlist at its final write gate', async () => {
+  const url = 'https://flatfox.ch/en/flat/abc-123';
+  const body = `<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body><h1>3.5 Zimmer Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Wohnfläche 80 m2. Helle Räume mit Balkon, Küche und Bad. Bezug ab sofort möglich.</p></body></html>`;
+  const saved = [];
+  const localCfg = leanCfg({ contactEnrichment: { ...cfg.contactEnrichment, enabled: false } });
+  const result = await runPipeline({
+    config: localCfg,
+    fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }),
+    llm: null, store: memStore(saved),
+    search: async () => [{ title: '3.5 Zimmer Wohnung in Chur', link: url, snippet: 'CHF 1500 pro Monat in Chur' }],
+    cycle: 0,
+  }, { dryRun: false, wave: 'carousel' });
+  assert.equal(result.counts.kept, 1);
+  assert.equal(result.counts.new, 1);
+  assert.equal(result.filtered.list_or_search_page || 0, 0);
+  assert.equal(saved.length, 1);
 });
 test('non-standard Swiss portal detail URL survives the final write-time and repair gate', () => {
   const url = 'https://flatfox.ch/en/flat/abc-123';

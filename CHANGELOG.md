@@ -1,3 +1,8 @@
+## P129.53.4 — Pass the portal allowlist through the final discovery gate
+
+- **BUGFIX:** both dry-run and live discovery now pass `ctxFromConfig(cfg)` into final record sanitation. Non-standard Flatfox / Swiss-portal detail URLs are no longer rejected because the last gate received municipalities but no configured portal hosts.
+- **CACHE:** bump repair/search rule version so candidates previously marked `list_or_search_page` by this false rejection are reconsidered once.
+- **VERIFY:** add an end-to-end pipeline regression test that fetches and saves a valid Flatfox detail URL without a numeric ID or long SEO slug.
 ## P129.53.3 — Restore legitimate ImmoFinder leads through every gate
 
 - **BUGFIX:** repair the empty URL-regex alternative that classified every URL as a search/list page.
