@@ -77,6 +77,13 @@ test('ImmoFinder controls reflect live discovery behaviour and run duration', ()
   assert.match(app, /50 \* 60 \* 1000/);
   assert.doesNotMatch(app, /30 \* 60 \* 1000/);
 });
+
+test('ImmoFinder reports a readable service-unavailable error when fetch cannot reach the backend', () => {
+  const ui = read('src/ImmoFinder.tsx');
+  assert.match(ui, /ImmoFinder request failed:.*the server could not be reached/s);
+  assert.match(ui, /Check that the service is online, then retry/);
+});
+
 test('settings UI does not claim a published monthly price is mandatory', () => {
   const ui = read('src/ImmoFinderSettings.tsx');
   assert.match(ui, /undisclosed rent may remain marked as unknown/);

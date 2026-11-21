@@ -37,7 +37,13 @@ const REASONS: Record<string, string> = {
 const SOURCE_LABEL: Record<string, string> = { search: 'Web search', 'portal-homegate': 'Homegate', 'portal-immoscout24': 'ImmoScout24', 'portal-flatfox': 'Flatfox', 'portal-tutti': 'Tutti', 'portal-anibis': 'Anibis', 'portal-newhome': 'Newhome', 'portal-petitesannonces': 'Petites Annonces', 'portal-immobilier': 'Immobilier.ch', 'portal-acheter-louer': 'Acheter-Louer', 'portal-immostreet': 'ImmoStreet', 'portal-home': 'Home.ch', 'portal-icasa': 'ICasa', 'portal-urbanhome': 'UrbanHome' };
 
 async function api(path: string, init?: RequestInit) {
-  const r = await fetch(path, { credentials: 'same-origin', ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } });
+  let r: Response;
+  try {
+    r = await fetch(path, { credentials: 'same-origin', ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) } });
+  } catch (error) {
+    const reason = error instanceof Error && error.name === 'AbortError' ? 'request was cancelled or timed out' : 'the server could not be reached';
+    throw new Error(`ImmoFinder request failed: ${reason}. Check that the service is online, then retry.`);
+  }
   const body = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(r.status === 401 ? 'Please sign in on the home page first.' : String(body?.error || `Request failed (${r.status})`));
   return body;

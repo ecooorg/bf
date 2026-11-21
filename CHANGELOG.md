@@ -1,3 +1,10 @@
+## P129.53.10 — Bound migration startup and improve discovery coverage
+
+- **STARTUP SAFETY:** add bounded PostgreSQL migration-lock acquisition, statement/lock/query timeouts and phase-specific logs so Render startup cannot wait silently forever on a database lock or query.
+- **DISCOVERY:** make the per-query detail-page cap configurable (default 4, bounded 1–6) so stronger results lower in SERP can be examined without unbounded work.
+- **UX:** replace the browser's opaque `Failed to fetch` message with a clear ImmoFinder service-connectivity error.
+- **VERIFY:** add regression coverage for migration wait bounds, candidate coverage and API network errors.
+
 ## P129.53.9 — Make run locking atomic and expose zero-hit portal queries
 
 - **RUN SAFETY:** serialize run starts across application instances with a PostgreSQL advisory transaction lock. The active-run lock now lasts 50 minutes, beyond the 45-minute server deadline and 50-minute UI indicator.
