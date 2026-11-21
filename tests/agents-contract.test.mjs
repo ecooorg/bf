@@ -588,3 +588,56 @@ test('P129.50 physical address is persisted as a verified field and included in 
   assert.match(pipeline, /address_quote/);
   assert.match(repair, /street_address: row\.street_address/);
 });
+
+
+test('P130.3 ImmoFinder GitHub publishing uses a repository-scoped contents:write App token and exposes safe 403 diagnostics', async () => {
+  const { generateKeyPairSync } = await import('node:crypto');
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048, privateKeyEncoding: { type: 'pkcs8', format: 'pem' }, publicKeyEncoding: { type: 'spki', format: 'pem' } });
+  const { publishGitHubRunDiagnostics, publishGitHubListingsSnapshot } = await import('../server/immofinderSnapshot.ts');
+  const env = {
+    GITHUB_APP_ID: '5276629',
+    GITHUB_APP_INSTALLATION_ID: '170347326',
+    GITHUB_APP_PRIVATE_KEY: privateKey,
+    GITHUB_REPOSITORY_OWNER: 'owner',
+    GITHUB_REPOSITORY_NAME: 'repo',
+    IMMOFINDER_GITHUB_REPOSITORY: 'owner/repo',
+    IMMOFINDER_GITHUB_BRANCH: 'main',
+    SESSION_SECRET: 'stable-test-session-secret'.padEnd(48, 'x'),
+  };
+  const calls = [];
+  const fetchImpl = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    if (String(url).includes('/app/installations/')) {
+      const body = JSON.parse(init.body);
+      if (body.permissions.contents === 'read') return { ok: true, status: 201, json: async () => ({ token: 'bootstrap-token' }) };
+      assert.deepEqual(body.repository_ids, [123]);
+      assert.deepEqual(body.permissions, { contents: 'write' });
+      return { ok: true, status: 201, json: async () => ({ token: 'repo-scoped-token', permissions: { metadata: 'read', contents: 'write' } }) };
+    }
+    if (String(url) === 'https://api.github.com/repos/owner/repo') {
+      assert.equal(init.headers.Authorization, 'Bearer bootstrap-token');
+      return { ok: true, status: 200, json: async () => ({ id: 123, full_name: 'owner/repo' }) };
+    }
+    if (String(url).includes('/contents/')) {
+      assert.equal(init.headers.Authorization, 'Bearer repo-scoped-token');
+      if (!init.method) return { ok: false, status: 404, json: async () => ({ message: 'Not Found' }), headers: { get: () => null } };
+      return { ok: true, status: 201, json: async () => ({ commit: { sha: 'published-sha' } }) };
+    }
+    throw new Error('unexpected_github_request:' + url);
+  };
+  const diagnostics = await publishGitHubRunDiagnostics({ runId: 'run-403-test', events: [] }, { runId: 'run-403-test' }, { env, fetchImpl });
+  assert.equal(diagnostics.status, 'committed');
+  assert.equal(diagnostics.paths.length, 2);
+  const snapshot = await publishGitHubListingsSnapshot([{ id: 'private-row' }], { runId: 'run-403-test' }, { env, fetchImpl });
+  assert.equal(snapshot.status, 'committed');
+  assert.ok(calls.filter((c) => c.init.method === 'PUT').length >= 3);
+
+  const failing = await publishGitHubRunDiagnostics({ events: [] }, { runId: 'forbidden' }, {
+    env: { IMMOFINDER_GITHUB_TOKEN: 'legacy-read-only-token', IMMOFINDER_GITHUB_REPOSITORY: 'owner/repo' },
+    fetchImpl: async (_url, init = {}) => init.method
+      ? { ok: false, status: 403, json: async () => ({ message: 'Resource not accessible by integration' }), headers: { get: () => 'REQ-403' } }
+      : { ok: false, status: 404, json: async () => ({}) },
+  }).catch((error) => error);
+  assert.match(failing.message, /github_diagnostics_write_failed_http_403_resource_not_accessible_by_integration_request_REQ-403/);
+  assert.doesNotMatch(failing.message, /legacy-read-only-token/);
+});
