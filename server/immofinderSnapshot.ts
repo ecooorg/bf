@@ -64,6 +64,57 @@ export interface GitHubSnapshotResult {
   commitSha?: string;
 }
 
+export interface GitHubRunDiagnosticsResult {
+  status: 'committed' | 'skipped';
+  reason?: string;
+  paths: string[];
+  eventCount: number;
+  commitSha?: string;
+}
+
+/** Publish a PII-redacted per-run trace and a latest pointer for immediate GitHub inspection. */
+export async function publishGitHubRunDiagnostics(
+  report: Record<string, unknown>,
+  meta: { runId: string },
+  options: { env?: NodeJS.ProcessEnv; fetchImpl?: typeof fetch; apiBaseUrl?: string } = {},
+): Promise<GitHubRunDiagnosticsResult> {
+  const env = options.env || process.env;
+  const token = String(env.IMMOFINDER_GITHUB_TOKEN || '').trim();
+  const repository = String(env.IMMOFINDER_GITHUB_REPOSITORY || '').trim();
+  const branch = String(env.IMMOFINDER_GITHUB_BRANCH || 'main').trim() || 'main';
+  const eventCount = Array.isArray(report.events) ? report.events.length : 0;
+  if (!token || !repository) return { status: 'skipped', reason: 'github_snapshot_not_configured', paths: [], eventCount };
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) throw new Error('github_diagnostics_repository_invalid');
+  const runId = String(meta.runId || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80) || 'unknown';
+  const paths = [`data/immofinder/diagnostics/runs/${runId}.json`, 'data/immofinder/diagnostics/latest.json'];
+  const apiBase = String(options.apiBaseUrl || 'https://api.github.com').replace(/\/+$/, '');
+  const fetchImpl = options.fetchImpl || fetch;
+  const headers = { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' };
+  const content = Buffer.from(JSON.stringify(report, null, 2), 'utf8').toString('base64');
+  let lastCommitSha: string | undefined;
+  for (const path of paths) {
+    const endpoint = `${apiBase}/repos/${repository}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+    let written = false;
+    for (let attempt = 0; attempt < 3 && !written; attempt++) {
+      const current = await fetchImpl(`${endpoint}?ref=${encodeURIComponent(branch)}`, { headers });
+      let sha: string | undefined;
+      if (current.ok) sha = (await current.json() as { sha?: string }).sha;
+      else if (current.status !== 404) throw new Error(`github_diagnostics_read_failed_http_${current.status}`);
+      const updated = await fetchImpl(endpoint, { method: 'PUT', headers, body: JSON.stringify({
+        message: `chore(immofinder): publish search diagnostics ${runId}`, content, branch, ...(sha ? { sha } : {}),
+      }) });
+      if (updated.ok) {
+        const result = await updated.json() as { commit?: { sha?: string } };
+        lastCommitSha = result.commit?.sha || lastCommitSha;
+        written = true;
+      } else if ((updated.status === 409 || updated.status === 422) && attempt < 2) continue;
+      else throw new Error(`github_diagnostics_write_failed_http_${updated.status}`);
+    }
+    if (!written) throw new Error('github_diagnostics_write_conflict');
+  }
+  return { status: 'committed', paths, eventCount, commitSha: lastCommitSha };
+}
+
 export async function publishGitHubListingsSnapshot(
   rows: Record<string, unknown>[],
   meta: { runId: string; completedAt?: string },
