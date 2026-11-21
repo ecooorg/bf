@@ -11,11 +11,11 @@ const report={generatedAt:new Date().toISOString(),render:null,github:null,error
 const secrets=['RENDER_API_KEY','GITHUB_TOKEN','IMMOFINDER_RUN_SECRET'].map(k=>process.env[k]).filter(v=>v&&v.length>=8);
 function redact(value){
  let s=String(value??''); for(const secret of secrets)s=s.split(secret).join('[REDACTED]');
- return s.replace(/(authorization\\s*[:=]\\s*bearer\\s+)[^\\s"'<>]+/gi,'$1[REDACTED]')
- .replace(/\\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|gsk_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{30,})\\b/g,'[REDACTED_TOKEN]')
- .replace(/(-----BEGIN [A-Z ]*PRIVATE KEY-----)[\\s\\S]*?(-----END [A-Z ]*PRIVATE KEY-----)/g,'$1[REDACTED]$2')
- .replace(/(\\b(?:postgres(?:ql)?|mysql|mongodb(?:\\+srv)?):\\/\\/[^:\\s/@]+:)[^@\\s/]+(@)/gi,'$1[REDACTED]$2')
- .replace(/((?:api[_-]?key|secret|token|password)\\s*[:=]\\s*)["']?[^\\s,"'}]{12,}/gi,'$1[REDACTED]');
+ return s.replace(/(authorization\s*[:=]\s*bearer\s+)[^\s"'<>]+/gi,'$1[REDACTED]')
+ .replace(/\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|gsk_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{30,})\b/g,'[REDACTED_TOKEN]')
+ .replace(/(-----BEGIN [A-Z ]*PRIVATE KEY-----)[\s\S]*?(-----END [A-Z ]*PRIVATE KEY-----)/g,'$1[REDACTED]$2')
+ .replace(/(\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):\/\/[^:\s/@]+:)[^@\s/]+(@)/gi,'$1[REDACTED]$2')
+ .replace(/((?:api[_-]?key|secret|token|password)\s*[:=]\s*)["']?[^\s,"'}]{12,}/gi,'$1[REDACTED]');
 }
 async function json(url,headers){const r=await fetch(url,{headers,signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error('HTTP '+r.status+' from '+new URL(url).pathname);return r.json();}
 async function render(){
@@ -37,7 +37,7 @@ async function render(){
   }
  }
  const rows=[...logs.values()].sort((a,b)=>String(a.timestamp).localeCompare(String(b.timestamp)));
- fs.writeFileSync(path.join(out,'render-logs.jsonl'),rows.map(x=>JSON.stringify(x)).join('\\n')+(rows.length?'\\n':''));
+ fs.writeFileSync(path.join(out,'render-logs.jsonl'),rows.map(x=>JSON.stringify(x)).join('\n')+(rows.length?'\n':''));
  return {resources:resources.length,logCount:rows.length,startTime:start.toISOString(),endTime:end.toISOString()};
 }
 async function github(){
@@ -53,11 +53,11 @@ async function github(){
   for(const file of Object.values(zip.files)){if(file.dir)continue;const name=path.basename(file.name).replace(/[^A-Za-z0-9._-]/g,'_').slice(0,120)||'job.log';files.push({path:'github/'+run.id+'/'+name,content:redact(await file.async('string'))});}
  }
  for(const file of files){const target=path.join(out,file.path);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,file.content);}
- fs.writeFileSync(path.join(out,'github-runs.json'),JSON.stringify(selected.map(r=>({id:r.id,name:r.name,workflow:r.path,status:r.status,conclusion:r.conclusion,createdAt:r.created_at,url:r.html_url})),null,2)+'\\n');
+ fs.writeFileSync(path.join(out,'github-runs.json'),JSON.stringify(selected.map(r=>({id:r.id,name:r.name,workflow:r.path,status:r.status,conclusion:r.conclusion,createdAt:r.created_at,url:r.html_url})),null,2)+'\n');
  return {runCount:selected.length,logFiles:files.length};
 }
 try{report.render=await render();}catch(e){errors.push({source:'render',message:redact(e.message)});}
 try{report.github=await github();}catch(e){errors.push({source:'github',message:redact(e.message)});}
-fs.writeFileSync(path.join(out,'collection-summary.json'),JSON.stringify(report,null,2)+'\\n');
+fs.writeFileSync(path.join(out,'collection-summary.json'),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify({render:report.render?.logCount??'FAILED',github:report.github?.logFiles??'FAILED',errors},null,2));
 if(errors.length)process.exitCode=1;
