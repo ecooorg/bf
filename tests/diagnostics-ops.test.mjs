@@ -142,6 +142,13 @@ test('P130.4 health check names the failing GitHub publisher and compares deploy
   assert.equal(by('CI on main').status, 'OK');
   assert.equal(by('Service /health').status, 'OK');
   assert.equal(by('Deployed commit').status, 'WARN', 'a non-archive file separates production from main');
+  const shortIo = { ...io, async getJson(url) { return url.endsWith('/health') ? { status: 200, body: { status: 'ok', version: '130', commit: main.slice(0, 7) } } : io.getJson(url); } };
+  assert.equal((await runChecks(env, shortIo)).find((c) => c.name === 'Deployed commit').status, 'OK', 'production reports a 7-character commit');
+  files.set('artifacts/platform-logs/collection-summary.json', JSON.stringify({ errors: [{ source: 'render', message: 'Render pagination safety limit exceeded' }] }));
+  const collectorFailed = (await runChecks(env, io)).find((c) => c.name === 'Runtime signals');
+  assert.equal(collectorFailed.status, 'WARN');
+  assert.match(collectorFailed.detail, /collection failed/);
+  files.delete('artifacts/platform-logs/collection-summary.json');
   assert.equal(by('Result quality').status, 'WARN', '5 of 10 quality listings is not complete');
   assert.equal(by('Archive').status, 'WARN', 'fresh run not yet archived is a warning, not a failure');
   assert.equal(by('GitHub publishers').status, 'SKIP', 'missing logs are SKIP, never OK');
@@ -156,6 +163,7 @@ test('P130.4 health workflow is scheduled, least-privilege and uses the shared c
   assert.match(wf, /workflow_dispatch/);
   assert.match(wf, /issues: write/);
   assert.doesNotMatch(wf, /contents: write/);
+  assert.match(wf, /RENDER_LOG_LOOKBACK_MINUTES: '180'/, 'a 24 h window exceeds the collector pagination limit');
   assert.match(wf, /scripts\/collect-platform-logs\.mjs/);
   assert.match(wf, /scripts\/immofinder-health-check\.mjs/);
   assert.match(read('scripts/scripts-integrity.mjs'), /immofinder-health-check\.mjs/);
