@@ -24,7 +24,7 @@ export function createPgStore(): ImmoStore {
       const p = await getPool();
       const r = await p.query(
         `SELECT id, last_seen_at, hidden,
-                (raw->'repair'->>'source' = 'automatic_rules') AS auto_hidden
+                (hidden = true AND (raw->'repair'->>'source' = 'automatic_rules' OR (raw->'write_time_quality'->>'hardReason' IS NOT NULL AND hide_reason = raw->'write_time_quality'->>'hardReason'))) AS auto_hidden
          FROM immofinder_listings
          WHERE listing_url = $1 OR source_urls @> jsonb_build_array($1::text)
          LIMIT 1`,
@@ -61,7 +61,7 @@ export function createPgStore(): ImmoStore {
       // Identity is the listing URL only. Never merge two different URLs into one card
       // (old canonical_key merge mixed description/price/contacts from unrelated ads).
       const ex = await p.query(
-        `SELECT id, listing_url, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name, raw, property_name, municipality, rooms_estimated, description_de
+        `SELECT id, listing_url, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name, raw, property_name, municipality, rooms_estimated, description_de, hidden, hide_reason
          FROM immofinder_listings
          WHERE listing_url = $1 OR source_urls @> jsonb_build_array($1::text)
          LIMIT 1`,
@@ -71,8 +71,11 @@ export function createPgStore(): ImmoStore {
         const o = ex.rows[0]; const uniq = (a: unknown[]) => [...new Set(a)];
         const prevRaw = o.raw && typeof o.raw === 'object' && !Array.isArray(o.raw) ? o.raw : {};
         const nextRaw = { ...prevRaw, ...(rec.raw && typeof rec.raw === 'object' ? rec.raw : {}) };
-        const recoverAutomaticHide = Boolean(o.hidden) && prevRaw.repair?.source === 'automatic_rules' && !sanitized.hardReason;
-        if (recoverAutomaticHide) nextRaw.repair = { ...(prevRaw.repair || {}), source: 'automatic_recovery', recoveredAt: new Date().toISOString() };
+        const repairAutoHide = prevRaw.repair?.source === 'automatic_rules';
+        const writeGateAutoHide = Boolean(prevRaw.write_time_quality?.hardReason) && String(o.hide_reason || '') === String(prevRaw.write_time_quality.hardReason);
+        const recoverAutomaticHide = Boolean(o.hidden) && (repairAutoHide || writeGateAutoHide) && !sanitized.hardReason;
+        if (recoverAutomaticHide && repairAutoHide) nextRaw.repair = { ...(prevRaw.repair || {}), source: 'automatic_recovery', recoveredAt: new Date().toISOString() };
+        if (recoverAutomaticHide && writeGateAutoHide) nextRaw.write_time_quality = { ...prevRaw.write_time_quality, hardReason: null, recoveredAt: new Date().toISOString() };
         if (prevRaw.listed_at && !nextRaw.listed_at) nextRaw.listed_at = prevRaw.listed_at;
         // Prefer newly parsed price when present (same URL re-fetch); else keep previous.
         if (prevRaw.price && !nextRaw.price) nextRaw.price = prevRaw.price;
