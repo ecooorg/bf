@@ -140,8 +140,9 @@ export async function runChecks(env = process.env, io = { getJson, readFile: (p)
       const r = await io.getJson(`${base}/ready`, { Accept: 'application/json' });
       checks.push(check('RENDER', 'Database ready', r.status === 200 ? 'OK' : 'FAIL', `HTTP ${r.status}${r.body?.reason ? ` ${r.body.reason}` : ''}`));
     } catch (e) { checks.push(check('RENDER', 'Database ready', 'FAIL', `unreachable: ${e.message}`)); }
-    if (!/^[0-9a-f]{40}$/i.test(deployed) || !mainSha || !gh) checks.push(check('RENDER', 'Deployed commit', 'SKIP', 'deployed commit or main HEAD unavailable'));
-    else if (deployed.toLowerCase() === mainSha) checks.push(check('RENDER', 'Deployed commit', 'OK', 'production runs main HEAD'));
+    deployed = deployed.toLowerCase();
+    if (!/^[0-9a-f]{7,40}$/.test(deployed) || !mainSha || !gh) checks.push(check('RENDER', 'Deployed commit', 'SKIP', 'deployed commit or main HEAD unavailable'));
+    else if (mainSha.startsWith(deployed)) checks.push(check('RENDER', 'Deployed commit', 'OK', 'production runs main HEAD'));
     else {
       try {
         const cmp = await io.getJson(`https://api.github.com/repos/${repo}/compare/${deployed}...${mainSha}?per_page=100`, gh);
@@ -162,7 +163,12 @@ export async function runChecks(env = process.env, io = { getJson, readFile: (p)
     const signals = countRuntimeSignals(logText);
     checks.push(check('RENDER', 'Runtime signals', signals.geminiTimeouts || signals.sslWarnings || signals.http5xx ? 'WARN' : 'OK',
       `Gemini timeouts ${signals.geminiTimeouts}, SSL warnings ${signals.sslWarnings}, 5xx ${signals.http5xx} in collected Render logs`, signals));
-  } else checks.push(check('RENDER', 'Runtime signals', 'SKIP', 'Render logs were not collected (RENDER_API_KEY / RENDER_OWNER_ID / RENDER_SERVICE_ID)'));
+  } else {
+    let failure = '';
+    try { failure = (JSON.parse(io.readFile(path.join(logsDir, 'collection-summary.json'))).errors || []).find((e) => e.source === 'render')?.message || ''; } catch { /* collector did not run */ }
+    checks.push(failure ? check('RENDER', 'Runtime signals', 'WARN', `Render log collection failed: ${failure}; publisher errors and runtime signals are unchecked`)
+      : check('RENDER', 'Runtime signals', 'SKIP', 'Render logs were not collected (RENDER_API_KEY / RENDER_OWNER_ID / RENDER_SERVICE_ID)'));
+  }
 
   // ---- PUBLISHING: which publisher failed, with which status ----
   const failures = classifyPublisherFailures(logText);
@@ -183,7 +189,8 @@ export async function runChecks(env = process.env, io = { getJson, readFile: (p)
         const q = searchQuality(report, Number(env.HEALTH_TARGET_RESULTS || 10));
         const stale = !Number.isFinite(ageH) || ageH > maxAgeHours;
         checks.push(check('SEARCH', 'Latest run', stale ? 'WARN' : 'OK', `${report.runId}, ${Number.isFinite(ageH) ? ageH.toFixed(1) : '?'} h old${stale ? ` (limit ${maxAgeHours} h)` : ''}`));
-        checks.push(check('SEARCH', 'Result quality', q.quality >= q.target ? 'OK' : 'WARN', `${q.candidates} candidates, ${q.quality} quality of target ${q.target}, ${q.snippetOnly} snippet-only, ${q.fallback} fallback, LLM calls ${q.llmCalls}${q.failingSources.length ? `, failing sources: ${q.failingSources.join(', ')}` : ''}`, q));
+        checks.push(!report.result?.counts ? check('SEARCH', 'Result quality', 'WARN', 'latest report carries no result counts; quality cannot be judged')
+          : check('SEARCH', 'Result quality', q.quality >= q.target ? 'OK' : 'WARN', `${q.candidates} candidates, ${q.quality} quality of target ${q.target}, ${q.snippetOnly} snippet-only, ${q.fallback} fallback, LLM calls ${q.llmCalls}${q.failingSources.length ? `, failing sources: ${q.failingSources.join(', ')}` : ''}`, q));
         let archived = null;
         if (io.exists('data/immofinder/diagnostics/latest.json')) {
           try { archived = JSON.parse(io.readFile('data/immofinder/diagnostics/latest.json')).runId; } catch { archived = null; }
