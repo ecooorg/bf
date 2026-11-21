@@ -1,3 +1,12 @@
+## P130.1 — Collect Render and GitHub runtime diagnostics
+
+- **RENDER LOGS:** collect service logs through the Render Logs API using a read-only API key, workspace ID and service ID; follow timestamp pagination and optionally include a Render Postgres resource via `RENDER_POSTGRES_ID`.
+- **GITHUB LOGS:** download recent completed GitHub Actions run logs (up to eight runs) with the workflow token and `actions: read`.
+- **SAFE HANDOFF:** redact known credentials and token-shaped values; upload platform logs as a 30-day Actions artifact, never commit raw platform logs. Collection failures are summarized and fail the collection step while preserving its artifact.
+- **ARCHIVE PREFLIGHT:** permit only the generated `data/immofinder/diagnostics/**` archive path, fixing the repository preflight regression.
+- **CONFIGURATION:** `RENDER_API_KEY` is a GitHub Actions secret; `RENDER_OWNER_ID` and `RENDER_SERVICE_ID` are Actions variables. Optional `RENDER_POSTGRES_ID` must be a Render Postgres ID; a Neon ID is not interchangeable.
+- **VERIFY:** add contracts for Render/GitHub collection, pagination, redaction, artifact retention and archive path handling.
+
 ## P130.0 — Durable automatic ImmoFinder diagnostics handoff
 
 - **ROOT CAUSES:** the process trace capture was never installed in the server entry point; the internal scheduled-run path never published a diagnostics report; the direct publisher could silently skip when its optional Render GitHub token/repository settings were absent. The previous missing GitHub files alone cannot distinguish missing settings from an older running deployment.
