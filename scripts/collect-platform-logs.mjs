@@ -17,7 +17,24 @@ function redact(value){
  .replace(/(\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):\/\/[^:\s/@]+:)[^@\s/]+(@)/gi,'$1[REDACTED]$2')
  .replace(/((?:api[_-]?key|secret|token|password)\s*[:=]\s*)["']?[^\s,"'}]{12,}/gi,'$1[REDACTED]');
 }
-async function json(url,headers){const r=await fetch(url,{headers,signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error('HTTP '+r.status+' from '+new URL(url).pathname);return r.json();}
+const sleep=(ms)=>new Promise(resolve=>setTimeout(resolve,ms));
+async function json(url,headers){
+ for(let attempt=0;attempt<4;attempt++){
+  const r=await fetch(url,{headers,signal:AbortSignal.timeout(30000)});
+  if(r.ok)return r.json();
+  const retryable=r.status===429||r.status>=500;
+  if(!retryable||attempt===3)throw Error('HTTP '+r.status+' from '+new URL(url).pathname);
+  const retryAfter=Number(r.headers.get('retry-after'));
+  const resetAt=Number(r.headers.get('x-ratelimit-reset'));
+  const serverDelay=Number.isFinite(retryAfter)&&retryAfter>0?retryAfter*1000:
+   Number.isFinite(resetAt)&&resetAt>0?Math.max(0,resetAt*1000-Date.now()):0;
+  const backoff=Math.min(30000,1000*(2**attempt));
+  const wait=Math.min(60000,Math.max(serverDelay,backoff));
+  console.warn(JSON.stringify({source:'render',event:'api_retry',status:r.status,attempt:attempt+1,waitMs:wait,path:new URL(url).pathname}));
+  await sleep(wait);
+ }
+ throw Error('Render API retry budget exhausted');
+}
 async function render(){
  const key=process.env.RENDER_API_KEY,owner=process.env.RENDER_OWNER_ID,service=process.env.RENDER_SERVICE_ID;
  if(!key||!owner||!service)throw Error('Missing required Actions values: RENDER_API_KEY, RENDER_OWNER_ID, RENDER_SERVICE_ID');
