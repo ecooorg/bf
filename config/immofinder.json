@@ -140,6 +140,7 @@
     "enabled": true,
     "communesPerRun": 12,
     "resultsPerQuery": 10,
+    "maxCandidatesPerQuery": 4,
     "maxPagesPerRun": 420,
     "queries": [
       "\"{commune}\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",

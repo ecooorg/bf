@@ -76,10 +76,6 @@ const SCHEMA = '{"single_property":boolean,"property_name":string|null,"municipa
 
 
 const MIN_DIRECT_PAGE_TEXT_CHARS = 30;
-// Google can return 10 organic results per query. Fetching all of them burns the
-// run budget on a few queries; cap detail-page work per query to preserve coverage.
-const MAX_CANDIDATES_PER_QUERY = 2;
-
 interface Extract { name: string; municipality: string | null; streetAddress: string | null; rooms: { rooms: number; basis: string; quote: string } | null; owner: string | null; agency: string | null; regForbidden: boolean; single: boolean; summaryDe: string; signals: string[]; llm: boolean; priceQuote: string | null; listedAtQuote: string | null }
 
 async function extract(deps: PipelineDeps, text: string, meta: ReturnType<typeof pageMeta>, host: string): Promise<{ ex: Extract; llmCalls: number; err?: string }> {
@@ -609,6 +605,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   async function runDiscoverySearch(maxQueries?: number, maxPages?: number, opts?: { finishAll?: boolean }) {
     const d = cfg.discovery;
     if (!d?.enabled) return;
+    // A small per-query cap lets stronger results lower in SERP reach verification.
+    // The overall pageLimit remains the hard bound on fetch work per run.
+    const maxCandidatesPerQuery = Math.max(1, Math.min(6, Math.floor(Number(d.maxCandidatesPerQuery) || 4)));
     if (!deps.search) {
       res.errors.push({ source: 'search', code: 'discovery_skipped', detail: 'SERPER_API_KEY is not set' });
       return;
@@ -649,7 +648,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     };
     const flushBatch = async () => {
       if (!batchHits.length || deps.shouldCancel?.()) { batchHits = []; return; }
-      const items = pickItems(batchHits, cfg).filter((it) => !processedUrls.has(it.url)).slice(0, MAX_CANDIDATES_PER_QUERY);
+      const items = pickItems(batchHits, cfg).filter((it) => !processedUrls.has(it.url)).slice(0, maxCandidatesPerQuery);
       for (const it of items) processedUrls.add(it.url);
       batchHits = [];
       const remaining = Math.max(0, pageLimit - processedItems);
@@ -686,7 +685,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         batch = await serperCall('serper');
         getStat(currentSourceId).hits += batch.length;
         const picked = pickItems(batch, cfg);
-        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, selectedCandidates: Math.min(picked.length, MAX_CANDIDATES_PER_QUERY), pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
+        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, selectedCandidates: Math.min(picked.length, maxCandidatesPerQuery), pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
         batchHits.push(...batch.slice(0, d.resultsPerQuery));
         consecutiveSearchFails = 0;
       } catch (e) {

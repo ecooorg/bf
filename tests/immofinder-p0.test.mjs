@@ -53,6 +53,18 @@ test('seen-cache entries from older rule versions are invalidated once', () => {
 });
 
 
+
+test('migration startup bounds database waits and reports each blocking phase', () => {
+  const migration = readFileSync(new URL('../scripts/migrate.mjs', import.meta.url), 'utf8');
+  assert.match(migration, /pg_try_advisory_lock/);
+  assert.doesNotMatch(migration, /SELECT pg_advisory_lock/);
+  assert.match(migration, /MIGRATION_LOCK_TIMEOUT_MS/);
+  assert.match(migration, /statement_timeout: 60_000/);
+  assert.match(migration, /lock_timeout: 15_000/);
+  assert.match(migration, /\[db:migrate\] connecting to PostgreSQL/);
+  assert.match(migration, /\[db:migrate\] complete:/);
+});
+
 test('P129.53 migration physically clears every legacy seen-cache row', () => {
   const migration = readFileSync(new URL('../migrations/027_immofinder_seen_purge.sql', import.meta.url), 'utf8');
   assert.match(migration, /^\s*--[^\n]*\n\s*TRUNCATE TABLE immofinder_seen;\s*$/i);
@@ -169,7 +181,7 @@ test('discovery interleaves communes so a bounded run cannot starve later locati
   ]);
 });
 
-test('each discovery query processes at most two detail candidates and interleaves commune coverage', async () => {
+test('each discovery query processes at most four detail candidates and interleaves commune coverage', async () => {
   const localCfg = leanCfg({ communesPerRun: 2, queries: ['A {commune}', 'B {commune}'], portalQueries: ['C {commune}'], maxPagesPerRun: 80 });
   const queried = []; const fetched = []; let serial = 0;
   const result = await runPipeline({
@@ -179,10 +191,10 @@ test('each discovery query processes at most two detail candidates and interleav
     search: async (q) => { queried.push(q); const base = ++serial * 100; return Array.from({ length: 5 }, (_, i) => ({ title: `3.5 Zimmer Wohnung in Chur ${base+i}`, link: `https://example.com/listing/${base+i+100000}`, snippet: 'Wohnung zu vermieten' })); },
     cycle: 0,
   }, { dryRun: true, wave: 'carousel' });
-  assert.equal(fetched.length, 12, 'two candidates are fetched from each of six commune/template queries');
+  assert.equal(fetched.length, 24, 'four candidates are fetched from each of six commune/template queries');
   assert.equal(queried.length, 6, 'every interleaved commune/template query is attempted');
   assert.deepEqual(queried, ['A Chur', 'A Zizers', 'C Chur', 'C Zizers', 'B Chur', 'B Zizers']);
-  assert.equal(result.counts.candidates, 12);
+  assert.equal(result.counts.candidates, 24);
 });
 test('portal SERP sources do not early-stop after the catalogue bad-streak threshold', async () => {
   const communes = ['Chur', 'Zizers', 'Igis', 'Landquart', 'Malans', 'Maienfeld', 'Jenaz', 'Grüsch'];
@@ -198,9 +210,9 @@ test('portal SERP sources do not early-stop after the catalogue bad-streak thres
     cycle: 0,
   }, { dryRun: true, wave: 'carousel' });
   assert.equal(queried.length, communes.length, 'every selected commune is queried for this portal');
-  assert.equal(fetched.length, communes.length * 2, 'two candidates from every commune reach the fetch stage');
+  assert.equal(fetched.length, communes.length * 4, 'four candidates from every commune reach the fetch stage');
   const portalStats = result.sourceStats.find((s) => s.id === 'portal-flatfox');
-  assert.equal(portalStats?.candidates, communes.length * 2, 'portal candidates are attributed to the actual portal source');
+  assert.equal(portalStats?.candidates, communes.length * 4, 'portal candidates are attributed to the actual portal source');
   assert.equal(portalStats?.queries, communes.length, 'zero-hit queries remain visible in per-portal stats');
   assert.equal(portalStats?.hits, communes.length * 5);
   assert.notEqual(portalStats?.stoppedEarly, true);
@@ -214,8 +226,8 @@ test('duplicate top SERP hits do not consume the per-query candidate cap', async
     config: localCfg, fetchPage: async (url) => { fetched.push(url); return { ok: false, status: 403, body: '' }; },
     llm: null, store: memStore(), search: async (q) => q.startsWith('A') ? [hit(1), hit(2), hit(3)] : [hit(1), hit(2), hit(4), hit(5), hit(6)], cycle: 0,
   }, { dryRun: true, wave: 'carousel' });
-  assert.equal(result.counts.candidates, 4, 'the second query fills its cap with new URLs after duplicates are removed');
-  assert.equal(fetched.length, 4);
+  assert.equal(result.counts.candidates, 6, 'duplicate URLs are removed before the four-candidate cap is applied');
+  assert.equal(fetched.length, 6);
 });
 test('P129.52 portal inventory is searched without a Google date cutoff', async () => {
   const portalOptions = [];
