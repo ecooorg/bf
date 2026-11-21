@@ -80,4 +80,6 @@ try{report.render=await render();}catch(e){errors.push({source:'render',message:
 try{report.github=await github();}catch(e){errors.push({source:'github',message:redact(e.message)});}
 fs.writeFileSync(path.join(out,'collection-summary.json'),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify({render:report.render?.logCount??'FAILED',github:report.github?.logFiles??'FAILED',errors},null,2));
-if(errors.length)process.exitCode=1;
+// Each provider is an independent evidence source. Preserve a partial bundle as a successful
+// collection; fail only when neither Render nor GitHub produced usable output.
+if(!report.render&&!report.github)process.exitCode=1;
