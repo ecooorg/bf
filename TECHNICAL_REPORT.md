@@ -1,3 +1,9 @@
+## P129.51 — ImmoFinder verified-page search admission
+
+- **OBSERVED:** supplied run: 68 queries / 11 candidates / 2 fetched / 7 snippet-only; 2 snippet-only records were counted kept, and aggregate new disagreed with per-source new.
+- **CHANGE:** broadened portal/private queries; month freshness; require matching fetched final URL + >=120 chars; reject hard write-gate failures before upsert; align counters. Delete behavior unchanged.
+- **VERIFY:** `immofinder-p0` + `immofinder-quality`: **48 PASS**; Node TS syntax checks, config JSON, version check and docs integrity PASS. Full typecheck BLOCKED (missing `vite/client`); server typecheck BLOCKED (missing `@types/node`); `npm ci` timed out. Hosted CI and live Serper/portal/DB verification NOT_RUN.
+
 ## P129.50 — ImmoFinder GitHub snapshot and short-stay quality gates
 
 - **OBSERVED:** Hosted CI run `44884418425` failed `typecheck` and `build:server` on `server/immofinderPipeline.ts:468`: `known` was out of scope; CI reported 16 PASS / 2 FAIL. `npm ci` timed out in this environment.

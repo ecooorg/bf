@@ -1,3 +1,7 @@
+## P129.51 — ImmoFinder search precision and discovery breadth
+
+- Broadened commune/portal queries and default freshness to one month; snippets, failed fetches, short pages and redirects are rejected before LLM/storage; final response URL is now retained and checked. Hard write-gate rejects no longer inflate kept/new counters. BUGFIX / EXPERIMENT.
+
 ## P129.50 — ImmoFinder encrypted database snapshots and seasonal rentals
 
 - Fixed the P129.49 CI regression (`known` out of scope); every completed manual/scheduled search now commits the complete listings table to GitHub as AES-256-GCM ciphertext. Restored short-stay/seasonal discovery, requiring explicit price period, fetched detail page, concrete listing URL and verified direct contact; added evidence-quoted street-address storage/display. USER_VALUE / RELIABILITY / PRIVACY.
