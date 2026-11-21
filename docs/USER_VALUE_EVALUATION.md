@@ -1,3 +1,9 @@
+# P129.53 — CI and legacy seen-cache cleanup (2026-11-21)
+
+- **OBSERVED:** P129.52 lock metadata violates the existing package-mode contract (`package-lock.json.packages[""].patch=129.51`, expected `129.52`). Owner requested removal of all 2,483 legacy `immofinder_seen` records.
+- **IMPLEMENTED:** patch metadata sync and one-time migration 027 truncating only `immofinder_seen`.
+- **NOT_RUN:** production PostgreSQL migration and confirmation that the production row count is zero.
+
 # P129.52 — ImmoFinder incremental discovery (2026-11-21)
 
 - **OBSERVED:** P129.51 logs show discovery requests only for Zizers and Igis; 32 query records report 11 picked-candidate counts. Render starts a new process at 09:47:30; no completed-run summary is present. CI run `44890826398` fails five distinct ImmoFinder contract tests.

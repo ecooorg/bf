@@ -1,3 +1,13 @@
+## P129.53 — Purge legacy seen cache and restore CI metadata contract
+
+- **PROBLEM / BASELINE:** The supplied P129.52 commit has inconsistent lock metadata: `package.json.patch` and top-level `package-lock.json.patch` are `129.52`, but `package-lock.json.packages[""].patch` remains `129.51`; `tests/project-mode-contract.test.mjs` asserts equality and therefore fails. Production `immofinder_seen` contains 2,483 legacy rows that the owner explicitly wants physically removed.
+- **HYPOTHESIS:** Synchronizing all lock metadata to P129.53 restores the package metadata contract; a one-time idempotent migration with `TRUNCATE TABLE immofinder_seen` physically removes every old cache row on the next deployment migration run.
+- **METRICS:** version metadata check; project-mode metadata contract; migration-source contract; focused ImmoFinder tests; typecheck/build/CI where dependencies permit.
+- **ACCEPTANCE:** all three package patch fields equal `129.53`; migration 027 truncates the entire seen table exactly once; the migration runs through the existing startup migration runner; no listing rows or deletion behavior are changed.
+- **SCOPE:** package metadata, one migration, seen-rule version and focused regression test, concise history/evidence. No listing-table changes and no change to manual deletion behavior.
+- **ROLLBACK:** revert migration 027 only if it targets any table other than `immofinder_seen`; do not restore old seen rows.
+- **CLASSIFICATION:** BUGFIX / RELIABILITY. Live PostgreSQL row count after deployment remains NOT_RUN until migration runs against production.
+
 ## P129.52 — ImmoFinder incremental processing and blocked-page recovery
 
 - **PROBLEM / BASELINE:** P129.51 run `fde71391-dca5-4c0c-bbb2-ca532ee3b1df` logged discovery for only Zizers and Igis (32 query records / 11 picked-candidate counts), then Render started a new process at 09:47:30; no completion summary exists. CI run `44890826398` has five distinct ImmoFinder test failures. P129.51 admission requires `finalUrl` although the pipeline contract makes it optional, and rejects all detail text below 120 chars. The database also retained 2,483 seen-cache rows (259 checked in the prior 24h) while listing rows were zero. Prior recheck evidence shows many portal 403s; ImmoFinder fetcher does not use configured Jina Reader.
