@@ -7,7 +7,7 @@ import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts'
 import { createSerperSearch, communesForRun, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
 import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION } from '../server/immofinderRepair.ts';
 import { createPoliteFetch } from '../server/immofinderFetcher.ts';
-import { placeFromTitleOrSnippet } from '../server/immofinderCore.ts';
+import { placeFromTitleOrSnippet, nonListingReason } from '../server/immofinderCore.ts';
 import { readFileSync } from 'node:fs';
 
 const cfg = JSON.parse(readFileSync(new URL('../config/immofinder.json', import.meta.url), 'utf8'));
@@ -168,6 +168,11 @@ test('P129.52 portal inventory is searched without a Google date cutoff', async 
   assert.equal(privateOptions[0], undefined, 'private listings are not hidden by Google indexing freshness');
 });
 
+test('nonListingReason does not treat every URL as a listing/search page', () => {
+  assert.equal(nonListingReason('3.5 Zimmer Wohnung in Chur', 'https://www.immoscout24.ch/rent/flat/offer-77'), null);
+  assert.equal(nonListingReason('3.5 Zimmer Wohnung in Chur', 'https://www.homegate.ch/rent/123456789'), null);
+  assert.equal(nonListingReason('Wohnungen mieten', 'https://www.homegate.ch/rent/search'), 'list_or_search_page');
+});
 test('Swiss portal detail URLs without numeric IDs or long slugs survive discovery filtering', () => {
   const portalCfg = leanCfg({ portalHosts: ['homegate.ch', 'flatfox.ch', 'immoscout24.ch'] });
   const hits = [
