@@ -373,7 +373,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             disabled={(s.search.profile || 'carousel') !== 'carousel'}
             onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, carouselCommunesPerRun: Number(e.target.value) } }))}
           >
-            {[1, 2, 4, 6, 8, 12].map((n) => (
+            {[4, 6, 8, 12].map((n) => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
