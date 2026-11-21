@@ -1,0 +1,55 @@
+name: ImmoFinder health
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  checks: read
+  issues: write
+concurrency:
+  group: immofinder-health
+  cancel-in-progress: false
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+      - name: Install runtime dependencies
+        run: npm ci --omit=dev --ignore-scripts
+      - name: Collect Render and GitHub Actions logs
+        continue-on-error: true
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_OWNER_ID: ${{ vars.RENDER_OWNER_ID }}
+          RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+          RENDER_POSTGRES_ID: ${{ vars.RENDER_POSTGRES_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          RENDER_LOG_LOOKBACK_MINUTES: '1440'
+          PLATFORM_LOGS_DIR: artifacts/platform-logs
+        run: node scripts/collect-platform-logs.mjs
+      - name: Check GitHub, Render and the latest search run
+        env:
+          IMMOFINDER_BASE_URL: ${{ secrets.IMMOFINDER_BASE_URL }}
+          IMMOFINDER_RUN_SECRET: ${{ secrets.IMMOFINDER_RUN_SECRET }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PLATFORM_LOGS_DIR: artifacts/platform-logs
+          HEALTH_REPORT_DIR: artifacts/health
+          HEALTH_OPEN_ISSUE: 'true'
+        run: node scripts/immofinder-health-check.mjs
+      - name: Upload health report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: immofinder-health-${{ github.run_id }}
+          path: artifacts/health/
+          if-no-files-found: warn
+          retention-days: 30
