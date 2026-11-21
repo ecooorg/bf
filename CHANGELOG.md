@@ -1,3 +1,8 @@
+## P130.4a — Health check fixes from the first production run
+
+- **PROBLEM:** the first run could not compare the 7-character deployed commit, mislabelled a failed Render log collection as "not configured", and its 24 h log window exceeded the collector's pagination limit.
+- **CHANGE:** accept short commits, report the collector's own error, show "no counts" instead of zeros, and use the 180-minute window. BUGFIX; no search or publisher change.
+
 ## P130.4 — ImmoFinder daily GitHub + Render health check
 
 - **PROBLEM:** CI, deploy state, Render runtime errors and GitHub publisher failures (HTTP 403/422) had to be inspected by hand.

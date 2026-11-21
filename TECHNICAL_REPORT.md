@@ -1,3 +1,9 @@
+## P130.4a — Health check first-run fixes (2026-11-21)
+
+- **OBSERVED:** first run (Actions run 44948368394) hit Render HTTP 429 and pagination limit at a 1440-minute window; `/health` returned commit `0c1a239`; archive held `98c97e27` while a newer run existed.
+- **CHANGE:** short-commit comparison, truthful collector failure, 180-minute window.
+- **NOT_RUN:** rerun after merge; whether run `a4d2bb59` really had zero candidates is unverified.
+
 ## P130.4 — ImmoFinder health check (2026-11-21)
 
 - **CHANGE:** Added a read-only daily GitHub + Render health check that names the failing GitHub publisher and status from Render logs; it reports, it does not repair.
