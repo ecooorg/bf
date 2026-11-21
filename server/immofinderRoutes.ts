@@ -22,7 +22,7 @@ import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofi
 import { exportRepairSnapshot, previewRepairOps, applyRepairBatch, runAutomaticRepairAudit, applyBundledRepairBatches } from './immofinderRepairStore.ts';
 import { parseRepairFile } from './immofinderRepair.ts';
 import { publishGitHubListingsSnapshot, publishGitHubRunDiagnostics } from './immofinderSnapshot.ts';
-import { recentApplicationLogs } from './projectDiagnostics.ts';
+import { capturedImmoFinderTrace } from './projectDiagnostics.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -98,15 +98,7 @@ async function publishGitHubSnapshotAfterRun(runId: string): Promise<string> {
 
 async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, errors: any[] = []): Promise<string> {
   try {
-    const stored = await recentApplicationLogs(1000);
-    const traceEvents = stored.logs.flatMap((entry: any) => {
-      if (entry.component !== 'console' || entry.event !== 'console_output') return [];
-      try {
-        const event = JSON.parse(String(entry.message || ''));
-        if (event?.type !== 'immofinder_trace' || !event.traceId) return [];
-        return [event];
-      } catch { return []; }
-    });
+    const traceEvents = capturedImmoFinderTrace(20000).filter((event: any) => event?.type === 'immofinder_trace' && event.traceId);
     const traceIds = [...new Set(traceEvents.map((e: any) => e.traceId))];
     const traceId = traceIds[traceIds.length - 1] || null;
     const events = traceId ? traceEvents.filter((e: any) => e.traceId === traceId) : [];
@@ -114,7 +106,7 @@ async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, erro
     const cleanUrl = (v: unknown) => { try { const u = new URL(String(v)); return `${u.hostname}${u.pathname}`; } catch { return '[invalid-url]'; } };
     const report = {
       schemaVersion: 1, generatedAt: new Date().toISOString(), runId, traceId,
-      eventCount: events.length, logSource: stored.source, databaseLogWriteFailures: stored.dbWriteFailures,
+      eventCount: events.length, logSource: 'process_trace_buffer', databaseLogWriteFailures: null,
       events,
       result: {
         counts: result?.counts || {}, filtered: result?.filtered || {}, errors: (result?.errors || errors).map((e: any) => ({ source: cleanText(e.source, 80), code: cleanText(e.code, 100), detail: cleanText(e.detail, 300) })),
