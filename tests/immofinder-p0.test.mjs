@@ -290,6 +290,19 @@ test('P129.52 direct detail pages accept optional final URL, reject wrong redire
   assert.equal(shortSaved.length, 0);
 });
 
+test('Google SERP crawl date is not treated as the listing publication date', async () => {
+  const url = 'https://www.homegate.ch/mieten/4001234567';
+  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title></head><body><p>3.5-Zimmer-Wohnung in Chur zu vermieten. Miete CHF 1'500 pro Monat. Helle Wohnung mit Balkon und Küche, Bezug ab sofort möglich.</p></body></html>`;
+  const saved = [];
+  const result = await runPipeline({
+    config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }), llm: null, store: memStore(saved),
+    search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten', date: '2 years ago' }], cycle: 0,
+  }, { dryRun: false, wave: 'carousel' });
+  assert.equal(result.counts.kept, 1);
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].listed_at, null, 'only a date verified on the listing page may be shown as its publication date');
+  assert.equal(saved[0].raw.search_result_date, '2 years ago', 'keep SERP date for diagnostics without applying the stale-listing gate');
+});
 test('P129.52 blocked direct portal pages retry through Jina Reader with source URL verification', async () => {
   const target = 'https://portal.example/listing/123456';
   const calls = [];
