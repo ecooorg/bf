@@ -54,6 +54,15 @@ test('UI exposes carousel and full run controls', () => {
   assert.match(ui, /start\('full'\)/);
 });
 
+test('ImmoFinder run lock is atomic and outlives the server run deadline', () => {
+  const store = read('server/immofinderStore.ts');
+  const cfg = JSON.parse(read('config/immofinder.json'));
+  const app = read('src/ImmoFinder.tsx');
+  assert.match(store, /pg_advisory_xact_lock/);
+  assert.match(store, /interval '50 minutes'/);
+  assert.equal(cfg.runMaxDurationMs, 2700000);
+  assert.match(app, /50 \* 60 \* 1000/);
+});
 test('ImmoFinder controls reflect live discovery behaviour and run duration', () => {
   const settingsUi = read('src/ImmoFinderSettings.tsx');
   const settings = read('server/immofinderSettings.ts');

@@ -47,6 +47,8 @@ export interface PipelineDeps {
 export interface ProgressEvent { stage: 'catalogue' | 'search' | 'delivery'; text: string; current?: number; total?: number; counts: Record<string, number>; /** Communes in this carousel tick (shown in UI step title). */ communes?: string[] }
 export interface SourceStats {
   id: string;
+  queries: number;
+  hits: number;
   candidates: number;
   fetched: number;
   llm: number;
@@ -138,7 +140,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   const sourceStatMap = new Map<string, SourceStats>();
   const getStat = (id: string): SourceStats => {
     let s = sourceStatMap.get(id);
-    if (!s) { s = { id, candidates: 0, fetched: 0, llm: 0, kept: 0, new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0 }; sourceStatMap.set(id, s); }
+    if (!s) { s = { id, queries: 0, hits: 0, candidates: 0, fetched: 0, llm: 0, kept: 0, new: 0, agencies: 0, junk: 0, geo: 0, consecutiveBad: 0 }; sourceStatMap.set(id, s); }
     return s;
   };
   // Catalogues: stop after a short bad streak (marketing pages). Search SERP is mixed — need a much higher bar.
@@ -660,6 +662,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     for (const q of slice) {
       if (deps.shouldCancel?.()) break;
       currentSourceId = sourceIdForQuery(q);
+      getStat(currentSourceId).queries++;
       if (!finishAll && timeLeft() < 45_000) {
         res.errors.push({ source: 'search', code: 'run_time_budget', detail: `stopped with ${slice.length - qi} queries left` });
         break;
@@ -681,6 +684,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           finally { serperTimestamps.push((deps.now ?? Date.now)()); }
         };
         batch = await serperCall('serper');
+        getStat(currentSourceId).hits += batch.length;
         const picked = pickItems(batch, cfg);
         try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, selectedCandidates: Math.min(picked.length, MAX_CANDIDATES_PER_QUERY), pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
         batchHits.push(...batch.slice(0, d.resultsPerQuery));

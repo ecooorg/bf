@@ -366,10 +366,20 @@ export async function updateListingContacts(
 
 export async function startRun(trigger: string, dryRun: boolean): Promise<string | null> {
   const p = await getPool();
-  const busy = await p.query(`SELECT 1 FROM immofinder_runs WHERE finished_at IS NULL AND started_at > now() - interval '30 minutes' LIMIT 1`);
-  if (busy.rows[0]) return null;
-  const r = await p.query('INSERT INTO immofinder_runs (trigger, dry_run) VALUES ($1, $2) RETURNING id', [trigger, dryRun]);
-  return r.rows[0].id;
+  const client = await p.connect();
+  try {
+    await client.query('BEGIN');
+    // Serialize starts across app instances; the run itself can last 45 minutes.
+    await client.query('SELECT pg_advisory_xact_lock($1)', [8147339201]);
+    const busy = await client.query(`SELECT 1 FROM immofinder_runs WHERE finished_at IS NULL AND started_at > now() - interval '50 minutes' LIMIT 1`);
+    if (busy.rows[0]) { await client.query('ROLLBACK'); return null; }
+    const r = await client.query('INSERT INTO immofinder_runs (trigger, dry_run) VALUES ($1, $2) RETURNING id', [trigger, dryRun]);
+    await client.query('COMMIT');
+    return r.rows[0]?.id ?? null;
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch { /* transaction already closed */ }
+    throw error;
+  } finally { client.release(); }
 }
 export async function finishRun(id: string, res: RunResult | null, errors: unknown[], delivery: unknown) {
   const p = await getPool();

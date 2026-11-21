@@ -1,3 +1,8 @@
+## P129.53.9 — Make run locking atomic and expose zero-hit portal queries
+
+- **RUN SAFETY:** serialize run starts across application instances with a PostgreSQL advisory transaction lock. The active-run lock now lasts 50 minutes, beyond the 45-minute server deadline and 50-minute UI indicator.
+- **OBSERVABILITY:** per-portal source stats now include query attempts and raw SERP hits, including portals that return zero results; previously zero-hit sources disappeared from the summary.
+- **VERIFY:** add tests for atomic lock contract and per-portal query/hit counters.
 ## P129.53.8 — Harden page fetching without losing valid portal redirects
 
 - **SECURITY:** validate every direct fetch target and every redirect hop against the public-address guard; do not follow redirects to loopback/private addresses.
