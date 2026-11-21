@@ -388,3 +388,40 @@ test('Serper freshness options are forwarded to the provider request', async () 
     else process.env.SERPER_API_KEY = previous;
   }
 });
+
+
+test('P129.47 repair protocol validates a closed operation whitelist and evidence-backed prices', async () => {
+  const repair = await import('../server/immofinderRepair.ts');
+  const id = '123e4567-e89b-12d3-a456-426614174000';
+  const valid = repair.validateOps([{ op: 'set_price', id, reason: 'price_repair', price: { amount: 1800, unit: 'month' } }]);
+  assert.equal(valid.issues.length, 0);
+  assert.equal(valid.ops.length, 1);
+  const invalid = repair.validateOps([{ op: 'hide', id, reason: 'junk_listing', arbitrary_text: 'overwrite' }]);
+  assert.equal(invalid.ops.length, 0);
+  assert.match(invalid.issues[0].error, /unsupported field/);
+  assert.equal(repair.amountInText(1800, 'CHF 1’800 pro Monat'), true);
+  assert.equal(repair.amountInText(1800, 'CHF 1’500 pro Monat'), false);
+});
+
+test('P129.47 All Logs contains the complete ImmoFinder snapshot and repair endpoints are authenticated', () => {
+  const allLogs = read('server/allLogs.ts');
+  const routes = read('server/immofinderRoutes.ts');
+  const store = read('server/immofinderRepairStore.ts');
+  assert.match(allLogs, /immofinder\/listings\.jsonl/);
+  assert.match(allLogs, /exportRepairSnapshot/);
+  assert.match(routes, /\/api\/immofinder\/export-snapshot/);
+  assert.match(routes, /\/api\/immofinder\/repair\/preview/);
+  assert.match(routes, /\/api\/immofinder\/repair\/apply/);
+  assert.match(routes, /runAutomaticRepairAudit/);
+  assert.match(store, /FOR UPDATE/);
+  assert.match(store, /ON CONFLICT \(batch_id\) DO NOTHING/);
+});
+
+test('P129.47 write-time sanitation applies to every newly discovered or refreshed listing', () => {
+  const store = read('server/immofinderStore.ts');
+  assert.match(store, /sanitizeNewRecord\(input/);
+  assert.match(store, /write_time_quality/);
+  assert.match(store, /hidden = CASE WHEN \$15::boolean THEN true ELSE hidden END/);
+});
+
+test('P129.47 a repair patch can carry batches that auto-apply once on first request', () => { const store = read('server/immofinderRepairStore.ts'); assert.match(store, /data\/immofinder\/repair-ops\.json/); assert.match(store, /applyBundledRepairBatches/); });
