@@ -182,6 +182,17 @@ test('each discovery query processes at most two detail candidates and interleav
   assert.deepEqual(queried, ['A Chur', 'A Zizers', 'C Chur', 'C Zizers', 'B Chur', 'B Zizers']);
   assert.equal(result.counts.candidates, 12);
 });
+test('duplicate top SERP hits do not consume the per-query candidate cap', async () => {
+  const localCfg = leanCfg({ communesPerRun: 1, queries: ['A {commune}', 'B {commune}'], portalQueries: [], maxPagesPerRun: 80 });
+  const fetched = [];
+  const hit = (id) => ({ title: `3.5 Zimmer Wohnung in Chur ${id}`, link: `https://example.com/listing/${100000 + id}`, snippet: 'Wohnung zu vermieten' });
+  const result = await runPipeline({
+    config: localCfg, fetchPage: async (url) => { fetched.push(url); return { ok: false, status: 403, body: '' }; },
+    llm: null, store: memStore(), search: async (q) => q.startsWith('A') ? [hit(1), hit(2), hit(3)] : [hit(1), hit(2), hit(4), hit(5), hit(6)], cycle: 0,
+  }, { dryRun: true, wave: 'carousel' });
+  assert.equal(result.counts.candidates, 4, 'the second query fills its cap with new URLs after duplicates are removed');
+  assert.equal(fetched.length, 4);
+});
 test('P129.52 portal inventory is searched without a Google date cutoff', async () => {
   const portalOptions = [];
   const portalCfg = leanCfg({ queries: [], portalQueries: ['site:homegate.ch {commune} Wohnung mieten'] });
@@ -354,6 +365,22 @@ test('Google SERP crawl date is not treated as the listing publication date', as
   assert.equal(saved.length, 1);
   assert.equal(saved[0].listed_at, null, 'only a date verified on the listing page may be shown as its publication date');
   assert.equal(saved[0].raw.search_result_date, '2 years ago', 'keep SERP date for diagnostics without applying the stale-listing gate');
+});
+test('robots.txt Allow exceptions override broader Disallow rules without bypassing specific blocks', async () => {
+  const calls = [];
+  const fetchImpl = async (input) => {
+    const url = String(input); calls.push(url);
+    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\\nDisallow: /\\nAllow: /mieten/\\nDisallow: /mieten/private\\n', { status: 200 });
+    return new Response('<html><body><h1>3.5 Zimmer Wohnung in Chur</h1><p>CHF 1,600 pro Monat. Helle Wohnung mit Balkon und Küche, Bezug ab sofort.</p></body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
+  };
+  const fetchPage = createPoliteFetch({ ...cfg, fetch: { ...cfg.fetch, respectRobotsTxt: true, perHostDelayMs: 0 }, limits: { ...cfg.limits, fetchTimeoutMs: 1000, maxPageBytes: 100000 } }, fetchImpl, async () => true);
+  const allowed = await fetchPage('https://robots-test.example/mieten/123456');
+  assert.equal(allowed.ok, true, 'a specific Allow rule beats the broader Disallow /');
+  const blocked = await fetchPage('https://robots-test.example/mieten/private/123456');
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.fetchMode, 'robots_blocked', 'the more specific Disallow still wins');
+  assert.equal(calls.filter((url) => url.endsWith('/robots.txt')).length, 1, 'robots rules are cached per host');
+  assert.equal(calls.filter((url) => url.includes('/mieten/')).length, 1, 'blocked pages are not fetched');
 });
 test('P129.52 blocked direct portal pages retry through Jina Reader with source URL verification', async () => {
   const target = 'https://portal.example/listing/123456';
