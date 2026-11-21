@@ -191,7 +191,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     st.candidates += items.length;
     const isDiscoverySource = src.id === 'search' || src.id.startsWith('portal-');
     const stage: ProgressEvent['stage'] = isDiscoverySource ? 'search' : 'catalogue'; let idx = 0;
-    const pages: { url: string; evidenceUrl: string; fetchMode?: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; hitDate?: string | null; knownAutoHidden: boolean }[] = [];
+    const pages: { url: string; evidenceUrl: string; fetchMode?: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; hitDate?: string | null; knownAutoHidden: boolean; provisional: boolean }[] = [];
     for (const it of items) {
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
@@ -357,14 +357,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       diag('candidate_extracted', { source: src.id, url: safeDiagUrl(it.url), title: safeDiagText(meta!.title, 180), textChars: text.length, llmUsed: ex.llm, llmCalls, extractionDurationMs: now() - extractionStartedAt, llmError: err || null, single: ex.single, agencyDetected: Boolean(ex.agency), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, priceQuotePresent: Boolean(ex.priceQuote), listedAtQuotePresent: Boolean(ex.listedAtQuote), ownerVerified: Boolean(ex.owner), regForbidden: ex.regForbidden });
       if (src.privateTitleHint && meta!.title.toLowerCase().includes(src.privateTitleHint.toLowerCase())) ex.signals.push('platform_says_private');
       res.counts.llm_calls += llmCalls; st.llm += llmCalls; if (err) { res.errors.push({ source: src.id, code: 'llm_failed', detail: err }); st.consecutiveBad++; }
-      pages.push({ url: it.url, evidenceUrl, fetchMode: pg.fetchMode, host, meta: meta!, text, ex, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null, knownAutoHidden: Boolean(known?.autoHidden) });
+      pages.push({ url: it.url, evidenceUrl, fetchMode: pg.fetchMode, host, meta: meta!, text, ex, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null, knownAutoHidden: Boolean(known?.autoHidden), provisional: snippetEvidence });
     }
     // Phones repeated on several pages of one host belong to the platform, not to an owner.
     const phoneUse = new Map<string, number>();
     const contacts = pages.map((p) => extractContacts(p.text, cfg.platformDomains));
     contacts.forEach((c, i) => c.phones.forEach((ph) => { const k = `${pages[i].host}|${ph}`; phoneUse.set(k, (phoneUse.get(k) || 0) + 1); }));
     for (let i = 0; i < pages.length; i++) {
-      const { url, evidenceUrl, fetchMode, host, meta, ex } = pages[i]; const c = contacts[i];
+      const { url, evidenceUrl, fetchMode, host, meta, ex, provisional: snippetEvidence } = pages[i]; const c = contacts[i];
       const deny = async (reason: string, detail?: string) => {
         diag('candidate_rejected_after_extraction', { source: src.id, url: safeDiagUrl(url), host, title: safeDiagText(meta.title, 180), reason, detail: safeDiagText(detail, 240), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, llmUsed: ex.llm });
         if (reason === 'agency') st.agencies++;
