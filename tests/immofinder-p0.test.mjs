@@ -5,7 +5,7 @@ import { runPipeline } from '../server/immofinderPipeline.ts';
 import { dedupeSnippetText, htmlToText, resolveListingPrice } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
 import { createSerperSearch, communesForRun, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
-import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig } from '../server/immofinderRepair.ts';
+import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig, sanitizeNewRecord } from '../server/immofinderRepair.ts';
 import { createPoliteFetch } from '../server/immofinderFetcher.ts';
 import { placeFromTitleOrSnippet, nonListingReason } from '../server/immofinderCore.ts';
 import { readFileSync } from 'node:fs';
@@ -179,6 +179,9 @@ test('P129.52 portal inventory is searched without a Google date cutoff', async 
 test('Swiss listings with net and gross rent remain eligible and gross rent is preferred for the budget check', () => {
   const text = "3.5-Zimmer-Wohnung in Chur. Nettomiete CHF 1'500 pro Monat. Bruttomiete CHF 1'800 pro Monat. Nebenkosten CHF 300 pro Monat. Helle Wohnung mit Balkon und Küche.";
   assert.equal(resolveListingPrice(text, null)?.amount, 1800);
+  const netStored = { listing_url: 'https://www.homegate.ch/mieten/4001234567', property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rent_monthly_chf: 1500, pricing_unit: 'month', raw: { price: { amount: 1500, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567' } };
+  assert.equal(hardRejectReason(netStored, ctxFromConfig(cfg)), null);
+  assert.equal(sanitizeNewRecord(netStored, ctxFromConfig(cfg)).rec.raw.price.amount, 1800, 'replace net rent with the gross amount for the budget check');
   const url = 'https://www.homegate.ch/mieten/4001234567';
   const row = { listing_url: url, property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rent_monthly_chf: 1800, pricing_unit: 'month', raw: { price: { amount: 1800, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: url } };
   assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null);
