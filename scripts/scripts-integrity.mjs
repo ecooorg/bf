@@ -19,6 +19,7 @@ const ALLOW = new Set([
   'architectureGenerateModuleMap.mjs',
   'architectureLib.mjs',
   'architectureVerifyChange.mjs',
+  'archive-immofinder-diagnostics.mjs',
   'assistant-run-summary.mjs',
   'backup-restore-check.mjs',
   'baseline-eval.mjs',
