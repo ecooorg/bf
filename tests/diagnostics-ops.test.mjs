@@ -96,6 +96,11 @@ test('P130.1 collects redacted Render and GitHub Actions logs as artifacts', () 
   assert.match(collector, /nextStartTime/);
   assert.match(collector, /actions\/runs\/.*\/logs/);
   assert.match(collector, /REDACTED/);
+  assert.match(collector, /r\.status===429\|\|r\.status>=500/);
+  assert.match(collector, /retry-after/);
+  assert.match(collector, /x-ratelimit-reset/);
+  assert.match(collector, /Math\.min\(60000,Math\.max\(serverDelay,backoff\)\)/);
+  assert.match(collector, /event:'api_retry'/);
   assert.match(patchTools, /data\/immofinder\/diagnostics/);
   assert.match(integrity, /collect-platform-logs\.mjs/);
 });
