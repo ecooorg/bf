@@ -321,7 +321,8 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   if (!why && roomsEvidenceConflict(title, pageEvidence, Number.isFinite(rooms) ? rooms : null)) why = 'rooms_conflict';
   if (!why && municipalityEvidenceMismatch(row.municipality, pageEvidence, ctx.municipalities)) why = 'municipality_mismatch';
 
-  // Require one unambiguous, period-labelled price on the fetched detail page.
+  // Verify any stored price against this page. Swiss portals often show net rent, gross rent and side costs together;
+  // multiple rent amounts are not by themselves proof that the listing is invalid. Undisclosed long-term rent is allowed.
   // Seasonal/night/week offers are allowed, but only with their own period and verified contact.
   let pagePrice = resolveListingPrice(pageEvidence, null) || parsePrice(pageEvidence);
   const shortStay = isShortStayListing(title, url, pageEvidence, pagePrice);
@@ -330,8 +331,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
       .filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= (c.unit === 'night' ? 50 : c.unit === 'week' || c.unit === 'season' ? 100 : 400) && c.amount <= 100000)
       .map((c) => [`${c.amount}:${c.unit}`, c])).values()];
     const hasStoredPrice = raw.price?.amount != null || row.rent_monthly_chf != null;
-    if (rentCandidates.length > 1) why = 'price_ambiguous_on_detail_page';
-    else if (rentCandidates.length !== 1 && hasStoredPrice) why = 'price_not_confirmed_on_detail_page';
+    if (rentCandidates.length === 0 && hasStoredPrice) why = 'price_not_confirmed_on_detail_page';
   }
 
   if (!why) {
