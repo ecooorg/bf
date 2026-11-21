@@ -142,10 +142,10 @@
     "resultsPerQuery": 10,
     "maxPagesPerRun": 150,
     "queries": [
-      "\"{commune}\" Graubünden (\"Wohnung\" OR \"Haus\" OR \"Ferienwohnung\" OR \"Chalet\") (\"zu vermieten\" OR \"Nachmieter\" OR \"ab sofort\" OR \"Saison\" OR \"pro Woche\" OR \"pro Nacht\") (\"privat\" OR \"von privat\" OR \"Eigentümer\") -kaufen -verkaufen -Hotel",
-      "\"{commune}\" Graubünden (Mietwohnung OR Ferienwohnung OR Chalet) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") CHF (Monat OR Woche OR Nacht OR Saison) -kaufen -verkaufen",
-      "\"{commune}\" Graubünden Nachmieter Wohnung Miete CHF privat",
-      "\"{commune}\" Graubünden (Wohnung OR Ferienwohnung OR Chalet) (langfristig OR saisonal OR wochenweise) mieten privat (\"CHF\" OR \"Mietzins\" OR \"pro Nacht\" OR \"pro Woche\") -kaufen -verkaufen -Hotel"
+      "\"{commune}\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "\"{commune}\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "\"{commune}\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "\"{commune}\" (Wohnung OR Haus) (Mietzins OR Miete OR CHF) (privat OR direkt OR vermieten) -kaufen -verkaufen"
     ],
     "snippetOnlyHosts": [
       "facebook.com",
@@ -189,19 +189,19 @@
       "flat-hunt.com"
     ],
     "portalQueries": [
-      "site:homegate.ch/mieten/ \"{commune}\" Graubünden Wohnung (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\")",
-      "site:immoscout24.ch/mieten/ \"{commune}\" Graubünden Wohnung 3 Zimmer",
-      "site:flatfox.ch/de/ \"{commune}\" Graubünden Wohnung mieten CHF",
-      "site:tutti.ch/de/ \"{commune}\" Graubünden Wohnung mieten privat",
-      "site:newhome.ch/mieten/ \"{commune}\" Graubünden Wohnung",
-      "site:anibis.ch \"{commune}\" Graubünden Wohnung mieten CHF",
-      "site:urbanhome.ch \"{commune}\" Graubünden Wohnung mieten",
-      "site:petitesannonces.ch \"{commune}\" Graubünden (Wohnung OR Haus) (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen",
-      "site:immobilier.ch \"{commune}\" Graubünden (Wohnung OR appartement) (mieten OR vermieten OR \"à louer\") (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen",
-      "site:acheter-louer.ch \"{commune}\" Graubünden (Wohnung OR appartement) (mieten OR vermieten OR \"à louer\") (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen",
-      "site:immostreet.ch \"{commune}\" Graubünden Wohnung (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen",
-      "site:home.ch \"{commune}\" Graubünden Wohnung (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen",
-      "site:icasa.ch \"{commune}\" Graubünden Wohnung (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen"
+      "site:homegate.ch \"{commune}\" Wohnung mieten",
+      "site:immoscout24.ch \"{commune}\" Wohnung mieten",
+      "site:flatfox.ch \"{commune}\" Wohnung mieten",
+      "site:tutti.ch \"{commune}\" Wohnung mieten",
+      "site:newhome.ch \"{commune}\" Wohnung mieten",
+      "site:anibis.ch \"{commune}\" Wohnung mieten",
+      "site:urbanhome.ch \"{commune}\" Wohnung mieten",
+      "site:petitesannonces.ch \"{commune}\" (Wohnung OR Haus) mieten",
+      "site:immobilier.ch \"{commune}\" (Wohnung OR appartement) (mieten OR \"à louer\")",
+      "site:acheter-louer.ch \"{commune}\" (Wohnung OR appartement) (mieten OR \"à louer\")",
+      "site:immostreet.ch \"{commune}\" Wohnung mieten",
+      "site:home.ch \"{commune}\" Wohnung mieten",
+      "site:icasa.ch \"{commune}\" Wohnung mieten"
     ],
     "portalHosts": [
       "immoscout24.ch",
