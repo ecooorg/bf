@@ -631,12 +631,13 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     // The overall pageLimit remains the hard bound on fetch work per run.
     const maxCandidatesPerQuery = Math.max(1, Math.min(6, Math.floor(Number(d.maxCandidatesPerQuery) || 4)));
     if (!deps.search) {
+      diag('discovery_disabled_missing_search_dependency', { configuredKeyPresent: false });
       res.errors.push({ source: 'search', code: 'discovery_skipped', detail: 'SERPER_API_KEY is not set' });
       return;
     }
     // finishAll (carousel): keep going until every query for this commune slice is done, only stop on cancel / hard run wall.
     const finishAll = Boolean(opts?.finishAll);
-    if (!finishAll && timeLeft() < 45_000) return;
+    if (!finishAll && timeLeft() < 45_000) { diag('discovery_skipped_time_budget', { timeLeftMs: timeLeft(), finishAll }); return; }
     const coverAll = waveMode === 'full' || waveMode === 'extended'; // carousel never covers all communes in one tick
     const families: ('private' | 'portals')[] = [];
     if ((cfg.discovery?.queries || []).length) families.push('private');
@@ -671,10 +672,13 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     };
     const flushBatch = async () => {
       if (!batchHits.length || deps.shouldCancel?.()) { batchHits = []; return; }
-      const items = pickItems(batchHits, cfg).filter((it) => !processedUrls.has(it.url)).slice(0, maxCandidatesPerQuery);
+      const pickedForBatch = pickItems(batchHits, cfg);
+      const duplicateAcrossQueries = pickedForBatch.filter((it) => processedUrls.has(it.url)).length;
+      const items = pickedForBatch.filter((it) => !processedUrls.has(it.url)).slice(0, maxCandidatesPerQuery);
+      const remaining = Math.max(0, pageLimit - processedItems);
+      diag('discovery_batch_selected', { source: currentSourceId, rawHits: batchHits.length, pickedBeforeCrossQueryDedupe: pickedForBatch.length, duplicateAcrossQueries, selectedAfterPerQueryCap: items.length, maxCandidatesPerQuery, processedItemsBefore: processedItems, pageLimit, remainingPageBudget: remaining, candidateUrls: items.map((it) => ({ host: it.host, url: safeDiagUrl(it.url), title: safeDiagText(it.hit?.title, 160), snippetOnly: it.snippetOnly })) });
       for (const it of items) processedUrls.add(it.url);
       batchHits = [];
-      const remaining = Math.max(0, pageLimit - processedItems);
       if (items.length && remaining > 0) {
         res.counts.sources++;
         await processItems({ id: currentSourceId }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), remaining);
@@ -686,6 +690,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       currentSourceId = sourceIdForQuery(q);
       getStat(currentSourceId).queries++;
       if (!finishAll && timeLeft() < 45_000) {
+        diag('discovery_stopped_time_budget', { queryIndex: qi, queryTotal: slice.length, remainingQueries: slice.length - qi, timeLeftMs: timeLeft() });
         res.errors.push({ source: 'search', code: 'run_time_budget', detail: `stopped with ${slice.length - qi} queries left` });
         break;
       }
@@ -729,7 +734,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       // Process each query's candidates before the next SERP call. This bounds volatile in-memory work to one query and commits verified rows incrementally.
       await flushBatch();
       try { console.info(JSON.stringify({ type: 'immofinder_discovery_batch_processed', queryIndex: qi, queryTotal: slice.length, processedItems, kept: res.counts.kept, new: res.counts.new, fetched: res.counts.fetched })); } catch { /* diagnostics only */ }
-      if (processedItems >= pageLimit) break;
+      if (processedItems >= pageLimit) { diag('discovery_stopped_page_limit', { processedItems, pageLimit, queryIndex: qi, queryTotal: slice.length }); break; }
     }
     await flushBatch();
   }
