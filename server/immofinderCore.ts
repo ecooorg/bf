@@ -756,7 +756,7 @@ export function parseListedAt(text: string, url?: string, declared?: string | nu
   };
 
   // Labelled absolute dates near publication / insert keywords (DE/FR/IT/EN + CH portals).
-  const labelRe = /(?:publiziert|veröffentlicht|veroffentlicht|online\s+seit|inseriert(?:\s+am)?|erstellt(?:\s+am)?|eingestellt(?:\s+am)?|posted(?:\s+on)?|published(?:\s+on)?|date\s*posted|date\s*published|inserted(?:\s+on)?|mise\s+en\s+ligne|publié(?:\s+le)?|inserito(?:\s+il)?|pubblicato(?:\s+il)?|online\s+since)\s*[:\-]?\s*/gi;
+  const labelRe = /(?:publiziert|veröffentlicht|veroffentlicht|online\s+seit|inseriert(?:\s+am)?|inserat(?:\s+vom)?|erstellt(?:\s+am)?|eingestellt(?:\s+am)?|posted(?:\s+on)?|published(?:\s+on)?|date\s*posted|date\s*published|inserted(?:\s+on)?|mise\s+en\s+ligne|publié(?:\s+le)?|inserito(?:\s+il)?|pubblicato(?:\s+il)?|online\s+since)\s*[:\-]?\s*/gi;
   let lm: RegExpExecArray | null;
   while ((lm = labelRe.exec(t)) !== null) {
     const slice = t.slice(lm.index, lm.index + 80);
