@@ -29,14 +29,20 @@ if (pkg.name !== lock.name || pkg.name !== lock.packages[''].name) {
   console.error('version: FAIL: package names disagree; refusing automatic repair');
   process.exit(1);
 }
-const mismatch = lock.version !== version || lock.packages[''].version !== version;
+const lockPatch = String(lock.patch ?? lock.packages[''].patch ?? '');
+const mismatch =
+  lock.version !== version ||
+  lock.packages[''].version !== version ||
+  lockPatch !== patch;
 if (mismatch && write) {
   lock.version = version;
+  lock.patch = patch;
   lock.packages[''].version = version;
+  lock.packages[''].patch = patch;
   writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
 }
 if (mismatch && !write) {
-  console.error(`version: FAIL: package-lock root versions must equal package.json version ${version}; run npm run version:sync`);
+  console.error(`version: FAIL: package-lock root version/patch must equal package.json (${version} / ${patch}); run npm run version:sync`);
   process.exit(1);
 }
 console.log(`version: PASS (${version}; patch ${patch}${mismatch ? '; lock metadata synchronized' : ''})`);
