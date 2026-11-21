@@ -1,0 +1,1086 @@
+{
+  "runId": "06c2315a-d063-48ec-8605-97feee22ed28",
+  "events": [
+    {
+      "at": "2026-11-21T15:41:35.945Z",
+      "type": "immofinder_trace",
+      "wave": "carousel",
+      "event": "run_started",
+      "dryRun": false,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "minRooms": 3,
+      "elapsedMs": 0,
+      "pageLimit": 420,
+      "llmEnabled": true,
+      "maxLlmCalls": 100,
+      "sourceCount": 0,
+      "searchEnabled": true,
+      "municipalities": [
+        "Chur",
+        "Haldenstein",
+        "Trimmis",
+        "Untervaz",
+        "Zizers",
+        "Igis",
+        "Landquart",
+        "Maienfeld",
+        "Fläsch",
+        "Jenins",
+        "Malans",
+        "Grüsch",
+        "Seewis-Pardisla",
+        "Schiers",
+        "Felsberg",
+        "Domat/Ems",
+        "Tamins",
+        "Trin",
+        "Flims",
+        "Laax",
+        "Versam",
+        "Valendas",
+        "Castrisch",
+        "Ilanz",
+        "Bonaduz",
+        "Rhäzüns",
+        "Rothenbrunnen",
+        "Rodels",
+        "Realta",
+        "Cazis",
+        "Thusis",
+        "Maladers",
+        "Churwalden",
+        "Parpan",
+        "Valbella",
+        "Lenzerheide",
+        "Passugg",
+        "Araschgen",
+        "Praden",
+        "Tschiertschen",
+        "Castiel",
+        "Lüen",
+        "St. Peter-Molinis",
+        "Peist"
+      ],
+      "discoveryEnabled": true,
+      "runMaxDurationMs": 2700000,
+      "portalQueryTemplates": 1,
+      "maxCandidatesPerQuery": 4,
+      "privateQueryTemplates": 0
+    },
+    {
+      "at": "2026-11-21T15:41:35.946Z",
+      "type": "immofinder_trace",
+      "wave": "carousel",
+      "cycle": 165,
+      "event": "discovery_plan",
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 1,
+      "finishAll": true,
+      "pageLimit": 420,
+      "queryOffset": 0,
+      "queryFamilies": [
+        "portals"
+      ],
+      "queryCountTotal": 4,
+      "resultsPerQuery": 10,
+      "coverAllCommunes": false,
+      "selectedCommunes": [
+        "Chur",
+        "Haldenstein",
+        "Trimmis",
+        "Untervaz"
+      ],
+      "queryCountThisWave": 4,
+      "serperMaxPerMinute": 40,
+      "serperMinIntervalMs": 1500,
+      "maxCandidatesPerQuery": 4
+    },
+    {
+      "at": "2026-11-21T15:41:38.543Z",
+      "type": "immofinder_trace",
+      "event": "serper_query_succeeded",
+      "query": "site:flatfox.ch \"Chur\" Wohnung mieten",
+      "source": "portal-flatfox",
+      "results": [
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+          "date": null,
+          "host": "flatfox.ch",
+          "rank": 1,
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "snippet": "3 ½ Zimmer-Wohnung in Chur mieten. Lagerstr. 9, 7000 Chur - CHF 2'055 inkl. NK pro Monat. Dieses Objekt ist leider gerade nicht verfügbar.",
+          "selected": true
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/bahnhofstrasse-40-7000-chur/1479186/",
+          "date": null,
+          "host": "flatfox.ch",
+          "rank": 2,
+          "title": "WG Zimmer in Chur mieten",
+          "snippet": "WG Zimmer in Chur mieten: [CH] Angegebener Mietzins von 595 CHF monatlich gilt für Wochenaufenthalter Sonntag Abend bis Freitag Abend (ausgen…",
+          "selected": false
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+          "date": null,
+          "host": "flatfox.ch",
+          "rank": 3,
+          "title": "3 ½ Zimmer-Maisonette in Chur mieten",
+          "snippet": "3 ½ Zimmer-Maisonette in Chur mieten. Lagerstrasse 9, 7000 Chur - CHF 1'960 inkl. NK pro Monat. Dieses Objekt ist leider gerade nicht verfügbar.",
+          "selected": true
+        },
+        {
+          "url": "www.google.com/goto",
+          "date": null,
+          "host": "google.com",
+          "rank": 4,
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "snippet": "Mieten. 2'135 CHF. 4 ½ Zimmer-WohnungWeststr. 67000 Chur · 3 ½ Zimmer-Wohnung. Mieten. 2'850 CHF · 3 ½ Zimmer-WohnungSegantinistrasse 447000 Chur · 3 ½ Zimmer- ...",
+          "selected": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "date": null,
+          "host": "google.com",
+          "rank": 5,
+          "title": "WG Zimmer in Chur mieten",
+          "snippet": "An der Bahnhofstrasse Chur, sehr zentral gelegen, wird ein wunderschönes, grosses, helles Zimmer in einer angenehmen Wohngemeinschaft vermietet.",
+          "selected": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "date": null,
+          "host": "google.com",
+          "rank": 6,
+          "title": "WG Zimmer in Chur mieten",
+          "snippet": "Suchabo für Objekte in Chur. Erhalten Sie eine Benachrichtigung, wenn ähnliche Wohnungen in Chur auf den Markt kommen. Suchabo erstellen. Ähnliche Inserate um ...",
+          "selected": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "date": null,
+          "host": "google.com",
+          "rank": 7,
+          "title": "Moto Hallenplatz in Chur mieten",
+          "snippet": "Moto Hallenplatz in Chur mieten · Belmontstrasse 4, 7000 Chur - CHF 30 inkl. NK pro Monat · Miete · Details · Umgebung · Beschreibung · Ähnliche Inserate um Chur.",
+          "selected": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "date": null,
+          "host": "google.com",
+          "rank": 8,
+          "title": "2 ½ Zimmer-Wohnung in Chur mieten",
+          "snippet": "2 ½ Zimmer-Wohnung in Chur mieten. Steinbruchstrasse 16, 7000 Chur - CHF 1'257 inkl. NK pro Monat. Dieses Objekt ist leider gerade nicht verfügbar.",
+          "selected": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "date": null,
+          "host": "google.com",
+          "rank": 9,
+          "title": "1 Zimmer-Einzelzimmer in Chur mieten",
+          "snippet": "Ich vermiete ab 1.September 26 ein möbliertes Zimmer in meiner 4 Zimmer Wohnung im Herzen von Chur. Internet und eine Waschmaschine mit Trockner sind ...",
+          "selected": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "date": null,
+          "host": "google.com",
+          "rank": 10,
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "snippet": "3 ½ Zimmer-Wohnung in Chur mieten. Austrasse 38, 7000 Chur - CHF 1'545 inkl. NK pro Monat. Dieses Objekt ist leider gerade nicht verfügbar.",
+          "selected": false
+        }
+      ],
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "selected": [
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+          "host": "flatfox.ch",
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "snippetOnly": false
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+          "host": "flatfox.ch",
+          "title": "3 ½ Zimmer-Maisonette in Chur mieten",
+          "snippetOnly": false
+        }
+      ],
+      "elapsedMs": 2598,
+      "queryIndex": 1,
+      "queryTotal": 4,
+      "pickedCount": 2,
+      "resultCount": 10,
+      "pickDecisions": [
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+          "host": "flatfox.ch",
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "reason": "accepted_direct_fetch",
+          "accepted": true
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/bahnhofstrasse-40-7000-chur/1479186/",
+          "host": "flatfox.ch",
+          "title": "WG Zimmer in Chur mieten",
+          "reason": "non_listing:shared_room",
+          "accepted": false
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+          "host": "flatfox.ch",
+          "title": "3 ½ Zimmer-Maisonette in Chur mieten",
+          "reason": "accepted_direct_fetch",
+          "accepted": true
+        },
+        {
+          "url": "www.google.com/goto",
+          "host": "google.com",
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "reason": "configured_skip_host",
+          "accepted": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "host": "google.com",
+          "title": "WG Zimmer in Chur mieten",
+          "reason": "configured_skip_host",
+          "accepted": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "host": "google.com",
+          "title": "WG Zimmer in Chur mieten",
+          "reason": "configured_skip_host",
+          "accepted": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "host": "google.com",
+          "title": "Moto Hallenplatz in Chur mieten",
+          "reason": "configured_skip_host",
+          "accepted": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "host": "google.com",
+          "title": "2 ½ Zimmer-Wohnung in Chur mieten",
+          "reason": "configured_skip_host",
+          "accepted": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "host": "google.com",
+          "title": "1 Zimmer-Einzelzimmer in Chur mieten",
+          "reason": "configured_skip_host",
+          "accepted": false
+        },
+        {
+          "url": "www.google.com/goto",
+          "host": "google.com",
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "reason": "configured_skip_host",
+          "accepted": false
+        }
+      ],
+      "selectedCount": 2
+    },
+    {
+      "at": "2026-11-21T15:41:38.544Z",
+      "type": "immofinder_trace",
+      "event": "discovery_batch_selected",
+      "source": "portal-flatfox",
+      "rawHits": 10,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 2599,
+      "pageLimit": 420,
+      "candidateUrls": [
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+          "host": "flatfox.ch",
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+          "snippetOnly": false
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+          "host": "flatfox.ch",
+          "title": "3 ½ Zimmer-Maisonette in Chur mieten",
+          "snippetOnly": false
+        }
+      ],
+      "remainingPageBudget": 420,
+      "processedItemsBefore": 0,
+      "maxCandidatesPerQuery": 4,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 2,
+      "pickedBeforeCrossQueryDedupe": 2
+    },
+    {
+      "at": "2026-11-21T15:41:38.546Z",
+      "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_received",
+      "title": "3 ½ Zimmer-Wohnung in Chur mieten",
+      "source": "portal-flatfox",
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 2601,
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "at": "2026-11-21T15:41:39.274Z",
+      "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+      "type": "immofinder_trace",
+      "event": "candidate_fetch_succeeded",
+      "source": "portal-flatfox",
+      "status": 200,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "finalUrl": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+      "bodyChars": 23527,
+      "elapsedMs": 3329,
+      "fetchMode": "direct",
+      "textChars": 589,
+      "durationMs": 721
+    },
+    {
+      "at": "2026-11-21T15:41:45.180Z",
+      "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+      "type": "immofinder_trace",
+      "event": "candidate_extracted",
+      "rooms": 5,
+      "title": "3 ½ Zimmer-Wohnung in Chur mieten | Flatfox",
+      "single": true,
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "llmCalls": 1,
+      "llmError": null,
+      "elapsedMs": 9235,
+      "textChars": 589,
+      "roomsBasis": "zimmer",
+      "municipality": "Chur",
+      "regForbidden": false,
+      "ownerVerified": false,
+      "agencyDetected": false,
+      "priceQuotePresent": true,
+      "extractionDurationMs": 5904,
+      "listedAtQuotePresent": false
+    },
+    {
+      "at": "2026-11-21T15:41:45.180Z",
+      "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_received",
+      "title": "3 ½ Zimmer-Maisonette in Chur mieten",
+      "source": "portal-flatfox",
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 9235,
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "at": "2026-11-21T15:41:48.381Z",
+      "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+      "type": "immofinder_trace",
+      "event": "candidate_fetch_succeeded",
+      "source": "portal-flatfox",
+      "status": 200,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "finalUrl": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+      "bodyChars": 24838,
+      "elapsedMs": 12436,
+      "fetchMode": "jina_reader",
+      "textChars": 24415,
+      "durationMs": 3196
+    },
+    {
+      "at": "2026-11-21T15:41:52.460Z",
+      "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+      "type": "immofinder_trace",
+      "event": "candidate_extracted",
+      "rooms": 5,
+      "title": "3 ½ Zimmer-Maisonette in Chur mieten | Flatfox",
+      "single": true,
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "llmCalls": 1,
+      "llmError": null,
+      "elapsedMs": 16515,
+      "textChars": 24415,
+      "roomsBasis": "zimmer",
+      "municipality": "Chur",
+      "regForbidden": false,
+      "ownerVerified": false,
+      "agencyDetected": false,
+      "priceQuotePresent": true,
+      "extractionDurationMs": 4076,
+      "listedAtQuotePresent": false
+    },
+    {
+      "at": "2026-11-21T15:41:52.464Z",
+      "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_rejected_after_extraction",
+      "rooms": 5,
+      "title": "3 ½ Zimmer-Wohnung in Chur mieten | Flatfox",
+      "detail": "page_states_unavailable",
+      "reason": "listing_unavailable",
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 16519,
+      "roomsBasis": "zimmer",
+      "municipality": "Chur"
+    },
+    {
+      "at": "2026-11-21T15:41:52.470Z",
+      "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_rejected_after_extraction",
+      "rooms": 5,
+      "title": "3 ½ Zimmer-Maisonette in Chur mieten | Flatfox",
+      "detail": "page_states_unavailable",
+      "reason": "listing_unavailable",
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 16525,
+      "roomsBasis": "zimmer",
+      "municipality": "Chur"
+    },
+    {
+      "at": "2026-11-21T15:41:54.533Z",
+      "type": "immofinder_trace",
+      "event": "serper_query_succeeded",
+      "query": "site:flatfox.ch \"Haldenstein\" Wohnung mieten",
+      "source": "portal-flatfox",
+      "results": [
+        {
+          "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+          "date": null,
+          "host": "flatfox.ch",
+          "rank": 1,
+          "title": "11m² Gewerbe in Haldenstein mieten",
+          "snippet": "11m² Gewerbe in Haldenstein mieten: Dieser moderne Lagerraum/Weinkeller ist per sofort oder nach Vereinbarung verfügbar. Bei Fragen stehe ich Ihnen ge…",
+          "selected": true
+        }
+      ],
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "selected": [
+        {
+          "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+          "host": "flatfox.ch",
+          "title": "11m² Gewerbe in Haldenstein mieten",
+          "snippetOnly": false
+        }
+      ],
+      "elapsedMs": 18588,
+      "queryIndex": 2,
+      "queryTotal": 4,
+      "pickedCount": 1,
+      "resultCount": 1,
+      "pickDecisions": [
+        {
+          "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+          "host": "flatfox.ch",
+          "title": "11m² Gewerbe in Haldenstein mieten",
+          "reason": "accepted_direct_fetch",
+          "accepted": true
+        }
+      ],
+      "selectedCount": 1
+    },
+    {
+      "at": "2026-11-21T15:41:54.533Z",
+      "type": "immofinder_trace",
+      "event": "discovery_batch_selected",
+      "source": "portal-flatfox",
+      "rawHits": 1,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 18588,
+      "pageLimit": 420,
+      "candidateUrls": [
+        {
+          "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+          "host": "flatfox.ch",
+          "title": "11m² Gewerbe in Haldenstein mieten",
+          "snippetOnly": false
+        }
+      ],
+      "remainingPageBudget": 418,
+      "processedItemsBefore": 2,
+      "maxCandidatesPerQuery": 4,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "pickedBeforeCrossQueryDedupe": 1
+    },
+    {
+      "at": "2026-11-21T15:41:54.533Z",
+      "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_received",
+      "title": "11m² Gewerbe in Haldenstein mieten",
+      "source": "portal-flatfox",
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 18588,
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "at": "2026-11-21T15:41:54.934Z",
+      "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+      "type": "immofinder_trace",
+      "event": "candidate_fetch_succeeded",
+      "source": "portal-flatfox",
+      "status": 200,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "finalUrl": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+      "bodyChars": 48295,
+      "elapsedMs": 18989,
+      "fetchMode": "direct",
+      "textChars": 1644,
+      "durationMs": 395
+    },
+    {
+      "at": "2026-11-21T15:41:55.658Z",
+      "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+      "type": "immofinder_trace",
+      "event": "candidate_extracted",
+      "rooms": null,
+      "title": "11m² Gewerbe in Haldenstein mieten | Flatfox",
+      "single": true,
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "llmCalls": 1,
+      "llmError": null,
+      "elapsedMs": 19713,
+      "textChars": 1644,
+      "roomsBasis": null,
+      "municipality": "Haldenstein",
+      "regForbidden": false,
+      "ownerVerified": false,
+      "agencyDetected": false,
+      "priceQuotePresent": true,
+      "extractionDurationMs": 722,
+      "listedAtQuotePresent": false
+    },
+    {
+      "at": "2026-11-21T15:41:55.659Z",
+      "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_rejected_after_extraction",
+      "rooms": null,
+      "title": "11m² Gewerbe in Haldenstein mieten | Flatfox",
+      "detail": "",
+      "reason": "rooms_unknown",
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 19714,
+      "roomsBasis": null,
+      "municipality": "Haldenstein"
+    },
+    {
+      "at": "2026-11-21T15:41:57.287Z",
+      "type": "immofinder_trace",
+      "event": "serper_query_succeeded",
+      "query": "site:flatfox.ch \"Trimmis\" Wohnung mieten",
+      "source": "portal-flatfox",
+      "results": [
+        {
+          "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+          "date": null,
+          "host": "flatfox.ch",
+          "rank": 1,
+          "title": "4 ½ Zimmer-Wohnung in Trimmis mieten",
+          "snippet": "Wir suchen einen Nachmieter für unsere schöne und grosszügige 4.5-Zimmer-Wohnung in Trimmis. Eckdaten der Wohnung: - 4.5 Zimmer",
+          "selected": true
+        }
+      ],
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "selected": [
+        {
+          "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+          "host": "flatfox.ch",
+          "title": "4 ½ Zimmer-Wohnung in Trimmis mieten",
+          "snippetOnly": false
+        }
+      ],
+      "elapsedMs": 21342,
+      "queryIndex": 3,
+      "queryTotal": 4,
+      "pickedCount": 1,
+      "resultCount": 1,
+      "pickDecisions": [
+        {
+          "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+          "host": "flatfox.ch",
+          "title": "4 ½ Zimmer-Wohnung in Trimmis mieten",
+          "reason": "accepted_direct_fetch",
+          "accepted": true
+        }
+      ],
+      "selectedCount": 1
+    },
+    {
+      "at": "2026-11-21T15:41:57.287Z",
+      "type": "immofinder_trace",
+      "event": "discovery_batch_selected",
+      "source": "portal-flatfox",
+      "rawHits": 1,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 21342,
+      "pageLimit": 420,
+      "candidateUrls": [
+        {
+          "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+          "host": "flatfox.ch",
+          "title": "4 ½ Zimmer-Wohnung in Trimmis mieten",
+          "snippetOnly": false
+        }
+      ],
+      "remainingPageBudget": 417,
+      "processedItemsBefore": 3,
+      "maxCandidatesPerQuery": 4,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "pickedBeforeCrossQueryDedupe": 1
+    },
+    {
+      "at": "2026-11-21T15:41:57.287Z",
+      "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_received",
+      "title": "4 ½ Zimmer-Wohnung in Trimmis mieten",
+      "source": "portal-flatfox",
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 21342,
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "at": "2026-11-21T15:41:57.617Z",
+      "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+      "type": "immofinder_trace",
+      "event": "candidate_fetch_succeeded",
+      "source": "portal-flatfox",
+      "status": 200,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "finalUrl": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+      "bodyChars": 23694,
+      "elapsedMs": 21672,
+      "fetchMode": "direct",
+      "textChars": 603,
+      "durationMs": 323
+    },
+    {
+      "at": "2026-11-21T15:42:07.622Z",
+      "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+      "type": "immofinder_trace",
+      "event": "candidate_extracted",
+      "rooms": 5,
+      "title": "4 ½ Zimmer-Wohnung in Trimmis mieten | Flatfox",
+      "single": true,
+      "source": "portal-flatfox",
+      "llmUsed": false,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "llmCalls": 1,
+      "llmError": "step_timeout:llm",
+      "elapsedMs": 31678,
+      "textChars": 603,
+      "roomsBasis": "zimmer",
+      "municipality": "Trimmis",
+      "regForbidden": false,
+      "ownerVerified": false,
+      "agencyDetected": false,
+      "priceQuotePresent": true,
+      "extractionDurationMs": 10002,
+      "listedAtQuotePresent": false
+    },
+    {
+      "at": "2026-11-21T15:42:07.625Z",
+      "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_rejected_after_extraction",
+      "rooms": 5,
+      "title": "4 ½ Zimmer-Wohnung in Trimmis mieten | Flatfox",
+      "detail": "page_states_unavailable",
+      "reason": "listing_unavailable",
+      "source": "portal-flatfox",
+      "llmUsed": false,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 31680,
+      "roomsBasis": "zimmer",
+      "municipality": "Trimmis"
+    },
+    {
+      "at": "2026-11-21T15:42:09.737Z",
+      "type": "immofinder_trace",
+      "event": "serper_query_succeeded",
+      "query": "site:flatfox.ch \"Untervaz\" Wohnung mieten",
+      "source": "portal-flatfox",
+      "results": [
+        {
+          "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+          "date": null,
+          "host": "flatfox.ch",
+          "rank": 1,
+          "title": "4 Zimmer-Wohnung in Untervaz mieten",
+          "snippet": "4 Zimmer-Wohnung in Untervaz mieten: CHF 1750 inkl Nebenkosten PP CHF 120.",
+          "selected": true
+        }
+      ],
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "selected": [
+        {
+          "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+          "host": "flatfox.ch",
+          "title": "4 Zimmer-Wohnung in Untervaz mieten",
+          "snippetOnly": false
+        }
+      ],
+      "elapsedMs": 33792,
+      "queryIndex": 4,
+      "queryTotal": 4,
+      "pickedCount": 1,
+      "resultCount": 1,
+      "pickDecisions": [
+        {
+          "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+          "host": "flatfox.ch",
+          "title": "4 Zimmer-Wohnung in Untervaz mieten",
+          "reason": "accepted_direct_fetch",
+          "accepted": true
+        }
+      ],
+      "selectedCount": 1
+    },
+    {
+      "at": "2026-11-21T15:42:09.737Z",
+      "type": "immofinder_trace",
+      "event": "discovery_batch_selected",
+      "source": "portal-flatfox",
+      "rawHits": 1,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 33792,
+      "pageLimit": 420,
+      "candidateUrls": [
+        {
+          "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+          "host": "flatfox.ch",
+          "title": "4 Zimmer-Wohnung in Untervaz mieten",
+          "snippetOnly": false
+        }
+      ],
+      "remainingPageBudget": 416,
+      "processedItemsBefore": 4,
+      "maxCandidatesPerQuery": 4,
+      "duplicateAcrossQueries": 0,
+      "selectedAfterPerQueryCap": 1,
+      "pickedBeforeCrossQueryDedupe": 1
+    },
+    {
+      "at": "2026-11-21T15:42:09.738Z",
+      "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_received",
+      "title": "4 Zimmer-Wohnung in Untervaz mieten",
+      "source": "portal-flatfox",
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 33793,
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "at": "2026-11-21T15:42:18.395Z",
+      "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+      "type": "immofinder_trace",
+      "event": "candidate_fetch_succeeded",
+      "source": "portal-flatfox",
+      "status": 200,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "finalUrl": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+      "bodyChars": 21192,
+      "elapsedMs": 42450,
+      "fetchMode": "jina_reader",
+      "textChars": 20815,
+      "durationMs": 8651
+    },
+    {
+      "at": "2026-11-21T15:42:22.169Z",
+      "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+      "type": "immofinder_trace",
+      "event": "candidate_extracted",
+      "rooms": 4,
+      "title": "4 Zimmer-Wohnung in Untervaz mieten | Flatfox",
+      "single": true,
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "llmCalls": 1,
+      "llmError": null,
+      "elapsedMs": 46224,
+      "textChars": 20815,
+      "roomsBasis": "zimmer",
+      "municipality": "Untervaz",
+      "regForbidden": false,
+      "ownerVerified": false,
+      "agencyDetected": false,
+      "priceQuotePresent": true,
+      "extractionDurationMs": 3772,
+      "listedAtQuotePresent": false
+    },
+    {
+      "at": "2026-11-21T15:42:22.172Z",
+      "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+      "host": "flatfox.ch",
+      "type": "immofinder_trace",
+      "event": "candidate_rejected_after_extraction",
+      "rooms": 4,
+      "title": "4 Zimmer-Wohnung in Untervaz mieten | Flatfox",
+      "detail": "page_states_unavailable",
+      "reason": "listing_unavailable",
+      "source": "portal-flatfox",
+      "llmUsed": true,
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "elapsedMs": 46227,
+      "roomsBasis": "zimmer",
+      "municipality": "Untervaz"
+    },
+    {
+      "at": "2026-11-21T15:42:24.898Z",
+      "type": "immofinder_trace",
+      "event": "run_completed",
+      "counts": {
+        "new": 0,
+        "kept": 0,
+        "fetched": 5,
+        "sources": 4,
+        "updated": 0,
+        "enriched": 0,
+        "llm_calls": 5,
+        "candidates": 5,
+        "index_pages": 0,
+        "skipped_geo": 0,
+        "serper_calls": 4,
+        "skipped_seen": 0,
+        "snippet_only": 0,
+        "skipped_known": 0,
+        "search_queries": 4,
+        "serper_fallback": 0,
+        "evidence_page_text": 4,
+        "llm_skipped_no_rooms": 0
+      },
+      "errors": [
+        {
+          "code": "llm_failed",
+          "detail": "step_timeout:llm",
+          "source": "portal-flatfox"
+        }
+      ],
+      "preview": [
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+          "kept": false,
+          "rooms": 5,
+          "title": "3 ½ Zimmer-Wohnung in Chur mieten | Flatfox",
+          "detail": "page_states_unavailable",
+          "reason": "listing_unavailable",
+          "source": "portal-flatfox",
+          "municipality": "Chur"
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+          "kept": false,
+          "rooms": 5,
+          "title": "3 ½ Zimmer-Maisonette in Chur mieten | Flatfox",
+          "detail": "page_states_unavailable",
+          "reason": "listing_unavailable",
+          "source": "portal-flatfox",
+          "municipality": "Chur"
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+          "kept": false,
+          "rooms": null,
+          "title": "11m² Gewerbe in Haldenstein mieten | Flatfox",
+          "detail": "",
+          "reason": "rooms_unknown",
+          "source": "portal-flatfox",
+          "municipality": "Haldenstein"
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+          "kept": false,
+          "rooms": 5,
+          "title": "4 ½ Zimmer-Wohnung in Trimmis mieten | Flatfox",
+          "detail": "page_states_unavailable",
+          "reason": "listing_unavailable",
+          "source": "portal-flatfox",
+          "municipality": "Trimmis"
+        },
+        {
+          "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+          "kept": false,
+          "rooms": 4,
+          "title": "4 Zimmer-Wohnung in Untervaz mieten | Flatfox",
+          "detail": "page_states_unavailable",
+          "reason": "listing_unavailable",
+          "source": "portal-flatfox",
+          "municipality": "Untervaz"
+        }
+      ],
+      "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+      "filtered": {
+        "rooms_unknown": 1,
+        "listing_unavailable": 4
+      },
+      "wavesRun": [
+        "carousel"
+      ],
+      "elapsedMs": 48953,
+      "durationMs": 48953,
+      "sourceStats": [
+        {
+          "id": "portal-flatfox",
+          "geo": 0,
+          "llm": 5,
+          "new": 0,
+          "hits": 13,
+          "junk": 5,
+          "kept": 0,
+          "fetched": 5,
+          "queries": 4,
+          "agencies": 0,
+          "candidates": 5,
+          "consecutiveBad": 6
+        }
+      ],
+      "previewCount": 5,
+      "estimatedCostUsd": 0.014
+    }
+  ],
+  "result": {
+    "counts": {
+      "new": 0,
+      "kept": 0,
+      "fetched": 5,
+      "sources": 4,
+      "updated": 0,
+      "enriched": 0,
+      "llm_calls": 5,
+      "candidates": 5,
+      "index_pages": 0,
+      "skipped_geo": 0,
+      "serper_calls": 4,
+      "skipped_seen": 0,
+      "snippet_only": 0,
+      "skipped_known": 0,
+      "search_queries": 4,
+      "serper_fallback": 0,
+      "evidence_page_text": 4,
+      "llm_skipped_no_rooms": 0
+    },
+    "errors": [
+      {
+        "code": "llm_failed",
+        "detail": "step_timeout:llm",
+        "source": "portal-flatfox"
+      }
+    ],
+    "preview": [
+      {
+        "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
+        "kept": false,
+        "rooms": 5,
+        "title": "3 ½ Zimmer-Wohnung in Chur mieten | Flatfox",
+        "detail": "page_states_unavailable",
+        "reason": "listing_unavailable",
+        "source": "portal-flatfox",
+        "municipality": "Chur"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/lagerstrasse-9-7000-chur/990191/",
+        "kept": false,
+        "rooms": 5,
+        "title": "3 ½ Zimmer-Maisonette in Chur mieten | Flatfox",
+        "detail": "page_states_unavailable",
+        "reason": "listing_unavailable",
+        "source": "portal-flatfox",
+        "municipality": "Chur"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/7023-haldenstein/86484705/",
+        "kept": false,
+        "rooms": null,
+        "title": "11m² Gewerbe in Haldenstein mieten | Flatfox",
+        "detail": "",
+        "reason": "rooms_unknown",
+        "source": "portal-flatfox",
+        "municipality": "Haldenstein"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/rebachergassli-1-7203-trimmis/86533726/",
+        "kept": false,
+        "rooms": 5,
+        "title": "4 ½ Zimmer-Wohnung in Trimmis mieten | Flatfox",
+        "detail": "page_states_unavailable",
+        "reason": "listing_unavailable",
+        "source": "portal-flatfox",
+        "municipality": "Trimmis"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/cosenzstrasse-4-7204-untervaz/86402105/",
+        "kept": false,
+        "rooms": 4,
+        "title": "4 Zimmer-Wohnung in Untervaz mieten | Flatfox",
+        "detail": "page_states_unavailable",
+        "reason": "listing_unavailable",
+        "source": "portal-flatfox",
+        "municipality": "Untervaz"
+      }
+    ],
+    "filtered": {
+      "rooms_unknown": 1,
+      "listing_unavailable": 4
+    },
+    "wavesRun": [
+      "carousel"
+    ],
+    "sourceStats": [
+      {
+        "id": "portal-flatfox",
+        "geo": 0,
+        "llm": 5,
+        "new": 0,
+        "hits": 13,
+        "junk": 5,
+        "kept": 0,
+        "fetched": 5,
+        "queries": 4,
+        "agencies": 0,
+        "candidates": 5,
+        "consecutiveBad": 6
+      }
+    ]
+  },
+  "traceId": "0b0ee0c3-6493-46ef-9ea6-e7f388f9e1f1",
+  "logSource": "process_trace_buffer",
+  "eventCount": 31,
+  "generatedAt": "2026-11-21T15:42:25.039Z",
+  "schemaVersion": 1,
+  "databaseLogWriteFailures": null
+}
