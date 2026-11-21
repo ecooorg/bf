@@ -3,7 +3,8 @@ import { isPublicFetchTarget } from './webSearch.ts';
 
 /** Polite fetcher: honest User-Agent, per-host delay, robots.txt, timeout, size cap, http(s) only. */
 export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fetch, isPublicTarget: (url: string) => Promise<boolean> = isPublicFetchTarget) {
-  const last = new Map<string, number>(); const robots = new Map<string, string[]>();
+  type RobotsRule = { allow: boolean; path: string };
+  const last = new Map<string, number>(); const robots = new Map<string, RobotsRule[]>();
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
   async function get(url: string, timeout = cfg.limits.fetchTimeoutMs) {
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeout);
@@ -20,14 +21,49 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
       return { ok: r.ok, status: r.status, body: buf, finalUrl: r.url || url };
     } finally { clearTimeout(t); }
   }
-  async function disallowed(u: URL): Promise<string[]> {
-    if (robots.has(u.host)) return robots.get(u.host)!;
-    let rules: string[] = [];
-    try {
-      const r = await get(`${u.protocol}//${u.host}/robots.txt`, 8000);
-      if (r.ok) { let star = false; for (const line of r.body.split(/\r?\n/)) { const l = line.split('#')[0].trim(); const m = /^(user-agent|disallow)\s*:\s*(.*)$/i.exec(l); if (!m) continue; if (/^user-agent/i.test(m[1])) star = m[2].trim() === '*'; else if (star && m[2].trim()) rules.push(m[2].trim()); } }
-    } catch { rules = []; }
-    robots.set(u.host, rules); return rules;
+  async function disallowed(u: URL): Promise<boolean> {
+    let rules = robots.get(u.host);
+    if (!rules) {
+      const groups: { agents: string[]; rules: RobotsRule[] }[] = [];
+      let current: { agents: string[]; rules: RobotsRule[] } | null = null;
+      try {
+        const r = await get(`${u.protocol}//${u.host}/robots.txt`, 8000);
+        if (r.ok) {
+          for (const line of r.body.split(/\r?\n/)) {
+            const clean = line.split('#')[0].trim();
+            const m = /^(user-agent|allow|disallow)\s*:\s*(.*)$/i.exec(clean);
+            if (!m) continue;
+            const key = m[1].toLowerCase(); const value = m[2].trim();
+            if (key === 'user-agent') {
+              if (current && current.rules.length) { groups.push(current); current = null; }
+              if (!current) current = { agents: [], rules: [] };
+              current.agents.push(value.toLowerCase());
+            } else if (current && value) {
+              current.rules.push({ allow: key === 'allow', path: value });
+            }
+          }
+          if (current) groups.push(current);
+        }
+      } catch { /* unavailable robots.txt means no additional path restriction */ }
+      const ua = String(cfg.fetch.userAgent || '').split(/[\s(/]/, 1)[0].toLowerCase();
+      const specific = groups.filter((g) => g.agents.some((a) => a !== '*' && a && ua.includes(a)));
+      const longest = specific.reduce((n, g) => Math.max(n, ...g.agents.filter((a) => a !== '*' && a && ua.includes(a)).map((a) => a.length)), 0);
+      const selected = longest > 0
+        ? specific.filter((g) => g.agents.some((a) => a !== '*' && a.length === longest && ua.includes(a)))
+        : groups.filter((g) => g.agents.includes('*'));
+      rules = selected.flatMap((g) => g.rules);
+      robots.set(u.host, rules);
+    }
+    const target = `${u.pathname}${u.search}`;
+    const matches = rules.map((rule) => {
+      const pattern = rule.path.endsWith('$') ? rule.path.slice(0, -1) : rule.path;
+      const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+      const regex = new RegExp(`^${escaped}${rule.path.endsWith('$') ? '$' : ''}`);
+      return regex.test(target) ? { ...rule, specificity: rule.path.replace(/[\*$]/g, '').length } : null;
+    }).filter((x): x is RobotsRule & { specificity: number } => Boolean(x));
+    if (!matches.length) return false;
+    matches.sort((a, b) => b.specificity - a.specificity || Number(b.allow) - Number(a.allow));
+    return !matches[0].allow;
   }
   const normalizeTarget = (raw: string) => {
     try {
@@ -74,7 +110,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
   return async function fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string }> {
     const u = new URL(url);
     if (!/^https?:$/.test(u.protocol)) return { ok: false, status: 0, body: 'unsupported protocol' };
-    if (cfg.fetch.respectRobotsTxt && (await disallowed(u)).some((p) => u.pathname.startsWith(p))) return { ok: false, status: 403, body: 'blocked by robots.txt', fetchMode: 'robots_blocked' };
+    if (cfg.fetch.respectRobotsTxt && await disallowed(u)) return { ok: false, status: 403, body: 'blocked by robots.txt', fetchMode: 'robots_blocked' };
     const wait = (last.get(u.host) || 0) + cfg.fetch.perHostDelayMs - Date.now(); if (wait > 0) await sleep(wait);
     last.set(u.host, Date.now());
     let direct: { ok: boolean; status: number; body: string; finalUrl?: string };
