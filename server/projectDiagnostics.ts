@@ -10,6 +10,12 @@ import { verifyArtifact } from './artifactRepository.ts';
 // Real server console output, credential-redacted and bounded.
 const consoleLines: string[] = [];
 const MAX_LINES = Math.max(500, Math.min(5000, Number(process.env.DIAGNOSTIC_CONSOLE_LINES) || 2000));
+const immoFinderTraceEvents: Record<string, unknown>[] = [];
+const MAX_IMMOFINDER_TRACE_EVENTS = 20000;
+/** Full in-process trace buffer consumed immediately after each search completes. */
+export function capturedImmoFinderTrace(limit = MAX_IMMOFINDER_TRACE_EVENTS): Record<string, unknown>[] {
+  return immoFinderTraceEvents.slice(-Math.max(1, Math.min(MAX_IMMOFINDER_TRACE_EVENTS, Math.trunc(limit))));
+}
 const applicationLines: Record<string, unknown>[] = [];
 const MAX_APPLICATION_LINES = Math.max(500, Math.min(10000, Number(process.env.DIAGNOSTIC_APPLICATION_LINES) || 3000));
 let dbLogUnavailableUntil = 0;
@@ -84,6 +90,15 @@ export function installLogCapture(): void {
         // Preserve complete structured ImmoFinder trace events for the end-of-run GitHub report.
         // Other console lines stay short so the application log ring buffer remains bounded.
         const safeText = sanitizeLogText(text, text.includes('"type":"immofinder_trace"') ? 20000 : 1200);
+        if (safeText.includes('"type":"immofinder_trace"')) {
+          try {
+            const trace = JSON.parse(safeText);
+            if (trace?.type === 'immofinder_trace') {
+              immoFinderTraceEvents.push(trace);
+              if (immoFinderTraceEvents.length > MAX_IMMOFINDER_TRACE_EVENTS) immoFinderTraceEvents.splice(0, immoFinderTraceEvents.length - MAX_IMMOFINDER_TRACE_EVENTS);
+            }
+          } catch { /* malformed console output must not break capture */ }
+        }
         consoleLines.push(`${new Date().toISOString()} [${level}] ${safeText}`);
         if (consoleLines.length > MAX_LINES) consoleLines.splice(0, consoleLines.length - MAX_LINES);
         const structured = { timestamp: new Date().toISOString(), level: level === 'error' || level === 'warn' ? level : 'info', component: 'console', event: 'console_output', message: safeText };
