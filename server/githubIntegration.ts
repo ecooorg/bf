@@ -65,6 +65,23 @@ export function permissionsWithinMaximum(
  * publishers. The token is deliberately limited to contents:write; it does not
  * inherit the broader permissions of the app installation.
  */
+async function githubAppTokenFailure(prefix: string, response: Response): Promise<Error> {
+  let detail = '';
+  try {
+    const payload = await response.json() as { message?: unknown; errors?: unknown };
+    const messages = [
+      payload.message,
+      ...(Array.isArray(payload.errors) ? payload.errors.map((item) =>
+        item && typeof item === 'object' ? (item as { message?: unknown }).message : undefined) : []),
+    ];
+    detail = messages.filter((value): value is string => typeof value === 'string').join(' ');
+  } catch { /* retain status and request ID when GitHub returns a non-JSON body */ }
+  const safeDetail = detail.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 120);
+  const rawRequestId = response.headers?.get?.('x-github-request-id') || '';
+  const requestId = /^[a-z0-9-]{1,80}$/i.test(rawRequestId) ? rawRequestId : '';
+  return new Error(`${prefix}_http_${response.status}${safeDetail ? `_${safeDetail}` : ''}${requestId ? `_request_${requestId}` : ''}`);
+}
+
 export async function createGitHubContentsWriteToken(
   config: GitHubAppConfig,
   fetcher: typeof fetch = fetch,
@@ -75,14 +92,14 @@ export async function createGitHubContentsWriteToken(
   const bootstrap = await fetcher(`${base}/app/installations/${encodeURIComponent(config.installationId)}/access_tokens`, {
     method: 'POST', headers, body: JSON.stringify({ permissions: { contents: 'read' } }), signal: AbortSignal.timeout(10_000),
   });
-  if (!bootstrap.ok) throw new Error(`github_app_bootstrap_token_http_${bootstrap.status}`);
+  if (!bootstrap.ok) throw await githubAppTokenFailure('github_app_bootstrap_token', bootstrap);
   const bootstrapData = await bootstrap.json() as { token?: string };
   if (!bootstrapData.token) throw new Error('github_app_bootstrap_token_missing');
 
   const repositoryResponse = await fetcher(`${base}/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repository)}`, {
     headers: { ...GH_HEADERS, Authorization: `Bearer ${bootstrapData.token}` }, signal: AbortSignal.timeout(10_000),
   });
-  if (!repositoryResponse.ok) throw new Error(`github_app_repository_http_${repositoryResponse.status}`);
+  if (!repositoryResponse.ok) throw await githubAppTokenFailure('github_app_repository', repositoryResponse);
   const repositoryData = await repositoryResponse.json() as { id?: number; full_name?: string };
   if (!Number.isInteger(repositoryData.id) || String(repositoryData.full_name || '').toLowerCase() !== `${config.owner}/${config.repository}`.toLowerCase()) {
     throw new Error('github_app_repository_identity_mismatch');
@@ -93,7 +110,7 @@ export async function createGitHubContentsWriteToken(
     body: JSON.stringify({ repository_ids: [repositoryData.id], permissions: { contents: 'write' } }),
     signal: AbortSignal.timeout(10_000),
   });
-  if (!scoped.ok) throw new Error(`github_app_contents_write_token_http_${scoped.status}`);
+  if (!scoped.ok) throw await githubAppTokenFailure('github_app_contents_write_token', scoped);
   const scopedData = await scoped.json() as { token?: string; permissions?: Record<string, string> };
   const permissions = scopedData.permissions || {};
   if (!scopedData.token || permissions.contents !== 'write' ||
