@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultSettings, sanitizeSettings, applySettings, SOURCE_IDS } from '../server/immofinderSettings.ts';
 import { runPipeline } from '../server/immofinderPipeline.ts';
-import { dedupeSnippetText, htmlToText } from '../server/immofinderCore.ts';
+import { dedupeSnippetText, htmlToText, resolveListingPrice } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
 import { createSerperSearch, communesForRun, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
 import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig } from '../server/immofinderRepair.ts';
@@ -176,6 +176,13 @@ test('P129.52 portal inventory is searched without a Google date cutoff', async 
   assert.equal(privateOptions[0], undefined, 'private listings are not hidden by Google indexing freshness');
 });
 
+test('Swiss listings with net and gross rent remain eligible and gross rent is preferred for the budget check', () => {
+  const text = "3.5-Zimmer-Wohnung in Chur. Nettomiete CHF 1'500 pro Monat. Bruttomiete CHF 1'800 pro Monat. Nebenkosten CHF 300 pro Monat. Helle Wohnung mit Balkon und Küche.";
+  assert.equal(resolveListingPrice(text, null)?.amount, 1800);
+  const url = 'https://www.homegate.ch/mieten/4001234567';
+  const row = { listing_url: url, property_name: '3.5-Zimmer-Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, rent_monthly_chf: 1800, pricing_unit: 'month', raw: { price: { amount: 1800, unit: 'month' }, evidence_text: text, evidence_kind: 'page_text', evidence_url: url } };
+  assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null);
+});
 test('non-standard Swiss portal detail URL survives the final write-time and repair gate', () => {
   const url = 'https://flatfox.ch/en/flat/abc-123';
   const evidence = '3.5 Zimmer Wohnung in Chur. Helle Wohnung mit Balkon und eigener Küche. Ruhige Lage nahe Bahnhof.';
