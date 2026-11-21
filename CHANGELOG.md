@@ -1,3 +1,7 @@
+## P129.52 — ImmoFinder candidate loss and fetch recovery
+
+- **BUGFIX:** process SERPs query-by-query; cover all four selected communes; search portal inventory without `qdr` date cutoff; accept optional final URLs but reject mismatched listing redirects; admit useful 30+ character detail text; retry blocked/empty public pages via URL-verified Jina Reader; invalidate old-version `seen` decisions; clear URL-level `seen` entries on manual deletion; log skip/reject/keep stages.
+
 ## P129.51 — ImmoFinder search precision and discovery breadth
 
 - Broadened commune/portal queries and default freshness to one month; snippets, failed fetches, short pages and redirects are rejected before LLM/storage; final response URL is now retained and checked. Hard write-gate rejects no longer inflate kept/new counters. BUGFIX / EXPERIMENT.

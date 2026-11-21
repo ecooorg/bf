@@ -1,3 +1,9 @@
+## P129.52 — ImmoFinder incremental discovery and page-fetch recovery
+
+- **OBSERVED:** 129.51 run logged only Zizers/Igis, no completion summary before process restart; 129.51 CI had five distinct ImmoFinder contract failures. Earlier recheck logs show widespread portal HTTP 403.
+- **CHANGE:** flush candidates after each query; enforce at least four selected communes; no Google date cutoff for direct portal inventory; optional `finalUrl` compatibility with same-listing redirect validation; 30-character detail-text floor; verified Jina fallback; invalidate old-version `immofinder_seen` decisions; clear deleted listing URLs from `immofinder_seen`; retry transient `detail_page_*` / `not_single_listing` seen entries after six hours; candidate-level diagnostics.
+- **VERIFY:** P0 **21/21**; quality **33/33**; five previously failing search-contract tests **5/5**; TypeScript transpile/syntax **7 files PASS**; version + docs integrity checks PASS. `npm ci` timed out, so full `tsc --noEmit`, production build, full agent-contract suite and hosted CI remain NOT_RUN; live portal yield NOT_RUN.
+
 ## P129.51 — ImmoFinder verified-page search admission
 
 - **OBSERVED:** supplied run: 68 queries / 11 candidates / 2 fetched / 7 snippet-only; 2 snippet-only records were counted kept, and aggregate new disagreed with per-source new.
