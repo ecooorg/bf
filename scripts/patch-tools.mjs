@@ -74,7 +74,8 @@ export function preflight({ files, deleted = [], allowlist = [] }) {
     else if (!(seg.length === 3 && seg[0] === '.github' && seg[1] === 'workflows')
       && !(seg.length === 3 && seg[0] === 'src' && seg[1] === 'workspace')
       && !(seg.length === 3 && seg[0] === 'server' && seg[1] === 'appBuilder')
-      && !(seg.length === 4 && seg[0] === 'docs' && /^phase\d+$/i.test(seg[1]) && seg[2] === 'generated'))\n      && !rel.startsWith('data/immofinder/diagnostics/'))
+      && !(seg.length === 4 && seg[0] === 'docs' && /^phase\d+$/i.test(seg[1]) && seg[2] === 'generated')
+      && !rel.startsWith('data/immofinder/diagnostics/'))
       v.push(`${rel}: nested folder (the structure is flat)`);
     if (rel.startsWith('tests/acceptance/')) v.push(`${rel}: protected path tests/acceptance/**`);
     if (allowlist.some((re) => re.test(rel)) || buf.includes(0)) continue;
