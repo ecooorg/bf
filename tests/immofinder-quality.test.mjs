@@ -271,27 +271,28 @@ test('pipeline stores evidence_text and runs credibilityRejectReason', () => {
 });
 
 
-test('immoEvidenceBlock and exports include source text when raw.evidence_text is set', async () => {
+test('user-facing cards omit source evidence dumps; raw still stored on model', async () => {
   const { immoCardModel, immoEvidenceBlock, immoCardPlainText } = await import('../src/immoCard.ts');
   const row = {
-    municipality: 'Chur', property_name: '3.5 Zi', description_de: 'Short',
+    municipality: 'Chur', property_name: '3.5 Zi', description_de: 'Helle Wohnung nahe Bahnhof mit Balkon',
     rooms_estimated: 3.5, listing_url: 'https://example.com/a',
     photo_urls: [], private_signals: [], status: 'NEW',
     raw: { evidence_text: 'Miete CHF 1\'750.– pro Monat in Chur. Parkplatz optional.', evidence_kind: 'page_text' },
   };
   const k = immoCardModel(row);
-  assert.ok(k.evidenceText.includes('1\'750'));
-  // Full source evidence adds details beyond the short card description.
-  assert.match(immoEvidenceBlock(k), /Source text/);
-  const rich = immoCardModel({
-    ...row,
-    description_de: 'Short blurb only',
-    raw: { evidence_text: 'Full page body with Miete CHF 1\'750.– and Tel 081 111 22 33 and many extra details about the flat in Chur near the station.', evidence_kind: 'page_text' },
+  assert.ok(k.evidenceText.includes('1\'750'), 'raw evidence kept on model for diagnostics');
+  assert.equal(immoEvidenceBlock(k), '', 'evidence block not shown on cards/exports');
+  const plain = immoCardPlainText(k);
+  assert.ok(!/Source text/i.test(plain));
+  assert.ok(!/Status:/.test(plain));
+  assert.match(plain, /📍 Chur/);
+  assert.match(plain, /Helle Wohnung nahe Bahnhof/);
+  // Garbage about fragments are dropped
+  const junk = immoCardModel({
+    municipality: 'Maladers', property_name: "CHF 1'", description_de: "CHF 1'",
+    rooms_estimated: 4.5, listing_url: 'https://example.com/b', status: 'NEW',
   });
-  assert.match(immoEvidenceBlock(rich), /Source text/);
-  assert.ok(!/Status:/.test(immoCardPlainText(k)));
-  const del = read('server/immofinderDelivery.ts');
-  assert.match(del, /immoEvidenceBlock/);
+  assert.equal(junk.about, '');
 });
 
 
