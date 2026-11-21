@@ -653,4 +653,6 @@ test('ImmoFinder expands to all configured portals when selected portals yield f
   assert.match(read('server/immofinderPipeline.ts'), /res\.counts\.kept < 10/);
   assert.match(read('server/immofinderPipeline.ts'), /discovery_source_fallback_started/);
   assert.match(read('server/immofinderPipeline.ts'), /remainingPages/);
+  assert.match(read('server/immofinderPipeline.ts'), /discovery_target_reached/);
+  assert.match(read('server/immofinderPipeline.ts'), /stopAtKept: 10/);
 });
