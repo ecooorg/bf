@@ -46,10 +46,17 @@ test('seen-cache entries from older rule versions are invalidated once', () => {
   assert.equal(decodeSeenReason('not_single_listing'), null);
   assert.equal(decodeSeenReason('129.51.1::not_single_listing'), null);
   assert.equal(decodeSeenReason(encodeSeenReason('not_single_listing')), 'not_single_listing');
-  assert.equal(REPAIR_RULES_VERSION, '129.52.1');
+  assert.equal(REPAIR_RULES_VERSION, '129.53.1');
   const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
   assert.match(store, /decodeSeenReason\(r\.rows\[0\]\.reason\)/);
   assert.match(store, /encodeSeenReason\(reason\)/);
+});
+
+
+test('P129.53 migration physically clears every legacy seen-cache row', () => {
+  const migration = readFileSync(new URL('../migrations/027_immofinder_seen_purge.sql', import.meta.url), 'utf8');
+  assert.match(migration, /^\s*--[^\n]*\n\s*TRUNCATE TABLE immofinder_seen;\s*$/i);
+  assert.doesNotMatch(migration, /immofinder_listings|immofinder_progress/i);
 });
 
 test('canonical portal redirects are accepted only when the same listing id remains on the same host', () => {
