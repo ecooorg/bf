@@ -1,6 +1,6 @@
 ## P130.0 — Durable automatic ImmoFinder diagnostics handoff
 
-- **ROOT CAUSES:** the process trace capture was never installed in the server entry point; the internal scheduled-run path never published a diagnostics report; direct GitHub publication silently skipped when Render lacked a GitHub write token.
+- **ROOT CAUSES:** the process trace capture was never installed in the server entry point; the internal scheduled-run path never published a diagnostics report; the direct publisher could silently skip when its optional Render GitHub token/repository settings were absent. The previous missing GitHub files alone cannot distinguish missing settings from an older running deployment.
 - **DURABLE HANDOFF:** persist every completed manual and scheduled search report in PostgreSQL; expose a read-only endpoint protected by the existing timing-safe run secret; retain the latest 100 reports in the database.
 - **GITHUB MONITORING:** add a five-minute GitHub Actions poller that archives each new run under data/immofinder/diagnostics/ using the workflow's built-in GITHUB_TOKEN, and uploads a run artifact. No additional Render GitHub token is required.
 - **CAPTURE:** install structured log capture at server startup so per-candidate trace events are actually available to the end-of-run report.
