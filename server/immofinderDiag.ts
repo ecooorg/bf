@@ -116,3 +116,153 @@ export function completenessSummary(rows: any[]): Completeness {
 export function safeUrlSample(u: unknown): string {
   try { const x = new URL(String(u)); return `${x.hostname}${x.pathname}`.slice(0, 140); } catch { return String(u || '').slice(0, 140); }
 }
+
+/** Detect text that is mostly a repeated snippet (title pasted twice, ellipsis loops). */
+function looksDuplicatedText(s: string): boolean {
+  const t = String(s || '').replace(/\s+/g, ' ').trim();
+  if (t.length < 40) return false;
+  const mid = Math.floor(t.length / 2);
+  const a = t.slice(0, mid).toLowerCase().replace(/[^a-z0-9äöü ]+/gi, ' ').replace(/\s+/g, ' ').trim();
+  const b = t.slice(mid).toLowerCase().replace(/[^a-z0-9äöü ]+/gi, ' ').replace(/\s+/g, ' ').trim();
+  if (a && b && (a === b || a.startsWith(b.slice(0, 24)) || b.startsWith(a.slice(0, 24)))) return true;
+  const parts = t.split(/\s*(?:\.{3}|…)\s*/).map((p) => p.trim().toLowerCase()).filter((p) => p.length >= 12);
+  if (parts.length >= 2 && parts[0] === parts[1]) return true;
+  return false;
+}
+
+export interface CardQualitySample {
+  id: string;
+  host: string;
+  municipality: string;
+  url: string;
+  issues: string[];
+  rooms: string | number | null;
+  price: string;
+  contact: string;
+  aboutPreview: string;
+}
+
+/**
+ * Deep card-quality report for All Logs: which saved rows are weak, duplicated, generic-link,
+ * or missing key facts. Samples are short and secret-free so they can ship in the ZIP.
+ */
+export function cardQualityReport(rows: any[]): Record<string, unknown> {
+  const samples: CardQualitySample[] = [];
+  const issueCounts: Record<string, number> = {};
+  let visible = 0;
+  let withAbout = 0;
+  let aboutDup = 0;
+  let genericLink = 0;
+  let evidenceOnly = 0;
+  let titleEcho = 0;
+
+  for (const r of rows) {
+    if (r?.hidden) continue;
+    visible++;
+    const f = cardFields(r);
+    const issues: string[] = [];
+    const name = String(r?.property_name || '').replace(/\s+/g, ' ').trim();
+    const desc = String(r?.description_de || '').replace(/\s+/g, ' ').trim();
+    const evidence = String(obj(r?.raw).evidence_text || '').replace(/\s+/g, ' ').trim();
+    const about = desc || name;
+    if (about) withAbout++;
+    if (looksDuplicatedText(desc) || looksDuplicatedText(name)) {
+      aboutDup++;
+      issues.push('duplicated_about');
+    }
+    if (name && desc) {
+      const n = name.toLowerCase().slice(0, 40);
+      if (desc.toLowerCase().startsWith(n) && desc.length < name.length + 30) {
+        titleEcho++;
+        issues.push('title_echo_in_description');
+      }
+    }
+    if (!f.specificLink) {
+      genericLink++;
+      issues.push('generic_link');
+    }
+    if (!f.price) issues.push('no_price');
+    if (!f.rooms) issues.push('no_rooms');
+    if (!f.contact) issues.push('no_contact');
+    if (!f.published) issues.push('no_published_date');
+    if (!about && evidence) {
+      evidenceOnly++;
+      issues.push('evidence_only_no_about');
+    }
+    if (!name && !desc) issues.push('empty_title_and_description');
+    for (const i of issues) issueCounts[i] = (issueCounts[i] || 0) + 1;
+    if (issues.length && samples.length < 12) {
+      const priceAmt = obj(obj(r?.raw).price).amount ?? r?.rent_monthly_chf;
+      const priceUnit = obj(obj(r?.raw).price).unit || r?.pricing_unit || '';
+      samples.push({
+        id: String(r?.id || '').slice(0, 12),
+        host: f.host,
+        municipality: String(r?.municipality || '').slice(0, 40),
+        url: safeUrlSample(r?.listing_url),
+        issues,
+        rooms: r?.rooms_estimated ?? null,
+        price: priceAmt != null ? `${priceAmt} ${priceUnit}`.trim() : 'n/a',
+        contact: [r?.owner_name, r?.direct_phone, r?.direct_email].filter(Boolean).join(' · ').slice(0, 80) || 'none',
+        aboutPreview: (about || evidence).slice(0, 120),
+      });
+    }
+  }
+
+  return {
+    visible,
+    withAbout,
+    aboutDup,
+    titleEcho,
+    genericLink,
+    evidenceOnly,
+    issueCounts,
+    /** Weak-card samples for improvement work (host, issues, short about). */
+    weakSamples: samples,
+    pct: {
+      aboutDup: visible ? Math.round((aboutDup / visible) * 1000) / 10 : 0,
+      genericLink: visible ? Math.round((genericLink / visible) * 1000) / 10 : 0,
+      noContact: visible ? Math.round(((issueCounts.no_contact || 0) / visible) * 1000) / 10 : 0,
+      noPublished: visible ? Math.round(((issueCounts.no_published_date || 0) / visible) * 1000) / 10 : 0,
+    },
+  };
+}
+
+/**
+ * Full diagnostic payload for a finished run — completeness + card quality + funnel.
+ * Written once under event `search_quality_summary` so All Logs has one dense block to improve search.
+ */
+export function searchQualityPayload(args: {
+  runId?: string | null;
+  wave?: string | null;
+  counts?: Record<string, number>;
+  filtered?: Record<string, number>;
+  errors?: number;
+  sourceStats?: unknown[];
+  wavesRun?: string[];
+  savedRows: any[];
+  preview?: { url: string; title?: string; source?: string; municipality?: string | null; rooms?: number | null; kept?: boolean; reason?: string; detail?: string }[];
+}): Record<string, unknown> {
+  const completeness = completenessSummary(args.savedRows);
+  const quality = cardQualityReport(args.savedRows);
+  const previewSamples = (args.preview || []).slice(0, 12).map((x) => ({
+    host: hostOfUrl(x.url),
+    kept: x.kept,
+    reason: x.reason || null,
+    detail: String(x.detail || '').slice(0, 120),
+    municipality: x.municipality || null,
+    rooms: x.rooms ?? null,
+    title: String(x.title || '').slice(0, 80),
+  }));
+  return {
+    runId: args.runId || null,
+    wave: args.wave || null,
+    counts: args.counts || {},
+    filtered: args.filtered || {},
+    errors: args.errors ?? 0,
+    sourceStats: args.sourceStats || [],
+    wavesRun: args.wavesRun || [],
+    completeness,
+    cardQuality: quality,
+    previewSamples,
+  };
+}

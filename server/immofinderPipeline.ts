@@ -386,8 +386,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
       if (qReason) { await deny(qReason, price?.quote || listedAt?.toISOString()); continue; }
       // About text: prefer verified excerpt over free LLM paraphrase when summary is not grounded.
+      // Always dedupe title/snippet echo so cards do not show the same phrase twice.
       const summaryOk = ex.summaryDe && verifyQuote(evidenceText, ex.summaryDe.slice(0, 80));
-      const descriptionDe = (summaryOk ? ex.summaryDe : evidenceText.split('\n').slice(0, 6).join(' ').replace(/\s+/g, ' ').trim()).slice(0, 500);
+      const rawAbout = summaryOk
+        ? ex.summaryDe
+        : evidenceText.split('\n').slice(0, 6).join(' ').replace(/\s+/g, ' ').trim();
+      const descriptionDe = dedupeSnippetText(ex.name || meta.title || '', rawAbout).slice(0, 500);
       const contactEvidence = [
         ...(phone0 ? [{ type: 'phone' as const, value: phone0, url }] : []),
         ...(email0 ? [{ type: 'email' as const, value: email0, url }] : []),

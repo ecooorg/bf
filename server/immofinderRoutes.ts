@@ -18,7 +18,7 @@ import { createSerperSearch } from './immofinderDiscovery.ts';
 import { STATUSES, createPgStore, cleanupStored, recheckStored, wipeAllListings, finishRun, finishRunCancelled, getSettings, hiddenCount, isRunCancelled, lastRealRunAt, latestRun, listListings, listListingsForRefresh, listListingsNeedingContact, loadImmoConfig, realRunCount, requestRunCancel, saveProgress, saveSettings, setStatus, deleteListing, startRun, clearRunCancel, updateListingContacts } from './immofinderStore.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
 import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinderRefresh.ts';
-import { immoLog, completenessSummary, immoDatabaseDiagnostics } from './immofinderDiag.ts';
+import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -548,12 +548,22 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         errors.push(...(result.errors || []));
         try {
           const saved = await listListings(null, { includeHidden: true });
-          immoLog('info', 'search_quality_summary', {
-            runId, wave, counts: result.counts, filtered: result.filtered, errors: result.errors?.length || 0,
-            sourceStats: result.sourceStats || [], wavesRun: result.wavesRun || [],
-            completeness: completenessSummary(saved),
-            previewSamples: (result.preview || []).slice(0, 8).map((x) => ({ host: (() => { try { return new URL(x.url).hostname; } catch { return 'unknown'; } })(), kept: x.kept, reason: x.reason, detail: String(x.detail || '').slice(0, 100) })),
-          }, 'Search quality and saved-card completeness summary');
+          immoLog(
+            'info',
+            'search_quality_summary',
+            searchQualityPayload({
+              runId,
+              wave,
+              counts: result.counts,
+              filtered: result.filtered,
+              errors: result.errors?.length || 0,
+              sourceStats: result.sourceStats || [],
+              wavesRun: result.wavesRun || [],
+              savedRows: saved,
+              preview: result.preview || [],
+            }),
+            'Search quality, card completeness and weak-sample summary for All Logs',
+          );
         } catch (diagError) {
           immoLog('warn', 'search_quality_summary_failed', { runId, error: String((diagError as Error)?.message || diagError).slice(0, 120) });
         }
@@ -693,6 +703,27 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
             }, { dryRun: false, wave });
             immoLog('info', 'database_diagnostics_end', await immoDatabaseDiagnostics(), 'Scheduled ImmoFinder database snapshot after run');
             errors.push(...(result.errors || []));
+            try {
+              const saved = await listListings(null, { includeHidden: true });
+              immoLog(
+                'info',
+                'search_quality_summary',
+                searchQualityPayload({
+                  runId,
+                  wave: 'scheduled',
+                  counts: result.counts,
+                  filtered: result.filtered,
+                  errors: result.errors?.length || 0,
+                  sourceStats: result.sourceStats || [],
+                  wavesRun: result.wavesRun || [],
+                  savedRows: saved,
+                  preview: result.preview || [],
+                }),
+                'Scheduled search quality, card completeness and weak-sample summary for All Logs',
+              );
+            } catch (diagError) {
+              immoLog('warn', 'search_quality_summary_failed', { runId, error: String((diagError as Error)?.message || diagError).slice(0, 120) });
+            }
             if (dl.notifyWhenEmpty && !(result.priorityNewListings?.length || result.newListings.length)) {
               await deliverWave('extended', [], result.counts);
             }

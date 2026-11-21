@@ -96,19 +96,19 @@ export function formatDirectLink(r: any): string {
   return specific ? `Link: ${url}` : `Link (may open a list/group, not one object): ${url}`;
 }
 
-/** Compact card used on screen, Drive sheet cell, Docs, email and Telegram. */
+/**
+ * Compact card used on email and Telegram — same model as the screen and Drive sheet.
+ * Headline / about / link line / optional evidence; no parallel formatting that can drift.
+ */
 export function formatListingCard(r: any): string {
-  const place = r.municipality || '?';
-  const rooms = r.rooms_estimated != null ? `${r.rooms_estimated} rooms` : 'rooms n/a';
-  const line1 = `📍 ${place} · ${formatPriceLine(r)} · ${rooms} · ${formatContactLine(r)}`;
-  const name = String(r.property_name || '').trim();
-  const desc = String(r.description_de || '').replace(/\s+/g, ' ').trim().slice(0, 180);
-  const about = [name && name !== place ? name : '', desc].filter(Boolean).join(' — ').slice(0, 220);
-  const published = immoFormatDate(r.listed_at ?? r.raw?.listed_at);
-  // Source publication date only (search/discovery time is not exported).
-  const when = published ? `Published: ${published}` : '';
-  const evidence = immoEvidenceBlock(immoCardModel(r));
-  return [line1, about, formatDirectLink(r), when, evidence].filter(Boolean).join('\n');
+  const k = immoCardModel(r);
+  const evidence = immoEvidenceBlock(k);
+  // Keep "Published: DD.MM.YYYY" wording for email/Telegram (readable offline).
+  const when = k.published ? `Published: ${k.published.replace(/^published\s+/i, '')}` : '';
+  const link = k.url
+    ? (k.linkNote ? `Link (may open a list/group, not one object): ${k.url}` : `Link: ${k.url}`)
+    : 'Link: (missing)';
+  return [k.headline, k.about, link, when, evidence].filter(Boolean).join('\n');
 }
 
 /** Plain-text listing block shared by email and Telegram. */
