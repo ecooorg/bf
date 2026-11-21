@@ -5,7 +5,7 @@ import { runPipeline } from '../server/immofinderPipeline.ts';
 import { dedupeSnippetText } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
 import { createSerperSearch, communesForRun, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
-import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION } from '../server/immofinderRepair.ts';
+import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig } from '../server/immofinderRepair.ts';
 import { createPoliteFetch } from '../server/immofinderFetcher.ts';
 import { placeFromTitleOrSnippet, nonListingReason } from '../server/immofinderCore.ts';
 import { readFileSync } from 'node:fs';
@@ -168,6 +168,12 @@ test('P129.52 portal inventory is searched without a Google date cutoff', async 
   assert.equal(privateOptions[0], undefined, 'private listings are not hidden by Google indexing freshness');
 });
 
+test('non-standard Swiss portal detail URL survives the final write-time and repair gate', () => {
+  const url = 'https://flatfox.ch/en/flat/abc-123';
+  const evidence = '3.5 Zimmer Wohnung in Chur. Helle Wohnung mit Balkon und eigener Küche. Ruhige Lage nahe Bahnhof.';
+  const row = { listing_url: url, property_name: '3.5 Zimmer Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, raw: { evidence_text: evidence, evidence_kind: 'page_text', evidence_url: url } };
+  assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null);
+});
 test('nonListingReason does not treat every URL as a listing/search page', () => {
   assert.equal(nonListingReason('3.5 Zimmer Wohnung in Chur', 'https://www.immoscout24.ch/rent/flat/offer-77'), null);
   assert.equal(nonListingReason('3.5 Zimmer Wohnung in Chur', 'https://www.homegate.ch/rent/123456789'), null);
