@@ -5,6 +5,25 @@ export interface DiscoveryItem { url: string; host: string; hit: SearchHit; snip
 
 export const hostOf = (u: string): string => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } };
 const hostMatches = (host: string, list: string[]) => list.some((h) => host === h || host.endsWith(`.${h}`));
+/**
+ * Swiss portals use several detail URL shapes, not all numeric IDs or long SEO slugs.
+ * Accept a non-generic detail route while rejecting roots and search/category pages.
+ */
+export function isPortalDetailLink(url: string, cfg: ImmoConfig): boolean {
+  let u: URL;
+  try { u = new URL(url); } catch { return false; }
+  const host = u.hostname.replace(/^www\./, '').toLowerCase();
+  if (!hostMatches(host, cfg.discovery?.portalHosts || [])) return false;
+  const parts = u.pathname.split('/').filter(Boolean).map((x) => decodeURIComponent(x).toLowerCase());
+  if (parts[0] && /^(de|fr|it|en)$/.test(parts[0])) parts.shift();
+  if (parts.length < 2) return false;
+  const generic = new Set(['search', 'suche', 'results', 'resultate', 'angebote', 'list', 'listing', 'rent', 'mieten', 'buy', 'kaufen', 'sale', 'map', 'karte', 'real-estate', 'immobilien', 'wohnung-mieten', 'wohnungen-mieten', 'flat', 'apartment', 'house']);
+  const last = parts[parts.length - 1];
+  if (!last || generic.has(last)) return false;
+  if (parts.some((p) => /^(search|suche|results|resultate|map|karte)$/.test(p))) return false;
+  return true;
+}
+
 
 /** Rotating slice of the whitelist: every run covers the next `communesPerRun` communes, so all are covered over several runs. */
 export function communesForRun(all: string[], perRun: number, cycle: number): string[] {
@@ -64,7 +83,7 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig): DiscoveryItem[] {
     if (hostMatches(host, d.skipHosts) || isStopAgency(host.replace(/[.-]/g, ' '), cfg.stopAgencies)) continue;
     // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
     if (nonListingReason(h.title || '', h.link)) continue;
-    if (!isSpecificLink(h.link)) {
+    if (!isSpecificLink(h.link) && !isPortalDetailLink(h.link, cfg)) {
       // Owner microsites without an ID are rare but valid; portals/FB roots/lists are not.
       const dropHost = hostMatches(host, portalHosts)
         || /facebook\.com$|booking\.com$|cozycozy\.|rentola\.|happyholiday\.|ferienhausmiete\.|airbnb\.|vrbo\./i.test(host);
