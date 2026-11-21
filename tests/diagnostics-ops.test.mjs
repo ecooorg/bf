@@ -66,6 +66,7 @@ test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Rend
   assert.match(route, /persistImmoFinderRunDiagnostics\(runId, report\)/);
   assert.match(route, /latestImmoFinderRunDiagnostics\(\)/);
   assert.match(route, /isImmoDiagnosticsCall/);
+  assert.match(route, /if \(diagnosticsPoll\) return next\(\)/, 'read-only polling must not trigger repair bootstrap');
   assert.equal((route.match(/publishGitHubDiagnosticsAfterRun\(runId!, result, errors\)/g) || []).length, 2, 'manual and scheduled runs both persist diagnostics');
   assert.match(server, /installLogCapture\(\)/);
   assert.match(server, /isImmoDiagnosticsCall\(req\)/);
