@@ -445,7 +445,7 @@ test('P129.48 repair audit hides cards without verified monthly prices and write
     rent_monthly_chf: null,
     pricing_unit: null,
     hidden: false,
-    raw: { evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. Helle Wohnung mit Balkon.' },
+    raw: { evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567', evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. Helle Wohnung mit Balkon und Küche. Bezug ab sofort möglich, Wohnfläche 80 m2. Separates Kellerabteil, ruhige Lage und gute Anbindung an den öffentlichen Verkehr.' },
   };
   assert.equal(REPAIR_RULES_VERSION, `${JSON.parse(read('package.json')).patch}.1`);
   assert.equal(hardRejectReason(missing, ctx), 'price_missing');
@@ -456,7 +456,7 @@ test('P129.48 repair audit hides cards without verified monthly prices and write
   const evidencePriced = {
     ...missing,
     id: '123e4567-e89b-12d3-a456-426614174002',
-    raw: { evidence_text: "3.5-Zimmer-Wohnung in Chur zu vermieten. Miete CHF 1'500 pro Monat." },
+    raw: { evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567', evidence_text: "3.5-Zimmer-Wohnung in Chur zu vermieten. Miete CHF 1'500 pro Monat. Helle Wohnung mit Balkon und Küche, Bezug ab sofort." },
   };
   const audit = auditRow(evidencePriced, ctx);
   assert.equal(audit.hardReason, null);
@@ -473,7 +473,8 @@ test('P129.48 repair audit hides cards without verified monthly prices and write
     rent_monthly_chf: null,
     pricing_unit: 'unknown',
     raw: {
-      evidence_text: "3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 2'900 pro Monat.",
+      evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567',
+      evidence_text: "3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 2'900 pro Monat. Helle Wohnung mit Balkon und Küche. Wohnfläche 90 m2, ruhige Lage und Bezug ab sofort möglich.",
       price: { amount: 130, unit: 'unknown' },
     },
   };
@@ -485,7 +486,7 @@ test('P129.48 repair audit hides cards without verified monthly prices and write
     ...evidencePriced,
     id: '123e4567-e89b-12d3-a456-426614174003',
     pricing_unit: 'week',
-    raw: { evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 800 pro Woche.', price: { amount: 800, unit: 'week' } },
+    raw: { evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567', evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 800 pro Woche. Helle Wohnung mit Balkon und Küche. Wohnfläche 90 m2, ruhige Lage und Bezug ab sofort möglich.', price: { amount: 800, unit: 'week' } },
   };
   assert.equal(hardRejectReason(weekly, ctx), 'non_monthly_price');
 });
@@ -513,7 +514,81 @@ test('P129.47 write-time sanitation applies to every newly discovered or refresh
   const store = read('server/immofinderStore.ts');
   assert.match(store, /sanitizeNewRecord\(input/);
   assert.match(store, /write_time_quality/);
-  assert.match(store, /hidden = CASE WHEN \$15::boolean THEN true ELSE hidden END/);
+  assert.match(store, /hidden = CASE WHEN \$15::boolean THEN true WHEN \$17::boolean THEN false ELSE hidden END/);
 });
 
 test('P129.47 a repair patch can carry batches that auto-apply once on first request', () => { const store = read('server/immofinderRepairStore.ts'); assert.match(store, /data\/immofinder\/repair-ops\.json/); assert.match(store, /applyBundledRepairBatches/); });
+
+
+test('P129.49 only presents cards backed by the exact fetched detail page and one matching monthly price', async () => {
+  const { hardRejectReason, isPresentable } = await import('../server/immofinderRepair.ts');
+  const ctx = { municipalities: ['Exampleville'] };
+  const url = 'https://example.ch/listing/42';
+  const base = {
+    id: '11111111-1111-4111-8111-111111111111',
+    listing_url: url,
+    municipality: 'Exampleville',
+    property_name: '3.5 Zimmer Wohnung in Exampleville',
+    rooms_estimated: 3.5,
+    rent_monthly_chf: 1450,
+    pricing_unit: 'month',
+    description_de: '3.5 Zimmer Wohnung in Exampleville, zu vermieten.',
+    hidden: false,
+    raw: {
+      price: { amount: 1450, unit: 'month', quote: 'CHF 1 450 pro Monat' },
+      evidence_kind: 'page_text',
+      evidence_url: url,
+      evidence_text: '3.5 Zimmer Wohnung in Exampleville zu vermieten. Mietzins CHF 1 450 pro Monat. Wohnfläche 82 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich.',
+    },
+  };
+  assert.equal(hardRejectReason(base, ctx), null);
+  assert.equal(isPresentable(base, ctx), true);
+
+  const snippet = { ...base, raw: { ...base.raw, evidence_kind: 'snippet' } };
+  assert.equal(hardRejectReason(snippet, ctx), 'detail_page_not_verified');
+  assert.equal(isPresentable(snippet, ctx), false);
+
+  const noProvenance = { ...base, raw: { ...base.raw, evidence_url: null } };
+  assert.equal(hardRejectReason(noProvenance, ctx), 'detail_page_url_missing');
+
+  const redirected = { ...base, raw: { ...base.raw, evidence_url: 'https://example.ch/search?query=Exampleville' } };
+  assert.equal(hardRejectReason(redirected, ctx), 'detail_page_url_mismatch');
+
+  const ambiguousPrice = {
+    ...base,
+    raw: { ...base.raw, evidence_text: '3.5 Zimmer Wohnung in Exampleville zu vermieten. Miete CHF 1 450 pro Monat. Zweiter Preis CHF 1 650 pro Monat. Wohnfläche 82 m2. Helle Räume, Balkon und Küche vorhanden.' },
+  };
+  assert.equal(hardRejectReason(ambiguousPrice, ctx), 'price_ambiguous_on_detail_page');
+});
+
+test('P129.49 pipeline records the final fetched URL as primary evidence provenance', () => {
+  const pipeline = read('server/immofinderPipeline.ts');
+  const fetcher = read('server/immofinderFetcher.ts');
+  assert.match(pipeline, /evidence_url:\s*evidenceUrl/);
+  assert.match(pipeline, /const fetchedUrl\s*=\s*pg\.finalUrl\s*\|\|\s*it\.url;\s*evidenceUrl\s*=\s*fetchedUrl/);
+  assert.match(fetcher, /finalUrl:\s*r\.url\s*\|\|\s*url/);
+});
+
+
+test('P129.49 automatic audit idempotency key changes with repair rules version', () => {
+  const store = read('server/immofinderRepairStore.ts');
+  const repair = read('server/immofinderRepair.ts');
+  assert.match(store, /REPAIR_RULES_VERSION/);
+  assert.match(store, /current_database\(\)\s*\|\|\s*':'\s*\|\|\s*\$1/);
+  assert.match(store, /COALESCE\(max\(updated_at\)::text/);
+  assert.match(repair, /export const REPAIR_RULES_VERSION/);
+});
+
+
+test('P129.49 automatically rechecks and restores only previously auto-hidden listings', () => {
+  const store = read('server/immofinderStore.ts');
+  const pipeline = read('server/immofinderPipeline.ts');
+  assert.match(store, /auto_hidden/);
+  assert.match(store, /prevRaw\.repair\?\.source === 'automatic_rules'/);
+  assert.match(store, /WHEN \$17::boolean THEN false/);
+  assert.match(pipeline, /hidden: boolean; autoHidden: boolean/);
+  assert.match(pipeline, /known\?\.autoHidden/);
+  assert.match(pipeline, /6 \* 60 \* 60 \* 1000/);
+  assert.match(pipeline, /!known\.hidden/);
+  assert.match(pipeline, /res\.newListings\.push\(safeRec\)/);
+});
