@@ -640,3 +640,17 @@ test('P129.49 automatically rechecks and restores only previously auto-hidden li
   assert.match(pipeline, /!known\.hidden/);
   assert.match(pipeline, /res\.newListings\.push\(safeRec\)/);
 });
+
+test('ImmoFinder expands to all configured portals when selected portals yield fewer than ten verified ads', async () => {
+  const { defaultSettings, applySettings } = await import('../server/immofinderSettings.ts');
+  const cfg = JSON.parse(read('config/immofinder.json'));
+  const settings = defaultSettings(cfg);
+  for (const id of Object.keys(settings.search.sources)) settings.search.sources[id] = id === 'portal-flatfox';
+  const applied = applySettings(cfg, settings);
+  assert.ok(applied.discovery.portalQueries.length > 0);
+  assert.ok(applied.discovery.portalQueries.every((q) => q.includes('site:flatfox.ch')));
+  assert.equal(applied.discovery.fallbackPortalQueries.length, cfg.discovery.portalQueries.length);
+  assert.match(read('server/immofinderPipeline.ts'), /res\.counts\.kept < 10/);
+  assert.match(read('server/immofinderPipeline.ts'), /discovery_source_fallback_started/);
+  assert.match(read('server/immofinderPipeline.ts'), /remainingPages/);
+});
