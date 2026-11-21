@@ -1,3 +1,9 @@
+# P129.52 — ImmoFinder incremental discovery (2026-11-21)
+
+- **OBSERVED:** P129.51 logs show discovery requests only for Zizers and Igis; 32 query records report 11 picked-candidate counts. Render starts a new process at 09:47:30; no completed-run summary is present. CI run `44890826398` fails five distinct ImmoFinder contract tests.
+- **IMPLEMENTED:** incremental candidate flush; at least four selected communes; no date cutoff for portal inventory; compatible final-URL validation; useful-text threshold; Jina fallback; old-rule seen-cache invalidation; URL seen-cache cleanup on manual delete; reason-level skip diagnostics.
+- **NOT_RUN:** live Serper/portal fetch yield, production Jina fallback, completed four-commune search, database and user-visible results.
+
 # P129.51 — ImmoFinder search admission (2026-11-21)
 
 - **OBSERVED:** supplied carousel run `d2b7faa5-b250-446e-b8e1-7b1a799a6657`: 68 Serper calls, 11 candidates, 2 fetched pages, 7 snippet-only candidates; 2 records with `snippet_only` evidence were counted kept; final database was empty after owner-initiated manual deletions.
