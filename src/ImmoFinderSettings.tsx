@@ -577,14 +577,9 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
               />{' '}
               Require phone or email (drops Messenger-only posts)
             </label>
-            <label style={labelBlock}>
-              <input
-                type="checkbox"
-                checked={!!s.search.requirePrice}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, requirePrice: e.target.checked } }))}
-              />{' '}
-              Require a stated price
-            </label>
+            <div style={{ ...mutedText, marginTop: 6 }}>
+              Listings without a published price are kept and marked as price unknown. A known rent above the configured limit is still filtered.
+            </div>
             <label style={labelBlock}>
               <input
                 type="checkbox"
