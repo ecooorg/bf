@@ -101,7 +101,7 @@ test('manual listing deletion also clears its URL seen-cache entries', () => {
 test('write-time auto-hidden listings can be rechecked and recovered after rules change', () => {
   const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
   assert.match(store, /write_time_quality.*hardReason/);
-  assert.match(store, /SELECT id, listing_url, source_urls[\\s\\S]*hidden, hide_reason/);
+  assert.match(store, /SELECT id, listing_url, source_urls[\s\S]*hidden, hide_reason/);
   assert.match(store, /recoverAutomaticHide && writeGateAutoHide/);
 });
 
