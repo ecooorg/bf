@@ -138,7 +138,7 @@
   "estCostPerSearchUsd": 0.001,
   "discovery": {
     "enabled": true,
-    "communesPerRun": 44,
+    "communesPerRun": 12,
     "resultsPerQuery": 10,
     "maxPagesPerRun": 150,
     "queries": [
@@ -197,7 +197,15 @@
       "hometogo.ch",
       "hometogo.com",
       "check24.de",
-      "comparis.ch"
+      "comparis.ch",
+      "properstar.ch",
+      "rentumo.ch",
+      "moving24.ch",
+      "homematch.ch",
+      "roomlala.de",
+      "bedandbreakfast.eu",
+      "shop.heidiland.com",
+      "flat-hunt.com"
     ],
     "portalQueries": [
       "site:homegate.ch/mieten/ \"{commune}\" Graubünden Wohnung (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\")",
@@ -206,7 +214,13 @@
       "site:tutti.ch/de/ \"{commune}\" Graubünden Wohnung mieten privat",
       "site:newhome.ch/mieten/ \"{commune}\" Graubünden Wohnung",
       "site:anibis.ch \"{commune}\" Graubünden Wohnung mieten CHF",
-      "site:urbanhome.ch \"{commune}\" Graubünden Wohnung mieten"
+      "site:urbanhome.ch \"{commune}\" Graubünden Wohnung mieten",
+      "site:petitesannonces.ch \"{commune}\" Graubünden (Wohnung OR Haus) (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen -ferienwohnung -hotel",
+      "site:immobilier.ch \"{commune}\" Graubünden (Wohnung OR appartement) (mieten OR vermieten OR \"à louer\") (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen -ferienwohnung",
+      "site:acheter-louer.ch \"{commune}\" Graubünden (Wohnung OR appartement) (mieten OR vermieten OR \"à louer\") (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen -ferienwohnung",
+      "site:immostreet.ch \"{commune}\" Graubünden Wohnung (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen -ferienwohnung",
+      "site:home.ch \"{commune}\" Graubünden Wohnung (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen -ferienwohnung",
+      "site:icasa.ch \"{commune}\" Graubünden Wohnung (mieten OR vermieten) (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") -kaufen -verkaufen -ferienwohnung"
     ],
     "portalHosts": [
       "immoscout24.ch",
