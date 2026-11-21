@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
 import { sanitizeNewRecord, ctxFromConfig, REPAIR_RULES_VERSION, encodeSeenReason, decodeSeenReason } from './immofinderRepair.ts';
-import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice, credibilityRejectReason, buildEvidenceText, isPlatformOrJunkContact, formatHideLog } from './immofinderCore.ts';
+import { type ImmoConfig, nonListingReason, isSpecificLink, isPortalDetailUrl, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice, credibilityRejectReason, buildEvidenceText, isPlatformOrJunkContact, formatHideLog } from './immofinderCore.ts';
 import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
 
@@ -177,7 +177,7 @@ export async function recheckStored(): Promise<{ checked: number; hidden: number
     const evidenceKind = (prevRaw.evidence_kind as 'page_text' | 'snippet' | 'link_only') || (text.length >= 80 ? 'page_text' : 'snippet');
 
     let why: string | null = nonListingReason(title, url);
-    if (!why && !isSpecificLink(url) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) {
+    if (!why && !isSpecificLink(url) && !isPortalDetailUrl(url, cfg.discovery?.portalHosts || []) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) {
       why = 'list_or_search_page';
     }
     if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
