@@ -1,5 +1,10 @@
 name: ImmoFinder diagnostics poll
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/immofinder-diagnostics-poll.yml'
+      - 'scripts/collect-platform-logs.mjs'
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:

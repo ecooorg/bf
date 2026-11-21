@@ -74,6 +74,8 @@ test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Rend
   assert.match(store, /OFFSET 100/);
   assert.match(migration, /CREATE TABLE IF NOT EXISTS immofinder_run_diagnostics/);
   assert.match(poll, /cron: '\*\/5 \* \* \* \*'/);
+  assert.match(poll, /push:\s+branches: \[main\]/);
+  assert.match(poll, /scripts\/collect-platform-logs\.mjs/);
   assert.match(poll, /api\/immofinder\/diagnostics\/latest/);
   assert.match(poll, /contents: write/);
 });

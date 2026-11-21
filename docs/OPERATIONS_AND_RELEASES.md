@@ -72,7 +72,7 @@ A future patch that changes a supported variable or its semantics must update th
 
 ## GitHub Actions platform-log collection
 
-The `ImmoFinder diagnostics poll` workflow collects the previous three hours of Render service logs and up to eight recent completed GitHub Actions run logs. The `platform-logs-<run-id>` artifact is retained for 30 days; raw platform logs are not committed to the repository.
+The `ImmoFinder diagnostics poll` workflow collects the previous three hours of Render service logs and up to eight recent completed GitHub Actions run logs. The `platform-logs-<run-id>` artifact is retained for 30 days; raw platform logs are not committed to the repository. The workflow also runs once on `main` when its own workflow file or the collector script changes, ensuring an immediate artifact after those operational updates; diagnostic archive commits do not trigger a loop.
 
 Configure in **GitHub → Settings → Secrets and variables → Actions**:
 
