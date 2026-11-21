@@ -643,7 +643,6 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     if ((cfg.discovery?.queries || []).length) families.push('private');
     if ((cfg.discovery?.portalQueries || []).length) families.push('portals');
     const qs = buildQueries(cfg, deps.cycle ?? 0, { allCommunes: coverAll, families: families.length ? families : undefined });
-    diag('discovery_plan', { wave: waveMode, finishAll, coverAllCommunes: coverAll, cycle: deps.cycle ?? 0, selectedCommunes: coverAll ? cfg.municipalities : communesForRun(cfg.municipalities, cfg.discovery?.communesPerRun ?? 2, deps.cycle ?? 0), queryCountTotal: qs.length, queryOffset: discoveryQueryOffset, queryCountThisWave: Math.max(0, qs.length - discoveryQueryOffset), maxCandidatesPerQuery, pageLimit, resultsPerQuery: d.resultsPerQuery, serperMinIntervalMs, serperMaxPerMinute, queryFamilies: families });
     const slice = finishAll || maxQueries == null
       ? qs.slice(discoveryQueryOffset)
       : qs.slice(discoveryQueryOffset, discoveryQueryOffset + maxQueries);
@@ -652,6 +651,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     let processedItems = 0;
     const processedUrls = new Set<string>();
     const pageLimit = maxPages ?? (finishAll ? Math.max(d.maxPagesPerRun, 80) : d.maxPagesPerRun);
+    diag('discovery_plan', { wave: waveMode, finishAll, coverAllCommunes: coverAll, cycle: deps.cycle ?? 0, selectedCommunes: coverAll ? cfg.municipalities : communesForRun(cfg.municipalities, cfg.discovery?.communesPerRun ?? 2, deps.cycle ?? 0), queryCountTotal: qs.length, queryOffset: discoveryQueryOffset, queryCountThisWave: Math.max(0, qs.length - discoveryQueryOffset), maxCandidatesPerQuery, pageLimit, resultsPerQuery: d.resultsPerQuery, serperMinIntervalMs, serperMaxPerMinute, queryFamilies: families });
     const communeHint = waveMode === 'carousel' && carouselCommunesSlot.length
       ? ` [${carouselCommunesSlot.join(', ')}]`
       : waveMode === 'full' ? ' [all communes]' : '';
