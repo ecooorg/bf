@@ -1,3 +1,8 @@
+## P129.45 — ImmoFinder cards: verified fields only, no source dumps
+
+- Cards on screen, email, Telegram and Drive showed duplicated search snippets under “Source text” and garbage about lines (price crumbs, title echoes).
+- User-facing card is now headline + optional clean about + link + published only; raw evidence stays in DB for diagnostics. Garbage about fragments are dropped. USER_VALUE.
+
 ## P129.44 — ImmoFinder spend control and lean defaults
 
 - 17 hourly runs in ~11h found 21 new listings while spending ~30 discovery queries, up to 35 contact searches and ~26-43 model calls per run; recheck spent 70 searches for 0 contacts; unfiltered fallback calls were not counted.

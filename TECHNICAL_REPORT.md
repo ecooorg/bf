@@ -1,3 +1,7 @@
+## P129.45 — ImmoFinder cards: verified fields only
+
+- **OBSERVED:** Drive export and UI still showed “Source text (search snippet)” blocks and duplicated/garbage about lines. **CHANGE:** `immoEvidenceBlock` empty for exports; UI no longer renders evidence; about cleaned/dropped when unreliable. **NOT_RUN:** live re-export after deploy.
+
 ## P129.44 — ImmoFinder spend control and lean defaults
 
 - **OBSERVED:** supplied logs show ~30 queries + up to 35 contact searches per hourly run, 21 new listings in ~11h, 125/145 recheck fetches HTTP 403. **CHANGE:** lean saved-and-reset defaults, real Serper call counters, no-rooms snippet skips the model, recheck contact search off. **NOT_RUN:** live spend and yield after deploy.
