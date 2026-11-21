@@ -342,7 +342,7 @@ test('P129.52 social feed snippets become provisional cards instead of being dis
   assert.equal(marked.length, 0, 'potential social posts are not poisoned in the seen cache');
 });
 
-test('P129.51 a failed portal fetch cannot downgrade to a saved SERP snippet', async () => {
+test('P129.51 a failed portal fetch falls back to a provisional SERP-evidence card', async () => {
   const url = 'https://www.homegate.ch/mieten/4001234567';
   const saved = []; let llmCalls = 0;
   const res = await runPipeline({
@@ -350,10 +350,12 @@ test('P129.51 a failed portal fetch cannot downgrade to a saved SERP snippet', a
     llm: async () => { llmCalls++; return null; }, store: memStore(saved),
     search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Miete CHF 1\'500 pro Monat, Chur' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
-  assert.equal(res.filtered.detail_page_fetch_failed, 1);
-  assert.equal(res.counts.kept, 0);
-  assert.equal(llmCalls, 0);
-  assert.equal(saved.length, 0);
+  assert.equal(res.counts.snippet_only, 1);
+  assert.equal(res.counts.kept, 1);
+  assert.equal(llmCalls, 0, 'unverified fallback evidence is parsed deterministically');
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].raw.provisional, true);
+  assert.equal(saved[0].raw.evidence_kind, 'snippet');
 });
 
 test('P129.52 direct detail pages accept optional final URL, reject wrong redirects and require useful page text', async () => {
