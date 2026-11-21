@@ -30,7 +30,7 @@ const ALLOW = new Set([
   'carousel-render-probe.mjs',
   'carousel-search-smoke.mjs',
   'carousel-verify.mjs',
-  'check-version.mjs',
+  'check-version.mjs',\n  'collect-platform-logs.mjs',
   'ci-evidence-gate.mjs',
   'ci-run-history.mjs',
   'ci-summary.mjs',

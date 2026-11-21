@@ -70,6 +70,21 @@ A future patch that changes a supported variable or its semantics must update th
 | `WEB_SEARCH_TIMEOUT_MS` | `15000` |
 | `WORKER_POLL_MS` | `5000` |
 
+## GitHub Actions platform-log collection
+
+The `ImmoFinder diagnostics poll` workflow collects the previous three hours of Render service logs and up to eight recent completed GitHub Actions run logs. The `platform-logs-<run-id>` artifact is retained for 30 days; raw platform logs are not committed to the repository.
+
+Configure in **GitHub → Settings → Secrets and variables → Actions**:
+
+| Name | Kind | Purpose |
+|---|---|---|
+| `RENDER_API_KEY` | Secret | Read-only Render API key with Logs access |
+| `RENDER_OWNER_ID` | Variable | Render workspace ID |
+| `RENDER_SERVICE_ID` | Variable | Render Web Service resource ID |
+| `RENDER_POSTGRES_ID` | Variable, optional | Render Postgres resource ID, if applicable |
+
+`NEON_POSTGRES_ID` is not a Render resource ID and is intentionally not sent to Render. Neon-hosted database logs require a separate Neon integration. HTTP request logs are available only when supported by the Render workspace plan. Treat artifacts as operationally sensitive even after automated redaction.
+
 ## Release evidence
 
 A release record must bind the exact commit/build to: version/patch, hosted CI conclusion, deployed `/health` identity where available, live workflow result, artifact/download checks, and unresolved items. Separate source presence, local tests, hosted CI, deployed behavior, and user outcomes. `NOT_RUN` is not PASS.

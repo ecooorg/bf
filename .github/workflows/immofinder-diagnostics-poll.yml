@@ -5,13 +5,14 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: read
 concurrency:
   group: immofinder-diagnostics-poll
   cancel-in-progress: false
 jobs:
   poll:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,24 +34,16 @@ jobs:
           BASE="${IMMOFINDER_BASE_URL%/}"
           code=$(curl --retry 2 --retry-delay 2 -sS -o /tmp/immofinder-diagnostics-envelope.json -w '%{http_code}' \
             "$BASE/api/immofinder/diagnostics/latest" \
-            -H "X-Immofinder-Secret: $IMMOFINDER_RUN_SECRET" \
-            -H 'Accept: application/json')
+            -H "X-Immofinder-Secret: $IMMOFINDER_RUN_SECRET" -H 'Accept: application/json')
           if [ "$code" = "404" ]; then
             echo "No completed ImmoFinder search diagnostics are stored yet."
             echo "available=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [ "$code" != "200" ]; then
-            echo "Diagnostics endpoint returned HTTP $code"
-            cat /tmp/immofinder-diagnostics-envelope.json
-            exit 1
-          fi
+          if [ "$code" != "200" ]; then echo "Diagnostics endpoint returned HTTP $code"; exit 1; fi
           jq -e '.success == true and (.report.runId | type == "string" and length > 0)' /tmp/immofinder-diagnostics-envelope.json >/dev/null
           RUN_ID=$(jq -r '.report.runId' /tmp/immofinder-diagnostics-envelope.json)
-          if [[ ! "$RUN_ID" =~ ^[A-Za-z0-9_-]{1,100}$ ]]; then
-            echo "Unsafe diagnostics runId"
-            exit 1
-          fi
+          if [[ ! "$RUN_ID" =~ ^[A-Za-z0-9_-]{1,100}$ ]]; then echo "Unsafe diagnostics runId"; exit 1; fi
           if [ -f data/immofinder/diagnostics/latest.json ] && jq -e --arg runId "$RUN_ID" '.runId == $runId' data/immofinder/diagnostics/latest.json >/dev/null; then
             echo "Run $RUN_ID is already archived."
             echo "available=false" >> "$GITHUB_OUTPUT"
@@ -59,6 +52,27 @@ jobs:
           node scripts/archive-immofinder-diagnostics.mjs /tmp/immofinder-diagnostics-envelope.json data/immofinder/diagnostics
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           echo "available=true" >> "$GITHUB_OUTPUT"
+      - name: Collect Render and GitHub Actions logs
+        if: always()
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_OWNER_ID: ${{ vars.RENDER_OWNER_ID }}
+          RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+          RENDER_POSTGRES_ID: ${{ vars.RENDER_POSTGRES_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          RENDER_LOG_LOOKBACK_MINUTES: '180'
+          PLATFORM_LOGS_DIR: artifacts/platform-logs
+        run: node scripts/collect-platform-logs.mjs
+      - name: Upload platform log bundle
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: platform-logs-${{ github.run_id }}
+          path: artifacts/platform-logs/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Upload fetched report as a workflow artifact
         if: steps.fetch.outputs.available == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -73,10 +87,7 @@ jobs:
         run: |
           set -euo pipefail
           git add data/immofinder/diagnostics
-          if git diff --cached --quiet; then
-            echo "Latest diagnostics run is already archived."
-            exit 0
-          fi
+          if git diff --cached --quiet; then echo "Latest diagnostics run is already archived."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore(immofinder): archive diagnostics run ${{ steps.fetch.outputs.run_id }}"
