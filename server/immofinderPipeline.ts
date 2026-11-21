@@ -344,13 +344,13 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (capped && deps.llm && !opts.dryRun && !res.errors.some((e) => e.code === 'ai_budget_reached')) res.errors.push({ source: src.id, code: 'ai_budget_reached', detail: `limit ${deps.maxLlmCalls} AI-analysed pages per search` });
       if (timeLeft() < 30_000) { res.errors.push({ source: src.id, code: 'run_time_budget', detail: '30 minute cycle limit reached' }); break; }
       const extractionStartedAt = now();
-      const { ex, llmCalls, err } = await extract(opts.dryRun || capped ? { ...deps, llm: null } : { ...deps, llm: llmWithRetry }, text, meta!, host);
+      const { ex, llmCalls, err } = await extract(opts.dryRun || capped || snippetEvidence ? { ...deps, llm: null } : { ...deps, llm: llmWithRetry }, text, meta!, host);
       if (snippetEvidence && !ex.municipality && it.municipalityHint) {
         ex.municipality = it.municipalityHint;
         ex.signals.push('municipality_from_search_query');
       }
       if (snippetEvidence && !ex.rooms) {
-        ex.rooms = { rooms: 0, basis: 'not_stated_in_search_snippet', quote: '' };
+        ex.rooms = { rooms: 0, basis: 'not_stated_in_search_snippet', quote: 'nicht angegeben' };
         ex.signals.push('rooms_unverified');
       }
       if (snippetEvidence) ex.signals.push('provisional_search_snippet');
