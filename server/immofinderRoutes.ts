@@ -123,13 +123,19 @@ async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, erro
     };
     await persistImmoFinderRunDiagnostics(runId, report);
     immoLog('info', 'immofinder_diagnostics_database_committed', { runId, traceId, eventCount: events.length }, 'Completed search diagnostics persisted for GitHub polling');
-    const published = await publishGitHubRunDiagnostics(report, { runId });
-    if (published.status === 'committed') {
-      immoLog('info', 'immofinder_github_diagnostics_committed', { runId, traceId, paths: published.paths, eventCount: published.eventCount, commitSha: published.commitSha || null });
-      return `committed:${published.eventCount}`;
+    try {
+      const published = await publishGitHubRunDiagnostics(report, { runId });
+      if (published.status === 'committed') {
+        immoLog('info', 'immofinder_github_diagnostics_committed', { runId, traceId, paths: published.paths, eventCount: published.eventCount, commitSha: published.commitSha || null });
+        return `database:committed;github:committed:${published.eventCount}`;
+      }
+      immoLog('warn', 'immofinder_github_diagnostics_skipped', { runId, reason: published.reason || 'not_configured' });
+      return `database:committed;github:skipped:${published.reason || 'not_configured'}`;
+    } catch (publishError) {
+      const detail = String((publishError as Error)?.message || publishError).slice(0, 140);
+      immoLog('warn', 'immofinder_github_diagnostics_direct_publish_failed', { runId, error: detail }, 'Database diagnostics are safe; GitHub Actions poller will archive the report');
+      return `database:committed;github:poller_fallback:${detail}`;
     }
-    immoLog('warn', 'immofinder_github_diagnostics_skipped', { runId, reason: published.reason || 'not_configured' });
-    return `database:committed;github:skipped:${published.reason || 'not_configured'}`;
   } catch (e) {
     const detail = String((e as Error)?.message || e).slice(0, 180);
     immoLog('error', 'immofinder_github_diagnostics_failed', { runId, error: detail });
