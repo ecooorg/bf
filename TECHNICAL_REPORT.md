@@ -1,3 +1,7 @@
+## P129.46 — ImmoFinder field collage (URL ≠ description)
+
+- **OBSERVED:** export cards mixed Homegate/FB URLs with text/prices/contacts from other objects; moving24/rentumo/umzug pages kept. **CHANGE:** upsert by URL; host in canonical_key; service host reject; collage gate. **NOT_RUN:** live re-search; existing DB rows may still be mixed until recheck/hide.
+
 ## P129.45a — CI lock patch sync
 
 - **FAIL:** run #44848885031 test:core `P127.11` expected lock.patch 129.45, had 129.44. **CHANGE:** package-lock patch fields + version:sync writes patch. **VERIFY:** local version check OK; hosted rerun NOT_RUN.

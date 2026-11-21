@@ -1,3 +1,8 @@
+## P129.46 — ImmoFinder: stop mixing fields from different listings
+
+- Root cause: upsert merged by fuzzy `canonical_key` (title+municipality) and never updated `listing_url`, so description/price/contacts from ad B attached to URL of ad A; moving/SEO hosts (moving24, rentumo, umzug…) accepted as listings.
+- Fix: identity is `listing_url` only; canonical_key includes host; reject service/aggregator hosts; credibility rejects municipality collage. USER_VALUE / BUGFIX.
+
 ## P129.45a — CI: sync package-lock patch with package.json
 
 - Hosted test:core failed: lock.patch was still 129.44 while package.json patch was 129.45. Sync lock patch fields; version:sync now writes both version and patch. BUGFIX.
