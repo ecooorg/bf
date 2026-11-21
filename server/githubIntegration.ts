@@ -59,6 +59,50 @@ export function permissionsWithinMaximum(
   return Object.entries(required).every(([key, value]) => (rank[actual[key] || 'none'] || 0) >= rank[value]);
 }
 
+
+/**
+ * Mint a short-lived, repository-scoped token for ImmoFinder's two Contents API
+ * publishers. The token is deliberately limited to contents:write; it does not
+ * inherit the broader permissions of the app installation.
+ */
+export async function createGitHubContentsWriteToken(
+  config: GitHubAppConfig,
+  fetcher: typeof fetch = fetch,
+): Promise<string> {
+  const base = apiBase(config);
+  const jwt = createGitHubAppJwt(config.appId, config.privateKey);
+  const headers = { ...GH_HEADERS, Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' };
+  const bootstrap = await fetcher(`${base}/app/installations/${encodeURIComponent(config.installationId)}/access_tokens`, {
+    method: 'POST', headers, body: JSON.stringify({ permissions: { contents: 'read' } }), signal: AbortSignal.timeout(10_000),
+  });
+  if (!bootstrap.ok) throw new Error(`github_app_bootstrap_token_http_${bootstrap.status}`);
+  const bootstrapData = await bootstrap.json() as { token?: string };
+  if (!bootstrapData.token) throw new Error('github_app_bootstrap_token_missing');
+
+  const repositoryResponse = await fetcher(`${base}/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repository)}`, {
+    headers: { ...GH_HEADERS, Authorization: `Bearer ${bootstrapData.token}` }, signal: AbortSignal.timeout(10_000),
+  });
+  if (!repositoryResponse.ok) throw new Error(`github_app_repository_http_${repositoryResponse.status}`);
+  const repositoryData = await repositoryResponse.json() as { id?: number; full_name?: string };
+  if (!Number.isInteger(repositoryData.id) || String(repositoryData.full_name || '').toLowerCase() !== `${config.owner}/${config.repository}`.toLowerCase()) {
+    throw new Error('github_app_repository_identity_mismatch');
+  }
+
+  const scoped = await fetcher(`${base}/app/installations/${encodeURIComponent(config.installationId)}/access_tokens`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ repository_ids: [repositoryData.id], permissions: { contents: 'write' } }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!scoped.ok) throw new Error(`github_app_contents_write_token_http_${scoped.status}`);
+  const scopedData = await scoped.json() as { token?: string; permissions?: Record<string, string> };
+  const permissions = scopedData.permissions || {};
+  if (!scopedData.token || permissions.contents !== 'write' ||
+      Object.entries(permissions).some(([key, level]) => key !== 'contents' && level !== 'read' && level !== 'none')) {
+    throw new Error('github_app_contents_write_permission_missing_or_overbroad');
+  }
+  return scopedData.token;
+}
+
 export async function verifyGitHubAppConnection(config: GitHubAppConfig, fetcher: typeof fetch = fetch): Promise<GitHubCheckResult> {
   const base = (config.apiBaseUrl || 'https://api.github.com').replace(/\/$/, '');
   const timeout = AbortSignal.timeout(10_000);
