@@ -64,25 +64,31 @@ export function buildQueries(
 /** Search hits -> items to examine. Agency hosts are skipped; social/booking hosts stay snippet-only.
  * Swiss rental portals (homegate, immoscout24, …) are fetched so price and private contact can be extracted.
  * Rank: whitelist match in URL/title first, then unknown, outside-zone last. */
-export function pickItems(hits: SearchHit[], cfg: ImmoConfig): DiscoveryItem[] {
+export function pickItems(hits: SearchHit[], cfg: ImmoConfig, onDecision?: (decision: { accepted: boolean; reason: string; host: string; url: string; title: string }) => void): DiscoveryItem[] {
   const d = cfg.discovery!; const seen = new Set<string>(); const out: DiscoveryItem[] = [];
   const portalHosts = d.portalHosts || [];
   for (const h of hits) {
-    if (!/^https?:\/\//i.test(h.link) || seen.has(h.link)) continue;
-    const host = hostOf(h.link); if (!host) continue;
-    if (hostMatches(host, d.skipHosts) || isStopAgency(host.replace(/[.-]/g, ' '), cfg.stopAgencies)) continue;
+    const host = hostOf(h.link);
+    const decide = (accepted: boolean, reason: string) => { try { onDecision?.({ accepted, reason, host, url: h.link, title: String(h.title || '').slice(0, 180) }); } catch { /* diagnostics only */ } };
+    if (!/^https?:\/\//i.test(h.link)) { decide(false, 'invalid_or_unsupported_url'); continue; }
+    if (seen.has(h.link)) { decide(false, 'duplicate_url_in_serp'); continue; }
+    if (!host) { decide(false, 'invalid_host'); continue; }
+    if (hostMatches(host, d.skipHosts)) { decide(false, 'configured_skip_host'); continue; }
+    if (isStopAgency(host.replace(/[.-]/g, ' '), cfg.stopAgencies)) { decide(false, 'agency_host'); continue; }
     // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
-    if (nonListingReason(h.title || '', h.link)) continue;
+    const nonListing = nonListingReason(h.title || '', h.link);
+    if (nonListing) { decide(false, `non_listing:${nonListing}`); continue; }
     if (!isSpecificLink(h.link) && !isPortalDetailLink(h.link, cfg)) {
       // Owner microsites without an ID are rare but valid; portals/FB roots/lists are not.
       const dropHost = hostMatches(host, portalHosts)
         || /facebook\.com$|booking\.com$|cozycozy\.|rentola\.|happyholiday\.|ferienhausmiete\.|airbnb\.|vrbo\./i.test(host);
-      if (dropHost) continue;
+      if (dropHost) { decide(false, 'generic_or_search_url_on_portal_social_host'); continue; }
     }
     seen.add(h.link);
     // Portal detail pages: fetch. Social/booking: snippet only.
     const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
     out.push({ url: h.link, host, hit: h, snippetOnly });
+    decide(true, snippetOnly ? 'accepted_snippet_only' : 'accepted_direct_fetch');
   }
   const list = cfg.municipalities || [];
   const score = (it: DiscoveryItem) => {

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { hostOf, buildQueries, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { sameListingUrlTarget, sanitizeNewRecord, ctxFromConfig } from './immofinderRepair.ts';
@@ -116,6 +117,12 @@ export type RunWave = 'priority' | 'extended' | 'full' | 'carousel';
 
 export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; wave?: RunWave }): Promise<RunResult> {
   const { config: cfg } = deps; const now = deps.now ?? Date.now;
+  const diagnosticRunId = randomUUID();
+  const diagnosticStartedAt = now();
+  const safeDiagText = (value: unknown, max = 500) => String(value ?? '').replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]').replace(/(?:\+?\d[\d\s().-]{6,}\d)/g, '[phone]').slice(0, max);
+  const safeDiagUrl = (value: unknown) => { try { const u = new URL(String(value)); return u.hostname + u.pathname; } catch { return '[invalid-url]'; } };
+  const diag = (event: string, details: Record<string, unknown> = {}) => { try { console.info(JSON.stringify({ type: 'immofinder_trace', traceId: diagnosticRunId, event, at: new Date(now()).toISOString(), elapsedMs: Math.max(0, now() - diagnosticStartedAt), ...details })); } catch { /* diagnostics must never affect search */ } };
+  diag('run_started', { wave: opts.wave || 'full', dryRun: opts.dryRun, municipalities: cfg.municipalities, minRooms: cfg.minRooms, discoveryEnabled: Boolean(cfg.discovery?.enabled), privateQueryTemplates: cfg.discovery?.queries?.length || 0, portalQueryTemplates: cfg.discovery?.portalQueries?.length || 0, maxCandidatesPerQuery: cfg.discovery?.maxCandidatesPerQuery ?? 4, pageLimit: cfg.discovery?.maxPagesPerRun ?? null, runMaxDurationMs: cfg.runMaxDurationMs ?? null, llmEnabled: Boolean(deps.llm), searchEnabled: Boolean(deps.search), maxLlmCalls: deps.maxLlmCalls ?? null, sourceCount: cfg.sources.length });
   const waveMode: RunWave = opts.wave === 'priority' || opts.wave === 'extended' || opts.wave === 'carousel' ? opts.wave : 'full';
   const res: RunResult = { counts: { sources: 0, index_pages: 0, candidates: 0, fetched: 0, snippet_only: 0, skipped_known: 0, skipped_seen: 0, skipped_geo: 0, search_queries: 0, serper_calls: 0, serper_fallback: 0, llm_skipped_no_rooms: 0, kept: 0, new: 0, updated: 0, llm_calls: 0, enriched: 0 }, filtered: {}, errors: [], newListings: [], preview: [], estCostUsd: 0, sourceStats: [], wavesRun: [] };
   const drop = (r: string) => { res.filtered[r] = (res.filtered[r] || 0) + 1; };
@@ -195,11 +202,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         say(stage, `${src.id}: early stop after ${stopAt} consecutive bad results`);
         break;
       }
+      diag('candidate_received', { source: src.id, url: safeDiagUrl(it.url), host: hostOf(it.url), title: safeDiagText(it.hit?.title, 180), snippetOnly: Boolean(it.snippetOnly), hasSearchHit: Boolean(it.hit) });
       const known = await deps.store.findByUrl(it.url);
       const knownFresh = known && (known.autoHidden
         ? now() - new Date(known.last_seen_at).getTime() < 6 * 60 * 60 * 1000
         : fresh(known.last_seen_at));
-      if (known && knownFresh) { if (!opts.dryRun && !known.hidden) await deps.store.touch(known.id); res.counts.skipped_known++; continue; }
+      if (known && knownFresh) { if (!opts.dryRun && !known.hidden) await deps.store.touch(known.id); res.counts.skipped_known++; diag('candidate_skipped_known', { source: src.id, url: safeDiagUrl(it.url), hidden: known.hidden, autoHidden: known.autoHidden, lastSeenAt: known.last_seen_at }); continue; }
       const seen = await deps.store.getSeen(it.url);
       if (seen) {
         // Soft quality rejects (rooms/price/municipality/seeker) recheck after 6h so new evidence can be tried;
@@ -209,6 +217,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         const isFresh = now() - new Date(seen.checked_at).getTime() < ttlMs;
         if (isFresh && !known?.autoHidden) {
           res.counts.skipped_seen++;
+          diag('candidate_skipped_seen', { source: src.id, url: safeDiagUrl(it.url), reason: seen.reason || 'unknown', decision: seen.decision || 'unknown', checkedAt: seen.checked_at, ttlHours: Math.round(ttlMs / 3600000) });
           try { console.info(JSON.stringify({ type: 'immofinder_candidate_skipped_seen', host: hostOf(it.url), title: String(it.hit?.title || '').slice(0, 90), reason: seen.reason || 'unknown', decision: seen.decision || 'unknown', ageHours: Math.round((now() - new Date(seen.checked_at).getTime()) / 3_600_000), ttlHours: Math.round(ttlMs / 3_600_000) })); } catch { /* diagnostics only */ }
           continue;
         }
@@ -249,6 +258,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         drop(reason); st.junk++; st.consecutiveBad++;
         const title = (it.hit?.title || it.url).slice(0, 90);
         res.preview.push({ url: it.url, title, source: src.id, municipality: null, rooms: null, kept: false, reason, detail: detail.slice(0, 120) });
+        diag('candidate_rejected_before_extraction', { source: src.id, url: safeDiagUrl(it.url), host: hostOf(it.url), title: safeDiagText(title, 180), reason, detail: safeDiagText(detail, 240) });
         try { console.info(JSON.stringify({ type: 'immofinder_candidate_rejected', source: src.id, host: hostOf(it.url), title, reason, detail: detail.slice(0, 120) })); } catch { /* diagnostics only */ }
         try { await deps.store.markSeen(it.url, src.id, 'filtered', reason); } catch { /* cache is advisory; do not abort discovery */ }
         say(stage, `✖ ${reason}: ${title.slice(0, 60)}`);
@@ -260,14 +270,16 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         continue;
       }
       let pg: { ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string };
+      const fetchStartedAt = now();
       try {
         pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
-      } catch {
-        pg = { ok: false, status: 0, body: 'step_timeout' };
+      } catch (fetchError) {
+        pg = { ok: false, status: 0, body: String((fetchError as Error)?.message || fetchError).slice(0, 240) };
         res.errors.push({ source: src.id, code: 'step_timeout', detail: `fetch >${STEP_MS}ms ${it.url}`.slice(0, 200) });
         say(stage, `skip slow page (>${Math.round(STEP_MS / 1000)}s): ${hostOf(it.url)}`);
       }
       if (!pg.ok) {
+        diag('candidate_fetch_failed', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || null, durationMs: now() - fetchStartedAt, error: safeDiagText(pg.body, 300), finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
         if (it.hit) {
           res.counts.snippet_only++;
           rejectUnverified('detail_page_fetch_failed', `http_${pg.status || 0}`);
@@ -278,8 +290,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         continue;
       }
       res.counts.fetched++; st.fetched++;
+      diag('candidate_fetch_succeeded', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || 'unknown', durationMs: now() - fetchStartedAt, bodyChars: String(pg.body || '').length, textChars: htmlToText(pg.body).trim().length, finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
       const fetchedUrl = String(pg.finalUrl || '').trim();
       if (fetchedUrl && !sameListingUrlTarget(it.url, fetchedUrl)) {
+        diag('candidate_redirect_mismatch', { source: src.id, requestedUrl: safeDiagUrl(it.url), finalUrl: safeDiagUrl(fetchedUrl) });
         await rejectUnverified('detail_page_url_mismatch', `final_url:${fetchedUrl.slice(0, 120)}`);
         continue;
       }
@@ -289,6 +303,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       evidenceUrl = fetchedUrl || it.url;
       text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers);
       if (text.trim().length < MIN_DIRECT_PAGE_TEXT_CHARS) {
+        diag('candidate_page_text_too_short', { source: src.id, url: safeDiagUrl(it.url), textChars: text.trim().length, bodyChars: String(pg.body || '').length, fetchMode: pg.fetchMode || 'direct' });
         await rejectUnverified('detail_page_evidence_too_short', `chars:${text.trim().length};mode:${pg.fetchMode || 'direct'}`);
         continue;
       }
@@ -314,7 +329,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const capped = deps.maxLlmCalls !== undefined && res.counts.llm_calls >= deps.maxLlmCalls;
       if (capped && deps.llm && !opts.dryRun && !res.errors.some((e) => e.code === 'ai_budget_reached')) res.errors.push({ source: src.id, code: 'ai_budget_reached', detail: `limit ${deps.maxLlmCalls} AI-analysed pages per search` });
       if (timeLeft() < 30_000) { res.errors.push({ source: src.id, code: 'run_time_budget', detail: '30 minute cycle limit reached' }); break; }
+      const extractionStartedAt = now();
       const { ex, llmCalls, err } = await extract(opts.dryRun || capped ? { ...deps, llm: null } : { ...deps, llm: llmWithRetry }, text, meta!, host);
+      diag('candidate_extracted', { source: src.id, url: safeDiagUrl(it.url), title: safeDiagText(meta!.title, 180), textChars: text.length, llmUsed: ex.llm, llmCalls, extractionDurationMs: now() - extractionStartedAt, llmError: err || null, single: ex.single, agencyDetected: Boolean(ex.agency), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, priceQuotePresent: Boolean(ex.priceQuote), listedAtQuotePresent: Boolean(ex.listedAtQuote), ownerVerified: Boolean(ex.owner), regForbidden: ex.regForbidden });
       if (src.privateTitleHint && meta!.title.toLowerCase().includes(src.privateTitleHint.toLowerCase())) ex.signals.push('platform_says_private');
       res.counts.llm_calls += llmCalls; st.llm += llmCalls; if (err) { res.errors.push({ source: src.id, code: 'llm_failed', detail: err }); st.consecutiveBad++; }
       pages.push({ url: it.url, evidenceUrl, fetchMode: pg.fetchMode, host, meta: meta!, text, ex, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null, knownAutoHidden: Boolean(known?.autoHidden) });
@@ -326,6 +343,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     for (let i = 0; i < pages.length; i++) {
       const { url, evidenceUrl, fetchMode, host, meta, ex } = pages[i]; const c = contacts[i];
       const deny = async (reason: string, detail?: string) => {
+        diag('candidate_rejected_after_extraction', { source: src.id, url: safeDiagUrl(url), host, title: safeDiagText(meta.title, 180), reason, detail: safeDiagText(detail, 240), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, llmUsed: ex.llm });
         if (reason === 'agency') st.agencies++;
         else if (reason === 'municipality_not_whitelisted') st.geo++;
         else st.junk++;
@@ -446,6 +464,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         const priceNote = price?.monthlyChf != null ? `CHF ${price.monthlyChf}` : (price?.quote ? price.quote.slice(0, 24) : 'no price');
         say(stage, `✔ match: ${ex.name.slice(0, 50)} (${ex.municipality}) · ${priceNote}`);
         res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
+      diag('candidate_kept', { source: src.id, url: safeDiagUrl(url), host, title: safeDiagText(meta.title, 180), municipality: ex.municipality, rooms: ex.rooms.rooms, roomsBasis: ex.rooms.basis, priceMonthlyChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, hasContact: Boolean(phone0 || email0), photoCount: meta.photos.length, fetchMode: fetchMode || 'direct' });
       try { console.info(JSON.stringify({ type: 'immofinder_candidate_kept', source: src.id, host, title: meta.title.slice(0, 90), municipality: ex.municipality, rooms: ex.rooms.rooms, priceChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, evidenceChars: pageText.trim().length, fetchMode: fetchMode || 'direct' })); } catch { /* diagnostics only */ }
         continue;
       }
@@ -620,6 +639,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     if ((cfg.discovery?.queries || []).length) families.push('private');
     if ((cfg.discovery?.portalQueries || []).length) families.push('portals');
     const qs = buildQueries(cfg, deps.cycle ?? 0, { allCommunes: coverAll, families: families.length ? families : undefined });
+    diag('discovery_plan', { wave: waveMode, finishAll, coverAllCommunes: coverAll, cycle: deps.cycle ?? 0, selectedCommunes: coverAll ? cfg.municipalities : communesForRun(cfg.municipalities, cfg.discovery?.communesPerRun ?? 2, deps.cycle ?? 0), queryCountTotal: qs.length, queryOffset: discoveryQueryOffset, queryCountThisWave: Math.max(0, qs.length - discoveryQueryOffset), maxCandidatesPerQuery, pageLimit, resultsPerQuery: d.resultsPerQuery, serperMinIntervalMs, serperMaxPerMinute, queryFamilies: families });
     const slice = finishAll || maxQueries == null
       ? qs.slice(discoveryQueryOffset)
       : qs.slice(discoveryQueryOffset, discoveryQueryOffset + maxQueries);
@@ -684,12 +704,15 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         };
         batch = await serperCall('serper');
         getStat(currentSourceId).hits += batch.length;
-        const picked = pickItems(batch, cfg);
+        const pickDecisions: { accepted: boolean; reason: string; host: string; url: string; title: string }[] = [];
+        const picked = pickItems(batch, cfg, (decision) => { if (pickDecisions.length < 30) pickDecisions.push({ ...decision, url: safeDiagUrl(decision.url), title: safeDiagText(decision.title, 180) }); });
+        diag('serper_query_succeeded', { source: currentSourceId, queryIndex: qi, queryTotal: slice.length, query: safeDiagText(q, 400), resultCount: batch.length, pickedCount: picked.length, selectedCount: Math.min(picked.length, maxCandidatesPerQuery), pickDecisions, results: batch.slice(0, 10).map((hit, rank) => ({ rank: rank + 1, host: hostOf(hit.link), url: safeDiagUrl(hit.link), title: safeDiagText(hit.title, 180), snippet: safeDiagText(hit.snippet, 360), date: hit.date || null, selected: picked.some((item) => item.url === hit.link) })), selected: picked.slice(0, maxCandidatesPerQuery).map((it) => ({ host: it.host, url: safeDiagUrl(it.url), title: safeDiagText(it.hit?.title, 180), snippetOnly: it.snippetOnly })) });
         try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, selectedCandidates: Math.min(picked.length, maxCandidatesPerQuery), pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
         batchHits.push(...batch.slice(0, d.resultsPerQuery));
         consecutiveSearchFails = 0;
       } catch (e) {
-        const msg = String((e as Error)?.message || e).slice(0, 100);
+        const msg = String((e as Error)?.message || e).slice(0, 300);
+        diag('serper_query_failed', { source: currentSourceId, queryIndex: qi, queryTotal: slice.length, query: safeDiagText(q, 400), error: safeDiagText(msg, 300), errorName: (e as Error)?.name || typeof e });
         res.errors.push({ source: currentSourceId, code: msg.startsWith('step_timeout:') ? 'step_timeout' : 'search_failed', detail: msg });
         say('search', msg.startsWith('step_timeout:') ? `skip slow search (>10s): ${q.slice(0, 50)}` : `search failed: ${msg.slice(0, 160)}`);
         consecutiveSearchFails++;
@@ -809,6 +832,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   }
 
   res.sourceStats = [...sourceStatMap.values()].sort((a, b) => (b.kept - a.kept) || (b.fetched - a.fetched));
+  diag('run_completed', { durationMs: now() - diagnosticStartedAt, counts: res.counts, filtered: res.filtered, errors: res.errors, sourceStats: res.sourceStats, wavesRun: res.wavesRun, previewCount: res.preview.length, preview: res.preview.slice(0, 30).map((x) => ({ url: safeDiagUrl(x.url), source: x.source, title: safeDiagText(x.title, 160), kept: x.kept, reason: x.reason || null, detail: safeDiagText(x.detail, 200), municipality: x.municipality, rooms: x.rooms })), estimatedCostUsd: res.estCostUsd });
   const extraSearches = Math.max(0, (enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0) - enrichBudget.searchesLeft);
   res.newListings.sort((a, b) => Number(b.contact_status === 'found') - Number(a.contact_status === 'found'));
   res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + ((res.counts.serper_calls || res.counts.search_queries) + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
