@@ -19,7 +19,7 @@ type S = {
     rejectNonMonthly: boolean;
     rejectSeekerPosts: boolean;
     requireContact: boolean;
-    defaultWave: 'priority' | 'full';
+    defaultWave: 'carousel' | 'full';
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
     privateQueryTemplates: number;
@@ -355,7 +355,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
       {/* 2 · Sources */}
       <div style={box}>
         <strong>2 · Search profile (C129 quality)</strong>
-        <p style={hint}>Carousel: 2 communes per scheduled hour via Google + model extract. Burst: manual Stage 1 / Full.</p>
+        <p style={hint}>Carousel rotates through selected communes on each scheduled run. Full processes every selected commune in one run.</p>
         <label style={labelBlock}>
           <input
             type="radio"
@@ -364,12 +364,12 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             onChange={() => upd((x) => ({ ...x, search: { ...x.search, profile: 'carousel' } }))}
             data-testid="immofinder-profile-carousel"
           />{' '}
-          Carousel (quality over a day)
+          Carousel (recommended: rotating batches)
         </label>
         <label style={labelBlock}>
-          Communes per carousel tick{' '}
+          Communes per carousel run{' '}
           <select
-            value={s.search.carouselCommunesPerRun || 8}
+            value={s.search.carouselCommunesPerRun || 12}
             disabled={(s.search.profile || 'carousel') !== 'carousel'}
             onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, carouselCommunesPerRun: Number(e.target.value) } }))}
           >
@@ -386,12 +386,12 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             onChange={() => upd((x) => ({ ...x, search: { ...x.search, profile: 'burst' } }))}
             data-testid="immofinder-profile-burst"
           />{' '}
-          Burst (manual Stage 1 / Full, wide coverage)
+          Full (all selected communes in one run)
         </label>
 
         <strong style={{ display: 'block', marginTop: 12 }}>Sources (Stage 1 prioritises the top rows)</strong>
         <p style={hint}>
-          Web search + Swiss portals (Homegate, ImmoScout24, Flatfox, Tutti, Anibis, Newhome, …). Only private ads with a stated price are kept; agencies and priceless ads are dropped.
+          Web search + all configured Swiss rental portals. Holiday-rental catalogues stay off. Only private long-term rental ads with a stated monthly price pass the quality gate; agency, seeker and non-monthly results are rejected.
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
@@ -415,23 +415,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             </label>
           );
         })}
-        <label style={{ ...labelBlock, marginTop: 10 }}>
-          Scheduled / default depth{' '}
-          <select
-            value={s.search.defaultWave || 'priority'}
-            onChange={(e) =>
-              upd((x) => ({
-                ...x,
-                search: { ...x.search, defaultWave: e.target.value === 'full' ? 'full' : 'priority' },
-              }))
-            }
-            data-testid="immofinder-default-wave"
-          >
-            <option value="full">Full search (all selected sources)</option>
-            <option value="priority">Legacy Stage 1 only</option>
-          </select>
-        </label>
-        <p style={hint}>Main-screen buttons still override this for one run.</p>
+        <p style={hint}>Main-screen buttons can still override the run mode for a single search.</p>
       </div>
 
       {/* 3 · Delivery */}
