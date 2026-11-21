@@ -46,7 +46,7 @@ test('seen-cache entries from older rule versions are invalidated once', () => {
   assert.equal(decodeSeenReason('not_single_listing'), null);
   assert.equal(decodeSeenReason('129.51.1::not_single_listing'), null);
   assert.equal(decodeSeenReason(encodeSeenReason('not_single_listing')), 'not_single_listing');
-  assert.equal(REPAIR_RULES_VERSION, '129.53.4');
+  assert.equal(REPAIR_RULES_VERSION, '129.53.5');
   const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
   assert.match(store, /decodeSeenReason\(r\.rows\[0\]\.reason\)/);
   assert.match(store, /encodeSeenReason\(reason\)/);
@@ -260,6 +260,11 @@ test('pipeline uses the configured portal allowlist at its final write gate', as
   assert.equal(result.counts.new, 1);
   assert.equal(result.filtered.list_or_search_page || 0, 0);
   assert.equal(saved.length, 1);
+});
+test('sameListingUrlTarget accepts stable portal slugs across language redirects only', () => {
+  assert.equal(sameListingUrlTarget('https://flatfox.ch/en/flat/abc-123', 'https://flatfox.ch/de/flat/abc-123'), true);
+  assert.equal(sameListingUrlTarget('https://flatfox.ch/en/flat/abc-123', 'https://flatfox.ch/de/flat/abc-124'), false);
+  assert.equal(sameListingUrlTarget('https://flatfox.ch/en/flat/abc-123', 'https://homegate.ch/en/flat/abc-123'), false);
 });
 test('non-standard Swiss portal detail URL survives the final write-time and repair gate', () => {
   const url = 'https://flatfox.ch/en/flat/abc-123';

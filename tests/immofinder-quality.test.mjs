@@ -467,7 +467,7 @@ test('P129.48 repair audit allows undisclosed rent and writes evidence-backed pr
     hidden: false,
     raw: { evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567', evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. Helle Wohnung mit Balkon und Küche. Bezug ab sofort möglich, Wohnfläche 80 m2. Separates Kellerabteil, ruhige Lage und gute Anbindung an den öffentlichen Verkehr.' },
   };
-  assert.equal(REPAIR_RULES_VERSION, `${JSON.parse(read('package.json')).patch}.4`);
+  assert.equal(REPAIR_RULES_VERSION, `${JSON.parse(read('package.json')).patch}.5`);
   assert.equal(hardRejectReason(missing, ctx), null);
   assert.equal(isPresentable(missing, ctx), true);
   assert.equal(sanitizeNewRecord(missing, ctx).hardReason, null);

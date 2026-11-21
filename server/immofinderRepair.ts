@@ -29,7 +29,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.53.4';
+export const REPAIR_RULES_VERSION = '129.53.5';
 
 /** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
 export function encodeSeenReason(reason: string): string {
@@ -83,15 +83,22 @@ export function normalizeUrl(u: unknown): string {
   } catch { return String(u || '').trim().toLowerCase(); }
 }
 
-/** A canonical redirect is the same listing only when its stable numeric id survives on the same host. */
+/** A canonical redirect is the same listing only when a stable ID or distinctive slug survives on the same host. */
 export function sameListingUrlTarget(requested: string, evidence: string): boolean {
   if (normalizeUrl(requested) === normalizeUrl(evidence)) return true;
   try {
     const a = new URL(requested); const b = new URL(evidence);
     if (a.hostname.replace(/^www\./i, '').toLowerCase() !== b.hostname.replace(/^www\./i, '').toLowerCase()) return false;
-    const ids = (u: URL) => new Set(`${u.pathname} ${u.search}`.match(/(?<!\d)\d{6,}(?!\d)/g) || []);
-    const left = ids(a); const right = ids(b);
-    return [...left].some((id) => right.has(id));
+    const numericIds = (u: URL) => new Set(`${u.pathname} ${u.search}`.match(/(?<!\d)\d{6,}(?!\d)/g) || []);
+    const leftIds = numericIds(a); const rightIds = numericIds(b);
+    if ([...leftIds].some((id) => rightIds.has(id))) return true;
+    const generic = new Set(['de','fr','it','en','rent','mieten','louer','affittare','buy','kaufen','acheter','acquistare','flat','wohnung','apartment','house','immobilien','real-estate','detail','listing','objekt','angebot','annonce','annunci','search','suche','results','resultate','sale']);
+    const stableSlugs = (u: URL) => new Set(u.pathname.split('/').filter(Boolean).map((part) => { try { return decodeURIComponent(part).toLowerCase(); } catch { return part.toLowerCase(); } }).filter((part) => {
+      const hyphens = (part.match(/-/g) || []).length;
+      return part.length >= 6 && !generic.has(part) && (/\d/.test(part) || hyphens >= 3);
+    }));
+    const leftSlugs = stableSlugs(a); const rightSlugs = stableSlugs(b);
+    return [...leftSlugs].some((slug) => rightSlugs.has(slug));
   } catch { return false; }
 }
 

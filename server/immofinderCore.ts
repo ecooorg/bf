@@ -227,9 +227,9 @@ export function pageMeta(html: string, base: string): { title: string; descripti
   // Publication date declared by the page itself (meta / JSON-LD / microdata); language independent.
   // Prefer explicit article times, then broader schema.org / Open Graph variants, then Facebook utime.
   let published =
-    meta('article:published_time') || meta('article:modified_time') || meta('datePublished') || meta('og:article:published_time')
-    || meta('og:updated_time') || meta('publish-date') || meta('pubdate') || meta('date') || meta('DC.date.issued')
-    || /"(?:datePublished|datePosted|dateCreated|uploadDate|dateModified)"\s*:\s*"([^"]{8,40})"/i.exec(html)?.[1]
+    meta('article:published_time') || meta('datePublished') || meta('og:article:published_time')
+    || meta('publish-date') || meta('pubdate') || meta('date') || meta('DC.date.issued')
+    || /"(?:datePublished|datePosted|dateCreated|uploadDate)"\s*:\s*"([^"]{8,40})"/i.exec(html)?.[1]
     || /itemprop=["'](?:datePublished|datePosted|dateCreated)["'][^>]*content=["']([^"']{8,40})["']/i.exec(html)?.[1]
     || /content=["']([^"']{8,40})["'][^>]*itemprop=["'](?:datePublished|datePosted|dateCreated)["']/i.exec(html)?.[1]
     || null;
@@ -756,7 +756,7 @@ export function parseListedAt(text: string, url?: string, declared?: string | nu
   };
 
   // Labelled absolute dates near publication / insert keywords (DE/FR/IT/EN + CH portals).
-  const labelRe = /(?:publiziert|veröffentlicht|veroffentlicht|online\s+seit|online\s+ab|inseriert(?:\s+am)?|erstellt(?:\s+am)?|eingestellt(?:\s+am)?|aktualisiert(?:\s+am)?|posted(?:\s+on)?|published(?:\s+on)?|date\s*posted|date\s*published|inserted(?:\s+on)?|mise\s+en\s+ligne|publié(?:\s+le)?|inserito(?:\s+il)?|pubblicato(?:\s+il)?|online\s+since|available\s+since)\s*[:\-]?\s*/gi;
+  const labelRe = /(?:publiziert|veröffentlicht|veroffentlicht|online\s+seit|inseriert(?:\s+am)?|erstellt(?:\s+am)?|eingestellt(?:\s+am)?|posted(?:\s+on)?|published(?:\s+on)?|date\s*posted|date\s*published|inserted(?:\s+on)?|mise\s+en\s+ligne|publié(?:\s+le)?|inserito(?:\s+il)?|pubblicato(?:\s+il)?|online\s+since)\s*[:\-]?\s*/gi;
   let lm: RegExpExecArray | null;
   while ((lm = labelRe.exec(t)) !== null) {
     const slice = t.slice(lm.index, lm.index + 80);
@@ -766,22 +766,6 @@ export function parseListedAt(text: string, url?: string, declared?: string | nu
     // dd.mm.yyyy / dd/mm/yyyy / dd-mm-yyyy
     const dmy = /\b(\d{1,2})[./\-](\d{1,2})[./\-](20\d{2})\b/.exec(slice);
     if (dmy) push(new Date(Date.UTC(Number(dmy[3]), Number(dmy[2]) - 1, Number(dmy[1]), 12)), 30);
-  }
-
-  // Bare ISO anywhere in the window
-  for (const m of t.matchAll(/\b(20\d{2})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2})(?::(\d{2}))?)?/g)) {
-    const d = m[4]
-      ? new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6] || '00'}Z`)
-      : new Date(`${m[1]}-${m[2]}-${m[3]}T12:00:00Z`);
-    push(d, 10);
-  }
-  // Bare Swiss / DE: dd.mm.yyyy
-  for (const m of t.matchAll(/\b(\d{1,2})\.(\d{1,2})\.(20\d{2})\b/g)) {
-    push(new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]), 12)), 10);
-  }
-  // Bare slash form dd/mm/yyyy (common on FR/IT CH sites)
-  for (const m of t.matchAll(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/g)) {
-    push(new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1]), 12)), 8);
   }
 
   // Relative: DE "vor 3 Tagen", FR "il y a 3 jours", IT "3 giorni fa", EN "3 days ago"

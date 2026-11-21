@@ -1,3 +1,9 @@
+## P129.53.7 — Trust publication dates and preserve non-numeric portal redirects
+
+- **BUGFIX:** do not treat `dateModified`, `article:modified_time`, `og:updated_time`, `Aktualisiert am`, availability dates or arbitrary dates elsewhere on a page as the listing publication date. These values could falsely mark a live ad as stale.
+- **BUGFIX:** accept same-host canonical redirects when a distinctive non-numeric portal slug survives (including language-prefix changes); still reject a different slug or host.
+- **CACHE:** bump rule version so URLs previously rejected by the strict numeric-ID redirect check are re-evaluated.
+- **VERIFY:** add tests for publication-vs-modification dates and same-listing slug redirects.
 ## P129.53.6 — Remove inert search controls and align run status
 
 - **UX / CONFIG:** remove the obsolete freshness and fallback controls. Discovery intentionally runs without Google date filters; saved legacy values are ignored. The settings screen now says this explicitly.
