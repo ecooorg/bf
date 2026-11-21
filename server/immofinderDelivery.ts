@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { formatZurich } from './immofinderSettings.ts';
-import { IMMO_COLORS as C, immoCardModel, immoCardPlainText, immoDatesText, immoFormatDate, immoLinkLine, immoEvidenceBlock } from '../src/immoCard.ts';
+import { IMMO_COLORS as C, immoCardModel, immoCardPlainText, immoDatesText, immoFormatDate, immoLinkLine } from '../src/immoCard.ts';
 
 export async function sendTelegram(text: string, fetchImpl: typeof fetch = fetch): Promise<string> {
   const token = process.env.TELEGRAM_BOT_TOKEN; const chat = process.env.TELEGRAM_CHAT_ID;
@@ -98,17 +98,15 @@ export function formatDirectLink(r: any): string {
 
 /**
  * Compact card used on email and Telegram — same model as the screen and Drive sheet.
- * Headline / about / link line / optional evidence; no parallel formatting that can drift.
+ * Headline / about / link / published only (no source-snippet dumps).
  */
 export function formatListingCard(r: any): string {
   const k = immoCardModel(r);
-  const evidence = immoEvidenceBlock(k);
-  // Keep "Published: DD.MM.YYYY" wording for email/Telegram (readable offline).
   const when = k.published ? `Published: ${k.published.replace(/^published\s+/i, '')}` : '';
   const link = k.url
     ? (k.linkNote ? `Link (may open a list/group, not one object): ${k.url}` : `Link: ${k.url}`)
     : 'Link: (missing)';
-  return [k.headline, k.about, link, when, evidence].filter(Boolean).join('\n');
+  return [k.headline, k.about, link, when].filter(Boolean).join('\n');
 }
 
 /** Plain-text listing block shared by email and Telegram. */
@@ -177,16 +175,6 @@ export function buildSheetRequests(rows: any[], gid: number, opts: { rowCount?: 
     const cells = [btn(k.openLabel, k.url, true), ...[0, 1, 2].map((i) => (k.photos[i] ? btn(k.photos[i].label, k.photos[i].url, false) : blank(C.card))),
       blank(C.card), blank(C.card)];
     r = push(cells, 34); merges.push([r, r + 1, 4, 6]);
-    // Source evidence under the listing (verbatim text and/or capture link).
-    const evidence = immoEvidenceBlock(k);
-    if (evidence) {
-      for (const line of evidence.split('\n')) {
-        if (!line) continue;
-        const isLabel = /^Source (text|capture)/i.test(line);
-        r = push(wide(line.slice(0, 45000), { textFormat: { fontFamily: FONT, fontSize: isLabel ? 10 : 9, bold: isLabel, foregroundColor: hex(isLabel ? C.warn : C.muted) } }, null, C.card), rowPx(line.slice(0, 500), isLabel ? 10 : 9));
-        merges.push([r, r + 1, 0, 6]);
-      }
-    }
     borders.push({ r0: top, r1: r + 1, c0: 0, c1: 6, color: C.border }, { r0: top, r1: top + 1, c0: 0, c1: 1, color: C.btnBorder });
     push(Array.from({ length: 6 }, () => blank(C.page)), 12);
   }
@@ -228,14 +216,6 @@ export function buildDocRequests(rows: any[], endIndex: number, opts: { emptyNot
     const bs: Seg[] = [{ t: `${NB}${k.openLabel}${NB}`, fg: C.btnText, bg: C.btnBg, bold: true, pt: 10, link: k.url || undefined }];
     for (const p of k.photos) bs.push({ t: '  ', pt: 10 }, { t: `${NB}${p.label}${NB}`, fg: C.chipText, bg: C.chipBg, pt: 10, link: p.url });
     paras.push({ card: true, segs: bs });
-    const evidence = immoEvidenceBlock(k);
-    if (evidence) {
-      for (const line of evidence.split('\n')) {
-        if (!line) continue;
-        const isLabel = /^Source (text|capture)/i.test(line);
-        paras.push({ card: true, segs: [{ t: line.slice(0, 8000), fg: isLabel ? C.warn : C.muted, bold: isLabel, pt: isLabel ? 10 : 9 }] });
-      }
-    }
     paras.push({ segs: [{ t: '', pt: 6 }], spaceBelow: 0 });
   }
   let text = ''; const styleReqs: any[] = []; const cardRanges: { start: number; end: number }[] = []; const spacerRanges: [number, number][] = []; const titleRanges: [number, number, number][] = [];
