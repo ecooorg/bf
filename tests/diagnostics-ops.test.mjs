@@ -105,3 +105,58 @@ test('P130.1 collects redacted Render and GitHub Actions logs as artifacts', () 
   assert.match(patchTools, /data\/immofinder\/diagnostics/);
   assert.match(integrity, /collect-platform-logs\.mjs/);
 });
+
+
+test('P130.4 health check names the failing GitHub publisher and compares deployed commit with main', async () => {
+  const { classifyPublisherFailures, countRuntimeSignals, searchQuality, runChecks, verdict, renderMarkdown } = await import('../scripts/immofinder-health-check.mjs');
+  const logs = 'x github_diagnostics_write_failed_http_403_resource_not_accessible_by_integration_request_AB12-34 y github_app_contents_write_token_http_403 z gemini request timeout after 30s; TLS certificate verification failed';
+  const failures = classifyPublisherFailures(logs);
+  assert.deepEqual(failures.map((f) => [f.publisher, f.status]).sort(), [['diagnostics', 403], ['github_app_token', 403]]);
+  assert.equal(failures.find((f) => f.publisher === 'diagnostics').requestId, 'AB12-34');
+  assert.match(failures.find((f) => f.publisher === 'github_app_token').hint, /Contents: write/);
+  assert.match(failures.find((f) => f.publisher === 'diagnostics').hint, /contents:write/);
+  assert.equal(classifyPublisherFailures('github_app_contents_write_token_http_422')[0].status, 422);
+  assert.deepEqual(countRuntimeSignals(logs), { geminiTimeouts: 1, sslWarnings: 1, http5xx: 0 });
+  assert.equal(searchQuality({ result: { counts: { candidates: 57, credible_kept: 5 }, sourceStats: [{ id: 'a', consecutiveBad: 7 }] } }).quality, 5);
+
+  const main = 'a'.repeat(40), deployed = 'b'.repeat(40);
+  const files = new Map();
+  const io = {
+    exists: (p) => files.has(p),
+    readFile: (p) => files.get(p),
+    async getJson(url) {
+      if (url.endsWith('/commits/main')) return { status: 200, body: { sha: main } };
+      if (url.includes('/check-runs')) return { status: 200, body: { check_runs: [{ name: 'core', status: 'completed', conclusion: 'success' }] } };
+      if (url.includes('/actions/workflows/')) return { status: 200, body: { workflow_runs: [{ conclusion: 'success', updated_at: '2026-11-21T00:00:00Z' }] } };
+      if (url.endsWith('/health')) return { status: 200, body: { status: 'ok', version: '130', commit: deployed } };
+      if (url.endsWith('/ready')) return { status: 200, body: { status: 'ready' } };
+      if (url.includes('/compare/')) return { status: 200, body: { ahead_by: 2, files: [{ filename: 'data/immofinder/diagnostics/latest.json' }, { filename: 'server/immofinderCore.ts' }] } };
+      if (url.includes('/diagnostics/latest')) return { status: 200, body: { report: { runId: 'r1', generatedAt: new Date().toISOString(), result: { counts: { candidates: 57, credible_kept: 5 }, sourceStats: [] } } } };
+      throw new Error('unexpected ' + url);
+    },
+  };
+  const env = { IMMOFINDER_BASE_URL: 'https://x.example', IMMOFINDER_RUN_SECRET: 's', GITHUB_TOKEN: 't', GITHUB_REPOSITORY: 'o/r' };
+  files.set('data/immofinder/diagnostics/latest.json', JSON.stringify({ runId: 'old' }));
+  const checks = await runChecks(env, io);
+  const by = (name) => checks.find((c) => c.name === name);
+  assert.equal(by('CI on main').status, 'OK');
+  assert.equal(by('Service /health').status, 'OK');
+  assert.equal(by('Deployed commit').status, 'WARN', 'a non-archive file separates production from main');
+  assert.equal(by('Result quality').status, 'WARN', '5 of 10 quality listings is not complete');
+  assert.equal(by('Archive').status, 'WARN', 'fresh run not yet archived is a warning, not a failure');
+  assert.equal(by('GitHub publishers').status, 'SKIP', 'missing logs are SKIP, never OK');
+  assert.equal(verdict(checks), 'WARN');
+  assert.match(renderMarkdown(checks), /IMMOFINDER — DAILY HEALTH: WARN[\s\S]*PRIORITIES/);
+  assert.equal(verdict([{ status: 'FAIL' }, { status: 'OK' }]), 'FAIL');
+});
+
+test('P130.4 health workflow is scheduled, least-privilege and uses the shared collector', () => {
+  const wf = read('.github/workflows/immofinder-health.yml');
+  assert.match(wf, /cron: '17 6 \* \* \*'/);
+  assert.match(wf, /workflow_dispatch/);
+  assert.match(wf, /issues: write/);
+  assert.doesNotMatch(wf, /contents: write/);
+  assert.match(wf, /scripts\/collect-platform-logs\.mjs/);
+  assert.match(wf, /scripts\/immofinder-health-check\.mjs/);
+  assert.match(read('scripts/scripts-integrity.mjs'), /immofinder-health-check\.mjs/);
+});
