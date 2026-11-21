@@ -72,7 +72,8 @@ export function isImmoCronCall(req: Request): boolean {
 
 /** Read-only diagnostics polling endpoint for GitHub Actions; the same timing-safe run secret protects it. */
 export function isImmoDiagnosticsCall(req: Request): boolean {
-  return req.method === 'GET' && req.path === '/api/immofinder/diagnostics/latest' && secretOk(req);
+  const path = String(req.originalUrl || req.path).split('?')[0];
+  return req.method === 'GET' && path === '/api/immofinder/diagnostics/latest' && secretOk(req);
 }
 
 /** Folder precedence: saved setting, then env, then the config default. */
