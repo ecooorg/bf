@@ -1,3 +1,11 @@
+## P129.53.3 — Restore legitimate ImmoFinder leads through every gate
+
+- **BUGFIX:** repair the empty URL-regex alternative that classified every URL as a search/list page.
+- **BUGFIX:** use one shared allowlist-aware detail-URL rule in discovery, write-time validation and stored-row rechecks; recover cards hidden by obsolete write-time rules when they pass the current gate.
+- **BUGFIX:** permit verified long-term listings with no published price; prefer gross/warm rent when Swiss pages show both net and gross amounts; do not reject a page merely for containing both.
+- **BUGFIX:** Google SERP dates are diagnostics only, not listing publication dates; HTML `<head>` metadata no longer counts as page-body evidence.
+- **UX:** explain that portal toggles are Google `site:` search targets rather than independent crawlers; clarify price-unknown behavior.
+- **VERIFY:** Core CI validates the current implementation; live production discovery still needs a real run against the configured Serper key and database.
 ## P129.53 — CI metadata and complete seen-cache purge
 
 - **BUGFIX:** sync nested package-lock patch metadata; add migration 027 to truncate every legacy `immofinder_seen` row; bump search-rule cache version. Listing deletion behavior unchanged.
