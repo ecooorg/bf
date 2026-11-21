@@ -167,8 +167,8 @@ test('discovery interleaves communes so a bounded run cannot starve later locati
   ]);
 });
 
-test('each discovery query processes at most two detail candidates and spreads the budget across communes', async () => {
-  const localCfg = leanCfg({ communesPerRun: 2, queries: ['A {commune}', 'B {commune}'], portalQueries: ['C {commune}'], maxPagesPerRun: 10 });
+test('each discovery query processes at most two detail candidates and interleaves commune coverage', async () => {
+  const localCfg = leanCfg({ communesPerRun: 2, queries: ['A {commune}', 'B {commune}'], portalQueries: ['C {commune}'], maxPagesPerRun: 80 });
   const queried = []; const fetched = []; let serial = 0;
   const result = await runPipeline({
     config: localCfg,
@@ -177,10 +177,10 @@ test('each discovery query processes at most two detail candidates and spreads t
     search: async (q) => { queried.push(q); const base = ++serial * 100; return Array.from({ length: 5 }, (_, i) => ({ title: `3.5 Zimmer Wohnung in Chur ${base+i}`, link: `https://example.com/listing/${base+i+100000}`, snippet: 'Wohnung zu vermieten' })); },
     cycle: 0,
   }, { dryRun: true, wave: 'carousel' });
-  assert.equal(fetched.length, 10, 'the ten-page budget is spent at two candidates per query');
-  assert.equal(queried.length, 5, 'the query budget advances across the interleaved plan');
-  assert.deepEqual(queried.slice(0, 4), ['A Chur', 'A Zizers', 'C Chur', 'C Zizers']);
-  assert.equal(result.counts.candidates, 10);
+  assert.equal(fetched.length, 12, 'two candidates are fetched from each of six commune/template queries');
+  assert.equal(queried.length, 6, 'every interleaved commune/template query is attempted');
+  assert.deepEqual(queried, ['A Chur', 'A Zizers', 'C Chur', 'C Zizers', 'B Chur', 'B Zizers']);
+  assert.equal(result.counts.candidates, 12);
 });
 test('P129.52 portal inventory is searched without a Google date cutoff', async () => {
   const portalOptions = [];
