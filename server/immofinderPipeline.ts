@@ -369,9 +369,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const shortStay = isShortStayListing(meta.title, url, pageText, price);
       const hitDate = pages[i].hitDate || meta.published || null;
       const listedAt = parseListedAt(
-        `${meta.title}\n${pageText.slice(0, 12000)}\n${ex.listedAtQuote || ''}\n${hitDate || ''}`,
+        `${meta.title}\n${pageText.slice(0, 12000)}\n${ex.listedAtQuote || ''}`,
         url,
-        meta.published || ex.listedAtQuote || hitDate || null,
+        meta.published || ex.listedAtQuote || null,
       );
       const seeker = isSeekerPost(meta.title, evidenceText);
       if (seeker) ex.signals.push('seeker_post');
@@ -434,7 +434,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis, street_address: ex.streetAddress, description_de: descriptionDe, description_ru: '', title_ru: '', owner_name: ex.owner,
         rent_monthly_chf: price?.monthlyChf ?? null, pricing_unit: price?.unit ?? null, listed_at: listedAt ? listedAt.toISOString() : null,
         direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
-        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, address_quote: ex.streetAddress },
+        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl, search_result_date: hitDate, address_quote: ex.streetAddress },
       };
       if (opts.dryRun) {
         const dryChecked = sanitizeNewRecord(rec as unknown as Record<string, any>, { municipalities: cfg.municipalities || [] });
