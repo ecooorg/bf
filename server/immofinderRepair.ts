@@ -1,5 +1,5 @@
 /**
- * P129.47 — ImmoFinder repair protocol: deterministic audit, whitelisted repair ops, public snapshot.
+ * P129.48 — Extend the repair protocol with a strict, evidence-backed monthly-price gate for saved and new cards.
  *
  * Pure functions only (no DB, no network). The DB layer is server/immofinderRepairStore.ts.
  *
@@ -26,7 +26,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.47.1';
+export const REPAIR_RULES_VERSION = '129.48.1';
 
 export const REPAIR_OPS = ['hide', 'unhide', 'delete', 'clear_contact', 'set_price', 'mark_collage'] as const;
 export type RepairOpName = (typeof REPAIR_OPS)[number];
@@ -172,7 +172,13 @@ export type PriceVerdict =
 export function priceVerdict(row: Row): PriceVerdict {
   const raw = obj(row.raw);
   const price = obj(raw.price);
-  const stored = price.amount != null ? Number(price.amount) : NaN;
+  const storedValue = price.amount ?? row.rent_monthly_chf;
+  const stored = storedValue != null ? Number(storedValue) : NaN;
+  const rawUnit = String(price.unit || '').toLowerCase();
+  const rowUnit = String(row.pricing_unit || '').toLowerCase();
+  const validUnits = ['month', 'week', 'night', 'season'];
+  const storedUnit = validUnits.includes(rawUnit) ? rawUnit : rowUnit;
+  const storedUnitUnknown = !validUnits.includes(storedUnit);
   const evidence = String(raw.evidence_text || row.description_de || '');
   if (!evidence.trim()) return Number.isFinite(stored) && stored > 0 ? { status: 'ok' } : { status: 'missing' };
   const cands = priceCandidates(evidence);
@@ -193,17 +199,17 @@ export function priceVerdict(row: Row): PriceVerdict {
   const sameAmount = cands.filter((c) => c.amount === stored);
   const storedIsSide = sameAmount.length > 0 && sameAmount.every((c) => c.side);
   const storedIsYear = stored >= 2020 && stored <= 2035 && !sameAmount.some((c) => c.rentLabelled);
-  const storedTiny = stored < 400 && String(price.unit || 'month') === 'month';
+  const storedTiny = stored < 400 && (storedUnit === 'month' || !storedUnit);
   // Page text is stored truncated (4000 chars): absence of the amount only counts when the text is complete.
   const complete = evidence.length < 3900 && !evidence.endsWith('…');
   const storedAbsent = complete && !amountInText(stored, evidence);
-  if (storedIsSide || storedIsYear || storedTiny || storedAbsent) {
+  if (storedIsSide || storedIsYear || storedTiny || storedAbsent || storedUnitUnknown) {
     const one = pick(distinct);
-    if (one && one.amount !== stored && one.unit !== 'unknown') {
-      const why = storedIsSide ? 'parking_amount_was_picked' : storedIsYear ? 'calendar_year_as_price' : storedTiny ? 'fragment_as_price' : 'price_not_in_evidence';
+    if (one && (one.amount !== stored || one.unit !== storedUnit) && one.unit !== 'unknown') {
+      const why = storedIsSide ? 'parking_amount_was_picked' : storedIsYear ? 'calendar_year_as_price' : storedTiny ? 'fragment_as_price' : storedUnitUnknown ? 'price_unit_unknown' : 'price_not_in_evidence';
       return { status: 'repair', price: { amount: one.amount, unit: one.unit as 'month' | 'week' | 'night' | 'season' }, why };
     }
-    return { status: 'suspect', why: storedIsSide ? 'price_from_parking' : storedIsYear ? 'calendar_year_as_price' : storedTiny ? 'fragment_as_price' : 'price_not_in_evidence' };
+    return { status: 'suspect', why: storedIsSide ? 'price_from_parking' : storedIsYear ? 'calendar_year_as_price' : storedTiny ? 'fragment_as_price' : storedUnitUnknown ? 'price_unit_unknown' : 'price_not_in_evidence' };
   }
   return { status: 'ok' };
 }
@@ -290,6 +296,19 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
       allowSnippet: true,
     });
   }
+  if (!why) {
+    const pv = priceVerdict(row);
+    if (pv.status === 'missing') why = 'price_missing';
+    else if (pv.status === 'suspect') why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
+    else {
+      const rawUnit = String(obj(raw.price).unit || '').toLowerCase();
+      const rowUnit = String(row.pricing_unit || '').toLowerCase();
+      const unit = pv.status === 'repair'
+        ? pv.price.unit
+        : (['month', 'week', 'night', 'season'].includes(rawUnit) ? rawUnit : rowUnit);
+      if (unit !== 'month') why = 'non_monthly_price';
+    }
+  }
   return why;
 }
 
@@ -320,9 +339,13 @@ export function auditRow(row: Row, ctx: AuditContext): RowAudit {
   // Price
   const pv = priceVerdict(row);
   if (pv.status === 'missing') flags.push('no_price');
-  if (pv.status === 'suspect') flags.push(pv.why === 'price_from_parking' ? 'price_from_parking?' : `price_${pv.why}?`);
+  if (pv.status === 'suspect') {
+    const flag = pv.why === 'price_from_parking' ? 'price_from_parking' : pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
+    flags.push(`${flag}?`);
+  }
   if (pv.status === 'repair') {
-    flags.push(pv.why === 'parking_amount_was_picked' ? 'price_from_parking?' : `price_${pv.why}`);
+    const flag = pv.why === 'parking_amount_was_picked' ? 'price_from_parking' : pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
+    flags.push(flag);
     if (!hard) ops.push({ op: 'set_price', id, price: pv.price, reason: pv.why });
   }
 
@@ -508,6 +531,8 @@ export type RowPatch = {
   direct_phone?: string | null;
   direct_email?: string | null;
   contact_status?: string;
+  rent_monthly_chf?: number | null;
+  pricing_unit?: string;
   raw?: Record<string, unknown>;
 };
 
@@ -560,12 +585,29 @@ export function evaluateOp(op: RepairOp, row: Row | undefined, ctx: AuditContext
       const evidence = String(raw.evidence_text || row.description_de || '');
       if (!amountInText(p.amount, evidence)) return { ...base, status: 'rejected', detail: 'amount is not present in the card page text (set_price must come from evidence)' };
       const prev = obj(raw.price);
-      if (Number(prev.amount) === p.amount && String(prev.unit || '') === p.unit) return { ...base, status: 'unchanged' };
       const monthlyChf = p.unit === 'month' ? p.amount : p.unit === 'week' ? Math.round(p.amount * (52 / 12)) : p.unit === 'night' ? Math.round(p.amount * 30) : null;
+      if (
+        Number(prev.amount) === p.amount &&
+        String(prev.unit || '') === p.unit &&
+        Number(row.rent_monthly_chf) === monthlyChf &&
+        String(row.pricing_unit || '') === p.unit
+      ) return { ...base, status: 'unchanged' };
       const cand = priceCandidates(evidence).find((c) => c.amount === p.amount);
       const next = { amount: p.amount, unit: p.unit, monthlyChf, quote: cand?.quote || `CHF ${p.amount}` };
-      return { ...base, status: 'applied', before: { price: prev.amount != null ? `${prev.amount} ${prev.unit || ''}`.trim() : null }, after: { price: `${p.amount} ${p.unit}` },
-        patch: { raw: withStamp({ price: next, price_quote: next.quote }) } };
+      return {
+        ...base,
+        status: 'applied',
+        before: {
+          price: prev.amount != null ? `${prev.amount} ${prev.unit || ''}`.trim() : null,
+          rent_monthly_chf: row.rent_monthly_chf ?? null,
+          pricing_unit: row.pricing_unit ?? null,
+        },
+        after: { price: `${p.amount} ${p.unit}`, rent_monthly_chf: monthlyChf, pricing_unit: p.unit },
+        patch: {
+          rent_monthly_chf: monthlyChf,
+          pricing_unit: p.unit,
+          raw: withStamp({ price: next, price_quote: next.quote }),
+        } };
     }
   }
 }

@@ -37,9 +37,9 @@ export interface ImmoSettings {
     rejectNonMonthly: boolean;
     rejectSeekerPosts: boolean;
     requireContact: boolean;
-    /** Scheduled / default manual wave: carousel (commune slice) or full (all selected communes). */
+    /** Legacy default-wave field retained for persisted settings compatibility. */
     defaultWave: 'carousel' | 'full';
-    /** carousel = commune-slice tick; burst unused for UI (only carousel + full remain). */
+    /** carousel = rotating commune slice; burst = all selected communes in one run. */
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
     /** How many of the private-search templates run per commune (first N; 1..4). */
@@ -58,18 +58,18 @@ export interface ImmoSettings {
 export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
   const q = { ...DEFAULT_QUALITY, ...(cfg.quality || {}) };
   return {
-    schedule: { mode: 'hours', everyHours: 6, dailyAt: '06:00' },
-    delivery: { telegram: true, email: false, emailTo: '', emailContent: 'new', drive: true, driveFolderId: '', notifyWhenEmpty: false },
+    schedule: { mode: 'hours', everyHours: 3, dailyAt: '06:00' },
+    delivery: { telegram: true, email: false, emailTo: '', emailContent: 'new', drive: true, driveFolderId: parseDriveFolderId(cfg.driveFolderId), notifyWhenEmpty: false },
     search: {
       minRooms: cfg.minRooms,
       communes: [...cfg.municipalities],
       municipalityGroups: { group1: true, group2: true },
       sources: Object.fromEntries([
-        ...SOURCE_IDS.map((s) => [s, ['search', 'portal-tutti', 'portal-flatfox', 'portal-homegate'].includes(s)] as const),
+        ...SOURCE_IDS.map((s) => [s, true] as const),
         // Catalogue source ids (if present in config) default off — discovery portals are the product surface.
         ...(cfg.sources || []).map((src) => [src.id, false] as const),
       ]),
-      maxAiPages: 40,
+      maxAiPages: 100,
       limitPrice: true,
       maxMonthlyRentChf: Math.max(q.maxMonthlyRentChf || 2000, 2000),
       maxListingAgeDays: q.maxListingAgeDays,
@@ -79,11 +79,11 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       requireContact: false,
       defaultWave: 'carousel',
       profile: 'carousel',
-      carouselCommunesPerRun: 8,
-      privateQueryTemplates: 2,
+      carouselCommunesPerRun: 12,
+      privateQueryTemplates: 4,
       freshness: 'w',
       freshnessFallback: false,
-      enrichSearchesPerRun: 6,
+      enrichSearchesPerRun: 12,
       recheckContactSearch: false,
     },
   };
@@ -122,7 +122,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
   const sources: Record<string, boolean> = {};
   for (const id of allIds) {
     if (Object.prototype.hasOwnProperty.call(srcIn, id)) sources[id] = bool(srcIn[id], true);
-    else if ((SOURCE_IDS as readonly string[]).includes(id)) sources[id] = ['search', 'portal-tutti', 'portal-flatfox', 'portal-homegate'].includes(id);
+    else if ((SOURCE_IDS as readonly string[]).includes(id)) sources[id] = true;
     else sources[id] = false; // catalogue defaults off
   }
   // Legacy master toggle: swiss-portals on/off → every portal-* source

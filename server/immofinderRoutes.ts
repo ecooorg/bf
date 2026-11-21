@@ -72,6 +72,33 @@ function driveFolder(saved: string): string {
   return saved || parseDriveFolderId(process.env.IMMOFINDER_DRIVE_FOLDER_ID) || parseDriveFolderId(loadImmoConfig().driveFolderId);
 }
 
+async function publishQualityCheckedListings(reason: string): Promise<Record<string, string>> {
+  const publication: Record<string, string> = {};
+  const settings = await getSettings(loadImmoConfig());
+  const all = (await listListingsForRefresh()).filter((r: any) => !r.hidden);
+  let driveUrl: string | undefined;
+  const errorText = (e: unknown) => String((e as Error)?.message || e).slice(0, 160);
+  if (settings.delivery.drive) {
+    try {
+      const drive = await exportDrive(all, driveFolder(settings.delivery.driveFolderId));
+      publication.drive = drive.status;
+      driveUrl = drive.url;
+    } catch (e) { publication.drive = `error: ${errorText(e)}`; }
+  }
+  const heading = `ImmoFinder: ${all.length} quality-checked listings after ${reason}`;
+  if (settings.delivery.email && settings.delivery.emailTo) {
+    try {
+      publication.email = await sendEmail(settings.delivery.emailTo, 'ImmoFinder: verified listings updated', formatListingsText(all, { heading, limit: 60, driveUrl }));
+    } catch (e) { publication.email = `error: ${errorText(e)}`; }
+  }
+  if (settings.delivery.telegram) {
+    try {
+      publication.telegram = await sendTelegram(formatListingsText(all, { heading, limit: 6, driveUrl }));
+    } catch (e) { publication.telegram = `error: ${errorText(e)}`; }
+  }
+  return publication;
+}
+
 export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): void {
   const json = express.json({ limit: '10kb' });
   app.use('/api/immofinder', (req, res, next) => {
@@ -105,8 +132,12 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     if (!repairBootstrap) repairBootstrap = (async () => {
       const audit = await runAutomaticRepairAudit();
       const bundled = await applyBundledRepairBatches();
-      immoLog('info', 'immofinder_repair_bootstrap', { audit, bundled });
-      return { audit, bundled };
+      const bundledChanges = 'results' in bundled && bundled.results.some((r: any) => Number(r.summary?.applied || 0) > 0);
+      const publication = Number(audit.summary?.applied || 0) > 0 || bundledChanges
+        ? await publishQualityCheckedListings('automatic repair audit')
+        : {};
+      immoLog('info', 'immofinder_repair_bootstrap', { audit, bundled, publication });
+      return { audit, bundled, publication };
     })().catch((e) => {
       immoLog('error', 'immofinder_repair_bootstrap_failed', { error: String((e as Error)?.message || e).slice(0, 240) });
       return null;
@@ -141,25 +172,9 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
       if (!batch.ops.length) return res.status(400).json({ success: false, error: 'Repair batch contains no operations' });
       const result = await applyRepairBatch(batch, 'assistant_patch');
       let publication: Record<string, string> = {};
-      if (result.applied && !result.duplicate) {
-        try {
-          const settings = await getSettings(loadImmoConfig());
-          const all = (await listListingsForRefresh()).filter((r: any) => !r.hidden);
-          let driveUrl: string | undefined;
-          if (settings.delivery.drive) {
-            const drive = await exportDrive(all, driveFolder(settings.delivery.driveFolderId));
-            publication.drive = drive.status; driveUrl = drive.url;
-          }
-          const heading = `ImmoFinder: ${all.length} quality-checked listings after Assistant repair`;
-          if (settings.delivery.email && settings.delivery.emailTo) {
-            publication.email = await sendEmail(settings.delivery.emailTo, 'ImmoFinder: verified listings updated', formatListingsText(all, { heading, limit: 60, driveUrl }));
-          }
-          if (settings.delivery.telegram) {
-            publication.telegram = await sendTelegram(formatListingsText(all, { heading, limit: 6, driveUrl }));
-          }
-        } catch (e) {
-          publication.error = String((e as Error)?.message || e).slice(0, 180);
-        }
+      if (result.applied && !result.duplicate && Number(result.summary?.applied || 0) > 0) {
+        try { publication = await publishQualityCheckedListings('Assistant repair'); }
+        catch (e) { publication.error = String((e as Error)?.message || e).slice(0, 180); }
       }
       immoLog('info', 'immofinder_repair_applied', { batchId: batch.batchId, summary: result.summary, duplicate: result.duplicate, publication });
       return res.json({ success: true, ...result, publication });
@@ -169,8 +184,13 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   app.post('/api/immofinder/repair/audit', json, async (_req, res) => {
     try {
       const result = await runAutomaticRepairAudit();
-      immoLog('info', 'immofinder_repair_audit', result);
-      return res.json({ success: true, ...result });
+      let publication: Record<string, string> = {};
+      if (Number(result.summary?.applied || 0) > 0) {
+        try { publication = await publishQualityCheckedListings('manual repair audit'); }
+        catch (e) { publication.error = String((e as Error)?.message || e).slice(0, 180); }
+      }
+      immoLog('info', 'immofinder_repair_audit', { ...result, publication });
+      return res.json({ success: true, ...result, publication });
     } catch { return res.status(500).json({ success: false, error: 'Automatic repair audit failed', code: 'REPAIR_AUDIT_FAILED' }); }
   });
 
@@ -440,7 +460,17 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
   app.post('/api/immofinder/settings/reset', json, async (_req, res) => {
     try {
       const cfg = loadImmoConfig();
-      const settings = await saveSettings(cfg, defaultSettings(cfg));
+      const current = await getSettings(cfg);
+      const defaults = defaultSettings(cfg);
+      // Reset search behaviour without silently disabling a user-configured e-mail destination.
+      const settings = await saveSettings(cfg, {
+        ...defaults,
+        delivery: {
+          ...defaults.delivery,
+          email: Boolean(current.delivery.emailTo),
+          emailTo: current.delivery.emailTo,
+        },
+      });
       res.json({ success: true, settings, channels: channelStatus(), communes: cfg.municipalities, timezone: TIMEZONE });
     } catch {
       res.status(500).json({ success: false, error: 'Default settings could not be applied', code: 'IMMOFINDER_FAILED' });

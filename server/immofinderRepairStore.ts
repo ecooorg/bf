@@ -68,6 +68,8 @@ export async function applyRepairBatch(batch: RepairBatch, source = 'assistant')
         if (patch.direct_phone !== undefined) put('direct_phone', patch.direct_phone);
         if (patch.direct_email !== undefined) put('direct_email', patch.direct_email);
         if (patch.contact_status !== undefined) put('contact_status', patch.contact_status);
+        if (patch.rent_monthly_chf !== undefined) put('rent_monthly_chf', patch.rent_monthly_chf);
+        if (patch.pricing_unit !== undefined) put('pricing_unit', patch.pricing_unit);
         if (patch.raw !== undefined) put('raw', JSON.stringify(patch.raw));
         if (sets.length) await client.query(`UPDATE immofinder_listings SET ${sets.join(', ')}, updated_at=now() WHERE id=$1`, vals);
       }
