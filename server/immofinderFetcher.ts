@@ -16,7 +16,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
         Pragma: 'no-cache',
       }, signal: ctrl.signal, redirect: 'follow', cache: 'no-store' as RequestCache });
       const buf = (await r.text()).slice(0, cfg.limits.maxPageBytes);
-      return { ok: r.ok, status: r.status, body: buf };
+      return { ok: r.ok, status: r.status, body: buf, finalUrl: r.url || url };
     } finally { clearTimeout(t); }
   }
   async function disallowed(u: URL): Promise<string[]> {

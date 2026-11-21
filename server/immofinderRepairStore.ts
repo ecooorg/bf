@@ -3,7 +3,7 @@ import path from 'node:path';
 import { getPool } from './database.ts';
 import { loadImmoConfig } from './immofinderStore.ts';
 import {
-  ctxFromConfig, parseRepairFile, planAutoOps, previewOps, repairQueue, snapshotJsonl, snapshotMeta,
+  ctxFromConfig, parseRepairFile, planAutoOps, previewOps, repairQueue, snapshotJsonl, snapshotMeta, REPAIR_RULES_VERSION,
   evaluateOp, validateOps, type RepairBatch, type RepairOp, type RowPatch,
 } from './immofinderRepair.ts';
 
@@ -94,7 +94,12 @@ export async function runAutomaticRepairAudit() {
   const rows = (await p.query('SELECT * FROM immofinder_listings ORDER BY id')).rows;
   const ctx = ctxFromConfig(loadImmoConfig());
   const { ops } = planAutoOps(rows, ctx);
-  const batchId = `auto-${(await p.query("SELECT md5(current_database() || ':' || COALESCE(max(updated_at)::text,'')) AS h FROM immofinder_listings")).rows[0].h}`;
+  // Rule-version salt is essential: otherwise a deploy with stricter rules reuses
+  // the previous audit's idempotency key and silently skips the new audit.
+  const batchId = `auto-${(await p.query(
+    "SELECT md5(current_database() || ':' || $1 || ':' || COALESCE(max(updated_at)::text,'')) AS h FROM immofinder_listings",
+    [REPAIR_RULES_VERSION],
+  )).rows[0].h}`;
   return applyRepairBatch({ batchId, generatedAt: new Date().toISOString(), ops }, 'automatic_rules');
 }
 

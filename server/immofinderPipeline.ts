@@ -10,7 +10,7 @@ export interface ListingRecord {
   contact_advice: string; private_signals: string[]; draft_message_de: string; raw: Record<string, unknown>;
 }
 export interface ImmoStore {
-  findByUrl(url: string): Promise<{ id: string; last_seen_at: string } | null>;
+  findByUrl(url: string): Promise<{ id: string; last_seen_at: string; hidden: boolean; autoHidden: boolean } | null>;
   touch(id: string): Promise<void>;
   upsert(rec: ListingRecord): Promise<'new' | 'updated'>;
   getSeen(url: string): Promise<{ checked_at: string; decision?: string; reason?: string } | null>;
@@ -18,7 +18,7 @@ export interface ImmoStore {
 }
 export interface PipelineDeps {
   config: ImmoConfig;
-  fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string }>;
+  fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string; finalUrl?: string }>;
   /** Returns one parsed JSON object; null disables model extraction (dry run / no key). */
   llm: ((system: string, prompt: string) => Promise<unknown>) | null;
   store: ImmoStore;
@@ -179,7 +179,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     const st = getStat(src.id);
     st.candidates += items.length;
     const stage: ProgressEvent['stage'] = src.id === 'search' ? 'search' : 'catalogue'; let idx = 0;
-    const pages: { url: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; snippet: boolean; hitDate?: string | null }[] = [];
+    const pages: { url: string; evidenceUrl: string | null; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; snippet: boolean; hitDate?: string | null }[] = [];
     for (const it of items) {
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
@@ -191,7 +191,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         break;
       }
       const known = await deps.store.findByUrl(it.url);
-      if (known && fresh(known.last_seen_at)) { if (!opts.dryRun) await deps.store.touch(known.id); res.counts.skipped_known++; continue; }
+      const knownFresh = known && (known.autoHidden
+        ? now() - new Date(known.last_seen_at).getTime() < 6 * 60 * 60 * 1000
+        : fresh(known.last_seen_at));
+      if (known && knownFresh) { if (!opts.dryRun && !known.hidden) await deps.store.touch(known.id); res.counts.skipped_known++; continue; }
       const seen = await deps.store.getSeen(it.url);
       if (seen) {
         // Soft quality rejects (rooms/price/municipality/seeker) recheck after 6h so new evidence can be tried;
@@ -199,7 +202,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         const soft = /^(rooms_|price_|municipality_|seeker_|min_rooms)/i.test(seen.reason || '') || seen.decision === 'filtered' && /^(rooms|price|municipality|seeker)/i.test(seen.reason || '');
         const ttlMs = soft ? 6 * 60 * 60 * 1000 : cfg.limits.recheckAfterDays * 86400000;
         const isFresh = now() - new Date(seen.checked_at).getTime() < ttlMs;
-        if (isFresh) { res.counts.skipped_seen++; continue; }
+        if (isFresh && !known?.autoHidden) { res.counts.skipped_seen++; continue; }
       }
       // Skip URLs that clearly name a place outside the whitelist (no fetch, no LLM).
       const place = placeFromUrl(it.url, cfg.municipalities);
@@ -232,7 +235,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           continue;
         }
       }
-      const host = hostOf(it.url); idx++; say(stage, `${src.id}: reading ${idx}/${items.length} · ${host}${new URL(it.url).pathname.slice(0, 50)}`, idx, items.length); let text = ''; let meta: ReturnType<typeof pageMeta>; let snippet = false;
+      const host = hostOf(it.url); idx++; say(stage, `${src.id}: reading ${idx}/${items.length} · ${host}${new URL(it.url).pathname.slice(0, 50)}`, idx, items.length); let text = ''; let meta: ReturnType<typeof pageMeta>; let snippet = false; let evidenceUrl: string | null = null;
       const fromSnippet = () => {
         snippet = true; res.counts.snippet_only++;
         const hitDate = (it.hit as any)?.date ? String((it.hit as any).date) : '';
@@ -242,7 +245,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       };
       if (it.snippetOnly && it.hit) fromSnippet();
       else {
-        let pg: { ok: boolean; status: number; body: string };
+        let pg: { ok: boolean; status: number; body: string; finalUrl?: string };
         try {
           pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
         } catch {
@@ -250,7 +253,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           res.errors.push({ source: src.id, code: 'step_timeout', detail: `fetch >${STEP_MS}ms ${it.url}`.slice(0, 200) });
           say(stage, `skip slow page (>${Math.round(STEP_MS / 1000)}s): ${hostOf(it.url)}`);
         }
-        if (pg.ok) { res.counts.fetched++; st.fetched++; text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers); meta = pageMeta(pg.body, it.url); }
+        if (pg.ok) { res.counts.fetched++; st.fetched++; const fetchedUrl = pg.finalUrl || it.url; evidenceUrl = fetchedUrl; text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers); meta = pageMeta(pg.body, fetchedUrl); }
         else if (it.hit) fromSnippet();
         else { res.errors.push({ source: src.id, code: 'detail_fetch_failed', detail: `${pg.status} ${it.url}`.slice(0, 200) }); st.consecutiveBad++; continue; }
       }
@@ -287,14 +290,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (src.privateTitleHint && meta!.title.toLowerCase().includes(src.privateTitleHint.toLowerCase())) ex.signals.push('platform_says_private');
       if (snippet) ex.signals.push('snippet_only');
       res.counts.llm_calls += llmCalls; st.llm += llmCalls; if (err) { res.errors.push({ source: src.id, code: 'llm_failed', detail: err }); st.consecutiveBad++; }
-      pages.push({ url: it.url, host, meta: meta!, text, ex, snippet, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null });
+      pages.push({ url: it.url, evidenceUrl, host, meta: meta!, text, ex, snippet, hitDate: (it.hit as any)?.date ? String((it.hit as any).date) : null });
     }
     // Phones repeated on several pages of one host belong to the platform, not to an owner.
     const phoneUse = new Map<string, number>();
     const contacts = pages.map((p) => extractContacts(p.text, cfg.platformDomains));
     contacts.forEach((c, i) => c.phones.forEach((ph) => { const k = `${pages[i].host}|${ph}`; phoneUse.set(k, (phoneUse.get(k) || 0) + 1); }));
     for (let i = 0; i < pages.length; i++) {
-      const { url, host, meta, ex } = pages[i]; const c = contacts[i];
+      const { url, evidenceUrl, host, meta, ex } = pages[i]; const c = contacts[i];
       const deny = async (reason: string, detail?: string) => {
         if (reason === 'agency') st.agencies++;
         else if (reason === 'municipality_not_whitelisted') st.geo++;
@@ -402,7 +405,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         rooms_text: ex.rooms.quote, rooms_estimated: ex.rooms.rooms, rooms_basis: ex.rooms.basis, description_de: descriptionDe, description_ru: '', title_ru: '', owner_name: ex.owner,
         rent_monthly_chf: price?.monthlyChf ?? null, pricing_unit: price?.unit ?? null, listed_at: listedAt ? listedAt.toISOString() : null,
         direct_phone: phone0, direct_email: email0, contact_evidence: contactEvidence, contact_status: contactEvidence.length ? 'found' : 'platform_only',
-        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind },
+        contact_advice: contactEvidence.length ? '' : contactAdvice(url, type), private_signals: ex.signals, draft_message_de: draftMessage({ ownerName: ex.owner, propertyName: ex.name, municipality: ex.municipality, type, rooms: ex.rooms.rooms }), raw: { dryRun: opts.dryRun, llm: ex.llm, via: src.id, price, price_quote: price?.quote ?? ex.priceQuote ?? null, listed_at: listedAt ? listedAt.toISOString() : null, evidence_text: evidenceText, evidence_kind: evidenceKind, evidence_url: evidenceUrl },
       };
       res.counts.kept++;
       res.counts.credible_kept = (res.counts.credible_kept || 0) + 1;
@@ -462,6 +465,11 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const r = await deps.store.upsert(safeRec); res.counts[r]++;
       // A card rejected by the shared quality gate is stored hidden for recovery, never delivered.
       if (r === 'new' && !checked.hardReason) { res.newListings.push(safeRec); st.new++; }
+      else if (r === 'updated' && known?.autoHidden && !checked.hardReason) {
+        // Revalidated cards hidden by automatic quality rules are restored and
+        // delivered like fresh results; manual hides remain untouched.
+        res.newListings.push(safeRec);
+      }
     }
   }
 

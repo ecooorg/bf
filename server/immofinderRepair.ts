@@ -26,7 +26,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.48.1';
+export const REPAIR_RULES_VERSION = '129.49.1';
 
 export const REPAIR_OPS = ['hide', 'unhide', 'delete', 'clear_contact', 'set_price', 'mark_collage'] as const;
 export type RepairOpName = (typeof REPAIR_OPS)[number];
@@ -274,26 +274,50 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   const title = String(row.property_name || '');
   const url = String(row.listing_url || '');
   const raw = obj(row.raw);
-  const text = String(raw.evidence_text || row.description_de || '');
+  const pageEvidence = String(raw.evidence_text || '');
+  const text = String(pageEvidence || row.description_de || '');
   const hay = `${title}\n${text}`;
   if (!url || !/^https?:\/\//i.test(url)) return 'url_missing_or_invalid';
   let why: string | null = nonListingReason(title, url);
   if (!why && !isSpecificLink(url) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) why = 'list_or_search_page';
   if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
+
+  // A search result is only a discovery hint. It is never proof that the target
+  // listing exists, or that its facts and price belong to this exact URL.
+  const evidenceKind = String(raw.evidence_kind || 'link_only');
+  const evidenceUrl = String(raw.evidence_url || '');
+  if (!why && evidenceKind !== 'page_text') why = 'detail_page_not_verified';
+  if (!why && pageEvidence.trim().length < 120) why = 'detail_page_evidence_too_short';
+  if (!why && !evidenceUrl) why = 'detail_page_url_missing';
+  if (!why && normalizeUrl(evidenceUrl) !== normalizeUrl(url)) why = 'detail_page_url_mismatch';
+
   const rooms = Number(row.rooms_estimated);
   if (!why && Number.isFinite(rooms) && rooms >= 12) why = 'rooms_too_many';
+  if (!why && roomsEvidenceConflict(title, pageEvidence, Number.isFinite(rooms) ? rooms : null)) why = 'rooms_conflict';
+  if (!why && municipalityEvidenceMismatch(row.municipality, pageEvidence, ctx.municipalities)) why = 'municipality_mismatch';
+
+  // Require one unambiguous monthly rent on the fetched page. Multiple non-side
+  // amounts (e.g. card price vs description price) are not silently resolved.
   if (!why) {
-    const evidenceText = buildEvidenceText(title, text, 4000);
-    const evidenceKind = (raw.evidence_kind as 'page_text' | 'snippet' | 'link_only') || (text.length >= 80 ? 'page_text' : 'snippet');
+    const rentCandidates = [...new Map(priceCandidates(pageEvidence)
+      .filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= 400 && c.amount <= 9000)
+      .map((c) => [`${c.amount}:${c.unit}`, c])).values()];
+    const hasStoredPrice = raw.price?.amount != null || row.rent_monthly_chf != null;
+    if (rentCandidates.length > 1) why = 'price_ambiguous_on_detail_page';
+    else if (rentCandidates.length !== 1 && hasStoredPrice) why = 'price_not_confirmed_on_detail_page';
+  }
+
+  if (!why) {
+    const evidenceText = buildEvidenceText(title, pageEvidence, 4000);
     why = credibilityRejectReason({
       title, evidenceText, url,
       municipality: row.municipality || null,
       roomsEstimated: Number.isFinite(rooms) ? rooms : null,
       price: resolveListingPrice(evidenceText, null) || parsePrice(evidenceText),
       phone: null, email: null, // contacts are repaired (cleared), never a reason to hide the whole card
-      evidenceKind,
+      evidenceKind: 'page_text',
       municipalities: ctx.municipalities,
-      allowSnippet: true,
+      allowSnippet: false,
     });
   }
   if (!why) {
@@ -419,6 +443,7 @@ export function snapshotLine(row: Row, ctx: AuditContext, opts: { redact?: boole
       price: price.amount != null ? { amount: price.amount, unit: price.unit || null, quote: price.quote || null } : null,
       evidence_text: m(String(raw.evidence_text || '').slice(0, 2500)),
       evidence_kind: raw.evidence_kind || null,
+      evidence_url: raw.evidence_url || null,
       via: raw.via || null,
       listed_at_source: raw.listed_at_source || null,
       repair: raw.repair || null,

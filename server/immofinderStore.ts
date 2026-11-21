@@ -22,8 +22,20 @@ export function createPgStore(): ImmoStore {
   return {
     async findByUrl(url) {
       const p = await getPool();
-      const r = await p.query('SELECT id, last_seen_at FROM immofinder_listings WHERE listing_url = $1 OR source_urls @> jsonb_build_array($1::text) LIMIT 1', [url]);
-      return r.rows[0] ? { id: r.rows[0].id, last_seen_at: new Date(r.rows[0].last_seen_at).toISOString() } : null;
+      const r = await p.query(
+        `SELECT id, last_seen_at, hidden,
+                (raw->'repair'->>'source' = 'automatic_rules') AS auto_hidden
+         FROM immofinder_listings
+         WHERE listing_url = $1 OR source_urls @> jsonb_build_array($1::text)
+         LIMIT 1`,
+        [url],
+      );
+      return r.rows[0] ? {
+        id: r.rows[0].id,
+        last_seen_at: new Date(r.rows[0].last_seen_at).toISOString(),
+        hidden: Boolean(r.rows[0].hidden),
+        autoHidden: Boolean(r.rows[0].auto_hidden),
+      } : null;
     },
     async touch(id) { const p = await getPool(); await p.query('UPDATE immofinder_listings SET last_seen_at = now() WHERE id = $1', [id]); },
     async getSeen(url) {
@@ -55,6 +67,8 @@ export function createPgStore(): ImmoStore {
         const o = ex.rows[0]; const uniq = (a: unknown[]) => [...new Set(a)];
         const prevRaw = o.raw && typeof o.raw === 'object' && !Array.isArray(o.raw) ? o.raw : {};
         const nextRaw = { ...prevRaw, ...(rec.raw && typeof rec.raw === 'object' ? rec.raw : {}) };
+        const recoverAutomaticHide = Boolean(o.hidden) && prevRaw.repair?.source === 'automatic_rules' && !sanitized.hardReason;
+        if (recoverAutomaticHide) nextRaw.repair = { ...(prevRaw.repair || {}), source: 'automatic_recovery', recoveredAt: new Date().toISOString() };
         if (prevRaw.listed_at && !nextRaw.listed_at) nextRaw.listed_at = prevRaw.listed_at;
         // Prefer newly parsed price when present (same URL re-fetch); else keep previous.
         if (prevRaw.price && !nextRaw.price) nextRaw.price = prevRaw.price;
@@ -73,8 +87,8 @@ export function createPgStore(): ImmoStore {
             direct_email = COALESCE($12, direct_email),
             owner_name = COALESCE($13, owner_name),
             raw = $14::jsonb,
-            hidden = CASE WHEN $15::boolean THEN true ELSE hidden END,
-            hide_reason = CASE WHEN $15::boolean THEN $16 ELSE hide_reason END,
+            hidden = CASE WHEN $15::boolean THEN true WHEN $17::boolean THEN false ELSE hidden END,
+            hide_reason = CASE WHEN $15::boolean THEN $16 WHEN $17::boolean THEN '' ELSE hide_reason END,
             last_seen_at = now(), updated_at = now()
            WHERE id = $1`,
           [
@@ -92,7 +106,7 @@ export function createPgStore(): ImmoStore {
             rec.direct_email,
             rec.owner_name,
             j({ ...nextRaw, ...(sanitized.notes.length || sanitized.hardReason ? { write_time_quality: { notes: sanitized.notes, hardReason: sanitized.hardReason, rules: '129.47.1' } } : {}) }),
-            Boolean(sanitized.hardReason), sanitized.hardReason || '',
+            Boolean(sanitized.hardReason), sanitized.hardReason || '', recoverAutomaticHide,
           ],
         );
         return 'updated';
