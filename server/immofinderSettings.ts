@@ -212,6 +212,8 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
             : Math.max(cfg.discovery.communesPerRun, municipalities.length > 0 ? Math.min(44, municipalities.length) : cfg.discovery.communesPerRun),
         queries: wantPrivate ? (cfg.discovery.queries || []).slice(0, s.search.privateQueryTemplates) : [],
         portalQueries,
+        // Keep the full configured portal pool for a quality fallback when selected sources yield too few verified ads.
+        fallbackPortalQueries: cfg.discovery.portalQueries || [],
       }
     : cfg.discovery;
   return {
