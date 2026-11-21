@@ -28,7 +28,17 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.51.1';
+export const REPAIR_RULES_VERSION = '129.52.1';
+
+/** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
+export function encodeSeenReason(reason: string): string {
+  return `${REPAIR_RULES_VERSION}::${String(reason || 'unknown')}`;
+}
+export function decodeSeenReason(stored: unknown): string | null {
+  const value = String(stored || '');
+  const prefix = `${REPAIR_RULES_VERSION}::`;
+  return value.startsWith(prefix) ? value.slice(prefix.length) : null;
+}
 
 export const REPAIR_OPS = ['hide', 'unhide', 'delete', 'clear_contact', 'set_price', 'mark_collage'] as const;
 export type RepairOpName = (typeof REPAIR_OPS)[number];
@@ -70,6 +80,18 @@ export function normalizeUrl(u: unknown): string {
     for (const k of [...x.searchParams.keys()]) if (/^(utm_|fbclid|gclid|ref$|source$)/i.test(k)) x.searchParams.delete(k);
     return `${x.hostname.replace(/^www\./, '').toLowerCase()}${x.pathname.replace(/\/+$/, '')}${x.search}`;
   } catch { return String(u || '').trim().toLowerCase(); }
+}
+
+/** A canonical redirect is the same listing only when its stable numeric id survives on the same host. */
+export function sameListingUrlTarget(requested: string, evidence: string): boolean {
+  if (normalizeUrl(requested) === normalizeUrl(evidence)) return true;
+  try {
+    const a = new URL(requested); const b = new URL(evidence);
+    if (a.hostname.replace(/^www\./i, '').toLowerCase() !== b.hostname.replace(/^www\./i, '').toLowerCase()) return false;
+    const ids = (u: URL) => new Set(`${u.pathname} ${u.search}`.match(/(?<!\d)\d{6,}(?!\d)/g) || []);
+    const left = ids(a); const right = ids(b);
+    return [...left].some((id) => right.has(id));
+  } catch { return false; }
 }
 
 /** True when the phone number (any formatting) occurs in the text. */
@@ -289,9 +311,9 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   const evidenceKind = String(raw.evidence_kind || 'link_only');
   const evidenceUrl = String(raw.evidence_url || '');
   if (!why && evidenceKind !== 'page_text') why = 'detail_page_not_verified';
-  if (!why && pageEvidence.trim().length < 120) why = 'detail_page_evidence_too_short';
+  if (!why && pageEvidence.trim().length < 30) why = 'detail_page_evidence_too_short';
   if (!why && !evidenceUrl) why = 'detail_page_url_missing';
-  if (!why && normalizeUrl(evidenceUrl) !== normalizeUrl(url)) why = 'detail_page_url_mismatch';
+  if (!why && !sameListingUrlTarget(url, evidenceUrl)) why = 'detail_page_url_mismatch';
 
   const rooms = Number(row.rooms_estimated);
   if (!why && Number.isFinite(rooms) && rooms >= 12) why = 'rooms_too_many';

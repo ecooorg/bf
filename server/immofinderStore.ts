@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPool } from './database.ts';
-import { sanitizeNewRecord, ctxFromConfig, REPAIR_RULES_VERSION } from './immofinderRepair.ts';
+import { sanitizeNewRecord, ctxFromConfig, REPAIR_RULES_VERSION, encodeSeenReason, decodeSeenReason } from './immofinderRepair.ts';
 import { type ImmoConfig, nonListingReason, isSpecificLink, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, looksLikeAgencyListing, parsePrice, resolveListingPrice, credibilityRejectReason, buildEvidenceText, isPlatformOrJunkContact, formatHideLog } from './immofinderCore.ts';
 import { type ImmoSettings, defaultSettings, sanitizeSettings } from './immofinderSettings.ts';
 import type { ImmoStore, ListingRecord, RunResult } from './immofinderPipeline.ts';
@@ -40,11 +40,15 @@ export function createPgStore(): ImmoStore {
     async touch(id) { const p = await getPool(); await p.query('UPDATE immofinder_listings SET last_seen_at = now() WHERE id = $1', [id]); },
     async getSeen(url) {
       const p = await getPool(); const r = await p.query('SELECT checked_at, decision, reason FROM immofinder_seen WHERE url = $1', [url]);
-      return r.rows[0] ? { checked_at: new Date(r.rows[0].checked_at).toISOString(), decision: r.rows[0].decision, reason: r.rows[0].reason } : null;
+      if (!r.rows[0]) return null;
+      // Entries written by older search rules are ignored once, then replaced with the current version if rejected again.
+      const reason = decodeSeenReason(r.rows[0].reason);
+      if (reason === null) return null;
+      return { checked_at: new Date(r.rows[0].checked_at).toISOString(), decision: r.rows[0].decision, reason };
     },
     async markSeen(url, sourceId, decision, reason) {
       const p = await getPool();
-      await p.query('INSERT INTO immofinder_seen (url, source_id, decision, reason) VALUES ($1,$2,$3,$4) ON CONFLICT (url) DO UPDATE SET decision = $3, reason = $4, checked_at = now()', [url, sourceId, decision, reason]);
+      await p.query('INSERT INTO immofinder_seen (url, source_id, decision, reason) VALUES ($1,$2,$3,$4) ON CONFLICT (url) DO UPDATE SET decision = $3, reason = $4, checked_at = now()', [url, sourceId, decision, encodeSeenReason(reason)]);
     },
     async upsert(input: ListingRecord) {
       const p = await getPool();
@@ -265,11 +269,32 @@ export async function wipeAllListings(): Promise<{ listings: number; seen: numbe
   try { await p.query('DELETE FROM immofinder_progress'); } catch { /* optional */ }
   return { listings, seen, progress };
 }
-/** Hard-delete one listing by id. Returns true if a row was removed. */
+/** Hard-delete one listing by id and clear its URL-level seen-cache entries so a later search can re-evaluate it. */
 export async function deleteListing(id: string): Promise<boolean> {
   const p = await getPool();
-  const r = await p.query('DELETE FROM immofinder_listings WHERE id = $1', [id]);
-  return (r.rowCount ?? 0) > 0;
+  const client = await p.connect();
+  try {
+    await client.query('BEGIN');
+    const found = await client.query(
+      'SELECT listing_url, source_urls FROM immofinder_listings WHERE id = $1 FOR UPDATE',
+      [id],
+    );
+    const row = found.rows[0];
+    if (!row) { await client.query('ROLLBACK'); return false; }
+    const sources = Array.isArray(row.source_urls)
+      ? row.source_urls
+      : (() => { try { const v = JSON.parse(String(row.source_urls || '[]')); return Array.isArray(v) ? v : []; } catch { return []; } })();
+    const urls = [...new Set([row.listing_url, ...sources].map((u) => String(u || '').trim()).filter(Boolean))];
+    const deleted = await client.query('DELETE FROM immofinder_listings WHERE id = $1 RETURNING id', [id]);
+    if (urls.length) await client.query('DELETE FROM immofinder_seen WHERE url = ANY($1::text[])', [urls]);
+    await client.query('COMMIT');
+    return (deleted.rowCount ?? 0) > 0;
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch { /* preserve original failure */ }
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function setStatus(id: string, status: string): Promise<boolean> {
