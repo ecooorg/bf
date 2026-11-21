@@ -140,6 +140,11 @@ test('parseListedAt covers labelled DE dates, relative phrases and meta preferen
   assert.equal(declared.toISOString().slice(0, 10), '2026-11-12');
   const meta = pageMeta('<html><head><meta property="article:published_time" content="2026-10-01T08:00:00Z"/><title>Test</title></head></html>', 'https://example.ch/x');
   assert.equal(meta.published, '2026-10-01T08:00:00Z');
+  const modifiedOnly = pageMeta('<html><head><meta property="article:modified_time" content="2020-01-01T08:00:00Z"/><meta property="og:updated_time" content="2020-01-02T08:00:00Z"/><script type="application/ld+json">{"dateModified":"2020-01-03T08:00:00Z"}</script></head></html>', 'https://example.ch/x');
+  assert.equal(modifiedOnly.published, null, 'modified timestamps are not listing publication dates');
+  assert.equal(parseListedAt('Aktualisiert am: 01.01.2020', undefined, null), null);
+  assert.equal(parseListedAt('Mietbeginn ab: 01.01.2020', undefined, null), null);
+  assert.equal(parseListedAt('random 01.01.2020 text', undefined, null), null, 'unlabelled page dates are not treated as listing dates');
 });
 
 test('card model and exports show published date only (not search found time)', async () => {
