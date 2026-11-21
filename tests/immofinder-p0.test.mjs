@@ -182,6 +182,24 @@ test('each discovery query processes at most two detail candidates and interleav
   assert.deepEqual(queried, ['A Chur', 'A Zizers', 'C Chur', 'C Zizers', 'B Chur', 'B Zizers']);
   assert.equal(result.counts.candidates, 12);
 });
+test('portal SERP sources do not early-stop after the catalogue bad-streak threshold', async () => {
+  const communes = ['Chur', 'Zizers', 'Igis', 'Landquart', 'Malans', 'Maienfeld', 'Jenaz', 'Grüsch'];
+  const localCfg = leanCfg();
+  localCfg.municipalities = communes;
+  localCfg.discovery = { ...localCfg.discovery, communesPerRun: communes.length, queries: [], portalQueries: ['site:flatfox.ch {commune} Wohnung mieten'], maxPagesPerRun: 420 };
+  const queried = []; const fetched = [];
+  const result = await runPipeline({
+    config: localCfg,
+    fetchPage: async (url) => { fetched.push(url); return { ok: false, status: 403, body: '' }; },
+    llm: null, store: memStore(),
+    search: async (q) => { queried.push(q); const base = queried.length * 100; const commune = communes[queried.length - 1]; return Array.from({ length: 5 }, (_, i) => ({ title: `3.5 Zimmer Wohnung in ${commune}`, link: `https://flatfox.ch/en/flat/abc-${base+i}`, snippet: 'Wohnung zu vermieten' })); },
+    cycle: 0,
+  }, { dryRun: true, wave: 'carousel' });
+  assert.equal(queried.length, communes.length, 'every selected commune is queried for this portal');
+  assert.equal(fetched.length, communes.length * 2, 'two candidates from every commune reach the fetch stage');
+  assert.equal(result.sourceStats.find((s) => s.id === 'portal-flatfox')?.stoppedEarly, false);
+  assert.equal(result.errors.some((e) => e.code === 'source_early_stop'), false);
+});
 test('duplicate top SERP hits do not consume the per-query candidate cap', async () => {
   const localCfg = leanCfg({ communesPerRun: 1, queries: ['A {commune}', 'B {commune}'], portalQueries: [], maxPagesPerRun: 80 });
   const fetched = [];

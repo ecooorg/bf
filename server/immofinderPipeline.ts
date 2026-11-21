@@ -190,7 +190,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
       const stopAt = consecutiveStopFor(src.id);
-      if (src.id !== 'search' && st.consecutiveBad >= stopAt) {
+      if (src.id !== 'search' && !src.id.startsWith('portal-') && st.consecutiveBad >= stopAt) {
         st.stoppedEarly = true;
         res.errors.push({ source: src.id, code: 'source_early_stop', detail: `${stopAt} consecutive non-keeps; skipping rest of source` });
         say(stage, `${src.id}: early stop after ${stopAt} consecutive bad results`);
