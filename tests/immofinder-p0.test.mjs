@@ -197,7 +197,9 @@ test('portal SERP sources do not early-stop after the catalogue bad-streak thres
   }, { dryRun: true, wave: 'carousel' });
   assert.equal(queried.length, communes.length, 'every selected commune is queried for this portal');
   assert.equal(fetched.length, communes.length * 2, 'two candidates from every commune reach the fetch stage');
-  assert.equal(result.sourceStats.find((s) => s.id === 'portal-flatfox')?.stoppedEarly, false);
+  const portalStats = result.sourceStats.find((s) => s.id === 'portal-flatfox');
+  assert.equal(portalStats?.candidates, communes.length * 2, 'portal candidates are attributed to the actual portal source');
+  assert.equal(portalStats?.stoppedEarly, false);
   assert.equal(result.errors.some((e) => e.code === 'source_early_stop'), false);
 });
 test('duplicate top SERP hits do not consume the per-query candidate cap', async () => {

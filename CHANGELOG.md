@@ -1,7 +1,8 @@
-## P129.53.5 — Do not early-stop portal search across communes
+## P129.53.5 — Attribute portal SERP results by source
 
-- **BUGFIX:** the 14-consecutive-reject cutoff is now limited to catalogue crawlers. Google `site:` portal searches must cover every selected commune; a weak first group of communes must not suppress later communes for the same portal.
-- **VERIFY:** add a regression test with eight communes and a failing first seven-commune streak; all eight portal queries must still reach detail-page fetch.
+- **BUGFIX / OBSERVABILITY:** Google `site:` queries are now attributed to their configured portal ID instead of being merged into the generic `search` source. Per-portal candidate, fetch, reject and keep counts are now meaningful.
+- **BUGFIX:** the catalogue early-stop threshold no longer applies to search discovery sources (`search` and `portal-*`); every selected commune is covered even when earlier portal results are poor.
+- **VERIFY:** add a regression test with eight communes; all portal queries reach the fetch stage and their candidates appear under `portal-flatfox`.
 ## P129.53.4 — Pass the portal allowlist through the final discovery gate
 
 - **BUGFIX:** both dry-run and live discovery now pass `ctxFromConfig(cfg)` into final record sanitation. Non-standard Flatfox / Swiss-portal detail URLs are no longer rejected because the last gate received municipalities but no configured portal hosts.

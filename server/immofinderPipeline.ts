@@ -184,13 +184,14 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     res.counts.candidates += items.length;
     const st = getStat(src.id);
     st.candidates += items.length;
-    const stage: ProgressEvent['stage'] = src.id === 'search' ? 'search' : 'catalogue'; let idx = 0;
+    const isDiscoverySource = src.id === 'search' || src.id.startsWith('portal-');
+    const stage: ProgressEvent['stage'] = isDiscoverySource ? 'search' : 'catalogue'; let idx = 0;
     const pages: { url: string; evidenceUrl: string; fetchMode?: string; host: string; meta: ReturnType<typeof pageMeta>; text: string; ex: Extract; hitDate?: string | null; knownAutoHidden: boolean }[] = [];
     for (const it of items) {
       if (deps.shouldCancel?.()) { res.errors.push({ source: src.id, code: 'cancelled', detail: 'Stopped by user' }); break; }
       if (pages.length >= maxPages) break;
       const stopAt = consecutiveStopFor(src.id);
-      if (src.id !== 'search' && !src.id.startsWith('portal-') && st.consecutiveBad >= stopAt) {
+      if (!isDiscoverySource && st.consecutiveBad >= stopAt) {
         st.stoppedEarly = true;
         res.errors.push({ source: src.id, code: 'source_early_stop', detail: `${stopAt} consecutive non-keeps; skipping rest of source` });
         say(stage, `${src.id}: early stop after ${stopAt} consecutive bad results`);
@@ -633,6 +634,17 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       ? `Discovery${communeHint}: ${slice.length} queries (all selected sources, Serper-paced; process each query immediately)`
       : `Discovery: up to ${slice.length} queries`);
     let batchHits: SearchHit[] = [];
+    let currentSourceId = 'search';
+    const sourceIdForQuery = (query: string) => {
+      const rawHost = /site:([a-z0-9.-]+)/i.exec(query)?.[1];
+      if (!rawHost) return 'search';
+      const host = rawHost.replace(/^www\./i, '').toLowerCase();
+      const portal = (d.portalSources || []).find((p) => {
+        const configured = String(p.host || '').replace(/^www\./i, '').toLowerCase();
+        return configured && (host === configured || host.endsWith(`.${configured}`) || configured.endsWith(`.${host}`));
+      });
+      return portal?.id || 'search';
+    };
     const flushBatch = async () => {
       if (!batchHits.length || deps.shouldCancel?.()) { batchHits = []; return; }
       const items = pickItems(batchHits, cfg).filter((it) => !processedUrls.has(it.url)).slice(0, MAX_CANDIDATES_PER_QUERY);
@@ -641,12 +653,13 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const remaining = Math.max(0, pageLimit - processedItems);
       if (items.length && remaining > 0) {
         res.counts.sources++;
-        await processItems({ id: 'search' }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), remaining);
+        await processItems({ id: currentSourceId }, items.map((i) => ({ url: i.url, hit: i.hit, snippetOnly: i.snippetOnly })), remaining);
         processedItems += Math.min(items.length, remaining);
       }
     };
     for (const q of slice) {
       if (deps.shouldCancel?.()) break;
+      currentSourceId = sourceIdForQuery(q);
       if (!finishAll && timeLeft() < 45_000) {
         res.errors.push({ source: 'search', code: 'run_time_budget', detail: `stopped with ${slice.length - qi} queries left` });
         break;
@@ -674,7 +687,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         consecutiveSearchFails = 0;
       } catch (e) {
         const msg = String((e as Error)?.message || e).slice(0, 100);
-        res.errors.push({ source: 'search', code: msg.startsWith('step_timeout:') ? 'step_timeout' : 'search_failed', detail: msg });
+        res.errors.push({ source: currentSourceId, code: msg.startsWith('step_timeout:') ? 'step_timeout' : 'search_failed', detail: msg });
         say('search', msg.startsWith('step_timeout:') ? `skip slow search (>10s): ${q.slice(0, 50)}` : `search failed: ${msg.slice(0, 160)}`);
         consecutiveSearchFails++;
         if (/429|400|rate/i.test(msg)) await sleep(Math.min(15_000, serperMinIntervalMs * 3));
