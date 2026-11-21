@@ -1,3 +1,7 @@
+## P129.47 — ImmoFinder database repair loop
+
+- Implemented: complete All Logs snapshot, authenticated snapshot/preview/apply API, idempotent batch ledger, bundled repair auto-apply, first-request audit, write-time sanitation and post-repair channel refresh. Live DB repair and user-facing delivery verification remain NOT_RUN.
+
 ## P126 — Simple Mode direct Gemini conversation (owner-provided C126 specification)
 
 ### P126.3 — CONVERSATION RELIABILITY

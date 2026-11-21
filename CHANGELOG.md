@@ -1,3 +1,7 @@
+## P129.47 — ImmoFinder database repair loop
+
+- All Logs now includes a complete saved-listing JSONL snapshot; authenticated snapshot, preview and idempotent apply APIs let the Assistant return evidence-bound repair batches; bundled repair batches auto-apply on first request. A deterministic quality audit and write-time sanitation gate saved, new and refetched cards; repaired lists republish to Drive, e-mail and Telegram. RELIABILITY / USER_VALUE.
+
 ## P129.46 — ImmoFinder: stop mixing fields from different listings
 
 - Root cause: upsert merged by fuzzy `canonical_key` (title+municipality) and never updated `listing_url`, so description/price/contacts from ad B attached to URL of ad A; moving/SEO hosts (moving24, rentumo, umzug…) accepted as listings.
