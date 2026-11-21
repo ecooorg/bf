@@ -267,16 +267,20 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         say(stage, `✖ ${reason}: ${title.slice(0, 60)}`);
       };
       // Social feeds may expose an ad only as a post/snippet. Preserve it as provisional evidence.
-      const snippetEvidence = Boolean(it.snippetOnly && it.hit);
+      let snippetEvidence = Boolean(it.snippetOnly && it.hit);
       if (snippetEvidence) res.counts.snippet_only++;
       let pg: { ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string };
       const fetchStartedAt = now();
-      if (snippetEvidence) {
-        const esc = (v: string) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      const buildSnippetPage = (fetchMode = 'search_snippet') => {
+        const esc = (v: string) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
         const title = String(it.hit?.title || '').slice(0, 300);
         const snippet = String(it.hit?.snippet || '').slice(0, 3000);
-        pg = { ok: true, status: 200, body: `<html><head><title>${esc(title)}</title><meta name="description" content="${esc(snippet)}"></head><body><main>${esc(snippet)}</main></body></html>`, finalUrl: it.url, fetchMode: 'search_snippet' };
-        diag('candidate_snippet_used', { source: src.id, url: safeDiagUrl(it.url), host, title: safeDiagText(title, 180), snippet: safeDiagText(snippet, 700), municipalityHint: it.municipalityHint || null, evidenceConfidence: 'low' });
+        const body = '<html><head><title>' + esc(title) + '</title><meta name="description" content="' + esc(snippet) + '"></head><body><main>' + esc(snippet) + '</main></body></html>';
+        return { ok: true, status: 200, body, finalUrl: it.url, fetchMode };
+      };
+      if (snippetEvidence) {
+        pg = buildSnippetPage();
+        diag('candidate_snippet_used', { source: src.id, url: safeDiagUrl(it.url), host, title: safeDiagText(it.hit?.title, 180), snippet: safeDiagText(it.hit?.snippet, 700), municipalityHint: it.municipalityHint || null, evidenceConfidence: 'low' });
       } else {
         try {
           pg = await withStepTimeout('fetch', () => deps.fetchPage(it.url));
@@ -288,14 +292,22 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
       if (!pg.ok) {
         diag('candidate_fetch_failed', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || null, durationMs: now() - fetchStartedAt, error: safeDiagText(pg.body, 300), finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
-        if (it.hit) {
+        const availableSnippet = String(it.hit?.snippet || '').trim();
+        if (it.hit && availableSnippet.length >= 18) {
+          snippetEvidence = true;
           res.counts.snippet_only++;
-          rejectUnverified('detail_page_fetch_failed', `http_${pg.status || 0}`);
+          pg = buildSnippetPage('search_snippet_fetch_fallback');
+          diag('candidate_snippet_fallback_after_fetch_failure', { source: src.id, url: safeDiagUrl(it.url), host, originalFetchStatus: pg.status, snippetChars: availableSnippet.length, evidenceConfidence: 'low' });
         } else {
-          res.errors.push({ source: src.id, code: 'detail_fetch_failed', detail: `${pg.status} ${it.url}`.slice(0, 200) });
-          st.consecutiveBad++;
+          if (it.hit) {
+            res.counts.snippet_only++;
+            rejectUnverified('detail_page_fetch_failed', 'http_' + String(pg.status || 0));
+          } else {
+            res.errors.push({ source: src.id, code: 'detail_fetch_failed', detail: String(pg.status) + ' ' + it.url.slice(0, 200) });
+            st.consecutiveBad++;
+          }
+          continue;
         }
-        continue;
       }
       if (!snippetEvidence) {
         res.counts.fetched++; st.fetched++;
@@ -304,17 +316,33 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const fetchedUrl = String(pg.finalUrl || '').trim();
       if (fetchedUrl && !sameListingUrlTarget(it.url, fetchedUrl)) {
         diag('candidate_redirect_mismatch', { source: src.id, requestedUrl: safeDiagUrl(it.url), finalUrl: safeDiagUrl(fetchedUrl) });
-        await rejectUnverified('detail_page_url_mismatch', `final_url:${fetchedUrl.slice(0, 120)}`);
-        continue;
+        const availableSnippet = String(it.hit?.snippet || '').trim();
+        if (it.hit && availableSnippet.length >= 18) {
+          snippetEvidence = true;
+          res.counts.snippet_only++;
+          pg = buildSnippetPage('search_snippet_redirect_fallback');
+          evidenceUrl = it.url;
+          diag('candidate_snippet_fallback_after_redirect', { source: src.id, requestedUrl: safeDiagUrl(it.url), redirectedTo: safeDiagUrl(fetchedUrl), snippetChars: availableSnippet.length, evidenceConfidence: 'low' });
+        } else {
+          await rejectUnverified('detail_page_url_mismatch', 'final_url:' + fetchedUrl.slice(0, 120));
+          continue;
+        }
+      } else {
+        evidenceUrl = fetchedUrl || it.url;
       }
-      // `finalUrl` is optional in PipelineDeps by contract. Native fetch reports it;
-      // test adapters and some fetch proxies may not. In that case the evidence URL
-      // remains the exact requested URL, while an explicitly different redirect is rejected.
-      evidenceUrl = fetchedUrl || it.url;
       text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers);
+      if (text.trim().length < MIN_DIRECT_PAGE_TEXT_CHARS && !snippetEvidence && it.hit && String(it.hit.snippet || '').trim().length >= 18) {
+        diag('candidate_page_text_too_short', { source: src.id, url: safeDiagUrl(it.url), textChars: text.trim().length, bodyChars: String(pg.body || '').length, fetchMode: pg.fetchMode || 'direct' });
+        snippetEvidence = true;
+        res.counts.snippet_only++;
+        pg = buildSnippetPage('search_snippet_short_page_fallback');
+        evidenceUrl = it.url;
+        text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers);
+        diag('candidate_snippet_fallback_after_short_page', { source: src.id, url: safeDiagUrl(it.url), snippetChars: String(it.hit.snippet || '').length, evidenceConfidence: 'low' });
+      }
       if (text.trim().length < (snippetEvidence ? 18 : MIN_DIRECT_PAGE_TEXT_CHARS)) {
         diag('candidate_page_text_too_short', { source: src.id, url: safeDiagUrl(it.url), textChars: text.trim().length, bodyChars: String(pg.body || '').length, fetchMode: pg.fetchMode || 'direct' });
-        await rejectUnverified('detail_page_evidence_too_short', `chars:${text.trim().length};mode:${pg.fetchMode || 'direct'}`);
+        await rejectUnverified('detail_page_evidence_too_short', 'chars:' + text.trim().length + ';mode:' + (pg.fetchMode || 'direct'));
         continue;
       }
       meta = pageMeta(pg.body, evidenceUrl);
