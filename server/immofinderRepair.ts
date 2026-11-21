@@ -192,7 +192,7 @@ export type PriceVerdict =
  * Compare the stored price with the card's own page text.
  *  - stored amount sits in a parking / utilities / deposit clause and exactly one rent-like amount exists → repair
  *  - stored amount is a calendar year or far below 400 while a rent exists → repair
- *  - several candidate rents → suspect (flag only, no automatic change)
+ *  - several candidate rents → suspect unless exactly one is explicitly gross / warm rent
  */
 export function priceVerdict(row: Row): PriceVerdict {
   const raw = obj(row.raw);
@@ -209,9 +209,9 @@ export function priceVerdict(row: Row): PriceVerdict {
   const cands = priceCandidates(evidence);
   const rentCands = cands.filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= 400 && c.amount <= 9000);
   const distinct = [...new Map(rentCands.map((c) => [`${c.amount}:${c.unit}`, c])).values()];
-  const grossCandidates = distinct.filter((c) => /\\b(bruttomiete|bruttomietzins|warmmiete)\\b/i.test(evidence.slice(Math.max(0, c.index - 60), c.index)));
+  const grossCandidates = distinct.filter((c) => /\b(bruttomiete|bruttomietzins|warmmiete)\b/i.test(evidence.slice(Math.max(0, c.index - 60), c.index)));
   const pick = (list: PriceCandidate[]): PriceCandidate | null => {
-    const gross = list.filter((c) => /\\b(bruttomiete|bruttomietzins|warmmiete)\\b/i.test(evidence.slice(Math.max(0, c.index - 60), c.index)));
+    const gross = list.filter((c) => /\b(bruttomiete|bruttomietzins|warmmiete)\b/i.test(evidence.slice(Math.max(0, c.index - 60), c.index)));
     if (gross.length === 1) return gross[0];
     if (list.length === 1) return list[0];
     const labelled = list.filter((c) => c.rentLabelled);
