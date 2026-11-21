@@ -1,3 +1,7 @@
+## P129.50 — ImmoFinder encrypted database snapshots and seasonal rentals
+
+- Fixed the P129.49 CI regression (`known` out of scope); every completed manual/scheduled search now commits the complete listings table to GitHub as AES-256-GCM ciphertext. Restored short-stay/seasonal discovery, requiring explicit price period, fetched detail page, concrete listing URL and verified direct contact; added evidence-quoted street-address storage/display. USER_VALUE / RELIABILITY / PRIVACY.
+
 ## P129.49 — ImmoFinder direct-page verification
 
 - Search snippets no longer qualify as proof of a listing. Cards require fetched detail-page evidence from the same final URL and one unambiguous matching price; redirect mismatches and evidence conflicts are hidden. Rule-versioned audits rerun after deploy, and valid cards hidden by automatic rules can be restored after a successful direct re-fetch. BUGFIX.

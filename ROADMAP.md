@@ -1,3 +1,7 @@
+## P129.50 — ImmoFinder encrypted DB backup and short-stay support
+
+- Implemented: CI scope fix; full encrypted GitHub snapshot after manual/scheduled searches; physical-address extraction/storage/card display; seasonal/nightly/weekly offers admitted only with explicit period, exact detail URL, fetched page and verified direct contact. **Pending:** configure runtime GitHub write token/repository, run hosted CI, apply migration and verify production snapshot + all delivery channels.
+
 ## P129.48 — ImmoFinder search defaults and CI contract
 
 - Implemented: expanded Swiss portal discovery, quality-first reset defaults, strict saved-card monthly-price audit with channel republish and env-example coverage fix. Hosted CI rerun and live result quality remain NOT_RUN.

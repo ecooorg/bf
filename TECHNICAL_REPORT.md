@@ -1,3 +1,10 @@
+## P129.50 — ImmoFinder GitHub snapshot and short-stay quality gates
+
+- **OBSERVED:** Hosted CI run `44884418425` failed `typecheck` and `build:server` on `server/immofinderPipeline.ts:468`: `known` was out of scope; CI reported 16 PASS / 2 FAIL. `npm ci` timed out in this environment.
+- **CHANGE:** Carried `knownAutoHidden` with each fetched page; after every completed manual/scheduled run, publish all DB rows (visible + hidden, contacts, addresses, URLs, evidence) to `data/immofinder/listings.snapshot.enc` via GitHub Contents API, encrypted with AES-256-GCM and a key derived from stable `SESSION_SECRET`. Short-stay/seasonal sources are discoverable again; cards require explicit amount+period, a fetched detail page, a concrete URL and a verified direct phone/e-mail. Added evidence-quoted `street_address` persistence and shared-card display.
+- **VERIFY:** `immofinder-quality`: 33 PASS; `immofinder-p0`: 13 PASS; `agents-contract` excluding two dependency-blocked cases: 27 PASS / 2 SKIP; snapshot encryption round-trip + mocked GitHub commit PASS; Node TS syntax checks PASS; docs/version metadata PASS.
+- **BLOCKED / NOT_RUN:** Full `agents-contract` has dependency-blocked cases (`express`, `jszip`); full TypeScript typecheck blocked by missing `vite/client` and `@types/node`; full production build and hosted CI rerun NOT_RUN. Production GitHub write, database migration on live PostgreSQL, live seasonal discovery and delivery to screen/Telegram/e-mail/Drive NOT_RUN.
+
 ## P129.49 — ImmoFinder primary-page verification
 
 - **OBSERVED:** Supplied snapshot: 30 visible / 86 total; replay of the new audit hides 30/30 (29 lack direct-page evidence; one lacks final-URL provenance); web checks found 404s, a wrong-target redirect and a price conflict.
