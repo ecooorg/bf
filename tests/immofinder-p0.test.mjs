@@ -98,7 +98,7 @@ test('pipeline batches discovery processing and avoids poisoning seen with insuf
   assert.match(source, /reason !== 'rooms_unknown'/);
   assert.match(source, /reason !== 'municipality_not_whitelisted'/);
   assert.match(source, /it\.snippetOnly && it\.hit/);
-  assert.match(source, /allowSnippet: false/);
+  assert.match(source, /allowSnippet: snippetEvidence/);
   assert.match(source, /6 \* 60 \* 60 \* 1000/);
   assert.match(source, /const isDiscoverySource = src\.id === 'search' \|\| src\.id\.startsWith\('portal-'\)/);
   assert.match(source, /if \(!isDiscoverySource && st\.consecutiveBad >= stopAt\)/);
@@ -358,7 +358,7 @@ test('P129.51 a failed portal fetch falls back to a provisional SERP-evidence ca
   assert.equal(saved[0].raw.evidence_kind, 'snippet');
 });
 
-test('P129.52 direct detail pages accept optional final URL, reject wrong redirects and require useful page text', async () => {
+test('P129.52 direct detail pages accept optional final URL and use search snippets after redirects or short pages', async () => {
   const url = 'https://www.homegate.ch/mieten/4001234567';
   const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title><meta name="description" content="Helle Wohnung mit Balkon und Küche"></head><body><h1>3.5-Zimmer-Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Wohnfläche 80 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich. Separates Kellerabteil und ruhige Lage.</p></body></html>`;
   const saved = [];
@@ -384,17 +384,20 @@ test('P129.52 direct detail pages accept optional final URL, reject wrong redire
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: 'https://www.homegate.ch/mieten/4009999999' }),
     llm: null, store: memStore(wrongSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
-  assert.equal(redirected.filtered.detail_page_url_mismatch, 1);
-  assert.equal(redirected.counts.kept, 0);
-  assert.equal(wrongSaved.length, 0);
+  assert.equal(redirected.counts.snippet_only, 1);
+  assert.equal(redirected.counts.kept, 1);
+  assert.equal(wrongSaved.length, 1);
+  assert.equal(wrongSaved[0].raw.provisional, true, 'a redirect mismatch falls back to the search result as low-confidence evidence');
 
   const shortSaved = [];
   const shortPage = await runPipeline({
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body: '<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body>Zu vermieten.</body></html>', finalUrl: url }),
     llm: null, store: memStore(shortSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
-  assert.equal(shortPage.filtered.detail_page_evidence_too_short, 1, 'a page with fewer than 30 characters is rejected before price extraction');
-  assert.equal(shortSaved.length, 0);
+  assert.equal(shortPage.counts.snippet_only, 1);
+  assert.equal(shortPage.counts.kept, 1, 'a short fetched page falls back to its search-result title/snippet');
+  assert.equal(shortSaved.length, 1);
+  assert.equal(shortSaved[0].raw.provisional, true);
 });
 
 test('Google SERP crawl date is not treated as the listing publication date', async () => {
