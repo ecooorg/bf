@@ -14,7 +14,7 @@ import { SUPPORT_CONTACTS, hasDistressMarker } from './src/support.ts';
 import { collectAllowedFromInput, safeValidateNumbers } from './src/numberValidator.ts';
 
 import { APP_VERSION } from './src/config.ts';
-import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog } from './server/projectDiagnostics.ts';
+import { buildCommit, requestDiagnosticsMiddleware, recordApplicationLog, installLogCapture } from './server/projectDiagnostics.ts';
 import { conversationSessionLog } from './server/conversationDiagnostics.ts';
 import { buildAllLogsZip } from './server/allLogs.ts';
 import { observeSimpleResponseDelivery, simpleConversationMetricDetails } from './server/simpleConversationDiagnostics.ts';
@@ -42,7 +42,7 @@ import { buildDocx, buildPdf, documentFileName, sanitizeDocument } from './serve
 import { registerHealthRoutes } from './server/healthRoutes.ts';
 import { registerAuthRoutes } from './server/authRoutes.ts';
 import { registerProjectRoutes } from './server/projectRoutes.ts';
-import { registerImmoFinderRoutes, isImmoCronCall } from './server/immofinderRoutes.ts';
+import { registerImmoFinderRoutes, isImmoCronCall, isImmoDiagnosticsCall } from './server/immofinderRoutes.ts';
 import { registerOpsRoutes } from './server/opsRoutes.ts';
 import { registerCompatibilityRoutes } from './server/compatibilityRoutes.ts';
 import { buildOpsSnapshot, gatherOpsInput, processRssMb, renderOpsHtml } from './server/opsMetrics.ts';
@@ -80,6 +80,8 @@ import { readLlmLatencyConfig } from './server/llmLatencyConfig.ts';
 import { securityHeadersMiddleware } from './server/securityHeaders.ts';
 
 dotenv.config();
+// Install before runtime diagnostics are emitted; ImmoFinder traces are captured until run completion.
+installLogCapture();
 
 /** Build a Gemini client with an optional base URL and explicitly bounded SDK retries.
  * The production default is unchanged; deterministic test harnesses may set
@@ -399,7 +401,7 @@ registerAuthRoutes(app, {
 app.use((req, res, next) => {
   if (!req.path.startsWith('/api/')) return next();
   if (req.path === '/api/health' || req.path === '/api/session' || req.path === '/api/login' || req.path === '/api/logout') return next();
-  if (isImmoCronCall(req)) return next(); // secret is verified (timing-safe) by the ImmoFinder middleware; a bad secret still gets 401 there
+  if (isImmoCronCall(req) || isImmoDiagnosticsCall(req)) return next(); // secrets are verified (timing-safe) by the ImmoFinder middleware; bad secrets still get 401 there
   if (!authenticated(req)) {
     return res.status(401).json({ success: false, error: 'Authentication required', code: 'UNAUTHORIZED' });
   }
