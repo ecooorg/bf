@@ -32,7 +32,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-          RENDER_LOG_LOOKBACK_MINUTES: '1440'
+          RENDER_LOG_LOOKBACK_MINUTES: '180'
           PLATFORM_LOGS_DIR: artifacts/platform-logs
         run: node scripts/collect-platform-logs.mjs
       - name: Check GitHub, Render and the latest search run
