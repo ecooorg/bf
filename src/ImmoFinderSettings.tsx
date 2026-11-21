@@ -390,7 +390,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
 
         <strong style={{ display: 'block', marginTop: 12 }}>Search targets</strong>
         <p style={hint}>
-          Uses Google site: searches for the enabled Swiss portal domains plus private-owner queries; these are search targets, not 14 separate portal crawlers or APIs. Each result is fetched and verified before it becomes a card. Holiday-rental catalogues stay off. Single-property ads in selected communes must meet the room-count rule; known rent is checked against the configured ceiling, while undisclosed rent may remain marked as unknown. Agency and seeker posts are rejected.
+          Uses Google site: searches for the enabled Swiss portal domains plus private-owner queries; these are search targets, not independent portal crawlers or APIs. Each result is fetched and verified before it becomes a card. Holiday-rental catalogues stay off. Single-property ads in selected communes must meet the room-count rule; known rent is checked against the configured ceiling, while undisclosed rent may remain marked as unknown. Agency and seeker posts are rejected.
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
