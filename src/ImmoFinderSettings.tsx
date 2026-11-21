@@ -391,7 +391,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
 
         <strong style={{ display: 'block', marginTop: 12 }}>Sources (Stage 1 prioritises the top rows)</strong>
         <p style={hint}>
-          Web search + all configured Swiss rental portals. Holiday-rental catalogues stay off. Only private long-term rental ads with a stated monthly price pass the quality gate; agency, seeker and non-monthly results are rejected.
+          Searches Google results for the enabled Swiss rental portals and private ads. Holiday-rental catalogues stay off. Single-property ads in the selected communes must meet the room-count rule; a published rent is checked against the configured ceiling, while an undisclosed rent may remain marked as unknown. Agency and seeker posts are rejected.
         </p>
         {SOURCE_ROWS.map((row) => {
           const on = s.search.sources[row.id] !== false;
