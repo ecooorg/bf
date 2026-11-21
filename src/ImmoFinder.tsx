@@ -63,7 +63,7 @@ export default function ImmoFinder() {
   const [enrichJob, setEnrichJob] = useState<{ running?: boolean; queued?: number; checked?: number; found?: number; errors?: number; message?: string; current?: string; finishedAt?: number | null } | null>(null);
   const onSettings = useCallback((s: any) => setSummary(summarize(s)), []);
 
-  const running = Boolean(run && !run.finished_at && Date.now() - new Date(run.started_at).getTime() < 30 * 60 * 1000);
+  const running = Boolean(run && !run.finished_at && Date.now() - new Date(run.started_at).getTime() < 50 * 60 * 1000);
 
   const loadList = useCallback(async () => {
     try {

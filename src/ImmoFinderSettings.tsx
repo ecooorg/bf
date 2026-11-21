@@ -23,8 +23,6 @@ type S = {
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
     privateQueryTemplates: number;
-    freshness: 'd' | 'm';
-    freshnessFallback: boolean;
     enrichSearchesPerRun: number;
     recheckContactSearch: boolean;
   };
@@ -33,7 +31,7 @@ type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccoun
 
 /** Search targets: portal entries are Google site: queries, not independent portal crawlers. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
-  { id: 'search', label: 'Web search (Facebook & private)', hint: 'Facebook groups, Nachmieter, direct owner ads via Google', priority: true },
+  { id: 'search', label: 'Private-owner web search', hint: 'Google owner-direct ads and Nachmieter; social snippets are not saved as verified listings', priority: true },
   { id: 'portal-immoscout24', label: 'ImmoScout24', hint: 'site:immoscout24.ch', priority: false },
   { id: 'portal-homegate', label: 'Homegate', hint: 'site:homegate.ch', priority: true },
   { id: 'portal-newhome', label: 'Newhome', hint: 'site:newhome.ch', priority: false },
@@ -620,26 +618,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 ))}
               </select>
             </label>
-            <label style={labelBlock}>
-              Search freshness{' '}
-              <select
-                value={s.search.freshness || 'm'}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, freshness: e.target.value === 'd' ? 'd' : 'm' } }))}
-                data-testid="immofinder-freshness"
-              >
-                <option value="d">last day</option>
-                <option value="m">last month (recommended)</option>
-              </select>
-            </label>
-            <label style={labelBlock}>
-              <input
-                type="checkbox"
-                checked={s.search.freshnessFallback === true}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, freshnessFallback: e.target.checked } }))}
-                data-testid="immofinder-freshness-fallback"
-              />{' '}
-              Repeat empty searches without freshness filter (doubles Serper use)
-            </label>
+            <p style={hint}>No date filter is applied; active listings may remain indexed for months.</p>
             <label style={labelBlock}>
               Contact searches per run (0 = off){' '}
               <select

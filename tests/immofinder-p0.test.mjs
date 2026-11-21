@@ -134,19 +134,20 @@ const staleHit = [{ title: 'Wikipedia', link: 'https://de.wikipedia.org/wiki/Chu
 test('P129.48 quality-first defaults are what Reset restores and sanitize clamps the search fields', () => {
   const d = defaultSettings(cfg);
   assert.equal(d.schedule.everyHours, 3);
-  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.freshness, d.search.freshnessFallback, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [12, 4, 'm', false, 12, false, 100]);
-  const s = sanitizeSettings({ search: { privateQueryTemplates: 99, freshness: 'x', enrichSearchesPerRun: -4, freshnessFallback: 'yes', carouselCommunesPerRun: 50 } }, cfg);
-  assert.deepEqual([s.search.privateQueryTemplates, s.search.freshness, s.search.enrichSearchesPerRun, s.search.freshnessFallback, s.search.carouselCommunesPerRun], [4, 'm', 12, false, 12]);
-  assert.equal(sanitizeSettings({ search: { privateQueryTemplates: 4, freshness: 'd', enrichSearchesPerRun: 0, freshnessFallback: true } }, cfg).search.privateQueryTemplates, 4);
-  assert.equal(sanitizeSettings({ search: { freshness: 'w' } }, cfg).search.freshness, 'm', 'legacy weekly default upgrades to the broader month window');
+  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [12, 4, 12, false, 100]);
+  const s = sanitizeSettings({ search: { privateQueryTemplates: 99, enrichSearchesPerRun: -4, carouselCommunesPerRun: 50 } }, cfg);
+  assert.deepEqual([s.search.privateQueryTemplates, s.search.enrichSearchesPerRun, s.search.carouselCommunesPerRun], [4, 12, 12]);
+  const legacy = sanitizeSettings({ search: { freshness: 'w', freshnessFallback: true } }, cfg);
+  assert.equal(Object.hasOwn(legacy.search, 'freshness'), false, 'obsolete date-filter settings are ignored');
+  assert.equal(Object.hasOwn(legacy.search, 'freshnessFallback'), false);
   assert.equal(sanitizeSettings({ search: { carouselCommunesPerRun: 2 } }, cfg).search.carouselCommunesPerRun, 12, 'stale two-commune setting falls back to the 12-commune default');
 });
 
-test('P129.48 applySettings maps all private templates, freshness and enrichment budget into the run config', () => {
-  const eff = applySettings(cfg, sanitizeSettings({ search: { privateQueryTemplates: 1, freshness: 'd', freshnessFallback: true, enrichSearchesPerRun: 3 } }, cfg));
+test('P129.48 applySettings maps private templates and enrichment budget into the run config', () => {
+  const eff = applySettings(cfg, sanitizeSettings({ search: { privateQueryTemplates: 1, enrichSearchesPerRun: 3 } }, cfg));
   assert.equal(eff.discovery.queries.length, 1);
-  assert.equal(eff.discovery.freshness, 'd');
-  assert.equal(eff.discovery.freshnessFallback, true);
+  assert.equal(Object.hasOwn(eff.discovery, 'freshness'), false);
+  assert.equal(Object.hasOwn(eff.discovery, 'freshnessFallback'), false);
   assert.equal(eff.contactEnrichment.maxExtraSearchesPerRun, 3);
   const lean = applySettings(cfg, defaultSettings(cfg));
   assert.equal(lean.discovery.queries.length, 4);
@@ -298,7 +299,7 @@ test('P129.44 snippet text keeps each distinct segment once', () => {
 test('discovery performs one unrestricted Serper call per query, without a freshness retry', async () => {
   const calls = [];
   const search = async (_q, options) => { calls.push(options ?? null); return staleHit; };
-  const result = await runPipeline({ config: leanCfg({ freshnessFallback: true, freshness: 'd' }), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
+  const result = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
   assert.equal(result.counts.serper_calls, 1);
   assert.equal(result.counts.serper_fallback, 0);
   assert.deepEqual(calls, [null]);

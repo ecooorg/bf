@@ -1,3 +1,9 @@
+## P129.53.6 — Remove inert search controls and align run status
+
+- **UX / CONFIG:** remove the obsolete freshness and fallback controls. Discovery intentionally runs without Google date filters; saved legacy values are ignored. The settings screen now says this explicitly.
+- **SOURCE CLARITY:** rename the generic search target to private-owner web search. Social snippets are not verified listing pages and are not presented as a Facebook crawler.
+- **UX:** keep the run indicator active beyond the server's 45-minute deadline (50-minute UI safety window).
+- **VERIFY:** add regression coverage for legacy settings, truthful source labels and run timeout alignment.
 ## P129.53.5 — Attribute portal SERP results by source
 
 - **BUGFIX / OBSERVABILITY:** Google `site:` queries are now attributed to their configured portal ID instead of being merged into the generic `search` source. Per-portal candidate, fetch, reject and keep counts are now meaningful.

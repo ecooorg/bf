@@ -54,6 +54,20 @@ test('UI exposes carousel and full run controls', () => {
   assert.match(ui, /start\('full'\)/);
 });
 
+test('ImmoFinder controls reflect live discovery behaviour and run duration', () => {
+  const settingsUi = read('src/ImmoFinderSettings.tsx');
+  const settings = read('server/immofinderSettings.ts');
+  const core = read('server/immofinderCore.ts');
+  const app = read('src/ImmoFinder.tsx');
+  assert.match(settingsUi, /Private-owner web search/);
+  assert.match(settingsUi, /social snippets are not saved as verified listings/);
+  assert.match(settingsUi, /No date filter is applied/);
+  assert.doesNotMatch(settingsUi, /Facebook & private|Search freshness|immofinder-freshness/);
+  assert.doesNotMatch(settings, /freshnessFallback|freshness:/);
+  assert.doesNotMatch(core, /freshnessFallback|freshness\?:/);
+  assert.match(app, /50 \* 60 \* 1000/);
+  assert.doesNotMatch(app, /30 \* 60 \* 1000/);
+});
 test('settings UI does not claim a published monthly price is mandatory', () => {
   const ui = read('src/ImmoFinderSettings.tsx');
   assert.match(ui, /undisclosed rent may remain marked as unknown/);

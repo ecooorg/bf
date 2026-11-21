@@ -44,10 +44,6 @@ export interface ImmoSettings {
     carouselCommunesPerRun: number;
     /** How many of the private-search templates run per commune (first N; 1..4). */
     privateQueryTemplates: number;
-    /** Serper freshness window: d = last day, w = last week, m = last month. */
-    freshness: 'd' | 'm';
-    /** Re-run a query without the freshness filter when it found nothing usable (doubles Serper cost). */
-    freshnessFallback: boolean;
     /** Extra public contact searches per search run (0 = off). */
     enrichSearchesPerRun: number;
     /** Allow contact searches during Recheck list (they rarely add contacts). */
@@ -81,8 +77,6 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       profile: 'carousel',
       carouselCommunesPerRun: 12,
       privateQueryTemplates: 4,
-      freshness: 'm',
-      freshnessFallback: false,
       enrichSearchesPerRun: 12,
       recheckContactSearch: false,
     },
@@ -165,8 +159,6 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       profile: se.profile === 'burst' ? 'burst' : 'carousel',
       carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 4, 12, Math.max(4, d.search.carouselCommunesPerRun)),
       privateQueryTemplates: clampInt(se.privateQueryTemplates, 1, 4, d.search.privateQueryTemplates),
-      freshness: se.freshness === 'd' ? 'd' : 'm',
-      freshnessFallback: bool(se.freshnessFallback, d.search.freshnessFallback),
       enrichSearchesPerRun: clampInt(se.enrichSearchesPerRun, 0, 35, d.search.enrichSearchesPerRun),
       recheckContactSearch: bool(se.recheckContactSearch, d.search.recheckContactSearch),
     },
@@ -220,8 +212,6 @@ export function applySettings(cfg: ImmoConfig, s: ImmoSettings): ImmoConfig {
             : Math.max(cfg.discovery.communesPerRun, municipalities.length > 0 ? Math.min(44, municipalities.length) : cfg.discovery.communesPerRun),
         queries: wantPrivate ? (cfg.discovery.queries || []).slice(0, s.search.privateQueryTemplates) : [],
         portalQueries,
-        freshness: s.search.freshness,
-        freshnessFallback: s.search.freshnessFallback,
       }
     : cfg.discovery;
   return {

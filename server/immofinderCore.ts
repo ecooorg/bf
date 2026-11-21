@@ -10,7 +10,7 @@ export interface ImmoConfig {
   estCostPerLlmCallUsd: number;
   estCostPerSearchUsd?: number;
   driveFolderId?: string;
-  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; portalSources?: { id: string; label: string; host: string }[]; snippetOnlyHosts: string[]; skipHosts: string[]; /** Min delay between Serper calls (rate limit). */ serperMinIntervalMs?: number; /** Soft cap on Serper calls per rolling minute. */ serperMaxPerMinute?: number; /** Serper freshness window: d = day, w = week, m = month. Default m. */ freshness?: 'd' | 'w' | 'm'; /** Re-run a query without the freshness filter when the filtered SERP has no usable link. Default off (doubles Serper cost). */ freshnessFallback?: boolean };
+  discovery?: { enabled: boolean; communesPerRun: number; resultsPerQuery: number; maxPagesPerRun: number; queries: string[]; portalQueries?: string[]; portalHosts?: string[]; portalSources?: { id: string; label: string; host: string }[]; snippetOnlyHosts: string[]; skipHosts: string[]; /** Min delay between Serper calls (rate limit). */ serperMinIntervalMs?: number; /** Soft cap on Serper calls per rolling minute. */ serperMaxPerMinute?: number; };
   /** Optional public-source contact enrichment (secondary search + optional reverse image). Default off when omitted. */
   contactEnrichment?: {
     enabled: boolean;
