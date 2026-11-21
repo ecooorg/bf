@@ -290,6 +290,11 @@
         "appBuilder/stack-static-site.ts",
         "appBuilder/validator-static-site.ts",
         "scripts/baseline-eval.mjs",
+        "scripts/collect-platform-logs.mjs",
+        "scripts/immofinder-health-check.mjs",
+        "scripts/migrate.mjs",
+        "scripts/patch-tools.mjs",
+        "scripts/scripts-integrity.mjs",
         "server/allLogs.ts",
         "server/appBuilderAdapter.ts",
         "server/appBuilderRuntimeCheck.ts",
@@ -307,6 +312,7 @@
         "server/immofinderRepair.ts",
         "server/immofinderRepairStore.ts",
         "server/immofinderRoutes.ts",
+        "server/immofinderRunDiagnostics.ts",
         "server/immofinderSettings.ts",
         "server/immofinderSnapshot.ts",
         "server/immofinderStore.ts",
@@ -417,7 +423,14 @@
         "tests/diagnostics-ops.test.mjs"
       ],
       "modules": [
+        "scripts/collect-platform-logs.mjs",
+        "scripts/immofinder-health-check.mjs",
+        "scripts/patch-tools.mjs",
+        "scripts/scripts-integrity.mjs",
         "server/allLogs.ts",
+        "server/immofinderCore.ts",
+        "server/immofinderRoutes.ts",
+        "server/immofinderRunDiagnostics.ts",
         "server/projectDiagnostics.ts",
         "src/allLogs.ts"
       ]
@@ -546,6 +559,10 @@
       "critical-router-selection",
       "test:models"
     ],
+    "scripts/collect-platform-logs.mjs": [
+      "test:core",
+      "test:project-diagnostics"
+    ],
     "scripts/docs-env-example-check.mjs": [
       "docs-integrity"
     ],
@@ -563,11 +580,16 @@
       "critical-router-selection",
       "test:models"
     ],
+    "scripts/immofinder-health-check.mjs": [
+      "test:core",
+      "test:project-diagnostics"
+    ],
     "scripts/lint-copy.mjs": [
       "lint:copy"
     ],
     "scripts/migrate.mjs": [
-      "db-migrate"
+      "db-migrate",
+      "test:core"
     ],
     "scripts/monitor-connections.mjs": [
       "critical-gemini-timeout",
@@ -582,14 +604,18 @@
     "scripts/patch-tools.mjs": [
       "critical-gemini-timeout",
       "critical-router-selection",
-      "test:models"
+      "test:core",
+      "test:models",
+      "test:project-diagnostics"
     ],
     "scripts/project-user-value-live.mjs": [
       "test:app-builder",
       "test:project"
     ],
     "scripts/scripts-integrity.mjs": [
-      "docs-integrity"
+      "docs-integrity",
+      "test:core",
+      "test:project-diagnostics"
     ],
     "scripts/write-build-stamp.mjs": [
       "build"
@@ -684,7 +710,8 @@
       "test:core"
     ],
     "server/immofinderCore.ts": [
-      "test:core"
+      "test:core",
+      "test:project-diagnostics"
     ],
     "server/immofinderDelivery.ts": [
       "test:core"
@@ -711,7 +738,12 @@
       "test:core"
     ],
     "server/immofinderRoutes.ts": [
-      "test:core"
+      "test:core",
+      "test:project-diagnostics"
+    ],
+    "server/immofinderRunDiagnostics.ts": [
+      "test:core",
+      "test:project-diagnostics"
     ],
     "server/immofinderSettings.ts": [
       "test:core"
