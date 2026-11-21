@@ -199,6 +199,8 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
     }
     if (!process.env.DATABASE_URL) return res.status(503).json({ success: false, error: 'Database is not configured', code: 'DATABASE_UNAVAILABLE' });
     (req as any).immoCron = cron || diagnosticsPoll;
+    // Polling is read-only and must not trigger the first-user-request repair bootstrap.
+    if (diagnosticsPoll) return next();
     // First authenticated ImmoFinder request after deploy audits every currently visible saved row.
     // The write-time gate in the store handles all subsequently discovered/re-fetched cards.
     if (!repairBootstrap) repairBootstrap = (async () => {
