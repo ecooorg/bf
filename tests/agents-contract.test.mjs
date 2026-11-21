@@ -640,4 +640,38 @@ test('P130.3 ImmoFinder GitHub publishing uses a repository-scoped contents:writ
   }).catch((error) => error);
   assert.match(failing.message, /github_diagnostics_write_failed_http_403_resource_not_accessible_by_integration_request_REQ-403/);
   assert.doesNotMatch(failing.message, /legacy-read-only-token/);
+
+  const snapshot403 = await publishGitHubListingsSnapshot([], { runId: 'snapshot-forbidden' }, {
+    env: {
+      IMMOFINDER_GITHUB_TOKEN: 'legacy-read-only-token',
+      IMMOFINDER_GITHUB_REPOSITORY: 'owner/repo',
+      SESSION_SECRET: 'stable-test-session-secret'.padEnd(48, 'x'),
+    },
+    fetchImpl: async (_url, init = {}) => init.method
+      ? { ok: false, status: 403, json: async () => ({ message: 'Resource not accessible by integration' }), headers: { get: () => 'REQ-SNAPSHOT-403' } }
+      : { ok: false, status: 404, json: async () => ({}) },
+  }).catch((error) => error);
+  assert.match(snapshot403.message, /github_snapshot_write_failed_http_403_resource_not_accessible_by_integration_request_REQ-SNAPSHOT-403/);
+  assert.doesNotMatch(snapshot403.message, /legacy-read-only-token/);
+
+  const app422 = await publishGitHubRunDiagnostics({ events: [] }, { runId: 'app-permission-denied' }, {
+    env,
+    fetchImpl: async (url, init = {}) => {
+      if (String(url).includes('/app/installations/')) {
+        const body = JSON.parse(init.body);
+        if (body.permissions.contents === 'read') return { ok: true, status: 201, json: async () => ({ token: 'bootstrap-token' }) };
+        return {
+          ok: false, status: 422,
+          json: async () => ({ message: 'Resource not accessible by integration' }),
+          headers: { get: (name) => name.toLowerCase() === 'x-github-request-id' ? 'REQ-APP-422' : null },
+        };
+      }
+      if (String(url) === 'https://api.github.com/repos/owner/repo') {
+        return { ok: true, status: 200, json: async () => ({ id: 123, full_name: 'owner/repo' }) };
+      }
+      throw new Error('unexpected_github_request:' + url);
+    },
+  }).catch((error) => error);
+  assert.match(app422.message, /github_app_contents_write_token_http_422_resource_not_accessible_by_integration_request_REQ-APP-422/);
+  assert.doesNotMatch(app422.message, /bootstrap-token|repo-scoped-token|privateKey/);
 });
