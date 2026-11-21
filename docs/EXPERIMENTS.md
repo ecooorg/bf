@@ -1,3 +1,13 @@
+## P129.49 — ImmoFinder primary-page identity and price verification
+
+- **PROBLEM / BASELINE:** Supplied 21 Nov snapshot has 30 visible / 86 total cards; 29 visible cards have snippet or no page evidence, and the sole `page_text` card has a 5-room stored value against a 3.5-room Flatfox title. Direct web checks confirm wrong/redirected targets, 404s and price conflicts. Baseline `node --experimental-strip-types --test tests/immofinder-quality.test.mjs tests/immofinder-p0.test.mjs`: **42 PASS**.
+- **HYPOTHESIS:** A card is presentable only when evidence comes from a fetched detail page, the final response URL identifies the same listing URL, the stored monthly price is unambiguous and appears on that page, and the municipality/room facts do not conflict. Search snippets remain discovery hints only.
+- **METRICS:** Visible cards without page evidence; URL redirect mismatches; price evidence missing/ambiguous; room/municipality conflicts; existing ImmoFinder category suites.
+- **ACCEPTANCE:** Snippet-only, missing-page-evidence, redirected and price-ambiguous cards are hidden from screen/Drive/e-mail/Telegram; direct-page matching fixture remains presentable; pipeline stores the final fetched URL; versioned audit key reruns after deploy; only automatic hides can be restored after a later passing direct re-fetch; auto-hidden cards retry after a six-hour cooldown; category tests pass. Live post-deploy DB and delivery: **NOT_RUN**.
+- **SCOPE:** `server/immofinder{Repair,RepairStore,Store,Fetcher,Pipeline}.ts`, `tests/immofinder-quality.test.mjs`, patch metadata and concise history.
+- **ROLLBACK:** Revert if direct-page fixture fails, legitimate exact-URL monthly listings are systematically rejected, or source fetches do not provide final URLs.
+- **CLASSIFICATION:** BUGFIX. The supplied data audit is user-value evidence; deterministic tests do not establish live post-deploy correctness.
+
 ## P129.44 — ImmoFinder spend control and lean defaults
 
 - **PROBLEM / BASELINE:** Supplied 72h logs (17 hourly runs in ~11h, commit 3e8f5d7): ~28-32 discovery queries/run, up to 35 enrichment searches/run, 21 new / 24 kept listings in total, 9 of 17 runs with no new listing; 125/145 recheck fetches were HTTP 403 and two rechecks spent 70 searches for 0 contacts added. `search_queries` counts only the first Serper call, so unfiltered fallback calls are invisible. Live baseline re-run: **NOT_RUN**.

@@ -1,3 +1,12 @@
+# P129.49 — ImmoFinder listing verification (2026-11-21)
+
+- **OBSERVED:** Supplied All Logs contains 30 visible / 86 total listings. 29 visible rows have `snippet` or missing page evidence; the remaining row has `page_text` but no final-URL provenance and its stored room count conflicts with its Flatfox title. Direct URL checks found four Tutti 404s, one Homegate redirect to a different municipality/price, one live Tutti page with CHF 1,700 headline vs CHF 1,800 stored, and multiple inaccessible social/portal targets. The accompanying XLSX also exposes wrong-place, sale/holiday and room-count collisions.
+- **CHANGE:** P129.49 requires direct detail-page evidence, exact final-URL identity and a single unambiguous price candidate before a card can be shown or delivered; the version-salted bootstrap audit applies the stricter rule to saved rows; hidden automatic rejects are eligible for later direct re-fetch and recovery, while manual hides remain.
+- **INFERRED:** The supplied 30 visible rows will all be hidden pending fresh direct-page evidence; this is preferable to publishing unsupported facts.
+- **NOT_RUN:** Production PostgreSQL bootstrap, fresh listing acquisition, and screen / Telegram / e-mail / Drive delivery after deployment.
+
+---
+
 # P124.35 — Universal retrieval reliability (2026-11-03)
 
 - **OBSERVED (source):** the prior fallback could reduce an elliptical follow-up to its literal latest wording; the search provider does not receive conversation history. The prior usability gate also treated a number as a generic signal of usefulness.
