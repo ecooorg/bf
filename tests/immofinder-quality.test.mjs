@@ -561,14 +561,17 @@ test('P129.49 only presents cards backed by the exact fetched detail page and on
   assert.equal(hardRejectReason(ambiguousPrice, ctx), 'price_ambiguous_on_detail_page');
 });
 
-test('P129.51 pipeline requires and verifies the final fetched URL as evidence provenance', () => {
+test('P129.52 pipeline validates optional final URL, same-listing redirects and verified page text', () => {
   const pipeline = read('server/immofinderPipeline.ts');
   const fetcher = read('server/immofinderFetcher.ts');
   assert.match(pipeline, /evidence_url:\s*evidenceUrl/);
   assert.match(pipeline, /const fetchedUrl = String\(pg\.finalUrl \|\| ''\)\.trim\(\)/);
-  assert.match(pipeline, /normalizeUrl\(fetchedUrl\) !== normalizeUrl\(it\.url\)/);
-  assert.match(pipeline, /evidenceUrl = fetchedUrl/);
-  assert.match(fetcher, /Promise<\{ ok: boolean; status: number; body: string; finalUrl\?: string \}>/);
+  assert.match(pipeline, /sameListingUrlTarget\(it\.url, fetchedUrl\)/);
+  assert.match(pipeline, /evidenceUrl = fetchedUrl \|\| it\.url/);
+  assert.match(pipeline, /MIN_DIRECT_PAGE_TEXT_CHARS = 30/);
+  assert.match(fetcher, /Promise<\{ ok: boolean; status: number; body: string; finalUrl\?: string; fetchMode\?: string \}>/);
+  assert.match(fetcher, /jinaFallback/);
+  assert.match(fetcher, /URL Source/);
   assert.match(fetcher, /finalUrl:\s*r\.url\s*\|\|\s*url/);
 });
 
