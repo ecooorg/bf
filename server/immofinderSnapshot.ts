@@ -82,37 +82,71 @@ export async function publishGitHubRunDiagnostics(
   const token = String(env.IMMOFINDER_GITHUB_TOKEN || '').trim();
   const repository = String(env.IMMOFINDER_GITHUB_REPOSITORY || '').trim();
   const branch = String(env.IMMOFINDER_GITHUB_BRANCH || 'main').trim() || 'main';
-  const eventCount = Array.isArray(report.events) ? report.events.length : 0;
+  const events = Array.isArray(report.events) ? report.events : [];
+  const eventCount = events.length;
   if (!token || !repository) return { status: 'skipped', reason: 'github_snapshot_not_configured', paths: [], eventCount };
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) throw new Error('github_diagnostics_repository_invalid');
   const runId = String(meta.runId || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80) || 'unknown';
-  const paths = [`data/immofinder/diagnostics/runs/${runId}.json`, 'data/immofinder/diagnostics/latest.json'];
+  const runPath = 'data/immofinder/diagnostics/runs/' + runId + '.json';
+  const latestPath = 'data/immofinder/diagnostics/latest.json';
   const apiBase = String(options.apiBaseUrl || 'https://api.github.com').replace(/\/+$/, '');
   const fetchImpl = options.fetchImpl || fetch;
-  const headers = { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' };
-  const content = Buffer.from(JSON.stringify(report, null, 2), 'utf8').toString('base64');
+  const headers = { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token, 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' };
+  const fullText = JSON.stringify(report, null, 2);
+  const documents: { path: string; text: string }[] = [];
+  // GitHub's Contents API has a small per-file limit. Keep ordinary runs as one readable JSON;
+  // split unusually large traces into numbered event parts and leave a manifest at latest.json.
+  if (Buffer.byteLength(fullText, 'utf8') <= 800_000) {
+    documents.push({ path: runPath, text: fullText });
+    documents.push({ path: latestPath, text: fullText });
+  } else {
+    const traceId = String(report.traceId || '');
+    const chunks: unknown[][] = [];
+    let current: unknown[] = [];
+    for (const event of events) {
+      const candidate = [...current, event];
+      const size = Buffer.byteLength(JSON.stringify({ runId, traceId, events: candidate }), 'utf8');
+      if (size > 700_000 && current.length) {
+        chunks.push(current);
+        current = [event];
+      } else current = candidate;
+    }
+    if (current.length) chunks.push(current);
+    const eventFiles: string[] = [];
+    chunks.forEach((chunk, index) => {
+      const part = String(index + 1).padStart(3, '0');
+      const path = 'data/immofinder/diagnostics/runs/' + runId + '/events-' + part + '.json';
+      eventFiles.push(path);
+      documents.push({ path, text: JSON.stringify({ schemaVersion: report.schemaVersion || 1, runId, traceId, part: index + 1, partCount: chunks.length, eventCount: chunk.length, events: chunk }, null, 2) });
+    });
+    const manifest = { ...report, events: undefined, eventFiles, eventsStoredInParts: true, eventCount };
+    const manifestText = JSON.stringify(manifest, null, 2);
+    documents.push({ path: runPath, text: manifestText });
+    documents.push({ path: latestPath, text: manifestText });
+  }
   let lastCommitSha: string | undefined;
-  for (const path of paths) {
-    const endpoint = `${apiBase}/repos/${repository}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;
+  for (const document of documents) {
+    const endpoint = apiBase + '/repos/' + repository + '/contents/' + document.path.split('/').map(encodeURIComponent).join('/');
+    const content = Buffer.from(document.text, 'utf8').toString('base64');
     let written = false;
     for (let attempt = 0; attempt < 3 && !written; attempt++) {
-      const current = await fetchImpl(`${endpoint}?ref=${encodeURIComponent(branch)}`, { headers });
+      const current = await fetchImpl(endpoint + '?ref=' + encodeURIComponent(branch), { headers });
       let sha: string | undefined;
       if (current.ok) sha = (await current.json() as { sha?: string }).sha;
-      else if (current.status !== 404) throw new Error(`github_diagnostics_read_failed_http_${current.status}`);
+      else if (current.status !== 404) throw new Error('github_diagnostics_read_failed_http_' + current.status);
       const updated = await fetchImpl(endpoint, { method: 'PUT', headers, body: JSON.stringify({
-        message: `chore(immofinder): publish search diagnostics ${runId}`, content, branch, ...(sha ? { sha } : {}),
+        message: 'chore(immofinder): publish search diagnostics ' + runId, content, branch, ...(sha ? { sha } : {}),
       }) });
       if (updated.ok) {
         const result = await updated.json() as { commit?: { sha?: string } };
         lastCommitSha = result.commit?.sha || lastCommitSha;
         written = true;
       } else if ((updated.status === 409 || updated.status === 422) && attempt < 2) continue;
-      else throw new Error(`github_diagnostics_write_failed_http_${updated.status}`);
+      else throw new Error('github_diagnostics_write_failed_http_' + updated.status);
     }
     if (!written) throw new Error('github_diagnostics_write_conflict');
   }
-  return { status: 'committed', paths, eventCount, commitSha: lastCommitSha };
+  return { status: 'committed', paths: documents.map((d) => d.path), eventCount, commitSha: lastCommitSha };
 }
 
 export async function publishGitHubListingsSnapshot(
