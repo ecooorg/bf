@@ -92,9 +92,31 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add data/immofinder/diagnostics
-          if git diff --cached --quiet; then echo "Latest diagnostics run is already archived."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(immofinder): archive diagnostics run ${{ steps.fetch.outputs.run_id }}"
-          git push origin HEAD:main
+          # Another workflow or maintainer may update main while this report is
+          # being prepared. Rebuild the archive commit on the newest main and
+          # retry a bounded number of times instead of losing the report.
+          for attempt in 1 2 3 4 5; do
+            echo "Publishing diagnostics (attempt $attempt/5)"
+            git fetch origin main
+            git reset --hard origin/main
+            node scripts/archive-immofinder-diagnostics.mjs /tmp/immofinder-diagnostics-envelope.json data/immofinder/diagnostics
+            git add data/immofinder/diagnostics
+            if git diff --cached --quiet; then
+              echo "Latest diagnostics run is already archived."
+              exit 0
+            fi
+            git commit -m "chore(immofinder): archive diagnostics run ${{ steps.fetch.outputs.run_id }}"
+            if git push origin HEAD:main; then
+              echo "Diagnostics report published."
+              exit 0
+            fi
+            if [ "$attempt" -lt 5 ]; then
+              delay=$((attempt * 2))
+              echo "main moved during publication; retrying in ${delay}s."
+              sleep "$delay"
+            fi
+          done
+          echo "Could not publish diagnostics after 5 attempts."
+          exit 1
