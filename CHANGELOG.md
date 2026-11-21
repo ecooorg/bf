@@ -1,3 +1,10 @@
+## P130.2 — Ensure platform diagnostics run immediately after collector updates
+
+- **AUTOMATIC HANDOFF:** run the ImmoFinder diagnostics workflow on pushes to `main` that modify the workflow or platform-log collector, in addition to the existing five-minute schedule and manual dispatch. This produces a Render/GitHub log artifact after the operational change is merged without requiring a manual workflow launch.
+- **LOOP SAFETY:** limit the push trigger to the workflow and collector paths; commits that archive diagnostic data do not retrigger collection.
+- **VERSION:** bump patch metadata to `130.2` and repair-rule stamp to `130.2.5`.
+- **VERIFY:** add workflow trigger contract coverage.
+
 ## P130.1 — Collect Render and GitHub runtime diagnostics
 
 - **CI FOLLOW-UP:** correct the scripts-integrity allowlist syntax and synchronize the deterministic repair-rule stamp and seen-cache regression contract to `130.1.5`.
