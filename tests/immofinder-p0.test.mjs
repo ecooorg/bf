@@ -88,7 +88,8 @@ test('pipeline batches discovery processing and avoids poisoning seen with insuf
   assert.match(source, /it\.snippetOnly && it\.hit/);
   assert.match(source, /allowSnippet: false/);
   assert.match(source, /6 \* 60 \* 60 \* 1000/);
-  assert.match(source, /src\.id !== 'search' && st\.consecutiveBad >= stopAt/);
+  assert.match(source, /const isDiscoverySource = src\.id === 'search' \|\| src\.id\.startsWith\('portal-'\)/);
+  assert.match(source, /if \(!isDiscoverySource && st\.consecutiveBad >= stopAt\)/);
 });
 
 test('manual listing deletion also clears its URL seen-cache entries', () => {
