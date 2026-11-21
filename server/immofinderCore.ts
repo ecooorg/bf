@@ -373,13 +373,17 @@ const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen|wer hat)\b/i;
 const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz|gruppenhaus|gruppenh[aä]user)\b/i;
 
 /** Pages that are not an owner's offer: search/list pages, wanted ads, hotels and guesthouses. Checked on title and URL only. */
-export type NonListing = 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | 'for_sale' | 'shared_room' | 'development_project';
+export type NonListing = 'list_or_search_page' | 'wanted_ad' | 'hotel_or_guesthouse' | 'for_sale' | 'shared_room' | 'development_project' | 'service_or_aggregator';
 const FOR_SALE = /(zum kauf|zu verkaufen|\bkaufen\b|eigentumswohnung|\bverkauf\b)/i;
 const SHARED = /(\bwg\b|wohngemeinschaft|\bzwischenmiete\b|\buntermiete\b|zimmer in (einer )?(wg|wohnung))/i;
 // Multi-unit / project language. Holiday hosts with several flats ("Ferienwohnungen") stay; singular "Wohnung" stays.
 const DEVELOPMENT = /\b(neubau|neubauprojekt|wohn[uü]berbauung|[uü]berbauung|eigentumswohnungen|wohnungen zum verkauf|\d{2,}\s*wohnungen)\b|\b[A-Za-zäöüÄÖÜ]*wohnungen\b/i;
 const FERIEN_WOHNUNGEN = /\bferien[- ]?wohnungen\b/i;
 const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\/|\/preise\.html|\/liste(\/|$)|booking\.com\/hotel\/|gruppenhaus\.ch|\/_join_/i;
+/** Hosts that are moving companies, SEO content farms or meta-search — never a single rental object. */
+const SERVICE_OR_AGGREGATOR_HOST =
+  /(?:^|\.)(moving24|umzugsfirma-buchen|umzug|umzuege|rentumo|nestoria|immowelt|immoscout24|realadvisor|comparis|homegate\.ch\/rent\/list|anibis\.ch\/de\/c\/)\b/i;
+
 export function nonListingReason(title: string, url: string): NonListing | null {
   const t = String(title ?? '').trim();
   if (WANTED.test(t)) return 'wanted_ad';
@@ -388,6 +392,11 @@ export function nonListingReason(title: string, url: string): NonListing | null 
   if (SHARED.test(t)) return 'shared_room';
   if (DEVELOPMENT.test(t) && !FERIEN_WOHNUNGEN.test(t)) return 'development_project';
   if (HOTEL.test(t)) return 'hotel_or_guesthouse';
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    if (/(^|\.)(moving24\.ch|umzugsfirma-buchen\.ch|rentumo\.ch|umzug[^/]*\.ch)$/i.test(host)) return 'service_or_aggregator';
+    if (/\bumzug|moving\s*company|offerten?\s*vergleich|stündlich\s*\d+\s*mietportale/i.test(t)) return 'service_or_aggregator';
+  } catch { /* ignore */ }
   return null;
 }
 
@@ -1074,6 +1083,35 @@ export interface CredibilityInput {
  * Final product gate: reject listings that would form a misleading collage card.
  * Returns a stable hide/filter reason or null when the listing may be shown.
  */
+
+/**
+ * True when the card would mix facts from unrelated objects:
+ * evidence/title names a different municipality than the card, or a different street
+ * that cannot be reconciled with the listing URL path.
+ */
+export function fieldCollageMismatch(opts: {
+  municipality?: string | null;
+  title?: string;
+  evidence?: string;
+  url?: string;
+  municipalities?: string[];
+}): string | null {
+  const muni = String(opts.municipality || '').trim();
+  const hay = `${opts.title || ''}\n${opts.evidence || ''}`.replace(/\s+/g, ' ');
+  if (!muni || !hay) return null;
+  const list = opts.municipalities || [];
+  // Another whitelist commune appears as the primary place while card is labelled differently
+  for (const other of list) {
+    if (!other || other.toLowerCase() === muni.toLowerCase()) continue;
+    const re = new RegExp(`\\b${other.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i');
+    if (re.test(hay) && !new RegExp(`\\b${muni.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\b`, 'i').test(hay.slice(0, 200))) {
+      // Strong signal only when the other place appears early and card muni does not
+      if (hay.toLowerCase().indexOf(other.toLowerCase()) < 120) return 'municipality_collage';
+    }
+  }
+  return null;
+}
+
 export function credibilityRejectReason(c: CredibilityInput): string | null {
   const title = c.title || '';
   const ev = c.evidenceText || '';
@@ -1096,6 +1134,8 @@ export function credibilityRejectReason(c: CredibilityInput): string | null {
 
   if (roomsEvidenceConflict(title, ev, c.roomsEstimated)) return 'rooms_conflict';
   if (municipalityEvidenceMismatch(c.municipality, ev, c.municipalities || [])) return 'municipality_mismatch';
+  const collage = fieldCollageMismatch({ municipality: c.municipality, title, evidence: ev, url, municipalities: c.municipalities || [] });
+  if (collage) return collage;
 
   if (/\btempor\w*\b|\bbefristet\s+auf\s+\d+\s*monat/i.test(hay) && /möbliert|mobliert|furnished/i.test(hay) && !/nachmieter|unbefristet|langfrist/i.test(hay)) {
     return 'temporary_furnished';

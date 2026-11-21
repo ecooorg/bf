@@ -35,20 +35,56 @@ export function createPgStore(): ImmoStore {
     },
     async upsert(rec: ListingRecord) {
       const p = await getPool();
-      const ex = await p.query('SELECT id, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name, raw FROM immofinder_listings WHERE canonical_key = $1', [rec.canonical_key]);
+      // Identity is the listing URL only. Never merge two different URLs into one card
+      // (old canonical_key merge mixed description/price/contacts from unrelated ads).
+      const ex = await p.query(
+        `SELECT id, listing_url, source_urls, source_ids, photo_urls, direct_phone, direct_email, owner_name, raw, property_name, municipality, rooms_estimated, description_de
+         FROM immofinder_listings
+         WHERE listing_url = $1 OR source_urls @> jsonb_build_array($1::text)
+         LIMIT 1`,
+        [rec.listing_url],
+      );
       if (ex.rows[0]) {
         const o = ex.rows[0]; const uniq = (a: unknown[]) => [...new Set(a)];
-        // Merge raw so a later pass can fill listed_at / price without wiping earlier enrichment.
         const prevRaw = o.raw && typeof o.raw === 'object' && !Array.isArray(o.raw) ? o.raw : {};
         const nextRaw = { ...prevRaw, ...(rec.raw && typeof rec.raw === 'object' ? rec.raw : {}) };
         if (prevRaw.listed_at && !nextRaw.listed_at) nextRaw.listed_at = prevRaw.listed_at;
+        // Prefer newly parsed price when present (same URL re-fetch); else keep previous.
         if (prevRaw.price && !nextRaw.price) nextRaw.price = prevRaw.price;
-        await p.query(`UPDATE immofinder_listings SET source_urls = $2::jsonb, source_ids = $3::jsonb, photo_urls = $4::jsonb, last_seen_at = now(), updated_at = now(),
-          direct_phone = COALESCE(direct_phone, $5), direct_email = COALESCE(direct_email, $6), owner_name = COALESCE(owner_name, $7),
-          raw = $8::jsonb,
-          description_de = CASE WHEN length(coalesce($9,'')) > length(coalesce(description_de,'')) THEN $9 ELSE description_de END
-          WHERE id = $1`,
-          [o.id, j(uniq([...o.source_urls, ...rec.source_urls])), j(uniq([...o.source_ids, ...rec.source_ids])), j(o.photo_urls?.length ? o.photo_urls : rec.photo_urls), rec.direct_phone, rec.direct_email, rec.owner_name, j(nextRaw), rec.description_de || '']);
+        await p.query(
+          `UPDATE immofinder_listings SET
+            listing_url = $2,
+            canonical_key = $3,
+            source_urls = $4::jsonb,
+            source_ids = $5::jsonb,
+            photo_urls = $6::jsonb,
+            municipality = COALESCE(NULLIF($7,''), municipality),
+            property_name = CASE WHEN length(coalesce($8,'')) >= length(coalesce(property_name,'')) THEN $8 ELSE property_name END,
+            rooms_estimated = COALESCE($9, rooms_estimated),
+            description_de = CASE WHEN length(coalesce($10,'')) > length(coalesce(description_de,'')) THEN $10 ELSE description_de END,
+            direct_phone = COALESCE($11, direct_phone),
+            direct_email = COALESCE($12, direct_email),
+            owner_name = COALESCE($13, owner_name),
+            raw = $14::jsonb,
+            last_seen_at = now(), updated_at = now()
+           WHERE id = $1`,
+          [
+            o.id,
+            rec.listing_url,
+            rec.canonical_key,
+            j(uniq([...(Array.isArray(o.source_urls) ? o.source_urls : []), ...rec.source_urls])),
+            j(uniq([...(Array.isArray(o.source_ids) ? o.source_ids : []), ...rec.source_ids])),
+            j(rec.photo_urls?.length ? rec.photo_urls : (o.photo_urls || [])),
+            rec.municipality || '',
+            rec.property_name || '',
+            rec.rooms_estimated,
+            rec.description_de || '',
+            rec.direct_phone,
+            rec.direct_email,
+            rec.owner_name,
+            j(nextRaw),
+          ],
+        );
         return 'updated';
       }
       await p.query(`INSERT INTO immofinder_listings (listing_type, canonical_key, source_urls, source_ids, listing_url, photo_urls, municipality, property_name, rooms_text, rooms_estimated, rooms_basis,
