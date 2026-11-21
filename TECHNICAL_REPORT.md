@@ -1,3 +1,7 @@
+## P129.45a — CI lock patch sync
+
+- **FAIL:** run #44848885031 test:core `P127.11` expected lock.patch 129.45, had 129.44. **CHANGE:** package-lock patch fields + version:sync writes patch. **VERIFY:** local version check OK; hosted rerun NOT_RUN.
+
 ## P129.45 — ImmoFinder cards: verified fields only
 
 - **OBSERVED:** Drive export and UI still showed “Source text (search snippet)” blocks and duplicated/garbage about lines. **CHANGE:** `immoEvidenceBlock` empty for exports; UI no longer renders evidence; about cleaned/dropped when unreliable. **NOT_RUN:** live re-export after deploy.

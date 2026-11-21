@@ -1,3 +1,7 @@
+## P129.45a — CI: sync package-lock patch with package.json
+
+- Hosted test:core failed: lock.patch was still 129.44 while package.json patch was 129.45. Sync lock patch fields; version:sync now writes both version and patch. BUGFIX.
+
 ## P129.45 — ImmoFinder cards: verified fields only, no source dumps
 
 - Cards on screen, email, Telegram and Drive showed duplicated search snippets under “Source text” and garbage about lines (price crumbs, title echoes).
