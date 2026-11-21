@@ -24,9 +24,12 @@ async function json(url,headers){
   if(r.ok)return r.json();
   const retryable=r.status===429||r.status>=500;
   if(!retryable||attempt===3)throw Error('HTTP '+r.status+' from '+new URL(url).pathname);
-  const retryAfter=Number(r.headers.get('retry-after'));
+  const retryAfterHeader=r.headers.get('retry-after');
+  const retryAfterSeconds=Number(retryAfterHeader);
+  const retryAfterDate=retryAfterHeader?Date.parse(retryAfterHeader):NaN;
   const resetAt=Number(r.headers.get('x-ratelimit-reset'));
-  const serverDelay=Number.isFinite(retryAfter)&&retryAfter>0?retryAfter*1000:
+  const serverDelay=Number.isFinite(retryAfterSeconds)&&retryAfterSeconds>0?retryAfterSeconds*1000:
+   Number.isFinite(retryAfterDate)?Math.max(0,retryAfterDate-Date.now()):
    Number.isFinite(resetAt)&&resetAt>0?Math.max(0,resetAt*1000-Date.now()):0;
   const backoff=Math.min(30000,1000*(2**attempt));
   const wait=Math.min(60000,Math.max(serverDelay,backoff));
