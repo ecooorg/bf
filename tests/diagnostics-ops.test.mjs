@@ -78,7 +78,8 @@ test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Rend
   assert.match(poll, /contents: write/);
 });
 
-\ntest('P130.1 collects redacted Render and GitHub Actions logs as artifacts', () => {
+
+test('P130.1 collects redacted Render and GitHub Actions logs as artifacts', () => {
   const workflow = read('.github/workflows/immofinder-diagnostics-poll.yml');
   const collector = read('scripts/collect-platform-logs.mjs');
   const patchTools = read('scripts/patch-tools.mjs');
@@ -87,12 +88,12 @@ test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Rend
   assert.match(workflow, /secrets.RENDER_API_KEY/);
   assert.match(workflow, /vars.RENDER_OWNER_ID/);
   assert.match(workflow, /vars.RENDER_SERVICE_ID/);
-  assert.match(workflow, /scripts\\/collect-platform-logs\\.mjs/);
+  assert.match(workflow, /scripts\/collect-platform-logs\.mjs/);
   assert.match(workflow, /retention-days: 30/);
-  assert.match(collector, /api\\.render\\.com\\/v1\\/logs/);
+  assert.match(collector, /api\.render\.com\/v1\/logs/);
   assert.match(collector, /nextStartTime/);
-  assert.match(collector, /actions\\/runs\\/.*\\/logs/);
+  assert.match(collector, /actions\/runs\/.*\/logs/);
   assert.match(collector, /REDACTED/);
-  assert.match(patchTools, /data\\/immofinder\\/diagnostics/);
-  assert.match(integrity, /collect-platform-logs\\.mjs/);
+  assert.match(patchTools, /data\/immofinder\/diagnostics/);
+  assert.match(integrity, /collect-platform-logs\.mjs/);
 });
