@@ -1,3 +1,11 @@
+## P130.3 — ImmoFinder GitHub 403 publisher repair (2026-11-21)
+
+- **OBSERVED:** The server diagnostics and encrypted snapshot publishers shared IMMOFINDER_GITHUB_TOKEN; both reached the GitHub Contents API read step and failed on PUT with HTTP 403. The GitHub Actions diagnostics poller archives successfully with its separate workflow token. The main branch API reports protected: false, and the repository rulesets endpoint returns an empty list, so branch protection/rulesets do not explain the denial.
+- **ROOT-CAUSE BOUNDARY:** Runtime token permissions cannot be inspected from repository metadata or Actions logs. The evidence isolates the failure to the server credential's write authorization (or an installation/token access restriction), not to branch protection. The prior publisher discarded GitHub's response body, preventing the exact denial reason from being recorded.
+- **CHANGE:** Server publishers now prefer a GitHub App installation token, minted for the exact configured repository and limited to contents:write. The App credential path is repository-identity checked; the legacy fine-grained token remains a compatibility fallback only when the App configuration is incomplete. Both publishers record a sanitized GitHub error message and request ID on API failures without logging tokens or listing data.
+- **SECURITY:** Snapshot contents remain AES-256-GCM encrypted. The new write token is short-lived and repository-scoped; it is not persisted. No search portal, query, ranking, or acceptance rule was changed.
+- **TEST:** Added a regression test covering token minting, repository scoping, successful diagnostics and encrypted snapshot PUTs, and safe 403 error detail.
+- **VERIFICATION:** Hosted CI is pending this PR. Production success remains unverified until the deployment has the required GitHub App credentials and installation Contents: write permission and a completed run records both publishers as committed.
 ## P130.2 — Diagnostics collector auto-trigger
 
 - **CHANGE:** run the diagnostics poll workflow on pushes to `main` that modify the poll workflow or platform-log collector, in addition to the five-minute schedule and manual dispatch. The path filter prevents report-archive commits from recursively triggering collection.
