@@ -24,8 +24,8 @@
 
 - The public `ecooorg/bf` repository MUST contain only an encrypted ImmoFinder database snapshot; never commit plaintext phone numbers, e-mail addresses, owner names, addresses, contact evidence, or raw listing text.
 - After every completed manual or scheduled search, the server serializes every saved listing row (visible and hidden, including contact/evidence fields), encrypts the payload with AES-256-GCM, and updates `data/immofinder/listings.snapshot.enc` through the GitHub Contents API.
-- The encryption key is derived with HKDF-SHA-256 from the stable runtime `SESSION_SECRET`; keep it stable to decrypt historical snapshots. The GitHub fine-grained token is runtime-only (`IMMOFINDER_GITHUB_TOKEN`) and needs Contents read/write for the configured repository (`IMMOFINDER_GITHUB_REPOSITORY`). Neither key nor token is committed or logged.
-- Missing GitHub configuration skips backup without failing the search. GitHub API failures are logged by status only; they do not expose listing rows or credentials and do not block search completion.
+- The encryption key is derived with HKDF-SHA-256 from the stable runtime `SESSION_SECRET`; keep it stable to decrypt historical snapshots. Preferred publishing auth uses runtime GitHub App credentials (`GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_REPOSITORY_OWNER`, `GITHUB_REPOSITORY_NAME`) and mints a short-lived installation token restricted to the configured repository and `contents:write`. The older `IMMOFINDER_GITHUB_TOKEN` is a compatibility fallback only when App credentials are incomplete. Neither key nor token is committed or logged.
+- Missing GitHub configuration skips backup without failing the search. GitHub API failures are logged by status plus a sanitized GitHub error message/request ID; listing rows and credentials are never included, and publication failures do not block search completion.
 
 ## Web research and outbound requests
 
