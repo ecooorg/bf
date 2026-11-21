@@ -31,8 +31,7 @@ type S = {
 };
 type Channels = { telegram: boolean; email: boolean; drive: boolean; driveAccount?: string };
 
-/** High-value first; labels match Stage-1 productivity for private long-term leads. */
-/** High-value first. Only private long-term leads with a stated price. */
+/** Search targets: portal entries are Google site: queries, not independent portal crawlers. */
 const SOURCE_ROWS: { id: string; label: string; hint: string; priority: boolean }[] = [
   { id: 'search', label: 'Web search (Facebook & private)', hint: 'Facebook groups, Nachmieter, direct owner ads via Google', priority: true },
   { id: 'portal-immoscout24', label: 'ImmoScout24', hint: 'site:immoscout24.ch', priority: false },
@@ -389,7 +388,7 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
           Full (all selected communes in one run)
         </label>
 
-        <strong style={{ display: 'block', marginTop: 12 }}>Sources (Stage 1 prioritises the top rows)</strong>
+        <strong style={{ display: 'block', marginTop: 12 }}>Search targets</strong>
         <p style={hint}>
           Searches Google results for the enabled Swiss rental portals and private ads. Holiday-rental catalogues stay off. Single-property ads in the selected communes must meet the room-count rule; a published rent is checked against the configured ceiling, while an undisclosed rent may remain marked as unknown. Agency and seeker posts are rejected.
         </p>
@@ -408,9 +407,6 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
                 }
               />{' '}
               <strong>{row.label}</strong>
-              {row.priority && (
-                <span style={{ marginLeft: 8, fontSize: 11, color: '#7db8ff' }}>Stage 1 priority</span>
-              )}
               <div style={{ ...hint, marginLeft: 22 }}>{row.hint}</div>
             </label>
           );
