@@ -1,4 +1,4 @@
-import { hostOf, buildQueries, pickItems, communesForRun, type SearchHit } from './immofinderDiscovery.ts';
+import { hostOf, buildQueries, pickItems, communesForRun, isPortalDetailLink, type SearchHit } from './immofinderDiscovery.ts';
 import { type ImmoConfig, type ListingType, LONG_TERM_HINT, classifyType, contactAdvice, agencyQuoteCounts, isSpecificLink, nonListingReason, canonicalKey, cutAtMarkers, slugVariants, candidateLinks, draftMessage, extractContacts, CONTACT_ADVICE, htmlToText, isStopAgency, matchMunicipality, placeFromUrl, placeFromTitleOrSnippet, pageMeta, parseRooms, registrationForbidden, verifyQuote, parsePrice, resolveListingPrice, priceDiagSnippet, parseListedAt, isSeekerPost, isListingUnavailable, clearOutOfCantonRegion, qualityRejectReason, DEFAULT_QUALITY, isShortStayListing, shortStayPreflightReason, shortStayContactReason, looksLikeAgencyListing, type QualitySettings, buildEvidenceText, credibilityRejectReason, priceFromEvidence, isPlatformOrJunkContact, formatHideLog, type EvidenceKind, dedupeSnippetText } from './immofinderCore.ts';
 import { sameListingUrlTarget, sanitizeNewRecord } from './immofinderRepair.ts';
 import { resolveEnrichmentConfig, enrichContacts, applyEnrichmentToRecord, type EnrichmentInput } from './immofinderContactEnrichment.ts';
@@ -344,7 +344,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (ex.rooms.rooms >= 12) { await deny('rooms_too_many', String(ex.rooms.rooms)); continue; }
       if (ex.regForbidden) { await deny('registration_forbidden'); continue; }
       // FB group root / _join_ / portal list URLs are not one ad; owner microsites without an ID still get a soft signal only.
-      if (!isSpecificLink(url)) {
+      if (!isSpecificLink(url) && !isPortalDetailLink(url, cfg)) {
         if (/facebook\.com|newhome\.ch|tutti\.ch|homegate\.ch|immoscout24|flatfox|urbanhome|rentola|cozycozy|booking\.com|home\.ch/i.test(url)) {
           await deny('not_single_listing', 'non_specific_portal_or_social');
           continue;
@@ -659,50 +659,16 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       say('search', `Searching: ${q}`, ++qi, slice.length);
       try {
         let batch: SearchHit[] = [];
-        let fallbackTried = false;
-        const freshWindow = cfg.discovery?.freshness === 'd' ? 'd' : cfg.discovery?.freshness === 'w' ? 'w' : 'm';
-        // Portal inventory often remains active for months; Google qdr would hide those valid ads.
-        // Apply date restriction only to private/social discovery, not direct Swiss portal searches.
-        const useFreshness = !/\bsite:[a-z0-9.-]+\b/i.test(q);
-        const freshTbs = `qdr:${freshWindow}`;
-        // Every provider call is counted (first call and fallback) so cost estimates match Serper credits.
-        const serperCall = async (label: string, opts?: { tbs?: string }) => {
+        // No hard Google date filter: live rental listings can remain indexed for months.
+        // qdr:m hid valid ads before fetch/verification could inspect them.
+        const serperCall = async (label: string) => {
           res.counts.serper_calls = (res.counts.serper_calls || 0) + 1;
-          try { return await withStepTimeout(label, () => deps.search!(q, opts)); } finally { serperTimestamps.push((deps.now ?? Date.now)()); }
+          try { return await withStepTimeout(label, () => deps.search!(q)); }
+          finally { serperTimestamps.push((deps.now ?? Date.now)()); }
         };
-        try {
-          batch = await serperCall('serper', useFreshness ? { tbs: freshTbs } : undefined);
-        } catch (freshError) {
-          // Retry without tbs only when the provider rejected the request itself (HTTP 400); timeouts and rate limits would just repeat the cost.
-          const freshMsg = String((freshError as Error)?.message || freshError);
-          if (!useFreshness || !/Serper HTTP 400/.test(freshMsg)) throw freshError;
-          fallbackTried = true;
-          await paceSerper();
-          res.counts.serper_fallback = (res.counts.serper_fallback || 0) + 1;
-          batch = await serperCall('serper_fallback');
-          res.errors.push({ source: 'search', code: 'freshness_fallback', detail: freshMsg.slice(0, 100) });
-        }
-        const hasUsableFreshLink = batch.some((hit) => {
-          if (pickItems([hit], cfg).length === 0) return false;
-          const geo = placeFromTitleOrSnippet(hit.title, `${hit.snippet} ${hit.link}`, cfg.municipalities);
-          return geo.matched !== null && !geo.outside;
-        });
-        if (useFreshness && (!batch.length || !hasUsableFreshLink) && !fallbackTried && cfg.discovery?.freshnessFallback === true) {
-          // A non-empty freshness-filtered SERP can still be unusable (profiles, travel pages,
-          // stale index pages). Retry without the date operator before abandoning this query.
-          await paceSerper();
-          res.counts.serper_fallback = (res.counts.serper_fallback || 0) + 1;
-          const fallback = await serperCall('serper_fallback');
-          const fallbackHasLocalListing = fallback.some((hit) => {
-            if (pickItems([hit], cfg).length === 0) return false;
-            const geo = placeFromTitleOrSnippet(hit.title, `${hit.snippet} ${hit.link}`, cfg.municipalities);
-            return geo.matched !== null && !geo.outside;
-          });
-          if (fallbackHasLocalListing) batch = fallback;
-          else res.errors.push({ source: 'search', code: 'freshness_relevance_fallback_empty', detail: 'Fresh and unfiltered SERPs had no specific listing with a selected municipality signal.' });
-        }
+        batch = await serperCall('serper');
         const picked = pickItems(batch, cfg);
-        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: useFreshness ? freshWindow : 'unrestricted', fallbackTried: fallbackTried })); } catch { /* diagnostics only */ }
+        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
         batchHits.push(...batch.slice(0, d.resultsPerQuery));
         consecutiveSearchFails = 0;
       } catch (e) {
