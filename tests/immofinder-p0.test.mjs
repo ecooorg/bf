@@ -4,7 +4,7 @@ import { defaultSettings, sanitizeSettings, applySettings, SOURCE_IDS } from '..
 import { runPipeline } from '../server/immofinderPipeline.ts';
 import { dedupeSnippetText } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
-import { createSerperSearch, communesForRun } from '../server/immofinderDiscovery.ts';
+import { createSerperSearch, communesForRun, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
 import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION } from '../server/immofinderRepair.ts';
 import { createPoliteFetch } from '../server/immofinderFetcher.ts';
 import { placeFromTitleOrSnippet } from '../server/immofinderCore.ts';
@@ -75,11 +75,11 @@ test('discovery query set replaces generic Facebook group search with fresh-inte
 test('pipeline batches discovery processing and avoids poisoning seen with insufficient evidence', () => {
   const source = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
   assert.match(source, /await flushBatch\(\);\s*try \{ console\.info\(JSON\.stringify\(\{ type: 'immofinder_discovery_batch_processed'/);
-  assert.match(source, /const freshWindow = cfg\.discovery\?\.freshness === 'd' \? 'd' : cfg\.discovery\?\.freshness === 'w' \? 'w' : 'm'/);
+  assert.doesNotMatch(source, /qdr:\$\{freshWindow\}/);
   assert.match(source, /sameListingUrlTarget\(it\.url, fetchedUrl\)/);
   assert.match(source, /text\.trim\(\)\.length < MIN_DIRECT_PAGE_TEXT_CHARS/);
   assert.match(source, /if \(checked\.hardReason\) \{ await deny\(checked\.hardReason, 'write_gate'\); continue; \}/);
-  assert.match(source, /hasUsableFreshLink/);
+  assert.doesNotMatch(source, /hasUsableFreshLink/);
   assert.match(source, /placeFromTitleOrSnippet\(hit\.title, `\$\{hit\.snippet\} \${hit\.link}`, cfg\.municipalities\)/);
   assert.match(source, /geo\.matched !== null && !geo\.outside/);
   assert.match(source, /reason !== 'rooms_unknown'/);
@@ -165,9 +165,21 @@ test('P129.52 portal inventory is searched without a Google date cutoff', async 
     config: privateCfg, fetchPage: noPage, llm: null, store: memStore(),
     search: async (_q, options) => { privateOptions.push(options); return []; }, cycle: 0,
   }, { dryRun: true, wave: 'carousel' });
-  assert.equal(privateOptions[0]?.tbs, 'qdr:m', 'private discovery retains the freshness preference');
+  assert.equal(privateOptions[0], undefined, 'private listings are not hidden by Google indexing freshness');
 });
 
+test('Swiss portal detail URLs without numeric IDs or long slugs survive discovery filtering', () => {
+  const portalCfg = leanCfg({ portalHosts: ['homegate.ch', 'flatfox.ch', 'immoscout24.ch'] });
+  const hits = [
+    { title: '3.5 Zimmer Wohnung in Chur', link: 'https://flatfox.ch/en/flat/abc-123', snippet: 'CHF 1650 in Chur' },
+    { title: '4 Zimmer Wohnung in Zizers', link: 'https://www.immoscout24.ch/rent/flat/offer-77', snippet: 'CHF 1800 in Zizers' },
+    { title: 'Wohnungen mieten', link: 'https://www.homegate.ch/rent/search', snippet: 'Suchresultate' },
+  ];
+  const picked = pickItems(hits, portalCfg);
+  assert.deepEqual(picked.map((x) => x.url), hits.slice(0, 2).map((x) => x.link));
+  assert.equal(isPortalDetailLink(hits[0].link, portalCfg), true);
+  assert.equal(isPortalDetailLink(hits[2].link, portalCfg), false);
+});
 test('P129.44 snippet text keeps each distinct segment once', () => {
   const title = 'Heimeliges Haus 4 1/2 Zimmer in Maladers';
   const out = dedupeSnippetText(title, `${title} CHF 1'690.– mietzins brutto ... ${title} CHF 1'690.– mietzins brutto ... Haustiere erlaubt`);
@@ -176,14 +188,13 @@ test('P129.44 snippet text keeps each distinct segment once', () => {
   assert.match(out, /Haustiere erlaubt/);
 });
 
-test('P129.44 every Serper call is counted and the unfiltered fallback only runs when enabled', async () => {
+test('discovery performs one unrestricted Serper call per query, without a freshness retry', async () => {
   const calls = [];
-  const search = async (q, o) => { calls.push(o?.tbs ?? null); return staleHit; };
-  const off = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
-  assert.equal(off.counts.serper_calls, 1); assert.equal(off.counts.serper_fallback, 0); assert.deepEqual(calls, ['qdr:m']);
-  calls.length = 0;
-  const on = await runPipeline({ config: leanCfg({ freshnessFallback: true, freshness: 'd' }), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
-  assert.equal(on.counts.serper_calls, 2); assert.equal(on.counts.serper_fallback, 1); assert.deepEqual(calls, ['qdr:d', null]);
+  const search = async (_q, options) => { calls.push(options ?? null); return staleHit; };
+  const result = await runPipeline({ config: leanCfg({ freshnessFallback: true, freshness: 'd' }), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
+  assert.equal(result.counts.serper_calls, 1);
+  assert.equal(result.counts.serper_fallback, 0);
+  assert.deepEqual(calls, [null]);
 });
 
 test('P129.44 only a provider 400 retries without freshness; timeouts and rate limits do not double the cost', async () => {
