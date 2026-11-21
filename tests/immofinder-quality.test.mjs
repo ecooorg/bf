@@ -54,6 +54,12 @@ test('UI exposes carousel and full run controls', () => {
   assert.match(ui, /start\('full'\)/);
 });
 
+test('settings UI does not claim a published monthly price is mandatory', () => {
+  const ui = read('src/ImmoFinderSettings.tsx');
+  assert.match(ui, /undisclosed rent may remain marked as unknown/);
+  assert.doesNotMatch(ui, /with a stated monthly price pass the quality gate/);
+});
+
 test('config prioritises long-term Swiss rental discovery portals', () => {
   const cfg = JSON.parse(read('config/immofinder.json'));
   const queries = cfg.discovery.portalQueries.join(' ');
