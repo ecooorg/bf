@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultSettings, sanitizeSettings, applySettings, SOURCE_IDS } from '../server/immofinderSettings.ts';
 import { runPipeline } from '../server/immofinderPipeline.ts';
-import { dedupeSnippetText } from '../server/immofinderCore.ts';
+import { dedupeSnippetText, htmlToText } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
 import { createSerperSearch, communesForRun, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
 import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig } from '../server/immofinderRepair.ts';
@@ -46,7 +46,7 @@ test('seen-cache entries from older rule versions are invalidated once', () => {
   assert.equal(decodeSeenReason('not_single_listing'), null);
   assert.equal(decodeSeenReason('129.51.1::not_single_listing'), null);
   assert.equal(decodeSeenReason(encodeSeenReason('not_single_listing')), 'not_single_listing');
-  assert.equal(REPAIR_RULES_VERSION, '129.53.1');
+  assert.equal(REPAIR_RULES_VERSION, '129.53.3');
   const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
   assert.match(store, /decodeSeenReason\(r\.rows\[0\]\.reason\)/);
   assert.match(store, /encodeSeenReason\(reason\)/);
@@ -81,7 +81,8 @@ test('pipeline batches discovery processing and avoids poisoning seen with insuf
   assert.match(source, /if \(checked\.hardReason\) \{ await deny\(checked\.hardReason, 'write_gate'\); continue; \}/);
   assert.doesNotMatch(source, /hasUsableFreshLink/);
   assert.match(source, /const titleGeo = placeFromTitleOrSnippet\(it\.hit\?\.title \|\| '', it\.hit\?\.snippet \|\| '', cfg\.municipalities\)/);
-  assert.match(source, /geo\.matched !== null && !geo\.outside/);
+  assert.match(source, /if \(titleGeo\.outside\)/);
+  assert.match(source, /if \(pageGeo\.outside\)/);
   assert.match(source, /reason !== 'rooms_unknown'/);
   assert.match(source, /reason !== 'municipality_not_whitelisted'/);
   assert.match(source, /it\.snippetOnly && it\.hit/);
@@ -174,6 +175,10 @@ test('non-standard Swiss portal detail URL survives the final write-time and rep
   const row = { listing_url: url, property_name: '3.5 Zimmer Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, raw: { evidence_text: evidence, evidence_kind: 'page_text', evidence_url: url } };
   assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null, 'unknown rent is allowed when the page is otherwise verified');
 });
+test('htmlToText excludes head metadata from listing evidence', () => {
+  assert.equal(htmlToText('<html><head><title>3.5 Zimmer Wohnung in Chur</title><meta name="description" content="Helle Wohnung"></head><body>Zu vermieten.</body></html>'), 'Zu vermieten.');
+});
+
 test('nonListingReason does not treat every URL as a listing/search page', () => {
   assert.equal(nonListingReason('3.5 Zimmer Wohnung in Chur', 'https://www.immoscout24.ch/rent/flat/offer-77'), null);
   assert.equal(nonListingReason('3.5 Zimmer Wohnung in Chur', 'https://www.homegate.ch/rent/123456789'), null);
