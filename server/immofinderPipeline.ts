@@ -293,11 +293,12 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (!pg.ok) {
         diag('candidate_fetch_failed', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || null, durationMs: now() - fetchStartedAt, error: safeDiagText(pg.body, 300), finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
         const availableSnippet = String(it.hit?.snippet || '').trim();
+        const originalFetchStatus = pg.status;
         if (it.hit && availableSnippet.length >= 18) {
           snippetEvidence = true;
           res.counts.snippet_only++;
           pg = buildSnippetPage('search_snippet_fetch_fallback');
-          diag('candidate_snippet_fallback_after_fetch_failure', { source: src.id, url: safeDiagUrl(it.url), host, originalFetchStatus: pg.status, snippetChars: availableSnippet.length, evidenceConfidence: 'low' });
+          diag('candidate_snippet_fallback_after_fetch_failure', { source: src.id, url: safeDiagUrl(it.url), host, originalFetchStatus, snippetChars: availableSnippet.length, evidenceConfidence: 'low' });
         } else {
           if (it.hit) {
             res.counts.snippet_only++;
