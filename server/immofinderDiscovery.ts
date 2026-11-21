@@ -78,15 +78,16 @@ export function pickItems(hits: SearchHit[], cfg: ImmoConfig, onDecision?: (deci
     // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
     const nonListing = nonListingReason(h.title || '', h.link);
     if (nonListing) { decide(false, `non_listing:${nonListing}`); continue; }
+    // Social feeds may expose ads only through snippets; retain them as provisional leads.
+    const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
     if (!isSpecificLink(h.link) && !isPortalDetailLink(h.link, cfg)) {
       // Owner microsites without an ID are rare but valid; portals/FB roots/lists are not.
       const dropHost = hostMatches(host, portalHosts)
         || /facebook\.com$|booking\.com$|cozycozy\.|rentola\.|happyholiday\.|ferienhausmiete\.|airbnb\.|vrbo\./i.test(host);
-      if (dropHost) { decide(false, 'generic_or_search_url_on_portal_social_host'); continue; }
+      if (dropHost && !snippetOnly) { decide(false, 'generic_or_search_url_on_portal_social_host'); continue; }
     }
     seen.add(h.link);
-    // Portal detail pages: fetch. Social/booking: snippet only.
-    const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
+    // Keep social-feed candidates; the pipeline records their evidence as provisional.
     out.push({ url: h.link, host, hit: h, snippetOnly });
     decide(true, snippetOnly ? 'accepted_snippet_only' : 'accepted_direct_fetch');
   }
