@@ -1,3 +1,4 @@
+import { createGitHubContentsWriteToken, type GitHubAppConfig } from './githubIntegration.ts';
 import {
   createCipheriv,
   createDecipheriv,
@@ -5,7 +6,37 @@ import {
   randomBytes,
 } from 'node:crypto';
 
-export const IMMOFINDER_SNAPSHOT_PATH = 'data/immofinder/listings.snapshot.enc';\n\nfunction githubAppConfigForRepository(env: NodeJS.ProcessEnv, repository: string, apiBaseUrl?: string): GitHubAppConfig | null {\n  const appId = String(env.GITHUB_APP_ID || '').trim();\n  const installationId = String(env.GITHUB_APP_INSTALLATION_ID || '').trim();\n  const privateKey = String(env.GITHUB_APP_PRIVATE_KEY || '').replace(/\\\\n/g, '\\n').trim();\n  const owner = String(env.GITHUB_REPOSITORY_OWNER || '').trim();\n  const name = String(env.GITHUB_REPOSITORY_NAME || '').trim();\n  if (!appId || !installationId || !privateKey || !owner || !name) return null;\n  if ((owner + '/' + name).toLowerCase() !== repository.toLowerCase()) throw new Error('github_app_repository_config_mismatch');\n  return { appId, installationId, privateKey, owner, repository: name, apiBaseUrl };\n}\n\nasync function resolveGitHubContentsToken(env: NodeJS.ProcessEnv, repository: string, fetchImpl: typeof fetch, apiBaseUrl: string): Promise<string | null> {\n  const appConfig = githubAppConfigForRepository(env, repository, apiBaseUrl);\n  if (appConfig) return createGitHubContentsWriteToken(appConfig, fetchImpl);\n  const legacyToken = String(env.IMMOFINDER_GITHUB_TOKEN || '').trim();\n  return legacyToken || null;\n}\n\nasync function githubFailure(prefix: string, response: Response): Promise<Error> {\n  let message = '';\n  try {\n    const body = await response.json() as { message?: unknown };\n    if (typeof body?.message === 'string') message = body.message.toLowerCase().replace(/[^a-z0-9 _-]/g, '').replace(/\\s+/g, '_').slice(0, 90);\n  } catch { /* GitHub may return an empty or non-JSON body. */ }\n  const requestId = response.headers?.get?.('x-github-request-id');\n  const safeRequestId = requestId ? String(requestId).replace(/[^a-zA-Z0-9-]/g, '').slice(0, 40) : '';\n  return new Error(prefix + '_http_' + response.status + (message ? '_' + message : '') + (safeRequestId ? '_request_' + safeRequestId : ''));\n}\n
+export const IMMOFINDER_SNAPSHOT_PATH = 'data/immofinder/listings.snapshot.enc';
+
+function githubAppConfigForRepository(env: NodeJS.ProcessEnv, repository: string, apiBaseUrl?: string): GitHubAppConfig | null {
+  const appId = String(env.GITHUB_APP_ID || '').trim();
+  const installationId = String(env.GITHUB_APP_INSTALLATION_ID || '').trim();
+  const privateKey = String(env.GITHUB_APP_PRIVATE_KEY || '').replace(/\\n/g, '\n').trim();
+  const owner = String(env.GITHUB_REPOSITORY_OWNER || '').trim();
+  const name = String(env.GITHUB_REPOSITORY_NAME || '').trim();
+  if (!appId || !installationId || !privateKey || !owner || !name) return null;
+  if ((owner + '/' + name).toLowerCase() !== repository.toLowerCase()) throw new Error('github_app_repository_config_mismatch');
+  return { appId, installationId, privateKey, owner, repository: name, apiBaseUrl };
+}
+
+async function resolveGitHubContentsToken(env: NodeJS.ProcessEnv, repository: string, fetchImpl: typeof fetch, apiBaseUrl: string): Promise<string | null> {
+  const appConfig = githubAppConfigForRepository(env, repository, apiBaseUrl);
+  if (appConfig) return createGitHubContentsWriteToken(appConfig, fetchImpl);
+  const legacyToken = String(env.IMMOFINDER_GITHUB_TOKEN || '').trim();
+  return legacyToken || null;
+}
+
+async function githubFailure(prefix: string, response: Response): Promise<Error> {
+  let message = '';
+  try {
+    const body = await response.json() as { message?: unknown };
+    if (typeof body?.message === 'string') message = body.message.toLowerCase().replace(/[^a-z0-9 _-]/g, '').replace(/\s+/g, '_').slice(0, 90);
+  } catch { /* GitHub may return an empty or non-JSON body. */ }
+  const requestId = response.headers?.get?.('x-github-request-id');
+  const safeRequestId = requestId ? String(requestId).replace(/[^a-zA-Z0-9-]/g, '').slice(0, 40) : '';
+  return new Error(prefix + '_http_' + response.status + (message ? '_' + message : '') + (safeRequestId ? '_request_' + safeRequestId : ''));
+}
+
 const FORMAT = 'biforge-immofinder-encrypted-snapshot';
 const KEY_SALT = Buffer.from('biforge-immofinder-snapshot-v1', 'utf8');
 const KEY_INFO = Buffer.from('github-contents-aes-256-gcm', 'utf8');
@@ -79,7 +110,6 @@ export async function publishGitHubRunDiagnostics(
   options: { env?: NodeJS.ProcessEnv; fetchImpl?: typeof fetch; apiBaseUrl?: string } = {},
 ): Promise<GitHubRunDiagnosticsResult> {
   const env = options.env || process.env;
-  const token = String(env.IMMOFINDER_GITHUB_TOKEN || '').trim();
   const repository = String(env.IMMOFINDER_GITHUB_REPOSITORY || '').trim();
   const branch = String(env.IMMOFINDER_GITHUB_BRANCH || 'main').trim() || 'main';
   const events = Array.isArray(report.events) ? report.events : [];
@@ -89,8 +119,10 @@ export async function publishGitHubRunDiagnostics(
   const runId = String(meta.runId || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80) || 'unknown';
   const runPath = 'data/immofinder/diagnostics/runs/' + runId + '.json';
   const latestPath = 'data/immofinder/diagnostics/latest.json';
-  const apiBase = String(options.apiBaseUrl || 'https://api.github.com').replace(/\/+$/, '');
+  const apiBase = String(options.apiBaseUrl || env.GITHUB_API_BASE_URL || 'https://api.github.com').replace(/\/+$/, '');
   const fetchImpl = options.fetchImpl || fetch;
+  const token = await resolveGitHubContentsToken(env, repository, fetchImpl, apiBase);
+  if (!token) return { status: 'skipped', reason: 'github_snapshot_not_configured', paths: [], eventCount };
   const headers = { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token, 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' };
   const fullText = JSON.stringify(report, null, 2);
   const documents: { path: string; text: string }[] = [];
@@ -159,7 +191,6 @@ export async function publishGitHubListingsSnapshot(
   } = {},
 ): Promise<GitHubSnapshotResult> {
   const env = options.env || process.env;
-  const token = String(env.IMMOFINDER_GITHUB_TOKEN || '').trim();
   const repository = String(env.IMMOFINDER_GITHUB_REPOSITORY || '').trim();
   const branch = String(env.IMMOFINDER_GITHUB_BRANCH || 'main').trim() || 'main';
   const sessionSecret = String(env.SESSION_SECRET || '');
@@ -180,10 +211,12 @@ export async function publishGitHubListingsSnapshot(
   };
   const envelope = encryptSnapshotPayload(payload, sessionSecret);
   const content = Buffer.from(JSON.stringify(envelope), 'utf8').toString('base64');
-  const apiBase = String(options.apiBaseUrl || 'https://api.github.com').replace(/\/+$/, '');
+  const apiBase = String(options.apiBaseUrl || env.GITHUB_API_BASE_URL || 'https://api.github.com').replace(/\/+$/, '');
+  const fetchImpl = options.fetchImpl || fetch;
+  const token = await resolveGitHubContentsToken(env, repository, fetchImpl, apiBase);
+  if (!token) return { status: 'skipped', reason: 'github_snapshot_not_configured', path: IMMOFINDER_SNAPSHOT_PATH, rowCount: rows.length };
   const encodedPath = IMMOFINDER_SNAPSHOT_PATH.split('/').map(encodeURIComponent).join('/');
   const endpoint = `${apiBase}/repos/${repository}/contents/${encodedPath}`;
-  const fetchImpl = options.fetchImpl || fetch;
   const headers = {
     Accept: 'application/vnd.github+json',
     Authorization: `Bearer ${token}`,
