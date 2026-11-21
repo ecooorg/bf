@@ -368,7 +368,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
     });
   }
   if (!why) {
-    const preflight = provisionalSnippet ? null : shortStayPreflightReason({ shortStay, price: pagePrice, url, evidenceKind: 'page_text', evidenceText: pageEvidence });
+    const preflight = shortStayPreflightReason({ shortStay, price: pagePrice, url, evidenceKind: provisionalSnippet ? 'snippet' : 'page_text', evidenceText: pageEvidence });
     if (preflight) why = preflight;
   }
   if (!why) {
