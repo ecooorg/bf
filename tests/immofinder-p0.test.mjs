@@ -98,6 +98,13 @@ test('manual listing deletion also clears its URL seen-cache entries', () => {
   assert.match(store, /await client\.query\('COMMIT'\)/);
 });
 
+test('write-time auto-hidden listings can be rechecked and recovered after rules change', () => {
+  const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
+  assert.match(store, /write_time_quality.*hardReason/);
+  assert.match(store, /SELECT id, listing_url, source_urls[\\s\\S]*hidden, hide_reason/);
+  assert.match(store, /recoverAutomaticHide && writeGateAutoHide/);
+});
+
 test('seen-cache skips are reason-logged and transient detail-page rejects are retried', () => {
   const pipeline = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
   assert.match(pipeline, /type: 'immofinder_candidate_skipped_seen'/);
