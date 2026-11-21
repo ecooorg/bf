@@ -109,7 +109,7 @@ test('P128.1 pipeline keeps matching private listings, filters the rest, never s
     'https://t.example/area': immoPage('Index', '<a href="/ferienwohnung/1">a</a><a href="/ferienwohnung/2">b</a><a href="/ferienwohnung/3">c</a>'),
     'https://t.example/ferienwohnung/1': immoPage('Chesa Alba', '<p>Chesa Alba in Churwalden, 4.5 Zimmer Wohnung. Nettomiete CHF 1\'200 pro Monat. Kontakt: Hans Muster, hans@example.org, 081 111 22 33.</p>'),
     'https://t.example/ferienwohnung/2': immoPage('Interhome Haus', '<p>Interhome Ferienhaus in Chur, 5 Zimmer.</p>'),
-    'https://t.example/ferienwohnung/3': immoPage('Studio Davos', '<p>Studio in Davos, 1.5 Zimmer.</p>'),
+    'https://t.example/ferienwohnung/3': immoPage('Studio Davos', '<p>Studio in Davos, 1.5 Zimmer. Ruhige Lage mit Balkon und schöner Aussicht.</p>'),
   };
   const saved = [];
   const seenDb = new Map();
