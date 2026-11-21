@@ -42,19 +42,25 @@ test('geo helper requires title, snippet and municipality allowlist and matches 
 
 test('discovery query set replaces generic Facebook group search with fresh-intent wording', () => {
   assert.ok(!cfg.discovery.queries.some((q) => q.startsWith('site:facebook.com/groups')));
-  assert.ok(cfg.discovery.queries.some((q) => /ab sofort|per 1\. Dezember/.test(q)));
+  assert.ok(cfg.discovery.queries.some((q) => /privat|Eigentümer/.test(q)));
+  assert.ok(cfg.discovery.portalQueries.every((q) => !/Graubünden|3\.5 Zimmer/.test(q)));
+  assert.ok(cfg.discovery.portalQueries.some((q) => q.includes('site:homegate.ch')));
 });
 
 test('pipeline batches discovery processing and avoids poisoning seen with insufficient evidence', () => {
   const source = readFileSync(new URL('../server/immofinderPipeline.ts', import.meta.url), 'utf8');
   assert.match(source, /qi % 5 === 0/);
-  assert.match(source, /qdr:\$\{cfg\.discovery\?\.freshness === 'd' \? 'd' : 'w'\}/);
+  assert.match(source, /const freshWindow = cfg\.discovery\?\.freshness === 'd' \? 'd' : cfg\.discovery\?\.freshness === 'w' \? 'w' : 'm'/);
+  assert.match(source, /normalizeUrl\(fetchedUrl\) !== normalizeUrl\(it\.url\)/);
+  assert.match(source, /text\.trim\(\)\.length < 120/);
+  assert.match(source, /if \(checked\.hardReason\) \{ await deny\(checked\.hardReason, 'write_gate'\); continue; \}/);
   assert.match(source, /hasUsableFreshLink/);
   assert.match(source, /placeFromTitleOrSnippet\(hit\.title, `\$\{hit\.snippet\} \${hit\.link}`, cfg\.municipalities\)/);
   assert.match(source, /geo\.matched !== null && !geo\.outside/);
   assert.match(source, /reason !== 'rooms_unknown'/);
   assert.match(source, /reason !== 'municipality_not_whitelisted'/);
-  assert.match(source, /reason === 'price_unknown' && pages\[i\]\.snippet/);
+  assert.match(source, /it\.snippetOnly && it\.hit/);
+  assert.match(source, /allowSnippet: false/);
   assert.match(source, /6 \* 60 \* 60 \* 1000/);
   assert.match(source, /src\.id !== 'search' && st\.consecutiveBad >= stopAt/);
 });
@@ -79,10 +85,11 @@ const staleHit = [{ title: 'Wikipedia', link: 'https://de.wikipedia.org/wiki/Chu
 test('P129.48 quality-first defaults are what Reset restores and sanitize clamps the search fields', () => {
   const d = defaultSettings(cfg);
   assert.equal(d.schedule.everyHours, 3);
-  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.freshness, d.search.freshnessFallback, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [12, 4, 'w', false, 12, false, 100]);
+  assert.deepEqual([d.search.carouselCommunesPerRun, d.search.privateQueryTemplates, d.search.freshness, d.search.freshnessFallback, d.search.enrichSearchesPerRun, d.search.recheckContactSearch, d.search.maxAiPages], [12, 4, 'm', false, 12, false, 100]);
   const s = sanitizeSettings({ search: { privateQueryTemplates: 99, freshness: 'x', enrichSearchesPerRun: -4, freshnessFallback: 'yes', carouselCommunesPerRun: 50 } }, cfg);
-  assert.deepEqual([s.search.privateQueryTemplates, s.search.freshness, s.search.enrichSearchesPerRun, s.search.freshnessFallback, s.search.carouselCommunesPerRun], [4, 'w', 12, false, 12]);
+  assert.deepEqual([s.search.privateQueryTemplates, s.search.freshness, s.search.enrichSearchesPerRun, s.search.freshnessFallback, s.search.carouselCommunesPerRun], [4, 'm', 12, false, 12]);
   assert.equal(sanitizeSettings({ search: { privateQueryTemplates: 4, freshness: 'd', enrichSearchesPerRun: 0, freshnessFallback: true } }, cfg).search.privateQueryTemplates, 4);
+  assert.equal(sanitizeSettings({ search: { freshness: 'w' } }, cfg).search.freshness, 'm', 'legacy weekly default upgrades to the broader month window');
 });
 
 test('P129.48 applySettings maps all private templates, freshness and enrichment budget into the run config', () => {
@@ -108,7 +115,7 @@ test('P129.44 every Serper call is counted and the unfiltered fallback only runs
   const calls = [];
   const search = async (q, o) => { calls.push(o?.tbs ?? null); return staleHit; };
   const off = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
-  assert.equal(off.counts.serper_calls, 1); assert.equal(off.counts.serper_fallback, 0); assert.deepEqual(calls, ['qdr:w']);
+  assert.equal(off.counts.serper_calls, 1); assert.equal(off.counts.serper_fallback, 0); assert.deepEqual(calls, ['qdr:m']);
   calls.length = 0;
   const on = await runPipeline({ config: leanCfg({ freshnessFallback: true, freshness: 'd' }), fetchPage: noPage, llm: null, store: memStore(), search, cycle: 0 }, { dryRun: true, wave: 'carousel' });
   assert.equal(on.counts.serper_calls, 2); assert.equal(on.counts.serper_fallback, 1); assert.deepEqual(calls, ['qdr:d', null]);
@@ -125,18 +132,65 @@ test('P129.44 only a provider 400 retries without freshness; timeouts and rate l
   assert.equal(n, 2); assert.equal(b.counts.serper_fallback, 1); assert.equal(b.counts.serper_calls, 2);
 });
 
-test('P129.44 a snippet without a parseable room count makes no model call and is not persisted', async () => {
+test('P129.51 snippet-only social results never reach the model or database', async () => {
   const hits = [
     { title: 'Wohnung zu vermieten in Chur', link: 'https://www.facebook.com/groups/1/posts/11/', snippet: 'Schöne Wohnung in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
     { title: '3.5 Zimmer Wohnung in Chur', link: 'https://www.facebook.com/groups/1/posts/12/', snippet: 'Zu vermieten in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
   ];
-  let llmCalls = 0; const marked = [];
-  const store = { ...memStore(), markSeen: async (u) => { marked.push(u); } };
+  let llmCalls = 0; const marked = []; const saved = [];
+  const store = { ...memStore(saved), markSeen: async (u) => { marked.push(u); } };
   const llm = async () => { llmCalls++; return null; };
   const res = await runPipeline({ config: leanCfg(), fetchPage: noPage, llm, store, search: async () => hits, cycle: 0 }, { dryRun: false, wave: 'carousel' });
-  assert.equal(res.counts.llm_skipped_no_rooms, 1);
-  assert.equal(llmCalls, 1, 'only the snippet that names rooms reaches the model');
-  assert.ok(!marked.some((u) => u.endsWith('/11/')));
+  assert.equal(res.counts.snippet_only, 2);
+  assert.equal(res.filtered.detail_page_not_verified, 2);
+  assert.equal(llmCalls, 0);
+  assert.equal(saved.length, 0);
+  assert.equal(marked.length, 0, 'insufficient evidence is not poisoned into seen');
+});
+
+test('P129.51 a failed portal fetch cannot downgrade to a saved SERP snippet', async () => {
+  const url = 'https://www.homegate.ch/mieten/4001234567';
+  const saved = []; let llmCalls = 0;
+  const res = await runPipeline({
+    config: leanCfg(), fetchPage: noPage,
+    llm: async () => { llmCalls++; return null; }, store: memStore(saved),
+    search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Miete CHF 1\'500 pro Monat, Chur' }], cycle: 0,
+  }, { dryRun: false, wave: 'carousel' });
+  assert.equal(res.filtered.detail_page_fetch_failed, 1);
+  assert.equal(res.counts.kept, 0);
+  assert.equal(llmCalls, 0);
+  assert.equal(saved.length, 0);
+});
+
+test('P129.51 direct detail pages require an explicit matching final URL and page evidence', async () => {
+  const url = 'https://www.homegate.ch/mieten/4001234567';
+  const body = `<html><head><title>3.5-Zimmer-Wohnung in Chur</title><meta name="description" content="Helle Wohnung mit Balkon und Küche"></head><body><h1>3.5-Zimmer-Wohnung in Chur zu vermieten</h1><p>Miete CHF 1'500 pro Monat. Wohnfläche 80 m2. Helle Räume, Balkon, Küche und Bad. Bezug ab sofort möglich. Separates Kellerabteil und ruhige Lage.</p></body></html>`;
+  const saved = [];
+  const good = await runPipeline({
+    config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: url }),
+    llm: null, store: memStore(saved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
+  }, { dryRun: false, wave: 'carousel' });
+  assert.equal(good.counts.kept, 1);
+  assert.equal(good.counts.new, 1);
+  assert.equal(good.sourceStats[0].new, 1);
+  assert.equal(saved.length, 1);
+
+  const wrongSaved = [];
+  const redirected = await runPipeline({
+    config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body, finalUrl: 'https://www.homegate.ch/mieten/4009999999' }),
+    llm: null, store: memStore(wrongSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
+  }, { dryRun: false, wave: 'carousel' });
+  assert.equal(redirected.filtered.detail_page_url_mismatch, 1);
+  assert.equal(redirected.counts.kept, 0);
+  assert.equal(wrongSaved.length, 0);
+
+  const shortSaved = [];
+  const shortPage = await runPipeline({
+    config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body: '<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body>Zu vermieten.</body></html>', finalUrl: url }),
+    llm: null, store: memStore(shortSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
+  }, { dryRun: false, wave: 'carousel' });
+  assert.equal(shortPage.filtered.detail_page_evidence_too_short, 1);
+  assert.equal(shortSaved.length, 0);
 });
 
 test('P129.44 enrichment uses holiday-home wording only for house-style names', () => {
