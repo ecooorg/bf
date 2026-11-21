@@ -368,7 +368,7 @@ export function agencyQuoteCounts(quote: string | null, platformHost: string): b
 }
 
 const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in|.*immobilie\. h[aä]user zu vermieten|.*properties mieten)|mittlere(r)?\s+mietpreis|durchschnittliche[r]?\s+mietpreis/i;
-const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-|\/mieten\/plz-|\/immobilien\/mieten\/|nestoria\.|immowelt\.||realadvisor\.[a-z.]+\/.*\/mieten\/|\/mieten\/\d{4}-[^/]+\/wohnung(\/\d+-zimmer)?\/?$/i;
+const LIST_URL = /trefferliste|\/stays(\?|$)|\/ort-[^/]+(\?|$)|\/plz-\d+\/?(\?|$)|\/plz-\d+[^/]*\/\d+-zimmer|unterkunft-[a-z-]+$|\/mieten\/ort-|\/wohnung\/mieten\/ort-|\/mieten\/plz-|\/immobilien\/mieten\/|nestoria\.|immowelt\.|realadvisor\.[a-z.]+\/.*\/mieten\/|\/mieten\/\d{4}-[^/]+\/wohnung(\/\d+-zimmer)?\/?$/i;
 const WANTED = /^(suche|gesucht|wir suchen|ich suche|suchen|wer hat)\b/i;
 const HOTEL = /\b(hotel|pension|hostel|b&b|bed and breakfast|g[aä]stehaus|gasthof|campingplatz|gruppenhaus|gruppenh[aä]user)\b/i;
 
