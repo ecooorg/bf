@@ -100,11 +100,12 @@ async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, erro
   try {
     const stored = await recentApplicationLogs(1000);
     const traceEvents = stored.logs.flatMap((entry: any) => {
-      if (entry.component !== 'immofinder' || entry.event !== 'trace') return [];
-      const details = entry.details && typeof entry.details === 'object' ? entry.details : {};
-      if (!details.traceId) return [];
-      const { traceId, ...event } = details;
-      return [{ traceId, ...event }];
+      if (entry.component !== 'console' || entry.event !== 'console_output') return [];
+      try {
+        const event = JSON.parse(String(entry.message || ''));
+        if (event?.type !== 'immofinder_trace' || !event.traceId) return [];
+        return [event];
+      } catch { return []; }
     });
     const traceIds = [...new Set(traceEvents.map((e: any) => e.traceId))];
     const traceId = traceIds[traceIds.length - 1] || null;
