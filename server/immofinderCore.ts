@@ -648,7 +648,8 @@ export function resolveListingPrice(pageText: string, priceQuote: string | null 
     while (windows.length < 10) {
       const i = lower.indexOf(key, from);
       if (i < 0) break;
-      windows.push(full.slice(Math.max(0, i - 40), i + 100));
+      const grossLabel = /^(bruttomiete|bruttomietzins|warmmiete)$/.test(key);
+      windows.push(full.slice(Math.max(0, i - (grossLabel ? 0 : 40)), i + 100));
       from = i + key.length;
     }
   }
