@@ -209,12 +209,22 @@ export function priceVerdict(row: Row): PriceVerdict {
   const cands = priceCandidates(evidence);
   const rentCands = cands.filter((c) => !c.side && c.unit !== 'unknown' && c.amount >= 400 && c.amount <= 9000);
   const distinct = [...new Map(rentCands.map((c) => [`${c.amount}:${c.unit}`, c])).values()];
+  const grossCandidates = distinct.filter((c) => /\\b(bruttomiete|bruttomietzins|warmmiete)\\b/i.test(evidence.slice(Math.max(0, c.index - 60), c.index)));
   const pick = (list: PriceCandidate[]): PriceCandidate | null => {
+    const gross = list.filter((c) => /\\b(bruttomiete|bruttomietzins|warmmiete)\\b/i.test(evidence.slice(Math.max(0, c.index - 60), c.index)));
+    if (gross.length === 1) return gross[0];
     if (list.length === 1) return list[0];
     const labelled = list.filter((c) => c.rentLabelled);
     const labelledDistinct = [...new Map(labelled.map((c) => [`${c.amount}:${c.unit}`, c])).values()];
     return labelledDistinct.length === 1 ? labelledDistinct[0] : null;
   };
+  if (Number.isFinite(stored) && stored > 0 && distinct.length > 1 && grossCandidates.length !== 1) {
+    return { status: 'suspect', why: 'price_ambiguous_on_detail_page' };
+  }
+  if (Number.isFinite(stored) && stored > 0 && grossCandidates.length === 1 && stored !== grossCandidates[0].amount) {
+    const gross = grossCandidates[0];
+    return { status: 'repair', price: { amount: gross.amount, unit: gross.unit as 'month' | 'week' | 'night' | 'season' }, why: 'gross_rent_preferred' };
+  }
   if (!Number.isFinite(stored) || stored <= 0) {
     const one = pick(distinct);
     return one && one.unit !== 'unknown'
