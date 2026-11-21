@@ -65,7 +65,7 @@ test('config prioritises long-term Swiss rental discovery portals', () => {
   assert.match(queries, /urbanhome\.ch/);
   assert.match(queries, /petitesannonces\.ch/);
   for (const host of ['properstar.ch', 'rentumo.ch', 'moving24.ch', 'homematch.ch', 'roomlala.de', 'bedandbreakfast.eu']) {
-    assert.ok(cfg.discovery.skipHosts.includes(host), `aggregator / short-stay host excluded: ${host}`);
+    assert.ok(cfg.discovery.skipHosts.includes(host), `aggregator/service host remains excluded: ${host}`);
   }
   assert.ok(cfg.discovery.communesPerRun >= 12);
 });
@@ -378,7 +378,7 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.search.maxAiPages, 100);
   assert.equal(defaults.search.enrichSearchesPerRun, 12);
   assert.equal(defaults.search.requirePrice, true);
-  assert.equal(defaults.search.rejectNonMonthly, true);
+  assert.equal(defaults.search.rejectNonMonthly, false);
   assert.equal(defaults.search.rejectSeekerPosts, true);
   assert.equal(defaults.search.requireContact, false);
   assert.equal(defaults.search.maxMonthlyRentChf, 2000);
@@ -488,7 +488,7 @@ test('P129.48 repair audit hides cards without verified monthly prices and write
     pricing_unit: 'week',
     raw: { evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567', evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. CHF 800 pro Woche. Helle Wohnung mit Balkon und Küche. Wohnfläche 90 m2, ruhige Lage und Bezug ab sofort möglich.', price: { amount: 800, unit: 'week' } },
   };
-  assert.equal(hardRejectReason(weekly, ctx), 'non_monthly_price');
+  assert.equal(hardRejectReason(weekly, ctx), 'short_stay_contact_required');
 });
 
 test('P129.47 All Logs contains the complete ImmoFinder snapshot and repair endpoints are authenticated', () => {

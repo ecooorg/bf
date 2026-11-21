@@ -65,7 +65,7 @@ test('Commit badge is wired for all shells that show ModeMenu', () => {
 import { formatListingsText, listingsTable, exportDrive, checkDrive, buildSheetRequests, buildDocRequests } from '../server/immofinderDelivery.ts';
 import { immoCardModel, immoLinkLine } from '../src/immoCard.ts';
 import { generateKeyPairSync } from 'node:crypto';
-import { classifyType, contactAdvice, draftMessage as draftMsg, matchMunicipality as matchMuni, nonListingReason, isSpecificLink, parseListedAt, pageMeta } from '../server/immofinderCore.ts';
+import { classifyType, contactAdvice, draftMessage as draftMsg, matchMunicipality as matchMuni, nonListingReason, isSpecificLink, parseListedAt, pageMeta, parsePrice, qualityRejectReason, isShortStayListing, shortStayPreflightReason, shortStayContactReason } from '../server/immofinderCore.ts';
 import { parseDriveFolderId, formatZurich, defaultSettings, sanitizeSettings, applySettings, isDue } from '../server/immofinderSettings.ts';
 import { communesForRun, buildQueries, pickItems } from '../server/immofinderDiscovery.ts';
 import { cutAtMarkers, slugVariants, agencyQuoteCounts, matchMunicipality, parseRooms, registrationForbidden, verifyQuote, extractContacts, draftMessage, candidateLinks, canonicalKey } from '../server/immofinderCore.ts';
@@ -179,12 +179,12 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
     { title: 'Interhome Chur', link: 'https://www.interhome.ch/x', snippet: 'Interhome' },
     { title: 'Wikipedia', link: 'https://de.wikipedia.org/wiki/Chur', snippet: '' },
     { title: 'Ferienwohnung Chur 4 Zimmer von privat', link: 'https://www.facebook.com/marketplace/item/1', snippet: 'Schöne 4 Zimmer Wohnung in Chur, CHF 1\'400 pro Monat, Tel 079 123 45 67' },
-    { title: 'Chesa Mia', link: 'https://chesa-mia.example/', snippet: '' },
-    { title: 'dup', link: 'https://chesa-mia.example/', snippet: '' },
+    { title: 'Chesa Mia', link: 'https://chesa-mia.example/listing/123456', snippet: '' },
+    { title: 'dup', link: 'https://chesa-mia.example/listing/123456', snippet: '' },
   ];
   const items = pickItems(hits, cfg);
   assert.deepEqual(items.map((i) => [i.host, i.snippetOnly]), [['chesa-mia.example', false], ['facebook.com', true]]);
-  const pages = { 'https://chesa-mia.example/': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung. CHF 1\'800 pro Monat. Tel 081 222 33 44, mia@chesa-mia.example</p>') };
+  const pages = { 'https://chesa-mia.example/listing/123456': immoPage('Chesa Mia Chur', '<p>Chesa Mia in Chur, 5 Zimmer Ferienwohnung. CHF 1\'800 pro Monat. Tel 081 222 33 44, mia@chesa-mia.example. Die Wohnung verfügt über Balkon, Küche, Bad und gute Verkehrsanbindung.</p>') };
   const saved = [];
   const store = { findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async () => null, markSeen: async () => {} };
   const fetchPage = async (u) => (pages[u] ? { ok: true, status: 200, body: pages[u] } : { ok: false, status: 403, body: '' });
@@ -193,9 +193,9 @@ test('P128.3 discovery: commune rotation, host policy, snippet-only portals, own
   const res = await runPipeline({ config: cfg, fetchPage, llm: null, store, search, cycle: 0 }, { dryRun: false, wave: 'priority' });
   assert.equal(res.counts.search_queries, 1);
   assert.equal(res.counts.snippet_only, 1);
-  assert.equal(res.counts.kept, 2);
+  assert.equal(res.counts.kept, 1);
   const fb = saved.find((r) => r.listing_url.includes('facebook'));
-  assert.ok(fb.private_signals.includes('snippet_only') && fb.direct_phone && fb.photo_urls.length === 0);
+  assert.equal(fb, undefined, 'snippet-only short-stay results are not saved without direct-page evidence');
   assert.equal(saved.find((r) => r.listing_url.includes('chesa-mia')).direct_email, 'mia@chesa-mia.example');
   const nokey = await runPipeline({ config: cfg, fetchPage, llm: null, store, search: null }, { dryRun: true });
   assert.equal(nokey.errors[0].code, 'discovery_skipped');
@@ -456,4 +456,135 @@ test('P129.23a refresh reads publication dates and contacts while preserving sto
   assert.equal(saved.get('preserve').raw.listed_at, rows[1].raw.listed_at);
   assert.equal(status.checked, 2); assert.equal(status.unreachable, 1);
   assert.ok(logs.some((x) => x.event === 'recheck_refresh_done'));
+});
+
+
+test('P129.50 seasonal and short-stay listings require explicit period, direct page, exact link and advertiser contact', () => {
+  const seasonal = parsePrice('CHF 850 pro Saison');
+  assert.ok(seasonal);
+  assert.equal(seasonal.unit, 'season');
+  assert.equal(isShortStayListing('Holiday apartment', 'https://stay.example/listing/123456', 'Seasonal rental', seasonal), true);
+  assert.equal(qualityRejectReason({
+    maxMonthlyRentChf: 2000, maxListingAgeDays: 180, requirePrice: true,
+    rejectNonMonthly: false, rejectSeekerPosts: true, requireContact: false,
+  }, seasonal, null, false, true), null, 'explicit seasonal price is not rejected as non-monthly');
+  const valid = { shortStay: true, price: seasonal, url: 'https://stay.example/listing/123456', evidenceKind: 'page_text' };
+  assert.equal(shortStayPreflightReason(valid), null);
+  assert.equal(shortStayPreflightReason({ ...valid, price: parsePrice('CHF 850') }), 'short_stay_price_period_required');
+  assert.equal(shortStayPreflightReason({ ...valid, url: 'https://stay.example/search' }), 'short_stay_specific_link_required');
+  assert.equal(shortStayPreflightReason({ ...valid, evidenceKind: 'snippet' }), 'short_stay_page_evidence_required');
+  assert.equal(shortStayContactReason(true, null, null), 'short_stay_contact_required');
+  assert.equal(shortStayContactReason(true, '+41791234567', null), null);
+  assert.equal(shortStayContactReason(false, null, null), null);
+});
+
+test('P129.50 direct holiday listing hosts are discoverable while aggregators remain excluded', () => {
+  const d = immoCfg.discovery;
+  for (const host of ['airbnb.com', 'booking.com', 'interhome.ch', 'vrbo.com']) {
+    assert.ok(!d.skipHosts.includes(host), `${host} is a direct listing platform, not a meta-search host`);
+    assert.ok(!d.snippetOnlyHosts.includes(host), `${host} must be fetched for page/contact verification`);
+  }
+  for (const host of ['holidu.com', 'cozycozy.com', 'hometogo.com', 'trivago.ch']) {
+    assert.ok(d.skipHosts.includes(host), `${host} remains a meta-search aggregator`);
+  }
+  assert.equal(isShortStayListing('Apartment', 'https://www.booking.com/hotel/ch/example.en-gb.html', 'monthly apartment', parsePrice('CHF 1 200 pro Monat')), true);
+  assert.doesNotMatch(read('server/immofinderCore.ts'), /booking\.com\/hotel/);
+  assert.match(d.queries.join(' '), /Ferienwohnung|Saison|pro Nacht|pro Woche/i);
+});
+
+test('P129.50 full database snapshot is authenticated ciphertext and is committed after manual and scheduled runs', async () => {
+  const { encryptSnapshotPayload, decryptSnapshotPayload, publishGitHubListingsSnapshot, IMMOFINDER_SNAPSHOT_PATH } =
+    await import('../server/immofinderSnapshot.ts');
+  const secret = 'stable-test-session-secret-'.padEnd(48, 'x');
+  const payload = { rows: [{ direct_phone: '+41791234567', direct_email: 'owner@private.example', street_address: 'Exampleweg 12', listing_url: 'https://stay.example/123456' }] };
+  const envelope = encryptSnapshotPayload(payload, secret);
+  assert.equal(envelope.algorithm, 'aes-256-gcm');
+  assert.ok(!JSON.stringify(envelope).includes('+41791234567'));
+  assert.ok(!JSON.stringify(envelope).includes('owner@private.example'));
+  assert.ok(!JSON.stringify(envelope).includes('Exampleweg 12'));
+  assert.deepEqual(decryptSnapshotPayload(envelope, secret), payload);
+  assert.throws(() => decryptSnapshotPayload(envelope, 'a-different-session-secret-that-is-long-enough'), /authenticate|Unsupported state/i);
+
+  const calls = [];
+  const result = await publishGitHubListingsSnapshot(payload.rows, { runId: 'test-run' }, {
+    env: {
+      IMMOFINDER_GITHUB_TOKEN: 'test-token',
+      IMMOFINDER_GITHUB_REPOSITORY: 'owner/repo',
+      SESSION_SECRET: secret,
+    },
+    fetchImpl: async (url, init = {}) => {
+      calls.push({ url, init });
+      if (!init.method) return { ok: false, status: 404, json: async () => ({}) };
+      const request = JSON.parse(init.body);
+      const committedEnvelope = JSON.parse(Buffer.from(request.content, 'base64').toString('utf8'));
+      assert.ok(!JSON.stringify(committedEnvelope).includes('+41791234567'));
+      assert.ok(!JSON.stringify(committedEnvelope).includes('Exampleweg 12'));
+      assert.deepEqual(decryptSnapshotPayload(committedEnvelope, secret).rows, payload.rows);
+      return { ok: true, status: 201, json: async () => ({ commit: { sha: 'abc123' } }) };
+    },
+  });
+  assert.equal(result.status, 'committed');
+  assert.equal(result.path, IMMOFINDER_SNAPSHOT_PATH);
+  assert.equal(result.commitSha, 'abc123');
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].init.method, 'PUT');
+
+  const pipeline = read('server/immofinderPipeline.ts');
+  const routes = read('server/immofinderRoutes.ts');
+  assert.match(pipeline, /knownAutoHidden: Boolean\(known\?\.autoHidden\)/);
+  assert.match(pipeline, /pages\[i\]\.knownAutoHidden/);
+  assert.equal((routes.match(/publishGitHubSnapshotAfterRun\(runId!\)/g) || []).length, 2);
+});
+
+
+test('P129.50 verified street address is carried into the shared user-facing card model', () => {
+  const card = immoCardModel({
+    municipality: 'Sampletown',
+    street_address: 'Exampleweg 12',
+    property_name: 'Apartment',
+    description_de: 'Bright apartment',
+    listing_url: 'https://stay.example/listing/123456',
+    status: 'NEW',
+  });
+  assert.match(card.about, /Exampleweg 12/);
+  assert.match(card.about, /Bright apartment/);
+});
+
+
+test('P129.50 repair audit admits seasonal listings only with period, direct link, page evidence and verified contact', async () => {
+  const { hardRejectReason } = await import('../server/immofinderRepair.ts');
+  const url = 'https://stay.example/listing/123456';
+  const evidence = 'Ferienwohnung in Sampletown, 3.5 Zimmer. CHF 850 pro Saison. Kontakt: +41 79 123 45 67. Die Wohnung hat einen Balkon, eine moderne Küche, ein separates Bad, einen hellen Wohnbereich und liegt in ruhiger Lage nahe dem öffentlichen Verkehr.';
+  const seasonal = {
+    id: '123e4567-e89b-12d3-a456-426614174010',
+    listing_url: url,
+    municipality: 'Sampletown',
+    property_name: 'Ferienwohnung in Sampletown',
+    rooms_estimated: 3.5,
+    rent_monthly_chf: null,
+    pricing_unit: 'season',
+    direct_phone: '+41791234567',
+    direct_email: null,
+    contact_evidence: [{ type: 'phone', value: '+41791234567', url }],
+    hidden: false,
+    raw: { evidence_kind: 'page_text', evidence_url: url, evidence_text: evidence, price: { amount: 850, unit: 'season', quote: 'CHF 850 pro Saison' } },
+  };
+  const ctx = { municipalities: ['Sampletown'] };
+  assert.equal(hardRejectReason(seasonal, ctx), null);
+  assert.equal(hardRejectReason({ ...seasonal, direct_phone: null, contact_evidence: [] }, ctx), 'short_stay_contact_required');
+  assert.equal(hardRejectReason({ ...seasonal, raw: { ...seasonal.raw, evidence_text: evidence.replace('pro Saison', ''), price: { amount: 850, unit: 'unknown' } } }, ctx), 'short_stay_price_period_required');
+});
+
+
+
+test('P129.50 physical address is persisted as a verified field and included in snapshots', () => {
+  const store = read('server/immofinderStore.ts');
+  const migration = read('migrations/026_immofinder_short_stay.sql');
+  const repair = read('server/immofinderRepair.ts');
+  const pipeline = read('server/immofinderPipeline.ts');
+  assert.match(store, /street_address = COALESCE/);
+  assert.match(store, /hide_reason, street_address/);
+  assert.match(migration, /ADD COLUMN IF NOT EXISTS street_address/);
+  assert.match(pipeline, /address_quote/);
+  assert.match(repair, /street_address: row\.street_address/);
 });
