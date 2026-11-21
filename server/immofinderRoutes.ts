@@ -21,7 +21,8 @@ import { runRefreshJob, newRefreshStatus, type RefreshStatus } from './immofinde
 import { immoLog, immoDatabaseDiagnostics, searchQualityPayload } from './immofinderDiag.ts';
 import { exportRepairSnapshot, previewRepairOps, applyRepairBatch, runAutomaticRepairAudit, applyBundledRepairBatches } from './immofinderRepairStore.ts';
 import { parseRepairFile } from './immofinderRepair.ts';
-import { publishGitHubListingsSnapshot } from './immofinderSnapshot.ts';
+import { publishGitHubListingsSnapshot, publishGitHubRunDiagnostics } from './immofinderSnapshot.ts';
+import { recentApplicationLogs } from './projectDiagnostics.ts';
 
 /** In-process status for the contact re-enrich job (shown in the UI). */
 const enrichJobStatus: {
@@ -91,6 +92,45 @@ async function publishGitHubSnapshotAfterRun(runId: string): Promise<string> {
   } catch (e) {
     const detail = String((e as Error)?.message || e).slice(0, 160);
     immoLog('error', 'immofinder_github_snapshot_failed', { runId, error: detail });
+    return `failed:${detail}`;
+  }
+}
+
+async function publishGitHubDiagnosticsAfterRun(runId: string, result: any, errors: any[] = []): Promise<string> {
+  try {
+    const stored = await recentApplicationLogs(1000);
+    const traceEvents = stored.logs.flatMap((entry: any) => {
+      if (entry.component !== 'immofinder' || entry.event !== 'trace') return [];
+      const details = entry.details && typeof entry.details === 'object' ? entry.details : {};
+      if (!details.traceId) return [];
+      const { traceId, ...event } = details;
+      return [{ traceId, ...event }];
+    });
+    const traceIds = [...new Set(traceEvents.map((e: any) => e.traceId))];
+    const traceId = traceIds[traceIds.length - 1] || null;
+    const events = traceId ? traceEvents.filter((e: any) => e.traceId === traceId) : [];
+    const cleanText = (v: unknown, max = 500) => String(v ?? '').replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]').replace(/(?:\+?\d[\d\s().-]{6,}\d)/g, '[phone]').slice(0, max);
+    const cleanUrl = (v: unknown) => { try { const u = new URL(String(v)); return `${u.hostname}${u.pathname}`; } catch { return '[invalid-url]'; } };
+    const report = {
+      schemaVersion: 1, generatedAt: new Date().toISOString(), runId, traceId,
+      eventCount: events.length, logSource: stored.source, databaseLogWriteFailures: stored.dbWriteFailures,
+      events,
+      result: {
+        counts: result?.counts || {}, filtered: result?.filtered || {}, errors: (result?.errors || errors).map((e: any) => ({ source: cleanText(e.source, 80), code: cleanText(e.code, 100), detail: cleanText(e.detail, 300) })),
+        sourceStats: result?.sourceStats || [], wavesRun: result?.wavesRun || [],
+        preview: (result?.preview || []).slice(0, 120).map((p: any) => ({ url: cleanUrl(p.url), title: cleanText(p.title, 160), source: cleanText(p.source, 80), municipality: p.municipality || null, rooms: p.rooms ?? null, kept: Boolean(p.kept), reason: p.reason || null, detail: cleanText(p.detail, 180) })),
+      },
+    };
+    const published = await publishGitHubRunDiagnostics(report, { runId });
+    if (published.status === 'committed') {
+      immoLog('info', 'immofinder_github_diagnostics_committed', { runId, traceId, paths: published.paths, eventCount: published.eventCount, commitSha: published.commitSha || null });
+      return `committed:${published.eventCount}`;
+    }
+    immoLog('warn', 'immofinder_github_diagnostics_skipped', { runId, reason: published.reason || 'not_configured' });
+    return `skipped:${published.reason || 'not_configured'}`;
+  } catch (e) {
+    const detail = String((e as Error)?.message || e).slice(0, 180);
+    immoLog('error', 'immofinder_github_diagnostics_failed', { runId, error: detail });
     return `failed:${detail}`;
   }
 }
@@ -704,11 +744,12 @@ export function registerImmoFinderRoutes(app: Express, deps: ImmoRouteDeps): voi
         if (isRunCancelled(runId!)) await finishRunCancelled(runId!, result?.counts ?? {});
         else await finishRun(runId!, result, errors, delivery);
       } catch { /* run row stays open; the 30-minute guard releases it */ }
+      const diagnosticsStatus = await publishGitHubDiagnosticsAfterRun(runId!, result, errors);
       const snapshotStatus = await publishGitHubSnapshotAfterRun(runId!);
       try {
         await saveProgress(runId!, {
           stage: 'done',
-          text: `${result?.errors?.some((e) => e.code === 'cancelled') || isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · GitHub snapshot ${snapshotStatus}`,
+          text: `${result?.errors?.some((e) => e.code === 'cancelled') || isRunCancelled(runId!) ? 'Stopped by user' : 'Finished'} · GitHub diagnostics ${diagnosticsStatus} · snapshot ${snapshotStatus}`,
           counts: result?.counts ?? {},
           log,
         });
