@@ -471,7 +471,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         allowShortStay: shortStay,
       });
       if (credReason) { await deny(credReason, evidenceKind); continue; }
-      const shortStayReason = snippetEvidence ? null : shortStayPreflightReason({ shortStay, price, url, evidenceKind, evidenceText });
+      const shortStayReason = shortStayPreflightReason({ shortStay, price, url, evidenceKind, evidenceText });
       if (shortStayReason) { await deny(shortStayReason, evidenceKind); continue; }
       const qualityReason = qualityRejectReason(quality, price, listedAt, seeker, !!(phone0 || email0), now());
       const qReason = snippetEvidence ? null : qualityReason;
