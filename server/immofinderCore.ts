@@ -643,7 +643,7 @@ export function resolveListingPrice(pageText: string, priceQuote: string | null 
   }
   const windows: string[] = [];
   const lower = full.toLowerCase();
-  for (const key of ['mietpreis', 'nettomiete', 'nettomietzins', 'monatsmiete', 'mietzins', 'warmmiete', 'preis', 'chf', 'fr.']) {
+  for (const key of ['bruttomiete', 'bruttomietzins', 'warmmiete', 'mietpreis', 'mietzins', 'monatsmiete', 'preis', 'nettomiete', 'nettomietzins', 'chf', 'fr.']) {
     let from = 0;
     while (windows.length < 10) {
       const i = lower.indexOf(key, from);
@@ -896,7 +896,7 @@ export interface QualitySettings {
 export const DEFAULT_QUALITY: QualitySettings = {
   maxMonthlyRentChf: 2000,
   maxListingAgeDays: 180,
-  // requirePrice is product-on via config.quality + settings; tests use DEFAULT without cfg.quality.
+  // Optional gate; default is off so a verified listing with undisclosed rent can still be useful.
   requirePrice: false,
   rejectNonMonthly: false,
   rejectSeekerPosts: true,
