@@ -80,7 +80,7 @@ test('pipeline batches discovery processing and avoids poisoning seen with insuf
   assert.match(source, /text\.trim\(\)\.length < MIN_DIRECT_PAGE_TEXT_CHARS/);
   assert.match(source, /if \(checked\.hardReason\) \{ await deny\(checked\.hardReason, 'write_gate'\); continue; \}/);
   assert.doesNotMatch(source, /hasUsableFreshLink/);
-  assert.match(source, /placeFromTitleOrSnippet\(hit\.title, `\$\{hit\.snippet\} \${hit\.link}`, cfg\.municipalities\)/);
+  assert.match(source, /const titleGeo = placeFromTitleOrSnippet\(it\.hit\?\.title \|\| '', it\.hit\?\.snippet \|\| '', cfg\.municipalities\)/);
   assert.match(source, /geo\.matched !== null && !geo\.outside/);
   assert.match(source, /reason !== 'rooms_unknown'/);
   assert.match(source, /reason !== 'municipality_not_whitelisted'/);
@@ -263,7 +263,7 @@ test('P129.52 direct detail pages accept optional final URL, reject wrong redire
     config: leanCfg(), fetchPage: async () => ({ ok: true, status: 200, body: '<html><head><title>3.5 Zimmer Wohnung in Chur</title></head><body>Zu vermieten.</body></html>', finalUrl: url }),
     llm: null, store: memStore(shortSaved), search: async () => [{ title: '3.5-Zimmer-Wohnung in Chur', link: url, snippet: 'Wohnung mieten' }], cycle: 0,
   }, { dryRun: false, wave: 'carousel' });
-  assert.equal(shortPage.filtered.price_unknown, 1, 'a fetched page too thin to prove a price is rejected by the existing fact gate');
+  assert.equal(shortPage.filtered.detail_page_evidence_too_short, 1, 'a page with fewer than 30 characters is rejected before price extraction');
   assert.equal(shortSaved.length, 0);
 });
 
