@@ -1,5 +1,7 @@
 ## P130.1 — Collect Render and GitHub runtime diagnostics
 
+- **CI FOLLOW-UP:** correct the scripts-integrity allowlist syntax and synchronize the deterministic repair-rule stamp and seen-cache regression contract to `130.1.5`.
+
 - **RENDER LOGS:** collect service logs through the Render Logs API using a read-only API key, workspace ID and service ID; follow timestamp pagination and optionally include a Render Postgres resource via `RENDER_POSTGRES_ID`.
 - **GITHUB LOGS:** download recent completed GitHub Actions run logs (up to eight runs) with the workflow token and `actions: read`.
 - **SAFE HANDOFF:** redact known credentials and token-shaped values; upload platform logs as a 30-day Actions artifact, never commit raw platform logs. Collection failures are summarized and fail the collection step while preserving its artifact.
