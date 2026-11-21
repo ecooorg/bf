@@ -393,6 +393,25 @@ test('Google SERP crawl date is not treated as the listing publication date', as
   assert.equal(saved[0].listed_at, null, 'only a date verified on the listing page may be shown as its publication date');
   assert.equal(saved[0].raw.search_result_date, '2 years ago', 'keep SERP date for diagnostics without applying the stale-listing gate');
 });
+test('polite fetcher blocks private targets and validates each redirect hop', async () => {
+  const calls = [];
+  const localCfg = { ...cfg, fetch: { ...cfg.fetch, respectRobotsTxt: false, perHostDelayMs: 0 }, limits: { ...cfg.limits, fetchTimeoutMs: 1000, maxPageBytes: 128 } };
+  const fetchImpl = async (input, init) => {
+    calls.push({ url: String(input), redirect: init?.redirect });
+    if (String(input) === 'https://public.example/start') return new Response('', { status: 302, headers: { location: 'http://127.0.0.1/private' } });
+    return new Response('x'.repeat(500), { status: 200, headers: { 'content-type': 'text/html' } });
+  };
+  const fetchPage = createPoliteFetch(localCfg, fetchImpl, async (target) => new URL(target).hostname !== '127.0.0.1');
+  const privateTarget = await fetchPage('http://127.0.0.1/private');
+  assert.equal(privateTarget.fetchMode, 'blocked_non_public');
+  assert.equal(calls.length, 0, 'private addresses are blocked before any request');
+  const redirect = await fetchPage('https://public.example/start');
+  assert.equal(redirect.fetchMode, 'blocked_non_public_redirect');
+  assert.equal(calls.length, 1, 'the private redirect target is never requested');
+  assert.equal(calls[0].redirect, 'manual', 'redirects are validated before following');
+  const large = await fetchPage('https://public.example/large');
+  assert.equal(large.body.length, 128, 'response bodies are capped while streaming, not after full download');
+});
 test('robots.txt Allow exceptions override broader Disallow rules without bypassing specific blocks', async () => {
   const calls = [];
   const fetchImpl = async (input) => {

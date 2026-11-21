@@ -6,7 +6,24 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
   type RobotsRule = { allow: boolean; path: string };
   const last = new Map<string, number>(); const robots = new Map<string, RobotsRule[]>();
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  async function get(url: string, timeout = cfg.limits.fetchTimeoutMs) {
+  async function readPrefix(response: Response, maxBytes = cfg.limits.maxPageBytes): Promise<string> {
+    if (!response.body) return '';
+    const reader = response.body.getReader(); const decoder = new TextDecoder();
+    let out = ''; let used = 0; const limit = Math.max(0, maxBytes);
+    try {
+      while (used < limit) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = value.byteLength > limit - used ? value.subarray(0, limit - used) : value;
+        used += chunk.byteLength;
+        out += decoder.decode(chunk, { stream: used < limit });
+        if (chunk.byteLength < value.byteLength || used >= limit) { try { await reader.cancel(); } catch { /* stream already closed */ } break; }
+      }
+      out += decoder.decode();
+      return out;
+    } finally { try { reader.releaseLock(); } catch { /* already released */ } }
+  }
+  async function get(url: string, timeout = cfg.limits.fetchTimeoutMs, redirect: 'follow' | 'error' | 'manual' = 'follow') {
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeout);
     try {
       const r = await fetchImpl(url, { headers: {
@@ -16,9 +33,9 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
         // Force origin response for recheck freshness (avoid stale CDN "available" pages).
         'Cache-Control': 'no-cache',
         Pragma: 'no-cache',
-      }, signal: ctrl.signal, redirect: 'follow', cache: 'no-store' as RequestCache });
-      const buf = (await r.text()).slice(0, cfg.limits.maxPageBytes);
-      return { ok: r.ok, status: r.status, body: buf, finalUrl: r.url || url };
+      }, signal: ctrl.signal, redirect, cache: 'no-store' as RequestCache });
+      const body = await readPrefix(r);
+      return { ok: r.ok, status: r.status, body, finalUrl: r.url || url, location: r.headers.get('location') || undefined };
     } finally { clearTimeout(t); }
   }
   async function disallowed(u: URL): Promise<boolean> {
@@ -27,7 +44,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
       const groups: { agents: string[]; rules: RobotsRule[] }[] = [];
       let current: { agents: string[]; rules: RobotsRule[] } | null = null;
       try {
-        const r = await get(`${u.protocol}//${u.host}/robots.txt`, 8000);
+        const r = await get(`${u.protocol}//${u.host}/robots.txt`, 8000, 'error');
         if (r.ok) {
           for (const line of r.body.split(/\r?\n/)) {
             const clean = line.split('#')[0].trim();
@@ -90,7 +107,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
     try {
       const r = await fetchImpl(`${base}${target}`, { method: 'GET', headers, signal: ctrl.signal, redirect: 'error' });
       if (!r.ok || !/^text\//i.test(String(r.headers.get('content-type') || ''))) return null;
-      const raw = String(await r.text()).slice(0, Math.max(16_000, cfg.limits.maxPageBytes));
+      const raw = await readPrefix(r, Math.max(16_000, cfg.limits.maxPageBytes));
       const source = /^URL Source:\s*(https?:\/\/[^\s]+)\s*$/im.exec(raw)?.[1]?.replace(/[),.;]+$/, '');
       if (!source || normalizeTarget(source) !== normalizeTarget(target)) return null;
       const title = /^Title:\s*(.+)$/im.exec(raw)?.[1]?.trim() || new URL(target).hostname;
@@ -108,23 +125,43 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
   };
 
   return async function fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string; finalUrl?: string; fetchMode?: string }> {
-    const u = new URL(url);
-    if (!/^https?:$/.test(u.protocol)) return { ok: false, status: 0, body: 'unsupported protocol' };
-    if (cfg.fetch.respectRobotsTxt && await disallowed(u)) return { ok: false, status: 403, body: 'blocked by robots.txt', fetchMode: 'robots_blocked' };
-    const wait = (last.get(u.host) || 0) + cfg.fetch.perHostDelayMs - Date.now(); if (wait > 0) await sleep(wait);
-    last.set(u.host, Date.now());
-    let direct: { ok: boolean; status: number; body: string; finalUrl?: string };
-    try { direct = await get(url); }
-    catch (e) { direct = { ok: false, status: 0, body: String((e as Error)?.message || e).slice(0, 120) }; }
+    let currentUrl = url; let redirected = false;
+    let initial: URL;
+    try { initial = new URL(url); } catch { return { ok: false, status: 0, body: 'invalid URL', fetchMode: 'blocked_non_public' }; }
+    if (!/^https?:$/.test(initial.protocol)) return { ok: false, status: 0, body: 'unsupported protocol' };
+    let direct: { ok: boolean; status: number; body: string; finalUrl?: string; location?: string; fetchMode?: string } = { ok: false, status: 0, body: 'not fetched' };
+    for (let hop = 0; hop <= 5; hop++) {
+      let target: URL;
+      try { target = new URL(currentUrl); } catch { return { ok: false, status: 0, body: 'invalid redirect URL', finalUrl: currentUrl, fetchMode: 'blocked_non_public_redirect' }; }
+      if (!/^https?:$/.test(target.protocol) || !await isPublicTarget(currentUrl)) {
+        return { ok: false, status: 0, body: 'blocked non-public target', finalUrl: currentUrl, fetchMode: redirected ? 'blocked_non_public_redirect' : 'blocked_non_public' };
+      }
+      if (cfg.fetch.respectRobotsTxt && await disallowed(target)) return { ok: false, status: 403, body: 'blocked by robots.txt', finalUrl: currentUrl, fetchMode: 'robots_blocked' };
+      const wait = (last.get(target.host) || 0) + cfg.fetch.perHostDelayMs - Date.now(); if (wait > 0) await sleep(wait);
+      last.set(target.host, Date.now());
+      try { direct = await get(currentUrl, cfg.limits.fetchTimeoutMs, 'manual'); }
+      catch (e) { direct = { ok: false, status: 0, body: String((e as Error)?.message || e).slice(0, 120), finalUrl: currentUrl }; break; }
+      if (direct.status >= 300 && direct.status < 400 && direct.location) {
+        if (hop === 5) return { ok: false, status: direct.status, body: 'redirect limit exceeded', finalUrl: currentUrl, fetchMode: 'redirect_limit' };
+        try {
+          const next = new URL(direct.location, currentUrl);
+          if (!/^https?:$/.test(next.protocol)) return { ok: false, status: 0, body: 'blocked redirect protocol', finalUrl: next.href, fetchMode: 'blocked_non_public_redirect' };
+          currentUrl = next.href; redirected = true; continue;
+        } catch { return { ok: false, status: 0, body: 'invalid redirect target', finalUrl: currentUrl, fetchMode: 'blocked_non_public_redirect' }; }
+      }
+      direct.finalUrl = currentUrl;
+      break;
+    }
     const directTextChars = htmlToText(direct.body).trim().length;
     if (!direct.ok || directTextChars < 30) {
+      if (direct.fetchMode?.startsWith('blocked_non_public') || direct.fetchMode === 'redirect_limit') return { ok: false, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: direct.fetchMode };
       const fallback = await jinaFallback(url);
       if (fallback) {
-        try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: u.hostname, outcome: 'jina_reader_ok', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
+        try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_ok', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
         return fallback;
       }
-      try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: u.hostname, outcome: 'jina_reader_unavailable', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
+      try { console.info(JSON.stringify({ type: 'immofinder_fetch_fallback', host: initial.hostname, outcome: 'jina_reader_unavailable', directStatus: direct.status, directTextChars })); } catch { /* diagnostics only */ }
     }
-    return { ...direct, fetchMode: 'direct' };
+    return { ok: direct.ok, status: direct.status, body: direct.body, finalUrl: direct.finalUrl || currentUrl, fetchMode: redirected ? 'direct_redirect' : 'direct' };
   };
 }

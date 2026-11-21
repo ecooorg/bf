@@ -1,3 +1,9 @@
+## P129.53.8 — Harden page fetching without losing valid portal redirects
+
+- **SECURITY:** validate every direct fetch target and every redirect hop against the public-address guard; do not follow redirects to loopback/private addresses.
+- **ROBOTS:** fetch `robots.txt` without automatic redirects, so an untrusted redirect cannot bypass target validation.
+- **PERFORMANCE:** stream only the configured response prefix and cancel oversized bodies instead of downloading the entire page before slicing.
+- **VERIFY:** add tests for private targets, unsafe redirects and streaming byte limits.
 ## P129.53.7 — Trust publication dates and preserve non-numeric portal redirects
 
 - **BUGFIX:** do not treat `dateModified`, `article:modified_time`, `og:updated_time`, `Aktualisiert am`, availability dates or arbitrary dates elsewhere on a page as the listing publication date. These values could falsely mark a live ad as stale.
