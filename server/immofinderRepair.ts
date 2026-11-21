@@ -1,5 +1,5 @@
 /**
- * P129.48 — Extend the repair protocol with a strict, evidence-backed monthly-price gate for saved and new cards.
+ * P129.48 — Extend the repair protocol with evidence-backed price validation for saved and new cards.
  *
  * Pure functions only (no DB, no network). The DB layer is server/immofinderRepairStore.ts.
  *
@@ -29,7 +29,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.53.2';
+export const REPAIR_RULES_VERSION = '129.53.3';
 
 /** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
 export function encodeSeenReason(reason: string): string {
@@ -355,15 +355,14 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   }
   if (!why) {
     const pv = priceVerdict(row);
-    if (pv.status === 'missing') why = 'price_missing';
-    else if (pv.status === 'suspect') why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
-    else {
+    if (pv.status === 'suspect') why = pv.why.startsWith('price_') ? pv.why : `price_${pv.why}`;
+    else if (pv.status !== 'missing') {
       const rawUnit = String(obj(raw.price).unit || '').toLowerCase();
       const rowUnit = String(row.pricing_unit || '').toLowerCase();
       const unit = pv.status === 'repair'
         ? pv.price.unit
         : (['month', 'week', 'night', 'season'].includes(rawUnit) ? rawUnit : rowUnit);
-      if (!shortStay && unit !== 'month') why = 'non_monthly_price';
+      if (!shortStay && ['week', 'night', 'season'].includes(unit)) why = 'non_monthly_price';
       if (shortStay) {
         const contacts = contactVerdict(row);
         if (contacts.phone !== 'verified' && contacts.email !== 'verified') why = 'short_stay_contact_required';
