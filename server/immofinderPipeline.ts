@@ -275,7 +275,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         const esc = (v: string) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
         const title = String(it.hit?.title || '').slice(0, 300);
         const snippet = String(it.hit?.snippet || '').slice(0, 3000);
-        const body = '<html><head><title>' + esc(title) + '</title><meta name="description" content="' + esc(snippet) + '"></head><body><main>' + esc(snippet) + '</main></body></html>';
+        const body = '<html><head><title>' + esc(title) + '</title><meta name="description" content="' + esc(snippet) + '"></head><body><main>' + esc(title) + '<br>' + esc(snippet) + '</main></body></html>';
         return { ok: true, status: 200, body, finalUrl: it.url, fetchMode };
       };
       if (snippetEvidence) {
@@ -292,7 +292,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
       if (!pg.ok) {
         diag('candidate_fetch_failed', { source: src.id, url: safeDiagUrl(it.url), status: pg.status, fetchMode: pg.fetchMode || null, durationMs: now() - fetchStartedAt, error: safeDiagText(pg.body, 300), finalUrl: safeDiagUrl(pg.finalUrl || it.url) });
-        const availableSnippet = String(it.hit?.snippet || '').trim();
+        const availableSnippet = (String(it.hit?.title || '') + '\n' + String(it.hit?.snippet || '')).trim();
         const originalFetchStatus = pg.status;
         if (it.hit && availableSnippet.length >= 18) {
           snippetEvidence = true;
@@ -317,7 +317,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const fetchedUrl = String(pg.finalUrl || '').trim();
       if (fetchedUrl && !sameListingUrlTarget(it.url, fetchedUrl)) {
         diag('candidate_redirect_mismatch', { source: src.id, requestedUrl: safeDiagUrl(it.url), finalUrl: safeDiagUrl(fetchedUrl) });
-        const availableSnippet = String(it.hit?.snippet || '').trim();
+        const availableSnippet = (String(it.hit?.title || '') + '\n' + String(it.hit?.snippet || '')).trim();
         if (it.hit && availableSnippet.length >= 18) {
           snippetEvidence = true;
           res.counts.snippet_only++;
@@ -339,7 +339,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         pg = buildSnippetPage('search_snippet_short_page_fallback');
         evidenceUrl = it.url;
         text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers);
-        diag('candidate_snippet_fallback_after_short_page', { source: src.id, url: safeDiagUrl(it.url), snippetChars: String(it.hit.snippet || '').length, evidenceConfidence: 'low' });
+        diag('candidate_snippet_fallback_after_short_page', { source: src.id, url: safeDiagUrl(it.url), snippetChars: (String(it.hit.title || '') + String(it.hit.snippet || '')).length, evidenceConfidence: 'low' });
       }
       if (text.trim().length < (snippetEvidence ? 18 : MIN_DIRECT_PAGE_TEXT_CHARS)) {
         diag('candidate_page_text_too_short', { source: src.id, url: safeDiagUrl(it.url), textChars: text.trim().length, bodyChars: String(pg.body || '').length, fetchMode: pg.fetchMode || 'direct' });
