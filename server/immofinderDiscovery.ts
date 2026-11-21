@@ -1,4 +1,4 @@
-import { type ImmoConfig, isStopAgency, nonListingReason, isSpecificLink } from './immofinderCore.ts';
+import { type ImmoConfig, isStopAgency, nonListingReason, isSpecificLink, isPortalDetailUrl } from './immofinderCore.ts';
 
 export interface SearchHit { title: string; link: string; snippet: string; /** Serper/organic date string when present, e.g. "2 days ago" or "15.11.2026". */ date?: string | null }
 export interface DiscoveryItem { url: string; host: string; hit: SearchHit; snippetOnly: boolean }
@@ -10,20 +10,8 @@ const hostMatches = (host: string, list: string[]) => list.some((h) => host === 
  * Accept a non-generic detail route while rejecting roots and search/category pages.
  */
 export function isPortalDetailLink(url: string, cfg: ImmoConfig): boolean {
-  let u: URL;
-  try { u = new URL(url); } catch { return false; }
-  const host = u.hostname.replace(/^www\./, '').toLowerCase();
-  if (!hostMatches(host, cfg.discovery?.portalHosts || [])) return false;
-  const parts = u.pathname.split('/').filter(Boolean).map((x) => decodeURIComponent(x).toLowerCase());
-  if (parts[0] && /^(de|fr|it|en)$/.test(parts[0])) parts.shift();
-  if (parts.length < 2) return false;
-  const generic = new Set(['search', 'suche', 'results', 'resultate', 'angebote', 'list', 'listing', 'rent', 'mieten', 'buy', 'kaufen', 'sale', 'map', 'karte', 'real-estate', 'immobilien', 'wohnung-mieten', 'wohnungen-mieten', 'flat', 'apartment', 'house']);
-  const last = parts[parts.length - 1];
-  if (!last || generic.has(last)) return false;
-  if (parts.some((p) => /^(search|suche|results|resultate|map|karte)$/.test(p))) return false;
-  return true;
+  return isPortalDetailUrl(url, cfg.discovery?.portalHosts || []);
 }
-
 
 /** Rotating slice of the whitelist: every run covers the next `communesPerRun` communes, so all are covered over several runs. */
 export function communesForRun(all: string[], perRun: number, cycle: number): string[] {
