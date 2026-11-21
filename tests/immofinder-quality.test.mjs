@@ -438,7 +438,7 @@ test('P129.47 repair protocol validates a closed operation whitelist and evidenc
   assert.equal(repair.amountInText(1800, 'CHF 1’500 pro Monat'), false);
 });
 
-test('P129.48 repair audit hides cards without verified monthly prices and writes evidence-backed price repairs', async () => {
+test('P129.48 repair audit allows undisclosed rent and writes evidence-backed price repairs', async () => {
   const { auditRow, hardRejectReason, isPresentable, evaluateOp, sanitizeNewRecord, REPAIR_RULES_VERSION } = await import('../server/immofinderRepair.ts');
   const ctx = { municipalities: ['Chur'] };
   const missing = {
@@ -453,11 +453,11 @@ test('P129.48 repair audit hides cards without verified monthly prices and write
     hidden: false,
     raw: { evidence_kind: 'page_text', evidence_url: 'https://www.homegate.ch/mieten/4001234567', evidence_text: '3.5-Zimmer-Wohnung in Chur zu vermieten. Helle Wohnung mit Balkon und Küche. Bezug ab sofort möglich, Wohnfläche 80 m2. Separates Kellerabteil, ruhige Lage und gute Anbindung an den öffentlichen Verkehr.' },
   };
-  assert.equal(REPAIR_RULES_VERSION, `${JSON.parse(read('package.json')).patch}.1`);
-  assert.equal(hardRejectReason(missing, ctx), 'price_missing');
-  assert.equal(isPresentable(missing, ctx), false);
-  assert.equal(sanitizeNewRecord(missing, ctx).hardReason, 'price_missing');
-  assert.ok(auditRow(missing, ctx).ops.some((op) => op.op === 'hide' && op.reason === 'price_missing'));
+  assert.equal(REPAIR_RULES_VERSION, `${JSON.parse(read('package.json')).patch}.3`);
+  assert.equal(hardRejectReason(missing, ctx), null);
+  assert.equal(isPresentable(missing, ctx), true);
+  assert.equal(sanitizeNewRecord(missing, ctx).hardReason, null);
+  assert.ok(!auditRow(missing, ctx).ops.some((op) => op.op === 'hide'));
 
   const evidencePriced = {
     ...missing,
