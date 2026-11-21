@@ -473,7 +473,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (credReason) { await deny(credReason, evidenceKind); continue; }
       const shortStayReason = snippetEvidence ? null : shortStayPreflightReason({ shortStay, price, url, evidenceKind, evidenceText });
       if (shortStayReason) { await deny(shortStayReason, evidenceKind); continue; }
-      const qReason = qualityRejectReason(quality, price, listedAt, seeker, !!(phone0 || email0), now());
+      const qualityReason = qualityRejectReason(quality, price, listedAt, seeker, !!(phone0 || email0), now());
+      const qReason = snippetEvidence ? null : qualityReason;
+      if (snippetEvidence && qualityReason) ex.signals.push('provisional_quality_gate:' + qualityReason);
       // A: diagnostics when price missing or reject is price_*
       if (!price || qReason === 'price_unknown' || qReason === 'price_above_max' || (price && price.monthlyChf == null)) {
         try {
