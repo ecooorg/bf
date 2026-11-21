@@ -28,7 +28,7 @@ export function createPoliteFetch(cfg: ImmoConfig, fetchImpl: typeof fetch = fet
     } catch { rules = []; }
     robots.set(u.host, rules); return rules;
   }
-  return async function fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string }> {
+  return async function fetchPage(url: string): Promise<{ ok: boolean; status: number; body: string; finalUrl?: string }> {
     const u = new URL(url);
     if (!/^https?:$/.test(u.protocol)) return { ok: false, status: 0, body: 'unsupported protocol' };
     if (cfg.fetch.respectRobotsTxt && (await disallowed(u)).some((p) => u.pathname.startsWith(p))) return { ok: false, status: 403, body: 'blocked by robots.txt' };

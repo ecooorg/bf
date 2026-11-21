@@ -28,7 +28,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.50.1';
+export const REPAIR_RULES_VERSION = '129.51.1';
 
 export const REPAIR_OPS = ['hide', 'unhide', 'delete', 'clear_contact', 'set_price', 'mark_collage'] as const;
 export type RepairOpName = (typeof REPAIR_OPS)[number];
@@ -687,7 +687,7 @@ export function ctxFromConfig(cfg: Pick<ImmoConfig, 'municipalities'>): AuditCon
 /**
  * Applies the same contact and price rules as the audit to a record that is about to be stored.
  * Unverifiable contacts are dropped, a parking/utility amount is replaced by the rent found in the page text.
- * `hardReason` (when set) means the card must be stored hidden.
+ * `hardReason` means the caller must not present the card; it may persist it hidden or reject it outright.
  */
 export function sanitizeNewRecord<T extends Record<string, any>>(rec: T, ctx: AuditContext): { rec: T; notes: string[]; hardReason: string | null } {
   const notes: string[] = [];

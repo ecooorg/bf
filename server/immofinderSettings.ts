@@ -44,8 +44,8 @@ export interface ImmoSettings {
     carouselCommunesPerRun: number;
     /** How many of the private-search templates run per commune (first N; 1..4). */
     privateQueryTemplates: number;
-    /** Serper freshness window: d = last day, w = last week. */
-    freshness: 'd' | 'w';
+    /** Serper freshness window: d = last day, w = last week, m = last month. */
+    freshness: 'd' | 'm';
     /** Re-run a query without the freshness filter when it found nothing usable (doubles Serper cost). */
     freshnessFallback: boolean;
     /** Extra public contact searches per search run (0 = off). */
@@ -81,7 +81,7 @@ export function defaultSettings(cfg: ImmoConfig): ImmoSettings {
       profile: 'carousel',
       carouselCommunesPerRun: 12,
       privateQueryTemplates: 4,
-      freshness: 'w',
+      freshness: 'm',
       freshnessFallback: false,
       enrichSearchesPerRun: 12,
       recheckContactSearch: false,
@@ -164,7 +164,7 @@ export function sanitizeSettings(input: any, cfg: ImmoConfig): ImmoSettings {
       profile: se.profile === 'burst' ? 'burst' : 'carousel',
       carouselCommunesPerRun: clampInt(se.carouselCommunesPerRun, 1, 12, d.search.carouselCommunesPerRun),
       privateQueryTemplates: clampInt(se.privateQueryTemplates, 1, 4, d.search.privateQueryTemplates),
-      freshness: se.freshness === 'd' ? 'd' : se.freshness === 'w' ? 'w' : d.search.freshness,
+      freshness: se.freshness === 'd' ? 'd' : 'm',
       freshnessFallback: bool(se.freshnessFallback, d.search.freshnessFallback),
       enrichSearchesPerRun: clampInt(se.enrichSearchesPerRun, 0, 35, d.search.enrichSearchesPerRun),
       recheckContactSearch: bool(se.recheckContactSearch, d.search.recheckContactSearch),
