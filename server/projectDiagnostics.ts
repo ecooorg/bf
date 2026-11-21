@@ -81,7 +81,9 @@ export function installLogCapture(): void {
     console[level] = (...args: unknown[]) => {
       try {
         const text = args.map((a) => typeof a === 'string' ? a : (() => { try { return JSON.stringify(a); } catch { return String(a); } })()).join(' ');
-        const safeText = sanitizeLogText(text, 1200);
+        // Preserve complete structured ImmoFinder trace events for the end-of-run GitHub report.
+        // Other console lines stay short so the application log ring buffer remains bounded.
+        const safeText = sanitizeLogText(text, text.includes('"type":"immofinder_trace"') ? 20000 : 1200);
         consoleLines.push(`${new Date().toISOString()} [${level}] ${safeText}`);
         if (consoleLines.length > MAX_LINES) consoleLines.splice(0, consoleLines.length - MAX_LINES);
         const structured = { timestamp: new Date().toISOString(), level: level === 'error' || level === 'warn' ? level : 'info', component: 'console', event: 'console_output', message: safeText };
