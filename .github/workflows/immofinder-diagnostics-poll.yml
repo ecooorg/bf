@@ -51,6 +51,11 @@ jobs:
             echo "Unsafe diagnostics runId"
             exit 1
           fi
+          if [ -f data/immofinder/diagnostics/latest.json ] && jq -e --arg runId "$RUN_ID" '.runId == $runId' data/immofinder/diagnostics/latest.json >/dev/null; then
+            echo "Run $RUN_ID is already archived."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           node scripts/archive-immofinder-diagnostics.mjs /tmp/immofinder-diagnostics-envelope.json data/immofinder/diagnostics
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           echo "available=true" >> "$GITHUB_OUTPUT"
