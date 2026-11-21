@@ -32,7 +32,7 @@ async function json(url,headers){
    Number.isFinite(retryAfterDate)?Math.max(0,retryAfterDate-Date.now()):
    Number.isFinite(resetAt)&&resetAt>0?Math.max(0,resetAt*1000-Date.now()):0;
   const backoff=Math.min(30000,1000*(2**attempt));
-  const wait=Math.min(60000,Math.max(serverDelay,backoff));
+  const wait=serverDelay>0?serverDelay:backoff;
   console.warn(JSON.stringify({source:'render',event:'api_retry',status:r.status,attempt:attempt+1,waitMs:wait,path:new URL(url).pathname}));
   await sleep(wait);
  }
