@@ -377,7 +377,7 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.search.privateQueryTemplates, 4);
   assert.equal(defaults.search.maxAiPages, 100);
   assert.equal(defaults.search.enrichSearchesPerRun, 12);
-  assert.equal(defaults.search.requirePrice, true);
+  assert.equal(defaults.search.requirePrice, false);
   assert.equal(defaults.search.rejectNonMonthly, false);
   assert.equal(defaults.search.rejectSeekerPosts, true);
   assert.equal(defaults.search.requireContact, false);
