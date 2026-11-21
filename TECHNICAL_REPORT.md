@@ -1,3 +1,84 @@
+## P130.2 — Diagnostics collector auto-trigger
+
+- **CHANGE:** run the diagnostics poll workflow on pushes to `main` that modify the poll workflow or platform-log collector, in addition to the five-minute schedule and manual dispatch. The path filter prevents report-archive commits from recursively triggering collection.
+- **VERIFY:** workflow trigger contract added; live hosted execution after the change is not inferred from the contract.
+
+## P130.1 — Render/GitHub platform-log collection and resilient rate-limit handling
+
+- **CHANGE:** collect Render service logs through the Render Logs API with timestamp pagination; optionally collect a Render Postgres resource. Download logs for up to eight recent completed GitHub Actions runs.
+- **SECURITY / RETENTION:** redact configured secrets, bearer credentials, common token formats, private-key blocks and database URL passwords. Upload the bundle as a 30-day Actions artifact; raw platform logs are not committed to the repository.
+- **FAILURE HANDLING:** Render API requests retry up to four attempts for HTTP 429 and 5xx. Honor `Retry-After` as seconds or HTTP-date and `X-RateLimit-Reset`; otherwise use bounded exponential backoff. Emit structured `api_retry` warnings. A partial bundle is retained when either Render or GitHub logs are available; collection fails only when neither provider yields usable output.
+- **CONFIGURATION:** `RENDER_API_KEY` is a GitHub Actions secret; `RENDER_OWNER_ID` and `RENDER_SERVICE_ID` are Actions variables; optional `RENDER_POSTGRES_ID` identifies a Render Postgres resource.
+- **VERIFY:** regression contracts cover collection, pagination, redaction, retry headers, partial-provider output, artifact retention and archive-path preflight. Live provider access is environment-dependent and is not established by these contracts.
+
+## P130.0 — Durable diagnostics handoff and polling
+
+- **ROOT CAUSES:** server trace capture was not installed at startup; scheduled runs did not publish diagnostics; the direct publisher could skip when optional Render GitHub token/repository settings were absent.
+- **CHANGE:** install structured log capture at server startup; persist completed manual and scheduled run reports in PostgreSQL; expose a read-only latest-report endpoint protected by the existing timing-safe run secret; retain the latest 100 reports.
+- **WORKFLOW:** add a five-minute GitHub Actions poller that reads the authenticated endpoint, archives each new report under `data/immofinder/diagnostics/`, and uploads a run-specific artifact using the workflow token. No separate Render GitHub token is required.
+- **POLL SAFETY:** diagnostics polling bypasses repair bootstrap and other mutating request middleware. Already archived run IDs are skipped to avoid duplicate archive commits.
+- **VERIFY:** regression contracts cover durable storage, authenticated polling, manual/scheduled parity and workflow wiring. End-to-end Render-to-GitHub delivery requires a deployed app and a completed run.
+
+## P130.x — Diagnostics archive push-race recovery (PR #33)
+
+- **OBSERVED:** the diagnostics poll workflow could successfully fetch a report and build its archive, then lose publication when another actor updated `main`; the single `git push` failed with `[rejected] (fetch first)`.
+- **CHANGE:** before each publication attempt, fetch and hard-reset to the latest `origin/main`, rebuild the diagnostics archive from the saved response envelope, stage only the diagnostics archive, and commit on top of current `main`. Retry publication up to five times with increasing 2-second-step delays. Exit successfully if that run is already archived; never force-push.
+- **VERIFY:** PR #33 merged. The workflow logic is present on `main`; successful future publication is verified only by a subsequent scheduled/manual run.
+
+## P130.x — Render API throttling and partial log bundles (PR #31)
+
+- **CHANGE:** platform-log collection retries Render HTTP 429 and 5xx responses with bounded backoff and server-provided retry timing. Render and GitHub are treated as independent evidence providers: one provider's failure no longer discards a usable bundle from the other.
+- **VERIFY:** PR #31 merged; regression assertions cover retryable statuses, both rate-limit headers, retry logging and partial-output exit behavior. A fresh live Render throttling event is not required by, and is not claimed by, these tests.
+
+## P130.x — Automatic portal expansion toward ten verified listings (PR #32)
+
+- **CHANGE:** preserve the full configured Swiss portal query pool separately from the user's selected portal subset. In carousel mode, if the selected subset produces fewer than ten kept/verified listings, and page/time budget remains, run the unselected configured portal queries as a fallback. The fallback stops once ten kept listings are reached, restores the original selected query set and offset afterward, and emits start/completion/target-reached diagnostics. Saved source toggles are not modified.
+- **VERIFY:** PR #32 merged; regression contracts cover the selected/full query pools, the ten-listing threshold, remaining page budget and early stop. Actual yield of ten listings depends on live inventory and is not guaranteed.
+
+## P129.53.10 — Bound migration startup and improve discovery coverage
+
+- **CHANGE:** bound PostgreSQL migration-lock acquisition and apply statement, lock and query timeouts with phase-specific logs. Make the per-query detail-page cap configurable (default four, bounded one to six) to examine more SERP candidates without unbounded work. Replace opaque browser `Failed to fetch` errors with a clear ImmoFinder connectivity message.
+- **VERIFY:** regression coverage added for migration wait bounds, candidate coverage and API network errors; production database lock behavior remains deployment-dependent.
+
+## P129.53.9 — Atomic run locking and zero-hit portal observability
+
+- **CHANGE:** serialize run starts across application instances with a PostgreSQL advisory transaction lock. Set the active-run lock lifetime to 50 minutes, beyond the 45-minute server deadline and aligned with the 50-minute UI indicator. Include portal query attempts and raw SERP hit counts even for portals returning zero results.
+- **VERIFY:** regression coverage added for the atomic lock contract and per-portal query/hit counters.
+
+## P129.53.8 — Safe redirects and bounded page downloads
+
+- **SECURITY:** validate each direct fetch target and every redirect hop against the public-address guard; block redirects to loopback/private addresses. Fetch `robots.txt` without automatic redirects so redirects cannot bypass target validation.
+- **PERFORMANCE:** stream only the configured response prefix and cancel oversized response bodies rather than downloading the entire page before slicing.
+- **VERIFY:** regression coverage added for private targets, unsafe redirects and streaming byte limits.
+
+## P129.53.7 — Publication-date semantics and slug-preserving redirects
+
+- **CHANGE:** do not interpret `dateModified`, `article:modified_time`, `og:updated_time`, “Aktualisiert am”, availability dates or arbitrary page dates as the listing's publication date. Accept same-host canonical redirects when a distinctive non-numeric listing slug survives (including language-prefix changes); continue rejecting changed slugs or hosts.
+- **CACHE:** bump the rule version so prior redirect rejections are reconsidered.
+- **VERIFY:** tests cover publication-vs-modification dates and same-listing slug redirects.
+
+## P129.53.6 — Remove inert controls and align run-state UX
+
+- **CHANGE:** remove obsolete freshness/fallback controls; discovery intentionally runs without Google date filters and persisted legacy values are ignored. Clarify that the generic search source is private-owner web search, not a Facebook crawler. Extend the UI run indicator to 50 minutes, aligned with server execution limits.
+- **VERIFY:** regression coverage added for legacy settings, truthful source labels and timeout alignment.
+
+## P129.53.5 — Attribute SERP results to portal sources
+
+- **CHANGE:** attribute Google `site:` search results to their configured portal IDs rather than the generic `search` source, making per-portal candidate/fetch/reject/keep counters meaningful. Exempt `search` and `portal-*` discovery sources from the catalogue early-stop threshold so selected commune coverage is not cut short by poor early results.
+- **VERIFY:** regression coverage includes an eight-commune portal-query case.
+
+## P129.53.4 — Preserve portal allowlists through final sanitation
+
+- **CHANGE:** pass `ctxFromConfig(cfg)` into final record sanitation for dry-run and live discovery. This prevents valid non-standard Swiss portal detail URLs from being rejected because the final gate lacked configured portal hosts.
+- **CACHE:** bump the repair/search rule version to reconsider candidates previously marked `list_or_search_page`.
+- **VERIFY:** end-to-end regression test covers saving a valid Flatfox detail URL without a numeric ID or long SEO slug.
+
+## P129.53.3 — Restore valid listings through shared URL and evidence gates
+
+- **CHANGE:** fix the empty URL-regex alternative that classified every URL as a search/list page. Share one allowlist-aware detail-URL rule across discovery, write-time validation and stored-row rechecks; allow previously auto-hidden cards to recover when they pass the current gate. Permit verified long-term listings with unknown price; prefer gross/warm rent when both net and gross amounts appear. Treat Google SERP dates as diagnostics, not publication dates, and exclude HTML-head metadata from page-body evidence.
+- **UX:** clarify that portal toggles select Google `site:` search targets rather than independent crawlers, and explain unknown-price behavior.
+- **VERIFY:** Core CI coverage is recorded in the changelog; live discovery against production Serper and database remains a separate verification.
+
 ## P129.53 — Seen-cache purge and CI metadata repair
 
 - **OBSERVED:** P129.52 package-lock root package patch is `129.51` while package.json/top-level lock patch are `129.52`; the project-mode contract asserts equality. Production seen-cache purge requested by owner.
