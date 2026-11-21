@@ -1,3 +1,8 @@
+## P130.4 — ImmoFinder daily GitHub + Render health check
+
+- **PROBLEM:** CI, deploy state, Render runtime errors and GitHub publisher failures (HTTP 403/422) had to be inspected by hand.
+- **CHANGE:** daily and manual workflow `immofinder-health.yml` runs `scripts/immofinder-health-check.mjs`: main CI, poller, `/health` + `/ready`, deployed commit vs main, archive status, per-publisher GitHub errors, search quality; FAIL opens or updates one Issue. RELIABILITY; no search, publisher or production-config change.
+
 ## P130.2 — Ensure platform diagnostics run immediately after collector updates
 
 - **AUTOMATIC HANDOFF:** run the ImmoFinder diagnostics workflow on pushes to `main` that modify the workflow or platform-log collector, in addition to the existing five-minute schedule and manual dispatch. This produces a Render/GitHub log artifact after the operational change is merged without requiring a manual workflow launch.

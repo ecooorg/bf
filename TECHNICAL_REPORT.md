@@ -1,3 +1,9 @@
+## P130.4 — ImmoFinder health check (2026-11-21)
+
+- **CHANGE:** Added a read-only daily GitHub + Render health check that names the failing GitHub publisher and status from Render logs; it reports, it does not repair.
+- **NOT_RUN:** live execution against production, hosted CI, and the 403/422 fix itself (needs the GitHub App `Contents: write` approval).
+- **KNOWN:** the baseline `package.json` said 130.2 while P130.3 code and report already existed; this patch continues as 130.4.
+
 ## P130.3 — ImmoFinder GitHub 403 publisher repair (2026-11-21)
 
 - **OBSERVED:** The server diagnostics and encrypted snapshot publishers shared IMMOFINDER_GITHUB_TOKEN; both reached the GitHub Contents API read step and failed on PUT with HTTP 403. The GitHub Actions diagnostics poller archives successfully with its separate workflow token. The main branch API reports protected: false, and the repository rulesets endpoint returns an empty list, so branch protection/rulesets do not explain the denial.
