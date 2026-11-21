@@ -55,8 +55,10 @@ export function buildQueries(
     if (i < portalT.length) templates.push(portalT[i]);
   }
   if (!templates.length) return [];
-  // Per commune: all templates (fair). Carousel uses a small commune slice; full mode uses all communes.
-  return communes.flatMap((c) => templates.map((q) => q.replace(/\{commune\}/g, c)));
+  // Interleave communes before moving to the next template. A run may hit its
+  // candidate budget before exhausting the plan; every selected commune must
+  // therefore receive early coverage instead of starving behind the first one.
+  return templates.flatMap((q) => communes.map((c) => q.replace(/\{commune\}/g, c)));
 }
 
 /** Search hits -> items to examine. Agency hosts are skipped; social/booking hosts stay snippet-only.

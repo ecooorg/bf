@@ -4,7 +4,7 @@ import { defaultSettings, sanitizeSettings, applySettings, SOURCE_IDS } from '..
 import { runPipeline } from '../server/immofinderPipeline.ts';
 import { dedupeSnippetText, htmlToText, resolveListingPrice } from '../server/immofinderCore.ts';
 import { buildSecondaryQueries } from '../server/immofinderContactEnrichment.ts';
-import { createSerperSearch, communesForRun, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
+import { createSerperSearch, communesForRun, buildQueries, pickItems, isPortalDetailLink } from '../server/immofinderDiscovery.ts';
 import { sameListingUrlTarget, encodeSeenReason, decodeSeenReason, REPAIR_RULES_VERSION, hardRejectReason, ctxFromConfig, sanitizeNewRecord } from '../server/immofinderRepair.ts';
 import { createPoliteFetch } from '../server/immofinderFetcher.ts';
 import { placeFromTitleOrSnippet, nonListingReason } from '../server/immofinderCore.ts';
@@ -157,6 +157,31 @@ test('P129.48 applySettings maps all private templates, freshness and enrichment
   assert.equal(lean.contactEnrichment.maxExtraSearchesPerRun, 12);
 });
 
+test('discovery interleaves communes so a bounded run cannot starve later locations', () => {
+  const planCfg = { ...cfg, municipalities: ['Chur', 'Zizers', 'Igis'], discovery: { ...cfg.discovery, communesPerRun: 3, queries: ['private-A {commune}', 'private-B {commune}'], portalQueries: ['portal-A {commune}'] } };
+  const plan = buildQueries(planCfg, 0);
+  assert.deepEqual(plan, [
+    'private-A Chur', 'private-A Zizers', 'private-A Igis',
+    'portal-A Chur', 'portal-A Zizers', 'portal-A Igis',
+    'private-B Chur', 'private-B Zizers', 'private-B Igis',
+  ]);
+});
+
+test('each discovery query processes at most two detail candidates and spreads the budget across communes', async () => {
+  const localCfg = leanCfg({ communesPerRun: 2, queries: ['A {commune}', 'B {commune}'], portalQueries: ['C {commune}'], maxPagesPerRun: 10 });
+  const queried = []; const fetched = []; let serial = 0;
+  const result = await runPipeline({
+    config: localCfg,
+    fetchPage: async (url) => { fetched.push(url); return { ok: false, status: 403, body: '' }; },
+    llm: null, store: memStore(),
+    search: async (q) => { queried.push(q); const base = ++serial * 100; return Array.from({ length: 5 }, (_, i) => ({ title: `3.5 Zimmer Wohnung in Chur ${base+i}`, link: `https://example.com/listing/${base+i+100000}`, snippet: 'Wohnung zu vermieten' })); },
+    cycle: 0,
+  }, { dryRun: true, wave: 'carousel' });
+  assert.equal(fetched.length, 10, 'the ten-page budget is spent at two candidates per query');
+  assert.equal(queried.length, 5, 'the query budget advances across the interleaved plan');
+  assert.deepEqual(queried.slice(0, 4), ['A Chur', 'A Zizers', 'C Chur', 'C Zizers']);
+  assert.equal(result.counts.candidates, 10);
+});
 test('P129.52 portal inventory is searched without a Google date cutoff', async () => {
   const portalOptions = [];
   const portalCfg = leanCfg({ queries: [], portalQueries: ['site:homegate.ch {commune} Wohnung mieten'] });

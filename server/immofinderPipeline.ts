@@ -74,6 +74,9 @@ const SCHEMA = '{"single_property":boolean,"property_name":string|null,"municipa
 
 
 const MIN_DIRECT_PAGE_TEXT_CHARS = 30;
+// Google can return 10 organic results per query. Fetching all of them burns the
+// run budget on a few queries; cap detail-page work per query to preserve coverage.
+const MAX_CANDIDATES_PER_QUERY = 2;
 
 interface Extract { name: string; municipality: string | null; streetAddress: string | null; rooms: { rooms: number; basis: string; quote: string } | null; owner: string | null; agency: string | null; regForbidden: boolean; single: boolean; summaryDe: string; signals: string[]; llm: boolean; priceQuote: string | null; listedAtQuote: string | null }
 
@@ -632,7 +635,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     let batchHits: SearchHit[] = [];
     const flushBatch = async () => {
       if (!batchHits.length || deps.shouldCancel?.()) { batchHits = []; return; }
-      const items = pickItems(batchHits, cfg).filter((it) => {
+      const items = pickItems(batchHits, cfg).slice(0, MAX_CANDIDATES_PER_QUERY).filter((it) => {
         if (processedUrls.has(it.url)) return false;
         processedUrls.add(it.url); return true;
       });
@@ -668,7 +671,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         };
         batch = await serperCall('serper');
         const picked = pickItems(batch, cfg);
-        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
+        try { console.info(JSON.stringify({ type: 'immofinder_discovery_query', query: q.slice(0, 260), hits: batch.length, pickedCandidates: picked.length, selectedCandidates: Math.min(picked.length, MAX_CANDIDATES_PER_QUERY), pickedSample: picked.slice(0, 3).map((it) => ({ host: it.host, title: String(it.hit?.title || '').slice(0, 90), url: it.url.slice(0, 180), snippetOnly: it.snippetOnly })), freshness: 'unrestricted', fallbackTried: false })); } catch { /* diagnostics only */ }
         batchHits.push(...batch.slice(0, d.resultsPerQuery));
         consecutiveSearchFails = 0;
       } catch (e) {
