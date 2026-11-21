@@ -81,7 +81,7 @@ test('ImmoFinder controls reflect live discovery behaviour and run duration', ()
 test('ImmoFinder reports a readable service-unavailable error when fetch cannot reach the backend', () => {
   const ui = read('src/ImmoFinder.tsx');
   assert.match(ui, /const reason = .*'the server could not be reached'/s);
-  assert.match(ui, /ImmoFinder request failed: \\$\{reason\}/);
+  assert.match(ui, /ImmoFinder request failed: \$\{reason\}/);
   assert.match(ui, /Check that the service is online, then retry/);
 });
 
