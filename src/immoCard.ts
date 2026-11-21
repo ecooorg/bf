@@ -1,7 +1,15 @@
 /**
  * ImmoFinder listing card — the single source of truth for what one card says and how it is coloured.
- * The screen (src/ImmoFinder.tsx) and the Google Sheet / Doc export (server/immofinderDelivery.ts) both read
- * this model, so a listing reads the same everywhere. Pure functions only: no DOM, no Node APIs.
+ * The screen (src/ImmoFinder.tsx) and the Google Sheet / Doc / email / Telegram export
+ * (server/immofinderDelivery.ts) both read this model, so a listing reads the same everywhere.
+ * Pure functions only: no DOM, no Node APIs.
+ *
+ * Card layout (minimal, verified facts only):
+ *   📍 place · price · rooms · contact
+ *   one clean about line (no title/description echo)
+ *   url · optional list-page warning · published date
+ *   Open … · Photo n
+ *   optional non-redundant source evidence
  */
 
 export type ImmoCardInput = {
@@ -94,23 +102,134 @@ export function immoDatesText(c: Pick<ImmoCard, 'published' | 'found'>): string 
   return c.published || '';
 }
 
+/** Collapse whitespace and strip URLs / punctuation for fuzzy compare. */
+export function immoTextFingerprint(s: string): string {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/[^a-z0-9äöüàèéêëïìôùâçß]+/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Strip portal suffixes, ellipsis noise and repeated phrases from a title/snippet. */
+function cleanTitle(raw: string): string {
+  let s = String(raw || '').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  // Drop trailing / embedded site / portal tags: "… - Homegate", "| Flatfox", "– Immowelt"
+  s = s.replace(/\s*[-|–—·]\s*(homegate|flatfox|tutti|immowelt|immoscout|newhome|comparis|facebook|marketplace)\b[^\n]*/gi, '');
+  // Collapse repeated ellipsis and trailing dots; drop leading ellipsis left by cuts
+  s = s.replace(/(?:\s*(?:\.{3}|…)\s*)+/g, ' … ').replace(/^(?:\s*(?:\.{3}|…)\s*)+/, '').replace(/\s*\.{2,}\s*$/, '').trim();
+  // Drop a second copy of the same phrase (title echoed inside itself)
+  const fp = immoTextFingerprint(s);
+  if (fp.length >= 24) {
+    const half = Math.floor(s.length / 2);
+    const a = s.slice(0, half).trim();
+    const b = s.slice(half).trim();
+    if (immoTextFingerprint(a) === immoTextFingerprint(b)) s = a;
+  }
+  return s.slice(0, 120).trim();
+}
+
+/**
+ * Build a single about line that does not repeat the title and does not paste
+ * the same search-snippet twice (the main quality complaint on current cards).
+ */
+function buildAbout(name: string, description: string, evidence: string): string {
+  const title = cleanTitle(name);
+  // Run the same portal/ellipsis cleanup on description before comparing to title.
+  let body = cleanTitle(String(description || ''));
+
+  // Prefer description; only fall back to evidence when description is empty
+  // (never absorb evidence into about when a short distinct blurb exists — tests and
+  // exports treat evidence as a separate expandable block).
+  if (!body) {
+    body = cleanTitle(String(evidence || '')).slice(0, 220);
+  }
+
+  // Remove exact title prefix / "title — title" patterns.
+  if (title) {
+    const t = title.replace(/\s*(?:\.{3}|…)\s*$/, '').trim();
+    if (t.length >= 12) {
+      const esc = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      body = body
+        .replace(new RegExp(`^${esc}\\s*[—–\\-]\\s*${esc}`, 'i'), t)
+        .replace(new RegExp(`^${esc}\\s*[—–\\-]\\s*`, 'i'), '')
+        .replace(new RegExp(`^${esc}\\s+`, 'i'), '');
+      // Drop a second full echo of the title anywhere in the body
+      body = body.split(t).join(' ').replace(/\s+/g, ' ').trim();
+    }
+  }
+
+  // Collapse internal duplicated halves (snippet pasted twice).
+  body = body.replace(/(?:\s*(?:\.{3}|…)\s*)+/g, ' … ').replace(/^(?:\s*(?:\.{3}|…)\s*)+/, '').trim();
+  const fp = immoTextFingerprint(body);
+  if (fp.length >= 30) {
+    const mid = Math.floor(body.length / 2);
+    const left = body.slice(0, mid).trim();
+    const right = body.slice(mid).trim();
+    if (immoTextFingerprint(left) === immoTextFingerprint(right)) body = left;
+    const parts = body.split(/\s*(?:\.{3}|…)\s*/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const seen = new Set<string>();
+      const uniq: string[] = [];
+      for (const p of parts) {
+        const k = immoTextFingerprint(p);
+        if (!k || seen.has(k)) continue;
+        let dup = false;
+        for (const prev of seen) {
+          if (k.startsWith(prev) || prev.startsWith(k)) { dup = true; break; }
+        }
+        if (dup) continue;
+        seen.add(k);
+        uniq.push(p);
+      }
+      body = uniq.join(' · ');
+    }
+  }
+
+  // If after cleanup body is still basically the title, drop it (title becomes about).
+  if (title && immoTextFingerprint(body) === immoTextFingerprint(title)) {
+    body = '';
+  }
+  // Prefer a real description; fall back to cleaned title.
+  const about = (body || title || '').slice(0, 220).trim();
+  return about;
+}
+
 export function immoCardModel(l: ImmoCardInput): ImmoCard {
-  const contact = l.contact_status === 'found' ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ') : '';
-  const rooms = l.rooms_estimated != null && String(l.rooms_estimated) !== '' ? `${l.rooms_estimated} rooms` : 'rooms n/a';
+  const contact =
+    l.contact_status === 'found'
+      ? [l.owner_name, l.direct_phone, l.direct_email].filter(Boolean).join(' · ')
+      : '';
+  const rooms =
+    l.rooms_estimated != null && String(l.rooms_estimated) !== ''
+      ? `${l.rooms_estimated} rooms`
+      : 'rooms n/a';
   const url = String(l.listing_url || '').trim();
-  // Prefer stored evidence excerpt (verbatim page/snippet) over a short paraphrase alone.
-  const evidence = typeof l.raw?.evidence_text === 'string' ? String(l.raw.evidence_text).replace(/\s+/g, ' ').trim() : '';
-  const aboutCore = [l.property_name, l.description_de].filter(Boolean).join(' — ').slice(0, 280)
-    || evidence.slice(0, 280);
+  const evidence =
+    typeof l.raw?.evidence_text === 'string'
+      ? String(l.raw.evidence_text).replace(/\s+/g, ' ').trim()
+      : '';
+  const name = cleanTitle(String(l.property_name || ''));
+  const about = buildAbout(name, String(l.description_de || ''), evidence);
   const kindRaw = l.raw?.evidence_kind;
-  const evidenceKind = (kindRaw === 'page_text' || kindRaw === 'snippet' || kindRaw === 'link_only') ? kindRaw : (evidence ? 'page_text' : '');
-  const shot = typeof l.raw?.evidence_screenshot_url === 'string' ? String(l.raw.evidence_screenshot_url).trim() : '';
+  const evidenceKind =
+    kindRaw === 'page_text' || kindRaw === 'snippet' || kindRaw === 'link_only'
+      ? kindRaw
+      : evidence
+        ? 'page_text'
+        : '';
+  const shot =
+    typeof l.raw?.evidence_screenshot_url === 'string'
+      ? String(l.raw.evidence_screenshot_url).trim()
+      : '';
   return {
     headline: `📍 ${l.municipality || '?'} · ${immoPriceText(l)} · ${rooms} · ${contact || 'no direct contact'}`,
-    about: aboutCore.replace(/\s+/g, ' ').trim(),
+    about,
     url,
     linkNote: (l.private_signals || []).includes('generic_link') ? IMMO_LINK_NOTE : '',
-    // Diagnostics only — never rendered on card / sheet / doc / telegram (owner request: source publish date, not search time).
+    // Diagnostics only — never rendered on card / sheet / doc / telegram.
     found: l.first_seen_at ? `found ${immoFormatFound(l.first_seen_at)}` : '',
     published: immoPublishedText(l),
     openLabel: /facebook\.com/.test(url) ? 'Open post' : 'Open listing',
@@ -122,21 +241,10 @@ export function immoCardModel(l: ImmoCardInput): ImmoCard {
   };
 }
 
-/** The line under the description: URL, optional warning, publication and found dates. Same pieces and order as on screen. */
+/** The line under the description: URL, optional warning, publication date. Same pieces and order as on screen. */
 export function immoLinkLine(c: ImmoCard): string {
   const dates = immoDatesText(c);
   return `${c.url}${c.linkNote ? ` ${c.linkNote}` : ''}${dates ? ` · ${dates}` : ''}`;
-}
-
-/** Plain-text fallback of one card (used when rich formatting is unavailable). No letters. */
-/** Collapse whitespace for comparing about vs evidence. */
-export function immoTextFingerprint(s: string): string {
-  return String(s || '')
-    .toLowerCase()
-    .replace(/https?:\/\/\S+/g, ' ')
-    .replace(/[^a-z0-9äöüàèéêëïìôùâçß]+/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 /**
@@ -149,12 +257,17 @@ export function immoEvidenceIsRedundant(about: string, evidenceText: string): bo
   if (!e) return true;
   if (!a) return false;
   if (e === a) return true;
-  // Evidence is the about text repeated / slightly extended by the same snippet.
   if (e.startsWith(a) && e.length <= a.length + 40) return true;
   if (a.startsWith(e) && a.length <= e.length + 40) return true;
-  // High overlap: about contained in evidence and evidence not much longer
   if (e.includes(a) && e.length < a.length * 1.35 + 30) return true;
   if (a.includes(e) && a.length < e.length * 1.35 + 30) return true;
+  // Evidence is mostly the same words as about (snippet re-echo)
+  const aWords = new Set(a.split(' ').filter((w) => w.length > 2));
+  if (aWords.size >= 4) {
+    const eWords = e.split(' ').filter((w) => w.length > 2);
+    const overlap = eWords.filter((w) => aWords.has(w)).length;
+    if (overlap / Math.max(eWords.length, 1) > 0.85 && e.length < a.length * 2) return true;
+  }
   return false;
 }
 
@@ -179,6 +292,7 @@ export function immoEvidenceBlock(c: ImmoCard): string {
   return parts.join('\n');
 }
 
+/** Plain-text fallback of one card (used by email, Telegram, sheet cell). Same order as the screen. */
 export function immoCardPlainText(c: ImmoCard): string {
   const actions = [c.openLabel, ...c.photos.map((p) => p.label)].join(' · ');
   const evidence = immoEvidenceBlock(c);
