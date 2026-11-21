@@ -46,7 +46,7 @@ test('seen-cache entries from older rule versions are invalidated once', () => {
   assert.equal(decodeSeenReason('not_single_listing'), null);
   assert.equal(decodeSeenReason('129.51.1::not_single_listing'), null);
   assert.equal(decodeSeenReason(encodeSeenReason('not_single_listing')), 'not_single_listing');
-  assert.equal(REPAIR_RULES_VERSION, '129.53.5');
+  assert.equal(REPAIR_RULES_VERSION, '130.0.5');
   const store = readFileSync(new URL('../server/immofinderStore.ts', import.meta.url), 'utf8');
   assert.match(store, /decodeSeenReason\(r\.rows\[0\]\.reason\)/);
   assert.match(store, /encodeSeenReason\(reason\)/);
