@@ -824,6 +824,40 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       if (timeLeft() > 30_000) {
         const pageBudget = Math.max(cfg.discovery?.maxPagesPerRun ?? 80, 80);
         await runDiscoverySearch(undefined, pageBudget, { finishAll: true });
+        // If the selected portal subset cannot produce ten verified matches, automatically
+        // widen this carousel tick to the complete Swiss portal pool without changing saved settings.
+        const selectedPortalQueries = cfg.discovery?.portalQueries || [];
+        const fallbackPortalQueries = cfg.discovery?.fallbackPortalQueries || [];
+        const remainingPages = Math.max(0, pageBudget - res.counts.candidates);
+        if (
+          res.counts.kept < 10 &&
+          fallbackPortalQueries.length > selectedPortalQueries.length &&
+          remainingPages > 0 &&
+          timeLeft() > 30_000
+        ) {
+          const originalOffset = discoveryQueryOffset;
+          cfg.discovery!.portalQueries = fallbackPortalQueries;
+          discoveryQueryOffset = 0;
+          diag('discovery_source_fallback_started', {
+            targetKeepCount: 10,
+            keptBeforeFallback: res.counts.kept,
+            selectedPortalCount: selectedPortalQueries.length,
+            fallbackPortalCount: fallbackPortalQueries.length,
+            remainingPageBudget: remainingPages,
+          });
+          try {
+            await runDiscoverySearch(undefined, remainingPages, { finishAll: true });
+          } finally {
+            cfg.discovery!.portalQueries = selectedPortalQueries;
+            discoveryQueryOffset = originalOffset;
+          }
+          diag('discovery_source_fallback_completed', {
+            targetKeepCount: 10,
+            kept: res.counts.kept,
+            candidates: res.counts.candidates,
+            serperCalls: res.counts.serper_calls,
+          });
+        }
       }
     } else if (waveMode === 'full') {
       // Full search: every private + portal query for ALL enabled communes; pace Serper; do not truncate sources.
