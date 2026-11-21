@@ -1,3 +1,9 @@
+## P129.53 — Seen-cache purge and CI metadata repair
+
+- **OBSERVED:** P129.52 package-lock root package patch is `129.51` while package.json/top-level lock patch are `129.52`; the project-mode contract asserts equality. Production seen-cache purge requested by owner.
+- **CHANGE:** migration 027 truncates only `immofinder_seen`; package/lock metadata synchronized to 129.53; seen-rule version bumped.
+- **VERIFY:** pending local checks below; production migration and post-deploy row count NOT_RUN.
+
 ## P129.52 — ImmoFinder incremental discovery and page-fetch recovery
 
 - **OBSERVED:** 129.51 run logged only Zizers/Igis, no completion summary before process restart; 129.51 CI had five distinct ImmoFinder contract failures. Earlier recheck logs show widespread portal HTTP 403.

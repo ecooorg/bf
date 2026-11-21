@@ -1,3 +1,7 @@
+## P129.53 — CI metadata and complete seen-cache purge
+
+- **BUGFIX:** sync nested package-lock patch metadata; add migration 027 to truncate every legacy `immofinder_seen` row; bump search-rule cache version. Listing deletion behavior unchanged.
+
 ## P129.52 — ImmoFinder candidate loss and fetch recovery
 
 - **BUGFIX:** process SERPs query-by-query; cover all four selected communes; search portal inventory without `qdr` date cutoff; accept optional final URLs but reject mismatched listing redirects; admit useful 30+ character detail text; retry blocked/empty public pages via URL-verified Jina Reader; invalidate old-version `seen` decisions; clear URL-level `seen` entries on manual deletion; log skip/reject/keep stages.
