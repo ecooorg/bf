@@ -4,6 +4,7 @@
 - **DURABLE HANDOFF:** persist every completed manual and scheduled search report in PostgreSQL; expose a read-only endpoint protected by the existing timing-safe run secret; retain the latest 100 reports in the database.
 - **GITHUB MONITORING:** add a five-minute GitHub Actions poller that archives each new run under data/immofinder/diagnostics/ using the workflow's built-in GITHUB_TOKEN, and uploads a run artifact. No additional Render GitHub token is required.
 - **CAPTURE:** install structured log capture at server startup so per-candidate trace events are actually available to the end-of-run report.
+- **VERSION / REPAIR AUDIT:** align the deterministic repair-rule stamp to 130.0.5 with the application patch so the existing version contract and one-time audit remain synchronized.
 - **VERIFY:** add regression contracts for durable storage, authenticated polling, manual/scheduled parity, and the polling workflow. Live Render-to-GitHub delivery still requires deployment and one completed search after merge.
 
 ## P129.53.10 — Bound migration startup and improve discovery coverage
