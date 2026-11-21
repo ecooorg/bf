@@ -20,6 +20,7 @@ import {
   shortStayPreflightReason,
   isPlatformOrJunkContact,
   isSpecificLink,
+  isPortalDetailUrl,
   municipalityEvidenceMismatch,
   nonListingReason,
   parsePrice,
@@ -28,7 +29,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '129.53.1';
+export const REPAIR_RULES_VERSION = '129.53.2';
 
 /** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
 export function encodeSeenReason(reason: string): string {
@@ -280,7 +281,7 @@ export type RowAudit = {
   ops: RepairOp[];
 };
 
-export type AuditContext = { municipalities: string[] };
+export type AuditContext = { municipalities: string[]; portalHosts?: string[] };
 
 function aboutDuplicated(name: string, desc: string): boolean {
   const t = String(desc || '').replace(/\s+/g, ' ').trim();
@@ -303,7 +304,7 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   const hay = `${title}\n${text}`;
   if (!url || !/^https?:\/\//i.test(url)) return 'url_missing_or_invalid';
   let why: string | null = nonListingReason(title, url);
-  if (!why && !isSpecificLink(url) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) why = 'list_or_search_page';
+  if (!why && !isSpecificLink(url) && !isPortalDetailUrl(url, ctx.portalHosts || []) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) why = 'list_or_search_page';
   if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
 
   // A search result is only a discovery hint. It is never proof that the target
@@ -382,7 +383,7 @@ export function auditRow(row: Row, ctx: AuditContext): RowAudit {
   const title = String(row.property_name || '');
   const url = String(row.listing_url || '');
 
-  if (isSpecificLink(url)) flags.push('url_ok'); else flags.push('url_not_specific');
+  if (isSpecificLink(url) || isPortalDetailUrl(url, ctx.portalHosts || [])) flags.push('url_ok'); else flags.push('url_not_specific');
   if (nonListingReason('', url) === 'service_or_aggregator') flags.push('url_service_host');
 
   const hard = hardRejectReason(row, ctx);
@@ -698,8 +699,8 @@ export function planAutoOps(rows: Row[], ctx: AuditContext): { ops: RepairOp[]; 
   return { ops, audits };
 }
 
-export function ctxFromConfig(cfg: Pick<ImmoConfig, 'municipalities'>): AuditContext {
-  return { municipalities: cfg.municipalities || [] };
+export function ctxFromConfig(cfg: Pick<ImmoConfig, 'municipalities' | 'discovery'>): AuditContext {
+  return { municipalities: cfg.municipalities || [], portalHosts: cfg.discovery?.portalHosts || [] };
 }
 
 // ---------------------------------------------------------------------------
