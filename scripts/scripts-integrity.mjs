@@ -52,6 +52,7 @@ const ALLOW = new Set([
   'gate-eval.mjs',
   'golden-eval.mjs',
   'golden-tasks.json',
+  'immofinder-health-check.mjs',
   'lint-copy.mjs',
   'migrate.mjs',
   'monitor-connections.mjs',
