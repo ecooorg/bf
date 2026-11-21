@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-03T14:48:04Z",
+  "generatedAt": "2026-11-21T06:37:38Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "note": "Names discovered via static scan of process.env in application sources (excludes tests/ and scripts/). Not a claim that every name is required at runtime.",
-  "count": 71,
+  "count": 90,
   "variables": [
     {
       "name": "APP_BUILDER_ENGINE",
@@ -28,9 +28,10 @@
     {
       "name": "APP_BUILDER_MODEL_SLICE",
       "files": [
+        "server.ts",
         "server/projectRoutes.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "APP_PASSWORD",
@@ -79,12 +80,34 @@
       "fileCount": 2
     },
     {
+      "name": "CODE_APP_BUILDER_MAX_FILES",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "CODE_APP_BUILDER_MAX_LINES",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "CODE_EXECUTOR",
       "files": [
+        "server.ts",
         "server/codeTaskService.ts",
         "server/projectRoutes.ts"
       ],
-      "fileCount": 2
+      "fileCount": 3
+    },
+    {
+      "name": "CONVERSATION_RECOVERY_MS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
     },
     {
       "name": "DAILY_CALL_CAP",
@@ -98,11 +121,12 @@
       "files": [
         "server.ts",
         "server/database.ts",
+        "server/immofinderRoutes.ts",
         "server/opsRoutes.ts",
         "server/projectDiagnostics.ts",
         "server/projectRoutes.ts"
       ],
-      "fileCount": 5
+      "fileCount": 6
     },
     {
       "name": "DIAGNOSTIC_APPLICATION_LINES",
@@ -194,11 +218,19 @@
       "fileCount": 1
     },
     {
-      "name": "GITHUB_DIFF_UPLOAD",
+      "name": "GEMINI_HTTP_RETRY_ATTEMPTS",
       "files": [
-        "server/githubIntegration.ts"
+        "server.ts"
       ],
       "fileCount": 1
+    },
+    {
+      "name": "GITHUB_DIFF_UPLOAD",
+      "files": [
+        "server.ts",
+        "server/githubIntegration.ts"
+      ],
+      "fileCount": 2
     },
     {
       "name": "GITHUB_REPOSITORY_NAME",
@@ -218,6 +250,13 @@
       "name": "GITHUB_WEBHOOK_SECRET",
       "files": [
         "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "GOOGLE_SERVICE_ACCOUNT_JSON",
+      "files": [
+        "server/immofinderDelivery.ts"
       ],
       "fileCount": 1
     },
@@ -254,6 +293,41 @@
       "fileCount": 1
     },
     {
+      "name": "GROUNDED_NUMBER_CHECK",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "IMMOFINDER_DISABLE_INTERNAL_SCHEDULE",
+      "files": [
+        "server/immofinderRoutes.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "IMMOFINDER_DRIVE_FOLDER_ID",
+      "files": [
+        "server/immofinderRoutes.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "IMMOFINDER_EMAIL_FROM",
+      "files": [
+        "server/immofinderDelivery.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "IMMOFINDER_RUN_SECRET",
+      "files": [
+        "server/immofinderRoutes.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "JINA_API_KEY",
       "files": [
         "server.ts"
@@ -261,7 +335,21 @@
       "fileCount": 1
     },
     {
+      "name": "JINA_READER_BASE_URL",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "KEEP_ALIVE",
+      "files": [
+        "server/keepAlive.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "KEEP_ALIVE_URL",
       "files": [
         "server/keepAlive.ts"
       ],
@@ -327,10 +415,18 @@
       "name": "NODE_ENV",
       "files": [
         "server.ts",
+        "server/immofinderRoutes.ts",
         "server/projectDiagnostics.ts",
         "server/securityHeaders.ts"
       ],
-      "fileCount": 3
+      "fileCount": 4
+    },
+    {
+      "name": "NODE_TEST_CONTEXT",
+      "files": [
+        "server/immofinderRoutes.ts"
+      ],
+      "fileCount": 1
     },
     {
       "name": "OPS_RSS_LIMIT_MB",
@@ -350,9 +446,10 @@
     {
       "name": "PGSSLMODE",
       "files": [
+        "server.ts",
         "server/database.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "PORT",
@@ -365,9 +462,10 @@
     {
       "name": "PROJECT_RATE_LIMIT_PER_MINUTE",
       "files": [
+        "server.ts",
         "server/projectRoutes.ts"
       ],
-      "fileCount": 1
+      "fileCount": 2
     },
     {
       "name": "RAILWAY_REPLICA_ID",
@@ -386,7 +484,22 @@
     {
       "name": "RENDER_EXTERNAL_URL",
       "files": [
+        "server.ts",
         "server/keepAlive.ts"
+      ],
+      "fileCount": 2
+    },
+    {
+      "name": "RENDER_SERVICE_NAME",
+      "files": [
+        "server/keepAlive.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "RESEND_API_KEY",
+      "files": [
+        "server/immofinderDelivery.ts"
       ],
       "fileCount": 1
     },
@@ -401,9 +514,18 @@
       "name": "SERPER_API_KEY",
       "files": [
         "server.ts",
+        "server/immofinderDiscovery.ts",
+        "server/immofinderRoutes.ts",
         "server/projectDiagnostics.ts"
       ],
-      "fileCount": 2
+      "fileCount": 4
+    },
+    {
+      "name": "SERVICE_URL",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
     },
     {
       "name": "SESSION_SECRET",
@@ -420,7 +542,28 @@
       "fileCount": 1
     },
     {
+      "name": "TELEGRAM_BOT_TOKEN",
+      "files": [
+        "server/immofinderDelivery.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "TELEGRAM_CHAT_ID",
+      "files": [
+        "server/immofinderDelivery.ts"
+      ],
+      "fileCount": 1
+    },
+    {
       "name": "TRUST_PROXY_HOPS",
+      "files": [
+        "server.ts"
+      ],
+      "fileCount": 1
+    },
+    {
+      "name": "UNGROUNDED_FACT_GATE",
       "files": [
         "server.ts"
       ],

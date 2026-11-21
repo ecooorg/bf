@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-11-01T21:38:22Z",
+  "generatedAt": "2026-11-21T06:37:38Z",
   "generator": "scripts/docsGenerateInventories.mjs",
-  "count": 19,
+  "count": 25,
   "migrations": [
     {
       "file": "migrations/001_project_state.sql",
@@ -97,6 +97,36 @@
       "file": "migrations/019_application_diagnostic_logs.sql",
       "bytes": 1340,
       "lines": 25
+    },
+    {
+      "file": "migrations/020_immofinder.sql",
+      "bytes": 2098,
+      "lines": 47
+    },
+    {
+      "file": "migrations/021_immofinder_seen.sql",
+      "bytes": 318,
+      "lines": 9
+    },
+    {
+      "file": "migrations/022_immofinder_progress.sql",
+      "bytes": 192,
+      "lines": 3
+    },
+    {
+      "file": "migrations/023_immofinder_settings.sql",
+      "bytes": 268,
+      "lines": 7
+    },
+    {
+      "file": "migrations/024_immofinder_types.sql",
+      "bytes": 406,
+      "lines": 5
+    },
+    {
+      "file": "migrations/025_immofinder_repair.sql",
+      "bytes": 818,
+      "lines": 21
     }
   ]
 }

@@ -1,15 +1,16 @@
 {
-  "generatedAt": "2026-11-03T14:48:04Z",
+  "generatedAt": "2026-11-21T06:37:38Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "sourceFiles": [
     "server.ts",
     "server/authRoutes.ts",
     "server/compatibilityRoutes.ts",
     "server/healthRoutes.ts",
+    "server/immofinderRoutes.ts",
     "server/opsRoutes.ts",
     "server/projectRoutes.ts"
   ],
-  "count": 86,
+  "count": 117,
   "routes": [
     {
       "method": "GET",
@@ -39,6 +40,16 @@
     {
       "method": "POST",
       "path": "/api/conversation",
+      "file": "server.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/all-logs",
+      "file": "server.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/diagnostics/client-render",
       "file": "server.ts"
     },
     {
@@ -75,6 +86,116 @@
       "method": "GET",
       "path": "/api/health",
       "file": "server/healthRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/cleanup",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/enrich-existing",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/immofinder/enrich-status",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/immofinder/export-snapshot",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/immofinder/listings",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/immofinder/listings/:id",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/immofinder/listings/:id",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/recheck",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/recheck-list",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/immofinder/recheck-list-status",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/repair/apply",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/repair/audit",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/repair/preview",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/reset",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/run",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/immofinder/runs/latest",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/immofinder/schedule-status",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/immofinder/settings",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/immofinder/settings",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/settings/reset",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/settings/test",
+      "file": "server/immofinderRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/immofinder/stop",
+      "file": "server/immofinderRoutes.ts"
     },
     {
       "method": "POST",
@@ -143,6 +264,11 @@
     },
     {
       "method": "GET",
+      "path": "/api/projects/:projectId/artifact-versions",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
       "path": "/api/projects/:projectId/artifacts",
       "file": "server/projectRoutes.ts"
     },
@@ -154,6 +280,21 @@
     {
       "method": "GET",
       "path": "/api/projects/:projectId/artifacts/:artifactId/download",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/artifacts/:artifactId/inspect",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/artifacts/:artifactId/versions",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/artifacts/upload",
       "file": "server/projectRoutes.ts"
     },
     {
@@ -184,6 +325,21 @@
     {
       "method": "POST",
       "path": "/api/projects/:projectId/code/build/:jobId/cancel",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/projects/:projectId/code/build/:jobId/file",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/code/build/preview",
+      "file": "server/projectRoutes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/projects/:projectId/code/continue",
       "file": "server/projectRoutes.ts"
     },
     {
