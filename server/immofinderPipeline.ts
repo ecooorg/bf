@@ -635,10 +635,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     let batchHits: SearchHit[] = [];
     const flushBatch = async () => {
       if (!batchHits.length || deps.shouldCancel?.()) { batchHits = []; return; }
-      const items = pickItems(batchHits, cfg).slice(0, MAX_CANDIDATES_PER_QUERY).filter((it) => {
-        if (processedUrls.has(it.url)) return false;
-        processedUrls.add(it.url); return true;
-      });
+      const items = pickItems(batchHits, cfg).filter((it) => !processedUrls.has(it.url)).slice(0, MAX_CANDIDATES_PER_QUERY);
+      for (const it of items) processedUrls.add(it.url);
       batchHits = [];
       const remaining = Math.max(0, pageLimit - processedItems);
       if (items.length && remaining > 0) {
