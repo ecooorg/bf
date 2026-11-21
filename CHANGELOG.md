@@ -1,3 +1,7 @@
+## P129.49 — ImmoFinder direct-page verification
+
+- Search snippets no longer qualify as proof of a listing. Cards require fetched detail-page evidence from the same final URL and one unambiguous matching price; redirect mismatches and evidence conflicts are hidden. Rule-versioned audits rerun after deploy, and valid cards hidden by automatic rules can be restored after a successful direct re-fetch. BUGFIX.
+
 ## P129.48 — ImmoFinder search defaults and CI contract
 
 - Reset defaults now use all 13 Swiss portal queries plus private search, a 3-hour / 12-commune carousel, four private templates and stronger contact enrichment; removed duplicate depth control and excluded observed aggregators. Repair audit hides saved cards without a verified monthly price and persists evidence-backed price repairs; bootstrap republishes the cleaned list to configured Drive, e-mail and Telegram channels; CI env-example coverage restored. RELIABILITY / USER_VALUE.

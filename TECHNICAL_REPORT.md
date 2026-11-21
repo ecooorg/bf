@@ -1,3 +1,9 @@
+## P129.49 — ImmoFinder primary-page verification
+
+- **OBSERVED:** Supplied snapshot: 30 visible / 86 total; replay of the new audit hides 30/30 (29 lack direct-page evidence; one lacks final-URL provenance); web checks found 404s, a wrong-target redirect and a price conflict.
+- **CHANGE:** Require fetched detail-page evidence, matching final URL and one unambiguous source-page price; persist URL provenance; version-salt audit ids; re-fetch and restore only auto-hidden cards that later pass.
+- **VERIFY:** ImmoFinder quality + P0 suites: 46 PASS after baseline 42 PASS; typecheck **BLOCKED** (`vite/client` types absent); full build/hosted CI/live DB: **NOT_RUN**. Broader agents-contract run: 67 PASS / 2 dependency-blocked (`express`, `jszip`).
+
 ## P129.48 — ImmoFinder search defaults and CI contract
 
 - **OBSERVED:** CI run `44876820408` had 17 PASS / 1 FAIL (nine env names missing); snapshot had 86 cards / 67 visible, and offline audit simulation yields 37 safe hide ops (27 missing-price, 10 suspect/non-monthly).
