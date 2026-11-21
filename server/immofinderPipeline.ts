@@ -675,7 +675,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
     const since = (deps.now ?? Date.now)() - last;
     if (last && since < serperMinIntervalMs) await sleep(serperMinIntervalMs - since);
   }
-  async function runDiscoverySearch(maxQueries?: number, maxPages?: number, opts?: { finishAll?: boolean }) {
+  async function runDiscoverySearch(maxQueries?: number, maxPages?: number, opts?: { finishAll?: boolean; stopAtKept?: number }) {
     const d = cfg.discovery;
     if (!d?.enabled) return;
     // A small per-query cap lets stronger results lower in SERP reach verification.
@@ -738,6 +738,10 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
     };
     for (const q of slice) {
+      if (opts?.stopAtKept && res.counts.kept >= opts.stopAtKept) {
+        diag('discovery_target_reached', { targetKeepCount: opts.stopAtKept, kept: res.counts.kept, remainingQueries: slice.length - qi });
+        break;
+      }
       if (deps.shouldCancel?.()) break;
       currentQueryMunicipality = cfg.municipalities.find((m) => q.toLowerCase().includes(m.toLowerCase())) || null;
       currentSourceId = sourceIdForQuery(q);
@@ -846,7 +850,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
             remainingPageBudget: remainingPages,
           });
           try {
-            await runDiscoverySearch(undefined, remainingPages, { finishAll: true });
+            await runDiscoverySearch(undefined, remainingPages, { finishAll: true, stopAtKept: 10 });
           } finally {
             cfg.discovery!.portalQueries = selectedPortalQueries;
             discoveryQueryOffset = originalOffset;
