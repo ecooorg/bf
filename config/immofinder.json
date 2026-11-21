@@ -292,7 +292,7 @@
   "quality": {
     "maxMonthlyRentChf": 2000,
     "maxListingAgeDays": 180,
-    "requirePrice": true,
+    "requirePrice": false,
     "rejectNonMonthly": false,
     "rejectSeekerPosts": true,
     "requireContact": false
