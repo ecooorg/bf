@@ -23,7 +23,7 @@ type S = {
     profile: 'carousel' | 'burst';
     carouselCommunesPerRun: number;
     privateQueryTemplates: number;
-    freshness: 'd' | 'w';
+    freshness: 'd' | 'm';
     freshnessFallback: boolean;
     enrichSearchesPerRun: number;
     recheckContactSearch: boolean;
@@ -632,12 +632,12 @@ export function ImmoFinderSettings({ onChanged }: { onChanged?: (s: S) => void }
             <label style={labelBlock}>
               Search freshness{' '}
               <select
-                value={s.search.freshness || 'w'}
-                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, freshness: e.target.value === 'd' ? 'd' : 'w' } }))}
+                value={s.search.freshness || 'm'}
+                onChange={(e) => upd((x) => ({ ...x, search: { ...x.search, freshness: e.target.value === 'd' ? 'd' : 'm' } }))}
                 data-testid="immofinder-freshness"
               >
                 <option value="d">last day</option>
-                <option value="w">last week</option>
+                <option value="m">last month (recommended)</option>
               </select>
             </label>
             <label style={labelBlock}>
