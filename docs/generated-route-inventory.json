@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T06:37:38Z",
+  "generatedAt": "2026-11-21T08:47:37Z",
   "generator": "scripts/docsGenerateInventories.mjs",
   "sourceFiles": [
     "server.ts",

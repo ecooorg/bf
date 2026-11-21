@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-19T09:21:39.209Z",
+  "generatedAt": "2026-11-21T08:47:37.518Z",
   "generator": "scripts/architectureGenerateModuleMap.mjs",
-  "root": "bf-work",
+  "root": "bf-main",
   "summary": {
-    "moduleCount": 210,
-    "edgeCount": 510,
+    "moduleCount": 213,
+    "edgeCount": 521,
     "cycleCount": 0,
-    "totalLines": 45191
+    "totalLines": 47613
   },
   "cycles": [],
   "layers": {
-    "server": 106,
+    "server": 109,
     "src": 88,
     "other": 16
   },
@@ -260,9 +260,10 @@
     {
       "path": "server/allLogs.ts",
       "layer": "server",
-      "lines": 217,
+      "lines": 230,
       "imports": [
         "server/conversationDiagnostics.ts",
+        "server/immofinderRepairStore.ts",
         "server/projectDiagnostics.ts",
         "server/redact.ts"
       ],
@@ -499,7 +500,7 @@
       "layer": "server",
       "lines": 47,
       "imports": [],
-      "fanIn": 18
+      "fanIn": 20
     },
     {
       "path": "server/diagnosticsConfig.ts",
@@ -633,7 +634,7 @@
     {
       "path": "server/immofinderContactEnrichment.ts",
       "layer": "server",
-      "lines": 539,
+      "lines": 540,
       "imports": [
         "server/immofinderCore.ts",
         "server/immofinderDiscovery.ts"
@@ -643,14 +644,14 @@
     {
       "path": "server/immofinderCore.ts",
       "layer": "server",
-      "lines": 753,
+      "lines": 1214,
       "imports": [],
-      "fanIn": 8
+      "fanIn": 9
     },
     {
       "path": "server/immofinderDelivery.ts",
       "layer": "server",
-      "lines": 360,
+      "lines": 357,
       "imports": [
         "server/immofinderSettings.ts",
         "src/immoCard.ts"
@@ -660,8 +661,9 @@
     {
       "path": "server/immofinderDiag.ts",
       "layer": "server",
-      "lines": 95,
+      "lines": 269,
       "imports": [
+        "server/database.ts",
         "server/immofinderCore.ts",
         "server/projectDiagnostics.ts"
       ],
@@ -670,7 +672,7 @@
     {
       "path": "server/immofinderDiscovery.ts",
       "layer": "server",
-      "lines": 105,
+      "lines": 136,
       "imports": [
         "server/immofinderCore.ts"
       ],
@@ -679,7 +681,7 @@
     {
       "path": "server/immofinderFetcher.ts",
       "layer": "server",
-      "lines": 33,
+      "lines": 40,
       "imports": [
         "server/immofinderCore.ts"
       ],
@@ -688,18 +690,19 @@
     {
       "path": "server/immofinderPipeline.ts",
       "layer": "server",
-      "lines": 666,
+      "lines": 815,
       "imports": [
         "server/immofinderContactEnrichment.ts",
         "server/immofinderCore.ts",
-        "server/immofinderDiscovery.ts"
+        "server/immofinderDiscovery.ts",
+        "server/immofinderRepair.ts"
       ],
       "fanIn": 2
     },
     {
       "path": "server/immofinderRefresh.ts",
       "layer": "server",
-      "lines": 149,
+      "lines": 173,
       "imports": [
         "server/immofinderContactEnrichment.ts",
         "server/immofinderCore.ts",
@@ -708,9 +711,29 @@
       "fanIn": 1
     },
     {
+      "path": "server/immofinderRepair.ts",
+      "layer": "server",
+      "lines": 714,
+      "imports": [
+        "server/immofinderCore.ts"
+      ],
+      "fanIn": 4
+    },
+    {
+      "path": "server/immofinderRepairStore.ts",
+      "layer": "server",
+      "lines": 122,
+      "imports": [
+        "server/database.ts",
+        "server/immofinderRepair.ts",
+        "server/immofinderStore.ts"
+      ],
+      "fanIn": 2
+    },
+    {
       "path": "server/immofinderRoutes.ts",
       "layer": "server",
-      "lines": 664,
+      "lines": 896,
       "imports": [
         "server/immofinderContactEnrichment.ts",
         "server/immofinderDelivery.ts",
@@ -719,7 +742,10 @@
         "server/immofinderFetcher.ts",
         "server/immofinderPipeline.ts",
         "server/immofinderRefresh.ts",
+        "server/immofinderRepair.ts",
+        "server/immofinderRepairStore.ts",
         "server/immofinderSettings.ts",
+        "server/immofinderSnapshot.ts",
         "server/immofinderStore.ts",
         "server/security.ts"
       ],
@@ -728,23 +754,31 @@
     {
       "path": "server/immofinderSettings.ts",
       "layer": "server",
-      "lines": 236,
+      "lines": 259,
       "imports": [
         "server/immofinderCore.ts"
       ],
       "fanIn": 3
     },
     {
+      "path": "server/immofinderSnapshot.ts",
+      "layer": "server",
+      "lines": 145,
+      "imports": [],
+      "fanIn": 1
+    },
+    {
       "path": "server/immofinderStore.ts",
       "layer": "server",
-      "lines": 287,
+      "lines": 395,
       "imports": [
         "server/database.ts",
         "server/immofinderCore.ts",
         "server/immofinderPipeline.ts",
+        "server/immofinderRepair.ts",
         "server/immofinderSettings.ts"
       ],
-      "fanIn": 1
+      "fanIn": 2
     },
     {
       "path": "server/intentFlags.ts",
@@ -756,7 +790,7 @@
     {
       "path": "server/keepAlive.ts",
       "layer": "server",
-      "lines": 159,
+      "lines": 160,
       "imports": [],
       "fanIn": 1
     },
@@ -1415,7 +1449,7 @@
     {
       "path": "src/ImmoFinder.tsx",
       "layer": "src",
-      "lines": 383,
+      "lines": 398,
       "imports": [
         "src/CommitBadge.tsx",
         "src/ImmoFinderSettings.tsx",
@@ -1428,7 +1462,7 @@
     {
       "path": "src/ImmoFinderSettings.tsx",
       "layer": "src",
-      "lines": 637,
+      "lines": 703,
       "imports": [],
       "fanIn": 1
     },
@@ -1808,7 +1842,7 @@
     {
       "path": "src/immoCard.ts",
       "layer": "src",
-      "lines": 116,
+      "lines": 255,
       "imports": [],
       "fanIn": 2
     },
@@ -2121,7 +2155,7 @@
   "topFanIn": [
     {
       "path": "server/database.ts",
-      "count": 18
+      "count": 20
     },
     {
       "path": "src/decision.ts",
@@ -2137,7 +2171,7 @@
     },
     {
       "path": "server/immofinderCore.ts",
-      "count": 8
+      "count": 9
     },
     {
       "path": "src/attachments.ts",
@@ -2234,6 +2268,10 @@
       "lines": 1756
     },
     {
+      "path": "server/immofinderCore.ts",
+      "lines": 1214
+    },
+    {
       "path": "server/projectRoutes.ts",
       "lines": 1068
     },
@@ -2246,6 +2284,10 @@
       "lines": 951
     },
     {
+      "path": "server/immofinderRoutes.ts",
+      "lines": 896
+    },
+    {
       "path": "src/ProjectMode.tsx",
       "lines": 880
     },
@@ -2254,28 +2296,24 @@
       "lines": 846
     },
     {
-      "path": "server/immofinderCore.ts",
-      "lines": 753
+      "path": "server/immofinderPipeline.ts",
+      "lines": 815
     },
     {
       "path": "src/App.tsx",
       "lines": 726
     },
     {
-      "path": "server/immofinderPipeline.ts",
-      "lines": 666
+      "path": "server/immofinderRepair.ts",
+      "lines": 714
     },
     {
-      "path": "server/immofinderRoutes.ts",
-      "lines": 664
+      "path": "src/ImmoFinderSettings.tsx",
+      "lines": 703
     },
     {
       "path": "src/finalDecisionDocument.ts",
       "lines": 648
-    },
-    {
-      "path": "src/ImmoFinderSettings.tsx",
-      "lines": 637
     },
     {
       "path": "src/ConversationFiles.tsx",
@@ -2303,7 +2341,7 @@
     },
     {
       "path": "server/immofinderContactEnrichment.ts",
-      "lines": 539
+      "lines": 540
     },
     {
       "path": "src/workspace/changeset.ts",
@@ -2316,10 +2354,6 @@
     {
       "path": "src/ConversationScreens.tsx",
       "lines": 510
-    },
-    {
-      "path": "src/analyticalIntegrity.ts",
-      "lines": 461
     }
   ]
 }

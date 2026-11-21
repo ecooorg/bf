@@ -20,6 +20,13 @@
 - The Groq verifier sends user and answer text to a third party; it becomes opt-in.
 - Detail: web-search remediation history (consolidated into DECISIONS / ARCHITECTURE).
 
+## ImmoFinder GitHub database snapshot
+
+- The public `ecooorg/bf` repository MUST contain only an encrypted ImmoFinder database snapshot; never commit plaintext phone numbers, e-mail addresses, owner names, addresses, contact evidence, or raw listing text.
+- After every completed manual or scheduled search, the server serializes every saved listing row (visible and hidden, including contact/evidence fields), encrypts the payload with AES-256-GCM, and updates `data/immofinder/listings.snapshot.enc` through the GitHub Contents API.
+- The encryption key is derived with HKDF-SHA-256 from the stable runtime `SESSION_SECRET`; keep it stable to decrypt historical snapshots. The GitHub fine-grained token is runtime-only (`IMMOFINDER_GITHUB_TOKEN`) and needs Contents read/write for the configured repository (`IMMOFINDER_GITHUB_REPOSITORY`). Neither key nor token is committed or logged.
+- Missing GitHub configuration skips backup without failing the search. GitHub API failures are logged by status only; they do not expose listing rows or credentials and do not block search completion.
+
 ## Web research and outbound requests
 
 - Search-result page extraction first rejects non-HTTP(S) URLs, URL credentials, localhost and internal/local hostnames, and private, loopback, link-local, CGNAT, reserved, and non-global IP literals. Hostnames are resolved before outbound requests; every resolved address must be public. Redirects on direct page fetches are handled manually, with each destination revalidated and a four-hop ceiling. Responses are restricted to HTML/XHTML/JSON or text from the reader proxy and capped at 1 MB before parsing.

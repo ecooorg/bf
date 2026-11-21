@@ -1,3 +1,13 @@
+## P129.50 — ImmoFinder encrypted GitHub snapshot and short-stay listings
+
+- **PROBLEM / BASELINE:** Hosted CI run `44884418425` fails both `typecheck` and `build:server` on `server/immofinderPipeline.ts:468` (`known` is out of scope); 16 checks pass and 2 fail. P129.49 excluded night/week/season prices by default and `config/immofinder.json` blocks direct holiday-rental hosts; no automatic full-DB GitHub snapshot exists.
+- **HYPOTHESIS:** Carry auto-hide provenance with each fetched page; permit short-stay/seasonal offers only with fetched detail-page evidence, a concrete listing URL, an explicit amount+period and a direct phone/e-mail; publish every completed run's complete DB snapshot to the public repository only as authenticated AES-256-GCM ciphertext.
+- **METRICS:** TypeScript typecheck/build; category tests; accepted short-stay fixture; rejected missing-period/contact/link/page-evidence fixtures; encrypted snapshot round-trip and GitHub Contents API contract; snapshot invocation on manual and scheduled finalization.
+- **ACCEPTANCE:** CI source error removed; default/reset and existing persisted settings no longer reject non-monthly prices; direct seasonal sources are discoverable but meta-search aggregators remain excluded; strict short-stay gates pass; all rows (including hidden rows and contacts) are encrypted before GitHub commit; no plaintext personal data or secrets enter Git history/logs. Hosted CI, production GitHub write and live search outcome remain **NOT_RUN** until deployment/configuration.
+- **SCOPE:** ImmoFinder pipeline/core/settings/config/routes/store snapshot integration; encrypted snapshot module; migration, env example, existing category tests, package metadata and concise history.
+- **ROLLBACK:** Revert the snapshot integration if encryption round-trip or negative privacy tests fail; revert short-stay admission if a no-period/no-contact/non-specific-link fixture can be saved or delivered.
+- **CLASSIFICATION:** USER_VALUE. CI infrastructure failure is reported separately from listing-quality outcome.
+
 ## P129.49 — ImmoFinder primary-page identity and price verification
 
 - **PROBLEM / BASELINE:** Supplied 21 Nov snapshot has 30 visible / 86 total cards; 29 visible cards have snippet or no page evidence, and the sole `page_text` card has a 5-room stored value against a 3.5-room Flatfox title. Direct web checks confirm wrong/redirected targets, 404s and price conflicts. Baseline `node --experimental-strip-types --test tests/immofinder-quality.test.mjs tests/immofinder-p0.test.mjs`: **42 PASS**.

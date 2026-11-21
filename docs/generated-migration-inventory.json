@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-11-21T06:37:38Z",
+  "generatedAt": "2026-11-21T08:47:37Z",
   "generator": "scripts/docsGenerateInventories.mjs",
-  "count": 25,
+  "count": 26,
   "migrations": [
     {
       "file": "migrations/001_project_state.sql",
@@ -127,6 +127,11 @@
       "file": "migrations/025_immofinder_repair.sql",
       "bytes": 818,
       "lines": 21
+    },
+    {
+      "file": "migrations/026_immofinder_short_stay.sql",
+      "bytes": 463,
+      "lines": 8
     }
   ]
 }

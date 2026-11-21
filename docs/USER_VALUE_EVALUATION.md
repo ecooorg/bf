@@ -1,3 +1,12 @@
+# P129.50 — ImmoFinder database continuity and rental coverage (2026-11-21)
+
+- **OBSERVED:** CI run `44884418425` fails on an out-of-scope `known` reference. The previous default policy rejected all non-monthly prices and discovery skipped direct holiday-rental platforms. The public GitHub repository must not receive plaintext contact data.
+- **IMPLEMENTED:** Each completed manual or scheduled search attempts a complete database snapshot commit, encrypted at rest; it includes visible and hidden rows and every persisted column. Short-stay/seasonal listings are accepted only with a page fetch, concrete listing URL, amount plus explicit period, and a verified direct phone/e-mail. Verbatim address quotes are stored in `street_address` and shown on the shared card.
+- **INFERRED:** This should preserve the database independently of diagnostic ZIPs and increase coverage of legitimate seasonal rentals without admitting snippet-only or contactless offers.
+- **NOT_RUN:** Hosted CI rerun, production GitHub commit, live migration, actual post-deploy search yield and user-visible screen / Telegram / e-mail / Drive verification. GitHub backup requires deployment configuration (`IMMOFINDER_GITHUB_TOKEN`, `IMMOFINDER_GITHUB_REPOSITORY`) and a stable `SESSION_SECRET`.
+
+---
+
 # P129.49 — ImmoFinder listing verification (2026-11-21)
 
 - **OBSERVED:** Supplied All Logs contains 30 visible / 86 total listings. 29 visible rows have `snippet` or missing page evidence; the remaining row has `page_text` but no final-URL provenance and its stored room count conflicts with its Flatfox title. Direct URL checks found four Tutti 404s, one Homegate redirect to a different municipality/price, one live Tutti page with CHF 1,700 headline vs CHF 1,800 stored, and multiple inaccessible social/portal targets. The accompanying XLSX also exposes wrong-place, sale/holiday and room-count collisions.

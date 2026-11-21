@@ -54,3 +54,8 @@ Implemented in `migrations/020_immofinder.sql` (128.1): adds `title_ru`, `rooms_
 `migrations/022_immofinder_progress.sql` (128.4): `immofinder_runs.progress` jsonb. `migrations/023_immofinder_settings.sql` (128.5): `immofinder_settings(id 'main', data jsonb, updated_at)` holding schedule, delivery and search-scope settings; the email address is stored there, secrets never.
 
 `migrations/024_immofinder_types.sql` (128.8): `immofinder_listings.listing_type`, `hidden`, `hide_reason`. Hidden rows are excluded from the app list, email, Telegram, Sheet and Doc.
+
+
+## ImmoFinder GitHub snapshot
+
+After each completed manual or scheduled search, the complete `immofinder_listings` table (including hidden rows, phones, e-mails, owner names, source URLs, contact evidence and raw page evidence) is encrypted with AES-256-GCM and committed to `data/immofinder/listings.snapshot.enc` via the GitHub Contents API. The repository is public, so plaintext database data MUST NOT be committed. The key is derived from the stable runtime `SESSION_SECRET`; the runtime fine-grained token (`IMMOFINDER_GITHUB_TOKEN`) and repository (`IMMOFINDER_GITHUB_REPOSITORY`) are deployment configuration, not repository data. A missing token/repository skips the backup but does not fail the search.

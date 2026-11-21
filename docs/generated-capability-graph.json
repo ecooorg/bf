@@ -1,29 +1,29 @@
 {
  "schemaVersion": 1,
  "kind": "capability-graph",
- "generatedAt": "2026-11-19T09:19:59.821Z",
+ "generatedAt": "2026-11-21T08:47:37.602Z",
  "generator": "scripts/capabilityGenerateGraph.mjs",
  "summary": {
-  "nodeCount": 479,
-  "edgeCount": 876,
+  "nodeCount": 558,
+  "edgeCount": 950,
   "nodeCounts": {
    "check": 18,
-   "env": 71,
+   "env": 90,
    "evidence": 1,
-   "migration": 19,
-   "module": 231,
-   "route": 86,
-   "side_effect": 52,
+   "migration": 26,
+   "module": 234,
+   "route": 117,
+   "side_effect": 71,
    "state": 1
   },
   "edgeCounts": {
-   "covers": 183,
+   "covers": 189,
    "produces_evidence_under": 10,
    "needs": 16,
-   "modifies": 19,
-   "depends_on": 510,
-   "exposes": 86,
-   "produces": 52
+   "modifies": 26,
+   "depends_on": 521,
+   "exposes": 117,
+   "produces": 71
   },
   "unknownNodes": 19,
   "staleNodes": 0,
@@ -340,7 +340,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:APP_BUILDER_MAX_RATE_WAIT_MS",
@@ -355,7 +355,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:APP_BUILDER_MODEL_ID",
@@ -370,7 +370,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:APP_BUILDER_MODEL_SLICE",
@@ -380,12 +380,13 @@
    "refs": {
     "name": "APP_BUILDER_MODEL_SLICE",
     "files": [
+     "server.ts",
      "server/projectRoutes.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:APP_PASSWORD",
@@ -401,7 +402,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:APP_VERSION",
@@ -416,7 +417,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:BIFORGE_GEMINI_DIRECT_MODE",
@@ -431,7 +432,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:CLOUDFLARE_ACCOUNT_ID",
@@ -447,7 +448,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:CLOUDFLARE_API_TOKEN",
@@ -463,7 +464,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:CLOUDFLARE_WORKERS_AI_MODEL",
@@ -479,7 +480,37 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:CODE_APP_BUILDER_MAX_FILES",
+   "type": "env",
+   "label": "CODE_APP_BUILDER_MAX_FILES",
+   "status": "known",
+   "refs": {
+    "name": "CODE_APP_BUILDER_MAX_FILES",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:CODE_APP_BUILDER_MAX_LINES",
+   "type": "env",
+   "label": "CODE_APP_BUILDER_MAX_LINES",
+   "status": "known",
+   "refs": {
+    "name": "CODE_APP_BUILDER_MAX_LINES",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:CODE_EXECUTOR",
@@ -489,13 +520,29 @@
    "refs": {
     "name": "CODE_EXECUTOR",
     "files": [
+     "server.ts",
      "server/codeTaskService.ts",
      "server/projectRoutes.ts"
     ],
-    "fileCount": 2
+    "fileCount": 3
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:CONVERSATION_RECOVERY_MS",
+   "type": "env",
+   "label": "CONVERSATION_RECOVERY_MS",
+   "status": "known",
+   "refs": {
+    "name": "CONVERSATION_RECOVERY_MS",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:DAILY_CALL_CAP",
@@ -510,7 +557,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:DATABASE_URL",
@@ -522,14 +569,15 @@
     "files": [
      "server.ts",
      "server/database.ts",
+     "server/immofinderRoutes.ts",
      "server/opsRoutes.ts",
      "server/projectDiagnostics.ts",
      "server/projectRoutes.ts"
     ],
-    "fileCount": 5
+    "fileCount": 6
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:DIAGNOSTIC_APPLICATION_LINES",
@@ -544,7 +592,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:DIAGNOSTIC_CONSOLE_LINES",
@@ -559,7 +607,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:DISABLE_HMR",
@@ -574,7 +622,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:ENABLE_APP_AUTH",
@@ -589,7 +637,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:ENABLE_EXTERNAL_MODEL_FALLBACK",
@@ -607,7 +655,7 @@
     "fileCount": 4
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:ENABLE_GEMINI_CANDIDATE_PROBES",
@@ -622,7 +670,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:ENABLE_PROJECT_MODE",
@@ -638,7 +686,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:ENABLE_WEB_SEARCH",
@@ -653,7 +701,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:EPISTEMIC_VERIFIER_MODEL",
@@ -668,7 +716,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:EXPERT_ATTACH_TOTAL_CHARS",
@@ -683,7 +731,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GEMINI_API_KEY",
@@ -699,7 +747,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GEMINI_BASE_URL",
@@ -714,7 +762,22 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:GEMINI_HTTP_RETRY_ATTEMPTS",
+   "type": "env",
+   "label": "GEMINI_HTTP_RETRY_ATTEMPTS",
+   "status": "known",
+   "refs": {
+    "name": "GEMINI_HTTP_RETRY_ATTEMPTS",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GITHUB_DIFF_UPLOAD",
@@ -724,12 +787,13 @@
    "refs": {
     "name": "GITHUB_DIFF_UPLOAD",
     "files": [
+     "server.ts",
      "server/githubIntegration.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GITHUB_REPOSITORY_NAME",
@@ -744,7 +808,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GITHUB_REPOSITORY_OWNER",
@@ -759,7 +823,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GITHUB_WEBHOOK_SECRET",
@@ -774,7 +838,22 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:GOOGLE_SERVICE_ACCOUNT_JSON",
+   "type": "env",
+   "label": "GOOGLE_SERVICE_ACCOUNT_JSON",
+   "status": "known",
+   "refs": {
+    "name": "GOOGLE_SERVICE_ACCOUNT_JSON",
+    "files": [
+     "server/immofinderDelivery.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GROQ_API_KEY",
@@ -791,7 +870,7 @@
     "fileCount": 3
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GROQ_BASE_URL",
@@ -808,7 +887,7 @@
     "fileCount": 3
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GROQ_FALLBACK_MODEL",
@@ -823,7 +902,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:GROQ_PLAN",
@@ -838,7 +917,82 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:GROUNDED_NUMBER_CHECK",
+   "type": "env",
+   "label": "GROUNDED_NUMBER_CHECK",
+   "status": "known",
+   "refs": {
+    "name": "GROUNDED_NUMBER_CHECK",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:IMMOFINDER_DISABLE_INTERNAL_SCHEDULE",
+   "type": "env",
+   "label": "IMMOFINDER_DISABLE_INTERNAL_SCHEDULE",
+   "status": "known",
+   "refs": {
+    "name": "IMMOFINDER_DISABLE_INTERNAL_SCHEDULE",
+    "files": [
+     "server/immofinderRoutes.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:IMMOFINDER_DRIVE_FOLDER_ID",
+   "type": "env",
+   "label": "IMMOFINDER_DRIVE_FOLDER_ID",
+   "status": "known",
+   "refs": {
+    "name": "IMMOFINDER_DRIVE_FOLDER_ID",
+    "files": [
+     "server/immofinderRoutes.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:IMMOFINDER_EMAIL_FROM",
+   "type": "env",
+   "label": "IMMOFINDER_EMAIL_FROM",
+   "status": "known",
+   "refs": {
+    "name": "IMMOFINDER_EMAIL_FROM",
+    "files": [
+     "server/immofinderDelivery.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:IMMOFINDER_RUN_SECRET",
+   "type": "env",
+   "label": "IMMOFINDER_RUN_SECRET",
+   "status": "known",
+   "refs": {
+    "name": "IMMOFINDER_RUN_SECRET",
+    "files": [
+     "server/immofinderRoutes.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:JINA_API_KEY",
@@ -853,7 +1007,22 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:JINA_READER_BASE_URL",
+   "type": "env",
+   "label": "JINA_READER_BASE_URL",
+   "status": "known",
+   "refs": {
+    "name": "JINA_READER_BASE_URL",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:KEEP_ALIVE",
@@ -868,7 +1037,22 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:KEEP_ALIVE_URL",
+   "type": "env",
+   "label": "KEEP_ALIVE_URL",
+   "status": "known",
+   "refs": {
+    "name": "KEEP_ALIVE_URL",
+    "files": [
+     "server/keepAlive.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:LOGIN_MAX_FAILS",
@@ -883,7 +1067,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:LOGIN_WINDOW_MIN",
@@ -898,7 +1082,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:MAX_ATTACH_TEXT_CHARS",
@@ -913,7 +1097,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:MAX_BODY_BYTES",
@@ -928,7 +1112,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:MAX_UPLOAD_BYTES",
@@ -943,7 +1127,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:MODEL_CASCADE_LIGHT",
@@ -958,7 +1142,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:MODEL_CASCADE_STRONG",
@@ -973,7 +1157,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:MODEL_MIN_INTERVAL_MS",
@@ -988,7 +1172,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:NODE_ENV",
@@ -999,13 +1183,29 @@
     "name": "NODE_ENV",
     "files": [
      "server.ts",
+     "server/immofinderRoutes.ts",
      "server/projectDiagnostics.ts",
      "server/securityHeaders.ts"
     ],
-    "fileCount": 3
+    "fileCount": 4
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:NODE_TEST_CONTEXT",
+   "type": "env",
+   "label": "NODE_TEST_CONTEXT",
+   "status": "known",
+   "refs": {
+    "name": "NODE_TEST_CONTEXT",
+    "files": [
+     "server/immofinderRoutes.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:OPS_RSS_LIMIT_MB",
@@ -1021,7 +1221,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:PG_POOL_MAX",
@@ -1036,7 +1236,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:PGSSLMODE",
@@ -1046,12 +1246,13 @@
    "refs": {
     "name": "PGSSLMODE",
     "files": [
+     "server.ts",
      "server/database.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:PORT",
@@ -1067,7 +1268,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:PROJECT_RATE_LIMIT_PER_MINUTE",
@@ -1077,12 +1278,13 @@
    "refs": {
     "name": "PROJECT_RATE_LIMIT_PER_MINUTE",
     "files": [
+     "server.ts",
      "server/projectRoutes.ts"
     ],
-    "fileCount": 1
+    "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:RAILWAY_REPLICA_ID",
@@ -1097,7 +1299,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:RATE_LIMIT_PER_HOUR",
@@ -1112,7 +1314,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:RENDER_EXTERNAL_URL",
@@ -1122,12 +1324,43 @@
    "refs": {
     "name": "RENDER_EXTERNAL_URL",
     "files": [
+     "server.ts",
+     "server/keepAlive.ts"
+    ],
+    "fileCount": 2
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:RENDER_SERVICE_NAME",
+   "type": "env",
+   "label": "RENDER_SERVICE_NAME",
+   "status": "known",
+   "refs": {
+    "name": "RENDER_SERVICE_NAME",
+    "files": [
      "server/keepAlive.ts"
     ],
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:RESEND_API_KEY",
+   "type": "env",
+   "label": "RESEND_API_KEY",
+   "status": "known",
+   "refs": {
+    "name": "RESEND_API_KEY",
+    "files": [
+     "server/immofinderDelivery.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:SERP2_API_KEY",
@@ -1142,7 +1375,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:SERPER_API_KEY",
@@ -1153,12 +1386,29 @@
     "name": "SERPER_API_KEY",
     "files": [
      "server.ts",
+     "server/immofinderDiscovery.ts",
+     "server/immofinderRoutes.ts",
      "server/projectDiagnostics.ts"
     ],
-    "fileCount": 2
+    "fileCount": 4
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:SERVICE_URL",
+   "type": "env",
+   "label": "SERVICE_URL",
+   "status": "known",
+   "refs": {
+    "name": "SERVICE_URL",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:SESSION_SECRET",
@@ -1173,7 +1423,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:SKIP_DIST_HEALTHCHECK",
@@ -1188,7 +1438,37 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:TELEGRAM_BOT_TOKEN",
+   "type": "env",
+   "label": "TELEGRAM_BOT_TOKEN",
+   "status": "known",
+   "refs": {
+    "name": "TELEGRAM_BOT_TOKEN",
+    "files": [
+     "server/immofinderDelivery.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:TELEGRAM_CHAT_ID",
+   "type": "env",
+   "label": "TELEGRAM_CHAT_ID",
+   "status": "known",
+   "refs": {
+    "name": "TELEGRAM_CHAT_ID",
+    "files": [
+     "server/immofinderDelivery.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:TRUST_PROXY_HOPS",
@@ -1203,7 +1483,22 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "env:UNGROUNDED_FACT_GATE",
+   "type": "env",
+   "label": "UNGROUNDED_FACT_GATE",
+   "status": "known",
+   "refs": {
+    "name": "UNGROUNDED_FACT_GATE",
+    "files": [
+     "server.ts"
+    ],
+    "fileCount": 1
+   },
+   "sourceInventory": "generated-env-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEATHER_CONNECTOR_CONTACT",
@@ -1218,7 +1513,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_DEFAULT_COUNTRY",
@@ -1233,7 +1528,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_FETCH_PAGES",
@@ -1249,7 +1544,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_MAX_PAGES",
@@ -1265,7 +1560,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_MAX_QUERIES",
@@ -1281,7 +1576,7 @@
     "fileCount": 2
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_MODE",
@@ -1296,7 +1591,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_MODEL",
@@ -1311,7 +1606,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_PROVIDER",
@@ -1326,7 +1621,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_SEED_PAGES",
@@ -1341,7 +1636,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_TIMEOUT_MS",
@@ -1356,7 +1651,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WEB_SEARCH_TRANSLATE_MODEL",
@@ -1371,7 +1666,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WORKER_HEARTBEAT_MS",
@@ -1386,7 +1681,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WORKER_LEASE_MS",
@@ -1401,7 +1696,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "env:WORKER_POLL_MS",
@@ -1416,7 +1711,7 @@
     "fileCount": 1
    },
    "sourceInventory": "generated-env-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "evidence:schema",
@@ -1439,7 +1734,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/002_artifacts_ledger.sql",
@@ -1452,7 +1747,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/003_route_decisions.sql",
@@ -1465,7 +1760,7 @@
     "lines": 18
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/004_model_health.sql",
@@ -1478,7 +1773,7 @@
     "lines": 15
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/005_tasks_runs.sql",
@@ -1491,7 +1786,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/006_jobs.sql",
@@ -1504,7 +1799,7 @@
     "lines": 20
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/007_budgets_plans_approvals.sql",
@@ -1517,7 +1812,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/008_artifact_manifests.sql",
@@ -1530,7 +1825,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/009_gate_evidence.sql",
@@ -1543,7 +1838,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/010_code_tasks.sql",
@@ -1556,7 +1851,7 @@
     "lines": 36
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/011_code_task_package_approval.sql",
@@ -1569,7 +1864,7 @@
     "lines": 5
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/012_code_task_decision.sql",
@@ -1582,7 +1877,7 @@
     "lines": 9
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/013_repair_loop.sql",
@@ -1595,7 +1890,7 @@
     "lines": 13
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/014_provider_snapshots.sql",
@@ -1608,7 +1903,7 @@
     "lines": 33
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/015_project_diagnostics.sql",
@@ -1621,7 +1916,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/016_project_diagnostic_artifacts.sql",
@@ -1634,7 +1929,7 @@
     "lines": 8
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/017_app_build_jobs.sql",
@@ -1647,7 +1942,7 @@
     "lines": 33
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/018_model_request_slots.sql",
@@ -1660,7 +1955,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "migration:migrations/019_application_diagnostic_logs.sql",
@@ -1673,7 +1968,98 @@
     "lines": 25
    },
    "sourceInventory": "generated-migration-inventory.json",
-   "inventoryGeneratedAt": "2026-11-01T21:38:22Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "migration:migrations/020_immofinder.sql",
+   "type": "migration",
+   "label": "migrations/020_immofinder.sql",
+   "status": "known",
+   "refs": {
+    "file": "migrations/020_immofinder.sql",
+    "bytes": 2098,
+    "lines": 47
+   },
+   "sourceInventory": "generated-migration-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "migration:migrations/021_immofinder_seen.sql",
+   "type": "migration",
+   "label": "migrations/021_immofinder_seen.sql",
+   "status": "known",
+   "refs": {
+    "file": "migrations/021_immofinder_seen.sql",
+    "bytes": 318,
+    "lines": 9
+   },
+   "sourceInventory": "generated-migration-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "migration:migrations/022_immofinder_progress.sql",
+   "type": "migration",
+   "label": "migrations/022_immofinder_progress.sql",
+   "status": "known",
+   "refs": {
+    "file": "migrations/022_immofinder_progress.sql",
+    "bytes": 192,
+    "lines": 3
+   },
+   "sourceInventory": "generated-migration-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "migration:migrations/023_immofinder_settings.sql",
+   "type": "migration",
+   "label": "migrations/023_immofinder_settings.sql",
+   "status": "known",
+   "refs": {
+    "file": "migrations/023_immofinder_settings.sql",
+    "bytes": 268,
+    "lines": 7
+   },
+   "sourceInventory": "generated-migration-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "migration:migrations/024_immofinder_types.sql",
+   "type": "migration",
+   "label": "migrations/024_immofinder_types.sql",
+   "status": "known",
+   "refs": {
+    "file": "migrations/024_immofinder_types.sql",
+    "bytes": 406,
+    "lines": 5
+   },
+   "sourceInventory": "generated-migration-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "migration:migrations/025_immofinder_repair.sql",
+   "type": "migration",
+   "label": "migrations/025_immofinder_repair.sql",
+   "status": "known",
+   "refs": {
+    "file": "migrations/025_immofinder_repair.sql",
+    "bytes": 818,
+    "lines": 21
+   },
+   "sourceInventory": "generated-migration-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "migration:migrations/026_immofinder_short_stay.sql",
+   "type": "migration",
+   "label": "migrations/026_immofinder_short_stay.sql",
+   "status": "known",
+   "refs": {
+    "file": "migrations/026_immofinder_short_stay.sql",
+    "bytes": 463,
+    "lines": 8
+   },
+   "sourceInventory": "generated-migration-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "module:appBuilder/architectOutcome.ts",
@@ -1686,7 +2072,7 @@
     "lines": 77
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/core-cache.ts",
@@ -1699,7 +2085,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/core-engine.ts",
@@ -1712,7 +2098,7 @@
     "lines": 983
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/core-markers.ts",
@@ -1725,7 +2111,7 @@
     "lines": 122
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/core-plan.ts",
@@ -1738,7 +2124,7 @@
     "lines": 300
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/core-ports.ts",
@@ -1751,7 +2137,7 @@
     "lines": 111
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/core-prompts.ts",
@@ -1764,7 +2150,7 @@
     "lines": 141
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/core-types.ts",
@@ -1777,7 +2163,7 @@
     "lines": 200
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/index.ts",
@@ -1790,7 +2176,7 @@
     "lines": 122
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/intent-brief.ts",
@@ -1803,7 +2189,7 @@
     "lines": 540
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/pack-zip.ts",
@@ -1816,7 +2202,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/profile-default.ts",
@@ -1829,7 +2215,7 @@
     "lines": 40
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/stack-static-site.ts",
@@ -1842,7 +2228,7 @@
     "lines": 310
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/standalone.ts",
@@ -1855,7 +2241,7 @@
     "lines": 230
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:appBuilder/validator-static-site.ts",
@@ -1868,7 +2254,7 @@
     "lines": 846
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:package.json",
@@ -1879,7 +2265,7 @@
     "path": "package.json"
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:scripts/architectureCheckBoundaries.mjs",
@@ -2072,7 +2458,7 @@
     "lines": 2839
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/adapter.ts",
@@ -2085,7 +2471,7 @@
     "lines": 91
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/agentRouting.ts",
@@ -2098,7 +2484,7 @@
     "lines": 54
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/allLogs.ts",
@@ -2108,10 +2494,10 @@
    "refs": {
     "path": "server/allLogs.ts",
     "layer": "server",
-    "lines": 217
+    "lines": 230
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/analysisService.ts",
@@ -2124,7 +2510,7 @@
     "lines": 121
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/appBuilderAdapter.ts",
@@ -2137,7 +2523,7 @@
     "lines": 400
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/appBuilderIndex.ts",
@@ -2150,7 +2536,7 @@
     "lines": 4
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/appBuilderIr.ts",
@@ -2163,7 +2549,7 @@
     "lines": 79
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/appBuilderPipeline.ts",
@@ -2176,7 +2562,7 @@
     "lines": 170
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/appBuilderRuntimeCheck.ts",
@@ -2189,7 +2575,7 @@
     "lines": 133
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/appBuilderScaffolds.ts",
@@ -2202,7 +2588,7 @@
     "lines": 377
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/artifactFormat.ts",
@@ -2215,7 +2601,7 @@
     "lines": 129
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/artifactRepository.ts",
@@ -2228,7 +2614,7 @@
     "lines": 211
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/auditCatalog.ts",
@@ -2241,7 +2627,7 @@
     "lines": 37
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/authRoutes.ts",
@@ -2254,7 +2640,7 @@
     "lines": 106
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/briefWriter.ts",
@@ -2267,7 +2653,7 @@
     "lines": 101
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/budget.ts",
@@ -2280,7 +2666,7 @@
     "lines": 52
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/codeExecutor.ts",
@@ -2293,7 +2679,7 @@
     "lines": 514
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/codeTaskService.ts",
@@ -2306,7 +2692,7 @@
     "lines": 951
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/compatibilityRoutes.ts",
@@ -2319,7 +2705,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/contextBuilder.ts",
@@ -2332,7 +2718,7 @@
     "lines": 81
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/contracts.ts",
@@ -2345,7 +2731,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/conversationalAgent.ts",
@@ -2358,7 +2744,7 @@
     "lines": 55
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/conversationDiagnostics.ts",
@@ -2371,7 +2757,7 @@
     "lines": 58
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/conversationMode.ts",
@@ -2384,7 +2770,7 @@
     "lines": 47
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/conversationPayload.ts",
@@ -2397,7 +2783,7 @@
     "lines": 49
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/database.ts",
@@ -2410,7 +2796,7 @@
     "lines": 47
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/diagnosticsConfig.ts",
@@ -2423,7 +2809,7 @@
     "lines": 78
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/documents.ts",
@@ -2436,7 +2822,7 @@
     "lines": 293
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/domainIds.ts",
@@ -2449,7 +2835,7 @@
     "lines": 54
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/epistemicVerifier.ts",
@@ -2462,7 +2848,7 @@
     "lines": 156
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/expertAgent.ts",
@@ -2475,7 +2861,7 @@
     "lines": 85
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/expertContracts.ts",
@@ -2488,7 +2874,7 @@
     "lines": 321
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/fakeProvider.ts",
@@ -2501,7 +2887,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/files.ts",
@@ -2514,7 +2900,7 @@
     "lines": 421
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/gateEngine.ts",
@@ -2527,7 +2913,7 @@
     "lines": 181
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/gateService.ts",
@@ -2540,7 +2926,7 @@
     "lines": 182
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/geminiAdapter.ts",
@@ -2553,7 +2939,7 @@
     "lines": 73
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/geminiKeyPool.ts",
@@ -2566,7 +2952,7 @@
     "lines": 166
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/githubIntegration.ts",
@@ -2579,7 +2965,7 @@
     "lines": 371
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/goldenEval.ts",
@@ -2592,7 +2978,7 @@
     "lines": 168
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/healthRoutes.ts",
@@ -2605,7 +2991,7 @@
     "lines": 50
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderContactEnrichment.ts",
@@ -2615,10 +3001,10 @@
    "refs": {
     "path": "server/immofinderContactEnrichment.ts",
     "layer": "server",
-    "lines": 539
+    "lines": 540
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderCore.ts",
@@ -2628,10 +3014,10 @@
    "refs": {
     "path": "server/immofinderCore.ts",
     "layer": "server",
-    "lines": 752
+    "lines": 1214
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderDelivery.ts",
@@ -2641,10 +3027,10 @@
    "refs": {
     "path": "server/immofinderDelivery.ts",
     "layer": "server",
-    "lines": 360
+    "lines": 357
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderDiag.ts",
@@ -2654,10 +3040,10 @@
    "refs": {
     "path": "server/immofinderDiag.ts",
     "layer": "server",
-    "lines": 95
+    "lines": 269
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderDiscovery.ts",
@@ -2667,10 +3053,10 @@
    "refs": {
     "path": "server/immofinderDiscovery.ts",
     "layer": "server",
-    "lines": 105
+    "lines": 136
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderFetcher.ts",
@@ -2680,10 +3066,10 @@
    "refs": {
     "path": "server/immofinderFetcher.ts",
     "layer": "server",
-    "lines": 33
+    "lines": 40
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderPipeline.ts",
@@ -2693,10 +3079,10 @@
    "refs": {
     "path": "server/immofinderPipeline.ts",
     "layer": "server",
-    "lines": 666
+    "lines": 815
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderRefresh.ts",
@@ -2706,10 +3092,36 @@
    "refs": {
     "path": "server/immofinderRefresh.ts",
     "layer": "server",
-    "lines": 149
+    "lines": 173
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
+  },
+  {
+   "id": "module:server/immofinderRepair.ts",
+   "type": "module",
+   "label": "server/immofinderRepair.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderRepair.ts",
+    "layer": "server",
+    "lines": 714
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
+  },
+  {
+   "id": "module:server/immofinderRepairStore.ts",
+   "type": "module",
+   "label": "server/immofinderRepairStore.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderRepairStore.ts",
+    "layer": "server",
+    "lines": 122
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderRoutes.ts",
@@ -2719,10 +3131,10 @@
    "refs": {
     "path": "server/immofinderRoutes.ts",
     "layer": "server",
-    "lines": 664
+    "lines": 896
    },
-   "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderSettings.ts",
@@ -2732,10 +3144,23 @@
    "refs": {
     "path": "server/immofinderSettings.ts",
     "layer": "server",
-    "lines": 236
+    "lines": 259
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
+  },
+  {
+   "id": "module:server/immofinderSnapshot.ts",
+   "type": "module",
+   "label": "server/immofinderSnapshot.ts",
+   "status": "known",
+   "refs": {
+    "path": "server/immofinderSnapshot.ts",
+    "layer": "server",
+    "lines": 145
+   },
+   "sourceInventory": "generated-module-map.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/immofinderStore.ts",
@@ -2745,10 +3170,10 @@
    "refs": {
     "path": "server/immofinderStore.ts",
     "layer": "server",
-    "lines": 287
+    "lines": 395
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/intentFlags.ts",
@@ -2761,7 +3186,7 @@
     "lines": 134
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/keepAlive.ts",
@@ -2771,10 +3196,10 @@
    "refs": {
     "path": "server/keepAlive.ts",
     "layer": "server",
-    "lines": 159
+    "lines": 160
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/keyPool.ts",
@@ -2787,7 +3212,7 @@
     "lines": 116
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/latencyPolicy.ts",
@@ -2800,7 +3225,7 @@
     "lines": 93
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/ledger.ts",
@@ -2813,7 +3238,7 @@
     "lines": 28
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/llmLatencyConfig.ts",
@@ -2826,7 +3251,7 @@
     "lines": 38
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/modelAvailability.ts",
@@ -2839,7 +3264,7 @@
     "lines": 37
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/modelCarousel.ts",
@@ -2852,7 +3277,7 @@
     "lines": 285
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/modelHealth.ts",
@@ -2865,7 +3290,7 @@
     "lines": 95
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/modelRateLimit.ts",
@@ -2878,7 +3303,7 @@
     "lines": 111
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/modelRegistry.ts",
@@ -2891,7 +3316,7 @@
     "lines": 110
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/modelSourcesCatalog.ts",
@@ -2904,7 +3329,7 @@
     "lines": 92
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/nationalAuthorities.ts",
@@ -2917,7 +3342,7 @@
     "lines": 65
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/openaiCompatAdapter.ts",
@@ -2930,7 +3355,7 @@
     "lines": 86
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/opsMetrics.ts",
@@ -2943,7 +3368,7 @@
     "lines": 190
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/opsRoutes.ts",
@@ -2956,7 +3381,7 @@
     "lines": 65
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/planMachine.ts",
@@ -2969,7 +3394,7 @@
     "lines": 137
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/planService.ts",
@@ -2982,7 +3407,7 @@
     "lines": 341
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/processLifecycle.ts",
@@ -2995,7 +3420,7 @@
     "lines": 76
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/projectCapabilities.ts",
@@ -3008,7 +3433,7 @@
     "lines": 29
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/projectContinuation.ts",
@@ -3021,7 +3446,7 @@
     "lines": 51
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/projectDiagnostics.ts",
@@ -3034,7 +3459,7 @@
     "lines": 370
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/projectRepository.ts",
@@ -3047,7 +3472,7 @@
     "lines": 169
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/projectRoutes.ts",
@@ -3060,7 +3485,7 @@
     "lines": 1068
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/promptCore.ts",
@@ -3073,7 +3498,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/promptPacks.ts",
@@ -3086,7 +3511,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/providerMonitor.ts",
@@ -3099,7 +3524,7 @@
     "lines": 219
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/queryFidelity.ts",
@@ -3112,7 +3537,7 @@
     "lines": 189
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/queueMachine.ts",
@@ -3125,7 +3550,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/queueService.ts",
@@ -3138,7 +3563,7 @@
     "lines": 127
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/reasoningState.ts",
@@ -3151,7 +3576,7 @@
     "lines": 230
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/redact.ts",
@@ -3164,7 +3589,7 @@
     "lines": 120
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/repairLoop.ts",
@@ -3177,7 +3602,7 @@
     "lines": 138
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/reviewer.ts",
@@ -3190,7 +3615,7 @@
     "lines": 148
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/routeDecisions.ts",
@@ -3203,7 +3628,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/router.ts",
@@ -3216,7 +3641,7 @@
     "lines": 155
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/searchCarousel.ts",
@@ -3229,7 +3654,7 @@
     "lines": 176
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/security.ts",
@@ -3242,7 +3667,7 @@
     "lines": 91
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/securityHeaders.ts",
@@ -3255,7 +3680,7 @@
     "lines": 14
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/simpleConversationDiagnostics.ts",
@@ -3268,7 +3693,7 @@
     "lines": 102
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/simpleDirectConversation.ts",
@@ -3281,7 +3706,7 @@
     "lines": 104
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/sourceHealth.ts",
@@ -3294,7 +3719,7 @@
     "lines": 107
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/sourcePolicy.ts",
@@ -3307,7 +3732,7 @@
     "lines": 107
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/sourceTrust.ts",
@@ -3320,7 +3745,7 @@
     "lines": 96
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/statePipeline.ts",
@@ -3333,7 +3758,7 @@
     "lines": 145
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/stateService.ts",
@@ -3346,7 +3771,7 @@
     "lines": 35
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/taskMachine.ts",
@@ -3359,7 +3784,7 @@
     "lines": 103
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/taskService.ts",
@@ -3372,7 +3797,7 @@
     "lines": 286
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/turnFocus.ts",
@@ -3385,7 +3810,7 @@
     "lines": 56
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/untrustedData.ts",
@@ -3398,7 +3823,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/weatherConnector.ts",
@@ -3411,7 +3836,7 @@
     "lines": 261
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/webSearch.ts",
@@ -3424,7 +3849,7 @@
     "lines": 2224
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:server/worker.ts",
@@ -3437,7 +3862,7 @@
     "lines": 87
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/allLogs.ts",
@@ -3450,7 +3875,7 @@
     "lines": 27
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/analyticalIntegrity.ts",
@@ -3463,7 +3888,7 @@
     "lines": 461
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/App.tsx",
@@ -3476,7 +3901,7 @@
     "lines": 726
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/appApi.ts",
@@ -3489,7 +3914,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/AppHeader.tsx",
@@ -3502,7 +3927,7 @@
     "lines": 215
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/architectNote.ts",
@@ -3515,7 +3940,7 @@
     "lines": 28
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/attachments.ts",
@@ -3528,7 +3953,7 @@
     "lines": 224
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/AutoGrow.tsx",
@@ -3541,7 +3966,7 @@
     "lines": 85
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/autosave.ts",
@@ -3554,7 +3979,7 @@
     "lines": 18
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/briefView.ts",
@@ -3567,7 +3992,7 @@
     "lines": 42
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/brier.ts",
@@ -3580,7 +4005,7 @@
     "lines": 22
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/BuildFilesPanel.tsx",
@@ -3593,7 +4018,7 @@
     "lines": 34
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/CommitBadge.tsx",
@@ -3606,7 +4031,7 @@
     "lines": 33
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/config.ts",
@@ -3619,7 +4044,7 @@
     "lines": 20
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ConversationFiles.tsx",
@@ -3632,7 +4057,7 @@
     "lines": 618
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/conversationRoutes.ts",
@@ -3645,7 +4070,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ConversationScreens.tsx",
@@ -3658,7 +4083,7 @@
     "lines": 510
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/decision.ts",
@@ -3671,7 +4096,7 @@
     "lines": 590
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/decisionDocument.ts",
@@ -3684,7 +4109,7 @@
     "lines": 63
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/downloadFile.ts",
@@ -3697,7 +4122,7 @@
     "lines": 12
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/driveClient.ts",
@@ -3710,7 +4135,7 @@
     "lines": 185
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/driveExport.ts",
@@ -3723,7 +4148,7 @@
     "lines": 44
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/driveMerge.ts",
@@ -3736,7 +4161,7 @@
     "lines": 142
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/driveMirror.ts",
@@ -3749,7 +4174,7 @@
     "lines": 326
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/driveSync.ts",
@@ -3762,7 +4187,7 @@
     "lines": 90
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/emergencyDiagnostics.ts",
@@ -3775,7 +4200,7 @@
     "lines": 125
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/en.ts",
@@ -3788,7 +4213,7 @@
     "lines": 51
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ErrorBoundary.tsx",
@@ -3801,7 +4226,7 @@
     "lines": 30
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/errors.ts",
@@ -3814,7 +4239,7 @@
     "lines": 45
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/evpi.ts",
@@ -3827,7 +4252,7 @@
     "lines": 76
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/expertContext.ts",
@@ -3840,7 +4265,7 @@
     "lines": 42
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/expertHistory.ts",
@@ -3853,7 +4278,7 @@
     "lines": 26
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/expertNav.ts",
@@ -3866,7 +4291,7 @@
     "lines": 52
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ExpertNav.tsx",
@@ -3879,7 +4304,7 @@
     "lines": 87
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ExpertStepScreens.tsx",
@@ -3892,7 +4317,7 @@
     "lines": 1756
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/expertWorkflow.ts",
@@ -3905,7 +4330,7 @@
     "lines": 226
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/exportName.ts",
@@ -3918,7 +4343,7 @@
     "lines": 7
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/exportZip.ts",
@@ -3931,7 +4356,7 @@
     "lines": 114
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/finalDecisionDocument.ts",
@@ -3944,7 +4369,7 @@
     "lines": 648
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/HistoryPanel.tsx",
@@ -3957,7 +4382,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/icsBuilder.ts",
@@ -3970,7 +4395,7 @@
     "lines": 57
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/immoCard.ts",
@@ -3980,10 +4405,10 @@
    "refs": {
     "path": "src/immoCard.ts",
     "layer": "src",
-    "lines": 116
+    "lines": 255
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ImmoFinder.tsx",
@@ -3993,10 +4418,10 @@
    "refs": {
     "path": "src/ImmoFinder.tsx",
     "layer": "src",
-    "lines": 383
+    "lines": 398
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ImmoFinderSettings.tsx",
@@ -4006,10 +4431,10 @@
    "refs": {
     "path": "src/ImmoFinderSettings.tsx",
     "layer": "src",
-    "lines": 637
+    "lines": 703
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/index.css",
@@ -4020,7 +4445,7 @@
     "path": "src/index.css"
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/libraryExport.ts",
@@ -4033,7 +4458,7 @@
     "lines": 82
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/main.tsx",
@@ -4046,7 +4471,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ModeMenu.tsx",
@@ -4059,7 +4484,7 @@
     "lines": 110
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/numberValidator.ts",
@@ -4072,7 +4497,7 @@
     "lines": 319
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/OfflineIndicator.tsx",
@@ -4085,7 +4510,7 @@
     "lines": 31
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/programFiles.ts",
@@ -4098,7 +4523,7 @@
     "lines": 356
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/projectAppBuilder.ts",
@@ -4111,7 +4536,7 @@
     "lines": 195
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/projectBuildJob.ts",
@@ -4124,7 +4549,7 @@
     "lines": 97
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/projectCapabilities.ts",
@@ -4137,7 +4562,7 @@
     "lines": 31
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ProjectChat.tsx",
@@ -4150,7 +4575,7 @@
     "lines": 604
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ProjectDelivery.tsx",
@@ -4163,7 +4588,7 @@
     "lines": 348
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/projectDeliveryModel.ts",
@@ -4176,7 +4601,7 @@
     "lines": 201
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/projectLabels.ts",
@@ -4189,7 +4614,7 @@
     "lines": 39
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ProjectMode.tsx",
@@ -4202,7 +4627,7 @@
     "lines": 880
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ProjectNoviceWizard.tsx",
@@ -4215,7 +4640,7 @@
     "lines": 335
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ProjectPathChooser.tsx",
@@ -4228,7 +4653,7 @@
     "lines": 72
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/sha256Export.ts",
@@ -4241,7 +4666,7 @@
     "lines": 36
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/storage.ts",
@@ -4254,7 +4679,7 @@
     "lines": 425
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/support.ts",
@@ -4267,7 +4692,7 @@
     "lines": 64
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/triage.ts",
@@ -4280,7 +4705,7 @@
     "lines": 48
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/ui.ts",
@@ -4293,7 +4718,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/uiStates.tsx",
@@ -4306,7 +4731,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/uiTerms.ts",
@@ -4319,7 +4744,7 @@
     "lines": 27
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/useDrive.ts",
@@ -4332,7 +4757,7 @@
     "lines": 133
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/usePWAInstall.ts",
@@ -4345,7 +4770,7 @@
     "lines": 63
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/UserGuide.tsx",
@@ -4358,7 +4783,7 @@
     "lines": 185
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/changeset.ts",
@@ -4371,7 +4796,7 @@
     "lines": 520
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/changeSetParse.ts",
@@ -4384,7 +4809,7 @@
     "lines": 102
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/classify.ts",
@@ -4397,7 +4822,7 @@
     "lines": 318
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/context.ts",
@@ -4410,7 +4835,7 @@
     "lines": 199
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/diff.ts",
@@ -4423,7 +4848,7 @@
     "lines": 115
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/exportZip.ts",
@@ -4436,7 +4861,7 @@
     "lines": 238
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/extract.ts",
@@ -4449,7 +4874,7 @@
     "lines": 557
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/hash.ts",
@@ -4462,7 +4887,7 @@
     "lines": 41
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/idbStore.ts",
@@ -4475,7 +4900,7 @@
     "lines": 179
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/index.ts",
@@ -4488,7 +4913,7 @@
     "lines": 16
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/ingest.ts",
@@ -4501,7 +4926,7 @@
     "lines": 333
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/memoryStore.ts",
@@ -4514,7 +4939,7 @@
     "lines": 138
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/paths.ts",
@@ -4527,7 +4952,7 @@
     "lines": 136
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/persistIngest.ts",
@@ -4540,7 +4965,7 @@
     "lines": 86
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/tar.ts",
@@ -4553,7 +4978,7 @@
     "lines": 120
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/workspace/types.ts",
@@ -4566,7 +4991,7 @@
     "lines": 152
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/WorkspaceChangeSetCard.tsx",
@@ -4579,7 +5004,7 @@
     "lines": 191
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:src/WorkspacePanel.tsx",
@@ -4592,7 +5017,7 @@
     "lines": 564
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
   },
   {
    "id": "module:tests/_sources.mjs",
@@ -4615,7 +5040,20 @@
     "lines": 43
    },
    "sourceInventory": "generated-module-map.json",
-   "inventoryGeneratedAt": "2026-11-19T09:19:55.890Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37.518Z"
+  },
+  {
+   "id": "route:DELETE /api/immofinder/listings/:id",
+   "type": "route",
+   "label": "DELETE /api/immofinder/listings/:id",
+   "status": "known",
+   "refs": {
+    "method": "DELETE",
+    "path": "/api/immofinder/listings/:id",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:DELETE /api/projects/:projectId",
@@ -4628,7 +5066,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET *",
@@ -4641,7 +5079,20 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/diagnostics/all-logs",
+   "type": "route",
+   "label": "GET /api/diagnostics/all-logs",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/diagnostics/all-logs",
+    "file": "server.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/diagnostics/session-log",
@@ -4654,7 +5105,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/health",
@@ -4667,7 +5118,98 @@
     "file": "server/healthRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/immofinder/enrich-status",
+   "type": "route",
+   "label": "GET /api/immofinder/enrich-status",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/immofinder/enrich-status",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/immofinder/export-snapshot",
+   "type": "route",
+   "label": "GET /api/immofinder/export-snapshot",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/immofinder/export-snapshot",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/immofinder/listings",
+   "type": "route",
+   "label": "GET /api/immofinder/listings",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/immofinder/listings",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/immofinder/recheck-list-status",
+   "type": "route",
+   "label": "GET /api/immofinder/recheck-list-status",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/immofinder/recheck-list-status",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/immofinder/runs/latest",
+   "type": "route",
+   "label": "GET /api/immofinder/runs/latest",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/immofinder/runs/latest",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/immofinder/schedule-status",
+   "type": "route",
+   "label": "GET /api/immofinder/schedule-status",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/immofinder/schedule-status",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/immofinder/settings",
+   "type": "route",
+   "label": "GET /api/immofinder/settings",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/immofinder/settings",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/ops",
@@ -4680,7 +5222,7 @@
     "file": "server/opsRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects",
@@ -4693,7 +5235,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId",
@@ -4706,7 +5248,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/approvals",
@@ -4719,7 +5261,20 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/projects/:projectId/artifact-versions",
+   "type": "route",
+   "label": "GET /api/projects/:projectId/artifact-versions",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/projects/:projectId/artifact-versions",
+    "file": "server/projectRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/artifacts",
@@ -4732,7 +5287,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/artifacts/:artifactId",
@@ -4745,7 +5300,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/artifacts/:artifactId/download",
@@ -4758,7 +5313,33 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/projects/:projectId/artifacts/:artifactId/inspect",
+   "type": "route",
+   "label": "GET /api/projects/:projectId/artifacts/:artifactId/inspect",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/projects/:projectId/artifacts/:artifactId/inspect",
+    "file": "server/projectRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/projects/:projectId/artifacts/:artifactId/versions",
+   "type": "route",
+   "label": "GET /api/projects/:projectId/artifacts/:artifactId/versions",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/projects/:projectId/artifacts/:artifactId/versions",
+    "file": "server/projectRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/budgets/:scope/:scopeId",
@@ -4771,7 +5352,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/code",
@@ -4784,7 +5365,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/code/build/:jobId",
@@ -4797,7 +5378,20 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:GET /api/projects/:projectId/code/build/:jobId/file",
+   "type": "route",
+   "label": "GET /api/projects/:projectId/code/build/:jobId/file",
+   "status": "known",
+   "refs": {
+    "method": "GET",
+    "path": "/api/projects/:projectId/code/build/:jobId/file",
+    "file": "server/projectRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/ledger",
@@ -4810,7 +5404,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/plans",
@@ -4823,7 +5417,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/plans/:planId/tasks",
@@ -4836,7 +5430,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/settings",
@@ -4849,7 +5443,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks",
@@ -4862,7 +5456,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId",
@@ -4875,7 +5469,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code",
@@ -4888,7 +5482,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code/:codeTaskId",
@@ -4901,7 +5495,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/download",
@@ -4914,7 +5508,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/package",
@@ -4927,7 +5521,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/tasks/:taskId/gates",
@@ -4940,7 +5534,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/:projectId/versions",
@@ -4953,7 +5547,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/diagnostics/export",
@@ -4966,7 +5560,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/diagnostics/operations",
@@ -4979,7 +5573,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/diagnostics/session-log",
@@ -4992,7 +5586,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/projects/diagnostics/system",
@@ -5005,7 +5599,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /api/session",
@@ -5018,7 +5612,7 @@
     "file": "server/authRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /health",
@@ -5031,7 +5625,7 @@
     "file": "server/healthRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /health/runtime-config",
@@ -5044,7 +5638,7 @@
     "file": "server/healthRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /ops",
@@ -5057,7 +5651,7 @@
     "file": "server/opsRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:GET /ready",
@@ -5070,7 +5664,20 @@
     "file": "server/healthRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:PATCH /api/immofinder/listings/:id",
+   "type": "route",
+   "label": "PATCH /api/immofinder/listings/:id",
+   "status": "known",
+   "refs": {
+    "method": "PATCH",
+    "path": "/api/immofinder/listings/:id",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/agent/conversational",
@@ -5083,7 +5690,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/agent/expert",
@@ -5096,7 +5703,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/analyze-full",
@@ -5109,7 +5716,7 @@
     "file": "server/compatibilityRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/attach",
@@ -5122,7 +5729,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/conversation",
@@ -5135,7 +5742,20 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/diagnostics/client-render",
+   "type": "route",
+   "label": "POST /api/diagnostics/client-render",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/diagnostics/client-render",
+    "file": "server.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/evpi",
@@ -5148,7 +5768,7 @@
     "file": "server/compatibilityRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/expand",
@@ -5161,7 +5781,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/experiment-draft",
@@ -5174,7 +5794,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/export-document",
@@ -5187,7 +5807,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/forecast-wording",
@@ -5200,7 +5820,163 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/cleanup",
+   "type": "route",
+   "label": "POST /api/immofinder/cleanup",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/cleanup",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/enrich-existing",
+   "type": "route",
+   "label": "POST /api/immofinder/enrich-existing",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/enrich-existing",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/recheck",
+   "type": "route",
+   "label": "POST /api/immofinder/recheck",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/recheck",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/recheck-list",
+   "type": "route",
+   "label": "POST /api/immofinder/recheck-list",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/recheck-list",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/repair/apply",
+   "type": "route",
+   "label": "POST /api/immofinder/repair/apply",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/repair/apply",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/repair/audit",
+   "type": "route",
+   "label": "POST /api/immofinder/repair/audit",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/repair/audit",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/repair/preview",
+   "type": "route",
+   "label": "POST /api/immofinder/repair/preview",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/repair/preview",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/reset",
+   "type": "route",
+   "label": "POST /api/immofinder/reset",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/reset",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/run",
+   "type": "route",
+   "label": "POST /api/immofinder/run",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/run",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/settings/reset",
+   "type": "route",
+   "label": "POST /api/immofinder/settings/reset",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/settings/reset",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/settings/test",
+   "type": "route",
+   "label": "POST /api/immofinder/settings/test",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/settings/test",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/immofinder/stop",
+   "type": "route",
+   "label": "POST /api/immofinder/stop",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/stop",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/knowledge-map",
@@ -5213,7 +5989,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/login",
@@ -5226,7 +6002,7 @@
     "file": "server/authRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/logout",
@@ -5239,7 +6015,7 @@
     "file": "server/authRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/neutralize",
@@ -5252,7 +6028,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/premortem",
@@ -5265,7 +6041,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects",
@@ -5278,7 +6054,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/analyze",
@@ -5291,7 +6067,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/approvals/:approvalId/decision",
@@ -5304,7 +6080,20 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/projects/:projectId/artifacts/upload",
+   "type": "route",
+   "label": "POST /api/projects/:projectId/artifacts/upload",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/projects/:projectId/artifacts/upload",
+    "file": "server/projectRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/code/build",
@@ -5317,7 +6106,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/code/build/:jobId/cancel",
@@ -5330,7 +6119,33 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/projects/:projectId/code/build/preview",
+   "type": "route",
+   "label": "POST /api/projects/:projectId/code/build/preview",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/projects/:projectId/code/build/preview",
+    "file": "server/projectRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:POST /api/projects/:projectId/code/continue",
+   "type": "route",
+   "label": "POST /api/projects/:projectId/code/continue",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/projects/:projectId/code/continue",
+    "file": "server/projectRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/code/manual",
@@ -5343,7 +6158,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/decisions",
@@ -5356,7 +6171,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/items/review",
@@ -5369,7 +6184,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/plans",
@@ -5382,7 +6197,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/approve",
@@ -5395,7 +6210,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/cancel",
@@ -5408,7 +6223,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/commit-package",
@@ -5421,7 +6236,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/decide",
@@ -5434,7 +6249,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/refresh",
@@ -5447,7 +6262,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/repair",
@@ -5460,7 +6275,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/result",
@@ -5473,7 +6288,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/:codeTaskId/review",
@@ -5486,7 +6301,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/brief",
@@ -5499,7 +6314,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/code/start",
@@ -5512,7 +6327,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/gates/:gate/approve",
@@ -5525,7 +6340,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/gates/:gate/waive",
@@ -5538,7 +6353,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/queue",
@@ -5551,7 +6366,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/:projectId/tasks/:taskId/validate",
@@ -5564,7 +6379,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/projects/diagnostics/client-events",
@@ -5577,7 +6392,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/radar",
@@ -5590,7 +6405,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/radar-legacy",
@@ -5603,7 +6418,7 @@
     "file": "server/compatibilityRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/redteam",
@@ -5616,7 +6431,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/redteam-pair",
@@ -5629,7 +6444,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/review",
@@ -5642,7 +6457,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/revise-document",
@@ -5655,7 +6470,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/synthesis",
@@ -5668,7 +6483,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/understand",
@@ -5681,7 +6496,7 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:POST /api/webhooks/github",
@@ -5694,7 +6509,20 @@
     "file": "server.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "route:PUT /api/immofinder/settings",
+   "type": "route",
+   "label": "PUT /api/immofinder/settings",
+   "status": "known",
+   "refs": {
+    "method": "PUT",
+    "path": "/api/immofinder/settings",
+    "file": "server/immofinderRoutes.ts"
+   },
+   "sourceInventory": "generated-route-inventory.json",
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:PUT /api/projects/:projectId/budgets/:scope/:scopeId",
@@ -5707,7 +6535,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:PUT /api/projects/:projectId/settings",
@@ -5720,7 +6548,7 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
   },
   {
    "id": "route:PUT /api/projects/:projectId/state",
@@ -5733,7 +6561,19 @@
     "file": "server/projectRoutes.ts"
    },
    "sourceInventory": "generated-route-inventory.json",
-   "inventoryGeneratedAt": "2026-11-03T14:48:04Z"
+   "inventoryGeneratedAt": "2026-11-21T08:47:37Z"
+  },
+  {
+   "id": "side_effect:DELETE /api/immofinder/listings/:id",
+   "type": "side_effect",
+   "label": "mutates via DELETE /api/immofinder/listings/:id",
+   "status": "known",
+   "refs": {
+    "method": "DELETE",
+    "path": "/api/immofinder/listings/:id",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
   },
   {
    "id": "side_effect:DELETE /api/projects/:projectId",
@@ -5743,6 +6583,18 @@
    "refs": {
     "method": "DELETE",
     "path": "/api/projects/:projectId",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:PATCH /api/immofinder/listings/:id",
+   "type": "side_effect",
+   "label": "mutates via PATCH /api/immofinder/listings/:id",
+   "status": "known",
+   "refs": {
+    "method": "PATCH",
+    "path": "/api/immofinder/listings/:id",
     "heuristic": "http_mutating_method"
    },
    "sourceInventory": "generated-route-inventory.json"
@@ -5808,6 +6660,18 @@
    "sourceInventory": "generated-route-inventory.json"
   },
   {
+   "id": "side_effect:POST /api/diagnostics/client-render",
+   "type": "side_effect",
+   "label": "mutates via POST /api/diagnostics/client-render",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/diagnostics/client-render",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
    "id": "side_effect:POST /api/evpi",
    "type": "side_effect",
    "label": "mutates via POST /api/evpi",
@@ -5863,6 +6727,150 @@
    "refs": {
     "method": "POST",
     "path": "/api/forecast-wording",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/cleanup",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/cleanup",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/cleanup",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/enrich-existing",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/enrich-existing",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/enrich-existing",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/recheck",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/recheck",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/recheck",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/recheck-list",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/recheck-list",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/recheck-list",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/repair/apply",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/repair/apply",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/repair/apply",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/repair/audit",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/repair/audit",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/repair/audit",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/repair/preview",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/repair/preview",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/repair/preview",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/reset",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/reset",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/reset",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/run",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/run",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/run",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/settings/reset",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/settings/reset",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/settings/reset",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/settings/test",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/settings/test",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/settings/test",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/immofinder/stop",
+   "type": "side_effect",
+   "label": "mutates via POST /api/immofinder/stop",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/immofinder/stop",
     "heuristic": "http_mutating_method"
    },
    "sourceInventory": "generated-route-inventory.json"
@@ -5964,6 +6972,18 @@
    "sourceInventory": "generated-route-inventory.json"
   },
   {
+   "id": "side_effect:POST /api/projects/:projectId/artifacts/upload",
+   "type": "side_effect",
+   "label": "mutates via POST /api/projects/:projectId/artifacts/upload",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/projects/:projectId/artifacts/upload",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
    "id": "side_effect:POST /api/projects/:projectId/code/build",
    "type": "side_effect",
    "label": "mutates via POST /api/projects/:projectId/code/build",
@@ -5983,6 +7003,30 @@
    "refs": {
     "method": "POST",
     "path": "/api/projects/:projectId/code/build/:jobId/cancel",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/projects/:projectId/code/build/preview",
+   "type": "side_effect",
+   "label": "mutates via POST /api/projects/:projectId/code/build/preview",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/projects/:projectId/code/build/preview",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:POST /api/projects/:projectId/code/continue",
+   "type": "side_effect",
+   "label": "mutates via POST /api/projects/:projectId/code/continue",
+   "status": "known",
+   "refs": {
+    "method": "POST",
+    "path": "/api/projects/:projectId/code/continue",
     "heuristic": "http_mutating_method"
    },
    "sourceInventory": "generated-route-inventory.json"
@@ -6319,6 +7363,18 @@
    "refs": {
     "method": "POST",
     "path": "/api/webhooks/github",
+    "heuristic": "http_mutating_method"
+   },
+   "sourceInventory": "generated-route-inventory.json"
+  },
+  {
+   "id": "side_effect:PUT /api/immofinder/settings",
+   "type": "side_effect",
+   "label": "mutates via PUT /api/immofinder/settings",
+   "status": "known",
+   "refs": {
+    "method": "PUT",
+    "path": "/api/immofinder/settings",
     "heuristic": "http_mutating_method"
    },
    "sourceInventory": "generated-route-inventory.json"
@@ -7018,6 +8074,11 @@
   },
   {
    "from": "check:test:core",
+   "to": "module:server/immofinderContactEnrichment.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
    "to": "module:server/immofinderCore.ts",
    "relation": "covers"
   },
@@ -7038,6 +8099,11 @@
   },
   {
    "from": "check:test:core",
+   "to": "module:server/immofinderFetcher.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
    "to": "module:server/immofinderPipeline.ts",
    "relation": "covers"
   },
@@ -7048,12 +8114,32 @@
   },
   {
    "from": "check:test:core",
+   "to": "module:server/immofinderRepair.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/immofinderRepairStore.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
    "to": "module:server/immofinderRoutes.ts",
    "relation": "covers"
   },
   {
    "from": "check:test:core",
    "to": "module:server/immofinderSettings.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/immofinderSnapshot.ts",
+   "relation": "covers"
+  },
+  {
+   "from": "check:test:core",
+   "to": "module:server/immofinderStore.ts",
    "relation": "covers"
   },
   {
@@ -7508,6 +8594,41 @@
   },
   {
    "from": "migration:migrations/019_application_diagnostic_logs.sql",
+   "to": "state:database",
+   "relation": "modifies"
+  },
+  {
+   "from": "migration:migrations/020_immofinder.sql",
+   "to": "state:database",
+   "relation": "modifies"
+  },
+  {
+   "from": "migration:migrations/021_immofinder_seen.sql",
+   "to": "state:database",
+   "relation": "modifies"
+  },
+  {
+   "from": "migration:migrations/022_immofinder_progress.sql",
+   "to": "state:database",
+   "relation": "modifies"
+  },
+  {
+   "from": "migration:migrations/023_immofinder_settings.sql",
+   "to": "state:database",
+   "relation": "modifies"
+  },
+  {
+   "from": "migration:migrations/024_immofinder_types.sql",
+   "to": "state:database",
+   "relation": "modifies"
+  },
+  {
+   "from": "migration:migrations/025_immofinder_repair.sql",
+   "to": "state:database",
+   "relation": "modifies"
+  },
+  {
+   "from": "migration:migrations/026_immofinder_short_stay.sql",
    "to": "state:database",
    "relation": "modifies"
   },
@@ -8013,6 +9134,11 @@
   },
   {
    "from": "module:server.ts",
+   "to": "route:GET /api/diagnostics/all-logs",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server.ts",
    "to": "route:GET /api/diagnostics/session-log",
    "relation": "exposes"
   },
@@ -8034,6 +9160,11 @@
   {
    "from": "module:server.ts",
    "to": "route:POST /api/conversation",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server.ts",
+   "to": "route:POST /api/diagnostics/client-render",
    "relation": "exposes"
   },
   {
@@ -8129,6 +9260,11 @@
   {
    "from": "module:server/allLogs.ts",
    "to": "module:server/conversationDiagnostics.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/allLogs.ts",
+   "to": "module:server/immofinderRepairStore.ts",
    "relation": "depends_on"
   },
   {
@@ -8578,6 +9714,11 @@
   },
   {
    "from": "module:server/immofinderDiag.ts",
+   "to": "module:server/database.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderDiag.ts",
    "to": "module:server/immofinderCore.ts",
    "relation": "depends_on"
   },
@@ -8612,6 +9753,11 @@
    "relation": "depends_on"
   },
   {
+   "from": "module:server/immofinderPipeline.ts",
+   "to": "module:server/immofinderRepair.ts",
+   "relation": "depends_on"
+  },
+  {
    "from": "module:server/immofinderRefresh.ts",
    "to": "module:server/immofinderContactEnrichment.ts",
    "relation": "depends_on"
@@ -8624,6 +9770,26 @@
   {
    "from": "module:server/immofinderRefresh.ts",
    "to": "module:server/immofinderDiag.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRepair.ts",
+   "to": "module:server/immofinderCore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRepairStore.ts",
+   "to": "module:server/database.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRepairStore.ts",
+   "to": "module:server/immofinderRepair.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRepairStore.ts",
+   "to": "module:server/immofinderStore.ts",
    "relation": "depends_on"
   },
   {
@@ -8663,7 +9829,22 @@
   },
   {
    "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderRepair.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderRepairStore.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
    "to": "module:server/immofinderSettings.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "module:server/immofinderSnapshot.ts",
    "relation": "depends_on"
   },
   {
@@ -8675,6 +9856,116 @@
    "from": "module:server/immofinderRoutes.ts",
    "to": "module:server/security.ts",
    "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:DELETE /api/immofinder/listings/:id",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:GET /api/immofinder/enrich-status",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:GET /api/immofinder/export-snapshot",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:GET /api/immofinder/listings",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:GET /api/immofinder/recheck-list-status",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:GET /api/immofinder/runs/latest",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:GET /api/immofinder/schedule-status",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:GET /api/immofinder/settings",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:PATCH /api/immofinder/listings/:id",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/cleanup",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/enrich-existing",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/recheck",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/recheck-list",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/repair/apply",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/repair/audit",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/repair/preview",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/reset",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/run",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/settings/reset",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/settings/test",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:POST /api/immofinder/stop",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/immofinderRoutes.ts",
+   "to": "route:PUT /api/immofinder/settings",
+   "relation": "exposes"
   },
   {
    "from": "module:server/immofinderSettings.ts",
@@ -8694,6 +9985,11 @@
   {
    "from": "module:server/immofinderStore.ts",
    "to": "module:server/immofinderPipeline.ts",
+   "relation": "depends_on"
+  },
+  {
+   "from": "module:server/immofinderStore.ts",
+   "to": "module:server/immofinderRepair.ts",
    "relation": "depends_on"
   },
   {
@@ -8973,6 +10269,11 @@
   },
   {
    "from": "module:server/projectRoutes.ts",
+   "to": "route:GET /api/projects/:projectId/artifact-versions",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
    "to": "route:GET /api/projects/:projectId/artifacts",
    "relation": "exposes"
   },
@@ -8988,6 +10289,16 @@
   },
   {
    "from": "module:server/projectRoutes.ts",
+   "to": "route:GET /api/projects/:projectId/artifacts/:artifactId/inspect",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
+   "to": "route:GET /api/projects/:projectId/artifacts/:artifactId/versions",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
    "to": "route:GET /api/projects/:projectId/budgets/:scope/:scopeId",
    "relation": "exposes"
   },
@@ -8999,6 +10310,11 @@
   {
    "from": "module:server/projectRoutes.ts",
    "to": "route:GET /api/projects/:projectId/code/build/:jobId",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
+   "to": "route:GET /api/projects/:projectId/code/build/:jobId/file",
    "relation": "exposes"
   },
   {
@@ -9098,12 +10414,27 @@
   },
   {
    "from": "module:server/projectRoutes.ts",
+   "to": "route:POST /api/projects/:projectId/artifacts/upload",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
    "to": "route:POST /api/projects/:projectId/code/build",
    "relation": "exposes"
   },
   {
    "from": "module:server/projectRoutes.ts",
    "to": "route:POST /api/projects/:projectId/code/build/:jobId/cancel",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
+   "to": "route:POST /api/projects/:projectId/code/build/preview",
+   "relation": "exposes"
+  },
+  {
+   "from": "module:server/projectRoutes.ts",
+   "to": "route:POST /api/projects/:projectId/code/continue",
    "relation": "exposes"
   },
   {
@@ -10492,8 +11823,18 @@
    "relation": "depends_on"
   },
   {
+   "from": "route:DELETE /api/immofinder/listings/:id",
+   "to": "side_effect:DELETE /api/immofinder/listings/:id",
+   "relation": "produces"
+  },
+  {
    "from": "route:DELETE /api/projects/:projectId",
    "to": "side_effect:DELETE /api/projects/:projectId",
+   "relation": "produces"
+  },
+  {
+   "from": "route:PATCH /api/immofinder/listings/:id",
+   "to": "side_effect:PATCH /api/immofinder/listings/:id",
    "relation": "produces"
   },
   {
@@ -10522,6 +11863,11 @@
    "relation": "produces"
   },
   {
+   "from": "route:POST /api/diagnostics/client-render",
+   "to": "side_effect:POST /api/diagnostics/client-render",
+   "relation": "produces"
+  },
+  {
    "from": "route:POST /api/evpi",
    "to": "side_effect:POST /api/evpi",
    "relation": "produces"
@@ -10544,6 +11890,66 @@
   {
    "from": "route:POST /api/forecast-wording",
    "to": "side_effect:POST /api/forecast-wording",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/cleanup",
+   "to": "side_effect:POST /api/immofinder/cleanup",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/enrich-existing",
+   "to": "side_effect:POST /api/immofinder/enrich-existing",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/recheck",
+   "to": "side_effect:POST /api/immofinder/recheck",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/recheck-list",
+   "to": "side_effect:POST /api/immofinder/recheck-list",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/repair/apply",
+   "to": "side_effect:POST /api/immofinder/repair/apply",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/repair/audit",
+   "to": "side_effect:POST /api/immofinder/repair/audit",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/repair/preview",
+   "to": "side_effect:POST /api/immofinder/repair/preview",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/reset",
+   "to": "side_effect:POST /api/immofinder/reset",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/run",
+   "to": "side_effect:POST /api/immofinder/run",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/settings/reset",
+   "to": "side_effect:POST /api/immofinder/settings/reset",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/settings/test",
+   "to": "side_effect:POST /api/immofinder/settings/test",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/immofinder/stop",
+   "to": "side_effect:POST /api/immofinder/stop",
    "relation": "produces"
   },
   {
@@ -10587,6 +11993,11 @@
    "relation": "produces"
   },
   {
+   "from": "route:POST /api/projects/:projectId/artifacts/upload",
+   "to": "side_effect:POST /api/projects/:projectId/artifacts/upload",
+   "relation": "produces"
+  },
+  {
    "from": "route:POST /api/projects/:projectId/code/build",
    "to": "side_effect:POST /api/projects/:projectId/code/build",
    "relation": "produces"
@@ -10594,6 +12005,16 @@
   {
    "from": "route:POST /api/projects/:projectId/code/build/:jobId/cancel",
    "to": "side_effect:POST /api/projects/:projectId/code/build/:jobId/cancel",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/projects/:projectId/code/build/preview",
+   "to": "side_effect:POST /api/projects/:projectId/code/build/preview",
+   "relation": "produces"
+  },
+  {
+   "from": "route:POST /api/projects/:projectId/code/continue",
+   "to": "side_effect:POST /api/projects/:projectId/code/continue",
    "relation": "produces"
   },
   {
@@ -10734,6 +12155,11 @@
   {
    "from": "route:POST /api/webhooks/github",
    "to": "side_effect:POST /api/webhooks/github",
+   "relation": "produces"
+  },
+  {
+   "from": "route:PUT /api/immofinder/settings",
+   "to": "side_effect:PUT /api/immofinder/settings",
    "relation": "produces"
   },
   {

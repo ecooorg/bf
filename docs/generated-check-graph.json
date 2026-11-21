@@ -301,10 +301,15 @@
         "server/immofinderDelivery.ts",
         "server/immofinderDiag.ts",
         "server/immofinderDiscovery.ts",
+        "server/immofinderFetcher.ts",
         "server/immofinderPipeline.ts",
         "server/immofinderRefresh.ts",
+        "server/immofinderRepair.ts",
+        "server/immofinderRepairStore.ts",
         "server/immofinderRoutes.ts",
         "server/immofinderSettings.ts",
+        "server/immofinderSnapshot.ts",
+        "server/immofinderStore.ts",
         "server/projectContinuation.ts",
         "server/projectDiagnostics.ts",
         "server/projectRoutes.ts",
@@ -690,16 +695,31 @@
     "server/immofinderDiscovery.ts": [
       "test:core"
     ],
+    "server/immofinderFetcher.ts": [
+      "test:core"
+    ],
     "server/immofinderPipeline.ts": [
       "test:core"
     ],
     "server/immofinderRefresh.ts": [
       "test:core"
     ],
+    "server/immofinderRepair.ts": [
+      "test:core"
+    ],
+    "server/immofinderRepairStore.ts": [
+      "test:core"
+    ],
     "server/immofinderRoutes.ts": [
       "test:core"
     ],
     "server/immofinderSettings.ts": [
+      "test:core"
+    ],
+    "server/immofinderSnapshot.ts": [
+      "test:core"
+    ],
+    "server/immofinderStore.ts": [
       "test:core"
     ],
     "server/intentFlags.ts": [
