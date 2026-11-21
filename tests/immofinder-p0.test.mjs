@@ -370,7 +370,7 @@ test('robots.txt Allow exceptions override broader Disallow rules without bypass
   const calls = [];
   const fetchImpl = async (input) => {
     const url = String(input); calls.push(url);
-    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\\nDisallow: /\\nAllow: /mieten/\\nDisallow: /mieten/private\\n', { status: 200 });
+    if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow: /\nAllow: /mieten/\nDisallow: /mieten/private\n', { status: 200 });
     return new Response('<html><body><h1>3.5 Zimmer Wohnung in Chur</h1><p>CHF 1,600 pro Monat. Helle Wohnung mit Balkon und Küche, Bezug ab sofort.</p></body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
   };
   const fetchPage = createPoliteFetch({ ...cfg, fetch: { ...cfg.fetch, respectRobotsTxt: true, perHostDelayMs: 0 }, limits: { ...cfg.limits, fetchTimeoutMs: 1000, maxPageBytes: 100000 } }, fetchImpl, async () => true);
