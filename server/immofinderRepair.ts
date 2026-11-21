@@ -321,15 +321,16 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
   const hay = `${title}\n${text}`;
   if (!url || !/^https?:\/\//i.test(url)) return 'url_missing_or_invalid';
   let why: string | null = nonListingReason(title, url);
-  if (!why && !isSpecificLink(url) && !isPortalDetailUrl(url, ctx.portalHosts || []) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) why = 'list_or_search_page';
+  const evidenceKind = String(raw.evidence_kind || 'link_only');
+  const provisionalSnippet = raw.provisional === true && evidenceKind === 'snippet';
+  if (!why && !provisionalSnippet && !isSpecificLink(url) && !isPortalDetailUrl(url, ctx.portalHosts || []) && /facebook\.com|tutti\.ch|flatfox|icasa|homegate|booking\.com|ferienhausmiete|happyholiday|traum-ferienwohnungen|gruppenhaus|cozycozy|rentola/i.test(url)) why = 'list_or_search_page';
   if (!why && clearOutOfCantonRegion(hay)) why = 'foreign_region';
 
   // A search result is only a discovery hint. It is never proof that the target
   // listing exists, or that its facts and price belong to this exact URL.
-  const evidenceKind = String(raw.evidence_kind || 'link_only');
   const evidenceUrl = String(raw.evidence_url || '');
-  if (!why && evidenceKind !== 'page_text') why = 'detail_page_not_verified';
-  if (!why && pageEvidence.trim().length < 30) why = 'detail_page_evidence_too_short';
+  if (!why && evidenceKind !== 'page_text' && !provisionalSnippet) why = 'detail_page_not_verified';
+  if (!why && pageEvidence.trim().length < (provisionalSnippet ? 18 : 30)) why = 'detail_page_evidence_too_short';
   if (!why && !evidenceUrl) why = 'detail_page_url_missing';
   if (!why && !sameListingUrlTarget(url, evidenceUrl)) why = 'detail_page_url_mismatch';
 
@@ -360,14 +361,14 @@ export function hardRejectReason(row: Row, ctx: AuditContext): string | null {
       roomsEstimated: Number.isFinite(rooms) ? rooms : null,
       price: pagePrice,
       phone: null, email: null,
-      evidenceKind: 'page_text',
+      evidenceKind: provisionalSnippet ? 'snippet' : 'page_text',
       municipalities: ctx.municipalities,
-      allowSnippet: false,
+      allowSnippet: provisionalSnippet,
       allowShortStay: shortStay,
     });
   }
   if (!why) {
-    const preflight = shortStayPreflightReason({ shortStay, price: pagePrice, url, evidenceKind: 'page_text', evidenceText: pageEvidence });
+    const preflight = provisionalSnippet ? null : shortStayPreflightReason({ shortStay, price: pagePrice, url, evidenceKind: 'page_text', evidenceText: pageEvidence });
     if (preflight) why = preflight;
   }
   if (!why) {
