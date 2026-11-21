@@ -55,3 +55,24 @@ test('P126.19 safeDetails does not turn undefined into the string undefined', ()
   assert.match(src, /if \(value === undefined\) return undefined/);
   assert.match(src, /if \(item === undefined\) continue/);
 });
+
+
+test('P130.0 ImmoFinder diagnostics are durably stored and polled without a Render GitHub token', () => {
+  const route = read('server/immofinderRoutes.ts');
+  const server = read('server.ts');
+  const store = read('server/immofinderRunDiagnostics.ts');
+  const migration = read('migrations/028_immofinder_run_diagnostics.sql');
+  const poll = read('.github/workflows/immofinder-diagnostics-poll.yml');
+  assert.match(route, /persistImmoFinderRunDiagnostics\(runId, report\)/);
+  assert.match(route, /latestImmoFinderRunDiagnostics\(\)/);
+  assert.match(route, /isImmoDiagnosticsCall/);
+  assert.equal((route.match(/publishGitHubDiagnosticsAfterRun\(runId!, result, errors\)/g) || []).length, 2, 'manual and scheduled runs both persist diagnostics');
+  assert.match(server, /installLogCapture\(\)/);
+  assert.match(server, /isImmoDiagnosticsCall\(req\)/);
+  assert.match(store, /INSERT INTO immofinder_run_diagnostics/);
+  assert.match(store, /OFFSET 100/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS immofinder_run_diagnostics/);
+  assert.match(poll, /cron: '\*\/5 \* \* \* \*'/);
+  assert.match(poll, /api\/immofinder\/diagnostics\/latest/);
+  assert.match(poll, /contents: write/);
+});
