@@ -332,7 +332,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         evidenceUrl = fetchedUrl || it.url;
       }
       text = cutAtMarkers(htmlToText(pg.body), src.cutMarkers);
-      if (text.trim().length < MIN_DIRECT_PAGE_TEXT_CHARS && !snippetEvidence && it.hit && String(it.hit.snippet || '').trim().length >= 18) {
+      if (text.trim().length < MIN_DIRECT_PAGE_TEXT_CHARS && !snippetEvidence && it.hit && (String(it.hit.title || '') + '\n' + String(it.hit.snippet || '')).trim().length >= 18) {
         diag('candidate_page_text_too_short', { source: src.id, url: safeDiagUrl(it.url), textChars: text.trim().length, bodyChars: String(pg.body || '').length, fetchMode: pg.fetchMode || 'direct' });
         snippetEvidence = true;
         res.counts.snippet_only++;
