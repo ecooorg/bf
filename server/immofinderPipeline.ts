@@ -835,6 +835,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
   }
 
   res.sourceStats = [...sourceStatMap.values()].sort((a, b) => (b.kept - a.kept) || (b.fetched - a.fetched));
+  diag('run_completed', { durationMs: now() - diagnosticStartedAt, counts: res.counts, filtered: res.filtered, errors: res.errors, sourceStats: res.sourceStats, wavesRun: res.wavesRun, previewCount: res.preview.length, preview: res.preview.slice(0, 30).map((x) => ({ url: safeDiagUrl(x.url), source: x.source, title: safeDiagText(x.title, 160), kept: x.kept, reason: x.reason || null, detail: safeDiagText(x.detail, 200), municipality: x.municipality, rooms: x.rooms })), estimatedCostUsd: res.estCostUsd });
   const extraSearches = Math.max(0, (enrichCfg.enabled ? enrichCfg.maxExtraSearchesPerRun : 0) - enrichBudget.searchesLeft);
   res.newListings.sort((a, b) => Number(b.contact_status === 'found') - Number(a.contact_status === 'found'));
   res.estCostUsd = Math.round((res.counts.llm_calls * cfg.estCostPerLlmCallUsd + ((res.counts.serper_calls || res.counts.search_queries) + extraSearches) * (cfg.estCostPerSearchUsd ?? 0.001)) * 10000) / 10000;
