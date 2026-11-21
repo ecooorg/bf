@@ -172,7 +172,7 @@ test('non-standard Swiss portal detail URL survives the final write-time and rep
   const url = 'https://flatfox.ch/en/flat/abc-123';
   const evidence = '3.5 Zimmer Wohnung in Chur. Helle Wohnung mit Balkon und eigener Küche. Ruhige Lage nahe Bahnhof.';
   const row = { listing_url: url, property_name: '3.5 Zimmer Wohnung in Chur', municipality: 'Chur', rooms_estimated: 3.5, raw: { evidence_text: evidence, evidence_kind: 'page_text', evidence_url: url } };
-  assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null);
+  assert.equal(hardRejectReason(row, ctxFromConfig(cfg)), null, 'unknown rent is allowed when the page is otherwise verified');
 });
 test('nonListingReason does not treat every URL as a listing/search page', () => {
   assert.equal(nonListingReason('3.5 Zimmer Wohnung in Chur', 'https://www.immoscout24.ch/rent/flat/offer-77'), null);
