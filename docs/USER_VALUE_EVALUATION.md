@@ -1,3 +1,13 @@
+# P129.51 — ImmoFinder search admission (2026-11-21)
+
+- **OBSERVED:** supplied carousel run `d2b7faa5-b250-446e-b8e1-7b1a799a6657`: 68 Serper calls, 11 candidates, 2 fetched pages, 7 snippet-only candidates; 2 records with `snippet_only` evidence were counted kept; final database was empty after owner-initiated manual deletions.
+- **IMPLEMENTED:** broadened portal/private discovery queries and defaulted freshness to one month; legacy weekly settings now migrate to month. Snippets and failed fetches cannot reach extraction/storage; successful fetches require explicit matching final URL and at least 120 characters of page text. Hard write-gate rejects are not persisted or counted kept/new. Manual deletion behavior is unchanged.
+- **INFERRED:** this should improve candidate recall while removing false-positive saves and counter inconsistencies; it may also yield zero if providers block direct pages or strict price/room/municipality/contact gates reject every candidate.
+- **VERIFY:** focused ImmoFinder suites: 48 PASS; Node TypeScript syntax, config JSON, version check and docs integrity PASS.
+- **NOT_RUN / BLOCKED:** hosted CI and live Serper/portal/DB/user-visible verification NOT_RUN; full typecheck BLOCKED by missing `vite/client`, server typecheck BLOCKED by missing `@types/node`, and `npm ci` timed out.
+
+---
+
 # P129.50 — ImmoFinder database continuity and rental coverage (2026-11-21)
 
 - **OBSERVED:** CI run `44884418425` fails on an out-of-scope `known` reference. The previous default policy rejected all non-monthly prices and discovery skipped direct holiday-rental platforms. The public GitHub repository must not receive plaintext contact data.

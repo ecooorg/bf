@@ -1,3 +1,13 @@
+## P129.51 — ImmoFinder discovery breadth and verified-page admission
+
+- **PROBLEM / BASELINE:** Supplied 2026-11-21 run `d2b7faa5-b250-446e-b8e1-7b1a799a6657`: 68 Serper queries across the four-commune carousel produced 11 candidates, 2 fetched pages, 7 snippet-only candidates, 2 `kept` records with `snippet_only` evidence, and 0 saved rows at final diagnostics. `counts.new=1` conflicts with `sourceStats.new=0` because write-time hard rejects were counted before sanitation. Manual DELETE requests were intentional owner actions and are out of scope.
+- **HYPOTHESIS:** A monthly discovery window and broader commune+portal queries will increase candidate discovery; snippet-only, failed-fetch, short-page and redirected-URL candidates must be rejected before extraction/persistence; write-time hard rejects must never count as kept/new.
+- **METRICS:** queries, Serper calls/fallbacks, candidates, fetched pages, snippet-only rejects, final-URL mismatches, page-evidence length rejects, kept/new/updated and per-source counters.
+- **ACCEPTANCE:** the legacy weekly freshness setting migrates to month; snippets never reach LLM or storage; a fetched page is admissible only with explicit final URL matching the requested listing URL and >=120 chars of page text; `sanitizeNewRecord.hardReason` prevents persistence; accepted monthly/seasonal prices still obey existing strict evidence/contact gates; aggregate and per-source kept/new counters agree.
+- **SCOPE:** ImmoFinder discovery query config/settings/UI, fetcher final-URL contract, pipeline admission/counters, focused regression tests and patch metadata/history. No deletion behavior, database recovery, snapshot/auth, or price-limit loosening.
+- **ROLLBACK:** revert query/freshness changes if candidate yield or useful direct-page fetches decline; revert admission changes only if a direct-page fixture that passes existing hard rules is rejected.
+- **CLASSIFICATION:** BUGFIX / EXPERIMENT. Live Serper yield, live portal fetchability, deployed DB outcome and user-visible result quality remain **NOT_RUN** until deployment.
+
 ## P129.50 — ImmoFinder encrypted GitHub snapshot and short-stay listings
 
 - **PROBLEM / BASELINE:** Hosted CI run `44884418425` fails both `typecheck` and `build:server` on `server/immofinderPipeline.ts:468` (`known` is out of scope); 16 checks pass and 2 fail. P129.49 excluded night/week/season prices by default and `config/immofinder.json` blocks direct holiday-rental hosts; no automatic full-DB GitHub snapshot exists.
