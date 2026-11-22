@@ -5,7 +5,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 function patch(path, fn) {
   const before = readFileSync(path, 'utf8');
   const after = fn(before);
-  if (after === before) throw new Error(`no change in ${path}`);
+  if (after === before) {
+    console.log('unchanged', path);
+    return;
+  }
   writeFileSync(path, after);
   console.log('patched', path);
 }
@@ -13,40 +16,33 @@ function patch(path, fn) {
 patch('server/immofinderCore.ts', (text) => {
   const oldSig = 'export function nonListingReason(title: string, url: string): NonListing | null {';
   const newSig = 'export function nonListingReason(title: string, url: string, portalHosts: string[] = []): NonListing | null {';
-  if (!text.includes(oldSig)) {
-    if (text.includes(newSig)) return text; // already applied
-    throw new Error('nonListingReason signature not found');
-  }
+  if (text.includes(newSig) && text.includes('detailLike')) return text;
+  if (!text.includes(oldSig)) throw new Error('nonListingReason signature not found');
   text = text.replace(oldSig, newSig);
-  const oldGate = '  if (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url)) return \'list_or_search_page\';';
+  const oldGate = "  if (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url)) return 'list_or_search_page';";
   const newGate = `  // Homegate/ImmoScout detail ads often use titles like "Wohnung mieten in X" — do not treat those as list pages when the URL is a concrete portal detail.\n  const detailLike = isSpecificLink(url) || (portalHosts.length > 0 && isPortalDetailUrl(url, portalHosts));\n  if (!detailLike && (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';\n  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';`;
   if (!text.includes(oldGate)) throw new Error('LIST_TITLE gate not found');
   return text.replace(oldGate, newGate);
 });
 
 patch('server/immofinderDiscovery.ts', (text) => {
-  const old = "const nonListing = nonListingReason(h.title || '', h.link);";
   const neu = "const nonListing = nonListingReason(h.title || '', h.link, portalHosts);";
-  if (!text.includes(old)) {
-    if (text.includes(neu)) return text;
-    throw new Error('discovery nonListing call not found');
-  }
+  if (text.includes(neu)) return text;
+  const old = "const nonListing = nonListingReason(h.title || '', h.link);";
+  if (!text.includes(old)) throw new Error('discovery nonListing call not found');
   return text.replace(old, neu);
 });
 
 patch('server/immofinderPipeline.ts', (text) => {
+  if (text.includes('Fallback: LLM often omits rooms_quote')) return text;
   text = text
     .replace(/nonListingReason\(it\.hit\.title, it\.url\)/g, "nonListingReason(it.hit.title, it.url, cfg.discovery?.portalHosts || [])")
     .replace(/nonListingReason\(meta!\.title, it\.url\)/g, "nonListingReason(meta!.title, it.url, cfg.discovery?.portalHosts || [])")
     .replace(/nonListingReason\(meta\.title, url\)/g, "nonListingReason(meta.title, url, cfg.discovery?.portalHosts || [])");
   const oldR = "const rq = q('rooms_quote'); const pr = rq ? parseRooms(rq) : null; const addressQuote = q('address_quote');";
   const newR = `const rq = q('rooms_quote'); let pr = rq ? parseRooms(rq) : null;\n  // Fallback: LLM often omits rooms_quote on FR titles ("3 pièces") or DE titles already in the head.\n  if (!pr) {\n    const detR = parseRooms(\`\${head}\\n\${text.slice(0, 3000)}\`);\n    if (detR) pr = detR;\n  }\n  const addressQuote = q('address_quote');`;
-  if (!text.includes(oldR)) {
-    if (text.includes('Fallback: LLM often omits rooms_quote')) return text;
-    throw new Error('rooms_quote line not found');
-  }
+  if (!text.includes(oldR)) throw new Error('rooms_quote line not found');
   text = text.replace(oldR, newR);
-  // quote field when fallback
   text = text.replace(
     "rooms: pr ? { rooms: pr.rooms, basis: pr.basis, quote: rq! } : null",
     "rooms: pr ? { rooms: pr.rooms, basis: pr.basis, quote: rq || '' } : null",
@@ -54,7 +50,6 @@ patch('server/immofinderPipeline.ts', (text) => {
   return text;
 });
 
-// package.json / lock / changelog
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 pkg.patch = '130.7';
 writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
