@@ -187,7 +187,13 @@
       "roomlala.de",
       "bedandbreakfast.eu",
       "shop.heidiland.com",
-      "flat-hunt.com"
+      "flat-hunt.com",
+      "ferienhausmiete.de",
+      "adankanhaenger.ch",
+      "happyholiday.ch",
+      "traum-ferienwohnungen.ch",
+      "fewo-direkt.de",
+      "hometogo.de"
     ],
     "portalQueries": [
       "site:homegate.ch \"{commune}\" Wohnung mieten",
