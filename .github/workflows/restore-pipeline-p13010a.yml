@@ -1,0 +1,48 @@
+name: restore-pipeline-p13010a
+on:
+  workflow_dispatch:
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Restore immofinderPipeline from 638c071 + geo text fix
+        run: |
+          set -euo pipefail
+          curl -sL "https://raw.githubusercontent.com/ecooorg/bf/638c07113cba5a0e87adbb5e9888c7171ec8e4cb/server/immofinderPipeline.ts" -o server/immofinderPipeline.ts
+          sed -i 's/placeFromTitleOrSnippet(meta\.title, text\.slice(0, 600)/placeFromTitleOrSnippet(meta.title, pages[i].text.slice(0, 600)/g' server/immofinderPipeline.ts
+          grep -n 'pages\[i\]\.text\.slice(0, 600)' server/immofinderPipeline.ts || { echo "fix missing"; exit 1; }
+          grep -q 'export async function runPipeline' server/immofinderPipeline.ts || { echo "export missing"; exit 1; }
+          wc -c server/immofinderPipeline.ts
+      - name: Bump patch metadata + CHANGELOG
+        run: |
+          set -euo pipefail
+          node -e '
+            const fs = require("fs");
+            const pj = JSON.parse(fs.readFileSync("package.json","utf8"));
+            pj.patch = "130.10a";
+            fs.writeFileSync("package.json", JSON.stringify(pj, null, 2) + "\n");
+            let lock = fs.readFileSync("package-lock.json","utf8");
+            lock = lock.replace(/"patch": "130\.10"/g, "\"patch\": \"130.10a\"");
+            fs.writeFileSync("package-lock.json", lock);
+          '
+          ENTRY='## P130.10a — Restore pipeline + fix undefined `text` in geo prefilter
+
+- **PROBLEM:** Core CI typecheck/build failed after P130.10: `text` not in scope in post-extraction loop; subsequent push left pipeline placeholder; per-patch apply-*.mjs scripts violated scripts-integrity allowlist.
+- **CHANGE:** restore pipeline body from 638c071, replace bare `text.slice` with `pages[i].text.slice`; remove forbidden apply-p130* scripts. BUGFIX / MAINTENANCE.
+
+'
+          { echo "$ENTRY"; cat CHANGELOG.md; } > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+      - name: Commit and push
+        run: |
+          git config user.name "biforge-bot"
+          git config user.email "341088617+biforge-control[bot]@users.noreply.github.com"
+          git add server/immofinderPipeline.ts package.json package-lock.json CHANGELOG.md
+          git status
+          git diff --cached --stat
+          git commit -m "fix(immofinder): P130.10a restore pipeline, geo text scope, remove apply scripts" || echo "nothing to commit"
+          git push origin HEAD:main
