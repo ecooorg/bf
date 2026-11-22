@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-22T08:21:42.769Z",
+  "runId": "072836e3-4eee-40a7-ae33-a262b69d52cc",
+  "traceId": "dfc23125-1d4b-4da8-8f84-09cc6f899d67",
+  "eventCount": 620,
+  "logSource": "process_trace_buffer",
+  "databaseLogWriteFailures": null,
+  "result": {
+    "counts": {
+      "sources": 62,
+      "index_pages": 0,
+      "candidates": 93,
+      "fetched": 72,
+      "snippet_only": 8,
+      "skipped_known": 1,
+      "skipped_seen": 9,
+      "skipped_geo": 4,
+      "search_queries": 152,
+      "serper_calls": 152,
+      "serper_fallback": 0,
+      "llm_skipped_no_rooms": 0,
+      "kept": 6,
+      "new": 6,
+      "updated": 0,
+      "llm_calls": 70,
+      "enriched": 1,
+      "evidence_page_text": 6,
+      "evidence_snippet": 8,
+      "credible_kept": 6
+    },
+    "filtered": {
+      "not_single_listing": 49,
+      "rooms_unknown": 3,
+      "listing_unavailable": 4,
+      "rooms_below_min": 1,
+      "short_stay_price_period_required": 2,
+      "municipality_not_whitelisted": 7,
+      "agency": 8,
+      "price_not_confirmed_on_detail_page": 1,
+      "rooms_conflict": 1,
+      "list_or_search_page": 1
+    },
+    "errors": [
+      {
+        "source": "portal-tutti",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.tutti.ch/de/q/ferienwohnung-dauermiete/Ak7hGZXJpZW53b2hudW5nIERhdWVybWlldGXAlMDAwMA?srsltid=AYCX9vIkVkxx8I6Suvc3jCdWCAq4ckrw8ZjyOszBh6v8Z7dp5KPFeK10"
+      },
+      {
+        "source": "portal-tutti",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.tutti.ch/de/vi/nid-obwalden/immobilien/ferienobjekte/wunderschoene-ferienwohnung-in-lenzerheide/[phone]?srsltid=AYCX9vKaFkarQTwpgcY_403pcH7sv8RB0-G23XbEOWPQWf0UMoJsMitz"
+      },
+      {
+        "source": "portal-newhome",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.newhome.ch/de/mieten/immobilien/wohnung/moeblierte-wohnung/ort-parpan/3.5-zimmer/detail/6213312"
+      },
+      {
+        "source": "portal-tutti",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.tutti.ch/de/vi/[phone]?srsltid=AYCX9vLvvo0l5ziIBJ_VND4HjqpMKhFH0fhMMedAkUwgyQVdkgslxg4t"
+      },
+      {
+        "source": "portal-tutti",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.tutti.ch/de/vi/graubuenden/immobilien/parkplaetze/parkplatz-in-churwalden-zu-vermieten/[phone]?srsltid=AYCX9vLpH5BOJkPhsI4B5xbCvvTprK2fAOTDHILcc6jJ1X5H_un6lia9"
+      },
+      {
+        "source": "portal-anibis",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.anibis.ch/de/vi/[phone]"
+      },
+      {
+        "source": "portal-urbanhome",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.urbanhome.ch/recherche/[phone]-zimmer-wohnung"
+      },
+      {
+        "source": "portal-urbanhome",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.urbanhome.ch/suchen/[phone]-zimmer-wohnung"
+      }
+    ],
+    "sourceStats": [
+      {
+        "id": "portal-urbanhome",
+        "queries": 8,
+        "hits": 59,
+        "candidates": 11,
+        "fetched": 9,
+        "llm": 9,
+        "kept": 2,
+        "new": 2,
+        "agencies": 3,
+        "junk": 4,
+        "geo": 2,
+        "consecutiveBad": 6
+      },
+      {
+        "id": "portal-tutti",
+        "queries": 16,
+        "hits": 111,
+        "candidates": 24,
+        "fetched": 18,
+        "llm": 18,
+        "kept": 1,
+        "new": 1,
+        "agencies": 0,
+        "junk": 21,
+        "geo": 2,
+        "consecutiveBad": 4
+      },
+      {
+        "id": "portal-anibis",
+        "queries": 8,
+        "hits": 43,
+        "candidates": 10,
+        "fetched": 8,
+        "llm": 8,
+        "kept": 1,
+        "new": 1,
+        "agencies": 0,
+        "junk": 8,
+        "geo": 1,
+        "consecutiveBad": 8
+      },
+      {
+        "id": "portal-immobilier",
+        "queries": 8,
+        "hits": 17,
+        "candidates": 7,
+        "fetched": 6,
+        "llm": 5,
+        "kept": 1,
+        "new": 1,
+        "agencies": 1,
+        "junk": 3,
+        "geo": 1,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-newhome",
+        "queries": 16,
+        "hits": 130,
+        "candidates": 3,
+        "fetched": 1,
+        "llm": 1,
+        "kept": 1,
+        "new": 1,
+        "agencies": 1,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-immostreet",
+        "queries": 8,
+        "hits": 25,
+        "candidates": 9,
+        "fetched": 9,
+        "llm": 9,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 9,
+        "geo": 0,
+        "consecutiveBad": 9
+      },
+      {
+        "id": "portal-flatfox",
+        "queries": 16,
+        "hits": 14,
+        "candidates": 13,
+        "fetched": 8,
+        "llm": 8,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 8,
+        "geo": 0,
+        "consecutiveBad": 8
+      },
+      {
+        "id": "portal-icasa",
+        "queries": 16,
+        "hits": 30,
+        "candidates": 9,
+        "fetched": 6,
+        "llm": 5,
+        "kept": 0,
+        "new": 0,
+        "agencies": 3,
+        "junk": 2,
+        "geo": 1,
+        "consecutiveBad": 6
+      },
+      {
+        "id": "portal-acheter-louer",
+        "queries": 8,
+        "hits": 8,
+        "candidates": 3,
+        "fetched": 3,
+        "llm": 3,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 3,
+        "geo": 0,
+        "consecutiveBad": 3
+      },
+      {
+        "id": "portal-home",
+        "queries": 8,
+        "hits": 70,
+        "candidates": 3,
+        "fetched": 3,
+        "llm": 3,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 3,
+        "geo": 0,
+        "consecutiveBad": 3
+      },
+      {
+        "id": "portal-homegate",
+        "queries": 16,
+        "hits": 159,
+        "candidates": 1,
+        "fetched": 1,
+        "llm": 1,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 1,
+        "geo": 0,
+        "consecutiveBad": 1
+      },
+      {
+        "id": "portal-immoscout24",
+        "queries": 16,
+        "hits": 146,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      },
+      {
+        "id": "portal-petitesannonces",
+        "queries": 8,
+        "hits": 0,
+        "candidates": 0,
+        "fetched": 0,
+        "llm": 0,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 0,
+        "geo": 0,
+        "consecutiveBad": 0
+      }
+    ],
+    "wavesRun": [
+      "carousel"
+    ],
+    "preview": [
+      {
+        "url": "www.homegate.ch/mieten/4002881598",
+        "title": "Just a moment...",
+        "source": "portal-homegate",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/cazis-7408-cazis/86440825/",
+        "title": "3 Zimmer-Wohnung in Cazis mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Cazis",
+        "rooms": null,
+        "kept": false,
+        "reason": "rooms_unknown",
+        "detail": ""
+      },
+      {
+        "url": "flatfox.ch/de/deflorin/listings/",
+        "title": "DEFLORIN AG - Flatfox",
+        "source": "portal-flatfox",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/silserweg-12-7430-thusis/86468811/",
+        "title": "3 ½ Zimmer-Wohnung in Thusis mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Thusis",
+        "rooms": 5,
+        "kept": false,
+        "reason": "listing_unavailable",
+        "detail": "page_states_unavailable"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/7026-maladers/86281648/",
+        "title": "2 ½ Zimmer-Wohnung in Maladers mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Maladers",
+        "rooms": 5,
+        "kept": false,
+        "reason": "listing_unavailable",
+        "detail": "page_states_unavailable"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/bargliwag-19-7075-churwalden/86370475/",
+        "title": "2 Zimmer-Wohnung in Churwalden mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Churwalden",
+        "rooms": 2,
+        "kept": false,
+        "reason": "rooms_below_min",
+        "detail": "2"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/voa-la-schena-1-7077-valbella/86379916/",
+        "title": "2 ½ Zimmer-Wohnung in Valbella mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Valbella",
+        "rooms": 5,
+        "kept": false,
+        "reason": "listing_unavailable",
+        "detail": "page_states_unavailable"
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/dorfstrasse-9-7102-bonaduz/86475748/",
+        "title": "3 Zimmer-Wohnung in Bonaduz mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Bonaduz",
+        "rooms": 3,
+        "kept": false,
+        "reason": "listing_unavailable",
+        "detail": "page_states_unavailable"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10010881462",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/82916594",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10010913144",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10011049423",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10011036620",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10010958993",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10011003191",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10010924946",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/q/ferienwohnung-dauermiete/Ak7hGZXJpZW53b2hudW5nIERhdWVybWlldGXAlMDAwMA",
+        "title": "17 Inserate für Ferienwohnungen zur Dauermiete",
+        "source": "portal-tutti",
+        "municipality": "Lenzerheide",
+        "rooms": 4.5,
+        "kept": false,
+        "reason": "short_stay_price_period_required",
+        "detail": "snippet"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/graubuenden/immobilien/parkplaetze/parkplatz-in-churwalden-zu-vermieten/10010012913",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/zuerich/immobilien/wohnungen/frisch-sanierte-helle-und-grosse-wohnung-in-ruhigem/10010684534",
+        "title": "Frisch sanierte, helle und grosse Wohnung in ruhigem - Zürich",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "municipality_not_whitelisted",
+        "detail": "url_place:ruhigem"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/graubuenden/immobilien/ferienobjekte/maiensaess-lenzerheide/59653471",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/83085679",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/nid-obwalden/immobilien/ferienobjekte/wunderschoene-ferienwohnung-in-lenzerheide/37098969",
+        "title": "Wunderschöne Ferienwohnung in Lenzerheide",
+        "source": "portal-tutti",
+        "municipality": "Lenzerheide",
+        "rooms": 0,
+        "kept": false,
+        "reason": "short_stay_price_period_required",
+        "detail": "snippet"
+      },
+      {
+        "url": "www.newhome.ch/de/mieten/immobilien/wohnung/wohnung/ort-cazis/4.5-zimmer/detail/6160221",
+        "title": "4 1/2 Zimmer Wohnung mieten in Cazis | newhome.ch",
+        "source": "portal-newhome",
+        "municipality": "Cazis",
+        "rooms": null,
+        "kept": false,
+        "reason": "agency",
+        "detail": "Berger Immobilien Treuhand AG"
+      },
+      {
+        "url": "www.newhome.ch/de/mieten/immobilien/wohnung/moeblierte-wohnung/ort-parpan/3.5-zimmer/detail/6213312",
+        "title": "3 1/2 Zimmer möblierte Wohnung mieten in Parpan",
+        "source": "portal-newhome",
+        "municipality": "Parpan",
+        "rooms": 3.5,
+        "kept": true,
+        "reason": null,
+        "detail": "provisional_search_snippet"
+      },
+      {
+        "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-viamala-cazis-7408-cazis-1906883.html",
+        "title": "4.5 Zimmer Wohnung zum Mieten in Cazis | iCasa.ch - iCasa.ch",
+        "source": "portal-icasa",
+        "municipality": "Cazis",
+        "rooms": null,
+        "kept": false,
+        "reason": "agency",
+        "detail": "Wincasa AG"
+      },
+      {
+        "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-viamala-cazis-7421-summaprada-1907566.html",
+        "title": "iCasa.ch",
+        "source": "portal-icasa",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "icasa.ch/2.5-zimmer-wohnung-zum-mieten-graubunden-albula-vaz-obervaz-7082-vaz-obervaz-1926635.html",
+        "title": "2.5 Zimmer Wohnung zum Mieten in Vaz/Obervaz | iCasa.ch - iCasa.ch",
+        "source": "portal-icasa",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "agency",
+        "detail": "Uehlinger Alpine Living AG"
+      },
+      {
+        "url": "icasa.ch/4.5-rooms-apartment-to-rent-graubunden-viamala-thusis-7430-thusis-1898129.html",
+        "title": "4.5 Rooms Apartment to rent in Thusis | iCasa.ch - iCasa.ch",
+        "source": "portal-icasa",
+        "municipality": "Thusis",
+        "rooms": null,
+        "kept": false,
+        "reason": "agency",
+        "detail": "Huber Immobilien"
+      },
+      {
+        "url": "icasa.ch/firma-angebote/curveer-treuhand",
+        "title": "Curvér Immobilien AG, Lenzerheide - iCasa.ch",
+        "source": "portal-icasa",
+        "municipality": "Lenzerheide",
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "flatfox.ch/de/wohnung/cazis-7408-cazis/86440825/",
+        "title": "3 Zimmer-Wohnung in Cazis mieten | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Cazis",
+        "rooms": null,
+        "kept": false,
+        "reason": "rooms_unknown",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10010881462",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10011049423",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10011036620",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10010958993",
+        "title": "Charmante 3.5-Zimmer-Wohnung im Erdgeschoss in Thusis",
+        "source": "portal-tutti",
+        "municipality": "Thusis",
+        "rooms": 3.5,
+        "kept": false,
+        "reason": "price_not_confirmed_on_detail_page",
+        "detail": "write_gate"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10011003191",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/graubuenden/immobilien/parkplaetze/parkplatz-in-churwalden-zu-vermieten/10010012913",
+        "title": "Parkplatz in Churwalden zu vermieten!",
+        "source": "portal-tutti",
+        "municipality": "Churwalden",
+        "rooms": 0,
+        "kept": true,
+        "reason": null,
+        "detail": "rooms_unverified, provisional_search_snippet"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/10011016393",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/q/ferienwohnung-dauermiete/Ak7hGZXJpZW53b2hudW5nIERhdWVybWlldGXAlMDAwMA",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.tutti.ch/de/vi/zuerich/immobilien/wohnungen/frisch-sanierte-helle-und-grosse-wohnung-in-ruhigem/10010684534",
+        "title": "Frisch sanierte, helle und grosse Wohnung in ruhigem - Zürich",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "municipality_not_whitelisted",
+        "detail": "url_place:ruhigem"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/nid-obwalden/immobilien/ferienobjekte/wunderschoene-ferienwohnung-in-lenzerheide/37098969",
+        "title": "Just a moment...",
+        "source": "portal-tutti",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/10010913144",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/10011036620",
+        "title": "Ihr neues Zuhause in Thusis helle 4.5-Zimmer-Wohnung",
+        "source": "portal-anibis",
+        "municipality": "Thusis",
+        "rooms": 4.5,
+        "kept": true,
+        "reason": null,
+        "detail": "provisional_search_snippet"
+      },
+      {
+        "url": "www.anibis.ch/de/vi/10010908790",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/helle-5-5-zimmer-wohnung-in-thusis-ab-sofort-verfuegbar/10010571295",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/10011016393",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/wohnen-mit-weitblick-3-5-zimmer-neubauwohnung-2-og/10007141199",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/graubuenden/immobilien/wohnungen/steinbock-staedtisches-wohngefuehl-mit-bergsicht/10007109736",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/zuerich/immobilien/wohnungen/frisch-sanierte-helle-und-grosse-wohnung-in-ruhigem/10010684534",
+        "title": "Frisch sanierte, helle und grosse Wohnung in ruhigem",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "municipality_not_whitelisted",
+        "detail": "url_place:ruhigem"
+      },
+      {
+        "url": "www.anibis.ch/de/vi/zuerich/immobilien/wohnungen/3-5-zimmerwohnung-im-ruhigen-quartier-zu-mieten/10010684529",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.anibis.ch/de/vi/10010977475",
+        "title": "Just a moment...",
+        "source": "portal-anibis",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.urbanhome.ch/recherche/8352391-3-5-zimmer-wohnung",
+        "title": "3.5 Zimmer Wohnung in Yverdon-les-Bains",
+        "source": "portal-urbanhome",
+        "municipality": "Realta",
+        "rooms": 3.5,
+        "kept": true,
+        "reason": null,
+        "detail": "provisional_search_snippet"
+      },
+      {
+        "url": "www.urbanhome.ch/recherche/8323327-4-zimmer-wohnung",
+        "title": "Annonce indisponible | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "municipality_not_whitelisted",
+        "detail": ""
+      },
+      {
+        "url": "www.urbanhome.ch/wincasa/wohnen",
+        "title": "",
+        "source": "portal-urbanhome",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8266386-4-5-zimmer-wohnung",
+        "title": "4.5 Zimmer Wohnung in Cazis | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": "Cazis",
+        "rooms": 4.5,
+        "kept": false,
+        "reason": "agency",
+        "detail": "agency_language"
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8297516-4-5-zimmer-wohnung",
+        "title": "4.5 Zimmer Wohnung in Summaprada",
+        "source": "portal-urbanhome",
+        "municipality": "Cazis",
+        "rooms": 4.5,
+        "kept": true,
+        "reason": null,
+        "detail": "provisional_search_snippet"
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8252549-thusis-zentrale-3-5-zimmer-wohnung",
+        "title": "Inserat nicht mehr verfügbar | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8254865-3-5-zimmer-wohnung",
+        "title": "3.5 Zimmer Wohnung in Surcasti | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": null,
+        "rooms": 3.5,
+        "kept": false,
+        "reason": "municipality_not_whitelisted",
+        "detail": ""
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8265823-3-5-zimmer-wohnung",
+        "title": "3.5 Zimmer Wohnung in Zizers | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": "Zizers",
+        "rooms": 3.5,
+        "kept": false,
+        "reason": "agency",
+        "detail": "agency_language"
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8401054-4-5-room-apartment",
+        "title": "4.5 Zimmer Wohnung in Maladers | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": "Maladers",
+        "rooms": 4.5,
+        "kept": false,
+        "reason": "agency",
+        "detail": "agency_language"
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/8193992-4-5-camera-casa-bifamiliare",
+        "title": "Inserat nicht mehr verfügbar | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.urbanhome.ch/suchen/6988217-4-5-camera-chalet",
+        "title": "4.5 Zimmer Chalet in Lenzerheide-Lai | UrbanHome",
+        "source": "portal-urbanhome",
+        "municipality": "Lenzerheide",
+        "rooms": 4.5,
+        "kept": false,
+        "reason": "rooms_conflict",
+        "detail": "page_text"
+      },
+      {
+        "url": "www.immobilier.ch/de/mieten/wohnung/waadt/morges/realta-immobilier-2513/zu-vermieten-wohnung-1110-morges-317-1589611",
+        "title": "Zu vermieten, Wohnung, 1110 Morges, Réf 317",
+        "source": "portal-immobilier",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "municipality_not_whitelisted",
+        "detail": ""
+      },
+      {
+        "url": "www.immobilier.ch/fr/agence/realta-immobilier-2513/louer/page-1",
+        "title": "2 biens immobiliers &#xE0; louer de l&#x27;agence REALTA Immobilier SA - Crissier",
+        "source": "portal-immobilier",
+        "municipality": "Realta",
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immobilier.ch/de/mieten/wohnung-haus/graubunden/seite-1",
+        "title": "27 wohnungen oder häuser zu mieten in Kanton Graubünden",
+        "source": "portal-immobilier",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "list_or_search_page",
+        "detail": "prefilter_after_fetch"
+      },
+      {
+        "url": "lenouvelliste.immobilier.ch/de/mieten/wohnung/graubunden/cazis/seite-1",
+        "title": "1 wohnung zu mieten in Cazis (GR) — immobilier.ch",
+        "source": "portal-immobilier",
+        "municipality": "Cazis",
+        "rooms": null,
+        "kept": false,
+        "reason": "rooms_unknown",
+        "detail": ""
+      },
+      {
+        "url": "www.immobilier.ch/fr/louer/appartement/grisons/domat-ems/properti-ag-2229/stilvolle-55-zimmer-wohnung-in-domat-ems-1546652",
+        "title": "Stilvolle 5.5-Zimmer-Wohnung in Domat-Ems",
+        "source": "portal-immobilier",
+        "municipality": "Domat/Ems",
+        "rooms": 5.5,
+        "kept": false,
+        "reason": "agency",
+        "detail": "properti-ag"
+      },
+      {
+        "url": "www.immobilier.ch/fr/louer/appartement/grisons/domat-ems/properti-ag-2229/stilvolle-55-zimmer-wohnung-in-domat-ems-1554140",
+        "title": "Stilvolle 5.5-Zimmer-Wohnung in Domat-Ems",
+        "source": "portal-immobilier",
+        "municipality": "Domat/Ems",
+        "rooms": 5.5,
+        "kept": true,
+        "reason": null,
+        "detail": "single_property_page"
+      },
+      {
+        "url": "www.acheter-louer.ch/agence-immobiliere/realta-immobilier-sa-1248563.html",
+        "title": "Just a moment...",
+        "source": "portal-acheter-louer",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "dev.acheter-louer.ch/fr/louer/appartement_et_maison/district-plessur",
+        "title": "Just a moment...",
+        "source": "portal-acheter-louer",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.acheter-louer.ch/acheter/Churwalden-locaux-commerciaux-a-vendre.html",
+        "title": "Just a moment...",
+        "source": "portal-acheter-louer",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/wohnung/kanton-graubuenden",
+        "title": "Page 4 - Wohnung mieten: Graubünden kanton | ImmoStreet.ch",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/kanton-graubuenden",
+        "title": "Page 19 - Immobilien zur mieten: Graubünden kanton | ImmoStreet.ch",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/wohnung/bezirk-plessur",
+        "title": "ImmoStreet.ch - Page not found!",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/wohnung/kanton-graubuenden",
+        "title": "Page 9 - Wohnung mieten: Graubünden kanton | ImmoStreet.ch",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/moebliertes_wohnobjekt",
+        "title": "Page 5 - Möbliertes Wohnobjekt mieten | ImmoStreet.ch",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/preis--1000000.0",
+        "title": "Page 47 - Immobilien zur mieten | ImmoStreet.ch",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/wohnung_und_haus/bezirk-albula",
+        "title": "Immobilien zur mieten: Albula bezirk | ImmoStreet.ch",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/wohnung/preis--950000.0/zimmer-4.0-",
+        "title": "Page 30 - Wohnung mieten | ImmoStreet.ch",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.immostreet.ch/de/mieten/wohnung/guettingen",
+        "title": "ImmoStreet.ch - Page not found!",
+        "source": "portal-immostreet",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.home.ch/de/mieten/wohnung_und_haus/in-cazis",
+        "title": "www.home.ch",
+        "source": "portal-home",
+        "municipality": "Cazis",
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.home.ch/de/mieten/wohnung/bezirk-plessur",
+        "title": "www.home.ch",
+        "source": "portal-home",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "www.home.ch/de/mieten/wohnung/arvillard-salins",
+        "title": "www.home.ch",
+        "source": "portal-home",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "icasa.ch/3.5-zimmer-wohnung-dachwohnung-zum-mieten-graubunden-prattigau-davos-davos-7494-davos-wiesen-1923486.html",
+        "title": "3.5 Zimmer Wohnung-Dachwohnung zum Mieten in Davos Wiesen | iCasa.ch - iCasa.ch",
+        "source": "portal-icasa",
+        "municipality": null,
+        "rooms": null,
+        "kept": false,
+        "reason": "municipality_not_whitelisted",
+        "detail": "page_place:Davos"
+      }
+    ]
+  },
+  "eventFiles": [
+    "data/immofinder/diagnostics/runs/072836e3-4eee-40a7-ae33-a262b69d52cc/events-001.json"
+  ],
+  "eventsStoredInParts": true
+}
