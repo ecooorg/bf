@@ -139,16 +139,36 @@ export function placeFromTitleOrSnippet(title: string, snippet: string, list: st
 }
 
 export function parseRooms(text: string): { rooms: number; basis: 'zimmer' | 'bedrooms' } | null {
-  let t = String(text ?? '').replace(/½/g, '.5').replace(/,(\d)/g, '.$1');
-  // "3 1/2" or "3 1/2 Zi." → 3.5
+  // Normalize Swiss half-room spellings before matching so "2 ½" / "2 1/2" become "2.5".
+  let t = String(text ?? '')
+    .replace(/(\d{1,2})\s*[½]/g, '$1.5')
+    .replace(/[½]/g, '.5')
+    .replace(/,(\d)/g, '.$1');
   t = t.replace(/(\d{1,2})\s+1\/2/g, '$1.5');
-  // "Zimmer: 3" / "Zimmer 3.5"
-  const labeled = [...t.matchAll(/(?:zimmer|zi\.?|rooms?|pieces?)\s*[:=]?\s*(\d{1,2}(?:\.\d)?)/gi)].map((m) => Number(m[1])).filter((n) => n > 0 && n < 20);
-  const z = [...t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:zimmer|zi\b|zi\.|rooms?|pieces?|-?zimmerwohnung)/gi)].map((m) => Number(m[1])).filter((n) => n > 0 && n < 20);
-  const allZ = [...labeled, ...z];
-  if (allZ.length) return { rooms: Math.max(...allZ), basis: 'zimmer' };
-  const b = [...t.matchAll(/(\d{1,2})\s*[- ]?\s*(?:schlafzimmer|bedrooms?)/gi)].map((m) => Number(m[1])).filter((n) => n > 0 && n < 15);
-  return b.length ? { rooms: Math.max(...b) + 1, basis: 'bedrooms' } : null;
+  type Hit = { rooms: number; index: number };
+  const hits: Hit[] = [];
+  for (const m of t.matchAll(/(?:zimmer|zi\.?|rooms?|pieces?)\s*[:=]?\s*(\d{1,2}(?:\.\d)?)/gi)) {
+    const n = Number(m[1]);
+    if (n > 0 && n < 20) hits.push({ rooms: n, index: m.index ?? 0 });
+  }
+  for (const m of t.matchAll(/(\d{1,2}(?:\.\d)?)\s*[- ]?\s*(?:zimmer|zi\b|zi\.|rooms?|pieces?|-?zimmerwohnung)/gi)) {
+    const n = Number(m[1]);
+    if (n > 0 && n < 20) hits.push({ rooms: n, index: m.index ?? 0 });
+  }
+  if (hits.length) {
+    hits.sort((a, b) => a.index - b.index);
+    const first = hits[0].rooms;
+    const close = hits.filter((h) => Math.abs(h.rooms - first) <= 1.01).map((h) => h.rooms);
+    return { rooms: Math.max(...close), basis: 'zimmer' };
+  }
+  const bHits: Hit[] = [];
+  for (const m of t.matchAll(/(\d{1,2})\s*[- ]?\s*(?:schlafzimmer|bedrooms?)/gi)) {
+    const n = Number(m[1]);
+    if (n > 0 && n < 15) bHits.push({ rooms: n, index: m.index ?? 0 });
+  }
+  if (!bHits.length) return null;
+  bHits.sort((a, b) => a.index - b.index);
+  return { rooms: bHits[0].rooms + 1, basis: 'bedrooms' };
 }
 
 export function isStopAgency(text: string, agencies: string[]): string | null {
@@ -386,6 +406,8 @@ const SERVICE_OR_AGGREGATOR_HOST =
 
 export function nonListingReason(title: string, url: string): NonListing | null {
   const t = String(title ?? '').trim();
+  // Bot-challenge / interstitial pages (Cloudflare etc.) are never a single rental offer.
+  if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification)\b/i.test(t)) return 'list_or_search_page';
   if (WANTED.test(t)) return 'wanted_ad';
   if (FOR_SALE.test(t) || /\/kaufen\//i.test(url)) return 'for_sale';
   if (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url)) return 'list_or_search_page';

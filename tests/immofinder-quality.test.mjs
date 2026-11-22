@@ -196,6 +196,18 @@ test('UI does not render search found date on cards', () => {
   assert.ok(!/k\.found && <span/.test(ui));
 });
 
+
+test('parseRooms handles Swiss half-room spellings and prefers earliest Zimmer hit', async () => {
+  const { parseRooms, roomsEvidenceConflict } = await import('../server/immofinderCore.ts');
+  assert.equal(parseRooms('2 ½ Zimmer-Wohnung in Maladers mieten | Flatfox')?.rooms, 2.5);
+  assert.equal(parseRooms('2 1/2 Zimmer Wohnung in Chur')?.rooms, 2.5);
+  assert.equal(parseRooms('3.5 Zimmer Wohnung in Thusis')?.rooms, 3.5);
+  assert.equal(parseRooms('Zimmer: 4.5 · Miete CHF 1800')?.rooms, 4.5);
+  const mixed = parseRooms('2.5 Zimmer-Wohnung in Churwalden. Etage 5. Baujahr 1995. 65 m2.');
+  assert.equal(mixed?.rooms, 2.5);
+  assert.equal(roomsEvidenceConflict('2.5 Zimmer', 'Schöne 5.5 Zimmer Maisonette'), true);
+});
+
 test('isListingUnavailable detects CH portal offline phrases', async () => {
   const { isListingUnavailable } = await import('../server/immofinderCore.ts');
   assert.equal(isListingUnavailable('', 'Dieses Objekt ist leider gerade nicht verfügbar.'), true);
