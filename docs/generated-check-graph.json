@@ -301,6 +301,7 @@
         "server/artifactRepository.ts",
         "server/fakeProvider.ts",
         "server/geminiKeyPool.ts",
+        "server/githubIntegration.ts",
         "server/immofinderContactEnrichment.ts",
         "server/immofinderCore.ts",
         "server/immofinderDelivery.ts",
@@ -428,6 +429,7 @@
         "scripts/patch-tools.mjs",
         "scripts/scripts-integrity.mjs",
         "server/allLogs.ts",
+        "server/githubIntegration.ts",
         "server/immofinderCore.ts",
         "server/immofinderRoutes.ts",
         "server/immofinderRunDiagnostics.ts",
@@ -700,6 +702,10 @@
     ],
     "server/geminiKeyPool.ts": [
       "test:core"
+    ],
+    "server/githubIntegration.ts": [
+      "test:core",
+      "test:project-diagnostics"
     ],
     "server/goldenEval.ts": [
       "critical-gemini-timeout",
