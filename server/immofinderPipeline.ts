@@ -513,7 +513,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       const evidenceText = buildEvidenceText(meta.title, pageText, 4000);
       const priceHay = evidenceText;
       // Prefer prices that appear in evidence text over unverified LLM collage.
-      const price = priceFromEvidence(evidenceText, ex.priceQuote) || resolveListingPrice(priceHay, ex.priceQuote);
+      let price = priceFromEvidence(evidenceText, ex.priceQuote) || resolveListingPrice(priceHay, ex.priceQuote);
       const shortStay = isShortStayListing(meta.title, url, pageText, price);
       const hitDate = pages[i].hitDate || meta.published || null;
       const listedAt = parseListedAt(
