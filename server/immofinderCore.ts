@@ -446,7 +446,6 @@ export function isPortalDetailUrl(url: string, portalHosts: string[] = []): bool
   // Category / commune index routes (home.ch unterkategorie…/in-chur, …/in-thusis) are not detail pages.
   if (parts.some((p) => /^(search|suche|suchen|results|resultate|map|karte|unterkategorie)/.test(p) || /^in-[a-z0-9-]{2,}$/.test(p) || /^seite-\d+$/.test(p) || /^page-?\d+$/.test(p))) return false;
   // Shallow portal index (…/louer/appartement-maison/grisons/landquart) has no listing id.
-  if (parts.length <= 4 && !parts.some((p) => /\d{4,}/.test(p))) return false;
   return true;
 }
 /** True when the URL points at one concrete ad (an ID or a long slug), not at a group or generic page. */
