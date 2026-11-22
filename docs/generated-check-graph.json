@@ -429,7 +429,6 @@
         "scripts/patch-tools.mjs",
         "scripts/scripts-integrity.mjs",
         "server/allLogs.ts",
-        "server/githubIntegration.ts",
         "server/immofinderCore.ts",
         "server/immofinderRoutes.ts",
         "server/immofinderRunDiagnostics.ts",
@@ -704,8 +703,7 @@
       "test:core"
     ],
     "server/githubIntegration.ts": [
-      "test:core",
-      "test:project-diagnostics"
+      "test:core"
     ],
     "server/goldenEval.ts": [
       "critical-gemini-timeout",
