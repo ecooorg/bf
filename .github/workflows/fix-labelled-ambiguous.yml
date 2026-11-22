@@ -1,0 +1,17 @@
+name: fix-labelled-ambiguous
+on:
+  workflow_dispatch:
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/fix-labelled-ambiguous.mjs
+      - run: |
+          git config user.name "biforge-bot"
+          git config user.email "341088617+biforge-control[bot]@users.noreply.github.com"
+          git add server/immofinderRepair.ts
+          git commit -m "fix(immofinder): restore labelled multi-rent ambiguous for P129.49" || echo no-change
+          git push
