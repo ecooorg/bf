@@ -10,7 +10,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const ISSUE_TITLE = 'ImmoFinder health: failing checks';
-const ARCHIVE_PREFIXES = ['data/immofinder/diagnostics/'];
+const ARCHIVE_PREFIXES = ['data/immofinder/diagnostics/', 'data/immofinder/health/'];
 const POLL_WORKFLOW = 'immofinder-diagnostics-poll.yml';
 const GITHUB_HINTS = {
   403: 'GitHub rejected the write: the app installation lacks contents:write on this repository, the repository is not part of the installation, or branch protection blocks the direct commit.',
@@ -170,11 +170,26 @@ export async function runChecks(env = process.env, io = { getJson, readFile: (p)
       : check('RENDER', 'Runtime signals', 'SKIP', 'Render logs were not collected (RENDER_API_KEY / RENDER_OWNER_ID / RENDER_SERVICE_ID)'));
   }
 
-  // ---- PUBLISHING: which publisher failed, with which status ----
+  // ---- PUBLISHING: live GitHub App probe first (current state), then publisher errors from logs (history) ----
+  let probeOk = null;
+  if (!base || !env.IMMOFINDER_RUN_SECRET) checks.push(check('PUBLISHING', 'GitHub App (live)', 'SKIP', 'IMMOFINDER_BASE_URL / IMMOFINDER_RUN_SECRET not configured'));
+  else {
+    try {
+      const r = await io.getJson(`${base}/api/immofinder/github/probe`, { Accept: 'application/json', 'X-Immofinder-Secret': env.IMMOFINDER_RUN_SECRET });
+      const probe = r.body?.probe;
+      if (r.status === 404 || r.status === 401 || !probe) checks.push(check('PUBLISHING', 'GitHub App (live)', 'WARN', `probe endpoint HTTP ${r.status}; production may not run the version that has it yet`));
+      else {
+        probeOk = probe.verdict === 'OK';
+        const steps = (probe.steps || []).map((x) => `${x.step}:${x.httpStatus ?? 'x'}${x.message ? ` "${x.message}"` : ''}${x.requestId ? ` [${x.requestId}]` : ''}`).join(' → ');
+        const held = probe.installation ? `app ${probe.app?.slug ?? probe.app?.id} declares ${JSON.stringify(probe.app?.permissions ?? {})}; installation on ${probe.installation.account} holds ${JSON.stringify(probe.installation.permissions)} (${probe.installation.repositorySelection})` : '';
+        checks.push(check('PUBLISHING', 'GitHub App (live)', probeOk ? 'OK' : 'FAIL', probeOk ? `a repository-scoped write token can be minted now (${held})` : `${probe.cause}: ${probe.fix} ${held} | ${steps}${probe.missingEnv?.length ? ` | missing env: ${probe.missingEnv.join(', ')}` : ''}`, probe));
+      }
+    } catch (e) { checks.push(check('PUBLISHING', 'GitHub App (live)', 'WARN', `probe unreachable: ${e.message}`)); }
+  }
   const failures = classifyPublisherFailures(logText);
   if (!logText) checks.push(check('PUBLISHING', 'GitHub publishers', 'SKIP', 'no runtime logs to inspect'));
   else if (!failures.length) checks.push(check('PUBLISHING', 'GitHub publishers', 'OK', 'no GitHub publisher errors in the collected window'));
-  else for (const f of failures) checks.push(check('PUBLISHING', `Publisher ${f.publisher}`, 'FAIL', `${f.step} HTTP ${f.status} ×${f.count}${f.requestId ? ` (GitHub request ${f.requestId})` : ''}. ${f.hint}`, f));
+  else for (const f of failures) checks.push(check('PUBLISHING', `Publisher ${f.publisher}`, probeOk ? 'WARN' : 'FAIL', `${probeOk ? 'earlier in the log window, the live probe is OK now: ' : ''}${f.step} HTTP ${f.status} ×${f.count}${f.requestId ? ` (GitHub request ${f.requestId})` : ''}. ${f.hint}`, f));
 
   // ---- SEARCH: latest completed run and whether it is archived ----
   if (!base || !env.IMMOFINDER_RUN_SECRET) checks.push(check('SEARCH', 'Latest run', 'SKIP', 'IMMOFINDER_BASE_URL / IMMOFINDER_RUN_SECRET not configured'));
@@ -198,7 +213,7 @@ export async function runChecks(env = process.env, io = { getJson, readFile: (p)
         const archiveAgeMin = (Date.now() - Date.parse(report.generatedAt || '')) / 60000;
         checks.push(!io.exists('data/immofinder/diagnostics/latest.json') ? check('PUBLISHING', 'Archive', 'SKIP', 'repository checkout has no archive to compare')
           : archived === report.runId ? check('PUBLISHING', 'Archive', 'OK', `run ${report.runId} is archived in the repository`)
-          : check('PUBLISHING', 'Archive', archiveAgeMin > 15 ? 'FAIL' : 'WARN', `latest run ${report.runId} is not archived (archive holds ${archived || 'none'}); poller runs every 5 minutes`));
+          : check('PUBLISHING', 'Archive', archiveAgeMin > 45 ? 'FAIL' : 'WARN', `latest run ${report.runId} is not archived (archive holds ${archived || 'none'}); poller runs every 10 minutes (GitHub may delay schedules)`));
       }
     } catch (e) { checks.push(check('SEARCH', 'Latest run', 'FAIL', `diagnostics unreachable: ${e.message}`)); }
   }
@@ -226,6 +241,11 @@ async function main() {
   const md = renderMarkdown(checks, { generatedAt });
   fs.writeFileSync(path.join(out, 'health.json'), JSON.stringify({ generatedAt, verdict: verdict(checks), checks }, null, 2) + '\n');
   fs.writeFileSync(path.join(out, 'health.md'), md);
+  if (process.env.HEALTH_SNAPSHOT_DIR) {
+    fs.mkdirSync(process.env.HEALTH_SNAPSHOT_DIR, { recursive: true });
+    const compact = { generatedAt, verdict: verdict(checks), checks: checks.map(({ group, name, status, detail, data }) => ({ group, name, status, detail, ...(data ? { data } : {}) })) };
+    fs.writeFileSync(path.join(process.env.HEALTH_SNAPSHOT_DIR, 'latest.json'), JSON.stringify(compact, null, 2) + '\n');
+  }
   if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
   console.log(md);
   if (verdict(checks) === 'FAIL' && process.env.HEALTH_OPEN_ISSUE === 'true' && process.env.GITHUB_TOKEN && process.env.GITHUB_REPOSITORY) {
