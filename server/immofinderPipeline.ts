@@ -96,7 +96,13 @@ async function extract(deps: PipelineDeps, text: string, meta: ReturnType<typeof
   const q = (k: string) => (verifyQuote(full, out[k]) ? String(out[k]) : null);
   const mq = q('municipality_quote');
   const muni = (mq && matchMunicipality(mq, cfg.municipalities)) || matchMunicipality(head, cfg.municipalities);
-  const rq = q('rooms_quote'); const pr = rq ? parseRooms(rq) : null; const addressQuote = q('address_quote');
+  const rq = q('rooms_quote'); let pr = rq ? parseRooms(rq) : null;
+  // Fallback: LLM often omits rooms_quote on FR titles ("3 pièces") or DE titles already in the head.
+  if (!pr) {
+    const detR = parseRooms(`${head}\n${text.slice(0, 3000)}`);
+    if (detR) pr = detR;
+  }
+  const addressQuote = q('address_quote');
   const ownerOk = typeof out.owner_name === 'string' && out.owner_name.length >= 3 && verifyQuote(full, out.owner_name) && q('owner_name_quote');
   const aq = q('agency_quote');
   const name = typeof out.property_name === 'string' && verifyQuote(full, out.property_name) ? out.property_name.trim() : meta.title;
@@ -105,7 +111,7 @@ async function extract(deps: PipelineDeps, text: string, meta: ReturnType<typeof
   if (/\b(chesa|chalet|haus|casa|ferienhaus|villa)\b/i.test(name)) signals.push('house_name_pattern');
   if (out.single_property !== false) signals.push('single_property_page');
   const pq = q('price_quote');
-  return { llmCalls: 1, ex: { name, municipality: muni, streetAddress: addressQuote, rooms: pr ? { rooms: pr.rooms, basis: pr.basis, quote: rq! } : null, owner: ownerOk ? out.owner_name.trim() : null,
+  return { llmCalls: 1, ex: { name, municipality: muni, streetAddress: addressQuote, rooms: pr ? { rooms: pr.rooms, basis: pr.basis, quote: rq || '' } : null, owner: ownerOk ? out.owner_name.trim() : null,
     agency: isStopAgency(`${head} ${aq ?? ''}`, cfg.stopAgencies) || (out.is_agency_or_manager === true && agencyQuoteCounts(aq, host) ? aq : null), regForbidden: registrationForbidden(full, out.registration_forbidden_quote), single: out.single_property !== false,
     summaryDe: String(out.summary_de ?? '').slice(0, 300), signals, llm: true, priceQuote: pq, listedAtQuote: q('listed_at_quote') } };
 }
@@ -246,7 +252,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
       // Title from search hit can reject list pages before fetch
       if (it.hit?.title) {
-        const nlHit = nonListingReason(it.hit.title, it.url);
+        const nlHit = nonListingReason(it.hit.title, it.url, cfg.discovery?.portalHosts || []);
         if (nlHit) {
           diag('candidate_rejected_prefetch', { source: src.id, url: safeDiagUrl(it.url), reason: nlHit, stage: 'search_title' });
           st.junk++; st.consecutiveBad++;
@@ -361,7 +367,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         /* insufficient location evidence: do not poison seen */
         continue;
       }
-      const nlEarly = nonListingReason(meta!.title, it.url);
+      const nlEarly = nonListingReason(meta!.title, it.url, cfg.discovery?.portalHosts || []);
       if (nlEarly) {
         st.junk++; st.consecutiveBad++;
         drop(nlEarly);
@@ -405,7 +411,7 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         say(stage, `✖ ${reason}${detail ? ` (${detail.slice(0, 40)})` : ''}: ${meta.title.slice(0, 60)}`); res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, kept: false, reason, detail: detail?.slice(0, 120) });
         if (!opts.dryRun && reason !== 'rooms_unknown' && reason !== 'municipality_not_whitelisted' && reason !== 'short_stay_contact_required') await deps.store.markSeen(url, src.id, 'filtered', reason);
       };
-      const nl = nonListingReason(meta.title, url); if (nl) { await deny(nl); continue; }
+      const nl = nonListingReason(meta.title, url, cfg.discovery?.portalHosts || []); if (nl) { await deny(nl); continue; }
       if (!ex.single) { await deny('not_single_listing'); continue; }
       if (ex.agency) { await deny('agency', ex.agency); continue; }
       if (looksLikeAgencyListing(meta.title, pages[i].text)) { await deny('agency', 'agency_language'); continue; }

@@ -1,3 +1,8 @@
+## P130.7 — Homegate detail titles + FR pièces rooms fallback
+
+- **PROBLEM:** Homegate SERP titles "Wohnung mieten in X" were rejected as list pages, so real detail ads never entered the fetch queue; French "3 pièces" titles stayed rooms_unknown when LLM omitted rooms_quote.
+- **CHANGE:** nonListingReason skips LIST_TITLE for specific/portal-detail URLs; extract falls back to deterministic parseRooms on title+body. BUGFIX.
+
 ## P130.6 — ImmoFinder: stop garbage cards (rooms=0 / empty SERP)
 
 - **PROBLEM:** Landquart run kept an immobilier index page ("Aucun appartement…") as a card with rooms 0 / price n/a; French "3 pièces" was rooms_unknown; Flatfox live ads were falsely listing_unavailable; rooms=0 from snippet invent bypassed minRooms.

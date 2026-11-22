@@ -404,7 +404,7 @@ const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/
 const SERVICE_OR_AGGREGATOR_HOST =
   /(?:^|\.)(moving24|umzugsfirma-buchen|umzug|umzuege|rentumo|nestoria|immowelt|immoscout24|realadvisor|comparis|homegate\.ch\/rent\/list|anibis\.ch\/de\/c\/)\b/i;
 
-export function nonListingReason(title: string, url: string): NonListing | null {
+export function nonListingReason(title: string, url: string, portalHosts: string[] = []): NonListing | null {
   const t = String(title ?? '').trim();
   // Bot-challenge / interstitial pages (Cloudflare etc.) are never a single rental offer.
   if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification)\b/i.test(t)) return 'list_or_search_page';
@@ -415,7 +415,10 @@ export function nonListingReason(title: string, url: string): NonListing | null 
   if (/\.pdf(?:\?|$)/i.test(url)) return 'list_or_search_page';
   if (WANTED.test(t)) return 'wanted_ad';
   if (FOR_SALE.test(t) || /\/kaufen\//i.test(url)) return 'for_sale';
-  if (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url)) return 'list_or_search_page';
+  // Homegate/ImmoScout detail ads often use titles like "Wohnung mieten in X" — do not treat those as list pages when the URL is a concrete portal detail.
+  const detailLike = isSpecificLink(url) || (portalHosts.length > 0 && isPortalDetailUrl(url, portalHosts));
+  if (!detailLike && (LIST_TITLE.test(t) || LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';
+  if (detailLike && (LIST_URL.test(url) || LIST_URL_MORE.test(url))) return 'list_or_search_page';
   if (SHARED.test(t)) return 'shared_room';
   if (DEVELOPMENT.test(t) && !FERIEN_WOHNUNGEN.test(t)) return 'development_project';
   if (HOTEL.test(t)) return 'hotel_or_guesthouse';
