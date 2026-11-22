@@ -1,0 +1,45 @@
+name: Apply immofinder rooms fix
+on:
+  workflow_dispatch:
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Apply surgical patch
+        run: node scripts/patch-immofinder-rooms.mjs
+      - name: Quick unit check for parseRooms
+        run: |
+          node --input-type=module -e "
+          import { parseRooms } from './server/immofinderCore.ts';
+          const cases = [
+            ['2 \u00BD Zimmer-Wohnung', 2.5],
+            ['2 1/2 Zimmer Wohnung', 2.5],
+            ['3.5 Zimmer Wohnung', 3.5],
+            ['2.5 Zimmer. Etage 5.', 2.5],
+          ];
+          for (const [t, exp] of cases) {
+            const got = parseRooms(t)?.rooms;
+            if (got !== exp) { console.error('FAIL', t, got, exp); process.exit(1); }
+            console.log('ok', t, got);
+          }
+          "
+      - name: Commit and push
+        run: |
+          set -euo pipefail
+          git config user.name "ecooorg"
+          git config user.email "ecooorg@gmail.com"
+          git add server/immofinderCore.ts tests/immofinder-quality.test.mjs
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "fix(immofinder): correct half-room parseRooms and reject challenge titles"
+          git push origin HEAD:main
