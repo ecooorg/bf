@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-22T06:26:42.387Z",
-  "verdict": "FAIL",
+  "generatedAt": "2026-11-22T07:30:12.543Z",
+  "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
-      "status": "FAIL",
-      "detail": "1 failing at 7cc8716: check-and-build"
+      "status": "WARN",
+      "detail": "2 checks at d517d1c, 1 still running"
     },
     {
       "group": "GITHUB",
@@ -18,7 +18,7 @@
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 130, commit 7cc8716"
+      "detail": "HTTP 200, version 130, commit d517d1c"
     },
     {
       "group": "RENDER",
@@ -36,10 +36,10 @@
       "group": "RENDER",
       "name": "Runtime signals",
       "status": "WARN",
-      "detail": "Gemini timeouts 0, SSL warnings 18, 5xx 0 in collected Render logs",
+      "detail": "Gemini timeouts 0, SSL warnings 48, 5xx 0 in collected Render logs",
       "data": {
         "geminiTimeouts": 0,
-        "sslWarnings": 18,
+        "sslWarnings": 48,
         "http5xx": 0
       }
     },
@@ -52,7 +52,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-22T06:26:41.513Z",
+        "checkedAt": "2026-11-22T07:30:11.559Z",
         "steps": [
           {
             "step": "app",
@@ -115,12 +115,12 @@
       "group": "PUBLISHING",
       "name": "Publisher github_app_token",
       "status": "WARN",
-      "detail": "earlier in the log window, the live probe is OK now: github_app_contents_write_token HTTP 422 ×8. The installation token request was refused: the GitHub App does not hold Repository permission Contents: write, or the installation has not approved it. Grant it on the App and accept the updated permissions on the installation (contents:write).",
+      "detail": "earlier in the log window, the live probe is OK now: github_app_contents_write_token HTTP 422 ×4. The installation token request was refused: the GitHub App does not hold Repository permission Contents: write, or the installation has not approved it. Grant it on the App and accept the updated permissions on the installation (contents:write).",
       "data": {
         "publisher": "github_app_token",
         "step": "github_app_contents_write_token",
         "status": 422,
-        "count": 8,
+        "count": 4,
         "requestId": null,
         "hint": "The installation token request was refused: the GitHub App does not hold Repository permission Contents: write, or the installation has not approved it. Grant it on the App and accept the updated permissions on the installation (contents:write)."
       }
@@ -129,7 +129,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "948df3b5-3b04-462f-a47b-0da4df85e95a, 0.9 h old"
+      "detail": "948df3b5-3b04-462f-a47b-0da4df85e95a, 2.0 h old"
     },
     {
       "group": "SEARCH",
