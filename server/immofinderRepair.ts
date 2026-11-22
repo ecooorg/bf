@@ -29,7 +29,7 @@ import {
 } from './immofinderCore.ts';
 
 /** Bump when the deterministic rules change: the startup audit re-runs once per version. */
-export const REPAIR_RULES_VERSION = '130.10d.5';
+export const REPAIR_RULES_VERSION = '130.10e.5';
 
 /** Old seen-cache decisions were made under different search rules; invalidate them on rule-version changes. */
 export function encodeSeenReason(reason: string): string {
@@ -230,7 +230,12 @@ export function priceVerdict(row: Row): PriceVerdict {
     const band = list.filter((c) => c.unit === 'month' && c.amount >= 900 && c.amount <= 4500);
     if (band.length >= 1) {
       band.sort((a, b) => b.amount - a.amount);
-      if (band.length === 1 || band[0].amount >= band[1].amount * 1.25) return band[0];
+      // Main rent is usually the largest monthly figure; garage/NK gaps are often 200–600 CHF.
+      if (band.length === 1) return band[0];
+      if (band[0].amount >= band[1].amount * 1.12) return band[0];
+      if (band[0].amount - band[1].amount >= 250) return band[0];
+      // Exactly two monthly amounts in band → prefer the higher (typical CH portal layout).
+      if (band.length === 2) return band[0];
     }
     return null;
   };

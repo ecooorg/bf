@@ -216,6 +216,16 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
           const abs = path.startsWith('http') ? path : baseHost + path;
           fromBare.push(abs);
         }
+        // listingId_json_harvest: Homegate SPA embeds numeric ids without path prefixes
+        const idRe = /"listingId"\s*:\s*(\d{6,})|"id"\s*:\s*(\d{7,})|\/rent\/(\d{6,})|\/mieten\/(\d{6,})/gi;
+        let im: RegExpExecArray | null;
+        while ((im = idRe.exec(listPg.body)) !== null) {
+          const id = im[1] || im[2] || im[3] || im[4];
+          if (!id) continue;
+          const origin = (() => { try { return new URL(listPg.finalUrl || it.url).origin; } catch { return 'https://www.homegate.ch'; } })();
+          fromBare.push(origin + '/mieten/' + id);
+          fromBare.push(origin + '/rent/' + id);
+        }
         const uniq = [...new Set([...fromAnchors, ...fromBare])].slice(0, 6);
         diag('expandable_index_expanded', { source: src.id, listUrl: safeDiagUrl(it.url), detailCount: uniq.length, sample: uniq.slice(0, 3).map(safeDiagUrl) });
         for (const u of uniq) {

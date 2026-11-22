@@ -157,9 +157,11 @@ export function parseRooms(text: string): { rooms: number; basis: 'zimmer' | 'be
   }
   if (hits.length) {
     hits.sort((a, b) => a.index - b.index);
+    // Prefer the first room mention (title / lead). Math.max among close hits inflated
+    // "3 ½ pièces" to 4.5 when a later nearby count differed by 1.
     const first = hits[0].rooms;
-    const close = hits.filter((h) => Math.abs(h.rooms - first) <= 1.01).map((h) => h.rooms);
-    return { rooms: Math.max(...close), basis: 'zimmer' };
+    const same = hits.filter((h) => Math.abs(h.rooms - first) < 0.01).map((h) => h.rooms);
+    return { rooms: same[0] ?? first, basis: 'zimmer' };
   }
   const bHits: Hit[] = [];
   for (const m of t.matchAll(/(\d{1,2})\s*[- ]?\s*(?:schlafzimmer|bedrooms?)/gi)) {

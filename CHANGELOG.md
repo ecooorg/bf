@@ -1,3 +1,8 @@
+## P130.10e — Homegate listingId harvest + price band + rooms first-hit
+
+- **PROBLEM:** Chur run c8b28cdc kept=0. Homegate expansion still 0 details. Flatfox Adlerweg rejected price_ambiguous. parseRooms inflated 3.5→4.5.
+- **CHANGE:** harvest listingId/JSON and /rent|/mieten ids; softer monthly price pick; rooms use first hit. BUGFIX.
+
 ## P130.10d — Homegate list expansion + SERP rooms + unavailable title
 
 - **PROBLEM:** Chur run 6b3eeecb kept=0. Homegate trefferliste expanded to 0 detail URLs. iCasa dropped rooms_unknown after LLM timeout. UrbanHome unavailable title missed.
