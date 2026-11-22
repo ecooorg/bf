@@ -1,0 +1,25 @@
+name: bump-repair-version
+on:
+  workflow_dispatch:
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: bump and push
+        run: |
+          set -e
+          # restore repair from dadab30 if placeholder, else sed in place
+          if grep -q PLACEHOLDER server/immofinderRepair.ts 2>/dev/null; then
+            curl -sL "https://raw.githubusercontent.com/ecooorg/bf/dadab30d76956fb573159fcc6a71ed2b025560a9/server/immofinderRepair.ts" -o server/immofinderRepair.ts
+          fi
+          sed -i "s/REPAIR_RULES_VERSION = '130.10b.5'/REPAIR_RULES_VERSION = '130.10c.5'/" server/immofinderRepair.ts
+          sed -i "s/REPAIR_RULES_VERSION = '130.10.5'/REPAIR_RULES_VERSION = '130.10c.5'/" server/immofinderRepair.ts
+          grep -n REPAIR_RULES_VERSION server/immofinderRepair.ts | head -3
+          git config user.name "biforge-bot"
+          git config user.email "341088617+biforge-control[bot]@users.noreply.github.com"
+          git add server/immofinderRepair.ts
+          git commit -m "fix(immofinder): REPAIR_RULES_VERSION 130.10c.5" || true
+          git push
