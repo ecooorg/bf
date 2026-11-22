@@ -1,3 +1,9 @@
+## P130.5a — Core CI repair (2026-11-22)
+
+- **OBSERVED:** run 44992823490 at 7cc8716: 8 failing tests in `test:app-builder`, `test:project`, `test:project-diagnostics`; all explained by the two causes above. The ImmoFinder health run was red only because it reads CI on main; its live GitHub App probe was OK and the latest run was archived.
+- **LESSON:** `diagnostics-ops.test.mjs` runs in both `test:core` (tsx) and `test:project-diagnostics` (plain Node), so it must not import `.ts` modules.
+- **NOT_RUN:** hosted CI after this patch.
+
 ## P130.5 — GitHub App probe and health snapshot (2026-11-22)
 
 - **OBSERVED:** production logs: `github_app_contents_write_token_http_422 … not granted to this installation` ×20 at 130.4a; the code requests exactly `contents: write`. The poller had not completed a scheduled run for about five hours, and every poll run collected Render logs, which caused HTTP 429 from Render.

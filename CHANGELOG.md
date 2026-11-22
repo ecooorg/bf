@@ -1,3 +1,8 @@
+## P130.5a — Core CI repair after workflow cleanup
+
+- **PROBLEM:** Core CI failed in three suites: two tests still read `project-user-value.yml`, which the owner removed, and the P130.5 probe test imported a `.ts` module in a suite that runs on plain Node.
+- **CHANGE:** dropped the assertions about the removed workflow and moved the probe test into the `tsx` suite. BUGFIX; no product behaviour change.
+
 ## P130.5 — Live GitHub App diagnosis and self-reporting health
 
 - **PROBLEM:** after the App permissions were changed the health run stayed red, because it judged the GitHub App from old log lines and gave no view of what the App and its installation really hold.
