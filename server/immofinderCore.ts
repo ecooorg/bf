@@ -408,8 +408,10 @@ const SERVICE_OR_AGGREGATOR_HOST =
 
 export function nonListingReason(title: string, url: string, portalHosts: string[] = []): NonListing | null {
   const t = String(title ?? '').trim();
-  // Bot-challenge / interstitial pages (Cloudflare etc.) are never a single rental offer.
-  if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification|security check|tutti\.ch - security)\b/i.test(t)) return 'list_or_search_page';
+  // Bot-challenge: reject unless URL is already a portal detail (Homegate /mieten/400… + SERP facts).
+  if (/^(just a moment|attention required|access denied|one more step|checking your browser|please wait|cf-browser-verification|security check|tutti\.ch - security)\b/i.test(t)) {
+    if (!(portalHosts.length && isPortalDetailUrl(url, portalHosts))) return 'list_or_search_page';
+  }
   // Empty SERP / zero-offer index pages must never become cards.
   if (/\b(aucun (appartement|maison|bien)|keine (wohnungen?|angebote|resultate|treffer)|no (results?|listings?|apartments?)|0\s+(wohnungen|inserate|resultate|angebote)|aucun résultat)\b/i.test(t)) return 'list_or_search_page';
   if (/\b(inserat nicht mehr|nicht mehr verfügbar|objekt nicht (mehr )?verfügbar)\b/i.test(t)) return 'list_or_search_page';

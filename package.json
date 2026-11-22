@@ -2,7 +2,7 @@
   "name": "biforge",
   "private": true,
   "version": "130",
-  "patch": "130.10f",
+  "patch": "130.10g",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

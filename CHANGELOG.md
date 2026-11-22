@@ -1,3 +1,8 @@
+## P130.10g — SERP title over brand + challenge on portal detail
+
+- **PROBLEM:** Run 1bcba049 kept=1 (iCasa) with brand-only title; Homegate detail challenged as list_or_search.
+- **CHANGE:** prefer SERP title when page title is brand-like; challenge on portal detail URL is not auto list. BUGFIX.
+
 ## P130.10f — labelled multi-rent soft pick + Homegate 400-ids + quote confirm
 
 - **PROBLEM:** Chur run f6dfc413 kept=0. Adlerweg price_ambiguous; Calvenweg price_not_confirmed; Homegate expansion 0.
