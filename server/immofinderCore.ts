@@ -438,6 +438,9 @@ export function isPortalDetailUrl(url: string, portalHosts: string[] = []): bool
   let u: URL;
   try { u = new URL(url); } catch { return false; }
   const host = u.hostname.replace(/^www\./, '').toLowerCase();
+  const pathLower = u.pathname.toLowerCase().replace(/\/+$/, '');
+  // Category/list routes (no listing id): e.g. /de/mieten/wohnung, /mieten/wohnung
+  if (/\/(mieten|rent|louer|affittare)\/(wohnung|apartment|haus|house|maison|flat)(?:\/|$)/i.test(pathLower) && !/\d{5,}/.test(pathLower)) return false;
   if (!portalHosts.some((h) => host === h.toLowerCase() || host.endsWith(`.${h.toLowerCase()}`))) return false;
   const parts = u.pathname.split('/').filter(Boolean).map((x) => {
     try { return decodeURIComponent(x).toLowerCase(); } catch { return x.toLowerCase(); }
