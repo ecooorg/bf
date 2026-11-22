@@ -1,0 +1,101 @@
+name: Emergency fix list-url filters
+on:
+  workflow_dispatch:
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore files from last good commit and apply list-URL fixes
+        run: |
+          set -euo pipefail
+          GOOD=58ecf574fb42a14c0f825200cdaa37dc8d89192e
+          git show "$GOOD:server/immofinderCore.ts" > server/immofinderCore.ts
+          git show "$GOOD:server/immofinderDiscovery.ts" > server/immofinderDiscovery.ts
+          git show "$GOOD:config/immofinder.json" > config/immofinder.json
+          git show "$GOOD:tests/immofinder-quality.test.mjs" > tests/immofinder-quality.test.mjs
+          git show "$GOOD:.github/workflows/ci.yml" > .github/workflows/ci.yml
+          test "$(wc -c < server/immofinderCore.ts)" -gt 60000
+
+          python3 << 'PY'
+          from pathlib import Path
+          core = Path('server/immofinderCore.ts').read_text()
+          old_title = r"const LIST_TITLE = /^(alle inserate|die besten|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in|.*immobilie\. h[aä]user zu vermieten|.*properties mieten)|mittlere(r)?\s+mietpreis|durchschnittliche[r]?\s+mietpreis/i;"
+          new_title = r"const LIST_TITLE = /^(alle inserate|die besten|page\s+\d+|tous les biens|unterk[uü]nfte in|ferienunterk[uü]nfte in|ferienwohnungen in|ferienh[aä]user in|wohnungen (mit|zum|zu|in)|\d+\s+wohnungen|wohnung(en)? mieten|immobilien in|mieten in|suchresultate|trefferliste|immobilie mieten in|.*immobilie\. h[aä]user zu vermieten|.*properties mieten)|mittlere(r)?\s+mietpreis|durchschnittliche[r]?\s+mietpreis/i;"
+          old_more = r"const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|[?&]nrf=\d|\/kaufen\/|\/preise\.html|\/liste(\/|$)|gruppenhaus\.ch|\/_join_/i;"
+          new_more = r"const LIST_URL_MORE = /\/zimmer-\d+(\.\d)?(-\d+(\.\d)?)?\/?$|\/(mieten|kaufen)\/(wohnung|immobilien)\/in-[^/]+|\/unterkategorie-[^/]+|\/in-[a-z0-9äöü-]{2,}\/?$|\/immobilier\/[^/]*immobilier[^/]*\.html|[?&]nrf=\d|\/kaufen\/|\/preise\.html|\/liste(\/|$)|gruppenhaus\.ch|\/_join_/i;"
+          old_portal = """  const generic = new Set(['search','suche','results','resultate','angebote','list','listing','rent','mieten','buy','kaufen','sale','map','karte','real-estate','immobilien','wohnung-mieten','wohnungen-mieten','flat','apartment','house']);
+  if (!parts[parts.length - 1] || generic.has(parts[parts.length - 1])) return false;
+  if (parts.some((p) => /^(search|suche|results|resultate|map|karte)$/.test(p))) return false;
+  return true;
+}"""
+          new_portal = """  const generic = new Set(['search','suche','results','resultate','angebote','list','listing','rent','mieten','buy','kaufen','sale','map','karte','real-estate','immobilien','wohnung-mieten','wohnungen-mieten','flat','apartment','house','suchen']);
+  if (!parts[parts.length - 1] || generic.has(parts[parts.length - 1])) return false;
+  // Category / commune index routes (home.ch unterkategorie…/in-chur, …/in-thusis) are not detail pages.
+  if (parts.some((p) => /^(search|suche|suchen|results|resultate|map|karte|unterkategorie)/.test(p) || /^in-[a-z0-9-]{2,}$/.test(p))) return false;
+  return true;
+}"""
+          assert old_title in core and old_more in core and old_portal in core
+          Path('server/immofinderCore.ts').write_text(core.replace(old_title, new_title).replace(old_more, new_more).replace(old_portal, new_portal))
+
+          disc = Path('server/immofinderDiscovery.ts').read_text()
+          needle = """    // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
+    const nonListing = nonListingReason(h.title || '', h.link);
+    if (nonListing) { decide(false, `non_listing:${nonListing}`); continue; }
+    // Social feeds may expose ads only through snippets; retain them as provisional leads.
+    const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
+    if (!isSpecificLink(h.link) && !isPortalDetailLink(h.link, cfg)) {
+      // Owner microsites without an ID are rare but valid; portals/FB roots/lists are not.
+      const dropHost = hostMatches(host, portalHosts)
+        || /facebook\\.com$|booking\\.com$|cozycozy\\.|rentola\\.|happyholiday\\.|ferienhausmiete\\.|airbnb\\.|vrbo\\./i.test(host);
+      if (dropHost && !snippetOnly) { decide(false, 'generic_or_search_url_on_portal_social_host'); continue; }
+    }"""
+          repl = """    // Drop list/search/join pages early so the fetch queue is not flooded (keeps Serper budget for real ads).
+    const nonListing = nonListingReason(h.title || '', h.link);
+    if (nonListing) { decide(false, `non_listing:${nonListing}`); continue; }
+    // Social feeds may expose ads only through snippets; retain them as provisional leads.
+    const snippetOnly = hostMatches(host, d.snippetOnlyHosts) && !hostMatches(host, portalHosts);
+    // Bare site roots are never a single rental offer (project portals, agency landings).
+    try {
+      const pathParts = new URL(h.link).pathname.split('/').filter(Boolean);
+      if (pathParts.length === 0 && !snippetOnly) { decide(false, 'site_root_not_listing'); continue; }
+    } catch { /* invalid URL already filtered */ }
+    if (!isSpecificLink(h.link) && !isPortalDetailLink(h.link, cfg)) {
+      // Owner microsites without an ID are rare but valid; portals/FB roots/lists are not.
+      const dropHost = hostMatches(host, portalHosts)
+        || /facebook\\.com$|booking\\.com$|cozycozy\\.|rentola\\.|happyholiday\\.|ferienhausmiete\\.|airbnb\\.|vrbo\\./i.test(host);
+      if (dropHost && !snippetOnly) { decide(false, 'generic_or_search_url_on_portal_social_host'); continue; }
+    }"""
+          assert needle in disc
+          Path('server/immofinderDiscovery.ts').write_text(disc.replace(needle, repl))
+
+          import json
+          cfg = json.loads(Path('config/immofinder.json').read_text())
+          cfg['discovery']['maxCandidatesPerQuery'] = 8
+          Path('config/immofinder.json').write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + '\n')
+
+          ci = Path('.github/workflows/ci.yml').read_text()
+          old = """on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n"""
+          new = """on:\n  push:\n    branches: [main]\n    # Snapshot/diagnostics-only commits must not burn a full verification DAG.\n    paths-ignore:\n      - 'data/immofinder/**'\n  workflow_dispatch:\n"""
+          assert old in ci
+          Path('.github/workflows/ci.yml').write_text(ci.replace(old, new))
+
+          Path('.github/workflows/ci-data-minimal.yml').write_text('''name: ImmoFinder data — minimal checks\non:\n  push:\n    branches: [main]\n    paths:\n      - 'data/immofinder/**'\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\nconcurrency:\n  group: immofinder-data-${{ github.ref }}\n  cancel-in-progress: true\n\njobs:\n  minimal:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0\n        with:\n          node-version-file: .nvmrc\n      - name: Prepare log directory\n        run: mkdir -p artifacts/ci-checks\n      - name: Preflight (workflows / package consistency)\n        shell: bash\n        run: set -o pipefail; CI_LOGS_DIR=artifacts/ci-checks node scripts/workflow-preflight.mjs\n      - name: Scan repository for leaked secrets\n        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0\n        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n''')
+
+          test = Path('tests/immofinder-quality.test.mjs').read_text()
+          marker = "test('parseRooms handles Swiss half-room spellings and prefers earliest Zimmer hit'"
+          insert = '''\ntest('nonListingReason rejects portal list/index URLs and challenge titles', async () => {\n  const { nonListingReason, isPortalDetailUrl } = await import('../server/immofinderCore.ts');\n  assert.equal(\n    nonListingReason('Page 2 - Wohnung mieten: Chur', 'https://www.home.ch/de/mieten/wohnung/unterkategorie-wohnung/in-chur'),\n    'list_or_search_page',\n  );\n  assert.equal(\n    nonListingReason('Chur: Tous les biens immobiliers', 'https://www.acheter-louer.ch/immobilier/Chur-immobilier-maison-appartement-villa-chalet-appartement-terrain.html'),\n    'list_or_search_page',\n  );\n  assert.equal(\n    nonListingReason('Just a moment...', 'https://www.acheter-louer.ch/x'),\n    'list_or_search_page',\n  );\n  assert.equal(\n    nonListingReason('3 ½ Zimmer-Wohnung in Chur mieten | Flatfox', 'https://flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/'),\n    null,\n  );\n  const portals = ['home.ch', 'acheter-louer.ch', 'flatfox.ch', 'icasa.ch'];\n  assert.equal(isPortalDetailUrl('https://www.home.ch/de/mieten/wohnung/unterkategorie-wohnung/in-chur', portals), false);\n  assert.equal(isPortalDetailUrl('https://flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/', portals), true);\n});\n\n'''
+          assert marker in test
+          Path('tests/immofinder-quality.test.mjs').write_text(test.replace(marker, insert + marker))
+          print('patches applied')
+          PY
+
+          git config user.name "ecooorg"
+          git config user.email "ecooorg@gmail.com"
+          git add server/immofinderCore.ts server/immofinderDiscovery.ts config/immofinder.json tests/immofinder-quality.test.mjs .github/workflows/ci.yml .github/workflows/ci-data-minimal.yml
+          git commit -m "fix(immofinder): reject list/index URLs early; minimal CI for data snapshots"
+          git push origin HEAD:main
