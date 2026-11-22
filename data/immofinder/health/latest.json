@@ -1,24 +1,24 @@
 {
-  "generatedAt": "2026-11-22T07:30:12.543Z",
-  "verdict": "WARN",
+  "generatedAt": "2026-11-22T07:39:13.181Z",
+  "verdict": "FAIL",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
-      "status": "WARN",
-      "detail": "2 checks at d517d1c, 1 still running"
+      "status": "FAIL",
+      "detail": "1 failing at adf87eb: check-and-build"
     },
     {
       "group": "GITHUB",
       "name": "Diagnostics poller",
       "status": "OK",
-      "detail": "last completed run success at 2026-11-22T06:25:58Z"
+      "detail": "last completed run success at 2026-11-22T07:38:12Z"
     },
     {
       "group": "RENDER",
       "name": "Service /health",
       "status": "OK",
-      "detail": "HTTP 200, version 130, commit d517d1c"
+      "detail": "HTTP 200, version 130, commit adf87eb"
     },
     {
       "group": "RENDER",
@@ -36,10 +36,10 @@
       "group": "RENDER",
       "name": "Runtime signals",
       "status": "WARN",
-      "detail": "Gemini timeouts 0, SSL warnings 48, 5xx 0 in collected Render logs",
+      "detail": "Gemini timeouts 0, SSL warnings 50, 5xx 0 in collected Render logs",
       "data": {
         "geminiTimeouts": 0,
-        "sslWarnings": 48,
+        "sslWarnings": 50,
         "http5xx": 0
       }
     },
@@ -52,7 +52,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-22T07:30:11.559Z",
+        "checkedAt": "2026-11-22T07:39:12.210Z",
         "steps": [
           {
             "step": "app",
@@ -129,7 +129,7 @@
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "948df3b5-3b04-462f-a47b-0da4df85e95a, 2.0 h old"
+      "detail": "948df3b5-3b04-462f-a47b-0da4df85e95a, 2.1 h old"
     },
     {
       "group": "SEARCH",
