@@ -558,9 +558,9 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
         st.kept++; st.consecutiveBad = 0;
         const priceNote = price?.monthlyChf != null ? `CHF ${price.monthlyChf}` : (price?.quote ? price.quote.slice(0, 24) : 'no price');
         say(stage, `✔ match: ${ex.name.slice(0, 50)} (${ex.municipality}) · ${priceNote}`);
-        res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
-      diag('candidate_kept', { source: src.id, url: safeDiagUrl(url), host, title: safeDiagText(meta.title, 180), municipality: ex.municipality, rooms: ex.rooms.rooms, roomsBasis: ex.rooms.basis, priceMonthlyChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, hasContact: Boolean(phone0 || email0), photoCount: meta.photos.length, fetchMode: fetchMode || 'direct' });
-      try { console.info(JSON.stringify({ type: 'immofinder_candidate_kept', source: src.id, host, title: meta.title.slice(0, 90), municipality: ex.municipality, rooms: ex.rooms.rooms, priceChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, evidenceChars: pageText.trim().length, fetchMode: fetchMode || 'direct' })); } catch { /* diagnostics only */ }
+        res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, kept: true, detail: ex.signals.join(', ') });
+      diag('candidate_kept', { source: src.id, url: safeDiagUrl(url), host, title: safeDiagText(meta.title, 180), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, roomsBasis: ex.rooms?.basis ?? null, priceMonthlyChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, hasContact: Boolean(phone0 || email0), photoCount: meta.photos.length, fetchMode: fetchMode || 'direct' });
+      try { console.info(JSON.stringify({ type: 'immofinder_candidate_kept', source: src.id, host, title: meta.title.slice(0, 90), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, priceChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, evidenceChars: pageText.trim().length, fetchMode: fetchMode || 'direct' })); } catch { /* diagnostics only */ }
         continue;
       }
 
@@ -627,8 +627,8 @@ export async function runPipeline(deps: PipelineDeps, opts: { dryRun: boolean; w
       }
       const priceNote = price?.monthlyChf != null ? `CHF ${price.monthlyChf}` : (price?.quote ? price.quote.slice(0, 24) : 'no price');
       say(stage, `✔ match: ${ex.name.slice(0, 50)} (${ex.municipality}) · ${priceNote}`);
-      res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms.rooms, kept: true, detail: ex.signals.join(', ') });
-      try { console.info(JSON.stringify({ type: 'immofinder_candidate_kept', source: src.id, host, title: meta.title.slice(0, 90), municipality: ex.municipality, rooms: ex.rooms.rooms, priceChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, evidenceChars: pageText.trim().length, fetchMode: fetchMode || 'direct' })); } catch { /* diagnostics only */ }
+      res.preview.push({ url, title: meta.title.slice(0, 90), source: src.id, municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, kept: true, detail: ex.signals.join(', ') });
+      try { console.info(JSON.stringify({ type: 'immofinder_candidate_kept', source: src.id, host, title: meta.title.slice(0, 90), municipality: ex.municipality, rooms: ex.rooms?.rooms ?? null, priceChf: price?.monthlyChf ?? null, priceUnit: price?.unit ?? null, evidenceChars: pageText.trim().length, fetchMode: fetchMode || 'direct' })); } catch { /* diagnostics only */ }
     }
   }
 
