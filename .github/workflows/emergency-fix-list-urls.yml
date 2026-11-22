@@ -15,12 +15,12 @@ jobs:
           node-version-file: .nvmrc
       - name: Restore and patch
         run: node scripts/emergency-list-url-fix.mjs
-      - name: Commit and push
+      - name: Commit and push (no workflow files — GITHUB_TOKEN lacks workflows scope)
         run: |
           set -euo pipefail
           git config user.name "ecooorg"
           git config user.email "ecooorg@gmail.com"
-          git add server/immofinderCore.ts server/immofinderDiscovery.ts config/immofinder.json tests/immofinder-quality.test.mjs .github/workflows/ci.yml .github/workflows/ci-data-minimal.yml
+          git add server/immofinderCore.ts server/immofinderDiscovery.ts config/immofinder.json tests/immofinder-quality.test.mjs
           git status
-          git commit -m "fix(immofinder): reject list/index URLs early; minimal CI for data snapshots" || echo "no changes"
+          git commit -m "fix(immofinder): reject list/index URLs early; raise maxCandidatesPerQuery" || echo "no changes"
           git push origin HEAD:main
