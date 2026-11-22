@@ -1,1 +1,367 @@
-PLACEHOLDER_CFG
+{
+  "schema": 1,
+  "municipalities": [
+    "Chur",
+    "Haldenstein",
+    "Trimmis",
+    "Untervaz",
+    "Zizers",
+    "Igis",
+    "Landquart",
+    "Maienfeld",
+    "Fläsch",
+    "Jenins",
+    "Malans",
+    "Grüsch",
+    "Seewis-Pardisla",
+    "Schiers",
+    "Felsberg",
+    "Domat/Ems",
+    "Tamins",
+    "Trin",
+    "Flims",
+    "Laax",
+    "Versam",
+    "Valendas",
+    "Castrisch",
+    "Ilanz",
+    "Bonaduz",
+    "Rhäzüns",
+    "Rothenbrunnen",
+    "Rodels",
+    "Realta",
+    "Cazis",
+    "Thusis",
+    "Maladers",
+    "Churwalden",
+    "Parpan",
+    "Valbella",
+    "Lenzerheide",
+    "Passugg",
+    "Araschgen",
+    "Praden",
+    "Tschiertschen",
+    "Castiel",
+    "Lüen",
+    "St. Peter-Molinis",
+    "Peist"
+  ],
+  "stopAgencies": [
+    "Interhome",
+    "Holidu",
+    "Belvilla",
+    "e-domizil",
+    "GriwaRent",
+    "Mountain Flair",
+    "Booking.com",
+    "Booking",
+    "Airbnb",
+    "Vrbo",
+    "Fewo-Direkt",
+    "HomeToGo",
+    "Cozycozy",
+    "Traum-Ferienwohnungen",
+    "Comparis",
+    "Homegate Partner"
+  ],
+  "minRooms": 3,
+  "sources": [
+    {
+      "id": "ferienhausmiete",
+      "url": "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/graubuenden/r521",
+      "phase": 3,
+      "maxDetailPages": 40,
+      "detailPattern": "^https://www\\.ferienhausmiete\\.de/\\d+\\.htm$",
+      "indexUrls": [
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/flims-laax-falera/r4331",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/surselva/r4325",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/chur/r4328",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/lenzerheide-valbella/r4334",
+        "https://www.ferienhausmiete.de/ferienwohnung-ferienhaus-urlaub/thusis/r29817"
+      ]
+    },
+    {
+      "id": "happyholiday",
+      "url": "https://happyholiday.ch/area/graubuenden/",
+      "phase": 3,
+      "cityUrl": "https://happyholiday.ch/city/{slug}/",
+      "detailPattern": "^https://happyholiday\\.ch/haus/[^/]+-graubuenden-in-[^/]+/?$",
+      "cutMarkers": [
+        "Andere Häuser",
+        "Ausgewählte Unterkünfte"
+      ],
+      "privateTitleHint": "von privat",
+      "maxDetailPages": 30
+    },
+    {
+      "id": "landwirtschaft-gr",
+      "url": "https://www.landwirtschaft-gr.ch",
+      "phase": 3,
+      "maxDetailPages": 15
+    }
+  ],
+  "fetch": {
+    "userAgent": "BiForge-ImmoFinder (polite; contact owner)",
+    "perHostDelayMs": 1500,
+    "respectRobotsTxt": true
+  },
+  "schedule": {
+    "cron": "0 */3 * * *"
+  },
+  "platformDomains": [
+    "happyholiday.ch",
+    "traum-ferienwohnungen.ch",
+    "graubuenden.ch",
+    "appa.ch",
+    "landwirtschaft-gr.ch",
+    "immoscout24.ch",
+    "homegate.ch",
+    "newhome.ch",
+    "flatfox.ch",
+    "tutti.ch",
+    "anibis.ch",
+    "petitesannonces.ch",
+    "immobilier.ch",
+    "acheter-louer.ch",
+    "immostreet.ch",
+    "home.ch",
+    "icasa.ch",
+    "urbanhome.ch"
+  ],
+  "limits": {
+    "maxDetailPagesPerSource": 30,
+    "recheckAfterDays": 7,
+    "fetchTimeoutMs": 10000,
+    "maxPageBytes": 1500000
+  },
+  "estCostPerLlmCallUsd": 0.002,
+  "estCostPerSearchUsd": 0.001,
+  "discovery": {
+    "enabled": true,
+    "communesPerRun": 12,
+    "resultsPerQuery": 10,
+    "maxCandidatesPerQuery": 8,
+    "maxPagesPerRun": 420,
+    "queries": [
+      "\"{commune}\" Wohnung mieten (privat OR Eigentümer OR von privat) -kaufen -verkaufen -job -hotel",
+      "\"{commune}\" (Wohnung OR Haus OR Chalet OR Ferienwohnung) (vermieten OR Mietwohnung OR Nachmieter OR \"zu vermieten\") -kaufen -verkaufen -job",
+      "\"{commune}\" (\"3 Zimmer\" OR \"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\" OR \"5 Zimmer\") Wohnung (mieten OR vermieten) -kaufen -verkaufen",
+      "\"{commune}\" (Wohnung OR Haus) (Mietzins OR Miete OR CHF) (privat OR direkt OR vermieten) -kaufen -verkaufen"
+    ],
+    "snippetOnlyHosts": [
+      "facebook.com",
+      "instagram.com",
+      "tripadvisor.ch",
+      "tripadvisor.com"
+    ],
+    "skipHosts": [
+      "wikipedia.org",
+      "youtube.com",
+      "pinterest.com",
+      "reddit.com",
+      "graubuenden.ch",
+      "myswitzerland.com",
+      "holidu.ch",
+      "holidu.com",
+      "trivago.ch",
+      "kayak.ch",
+      "kayak.com",
+      "google.com",
+      "expedia.com",
+      "hotels.com",
+      "nestoria.ch",
+      "nestoria.com",
+      "immowelt.ch",
+      "cozycozy.com",
+      "cozycozy.ch",
+      "realadvisor.ch",
+      "realadvisor.com",
+      "hometogo.ch",
+      "hometogo.com",
+      "check24.de",
+      "comparis.ch",
+      "properstar.ch",
+      "rentumo.ch",
+      "moving24.ch",
+      "homematch.ch",
+      "roomlala.de",
+      "bedandbreakfast.eu",
+      "shop.heidiland.com",
+      "flat-hunt.com"
+    ],
+    "portalQueries": [
+      "site:homegate.ch \"{commune}\" Wohnung mieten",
+      "site:immoscout24.ch \"{commune}\" Wohnung mieten",
+      "site:flatfox.ch \"{commune}\" Wohnung mieten",
+      "site:tutti.ch \"{commune}\" Wohnung mieten",
+      "site:newhome.ch \"{commune}\" Wohnung mieten",
+      "site:anibis.ch \"{commune}\" Wohnung mieten",
+      "site:urbanhome.ch \"{commune}\" Wohnung mieten",
+      "site:petitesannonces.ch \"{commune}\" (Wohnung OR Haus) mieten",
+      "site:immobilier.ch \"{commune}\" (Wohnung OR appartement) (mieten OR \"à louer\")",
+      "site:acheter-louer.ch \"{commune}\" (Wohnung OR appartement) (mieten OR \"à louer\")",
+      "site:immostreet.ch \"{commune}\" Wohnung mieten",
+      "site:home.ch \"{commune}\" Wohnung mieten",
+      "site:icasa.ch \"{commune}\" Wohnung mieten"
+    ],
+    "portalHosts": [
+      "immoscout24.ch",
+      "homegate.ch",
+      "newhome.ch",
+      "flatfox.ch",
+      "tutti.ch",
+      "anibis.ch",
+      "petitesannonces.ch",
+      "immobilier.ch",
+      "acheter-louer.ch",
+      "immostreet.ch",
+      "home.ch",
+      "icasa.ch",
+      "urbanhome.ch"
+    ],
+    "serperMinIntervalMs": 1500,
+    "serperMaxPerMinute": 40,
+    "portalSources": [
+      {
+        "id": "portal-immoscout24",
+        "label": "ImmoScout24",
+        "host": "immoscout24.ch"
+      },
+      {
+        "id": "portal-homegate",
+        "label": "Homegate",
+        "host": "homegate.ch"
+      },
+      {
+        "id": "portal-newhome",
+        "label": "Newhome",
+        "host": "newhome.ch"
+      },
+      {
+        "id": "portal-flatfox",
+        "label": "Flatfox",
+        "host": "flatfox.ch"
+      },
+      {
+        "id": "portal-tutti",
+        "label": "Tutti",
+        "host": "tutti.ch"
+      },
+      {
+        "id": "portal-anibis",
+        "label": "Anibis",
+        "host": "anibis.ch"
+      },
+      {
+        "id": "portal-petitesannonces",
+        "label": "Petites Annonces",
+        "host": "petitesannonces.ch"
+      },
+      {
+        "id": "portal-immobilier",
+        "label": "Immobilier.ch",
+        "host": "immobilier.ch"
+      },
+      {
+        "id": "portal-acheter-louer",
+        "label": "Acheter-Louer",
+        "host": "acheter-louer.ch"
+      },
+      {
+        "id": "portal-immostreet",
+        "label": "ImmoStreet",
+        "host": "immostreet.ch"
+      },
+      {
+        "id": "portal-home",
+        "label": "Home.ch",
+        "host": "home.ch"
+      },
+      {
+        "id": "portal-icasa",
+        "label": "ICasa",
+        "host": "icasa.ch"
+      },
+      {
+        "id": "portal-urbanhome",
+        "label": "UrbanHome",
+        "host": "urbanhome.ch"
+      }
+    ]
+  },
+  "driveFolderId": "199CkTuXRf52H0r-8-KTOsI-nFQFnZoxT",
+  "quality": {
+    "maxMonthlyRentChf": 2000,
+    "maxListingAgeDays": 180,
+    "requirePrice": false,
+    "rejectNonMonthly": false,
+    "rejectSeekerPosts": true,
+    "requireContact": false
+  },
+  "runMaxDurationMs": 2700000,
+  "contactEnrichment": {
+    "enabled": true,
+    "maxExtraSearchesPerRun": 35,
+    "maxReverseImagePerRun": 10,
+    "maxCandidatePagesPerListing": 4,
+    "useReverseImage": true,
+    "useSecondarySearch": true
+  },
+  "priorityWaveMs": 1200000,
+  "municipalityGroups": {
+    "group1": {
+      "label": "Group 1 (Rhine / Chur belt)",
+      "municipalities": [
+        "Chur",
+        "Haldenstein",
+        "Trimmis",
+        "Untervaz",
+        "Zizers",
+        "Igis",
+        "Landquart",
+        "Felsberg",
+        "Domat/Ems",
+        "Tamins",
+        "Trin",
+        "Flims",
+        "Bonaduz",
+        "Rhäzüns",
+        "Cazis",
+        "Thusis",
+        "Maladers",
+        "Churwalden",
+        "Passugg",
+        "Araschgen",
+        "Praden",
+        "Tschiertschen"
+      ]
+    },
+    "group2": {
+      "label": "Group 2 (Prättigau / Surselva / south)",
+      "municipalities": [
+        "Maienfeld",
+        "Fläsch",
+        "Jenins",
+        "Malans",
+        "Grüsch",
+        "Seewis-Pardisla",
+        "Schiers",
+        "Laax",
+        "Versam",
+        "Valendas",
+        "Castrisch",
+        "Ilanz",
+        "Rothenbrunnen",
+        "Rodels",
+        "Realta",
+        "Parpan",
+        "Valbella",
+        "Lenzerheide",
+        "Castiel",
+        "Lüen",
+        "St. Peter-Molinis",
+        "Peist"
+      ]
+    }
+  }
+}
