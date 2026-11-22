@@ -1,3 +1,9 @@
+## P130.5 — GitHub App probe and health snapshot (2026-11-22)
+
+- **OBSERVED:** production logs: `github_app_contents_write_token_http_422 … not granted to this installation` ×20 at 130.4a; the code requests exactly `contents: write`. The poller had not completed a scheduled run for about five hours, and every poll run collected Render logs, which caused HTTP 429 from Render.
+- **CHANGE:** live probe endpoint, health check and snapshot commit, poller cadence and log collection reduced.
+- **NOT_RUN:** hosted CI, deployment, and a probe against the real installation; the cause of the 422 after the owner's permission change is not yet known and the probe is meant to show it.
+
 ## P130.4a — Health check first-run fixes (2026-11-21)
 
 - **OBSERVED:** first run (Actions run 44948368394) hit Render HTTP 429 and pagination limit at a 1440-minute window; `/health` returned commit `0c1a239`; archive held `98c97e27` while a newer run existed.

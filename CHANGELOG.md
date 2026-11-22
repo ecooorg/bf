@@ -1,3 +1,8 @@
+## P130.5 — Live GitHub App diagnosis and self-reporting health
+
+- **PROBLEM:** after the App permissions were changed the health run stayed red, because it judged the GitHub App from old log lines and gave no view of what the App and its installation really hold.
+- **CHANGE:** secret-protected `GET /api/immofinder/github/probe` states the App's and installation's permissions, repository access and whether a write token can be minted now, with one named cause and fix; the health check uses it, treats old log failures as history once it is OK, and commits `data/immofinder/health/latest.json` so the next repository archive carries current diagnostics. The poller runs every 10 minutes and collects Render logs only on failure. RELIABILITY; no search change.
+
 ## P130.4a — Health check fixes from the first production run
 
 - **PROBLEM:** the first run could not compare the 7-character deployed commit, mislabelled a failed Render log collection as "not configured", and its 24 h log window exceeded the collector's pagination limit.
