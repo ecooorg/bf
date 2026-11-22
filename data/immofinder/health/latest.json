@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-22T14:31:16.068Z",
+  "generatedAt": "2026-11-22T23:35:33.753Z",
   "verdict": "WARN",
   "checks": [
     {
       "group": "GITHUB",
       "name": "CI on main",
       "status": "WARN",
-      "detail": "2 checks at da7511a, 1 still running"
+      "detail": "2 checks at ad001b2, 1 still running"
     },
     {
       "group": "GITHUB",
       "name": "Diagnostics poller",
       "status": "OK",
-      "detail": "last completed run success at 2026-11-22T07:38:12Z"
+      "detail": "last completed run success at 2026-11-22T20:51:31Z"
     },
     {
       "group": "RENDER",
@@ -30,13 +30,18 @@
       "group": "RENDER",
       "name": "Deployed commit",
       "status": "WARN",
-      "detail": "production is 15 commit(s) behind main with 7 non-archive file(s) changed (e.g. CHANGELOG.md, data/immofinder/listings.snapshot.enc, package-lock.json); deploy may be pending or failed"
+      "detail": "production is 25 commit(s) behind main with 7 non-archive file(s) changed (e.g. CHANGELOG.md, data/immofinder/listings.snapshot.enc, package-lock.json); deploy may be pending or failed"
     },
     {
       "group": "RENDER",
       "name": "Runtime signals",
       "status": "WARN",
-      "detail": "Render log collection failed: Render pagination safety limit exceeded for srv-dbcbq2e1egvs73a59log; publisher errors and runtime signals are unchecked"
+      "detail": "Gemini timeouts 0, SSL warnings 0, 5xx 1 in collected Render logs",
+      "data": {
+        "geminiTimeouts": 0,
+        "sslWarnings": 0,
+        "http5xx": 1
+      }
     },
     {
       "group": "PUBLISHING",
@@ -47,7 +52,7 @@
         "verdict": "OK",
         "cause": "none",
         "fix": "",
-        "checkedAt": "2026-11-22T14:31:15.210Z",
+        "checkedAt": "2026-11-22T23:35:32.552Z",
         "steps": [
           {
             "step": "app",
@@ -109,36 +114,39 @@
     {
       "group": "PUBLISHING",
       "name": "GitHub publishers",
-      "status": "SKIP",
-      "detail": "no runtime logs to inspect"
+      "status": "OK",
+      "detail": "no GitHub publisher errors in the collected window"
     },
     {
       "group": "SEARCH",
       "name": "Latest run",
       "status": "OK",
-      "detail": "1048c357-43c1-49d3-b259-342552da08bc, 1.0 h old"
+      "detail": "abfa5739-51ba-4424-8746-e4c812a6bb0f, 1.2 h old"
     },
     {
       "group": "SEARCH",
       "name": "Result quality",
       "status": "WARN",
-      "detail": "15 candidates, 1 quality of target 10, 1 snippet-only, 0 fallback, LLM calls 10",
+      "detail": "33 candidates, 5 quality of target 10, 4 snippet-only, 0 fallback, LLM calls 18, failing sources: portal-urbanhome, portal-immostreet",
       "data": {
-        "candidates": 15,
-        "quality": 1,
+        "candidates": 33,
+        "quality": 5,
         "target": 10,
-        "snippetOnly": 1,
-        "llmCalls": 10,
+        "snippetOnly": 4,
+        "llmCalls": 18,
         "fallback": 0,
-        "errors": 1,
-        "failingSources": []
+        "errors": 4,
+        "failingSources": [
+          "portal-urbanhome",
+          "portal-immostreet"
+        ]
       }
     },
     {
       "group": "PUBLISHING",
       "name": "Archive",
       "status": "OK",
-      "detail": "run 1048c357-43c1-49d3-b259-342552da08bc is archived in the repository"
+      "detail": "run abfa5739-51ba-4424-8746-e4c812a6bb0f is archived in the repository"
     }
   ]
 }
