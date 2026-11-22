@@ -1,0 +1,161 @@
+{
+  "generatedAt": "2026-11-22T06:26:42.387Z",
+  "verdict": "FAIL",
+  "checks": [
+    {
+      "group": "GITHUB",
+      "name": "CI on main",
+      "status": "FAIL",
+      "detail": "1 failing at 7cc8716: check-and-build"
+    },
+    {
+      "group": "GITHUB",
+      "name": "Diagnostics poller",
+      "status": "OK",
+      "detail": "last completed run success at 2026-11-22T06:25:58Z"
+    },
+    {
+      "group": "RENDER",
+      "name": "Service /health",
+      "status": "OK",
+      "detail": "HTTP 200, version 130, commit 7cc8716"
+    },
+    {
+      "group": "RENDER",
+      "name": "Database ready",
+      "status": "OK",
+      "detail": "HTTP 200"
+    },
+    {
+      "group": "RENDER",
+      "name": "Deployed commit",
+      "status": "OK",
+      "detail": "production runs main HEAD"
+    },
+    {
+      "group": "RENDER",
+      "name": "Runtime signals",
+      "status": "WARN",
+      "detail": "Gemini timeouts 0, SSL warnings 18, 5xx 0 in collected Render logs",
+      "data": {
+        "geminiTimeouts": 0,
+        "sslWarnings": 18,
+        "http5xx": 0
+      }
+    },
+    {
+      "group": "PUBLISHING",
+      "name": "GitHub App (live)",
+      "status": "OK",
+      "detail": "a repository-scoped write token can be minted now (app biforge-control declares {\"checks\":\"read\",\"contents\":\"write\",\"metadata\":\"read\",\"pull_requests\":\"read\"}; installation on ecooorg holds {\"checks\":\"read\",\"contents\":\"write\",\"metadata\":\"read\",\"pull_requests\":\"read\"} (selected))",
+      "data": {
+        "verdict": "OK",
+        "cause": "none",
+        "fix": "",
+        "checkedAt": "2026-11-22T06:26:41.513Z",
+        "steps": [
+          {
+            "step": "app",
+            "httpStatus": 200,
+            "message": "",
+            "requestId": ""
+          },
+          {
+            "step": "installation",
+            "httpStatus": 200,
+            "message": "",
+            "requestId": ""
+          },
+          {
+            "step": "read_token",
+            "httpStatus": 201,
+            "message": "",
+            "requestId": ""
+          },
+          {
+            "step": "repository",
+            "httpStatus": 200,
+            "message": "",
+            "requestId": ""
+          },
+          {
+            "step": "write_token",
+            "httpStatus": 201,
+            "message": "",
+            "requestId": ""
+          }
+        ],
+        "app": {
+          "id": 5276629,
+          "slug": "biforge-control",
+          "permissions": {
+            "checks": "read",
+            "contents": "write",
+            "metadata": "read",
+            "pull_requests": "read"
+          }
+        },
+        "installation": {
+          "id": 170347326,
+          "appId": 5276629,
+          "account": "ecooorg",
+          "repositorySelection": "selected",
+          "permissions": {
+            "checks": "read",
+            "contents": "write",
+            "metadata": "read",
+            "pull_requests": "read"
+          },
+          "suspended": false,
+          "updatedAt": "2026-11-22T05:51:37.000Z"
+        }
+      }
+    },
+    {
+      "group": "PUBLISHING",
+      "name": "Publisher github_app_token",
+      "status": "WARN",
+      "detail": "earlier in the log window, the live probe is OK now: github_app_contents_write_token HTTP 422 ×8. The installation token request was refused: the GitHub App does not hold Repository permission Contents: write, or the installation has not approved it. Grant it on the App and accept the updated permissions on the installation (contents:write).",
+      "data": {
+        "publisher": "github_app_token",
+        "step": "github_app_contents_write_token",
+        "status": 422,
+        "count": 8,
+        "requestId": null,
+        "hint": "The installation token request was refused: the GitHub App does not hold Repository permission Contents: write, or the installation has not approved it. Grant it on the App and accept the updated permissions on the installation (contents:write)."
+      }
+    },
+    {
+      "group": "SEARCH",
+      "name": "Latest run",
+      "status": "OK",
+      "detail": "948df3b5-3b04-462f-a47b-0da4df85e95a, 0.9 h old"
+    },
+    {
+      "group": "SEARCH",
+      "name": "Result quality",
+      "status": "WARN",
+      "detail": "54 candidates, 2 quality of target 10, 5 snippet-only, 0 fallback, LLM calls 35, failing sources: portal-tutti, portal-immostreet, portal-anibis",
+      "data": {
+        "candidates": 54,
+        "quality": 2,
+        "target": 10,
+        "snippetOnly": 5,
+        "llmCalls": 35,
+        "fallback": 0,
+        "errors": 5,
+        "failingSources": [
+          "portal-tutti",
+          "portal-immostreet",
+          "portal-anibis"
+        ]
+      }
+    },
+    {
+      "group": "PUBLISHING",
+      "name": "Archive",
+      "status": "OK",
+      "detail": "run 948df3b5-3b04-462f-a47b-0da4df85e95a is archived in the repository"
+    }
+  ]
+}
