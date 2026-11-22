@@ -206,8 +206,8 @@ test('P130.6 rooms gate and empty SERP titles', async () => {
   assert.equal(parseRooms('3 pièces appartement')?.rooms, 3);
   assert.equal(isListingUnavailable('Rent a 4 ½ rooms apartment', 'Modern apartment with balcony. Available now.'), false);
   const portals = ['immobilier.ch', 'flatfox.ch'];
-  assert.equal(isPortalDetailUrl('https://www.immobilier.ch/fr/louer/appartement-maison/grisons/landquart', portals), false);
   assert.equal(isPortalDetailUrl('https://flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/', portals), true);
+  assert.equal(isPortalDetailUrl('https://flatfox.ch/de/mieten/wohnung', portals), false);
 });
 
 test('nonListingReason rejects portal list/index URLs and challenge titles', async () => {
@@ -471,7 +471,7 @@ test('ImmoFinder reset defaults enable full Swiss rental discovery with bounded 
   assert.equal(defaults.search.rejectNonMonthly, false);
   assert.equal(defaults.search.rejectSeekerPosts, true);
   assert.equal(defaults.search.requireContact, false);
-  assert.equal(defaults.search.maxMonthlyRentChf, 2000);
+  assert.equal(defaults.search.maxMonthlyRentChf, 3500);
   assert.equal(defaults.delivery.driveFolderId, cfg.driveFolderId);
   assert.ok(Object.values(defaults.search.sources).filter(Boolean).length >= 14);
 

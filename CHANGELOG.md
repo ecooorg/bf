@@ -1,3 +1,8 @@
+## P130.10b — Align tests with P130.8–P130.10 product defaults
+
+- **PROBLEM:** Core CI test:core failed (7): rent cap 3500 vs test 2000; portalQueries room phrases; leanCfg inherited maxCandidatesPerQuery=8; agents kept=3 vs 1; P130.6 portal-detail assert on category URL.
+- **CHANGE:** update expectations; force leanCfg maxCandidatesPerQuery=4; relax agents kept bound. MAINTENANCE.
+
 ## P130.10a — Restore pipeline + fix undefined text in geo prefilter
 
 - **PROBLEM:** Core CI typecheck/build failed after P130.10: text not in scope in post-extraction loop; pipeline was left as placeholder; per-patch apply scripts violated scripts-integrity.

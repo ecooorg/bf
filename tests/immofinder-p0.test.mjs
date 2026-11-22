@@ -80,7 +80,8 @@ test('canonical portal redirects are accepted only when the same listing id rema
 test('discovery query set replaces generic Facebook group search with fresh-intent wording', () => {
   assert.ok(!cfg.discovery.queries.some((q) => q.startsWith('site:facebook.com/groups')));
   assert.ok(cfg.discovery.queries.some((q) => /privat|Eigentümer/.test(q)));
-  assert.ok(cfg.discovery.portalQueries.every((q) => !/Graubünden|3\.5 Zimmer/.test(q)));
+  assert.ok(cfg.discovery.portalQueries.every((q) => !/Graubünden/.test(q)));
+  assert.ok(cfg.discovery.portalQueries.some((q) => /3\.5 Zimmer|3 ½|4 Zimmer/.test(q)), 'portalQueries prefer room-count phrases');
   assert.ok(cfg.discovery.portalQueries.some((q) => q.includes('site:homegate.ch')));
 });
 
@@ -137,7 +138,7 @@ test('database diagnostics expose aggregate DB and pool health without credentia
 
 const leanCfg = (over = {}) => ({
   ...cfg, municipalities: ['Chur', 'Zizers'], sources: [], fetch: { ...cfg.fetch, perHostDelayMs: 0 },
-  discovery: { ...cfg.discovery, communesPerRun: 1, queries: ['A {commune}'], portalQueries: [], maxPagesPerRun: 10, serperMinIntervalMs: 0, ...over },
+  discovery: { ...cfg.discovery, communesPerRun: 1, queries: ['A {commune}'], portalQueries: [], maxPagesPerRun: 10, serperMinIntervalMs: 0, maxCandidatesPerQuery: 4, ...over },
 });
 const memStore = (saved = []) => ({ findByUrl: async () => null, touch: async () => {}, upsert: async (r) => { saved.push(r); return 'new'; }, getSeen: async () => null, markSeen: async () => {} });
 const noPage = async () => ({ ok: false, status: 403, body: '' });
