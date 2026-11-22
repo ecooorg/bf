@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T13:06:42.753Z",
-  "runId": "1bcba049-7a75-4ad5-91fe-40db1925b449",
-  "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
-  "eventCount": 68,
+  "generatedAt": "2026-11-22T13:33:08.750Z",
+  "runId": "1048c357-43c1-49d3-b259-342552da08bc",
+  "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+  "eventCount": 89,
   "logSource": "process_trace_buffer",
   "databaseLogWriteFailures": null,
   "events": [
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "run_started",
-      "at": "2026-11-22T13:04:41.692Z",
-      "elapsedMs": 1,
+      "at": "2026-11-22T13:30:53.870Z",
+      "elapsedMs": 0,
       "wave": "carousel",
       "dryRun": false,
       "municipalities": [
@@ -32,14 +32,14 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_plan",
-      "at": "2026-11-22T13:04:41.693Z",
-      "elapsedMs": 2,
+      "at": "2026-11-22T13:30:53.945Z",
+      "elapsedMs": 75,
       "wave": "carousel",
       "finishAll": true,
       "coverAllCommunes": false,
-      "cycle": 196,
+      "cycle": 197,
       "selectedCommunes": [
         "Chur"
       ],
@@ -58,10 +58,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:04:43.854Z",
-      "elapsedMs": 2163,
+      "at": "2026-11-22T13:30:59.329Z",
+      "elapsedMs": 5459,
       "source": "search",
       "queryIndex": 1,
       "queryTotal": 17,
@@ -72,10 +72,31 @@
       "pickDecisions": [
         {
           "accepted": false,
-          "reason": "non_listing:list_or_search_page",
-          "host": "rentola.ch",
-          "url": "rentola.ch/mieten/wohnung/chur",
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "Wohnung mieten in Chur: 29 Inserate"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:list_or_search_page",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-chur",
+          "title": "Wohnungen mieten mit Aufzug in Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Immobilien mieten in Chur: 39 Inserate"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnungsbörse"
         },
         {
           "accepted": true,
@@ -86,45 +107,10 @@
         },
         {
           "accepted": false,
-          "reason": "generic_or_search_url_on_portal_social_host",
-          "host": "rentola.ch",
-          "url": "rentola.ch/mieten/chur",
-          "title": "Immobilien mieten in Chur: 39 Inserate"
-        },
-        {
-          "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnungen mieten mit Aufzug in Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Nachmieter gesucht"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Volksinitiative \"Für bezahlbare Wohnungen\""
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Wohnungsbörse"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Ferienhäuser & Ferienwohnungen in Chur mieten"
+          "title": "Suche Nachmieter für 2.5 ZW ab 1.Mai 2026"
         },
         {
           "accepted": false,
@@ -138,14 +124,28 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Zentrales Studio gesucht - Pulvermühlestr, 5, 7000 Chur"
+          "title": "Volksinitiative \"Für bezahlbare Wohnungen\""
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienhäuser & Ferienwohnungen in Chur mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "🏠Booster fir de Wunnengsbau"
         }
       ],
       "results": [
         {
           "rank": 1,
-          "host": "rentola.ch",
-          "url": "rentola.ch/mieten/wohnung/chur",
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "Wohnung mieten in Chur: 29 Inserate",
           "snippet": "Finden Sie einfach eine Wohnung zur Miete von privat in Chur ➤ Entdecken Sie 29 Wohnungen für jedes Budget ➤ Geprüfte Inserate ➤ Täglich aktualisiert!",
           "date": null,
@@ -153,17 +153,17 @@
         },
         {
           "rank": 2,
-          "host": "homegate.ch",
-          "url": "www.homegate.ch/mieten/4002691999",
-          "title": "Wohnung mieten in Loestrasse - Lürlibad (Chur)",
-          "snippet": "Wohnung mieten in Loestrasse - Lürlibad (Chur). Bei homegate.ch findest Du 2 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-chur",
+          "title": "Wohnungen mieten mit Aufzug in Chur",
+          "snippet": "An zentraler Lage an der Reichsgasse 27 in Chur vermieten wir gemütliche 1-Zimmerwohnungen. Die Wohnungen eignen sich ideal für Singles, Studierende oder ...",
           "date": null,
-          "selected": true
+          "selected": false
         },
         {
           "rank": 3,
-          "host": "rentola.ch",
-          "url": "rentola.ch/mieten/chur",
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "Immobilien mieten in Chur: 39 Inserate",
           "snippet": "Finden Sie einfach eine Immobilie zur Miete von privat in Chur ➤ Entdecken Sie 39 Wohnungen, Häuser und Zimmer ➤ Geprüfte Inserate ➤ Täglich ...",
           "date": null,
@@ -173,49 +173,31 @@
           "rank": 4,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnungen mieten mit Aufzug in Chur",
-          "snippet": "An zentraler Lage an der Reichsgasse 27 in Chur vermieten wir gemütliche 1-Zimmerwohnungen. Die Wohnungen eignen sich ideal für Singles, Studierende oder ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 5,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Nachmieter gesucht",
-          "snippet": "Sarganserland, Bad Ragaz, Chur und Umgebung Neugierig geworden? Schreiben Sie mir einfach «MONSÙ» per Privatnachricht. Gerne informiere ich Sie ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 6,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Volksinitiative \"Für bezahlbare Wohnungen\"",
-          "snippet": "Die Initianten fordern, dass sich die Stadt Chur aktiv für preisgünstigen Wohnraum einsetzt und innert zwei Jahren die Voraussetzungen schafft, ...",
-          "date": "06.01.2026",
-          "selected": false
-        },
-        {
-          "rank": 7,
-          "host": "google.com",
-          "url": "www.google.com/goto",
           "title": "Wohnungsbörse",
           "snippet": "7000 Chur. Frei/Verfügbar ab [phone] · Wohngemeinschaft. Monatspreis in CHF 875.00. Zimmer 3.00. Wohnfläche 60.00 m2. Sennhofstrasse 14 7000 Chur. Frei/ ...",
           "date": null,
           "selected": false
         },
         {
-          "rank": 8,
+          "rank": 5,
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/4002691999",
+          "title": "Wohnung mieten in Loestrasse - Lürlibad (Chur)",
+          "snippet": "Wohnung mieten in Loestrasse - Lürlibad (Chur). Bei homegate.ch findest Du 2 passende Immobilien | Der grösste Immobilienmarktplatz der Schweiz.",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 6,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Ferienhäuser & Ferienwohnungen in Chur mieten",
-          "snippet": "Ferienhäuser & Ferienwohnungen in Chur für Ihren Urlaub ✔️ Provisionsfrei und günstig von privat mieten. ✔️ Jetzt buchen!",
-          "date": null,
+          "title": "Suche Nachmieter für 2.5 ZW ab 1.Mai 2026",
+          "snippet": "Wir suchen Nachmieter für unser 6.5-Zimmer Reiheneckhaus zentral in Chur in der Rätusstrasse. Die Wohnfläche erstreckt sich über 186 qm, das ...",
+          "date": "vor 7 Monaten",
           "selected": false
         },
         {
-          "rank": 9,
+          "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Photo by Vincenzo Cangemi (@vincenzocangemi1)",
@@ -224,12 +206,30 @@
           "selected": false
         },
         {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Volksinitiative \"Für bezahlbare Wohnungen\"",
+          "snippet": "Die Initianten fordern, dass sich die Stadt Chur aktiv für preisgünstigen Wohnraum einsetzt und innert zwei Jahren die Voraussetzungen schafft, ...",
+          "date": "06.01.2026",
+          "selected": false
+        },
+        {
+          "rank": 9,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Ferienhäuser & Ferienwohnungen in Chur mieten",
+          "snippet": "Ferienhäuser & Ferienwohnungen in Chur für Ihren Urlaub ✔️ Provisionsfrei und günstig von privat mieten. ✔️ Jetzt buchen!",
+          "date": null,
+          "selected": false
+        },
+        {
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Zentrales Studio gesucht - Pulvermühlestr, 5, 7000 Chur",
-          "snippet": "Diese Überbauung liegt inmitten der Stadt Chur. In wenigen Minuten erreichen Sie das Stadtzentrum, Sportmöglichkeiten, Cafés und Einkaufsmöglichkeiten.",
-          "date": null,
+          "title": "🏠Booster fir de Wunnengsbau",
+          "snippet": "Profitmaximierung fällt weg, die Miete bleibt dauerhaft tiefer, in Chur rund 20 Prozent. Joshua Wada, Präsident des Mieter:innenverbands ...",
+          "date": "vor 4 Monaten",
           "selected": false
         }
       ],
@@ -245,10 +245,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:04:43.855Z",
-      "elapsedMs": 2164,
+      "at": "2026-11-22T13:30:59.331Z",
+      "elapsedMs": 5461,
       "source": "search",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 1,
@@ -270,10 +270,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:04:43.857Z",
-      "elapsedMs": 2166,
+      "at": "2026-11-22T13:30:59.333Z",
+      "elapsedMs": 5463,
       "source": "search",
       "url": "www.homegate.ch/mieten/4002691999",
       "host": "homegate.ch",
@@ -283,25 +283,66 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:04:49.184Z",
-      "elapsedMs": 7493,
+      "at": "2026-11-22T13:31:07.707Z",
+      "elapsedMs": 13837,
       "source": "search",
       "url": "www.homegate.ch/mieten/4002691999",
       "status": 200,
       "fetchMode": "jina_reader",
-      "durationMs": 5322,
+      "durationMs": 8364,
       "bodyChars": 610,
       "textChars": 520,
       "finalUrl": "www.homegate.ch/mieten/4002691999"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T13:31:09.563Z",
+      "elapsedMs": 15693,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002691999",
+      "title": "Just a moment...",
+      "textChars": 520,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 1853,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T13:31:09.565Z",
+      "elapsedMs": 15695,
+      "source": "search",
+      "url": "www.homegate.ch/mieten/4002691999",
+      "host": "homegate.ch",
+      "title": "Just a moment...",
+      "reason": "not_single_listing",
+      "detail": "",
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:04:51.144Z",
-      "elapsedMs": 9453,
+      "at": "2026-11-22T13:31:11.122Z",
+      "elapsedMs": 17252,
       "source": "portal-homegate",
       "queryIndex": 2,
       "queryTotal": 17,
@@ -311,17 +352,17 @@
       "selectedCount": 1,
       "pickDecisions": [
         {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "31 Wohnung mieten in Chur"
-        },
-        {
           "accepted": true,
           "reason": "accepted_expandable_index",
           "host": "homegate.ch",
           "url": "www.homegate.ch/mieten/wohnung/ort-chur/trefferliste",
+          "title": "31 Wohnung mieten in Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "7 Wohnung mieten mit 3 Zimmern in Chur"
         },
         {
@@ -384,21 +425,21 @@
       "results": [
         {
           "rank": 1,
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "host": "homegate.ch",
+          "url": "www.homegate.ch/mieten/wohnung/ort-chur/trefferliste",
           "title": "31 Wohnung mieten in Chur",
           "snippet": "... Chur entstehen sieben attraktive 4.5-Zimmer-Mietwohnungen im hochwertigen Neubau. ... 3.5 Zimmer. Rheinstrasse 64, 7000 Chur · 12. Suche speichern. Karte ...",
           "date": null,
-          "selected": false
+          "selected": true
         },
         {
           "rank": 2,
-          "host": "homegate.ch",
-          "url": "www.homegate.ch/mieten/wohnung/ort-chur/trefferliste",
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "7 Wohnung mieten mit 3 Zimmern in Chur",
           "snippet": "Diese tolle 3.5-Zimmer-Wohnung mit 65 m² Wohnfläche bietet Ihnen zudem ... Immobilien mieten Chur|Haus mieten Chur|Möbliertes Wohnobjekt mieten Chur ...",
           "date": null,
-          "selected": true
+          "selected": false
         },
         {
           "rank": 3,
@@ -477,7 +518,7 @@
         {
           "host": "homegate.ch",
           "url": "www.homegate.ch/mieten/wohnung/ort-chur/trefferliste",
-          "title": "7 Wohnung mieten mit 3 Zimmern in Chur",
+          "title": "31 Wohnung mieten in Chur",
           "snippetOnly": false,
           "expandableIndex": true
         }
@@ -485,10 +526,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:04:51.144Z",
-      "elapsedMs": 9453,
+      "at": "2026-11-22T13:31:11.123Z",
+      "elapsedMs": 17253,
       "source": "portal-homegate",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 1,
@@ -502,7 +543,7 @@
         {
           "host": "homegate.ch",
           "url": "www.homegate.ch/mieten/wohnung/ort-chur/trefferliste",
-          "title": "7 Wohnung mieten mit 3 Zimmern in Chur",
+          "title": "31 Wohnung mieten in Chur",
           "snippetOnly": false,
           "expandableIndex": true
         }
@@ -510,10 +551,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "expandable_index_expanded",
-      "at": "2026-11-22T13:04:57.477Z",
-      "elapsedMs": 15786,
+      "at": "2026-11-22T13:31:14.542Z",
+      "elapsedMs": 20672,
       "source": "portal-homegate",
       "listUrl": "www.homegate.ch/mieten/wohnung/ort-chur/trefferliste",
       "detailCount": 0,
@@ -521,10 +562,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:04:59.241Z",
-      "elapsedMs": 17550,
+      "at": "2026-11-22T13:31:16.024Z",
+      "elapsedMs": 22154,
       "source": "search",
       "queryIndex": 3,
       "queryTotal": 17,
@@ -566,7 +607,7 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnungen mieten mit Aufzug in Chur"
+          "title": "Wohnung mieten: Chur - www.home.ch"
         },
         {
           "accepted": false,
@@ -580,7 +621,7 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Chur - www.home.ch"
+          "title": "Wohnungen mieten mit Aufzug in Chur"
         },
         {
           "accepted": false,
@@ -645,8 +686,8 @@
           "rank": 5,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnungen mieten mit Aufzug in Chur",
-          "snippet": "Moderne Neubau 2.5 Zimmer-Wohnung in Chur zu vermieten! Wir vermieten per 1. Dezmeber 2026 oder nach Vereinbarung eine moderne 2.5 ZImmer-Wohnung an der ...",
+          "title": "Wohnung mieten: Chur - www.home.ch",
+          "snippet": "Wohnung zu Vermieten oder Einzelzimmer. Susenbühlstrasse. WG in Chur löst sich auf und sucht neue Menschen!Einzug ab Anfang Januar 2027Unsere schöneWohnung in..",
           "date": null,
           "selected": false
         },
@@ -663,8 +704,8 @@
           "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Chur - www.home.ch",
-          "snippet": "Wohnung zu Vermieten oder Einzelzimmer. Susenbühlstrasse. WG in Chur löst sich auf und sucht neue Menschen!Einzug ab Anfang Januar 2027Unsere schöneWohnung in..",
+          "title": "Wohnungen mieten mit Aufzug in Chur",
+          "snippet": "Moderne Neubau 2.5 Zimmer-Wohnung in Chur zu vermieten! Wir vermieten per 1. Dezmeber 2026 oder nach Vereinbarung eine moderne 2.5 ZImmer-Wohnung an der ...",
           "date": null,
           "selected": false
         },
@@ -700,10 +741,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:04:59.241Z",
-      "elapsedMs": 17550,
+      "at": "2026-11-22T13:31:16.024Z",
+      "elapsedMs": 22154,
       "source": "search",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 0,
@@ -717,10 +758,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:02.836Z",
-      "elapsedMs": 21145,
+      "at": "2026-11-22T13:31:19.419Z",
+      "elapsedMs": 25549,
       "source": "portal-immoscout24",
       "queryIndex": 4,
       "queryTotal": 17,
@@ -896,10 +937,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:02.837Z",
-      "elapsedMs": 21146,
+      "at": "2026-11-22T13:31:19.419Z",
+      "elapsedMs": 25549,
       "source": "portal-immoscout24",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 0,
@@ -913,10 +954,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:06.477Z",
-      "elapsedMs": 24786,
+      "at": "2026-11-22T13:31:24.290Z",
+      "elapsedMs": 30420,
       "source": "search",
       "queryIndex": 5,
       "queryTotal": 17,
@@ -927,9 +968,9 @@
       "pickDecisions": [
         {
           "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "reason": "non_listing:list_or_search_page",
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-chur-old-town/liste",
           "title": "Wohnung mieten in Chur Old Town (Bezirk)"
         },
         {
@@ -941,9 +982,9 @@
         },
         {
           "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "reason": "non_listing:list_or_search_page",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-chur",
           "title": "Wohnungen mieten mit Aufzug in Chur"
         },
         {
@@ -958,14 +999,14 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten in Chur: 29 Inserate"
+          "title": "3.5-Zimmer-Wohnung in Chur ab 1. Dezember zu vermieten!"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "3.5-Zimmer-Wohnung in Chur ab 1. Dezember zu vermieten!"
+          "title": "Wohnung mieten in Chur: 29 Inserate"
         },
         {
           "accepted": false,
@@ -979,7 +1020,7 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 4.5 Zimmer Wohnung in Chur Altstadt"
+          "title": "Calandastrasse 54, 7000 Chur - Flyer Mietwohnungen"
         },
         {
           "accepted": false,
@@ -993,16 +1034,16 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Calvenweg 4, 7000 Chur - CHF 1'355 - Huusbro"
+          "title": "Charmante 4.5 Zimmer Wohnung in Chur Altstadt"
         }
       ],
       "results": [
         {
           "rank": 1,
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "host": "newhome.ch",
+          "url": "www.newhome.ch/de/mieten/suchen/wohnung/region-chur-old-town/liste",
           "title": "Wohnung mieten in Chur Old Town (Bezirk)",
-          "snippet": "- Wohnung mieten in Chur Old Town (Bezirk) · 3.5 Zimmer Wohnung · 4.5 Zimmer Wohnung · 3.5 Zimmer Terrassenwohnung · 2.5 Zimmer Wohnung · 3 Zimmer Wohnung · 2.5 ...",
+          "snippet": "Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'018, für eine 4.5 Zimmer ... Wie viel kostet die günstigste 3-Zimmer-Immobilie in Chur Old Town? Die ...",
           "date": null,
           "selected": false
         },
@@ -1017,8 +1058,8 @@
         },
         {
           "rank": 3,
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "host": "immoscout24.ch",
+          "url": "www.immoscout24.ch/de/wohnung/mieten/ort-chur",
           "title": "Wohnungen mieten mit Aufzug in Chur",
           "snippet": "4.5 Zimmer, CHF 2'[phone] Zimmer - Wohnungen zum Mieten: Chur · 4 Zimmer - Wohnungen zum Mieten: Chur · 5 zimmer und mehr - Wohnungen zum Mieten: Chur.",
           "date": null,
@@ -1037,18 +1078,18 @@
           "rank": 5,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten in Chur: 29 Inserate",
-          "snippet": "4 Zimmer Wohnung von 77m². Ringstrasse 172, 7000 Chur, Switzerland. CHF1'[phone] Zimmer Wohnung von 72m². Pulvermühlestrasse 34, 7000 Chur, Switzerland.",
-          "date": null,
+          "title": "3.5-Zimmer-Wohnung in Chur ab 1. Dezember zu vermieten!",
+          "snippet": "3.5-Zimmer-Wohnung in Chur ab 1. Dezember zu vermieten! Wir ... 5-Zimmer-Wohnung in Chur befristet zu vermieten! Wir vermieten ...",
+          "date": "vor 2 Wochen",
           "selected": false
         },
         {
           "rank": 6,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "3.5-Zimmer-Wohnung in Chur ab 1. Dezember zu vermieten!",
-          "snippet": "3.5-Zimmer-Wohnung in Chur ab 1. Dezember zu vermieten! Wir ... 5-Zimmer-Wohnung in Chur befristet zu vermieten! Wir vermieten ...",
-          "date": "vor 2 Wochen",
+          "title": "Wohnung mieten in Chur: 29 Inserate",
+          "snippet": "4 Zimmer Wohnung von 77m². Ringstrasse 172, 7000 Chur, Switzerland. CHF1'[phone] Zimmer Wohnung von 72m². Pulvermühlestrasse 34, 7000 Chur, Switzerland.",
+          "date": null,
           "selected": false
         },
         {
@@ -1064,8 +1105,8 @@
           "rank": 8,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 4.5 Zimmer Wohnung in Chur Altstadt",
-          "snippet": "Erleben Sie modernen Komfort in zentraler Lage: 4.5 Zimmer, Waschmaschine, Tumbler und mehr im Herzen von Chur ... 2,5 Zimmer Wohnung in Peist, Plessur - Zu ...",
+          "title": "Calandastrasse 54, 7000 Chur - Flyer Mietwohnungen",
+          "snippet": "4.5-Zimmer Whg. 108.5 m2. 3.5-Zimmer Whg. 90.1 m2. 3.5-Zimmer Whg. 90.1 m2 ... CH- 7000 Chur. CH-8003 Zürich. CH-7503 Samedan. CH-7550 Scuol [email].",
           "date": null,
           "selected": false
         },
@@ -1082,9 +1123,9 @@
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Calvenweg 4, 7000 Chur - CHF 1'355 - Huusbro",
-          "snippet": "Startseite Mieten Wohnung Chur. 3.5 Zimmer Wohnung in Chur. Merken ... 3-Zimmer-Wohnungen in Chur 4-Zimmer-Wohnungen in Chur Häuser in ...",
-          "date": "in 4 Tagen",
+          "title": "Charmante 4.5 Zimmer Wohnung in Chur Altstadt",
+          "snippet": "Erleben Sie modernen Komfort in zentraler Lage: 4.5 Zimmer, Waschmaschine, Tumbler und mehr im Herzen von Chur ... 2,5 Zimmer Wohnung in Peist, Plessur - Zu ...",
+          "date": null,
           "selected": false
         }
       ],
@@ -1092,10 +1133,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:06.478Z",
-      "elapsedMs": 24787,
+      "at": "2026-11-22T13:31:24.290Z",
+      "elapsedMs": 30420,
       "source": "search",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 0,
@@ -1109,17 +1150,17 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:13.581Z",
-      "elapsedMs": 31890,
+      "at": "2026-11-22T13:31:27.966Z",
+      "elapsedMs": 34096,
       "source": "portal-flatfox",
       "queryIndex": 6,
       "queryTotal": 17,
       "query": "site:flatfox.ch \"Chur\" (\"3.5 Zimmer\" OR \"3 ½\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") (mieten OR Wohnung)",
       "resultCount": 10,
-      "pickedCount": 1,
-      "selectedCount": 1,
+      "pickedCount": 3,
+      "selectedCount": 3,
       "pickDecisions": [
         {
           "accepted": true,
@@ -1127,6 +1168,34 @@
           "host": "flatfox.ch",
           "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
           "title": "3 ½ Zimmer-Wohnung in Chur mieten"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+          "title": "Rent a 3 ½ rooms apartment in Chur"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+          "title": "Appartement 3 ½ pièces à louer à Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "5 ½ Zimmer-Attikawohnung in Chur mieten"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Rent a 3 ½ rooms apartment in Chur"
         },
         {
           "accepted": false,
@@ -1147,20 +1216,6 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Rent a 3 ½ rooms apartment in Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Wohnung in Chur mieten"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
           "title": "2 ½ Zimmer-Wohnung in Chur mieten"
         },
         {
@@ -1176,20 +1231,6 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "2 ½ Zimmer-Wohnung in Chur mieten"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "1 Zimmer-Einzelzimmer in Chur mieten"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "WG Zimmer in Chur mieten"
         }
       ],
       "results": [
@@ -1204,24 +1245,42 @@
         },
         {
           "rank": 2,
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
           "title": "Rent a 3 ½ rooms apartment in Chur",
           "snippet": "Rent a 3 ½ rooms apartment in Chur: Die Wohnung zeichnet sich durch folgende ... Grosszügige 3.5 Zimmer Wohnung in zentralen Lage. Die Wohnung zeichnet ...",
           "date": null,
-          "selected": false
+          "selected": true
         },
         {
           "rank": 3,
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
           "title": "Appartement 3 ½ pièces à louer à Chur",
           "snippet": "Appartement 3 ½ pièces à louer à Chur: Ich suche für meine 3.5-Zimmer-Wohnung in Chur (Rheinquartier) eine(n) Nachmieter(in). Die Wohnung liegt im 2. Stock (o…",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "5 ½ Zimmer-Attikawohnung in Chur mieten",
+          "snippet": "5 ½ Zimmer-Attikawohnung in Chur mieten ... 3 ½ Zimmer-WohnungSegantinistrasse 447000 Chur · 5 ... 4 Zimmer-WohnungHerrengasse 157000 Chur · 5 Zimmer ...",
           "date": null,
           "selected": false
         },
         {
-          "rank": 4,
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Rent a 3 ½ rooms apartment in Chur",
+          "snippet": "Rent a 3 ½ rooms apartment in Chur. Ringstr. 172, 7000 Chur - CHF 1'555 incl ... Diese tolle 3.5-Zimmer-Wohnung mit 65 m² Wohnfläche bietet Ihnen zudem: - ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Rent a 3 ½ rooms apartment in Chur",
@@ -1230,29 +1289,11 @@
           "selected": false
         },
         {
-          "rank": 5,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Wohnung in Chur mieten",
-          "snippet": "Mieten. 800 CHF · 1 Zimmer-EinzelzimmerBadusstrasse 107000 Chur · 3 ½ Zimmer-Wohnung. Mieten. 1'545 CHF. 3 ½ Zimmer-WohnungAustrasse 387000 Chur · 2 Zimmer- ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 6,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "2 ½ Zimmer-Wohnung in Chur mieten",
-          "snippet": "Mieten. 2'135 CHF. 4 ½ Zimmer-WohnungWeststr. 67000 Chur · 3 ½ Zimmer-Wohnung. Mieten. 1'750 CHF · 3 ½ Zimmer-WohnungAspermontstrasse 177000 Chur · 2 ½ Zimmer- ...",
-          "date": null,
-          "selected": false
-        },
-        {
           "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Rent a 3 ½ rooms apartment in Chur",
-          "snippet": "Rent a 3 ½ rooms apartment in Chur: Suchen Sie ein komfortables und funktionales Zuhause? Entdecken Sie diese schöne 3,5-Zimmer-Wohnung mit einer Fläche vo…",
+          "title": "Appartement 3 ½ pièces à louer à Chur",
+          "snippet": "Appartement 3 ½ pièces à louer à Chur ; Appartement 4 ½ piècesBodmerstrasse 28 ; Appartement 3 ½ piècesAspermontstrasse 17 ; Appartement 4 ½ piècesRheinstr. 132 ...",
           "date": null,
           "selected": false
         },
@@ -1261,7 +1302,7 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "2 ½ Zimmer-Wohnung in Chur mieten",
-          "snippet": "3 Zimmer-Wohnung. Mieten. 1'220 CHF. 3 Zimmer-WohnungWinkel 137012 Felsberg · 3 ½ Zimmer-Wohnung. Mieten. 1'555 CHF · 3 ½ Zimmer-WohnungRingstr. 1727000 Chur.",
+          "snippet": "Mieten. 1'850 CHF. 4 rooms apartmentGürtelstrasse 577000 Chur · 3 ½ rooms apartment. Mieten. 1'850 CHF · 3 ½ rooms apartmentFreifeldstrasse 57000 Chur · 2 rooms ...",
           "date": null,
           "selected": false
         },
@@ -1269,8 +1310,8 @@
           "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "1 Zimmer-Einzelzimmer in Chur mieten",
-          "snippet": "Mieten. 945 CHF. Befristet. 1 ½ Zimmer-WohnungKurfirstenstrasse 187000 Chur · 3 ½ Zimmer-Wohnung. Mieten. 1'555 CHF · 3 ½ Zimmer-WohnungRingstr. 1727000 Chur.",
+          "title": "Rent a 3 ½ rooms apartment in Chur",
+          "snippet": "Rent a 3 ½ rooms apartment in Chur: Suchen Sie ein komfortables und funktionales Zuhause? Entdecken Sie diese schöne 3,5-Zimmer-Wohnung mit einer Fläche vo…",
           "date": null,
           "selected": false
         },
@@ -1278,8 +1319,8 @@
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "WG Zimmer in Chur mieten",
-          "snippet": "WG Zimmer in Chur mieten: Hoi Zäme :) Mir wohned im Moment z dritte ih eusere schöne 4.5 Zimmer Wohnig. Im Früehlig verlönd zwei vo drü leid…",
+          "title": "2 ½ Zimmer-Wohnung in Chur mieten",
+          "snippet": "3 Zimmer-Wohnung. Mieten. 1'220 CHF · 3 Zimmer-WohnungWinkel 137012 Felsberg · 3 ½ Zimmer-Wohnung. Mieten. 1'555 CHF. 3 ½ Zimmer-WohnungRingstr. 1727000 Chur.",
           "date": null,
           "selected": false
         }
@@ -1291,20 +1332,34 @@
           "title": "3 ½ Zimmer-Wohnung in Chur mieten",
           "snippetOnly": false,
           "expandableIndex": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+          "title": "Rent a 3 ½ rooms apartment in Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+          "title": "Appartement 3 ½ pièces à louer à Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
         }
       ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:13.582Z",
-      "elapsedMs": 31891,
+      "at": "2026-11-22T13:31:27.967Z",
+      "elapsedMs": 34097,
       "source": "portal-flatfox",
       "rawHits": 10,
-      "pickedBeforeCrossQueryDedupe": 1,
+      "pickedBeforeCrossQueryDedupe": 3,
       "duplicateAcrossQueries": 0,
-      "selectedAfterPerQueryCap": 1,
+      "selectedAfterPerQueryCap": 3,
       "maxCandidatesPerQuery": 6,
       "processedItemsBefore": 2,
       "pageLimit": 420,
@@ -1316,15 +1371,29 @@
           "title": "3 ½ Zimmer-Wohnung in Chur mieten",
           "snippetOnly": false,
           "expandableIndex": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+          "title": "Rent a 3 ½ rooms apartment in Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "flatfox.ch",
+          "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+          "title": "Appartement 3 ½ pièces à louer à Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
         }
       ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:05:13.582Z",
-      "elapsedMs": 31891,
+      "at": "2026-11-22T13:31:27.967Z",
+      "elapsedMs": 34097,
       "source": "portal-flatfox",
       "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
       "host": "flatfox.ch",
@@ -1334,32 +1403,32 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:05:14.363Z",
-      "elapsedMs": 32672,
+      "at": "2026-11-22T13:31:28.779Z",
+      "elapsedMs": 34909,
       "source": "portal-flatfox",
       "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
       "status": 200,
       "fetchMode": "direct",
-      "durationMs": 778,
+      "durationMs": 806,
       "bodyChars": 23527,
       "textChars": 589,
       "finalUrl": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_extracted",
-      "at": "2026-11-22T13:05:22.927Z",
-      "elapsedMs": 41236,
+      "at": "2026-11-22T13:31:37.725Z",
+      "elapsedMs": 43855,
       "source": "portal-flatfox",
       "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
       "title": "3 ½ Zimmer-Wohnung in Chur mieten | Flatfox",
       "textChars": 589,
       "llmUsed": true,
       "llmCalls": 1,
-      "extractionDurationMs": 8561,
+      "extractionDurationMs": 8944,
       "llmError": null,
       "single": true,
       "agencyDetected": false,
@@ -1373,10 +1442,114 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_received",
+      "at": "2026-11-22T13:31:37.726Z",
+      "elapsedMs": 43856,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+      "host": "flatfox.ch",
+      "title": "Rent a 3 ½ rooms apartment in Chur",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T13:31:38.010Z",
+      "elapsedMs": 44140,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+      "status": 200,
+      "fetchMode": "direct",
+      "durationMs": 281,
+      "bodyChars": 23474,
+      "textChars": 567,
+      "finalUrl": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T13:31:38.764Z",
+      "elapsedMs": 44894,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+      "title": "Rent a 3 ½ rooms apartment in Chur | Flatfox",
+      "textChars": 567,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 752,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Chur",
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_received",
+      "at": "2026-11-22T13:31:38.764Z",
+      "elapsedMs": 44894,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+      "host": "flatfox.ch",
+      "title": "Appartement 3 ½ pièces à louer à Chur",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T13:31:39.762Z",
+      "elapsedMs": 45892,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 993,
+      "bodyChars": 25723,
+      "textChars": 25304,
+      "finalUrl": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T13:31:43.884Z",
+      "elapsedMs": 50014,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+      "title": "Appartement 3 ½ pièces à louer à Chur | Flatfox",
+      "textChars": 25304,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 4119,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Chur",
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_rejected_after_extraction",
-      "at": "2026-11-22T13:05:22.932Z",
-      "elapsedMs": 41241,
+      "at": "2026-11-22T13:31:43.887Z",
+      "elapsedMs": 50017,
       "source": "portal-flatfox",
       "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
       "host": "flatfox.ch",
@@ -1390,10 +1563,44 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T13:31:44.356Z",
+      "elapsedMs": 50486,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+      "host": "flatfox.ch",
+      "title": "Rent a 3 ½ rooms apartment in Chur | Flatfox",
+      "reason": "listing_unavailable",
+      "detail": "page_states_unavailable",
+      "municipality": "Chur",
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T13:31:47.755Z",
+      "elapsedMs": 53885,
+      "source": "portal-flatfox",
+      "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+      "host": "flatfox.ch",
+      "title": "Appartement 3 ½ pièces à louer à Chur | Flatfox",
+      "reason": "price_ambiguous_on_detail_page",
+      "detail": "write_gate",
+      "municipality": "Chur",
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:24.950Z",
-      "elapsedMs": 43259,
+      "at": "2026-11-22T13:31:50.073Z",
+      "elapsedMs": 56203,
       "source": "search",
       "queryIndex": 7,
       "queryTotal": 17,
@@ -1470,7 +1677,7 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 4.5 Zimmer Wohnung in Chur Altstadt"
+          "title": "Wohnung zu Vermieten oder Einzelzimmer - CHF 2'113"
         }
       ],
       "results": [
@@ -1506,7 +1713,7 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Wohnungen mieten mit Aufzug in Chur",
-          "snippet": "Wohnungen zum Mieten mit Lift in Chur: 15 Treffer ; 1 / 8 · 69m², CHF 1'770.–. Pulvermühlestr. 32, 7000 Chur ; 1 / 7 · 100m², CHF 2'260.–. Sägenstr. 30, 7000 Chur.",
+          "snippet": "An zentraler Lage an der Reichsgasse 27 in Chur vermieten wir gemütliche 1-Zimmerwohnungen. Die Wohnungen eignen sich ideal für Singles, Studierende oder ...",
           "date": null,
           "selected": false
         },
@@ -1559,8 +1766,8 @@
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 4.5 Zimmer Wohnung in Chur Altstadt",
-          "snippet": "Adresse: Charmante Wohnung, Poststrasse [phone] Chur ; Zimmer: 4.5 / Stockwerk: 3. OG ; Mietzins: 1'940 CHF ; Kontakt: Frau Doris Riedi ; Telefon: [phone] ...",
+          "title": "Wohnung zu Vermieten oder Einzelzimmer - CHF 2'113",
+          "snippet": "In der Nähe in Chur. Wohnung zur Miete in Chur. CHF 2'090. Chur · 4.5 Zi. Wohnung zur Miete in Chur. CHF 2'135. Chur · 4.5 Zi. · 104 m². Wohnung zur Miete in ...",
           "date": null,
           "selected": false
         }
@@ -1569,34 +1776,34 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:24.950Z",
-      "elapsedMs": 43259,
+      "at": "2026-11-22T13:31:50.074Z",
+      "elapsedMs": 56204,
       "source": "search",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 0,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 0,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 3,
+      "processedItemsBefore": 5,
       "pageLimit": 420,
-      "remainingPageBudget": 417,
+      "remainingPageBudget": 415,
       "candidateUrls": []
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:27.855Z",
-      "elapsedMs": 46164,
+      "at": "2026-11-22T13:31:53.586Z",
+      "elapsedMs": 59716,
       "source": "portal-tutti",
       "queryIndex": 8,
       "queryTotal": 17,
       "query": "site:tutti.ch \"Chur\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung",
       "resultCount": 10,
-      "pickedCount": 0,
-      "selectedCount": 0,
+      "pickedCount": 1,
+      "selectedCount": 1,
       "pickDecisions": [
         {
           "accepted": false,
@@ -1606,11 +1813,53 @@
           "title": "21 Inserate in Immobilien - Mieten - Wohnungen - Chur"
         },
         {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/83980958",
+          "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "non_listing:development_project",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-uri-wohnungen-haeuser-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZZKpYXBhcnRtZW50pWhvdXNlkqlwcmljZVR5cGWkUkVOVMDAkZOobG9jYXRpb26uZ2VvLWNhbnRvbi11cmnA",
+          "title": "17 Inserate in Immobilien - Mieten - Wohnungen, Häuser - Uri"
+        },
+        {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur"
+          "title": "Helle 3.5-Zimmer-Wohnung. 2 Balkonen. 2 Badezimmern"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "10 Inserate in Immobilien - Mieten - Wohnungen, Häuser"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Grosszügige 3.5-Zimmer-Wohnung in grüner Umgebung"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung 2.OG zum Wohlfühlen..."
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Grosszügige 3.5-Zimmer-Wohnung mit gedecktem Balkon"
         },
         {
           "accepted": false,
@@ -1625,48 +1874,6 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Geräumige 4.5-Zimmer-Wohnung in Chur - die Gelegenheit!"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "582 Inserate in Immobilien - Mieten - Wohnungen, Häuser, ..."
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Charmante 3.5-Zimmer-Wohnung mit Panoramabalkon an ..."
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "54 Inserate in Immobilien - Mieten - Wohnungen - Nidwalden"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "3.5 Zimmer Wohnung im Kanton Solothurn mieten"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "3.5-Zimmer-Wohnung in Klosters hochwertig saniert mit"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "1'116 Inserate in Immobilien - Mieten - Wohnungen - Basel ..."
         }
       ],
       "results": [
@@ -1681,15 +1888,69 @@
         },
         {
           "rank": 2,
-          "host": "google.com",
-          "url": "www.google.com/goto",
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/83980958",
           "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur",
           "snippet": "7000, Chur. Karte. Nachmieter für undere schöne, grosse, zentral gelegene 3.5-Zimmer-Attikawohnung gesucht! - Bezug ab [phone]m2 Wohnung & 60m2 Balkon",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/q/immobilien-uri-wohnungen-haeuser-mieten/Ak8CqcmVhbEVzdGF0ZZSSkqtsaXN0aW5nVHlwZZKpYXBhcnRtZW50pWhvdXNlkqlwcmljZVR5cGWkUkVOVMDAkZOobG9jYXRpb26uZ2VvLWNhbnRvbi11cmnA",
+          "title": "17 Inserate in Immobilien - Mieten - Wohnungen, Häuser - Uri",
+          "snippet": "Grosszügige 4.5 Zimmer-Wohnung mit Balkon in Bürglen. An der ... Zentrale 3.5 Zimmer Wohnung im 2. OG an der Bahnhofstrasse. - Ab 1. November ...",
           "date": null,
           "selected": false
         },
         {
-          "rank": 3,
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Helle 3.5-Zimmer-Wohnung. 2 Balkonen. 2 Badezimmern",
+          "snippet": "Diese grosszügige und lichtdurchflutete 3.5-Zimmer-Wohnung mit 95 m² Wohnfläche befindet sich an zentraler Lage, im Quartier Länggasse.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "10 Inserate in Immobilien - Mieten - Wohnungen, Häuser",
+          "snippet": "ELEGANTE 4.5-ZIMMER-WOHNUNG MIT GROSSZÜGIGER FLÄCHE UND. Diese wunderschöne 4.5-Zimmer ... ChurWohnungen mieten SittenWohnungen mieten UsterHäuser mieten ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Grosszügige 3.5-Zimmer-Wohnung in grüner Umgebung",
+          "snippet": "Grosszügige 3.5-Zimmer-Wohnung in grüner Umgebung. 2'330.- pro Monat ... ChurWohnungen mieten SittenWohnungen mieten UsterHäuser mieten ...",
+          "date": "11.11.2026",
+          "selected": false
+        },
+        {
+          "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung 2.OG zum Wohlfühlen...",
+          "snippet": "Moderne 3.5-Zimmer-Wohnung mit grossem Balkon in Menziken. 1'510 ... ChurWohnungen mieten SittenWohnungen mieten UsterHäuser mieten ...",
+          "date": "12.11.2026",
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Grosszügige 3.5-Zimmer-Wohnung mit gedecktem Balkon",
+          "snippet": "Grosszügige 3.5-Zimmer-Wohnung mit gedecktem Balkon. 1'350.- pro ... ChurWohnungen mieten SittenWohnungen mieten UsterHäuser mieten ...",
+          "date": "05.11.2026",
+          "selected": false
+        },
+        {
+          "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "214 Inserate in Immobilien - Mieten - Wohnungen, Häuser",
@@ -1698,94 +1959,120 @@
           "selected": false
         },
         {
-          "rank": 4,
+          "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Geräumige 4.5-Zimmer-Wohnung in Chur - die Gelegenheit!",
           "snippet": "Geräumige 4.5-Zimmer-Wohnung in Chur - die Gelegenheit! · 650'000.- · Finde mehr Bilder im ursprünglichen Inserat. · Kaufen.",
           "date": null,
           "selected": false
-        },
-        {
-          "rank": 5,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "582 Inserate in Immobilien - Mieten - Wohnungen, Häuser, ...",
-          "snippet": "3.5-Zimmer-Wohnung Frisch totalsaniert und bereit zum. Modernes Wohnen in ... 4.5-Zimmer-Wohnung Moderner Wohnkomfort nach umfassender. Einziehen und ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 6,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Charmante 3.5-Zimmer-Wohnung mit Panoramabalkon an ...",
-          "snippet": "Charmante 3.5-Zimmer-Wohnung mit Panoramabalkon an ruhiger. 1'820 ... ChurWohnungen mieten SittenWohnungen mieten UsterHäuser mieten ...",
-          "date": "03.11.2026",
-          "selected": false
-        },
-        {
-          "rank": 7,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "54 Inserate in Immobilien - Mieten - Wohnungen - Nidwalden",
-          "snippet": "Attraktive 3.5-Zimmer-Wohnung im 2. Obergeschoss. Die moderne Überbauung ... ChurWohnungen mieten SittenWohnungen mieten UsterHäuser mieten ZürichHäuser ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 8,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "3.5 Zimmer Wohnung im Kanton Solothurn mieten",
-          "snippet": "3.5 Zimmer Wohnung. [phone] Zimmer Wohnung ... Wohnungen mieten BernWohnungen mieten WinterthurWohnungen mieten LuzernWohnungen mieten St. ... ChurWohnungen ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 9,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "3.5-Zimmer-Wohnung in Klosters hochwertig saniert mit",
-          "snippet": "NEUBAU Zanutsch | LETZTE ERSTWOHNUNG | 3.5-Zimmer-Wohnung ... Wohnungen mieten BernWohnungen mieten WinterthurWohnungen mieten LuzernWohnungen mieten St. ... Chur ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 10,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "1'116 Inserate in Immobilien - Mieten - Wohnungen - Basel ...",
-          "snippet": "1'116 Inserate in Immobilien - Mieten - Wohnungen - Basel-Landschaft · 4 Zimmer Wohnung · 4.5 Zimmer Wohnung in Muttenz zu vermieten · 4.5 Zimmerwohnung zu ...",
-          "date": null,
-          "selected": false
         }
       ],
-      "selected": []
+      "selected": [
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/83980958",
+          "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:27.855Z",
-      "elapsedMs": 46164,
+      "at": "2026-11-22T13:31:53.586Z",
+      "elapsedMs": 59716,
       "source": "portal-tutti",
       "rawHits": 10,
-      "pickedBeforeCrossQueryDedupe": 0,
+      "pickedBeforeCrossQueryDedupe": 1,
       "duplicateAcrossQueries": 0,
-      "selectedAfterPerQueryCap": 0,
+      "selectedAfterPerQueryCap": 1,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 3,
+      "processedItemsBefore": 5,
       "pageLimit": 420,
-      "remainingPageBudget": 417,
-      "candidateUrls": []
+      "remainingPageBudget": 415,
+      "candidateUrls": [
+        {
+          "host": "tutti.ch",
+          "url": "www.tutti.ch/de/vi/83980958",
+          "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        }
+      ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_received",
+      "at": "2026-11-22T13:31:53.586Z",
+      "elapsedMs": 59716,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/vi/83980958",
+      "host": "tutti.ch",
+      "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_fetch_failed",
+      "at": "2026-11-22T13:32:03.604Z",
+      "elapsedMs": 69734,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/vi/83980958",
+      "status": 0,
+      "fetchMode": null,
+      "durationMs": 10000,
+      "error": "step_timeout:fetch",
+      "finalUrl": "www.tutti.ch/de/vi/83980958"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_snippet_fallback_after_fetch_failure",
+      "at": "2026-11-22T13:32:03.605Z",
+      "elapsedMs": 69735,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/vi/83980958",
+      "host": "tutti.ch",
+      "originalFetchStatus": 0,
+      "snippetChars": 215,
+      "evidenceConfidence": "low"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T13:32:03.607Z",
+      "elapsedMs": 69737,
+      "source": "portal-tutti",
+      "url": "www.tutti.ch/de/vi/83980958",
+      "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur",
+      "textChars": 215,
+      "llmUsed": false,
+      "llmCalls": 0,
+      "extractionDurationMs": 0,
+      "llmError": null,
+      "single": true,
+      "agencyDetected": false,
+      "municipality": "Chur",
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": true,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:31.787Z",
-      "elapsedMs": 50096,
+      "at": "2026-11-22T13:32:09.333Z",
+      "elapsedMs": 75463,
       "source": "portal-newhome",
       "queryIndex": 9,
       "queryTotal": 17,
@@ -1827,7 +2114,7 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Attikawohnung mieten in Chur"
+          "title": "Dachwohnung mieten in Chur"
         },
         {
           "accepted": false,
@@ -1835,13 +2122,6 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Wohnung oder Haus mieten in Chur Old Town (Bezirk)"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Dachwohnung mieten in Chur"
         },
         {
           "accepted": false,
@@ -1856,6 +2136,13 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Wohnung oder Haus mieten in Altstadt Chur (Bezirk)"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Chur | newhome. ..."
         },
         {
           "accepted": false,
@@ -1906,8 +2193,8 @@
           "rank": 5,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Attikawohnung mieten in Chur",
-          "snippet": "Wohnungen, die auf newhome in Chur zur Miete angeboten werden, sind durchschnittlich 96 m² gross und haben 3.5 Zimmer. Wie viel kostet die günstigste 3-Zimmer ...",
+          "title": "Dachwohnung mieten in Chur",
+          "snippet": "Der durchschnittliche Mietpreis beträgt in Chur monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 1'984, für eine 4.5 Zimmer Wohnung CHF 2'479, für ...",
           "date": null,
           "selected": false
         },
@@ -1924,22 +2211,13 @@
           "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Dachwohnung mieten in Chur",
-          "snippet": "Der durchschnittliche Mietpreis beträgt in Chur monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 1'984, für eine 4.5 Zimmer Wohnung CHF 2'479, für ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 8,
-          "host": "google.com",
-          "url": "www.google.com/goto",
           "title": "Loft mieten in Chur",
           "snippet": "Der durchschnittliche Mietpreis beträgt in Chur monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 2'018, für eine 4.5 Zimmer Wohnung CHF 2'464, für ...",
           "date": null,
           "selected": false
         },
         {
-          "rank": 9,
+          "rank": 8,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Wohnung oder Haus mieten in Altstadt Chur (Bezirk)",
@@ -1948,11 +2226,20 @@
           "selected": false
         },
         {
-          "rank": 10,
+          "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Wohnung mieten in Chur | newhome. ...",
           "snippet": "Der durchschnittliche Mietpreis beträgt in Chur monatlich inkl. Nebenkosten für eine 3.5 Zimmer Wohnung CHF 1'984, für eine 4.5 Zimmer Wohnung CHF 2'479, für ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 10,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung mieten in Chur | newhome. ...",
+          "snippet": "4 Zimmer Wohnung. Giacomettistr. 33, 7000 Chur. Miete CHF/Monat. 1'[phone] Zimmer Wohnung. Tivolistrasse 11, 7000 Chur. Miete CHF/Monat. 1'955 ...",
           "date": null,
           "selected": false
         }
@@ -1961,27 +2248,27 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:31.788Z",
-      "elapsedMs": 50097,
+      "at": "2026-11-22T13:32:09.334Z",
+      "elapsedMs": 75464,
       "source": "portal-newhome",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 0,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 0,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 3,
+      "processedItemsBefore": 6,
       "pageLimit": 420,
-      "remainingPageBudget": 417,
+      "remainingPageBudget": 414,
       "candidateUrls": []
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:35.595Z",
-      "elapsedMs": 53904,
+      "at": "2026-11-22T13:32:13.577Z",
+      "elapsedMs": 79707,
       "source": "portal-anibis",
       "queryIndex": 10,
       "queryTotal": 17,
@@ -2001,64 +2288,64 @@
           "accepted": true,
           "reason": "accepted_direct_fetch",
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10010849551",
-          "title": "Grosszügige 3.5 Zimmer Wohnung im Kanton Bern mieten"
+          "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
+          "title": "4 Zimmer-Wohnung, 9000 St. Gallen"
         },
         {
           "accepted": true,
           "reason": "accepted_direct_fetch",
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10011107184",
-          "title": "3.5-Zimmer-Wohnung im Kanton Graubünden mieten"
+          "url": "www.anibis.ch/de/vi/10010982391",
+          "title": "Helle 4-Zimmer-Wohnung an zentraler Lage in Amriswil ab"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Traumhafte 3.5-Zimmer-Wohnung - Erstvermietung nach"
+          "title": "Helle 4-Zimmer-Wohnung mit Balkon in Grenchen"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Moderne 3.5-Zimmer-Wohnung mit Wintergarten & grossem"
+          "title": "Nachmiete: 4-Zimmer-Wohnung mit Terrasse, Winterthur"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "205 Inserate in Immobilien - Mieten - Wohnungen - Freiburg"
+          "title": "80 Inserate in Immobilien - Mieten - Wohnungen - Sitten"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "3.5-zimmer-wohnung im grünen mit inklusive nebenkosten"
+          "title": "Neu renvoierte 4-Zimmer Wohnung im Kanton Aargau mieten"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 3.5 Zimmer-Wohnung in St. Gallen"
+          "title": "4-Zimmer-Wohnung mit traumhafter Seesicht in Meilen"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "84 Inserate in Immobilien - Mieten - Wohnungen"
+          "title": "3.5 Zimmer Wohnung mit Balkon im Kanton Thurgau mieten"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 3.5-Zimmer-Wohnung am Limmatplatz"
+          "title": "121 Inserate in Immobilien - Mieten - Wohnungen"
         }
       ],
       "results": [
@@ -2074,27 +2361,27 @@
         {
           "rank": 2,
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10010849551",
-          "title": "Grosszügige 3.5 Zimmer Wohnung im Kanton Bern mieten",
-          "snippet": "Grosszügige 3.5 Zimmer Wohnung. 1'235.- pro Monat ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
+          "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
+          "title": "4 Zimmer-Wohnung, 9000 St. Gallen",
+          "snippet": "4 Zimmer-Wohnung, 9000 St. Gallen. [phone], auf ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
           "date": null,
           "selected": true
         },
         {
           "rank": 3,
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10011107184",
-          "title": "3.5-Zimmer-Wohnung im Kanton Graubünden mieten",
-          "snippet": "Erstvermietung moderne 3.5 Zimmer Neubauwohnungen ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten ...",
-          "date": "09.11.2026",
+          "url": "www.anibis.ch/de/vi/10010982391",
+          "title": "Helle 4-Zimmer-Wohnung an zentraler Lage in Amriswil ab",
+          "snippet": "3.5 Zimmer-Wohnung mit viel Charme im Zentrum von Amriswil ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
+          "date": null,
           "selected": true
         },
         {
           "rank": 4,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Traumhafte 3.5-Zimmer-Wohnung - Erstvermietung nach",
-          "snippet": "Traumhafte 3.5-Zimmer-Wohnung - Erstvermietung nach ... Wohnungen mieten BernWohnungen mieten WinterthurWohnungen mieten LuzernWohnungen mieten ... ChurWohnungen ...",
+          "title": "Helle 4-Zimmer-Wohnung mit Balkon in Grenchen",
+          "snippet": "Helle 3.5-Zimmer-Wohnung mit Balkon in Grenchen sofort ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
           "date": null,
           "selected": false
         },
@@ -2102,17 +2389,17 @@
           "rank": 5,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Moderne 3.5-Zimmer-Wohnung mit Wintergarten & grossem",
-          "snippet": "Moderne 3.5-Zimmer-Wohnung mit Wintergarten & grossem ... Wohnungen mieten BernWohnungen mieten WinterthurWohnungen mieten LuzernWohnungen mieten ... ChurWohnungen ...",
-          "date": null,
+          "title": "Nachmiete: 4-Zimmer-Wohnung mit Terrasse, Winterthur",
+          "snippet": "Nachmiete: 4-Zimmer-Wohnung mit ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
+          "date": "30.10.2026",
           "selected": false
         },
         {
           "rank": 6,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "205 Inserate in Immobilien - Mieten - Wohnungen - Freiburg",
-          "snippet": "Renovierte 3.5-Zimmer-Wohnung in Fribourg! 1. Freiburg ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
+          "title": "80 Inserate in Immobilien - Mieten - Wohnungen - Sitten",
+          "snippet": "Zu vermieten 3.5-Zimmer-Wohnung Gravelone Sion. Schöne ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
           "date": null,
           "selected": false
         },
@@ -2120,17 +2407,17 @@
           "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "3.5-zimmer-wohnung im grünen mit inklusive nebenkosten",
-          "snippet": "3.5-ZIMMER-WOHNUNG IM GRÜNEN MIT ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
-          "date": "vor 5 Stunden",
+          "title": "Neu renvoierte 4-Zimmer Wohnung im Kanton Aargau mieten",
+          "snippet": "Wir vermieten in einem familienfreundlichen Quartier in Suhr eine neu renovierte 4-Zimmer Wohnung im 1. OG. Untenstehend finden Sie weitere ...",
+          "date": "13.10.2026",
           "selected": false
         },
         {
           "rank": 8,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 3.5 Zimmer-Wohnung in St. Gallen",
-          "snippet": "Charmante 3.5 Zimmer-Wohnung in St. Gallen. [phone] ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
+          "title": "4-Zimmer-Wohnung mit traumhafter Seesicht in Meilen",
+          "snippet": "3.5-Zimmer-Eigentumswohnung mit See- und Weitblick in Meilen ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
           "date": null,
           "selected": false
         },
@@ -2138,8 +2425,8 @@
           "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "84 Inserate in Immobilien - Mieten - Wohnungen",
-          "snippet": "Erstvermietung - Exklusive 3.5-Zimmer-Neubauwohnung mit. Willkommen in Ihrem ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten Sitten ...",
+          "title": "3.5 Zimmer Wohnung mit Balkon im Kanton Thurgau mieten",
+          "snippet": "Grosszügige, moderne 3.5 Zimmer-Wohnung \"Mieten ohne ... Wohnungen mieten BernWohnungen mieten WinterthurWohnungen mieten LuzernWohnungen mieten ... ChurWohnungen ...",
           "date": null,
           "selected": false
         },
@@ -2147,24 +2434,24 @@
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Charmante 3.5-Zimmer-Wohnung am Limmatplatz",
-          "snippet": "Charmante 3.5-Zimmer-Wohnung am Limmatplatz ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
-          "date": "10.11.2026",
+          "title": "121 Inserate in Immobilien - Mieten - Wohnungen",
+          "snippet": "Charmante 3.5-Zimmer-Wohnung im Erdgeschoss eines. Das ... mieten SchaffhausenHäuser mieten VernierHäuser mieten ChurHäuser mieten SittenHäuser mieten Uster.",
+          "date": null,
           "selected": false
         }
       ],
       "selected": [
         {
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10010849551",
-          "title": "Grosszügige 3.5 Zimmer Wohnung im Kanton Bern mieten",
+          "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
+          "title": "4 Zimmer-Wohnung, 9000 St. Gallen",
           "snippetOnly": false,
           "expandableIndex": false
         },
         {
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10011107184",
-          "title": "3.5-Zimmer-Wohnung im Kanton Graubünden mieten",
+          "url": "www.anibis.ch/de/vi/10010982391",
+          "title": "Helle 4-Zimmer-Wohnung an zentraler Lage in Amriswil ab",
           "snippetOnly": false,
           "expandableIndex": false
         }
@@ -2172,31 +2459,31 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:35.595Z",
-      "elapsedMs": 53904,
+      "at": "2026-11-22T13:32:13.578Z",
+      "elapsedMs": 79708,
       "source": "portal-anibis",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 2,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 2,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 3,
+      "processedItemsBefore": 6,
       "pageLimit": 420,
-      "remainingPageBudget": 417,
+      "remainingPageBudget": 414,
       "candidateUrls": [
         {
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10010849551",
-          "title": "Grosszügige 3.5 Zimmer Wohnung im Kanton Bern mieten",
+          "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
+          "title": "4 Zimmer-Wohnung, 9000 St. Gallen",
           "snippetOnly": false,
           "expandableIndex": false
         },
         {
           "host": "anibis.ch",
-          "url": "www.anibis.ch/de/vi/10011107184",
-          "title": "3.5-Zimmer-Wohnung im Kanton Graubünden mieten",
+          "url": "www.anibis.ch/de/vi/10010982391",
+          "title": "Helle 4-Zimmer-Wohnung an zentraler Lage in Amriswil ab",
           "snippetOnly": false,
           "expandableIndex": false
         }
@@ -2204,63 +2491,104 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:05:35.595Z",
-      "elapsedMs": 53904,
+      "at": "2026-11-22T13:32:13.578Z",
+      "elapsedMs": 79708,
       "source": "portal-anibis",
-      "url": "www.anibis.ch/de/vi/10010849551",
+      "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
       "host": "anibis.ch",
-      "title": "Grosszügige 3.5 Zimmer Wohnung im Kanton Bern mieten",
+      "title": "4 Zimmer-Wohnung, 9000 St. Gallen",
       "snippetOnly": false,
       "hasSearchHit": true
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_rejected_prefetch",
-      "at": "2026-11-22T13:05:35.599Z",
-      "elapsedMs": 53908,
+      "at": "2026-11-22T13:32:13.582Z",
+      "elapsedMs": 79712,
       "source": "portal-anibis",
-      "url": "www.anibis.ch/de/vi/10010849551",
+      "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
       "reason": "municipality_not_whitelisted",
       "stage": "title_snippet_geo",
-      "placeHint": "im Kanton Bern"
+      "placeHint": "St. Gallen"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:05:35.599Z",
-      "elapsedMs": 53908,
+      "at": "2026-11-22T13:32:13.583Z",
+      "elapsedMs": 79713,
       "source": "portal-anibis",
-      "url": "www.anibis.ch/de/vi/10011107184",
+      "url": "www.anibis.ch/de/vi/10010982391",
       "host": "anibis.ch",
-      "title": "3.5-Zimmer-Wohnung im Kanton Graubünden mieten",
+      "title": "Helle 4-Zimmer-Wohnung an zentraler Lage in Amriswil ab",
       "snippetOnly": false,
       "hasSearchHit": true
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:05:44.576Z",
-      "elapsedMs": 62885,
+      "at": "2026-11-22T13:32:21.747Z",
+      "elapsedMs": 87877,
       "source": "portal-anibis",
-      "url": "www.anibis.ch/de/vi/10011107184",
+      "url": "www.anibis.ch/de/vi/10010982391",
       "status": 200,
       "fetchMode": "jina_reader",
-      "durationMs": 8972,
+      "durationMs": 8160,
       "bodyChars": 2216,
       "textChars": 2097,
-      "finalUrl": "www.anibis.ch/de/vi/10011107184"
+      "finalUrl": "www.anibis.ch/de/vi/10010982391"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T13:32:23.197Z",
+      "elapsedMs": 89327,
+      "source": "portal-anibis",
+      "url": "www.anibis.ch/de/vi/10010982391",
+      "title": "Just a moment...",
+      "textChars": 2097,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 1449,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": 4,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T13:32:23.197Z",
+      "elapsedMs": 89327,
+      "source": "portal-anibis",
+      "url": "www.anibis.ch/de/vi/10010982391",
+      "host": "anibis.ch",
+      "title": "Just a moment...",
+      "reason": "not_single_listing",
+      "detail": "",
+      "municipality": null,
+      "rooms": 4,
+      "roomsBasis": "zimmer",
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:05:48.267Z",
-      "elapsedMs": 66576,
+      "at": "2026-11-22T13:32:25.057Z",
+      "elapsedMs": 91187,
       "source": "portal-urbanhome",
       "queryIndex": 11,
       "queryTotal": 17,
@@ -2269,6 +2597,13 @@
       "pickedCount": 3,
       "selectedCount": 3,
       "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung, 7000 Chur"
+        },
         {
           "accepted": true,
           "reason": "accepted_direct_fetch",
@@ -2284,10 +2619,10 @@
           "title": "3.5 Zimmer Wohnung in Chur"
         },
         {
-          "accepted": true,
-          "reason": "accepted_direct_fetch",
-          "host": "urbanhome.ch",
-          "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung in Chur"
         },
         {
@@ -2331,18 +2666,20 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "4.5 Zimmer Wohnung in Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung in Chur"
         }
       ],
       "results": [
         {
           "rank": 1,
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung, 7000 Chur",
+          "snippet": "Gesucht wird im Gegenzug: Der aktuelle Eigentümer sucht eine 3.5 bis 4.5-Zimmer-Wohnung oder ein Haus in Chur mit einem Budget von CHF 1.5 Mio. Haben Sie das ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 2,
           "host": "urbanhome.ch",
           "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
           "title": "4.5 Zimmer Wohnung, 7000 Chur",
@@ -2351,7 +2688,7 @@
           "selected": true
         },
         {
-          "rank": 2,
+          "rank": 3,
           "host": "urbanhome.ch",
           "url": "www.urbanhome.ch/suchen/8393617-3-5-room-apartment",
           "title": "3.5 Zimmer Wohnung in Chur",
@@ -2360,16 +2697,16 @@
           "selected": true
         },
         {
-          "rank": 3,
-          "host": "urbanhome.ch",
-          "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
+          "rank": 4,
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung in Chur",
           "snippet": "3.5 Zimmer Wohnung in 7000 Chur – CHF 1'750 jährlich/m² jährlich/m². Bilder, Ausstattung, Beschreibung und Kontakt auf UrbanHome.",
           "date": null,
-          "selected": true
+          "selected": false
         },
         {
-          "rank": 4,
+          "rank": 5,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung, 7000 Chur",
@@ -2378,7 +2715,7 @@
           "selected": false
         },
         {
-          "rank": 5,
+          "rank": 6,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "4 Zimmer Wohnung in Chur",
@@ -2387,7 +2724,7 @@
           "selected": false
         },
         {
-          "rank": 6,
+          "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung in Chur",
@@ -2396,7 +2733,7 @@
           "selected": false
         },
         {
-          "rank": 7,
+          "rank": 8,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "4.5 Zimmer Wohnung, 7000 Chur",
@@ -2405,7 +2742,7 @@
           "selected": false
         },
         {
-          "rank": 8,
+          "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung in Chur",
@@ -2414,20 +2751,11 @@
           "selected": false
         },
         {
-          "rank": 9,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung in Chur",
-          "snippet": "4.5 Zimmer Wohnung in 7000 Chur – CHF 1'890 monatlich. Bilder, Ausstattung, Beschreibung und Kontakt auf UrbanHome.",
-          "date": null,
-          "selected": false
-        },
-        {
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "4.5 Zimmer Wohnung in Chur",
-          "snippet": "ATTIKAWOHNUNG · CHF 870'000 ; Tauschimmobilie Charmante 4.5-Zimmer Wohnung im Herzen von Chur · CHF 950'000 ; HOCHWERTIGES WOHNAMBIENTE MIT VIEL LICHT · CHF 954'000.",
+          "snippet": "4.5 Zimmer Wohnung in 7000 Chur – CHF 1'890 monatlich. Bilder, Ausstattung, Beschreibung und Kontakt auf UrbanHome.",
           "date": null,
           "selected": false
         }
@@ -2435,6 +2763,13 @@
       "selected": [
         {
           "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung, 7000 Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "urbanhome.ch",
           "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
           "title": "4.5 Zimmer Wohnung, 7000 Chur",
           "snippetOnly": false,
@@ -2446,32 +2781,32 @@
           "title": "3.5 Zimmer Wohnung in Chur",
           "snippetOnly": false,
           "expandableIndex": false
-        },
-        {
-          "host": "urbanhome.ch",
-          "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
-          "title": "3.5 Zimmer Wohnung in Chur",
-          "snippetOnly": false,
-          "expandableIndex": false
         }
       ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:05:48.267Z",
-      "elapsedMs": 66576,
+      "at": "2026-11-22T13:32:25.059Z",
+      "elapsedMs": 91189,
       "source": "portal-urbanhome",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 3,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 3,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 5,
+      "processedItemsBefore": 8,
       "pageLimit": 420,
-      "remainingPageBudget": 415,
+      "remainingPageBudget": 412,
       "candidateUrls": [
+        {
+          "host": "urbanhome.ch",
+          "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
+          "title": "4.5 Zimmer Wohnung, 7000 Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
         {
           "host": "urbanhome.ch",
           "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
@@ -2485,22 +2820,43 @@
           "title": "3.5 Zimmer Wohnung in Chur",
           "snippetOnly": false,
           "expandableIndex": false
-        },
-        {
-          "host": "urbanhome.ch",
-          "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
-          "title": "3.5 Zimmer Wohnung in Chur",
-          "snippetOnly": false,
-          "expandableIndex": false
         }
       ]
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:05:48.267Z",
-      "elapsedMs": 66576,
+      "at": "2026-11-22T13:32:25.059Z",
+      "elapsedMs": 91189,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
+      "host": "urbanhome.ch",
+      "title": "4.5 Zimmer Wohnung, 7000 Chur",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T13:32:32.357Z",
+      "elapsedMs": 98487,
+      "source": "portal-urbanhome",
+      "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 7294,
+      "bodyChars": 8984,
+      "textChars": 8715,
+      "finalUrl": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_received",
+      "at": "2026-11-22T13:32:32.359Z",
+      "elapsedMs": 98489,
       "source": "portal-urbanhome",
       "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
       "host": "urbanhome.ch",
@@ -2510,25 +2866,25 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:05:49.291Z",
-      "elapsedMs": 67600,
+      "at": "2026-11-22T13:32:33.199Z",
+      "elapsedMs": 99329,
       "source": "portal-urbanhome",
       "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
       "status": 200,
       "fetchMode": "jina_reader",
-      "durationMs": 1019,
+      "durationMs": 837,
       "bodyChars": 8940,
       "textChars": 8671,
       "finalUrl": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:05:49.294Z",
-      "elapsedMs": 67603,
+      "at": "2026-11-22T13:32:33.202Z",
+      "elapsedMs": 99332,
       "source": "portal-urbanhome",
       "url": "www.urbanhome.ch/suchen/8393617-3-5-room-apartment",
       "host": "urbanhome.ch",
@@ -2538,33 +2894,33 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:05:50.270Z",
-      "elapsedMs": 68579,
+      "at": "2026-11-22T13:32:34.138Z",
+      "elapsedMs": 100268,
       "source": "portal-urbanhome",
       "url": "www.urbanhome.ch/suchen/8393617-3-5-room-apartment",
       "status": 200,
       "fetchMode": "direct",
-      "durationMs": 972,
+      "durationMs": 932,
       "bodyChars": 101605,
       "textChars": 5099,
       "finalUrl": "www.urbanhome.ch/suchen/8393617-3-5-room-apartment"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_extracted",
-      "at": "2026-11-22T13:06:00.273Z",
-      "elapsedMs": 78582,
+      "at": "2026-11-22T13:32:35.169Z",
+      "elapsedMs": 101299,
       "source": "portal-urbanhome",
       "url": "www.urbanhome.ch/suchen/8393617-3-5-room-apartment",
       "title": "3.5 Zimmer Wohnung in Chur | UrbanHome",
       "textChars": 5099,
-      "llmUsed": false,
+      "llmUsed": true,
       "llmCalls": 1,
-      "extractionDurationMs": 10001,
-      "llmError": "step_timeout:llm",
+      "extractionDurationMs": 1029,
+      "llmError": null,
       "single": true,
       "agencyDetected": false,
       "municipality": "Chur",
@@ -2572,43 +2928,15 @@
       "roomsBasis": "zimmer",
       "priceQuotePresent": true,
       "listedAtQuotePresent": false,
-      "ownerVerified": false,
+      "ownerVerified": true,
       "regForbidden": false
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
-      "event": "candidate_received",
-      "at": "2026-11-22T13:06:00.275Z",
-      "elapsedMs": 78584,
-      "source": "portal-urbanhome",
-      "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
-      "host": "urbanhome.ch",
-      "title": "3.5 Zimmer Wohnung in Chur",
-      "snippetOnly": false,
-      "hasSearchHit": true
-    },
-    {
-      "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
-      "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:06:00.664Z",
-      "elapsedMs": 78973,
-      "source": "portal-urbanhome",
-      "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
-      "status": 200,
-      "fetchMode": "jina_reader",
-      "durationMs": 385,
-      "bodyChars": 8856,
-      "textChars": 8587,
-      "finalUrl": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces"
-    },
-    {
-      "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_rejected_after_extraction",
-      "at": "2026-11-22T13:06:00.667Z",
-      "elapsedMs": 78976,
+      "at": "2026-11-22T13:32:35.169Z",
+      "elapsedMs": 101299,
       "source": "portal-urbanhome",
       "url": "www.urbanhome.ch/suchen/8393617-3-5-room-apartment",
       "host": "urbanhome.ch",
@@ -2618,14 +2946,14 @@
       "municipality": "Chur",
       "rooms": 3.5,
       "roomsBasis": "zimmer",
-      "llmUsed": false
+      "llmUsed": true
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:06:01.249Z",
-      "elapsedMs": 79558,
+      "at": "2026-11-22T13:32:36.328Z",
+      "elapsedMs": 102458,
       "source": "portal-petitesannonces",
       "queryIndex": 12,
       "queryTotal": 17,
@@ -2639,10 +2967,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:06:04.854Z",
-      "elapsedMs": 83163,
+      "at": "2026-11-22T13:32:39.933Z",
+      "elapsedMs": 106063,
       "source": "portal-immobilier",
       "queryIndex": 13,
       "queryTotal": 17,
@@ -2826,19 +3154,19 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:06:04.854Z",
-      "elapsedMs": 83163,
+      "at": "2026-11-22T13:32:39.934Z",
+      "elapsedMs": 106064,
       "source": "portal-immobilier",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 1,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 1,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 8,
+      "processedItemsBefore": 11,
       "pageLimit": 420,
-      "remainingPageBudget": 412,
+      "remainingPageBudget": 409,
       "candidateUrls": [
         {
           "host": "immobilier.ch",
@@ -2851,10 +3179,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:06:04.854Z",
-      "elapsedMs": 83163,
+      "at": "2026-11-22T13:32:39.935Z",
+      "elapsedMs": 106065,
       "source": "portal-immobilier",
       "url": "www.immobilier.ch/de/mieten/wohnung/graubunden/chur/livit-ag-real-estate-management-675/-1608256",
       "host": "immobilier.ch",
@@ -2864,36 +3192,36 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:06:05.556Z",
-      "elapsedMs": 83865,
+      "at": "2026-11-22T13:32:40.596Z",
+      "elapsedMs": 106726,
       "source": "portal-immobilier",
       "url": "www.immobilier.ch/de/mieten/wohnung/graubunden/chur/livit-ag-real-estate-management-675/-1608256",
       "status": 200,
       "fetchMode": "jina_reader",
-      "durationMs": 696,
+      "durationMs": 656,
       "bodyChars": 44538,
       "textChars": 43702,
       "finalUrl": "www.immobilier.ch/de/mieten/wohnung/graubunden/chur/livit-ag-real-estate-management-675/-1608256"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_extracted",
-      "at": "2026-11-22T13:06:06.759Z",
-      "elapsedMs": 85068,
+      "at": "2026-11-22T13:32:41.454Z",
+      "elapsedMs": 107584,
       "source": "portal-immobilier",
       "url": "www.immobilier.ch/de/mieten/wohnung/graubunden/chur/livit-ag-real-estate-management-675/-1608256",
       "title": "Tolle Singlewohnung!",
       "textChars": 43702,
       "llmUsed": true,
       "llmCalls": 1,
-      "extractionDurationMs": 1197,
+      "extractionDurationMs": 856,
       "llmError": null,
       "single": true,
       "agencyDetected": false,
-      "municipality": "Chur",
+      "municipality": null,
       "rooms": 1.5,
       "roomsBasis": "zimmer",
       "priceQuotePresent": false,
@@ -2903,10 +3231,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_rejected_after_extraction",
-      "at": "2026-11-22T13:06:06.761Z",
-      "elapsedMs": 85070,
+      "at": "2026-11-22T13:32:41.455Z",
+      "elapsedMs": 107585,
       "source": "portal-immobilier",
       "url": "www.immobilier.ch/de/mieten/wohnung/graubunden/chur/livit-ag-real-estate-management-675/-1608256",
       "host": "immobilier.ch",
@@ -2920,10 +3248,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:06:09.940Z",
-      "elapsedMs": 88249,
+      "at": "2026-11-22T13:32:43.644Z",
+      "elapsedMs": 109774,
       "source": "portal-acheter-louer",
       "queryIndex": 14,
       "queryTotal": 17,
@@ -2958,20 +3286,6 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 2 - Properties for mieten: Obwalden - www.acheter-louer.ch"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Vevey immobilien Kauf und Verkauf von Villen, Appartements ..."
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
           "title": "Echarlens immobilien Kauf und Verkauf von Villen ..."
         },
         {
@@ -2979,14 +3293,21 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Waadt - www.acheter-louer.ch"
+          "title": "Vevey immobilien Kauf und Verkauf von Villen, ..."
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Gorgier immobilien Kauf und Verkauf von Villen ..."
+          "title": "Properties for mieten: Neuenburg - www.acheter-louer.ch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 2 - Properties for mieten: Obwalden - www.acheter-louer.ch"
         },
         {
           "accepted": false,
@@ -3000,7 +3321,14 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 2 - Properties for mieten: Appenzell Ausserrhoden - www ..."
+          "title": "Wohnung mieten: Waadt - www.acheter-louer.ch"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Wohnung zu vermieten 4.5 Zimmer in 9469 Haag (Rheintal)"
         }
       ],
       "results": [
@@ -3018,7 +3346,7 @@
           "host": "dev.acheter-louer.ch",
           "url": "dev.acheter-louer.ch/de/mieten/wohnung/bezirk-seegaster",
           "title": "Wohnung mieten: See-Gaster - www.acheter-louer.ch",
-          "snippet": "... Chur ermöglicht. Schulen und Kindergärten sind zu Fuss in nur 15 Minuten erreichbar und von Eschenbach aus hast du gute Busverbindungen nach Rüti ZH ...",
+          "snippet": "Wohnung mieten: See-Gaster. ... Chur ermöglicht. Schulen und Kindergärten sind zu ... Wohnung mieten: Region See-Gaster · Dachwohnung ...",
           "date": null,
           "selected": true
         },
@@ -3027,30 +3355,12 @@
           "host": "dev.acheter-louer.ch",
           "url": "dev.acheter-louer.ch/de/mieten/wohnung/in-haag-rheintal",
           "title": "Wohnung mieten: Haag (Rheintal) - www.acheter-louer.ch",
-          "snippet": "Die Verkehrsanbindung:Haag befindet sich mitten im Rheintal und grenzt direkt an die Gemeinde Sennwald, welche an den Hauptverkehrsachsen St. Gallen - Chur und ...",
+          "snippet": "Wohnung mieten: Haag (Rheintal) ... Gallen - Chur und Zürich - Chur angeschlossen ist. ... Wohnung mieten: Haag (Rheintal) · Dachwohnung ...",
           "date": null,
           "selected": false
         },
         {
           "rank": 4,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Page 2 - Properties for mieten: Obwalden - www.acheter-louer.ch",
-          "snippet": "5.5 Zimmer Wohnung · 1,850 CHF. 5.5 Zimmer, 115 m2. 5.5 Zimmer Wohnung ... Mieten Sie eine exklusive Wohnung an priviligierter Lage im steuergünstigen Engelberg.",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 5,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Vevey immobilien Kauf und Verkauf von Villen, Appartements ...",
-          "snippet": "Wohnung zu mieten in 1804 Corsier-sur-Vevey - Riant-Mont 10. Profitieren Sie ... 7000 Chur Tél. [phone]. Rilsa SA Objets. Rilsa SA Rue du Lion ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 6,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Echarlens immobilien Kauf und Verkauf von Villen ...",
@@ -3059,7 +3369,43 @@
           "selected": false
         },
         {
+          "rank": 5,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Vevey immobilien Kauf und Verkauf von Villen, ...",
+          "snippet": "Wohnung zu mieten in 1804 Corsier-sur-Vevey - Riant-Mont 10. Profitieren Sie ... 7000 Chur Tél. [phone]. Rilsa SA Objets. Rilsa SA Rue du Lion ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 6,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Properties for mieten: Neuenburg - www.acheter-louer.ch",
+          "snippet": "Studio de 26 m2 à louer à la Chaux de fonds. Libre dès le 1 novembre. Cuisine moderne et équipée. Buanderie dans l'immeuble. 8 ème étage avec vue panoramique.",
+          "date": null,
+          "selected": false
+        },
+        {
           "rank": 7,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Page 2 - Properties for mieten: Obwalden - www.acheter-louer.ch",
+          "snippet": "5.5 Zimmer Wohnung · 1,850 CHF. 5.5 Zimmer, 115 m2. 5.5 Zimmer Wohnung ... Mieten Sie eine exklusive Wohnung an priviligierter Lage im steuergünstigen Engelberg.",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 8,
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Properties for mieten: Uri - www.acheter-louer.ch",
+          "snippet": "Mieten. Kaufen. Mieten. Suche auf der Karte zeichnen. Wird geladen... ... Im Zentrum von Erstfed, Sonnige, renovierte, grosse 3,1/2 Wohnung zu vermieten. ... Chur ...",
+          "date": null,
+          "selected": false
+        },
+        {
+          "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "Wohnung mieten: Waadt - www.acheter-louer.ch",
@@ -3068,29 +3414,11 @@
           "selected": false
         },
         {
-          "rank": 8,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Gorgier immobilien Kauf und Verkauf von Villen ...",
-          "snippet": "Wohnung zu mieten in 2016 Cortaillod - Landions 14. Wohnung mit Ausgang. Wir ... 7000 Chur Tél. [phone]. Hubimmo Objets. Hubimmo Suisse 1566 St ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 9,
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "Properties for mieten: Uri - www.acheter-louer.ch",
-          "snippet": "Mieten. Kaufen. Mieten. Suche auf der Karte zeichnen. Wird geladen... ... Wohnung mieten: Kanton Uri · Dachwohnung mieten ... Chur · Freiburg · Genf · Köniz · La ...",
-          "date": null,
-          "selected": false
-        },
-        {
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 2 - Properties for mieten: Appenzell Ausserrhoden - www ...",
-          "snippet": "Mieten. Kaufen. Mieten. Suche auf der Karte zeichnen. Wird geladen... ... Wann dürfen wir Ihnen die Wohnung zeigen. Mobilierte Wohnumg zum mieten ... Chur ...",
+          "title": "Wohnung zu vermieten 4.5 Zimmer in 9469 Haag (Rheintal)",
+          "snippet": "Wohnung zu vermieten 4.5 Zimmer in 9469 Haag (Rheintal) - St. Gallen. 112 m², 4.5. 1 ... Gallen - Chur und Zürich - Chur angeschlossen ist. Das Fürstentum ...",
           "date": null,
           "selected": false
         }
@@ -3107,19 +3435,19 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:06:09.940Z",
-      "elapsedMs": 88249,
+      "at": "2026-11-22T13:32:43.644Z",
+      "elapsedMs": 109774,
       "source": "portal-acheter-louer",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 1,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 1,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 9,
+      "processedItemsBefore": 12,
       "pageLimit": 420,
-      "remainingPageBudget": 411,
+      "remainingPageBudget": 408,
       "candidateUrls": [
         {
           "host": "dev.acheter-louer.ch",
@@ -3132,10 +3460,10 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:06:09.940Z",
-      "elapsedMs": 88249,
+      "at": "2026-11-22T13:32:43.644Z",
+      "elapsedMs": 109774,
       "source": "portal-acheter-louer",
       "url": "dev.acheter-louer.ch/de/mieten/wohnung/bezirk-seegaster",
       "host": "dev.acheter-louer.ch",
@@ -3145,25 +3473,66 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:06:14.413Z",
-      "elapsedMs": 92722,
+      "at": "2026-11-22T13:32:49.000Z",
+      "elapsedMs": 115130,
       "source": "portal-acheter-louer",
       "url": "dev.acheter-louer.ch/de/mieten/wohnung/bezirk-seegaster",
       "status": 200,
       "fetchMode": "jina_reader",
-      "durationMs": 4467,
+      "durationMs": 5353,
       "bodyChars": 630,
       "textChars": 540,
       "finalUrl": "dev.acheter-louer.ch/de/mieten/wohnung/bezirk-seegaster"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T13:32:49.721Z",
+      "elapsedMs": 115851,
+      "source": "portal-acheter-louer",
+      "url": "dev.acheter-louer.ch/de/mieten/wohnung/bezirk-seegaster",
+      "title": "Just a moment...",
+      "textChars": 540,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 720,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T13:32:49.722Z",
+      "elapsedMs": 115852,
+      "source": "portal-acheter-louer",
+      "url": "dev.acheter-louer.ch/de/mieten/wohnung/bezirk-seegaster",
+      "host": "dev.acheter-louer.ch",
+      "title": "Just a moment...",
+      "reason": "not_single_listing",
+      "detail": "",
+      "municipality": null,
+      "rooms": null,
+      "roomsBasis": null,
+      "llmUsed": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:06:15.702Z",
-      "elapsedMs": 94012,
+      "at": "2026-11-22T13:32:51.445Z",
+      "elapsedMs": 117575,
       "source": "portal-immostreet",
       "queryIndex": 15,
       "queryTotal": 17,
@@ -3198,14 +3567,14 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Herzogenbuchsee ort"
+          "title": "Page 32 - Wohnung mieten"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 32 - Wohnung mieten"
+          "title": "Wohnung mieten: Herzogenbuchsee ort"
         },
         {
           "accepted": false,
@@ -3249,7 +3618,7 @@
           "host": "immostreet.ch",
           "url": "www.immostreet.ch/de/mieten/wohnung/in-chur",
           "title": "Wohnung mieten: Chur ort",
-          "snippet": "Wohnung mieten: Chur ort ; Moderne 4.5-Zimmerwohnung. Lerchenweg 1, 7000 Chur · 114 m ; Exklusive 3.5- Zimmer-Wohnung im tradit… Loestrasse 147, 7000 Chur · 115 m ...",
+          "snippet": "4 Zimmer ... Charmante Wohnung in Toplage – stilvoll… Rheinstrasse 64, 7000 Chur. Apartment, Flat; 3.5 Zimmer. Objekttyp Wohnung, Flach; Zimmer 3.5. Kara ...",
           "date": null,
           "selected": false
         },
@@ -3275,8 +3644,8 @@
           "rank": 4,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Herzogenbuchsee ort",
-          "snippet": "3.5 Zimmer Wohnung. Farnsbergstrasse 5, 3360 Herzogenbuchsee. Apartment, Flat; 3.5 Zimmer ... Helle 4-Zimmer-Wohnung mit Balkon in He… Bitziusstrasse 4, 3360 ...",
+          "title": "Page 32 - Wohnung mieten",
+          "snippet": "4 Zimmer-Wohnung, 6048 Horw. Spielplatzring 12, 6048 Horw. Apartment, Flat ... Schöne 3.5-Zimmer-Wohnung in Oftringen … Zürichstr. 2 / EO, 4665 Oftringen.",
           "date": null,
           "selected": false
         },
@@ -3284,8 +3653,8 @@
           "rank": 5,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 32 - Wohnung mieten",
-          "snippet": "4 Zimmer-Wohnung, 6048 Horw. Spielplatzring 12, 6048 Horw. Apartment, Flat ... Schöne 3.5-Zimmer-Wohnung in Oftringen … Zürichstr. 2 / EO, 4665 Oftringen.",
+          "title": "Wohnung mieten: Herzogenbuchsee ort",
+          "snippet": "3.5 Zimmer Wohnung. Farnsbergstrasse 5, 3360 Herzogenbuchsee. Apartment, Flat; 3.5 Zimmer ... Helle 4-Zimmer-Wohnung mit Balkon in He… Bitziusstrasse 4, 3360 ...",
           "date": null,
           "selected": false
         },
@@ -3339,27 +3708,27 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:06:15.703Z",
-      "elapsedMs": 94012,
+      "at": "2026-11-22T13:32:51.445Z",
+      "elapsedMs": 117575,
       "source": "portal-immostreet",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 0,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 0,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 10,
+      "processedItemsBefore": 13,
       "pageLimit": 420,
-      "remainingPageBudget": 410,
+      "remainingPageBudget": 407,
       "candidateUrls": []
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:06:19.973Z",
-      "elapsedMs": 98282,
+      "at": "2026-11-22T13:32:54.917Z",
+      "elapsedMs": 121047,
       "source": "portal-home",
       "queryIndex": 16,
       "queryTotal": 17,
@@ -3394,14 +3763,14 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Chur mit Balkon / Sitzplatz"
+          "title": "Page 1?sort=pd - Wohnung mieten: Chur"
         },
         {
           "accepted": false,
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 1?sort=pd - Wohnung mieten: Chur"
+          "title": "Wohnung mieten: Chur mit Balkon / Sitzplatz"
         },
         {
           "accepted": false,
@@ -3415,13 +3784,6 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Apartments & houses mieten: Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
           "title": "Wohnung mieten: Chur mit Lift"
         },
         {
@@ -3429,7 +3791,14 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 2 - Wohnung mieten: Chur"
+          "title": "Page 1?sort=dd - Wohnung mieten: Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "Apartments & houses mieten: Chur"
         },
         {
           "accepted": false,
@@ -3471,8 +3840,8 @@
           "rank": 4,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Chur mit Balkon / Sitzplatz",
-          "snippet": "Exklusive 3.5- Zimmer-Wohnung im traditionsreichen Haus. Loestrasse [phone] Zimmer - Wohnung mieten: Chur · 5 zimmer und mehr - Wohnung mieten: Chur.",
+          "title": "Page 1?sort=pd - Wohnung mieten: Chur",
+          "snippet": "Page 1?sort=pd - Wohnung mieten: Chur ; Exklusive 4- Zimmer-Wohnung im traditionsreichen Haus · 2,590 · 96 m² ; Exklusive 3.5- Zimmer-Wohnung im traditionsreichen ...",
           "date": null,
           "selected": false
         },
@@ -3480,8 +3849,8 @@
           "rank": 5,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 1?sort=pd - Wohnung mieten: Chur",
-          "snippet": "Page 1?sort=pd - Wohnung mieten: Chur ; Exklusive 4- Zimmer-Wohnung im traditionsreichen Haus · 2,590 · 96 m² ; Exklusive 3.5- Zimmer-Wohnung im traditionsreichen ...",
+          "title": "Wohnung mieten: Chur mit Balkon / Sitzplatz",
+          "snippet": "Exklusive 3.5- Zimmer-Wohnung im traditionsreichen Haus. Loestrasse [phone] Zimmer - Wohnung mieten: Chur · 5 zimmer und mehr - Wohnung mieten: Chur.",
           "date": null,
           "selected": false
         },
@@ -3498,8 +3867,8 @@
           "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Apartments & houses mieten: Chur",
-          "snippet": "5.5-Zimmer-Maisonettewohnung an zentraler Lage in Chur · 3,400 · 5.5 rooms ; Exklusive 3.5- Zimmer-Wohnung im traditionsreichen Haus · 3,090 · 3.5 rooms ; Modernen 3 ...",
+          "title": "Wohnung mieten: Chur mit Lift",
+          "snippet": "Exklusive 3.5- Zimmer-Wohnung im traditionsreichen Haus. Loestrasse [phone] Zimmer - Wohnung mieten: Chur · 5 zimmer und mehr - Wohnung mieten: Chur.",
           "date": null,
           "selected": false
         },
@@ -3507,8 +3876,8 @@
           "rank": 8,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Wohnung mieten: Chur mit Lift",
-          "snippet": "Exklusive 3.5- Zimmer-Wohnung im traditionsreichen Haus. Loestrasse [phone] Zimmer - Wohnung mieten: Chur · 5 zimmer und mehr - Wohnung mieten: Chur.",
+          "title": "Page 1?sort=dd - Wohnung mieten: Chur",
+          "snippet": "sort=dd - Wohnung mieten: Chur ... Exklusive 3.5- Zimmer-Wohnung im traditionsreichen Haus ... Wohnung in Chur. Bündtestrasse 10. Charmante 4-Zimmer-Altbauwohnung ...",
           "date": null,
           "selected": false
         },
@@ -3516,8 +3885,8 @@
           "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "Page 2 - Wohnung mieten: Chur",
-          "snippet": "Wohnung in Chur. Arcas 6. Charmante 2-Zimmer-Wohnung mit 51 m², 3 ... 4 Zimmer - Page 2 - Wohnung mieten: Chur · 5 zimmer und mehr - Page 2 ...",
+          "title": "Apartments & houses mieten: Chur",
+          "snippet": "Exklusive 3.5- Zimmer-Wohnung im traditionsreichen Haus. Loestrasse 147 ... Grosszügige Wohnung im Zentrum von Chur. Weststr. 6. Sie sind auf der Suche ...",
           "date": null,
           "selected": false
         },
@@ -3535,35 +3904,49 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:06:19.973Z",
-      "elapsedMs": 98282,
+      "at": "2026-11-22T13:32:54.918Z",
+      "elapsedMs": 121048,
       "source": "portal-home",
       "rawHits": 10,
       "pickedBeforeCrossQueryDedupe": 0,
       "duplicateAcrossQueries": 0,
       "selectedAfterPerQueryCap": 0,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 10,
+      "processedItemsBefore": 13,
       "pageLimit": 420,
-      "remainingPageBudget": 410,
+      "remainingPageBudget": 407,
       "candidateUrls": []
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "serper_query_succeeded",
-      "at": "2026-11-22T13:06:25.058Z",
-      "elapsedMs": 103367,
+      "at": "2026-11-22T13:32:58.429Z",
+      "elapsedMs": 124559,
       "source": "portal-icasa",
       "queryIndex": 17,
       "queryTotal": 17,
       "query": "site:icasa.ch \"Chur\" (\"3.5 Zimmer\" OR \"4 Zimmer\" OR \"4.5 Zimmer\") Wohnung",
       "resultCount": 10,
-      "pickedCount": 2,
-      "selectedCount": 2,
+      "pickedCount": 3,
+      "selectedCount": 3,
       "pickDecisions": [
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "icasa.ch",
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur"
+        },
+        {
+          "accepted": true,
+          "reason": "accepted_direct_fetch",
+          "host": "icasa.ch",
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur"
+        },
         {
           "accepted": true,
           "reason": "accepted_direct_fetch",
@@ -3573,16 +3956,9 @@
         },
         {
           "accepted": false,
-          "reason": "non_listing:for_sale",
-          "host": "icasa.ch",
-          "url": "icasa.ch/4.5-zimmer-wohnung-zu-kaufen-graubunden-plessur-chur-7000-chur-1925429.html",
-          "title": "4.5 Zimmer Wohnung zu kaufen in Chur"
-        },
-        {
-          "accepted": true,
-          "reason": "accepted_direct_fetch",
-          "host": "icasa.ch",
-          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung zum Mieten in Chur"
         },
         {
@@ -3590,7 +3966,28 @@
           "reason": "configured_skip_host",
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung zum Mieten in Chur"
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "4.5 Zimmer Wohnung zu kaufen in Chur"
+        },
+        {
+          "accepted": false,
+          "reason": "configured_skip_host",
+          "host": "google.com",
+          "url": "www.google.com/goto",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur"
         },
         {
           "accepted": false,
@@ -3605,57 +4002,11 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "4 Zimmer Wohnung zum Mieten in Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung-Etagenwohnung zu kaufen in Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "3.5 Zimmer Wohnung zum Mieten in Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Etagenwohnung zu kaufen in Chur"
-        },
-        {
-          "accepted": false,
-          "reason": "configured_skip_host",
-          "host": "google.com",
-          "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung zu kaufen in Chur"
         }
       ],
       "results": [
         {
           "rank": 1,
-          "host": "icasa.ch",
-          "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
-          "title": "4.5 Zimmer Wohnung zum Mieten in Chur",
-          "snippet": "4.5 Zimmer Wohnung zum Mieten in Chur Gratis-Nettomietzins geschenkt - Wohnen im Rheinquartier ; CHF 1'920.– · CHF 1'620.– · CHF 300.– ...",
-          "date": null,
-          "selected": true
-        },
-        {
-          "rank": 2,
-          "host": "icasa.ch",
-          "url": "icasa.ch/4.5-zimmer-wohnung-zu-kaufen-graubunden-plessur-chur-7000-chur-1925429.html",
-          "title": "4.5 Zimmer Wohnung zu kaufen in Chur",
-          "snippet": "4.5 Zimmer Wohnung zu kaufen in Chur 4½ Zimmerwohnung im 1. OG, Nr. 09. Eckdaten. Adresse, Rheinfelsstrasse 7000 Chur. Kategorien, Wohnung. Verfügbar ab, Auf ...",
-          "date": null,
-          "selected": false
-        },
-        {
-          "rank": 3,
           "host": "icasa.ch",
           "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
           "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
@@ -3664,11 +4015,29 @@
           "selected": true
         },
         {
+          "rank": 2,
+          "host": "icasa.ch",
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur Gemütliche 3.5 Zimmer-Wohnung in der Churer Altstadt zu vermieten! ; CHF 1'680.– · CHF 1'480.– · CHF 200.– ...",
+          "date": null,
+          "selected": true
+        },
+        {
+          "rank": 3,
+          "host": "icasa.ch",
+          "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
+          "title": "4.5 Zimmer Wohnung zum Mieten in Chur",
+          "snippet": "4.5 Zimmer Wohnung zum Mieten in Chur Gratis-Nettomietzins geschenkt - Wohnen im Rheinquartier ; CHF 1'920.– · CHF 1'620.– · CHF 300.– ...",
+          "date": null,
+          "selected": true
+        },
+        {
           "rank": 4,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung zum Mieten in Chur",
-          "snippet": "4.5 Zimmer Wohnung zum Mieten in Chur Grosszügige Wohnung im Zentrum von Chur ; CHF 2'135.– · CHF 1'940.– · CHF 195.– ...",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur Grosszügige Wohnung im Zentrum von Chur ; CHF 2'030.– · CHF 1'800.– · CHF 230.– ...",
           "date": null,
           "selected": false
         },
@@ -3677,7 +4046,7 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
-          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur Gemütliche 3.5 Zimmer-Wohnung in der Churer Altstadt zu vermieten! ; CHF 1'680.– · CHF 1'480.– · CHF 200.– ...",
+          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur Gemütliche Wohnung in mitteilbarer Stadtzentrumnähe ; CHF 1'555.– · CHF 1'335.– · CHF 220.– ...",
           "date": null,
           "selected": false
         },
@@ -3685,8 +4054,8 @@
           "rank": 6,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "4 Zimmer Wohnung zum Mieten in Chur",
-          "snippet": "4 Zimmer Wohnung zum Mieten in Chur Mieten ohne Kaution - Schönes Wohnen im Rheinquartier · Bahnanschluss · Balkon · Garage · Haustiere erlaubt · Kabelfernsehen ...",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur An ruhiger Wohnlage mit sonnigem Balkon ; CHF 1'545.– · CHF 1'400.– · CHF 145.– ...",
           "date": null,
           "selected": false
         },
@@ -3694,8 +4063,8 @@
           "rank": 7,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung-Etagenwohnung zu kaufen in Chur",
-          "snippet": "4.5 Zimmer Wohnung-Etagenwohnung zu kaufen in Chur 4½ Zimmer Dachwohnung, Nr. 45. Eckdaten. Adresse, Rheinfelsstrasse 7000 Chur. Referenz-Nr. [phone].",
+          "title": "4.5 Zimmer Wohnung zu kaufen in Chur",
+          "snippet": "4.5 Zimmer Wohnung zu kaufen in Chur 4½ Zimmerwohnung im 1. OG, Nr. 09. Eckdaten. Adresse, Rheinfelsstrasse 7000 Chur. Kategorien, Wohnung. Verfügbar ab, Auf ...",
           "date": null,
           "selected": false
         },
@@ -3704,7 +4073,7 @@
           "host": "google.com",
           "url": "www.google.com/goto",
           "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
-          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur Gemütliche Wohnung in mitteilbarer Stadtzentrumnähe ; CHF 1'555.– · CHF 1'335.– · CHF 220.– ...",
+          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur Mieten ohne Kaution - Wohnen im Zentrum und perfekt für Pendler · Bahnanschluss · Balkon · Garage · Haustiere erlaubt ...",
           "date": null,
           "selected": false
         },
@@ -3712,8 +4081,8 @@
           "rank": 9,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Etagenwohnung zu kaufen in Chur",
-          "snippet": "4.5 Zimmer Etagenwohnung zu kaufen in Chur Sanierte 4.5 Zimmer-Wohnung ; Schellenbergstrasse 7 7000 Chur · LP127 · Etagenwohnung · Auf Anfrage.",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+          "snippet": "3.5 Zimmer Wohnung zum Mieten in Chur Wohnung an der Austrasse in Chur zu vermieten! · Aussicht · Balkon · Haustiere erlaubt · Lift.",
           "date": null,
           "selected": false
         },
@@ -3721,8 +4090,8 @@
           "rank": 10,
           "host": "google.com",
           "url": "www.google.com/goto",
-          "title": "4.5 Zimmer Wohnung zu kaufen in Chur",
-          "snippet": "4.5 Zimmer Wohnung zu kaufen in Chur 4½ Zimmerwohnung im 1. OG, Nr. [phone]. Chur. Rheinfelsstrasse Chur Graubunden 7000 CH. CHF 950'000.- · Wohnung. Zimmer ...",
+          "title": "4 Zimmer Wohnung zum Mieten in Chur",
+          "snippet": "4 Zimmer Wohnung zum Mieten in Chur Mieten ohne Kaution - Schönes Wohnen im Rheinquartier · Bahnanschluss · Balkon · Garage · Haustiere erlaubt · Kabelfernsehen ...",
           "date": null,
           "selected": false
         }
@@ -3730,15 +4099,22 @@
       "selected": [
         {
           "host": "icasa.ch",
-          "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
-          "title": "4.5 Zimmer Wohnung zum Mieten in Chur",
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
           "snippetOnly": false,
           "expandableIndex": false
         },
         {
           "host": "icasa.ch",
-          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
           "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "icasa.ch",
+          "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
+          "title": "4.5 Zimmer Wohnung zum Mieten in Chur",
           "snippetOnly": false,
           "expandableIndex": false
         }
@@ -3746,31 +4122,38 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "discovery_batch_selected",
-      "at": "2026-11-22T13:06:25.058Z",
-      "elapsedMs": 103367,
+      "at": "2026-11-22T13:32:58.430Z",
+      "elapsedMs": 124560,
       "source": "portal-icasa",
       "rawHits": 10,
-      "pickedBeforeCrossQueryDedupe": 2,
+      "pickedBeforeCrossQueryDedupe": 3,
       "duplicateAcrossQueries": 0,
-      "selectedAfterPerQueryCap": 2,
+      "selectedAfterPerQueryCap": 3,
       "maxCandidatesPerQuery": 6,
-      "processedItemsBefore": 10,
+      "processedItemsBefore": 13,
       "pageLimit": 420,
-      "remainingPageBudget": 410,
+      "remainingPageBudget": 407,
       "candidateUrls": [
         {
           "host": "icasa.ch",
-          "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
-          "title": "4.5 Zimmer Wohnung zum Mieten in Chur",
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+          "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
           "snippetOnly": false,
           "expandableIndex": false
         },
         {
           "host": "icasa.ch",
-          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
           "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+          "snippetOnly": false,
+          "expandableIndex": false
+        },
+        {
+          "host": "icasa.ch",
+          "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
+          "title": "4.5 Zimmer Wohnung zum Mieten in Chur",
           "snippetOnly": false,
           "expandableIndex": false
         }
@@ -3778,10 +4161,87 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_received",
-      "at": "2026-11-22T13:06:25.058Z",
-      "elapsedMs": 103367,
+      "at": "2026-11-22T13:32:58.431Z",
+      "elapsedMs": 124561,
+      "source": "portal-icasa",
+      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+      "host": "icasa.ch",
+      "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_skipped_known",
+      "at": "2026-11-22T13:32:58.434Z",
+      "elapsedMs": 124564,
+      "source": "portal-icasa",
+      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+      "hidden": false,
+      "autoHidden": false,
+      "lastSeenAt": "2026-11-22T13:06:40.386Z"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_received",
+      "at": "2026-11-22T13:32:58.435Z",
+      "elapsedMs": 124565,
+      "source": "portal-icasa",
+      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
+      "host": "icasa.ch",
+      "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
+      "snippetOnly": false,
+      "hasSearchHit": true
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_fetch_succeeded",
+      "at": "2026-11-22T13:33:00.505Z",
+      "elapsedMs": 126635,
+      "source": "portal-icasa",
+      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
+      "status": 200,
+      "fetchMode": "jina_reader",
+      "durationMs": 2067,
+      "bodyChars": 11033,
+      "textChars": 10439,
+      "finalUrl": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html"
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_extracted",
+      "at": "2026-11-22T13:33:01.349Z",
+      "elapsedMs": 127479,
+      "source": "portal-icasa",
+      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
+      "title": "iCasa.ch",
+      "textChars": 10439,
+      "llmUsed": true,
+      "llmCalls": 1,
+      "extractionDurationMs": 843,
+      "llmError": null,
+      "single": false,
+      "agencyDetected": false,
+      "municipality": null,
+      "rooms": 3.5,
+      "roomsBasis": "zimmer",
+      "priceQuotePresent": false,
+      "listedAtQuotePresent": false,
+      "ownerVerified": false,
+      "regForbidden": false
+    },
+    {
+      "type": "immofinder_trace",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_received",
+      "at": "2026-11-22T13:33:01.349Z",
+      "elapsedMs": 127479,
       "source": "portal-icasa",
       "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
       "host": "icasa.ch",
@@ -3791,32 +4251,32 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:06:25.161Z",
-      "elapsedMs": 103470,
+      "at": "2026-11-22T13:33:01.385Z",
+      "elapsedMs": 127515,
       "source": "portal-icasa",
       "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
       "status": 200,
       "fetchMode": "direct",
-      "durationMs": 97,
+      "durationMs": 32,
       "bodyChars": 107609,
       "textChars": 4445,
       "finalUrl": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html"
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_extracted",
-      "at": "2026-11-22T13:06:26.359Z",
-      "elapsedMs": 104668,
+      "at": "2026-11-22T13:33:06.282Z",
+      "elapsedMs": 132412,
       "source": "portal-icasa",
       "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
       "title": "4.5 Zimmer Wohnung zum Mieten in Chur | iCasa.ch - iCasa.ch",
       "textChars": 4445,
       "llmUsed": true,
       "llmCalls": 1,
-      "extractionDurationMs": 1195,
+      "extractionDurationMs": 4894,
       "llmError": null,
       "single": true,
       "agencyDetected": true,
@@ -3830,62 +4290,27 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
-      "event": "candidate_received",
-      "at": "2026-11-22T13:06:26.359Z",
-      "elapsedMs": 104668,
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
+      "event": "candidate_rejected_after_extraction",
+      "at": "2026-11-22T13:33:06.285Z",
+      "elapsedMs": 132415,
       "source": "portal-icasa",
-      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
+      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
       "host": "icasa.ch",
-      "title": "3.5 Zimmer Wohnung zum Mieten in Chur",
-      "snippetOnly": false,
-      "hasSearchHit": true
-    },
-    {
-      "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
-      "event": "candidate_fetch_succeeded",
-      "at": "2026-11-22T13:06:27.392Z",
-      "elapsedMs": 105701,
-      "source": "portal-icasa",
-      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
-      "status": 200,
-      "fetchMode": "jina_reader",
-      "durationMs": 1027,
-      "bodyChars": 11033,
-      "textChars": 10439,
-      "finalUrl": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html"
-    },
-    {
-      "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
-      "event": "candidate_extracted",
-      "at": "2026-11-22T13:06:37.393Z",
-      "elapsedMs": 115702,
-      "source": "portal-icasa",
-      "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
       "title": "iCasa.ch",
-      "textChars": 10439,
-      "llmUsed": false,
-      "llmCalls": 1,
-      "extractionDurationMs": 10000,
-      "llmError": "step_timeout:llm",
-      "single": true,
-      "agencyDetected": false,
+      "reason": "not_single_listing",
+      "detail": "",
       "municipality": null,
       "rooms": 3.5,
       "roomsBasis": "zimmer",
-      "priceQuotePresent": true,
-      "listedAtQuotePresent": false,
-      "ownerVerified": false,
-      "regForbidden": false
+      "llmUsed": true
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "candidate_rejected_after_extraction",
-      "at": "2026-11-22T13:06:37.394Z",
-      "elapsedMs": 115703,
+      "at": "2026-11-22T13:33:06.291Z",
+      "elapsedMs": 132421,
       "source": "portal-icasa",
       "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
       "host": "icasa.ch",
@@ -3899,18 +4324,18 @@
     },
     {
       "type": "immofinder_trace",
-      "traceId": "fc2bdbcc-dd38-483e-a35b-9fbc8ef9bcd2",
+      "traceId": "d57540ad-1970-4609-ac08-cc36b7569bd4",
       "event": "run_completed",
-      "at": "2026-11-22T13:06:42.600Z",
-      "elapsedMs": 120909,
-      "durationMs": 120909,
+      "at": "2026-11-22T13:33:08.537Z",
+      "elapsedMs": 134667,
+      "durationMs": 134667,
       "counts": {
-        "sources": 8,
+        "sources": 9,
         "index_pages": 0,
-        "candidates": 11,
-        "fetched": 10,
-        "snippet_only": 0,
-        "skipped_known": 0,
+        "candidates": 15,
+        "fetched": 12,
+        "snippet_only": 1,
+        "skipped_known": 1,
         "skipped_seen": 0,
         "skipped_geo": 1,
         "search_queries": 17,
@@ -3920,44 +4345,56 @@
         "kept": 1,
         "new": 1,
         "updated": 0,
-        "llm_calls": 5,
-        "enriched": 1,
-        "evidence_page_text": 2,
+        "llm_calls": 10,
+        "enriched": 0,
+        "evidence_page_text": 3,
+        "evidence_snippet": 1,
         "credible_kept": 1
       },
       "filtered": {
-        "list_or_search_page": 5,
-        "listing_unavailable": 1,
+        "not_single_listing": 4,
+        "listing_unavailable": 2,
+        "price_ambiguous_on_detail_page": 1,
         "municipality_not_whitelisted": 1,
+        "list_or_search_page": 2,
         "agency": 2,
         "rooms_below_min": 1
       },
       "errors": [
         {
-          "source": "portal-urbanhome",
-          "code": "llm_failed",
-          "detail": "step_timeout:llm"
-        },
-        {
-          "source": "portal-icasa",
-          "code": "llm_failed",
-          "detail": "step_timeout:llm"
+          "source": "portal-tutti",
+          "code": "step_timeout",
+          "detail": "fetch >10000ms https://www.tutti.ch/de/vi/83980958?srsltid=AYCX9vLnaqLuNuh7p7_Ljtd2QPZz5HGrHoS8gObn3V95an0XtUhgSrp9"
         }
       ],
       "sourceStats": [
         {
-          "id": "portal-icasa",
+          "id": "portal-tutti",
           "queries": 1,
           "hits": 10,
-          "candidates": 2,
-          "fetched": 2,
-          "llm": 2,
+          "candidates": 1,
+          "fetched": 0,
+          "llm": 0,
           "kept": 1,
           "new": 1,
-          "agencies": 1,
+          "agencies": 0,
           "junk": 0,
           "geo": 0,
           "consecutiveBad": 0
+        },
+        {
+          "id": "portal-flatfox",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 3,
+          "fetched": 3,
+          "llm": 3,
+          "kept": 0,
+          "new": 0,
+          "agencies": 0,
+          "junk": 3,
+          "geo": 0,
+          "consecutiveBad": 3
         },
         {
           "id": "portal-urbanhome",
@@ -3971,26 +4408,26 @@
           "agencies": 1,
           "junk": 2,
           "geo": 0,
-          "consecutiveBad": 4
+          "consecutiveBad": 3
+        },
+        {
+          "id": "portal-icasa",
+          "queries": 1,
+          "hits": 10,
+          "candidates": 3,
+          "fetched": 2,
+          "llm": 2,
+          "kept": 0,
+          "new": 0,
+          "agencies": 1,
+          "junk": 1,
+          "geo": 0,
+          "consecutiveBad": 2
         },
         {
           "id": "search",
           "queries": 4,
           "hits": 40,
-          "candidates": 1,
-          "fetched": 1,
-          "llm": 0,
-          "kept": 0,
-          "new": 0,
-          "agencies": 0,
-          "junk": 1,
-          "geo": 0,
-          "consecutiveBad": 1
-        },
-        {
-          "id": "portal-flatfox",
-          "queries": 1,
-          "hits": 10,
           "candidates": 1,
           "fetched": 1,
           "llm": 1,
@@ -4007,7 +4444,7 @@
           "hits": 10,
           "candidates": 2,
           "fetched": 1,
-          "llm": 0,
+          "llm": 1,
           "kept": 0,
           "new": 0,
           "agencies": 0,
@@ -4035,7 +4472,7 @@
           "hits": 10,
           "candidates": 1,
           "fetched": 1,
-          "llm": 0,
+          "llm": 1,
           "kept": 0,
           "new": 0,
           "agencies": 0,
@@ -4059,20 +4496,6 @@
         },
         {
           "id": "portal-immoscout24",
-          "queries": 1,
-          "hits": 10,
-          "candidates": 0,
-          "fetched": 0,
-          "llm": 0,
-          "kept": 0,
-          "new": 0,
-          "agencies": 0,
-          "junk": 0,
-          "geo": 0,
-          "consecutiveBad": 0
-        },
-        {
-          "id": "portal-tutti",
           "queries": 1,
           "hits": 10,
           "candidates": 0,
@@ -4145,15 +4568,15 @@
       "wavesRun": [
         "carousel"
       ],
-      "previewCount": 11,
+      "previewCount": 14,
       "preview": [
         {
           "url": "www.homegate.ch/mieten/4002691999",
           "source": "search",
           "title": "Just a moment...",
           "kept": false,
-          "reason": "list_or_search_page",
-          "detail": "prefilter_after_fetch",
+          "reason": "not_single_listing",
+          "detail": "",
           "municipality": null,
           "rooms": null
         },
@@ -4168,27 +4591,57 @@
           "rooms": 3.5
         },
         {
-          "url": "www.anibis.ch/de/vi/10010849551",
+          "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+          "source": "portal-flatfox",
+          "title": "Rent a 3 ½ rooms apartment in Chur | Flatfox",
+          "kept": false,
+          "reason": "listing_unavailable",
+          "detail": "page_states_unavailable",
+          "municipality": "Chur",
+          "rooms": 3.5
+        },
+        {
+          "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+          "source": "portal-flatfox",
+          "title": "Appartement 3 ½ pièces à louer à Chur | Flatfox",
+          "kept": false,
+          "reason": "price_ambiguous_on_detail_page",
+          "detail": "write_gate",
+          "municipality": "Chur",
+          "rooms": 3.5
+        },
+        {
+          "url": "www.tutti.ch/de/vi/83980958",
+          "source": "portal-tutti",
+          "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur",
+          "kept": true,
+          "reason": null,
+          "detail": "provisional_search_snippet, provisional_quality_gate:price_above_max",
+          "municipality": "Chur",
+          "rooms": 3.5
+        },
+        {
+          "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
           "source": "portal-anibis",
-          "title": "Grosszügige 3.5 Zimmer Wohnung im Kanton Bern mieten",
+          "title": "4 Zimmer-Wohnung, 9000 St. Gallen",
           "kept": false,
           "reason": "municipality_not_whitelisted",
-          "detail": "title_place:im Kanton Bern",
+          "detail": "title_place:St. Gallen",
           "municipality": null,
           "rooms": null
         },
         {
-          "url": "www.anibis.ch/de/vi/10011107184",
+          "url": "www.anibis.ch/de/vi/10010982391",
           "source": "portal-anibis",
           "title": "Just a moment...",
           "kept": false,
-          "reason": "list_or_search_page",
-          "detail": "prefilter_after_fetch",
+          "reason": "not_single_listing",
+          "detail": "",
           "municipality": null,
-          "rooms": null
+          "rooms": 4
         },
         {
-          "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
+          "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
           "source": "portal-urbanhome",
           "title": "Inserat nicht mehr verfügbar | UrbanHome",
           "kept": false,
@@ -4198,7 +4651,7 @@
           "rooms": null
         },
         {
-          "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
+          "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
           "source": "portal-urbanhome",
           "title": "Inserat nicht mehr verfügbar | UrbanHome",
           "kept": false,
@@ -4232,10 +4685,20 @@
           "source": "portal-acheter-louer",
           "title": "Just a moment...",
           "kept": false,
-          "reason": "list_or_search_page",
-          "detail": "prefilter_after_fetch",
+          "reason": "not_single_listing",
+          "detail": "",
           "municipality": null,
           "rooms": null
+        },
+        {
+          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
+          "source": "portal-icasa",
+          "title": "iCasa.ch",
+          "kept": false,
+          "reason": "not_single_listing",
+          "detail": "",
+          "municipality": null,
+          "rooms": 3.5
         },
         {
           "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
@@ -4246,29 +4709,19 @@
           "detail": "Wincasa AG",
           "municipality": "Chur",
           "rooms": 4.5
-        },
-        {
-          "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
-          "source": "portal-icasa",
-          "title": "iCasa.ch",
-          "kept": true,
-          "reason": null,
-          "detail": "rooms_from_serp_title",
-          "municipality": "Chur",
-          "rooms": 3.5
         }
       ],
-      "estimatedCostUsd": 0.028
+      "estimatedCostUsd": 0.043
     }
   ],
   "result": {
     "counts": {
-      "sources": 8,
+      "sources": 9,
       "index_pages": 0,
-      "candidates": 11,
-      "fetched": 10,
-      "snippet_only": 0,
-      "skipped_known": 0,
+      "candidates": 15,
+      "fetched": 12,
+      "snippet_only": 1,
+      "skipped_known": 1,
       "skipped_seen": 0,
       "skipped_geo": 1,
       "search_queries": 17,
@@ -4278,44 +4731,56 @@
       "kept": 1,
       "new": 1,
       "updated": 0,
-      "llm_calls": 5,
-      "enriched": 1,
-      "evidence_page_text": 2,
+      "llm_calls": 10,
+      "enriched": 0,
+      "evidence_page_text": 3,
+      "evidence_snippet": 1,
       "credible_kept": 1
     },
     "filtered": {
-      "list_or_search_page": 5,
-      "listing_unavailable": 1,
+      "not_single_listing": 4,
+      "listing_unavailable": 2,
+      "price_ambiguous_on_detail_page": 1,
       "municipality_not_whitelisted": 1,
+      "list_or_search_page": 2,
       "agency": 2,
       "rooms_below_min": 1
     },
     "errors": [
       {
-        "source": "portal-urbanhome",
-        "code": "llm_failed",
-        "detail": "step_timeout:llm"
-      },
-      {
-        "source": "portal-icasa",
-        "code": "llm_failed",
-        "detail": "step_timeout:llm"
+        "source": "portal-tutti",
+        "code": "step_timeout",
+        "detail": "fetch >10000ms https://www.tutti.ch/de/vi/[phone]?srsltid=AYCX9vLnaqLuNuh7p7_Ljtd2QPZz5HGrHoS8gObn3V95an0XtUhgSrp9"
       }
     ],
     "sourceStats": [
       {
-        "id": "portal-icasa",
+        "id": "portal-tutti",
         "queries": 1,
         "hits": 10,
-        "candidates": 2,
-        "fetched": 2,
-        "llm": 2,
+        "candidates": 1,
+        "fetched": 0,
+        "llm": 0,
         "kept": 1,
         "new": 1,
-        "agencies": 1,
+        "agencies": 0,
         "junk": 0,
         "geo": 0,
         "consecutiveBad": 0
+      },
+      {
+        "id": "portal-flatfox",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 3,
+        "fetched": 3,
+        "llm": 3,
+        "kept": 0,
+        "new": 0,
+        "agencies": 0,
+        "junk": 3,
+        "geo": 0,
+        "consecutiveBad": 3
       },
       {
         "id": "portal-urbanhome",
@@ -4329,26 +4794,26 @@
         "agencies": 1,
         "junk": 2,
         "geo": 0,
-        "consecutiveBad": 4
+        "consecutiveBad": 3
+      },
+      {
+        "id": "portal-icasa",
+        "queries": 1,
+        "hits": 10,
+        "candidates": 3,
+        "fetched": 2,
+        "llm": 2,
+        "kept": 0,
+        "new": 0,
+        "agencies": 1,
+        "junk": 1,
+        "geo": 0,
+        "consecutiveBad": 2
       },
       {
         "id": "search",
         "queries": 4,
         "hits": 40,
-        "candidates": 1,
-        "fetched": 1,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 1,
-        "geo": 0,
-        "consecutiveBad": 1
-      },
-      {
-        "id": "portal-flatfox",
-        "queries": 1,
-        "hits": 10,
         "candidates": 1,
         "fetched": 1,
         "llm": 1,
@@ -4365,7 +4830,7 @@
         "hits": 10,
         "candidates": 2,
         "fetched": 1,
-        "llm": 0,
+        "llm": 1,
         "kept": 0,
         "new": 0,
         "agencies": 0,
@@ -4393,7 +4858,7 @@
         "hits": 10,
         "candidates": 1,
         "fetched": 1,
-        "llm": 0,
+        "llm": 1,
         "kept": 0,
         "new": 0,
         "agencies": 0,
@@ -4417,20 +4882,6 @@
       },
       {
         "id": "portal-immoscout24",
-        "queries": 1,
-        "hits": 10,
-        "candidates": 0,
-        "fetched": 0,
-        "llm": 0,
-        "kept": 0,
-        "new": 0,
-        "agencies": 0,
-        "junk": 0,
-        "geo": 0,
-        "consecutiveBad": 0
-      },
-      {
-        "id": "portal-tutti",
         "queries": 1,
         "hits": 10,
         "candidates": 0,
@@ -4511,8 +4962,8 @@
         "municipality": null,
         "rooms": null,
         "kept": false,
-        "reason": "list_or_search_page",
-        "detail": "prefilter_after_fetch"
+        "reason": "not_single_listing",
+        "detail": ""
       },
       {
         "url": "flatfox.ch/de/wohnung/lagerstr-9-7000-chur/1289164/",
@@ -4525,27 +4976,57 @@
         "detail": "page_states_unavailable"
       },
       {
-        "url": "www.anibis.ch/de/vi/10010849551",
-        "title": "Grosszügige 3.5 Zimmer Wohnung im Kanton Bern mieten",
+        "url": "flatfox.ch/en/flat/calvenweg-4-7000-chur/86521287/",
+        "title": "Rent a 3 ½ rooms apartment in Chur | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Chur",
+        "rooms": 3.5,
+        "kept": false,
+        "reason": "listing_unavailable",
+        "detail": "page_states_unavailable"
+      },
+      {
+        "url": "flatfox.ch/fr/flat/adlerweg-2-7000-chur/86378613/",
+        "title": "Appartement 3 ½ pièces à louer à Chur | Flatfox",
+        "source": "portal-flatfox",
+        "municipality": "Chur",
+        "rooms": 3.5,
+        "kept": false,
+        "reason": "price_ambiguous_on_detail_page",
+        "detail": "write_gate"
+      },
+      {
+        "url": "www.tutti.ch/de/vi/83980958",
+        "title": "3.5 Zimmer-Attikawohnung mit grossem Balkon mitten in Chur",
+        "source": "portal-tutti",
+        "municipality": "Chur",
+        "rooms": 3.5,
+        "kept": true,
+        "reason": null,
+        "detail": "provisional_search_snippet, provisional_quality_gate:price_above_max"
+      },
+      {
+        "url": "www.anibis.ch/de/vi/st-gallen/immobilien/wohnungen/4-zimmer-wohnung-9000-st-gallen/10010552588",
+        "title": "4 Zimmer-Wohnung, 9000 St. Gallen",
         "source": "portal-anibis",
         "municipality": null,
         "rooms": null,
         "kept": false,
         "reason": "municipality_not_whitelisted",
-        "detail": "title_place:im Kanton Bern"
+        "detail": "title_place:St. Gallen"
       },
       {
-        "url": "www.anibis.ch/de/vi/10011107184",
+        "url": "www.anibis.ch/de/vi/10010982391",
         "title": "Just a moment...",
         "source": "portal-anibis",
         "municipality": null,
-        "rooms": null,
+        "rooms": 4,
         "kept": false,
-        "reason": "list_or_search_page",
-        "detail": "prefilter_after_fetch"
+        "reason": "not_single_listing",
+        "detail": ""
       },
       {
-        "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
+        "url": "www.urbanhome.ch/suchen/8222625-4-5-zimmer-wohnung",
         "title": "Inserat nicht mehr verfügbar | UrbanHome",
         "source": "portal-urbanhome",
         "municipality": null,
@@ -4555,7 +5036,7 @@
         "detail": "prefilter_after_fetch"
       },
       {
-        "url": "www.urbanhome.ch/suchen/8228626-appartement-de-3-5-pieces",
+        "url": "www.urbanhome.ch/suchen/8193298-4-5-zimmer-wohnung",
         "title": "Inserat nicht mehr verfügbar | UrbanHome",
         "source": "portal-urbanhome",
         "municipality": null,
@@ -4591,8 +5072,18 @@
         "municipality": null,
         "rooms": null,
         "kept": false,
-        "reason": "list_or_search_page",
-        "detail": "prefilter_after_fetch"
+        "reason": "not_single_listing",
+        "detail": ""
+      },
+      {
+        "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1893413.html",
+        "title": "iCasa.ch",
+        "source": "portal-icasa",
+        "municipality": null,
+        "rooms": 3.5,
+        "kept": false,
+        "reason": "not_single_listing",
+        "detail": ""
       },
       {
         "url": "icasa.ch/4.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1898669.html",
@@ -4603,16 +5094,6 @@
         "kept": false,
         "reason": "agency",
         "detail": "Wincasa AG"
-      },
-      {
-        "url": "icasa.ch/3.5-zimmer-wohnung-zum-mieten-graubunden-plessur-chur-7000-chur-1921676.html",
-        "title": "iCasa.ch",
-        "source": "portal-icasa",
-        "municipality": "Chur",
-        "rooms": 3.5,
-        "kept": true,
-        "reason": null,
-        "detail": "rooms_from_serp_title"
       }
     ]
   }
