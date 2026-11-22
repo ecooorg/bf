@@ -20,7 +20,7 @@ jobs:
           set -euo pipefail
           git config user.name "ecooorg"
           git config user.email "ecooorg@gmail.com"
-          git add server/immofinderCore.ts server/immofinderDiscovery.ts config/immofinder.json tests/immofinder-quality.test.mjs
+          git add server/immofinderCore.ts server/immofinderDiscovery.ts server/immofinderFetcher.ts config/immofinder.json
           git status
-          git commit -m "fix(immofinder): reject list/index URLs early; raise maxCandidatesPerQuery" || echo "no changes"
+          git commit -m "fix(immofinder): restore core; reject seite/parking/PDF/wrong-canton; Jina on challenge" || echo "no changes"
           git push origin HEAD:main
