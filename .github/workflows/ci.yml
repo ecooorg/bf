@@ -1,1 +1,172 @@
-PLACEHOLDER_CI
+name: Core CI — Full Project Verification
+on:
+  push:
+    branches: [main]
+    # Snapshot/diagnostics-only commits must not burn a full verification DAG.
+    paths-ignore:
+      - 'data/immofinder/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: core-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: biforge
+          POSTGRES_PASSWORD: biforge_test_password
+          POSTGRES_DB: biforge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U biforge -d biforge_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Prepare log directory
+        run: mkdir -p artifacts/ci-checks
+      - name: Preflight (current files, scripts, version)
+        shell: bash
+        run: set -o pipefail; CI_LOGS_DIR=artifacts/ci-checks node scripts/workflow-preflight.mjs
+      - name: Configure npm retries
+        run: |
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set fetch-timeout 300000
+
+      - name: Install dependencies
+        id: deps
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -o pipefail
+          start=$SECONDS
+          npm ci --no-audit --no-fund 2>&1 | tee artifacts/ci-checks/01-dependencies.log
+          status=${PIPESTATUS[0]}
+          echo "npm ci duration: $((SECONDS-start))s; exit: ${status}" | tee -a artifacts/ci-checks/01-dependencies.log
+          exit "$status"
+
+      # One verification DAG (docs/verification-manifest.json, profile ci): critical probes, category suites,
+      # db-migrate when DAG_TEST_DATABASE_URL is set, and production build. No per-patch or retired no-op test scripts.
+      - name: Verification DAG
+        id: dag
+        if: steps.deps.outcome == 'success'
+        timeout-minutes: 60
+        shell: bash
+        run: |
+          set -o pipefail
+          start=$SECONDS
+          node scripts/run-dag.mjs --profile ci 2>&1 | tee artifacts/ci-checks/02-verification-dag.log
+          status=${PIPESTATUS[0]}
+          echo "Verification DAG duration: $((SECONDS-start))s; exit: ${status}" | tee -a artifacts/ci-checks/02-verification-dag.log
+          exit "$status"
+        env:
+          DAG_ALLOW_UNSAFE: 'true'
+          DAG_TEST_DATABASE_URL: postgres://biforge:biforge_test_password@localhost:5432/biforge_test
+
+      - name: Scan repository for leaked secrets
+        if: always() && steps.deps.outcome == 'success'
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        continue-on-error: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Capture CI metrics and recent run history
+        if: always()
+        shell: bash
+        run: node scripts/ci-run-history.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+
+      - name: Generate CI patch evidence report
+        if: always()
+        shell: bash
+        run: node scripts/patch-quality-report.mjs
+        env:
+          CI_STATUS: ${{ job.status }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          DAG_OUTCOME: ${{ steps.dag.outcome }}
+
+      - name: Evidence gate (fail closed)
+        if: always()
+        shell: bash
+        run: node scripts/ci-evidence-gate.mjs
+
+
+      - name: Generate unified diagnostic report
+        if: always()
+        shell: bash
+        run: |
+          node scripts/diagnostics-summary.mjs
+          if [ -f artifacts/ci-checks/ASSISTANT_SUMMARY.md ]; then cat artifacts/ci-checks/ASSISTANT_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"; fi
+        env:
+          CI_LOGS_DIR: artifacts/ci-checks
+          WORKFLOW_RERUN: 'npm run check'
+          CI_STATUS: ${{ job.status }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+
+      - name: CI PATCH EVIDENCE — GitHub Actions summary
+        if: always()
+        run: node scripts/ci-summary.mjs
+        env:
+          CI_STATUS: ${{ job.status }}
+
+      - name: Print final CI patch evidence report
+        if: always()
+        shell: bash
+        run: |
+          if [ -f artifacts/ci-checks/BIForge-PATCH-EVIDENCE.md ]; then
+            cat artifacts/ci-checks/BIForge-PATCH-EVIDENCE.md
+          elif [ -f artifacts/ci-checks/PATCH_EVIDENCE.md ]; then
+            cat artifacts/ci-checks/PATCH_EVIDENCE.md
+          else
+            echo 'BIForge-PATCH-EVIDENCE.md unavailable; inspect CI report-generation errors above.'
+          fi
+
+      - name: Upload complete CI report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ci-diagnostics
+          path: |
+            artifacts/ci-checks/ASSISTANT_SUMMARY.md
+            artifacts/ci-checks/*.log
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
