@@ -1,0 +1,63 @@
+name: emergency-fix-portal-detail
+on:
+  workflow_dispatch:
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tighten isPortalDetailUrl
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('server/immofinderCore.ts')
+          t = p.read_text()
+          # Find isPortalDetailUrl body and ensure bare category paths without numeric id fail
+          if 'isPortalDetailUrl' not in t:
+            raise SystemExit('fn missing')
+          # Add early reject for short category list paths like /de/mieten/wohnung (no id, no long slug)
+          needle = 'export function isPortalDetailUrl(url: string, portalHosts: string[] = []): boolean {'
+          idx = t.find(needle)
+          if idx < 0:
+            raise SystemExit('signature missing')
+          # insert after URL parse success a list-path reject
+          # Find "const host = u.hostname"
+          host_line = t.find('const host = u.hostname', idx)
+          if host_line < 0:
+            raise SystemExit('host line missing')
+          insert_at = t.find('\n', host_line) + 1
+          injection = """  const pathLower = u.pathname.toLowerCase().replace(/\\/+$/, '');\n  // Category/list routes (no listing id): e.g. /de/mieten/wohnung, /mieten/wohnung\n  if (/\\/(mieten|rent|louer|affittare)\\/(wohnung|apartment|haus|house|maison|flat)(?:\\/|$)/i.test(pathLower) && !/\\d{5,}/.test(pathLower)) return false;\n"""
+          if 'Category/list routes' in t:
+            print('already injected')
+          else:
+            t = t[:insert_at] + injection + t[insert_at:]
+            p.write_text(t)
+            print('injected')
+          PY
+          # quick node assert
+          node --input-type=module -e "
+          import { isPortalDetailUrl } from './server/immofinderCore.ts';
+          const portals = ['immobilier.ch', 'flatfox.ch'];
+          console.log('list', isPortalDetailUrl('https://flatfox.ch/de/mieten/wohnung', portals));
+          console.log('detail', isPortalDetailUrl('https://flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/', portals));
+          if (isPortalDetailUrl('https://flatfox.ch/de/mieten/wohnung', portals) !== false) process.exit(1);
+          if (isPortalDetailUrl('https://flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/', portals) !== true) process.exit(1);
+          " || { echo 'assert failed — need tsx'; node --import tsx -e "
+          import { isPortalDetailUrl } from './server/immofinderCore.ts';
+          const portals = ['immobilier.ch', 'flatfox.ch'];
+          console.log('list', isPortalDetailUrl('https://flatfox.ch/de/mieten/wohnung', portals));
+          console.log('detail', isPortalDetailUrl('https://flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/', portals));
+          if (isPortalDetailUrl('https://flatfox.ch/de/mieten/wohnung', portals) !== false) process.exit(1);
+          if (isPortalDetailUrl('https://flatfox.ch/de/wohnung/landquart-kantonsstrasse-23-7302-landquart/86180998/', portals) !== true) process.exit(1);
+          "
+          }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/immofinderCore.ts
+          git commit -m "fix(immofinder): isPortalDetailUrl rejects category list paths without listing id"
+          git push origin HEAD:main
